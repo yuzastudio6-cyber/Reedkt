@@ -3,7 +3,17 @@ import type { JobType } from './jobs'
 
 export type GoogleCloudRegion = string
 
-export type WorkerRuntimeType = 'cloud_run_service' | 'cloud_run_job' | 'gpu_worker' | 'local_mock'
+export type WorkerRuntimeType =
+  | 'frontend_mock'
+  | 'backend_api'
+  | 'supabase_edge_function'
+  | 'cloud_run_service'
+  | 'cloud_run_job'
+  | 'gpu_worker'
+  | 'google_cloud_shell_manual'
+  | 'external_ai_provider'
+  | 'human'
+  | 'unknown'
 
 export type EstimatedComputeClass = 'cpu_light' | 'cpu_standard' | 'gpu_light' | 'gpu_heavy' | 'render_heavy'
 

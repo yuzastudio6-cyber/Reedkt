@@ -4,6 +4,31 @@
 
 This document defines the future Stroke Motion database architecture. It is documentation only and does not implement generation, animations, migrations, AI calls, or rendering.
 
+## RP-DB-08 Implementation
+
+`supabase/migrations/202605130006_stroke_motion_data_model.sql` creates the local Supabase/Postgres foundation for Stroke Motion planning. It stores planning records only: no animation generation, provider integration, render/export/revision tables, AI API calls, Stripe, Google Cloud deployment, uploads, rendering, or mobile work.
+
+RP-DB-08 creates structured records for:
+
+- `stroke_motion_plans`
+- `stroke_motion_meaning_expansions`
+- `stroke_motion_beats`
+- `stroke_motion_characters`
+- `stroke_motion_symbols`
+- `stroke_motion_beat_characters`
+- `stroke_motion_beat_symbols`
+- `stroke_motion_transitions`
+- `stroke_motion_timing_anchors`
+- `stroke_motion_storyboard_frames`
+- `stroke_motion_generation_specs`
+- `stroke_motion_plan_examples`
+
+The migration supports `spoken_story_mode` and `source_reading_mode`. Source reading mode requires meaning expansion before animation planning so the AI understands the source text before it designs visual story beats.
+
+Beats store both `meaning` and `visual_action`. Transitions connect beats into one animated story. Timing anchors synchronize motion to words, phrases, sentences, pauses, emotional shifts, scene cuts, music beats, SFX hits, or manual marks. Storyboard frames prove the visual meaning before expensive generation. Generation specs describe future transparent-overlay and word-timed renderer requirements without creating a generation request.
+
+The seeded `joseph_mary_source_reading_example` is example-only reference data. It demonstrates the Joseph/Mary transition chain and respectful worker notes, but Stroke Motion is not Bible-only and must work for business stories, real estate tours, product explanations, education, documentaries, personal stories, books, historical text, documents, lessons, and articles.
+
 ## Definition
 
 Stroke Motion is a fast transparent 2D animated story layer that turns spoken meaning, source text, or scripture/book/document reading into clear visual story beats using stroke characters, symbols, paths, and transitions timed to the speaker's words.

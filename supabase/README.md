@@ -89,6 +89,90 @@ This migration is designed for ReeditPro's chat-native editor model:
 
 The chat is the editor. Users send clips, reference links, instructions, approvals, revision requests, and export requests through chat. Inline chat cards appear only when ReeditPro needs user input, confirmation, approval, progress, or preview.
 
+### RP-DB-06: Credit Ledger + Approval Gate
+
+`migrations/202605130004_credit_ledger_approval_gate.sql` creates the credit and approval boundary that protects users and ReeditPro before future generation work:
+
+- credit wallets
+- credit grants / buckets
+- credit ledger entries
+- credit estimates
+- credit estimate line items
+- credit approvals
+- credit reservations
+- credit reservation line items
+- credit refunds
+- a simple credit wallet balance view
+- a `can_start_generation(edit_plan_id)` helper for future server-side generation gates
+
+Subscription remains software access. Reedit Credits pay for AI generation, rendering, editing usage, premium signature systems, Real Motion, SoundSync, revisions, and future exports.
+
+RP-DB-06 models this flow:
+
+`estimate credits -> show estimate in chat -> user approves estimate -> reserve credits -> future generation may start -> successful generation turns reserved credits into spent credits -> ReeditPro-caused failures can be refunded`
+
+Weekly bonus, purchased, promotional, admin, and refund credits are modeled as separate grant buckets. Cached wallet balances exist for fast UI reads, but grants and append-style ledger entries are the source of truth for future backend reconciliation.
+
+This migration links `edit_plans.credit_estimate_id` to credit estimates and lets ledger entries reference estimates and reservations. It enables RLS for all new credit tables, gives workspace members read access, keeps ledger mutation restricted, and expects future backend/service code to perform reservation, spend, reconciliation, and refund operations after approval.
+
+This migration does not add Stripe, billing checkout, a backend credit service, job orchestration, Stroke Motion animation tables, generation providers, render/export/revision tables, QA reports, AI APIs, uploads, Google Cloud workers, mobile screens, or remote Supabase deployment.
+
+### RP-DB-07: Job Orchestration + Agent Runs
+
+`migrations/202605130005_job_orchestration_agent_runs.sql` creates the orchestration layer for coordinated AI editor work:
+
+- job batches
+- jobs
+- job dependencies
+- job events
+- agent runs
+- agent outputs
+- worker runtime configs
+- worker heartbeats
+- a global event log
+- a simple job progress view
+- a `can_run_job(job_id)` helper for future backend orchestration gates
+
+Jobs model the chat-native editor pipeline from media and intent analysis through planning, credit estimation, approval waits, credit reservation waits, future generation, preview delivery, quality checks, exports, and revision planning. Waiting states are first-class: `waiting_dependency`, `waiting_user_input`, `waiting_user_approval`, and `waiting_credit_reservation`.
+
+Generation, render preview, preview delivery, and export-like jobs must not run until dependencies are satisfied, the edit plan is approved, the credit estimate is approved, and a non-expired credit reservation exists. The helper delegates the approval/credit boundary to RP-DB-06 `can_start_generation(edit_plan_id)` and also checks the job's reservation.
+
+Worker runtime config records store non-secret configuration only. `secret_reference_name` is a reference label for a future secret manager, never an API key, service role key, provider credential, signed URL, or raw secret.
+
+This migration enables RLS for all new orchestration tables, gives workspace members read access through policies, keeps job/agent/event mutation restricted to owner/admin policies for authenticated users, and grants explicit future service-role access without adding credentials.
+
+This migration does not implement actual workers, job execution, backend APIs, AI APIs, Stripe, Google Cloud deployment, real uploads, rendering, mobile screens, Stroke Motion detail tables, generation provider tables, generated asset tables, render/export/revision tables, or QA reports.
+
+### RP-DB-08: Stroke Motion Data Model + Planning Tables
+
+`migrations/202605130006_stroke_motion_data_model.sql` creates the deep planning model for the first structured ReeditPro signature system:
+
+- Stroke Motion plans
+- meaning expansions
+- visual story beats
+- stroke characters
+- stroke symbols
+- beat-character and beat-symbol joins
+- connected transitions
+- timing anchors
+- storyboard frames
+- future generation specs
+- reusable plan examples
+
+Stroke Motion supports `spoken_story_mode` when the user already explains the story clearly, and `source_reading_mode` when the user reads from a source such as scripture, a book passage, a quote, a script, historical text, a document, a lesson, or an article.
+
+In `source_reading_mode`, the AI must create meaning expansion before animation planning. Meaning expansion turns compact source text into plain-language story beats, then beats store both `meaning` and `visual_action` so the planned animation can be understood visually without audio or captions.
+
+Transitions connect beats into one fast animated story instead of random arrows, circles, or decorative icons. Timing anchors sync motion to words, phrases, sentences, pauses, emotional shifts, scene cuts, music beats, SFX hits, or manual marks.
+
+Generation specs prepare future animation workers with transparent overlay, word-level timing, output format, deterministic renderer preference, style constraints, timing constraints, prompt, negative prompt, and worker notes. They are not generation requests and do not call Wan, Veo, Kling, Remotion, Lottie, SVG renderers, or any provider.
+
+The seeded `joseph_mary_source_reading_example` is example-only reference data. It demonstrates source reading mode, symbolic treatment, respectful worker notes, and the transition chain `relationship line -> holy glow -> tension/crack -> separation path -> divine message line -> repaired connection -> protective circle -> fade/underline transition out`. It does not make Stroke Motion Bible-only.
+
+This migration enables RLS for every new table, gives workspace members read access, allows owner/admin/editor planning writes through policies, keeps examples read-only for authenticated users, and grants future service-role access without adding credentials.
+
+This migration does not generate animations, create generation provider/request tables, create generated assets, create render/export/revision/QA tables, integrate AI APIs, integrate Stripe, deploy Google Cloud, build backend endpoints, add uploads, render video, or build mobile screens.
+
 ## Source Clip Order
 
 Uploaded or sent clip order is stored as a source sequence. This is the order the user filmed the clips or believes they belong.
@@ -99,27 +183,29 @@ Source sequence order is important planning context, but it is not automatically
 
 RP-DB-03 stores approval-ready chat cards/actions, but it does not implement full edit-plan approval, credit approval, credit reservations, generation jobs, or rendering.
 
+RP-DB-06 adds credit estimates, credit approvals, and credit reservations as database records, but it still does not implement backend services, generation jobs, rendering, billing, or remote deployment.
+
+RP-DB-07 adds job orchestration records and worker/agent audit trails, but it still does not execute jobs, call providers, render previews, deploy workers, or spend credits from backend services.
+
+RP-DB-08 adds Stroke Motion planning records and future generation specs, but it still does not generate animations, call providers, render overlays, or spend credits from backend services.
+
 ReeditPro must never start expensive AI editing, animation generation, rendering, or credit spending until:
 
 1. AI understands the user's goal.
 2. AI creates an edit plan.
 3. AI creates a credit estimate.
 4. The user approves the plan and credits.
+5. Credits are reserved.
 
 ## Future Migrations
 
 Later migrations should add, in order:
 
-- edit quality engine tables
-- credit wallets, estimates, ledger entries, and reservations
-- approval records
-- job orchestration and agent run tables
-- Stroke Motion planning tables
-- Graphic Design / VisualExplain, Real Motion, and SoundSync planning tables
 - generation provider records
-- render jobs and renders
-- preview reviews, revisions, QA reports, and exports
+- render, export, and revision records
+- preview delivery records and QA reports
+- Stripe and billing integration after the credit service boundary is implemented
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03, RP-DB-04, and RP-DB-05 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-DB-08 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

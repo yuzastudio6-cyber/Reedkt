@@ -47,7 +47,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </span>
         </div>
         <Button size="sm" to="/editor" variant="secondary">
-          Open in editor
+          Open AI chat editor
         </Button>
       </div>
     </Card>

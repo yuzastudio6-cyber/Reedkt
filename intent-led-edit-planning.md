@@ -6,6 +6,8 @@ ReeditPro plans before it edits. The AI must understand user intent, source foot
 
 Expensive AI editing, rendering, or generation must not start until the user approves the edit plan and credit estimate.
 
+For backend/database architecture, see `database-architecture.md`, `ai-editor-data-model.md`, and `edit-plan-state-machine.md`. ReeditPro editing is chat-native: chat messages become structured intent, plan, estimate, approval, job, preview, and revision records before generation begins.
+
 ## Full Upload-To-Plan Flow
 
 1. User uploads clips in source order.

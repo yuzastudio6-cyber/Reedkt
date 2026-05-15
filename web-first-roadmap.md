@@ -50,6 +50,7 @@
 - Add auth, projects, media, plans, credits, edit plans, approval status, jobs, and exports.
 - Use Supabase project `reeditpro`.
 - Do not use the Yuza Studio Supabase project.
+- Follow RP-DB-01 docs: `database-architecture.md`, `ai-editor-data-model.md`, `edit-quality-engine.md`, `credit-ledger-architecture.md`, `job-orchestration-architecture.md`, `stroke-motion-data-model.md`, `generation-provider-architecture.md`, and `preview-revision-qa-architecture.md`.
 
 ## Phase 8: AI/Video Generation Integration
 

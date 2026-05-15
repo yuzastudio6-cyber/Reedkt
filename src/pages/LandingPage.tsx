@@ -21,7 +21,7 @@ export function LandingPage() {
           <p>Upload your clips, explain the idea, and ReeditPro plans the edit before spending credits.</p>
           <div className="hero-actions">
             <Button icon={Sparkles} to="/projects/new" variant="primary">
-              Start editing
+              Start with chat
             </Button>
             <Button icon={Play} to="/pricing" variant="secondary">
               See pricing
@@ -71,7 +71,7 @@ export function LandingPage() {
         <div className="section-heading">
           <span className="section-eyebrow">Web-first editing system</span>
           <h2>A premium creative operating system for planned AI edits.</h2>
-          <p>Upload clips in order, let AI map the story, review the plan, approve credits, then open the desktop editor shell.</p>
+          <p>Upload clips in order through chat, let AI map the story, review the plan, approve credits, then watch ReeditPro edit in the background.</p>
         </div>
         <div className="feature-grid">
           {featureCards.map((feature) => {

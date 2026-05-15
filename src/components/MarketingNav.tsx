@@ -27,7 +27,7 @@ export function MarketingNav() {
           Sign In
         </Button>
         <Button to="/projects/new" variant="primary">
-          Start editing
+          Start with chat
         </Button>
       </div>
     </header>

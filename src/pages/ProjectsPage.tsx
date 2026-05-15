@@ -26,7 +26,7 @@ export function ProjectsPage() {
           Filters
         </Button>
         <Button icon={UploadCloud} to="/projects/new" variant="primary">
-          New project
+          Create project and chat
         </Button>
       </section>
 
@@ -50,9 +50,12 @@ export function ProjectsPage() {
         <Card className="upload-placeholder-card">
           <UploadCloud size={26} />
           <h2>Upload placeholder</h2>
-          <p>Real upload storage is not connected. Start a mock project to arrange clips in source order and generate a plan.</p>
+          <p>Real upload storage is not connected. Start a mock project, then send clips in source order inside the AI chat editor.</p>
           <Button to="/projects/new" variant="primary">
-            Create project
+            Create project and chat
+          </Button>
+          <Button to="/editor" variant="secondary">
+            Open AI chat editor
           </Button>
         </Card>
         <Card className="storage-widget-card">
@@ -88,7 +91,7 @@ export function ProjectsPage() {
 
       <Card className="library-empty-state">
         <h2>Empty state example</h2>
-        <p>No clips uploaded yet. Add clips in source order so ReeditPro can understand your raw story.</p>
+        <p>No clips uploaded yet. Send clips in source order inside chat so ReeditPro can understand your raw story.</p>
       </Card>
     </AppShell>
   )

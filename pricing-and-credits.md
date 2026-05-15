@@ -6,6 +6,8 @@ Subscription is software access. Reedit Credits pay for AI generation, rendering
 
 Do not treat `$10/week` or `$20/week` as unlimited AI editing.
 
+For backend/database architecture, see `credit-ledger-architecture.md`. Future credit implementation should use wallets, append-only ledger entries, estimates, and reservations rather than a single mutable number.
+
 ## Personal Plan
 
 - `$10/week` software access.

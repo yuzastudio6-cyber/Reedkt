@@ -24,7 +24,7 @@ export function PricingPage() {
         <p>ReeditPro shows the edit plan and credit estimate before generation. No real payment, checkout, or credit deduction is included in this frontend phase.</p>
         <div className="hero-actions">
           <Button icon={ArrowRight} to="/projects/new" variant="primary">
-            Start editing
+            Start with chat
           </Button>
           <Button to="/dashboard" variant="secondary">
             View dashboard

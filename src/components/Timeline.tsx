@@ -27,13 +27,17 @@ export function TimelineTrack({ track }: TimelineTrackProps) {
   )
 }
 
-export function Timeline() {
+type TimelineProps = {
+  compact?: boolean
+}
+
+export function Timeline({ compact = false }: TimelineProps) {
   return (
-    <section className="timeline-panel" aria-label="AI editor timeline">
+    <section className={`timeline-panel ${compact ? 'timeline-panel-compact' : ''}`.trim()} aria-label="AI editor timeline">
       <div className="timeline-header">
         <div>
-          <span className="section-eyebrow">StoryTiming timeline</span>
-          <h2>Visual and audio layers</h2>
+          <span className="section-eyebrow">{compact ? 'Detailed timeline - advanced view' : 'StoryTiming timeline'}</span>
+          <h2>{compact ? 'Layer timing' : 'Visual and audio layers'}</h2>
         </div>
         <div className="timeline-ruler" aria-hidden="true">
           <span>00:00</span>

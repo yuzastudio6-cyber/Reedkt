@@ -15,7 +15,7 @@ type AppShellProps = {
   primaryAction?: string
 }
 
-export function AppShell({ children, description, eyebrow, primaryAction = 'New project', title }: AppShellProps) {
+export function AppShell({ children, description, eyebrow, primaryAction = 'Create project and chat', title }: AppShellProps) {
   const location = useLocation()
 
   return (

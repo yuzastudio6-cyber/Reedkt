@@ -10,6 +10,8 @@ ReeditPro has three visual signature systems:
 
 SoundSync is still important, but it is not the third visual signature system. It is the audio and timing support engine. StoryTiming is the coordination engine that keeps captions, cuts, visuals, sound, and story beats aligned.
 
+For backend/database architecture, see `stroke-motion-data-model.md`, `generation-provider-architecture.md`, and `job-orchestration-architecture.md`. Stroke Motion supports `spoken_story_mode` and `source_reading_mode`; source reading requires `meaning_expansion` before animation planning.
+
 ## Stroke Motion
 
 Stroke Motion is 2D overlay motion storytelling. It is used for emotion, story, emphasis, transformation, movement, speaker-aligned visual motion, and simple visual metaphors.

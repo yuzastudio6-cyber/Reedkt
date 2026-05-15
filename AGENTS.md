@@ -39,6 +39,17 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Failed ReeditPro generation should be refunded according to `pricing-and-credits.md`.
 - Real Motion is premium and credit-heavy.
 
+## Backend And Database Architecture
+
+- RP-DB-01 architecture docs are the source of truth for future backend/database implementation.
+- ReeditPro editing is chat-native. The chat is the editor, and UI appears inside chat only when the AI needs user input, confirmation, approval, progress, or preview.
+- Every ReeditPro edit, including Basic, must meet a professional editing standard. Basic means lower-compute clean editing, not low-quality editing.
+- Edit level controls complexity, generation depth, credit cost, signature usage, and worker pipeline depth. Edit level does not control quality.
+- Heavy AI, generation, rendering, and background work should be designed for future Google Cloud workers, but no Google Cloud resources, credentials, or deployments should be added unless explicitly requested.
+- Never begin generation before edit plan and credit approval.
+- Stroke Motion supports `spoken_story_mode` and `source_reading_mode`.
+- Stroke Motion source reading requires `meaning_expansion` before animation planning.
+
 ## Subscription And Credits
 
 - Personal: `$10/week` software access.
@@ -56,6 +67,8 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Use design tokens for colors, spacing, typography, radius, borders, shadows, and states.
 - Keep the UI modular and ready for future backend/database integration.
 - Preserve the official ReeditPro logo assets and brand direction.
+- AI chat is the primary editor. The timeline is secondary. Advanced panels should be hidden by default unless the user explicitly opens them.
+- The chat is the editor. The AI edits in the background. Inline cards appear only when the AI needs user input, confirmation, approval, or preview.
 
 ## Web First, Mobile Later
 

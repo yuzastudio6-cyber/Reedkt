@@ -36,7 +36,7 @@ export function DashboardPage() {
                 <h2>Plan improvements before spending credits</h2>
               </div>
               <Button icon={ArrowRight} to="/projects/new" variant="secondary">
-                Create plan
+                Start with chat
               </Button>
             </div>
             {aiSuggestions.map((suggestion) => (
@@ -119,7 +119,10 @@ export function DashboardPage() {
 
       <div className="quick-action-row">
         <Button icon={UploadCloud} to="/projects/new" variant="primary">
-          New project
+          Create project and chat
+        </Button>
+        <Button to="/editor" variant="secondary">
+          Open AI chat editor
         </Button>
         <Button to="/projects" variant="secondary">
           Browse projects

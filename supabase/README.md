@@ -227,6 +227,20 @@ QA reports and QA items decide whether a preview/export is good enough to show o
 
 Final exports should happen only after render readiness, non-blocking QA, preview approval when required, and any required credit approval.
 
+### RP-DB-11: Database QA + End-to-End Mock Scenario
+
+RP-DB-11 does not add a new migration file. It adds local validation and review artifacts for the existing RP-DB-03 through RP-DB-10 migration chain:
+
+- `schema-review.md`
+- `migration-order.md`
+- `schema-health-checks.sql`
+- `e2e-mock-scenario.sql`
+- `e2e-mock-scenario.md`
+
+The review confirms the current schema sequence supports the chat-native path from project and source clips through planning, professional edit quality, Stroke Motion, credit estimate/approval/reservation, jobs, generation requests, generated assets, render jobs, preview review, QA, revisions, and export placeholders.
+
+The mock scenario is local-only. It uses placeholder UUIDs and requires a matching local `auth.users` row before inserting `user_profiles`, because Supabase Auth owns profile identity. It does not deploy migrations, connect to remote Supabase, add credentials, call providers, integrate Stripe, upload files, render video, or create mobile screens.
+
 ## Source Clip Order
 
 Uploaded or sent clip order is stored as a source sequence. This is the order the user filmed the clips or believes they belong.

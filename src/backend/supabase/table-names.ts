@@ -1,0 +1,27 @@
+export const TABLE_NAMES = {
+  projects: 'projects',
+  chatSessions: 'chat_sessions',
+  chatMessages: 'chat_messages',
+  mediaAssets: 'media_assets',
+  sourceClipSequences: 'source_clip_sequences',
+  intentAnalyses: 'intent_analyses',
+  sourceSequenceMaps: 'source_sequence_maps',
+  recommendedEditStructures: 'recommended_edit_structures',
+  editPlans: 'edit_plans',
+  editPlanSegments: 'edit_plan_segments',
+  editQualityProfiles: 'edit_quality_profiles',
+  strokeMotionPlans: 'stroke_motion_plans',
+  creditEstimates: 'credit_estimates',
+  creditReservations: 'credit_reservations',
+  jobBatches: 'job_batches',
+  jobs: 'jobs',
+  generationRequests: 'generation_requests',
+  generatedAssets: 'generated_assets',
+  renderJobs: 'render_jobs',
+  renders: 'renders',
+  revisionRequests: 'revision_requests',
+  qaReports: 'qa_reports',
+  exports: 'exports',
+} as const
+
+export type ReeditProTableKey = keyof typeof TABLE_NAMES

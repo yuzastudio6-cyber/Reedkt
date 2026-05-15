@@ -1,0 +1,10 @@
+export interface Database {
+  public: {
+    Tables: Record<string, unknown>
+    Views: Record<string, unknown>
+    Functions: Record<string, unknown>
+    Enums: Record<string, string>
+  }
+}
+
+export type PublicTableName = keyof Database['public']['Tables'] | string

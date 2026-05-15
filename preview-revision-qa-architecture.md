@@ -8,7 +8,40 @@ This document defines how ReeditPro should store preview renders, reviews, revis
 
 The system must know when a preview is good enough to show the user. Preview is not final export. A preview can be ready while final export still requires additional approval, render settings, or QA.
 
+## RP-DB-10 Migration Shape
+
+`supabase/migrations/202605130008_render_preview_export_revision_qa.sql` creates the first full render, preview, export, revision, and QA database layer. It stores records only and does not run FFmpeg, Remotion, Cloud Run, GPU workers, provider APIs, uploads, or exports.
+
+Render pipeline tables:
+
+- `render_jobs`: render work requested by orchestration after approval and credit reservation.
+- `render_job_inputs`: source media, generated assets, captions, music, SFX, transitions, Stroke Motion, Graphic Design, Real Motion, SoundSync, and timeline layers used by a render.
+- `renders`: preview, revision preview, final, export variant, or test render outputs.
+- `render_events`: append-style progress and audit events.
+
+Export tables:
+
+- `exports`: export requests/results from a ready render.
+- `export_variants`: platform or format variants such as Shorts, Reels, website, captions, audio, or client review packages.
+- `can_export_render(render_id)`: read-only helper that returns true only when a render is ready, preview review is not blocking, and QA has passed or has only non-blocking warnings.
+
+Preview and revision tables:
+
+- `preview_reviews`: preview approval, rejection, or changes requested inside chat.
+- `review_comments`: timestamped review comments linked to chat messages when available.
+- `revision_requests`: structured revision requests from chat/review, including whether new generation or rendering is required and whether extra credits need estimating.
+- `revision_request_items`: affected segments, signature routes, generated assets, Stroke Motion plans, render inputs, or timecodes.
+
+QA tables:
+
+- `qa_reports`: render/export readiness summaries.
+- `qa_report_items`: individual checks for speech clarity, cuts, captions, caption collisions, music, SFX, transitions, ambience, story flow, signature timing, Stroke Motion timing, Real Motion face safety, Graphic Design readability, render integrity, export settings, credit compliance, user instructions, and professional standard.
+
+`project_latest_preview_view` exposes the latest non-archived preview or revision preview per project for chat/dashboard reads.
+
 ## Required Tables
+
+The older table sketches below are superseded by the RP-DB-10 migration shape above, but remain as conceptual context.
 
 ### `render_jobs`
 
@@ -176,6 +209,8 @@ A preview can be shown when:
 
 If these fail, create a QA report and repair recommendation instead of showing a broken preview as successful.
 
+RP-DB-10 stores this with `renders.status`, `preview_reviews.status`, `qa_reports.status`, `qa_reports.requires_retry`, and detailed `qa_report_items`.
+
 ## Revision Flow
 
 1. User types revision request in chat.
@@ -186,6 +221,8 @@ If these fail, create a QA report and repair recommendation instead of showing a
 6. Jobs run.
 7. New preview is rendered and QA checked.
 8. Preview appears in chat.
+
+RP-DB-10 links revisions back to chat messages/actions, preview reviews/comments, renders, edit plans, credit estimates/reservations, and affected items. A revision is not automatically free if it requires expensive generation; it should move through estimate and approval when needed.
 
 ## Revision Examples
 
@@ -207,3 +244,4 @@ Preview approval is not publishing approval. Export should require:
 
 This task does not implement export or social posting.
 
+RP-DB-10 stores export records and variants, but export execution remains future backend/worker work. Final export should wait for a ready render, non-blocking QA, preview approval when required, and any needed credit approval.

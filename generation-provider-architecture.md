@@ -17,76 +17,27 @@ ReeditPro must not hard-code one provider. Different systems may use different p
 
 Providers are tools. ReeditPro owns the edit plan, timing, exact text, captions, overlay placement, credits, approval, and QA.
 
-## Required Tables
+## RP-DB-09 Migration Shape
 
-### `generation_providers`
+`supabase/migrations/202605130007_generation_providers_generated_assets.sql` creates the first generation-provider database layer. It is local-only and does not call providers, add credentials, render video, deploy Google Cloud, or create render/export/revision/QA tables.
 
-Provider/model capability registry.
+Provider abstraction tables:
 
-Fields:
+- `generation_providers`: provider metadata, runtime type, support flags, cost multiplier, optional `worker_runtime_config_id`, and `secret_reference_name`.
+- `generation_provider_capabilities`: capability rows such as `transparent_overlay`, `svg_generation`, `lottie_generation`, `remotion_render`, `text_to_video`, `music_generation`, and `json_spec`.
+- `generation_provider_models`: model/config rows under providers, including default quality level, credit cost hints, duration/resolution limits, transparency support, word-level timing support, and seed support.
 
-- `id`
-- `provider_code`
-- `provider_type`: `video`, `image`, `audio`, `animation`, `renderer`, `worker`
-- `model_name`
-- `supported_signature_systems_json`
-- `supports_transparency`
-- `supports_timing_constraints`
-- `supports_audio`
-- `max_duration_seconds`
-- `resolution_options_json`
-- `status`
-- `notes`
+Generation workflow tables:
 
-### `generation_requests`
+- `generation_requests`: approved-or-draft requests linked to project, edit plan, segment, signature route, Stroke Motion plan/beat/spec, job, agent run, credit estimate, credit reservation, provider, and model.
+- `generation_request_inputs`: structured input records for media assets, source frames/audio, edit plan segments, signature routes, Stroke Motion plans/beats, and prompt context.
+- `generated_assets`: intermediate or reusable outputs such as transparent overlays, SVG, Lottie JSON, Remotion scenes, audio, images, image sequences, videos, captions, and JSON specs.
+- `generated_asset_versions`: version history for generated assets.
+- `generated_asset_timing_maps`: timing and offset data for overlays, captions, Stroke Motion, SoundSync, and future timeline synchronization.
+- `generation_events`: append-style progress and audit events.
+- `generation_request_costs`: internal provider cost estimates/actuals and user-credit estimates/actuals, separate from the credit ledger.
 
-Approved generation request.
-
-Fields:
-
-- `id`
-- `workspace_id`
-- `project_id`
-- `edit_plan_id`
-- `edit_plan_segment_id`
-- `job_id`
-- `provider_id`
-- `signature_system`: `stroke_motion`, `graphic_design`, `real_motion`, `soundsync`, `render`, `none`
-- `generation_type`
-- `input_asset_ids_json`
-- `output_asset_type`
-- `transparent_background_required`
-- `duration_seconds`
-- `resolution`
-- `prompt`
-- `negative_prompt`
-- `style_constraints_json`
-- `timing_constraints_json`
-- `worker_notes`
-- `credit_estimate_id`
-- `credit_reservation_id`
-- `status`
-- `created_at`
-
-### `generated_assets`
-
-Generated output and review status.
-
-Fields:
-
-- `id`
-- `generation_request_id`
-- `media_asset_id`
-- `asset_role`
-- `asset_type`
-- `duration_seconds`
-- `width`
-- `height`
-- `transparent_background`
-- `quality_status`
-- `qa_report_id`
-- `status`
-- `metadata_json`
+RP-DB-09 also links `stroke_motion_generation_specs.generation_request_id` and `signature_routes.generation_request_id` to `generation_requests(id)` once the generation table exists.
 
 ## Request Gating
 
@@ -99,7 +50,7 @@ No `generation_request` should run unless:
 - Provider is active and suitable.
 - No blocking approval/readiness check exists.
 
-If any gate fails, request status should remain `blocked_waiting_approval`, `waiting_dependency`, or `failed`.
+If any gate fails, request status should remain `draft`, `awaiting_approval`, `approved`, `failed`, or stay out of the generation request table until the missing dependency is satisfied. Future job orchestration can represent dependency waits through the job status tables.
 
 ## Provider Selection
 
@@ -189,3 +140,4 @@ Provider outputs should never become the final truth without QA. Generated asset
 
 Provider keys must not be stored in database tables. Future workers should load secrets from Google Secret Manager or equivalent secure infrastructure.
 
+`generation_providers.secret_reference_name` stores a reference label only. It must never contain an API key, service role key, provider credential, signed URL, or raw secret.

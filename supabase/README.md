@@ -173,6 +173,60 @@ This migration enables RLS for every new table, gives workspace members read acc
 
 This migration does not generate animations, create generation provider/request tables, create generated assets, create render/export/revision/QA tables, integrate AI APIs, integrate Stripe, deploy Google Cloud, build backend endpoints, add uploads, render video, or build mobile screens.
 
+### RP-DB-09: Generation Providers + Generated Assets
+
+`migrations/202605130007_generation_providers_generated_assets.sql` creates the generation provider and generated asset foundation:
+
+- generation providers
+- provider capabilities
+- provider models
+- generation requests
+- generation request inputs
+- generated assets
+- generated asset versions
+- generated asset timing maps
+- generation events
+- generation request cost records
+
+This migration does not integrate real AI providers. Wan, Veo, Kling, Remotion, SVG, Lottie, Google Cloud workers, and custom deterministic renderers are modeled as provider options or placeholders only.
+
+Provider records store metadata and secret reference names only. Actual provider keys, service role keys, signed URLs, and credentials must live in Secret Manager or secure runtime configuration, never in database rows.
+
+Generation requests link to edit plans, edit plan segments, signature routes, Stroke Motion plans/beats/specs, jobs, agent runs, credit estimates, and credit reservations. These links prepare future backend orchestration to enforce the approval boundary: approved edit plan, approved credit estimate, reserved credits, and correct generation job before queueing or running expensive generation.
+
+Stroke Motion should prefer deterministic renderers such as SVG, Lottie, Remotion, or custom animation renderers when transparent overlays, word-level timing, precise story beat sync, and editable timing are required. Wan, Veo, Kling, and other AI video providers can be future options for concept generation, style reference, or advanced animation support, but ReeditPro should not depend only on full AI video generation for Stroke Motion.
+
+Generated assets are intermediate or reusable assets for future render jobs. They are not final renders, exports, preview review records, revision records, or QA reports.
+
+### RP-DB-10: Render, Preview, Export, Revision + QA
+
+`migrations/202605130008_render_preview_export_revision_qa.sql` creates the render, preview, export, revision, and QA foundation:
+
+- render jobs
+- render job inputs
+- render outputs
+- render events
+- exports
+- export variants
+- preview reviews
+- review comments
+- revision requests
+- revision request items
+- QA reports
+- QA report items
+- a latest preview view
+- a read-only `can_export_render(render_id)` helper
+
+Render jobs describe how future workers will combine source clips, edit plans, cuts, transitions, captions, audio plans, generated overlays, timing maps, and export settings into preview or final outputs. This migration stores the records only. It does not run FFmpeg, Remotion, Cloud Run, GPU workers, provider calls, uploads, or rendering.
+
+Renders are full preview/final outputs and remain separate from generated intermediate assets. A preview render can link to chat messages and inline cards so results appear inside the chat-native editor.
+
+Preview reviews and review comments let users approve, reject, or request changes from chat. Revision requests can point to affected segments, signature routes, generated assets, Stroke Motion plans, render inputs, and timecodes. Revisions may require new generation, a new render, and new credit estimates/reservations.
+
+QA reports and QA items decide whether a preview/export is good enough to show or deliver. QA covers speech clarity, cut smoothness, captions, caption collisions, music/SFX balance, transitions, ambience, story flow, signature timing, Real Motion face safety, render integrity, credit compliance, user instructions, and professional standard.
+
+Final exports should happen only after render readiness, non-blocking QA, preview approval when required, and any required credit approval.
+
 ## Source Clip Order
 
 Uploaded or sent clip order is stored as a source sequence. This is the order the user filmed the clips or believes they belong.
@@ -189,6 +243,10 @@ RP-DB-07 adds job orchestration records and worker/agent audit trails, but it st
 
 RP-DB-08 adds Stroke Motion planning records and future generation specs, but it still does not generate animations, call providers, render overlays, or spend credits from backend services.
 
+RP-DB-09 adds provider metadata, generation requests, generated assets, and timing/cost records, but it still does not call providers, deploy workers, render previews, create exports, process revisions, or spend credits from backend services.
+
+RP-DB-10 adds render, preview, export, revision, and QA records, but it still does not implement rendering, backend APIs, cloud workers, uploads, provider calls, exports, or credit spending from backend services.
+
 ReeditPro must never start expensive AI editing, animation generation, rendering, or credit spending until:
 
 1. AI understands the user's goal.
@@ -201,11 +259,10 @@ ReeditPro must never start expensive AI editing, animation generation, rendering
 
 Later migrations should add, in order:
 
-- generation provider records
-- render, export, and revision records
-- preview delivery records and QA reports
+- backend API skeleton and Supabase client wiring
+- Google Cloud worker scaffolding for generation and rendering
 - Stripe and billing integration after the credit service boundary is implemented
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-DB-08 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-DB-10 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

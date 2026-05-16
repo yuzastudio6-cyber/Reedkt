@@ -1,4 +1,4 @@
-import { MoreHorizontal, WalletCards } from 'lucide-react'
+import { Bell, MoreHorizontal } from 'lucide-react'
 import { Badge } from '../Badge'
 import { IconButton } from '../Button'
 
@@ -10,19 +10,18 @@ type MinimalProjectHeaderProps = {
 
 export function MinimalProjectHeader({ approved, credits, previewReady }: MinimalProjectHeaderProps) {
   return (
-    <header className="chat-native-header">
-      <div>
-        <span className="section-eyebrow">AI chat editor</span>
+    <header className="chat-project-strip" aria-label="Editor project status">
+      <div className="chat-project-strip-main">
         <h1>Premium real estate short</h1>
-        <p>The chat is the editor. Send clips, approve the plan, then watch ReeditPro work in the background.</p>
+        <div className="chat-project-status">
+          <Badge accent={approved ? 'success' : 'warning'}>{approved ? 'Plan approved' : 'Waiting for approval'}</Badge>
+          <Badge accent={previewReady ? 'cyan' : 'muted'}>{previewReady ? 'Preview ready' : `${credits} estimated`}</Badge>
+        </div>
       </div>
-      <div className="chat-native-header-actions">
-        <Badge accent={approved ? 'success' : 'warning'}>{approved ? 'Plan approved' : 'Waiting for approval'}</Badge>
-        <span className="wallet-chip">
-          <WalletCards size={16} />
-          100 credits
-        </span>
-        <Badge accent={previewReady ? 'cyan' : 'muted'}>{previewReady ? 'Preview ready' : `${credits} estimated`}</Badge>
+      <div className="chat-project-utility">
+        <Badge accent="cyan">100 credits</Badge>
+        <Badge accent="violet">Personal</Badge>
+        <IconButton icon={Bell} label="Notifications" />
         <IconButton icon={MoreHorizontal} label="Project menu" />
       </div>
     </header>

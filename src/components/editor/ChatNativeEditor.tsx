@@ -147,108 +147,106 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     <section className="chat-native-editor">
       <MinimalProjectHeader approved={approved} credits={plan.creditEstimate.total} previewReady={previewReady} />
 
-      <div className="chat-native-shell">
-        <ChatThread>
-          <ChatMessage role="user">
-            <p>I want to edit these clips into a premium real estate short. Keep it natural and don't make it too viral.</p>
-          </ChatMessage>
+      <ChatThread>
+        <ChatMessage role="user">
+          <p>I want to edit these clips into a premium real estate short. Keep it natural and don't make it too viral.</p>
+        </ChatMessage>
 
-          <ChatMessage role="user">
-            <p>Attached 4 mock clips in the order I filmed them.</p>
-          </ChatMessage>
+        <ChatMessage role="user">
+          <p>Attached 4 mock clips in the order I filmed them.</p>
+        </ChatMessage>
 
-          <ChatMessage role="ai">
-            <p>Got it. I will treat these clips as your source sequence and preserve the walkthrough feel unless there is a stronger structure worth suggesting.</p>
-            {clipsAttached && (
-              <InlineSourceSequenceCard
-                clips={clips}
-                onAddClip={handleAddMockClip}
-                onMoveClip={handleMoveClip}
-                onRemoveClip={handleRemoveClip}
-                onUpdateClip={handleUpdateClip}
-              />
-            )}
-          </ChatMessage>
-
-          <ChatMessage role="ai">
-            <p>Do you want me to use a workflow context or just follow your written instructions?</p>
-            <InlineAIQuestionCard onSelect={setWorkflowChoice} />
-            <InlineWorkflowChoiceCard selectedWorkflow={workflowChoice} />
-          </ChatMessage>
-
-          <ChatMessage role="ai">
-            <p>You can paste a reference video link or skip it. I will study the style without copying it shot-for-shot.</p>
-          </ChatMessage>
-
-          {referenceAttached && (
-            <ChatMessage role="user">
-              <p>Reference: https://example.com/luxury-listing-reference</p>
-            </ChatMessage>
-          )}
-
-          {referenceAttached && (
-            <ChatMessage role="ai">
-              <InlineReferenceDNACard />
-            </ChatMessage>
-          )}
-
-          <ChatMessage role="ai">
-            <p>Here is the edit plan before spending credits.</p>
-            <InlineEditPlanCard
-              onApprove={handleApprove}
-              onLowerCost={handleLowerCost}
-              onRemoveRealMotion={handleRemoveRealMotion}
-              plan={plan}
+        <ChatMessage role="ai">
+          <p>Got it. I will treat these clips as your source sequence and preserve the walkthrough feel unless there is a stronger structure worth suggesting.</p>
+          {clipsAttached && (
+            <InlineSourceSequenceCard
+              clips={clips}
+              onAddClip={handleAddMockClip}
+              onMoveClip={handleMoveClip}
+              onRemoveClip={handleRemoveClip}
+              onUpdateClip={handleUpdateClip}
             />
-            <InlineCreditEstimateCard
-              approved={approved}
-              estimate={plan.creditEstimate}
-              onApprove={handleApprove}
-              onLowerCost={handleLowerCost}
-            />
+          )}
+        </ChatMessage>
+
+        <ChatMessage role="ai">
+          <p>Do you want me to use a workflow context or just follow your written instructions?</p>
+          <InlineAIQuestionCard onSelect={setWorkflowChoice} />
+          <InlineWorkflowChoiceCard selectedWorkflow={workflowChoice} />
+        </ChatMessage>
+
+        <ChatMessage role="ai">
+          <p>You can paste a reference video link or skip it. I will study the style without copying it shot-for-shot.</p>
+        </ChatMessage>
+
+        {referenceAttached && (
+          <ChatMessage role="user">
+            <p>Reference: https://example.com/luxury-listing-reference</p>
           </ChatMessage>
+        )}
 
-          {revisionMessage && (
-            <ChatMessage role="ai">
-              <p>{revisionMessage}</p>
-            </ChatMessage>
-          )}
+        {referenceAttached && (
+          <ChatMessage role="ai">
+            <InlineReferenceDNACard />
+          </ChatMessage>
+        )}
 
-          {approved && (
-            <ChatMessage role="ai">
-              <p>Plan approved. ReeditPro would now begin generation in production.</p>
-              <AIEditingProgressStage activeIndex={progressIndex} complete={previewReady} />
-            </ChatMessage>
-          )}
+        <ChatMessage role="ai">
+          <p>Here is the edit plan before spending credits.</p>
+          <InlineEditPlanCard
+            onApprove={handleApprove}
+            onLowerCost={handleLowerCost}
+            onRemoveRealMotion={handleRemoveRealMotion}
+            plan={plan}
+          />
+          <InlineCreditEstimateCard
+            approved={approved}
+            estimate={plan.creditEstimate}
+            onApprove={handleApprove}
+            onLowerCost={handleLowerCost}
+          />
+        </ChatMessage>
 
-          {previewReady && (
-            <ChatMessage role="ai">
-              <p>Preview ready. You can play it, request a revision, export, or keep chatting.</p>
-              <PreviewReadyCard creditsUsed={plan.creditEstimate.total} />
-            </ChatMessage>
-          )}
+        {revisionMessage && (
+          <ChatMessage role="ai">
+            <p>{revisionMessage}</p>
+          </ChatMessage>
+        )}
 
-          <div className="chat-advanced-link">
-            <Button onClick={onOpenTimeline} variant="ghost">
-              Show detailed timeline only if I ask
-            </Button>
-            <span>Advanced view stays hidden by default.</span>
-          </div>
-        </ChatThread>
+        {approved && (
+          <ChatMessage role="ai">
+            <p>Plan approved. ReeditPro would now begin generation in production.</p>
+            <AIEditingProgressStage activeIndex={progressIndex} complete={previewReady} />
+          </ChatMessage>
+        )}
 
-        <ChatComposer
-          clipsAttached={clipsAttached}
-          inputValue={composerValue}
-          onAttachClips={handleAddMockClip}
-          onInputChange={setComposerValue}
-          onReference={() => setReferenceAttached(true)}
-          onSend={handleSend}
-        />
+        {previewReady && (
+          <ChatMessage role="ai">
+            <p>Preview ready. You can play it, request a revision, export, or keep chatting.</p>
+            <PreviewReadyCard creditsUsed={plan.creditEstimate.total} />
+          </ChatMessage>
+        )}
 
-        <div className="chat-native-rule-card">
-          <Sparkles size={18} />
-          <span>The chat is the editor. Inline cards appear only for clips, choices, plan approval, credits, progress, and preview.</span>
+        <div className="chat-advanced-link">
+          <Button onClick={onOpenTimeline} variant="ghost">
+            Show detailed timeline only if I ask
+          </Button>
+          <span>Advanced view stays hidden by default.</span>
         </div>
+      </ChatThread>
+
+      <ChatComposer
+        clipsAttached={clipsAttached}
+        inputValue={composerValue}
+        onAttachClips={handleAddMockClip}
+        onInputChange={setComposerValue}
+        onReference={() => setReferenceAttached(true)}
+        onSend={handleSend}
+      />
+
+      <div className="chat-native-rule-card">
+        <Sparkles size={18} />
+        <span>The chat is the editor. Inline cards appear only for clips, choices, plan approval, credits, progress, and preview.</span>
       </div>
     </section>
   )

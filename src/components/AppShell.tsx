@@ -10,16 +10,18 @@ import { SearchInput } from './SearchInput'
 type AppShellProps = {
   children: ReactNode
   eyebrow?: string
+  mode?: 'standard' | 'chat'
   title: string
   description: string
   primaryAction?: string
 }
 
-export function AppShell({ children, description, eyebrow, primaryAction = 'Create project and chat', title }: AppShellProps) {
+export function AppShell({ children, description, eyebrow, mode = 'standard', primaryAction = 'Create project and chat', title }: AppShellProps) {
   const location = useLocation()
+  const isChatMode = mode === 'chat'
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isChatMode ? 'app-shell-chat' : ''}`.trim()}>
       <aside className="sidebar">
         <BrandLogo />
         <nav aria-label="Desktop app navigation">
@@ -63,32 +65,36 @@ export function AppShell({ children, description, eyebrow, primaryAction = 'Crea
           <small>Creator workspace</small>
         </div>
       </aside>
-      <main className="app-main">
-        <header className="topbar">
-          <div className="topbar-copy">
-            {eyebrow && <span className="section-eyebrow">{eyebrow}</span>}
-            <h1>{title}</h1>
-            <p>{description}</p>
-          </div>
-          <div className="topbar-actions">
-            <SearchInput placeholder="Search projects, clips, edits" />
-            <Badge accent="cyan">100 credits</Badge>
-            <Badge accent="violet">Personal</Badge>
-            <IconButton icon={Bell} label="Notifications" />
-            <Button icon={Sparkles} to="/projects/new" variant="primary">
-              {primaryAction}
-            </Button>
-            <button className="profile-button" type="button">
-              <span>TP</span>
-              <ChevronDown aria-hidden="true" size={16} />
-            </button>
-          </div>
-        </header>
+      <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()}>
+        {!isChatMode && (
+          <header className="topbar">
+            <div className="topbar-copy">
+              {eyebrow && <span className="section-eyebrow">{eyebrow}</span>}
+              <h1>{title}</h1>
+              <p>{description}</p>
+            </div>
+            <div className="topbar-actions">
+              <SearchInput placeholder="Search projects, clips, edits" />
+              <Badge accent="cyan">100 credits</Badge>
+              <Badge accent="violet">Personal</Badge>
+              <IconButton icon={Bell} label="Notifications" />
+              <Button icon={Sparkles} to="/projects/new" variant="primary">
+                {primaryAction}
+              </Button>
+              <button className="profile-button" type="button">
+                <span>TP</span>
+                <ChevronDown aria-hidden="true" size={16} />
+              </button>
+            </div>
+          </header>
+        )}
         {children}
-        <div className="app-footer-note">
-          <HardDrive size={16} />
-          Frontend-only MVP with static data. Future backend work should connect to Supabase project reeditpro.
-        </div>
+        {!isChatMode && (
+          <div className="app-footer-note">
+            <HardDrive size={16} />
+            Frontend-only MVP with static data. Future backend work should connect to Supabase project reeditpro.
+          </div>
+        )}
       </main>
     </div>
   )

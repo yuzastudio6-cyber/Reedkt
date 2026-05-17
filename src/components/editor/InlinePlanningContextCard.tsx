@@ -1,8 +1,18 @@
 import { Badge } from '../Badge'
 import { frameLayoutTemplates } from '../../lib/frame-layouts'
 import { editLevelDefinitions, launchEditingCategories } from '../../lib/product-taxonomy'
+import { getSourceSequenceModeLabel } from '../../lib/source-sequence'
 import { visualPreferenceOptions } from '../../lib/workflow-profiles'
-import type { AspectRatio, EditLevel, EditingCategory, FrameTemplateType, TargetPlatform, VisualPreference } from '../../types/reeditpro'
+import type {
+  AspectRatio,
+  ClipSource,
+  EditLevel,
+  EditingCategory,
+  FrameTemplateType,
+  SourceSequenceMode,
+  TargetPlatform,
+  VisualPreference,
+} from '../../types/reeditpro'
 
 type InlinePlanningContextCardProps = {
   editingCategory: EditingCategory
@@ -11,7 +21,9 @@ type InlinePlanningContextCardProps = {
   aspectRatio: AspectRatio
   frameTemplateType: FrameTemplateType
   visualPreference: VisualPreference
+  clips: ClipSource[]
   sourceOrderConfirmed: boolean
+  sourceSequenceMode: SourceSequenceMode
   formatConfirmed: boolean
   editLevelConfirmed: boolean
 }
@@ -60,11 +72,15 @@ export function InlinePlanningContextCard({
   editLevel,
   formatConfirmed,
   frameTemplateType,
+  clips,
   sourceOrderConfirmed,
+  sourceSequenceMode,
   targetPlatform,
   visualPreference,
 }: InlinePlanningContextCardProps) {
   const veoPolicy = veoPolicyForLevel(editLevel)
+  const importantClipCount = clips.filter((clip) => clip.isImportant).length
+  const optionalClipCount = clips.filter((clip) => clip.isOptional || clip.sourceRole === 'optional').length
 
   return (
     <section className="inline-chat-card planning-context-card">
@@ -82,8 +98,16 @@ export function InlinePlanningContextCard({
           <strong>{labelForCategory(editingCategory)}</strong>
         </div>
         <div>
+          <span>Source mode</span>
+          <strong>{getSourceSequenceModeLabel(sourceSequenceMode)}</strong>
+        </div>
+        <div>
           <span>Source order</span>
           <strong>{sourceOrderConfirmed ? 'Confirmed' : 'Needs review'}</strong>
+        </div>
+        <div>
+          <span>Clip count</span>
+          <strong>{clips.length} total / {importantClipCount} important / {optionalClipCount} optional</strong>
         </div>
         <div>
           <span>Level</span>

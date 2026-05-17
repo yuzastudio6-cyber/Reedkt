@@ -7,9 +7,11 @@ import type {
   ChatPlanningPhaseSummary,
   EditPlan,
 } from '../types/reeditpro'
+import { getSourceSequenceModeLabel } from './source-sequence'
 
 type GetChatPlanningCardsParams = {
   clipsAttached: boolean
+  clipCount: number
   sourceOrderConfirmed: boolean
   formatConfirmed: boolean
   editLevelConfirmed: boolean
@@ -147,6 +149,7 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const {
     approved,
     clipsAttached,
+    clipCount,
     editLevelConfirmed,
     formatConfirmed,
     intentApproved,
@@ -192,10 +195,14 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       label: 'Source sequence',
       phase: 'source_sequence',
       priority: 'required_user_action',
-      status: !clipsAttached ? 'needs_input' : sourceOrderConfirmed ? 'confirmed' : 'needs_input',
-      defaultExpanded: !sourceOrderConfirmed,
+      status: !clipsAttached || clipCount === 0 ? 'not_started' : sourceOrderConfirmed ? 'confirmed' : 'needs_input',
+      defaultExpanded: clipsAttached && clipCount > 0 && !sourceOrderConfirmed,
       requiredBeforeApproval: true,
-      summary: sourceOrderConfirmed ? 'Source order confirmed.' : 'Confirm or reorder uploaded clips.',
+      summary: plan.sourceSequenceReview
+        ? `${getSourceSequenceModeLabel(plan.sourceSequenceReview.mode)}. ${sourceOrderConfirmed ? 'Source order confirmed.' : 'Confirm before approval.'}`
+        : sourceOrderConfirmed
+          ? 'Source order confirmed.'
+          : 'Confirm or reorder uploaded clips.',
     }),
     descriptor({
       id: 'frame_format',

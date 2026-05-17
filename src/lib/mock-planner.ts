@@ -16,6 +16,12 @@ import { getDefaultFrameTemplateForAspectRatio, getFrameLayoutTemplate } from '.
 import { compileEditingIntent } from './intent-compiler'
 import { buildProviderPromptPlansForEditPlan } from './prompt-builders'
 import { createRendererCompositionPlan } from './remotion-renderer-planner'
+import {
+  createSourceSequenceReviewState,
+  getClipRoleLabel,
+  inferClipSourceRole,
+  inferSourceSequenceMode,
+} from './source-sequence'
 import { createVisualAssetPlan } from './story-asset-planner'
 import { getWorkflowProfile } from './workflow-profiles'
 
@@ -212,12 +218,14 @@ function enrichVisualAssetsWithSafetyPlans(params: {
 
 export function createMockEditPlan(input: PlannerInput): EditPlan {
   const profile = getWorkflowProfile(input.workflowType)
+  const sourceOrderConfirmed = input.sourceOrderConfirmed ?? true
+  const sourceSequenceMode = input.sourceSequenceMode ?? inferSourceSequenceMode(input.clips, input.customInstructions)
   const compiledIntent =
     input.compiledIntent ??
     compileEditingIntent({
       currentInput: input,
       referenceProvided: input.referenceUrl.trim().length > 0,
-      sourceOrderConfirmed: true,
+      sourceOrderConfirmed,
       userMessages: [input.customInstructions],
     })
   const professionalEditingDirective = compiledIntent.professionalEditingDirective
@@ -226,6 +234,8 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     ...compiledIntent.resolvedSettings,
     compiledIntent,
     professionalEditingDirective,
+    sourceOrderConfirmed,
+    sourceSequenceMode,
   }
   const routes = createSignatureRoutes(effectiveInput)
   const visualAssetPlan = createVisualAssetPlan(effectiveInput)
@@ -294,19 +304,49 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     effectiveInput.workflowType === 'social_short_viral_clip' ||
     effectiveInput.workflowType === 'marketing_ad'
 
-  const sourceSequenceMap = effectiveInput.clips.map((clip) => ({
-    clipId: clip.id,
-    uploadedOrder: clip.uploadedOrder,
-    detectedRole: clip.detectedType,
-    strengths: clip.isImportant ? ['Marked important by user', 'Strong candidate for story anchor'] : ['Useful supporting context'],
-    concerns: clip.isOptional ? ['Marked optional, use only if it improves the story'] : ['Needs timing review before final structure'],
-    possibleUses: [
-      clip.uploadedOrder === 1 ? 'Natural opening context' : 'Supporting segment',
-      clip.fileName.toLowerCase().includes('speaker') ? 'Possible hook or value line' : 'Visual proof or pacing support',
-    ],
-  }))
+  const sourceSequenceMap = effectiveInput.clips.map((clip) => {
+    const role = clip.sourceRole ?? inferClipSourceRole(clip)
+    const roleLabel = getClipRoleLabel(role)
+    const text = `${clip.fileName} ${clip.detectedType} ${clip.notes ?? ''}`.toLowerCase()
 
-  const recommendedStructure = strongerSocialOpen
+    return {
+      clipId: clip.id,
+      uploadedOrder: clip.uploadedOrder,
+      detectedRole: `${roleLabel}: ${clip.detectedType}`,
+      strengths: [
+        ...(clip.isImportant ? ['Marked important by user', 'Strong candidate for story anchor'] : ['Useful source context']),
+        ...(clip.notes ? [`User note: ${clip.notes}`] : []),
+        ...(role !== 'unknown' ? [`Source role marked as ${roleLabel}.`] : []),
+      ],
+      concerns: [
+        ...(clip.isOptional ? ['Marked optional, use only if it improves the story'] : ['Needs timing review before final structure']),
+        ...(!sourceOrderConfirmed ? ['Source order is not confirmed yet; treat this as draft context.'] : []),
+      ],
+      possibleUses: [
+        role === 'hook_candidate' || clip.uploadedOrder === 1 || text.includes('hook') || text.includes('speaker')
+          ? 'Possible hook or opening context'
+          : 'Supporting segment',
+        role === 'b_roll' || role === 'optional'
+          ? 'Supporting b-roll or pacing cover'
+          : role === 'ending'
+            ? 'Possible closing beat'
+            : role === 'proof'
+              ? 'Proof or evidence support'
+              : 'Visual proof or pacing support',
+      ],
+    }
+  })
+
+  const structureConfirmationNote = sourceOrderConfirmed
+    ? 'Use confirmed source order as story context.'
+    : 'Source order is not confirmed yet; this plan is a draft.'
+  const structureModeNote = sourceSequenceMode === 'unordered_clips_needs_ai_help'
+    ? 'AI may suggest a stronger final structure later, but source order remains context until the plan is approved.'
+    : 'Final edit order can differ only after ReeditPro shows the recommended structure in the plan.'
+  const recommendedStructure = [
+    structureConfirmationNote,
+    structureModeNote,
+    ...(strongerSocialOpen
     ? [
         'Open with the strongest 3-second spoken line if the user wants more social performance.',
         'Return to the source sequence for context so the edit still feels natural.',
@@ -318,7 +358,8 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
         'Trim weak pauses and keep the walkthrough or story flow intact.',
         'Use only targeted overlays where they clarify the spoken point.',
         'End with a clean final beat and export-ready captions.',
-      ]
+      ]),
+  ]
 
   const hookPolicy =
     effectiveInput.workflowType === 'marketing_ad'
@@ -346,6 +387,18 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
   return {
     goalSummary: compiledIntent.goalSummary,
     sourceSequenceMap,
+    sourceSequenceReview: createSourceSequenceReviewState({
+      clips: effectiveInput.clips,
+      confirmed: sourceOrderConfirmed,
+      customInstructions: effectiveInput.customInstructions,
+      mode: sourceSequenceMode,
+      userGuidance: 'Uploaded order is source/story context. Any final edit reorder must appear in the plan before approval.',
+      aiNotes: [
+        sourceSequenceMode === 'unordered_clips_needs_ai_help'
+          ? 'User allowed ReeditPro to suggest final structure later without changing source order yet.'
+          : 'Use source sequence as planning context.',
+      ],
+    }),
     recommendedStructure,
     hookDecision,
     referenceDNA: referenceProvided

@@ -8,6 +8,7 @@ import type {
   ScenarioValidationReport,
 } from './planner-validation'
 import { validateMockEditPlan } from './planner-validation'
+import { inferSourceSequenceMode } from './source-sequence'
 import type { PlannerInput } from '../types/reeditpro'
 
 function inputFromScenario(scenario: DemoScenario): PlannerInput {
@@ -26,6 +27,8 @@ function inputFromScenario(scenario: DemoScenario): PlannerInput {
     customInstructions: scenario.customInstructions,
     creditPreference: scenario.creditPreference,
     clips: scenario.clips,
+    sourceOrderConfirmed: true,
+    sourceSequenceMode: inferSourceSequenceMode(scenario.clips, scenario.customInstructions),
   }
 }
 

@@ -26,6 +26,7 @@ These instructions are for Codex and any future agent working in this repository
 - Read `documentary-fact-safety-system.md` before documentary claims, real named people, allegations, evidence cards, fact-safety planning, or case-study visual treatment work.
 - Read `planner-regression-validation.md` before planner validation, regression checks, demo scenario QA, model-routing tests, prompt-builder tests, or hard product rule validation work.
 - Read `chat-planning-ux-architecture.md` before chat flow organization, planning card priority, collapse behavior, guided/detailed/developer modes, or approval-path UX work.
+- Read `source-sequence-review-ux.md` before source order review, clip reorder UX, uploaded-order semantics, or source-sequence confirmation work.
 
 ## Product Identity
 
@@ -120,6 +121,12 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - The plan and credit approval path must stay clear even when advanced planning cards are available.
 - Developer-heavy cards should not overwhelm users in the guided chat flow.
 - Any new planning card must define its priority: required_user_action, user_summary, advanced_plan_detail, safety_detail, or developer_detail.
+- Uploaded order is source/story order context, not final edit order.
+- Final edit order may differ only after ReeditPro shows the recommended edit structure in the plan.
+- Source sequence confirmation must happen before approval in chat.
+- Changing source order, clip role, clip notes, important/optional state, or clip list must reset plan approval and mock progress.
+- Do not treat uploaded order as final edit order without showing the recommended edit structure first.
+- Do not implement real upload, playback, thumbnails, transcoding, or media analysis in frontend mock tasks.
 
 ## Subscription And Credits
 

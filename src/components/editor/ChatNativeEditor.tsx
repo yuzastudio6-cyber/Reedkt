@@ -9,6 +9,7 @@ import { createMockEditPlan } from '../../lib/mock-planner'
 import { runPlannerRegression } from '../../lib/planner-regression'
 import { validateMockEditPlan } from '../../lib/planner-validation'
 import { launchEditingCategories } from '../../lib/product-taxonomy'
+import { inferSourceSequenceMode, reorderClipsByMove } from '../../lib/source-sequence'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
   AspectRatio,
@@ -19,6 +20,7 @@ import type {
   EditingCategory,
   FrameTemplateType,
   MoodStyle,
+  SourceSequenceMode,
   TargetPlatform,
   VideoWorkflowType,
   VisualPreference,
@@ -52,7 +54,7 @@ import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
 import { MinimalProjectHeader } from './MinimalProjectHeader'
 import { PreviewReadyCard } from './PreviewReadyCard'
 
-function reorderClips(clips: ClipSource[]) {
+function normalizeClipOrder(clips: ClipSource[]) {
   return clips.map((clip, index) => ({ ...clip, uploadedOrder: index + 1 }))
 }
 
@@ -84,6 +86,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [selectedScenarioId, setSelectedScenarioId] = useState(initialScenario.id)
   const [displayMode, setDisplayMode] = useState<ChatPlanningDisplayMode>('guided')
   const [clips, setClips] = useState<ClipSource[]>(initialScenario.clips)
+  const [sourceSequenceMode, setSourceSequenceMode] = useState<SourceSequenceMode>(() =>
+    inferSourceSequenceMode(initialScenario.clips, initialScenario.customInstructions),
+  )
   const [composerValue, setComposerValue] = useState(initialScenario.customInstructions)
   const [customInstructions, setCustomInstructions] = useState(initialScenario.customInstructions)
   const [clipsAttached, setClipsAttached] = useState(true)
@@ -123,11 +128,29 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
       frameTemplateType,
       moodStyle,
       referenceUrl: referenceAttached ? referenceUrl : '',
+      sourceOrderConfirmed,
+      sourceSequenceMode,
       targetPlatform,
       visualPreference,
       workflowType,
     }),
-    [aspectRatio, clips, creditPreference, customInstructions, editingCategory, editLevel, frameTemplateType, moodStyle, referenceAttached, referenceUrl, targetPlatform, visualPreference, workflowType],
+    [
+      aspectRatio,
+      clips,
+      creditPreference,
+      customInstructions,
+      editingCategory,
+      editLevel,
+      frameTemplateType,
+      moodStyle,
+      referenceAttached,
+      referenceUrl,
+      sourceOrderConfirmed,
+      sourceSequenceMode,
+      targetPlatform,
+      visualPreference,
+      workflowType,
+    ],
   )
 
   const plan = useMemo(() => createMockEditPlan(plannerInput), [plannerInput])
@@ -145,6 +168,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
         previewReady,
         regressionReport,
         selectedScenarioId,
+        clipCount: clips.length,
         sourceOrderConfirmed,
         validationReport,
         visualPreferenceConfirmed,
@@ -159,6 +183,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
       previewReady,
       regressionReport,
       selectedScenarioId,
+      clips.length,
       sourceOrderConfirmed,
       validationReport,
       visualPreferenceConfirmed,
@@ -212,10 +237,15 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
   function resetAfterSourceChange() {
     setSourceOrderConfirmed(false)
-    setFormatConfirmed(false)
-    setEditLevelConfirmed(false)
-    setVisualPreferenceConfirmed(false)
     resetPlanProgress()
+  }
+
+  function updateInferredSourceSequenceMode(nextClips: ClipSource[], instructions = customInstructions) {
+    setSourceSequenceMode((currentMode) =>
+      currentMode === 'unordered_clips_needs_ai_help'
+        ? currentMode
+        : inferSourceSequenceMode(nextClips, instructions),
+    )
   }
 
   function handleScenarioSelect(scenarioId: string) {
@@ -240,6 +270,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setCustomInstructions(scenario.customInstructions)
     setComposerValue(scenario.customInstructions)
     setClips(scenario.clips)
+    setSourceSequenceMode(inferSourceSequenceMode(scenario.clips, scenario.customInstructions))
     setClipsAttached(true)
     setSourceOrderConfirmed(false)
     setFormatConfirmed(false)
@@ -251,47 +282,46 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
   function handleAddMockClip() {
     setClipsAttached(true)
-    setClips((current) =>
-      reorderClips([
-        ...current,
-        {
-          id: `chat-clip-${Date.now()}`,
-          uploadedOrder: current.length + 1,
-          fileName: `chat-upload-${current.length + 1}.mp4`,
-          duration: '00:09',
-          detectedType: 'Mock clip sent in chat',
-          notes: '',
-        },
-      ]),
-    )
+    const next = normalizeClipOrder([
+      ...clips,
+      {
+        id: `chat-clip-${Date.now()}`,
+        uploadedOrder: clips.length + 1,
+        fileName: `chat-upload-${clips.length + 1}.mp4`,
+        duration: '00:09',
+        detectedType: 'Mock clip sent in chat',
+        notes: '',
+        sourceRole: 'unknown',
+      },
+    ])
+    setClips(next)
+    updateInferredSourceSequenceMode(next)
     resetAfterSourceChange()
   }
 
-  function handleMoveClip(id: string, direction: 'up' | 'down') {
-    setClips((current) => {
-      const next = [...current]
-      const index = next.findIndex((clip) => clip.id === id)
-      const targetIndex = direction === 'up' ? index - 1 : index + 1
-
-      if (index < 0 || targetIndex < 0 || targetIndex >= next.length) {
-        return current
-      }
-
-      const moving = next[index]
-      next[index] = next[targetIndex]
-      next[targetIndex] = moving
-      return reorderClips(next)
-    })
+  function handleMoveClip(id: string, direction: 'left' | 'right' | 'up' | 'down') {
+    const next = reorderClipsByMove(clips, id, direction)
+    setClips(next)
+    updateInferredSourceSequenceMode(next)
     resetAfterSourceChange()
   }
 
   function handleRemoveClip(id: string) {
-    setClips((current) => reorderClips(current.filter((clip) => clip.id !== id)))
+    const next = normalizeClipOrder(clips.filter((clip) => clip.id !== id))
+    setClips(next)
+    updateInferredSourceSequenceMode(next)
     resetAfterSourceChange()
   }
 
   function handleUpdateClip(id: string, updates: Partial<ClipSource>) {
-    setClips((current) => current.map((clip) => (clip.id === id ? { ...clip, ...updates } : clip)))
+    const next = clips.map((clip) => (clip.id === id ? { ...clip, ...updates } : clip))
+    setClips(next)
+    updateInferredSourceSequenceMode(next)
+    resetAfterSourceChange()
+  }
+
+  function handleSetSourceSequenceMode(mode: SourceSequenceMode) {
+    setSourceSequenceMode(mode)
     resetAfterSourceChange()
   }
 
@@ -390,6 +420,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setCustomInstructions(nextMessage)
     setRevisionMessage(nextMessage)
     setComposerValue('')
+    setSourceSequenceMode(inferSourceSequenceMode(clips, nextMessage))
     resetPlanProgress()
   }
 
@@ -444,8 +475,10 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                 onConfirmOrder={handleConfirmSourceOrder}
                 onMoveClip={handleMoveClip}
                 onRemoveClip={handleRemoveClip}
+                onSetSourceSequenceMode={handleSetSourceSequenceMode}
                 onUpdateClip={handleUpdateClip}
                 sourceOrderConfirmed={sourceOrderConfirmed}
+                sourceSequenceMode={sourceSequenceMode}
               />
             </ChatMessage>
           )}
@@ -498,7 +531,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                 editingCategory={editingCategory}
                 formatConfirmed={formatConfirmed}
                 frameTemplateType={frameTemplateType}
+                clips={clips}
                 sourceOrderConfirmed={sourceOrderConfirmed}
+                sourceSequenceMode={sourceSequenceMode}
                 targetPlatform={targetPlatform}
                 visualPreference={visualPreference}
               />

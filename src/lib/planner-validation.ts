@@ -22,6 +22,7 @@ export type PlanValidationCategory =
   | 'approval_gate'
   | 'credit_estimate'
   | 'compiled_intent'
+  | 'source_sequence'
   | 'professional_editing'
   | 'visual_asset_plan'
   | 'renderer_plan'
@@ -479,6 +480,10 @@ export function validateMockEditPlan(params: {
   const allRouteText = planText(plan)
   const aiVideoAssets = visualAssetPlan.filter(isAiVideoAsset)
   const directive = plan.professionalEditingDirective
+  const sourceSequenceReview = plan.sourceSequenceReview
+  const sourceOrderConfirmed = input.sourceOrderConfirmed ?? sourceSequenceReview?.confirmed
+  const sourceSequenceMode = input.sourceSequenceMode ?? sourceSequenceReview?.mode
+  const multipleClips = input.clips.length > 1
   const checks: PlanValidationCheck[] = [
     check({
       id: 'validation-compiled-intent',
@@ -578,6 +583,52 @@ export function validateMockEditPlan(params: {
       passed: true,
       message: 'EditPlan has no progress or generation-start field; ChatNativeEditor owns mock approval/progress state.',
       relatedField: 'EditPlan',
+    }),
+    check({
+      id: 'validation-source-sequence-map',
+      category: 'source_sequence',
+      label: 'Source sequence map exists',
+      severity: 'error',
+      passed: plan.sourceSequenceMap.length > 0 && plan.sourceSequenceMap.length === input.clips.length,
+      message: 'The plan should include a source sequence map for every attached clip.',
+      relatedField: 'sourceSequenceMap',
+    }),
+    check({
+      id: 'validation-source-sequence-mode',
+      category: 'source_sequence',
+      label: 'Source sequence mode exists',
+      severity: 'warning',
+      passed: Boolean(sourceSequenceMode),
+      message: 'Source sequence mode should be tracked before plan approval.',
+      relatedField: 'sourceSequenceMode',
+    }),
+    check({
+      id: 'validation-source-order-confirmation-state',
+      category: 'source_sequence',
+      label: 'Source confirmation state exists',
+      severity: 'warning',
+      passed: typeof sourceOrderConfirmed === 'boolean',
+      message: 'The planner should know whether source order is confirmed or still draft context.',
+      relatedField: 'sourceOrderConfirmed',
+    }),
+    check({
+      id: 'validation-multi-clip-source-order-confirmed-before-approval',
+      category: 'source_sequence',
+      label: 'Multi-clip source order confirmed before approval',
+      severity: 'warning',
+      passed: !multipleClips || sourceOrderConfirmed === true,
+      message: 'Multi-clip plans should confirm source/story order before the user approves credits; this is a warning until UI approval state is supplied to validation.',
+      relatedField: 'sourceOrderConfirmed',
+      recommendation: 'Keep source sequence expanded in Guided mode until confirmed.',
+    }),
+    check({
+      id: 'validation-source-order-change-resets-approval',
+      category: 'approval_gate',
+      label: 'Source changes reset approval in UI',
+      severity: 'info',
+      passed: true,
+      message: 'ChatNativeEditor is responsible for resetting plan approval, approved snapshot, mock progress, and preview when source order or clip metadata changes.',
+      relatedField: 'ChatNativeEditor.resetAfterSourceChange',
     }),
   ]
 

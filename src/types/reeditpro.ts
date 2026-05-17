@@ -77,6 +77,34 @@ export type VisualPreference =
 
 export type CreditPreference = 'low_credit_cost' | 'balanced' | 'premium_best_result' | 'let_ai_estimate'
 
+export type SourceSequenceMode =
+  | 'single_complete_video'
+  | 'multi_clip_story_order'
+  | 'unordered_clips_needs_ai_help'
+  | 'b_roll_plus_main_clip'
+  | 'mixed_assets'
+
+export type ClipSourceRole =
+  | 'main_story'
+  | 'hook_candidate'
+  | 'context'
+  | 'proof'
+  | 'b_roll'
+  | 'speaker'
+  | 'product'
+  | 'transition'
+  | 'ending'
+  | 'optional'
+  | 'unknown'
+
+export interface SourceSequenceReviewState {
+  mode: SourceSequenceMode
+  confirmed: boolean
+  confirmedAt?: string
+  userGuidance?: string
+  aiNotes: string[]
+}
+
 export type ProfessionalEditStyleId =
   | 'clean_professional'
   | 'premium_clean'
@@ -829,6 +857,10 @@ export interface ClipSource {
   notes?: string
   isImportant?: boolean
   isOptional?: boolean
+  sourceRole?: ClipSourceRole
+  previewLabel?: string
+  thumbnailHint?: string
+  sourceOrderLocked?: boolean
 }
 
 export interface SourceSequenceMapItem {
@@ -969,6 +1001,7 @@ export interface ChatPlanningPhaseSummary {
 export interface EditPlan {
   goalSummary: string
   sourceSequenceMap: SourceSequenceMapItem[]
+  sourceSequenceReview?: SourceSequenceReviewState
   recommendedStructure: string[]
   hookDecision: {
     policy: HookPolicy
@@ -1014,6 +1047,8 @@ export interface PlannerInput {
   customInstructions: string
   creditPreference: CreditPreference
   clips: ClipSource[]
+  sourceSequenceMode?: SourceSequenceMode
+  sourceOrderConfirmed?: boolean
   compiledIntent?: CompiledEditingIntent
   professionalEditingDirective?: ProfessionalEditingDirective
 }

@@ -31,14 +31,22 @@ import type {
   JobDependencyRecord,
   JobEventRecord,
   JobRecord,
+  LyriaPromptPlanRecord,
+  LyriaPromptSegment,
   MediaAssetRecord,
   MusicPlanRecord,
+  MusicContextAnalysisRecord,
+  MusicCueRecord,
+  MusicCueSheetRecord,
+  MusicLanguageContextRecord,
+  MusicMixPlanRecord,
   PacingAnalysisRecord,
   PreviewReviewRecord,
   ProjectRecord,
   QAReportRecord,
   ReferenceAssetRecord,
   ReferenceDNARecord,
+  ReferenceMusicDNARecord,
   RenderJobInputRecord,
   RenderJobRecord,
   RenderRecord,
@@ -100,6 +108,14 @@ export interface MockDatabase {
   audioEnvironmentAnalysis: AudioEnvironmentAnalysisRecord[]
   ambientSoundPlans: AmbientSoundPlanRecord[]
   musicPlans: MusicPlanRecord[]
+  musicContextAnalyses: MusicContextAnalysisRecord[]
+  musicLanguageContexts: MusicLanguageContextRecord[]
+  musicReferenceDna: ReferenceMusicDNARecord[]
+  musicCueSheets: MusicCueSheetRecord[]
+  musicCues: MusicCueRecord[]
+  musicMixPlans: MusicMixPlanRecord[]
+  lyriaPromptPlans: LyriaPromptPlanRecord[]
+  lyriaPromptSegments: LyriaPromptSegment[]
   soundEffectPlans: SoundEffectPlanRecord[]
   captionPlans: CaptionPlanRecord[]
   editQualityChecks: EditQualityCheckRecord[]
@@ -190,6 +206,14 @@ export function createMockDatabase(): MockDatabase {
     audioEnvironmentAnalysis: [],
     ambientSoundPlans: [],
     musicPlans: [],
+    musicContextAnalyses: [],
+    musicLanguageContexts: [],
+    musicReferenceDna: [],
+    musicCueSheets: [],
+    musicCues: [],
+    musicMixPlans: [],
+    lyriaPromptPlans: [],
+    lyriaPromptSegments: [],
     soundEffectPlans: [],
     captionPlans: [],
     editQualityChecks: [],

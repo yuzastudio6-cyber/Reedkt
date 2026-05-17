@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { Button } from '../Button'
 import { createMockEditPlan, sampleClips } from '../../lib/mock-planner'
-import type { ClipSource } from '../../types/reeditpro'
+import type { ClipSource, ReferenceAdaptationFocus, ReferenceVideoMode } from '../../types/reeditpro'
 import { AIEditingProgressStage } from './AIEditingProgressStage'
 import { ChatComposer } from './ChatComposer'
 import { ChatMessage } from './ChatMessage'
@@ -11,6 +11,7 @@ import { defaultChatPlannerInput, progressSteps } from './chatNativeData'
 import { InlineAIQuestionCard } from './InlineAIQuestionCard'
 import { InlineCreditEstimateCard } from './InlineCreditEstimateCard'
 import { InlineEditPlanCard } from './InlineEditPlanCard'
+import { InlinePlanningContextCard } from './InlinePlanningContextCard'
 import { InlineReferenceDNACard } from './InlineReferenceDNACard'
 import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
 import { InlineWorkflowChoiceCard } from './InlineWorkflowChoiceCard'
@@ -30,6 +31,10 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [composerValue, setComposerValue] = useState('Make the captions smaller and keep the Real Motion subtle.')
   const [clipsAttached, setClipsAttached] = useState(true)
   const [referenceAttached, setReferenceAttached] = useState(true)
+  const [referenceUrl, setReferenceUrl] = useState(defaultChatPlannerInput.referenceUrl)
+  const [referenceVideoMode, setReferenceVideoMode] = useState<ReferenceVideoMode>('user_pasted_link')
+  const [referenceAdaptationFocus, setReferenceAdaptationFocus] = useState<ReferenceAdaptationFocus[]>(['overall_style'])
+  const [referenceNotes] = useState<string[]>(['Use the reference as style DNA only.'])
   const [workflowChoice, setWorkflowChoice] = useState('Real estate / property tour')
   const [approved, setApproved] = useState(false)
   const [progressStarted, setProgressStarted] = useState(false)
@@ -42,9 +47,12 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     () => ({
       ...defaultChatPlannerInput,
       clips,
-      referenceUrl: referenceAttached ? defaultChatPlannerInput.referenceUrl : '',
+      referenceUrl: referenceAttached ? referenceUrl : '',
+      referenceVideoMode,
+      referenceAdaptationFocus,
+      referenceNotes,
     }),
-    [clips, referenceAttached],
+    [clips, referenceAdaptationFocus, referenceAttached, referenceNotes, referenceUrl, referenceVideoMode],
   )
 
   const plan = useMemo(() => createMockEditPlan(plannerInput), [plannerInput])
@@ -72,6 +80,13 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     }
   }, [progressIndex, progressStarted, previewReady])
 
+  function resetApprovalFlow() {
+    setApproved(false)
+    setProgressStarted(false)
+    setPreviewReady(false)
+    setProgressIndex(0)
+  }
+
   function handleAddMockClip() {
     setClipsAttached(true)
     setClips((current) =>
@@ -87,10 +102,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
         },
       ]),
     )
-    setApproved(false)
-    setProgressStarted(false)
-    setPreviewReady(false)
-    setProgressIndex(0)
+    resetApprovalFlow()
   }
 
   function handleMoveClip(id: string, direction: 'up' | 'down') {
@@ -113,14 +125,50 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
   function handleRemoveClip(id: string) {
     setClips((current) => reorderClips(current.filter((clip) => clip.id !== id)))
-    setApproved(false)
-    setProgressStarted(false)
-    setPreviewReady(false)
+    resetApprovalFlow()
   }
 
   function handleUpdateClip(id: string, updates: Partial<ClipSource>) {
     setClips((current) => current.map((clip) => (clip.id === id ? { ...clip, ...updates } : clip)))
     setApproved(false)
+  }
+
+  function handleReferenceUrlChange(value: string) {
+    setReferenceUrl(value)
+    setReferenceAttached(value.trim().length > 0)
+    setReferenceVideoMode(value.trim().length > 0 ? 'user_pasted_link' : 'no_reference')
+    resetApprovalFlow()
+  }
+
+  function handleAttachReference() {
+    setReferenceAttached(true)
+    setReferenceUrl((current) => current || 'https://example.com/mock-clean-product-reference')
+    setReferenceVideoMode('mock_reference')
+    setReferenceAdaptationFocus((current) =>
+      current.includes('ignore_reference') ? ['overall_style'] : current.length ? current : ['overall_style'],
+    )
+    resetApprovalFlow()
+  }
+
+  function handleSkipReference() {
+    setReferenceAttached(false)
+    setReferenceVideoMode('reference_skipped')
+    setReferenceAdaptationFocus(['ignore_reference'])
+    resetApprovalFlow()
+  }
+
+  function handleReferenceFocusChange(focus: ReferenceAdaptationFocus[]) {
+    setReferenceAdaptationFocus(focus)
+
+    if (focus.includes('ignore_reference')) {
+      setReferenceAttached(false)
+      setReferenceVideoMode('reference_skipped')
+    } else {
+      setReferenceAttached(referenceUrl.trim().length > 0)
+      setReferenceVideoMode(referenceUrl.trim().length > 0 ? 'user_pasted_link' : 'mock_reference')
+    }
+
+    resetApprovalFlow()
   }
 
   function handleApprove() {
@@ -177,19 +225,25 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
         <ChatMessage role="ai">
           <p>You can paste a reference video link or skip it. I will study the style without copying it shot-for-shot.</p>
+          <InlineReferenceDNACard
+            onAttachReference={handleAttachReference}
+            onFocusChange={handleReferenceFocusChange}
+            onReferenceUrlChange={handleReferenceUrlChange}
+            onSkipReference={handleSkipReference}
+            referenceUrl={referenceUrl}
+            referenceVideoPlan={plan.referenceVideoPlan}
+          />
         </ChatMessage>
 
-        {referenceAttached && (
+        {plan.referenceVideoPlan?.referenceProvided && (
           <ChatMessage role="user">
-            <p>Reference: https://example.com/luxury-listing-reference</p>
+            <p>Reference: {plan.referenceVideoPlan.referenceUrl ?? 'mock reference attached'}</p>
           </ChatMessage>
         )}
 
-        {referenceAttached && (
-          <ChatMessage role="ai">
-            <InlineReferenceDNACard />
-          </ChatMessage>
-        )}
+        <ChatMessage role="ai">
+          <InlinePlanningContextCard plan={plan} />
+        </ChatMessage>
 
         <ChatMessage role="ai">
           <p>Here is the edit plan before spending credits.</p>
@@ -240,7 +294,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
         inputValue={composerValue}
         onAttachClips={handleAddMockClip}
         onInputChange={setComposerValue}
-        onReference={() => setReferenceAttached(true)}
+        onReference={handleAttachReference}
         onSend={handleSend}
       />
 

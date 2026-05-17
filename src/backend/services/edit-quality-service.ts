@@ -14,6 +14,15 @@ import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
 
+export interface MusicPlanSoundSyncLinks {
+  musicContextAnalysisId?: string
+  musicCueSheetId?: string
+  referenceMusicDNAId?: string
+  lyriaPromptPlanId?: string
+  generatedMusicTrackIds?: string[]
+  musicMixPlanId?: string
+}
+
 export function createEditQualityProfile(
   db: MockDatabase,
   projectId: string,
@@ -233,6 +242,7 @@ export function createMusicPlan(
   db: MockDatabase,
   projectId: string,
   editPlanId: string,
+  soundSyncLinks: MusicPlanSoundSyncLinks = {},
 ): ServiceResult<MusicPlanRecord> {
   const plan: MusicPlanRecord = {
     id: createMockId('music-plan'),
@@ -251,11 +261,23 @@ export function createMusicPlan(
     beatSyncNeeded: false,
     referenceMusicInfluence: 'subtle premium real-estate bed',
     licenseSource: 'mock',
-    beatChangeNotes: ['Never overpower the speaker.'],
+    beatChangeNotes: [
+      'Never overpower the speaker.',
+      ...(soundSyncLinks.musicCueSheetId ? ['SoundSync Music Director cue sheet is available for detailed cue planning.'] : []),
+    ],
     status: 'completed',
+    musicContextAnalysisId: soundSyncLinks.musicContextAnalysisId,
+    musicCueSheetId: soundSyncLinks.musicCueSheetId,
+    referenceMusicDNAId: soundSyncLinks.referenceMusicDNAId,
+    lyriaPromptPlanId: soundSyncLinks.lyriaPromptPlanId,
+    generatedMusicTrackIds: soundSyncLinks.generatedMusicTrackIds,
+    musicMixPlanId: soundSyncLinks.musicMixPlanId,
     createdAt: nowIso(),
     updatedAt: nowIso(),
-    metadata: { mockOnly: true },
+    metadata: {
+      mockOnly: true,
+      soundSyncPlanningLinked: Boolean(soundSyncLinks.musicCueSheetId),
+    },
   }
 
   return ok(insertMockRecord(db, 'musicPlans', plan))

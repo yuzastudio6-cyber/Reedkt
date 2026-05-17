@@ -11,6 +11,9 @@ export const defaultChatPlannerInput: PlannerInput = {
   moodStyle: 'luxury',
   visualPreference: 'balanced_visual_mix',
   referenceUrl: 'https://example.com/luxury-listing-reference',
+  referenceVideoMode: 'user_pasted_link',
+  referenceAdaptationFocus: ['overall_style'],
+  referenceNotes: ['Use reference DNA as style guidance only.'],
   customInstructions:
     "I want to edit these clips into a premium real estate short. Keep it natural and don't make it too viral.",
   creditPreference: 'balanced',

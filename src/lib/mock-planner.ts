@@ -1,4 +1,10 @@
 import type { ClipSource, EditPlan, PlannerInput, SignatureRoute } from '../types/reeditpro'
+import { createEditQAChecks } from './edit-qa-planner'
+import { compileEditingIntent, inferReferenceAdaptationFocus } from './intent-compiler'
+import { createProfessionalEditingDirective } from './professional-editing-ontology'
+import { buildProviderPromptGuidance } from './prompt-builders'
+import { createReferenceVideoPlan, mergeReferenceDNAIntoProfessionalDirective } from './reference-dna'
+import { validateMockEditPlan } from './planner-validation'
 import { getWorkflowProfile } from './workflow-profiles'
 
 export const mockPlannerLoadingSteps = [
@@ -168,16 +174,36 @@ function createCreditEstimate(routes: SignatureRoute[], input: PlannerInput): Ed
 }
 
 export function createMockEditPlan(input: PlannerInput): EditPlan {
-  const profile = getWorkflowProfile(input.workflowType)
-  const routes = createSignatureRoutes(input)
-  const referenceProvided = input.referenceUrl.trim().length > 0
+  const resolvedInput: PlannerInput = {
+    ...input,
+    referenceAdaptationFocus: inferReferenceAdaptationFocus(input),
+  }
+  const profile = getWorkflowProfile(resolvedInput.workflowType)
+  const referenceAttached =
+    resolvedInput.referenceUrl.trim().length > 0 ||
+    resolvedInput.referenceVideoMode === 'mock_reference' ||
+    resolvedInput.referenceVideoMode === 'user_uploaded_reference'
+  const referenceVideoPlan = createReferenceVideoPlan({
+    referenceUrl: resolvedInput.referenceUrl,
+    referenceAttached,
+    skipped: resolvedInput.referenceVideoMode === 'reference_skipped',
+    input: resolvedInput,
+  })
+  const compiledIntent = compileEditingIntent(resolvedInput)
+  const baseDirective = createProfessionalEditingDirective({ input: resolvedInput, compiledIntent })
+  const professionalEditingDirective = mergeReferenceDNAIntoProfessionalDirective({
+    directive: baseDirective,
+    referenceDNA: referenceVideoPlan.referenceDNA,
+    userInstructions: resolvedInput.customInstructions,
+  })
+  const routes = createSignatureRoutes(resolvedInput)
   const strongerSocialOpen =
-    input.structurePreference === 'restructure_for_social' ||
-    input.structurePreference === 'let_ai_recommend' ||
-    input.workflowType === 'social_short_viral_clip' ||
-    input.workflowType === 'marketing_ad'
+    resolvedInput.structurePreference === 'restructure_for_social' ||
+    resolvedInput.structurePreference === 'let_ai_recommend' ||
+    resolvedInput.workflowType === 'social_short_viral_clip' ||
+    resolvedInput.workflowType === 'marketing_ad'
 
-  const sourceSequenceMap = input.clips.map((clip) => ({
+  const sourceSequenceMap = resolvedInput.clips.map((clip) => ({
     clipId: clip.id,
     uploadedOrder: clip.uploadedOrder,
     detectedRole: clip.detectedType,
@@ -204,9 +230,9 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
       ]
 
   const hookPolicy =
-    input.workflowType === 'marketing_ad'
+    resolvedInput.workflowType === 'marketing_ad'
       ? 'required'
-      : input.workflowType === 'simple_clean_edit'
+      : resolvedInput.workflowType === 'simple_clean_edit'
         ? 'avoid'
         : strongerSocialOpen
           ? 'recommended'
@@ -221,24 +247,32 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
           ? 'Strong hook required before the offer or proof sequence.'
           : 'Soft hook recommended only if it improves the viewer entry point.',
     reason:
-      input.customInstructions.toLowerCase().includes('no hook')
+      resolvedInput.customInstructions.toLowerCase().includes('no hook')
         ? 'User instructions have highest priority, so the plan will not force a hook.'
         : `${profile.label} gives workflow context, but the edit plan chooses the hook based on goal, platform, and footage.`,
   } satisfies EditPlan['hookDecision']
 
-  return {
-    goalSummary: `Create a ${profile.label.toLowerCase()} that feels ${input.moodStyle.replaceAll('_', ' ')} while protecting credits with plan-first approval.`,
+  const providerPromptGuidance = buildProviderPromptGuidance({
+    input: resolvedInput,
+    directive: professionalEditingDirective,
+    referenceDNA: referenceVideoPlan.referenceDNA,
+  })
+  const qaChecks = createEditQAChecks({ input: resolvedInput, referenceVideoPlan })
+
+  const plan: EditPlan = {
+    goalSummary: `Create a ${profile.label.toLowerCase()} that feels ${resolvedInput.moodStyle.replaceAll('_', ' ')} while protecting credits with plan-first approval.`,
     sourceSequenceMap,
     recommendedStructure,
     hookDecision,
-    referenceDNA: referenceProvided
+    referenceVideoPlan,
+    referenceDNA: referenceVideoPlan.referenceDNA
       ? {
-          pacing: 'Use the reference for rhythm and beat changes, not shot order.',
-          music: 'Study the intro energy and duck music under the speaker voice.',
-          captions: 'Adapt caption density and contrast while keeping ReeditPro spacing rules.',
-          transitions: 'Borrow transition logic only where it supports the user footage.',
-          visualStyle: 'Translate the mood into ReeditPro visual systems without copying scenes.',
-          adaptationRule: 'Reference DNA guides style; it does not create a shot-for-shot copy.',
+          pacing: referenceVideoPlan.referenceDNA.pacing,
+          music: referenceVideoPlan.referenceDNA.soundSyncStyle,
+          captions: `${referenceVideoPlan.referenceDNA.captionStyle}; ${referenceVideoPlan.referenceDNA.captionDensity}`,
+          transitions: referenceVideoPlan.referenceDNA.transitionStyle,
+          visualStyle: referenceVideoPlan.referenceDNA.visualEffectStyle,
+          adaptationRule: referenceVideoPlan.referenceDNA.adaptationRules[0] ?? 'Reference DNA guides style; it does not create a shot-for-shot copy.',
         }
       : undefined,
     signatureRoutes: routes.map((route) => ({
@@ -246,11 +280,20 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
       reason: `${route.reason} (${systemLabel(route.system)} is selected per segment, not forced by the dropdown.)`,
     })),
     soundSyncDirection:
-      input.editLevel === 'basic'
+      resolvedInput.editLevel === 'basic'
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
         : 'Use SoundSync for mood, beat timing, transition sounds, ducking, and emotional polish while speech stays clear.',
     captionDirection: 'Use readable captions that avoid faces, important objects, and Real Motion placement zones.',
-    creditEstimate: createCreditEstimate(routes, input),
+    compiledIntent,
+    professionalEditingDirective,
+    qaChecks,
+    providerPromptGuidance,
+    creditEstimate: createCreditEstimate(routes, resolvedInput),
     approvalRequired: true,
+  }
+
+  return {
+    ...plan,
+    plannerValidation: validateMockEditPlan(plan, resolvedInput),
   }
 }

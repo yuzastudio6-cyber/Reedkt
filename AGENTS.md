@@ -7,9 +7,11 @@ These instructions are for Codex and any future agent working in this repository
 - Read `design.md` before any UI, layout, component, visual, brand, or frontend design work.
 - Read `product-plan.md` before product-scope decisions.
 - Read `intent-led-edit-planning.md` before upload, planning, AI workflow, generation, or approval work.
+- Read `reference-video-dna-ux.md` before reference video, style matching, Reference DNA, or reference-analysis UX work.
 - Read `pricing-and-credits.md` before billing, credits, subscription, usage, or estimate work.
 - Read `signature-systems.md` and `real-motion-system.md` before visual AI system work.
 - Read `edit-workflow-blueprints.md` before changing video type dropdowns, workflow profiles, edit setup, or planning prompts.
+- Read `soundsync-music-intelligence.md`, `music-reference-dna.md`, `lyria-music-generation-plan.md`, and `audio-library-and-licensing.md` before SoundSync music, generated music, reference audio, SFX, audio library, or Lyria Pro planning work.
 
 ## Product Identity
 
@@ -89,6 +91,17 @@ SoundSync is not the third visual signature system. SoundSync is the audio and t
 
 StoryTiming coordinates captions, cuts, Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, and story beats.
 
+## SoundSync Music Intelligence
+
+- SoundSync Music Intelligence plans music before generation. ReeditPro must not generate or pick random background music.
+- Lyria Pro is the future primary custom music generator, but do not add API keys, Google calls, real workers, or integration unless explicitly requested.
+- Music may be generated on the fly per edit, but only after context analysis, cue planning, credit estimate, approval, and future credit reservation.
+- Lifestyle, vacation, travel, vlog, documentary, and long-form videos may need multiple music cues instead of one track.
+- Language/culture-aware music is allowed when supported by footage, transcript, audience, user request, or reference DNA. Avoid stereotypes and never copy reference tracks, melodies, or lyrics.
+- Lyrics are not allowed under important speech by default. Use instrumental-only music for dialogue, teaching, narration, podcast, or speech-heavy sections unless the user explicitly approves otherwise.
+- Generated music should be stored as project assets first. Promote tracks to a future ReeditPro library only after QA, provenance, provider-terms, and reuse review.
+- Music generation remains approval-gated and credit-gated like other expensive generation.
+
 ## Dropdown Workflow Rule
 
 The video type dropdown gives workflow context only. It does not automatically decide which signature systems are used.
@@ -117,6 +130,12 @@ The final edit order should not be changed without showing the plan first.
 ## Reference Video
 
 If the user provides a reference video, AI should study it but not copy it shot-for-shot.
+
+Reference video analysis must create Reference DNA, not shot-for-shot copying. Reference DNA guides planning but does not override explicit user instructions, source order confirmation, platform/frame constraints, tier/model rules, safety rules, QA rules, credit estimates, or approval gates.
+
+Do not copy exact music, exact visual sequence, copyrighted assets, brand assets, or a creator's exact identity or protected distinctive style. Store adaptation rules and do-not-copy rules whenever Reference DNA is created.
+
+Reference video must not bypass approval or credit estimate. Current frontend tasks must not implement real reference downloading, real reference analysis, external fetching, backend work, provider calls, render jobs, or copyright-detection systems unless explicitly requested.
 
 Extract Reference DNA:
 

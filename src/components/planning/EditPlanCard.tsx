@@ -74,7 +74,40 @@ export function EditPlanCard({ approved, onApprove, onRevise, onSaveDraft, plan 
           </div>
         </div>
 
-        {plan.referenceDNA && (
+        {plan.referenceVideoPlan?.referenceDNA && (
+          <section className="reference-dna-grid">
+            <div className="section-heading compact">
+              <span className="section-eyebrow">Reference DNA</span>
+              <h3>Style guidance, not shot-for-shot copying</h3>
+            </div>
+            <article>
+              <strong>Topic</strong>
+              <p>{plan.referenceVideoPlan.referenceDNA.topic}</p>
+            </article>
+            <article>
+              <strong>Pacing</strong>
+              <p>{plan.referenceVideoPlan.referenceDNA.pacing}</p>
+            </article>
+            <article>
+              <strong>Captions</strong>
+              <p>{plan.referenceVideoPlan.referenceDNA.captionStyle}</p>
+            </article>
+            <article>
+              <strong>Transitions</strong>
+              <p>{plan.referenceVideoPlan.referenceDNA.transitionStyle}</p>
+            </article>
+            <article>
+              <strong>SoundSync</strong>
+              <p>{plan.referenceVideoPlan.referenceDNA.soundSyncStyle}</p>
+            </article>
+            <article>
+              <strong>Do not copy</strong>
+              <p>{plan.referenceVideoPlan.referenceDNA.doNotCopyRules[0]}</p>
+            </article>
+          </section>
+        )}
+
+        {!plan.referenceVideoPlan?.referenceDNA && plan.referenceDNA && (
           <section className="reference-dna-grid">
             <div className="section-heading compact">
               <span className="section-eyebrow">Reference DNA</span>

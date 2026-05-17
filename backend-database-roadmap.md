@@ -112,6 +112,21 @@ Add RLS policies before using with real user data.
 - Add export QA.
 - Do not publish to social platforms until a later explicit milestone.
 
+## RP-AUDIO Milestone Series
+
+The RP-AUDIO series extends the backend foundation with SoundSync Music Intelligence. RP-AUDIO-01 is documentation only and creates no Supabase migration, provider integration, API keys, Google Cloud deployment, rendering, Stripe work, uploads, or mobile screens.
+
+- RP-AUDIO-01: SoundSync Music Intelligence Architecture.
+- RP-AUDIO-02: TypeScript Audio/Music Contracts.
+- RP-AUDIO-03: Supabase Migration: Music Intelligence Tables.
+- RP-AUDIO-04: Mock Music Director + Cue Sheet Planner.
+- RP-AUDIO-05: Lyria Pro Prompt Builder.
+- RP-AUDIO-06: Reference Video Music DNA System.
+- RP-AUDIO-07: Music QA + Mix Planning.
+- RP-AUDIO-08: Chat-Native Music Plan UI.
+- RP-AUDIO-09: Lyria Pro Worker Skeleton.
+- RP-AUDIO-10: Real Lyria Integration later.
+
 ## Phase 17: Stripe And Billing
 
 - Add Stripe only after credit ledger rules are implemented.

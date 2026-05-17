@@ -28,6 +28,8 @@ export type VideoWorkflowType =
   | 'testimonial_case_study'
   | 'custom_let_ai_decide'
 
+export type EditingCategory = VideoWorkflowType
+
 export type TargetPlatform =
   | 'tiktok_reels_shorts'
   | 'youtube'
@@ -61,6 +63,26 @@ export type VisualPreference =
   | 'no_extra_visuals'
 
 export type CreditPreference = 'low_credit_cost' | 'balanced' | 'premium_best_result' | 'let_ai_estimate'
+
+export type ReferenceVideoMode =
+  | 'no_reference'
+  | 'user_pasted_link'
+  | 'user_uploaded_reference'
+  | 'mock_reference'
+  | 'reference_skipped'
+
+export type ReferenceAdaptationFocus =
+  | 'overall_style'
+  | 'opening_style'
+  | 'pacing'
+  | 'caption_style'
+  | 'transition_style'
+  | 'music_sound'
+  | 'visual_effects'
+  | 'b_roll'
+  | 'color_mood'
+  | 'signature_system_usage'
+  | 'ignore_reference'
 
 export interface ClipSource {
   id: string
@@ -98,6 +120,71 @@ export interface CreditEstimate {
   }[]
 }
 
+export interface ReferenceDNA {
+  id: string
+  mode: ReferenceVideoMode
+  referenceUrl?: string
+  referenceLabel?: string
+  topic: string
+  openingStyle: string
+  hookStyle: string
+  pacing: string
+  cutRhythm: string
+  captionStyle: string
+  captionDensity: string
+  transitionStyle: string
+  musicIntro: string
+  soundSyncStyle: string
+  visualEffectStyle: string
+  brollStyle: string
+  colorGradeMood: string
+  signatureSystemUsage: string[]
+  frameLayoutHints: string[]
+  moodTone: string
+  whatWorks: string[]
+  adaptationRules: string[]
+  doNotCopyRules: string[]
+  userOverrides: string[]
+  focus: ReferenceAdaptationFocus[]
+  confidence: 'low' | 'medium' | 'high'
+  sourceLimitations: string[]
+}
+
+export interface ReferenceVideoPlan {
+  mode: ReferenceVideoMode
+  referenceUrl?: string
+  referenceProvided: boolean
+  referenceDNA?: ReferenceDNA
+  skipped: boolean
+  userNotes: string[]
+  requiredBeforeApproval: boolean
+  status: 'not_started' | 'attached' | 'analyzed_mock' | 'skipped' | 'needs_review'
+}
+
+export interface CompiledEditingIntent {
+  goalSummary: string
+  explicitInstructions: string[]
+  referencePreferences: string[]
+  avoidRules: string[]
+  userOverrides: string[]
+  clarifyingNotes: string[]
+  confidence: 'low' | 'medium' | 'high'
+}
+
+export interface ProfessionalEditingDirective {
+  editLevel: EditLevel
+  pacingStyle: string
+  transitionFamilies: string[]
+  captionStyle: string
+  soundStyle: string
+  visualDensity: string
+  signatureSystemGuidance: string[]
+  customDirectives: string[]
+  avoidRules: string[]
+  tierModelRules: string[]
+  approvalRequired: true
+}
+
 export interface EditPlan {
   goalSummary: string
   sourceSequenceMap: SourceSequenceMapItem[]
@@ -118,6 +205,16 @@ export interface EditPlan {
   signatureRoutes: SignatureRoute[]
   soundSyncDirection: string
   captionDirection: string
+  referenceVideoPlan?: ReferenceVideoPlan
+  compiledIntent?: CompiledEditingIntent
+  professionalEditingDirective?: ProfessionalEditingDirective
+  qaChecks?: string[]
+  plannerValidation?: {
+    passed: boolean
+    checks: string[]
+    warnings: string[]
+  }
+  providerPromptGuidance?: string[]
   creditEstimate: CreditEstimate
   approvalRequired: boolean
 }
@@ -132,6 +229,9 @@ export interface PlannerInput {
   moodStyle: MoodStyle
   visualPreference: VisualPreference
   referenceUrl: string
+  referenceVideoMode?: ReferenceVideoMode
+  referenceAdaptationFocus?: ReferenceAdaptationFocus[]
+  referenceNotes?: string[]
   customInstructions: string
   creditPreference: CreditPreference
   clips: ClipSource[]

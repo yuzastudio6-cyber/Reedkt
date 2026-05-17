@@ -17,6 +17,7 @@ The contracts live under `src/types/`:
 - `media.ts`: media assets, source clip sequences, transcripts, scene boundaries, visual/audio observations, references, and Reference DNA.
 - `planning.ts`: intent analysis, edit plans, edit plan segments, edit instructions, signature routes, and story beat maps.
 - `edit-quality.ts`: Professional Edit Quality Engine records for pacing, cuts, transitions, audio, ambience, music, SFX, captions, and QA checks.
+- `audio-music.ts`: SoundSync Music Intelligence records for music context analysis, cue sheets, Lyria Pro prompt planning, generated music assets, QA, mix/ducking, licensing, SFX library assets, and future worker contracts.
 - `signature-systems.ts`: Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, and future signature support records.
 - `stroke-motion.ts`: Stroke Motion plans, beats, characters, symbols, transitions, timing anchors, generation specs, and meaning expansion examples.
 - `jobs.ts`: jobs, dependencies, events, agent runs, agent outputs, and audit events.
@@ -81,6 +82,14 @@ The Professional Edit Quality Engine types model:
 - Edit quality checks.
 
 Basic edits can still include clean cuts, dead-space removal, obvious mistake removal, meaningful pause preservation, basic captions, voice cleanup, room tone preservation, audio leveling, and professional preview QA. Higher levels add more planning depth, signature generation, SoundSync complexity, and credit cost.
+
+## SoundSync Music Intelligence Type Contracts
+
+`src/types/audio-music.ts` is the dedicated contract layer for SoundSync Music Intelligence. It extends the older `MusicPlanRecord` direction without replacing it: existing edit-quality music plans can now link to richer SoundSync records by optional IDs for music context analysis, cue sheets, reference music DNA, Lyria Pro prompt plans, generated tracks, and mix plans.
+
+The contracts model music before generation. They support multi-cue cue sheets, scene-by-scene music roles, language/culture-aware decisions, lyrics vs instrumental safety, future Lyria Pro prompt planning, generated music as project assets, Music QA, mix/ducking plans, SFX library assets, license/provenance records, export usage records, and library candidate review.
+
+These types are ready for future Supabase migrations and backend services, but RP-AUDIO-02 does not create migrations, connect to Supabase, call Lyria Pro, add API keys, deploy workers, render audio, or approve reuse across users. Generated music remains project-only until QA and provider terms review allow broader promotion.
 
 ## Signature Systems
 

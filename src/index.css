@@ -3297,6 +3297,135 @@ textarea:disabled {
   margin: 0;
 }
 
+.reference-dna-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 229, 255, 0.08), transparent 30%),
+    rgba(5, 7, 13, 0.62);
+}
+
+.reference-url-row {
+  align-items: center;
+  background: rgba(18, 24, 38, 0.78);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-muted);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 9px 10px;
+}
+
+.reference-url-row input {
+  background: transparent;
+  border: 0;
+  color: var(--rp-text-primary);
+  font: inherit;
+  min-width: 0;
+  outline: 0;
+}
+
+.reference-url-row:focus-within {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12);
+}
+
+.reference-focus-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.reference-focus-option {
+  background: rgba(18, 24, 38, 0.72);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  min-height: 32px;
+  padding: 0 10px;
+  transition: border-color var(--rp-transition), background var(--rp-transition), color var(--rp-transition);
+}
+
+.reference-focus-option-active {
+  background: rgba(37, 99, 255, 0.18);
+  border-color: rgba(0, 229, 255, 0.38);
+  color: var(--rp-text-primary);
+}
+
+.reference-dna-summary {
+  background: rgba(18, 24, 38, 0.54);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 9px;
+  padding: 9px;
+}
+
+.reference-dna-summary summary {
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.reference-dna-section {
+  background: rgba(18, 24, 38, 0.62);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 5px;
+  padding: 9px;
+}
+
+.reference-dna-section p {
+  color: var(--rp-text-muted);
+  margin: 0;
+}
+
+.reference-rule-list {
+  color: var(--rp-text-muted);
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.reference-do-not-copy-note {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.reference-confidence-badge {
+  align-self: start;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-success);
+  font-size: 0.76rem;
+  font-weight: 800;
+  justify-self: start;
+  padding: 4px 7px;
+  text-transform: capitalize;
+}
+
+.reference-skipped-note {
+  background: rgba(21, 31, 50, 0.62);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-muted);
+  font-size: 0.82rem;
+  margin: 0;
+  padding: 9px;
+}
+
+.planning-context-card {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(37, 99, 255, 0.1), transparent 34%),
+    rgba(5, 7, 13, 0.58);
+}
+
 .chat-clip-list,
 .credit-breakdown-list,
 .ai-progress-list {

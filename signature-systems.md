@@ -12,6 +12,10 @@ SoundSync is still important, but it is not the third visual signature system. I
 
 For backend/database architecture, see `stroke-motion-data-model.md`, `generation-provider-architecture.md`, and `job-orchestration-architecture.md`. Stroke Motion supports `spoken_story_mode` and `source_reading_mode`; source reading requires `meaning_expansion` before animation planning.
 
+ReeditPro is a hybrid visual storytelling system. Not every story beat should become animation. Beats may become stills, cards, graphic frames, motion design, Stroke Motion, Real Motion, transitions, or no extra visual depending on what improves the story.
+
+AI video generation should default to matching white, near-white, or custom frame panels inside ReeditPro's editor/compositor. Transparent overlays remain valid for controlled renderer systems such as SVG, Lottie, Remotion, or other deterministic outputs, but transparent AI video backgrounds are not the default.
+
 ## Stroke Motion
 
 Stroke Motion is 2D overlay motion storytelling. It is used for emotion, story, emphasis, transformation, movement, speaker-aligned visual motion, and simple visual metaphors.
@@ -20,6 +24,7 @@ Stroke Motion should:
 
 - Stay tied to transcript meaning and story beats.
 - Feel lightweight and integrated.
+- Use still/card or panel-based visuals when animation is not needed.
 - Support the speaker's message instead of decorating randomly.
 - Appear as an editable visual layer in future editor work.
 - Vary by segment instead of repeating the exact same animation.

@@ -10,6 +10,22 @@ These instructions are for Codex and any future agent working in this repository
 - Read `pricing-and-credits.md` before billing, credits, subscription, usage, or estimate work.
 - Read `signature-systems.md` and `real-motion-system.md` before visual AI system work.
 - Read `edit-workflow-blueprints.md` before changing video type dropdowns, workflow profiles, edit setup, or planning prompts.
+- Read `visual-storytelling-architecture.md` before visual storytelling, beat planning, visual asset type, or character consistency work.
+- Read `model-routing-policy.md` before provider model routing, fallback, resolution, or generation-policy work.
+- Read `frame-layout-system.md` before frame template, layout panel, compositor, safe-zone, or AI animation background work.
+- Read `remotion-renderer-plan.md` before rendering, compositing, frame layout, motion design, or visual asset assembly work.
+- Read `professional-editing-ontology.md` before professional editing style, pacing, cut, transition, color, caption, b-roll, sound, or custom directive work.
+- Read `edit-quality-standards.md` before changing tier quality, edit QA, professional baseline, or quality-gate behavior.
+- Read `intent-compiler-architecture.md` before natural-language request parsing, compiled intent, clarifying questions, or user instruction mapping work.
+- Read `segment-edit-operations-architecture.md` before segment planning, worker instructions, edit operations, cut lists, caption operation plans, b-roll operation plans, or per-segment editing work.
+- Read `edit-qa-architecture.md` before QA planning, fallback QA, model-policy QA, approval QA, frame-layout QA, or professional delivery checks.
+- Read `edit-planning-database-architecture.md` before future edit-planning persistence, database architecture, approved plan versioning, job tables, QA tables, revision tables, or credit approval schema work.
+- Read `approved-plan-snapshot-policy.md` before approval, approved snapshot, worker execution, credit reservation, revision versioning, or immutable plan version work.
+- Read `provider-prompt-architecture.md` before provider prompt planning, prompt previews, image prompt briefs, AI-video prompt briefs, Remotion motion briefs, or approved prompt snapshot work.
+- Read `character-consistency-system.md` before character pack, recurring character, keyframe identity, start/end frame consistency, or likeness-safety work.
+- Read `documentary-fact-safety-system.md` before documentary claims, real named people, allegations, evidence cards, fact-safety planning, or case-study visual treatment work.
+- Read `planner-regression-validation.md` before planner validation, regression checks, demo scenario QA, model-routing tests, prompt-builder tests, or hard product rule validation work.
+- Read `chat-planning-ux-architecture.md` before chat flow organization, planning card priority, collapse behavior, guided/detailed/developer modes, or approval-path UX work.
 
 ## Product Identity
 
@@ -49,6 +65,61 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Never begin generation before edit plan and credit approval.
 - Stroke Motion supports `spoken_story_mode` and `source_reading_mode`.
 - Stroke Motion source reading requires `meaning_expansion` before animation planning.
+- Veo 3.1 Lite is Premium-only and fallback-only. Basic and Pro must never route to Veo.
+- AI video generation should default to matching white/near-white/custom panel backgrounds, not transparent backgrounds.
+- Basic must still be professional. Basic means lower-compute clean editing, not low-quality editing.
+- Edit level controls complexity, fallback depth, asset count, and credit estimate. Edit level does not control quality.
+- The professional editing ontology guides the AI but must not limit custom user requests.
+- If a user asks for a style not in the ontology, store it as a custom directive and map it to known professional presets.
+- No random b-roll, random transitions, random captions, random color grading, or random visuals.
+- Every edit plan should include structured settings for pacing, color, captions, transitions, b-roll, sound, and visual systems when applicable.
+- User chat must be compiled into structured editing intent before plan generation.
+- Do not rely on raw chat text alone for edit planning.
+- Ask clarifying questions only when missing information changes the edit.
+- Explicit user instructions have priority over defaults unless constrained by safety, tier, model policy, frame rules, or platform rules.
+- Basic and Pro cannot use Veo even if the user asks; explain the tier constraint and offer Wan/Hailuo or Premium final-fallback alternatives.
+- Every approved edit plan should eventually resolve into segment edit operations with enough detail for workers to execute.
+- QA must check the result against user intent, tier rules, source order, frame rules, model routing, and professional standards.
+- Workers must not improvise outside approved plan and fallback rules.
+- Basic and Pro cannot use Veo during QA fallback.
+- Premium can use Veo only as final fallback/rescue.
+- Future backend/database work must use approved plan snapshots.
+- Workers must execute approved plan versions, not raw chat text.
+- Do not overwrite approved plan versions; approved versions are immutable except for status and audit fields.
+- User revisions create new plan versions.
+- Credit estimates and approval records must point to exact plan versions.
+- Basic/Pro no-Veo policy and Premium fallback-only Veo policy must be preserved in approved snapshots.
+- Matching panel background and frame layout rules must be preserved in approved snapshots.
+- Provider prompts must be built from compiled intent, professional editing direction, visual asset plan, style mode, frame layout, provider route, and QA checks.
+- Do not hand-write random prompts disconnected from the approved plan.
+- GPT-Image-2 prompts create images, cards, keyframes, start frames, and end frames.
+- Wan, Hailuo, and Veo prompts create AI video clips/assets only, not the final canvas.
+- Remotion owns final layout/composition and receives renderer or motion briefs.
+- Basic and Pro must never create allowed Veo prompts.
+- Premium may create Veo prompts only as final fallback/rescue.
+- Prompts must preserve matching panel background, safe-margin, and frame-panel instructions.
+- Recurring characters must use a character reference pack when stills, keyframes, cards, or animation clips depend on consistent identity.
+- GPT-Image-2 should create character anchors, cards, keyframes, start frames, and end frames from the approved character pack.
+- Animation prompts should reference the character pack to preserve outfit, silhouette, expression range, style mode, and identity.
+- Mention-only people should usually use neutral name cards, lineup cards, or character cards, not full animation.
+- Real named people in Documentary / Case Study edits should default to neutral visual treatment unless verified and approved.
+- Allegations must not be visually presented as proven facts.
+- If claim status is unclear, ask a clarifying question when it changes the edit, or use neutral visuals.
+- Workers should preserve character packs and fact-safety plans in approved snapshots.
+- Any future planner, model-routing, prompt-builder, QA, or demo scenario changes must preserve the hard validation rules in `planner-regression-validation.md`.
+- Basic/Pro no Veo is a blocking validation rule.
+- Premium fallback-only Veo is a blocking validation rule.
+- No primary/default Veo is a blocking validation rule.
+- No default `1080P` generated route is a blocking validation rule.
+- Matching panel background policy is a blocking validation rule for AI-video prompt planning.
+- Approval before generation is a blocking validation rule.
+- Validation utilities should be updated whenever new planner fields are added.
+- Chat remains the primary editor; do not turn planning into a giant pre-chat form.
+- Required user actions should be obvious and expanded until resolved.
+- Advanced technical details should be collapsible and summarized before showing full detail.
+- The plan and credit approval path must stay clear even when advanced planning cards are available.
+- Developer-heavy cards should not overwhelm users in the guided chat flow.
+- Any new planning card must define its priority: required_user_action, user_summary, advanced_plan_detail, safety_detail, or developer_detail.
 
 ## Subscription And Credits
 

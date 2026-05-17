@@ -1,0 +1,165 @@
+import type { EditLevel, TierQualityStandard } from '../types/reeditpro'
+
+export const universalQualityStandards = [
+  'clear source-order handling',
+  'clean pacing',
+  'understandable story structure',
+  'clean cuts',
+  'readable captions when captions are used',
+  'safe caption placement',
+  'nice color correction or grade',
+  'clean audio level',
+  'safe framing',
+  'no random effects',
+  'no random visuals',
+  'no random b-roll',
+  'no visuals covering important faces or products',
+  'platform and ratio correctness',
+  'approval before generation',
+]
+
+export const universalQaChecks = [
+  'must-follow rules satisfied',
+  'avoid rules not violated',
+  'captions safe',
+  'color grade matches chosen style',
+  'b-roll supports meaning',
+  'transitions match edit style',
+  'sound is clean and not overpowering voice',
+  'source order changes were shown and approved',
+  'Basic/Pro do not use Veo',
+  'Premium uses Veo only as fallback',
+  'AI visuals stay inside frame panels',
+  'generated backgrounds match frame panels',
+  'approval happened before generation',
+]
+
+export const tierQualityStandards: TierQualityStandard[] = [
+  {
+    editLevel: 'basic',
+    label: 'Basic',
+    qualityPromise: 'Professional clean editing with lower compute. Basic is not low quality.',
+    includedProfessionalBasics: [
+      'professional clean edit',
+      'dead-space removal',
+      'basic pacing cleanup',
+      'readable captions',
+      'clean natural color correction',
+      'basic shot matching',
+      'voice cleanup and leveling',
+      'tasteful simple transitions',
+      'uploaded b-roll first',
+      'no sloppy visuals',
+    ],
+    allowedComplexity: [
+      'simpler planning',
+      'fewer generated assets',
+      'stills, cards, and editor motion before AI video',
+      'lower retry depth',
+      'low credit impact choices where quality is preserved',
+    ],
+    fallbackPolicy: [
+      'Wan may be used for simple approved animation',
+      'simplify, split, convert to still, or convert to motion design when needed',
+      'no Veo',
+    ],
+    notAllowed: [
+      'Veo',
+      'unnecessary AI video generation',
+      'random b-roll',
+      'random transitions',
+      'sloppy captions',
+      'bad color grading',
+      'poor sound',
+    ],
+    qaChecks: [
+      ...universalQaChecks,
+      'Basic remains professional',
+      'No unnecessary AI video generation',
+      'No Veo routes',
+    ],
+  },
+  {
+    editLevel: 'pro',
+    label: 'Pro',
+    qualityPromise: 'Main production tier with stronger structure, polish, visual planning, and fallback depth.',
+    includedProfessionalBasics: [
+      'everything in Basic',
+      'stronger structure',
+      'planned b-roll by segment',
+      'better caption emphasis',
+      'style-specific color grade',
+      'more SoundSync polish',
+      'more visual asset planning',
+    ],
+    allowedComplexity: [
+      'Graphic Design / VisualExplain where useful',
+      'Stroke Motion where useful',
+      'Wan primary animation routing',
+      'Hailuo fallback where planned',
+      'segment-level visual asset planning',
+    ],
+    fallbackPolicy: [
+      'Wan primary',
+      'Hailuo fallback allowed',
+      'simplify, split, or convert failed beats when better for quality',
+      'no Veo',
+    ],
+    notAllowed: [
+      'Veo',
+      'unapproved generation',
+      'random visual systems',
+      'provider routing that is not justified by the story',
+    ],
+    qaChecks: [
+      ...universalQaChecks,
+      'Pro does not use Veo',
+      'Hailuo fallback is planned and justified',
+      'visual systems improve the segment',
+    ],
+  },
+  {
+    editLevel: 'premium',
+    label: 'Premium',
+    qualityPromise: 'Deepest planning with more custom assets, stronger consistency, more retries, and stronger QA.',
+    includedProfessionalBasics: [
+      'everything in Pro',
+      'deeper story structure',
+      'more custom visual assets',
+      'stronger character consistency',
+      'scene-by-scene color grade',
+      'secondary correction where useful',
+      'advanced SoundSync',
+      'stronger QA',
+    ],
+    allowedComplexity: [
+      'more planned retries',
+      'deeper fallback planning',
+      'Premium-only final rescue routes',
+      'more custom assets when they improve the edit',
+      'stronger consistency checks',
+    ],
+    fallbackPolicy: [
+      'Wan primary',
+      'Hailuo fallback',
+      'Veo Lite final fallback only',
+      'Veo is never default or primary',
+    ],
+    notAllowed: [
+      'default Veo',
+      'primary Veo route',
+      'unapproved generation',
+      'random high-cost assets',
+    ],
+    qaChecks: [
+      ...universalQaChecks,
+      'Premium uses Veo only as final fallback',
+      'Veo is never primary',
+      'stronger consistency checks are planned',
+    ],
+  },
+]
+
+export function getTierQualityStandard(editLevel: EditLevel) {
+  return tierQualityStandards.find((standard) => standard.editLevel === editLevel) ?? tierQualityStandards[0]
+}

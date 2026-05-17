@@ -25,15 +25,17 @@ RP-DB-08 creates structured records for:
 
 The migration supports `spoken_story_mode` and `source_reading_mode`. Source reading mode requires meaning expansion before animation planning so the AI understands the source text before it designs visual story beats.
 
-Beats store both `meaning` and `visual_action`. Transitions connect beats into one animated story. Timing anchors synchronize motion to words, phrases, sentences, pauses, emotional shifts, scene cuts, music beats, SFX hits, or manual marks. Storyboard frames prove the visual meaning before expensive generation. Generation specs describe future transparent-overlay and word-timed renderer requirements without creating a generation request.
+Beats store both `meaning` and `visual_action`. Transitions connect beats into one animated story. Timing anchors synchronize motion to words, phrases, sentences, pauses, emotional shifts, scene cuts, music beats, SFX hits, or manual marks. Storyboard frames prove the visual meaning before expensive generation. Generation specs describe future renderer requirements without creating a generation request, including controlled transparent-overlay output only when a deterministic renderer needs it.
 
 The seeded `joseph_mary_source_reading_example` is example-only reference data. It demonstrates the Joseph/Mary transition chain and respectful worker notes, but Stroke Motion is not Bible-only and must work for business stories, real estate tours, product explanations, education, documentaries, personal stories, books, historical text, documents, lessons, and articles.
 
 ## Definition
 
-Stroke Motion is a fast transparent 2D animated story layer that turns spoken meaning, source text, or scripture/book/document reading into clear visual story beats using stroke characters, symbols, paths, and transitions timed to the speaker's words.
+Stroke Motion is a fast 2D animated story system that turns spoken meaning, source text, or scripture/book/document reading into clear visual story beats using stroke characters, symbols, paths, cards, panels, and transitions timed to the speaker's words.
 
 Stroke Motion is not random arrows, circles, icons, or decoration. It must support meaning, emotion, transformation, and story clarity.
+
+Stroke Motion does not require transparent AI video backgrounds by default. AI-generated motion should use the approved frame/panel background from `frame-layout-system.md`; transparent overlays remain a future option for SVG, Lottie, Remotion, or another controlled renderer.
 
 ## Understanding Modes
 
@@ -186,7 +188,7 @@ Fields:
 - `id`
 - `stroke_motion_plan_id`
 - `target_renderer`: `svg`, `lottie`, `remotion`, `ai_assisted`, `other`
-- `transparent_background_required`
+- `transparent_background_required` for future controlled renderers when transparency is explicitly needed
 - `resolution`
 - `fps`
 - `duration_seconds`
@@ -293,7 +295,7 @@ These should be stored in:
 
 ## Renderer Strategy
 
-Stroke Motion should eventually use controlled animation systems such as SVG, Lottie, Remotion, or another deterministic renderer when possible because it needs word-level timing and transparent overlays.
+Stroke Motion should eventually use controlled animation systems such as SVG, Lottie, Remotion, or another deterministic renderer when possible because it needs word-level timing, inspectable output, and optional transparent overlays.
 
-AI video models such as Wan, Veo, or Kling may support concept generation or animation help, but the architecture should not depend only on full AI video generation for Stroke Motion.
+AI video models such as Wan, Hailuo, or Premium-only Veo final fallback may support approved animation beats, but the architecture should not depend only on full AI video generation for Stroke Motion. AI video generation should default to matching the approved white/near-white/custom panel background instead of requiring transparency.
 

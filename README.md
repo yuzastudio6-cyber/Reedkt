@@ -22,6 +22,14 @@ SoundSync is important, but it is not the third visual signature system. SoundSy
 
 StoryTiming coordinates captions, cuts, Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, and story beats.
 
+## Launch Model And Frame Policy
+
+ReeditPro's launch routing policy treats GPT-Image-2 as the primary image, still, keyframe, graphic, and frame model. Wan is the primary low-cost animation family, Hailuo is the normal fallback/alternate animation family, and Veo 3.1 Lite is Premium-only final fallback/rescue. Basic and Pro must never route to Veo, and Veo must never be the default primary model.
+
+Generated AI video defaults to 720P-class output: Wan at 720P, Hailuo at 768P, and Veo at 720P when Premium final rescue is approved. ReeditPro should never default generated AI video to 1080P.
+
+AI video generation should default to matching white, near-white, or custom frame panels inside the ReeditPro compositor. Transparent overlays remain a future/controlled renderer option for SVG, Lottie, Remotion, or other deterministic systems, not the default AI video route.
+
 ## Subscription And Credit Model
 
 Subscriptions provide software access. Reedit Credits pay for AI generation, rendering, and editing usage.
@@ -44,6 +52,13 @@ Core product foundation docs live in the repo root:
 - `product-plan.md`
 - `signature-systems.md`
 - `real-motion-system.md`
+- `visual-storytelling-architecture.md`
+- `model-routing-policy.md`
+- `frame-layout-system.md`
+- `remotion-renderer-plan.md`
+- `professional-editing-ontology.md`
+- `edit-quality-standards.md`
+- `intent-compiler-architecture.md`
 - `intent-led-edit-planning.md`
 - `edit-workflow-blueprints.md`
 - `pricing-and-credits.md`

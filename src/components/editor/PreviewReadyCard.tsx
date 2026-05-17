@@ -35,6 +35,10 @@ export function PreviewReadyCard({ creditsUsed }: PreviewReadyCardProps) {
         <Badge accent="violet">Real Motion: optional overlay</Badge>
         <Badge accent="success">SoundSync: music + SFX</Badge>
       </div>
+      <p className="inline-helper">
+        This is a mock preview state. In production, generated assets, renderer jobs, and final export would be tracked against the approved credit estimate.
+        Failed ReeditPro generation would follow the refund/restore policy.
+      </p>
       <div className="inline-card-actions">
         <Button icon={Play} variant="primary">Play preview</Button>
         <Button icon={RotateCcw} variant="secondary">Request revision</Button>

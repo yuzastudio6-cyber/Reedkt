@@ -8,7 +8,9 @@ This document defines the future generation provider abstraction for ReeditPro. 
 
 ReeditPro must not hard-code one provider. Different systems may use different providers:
 
+- GPT-Image-2.
 - Wan.
+- Hailuo.
 - Veo.
 - Kling.
 - Remotion/SVG/Lottie renderer.
@@ -16,6 +18,26 @@ ReeditPro must not hard-code one provider. Different systems may use different p
 - Other AI animation, video, image, or audio providers.
 
 Providers are tools. ReeditPro owns the edit plan, timing, exact text, captions, overlay placement, credits, approval, and QA.
+
+## Launch Model Routing Policy
+
+The launch router is constrained by `model-routing-policy.md`.
+
+- GPT-Image-2 is primary for images, stills, keyframes, cards, graphic frames, start frames, and end frames.
+- Wan is the primary low-cost animation/video generation family.
+- Hailuo is the normal fallback/alternate animation family.
+- Veo 3.1 Lite is Premium-only and final fallback/rescue only.
+- Seedance 1.5 Pro is not part of the launch router.
+- Basic and Pro must never route to Veo.
+- Veo must never be the default primary model.
+- Default generated video output is 720P-class: Wan 720P, Hailuo 768P, Veo 720P.
+- ReeditPro should never default generated AI video to 1080P.
+
+## Frame And Background Policy
+
+ReeditPro's editor/compositor owns the final canvas. AI video generation should default to matching white, near-white, or custom frame panels defined by the approved frame layout. Do not depend on transparent AI video backgrounds as the default.
+
+Transparent overlays remain valid for deterministic renderer routes such as SVG, Lottie, Remotion, or other controlled systems when the edit plan explicitly needs inspectable transparent output.
 
 ## RP-DB-09 Migration Shape
 
@@ -58,7 +80,8 @@ Provider selection should consider:
 
 - Signature system.
 - Edit level.
-- Transparent overlay need.
+- Frame template and panel background.
+- Transparent overlay need only for controlled renderer routes.
 - Timing precision need.
 - Duration.
 - Resolution.
@@ -79,12 +102,12 @@ Stroke Motion should prefer controlled animation systems:
 Reasons:
 
 - Word-level timing.
-- Transparent overlays.
+- Optional transparent overlays for controlled renderers.
 - Repeatable render output.
 - Easier revision.
 - Better alignment to transcript and StoryTiming.
 
-AI video models such as Wan, Veo, or Kling may help with concept generation or advanced animation, but ReeditPro should not depend only on full AI video generation for Stroke Motion.
+AI video models such as Wan, Hailuo, or Premium-only Veo final fallback may help with approved animation beats, but ReeditPro should not depend only on full AI video generation for Stroke Motion. AI video output should be planned inside matching frame panels by default.
 
 ## Graphic Design / VisualExplain Strategy
 

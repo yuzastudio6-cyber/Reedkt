@@ -21,6 +21,9 @@ This addendum updates product direction without replacing the design system belo
 - StoryTiming coordinates captions, cuts, Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, and story beats.
 - Video type dropdown workflows provide context only. They do not automatically decide which signature systems are used.
 - ReeditPro should never start expensive AI editing, rendering, or generation until the AI understands the user's goal and the user approves the edit plan and credit estimate.
+- GPT-Image-2 is the launch still/keyframe/graphic/frame model. Wan is primary animation, Hailuo is normal fallback, and Veo 3.1 Lite is Premium-only final fallback/rescue.
+- Basic and Pro must never route to Veo. Veo must never be the default primary model.
+- AI video generation should default to matching white, near-white, or custom frame panels, not transparent AI video backgrounds.
 
 ---
 
@@ -32,16 +35,19 @@ ReeditPro is an AI-first video editing workspace built around one main promise:
 
 The product is not only an AI video editor. It is a creative system that understands the speaker’s message, finds the story, then builds the edit with motion, graphics, sound, timing, and export-ready polish.
 
-ReeditPro should be known for three signature systems:
+ReeditPro should be known for three visual signature systems and one audio/timing support engine:
 
-1. **StrokeMotion AI** — transparent 2D stroke-style motion storytelling that follows what the speaker is saying.
+1. **StrokeMotion AI** — 2D stroke-style motion storytelling that follows what the speaker is saying.
 2. **VisualExplain AI** — graphic design overlays for education, concepts, frameworks, lists, diagrams, and visual understanding.
-3. **SoundSync AI** — music, sound effects, beat timing, transitions, and soundtrack mood matching.
+3. **Real Motion AI** — premium realistic object, proof, product, or scene motion that stays overlay-first and face-safe.
+
+SoundSync AI is the audio/timing support engine for music, sound effects, beat timing, transitions, and soundtrack mood matching. It is not a visual signature system.
 
 The core difference:
 
 - **StrokeMotion tells the story.**
 - **Graphic design explains the idea.**
+- **Real Motion adds realistic proof or symbolic motion when it is worth the credits.**
 - **SoundSync adds emotion and polish.**
 - **StoryTiming makes everything land at the right moment.**
 
@@ -522,7 +528,7 @@ Icons should be:
 
 ## 11.1 StrokeMotion AI
 
-StrokeMotion AI is ReeditPro’s signature feature. It creates transparent 2D stroke-style animations that tell the story while the speaker is talking.
+StrokeMotion AI is ReeditPro’s signature feature. It creates 2D stroke-style story visuals that tell the story while the speaker is talking. AI-generated animation should default to a matching frame/panel background; transparent output is reserved for controlled renderer routes.
 
 ### Purpose
 
@@ -546,7 +552,7 @@ StrokeMotion visuals should feel:
 - Smooth
 - Human
 - Lightweight
-- Transparent-background
+- Clean panel or controlled transparent-renderer background
 - Timed to speech
 - Easy to understand
 - Not cartoonish unless user chooses playful style
@@ -588,7 +594,7 @@ The walking motion should begin around “moving forward,” not before the sent
 StrokeMotion appears as its own timeline layer:
 
 - `StrokeMotion Track`
-- Transparent background
+- Matching panel background by default, with transparent background only for controlled renderer outputs
 - Editable entry/exit timing
 - Adjustable style
 - Regeneratable per segment
@@ -1436,7 +1442,7 @@ Keep insights high-level. Deep analytics stays on desktop.
 5. User selects editing level:
    - Basic
    - Pro
-   - Advanced / Viral
+   - Premium
 6. User selects visual style:
    - No visual layer
    - StrokeMotion
@@ -1523,7 +1529,7 @@ Users should be able to select how strongly ReeditPro edits their video.
 
 ### Basic Edit
 
-Best for fast cleanup.
+Best for professional clean editing with lower compute, fewer generated assets, and simpler planning. Basic is not low-quality.
 
 Includes:
 
@@ -1535,7 +1541,7 @@ Includes:
 
 ### Pro Edit
 
-Best for creators.
+Best for the main production tier.
 
 Includes:
 
@@ -1546,11 +1552,12 @@ Includes:
 - Music bed
 - Transitions
 - Basic StrokeMotion or VisualExplain moments
+- Wan/Hailuo routing for approved animation beats
 - Platform export presets
 
-### Advanced / Viral Edit
+### Premium Edit
 
-Best for high-impact social or professional content.
+Best for deepest planning, stronger consistency, planned fallbacks, and credit-heavy production moments when approved.
 
 Includes:
 
@@ -1562,7 +1569,8 @@ Includes:
 - Beat-matched cuts
 - Motion captions
 - Social variants
-- Advanced export packages
+- Planned retries and fallback options
+- Veo 3.1 Lite final fallback only when Premium rescue is justified
 
 ---
 

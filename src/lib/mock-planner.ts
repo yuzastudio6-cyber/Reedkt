@@ -1,4 +1,22 @@
-import type { ClipSource, EditPlan, PlannerInput, SignatureRoute } from '../types/reeditpro'
+import type {
+  CharacterConsistencyPlan,
+  ClipSource,
+  DocumentaryFactSafetyPlan,
+  EditPlan,
+  PlannerInput,
+  SignatureRoute,
+  VisualAssetPlanItem,
+} from '../types/reeditpro'
+import { createCharacterConsistencyPlan } from './character-consistency'
+import { createCreditEstimate } from './credit-estimator'
+import { createDocumentaryFactSafetyPlan } from './documentary-fact-safety'
+import { createSegmentEditPlans } from './edit-operation-planner'
+import { createEditQAPlan } from './edit-qa-planner'
+import { getDefaultFrameTemplateForAspectRatio, getFrameLayoutTemplate } from './frame-layouts'
+import { compileEditingIntent } from './intent-compiler'
+import { buildProviderPromptPlansForEditPlan } from './prompt-builders'
+import { createRendererCompositionPlan } from './remotion-renderer-planner'
+import { createVisualAssetPlan } from './story-asset-planner'
 import { getWorkflowProfile } from './workflow-profiles'
 
 export const mockPlannerLoadingSteps = [
@@ -137,47 +155,146 @@ function createSignatureRoutes(input: PlannerInput): SignatureRoute[] {
   return routes
 }
 
-function createCreditEstimate(routes: SignatureRoute[], input: PlannerInput): EditPlan['creditEstimate'] {
-  const breakdown = [
-    { label: 'Planning and transcript analysis', credits: 0, reason: 'Included as a mock setup step for this frontend demo.' },
-    { label: 'Captions', credits: 10, reason: 'Editable captions aligned with StoryTiming.' },
-    { label: 'Basic edit cleanup', credits: input.editLevel === 'basic' ? 14 : 18, reason: 'Trim dead space and smooth pacing.' },
-  ]
-
-  if (routes.some((route) => route.system === 'stroke_motion')) {
-    breakdown.push({ label: 'Stroke Motion', credits: 22, reason: '2D overlay motion for speaker-aligned emphasis.' })
+function resolveFrameTemplate(input: PlannerInput) {
+  if (input.frameTemplateType && input.frameTemplateType !== 'let_ai_decide') {
+    return getFrameLayoutTemplate(input.frameTemplateType)
   }
 
-  if (routes.some((route) => route.system === 'graphic_design')) {
-    breakdown.push({ label: 'Graphic Design / VisualExplain', credits: 18, reason: 'Clean overlay graphics for details, lists, or proof.' })
+  return getDefaultFrameTemplateForAspectRatio(input.aspectRatio)
+}
+
+function assetShouldCarryCharacterPack(asset: VisualAssetPlanItem, characterConsistencyPlan: CharacterConsistencyPlan) {
+  return asset.needsCharacterConsistency ||
+    asset.assetType === 'character_card' ||
+    asset.assetType === 'name_card' ||
+    characterConsistencyPlan.packs.some((pack) => pack.appearsInBeatIds.includes(asset.id))
+}
+
+function factSafetyAppliesToAsset(asset: VisualAssetPlanItem, documentaryFactSafetyPlan: DocumentaryFactSafetyPlan) {
+  if (!documentaryFactSafetyPlan.active) {
+    return false
   }
 
-  if (routes.some((route) => route.system === 'real_motion')) {
-    breakdown.push({ label: 'Real Motion', credits: 34, reason: 'Premium overlay-first realistic motion with face-safe placement.' })
-  }
+  return ['fact_card', 'name_card', 'timeline_card', 'graphic_design_frame', 'still_with_editor_motion', 'animated_scene'].includes(asset.assetType) ||
+    /claim|evidence|timeline|proof|amount|name|case/i.test(`${asset.beatLabel} ${asset.storyPurpose} ${asset.reason}`)
+}
 
-  if (routes.some((route) => route.system === 'sound_sync')) {
-    breakdown.push({ label: 'SoundSync', credits: 8, reason: 'Music timing, SFX cues, ducking, and emotional polish.' })
-  }
+function enrichVisualAssetsWithSafetyPlans(params: {
+  visualAssetPlan: VisualAssetPlanItem[]
+  characterConsistencyPlan: CharacterConsistencyPlan
+  documentaryFactSafetyPlan: DocumentaryFactSafetyPlan
+}) {
+  const { characterConsistencyPlan, documentaryFactSafetyPlan, visualAssetPlan } = params
 
-  breakdown.push({ label: 'Final render placeholder', credits: 0, reason: 'Rendering is not implemented in this frontend-only phase.' })
+  return visualAssetPlan.map((asset) => {
+    const characterPackIds = assetShouldCarryCharacterPack(asset, characterConsistencyPlan)
+      ? characterConsistencyPlan.packs
+        .filter((pack) => pack.appearsInBeatIds.includes(asset.id) || asset.needsCharacterConsistency || asset.assetType === 'character_card' || asset.assetType === 'name_card')
+        .map((pack) => pack.id)
+        .slice(0, 3)
+      : []
+    const factSafetyItemIds = factSafetyAppliesToAsset(asset, documentaryFactSafetyPlan)
+      ? documentaryFactSafetyPlan.claimItems.map((item) => item.id).slice(0, 3)
+      : []
 
-  const total = breakdown.reduce((sum, item) => sum + item.credits, 0)
-
-  return { total, breakdown }
+    return {
+      ...asset,
+      characterPackIds,
+      factSafetyItemIds,
+      qaChecks: [
+        ...asset.qaChecks,
+        ...(characterPackIds.length > 0 ? ['Character consistency pack must be preserved.'] : []),
+        ...(factSafetyItemIds.length > 0 ? ['Fact-safety treatment must stay neutral and source-aware.'] : []),
+      ],
+    }
+  })
 }
 
 export function createMockEditPlan(input: PlannerInput): EditPlan {
   const profile = getWorkflowProfile(input.workflowType)
-  const routes = createSignatureRoutes(input)
-  const referenceProvided = input.referenceUrl.trim().length > 0
+  const compiledIntent =
+    input.compiledIntent ??
+    compileEditingIntent({
+      currentInput: input,
+      referenceProvided: input.referenceUrl.trim().length > 0,
+      sourceOrderConfirmed: true,
+      userMessages: [input.customInstructions],
+    })
+  const professionalEditingDirective = compiledIntent.professionalEditingDirective
+  const effectiveInput: PlannerInput = {
+    ...input,
+    ...compiledIntent.resolvedSettings,
+    compiledIntent,
+    professionalEditingDirective,
+  }
+  const routes = createSignatureRoutes(effectiveInput)
+  const visualAssetPlan = createVisualAssetPlan(effectiveInput)
+  const frameTemplate = resolveFrameTemplate(effectiveInput)
+  const rendererCompositionPlan = createRendererCompositionPlan({
+    aspectRatio: effectiveInput.aspectRatio,
+    editLevel: effectiveInput.editLevel,
+    frameTemplate,
+    targetPlatform: effectiveInput.targetPlatform,
+    visualAssetPlan,
+  })
+  const segmentEditPlans = createSegmentEditPlans({
+    compiledIntent,
+    input: effectiveInput,
+    rendererCompositionPlan,
+    visualAssetPlan,
+  })
+  const characterConsistencyPlan = createCharacterConsistencyPlan({
+    compiledIntent,
+    input: effectiveInput,
+    segmentEditPlans,
+    visualAssetPlan,
+  })
+  const documentaryFactSafetyPlan = createDocumentaryFactSafetyPlan({
+    characterConsistencyPlan,
+    compiledIntent,
+    input: effectiveInput,
+    visualAssetPlan,
+  })
+  const visualAssetPlanWithSafety = enrichVisualAssetsWithSafetyPlans({
+    characterConsistencyPlan,
+    documentaryFactSafetyPlan,
+    visualAssetPlan,
+  })
+  const editQAPlan = createEditQAPlan({
+    characterConsistencyPlan,
+    compiledIntent,
+    documentaryFactSafetyPlan,
+    input: effectiveInput,
+    rendererCompositionPlan,
+    segmentEditPlans,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const providerPromptPlans = buildProviderPromptPlansForEditPlan({
+    characterConsistencyPlan,
+    compiledIntent,
+    documentaryFactSafetyPlan,
+    input: effectiveInput,
+    professionalDirective: professionalEditingDirective,
+    rendererCompositionPlan,
+    segmentEditPlans,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const visualAssetPlanWithPrompts = visualAssetPlanWithSafety.map((asset) => ({
+    ...asset,
+    promptPlans: providerPromptPlans.filter((promptPlan) => promptPlan.assetPlanItemId === asset.id),
+  }))
+  const segmentEditPlansWithPrompts = segmentEditPlans.map((segment) => ({
+    ...segment,
+    promptPlans: providerPromptPlans.filter((promptPlan) => promptPlan.segmentId === segment.id),
+  }))
+  const referenceProvided = effectiveInput.referenceUrl.trim().length > 0
   const strongerSocialOpen =
-    input.structurePreference === 'restructure_for_social' ||
-    input.structurePreference === 'let_ai_recommend' ||
-    input.workflowType === 'social_short_viral_clip' ||
-    input.workflowType === 'marketing_ad'
+    effectiveInput.structurePreference === 'restructure_for_social' ||
+    effectiveInput.structurePreference === 'let_ai_recommend' ||
+    effectiveInput.workflowType === 'social_short_viral_clip' ||
+    effectiveInput.workflowType === 'marketing_ad'
 
-  const sourceSequenceMap = input.clips.map((clip) => ({
+  const sourceSequenceMap = effectiveInput.clips.map((clip) => ({
     clipId: clip.id,
     uploadedOrder: clip.uploadedOrder,
     detectedRole: clip.detectedType,
@@ -204,9 +321,9 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
       ]
 
   const hookPolicy =
-    input.workflowType === 'marketing_ad'
+    effectiveInput.workflowType === 'marketing_ad'
       ? 'required'
-      : input.workflowType === 'simple_clean_edit'
+      : effectiveInput.workflowType === 'simple_clean_edit'
         ? 'avoid'
         : strongerSocialOpen
           ? 'recommended'
@@ -221,13 +338,13 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
           ? 'Strong hook required before the offer or proof sequence.'
           : 'Soft hook recommended only if it improves the viewer entry point.',
     reason:
-      input.customInstructions.toLowerCase().includes('no hook')
+      effectiveInput.customInstructions.toLowerCase().includes('no hook')
         ? 'User instructions have highest priority, so the plan will not force a hook.'
         : `${profile.label} gives workflow context, but the edit plan chooses the hook based on goal, platform, and footage.`,
   } satisfies EditPlan['hookDecision']
 
   return {
-    goalSummary: `Create a ${profile.label.toLowerCase()} that feels ${input.moodStyle.replaceAll('_', ' ')} while protecting credits with plan-first approval.`,
+    goalSummary: compiledIntent.goalSummary,
     sourceSequenceMap,
     recommendedStructure,
     hookDecision,
@@ -245,12 +362,21 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
       ...route,
       reason: `${route.reason} (${systemLabel(route.system)} is selected per segment, not forced by the dropdown.)`,
     })),
+    compiledIntent,
+    visualAssetPlan: visualAssetPlanWithPrompts,
+    rendererCompositionPlan,
+    segmentEditPlans: segmentEditPlansWithPrompts,
+    characterConsistencyPlan,
+    documentaryFactSafetyPlan,
+    editQAPlan,
+    providerPromptPlans,
+    professionalEditingDirective,
     soundSyncDirection:
-      input.editLevel === 'basic'
+      effectiveInput.editLevel === 'basic'
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
         : 'Use SoundSync for mood, beat timing, transition sounds, ducking, and emotional polish while speech stays clear.',
     captionDirection: 'Use readable captions that avoid faces, important objects, and Real Motion placement zones.',
-    creditEstimate: createCreditEstimate(routes, input),
+    creditEstimate: createCreditEstimate(effectiveInput, { rendererCompositionPlan, visualAssetPlan: visualAssetPlanWithSafety }),
     approvalRequired: true,
   }
 }

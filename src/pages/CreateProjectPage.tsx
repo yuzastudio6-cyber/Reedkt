@@ -1,76 +1,73 @@
-import { MessageCircle, Plus, UploadCloud, UsersRound } from 'lucide-react'
+import { MessageCircle, Plus, UploadCloud } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { launchEditingCategories } from '../lib/product-taxonomy'
+import type { EditingCategory } from '../types/reeditpro'
 
-const projectTypes = [
-  'Let AI decide',
-  'Social short',
-  'Real estate / property tour',
-  'Product demo',
-  'Education / explainer',
-  'Marketing ad',
-]
+const categoryDescriptions: Record<EditingCategory, string> = {
+  storytelling: 'Signature narrative edits with Stroke Motion, still cards, character consistency, and story beats.',
+  lifestyle: 'Creator-style edits for day-in-life, travel, fitness, beauty, food, motivation, and casual stories.',
+  business_brand: 'Product, service, offer, SaaS, ecommerce, coaching, agency, and brand content.',
+  education_explainer: 'Graphic Design / VisualExplain for concepts, diagrams, steps, frameworks, and learning.',
+  documentary_case_study: 'Timeline, evidence, scam/fraud, investigation, case study, and what-happened videos.',
+}
 
 export function CreateProjectPage() {
   return (
     <AppShell
-      description="Create the project shell, then upload clips, add references, choose style, approve credits, and request edits inside the AI chat editor."
+      description="Pick a category, upload clips, and let ReeditPro ask the rest inside the AI chat editor."
       eyebrow="New project"
-      primaryAction="Open AI chat editor"
-      title="Create project"
+      primaryAction="Start in chat"
+      title="Start with a video category"
     >
-      <section className="project-start-shell">
-        <Card className="project-start-card">
-          <div className="project-start-heading">
-            <Badge accent="cyan">Chat-native editing</Badge>
-            <h2>Start a project, then edit through chat</h2>
-            <p>
-              ReeditPro does not need a giant setup form. Create a project, open the AI chat editor, send clips in order, and approve the edit plan before credits are used.
-            </p>
+      <section className="project-start-shell category-first-shell">
+        <div className="category-entry-main">
+          <Card className="project-start-card">
+            <div className="project-start-heading">
+              <Badge accent="cyan">Chat-native upload</Badge>
+              <h2>Pick a category, then upload in chat</h2>
+              <p>
+                Pick the type of video you're creating, upload clips, then ReeditPro will ask the rest inside chat.
+              </p>
+              <p>The category gives planning context. It does not force a visual system.</p>
+            </div>
+
+            <label className="planning-field">
+              <span>Project name</span>
+              <input defaultValue="Untitled ReeditPro edit" />
+              <small>Optional for this frontend mock. Real project creation is not wired yet.</small>
+            </label>
+          </Card>
+
+          <div className="category-entry-grid">
+            {launchEditingCategories.map((category) => (
+              <article className="category-entry-card" key={category.value}>
+                <div>
+                  <span className="section-eyebrow">{category.label}</span>
+                  <h3>{category.label}</h3>
+                  <p>{categoryDescriptions[category.value]}</p>
+                </div>
+                <small>{category.bestUseCases.slice(0, 5).join(' / ')}</small>
+                <Button icon={Plus} to={`/editor?category=${category.value}`} variant="primary">
+                  Upload / start
+                </Button>
+              </article>
+            ))}
           </div>
-
-          <label className="planning-field">
-            <span>Project name</span>
-            <input defaultValue="Premium property walkthrough" />
-          </label>
-
-          <label className="planning-field">
-            <span>Optional project type</span>
-            <select defaultValue="Real estate / property tour">
-              {projectTypes.map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="planning-field">
-            <span>Workspace / team</span>
-            <select defaultValue="Creator workspace">
-              <option>Creator workspace</option>
-              <option>Business team placeholder</option>
-              <option>Client workspace placeholder</option>
-            </select>
-          </label>
-
-          <div className="project-start-actions">
-            <Button icon={Plus} variant="secondary">Create project</Button>
-            <Button icon={MessageCircle} to="/editor" variant="primary">Open AI chat editor</Button>
-            <Button icon={UploadCloud} to="/editor" variant="ghost">Upload clips in chat</Button>
-          </div>
-        </Card>
+        </div>
 
         <aside className="project-start-side">
           <Card>
-            <MessageCircle size={24} />
-            <h3>Everything editing-related happens in chat</h3>
-            <p>You can upload clips, add references, choose style, approve credits, and request edits inside the AI chat editor.</p>
+            <UploadCloud size={24} />
+            <h3>Upload comes next</h3>
+            <p>Use the plus/upload button to enter the chat editor. This mock uses sample clips instead of a real uploader.</p>
           </Card>
           <Card>
-            <UsersRound size={24} />
-            <h3>Business placeholder</h3>
-            <p>Team/client routing, Brand Kit defaults, and workspace permissions are mock-only until backend integration.</p>
+            <MessageCircle size={24} />
+            <h3>The chat is the editor</h3>
+            <p>Source order, format, edit level, visual preference, reference videos, plans, credits, approval, progress, and preview all happen inside chat.</p>
           </Card>
           <Card>
             <h3>Core rule</h3>

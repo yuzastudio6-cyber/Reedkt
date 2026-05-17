@@ -1,19 +1,54 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkles } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { Button } from '../Button'
-import { createMockEditPlan, sampleClips } from '../../lib/mock-planner'
-import type { ClipSource } from '../../types/reeditpro'
+import { createApprovedPlanSnapshot } from '../../lib/approved-plan-snapshot'
+import { getChatPlanningCards, getChatPlanningPhaseSummaries, shouldShowCard } from '../../lib/chat-planning-flow'
+import { demoScenarios, getDemoScenarioById, getDefaultDemoScenario } from '../../lib/demo-scenarios'
+import { createMockEditPlan } from '../../lib/mock-planner'
+import { runPlannerRegression } from '../../lib/planner-regression'
+import { validateMockEditPlan } from '../../lib/planner-validation'
+import { launchEditingCategories } from '../../lib/product-taxonomy'
+import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
+import type {
+  AspectRatio,
+  ChatPlanningDisplayMode,
+  ClipSource,
+  CreditPreference,
+  EditLevel,
+  EditingCategory,
+  FrameTemplateType,
+  MoodStyle,
+  TargetPlatform,
+  VideoWorkflowType,
+  VisualPreference,
+} from '../../types/reeditpro'
 import { AIEditingProgressStage } from './AIEditingProgressStage'
 import { ChatComposer } from './ChatComposer'
 import { ChatMessage } from './ChatMessage'
 import { ChatThread } from './ChatThread'
 import { defaultChatPlannerInput, progressSteps } from './chatNativeData'
-import { InlineAIQuestionCard } from './InlineAIQuestionCard'
+import { InlineCompiledIntentCard } from './InlineCompiledIntentCard'
+import { InlineCharacterConsistencyCard } from './InlineCharacterConsistencyCard'
 import { InlineCreditEstimateCard } from './InlineCreditEstimateCard'
+import { InlineDemoScenarioSelector } from './InlineDemoScenarioSelector'
+import { InlineDemoScenarioSummaryCard } from './InlineDemoScenarioSummaryCard'
+import { InlineDocumentaryFactSafetyCard } from './InlineDocumentaryFactSafetyCard'
+import { InlineEditLevelCard } from './InlineEditLevelCard'
 import { InlineEditPlanCard } from './InlineEditPlanCard'
+import { InlineFrameFormatCard } from './InlineFrameFormatCard'
+import { InlinePlanningContextCard } from './InlinePlanningContextCard'
+import { InlinePlanningProgressCard } from './InlinePlanningProgressCard'
+import { InlinePlanValidationCard } from './InlinePlanValidationCard'
+import { InlinePlannerRegressionCard } from './InlinePlannerRegressionCard'
+import { InlinePromptPreviewCard } from './InlinePromptPreviewCard'
+import { InlineQAPlanCard } from './InlineQAPlanCard'
 import { InlineReferenceDNACard } from './InlineReferenceDNACard'
+import { InlineRendererPlanCard } from './InlineRendererPlanCard'
+import { InlineSegmentEditPlanCard } from './InlineSegmentEditPlanCard'
 import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
-import { InlineWorkflowChoiceCard } from './InlineWorkflowChoiceCard'
+import { InlineVisualAssetPlanCard } from './InlineVisualAssetPlanCard'
+import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
 import { MinimalProjectHeader } from './MinimalProjectHeader'
 import { PreviewReadyCard } from './PreviewReadyCard'
 
@@ -21,17 +56,55 @@ function reorderClips(clips: ClipSource[]) {
   return clips.map((clip, index) => ({ ...clip, uploadedOrder: index + 1 }))
 }
 
+function isEditingCategory(value: string | null): value is EditingCategory {
+  return launchEditingCategories.some((category) => category.value === value)
+}
+
+function getCategoryLabel(value: EditingCategory) {
+  return launchEditingCategories.find((category) => category.value === value)?.label ?? 'Storytelling'
+}
+
+function getInitialDemoScenario(categoryValue: string | null) {
+  if (isEditingCategory(categoryValue)) {
+    return demoScenarios.find((scenario) => scenario.editingCategory === categoryValue) ?? getDefaultDemoScenario()
+  }
+
+  return getDefaultDemoScenario()
+}
+
 type ChatNativeEditorProps = {
   onOpenTimeline: () => void
 }
 
 export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
-  const [clips, setClips] = useState<ClipSource[]>(sampleClips)
-  const [composerValue, setComposerValue] = useState('Make the captions smaller and keep the Real Motion subtle.')
+  const [searchParams] = useSearchParams()
+  const categoryFromQuery = searchParams.get('category')
+  const initialScenario = getInitialDemoScenario(categoryFromQuery)
+
+  const [selectedScenarioId, setSelectedScenarioId] = useState(initialScenario.id)
+  const [displayMode, setDisplayMode] = useState<ChatPlanningDisplayMode>('guided')
+  const [clips, setClips] = useState<ClipSource[]>(initialScenario.clips)
+  const [composerValue, setComposerValue] = useState(initialScenario.customInstructions)
+  const [customInstructions, setCustomInstructions] = useState(initialScenario.customInstructions)
   const [clipsAttached, setClipsAttached] = useState(true)
-  const [referenceAttached, setReferenceAttached] = useState(true)
-  const [workflowChoice, setWorkflowChoice] = useState('Real estate / property tour')
+  const [sourceOrderConfirmed, setSourceOrderConfirmed] = useState(false)
+  const [referenceAttached, setReferenceAttached] = useState(initialScenario.referenceAttached)
+  const [referenceUrl, setReferenceUrl] = useState(initialScenario.referenceUrl)
+  const [editingCategory, setEditingCategory] = useState<EditingCategory>(initialScenario.editingCategory)
+  const [editLevel, setEditLevel] = useState<EditLevel>(initialScenario.editLevel)
+  const [editLevelConfirmed, setEditLevelConfirmed] = useState(false)
+  const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(initialScenario.targetPlatform)
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>(initialScenario.aspectRatio)
+  const [frameTemplateType, setFrameTemplateType] = useState<FrameTemplateType>(initialScenario.frameTemplateType)
+  const [formatConfirmed, setFormatConfirmed] = useState(false)
+  const [visualPreference, setVisualPreference] = useState<VisualPreference>(initialScenario.visualPreference)
+  const [visualPreferenceConfirmed, setVisualPreferenceConfirmed] = useState(false)
+  const [workflowType, setWorkflowType] = useState<VideoWorkflowType>(initialScenario.workflowType)
+  const [moodStyle, setMoodStyle] = useState<MoodStyle>(initialScenario.moodStyle)
+  const [creditPreference, setCreditPreference] = useState<CreditPreference>(initialScenario.creditPreference)
+  const [intentApproved, setIntentApproved] = useState(false)
   const [approved, setApproved] = useState(false)
+  const [approvedSnapshot, setApprovedSnapshot] = useState<ApprovedPlanSnapshot | null>(null)
   const [progressStarted, setProgressStarted] = useState(false)
   const [progressIndex, setProgressIndex] = useState(0)
   const [previewReady, setPreviewReady] = useState(false)
@@ -41,13 +114,69 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const plannerInput = useMemo(
     () => ({
       ...defaultChatPlannerInput,
+      aspectRatio,
       clips,
-      referenceUrl: referenceAttached ? defaultChatPlannerInput.referenceUrl : '',
+      creditPreference,
+      customInstructions,
+      editingCategory,
+      editLevel,
+      frameTemplateType,
+      moodStyle,
+      referenceUrl: referenceAttached ? referenceUrl : '',
+      targetPlatform,
+      visualPreference,
+      workflowType,
     }),
-    [clips, referenceAttached],
+    [aspectRatio, clips, creditPreference, customInstructions, editingCategory, editLevel, frameTemplateType, moodStyle, referenceAttached, referenceUrl, targetPlatform, visualPreference, workflowType],
   )
 
   const plan = useMemo(() => createMockEditPlan(plannerInput), [plannerInput])
+  const validationReport = useMemo(() => validateMockEditPlan({ input: plannerInput, plan, scenarioId: selectedScenarioId }), [plannerInput, plan, selectedScenarioId])
+  const regressionReport = useMemo(() => runPlannerRegression(), [])
+  const planningCards = useMemo(
+    () =>
+      getChatPlanningCards({
+        approved,
+        clipsAttached,
+        editLevelConfirmed,
+        formatConfirmed,
+        intentApproved,
+        plan,
+        previewReady,
+        regressionReport,
+        selectedScenarioId,
+        sourceOrderConfirmed,
+        validationReport,
+        visualPreferenceConfirmed,
+      }),
+    [
+      approved,
+      clipsAttached,
+      editLevelConfirmed,
+      formatConfirmed,
+      intentApproved,
+      plan,
+      previewReady,
+      regressionReport,
+      selectedScenarioId,
+      sourceOrderConfirmed,
+      validationReport,
+      visualPreferenceConfirmed,
+    ],
+  )
+  const phaseSummaries = useMemo(() => getChatPlanningPhaseSummaries(planningCards), [planningCards])
+  const cardById = useMemo(
+    () => Object.fromEntries(planningCards.map((card) => [card.id, card])),
+    [planningCards],
+  )
+  const selectedScenario = getDemoScenarioById(selectedScenarioId) ?? getDefaultDemoScenario()
+  const planEditLevel = plan.compiledIntent?.resolvedSettings.editLevel ?? editLevel
+  const categoryLabel = getCategoryLabel(editingCategory)
+  const setupReady = sourceOrderConfirmed && formatConfirmed && editLevelConfirmed && visualPreferenceConfirmed
+
+  function showCard(id: string) {
+    return shouldShowCard(cardById[id], displayMode)
+  }
 
   useEffect(() => {
     if (!progressStarted || previewReady) {
@@ -72,6 +201,54 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     }
   }, [progressIndex, progressStarted, previewReady])
 
+  function resetPlanProgress() {
+    setIntentApproved(false)
+    setApproved(false)
+    setApprovedSnapshot(null)
+    setProgressStarted(false)
+    setPreviewReady(false)
+    setProgressIndex(0)
+  }
+
+  function resetAfterSourceChange() {
+    setSourceOrderConfirmed(false)
+    setFormatConfirmed(false)
+    setEditLevelConfirmed(false)
+    setVisualPreferenceConfirmed(false)
+    resetPlanProgress()
+  }
+
+  function handleScenarioSelect(scenarioId: string) {
+    const scenario = getDemoScenarioById(scenarioId)
+
+    if (!scenario) {
+      return
+    }
+
+    setSelectedScenarioId(scenario.id)
+    setEditingCategory(scenario.editingCategory)
+    setEditLevel(scenario.editLevel)
+    setTargetPlatform(scenario.targetPlatform)
+    setAspectRatio(scenario.aspectRatio)
+    setFrameTemplateType(scenario.frameTemplateType)
+    setMoodStyle(scenario.moodStyle)
+    setVisualPreference(scenario.visualPreference)
+    setCreditPreference(scenario.creditPreference)
+    setWorkflowType(scenario.workflowType)
+    setReferenceAttached(scenario.referenceAttached)
+    setReferenceUrl(scenario.referenceUrl)
+    setCustomInstructions(scenario.customInstructions)
+    setComposerValue(scenario.customInstructions)
+    setClips(scenario.clips)
+    setClipsAttached(true)
+    setSourceOrderConfirmed(false)
+    setFormatConfirmed(false)
+    setEditLevelConfirmed(false)
+    setVisualPreferenceConfirmed(false)
+    setRevisionMessage('')
+    resetPlanProgress()
+  }
+
   function handleAddMockClip() {
     setClipsAttached(true)
     setClips((current) =>
@@ -87,10 +264,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
         },
       ]),
     )
-    setApproved(false)
-    setProgressStarted(false)
-    setPreviewReady(false)
-    setProgressIndex(0)
+    resetAfterSourceChange()
   }
 
   function handleMoveClip(id: string, direction: 'up' | 'down') {
@@ -108,22 +282,83 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
       next[targetIndex] = moving
       return reorderClips(next)
     })
-    setApproved(false)
+    resetAfterSourceChange()
   }
 
   function handleRemoveClip(id: string) {
     setClips((current) => reorderClips(current.filter((clip) => clip.id !== id)))
-    setApproved(false)
-    setProgressStarted(false)
-    setPreviewReady(false)
+    resetAfterSourceChange()
   }
 
   function handleUpdateClip(id: string, updates: Partial<ClipSource>) {
     setClips((current) => current.map((clip) => (clip.id === id ? { ...clip, ...updates } : clip)))
-    setApproved(false)
+    resetAfterSourceChange()
+  }
+
+  function handleConfirmSourceOrder() {
+    setSourceOrderConfirmed(true)
+    resetPlanProgress()
+  }
+
+  function handleFrameFormatSelect(platform: TargetPlatform, ratio: AspectRatio, frameTemplate: FrameTemplateType) {
+    setTargetPlatform(platform)
+    setAspectRatio(ratio)
+    setFrameTemplateType(frameTemplate)
+    setFormatConfirmed(false)
+    setEditLevelConfirmed(false)
+    setVisualPreferenceConfirmed(false)
+    resetPlanProgress()
+  }
+
+  function handleConfirmFormat() {
+    setFormatConfirmed(true)
+    resetPlanProgress()
+  }
+
+  function handleEditLevelSelect(value: EditLevel) {
+    setEditLevel(value)
+    setEditLevelConfirmed(false)
+    setVisualPreferenceConfirmed(false)
+    resetPlanProgress()
+  }
+
+  function handleConfirmEditLevel() {
+    setEditLevelConfirmed(true)
+    resetPlanProgress()
+  }
+
+  function handleVisualPreferenceSelect(value: VisualPreference) {
+    setVisualPreference(value)
+    setVisualPreferenceConfirmed(false)
+    resetPlanProgress()
+  }
+
+  function handleConfirmVisualPreference() {
+    setVisualPreferenceConfirmed(true)
+    resetPlanProgress()
+  }
+
+  function handleApproveIntent() {
+    setIntentApproved(true)
+  }
+
+  function handleReferenceAttach() {
+    setReferenceAttached(true)
+    if (!referenceUrl) {
+      setReferenceUrl(selectedScenario.referenceUrl || defaultChatPlannerInput.referenceUrl)
+    }
+    resetPlanProgress()
   }
 
   function handleApprove() {
+    setApprovedSnapshot(
+      createApprovedPlanSnapshot({
+        approvedBy: 'mock-user',
+        editSessionId: 'mock-edit-session',
+        plan,
+        projectId: 'mock-project',
+      }),
+    )
     setApproved(true)
     setProgressStarted(true)
     setPreviewReady(false)
@@ -131,16 +366,31 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   }
 
   function handleLowerCost() {
-    setRevisionMessage('I can lower the cost by removing Real Motion, keeping SoundSync light, and using captions plus basic cleanup.')
+    const alternatives = plan.creditEstimate.lowerCostAlternatives ?? []
+
+    if (alternatives.length > 0) {
+      setRevisionMessage(
+        `I can lower the estimate by ${alternatives
+          .slice(0, 3)
+          .map((alternative) => `${alternative.label.toLowerCase()} (${alternative.actionHint.toLowerCase()})`)
+          .join(', ')}. I will not change the plan or start generation until you approve a revised estimate.`,
+      )
+      return
+    }
+
+    setRevisionMessage('I can lower the estimate by simplifying generated visual assets and reducing fallback depth. I will not change the plan or start generation until you approve a revised estimate.')
   }
 
   function handleRemoveRealMotion() {
-    setRevisionMessage('Real Motion removed from the proposed plan. The edit can stay premium with captions, clean cuts, and subtle Graphic Design overlays.')
+    setRevisionMessage('Real Motion removed from the proposed plan. I would replace it with Graphic Design / VisualExplain or still-with-editor-motion in a lower-cost revision.')
   }
 
   function handleSend() {
-    setRevisionMessage(composerValue.trim())
+    const nextMessage = composerValue.trim()
+    setCustomInstructions(nextMessage)
+    setRevisionMessage(nextMessage)
     setComposerValue('')
+    resetPlanProgress()
   }
 
   return (
@@ -149,64 +399,179 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
       <div className="chat-native-shell">
         <ChatThread>
-          <ChatMessage role="user">
-            <p>I want to edit these clips into a premium real estate short. Keep it natural and don't make it too viral.</p>
-          </ChatMessage>
-
-          <ChatMessage role="user">
-            <p>Attached 4 mock clips in the order I filmed them.</p>
+          <ChatMessage role="ai">
+            <InlineDemoScenarioSelector
+              onSelect={handleScenarioSelect}
+              selectedScenarioId={selectedScenarioId}
+            />
           </ChatMessage>
 
           <ChatMessage role="ai">
-            <p>Got it. I will treat these clips as your source sequence and preserve the walkthrough feel unless there is a stronger structure worth suggesting.</p>
-            {clipsAttached && (
+            <InlineDemoScenarioSummaryCard scenario={selectedScenario} />
+          </ChatMessage>
+
+          <ChatMessage role="ai">
+            <InlinePlanningProgressCard
+              displayMode={displayMode}
+              onDisplayModeChange={setDisplayMode}
+              phaseSummaries={phaseSummaries}
+            />
+          </ChatMessage>
+
+          <ChatMessage role="ai">
+            <p>I see you're creating a {categoryLabel} edit. Upload your video or clips, then I'll help you build the edit plan.</p>
+          </ChatMessage>
+
+          {clipsAttached && clips.length > 0 ? (
+            <ChatMessage role="user">
+              <p>Attached clips in the order I uploaded them.</p>
+            </ChatMessage>
+          ) : (
+            <ChatMessage role="ai">
+              <p>Upload your video or clips to start. This demo uses mock clips.</p>
+              <button className="inline-add-clip" onClick={handleAddMockClip} type="button">
+                Attach sample clips
+              </button>
+            </ChatMessage>
+          )}
+
+          {clipsAttached && clips.length > 0 && (
+            <ChatMessage role="ai">
+              <p>Got it. I'll treat these as your source sequence first, then I can suggest a stronger final structure in the plan.</p>
               <InlineSourceSequenceCard
                 clips={clips}
                 onAddClip={handleAddMockClip}
+                onConfirmOrder={handleConfirmSourceOrder}
                 onMoveClip={handleMoveClip}
                 onRemoveClip={handleRemoveClip}
                 onUpdateClip={handleUpdateClip}
+                sourceOrderConfirmed={sourceOrderConfirmed}
               />
-            )}
-          </ChatMessage>
+            </ChatMessage>
+          )}
 
-          <ChatMessage role="ai">
-            <p>Do you want me to use a workflow context or just follow your written instructions?</p>
-            <InlineAIQuestionCard onSelect={setWorkflowChoice} />
-            <InlineWorkflowChoiceCard selectedWorkflow={workflowChoice} />
-          </ChatMessage>
+          {sourceOrderConfirmed && (
+            <ChatMessage role="ai">
+              <p>Where is this video going?</p>
+              <InlineFrameFormatCard
+                confirmed={formatConfirmed}
+                onConfirm={handleConfirmFormat}
+                onSelect={handleFrameFormatSelect}
+                selectedAspectRatio={aspectRatio}
+                selectedFrameTemplate={frameTemplateType}
+                selectedPlatform={targetPlatform}
+              />
+            </ChatMessage>
+          )}
 
-          <ChatMessage role="ai">
-            <p>You can paste a reference video link or skip it. I will study the style without copying it shot-for-shot.</p>
-          </ChatMessage>
+          {sourceOrderConfirmed && formatConfirmed && (
+            <ChatMessage role="ai">
+              <p>How deep should this edit be?</p>
+              <InlineEditLevelCard
+                confirmed={editLevelConfirmed}
+                onConfirm={handleConfirmEditLevel}
+                onSelect={handleEditLevelSelect}
+                selectedLevel={editLevel}
+              />
+            </ChatMessage>
+          )}
 
-          {referenceAttached && (
+          {sourceOrderConfirmed && formatConfirmed && editLevelConfirmed && (
+            <ChatMessage role="ai">
+              <p>Do you want me to keep visuals minimal, use a balanced visual mix, or lean into one of our signature systems?</p>
+              <InlineVisualPreferenceCard
+                confirmed={visualPreferenceConfirmed}
+                onConfirm={handleConfirmVisualPreference}
+                onSelect={handleVisualPreferenceSelect}
+                selectedPreference={visualPreference}
+              />
+            </ChatMessage>
+          )}
+
+          {setupReady && (
+            <ChatMessage role="ai">
+              <p>You can paste a reference video. I'll study the style without copying it shot-for-shot. What should I know before planning the edit?</p>
+              <InlinePlanningContextCard
+                aspectRatio={aspectRatio}
+                editLevel={editLevel}
+                editLevelConfirmed={editLevelConfirmed}
+                editingCategory={editingCategory}
+                formatConfirmed={formatConfirmed}
+                frameTemplateType={frameTemplateType}
+                sourceOrderConfirmed={sourceOrderConfirmed}
+                targetPlatform={targetPlatform}
+                visualPreference={visualPreference}
+              />
+            </ChatMessage>
+          )}
+
+          {setupReady && plan.compiledIntent && (
+            <ChatMessage role="ai">
+              <p>Before I build the plan, here is the structured intent I compiled from your request and the chat choices.</p>
+              <InlineCompiledIntentCard
+                approved={intentApproved}
+                intent={plan.compiledIntent}
+                onApproveIntent={handleApproveIntent}
+              />
+            </ChatMessage>
+          )}
+
+          {setupReady && referenceAttached && (
             <ChatMessage role="user">
               <p>Reference: https://example.com/luxury-listing-reference</p>
             </ChatMessage>
           )}
 
-          {referenceAttached && (
+          {setupReady && referenceAttached && (
             <ChatMessage role="ai">
               <InlineReferenceDNACard />
             </ChatMessage>
           )}
 
-          <ChatMessage role="ai">
-            <p>Here is the edit plan before spending credits.</p>
-            <InlineEditPlanCard
-              onApprove={handleApprove}
-              onLowerCost={handleLowerCost}
-              onRemoveRealMotion={handleRemoveRealMotion}
-              plan={plan}
-            />
-            <InlineCreditEstimateCard
-              approved={approved}
-              estimate={plan.creditEstimate}
-              onApprove={handleApprove}
-              onLowerCost={handleLowerCost}
-            />
-          </ChatMessage>
+          {setupReady && (
+            <ChatMessage role="ai">
+              <p>Here is the edit plan before spending credits.</p>
+              <InlineEditPlanCard
+                onApprove={handleApprove}
+                onLowerCost={handleLowerCost}
+                onRemoveRealMotion={handleRemoveRealMotion}
+                plan={plan}
+              />
+              {showCard('segment_operations') && (
+                <InlineSegmentEditPlanCard descriptor={cardById.segment_operations} plan={plan} />
+              )}
+              {showCard('visual_asset_plan') && (
+                <InlineVisualAssetPlanCard descriptor={cardById.visual_asset_plan} editLevel={planEditLevel} plan={plan} />
+              )}
+              {showCard('character_consistency') && (
+                <InlineCharacterConsistencyCard descriptor={cardById.character_consistency} plan={plan} />
+              )}
+              {showCard('fact_safety') && (
+                <InlineDocumentaryFactSafetyCard descriptor={cardById.fact_safety} plan={plan} />
+              )}
+              {showCard('renderer_plan') && (
+                <InlineRendererPlanCard descriptor={cardById.renderer_plan} plan={plan} />
+              )}
+              {showCard('qa_plan') && (
+                <InlineQAPlanCard descriptor={cardById.qa_plan} plan={plan} />
+              )}
+              {showCard('prompt_preview') && (
+                <InlinePromptPreviewCard descriptor={cardById.prompt_preview} plan={plan} />
+              )}
+              {showCard('plan_validation') && (
+                <InlinePlanValidationCard descriptor={cardById.plan_validation} report={validationReport} />
+              )}
+              {showCard('planner_regression') && (
+                <InlinePlannerRegressionCard descriptor={cardById.planner_regression} report={regressionReport} />
+              )}
+              <InlineCreditEstimateCard
+                approved={approved}
+                estimate={plan.creditEstimate}
+                onApprove={handleApprove}
+                onLowerCost={handleLowerCost}
+              />
+            </ChatMessage>
+          )}
 
           {revisionMessage && (
             <ChatMessage role="ai">
@@ -216,7 +581,8 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
           {approved && (
             <ChatMessage role="ai">
-              <p>Plan approved. ReeditPro would now begin generation in production.</p>
+              <p>Plan and credit estimate approved. ReeditPro would now begin editing/generation in production.</p>
+              {approvedSnapshot && <p>Approved plan snapshot created for this mock session. Snapshot version: {approvedSnapshot.snapshotVersion}.</p>}
               <AIEditingProgressStage activeIndex={progressIndex} complete={previewReady} />
             </ChatMessage>
           )}
@@ -241,7 +607,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
           inputValue={composerValue}
           onAttachClips={handleAddMockClip}
           onInputChange={setComposerValue}
-          onReference={() => setReferenceAttached(true)}
+          onReference={handleReferenceAttach}
           onSend={handleSend}
         />
 

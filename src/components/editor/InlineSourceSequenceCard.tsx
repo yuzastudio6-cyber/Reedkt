@@ -1,45 +1,54 @@
-import { ArrowDown, ArrowUp, FileVideo, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, CheckCircle2, Play, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '../Badge'
-import { IconButton } from '../Button'
+import { Button, IconButton } from '../Button'
 import type { ClipSource } from '../../types/reeditpro'
 
 type InlineSourceSequenceCardProps = {
   clips: ClipSource[]
   onAddClip: () => void
+  onConfirmOrder?: () => void
   onMoveClip: (id: string, direction: 'up' | 'down') => void
   onRemoveClip: (id: string) => void
   onUpdateClip: (id: string, updates: Partial<ClipSource>) => void
+  sourceOrderConfirmed?: boolean
 }
 
 export function InlineSourceSequenceCard({
   clips,
   onAddClip,
+  onConfirmOrder,
   onMoveClip,
   onRemoveClip,
   onUpdateClip,
+  sourceOrderConfirmed = false,
 }: InlineSourceSequenceCardProps) {
   return (
-    <section className="inline-chat-card source-sequence-card">
+    <section className="inline-chat-card source-sequence-card source-sequence-review">
       <div className="inline-card-heading">
         <div>
           <span className="section-eyebrow">Source sequence</span>
-          <h3>Clips sent in chat</h3>
+          <h3>Are these clips in the right story/source order?</h3>
         </div>
-        <Badge accent="cyan">{clips.length} clips</Badge>
+        <Badge accent={sourceOrderConfirmed ? 'success' : 'cyan'}>
+          {sourceOrderConfirmed ? 'Source order confirmed' : `${clips.length} clips`}
+        </Badge>
       </div>
       <p className="inline-helper">
-        Clips are kept in the order you send them. ReeditPro treats this as the source sequence, not automatically the final edit order.
+        Uploaded order is your source/story order. ReeditPro can suggest a better final edit order later, but it will show the plan before changing it.
       </p>
       <div className="chat-clip-list">
         {clips.map((clip, index) => (
-          <article className="chat-clip-card" key={clip.id}>
+          <article className="chat-clip-card clip-sequence-row" key={clip.id}>
             <div className="chat-clip-order">{clip.uploadedOrder}</div>
-            <div className="chat-clip-thumb">
-              <FileVideo size={18} />
+            <div className="clip-preview-placeholder">
+              <Play size={18} />
+              <span>Preview</span>
             </div>
             <div className="chat-clip-meta">
               <strong>{clip.fileName}</strong>
-              <span>{clip.duration} / {clip.detectedType}</span>
+              <span>Duration: {clip.duration}</span>
+              <span>Detected: {clip.detectedType}</span>
+              {clip.notes && <small>{clip.notes}</small>}
               <label>
                 <span>Note</span>
                 <input
@@ -68,17 +77,26 @@ export function InlineSourceSequenceCard({
               </label>
             </div>
             <div className="chat-clip-actions">
-              <IconButton disabled={index === 0} icon={ArrowUp} label={`Move ${clip.fileName} up`} onClick={() => onMoveClip(clip.id, 'up')} />
-              <IconButton disabled={index === clips.length - 1} icon={ArrowDown} label={`Move ${clip.fileName} down`} onClick={() => onMoveClip(clip.id, 'down')} />
+              <div className="clip-order-controls">
+                <IconButton disabled={index === 0} icon={ArrowUp} label={`Move ${clip.fileName} earlier in source order`} onClick={() => onMoveClip(clip.id, 'up')} />
+                <IconButton disabled={index === clips.length - 1} icon={ArrowDown} label={`Move ${clip.fileName} later in source order`} onClick={() => onMoveClip(clip.id, 'down')} />
+              </div>
               <IconButton icon={Trash2} label={`Remove ${clip.fileName}`} onClick={() => onRemoveClip(clip.id)} />
             </div>
           </article>
         ))}
       </div>
-      <button className="inline-add-clip" onClick={onAddClip} type="button">
-        <Plus size={16} />
-        Attach another mock clip
-      </button>
+      <div className="source-sequence-actions">
+        <button className="inline-add-clip" onClick={onAddClip} type="button">
+          <Plus size={16} />
+          Attach another mock clip
+        </button>
+        {onConfirmOrder && (
+          <Button disabled={clips.length === 0} icon={CheckCircle2} onClick={onConfirmOrder} variant={sourceOrderConfirmed ? 'secondary' : 'primary'}>
+            {sourceOrderConfirmed ? 'Source order confirmed' : 'Confirm source order'}
+          </Button>
+        )}
+      </div>
     </section>
   )
 }

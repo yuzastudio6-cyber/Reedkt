@@ -1,9 +1,12 @@
 import type {
   EditLevel,
+  LicenseRiskLevel,
   OpenSourceToolId,
+  ProductionReadinessStatus,
   SpeakerVisualLayoutMode,
   ToolCategory,
   ToolExecutionMode,
+  ToolProductionClass,
   ToolProfile,
   ToolRegistrySummary,
   ToolStrategyHint,
@@ -31,12 +34,14 @@ const planningOnlyNote = 'Planning only; not installed and not executed in this 
 const approvalNote = 'Future execution must happen only in approved worker flows from approved plan snapshots.'
 const installedFrontendNote = 'Installed in the frontend for future controlled preview components; lazy-load before use.'
 const workerOnlyInstallNote = 'Worker-only or QA-only tool; do not install or execute in the frontend.'
+const productionReviewNote = 'Production use still requires license, security, privacy, and performance review where applicable.'
 
 type ProfileParams = Omit<ToolProfile, 'licenseNotes' | 'productionNotes' | 'tierAvailability'> & {
   licenseNotes?: string[]
   productionNotes?: string[]
   tierAvailability?: ToolProfile['tierAvailability']
 }
+type FrontendInstallInfo = NonNullable<ToolProfile['frontendInstallInfo']>
 
 function allTiers() {
   return { basic: true, pro: true, premium: true }
@@ -50,6 +55,75 @@ function premiumOnly() {
   return { basic: false, pro: false, premium: true }
 }
 
+function defaultProductionClass(params: ProfileParams, installStatus: FrontendInstallInfo['installStatus']): ToolProductionClass {
+  if (params.frontendInstallInfo?.installedInFrontend) {
+    return 'frontend_browser_tool'
+  }
+
+  if (installStatus === 'worker_only') {
+    return 'worker_tool'
+  }
+
+  if (params.adoptionStage === 'future' || params.adoptionStage === 'experimental') {
+    return 'future_evaluation_tool'
+  }
+
+  return 'planning_only_tool'
+}
+
+function defaultProductionStatus(productionClass: ToolProductionClass, installStatus: FrontendInstallInfo['installStatus'], adoptionStage: ToolProfile['adoptionStage']): ProductionReadinessStatus {
+  if (productionClass === 'frontend_browser_tool') {
+    return 'frontend_preview_ready'
+  }
+
+  if (productionClass === 'worker_tool') {
+    return 'needs_worker_architecture'
+  }
+
+  if (adoptionStage === 'needs_license_review') {
+    return 'needs_license_review'
+  }
+
+  if (installStatus === 'future') {
+    return 'planning_only'
+  }
+
+  return 'planning_only'
+}
+
+function defaultLicenseRisk(toolId: OpenSourceToolId, productionClass: ToolProductionClass): LicenseRiskLevel {
+  if (toolId === 'rubber_band') {
+    return 'high'
+  }
+
+  if (productionClass === 'worker_tool') {
+    return 'unknown'
+  }
+
+  return 'unknown'
+}
+
+function defaultLicenseReview(params: ProfileParams, productionClass: ToolProductionClass): ToolProfile['licenseReview'] {
+  return {
+    toolId: params.id,
+    toolLabel: params.label,
+    productionClass,
+    licenseRisk: defaultLicenseRisk(params.id, productionClass),
+    reviewStatus: params.adoptionStage === 'needs_license_review' ? 'needs_legal_review' : 'not_reviewed',
+    commercialUseReviewed: false,
+    redistributionConcern: productionClass === 'frontend_browser_tool' || productionClass === 'worker_tool',
+    saasServerUseConcern: productionClass === 'worker_tool',
+    notes: [
+      productionClass === 'frontend_browser_tool'
+        ? 'Installed for local browser-safe previews only; production use still needs license/performance review.'
+        : productionClass === 'worker_tool'
+          ? 'Worker-only/future tool. Not installed in frontend. Requires license/security/runtime review before production execution.'
+          : 'Planning metadata only; production use requires review before execution.',
+      'This metadata is not legal advice and does not approve production use.',
+    ],
+  }
+}
+
 function profile(params: ProfileParams): ToolProfile {
   const isFrontendInstalled = params.frontendInstallInfo?.installStatus === 'installed'
   const defaultInstallStatus = params.executionMode === 'worker_preprocess' ||
@@ -59,12 +133,15 @@ function profile(params: ProfileParams): ToolProfile {
     : params.adoptionStage === 'future' || params.adoptionStage === 'experimental'
       ? 'future'
       : 'planned_only'
+  const installStatus = params.frontendInstallInfo?.installStatus ?? defaultInstallStatus
+  const productionClass = params.productionClass ?? defaultProductionClass(params, installStatus)
+  const productionReadinessStatus = params.productionReadinessStatus ?? defaultProductionStatus(productionClass, installStatus, params.adoptionStage)
 
   return {
     ...params,
     licenseNotes: params.licenseNotes ?? ['Track license notes before production use.'],
     productionNotes: params.productionNotes ?? (isFrontendInstalled
-      ? ['Installed for future browser-safe preview components; not executed automatically.', approvalNote]
+      ? ['Installed for future browser-safe preview components; not executed automatically.', approvalNote, productionReviewNote]
       : [planningOnlyNote, approvalNote]),
     tierAvailability: params.tierAvailability ?? allTiers(),
     frontendInstallInfo: params.frontendInstallInfo ?? {
@@ -73,6 +150,9 @@ function profile(params: ProfileParams): ToolProfile {
       installStatus: defaultInstallStatus,
       installNotes: [defaultInstallStatus === 'worker_only' ? workerOnlyInstallNote : planningOnlyNote],
     },
+    productionClass,
+    productionReadinessStatus,
+    licenseReview: params.licenseReview ?? defaultLicenseReview(params, productionClass),
   }
 }
 
@@ -296,7 +376,30 @@ export const openSourceToolProfiles: ToolProfile[] = [
     defaultPresets: ['browser_dashboard_capture'],
     remotionIntegration: 'Future screenshots can become Remotion visual layers or screen-capture panels.',
     qaChecks: ['Only approved URLs/pages are captured.', 'No Playwright execution in this task.'],
+    licenseNotes: ['Playwright browser capture workflows require license, privacy, source authorization, and site restriction review before production use.'],
+    productionNotes: [
+      planningOnlyNote,
+      approvalNote,
+      'Requires privacy/source authorization review.',
+      'Must not bypass auth, paywalls, CAPTCHAs, robots, rate limits, or site restrictions.',
+    ],
     frontendInstallInfo: workerOnlyFrontendInfo(['Playwright was not installed in RP-TOOLS-INSTALL-01.']),
+    licenseReview: {
+      toolId: 'playwright',
+      toolLabel: 'Playwright',
+      productionClass: 'worker_tool',
+      licenseRisk: 'unknown',
+      reviewStatus: 'not_reviewed',
+      commercialUseReviewed: false,
+      redistributionConcern: true,
+      saasServerUseConcern: true,
+      notes: [
+        'Browser capture requires user-authorized or user-provided sources.',
+        'Must not bypass auth, paywalls, CAPTCHAs, robots, rate limits, or site restrictions.',
+        'Requires privacy/redaction planning before production execution.',
+        'This metadata is not legal advice.',
+      ],
+    },
   }),
   profile({
     id: 'lottie',

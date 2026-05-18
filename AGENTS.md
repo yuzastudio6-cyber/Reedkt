@@ -47,6 +47,7 @@ These instructions are for Codex and any future agent working in this repository
 - Read `documentary-fact-safety-system.md` before documentary claims, real named people, allegations, evidence cards, fact-safety planning, or case-study visual treatment work.
 - Read `planner-regression-validation.md` before planner validation, regression checks, demo scenario QA, model-routing tests, prompt-builder tests, or hard product rule validation work.
 - Read `worker-tool-runtime-architecture.md`, `worker-job-step-catalog.md`, and `worker-runtime-status-policy.md` before worker runtime planning, future worker job steps, worker statuses, execution/fallback policy, or worker UI work.
+- Read `production-readiness-review.md`, `tool-license-risk-policy.md`, and `production-launch-checklist.md` before production readiness, license risk, launch checklist, tool production status, or commercial readiness work.
 - Read `chat-planning-ux-architecture.md` before chat flow organization, planning card priority, collapse behavior, guided/detailed/developer modes, or approval-path UX work.
 - Read `source-sequence-review-ux.md` before source order review, clip reorder UX, uploaded-order semantics, or source-sequence confirmation work.
 - Read `docs/lyria-worker-plan.md` and `docs/google-cloud-audio-worker-plan.md` before Lyria worker, Google Cloud audio worker, music generation job, worker secret, or generated music asset work.
@@ -172,6 +173,14 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Tool execution belongs in worker/runtime milestones, not frontend planning milestones.
 - Frontend browser-safe previews are not production worker execution.
 - Do not add secrets, API keys, migrations, backend jobs, or worker queues unless a future milestone explicitly asks for them.
+- Do not treat planning metadata as production approval.
+- Tool production use requires licensing, security, privacy, and performance review.
+- Do not provide legal conclusions in code or docs; use review statuses and clearly state when a review is not legal advice.
+- Browser capture requires source authorization plus privacy/redaction planning before production use.
+- Provider models remain separate from open-source tools.
+- Installed browser tools are preview/dev only until production review clears them.
+- Tools with unknown, high, blocked, or needs-review license risk must not execute in production.
+- Production launch requires approval, billing, worker, QA, privacy, and provider readiness.
 - Tool registry guides the AI but does not limit custom requests.
 - Tool strategy must explain why a tool is chosen.
 - License notes must be tracked before production use.

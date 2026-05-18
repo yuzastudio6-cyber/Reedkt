@@ -29,6 +29,7 @@ import type {
   MapAnimationPlan,
   ProfessionalEditStyleId,
   ProfessionalEditingDirective,
+  ProductionReadinessReport,
   ProviderPromptPlan,
   ProviderModel,
   ProviderRoute,
@@ -584,6 +585,7 @@ export interface ApprovedPlanSnapshot {
   foregroundMaskingPlan?: ForegroundMaskingPlan
   depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   workerRuntimePlan?: WorkerRuntimePlan
+  productionReadinessReport?: ProductionReadinessReport
   frameLayoutPlan?: FrameLayoutPlanRecord
   frameLayoutPlanDomain?: FrameLayoutPlan
   rendererCompositionPlan?: RendererCompositionPlanRecord

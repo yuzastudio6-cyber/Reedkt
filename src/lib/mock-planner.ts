@@ -30,6 +30,7 @@ import { createForegroundMaskingPlan } from './foreground-masking-planner'
 import { getDefaultFrameTemplateForAspectRatio, getFrameLayoutTemplate } from './frame-layouts'
 import { compileEditingIntent } from './intent-compiler'
 import { createMapAnimationPlan } from './map-animation-planner'
+import { createProductionReadinessReport } from './production-readiness'
 import { buildProviderPromptPlansForEditPlan } from './prompt-builders'
 import { createRendererCompositionPlan } from './remotion-renderer-planner'
 import { createRenderStrategyPlan } from './render-strategy-planner'
@@ -1273,10 +1274,19 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     editPlanVersionId: 'mock-plan-version-v1',
     plan: editPlanWithoutWorkerRuntime,
   })
-
-  return {
+  const planWithWorkerRuntime: EditPlan = {
     ...editPlanWithoutWorkerRuntime,
     workerRuntimePlan,
+    creditEstimate: createCreditEstimate(analysisInput, {
+      ...creditEstimateParams,
+      workerRuntimePlan,
+    }),
+  }
+  const productionReadinessReport = createProductionReadinessReport({ plan: planWithWorkerRuntime })
+
+  return {
+    ...planWithWorkerRuntime,
+    productionReadinessReport,
     editQAPlan: createEditQAPlan({
       adaptiveEditStrategyPlan,
       audioPipelinePlan,
@@ -1298,10 +1308,7 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
       videoUnderstandingReport,
       visualAssetPlan: visualAssetPlanWithPrompts,
       workerRuntimePlan,
-    }),
-    creditEstimate: createCreditEstimate(analysisInput, {
-      ...creditEstimateParams,
-      workerRuntimePlan,
+      productionReadinessReport,
     }),
   }
 }

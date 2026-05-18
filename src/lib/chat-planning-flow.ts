@@ -9,6 +9,7 @@ import type {
 } from '../types/reeditpro'
 import { getSourceSequenceModeLabel } from './source-sequence'
 import { getFrontendToolInstallSummary } from './tool-install-status'
+import { getProductionReadinessSummary } from './production-readiness'
 
 type GetChatPlanningCardsParams = {
   clipsAttached: boolean
@@ -218,6 +219,14 @@ function workerRuntimeSummary(plan: EditPlan) {
   return `${runtimePlan.jobs.length} job${runtimePlan.jobs.length === 1 ? '' : 's'}, ${runtimePlan.totalSteps} step${runtimePlan.totalSteps === 1 ? '' : 's'}, ${runtimePlan.workerGroupsUsed.length} worker group${runtimePlan.workerGroupsUsed.length === 1 ? '' : 's'}; frontend execution disabled.`
 }
 
+function productionReadinessSummary(plan: EditPlan) {
+  if (!plan.productionReadinessReport) {
+    return 'Production readiness report is not ready.'
+  }
+
+  return getProductionReadinessSummary(plan.productionReadinessReport)
+}
+
 function renderStrategySummary(plan: EditPlan) {
   const renderStrategyPlan = plan.renderStrategyPlan
 
@@ -403,6 +412,15 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
     (!depthLayoutPlan ? 'not_started' : !depthLayoutPlan.active ? 'complete' : depthLayoutPlan.overallStatus === 'blocking' || depthLayoutPlan.overallStatus === 'failed' ? 'blocking' : depthLayoutPlan.overallStatus === 'warning' ? 'warning' : 'ready')
   const workerRuntimeValidationStatus = validationCategoryStatus(validationReport, 'worker_runtime')
   const workerRuntimeStatus = workerRuntimeValidationStatus ?? (plan.workerRuntimePlan ? 'ready' : 'not_started')
+  const productionReadinessValidationStatus = validationCategoryStatus(validationReport, 'production_readiness')
+  const productionReadinessStatus = productionReadinessValidationStatus ??
+    (!plan.productionReadinessReport
+      ? 'not_started'
+      : plan.productionReadinessReport.overallStatus === 'blocked'
+        ? 'blocking'
+        : plan.productionReadinessReport.overallStatus.startsWith('needs_')
+          ? 'warning'
+          : 'ready')
 
   return [
     descriptor({
@@ -741,6 +759,17 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       defaultExpanded: false,
       requiredBeforeApproval: false,
       summary: workerRuntimeSummary(plan),
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'production_readiness',
+      label: 'Production readiness',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: productionReadinessStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: productionReadinessSummary(plan),
       hiddenInCompactMode: true,
     }),
     descriptor({

@@ -340,6 +340,111 @@ export interface ToolFrontendInstallInfo {
   installNotes: string[]
 }
 
+export type ProductionReadinessStatus =
+  | 'planning_only'
+  | 'frontend_preview_ready'
+  | 'internal_dev_only'
+  | 'needs_license_review'
+  | 'needs_security_review'
+  | 'needs_privacy_review'
+  | 'needs_performance_review'
+  | 'needs_worker_architecture'
+  | 'approved_for_prototype'
+  | 'approved_for_production'
+  | 'blocked'
+
+export type LicenseRiskLevel =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'blocked'
+  | 'unknown'
+
+export type LicenseReviewStatus =
+  | 'not_reviewed'
+  | 'in_review'
+  | 'approved'
+  | 'approved_with_conditions'
+  | 'rejected'
+  | 'needs_legal_review'
+
+export type ToolProductionClass =
+  | 'frontend_browser_tool'
+  | 'worker_tool'
+  | 'provider_model'
+  | 'planning_only_tool'
+  | 'future_evaluation_tool'
+
+export type ProductionReviewCategory =
+  | 'licensing'
+  | 'commercial_use'
+  | 'attribution'
+  | 'redistribution'
+  | 'saas_server_use'
+  | 'security'
+  | 'privacy'
+  | 'user_authorization'
+  | 'data_retention'
+  | 'provider_terms'
+  | 'worker_runtime'
+  | 'frontend_bundle'
+  | 'performance'
+  | 'accessibility'
+  | 'reliability'
+  | 'qa_coverage'
+  | 'credit_billing'
+  | 'model_tier_policy'
+  | 'render_export'
+
+export interface ToolLicenseReview {
+  toolId: OpenSourceToolId | ProviderModel | string
+  toolLabel: string
+  productionClass: ToolProductionClass
+  declaredLicense?: string
+  licenseRisk: LicenseRiskLevel
+  reviewStatus: LicenseReviewStatus
+  commercialUseReviewed: boolean
+  attributionRequired?: boolean
+  redistributionConcern?: boolean
+  saasServerUseConcern?: boolean
+  copyleftConcern?: boolean
+  patentOrTrademarkConcern?: boolean
+  sourceReference?: string
+  reviewOwner?: string
+  lastReviewedAt?: string
+  notes: string[]
+}
+
+export interface ProductionReadinessCheck {
+  id: string
+  category: ProductionReviewCategory
+  label: string
+  status: ProductionReadinessStatus
+  severity: 'info' | 'warning' | 'error' | 'blocking'
+  message: string
+  recommendation: string
+  relatedToolId?: OpenSourceToolId
+  relatedProviderModel?: ProviderModel
+  relatedDoc?: string
+}
+
+export interface ProductionReadinessReport {
+  id: string
+  summary: string
+  overallStatus: ProductionReadinessStatus
+  checks: ProductionReadinessCheck[]
+  licenseReviews: ToolLicenseReview[]
+  frontendInstalledTools: OpenSourceToolId[]
+  workerOnlyTools: OpenSourceToolId[]
+  providerModels: ProviderModel[]
+  blockedItems: string[]
+  needsReviewItems: string[]
+  approvedPrototypeItems: string[]
+  launchChecklist: ProductionReadinessCheck[]
+  limitations: string[]
+  notes: string[]
+}
+
 export interface ToolProfile {
   id: OpenSourceToolId
   label: string
@@ -363,6 +468,9 @@ export interface ToolProfile {
   licenseNotes: string[]
   productionNotes: string[]
   frontendInstallInfo?: ToolFrontendInstallInfo
+  productionReadinessStatus?: ProductionReadinessStatus
+  licenseReview?: ToolLicenseReview
+  productionClass?: ToolProductionClass
 }
 
 export interface ToolStrategyHintDetail {
@@ -2569,6 +2677,7 @@ export type QACategory =
   | 'map_animation'
   | 'dataviz_plan'
   | 'worker_runtime'
+  | 'production_readiness'
   | 'model_tier_policy'
   | 'credit_approval'
   | 'safety_and_claims'
@@ -2943,6 +3052,7 @@ export interface EditPlan {
   foregroundMaskingPlan?: ForegroundMaskingPlan
   depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   workerRuntimePlan?: WorkerRuntimePlan
+  productionReadinessReport?: ProductionReadinessReport
   renderStrategyPlan?: RenderStrategyPlan
   rendererCompositionPlan?: RendererCompositionPlan
   compiledIntent?: CompiledEditingIntent

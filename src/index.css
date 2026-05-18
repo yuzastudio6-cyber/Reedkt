@@ -4997,6 +4997,129 @@ li {
   text-transform: uppercase;
 }
 
+.production-readiness-card {
+  border-color: color-mix(in srgb, var(--rp-brand-cyan) 28%, var(--rp-border-strong));
+}
+
+.production-readiness-summary-grid {
+  display: grid;
+  gap: 9px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.production-readiness-summary-grid span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.production-readiness-summary-grid strong {
+  color: var(--rp-brand-cyan);
+  font-size: 1.03rem;
+}
+
+.production-check-list,
+.license-review-list,
+.launch-checklist-list {
+  display: grid;
+  gap: 10px;
+}
+
+.production-check-item,
+.license-review-item,
+.launch-checklist-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.production-check-item h4,
+.license-review-item h4 {
+  color: var(--rp-text-primary);
+  font-size: 0.96rem;
+  margin: 2px 0 4px;
+}
+
+.production-check-item p,
+.license-review-item p,
+.launch-checklist-item p {
+  color: var(--rp-text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.production-check-warning {
+  border-color: color-mix(in srgb, var(--rp-warning) 34%, var(--rp-border-subtle));
+}
+
+.production-check-error,
+.production-check-blocking,
+.license-risk-high,
+.license-risk-blocked {
+  border-color: color-mix(in srgb, var(--rp-danger) 36%, var(--rp-border-subtle));
+}
+
+.license-risk-badge,
+.license-status-badge,
+.production-status-badge,
+.production-class-badge,
+.worker-only-note,
+.frontend-preview-only-note {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  padding: 5px 8px;
+}
+
+.license-risk-badge,
+.license-status-badge {
+  background: color-mix(in srgb, var(--rp-warning) 10%, var(--rp-surface-1));
+}
+
+.production-status-badge,
+.production-class-badge {
+  background: color-mix(in srgb, var(--rp-brand-blue) 10%, var(--rp-surface-1));
+}
+
+.worker-only-note {
+  background: color-mix(in srgb, var(--rp-brand-violet) 10%, var(--rp-surface-1));
+}
+
+.frontend-preview-only-note {
+  background: color-mix(in srgb, var(--rp-brand-cyan) 10%, var(--rp-surface-1));
+}
+
+.not-legal-advice-note {
+  background: color-mix(in srgb, var(--rp-warning) 8%, var(--rp-surface-1));
+  border: 1px solid color-mix(in srgb, var(--rp-warning) 28%, var(--rp-border-subtle));
+  border-radius: var(--radius-md);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.not-legal-advice-note > strong {
+  color: var(--rp-text-primary);
+}
+
+.production-limitation-note {
+  color: var(--rp-text-muted);
+  font-size: 0.84rem;
+}
+
 .frame-layout-preview {
   display: grid;
   gap: 10px;
@@ -7568,6 +7691,10 @@ li {
   .worker-runtime-summary-grid,
   .worker-step-meta,
   .worker-qa-list,
+  .production-readiness-summary-grid,
+  .production-check-item,
+  .license-review-item,
+  .launch-checklist-item,
   .color-summary-grid,
   .color-stage-list,
   .color-operation-list,

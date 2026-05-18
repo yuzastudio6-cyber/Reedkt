@@ -51,6 +51,7 @@ import { InlinePlanningProgressCard } from './InlinePlanningProgressCard'
 import { InlinePlanValidationCard } from './InlinePlanValidationCard'
 import { InlinePlannerRegressionCard } from './InlinePlannerRegressionCard'
 import { InlinePromptPreviewCard } from './InlinePromptPreviewCard'
+import { InlineProductionReadinessCard } from './InlineProductionReadinessCard'
 import { InlineQAPlanCard } from './InlineQAPlanCard'
 import { InlineReferenceDNACard } from './InlineReferenceDNACard'
 import { InlineRendererPlanCard } from './InlineRendererPlanCard'
@@ -668,6 +669,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               )}
               {showCard('worker_runtime_plan') && (
                 <InlineWorkerRuntimePlanCard descriptor={cardById.worker_runtime_plan} plan={plan} />
+              )}
+              {showCard('production_readiness') && (
+                <InlineProductionReadinessCard descriptor={cardById.production_readiness} plan={plan} />
               )}
               <InlineCreditEstimateCard
                 approved={approved}

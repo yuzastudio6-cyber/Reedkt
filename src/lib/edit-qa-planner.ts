@@ -14,6 +14,7 @@ import type {
   ForegroundMaskingPlan,
   MapAnimationPlan,
   PlannerInput,
+  ProductionReadinessReport,
   RenderStrategyPlan,
   RendererCompositionPlan,
   SegmentEditPlan,
@@ -1592,6 +1593,97 @@ function createWorkerRuntimeChecks(input: PlannerInput, workerRuntimePlan?: Work
   ]
 }
 
+function createProductionReadinessChecks(input: PlannerInput, productionReadinessReport?: ProductionReadinessReport) {
+  if (!productionReadinessReport) {
+    return [
+      createQAItem({
+        id: 'qa-production-readiness-missing',
+        category: 'production_readiness',
+        label: 'Production readiness review exists',
+        check: 'Mock edit plans should include production readiness planning metadata.',
+        editLevel: input.editLevel,
+        severity: 'medium',
+        status: 'not_checked',
+        notes: ['No productionReadinessReport is present in this QA input.'],
+      }),
+    ]
+  }
+
+  const text = JSON.stringify(productionReadinessReport).toLowerCase()
+  const hasLegalDisclaimer = productionReadinessReport.limitations.some((note) => /not legal advice|no production legal review/i.test(note))
+  const frontendToolsProductionApproved = productionReadinessReport.licenseReviews.some((review) =>
+    review.productionClass === 'frontend_browser_tool' &&
+    review.reviewStatus === 'approved' &&
+    review.commercialUseReviewed,
+  )
+  const workerOnlyNotePresent = text.includes('worker-only') || text.includes('future/backend')
+  const providerSeparation = text.includes('provider models remain separate') || text.includes('provider models, not open-source tools')
+  const approvalGate = text.includes('approval') && text.includes('credit')
+
+  return [
+    createQAItem({
+      id: 'qa-production-readiness-not-legal-advice',
+      category: 'production_readiness',
+      label: 'Not legal advice',
+      check: 'Production readiness metadata must state it is not legal advice and no production legal review is complete.',
+      editLevel: input.editLevel,
+      severity: hasLegalDisclaimer ? 'low' : 'blocking',
+      status: hasLegalDisclaimer ? 'passed' : 'failed',
+      notes: productionReadinessReport.limitations,
+    }),
+    createQAItem({
+      id: 'qa-production-readiness-license-review',
+      category: 'production_readiness',
+      label: 'License review remains pending',
+      check: 'Frontend tools should not be treated as production-approved by this mock review.',
+      editLevel: input.editLevel,
+      severity: frontendToolsProductionApproved ? 'blocking' : 'medium',
+      status: frontendToolsProductionApproved ? 'failed' : 'passed',
+      notes: productionReadinessReport.needsReviewItems.slice(0, 6),
+    }),
+    createQAItem({
+      id: 'qa-production-readiness-worker-only',
+      category: 'production_readiness',
+      label: 'Worker-only tools remain future/backend only',
+      check: 'Worker-only tools require future backend/runtime review and must not execute in the frontend.',
+      editLevel: input.editLevel,
+      severity: workerOnlyNotePresent ? 'low' : 'blocking',
+      status: workerOnlyNotePresent ? 'passed' : 'failed',
+      notes: productionReadinessReport.workerOnlyTools.slice(0, 8),
+    }),
+    createQAItem({
+      id: 'qa-production-readiness-browser-privacy',
+      category: 'production_readiness',
+      label: 'Browser capture privacy preserved',
+      check: 'Browser capture readiness must preserve source authorization, privacy, redaction, and no bypass rules.',
+      editLevel: input.editLevel,
+      severity: text.includes('browser') && !/authorization|redaction|bypass|captcha|paywall/i.test(text) ? 'blocking' : 'medium',
+      status: text.includes('browser') && !/authorization|redaction|bypass|captcha|paywall/i.test(text) ? 'failed' : 'passed',
+      notes: productionReadinessReport.checks.filter((item) => item.category === 'privacy' || item.category === 'user_authorization').map((item) => item.message),
+    }),
+    createQAItem({
+      id: 'qa-production-readiness-provider-policy',
+      category: 'production_readiness',
+      label: 'Provider model policy preserved',
+      check: 'Provider models stay separate from open-source tools and Veo policy remains unchanged.',
+      editLevel: input.editLevel,
+      severity: providerSeparation ? 'low' : 'blocking',
+      status: providerSeparation ? 'passed' : 'failed',
+      notes: productionReadinessReport.notes.filter((note) => /provider|veo/i.test(note)),
+    }),
+    createQAItem({
+      id: 'qa-production-readiness-approval-gate',
+      category: 'production_readiness',
+      label: 'No execution before approval',
+      check: 'Production readiness must not enable generation, rendering, billing, or tool execution before approval.',
+      editLevel: input.editLevel,
+      severity: approvalGate ? 'low' : 'blocking',
+      status: approvalGate ? 'passed' : 'failed',
+      notes: productionReadinessReport.checks.filter((item) => item.category === 'credit_billing').map((item) => item.message),
+    }),
+  ]
+}
+
 function createSafetyChecks(input: PlannerInput) {
   if (input.editingCategory !== 'documentary_case_study') {
     return []
@@ -1728,6 +1820,7 @@ export function createEditQAPlan(params: {
   characterConsistencyPlan?: CharacterConsistencyPlan
   documentaryFactSafetyPlan?: DocumentaryFactSafetyPlan
   workerRuntimePlan?: WorkerRuntimePlan
+  productionReadinessReport?: ProductionReadinessReport
 }): EditQAPlan {
   const {
     adaptiveEditStrategyPlan,
@@ -1749,6 +1842,7 @@ export function createEditQAPlan(params: {
     videoUnderstandingReport,
     visualAssetPlan,
     workerRuntimePlan,
+    productionReadinessReport,
   } = params
   const globalChecks = [
     ...createGlobalChecks(input, compiledIntent, rendererCompositionPlan),
@@ -1770,6 +1864,7 @@ export function createEditQAPlan(params: {
     ...createDepthAwareOverlayChecks(input, depthAwareOverlayPlan),
     ...createDepthLayoutValidationChecks(input, depthAwareLayoutValidationPlan),
     ...createWorkerRuntimeChecks(input, workerRuntimePlan),
+    ...createProductionReadinessChecks(input, productionReadinessReport),
     ...createSafetyChecks(input),
     ...createCharacterConsistencyChecks(input, characterConsistencyPlan),
     ...createFactSafetyChecks(input, documentaryFactSafetyPlan),

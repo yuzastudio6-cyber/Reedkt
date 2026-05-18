@@ -44,6 +44,7 @@ export type PlanValidationCategory =
   | 'depth_aware_overlay'
   | 'depth_layout_validation'
   | 'worker_runtime'
+  | 'production_readiness'
   | 'renderer_plan'
   | 'segment_operations'
   | 'qa_plan'
@@ -1465,6 +1466,81 @@ function workerRuntimeMaskWorkerFutureOnly(plan: EditPlan) {
   return text.includes('future') && text.includes('no real mask')
 }
 
+function productionReadinessReportExists(plan: EditPlan) {
+  return Boolean(plan.productionReadinessReport)
+}
+
+function productionReadinessHasLegalLimitations(plan: EditPlan) {
+  const limitations = plan.productionReadinessReport?.limitations.join(' ').toLowerCase() ?? ''
+  return limitations.includes('not legal advice') && limitations.includes('no production legal review')
+}
+
+function productionFrontendToolsNotProductionApproved(plan: EditPlan) {
+  const report = plan.productionReadinessReport
+  if (!report) {
+    return false
+  }
+
+  return report.licenseReviews.every((review) =>
+    review.productionClass !== 'frontend_browser_tool' ||
+    review.reviewStatus !== 'approved' ||
+    !review.commercialUseReviewed,
+  )
+}
+
+function productionWorkerOnlyToolsNotFrontend() {
+  return openSourceToolProfiles.every((tool) =>
+    tool.productionClass !== 'worker_tool' || !tool.frontendInstallInfo?.installedInFrontend,
+  )
+}
+
+function productionToolsNeedReviewCounted(plan: EditPlan) {
+  return Boolean(plan.productionReadinessReport?.needsReviewItems.length)
+}
+
+function productionProviderModelsSeparate(plan: EditPlan) {
+  const providerIds = ['gpt_image_2', 'wan_2_2_kf2v_flash', 'wan_2_6_i2v_flash', 'hailuo_2_3_fast', 'hailuo_02', 'veo_3_1_lite']
+  const providerAsTool = openSourceToolProfiles.some((tool) => providerIds.includes(tool.id))
+  const reportText = JSON.stringify(plan.productionReadinessReport ?? {}).toLowerCase()
+  return !providerAsTool && reportText.includes('provider')
+}
+
+function productionReadinessDoesNotEnableVeo(plan: EditPlan, editLevel: EditLevel) {
+  return toolInstallDoesNotEnableVeo(plan) &&
+    toolRegistryDoesNotEnableVeo(plan) &&
+    workerRuntimeBasicProNoVeo(plan, editLevel) &&
+    workerRuntimePremiumVeoFinalFallbackOnly(plan, editLevel)
+}
+
+function productionBrowserCaptureSafety(plan: EditPlan) {
+  const report = plan.productionReadinessReport
+  if (!report) {
+    return false
+  }
+
+  const browserActive = browserCapturePlanActive(plan)
+  if (!browserActive) {
+    return true
+  }
+
+  const text = JSON.stringify(report).toLowerCase()
+  return /authorization|authorized/.test(text) &&
+    /privacy|redaction/.test(text) &&
+    /bypass|captcha|paywall|site restrictions/.test(text)
+}
+
+function productionWorkerRuntimeFrontendDisabled(plan: EditPlan) {
+  return plan.workerRuntimePlan?.frontendExecutionAllowed === false &&
+    !JSON.stringify(plan.productionReadinessReport ?? {}).toLowerCase().includes('frontend execution enabled')
+}
+
+function productionReadinessNoExecutionImplied(plan: EditPlan) {
+  const text = JSON.stringify(plan.productionReadinessReport ?? {}).toLowerCase()
+  return text.includes('frontend previews are mock-only') &&
+    !text.includes('production execution approved') &&
+    !text.includes('tools executed')
+}
+
 function gptImagePromptPlanned(plan: EditPlan) {
   return (plan.providerPromptPlans ?? []).some((prompt) => prompt.providerModel === 'gpt_image_2') ||
     (plan.visualAssetPlan ?? []).some((asset) => asset.providerRoute.primaryModel === 'gpt_image_2')
@@ -1489,7 +1565,10 @@ function aiVideoRoutePlanned(plan: EditPlan) {
 
 function browserCapturePlanActive(plan: EditPlan) {
   const maybePlan = plan as EditPlan & { browserCapturePlan?: { active?: boolean } }
-  return Boolean(maybePlan.browserCapturePlan?.active)
+  return Boolean(
+    maybePlan.browserCapturePlan?.active ||
+    workerRuntimeSteps(plan).some((step) => step.stepType === 'capture_browser_asset'),
+  )
 }
 
 function depthItemsNeedFallback(plan: EditPlan) {
@@ -3283,6 +3362,96 @@ export function validateMockEditPlan(params: {
       relatedField: 'workerRuntimePlan.limitations',
     }),
     check({
+      id: 'validation-production-readiness-exists',
+      category: 'production_readiness',
+      label: 'Production readiness report exists',
+      severity: 'warning',
+      passed: productionReadinessReportExists(plan),
+      message: 'Mock edit plans should include production readiness review metadata.',
+      relatedField: 'productionReadinessReport',
+    }),
+    check({
+      id: 'validation-production-not-legal-advice',
+      category: 'production_readiness',
+      label: 'Not legal advice limitation',
+      severity: 'blocking',
+      passed: productionReadinessHasLegalLimitations(plan),
+      message: 'Production readiness must state it is not legal advice and no production legal review has been completed.',
+      relatedField: 'productionReadinessReport.limitations',
+    }),
+    check({
+      id: 'validation-production-frontend-preview-only',
+      category: 'production_readiness',
+      label: 'Frontend tools are not production-approved',
+      severity: 'blocking',
+      passed: productionFrontendToolsNotProductionApproved(plan),
+      message: 'Frontend-installed browser tools should remain preview/dev only until production review clears them.',
+      relatedField: 'productionReadinessReport.licenseReviews',
+    }),
+    check({
+      id: 'validation-production-worker-only-tools',
+      category: 'production_readiness',
+      label: 'Worker-only tools not frontend-installed',
+      severity: 'blocking',
+      passed: productionWorkerOnlyToolsNotFrontend(),
+      message: 'Worker-only tools must remain future/backend-only and out of the frontend bundle.',
+      relatedField: 'openSourceToolProfiles.frontendInstallInfo',
+    }),
+    check({
+      id: 'validation-production-review-items-counted',
+      category: 'production_readiness',
+      label: 'Review items are counted',
+      severity: 'warning',
+      passed: productionToolsNeedReviewCounted(plan),
+      message: 'Production readiness report should count tools/items needing review.',
+      relatedField: 'productionReadinessReport.needsReviewItems',
+    }),
+    check({
+      id: 'validation-production-provider-separation',
+      category: 'production_readiness',
+      label: 'Provider models separate from tools',
+      severity: 'blocking',
+      passed: productionProviderModelsSeparate(plan),
+      message: 'Provider models must remain separate from open-source tools in production readiness metadata.',
+      relatedField: 'productionReadinessReport.providerModels',
+    }),
+    check({
+      id: 'validation-production-no-veo-enable',
+      category: 'production_readiness',
+      label: 'Production readiness does not enable Veo',
+      severity: 'blocking',
+      passed: productionReadinessDoesNotEnableVeo(plan, editLevel),
+      message: 'Production readiness must preserve Basic/Pro no-Veo and Premium fallback-only Veo.',
+      relatedField: 'productionReadinessReport.checks',
+    }),
+    check({
+      id: 'validation-production-browser-privacy',
+      category: 'production_readiness',
+      label: 'Browser capture privacy readiness',
+      severity: browserCapturePlanActive(plan) ? 'warning' : 'info',
+      passed: productionBrowserCaptureSafety(plan),
+      message: 'Browser capture production readiness should include authorization, privacy/redaction, and no-bypass notes when browser capture is active.',
+      relatedField: 'productionReadinessReport.checks',
+    }),
+    check({
+      id: 'validation-production-worker-frontend-disabled',
+      category: 'production_readiness',
+      label: 'Worker frontend execution disabled',
+      severity: 'blocking',
+      passed: productionWorkerRuntimeFrontendDisabled(plan),
+      message: 'Production readiness must preserve workerRuntimePlan.frontendExecutionAllowed=false.',
+      relatedField: 'workerRuntimePlan.frontendExecutionAllowed',
+    }),
+    check({
+      id: 'validation-production-no-execution-implied',
+      category: 'production_readiness',
+      label: 'No production execution implied',
+      severity: 'blocking',
+      passed: productionReadinessNoExecutionImplied(plan),
+      message: 'Production readiness must not imply real legal approval, production execution, tool execution, provider calls, rendering, or billing.',
+      relatedField: 'productionReadinessReport.limitations',
+    }),
+    check({
       id: 'validation-depth-risk-fallback',
       category: 'depth_aware_overlay',
       label: 'Depth risk has fallback',
@@ -3665,6 +3834,15 @@ export function validateApprovedSnapshot(snapshot: ApprovedPlanSnapshot): PlanVa
       passed: Boolean(snapshot.workerRuntimePlan ?? snapshot.sourcePlan.workerRuntimePlan),
       message: 'Approved snapshots should freeze worker runtime planning so future workers execute approved snapshots, not raw chat.',
       relatedField: 'workerRuntimePlan',
+    }),
+    check({
+      id: 'snapshot-production-readiness-report',
+      category: 'production_readiness',
+      label: 'Snapshot has production readiness report',
+      severity: 'warning',
+      passed: Boolean(snapshot.productionReadinessReport ?? snapshot.sourcePlan.productionReadinessReport),
+      message: 'Approved snapshots should preserve production readiness review metadata and non-legal-advice limitations.',
+      relatedField: 'productionReadinessReport',
     }),
     check({
       id: 'snapshot-renderer-plan',

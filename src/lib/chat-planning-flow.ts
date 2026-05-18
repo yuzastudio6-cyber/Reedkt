@@ -152,6 +152,20 @@ function depthAwareOverlaySummary(plan: EditPlan) {
   return `${depthPlan.items.length} depth item${depthPlan.items.length === 1 ? '' : 's'} across ${modes.size} mode${modes.size === 1 ? '' : 's'}; ${contactCount} contact object${contactCount === 1 ? '' : 's'}, ${fallbackCount} fallback${fallbackCount === 1 ? '' : 's'} planned.`
 }
 
+function depthLayoutValidationSummary(plan: EditPlan) {
+  const validationPlan = plan.depthAwareLayoutValidationPlan
+
+  if (!validationPlan) {
+    return 'Depth layout validation is not ready.'
+  }
+
+  if (!validationPlan.active) {
+    return 'Depth layout validation inactive; no foreground-aware depth effect needs review.'
+  }
+
+  return `${validationPlan.overallStatus}: ${validationPlan.items.length} item${validationPlan.items.length === 1 ? '' : 's'}, ${validationPlan.fallbackRecommendations.length} fallback${validationPlan.fallbackRecommendations.length === 1 ? '' : 's'}, ${validationPlan.totalEstimatedDepthPlanningCredits} depth credit${validationPlan.totalEstimatedDepthPlanningCredits === 1 ? '' : 's'}.`
+}
+
 function videoUnderstandingSummary(plan: EditPlan) {
   const report = plan.videoUnderstandingReport
 
@@ -364,6 +378,10 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const depthItems = plan.depthAwareOverlayPlan?.items ?? []
   const hasRiskyDepth = depthItems.some((item) => item.maskRisk === 'high' || item.maskRisk === 'premium')
   const depthStatus = depthValidationStatus ?? (!plan.depthAwareOverlayPlan?.active ? 'complete' : hasRiskyDepth ? 'warning' : 'ready')
+  const depthLayoutValidationCategoryStatus = validationCategoryStatus(validationReport, 'depth_layout_validation')
+  const depthLayoutPlan = plan.depthAwareLayoutValidationPlan
+  const depthLayoutStatus = depthLayoutValidationCategoryStatus ??
+    (!depthLayoutPlan ? 'not_started' : !depthLayoutPlan.active ? 'complete' : depthLayoutPlan.overallStatus === 'blocking' || depthLayoutPlan.overallStatus === 'failed' ? 'blocking' : depthLayoutPlan.overallStatus === 'warning' ? 'warning' : 'ready')
 
   return [
     descriptor({
@@ -594,6 +612,17 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       defaultExpanded: depthStatus === 'warning' || depthStatus === 'blocking',
       requiredBeforeApproval: false,
       summary: depthAwareOverlaySummary(plan),
+    }),
+    descriptor({
+      id: 'depth_layout_validation',
+      label: 'Depth layout validation',
+      phase: 'safety_qa',
+      priority: 'safety_detail',
+      status: depthLayoutStatus,
+      defaultExpanded: depthLayoutStatus === 'warning' || depthLayoutStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: depthLayoutValidationSummary(plan),
+      hiddenInCompactMode: !plan.depthAwareLayoutValidationPlan?.active && depthLayoutStatus !== 'warning' && depthLayoutStatus !== 'blocking',
     }),
     descriptor({
       id: 'character_consistency',

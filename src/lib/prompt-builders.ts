@@ -7,6 +7,7 @@ import type {
   CharacterConsistencyPlan,
   ColorPipelinePlan,
   DataVizPlan,
+  DepthAwareLayoutValidationPlan,
   DepthAwareOverlayPlan,
   DepthAwareOverlayPlanItem,
   DocumentaryFactSafetyPlan,
@@ -45,6 +46,7 @@ type BasePromptParams = {
   speakerVisualLayoutItem?: SpeakerVisualLayoutPlanItem
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
   depthAwareOverlayItem?: DepthAwareOverlayPlanItem
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   renderStrategyPlan?: RenderStrategyPlan
   renderStrategyItem?: RenderStrategyPlanItem
   toolStrategyPlan?: ToolStrategyPlan
@@ -67,6 +69,7 @@ type BuildEditPromptPlansParams = {
   rendererCompositionPlan?: RendererCompositionPlan
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   renderStrategyPlan?: RenderStrategyPlan
   toolStrategyPlan?: ToolStrategyPlan
   colorPipelinePlan?: ColorPipelinePlan
@@ -129,6 +132,14 @@ function depthItemForAsset(params: {
     item.id === asset.depthAwareOverlayItemId ||
     item.id === segment?.depthAwareOverlayItemId,
   )
+}
+
+function depthValidationItemForDepthItem(depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan, depthItem?: DepthAwareOverlayPlanItem) {
+  if (!depthAwareLayoutValidationPlan || !depthItem) {
+    return undefined
+  }
+
+  return depthAwareLayoutValidationPlan.items.find((item) => item.depthAwareOverlayItemId === depthItem.id)
 }
 
 function renderStrategyForPrompt(params: {
@@ -245,6 +256,7 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
     characterConsistencyPlan,
     compiledIntent,
     depthAwareOverlayItem,
+    depthAwareLayoutValidationPlan,
     documentaryFactSafetyPlan,
     frameTemplate,
     input,
@@ -265,6 +277,7 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
   const factSafetyItems = linkedFactSafetyItems(asset, documentaryFactSafetyPlan)
   const report = videoUnderstandingReport ?? input.videoUnderstandingReport
   const adaptiveStrategy = adaptiveStrategyForPrompt({ adaptiveEditStrategyPlan, asset, segment: params.segment })
+  const depthValidationItem = depthValidationItemForDepthItem(depthAwareLayoutValidationPlan, depthAwareOverlayItem)
   const constraints: PromptConstraint[] = [
     {
       id: `${asset.id}-constraint-story`,
@@ -389,7 +402,7 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
       id: `${asset.id}-constraint-depth-aware-overlay`,
       label: 'Depth-aware composition',
       instruction: depthAwareOverlayItem
-        ? `Depth mode: ${label(depthAwareOverlayItem.depthCompositingMode)}. Mask strategy: ${label(depthAwareOverlayItem.maskStrategy)}. Caption rule: ${depthAwareOverlayItem.captionLayerRule} This is planning only; do not solve real masking in the provider output.`
+        ? `Depth mode: ${label(depthAwareOverlayItem.depthCompositingMode)}. Mask strategy: ${label(depthAwareOverlayItem.maskStrategy)}. Caption rule: ${depthAwareOverlayItem.captionLayerRule} ${depthValidationItem ? `Validation status: ${depthValidationItem.status}; keep important labels away from foreground/contact-object zones and respect fallback ${depthValidationItem.fallbackRecommendations[0]?.toLayoutMode ? label(depthValidationItem.fallbackRecommendations[0].toLayoutMode) : 'layout'}.` : ''} This is planning only; do not solve real masking in the provider output.`
         : 'No depth-aware overlay is planned unless the approved layout/depth plan says so.',
       source: 'frame_layout',
       required: Boolean(depthAwareOverlayItem),
@@ -488,6 +501,7 @@ function commonQaNotes(params: BasePromptParams) {
     characterConsistencyPlan,
     compiledIntent,
     depthAwareOverlayItem,
+    depthAwareLayoutValidationPlan,
     documentaryFactSafetyPlan,
     frameTemplate,
     input,
@@ -505,6 +519,7 @@ function commonQaNotes(params: BasePromptParams) {
   const factSafetyItems = linkedFactSafetyItems(asset, documentaryFactSafetyPlan)
   const report = videoUnderstandingReport ?? input.videoUnderstandingReport
   const adaptiveStrategy = adaptiveStrategyForPrompt({ adaptiveEditStrategyPlan, asset, segment: params.segment })
+  const depthValidationItem = depthValidationItemForDepthItem(depthAwareLayoutValidationPlan, depthAwareOverlayItem)
 
   return [
     ...asset.qaChecks,
@@ -530,6 +545,15 @@ function commonQaNotes(params: BasePromptParams) {
     ...(speakerVisualLayoutItem?.promptImplications.slice(0, 3) ?? []),
     ...(depthAwareOverlayItem?.qaChecks.slice(0, 5) ?? []),
     ...(depthAwareOverlayItem?.promptImplications.slice(0, 4) ?? []),
+    ...(depthValidationItem
+      ? [
+          `Depth layout validation: ${depthValidationItem.status}; ${depthValidationItem.userFacingSummary}`,
+          ...depthValidationItem.checks
+            .filter((checkItem) => checkItem.status !== 'passed')
+            .slice(0, 3)
+            .map((checkItem) => `${checkItem.label}: ${checkItem.message}`),
+        ]
+      : []),
     ...(renderStrategyItem
       ? [
           `Render strategy QA: ${label(renderStrategyItem.strategyType)}; Remotion owns final composition.`,
@@ -588,6 +612,7 @@ function commonWorkerNotes(
   audioPipelinePlan?: AudioPipelinePlan,
   mapAnimationPlan?: MapAnimationPlan,
   dataVizPlan?: DataVizPlan,
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan,
 ) {
   const layoutNotes = layoutItem
     ? [
@@ -604,6 +629,12 @@ function commonWorkerNotes(
         'Future mask/segmentation worker handles foreground masks after approval.',
         'Provider output must not attempt final depth composition.',
         ...depthItem.workerNotes.slice(0, 2),
+        ...(depthValidationItemForDepthItem(depthAwareLayoutValidationPlan, depthItem)
+          ? [
+              `Depth validation status: ${depthValidationItemForDepthItem(depthAwareLayoutValidationPlan, depthItem)?.status}.`,
+              'Use validation fallback notes in worker planning; do not ask provider models to perform masking.',
+            ]
+          : []),
       ]
     : []
   const strategyNotes = adaptiveStrategy
@@ -777,7 +808,7 @@ function basePromptPlan(params: BasePromptParams & {
     tierAllowed,
     tierPolicyNotes: commonTierNotes(input, providerModel),
     qaNotes: commonQaNotes(params),
-    workerNotes: commonWorkerNotes(providerModel, params.speakerVisualLayoutItem, params.depthAwareOverlayItem, adaptiveStrategy, params.renderStrategyItem, params.toolStrategyItems ?? [], params.colorPipelinePlan, params.assetColorMatchPlan, params.audioPipelinePlan, params.mapAnimationPlan, params.dataVizPlan),
+    workerNotes: commonWorkerNotes(providerModel, params.speakerVisualLayoutItem, params.depthAwareOverlayItem, adaptiveStrategy, params.renderStrategyItem, params.toolStrategyItems ?? [], params.colorPipelinePlan, params.assetColorMatchPlan, params.audioPipelinePlan, params.mapAnimationPlan, params.dataVizPlan, params.depthAwareLayoutValidationPlan),
     promptVersion: adaptiveStrategy ? 'mock-v4-adaptive-strategy' : params.depthAwareOverlayItem ? 'mock-v3-depth' : 'mock-v2-layout',
     characterPackIds: asset.characterPackIds,
     factSafetyItemIds: asset.factSafetyItemIds,
@@ -1702,6 +1733,7 @@ export function buildProviderPromptPlansForEditPlan(params: BuildEditPromptPlans
   const {
     characterConsistencyPlan,
     compiledIntent,
+    depthAwareLayoutValidationPlan,
     depthAwareOverlayPlan,
     documentaryFactSafetyPlan,
     adaptiveEditStrategyPlan,
@@ -1752,6 +1784,7 @@ export function buildProviderPromptPlansForEditPlan(params: BuildEditPromptPlans
       asset,
       compiledIntent,
       characterConsistencyPlan,
+      depthAwareLayoutValidationPlan,
       depthAwareOverlayItem,
       depthAwareOverlayPlan,
       documentaryFactSafetyPlan,

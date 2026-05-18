@@ -39,6 +39,7 @@ import { InlineCreditEstimateCard } from './InlineCreditEstimateCard'
 import { InlineDemoScenarioSelector } from './InlineDemoScenarioSelector'
 import { InlineDemoScenarioSummaryCard } from './InlineDemoScenarioSummaryCard'
 import { InlineDepthAwareOverlayCard } from './InlineDepthAwareOverlayCard'
+import { InlineDepthLayoutValidationCard } from './InlineDepthLayoutValidationCard'
 import { InlineDataVizPlanCard } from './InlineDataVizPlanCard'
 import { InlineDocumentaryFactSafetyCard } from './InlineDocumentaryFactSafetyCard'
 import { InlineEditLevelCard } from './InlineEditLevelCard'
@@ -623,6 +624,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               )}
               {showCard('depth_aware_overlay') && (
                 <InlineDepthAwareOverlayCard descriptor={cardById.depth_aware_overlay} plan={plan} />
+              )}
+              {showCard('depth_layout_validation') && (
+                <InlineDepthLayoutValidationCard descriptor={cardById.depth_layout_validation} plan={plan} />
               )}
               {showCard('render_strategy') && (
                 <InlineRenderStrategyCard descriptor={cardById.render_strategy} plan={plan} />

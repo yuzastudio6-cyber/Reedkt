@@ -336,6 +336,8 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     renderStrategyPlan: plan.renderStrategyPlan,
     speakerVisualLayoutPlan: plan.speakerVisualLayoutPlan,
     depthAwareOverlayPlan: plan.depthAwareOverlayPlan,
+    foregroundMaskingPlan: plan.foregroundMaskingPlan,
+    depthAwareLayoutValidationPlan: plan.depthAwareLayoutValidationPlan,
     frameLayoutPlan,
     frameLayoutPlanDomain: plan.rendererCompositionPlan?.frameTemplate,
     rendererCompositionPlan,

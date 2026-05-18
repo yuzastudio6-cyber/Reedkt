@@ -5,11 +5,13 @@ import type {
   CompiledEditingIntent,
   CharacterConsistencyPlan,
   DataVizPlan,
+  DepthAwareLayoutValidationPlan,
   DepthAwareOverlayPlan,
   DocumentaryFactSafetyPlan,
   EditLevel,
   EditQAPlan,
   FallbackStep,
+  ForegroundMaskingPlan,
   MapAnimationPlan,
   PlannerInput,
   RenderStrategyPlan,
@@ -1419,6 +1421,76 @@ function createDepthAwareOverlayChecks(input: PlannerInput, depthAwareOverlayPla
   ]
 }
 
+function createDepthLayoutValidationChecks(input: PlannerInput, depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan) {
+  if (!depthAwareLayoutValidationPlan?.active) {
+    return [
+      createQAItem({
+        id: 'qa-depth-layout-validation-inactive',
+        category: 'render_composition',
+        label: 'Depth layout validation inactive',
+        check: 'Depth-aware layout validation should stay inactive unless depth, foreground, contact-object, map/card-behind-subject, or mask planning is requested.',
+        editLevel: input.editLevel,
+        severity: 'low',
+        notes: [depthAwareLayoutValidationPlan?.summary ?? 'No depth layout validation plan present in this mock QA input.'],
+      }),
+    ]
+  }
+
+  const criticalChecks = [
+    ...depthAwareLayoutValidationPlan.globalChecks,
+    ...depthAwareLayoutValidationPlan.items.flatMap((item) => item.checks),
+  ]
+    .filter((check) => check.status !== 'passed' || check.severity === 'blocking' || check.severity === 'high')
+    .slice(0, 10)
+
+  const qaStatusFor = (status: typeof criticalChecks[number]['status']) => {
+    if (status === 'blocking') return 'blocked'
+    if (status === 'failed') return 'failed'
+    if (status === 'warning') return 'warning'
+    return 'passed'
+  }
+
+  const categoryFor = (category: typeof criticalChecks[number]['category']) => {
+    if (category === 'caption_safety') return 'captions'
+    if (category === 'graphic_readability' || category === 'map_readability' || category === 'dataviz_readability' || category === 'browser_readability') return 'visual_assets'
+    if (category === 'tier_compatibility' || category === 'model_policy') return 'model_tier_policy'
+    if (category === 'approval_policy' || category === 'credit_complexity') return 'credit_approval'
+    if (category === 'fallback_layout' || category === 'foreground_group') return 'frame_layout'
+    return 'render_composition'
+  }
+
+  return [
+    createQAItem({
+      id: 'qa-depth-layout-validation-summary',
+      category: 'render_composition',
+      label: 'Depth layout validation',
+      check: 'Depth-aware overlays are validated for fallback, foreground/contact-object preservation, safe zones, tier fit, credit impact, and mock-only limits.',
+      editLevel: input.editLevel,
+      severity: depthAwareLayoutValidationPlan.overallStatus === 'blocking' ? 'blocking' : depthAwareLayoutValidationPlan.overallStatus === 'failed' ? 'high' : 'medium',
+      status: qaStatusFor(depthAwareLayoutValidationPlan.overallStatus),
+      notes: [
+        depthAwareLayoutValidationPlan.summary,
+        `${depthAwareLayoutValidationPlan.totalEstimatedDepthPlanningCredits} depth planning credit(s).`,
+        ...depthAwareLayoutValidationPlan.limitations.slice(0, 2),
+      ],
+    }),
+    ...criticalChecks.map((validationCheck) => createQAItem({
+      id: `qa-${validationCheck.id}`,
+      category: categoryFor(validationCheck.category),
+      label: validationCheck.label,
+      check: validationCheck.message,
+      editLevel: input.editLevel,
+      severity: validationCheck.severity,
+      status: qaStatusFor(validationCheck.status),
+      notes: [
+        validationCheck.recommendation,
+        validationCheck.relatedDepthAwareOverlayItemId ? `Depth item: ${validationCheck.relatedDepthAwareOverlayItemId}.` : undefined,
+        validationCheck.relatedMaskingPlanItemId ? `Mask item: ${validationCheck.relatedMaskingPlanItemId}.` : undefined,
+      ].filter(Boolean) as string[],
+    })),
+  ]
+}
+
 function createSafetyChecks(input: PlannerInput) {
   if (input.editingCategory !== 'documentary_case_study') {
     return []
@@ -1548,6 +1620,8 @@ export function createEditQAPlan(params: {
   dataVizPlan?: DataVizPlan
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
+  foregroundMaskingPlan?: ForegroundMaskingPlan
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
   videoUnderstandingReport?: VideoUnderstandingReport
   characterConsistencyPlan?: CharacterConsistencyPlan
@@ -1558,6 +1632,7 @@ export function createEditQAPlan(params: {
     characterConsistencyPlan,
     compiledIntent,
     depthAwareOverlayPlan,
+    depthAwareLayoutValidationPlan,
     documentaryFactSafetyPlan,
     input,
     renderStrategyPlan,
@@ -1590,6 +1665,7 @@ export function createEditQAPlan(params: {
     ...createRendererChecks(input, rendererCompositionPlan),
     ...createSpeakerVisualLayoutChecks(input, speakerVisualLayoutPlan),
     ...createDepthAwareOverlayChecks(input, depthAwareOverlayPlan),
+    ...createDepthLayoutValidationChecks(input, depthAwareLayoutValidationPlan),
     ...createSafetyChecks(input),
     ...createCharacterConsistencyChecks(input, characterConsistencyPlan),
     ...createFactSafetyChecks(input, documentaryFactSafetyPlan),

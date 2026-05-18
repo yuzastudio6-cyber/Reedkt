@@ -40,6 +40,7 @@ export type PlanValidationCategory =
   | 'visual_asset_plan'
   | 'speaker_visual_layout'
   | 'depth_aware_overlay'
+  | 'depth_layout_validation'
   | 'renderer_plan'
   | 'segment_operations'
   | 'qa_plan'
@@ -1192,6 +1193,109 @@ function depthLanguageRequested(input: PlannerInput) {
 
 function depthPlanActive(plan: EditPlan) {
   return Boolean(plan.depthAwareOverlayPlan?.active && plan.depthAwareOverlayPlan.items.length > 0)
+}
+
+function foregroundMaskingActive(plan: EditPlan) {
+  return Boolean(plan.foregroundMaskingPlan?.active && plan.foregroundMaskingPlan.items.length > 0)
+}
+
+function depthLayoutValidationNeeded(plan: EditPlan, input: PlannerInput) {
+  return depthPlanActive(plan) || foregroundMaskingActive(plan) || depthLanguageRequested(input)
+}
+
+function depthLayoutValidationExists(plan: EditPlan, input: PlannerInput) {
+  return !depthLayoutValidationNeeded(plan, input) || Boolean(plan.depthAwareLayoutValidationPlan)
+}
+
+function depthLayoutValidationHealthy(plan: EditPlan) {
+  const status = plan.depthAwareLayoutValidationPlan?.overallStatus
+  return !status || (status !== 'blocking' && status !== 'failed')
+}
+
+function depthLayoutValidationHasFallbacks(plan: EditPlan) {
+  const validationPlan = plan.depthAwareLayoutValidationPlan
+
+  if (!validationPlan?.active) {
+    return true
+  }
+
+  return validationPlan.items.every((item) => {
+    const needsFallback =
+      item.maskRisk === 'medium' ||
+      item.maskRisk === 'high' ||
+      item.maskRisk === 'premium' ||
+      item.complexity === 'moderate' ||
+      item.complexity === 'advanced' ||
+      item.complexity === 'premium'
+
+    return !needsFallback || item.fallbackRecommendations.length > 0
+  })
+}
+
+function basicDepthValidationSafe(plan: EditPlan, editLevel: EditLevel) {
+  if (editLevel !== 'basic') {
+    return true
+  }
+
+  return (plan.depthAwareLayoutValidationPlan?.items ?? []).every((item) =>
+    item.complexity === 'none' ||
+    item.complexity === 'simple' ||
+    (item.fallbackRecommendations.length > 0 && item.creditImpact !== 'premium'),
+  )
+}
+
+function proDepthValidationHasFallback(plan: EditPlan, editLevel: EditLevel) {
+  if (editLevel !== 'pro') {
+    return true
+  }
+
+  return (plan.depthAwareLayoutValidationPlan?.items ?? []).every((item) =>
+    item.creditImpact !== 'premium' &&
+    !(item.maskRisk === 'high' || item.maskRisk === 'premium') ||
+    item.fallbackRecommendations.length > 0,
+  )
+}
+
+function premiumDepthValidationHasReview(plan: EditPlan, editLevel: EditLevel) {
+  if (editLevel !== 'premium') {
+    return true
+  }
+
+  return (plan.depthAwareLayoutValidationPlan?.items ?? []).every((item) => {
+    if (item.maskRisk !== 'high' && item.maskRisk !== 'premium' && item.complexity !== 'premium') {
+      return true
+    }
+
+    const text = [...item.developerNotes, ...item.checks.map((checkItem) => checkItem.message)].join(' ').toLowerCase()
+    return item.fallbackRecommendations.length > 0 && /manual|review|qa/.test(text)
+  })
+}
+
+function depthValidationHasLowerCostAlternatives(plan: EditPlan) {
+  const validationPlan = plan.depthAwareLayoutValidationPlan
+
+  if (!validationPlan?.active) {
+    return true
+  }
+
+  const highImpact = validationPlan.items.some((item) => item.creditImpact === 'high' || item.creditImpact === 'premium')
+  return !highImpact || validationPlan.lowerCostAlternatives.length > 0
+}
+
+function depthValidationLimitationsMockOnly(plan: EditPlan) {
+  const validationPlan = plan.depthAwareLayoutValidationPlan
+
+  if (!validationPlan?.active) {
+    return true
+  }
+
+  const text = validationPlan.limitations.join(' ').toLowerCase()
+  return text.includes('mock') && text.includes('no real') && (text.includes('pixels') || text.includes('masks'))
+}
+
+function depthValidationDoesNotEnableVeo(plan: EditPlan) {
+  const text = JSON.stringify(plan.depthAwareLayoutValidationPlan ?? {}).toLowerCase()
+  return !text.includes('veo') || text.includes('does not enable veo') || text.includes('no veo')
 }
 
 function depthItemsNeedFallback(plan: EditPlan) {
@@ -2702,6 +2806,87 @@ export function validateMockEditPlan(params: {
       relatedField: 'depthAwareOverlayPlan.items',
     }),
     check({
+      id: 'validation-depth-layout-validation-exists',
+      category: 'depth_layout_validation',
+      label: 'Depth layout validation exists',
+      severity: depthLayoutValidationNeeded(plan, input) ? 'error' : 'info',
+      passed: depthLayoutValidationExists(plan, input),
+      message: 'Active depth overlays, foreground masking plans, or depth/contact-object language must produce a depth-aware layout validation plan.',
+      relatedField: 'depthAwareLayoutValidationPlan',
+    }),
+    check({
+      id: 'validation-depth-layout-status',
+      category: 'depth_layout_validation',
+      label: 'Depth layout validation status',
+      severity: plan.depthAwareLayoutValidationPlan?.overallStatus === 'blocking' ? 'blocking' : plan.depthAwareLayoutValidationPlan?.overallStatus === 'failed' ? 'error' : 'info',
+      passed: depthLayoutValidationHealthy(plan),
+      message: 'Blocking or failed depth layout validation must be resolved with fallback or revision before approval.',
+      relatedField: 'depthAwareLayoutValidationPlan.overallStatus',
+    }),
+    check({
+      id: 'validation-depth-layout-fallbacks',
+      category: 'depth_layout_validation',
+      label: 'Depth validation fallback coverage',
+      severity: plan.depthAwareLayoutValidationPlan?.active ? 'error' : 'info',
+      passed: depthLayoutValidationHasFallbacks(plan),
+      message: 'Medium/high/premium depth validation items must include fallback recommendations.',
+      relatedField: 'depthAwareLayoutValidationPlan.items.fallbackRecommendations',
+    }),
+    check({
+      id: 'validation-depth-layout-basic-safe',
+      category: 'depth_layout_validation',
+      label: 'Basic safe depth validation',
+      severity: editLevel === 'basic' ? 'blocking' : 'info',
+      passed: basicDepthValidationSafe(plan, editLevel),
+      message: 'Basic cannot hide advanced/premium mask complexity and must offer a safer fallback.',
+      relatedField: 'depthAwareLayoutValidationPlan.items',
+    }),
+    check({
+      id: 'validation-depth-layout-pro-fallback',
+      category: 'depth_layout_validation',
+      label: 'Pro high-risk fallback',
+      severity: editLevel === 'pro' ? 'error' : 'info',
+      passed: proDepthValidationHasFallback(plan, editLevel),
+      message: 'Pro depth validation can plan moderate/advanced effects only with fallback and cannot use premium mask behavior.',
+      relatedField: 'depthAwareLayoutValidationPlan.items',
+    }),
+    check({
+      id: 'validation-depth-layout-premium-review',
+      category: 'depth_layout_validation',
+      label: 'Premium review notes',
+      severity: editLevel === 'premium' ? 'warning' : 'info',
+      passed: premiumDepthValidationHasReview(plan, editLevel),
+      message: 'Premium high/premium depth risk should include fallback and manual review or stronger QA notes.',
+      relatedField: 'depthAwareLayoutValidationPlan.items.developerNotes',
+    }),
+    check({
+      id: 'validation-depth-layout-lower-cost',
+      category: 'depth_layout_validation',
+      label: 'Depth lower-cost alternatives',
+      severity: plan.depthAwareLayoutValidationPlan?.active ? 'warning' : 'info',
+      passed: depthValidationHasLowerCostAlternatives(plan),
+      message: 'High/premium depth credit impact should include lower-cost alternatives.',
+      relatedField: 'depthAwareLayoutValidationPlan.lowerCostAlternatives',
+    }),
+    check({
+      id: 'validation-depth-layout-limitations',
+      category: 'depth_layout_validation',
+      label: 'Depth validation limitations',
+      severity: 'blocking',
+      passed: depthValidationLimitationsMockOnly(plan),
+      message: 'Depth validation must state that no real pixels or masks were checked.',
+      relatedField: 'depthAwareLayoutValidationPlan.limitations',
+    }),
+    check({
+      id: 'validation-depth-layout-no-veo',
+      category: 'depth_layout_validation',
+      label: 'Depth validation does not enable Veo',
+      severity: 'blocking',
+      passed: depthValidationDoesNotEnableVeo(plan),
+      message: 'Depth-aware layout validation must not introduce Veo or bypass the tier/model policy.',
+      relatedField: 'depthAwareLayoutValidationPlan',
+    }),
+    check({
       id: 'validation-depth-risk-fallback',
       category: 'depth_aware_overlay',
       label: 'Depth risk has fallback',
@@ -3066,6 +3251,15 @@ export function validateApprovedSnapshot(snapshot: ApprovedPlanSnapshot): PlanVa
       passed: !snapshot.sourcePlan.depthAwareOverlayPlan?.active || Boolean(snapshot.depthAwareOverlayPlan?.items.length),
       message: 'Approved snapshots should freeze active depth-aware overlay decisions for future workers.',
       relatedField: 'depthAwareOverlayPlan',
+    }),
+    check({
+      id: 'snapshot-depth-layout-validation-plan',
+      category: 'depth_layout_validation',
+      label: 'Snapshot has depth layout validation',
+      severity: snapshot.sourcePlan.depthAwareLayoutValidationPlan?.active ? 'error' : 'info',
+      passed: !snapshot.sourcePlan.depthAwareLayoutValidationPlan?.active || Boolean(snapshot.depthAwareLayoutValidationPlan?.items.length),
+      message: 'Approved snapshots should freeze active depth layout validation, fallback, credit impact, and mock-only limitations.',
+      relatedField: 'depthAwareLayoutValidationPlan',
     }),
     check({
       id: 'snapshot-renderer-plan',

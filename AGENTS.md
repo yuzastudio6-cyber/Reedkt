@@ -15,6 +15,7 @@ These instructions are for Codex and any future agent working in this repository
 - Read `frame-layout-system.md` before frame template, layout panel, compositor, safe-zone, or AI animation background work.
 - Read `speaker-visual-layout-strategy.md` before speaker presence, visual takeover, picture-in-picture, side-by-side, lower panel, map, chart, evidence board, screen capture, b-roll cutaway, or adaptive layout strategy work.
 - Read `depth-aware-overlay-composition.md` before depth-aware overlays, foreground masks, contact object preservation, object anchoring, mask risk, or layered compositing strategy work.
+- Read `depth-aware-layout-validation.md` and `depth-composition-credit-policy.md` before depth-aware layout validation, foreground mask risk validation, contact-object preservation validation, fallback layout validation, or depth-composition credit work.
 - Read `video-understanding-report.md` before video understanding, clip analysis, transcript meaning, visual/audio issue planning, opportunity detection, or source-content analysis work.
 - Read `adaptive-planning-layer.md` before adaptive edit strategy, per-segment visual/tool decisions, or anti-template planning work.
 - Read `adaptive-edit-strategy-planner.md` before adaptive segment strategy, generation restraint, visual/tool selection, or reasoned per-beat creative decisions.
@@ -125,15 +126,21 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Remotion owns final layout/composition; AI models generate assets and clips only.
 - Future depth-aware overlays and contact-object preservation are advanced layout/compositing tasks, not default flat overlays.
 - Depth-aware overlays must be planned, not randomly applied.
+- Depth-aware overlays must be validated before approval.
+- Medium, high, and premium mask risk must have fallback layout.
 - Preserve contact objects when they affect the depth composition.
+- Contact-object preservation must be validated when requested.
 - Person plus contact object can become one foreground depth group.
-- Captions must stay above graphics and masks.
+- Captions must stay above graphics and masks as the top layer.
+- Graphics, maps, charts, browser visuals, and cards must remain readable after planned foreground overlays.
 - Use safer layouts when mask risk is high.
-- Basic should avoid complex depth masks.
-- Pro can plan low/medium risk foreground-aware overlays.
-- Premium can plan advanced depth overlays with stronger QA.
+- Basic should avoid complex depth masks and offer safer fallback layouts.
+- Pro can plan moderate/advanced foreground-aware overlays with fallback.
+- Premium can plan advanced depth overlays with stronger QA and manual review notes.
+- Credit estimates should reflect depth-aware complexity and lower-cost alternatives.
 - Depth-aware composition is a compositing/masking task, not a reason to use Veo.
 - Workers must not execute mask/depth plans before approval.
+- Do not execute real masking, segmentation, object detection, tracking, OpenCV, FFmpeg, Sharp, collision detection, Remotion rendering, or worker processing unless a future milestone explicitly requests it.
 - ReeditPro must use video understanding before choosing visual or tool strategy.
 - Do not edit every video with the same template.
 - User intent and video content both shape the plan.

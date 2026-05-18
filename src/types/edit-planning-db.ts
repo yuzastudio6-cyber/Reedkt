@@ -13,6 +13,7 @@ import type {
   CreditPreference,
   CutIntensity,
   DataVizPlan,
+  DepthAwareLayoutValidationPlan,
   DocumentaryFactSafetyPlan,
   DepthAwareOverlayPlan,
   EditLevel,
@@ -22,6 +23,7 @@ import type {
   EditingCategory,
   EditingOperationType,
   FrameLayoutPlan,
+  ForegroundMaskingPlan,
   FrameTemplateType,
   LayerFitMode,
   MapAnimationPlan,
@@ -578,6 +580,8 @@ export interface ApprovedPlanSnapshot {
   dataVizPlan?: DataVizPlan
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
+  foregroundMaskingPlan?: ForegroundMaskingPlan
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   frameLayoutPlan?: FrameLayoutPlanRecord
   frameLayoutPlanDomain?: FrameLayoutPlan
   rendererCompositionPlan?: RendererCompositionPlanRecord

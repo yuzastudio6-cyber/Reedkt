@@ -1827,11 +1827,122 @@ export interface ForegroundDepthGroup {
   qaChecks: string[]
 }
 
+export type DepthLayoutValidationStatus =
+  | 'passed'
+  | 'warning'
+  | 'failed'
+  | 'blocking'
+
+export type DepthLayoutValidationCategory =
+  | 'tier_compatibility'
+  | 'mask_risk'
+  | 'fallback_layout'
+  | 'contact_object_preservation'
+  | 'foreground_group'
+  | 'caption_safety'
+  | 'graphic_readability'
+  | 'map_readability'
+  | 'dataviz_readability'
+  | 'browser_readability'
+  | 'layer_order'
+  | 'worker_requirement'
+  | 'credit_complexity'
+  | 'model_policy'
+  | 'approval_policy'
+
+export type DepthCompositionComplexity =
+  | 'none'
+  | 'simple'
+  | 'moderate'
+  | 'advanced'
+  | 'premium'
+
+export type DepthCreditImpactLevel =
+  | 'none'
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'premium'
+
+export interface DepthLayoutValidationCheck {
+  id: string
+  category: DepthLayoutValidationCategory
+  label: string
+  status: DepthLayoutValidationStatus
+  severity: 'low' | 'medium' | 'high' | 'blocking'
+  message: string
+  recommendation?: string
+  relatedSegmentId?: string
+  relatedAssetPlanItemId?: string
+  relatedDepthAwareOverlayItemId?: string
+  relatedMaskingPlanItemId?: string
+}
+
+export interface DepthLayoutFallbackRecommendation {
+  id: string
+  fromLayoutMode?: SpeakerVisualLayoutMode
+  toLayoutMode: SpeakerVisualLayoutMode
+  reason: string
+  reducesRisk: boolean
+  estimatedCreditSavings: number
+  tradeoff: string
+  requiresNewApproval: boolean
+}
+
+export interface DepthCompositionCreditProfile {
+  id: string
+  complexity: DepthCompositionComplexity
+  label: string
+  description: string
+  creditImpact: DepthCreditImpactLevel
+  estimatedPlanningCredits: number
+  bestFor: string[]
+  avoidFor: string[]
+  tierFit: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  requiredFallback: boolean
+  qaChecks: string[]
+}
+
+export interface MaskingPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  depthAwareOverlayItemId?: string
+  depthLayoutValidationItemId?: string
+  maskStrategy: MaskStrategy
+  maskRisk: MaskRiskLevel
+  trackingRequirement: TrackingRequirement
+  foregroundObjects: ForegroundObjectPlan[]
+  foregroundDepthGroups: ForegroundDepthGroup[]
+  preservesContactObjects: boolean
+  fallbackLayoutMode?: SpeakerVisualLayoutMode
+  fallbackIfMaskFails: string
+  qaChecks: string[]
+  workerNotes: string[]
+  limitations: string[]
+}
+
+export interface ForegroundMaskingPlan {
+  id: string
+  active: boolean
+  summary: string
+  items: MaskingPlanItem[]
+  globalRules: string[]
+  qaChecks: string[]
+  limitations: string[]
+  notes: string[]
+}
+
 export interface DepthAwareOverlayPlanItem {
   id: string
   segmentId?: string
   assetPlanItemId?: string
   speakerVisualLayoutItemId?: string
+  depthLayoutValidationItemId?: string
   depthCompositingMode: DepthCompositingMode
   maskStrategy: MaskStrategy
   foregroundObjects: ForegroundObjectPlan[]
@@ -1863,6 +1974,44 @@ export interface DepthAwareOverlayPlan {
   items: DepthAwareOverlayPlanItem[]
   globalRules: string[]
   qaChecks: string[]
+  notes: string[]
+}
+
+export interface DepthAwareLayoutValidationPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  depthAwareOverlayItemId?: string
+  maskingPlanItemId?: string
+  layoutMode?: SpeakerVisualLayoutMode
+  depthCompositingMode?: DepthCompositingMode
+  maskStrategy?: MaskStrategy
+  maskRisk?: MaskRiskLevel
+  trackingRequirement?: TrackingRequirement
+  complexity: DepthCompositionComplexity
+  creditProfileId: string
+  status: DepthLayoutValidationStatus
+  checks: DepthLayoutValidationCheck[]
+  fallbackRecommendations: DepthLayoutFallbackRecommendation[]
+  creditImpact: DepthCreditImpactLevel
+  estimatedPlanningCredits: number
+  userFacingSummary: string
+  developerNotes: string[]
+}
+
+export interface DepthAwareLayoutValidationPlan {
+  id: string
+  active: boolean
+  summary: string
+  overallStatus: DepthLayoutValidationStatus
+  items: DepthAwareLayoutValidationPlanItem[]
+  creditProfilesUsed: string[]
+  totalEstimatedDepthPlanningCredits: number
+  fallbackRecommendations: DepthLayoutFallbackRecommendation[]
+  globalChecks: DepthLayoutValidationCheck[]
+  lowerCostAlternatives: CreditTradeoffOption[]
+  qaChecks: string[]
+  limitations: string[]
   notes: string[]
 }
 
@@ -2656,6 +2805,8 @@ export interface CreditEstimate {
   fallbackAllowanceCredits?: number
   fallbackPolicyNotes?: CreditEstimatePolicyNote[]
   lowerCostAlternatives?: LowerCostAlternative[]
+  depthAwareLayoutCredits?: number
+  depthAwareLayoutTradeoffs?: CreditTradeoffOption[]
   riskLevel?: CreditEstimateRiskLevel
   approvalCopy?: string
   estimateVersion?: string
@@ -2686,6 +2837,8 @@ export interface LowerCostAlternative {
   tradeoff: string
   actionHint: string
 }
+
+export type CreditTradeoffOption = LowerCostAlternative
 
 export type ChatPlanningPhase =
   | 'start'
@@ -2768,6 +2921,8 @@ export interface EditPlan {
   visualAssetPlan?: VisualAssetPlanItem[]
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
+  foregroundMaskingPlan?: ForegroundMaskingPlan
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   renderStrategyPlan?: RenderStrategyPlan
   rendererCompositionPlan?: RendererCompositionPlan
   compiledIntent?: CompiledEditingIntent

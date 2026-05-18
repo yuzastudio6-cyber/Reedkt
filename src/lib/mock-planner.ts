@@ -21,10 +21,12 @@ import { createCharacterConsistencyPlan } from './character-consistency'
 import { createColorPipelinePlan } from './color-pipeline-planner'
 import { createCreditEstimate } from './credit-estimator'
 import { createDepthAwareOverlayPlan } from './depth-aware-overlay-planner'
+import { createDepthAwareLayoutValidationPlan } from './depth-layout-validation'
 import { createDataVizPlan } from './dataviz-planner'
 import { createDocumentaryFactSafetyPlan } from './documentary-fact-safety'
 import { createSegmentEditPlans } from './edit-operation-planner'
 import { createEditQAPlan } from './edit-qa-planner'
+import { createForegroundMaskingPlan } from './foreground-masking-planner'
 import { getDefaultFrameTemplateForAspectRatio, getFrameLayoutTemplate } from './frame-layouts'
 import { compileEditingIntent } from './intent-compiler'
 import { createMapAnimationPlan } from './map-animation-planner'
@@ -808,6 +810,10 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     videoUnderstandingReport,
     visualAssetPlan: visualAssetPlanWithLayoutBase,
   })
+  const foregroundMaskingPlan = createForegroundMaskingPlan({
+    depthAwareOverlayPlan,
+    input: analysisInput,
+  })
   const speakerVisualLayoutPlan = attachDepthToSpeakerVisualLayout(speakerVisualLayoutPlanBase, depthAwareOverlayPlan)
   const visualAssetPlanWithLayout = attachDepthToVisualAssets(attachLayoutToVisualAssets(visualAssetPlan, speakerVisualLayoutPlan), depthAwareOverlayPlan)
   const draftSegmentEditPlansWithLayout = attachDepthToSegments(attachLayoutToSegments(draftSegmentEditPlans, speakerVisualLayoutPlan), depthAwareOverlayPlan)
@@ -974,17 +980,65 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     targetPlatform: effectiveInput.targetPlatform,
     visualAssetPlan: visualAssetPlanWithRenderStrategy,
   })
+  const depthAwareLayoutValidationPlan = createDepthAwareLayoutValidationPlan({
+    dataVizPlan,
+    depthAwareOverlayPlan,
+    foregroundMaskingPlan,
+    input: analysisInput,
+    mapAnimationPlan,
+    rendererCompositionPlan,
+    speakerVisualLayoutPlan,
+  })
+  const renderStrategyPlanWithDepthValidation = depthAwareLayoutValidationPlan.active
+    ? {
+        ...renderStrategyPlan,
+        qaChecks: [
+          ...renderStrategyPlan.qaChecks,
+          `Depth layout validation status: ${depthAwareLayoutValidationPlan.overallStatus}.`,
+          'Depth-aware validation confirms fallback, readability, contact-object preservation, credit impact, and mock-only worker boundaries.',
+        ],
+        notes: [
+          ...renderStrategyPlan.notes,
+          'Depth layout validation does not enable Veo or real worker execution.',
+        ],
+      }
+    : renderStrategyPlan
+  const toolStrategyPlanWithDepthValidation = depthAwareLayoutValidationPlan.active
+    ? {
+        ...toolStrategyPlan,
+        qaChecks: [
+          ...toolStrategyPlan.qaChecks,
+          `Depth layout validation status: ${depthAwareLayoutValidationPlan.overallStatus}.`,
+          'Future mask/tracking tools stay planning-only until approval.',
+        ],
+        notes: [
+          ...toolStrategyPlan.notes,
+          'Depth validation may request future OpenCV/Sharp/Remotion QA, but no tools run in this frontend mock.',
+        ],
+      }
+    : toolStrategyPlan
+  const rendererCompositionPlanWithDepthValidation = depthAwareLayoutValidationPlan.active
+    ? {
+        ...rendererCompositionPlan,
+        rendererNotes: [
+          ...rendererCompositionPlan.rendererNotes,
+          `Depth layout validation status: ${depthAwareLayoutValidationPlan.overallStatus}; fallback count ${depthAwareLayoutValidationPlan.fallbackRecommendations.length}.`,
+          'Renderer must keep base video < visual overlay < future foreground masks < captions/top UI.',
+          'Validation is mock-only; no real masks or pixels were processed.',
+        ],
+      }
+    : rendererCompositionPlan
   const segmentEditPlansBase = attachDepthToSegments(attachLayoutToSegments(createSegmentEditPlans({
     adaptiveEditStrategyPlan,
     audioPipelinePlan,
     colorPipelinePlan,
     compiledIntent,
     input: analysisInput,
-    rendererCompositionPlan,
+    rendererCompositionPlan: rendererCompositionPlanWithDepthValidation,
     visualAssetPlan: visualAssetPlanWithRenderStrategy,
   }), speakerVisualLayoutPlan), depthAwareOverlayPlan)
   const segmentEditPlans = attachColorPipelineToSegments(
-    attachToolStrategyToSegments(attachRenderStrategyToSegments(segmentEditPlansBase, renderStrategyPlan), toolStrategyPlan),
+    attachToolStrategyToSegments(attachRenderStrategyToSegments(segmentEditPlansBase, renderStrategyPlanWithDepthValidation), toolStrategyPlanWithDepthValidation),
     colorPipelinePlan,
   )
   const segmentEditPlansWithAudio = attachAudioPipelineToSegments(
@@ -1006,15 +1060,17 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     colorPipelinePlan,
     compiledIntent,
     depthAwareOverlayPlan,
+    depthAwareLayoutValidationPlan,
     documentaryFactSafetyPlan,
+    foregroundMaskingPlan,
     input: analysisInput,
     dataVizPlan,
     mapAnimationPlan,
-    renderStrategyPlan,
-    rendererCompositionPlan,
+    renderStrategyPlan: renderStrategyPlanWithDepthValidation,
+    rendererCompositionPlan: rendererCompositionPlanWithDepthValidation,
     segmentEditPlans: segmentEditPlansWithAudioMapAndDataViz,
     speakerVisualLayoutPlan,
-    toolStrategyPlan,
+    toolStrategyPlan: toolStrategyPlanWithDepthValidation,
     videoUnderstandingReport,
     visualAssetPlan: visualAssetPlanWithRenderStrategy,
   })
@@ -1025,16 +1081,17 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     colorPipelinePlan,
     compiledIntent,
     depthAwareOverlayPlan,
+    depthAwareLayoutValidationPlan,
     documentaryFactSafetyPlan,
     input: analysisInput,
     professionalDirective: professionalEditingDirective,
     dataVizPlan,
     mapAnimationPlan,
-    renderStrategyPlan,
-    rendererCompositionPlan,
+    renderStrategyPlan: renderStrategyPlanWithDepthValidation,
+    rendererCompositionPlan: rendererCompositionPlanWithDepthValidation,
     segmentEditPlans: segmentEditPlansWithAudioMapAndDataViz,
     speakerVisualLayoutPlan,
-    toolStrategyPlan,
+    toolStrategyPlan: toolStrategyPlanWithDepthValidation,
     videoUnderstandingReport,
     visualAssetPlan: visualAssetPlanWithRenderStrategy,
   })
@@ -1169,16 +1226,18 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     adaptiveEditStrategy,
     adaptiveEditStrategyPlan,
     toolRegistrySummary,
-    toolStrategyPlan,
+    toolStrategyPlan: toolStrategyPlanWithDepthValidation,
     colorPipelinePlan,
     audioPipelinePlan,
     mapAnimationPlan,
     dataVizPlan,
-    renderStrategyPlan,
+    renderStrategyPlan: renderStrategyPlanWithDepthValidation,
     visualAssetPlan: visualAssetPlanWithPrompts,
     speakerVisualLayoutPlan,
     depthAwareOverlayPlan,
-    rendererCompositionPlan,
+    foregroundMaskingPlan,
+    depthAwareLayoutValidationPlan,
+    rendererCompositionPlan: rendererCompositionPlanWithDepthValidation,
     segmentEditPlans: segmentEditPlansWithAudioMapDataVizAndPrompts,
     characterConsistencyPlan,
     documentaryFactSafetyPlan,
@@ -1190,7 +1249,7 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
         : 'Use SoundSync for mood, beat timing, transition sounds, ducking, and emotional polish while speech stays clear.',
     captionDirection: 'Use readable captions that avoid faces, important objects, and Real Motion placement zones.',
-    creditEstimate: createCreditEstimate(analysisInput, { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, dataVizPlan, depthAwareOverlayPlan, mapAnimationPlan, renderStrategyPlan, rendererCompositionPlan, speakerVisualLayoutPlan, toolStrategyPlan, visualAssetPlan: visualAssetPlanWithRenderStrategy }),
+    creditEstimate: createCreditEstimate(analysisInput, { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, dataVizPlan, depthAwareLayoutValidationPlan, depthAwareOverlayPlan, mapAnimationPlan, renderStrategyPlan: renderStrategyPlanWithDepthValidation, rendererCompositionPlan: rendererCompositionPlanWithDepthValidation, speakerVisualLayoutPlan, toolStrategyPlan: toolStrategyPlanWithDepthValidation, visualAssetPlan: visualAssetPlanWithRenderStrategy }),
     approvalRequired: true,
   }
 }

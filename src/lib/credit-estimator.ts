@@ -7,6 +7,7 @@ import type {
   CreditEstimatePolicyNote,
   CreditEstimateRiskLevel,
   DataVizPlan,
+  DepthAwareLayoutValidationPlan,
   DepthAwareOverlayPlan,
   EditLevel,
   LowerCostAlternative,
@@ -26,6 +27,7 @@ type CreateCreditEstimateParams = {
   rendererCompositionPlan?: RendererCompositionPlan
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
   adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
   renderStrategyPlan?: RenderStrategyPlan
   toolStrategyPlan?: ToolStrategyPlan
@@ -211,6 +213,14 @@ function depthPlanningCredits(input: PlannerInput, depthAwareOverlayPlan?: Depth
   return input.editLevel === 'premium' ? Math.min(18, total) : Math.min(10, total)
 }
 
+function depthAwareLayoutCredits(depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan) {
+  if (!depthAwareLayoutValidationPlan?.active) {
+    return 0
+  }
+
+  return depthAwareLayoutValidationPlan.totalEstimatedDepthPlanningCredits
+}
+
 function depthPlanningReason(depthAwareOverlayPlan?: DepthAwareOverlayPlan) {
   const items = depthAwareOverlayPlan?.items ?? []
   const hasContact = items.some((item) => item.maskStrategy === 'subject_plus_contact_object_mask')
@@ -222,6 +232,22 @@ function depthPlanningReason(depthAwareOverlayPlan?: DepthAwareOverlayPlan) {
       : 'Plans foreground-aware composition for integrated map/card overlays.',
     hasFallback ? 'Includes fallback layout because mask risk is medium/high.' : undefined,
     'Frontend mock only; real segmentation/rendering is not implemented.',
+  ].filter(Boolean).join(' ')
+}
+
+function depthAwareLayoutReason(depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan, depthAwareOverlayPlan?: DepthAwareOverlayPlan) {
+  if (!depthAwareLayoutValidationPlan?.active) {
+    return depthPlanningReason(depthAwareOverlayPlan)
+  }
+
+  const fallbackCount = depthAwareLayoutValidationPlan.fallbackRecommendations.length
+  const tradeoffCount = depthAwareLayoutValidationPlan.lowerCostAlternatives.length
+
+  return [
+    'Plans foreground/contact-object preservation, mask risk, fallback layout, credit complexity, and QA.',
+    fallbackCount ? `${fallbackCount} fallback recommendation${fallbackCount === 1 ? '' : 's'} included.` : undefined,
+    tradeoffCount ? `${tradeoffCount} lower-cost alternative${tradeoffCount === 1 ? '' : 's'} available.` : undefined,
+    'No real masking runs in this frontend demo.',
   ].filter(Boolean).join(' ')
 }
 
@@ -693,13 +719,15 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
     })
   }
 
-  const depthCredits = depthPlanningCredits(input, params.depthAwareOverlayPlan)
+  const depthCredits = params.depthAwareLayoutValidationPlan
+    ? depthAwareLayoutCredits(params.depthAwareLayoutValidationPlan)
+    : depthPlanningCredits(input, params.depthAwareOverlayPlan)
 
-  if ((params.depthAwareOverlayPlan?.active && params.depthAwareOverlayPlan.items.length > 0) || depthCredits > 0) {
+  if ((params.depthAwareOverlayPlan?.active && params.depthAwareOverlayPlan.items.length > 0) || params.depthAwareLayoutValidationPlan?.active || depthCredits > 0) {
     breakdown.push({
-      label: 'Depth-aware compositing plan',
+      label: 'Depth-aware layout planning',
       credits: depthCredits,
-      reason: depthPlanningReason(params.depthAwareOverlayPlan),
+      reason: depthAwareLayoutReason(params.depthAwareLayoutValidationPlan, params.depthAwareOverlayPlan),
     })
   }
 
@@ -784,6 +812,7 @@ function estimateRisk(
   visualAssetPlan: VisualAssetPlanItem[],
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan,
   depthAwareOverlayPlan?: DepthAwareOverlayPlan,
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan,
 ): CreditEstimateRiskLevel {
   const aiVideoCount = countAiVideoScenes(visualAssetPlan)
   const realMotionCount = visualAssetPlan.filter((asset) => asset.signatureSystem === 'real_motion' || asset.assetType === 'real_motion_scene').length
@@ -800,12 +829,18 @@ function estimateRisk(
     item.maskStrategy === 'multi_object_depth_mask' ||
     item.maskStrategy === 'full_cutout_composition',
   ).length
+  const validationRisk = depthAwareLayoutValidationPlan?.items.some((item) =>
+    item.creditImpact === 'high' ||
+    item.creditImpact === 'premium' ||
+    item.status === 'blocking' ||
+    item.status === 'failed',
+  )
 
-  if (input.editLevel === 'premium' && (aiVideoCount >= 2 || realMotionCount > 0 || advancedLayoutCount > 0 || advancedDepthCount > 0)) {
+  if (input.editLevel === 'premium' && (aiVideoCount >= 2 || realMotionCount > 0 || advancedLayoutCount > 0 || advancedDepthCount > 0 || validationRisk)) {
     return 'premium'
   }
 
-  if (realMotionCount > 0 || advancedLayoutCount > 0 || advancedDepthCount > 0 || (input.editLevel === 'pro' && aiVideoCount >= 3)) {
+  if (realMotionCount > 0 || advancedLayoutCount > 0 || advancedDepthCount > 0 || validationRisk || (input.editLevel === 'pro' && aiVideoCount >= 3)) {
     return 'high'
   }
 
@@ -822,6 +857,7 @@ function lowerCostAlternatives(
   fallbackCredits: number,
   riskLevel: CreditEstimateRiskLevel,
   depthAwareOverlayPlan?: DepthAwareOverlayPlan,
+  depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan,
 ): LowerCostAlternative[] {
   const alternatives: LowerCostAlternative[] = []
   const hasAnimation = visualAssetPlan.some((asset) => asset.assetType === 'animated_scene')
@@ -873,6 +909,10 @@ function lowerCostAlternatives(
     })
   }
 
+  if (depthAwareLayoutValidationPlan?.active) {
+    alternatives.push(...depthAwareLayoutValidationPlan.lowerCostAlternatives)
+  }
+
   if (input.editLevel === 'premium') {
     alternatives.push({
       label: 'Use Pro routing if Premium rescue is not needed',
@@ -893,7 +933,8 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
   const fallbackCredits = fallbackAllowanceCredits(input, params.visualAssetPlan)
   const breakdown = creditBreakdown(input, params, fallbackCredits)
   const total = breakdown.reduce((sum, item) => sum + item.credits, 0)
-  const riskLevel = estimateRisk(input, params.visualAssetPlan, params.speakerVisualLayoutPlan, params.depthAwareOverlayPlan)
+  const riskLevel = estimateRisk(input, params.visualAssetPlan, params.speakerVisualLayoutPlan, params.depthAwareOverlayPlan, params.depthAwareLayoutValidationPlan)
+  const depthLayoutCredits = depthAwareLayoutCredits(params.depthAwareLayoutValidationPlan)
 
   return {
     total,
@@ -904,7 +945,9 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
     assetTypeSummary: assetTypeSummary(input, params.visualAssetPlan),
     fallbackAllowanceCredits: fallbackCredits,
     fallbackPolicyNotes: getFallbackPolicyNotes(input, params.visualAssetPlan),
-    lowerCostAlternatives: lowerCostAlternatives(input, params.visualAssetPlan, fallbackCredits, riskLevel, params.depthAwareOverlayPlan),
+    lowerCostAlternatives: lowerCostAlternatives(input, params.visualAssetPlan, fallbackCredits, riskLevel, params.depthAwareOverlayPlan, params.depthAwareLayoutValidationPlan),
+    depthAwareLayoutCredits: depthLayoutCredits,
+    depthAwareLayoutTradeoffs: params.depthAwareLayoutValidationPlan?.lowerCostAlternatives,
     riskLevel,
     approvalCopy: 'Approve the edit plan and credit estimate before mock progress can begin.',
     estimateVersion: 'mock-vs-05',

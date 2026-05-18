@@ -1,0 +1,184 @@
+-- ReeditPro SQL MIGRATION DRAFT ONLY.
+-- DO NOT RUN.
+-- DO NOT APPLY TO SUPABASE.
+-- This file is for schema review before real migrations are created.
+-- Generated for RP-DATA-02.
+-- Reviewed/hardened by RP-DATA-03 as draft-only SQL. Still DO NOT RUN.
+
+-- Purpose: draft RLS policy templates. These are not production-ready and must be tested in Supabase later.
+-- Hardening note: these templates describe intended boundaries only; they are not tested production policies.
+
+-- Draft enable-RLS list for review:
+-- alter table profiles enable row level security;
+-- alter table workspaces enable row level security;
+-- alter table workspace_members enable row level security;
+-- alter table projects enable row level security;
+-- alter table edit_sessions enable row level security;
+-- alter table chat_messages enable row level security;
+-- alter table media_assets enable row level security;
+-- alter table approved_plan_snapshots enable row level security;
+-- alter table generation_requests enable row level security;
+-- alter table generated_assets enable row level security;
+-- alter table editing_jobs enable row level security;
+-- alter table job_steps enable row level security;
+-- alter table qa_reports enable row level security;
+-- alter table final_exports enable row level security;
+-- alter table audit_events enable row level security;
+
+-- Draft helper concept:
+-- A user is a workspace member when workspace_members.user_id = auth.uid().
+-- A project is visible when its workspace_id belongs to a workspace where the user is a member.
+-- Viewer/editor/admin role enforcement needs additional review before production.
+
+-- Draft workspace owner policy:
+-- create policy "workspace owners manage workspaces"
+-- on workspaces
+-- for all
+-- using (owner_id = auth.uid())
+-- with check (owner_id = auth.uid());
+
+-- Draft workspace member read policy:
+-- create policy "workspace members read projects"
+-- on projects
+-- for select
+-- using (
+--   exists (
+--     select 1
+--     from workspace_members wm
+--     where wm.workspace_id = projects.workspace_id
+--       and wm.user_id = auth.uid()
+--   )
+-- );
+
+-- Draft workspace membership select helper:
+-- create or replace function is_workspace_member(workspace_id uuid)
+-- returns boolean
+-- language sql
+-- stable
+-- as $$
+--   select exists (
+--     select 1 from workspace_members wm
+--     where wm.workspace_id = $1
+--       and wm.user_id = auth.uid()
+--   );
+-- $$;
+
+-- Draft project membership select helper:
+-- create or replace function is_project_member(project_id uuid)
+-- returns boolean
+-- language sql
+-- stable
+-- as $$
+--   select exists (
+--     select 1
+--     from projects p
+--     join workspace_members wm on wm.workspace_id = p.workspace_id
+--     where p.id = $1
+--       and wm.user_id = auth.uid()
+--   );
+-- $$;
+
+-- Draft owner/admin update policy pattern:
+-- create policy "workspace owners or admins update project scoped rows"
+-- on <table_name>
+-- for update
+-- using (
+--   exists (
+--     select 1
+--     from projects p
+--     join workspace_members wm on wm.workspace_id = p.workspace_id
+--     where p.id = <table_name>.project_id
+--       and wm.user_id = auth.uid()
+--       and wm.role in ('owner', 'admin', 'editor')
+--   )
+-- )
+-- with check (same expression as using);
+
+-- Draft user chat insert template:
+-- create policy "workspace members insert chat messages"
+-- on chat_messages
+-- for insert
+-- with check (
+--   exists (
+--     select 1
+--     from edit_sessions es
+--     join projects p on p.id = es.project_id
+--     join workspace_members wm on wm.workspace_id = p.workspace_id
+--     where es.id = chat_messages.edit_session_id
+--       and wm.user_id = auth.uid()
+--       and wm.role in ('owner', 'admin', 'editor')
+--   )
+-- );
+
+-- Draft source sequence update template:
+-- create policy "workspace editors update source sequence"
+-- on source_sequence_items
+-- for update
+-- using (is_project_member(project_id))
+-- with check (is_project_member(project_id));
+
+-- Draft project data read policy pattern:
+-- Replace <table_name> and project_id field as needed after real table review.
+-- create policy "workspace members read project scoped rows"
+-- on <table_name>
+-- for select
+-- using (
+--   exists (
+--     select 1
+--     from projects p
+--     join workspace_members wm on wm.workspace_id = p.workspace_id
+--     where p.id = <table_name>.project_id
+--       and wm.user_id = auth.uid()
+--   )
+-- );
+
+-- Draft service-role worker write concept:
+-- Future worker-only writes should be performed by backend/service role, not direct user writes.
+-- Tables: generation_requests, generation_events, generated_assets, generated_asset_versions,
+-- editing_jobs, job_steps, worker_events, qa_reports, qa_check_results, final_exports.
+
+-- Draft service-role write templates:
+-- generation_requests: service role inserts/updates only after approved_plan_snapshot_id exists.
+-- generated_assets: service role inserts assets that belong to a generation_request/project.
+-- editing_jobs: service role inserts/updates queued/running/completed jobs.
+-- job_steps: service role inserts/updates step input_json/output_json/error_json.
+-- worker_events: service role inserts append-only worker lifecycle events.
+-- qa_reports: service role inserts/updates QA results tied to approved snapshots/jobs.
+-- final_exports: service role inserts/updates export rows tied to approved snapshots.
+-- Never expose service-role keys to frontend code.
+
+-- Draft approved snapshot immutability policy:
+-- Users may select approved snapshots for projects they can access.
+-- Users should not update or delete approved_plan_snapshots.
+-- Backend/service role inserts approved_plan_snapshots only after approval and credit estimate confirmation.
+-- A reviewed trigger should prevent update/delete when immutable = true.
+-- create policy "workspace members read approved snapshots"
+-- on approved_plan_snapshots
+-- for select
+-- using (is_project_member(project_id));
+--
+-- No user update/delete policy should be created for approved_plan_snapshots.
+
+-- Draft audit append-only policy:
+-- Users may read authorized project audit events if product policy allows.
+-- Users should not update or delete audit_events.
+-- Backend/service role should insert system events.
+-- No user update/delete policy should be created for audit_events.
+
+-- Draft credit record boundary:
+-- credit_estimates and credit_estimate_items are user-visible but backend/service controlled.
+-- Future credit reservations and ledger tables should be service-only and append-only.
+-- Normal users should not directly mutate credit reservation or ledger rows.
+
+-- Draft storage privacy assumption:
+-- Storage objects remain private by default.
+-- Reads should be through signed URLs or backend-mediated project access.
+-- Source media must not be public.
+-- Browser capture artifacts, QA artifacts, generated assets, and source media should be project-scoped and private.
+
+-- TODO before production:
+-- 1. Test policies with owner/admin/editor/viewer roles.
+-- 2. Confirm service-role worker write paths.
+-- 3. Confirm approved snapshot immutability trigger.
+-- 4. Confirm audit append-only enforcement.
+-- 5. Confirm private storage object policies in Supabase.

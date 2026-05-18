@@ -120,7 +120,7 @@ create table public.plans (
 );
 
 comment on table public.plans is
-'Software access plans for ReeditPro. Subscription is software access; Edit Credits pay for AI generation, rendering, and editing usage. No plan means unlimited AI editing.';
+'Software access plans for ReeditPro. Subscription is software access; Edit Credits pay for AI generation, rendering, and editing usage. No plan grants open-ended AI generation.';
 
 insert into public.plans (slug, name, weekly_price_cents, included_weekly_bonus_credits, description, features)
 values

@@ -40,7 +40,7 @@ Examples: OpenCV safe-zone checks, Playwright UI regression, audio analysis.
 
 Tools that are planned or under evaluation, but not launch implementation.
 
-Examples: OpenColorIO, OpenImageIO, Essentia, librosa, whisper.cpp, CesiumJS, VapourSynth.
+Examples: OpenColorIO, OpenImageIO, librosa, whisper.cpp, CesiumJS, VapourSynth, and future/evaluation-only Essentia or Rubber Band.
 
 ### planning_only
 
@@ -64,20 +64,22 @@ Tools the planner knows about, but the current frontend mock must not import, in
 - qa_regression
 - experimental
 
-## Launch-Core Tools
+## Launch-Core / Launch Worker Candidate Tools
 
-Launch-core means the planner should know these tools and settings early. It does not mean they are installed in this task.
+Launch-core or launch worker candidate means the planner should know these tools and settings early. It does not mean they are installed in this task.
 
 - Remotion
-- FFmpeg
-- Sharp
+- FFmpeg LGPL Configuration
+- Sharp + libvips
+- VapourSynth
+- AudioFlux
+- Signalsmith Stretch
 - MapLibre
 - Turf
 - D3
 - ECharts
 - Playwright
 - OpenCV
-- Essentia
 
 ## Later Or Evaluate Tools
 
@@ -92,7 +94,7 @@ Launch-core means the planner should know these tools and settings early. It doe
 - whisper.cpp
 - deck.gl
 - CesiumJS
-- VapourSynth
+- Essentia
 - Rubber Band
 
 ## Tool Profiles
@@ -103,11 +105,11 @@ Good for final canvas, timeline/layers, captions, panels, cards, motion design, 
 
 Avoid using Remotion as a provider model. It composes and animates approved assets; it does not generate provider media.
 
-### FFmpeg
+### FFmpeg LGPL Configuration
 
 Good for trim, transcode, encode, LUT/color filters, audio normalization, loudness, and export processing.
 
-Avoid using it for creative semantic decisions or as a replacement for the edit plan.
+Avoid using it for creative semantic decisions or as a replacement for the edit plan. Launch planning assumes LGPL-safe configuration only; GPL/nonfree flags and codec exposure require review.
 
 ### OpenColorIO
 
@@ -127,11 +129,11 @@ Good for face/object safe zones, crop/framing QA, blur/quality checks, backgroun
 
 Avoid treating OpenCV planning as real detection in the frontend mock.
 
-### Sharp
+### Sharp + libvips
 
-Good for resize/crop images, thumbnails, generated image preparation, format conversion, and simple image composites.
+Good for resize/crop images, thumbnails, generated image preparation, watermarks, overlay assets, format conversion, and simple image composites.
 
-Avoid using it for final video compositing.
+Avoid using it for final video compositing or unreviewed untrusted-upload processing.
 
 ### MapLibre
 
@@ -193,11 +195,17 @@ Good for editable canvas graphics, future design-editor interactions, and 2D sha
 
 Avoid using it as the main final video renderer.
 
+### AudioFlux
+
+Good for launch audio feature analysis, onset/rhythm analysis, beat/drop support, energy curves, and SoundSync timing maps.
+
+Avoid pretending analysis has run in frontend mock plans. Production use needs accuracy benchmarks for BPM, beat-drop, onset/rhythm, and SoundSync timing use cases.
+
 ### Essentia
 
-Good for beat/BPM/onset analysis, audio mood/energy features, and SoundSync planning.
+Future/evaluation only. It is not selected for launch SoundSync analysis and has been replaced by AudioFlux for default launch planning.
 
-Avoid pretending analysis has run in frontend mock plans.
+Avoid using it as a launch default or production tool before legal/product review.
 
 ### librosa
 
@@ -225,15 +233,21 @@ Avoid using it for launch-core simple route maps.
 
 ### VapourSynth
 
-Good for advanced scripted video processing and future worker evaluation.
+Good for worker-only frame/native video pipeline planning, scripted frame processing, and Python-native frame flows.
 
-Avoid using it before worker boundaries and production review.
+Avoid using it before worker boundaries and production review. Plugins require separate license/security review.
+
+### Signalsmith Stretch
+
+Good for launch music time-stretch, pitch adjustment, and fitting music beds to scene length.
+
+Avoid extreme stretch ratios without QA, frontend execution, or replacing full mix/mastering.
 
 ### Rubber Band
 
-Good for tempo/pitch adjustment and future audio worker evaluation.
+Future/evaluation only. It is not selected for launch stretch/pitch planning and has been replaced by Signalsmith Stretch for default launch planning.
 
-Commercial usage needs license review before production use.
+Commercial usage needs license review before any future production use.
 
 ## Tool Vs AI Generation Rule
 
@@ -262,7 +276,7 @@ Provider models such as GPT-Image-2, Wan, Hailuo, and Veo are not open-source to
 
 ### Basic
 
-Basic uses safe/simple tool strategies: Remotion layouts, FFmpeg/Sharp planning, simple D3/ECharts/MapLibre when useful, fewer generated assets, and no Veo.
+Basic uses safe/simple tool strategies: Remotion layouts, FFmpeg LGPL Configuration / Sharp + libvips planning, simple D3/ECharts/MapLibre when useful, fewer generated assets, and no Veo.
 
 ### Pro
 
@@ -277,7 +291,11 @@ Premium allows advanced tool strategies, deeper color/audio/QA planning, advance
 - Licenses must be reviewed before production use.
 - Registry profiles should include license notes.
 - Tools can be marked production_ready, needs_license_review, experimental, or future_only in production planning.
-- FFmpeg build configuration matters.
-- Rubber Band needs license review for commercial usage.
+- FFmpeg must remain LGPL-configuration-only until legal/build review.
+- VapourSynth plugins require separate review.
+- Sharp + libvips optional dependencies and untrusted image handling require review.
+- AudioFlux replaces Essentia as the launch SoundSync analysis candidate.
+- Signalsmith Stretch replaces Rubber Band as the launch stretch/pitch candidate.
+- Essentia and Rubber Band are not selected for launch unless future review re-enables them.
 - Worker tools should not be bundled into the frontend without a specific milestone.
 - No package is installed or executed in this task.

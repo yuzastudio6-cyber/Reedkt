@@ -407,7 +407,7 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
     {
       id: `${asset.id}-constraint-safety`,
       label: 'Safety and QA',
-      instruction: 'No random extra characters, unrelated scenery, style drift, face/product obstruction, transparent AI-video default, or 1080P default.',
+      instruction: 'No random extra characters, unrelated scenery, style drift, face/product obstruction, transparent AI-video route by default, or generated-video 1080P route.',
       source: 'qa',
       required: true,
     },
@@ -647,7 +647,7 @@ function commonWorkerNotes(
         audioPipelinePlan.soundSyncCues.length
           ? `SoundSync cues guide timing: ${audioPipelinePlan.soundSyncCues.slice(0, 3).map((cue) => label(cue.cueType)).join(', ')}.`
           : 'No asset-specific SoundSync cue required.',
-        'Audio pipeline is planning-only; no FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp work runs in the frontend.',
+        'Audio pipeline is planning-only; no FFmpeg/AudioFlux/Signalsmith Stretch/Essentia/librosa/Rubber Band/whisper.cpp work runs in the frontend.',
       ]
     : []
   const mapNotes = mapAnimationPlan?.active

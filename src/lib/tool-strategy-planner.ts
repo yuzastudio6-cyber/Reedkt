@@ -420,7 +420,7 @@ function settingsForChain(chainId: ToolChainId, input: PlannerInput, params: {
   return remotionSettings(input, params.asset)
 }
 
-function definitionForChain(chainId: ToolChainId, input: PlannerInput): ChainDefinition {
+function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipelinePlan?: AudioPipelinePlan): ChainDefinition {
   switch (chainId) {
     case 'map_route_chain':
       return {
@@ -474,16 +474,27 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput): ChainDef
         userFacingSummary: 'Color cleanup planned as deterministic future processing, not generation.',
       }
     case 'audio_pipeline_chain':
-      return {
-        chainId,
-        purpose: 'audio_processing',
-        primaryToolId: 'ffmpeg',
-        toolIds: input.editLevel === 'basic' ? ['ffmpeg'] : ['ffmpeg', 'essentia'],
-        fallbackToolIds: ['ffmpeg'],
-        presetIds: [input.editLevel === 'premium' ? 'soundsync_subtle_premium' : 'voice_cleanup_basic'],
-        whyNotAiVideo: 'Audio cleanup and beat timing should be analyzed and processed deterministically.',
-        creditImpact: input.editLevel === 'basic' ? 'none' : 'low',
-        userFacingSummary: 'Voice cleanup and SoundSync timing planned as future audio pipeline.',
+      {
+        const needsStretch = audioPipelinePlan?.toolsPlanned.includes('signalsmith_stretch') ?? false
+        const toolIds: OpenSourceToolId[] = input.editLevel === 'basic'
+          ? ['ffmpeg']
+          : needsStretch
+            ? ['ffmpeg', 'audioflux', 'signalsmith_stretch']
+            : ['ffmpeg', 'audioflux']
+
+        return {
+          chainId,
+          purpose: 'audio_processing',
+          primaryToolId: 'ffmpeg',
+          toolIds,
+          fallbackToolIds: ['ffmpeg'],
+          presetIds: [input.editLevel === 'premium' ? 'soundsync_subtle_premium' : 'voice_cleanup_basic'],
+          whyNotAiVideo: 'Audio cleanup, beat detection, and time stretching are deterministic audio worker tasks, not AI video tasks.',
+          creditImpact: input.editLevel === 'basic' ? 'none' : 'low',
+          userFacingSummary: needsStretch
+            ? 'Voice cleanup, SoundSync timing, and music stretch/pitch fitting planned as future audio worker tasks.'
+            : 'Voice cleanup and SoundSync timing planned as future audio pipeline.',
+        }
       }
     case 'visual_qa_chain':
       return {
@@ -618,7 +629,7 @@ function createToolStrategyItem(params: {
   dataVizPlan?: DataVizPlan
 }) {
   const { adaptiveStrategy, asset, audioPipelinePlan, chainId, colorPipelinePlan, dataVizPlan, depthAwareOverlayPlan, index, input, mapAnimationPlan, renderItem } = params
-  const definition = definitionForChain(chainId, input)
+  const definition = definitionForChain(chainId, input, audioPipelinePlan)
   const status = statusForTools(definition.toolIds, chainId, input.editLevel)
   const settings = settingsForChain(chainId, input, { adaptiveStrategy, asset, audioPipelinePlan, colorPipelinePlan, dataVizPlan, depthAwareOverlayPlan, mapAnimationPlan })
   const steps = definition.toolIds.map((toolId, toolIndex) => stepForTool({
@@ -830,7 +841,7 @@ export function createToolStrategyPlan(params: CreateToolStrategyPlanParams): To
     notes: [
       params.renderStrategyPlan ? `Render strategy source: ${params.renderStrategyPlan.summary}` : 'No render strategy plan was supplied; only global tool planning is available.',
       params.videoUnderstandingReport ? 'Video understanding cues informed tool strategy selection.' : 'No video understanding report supplied to tool strategy planner.',
-      'This module imports registry/settings metadata only; it does not import FFmpeg, OpenCV, MapLibre, D3, ECharts, Playwright, Sharp, OpenColorIO, Essentia, Remotion, or provider SDKs.',
+      'This module imports registry/settings metadata only; it does not import FFmpeg, OpenCV, MapLibre, D3, ECharts, Playwright, Sharp/libvips, OpenColorIO, AudioFlux, Signalsmith Stretch, Essentia, Remotion, or provider SDKs.',
     ],
   }
 }

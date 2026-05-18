@@ -1,3 +1,8 @@
+import type { SupabaseSchemaPlan } from './supabase-schema-plan'
+import type { MigrationDraftPlan } from './supabase-migration-drafts'
+import type { MigrationReviewPlan } from './supabase-rls-hardening'
+import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
+
 export type SignatureSystem =
   | 'stroke_motion'
   | 'graphic_design'
@@ -211,12 +216,14 @@ export type OpenSourceToolId =
   | 'three_js'
   | 'pixijs'
   | 'konva'
+  | 'audioflux'
   | 'essentia'
   | 'librosa'
   | 'whisper_cpp'
   | 'deck_gl'
   | 'cesium_js'
   | 'vapoursynth'
+  | 'signalsmith_stretch'
   | 'rubber_band'
   | 'custom'
 
@@ -1124,8 +1131,10 @@ export type AudioPipelineStage =
 
 export type AudioPipelineToolId =
   | 'ffmpeg'
+  | 'audioflux'
   | 'essentia'
   | 'librosa'
+  | 'signalsmith_stretch'
   | 'rubber_band'
   | 'whisper_cpp'
   | 'remotion_timing_preview'
@@ -2737,6 +2746,85 @@ export interface ChatPlanningPhaseSummary {
   summary: string
 }
 
+export type PlanningSystemAuditStatus =
+  | 'connected'
+  | 'partial'
+  | 'missing'
+  | 'warning'
+  | 'blocking'
+
+export type PlanningSystemLayerId =
+  | 'source_sequence'
+  | 'compiled_intent'
+  | 'professional_editing'
+  | 'video_understanding'
+  | 'adaptive_strategy'
+  | 'segment_operations'
+  | 'visual_asset_plan'
+  | 'speaker_visual_layout'
+  | 'depth_overlay'
+  | 'foreground_masking'
+  | 'depth_layout_validation'
+  | 'color_pipeline'
+  | 'audio_pipeline'
+  | 'map_animation'
+  | 'dataviz'
+  | 'browser_capture'
+  | 'tool_registry'
+  | 'render_strategy'
+  | 'tool_strategy'
+  | 'renderer_composition'
+  | 'character_consistency'
+  | 'fact_safety'
+  | 'provider_prompts'
+  | 'credit_estimate'
+  | 'approved_snapshot'
+  | 'worker_runtime'
+  | 'production_readiness'
+  | 'launch_tool_stack'
+  | 'supabase_schema_bridge'
+  | 'migration_drafts'
+  | 'migration_review_rls'
+  | 'supabase_production_readiness'
+  | 'planner_validation'
+  | 'planner_regression'
+  | 'tool_previews'
+
+export interface PlanningSystemLayerAudit {
+  id: PlanningSystemLayerId
+  label: string
+  status: PlanningSystemAuditStatus
+  hasTypes: boolean
+  hasPlannerModule: boolean
+  hasUiCard: boolean
+  includedInEditPlan: boolean
+  includedInApprovedSnapshot: boolean
+  includedInValidation: boolean
+  includedInCreditEstimate: boolean
+  notes: string[]
+  missingConnections: string[]
+}
+
+export interface PlanningSystemAuditReport {
+  id: string
+  overallStatus: PlanningSystemAuditStatus
+  summary: string
+  layers: PlanningSystemLayerAudit[]
+  hardRuleChecks: {
+    label: string
+    passed: boolean
+    message: string
+  }[]
+  launchToolStackChecks: {
+    label: string
+    passed: boolean
+    message: string
+  }[]
+  duplicateOrLegacyWarnings: string[]
+  nextPhaseRecommendations: string[]
+  limitations: string[]
+}
+
 export interface EditPlan {
   goalSummary: string
   sourceSequenceMap: SourceSequenceMapItem[]
@@ -2777,6 +2865,11 @@ export interface EditPlan {
   providerPromptPlans?: ProviderPromptPlan[]
   characterConsistencyPlan?: CharacterConsistencyPlan
   documentaryFactSafetyPlan?: DocumentaryFactSafetyPlan
+  planningSystemAuditReport?: PlanningSystemAuditReport
+  supabaseSchemaPlan?: SupabaseSchemaPlan
+  migrationDraftPlan?: MigrationDraftPlan
+  migrationReviewPlan?: MigrationReviewPlan
+  supabaseProductionReadinessPlan?: SupabaseProductionReadinessPlan
   soundSyncDirection: string
   captionDirection: string
   creditEstimate: CreditEstimate

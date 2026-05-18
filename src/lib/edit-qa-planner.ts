@@ -153,7 +153,7 @@ function createTierPolicyChecks(input: PlannerInput, visualAssetPlan: VisualAsse
   checks.push(createQAItem({
     id: 'qa-tier-no-1080p-default',
     category: 'model_tier_policy',
-    label: 'No 1080P default',
+    label: 'No generated-video 1080P route',
     check: 'Generated animation routes must stay 720P-class: Wan 720P, Hailuo 768P, Veo 720P.',
     editLevel: input.editLevel,
     severity: 'high',
@@ -745,7 +745,7 @@ function createAudioPipelineChecks(params: {
       id: 'qa-audio-planning-only',
       category: 'audio_pipeline',
       label: 'Audio pipeline is planning-only',
-      check: 'Audio pipeline must not imply real FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp execution, provider generation, rendering, or approval bypass.',
+      check: 'Audio pipeline must not imply real FFmpeg/AudioFlux/Signalsmith Stretch/Essentia/librosa/Rubber Band/whisper.cpp execution, provider generation, rendering, or approval bypass.',
       editLevel: input.editLevel,
       severity: 'blocking',
       status: text.includes('no real') && text.includes('mock') && text.includes('approval') ? 'not_checked' : 'failed',

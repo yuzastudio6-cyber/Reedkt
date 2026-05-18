@@ -146,7 +146,7 @@ export const tierQualityStandards: TierQualityStandard[] = [
       'Veo is never default or primary',
     ],
     notAllowed: [
-      'default Veo',
+      'Veo as a default route',
       'primary Veo route',
       'unapproved generation',
       'random high-cost assets',

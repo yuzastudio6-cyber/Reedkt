@@ -349,6 +349,11 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     creditEstimateDomain: plan.creditEstimate,
     qaPlan,
     qaPlanDomain: plan.editQAPlan,
+    planningSystemAuditReport: plan.planningSystemAuditReport,
+    supabaseSchemaPlan: plan.supabaseSchemaPlan,
+    migrationDraftPlan: plan.migrationDraftPlan,
+    migrationReviewPlan: plan.migrationReviewPlan,
+    supabaseProductionReadinessPlan: plan.supabaseProductionReadinessPlan,
     tierConstraints: modelConstraintsForLevel(editLevel),
     modelRoutingConstraints: modelConstraintsForLevel(editLevel),
     frameBackgroundPolicy: [

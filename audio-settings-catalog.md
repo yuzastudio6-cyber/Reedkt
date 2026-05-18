@@ -74,6 +74,68 @@ This catalog defines planned settings for audio cleanup, SoundSync, music, SFX, 
 - `emotionalPauseProtection`
 - `transitionBeatAlignment`
 
+## AudioFlux Launch Analysis Settings
+
+- `sampleRate`
+- `monoStereo`
+- `trimStart`
+- `trimEnd`
+- `onsetDetection`
+- `bpmDetection`
+- `beatPositions`
+- `rhythmFeatures`
+- `energyCurve`
+- `noveltyCurve`
+- `confidenceThreshold`
+- `outputTimingMap`
+
+AudioFlux is the launch candidate for SoundSync audio analysis. Essentia is not selected for launch and should remain future/evaluation only unless a later legal/product review re-enables it.
+
+## Signalsmith Stretch Launch Settings
+
+- `stretchRatio`
+- `pitchShiftSemitones`
+- `inputSampleRate`
+- `outputSampleRate`
+- `preserveFormants`
+- `qualityMode`
+- `maxRecommendedStretchRatio`
+- `sceneFitTargetSeconds`
+- `qaListenRequired`
+
+Signalsmith Stretch is the launch candidate for moderate music time-stretch and pitch adjustment. Rubber Band is not selected for launch and should remain future/evaluation only unless a later legal/product review re-enables it.
+
+## FFmpeg LGPL Configuration Settings
+
+- `configureProfile`
+- `enableGpl`
+- `enableNonfree`
+- `codecPolicy`
+- `outputContainer`
+- `audioCodec`
+- `videoCodec`
+- `pixelFormat`
+- `crf`
+- `bitrate`
+- `muxingMode`
+
+FFmpeg launch planning assumes LGPL-safe configuration only. GPL/nonfree flags, codec choices, and patent/commercial exposure require review before production use.
+
+## Sharp + libvips Asset Settings
+
+- `resizeWidth`
+- `resizeHeight`
+- `fitMode`
+- `imageFormat`
+- `quality`
+- `alphaHandling`
+- `watermarkPosition`
+- `metadataHandling`
+- `optionalLoaderPolicy`
+- `untrustedUploadPolicy`
+
+Sharp + libvips is the launch candidate for backend/worker image and asset preparation. Optional dependencies, untrusted image handling, and LGPL compliance require production review.
+
 ## Audio Analysis Settings
 
 - `sampleRate`
@@ -114,3 +176,12 @@ This catalog defines planned settings for audio cleanup, SoundSync, music, SFX, 
 ## QA Thresholds
 
 Planned QA thresholds include voice too quiet warning, music over voice warning, clipping warning, background noise warning, too many SFX warning, long silence warning, ducking missing warning, and SFX without reason warning.
+
+## Launch Tool Boundaries
+
+- FFmpeg owns loudness normalization, trim/silence cleanup, audio filters, and future mux/export planning.
+- AudioFlux owns launch onset/rhythm/audio feature and SoundSync timing analysis planning.
+- Signalsmith Stretch owns launch moderate music time-stretch and pitch adjustment planning.
+- librosa and whisper.cpp remain future/prototype research tools.
+- Essentia and Rubber Band are not selected for launch defaults.
+- No audio tool runs from this frontend/mock catalog.

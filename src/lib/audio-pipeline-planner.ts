@@ -252,8 +252,8 @@ function stagesForPlan(input: PlannerInput, musicPlan: MusicBedPlan, sfxPlan: Sf
 }
 
 function toolForOperation(operation: AudioOperationId): AudioPipelineToolId {
-  if (operation === 'bpm_detection' || operation === 'beat_detection' || operation === 'onset_detection' || operation === 'mood_energy_analysis') return 'essentia'
-  if (operation === 'tempo_adjustment' || operation === 'pitch_adjustment') return 'rubber_band'
+  if (operation === 'bpm_detection' || operation === 'beat_detection' || operation === 'onset_detection' || operation === 'mood_energy_analysis') return 'audioflux'
+  if (operation === 'tempo_adjustment' || operation === 'pitch_adjustment') return 'signalsmith_stretch'
   if (operation === 'caption_timing_alignment' || operation === 'visual_reveal_timing') return 'remotion_timing_preview'
   if (operation.startsWith('qa_')) return 'planning_only'
   return 'ffmpeg'
@@ -336,8 +336,10 @@ function createOperation(params: {
       'Planning-only; no real audio processing runs in frontend.',
     ],
     workerNotes: [
-      toolId === 'rubber_band'
-        ? 'Rubber Band is future/evaluate only and requires license review before production use.'
+      toolId === 'signalsmith_stretch'
+        ? 'Signalsmith Stretch is the launch stretch/pitch candidate for future approved workers and needs quality benchmarks before production use.'
+        : toolId === 'audioflux'
+          ? 'AudioFlux is the launch audio analysis candidate for future approved SoundSync workers and needs accuracy benchmarks before production use.'
         : `${label(toolId)} is planned only for a future approved worker path.`,
       'Do not execute audio tools before plan and credit approval.',
     ],
@@ -547,9 +549,9 @@ function toolsPlanned(params: {
     'planning_only',
     'ffmpeg',
     'remotion_timing_preview',
-    params.beatStrategy !== 'none' && params.input.editLevel !== 'basic' ? 'essentia' : undefined,
+    params.beatStrategy !== 'none' && params.input.editLevel !== 'basic' ? 'audioflux' : undefined,
     params.input.editLevel === 'premium' && params.beatStrategy === 'full_soundsync' ? 'librosa' : undefined,
-    params.operations.some((operation) => operation.operation === 'tempo_adjustment' || operation.operation === 'pitch_adjustment') ? 'rubber_band' : undefined,
+    params.operations.some((operation) => operation.operation === 'tempo_adjustment' || operation.operation === 'pitch_adjustment') ? 'signalsmith_stretch' : undefined,
     /transcript|timing|caption/i.test(params.input.customInstructions) ? 'whisper_cpp' : undefined,
   ].filter(Boolean) as AudioPipelineToolId[])
 }
@@ -617,9 +619,10 @@ export function createAudioPipelinePlan(params: CreateAudioPipelinePlanParams): 
     ],
     limitations: [
       'Mock-only audio pipeline plan; no real audio analysis has run.',
-      'No FFmpeg, Essentia, librosa, Rubber Band, whisper.cpp, transcription, beat detection, music generation, SFX generation, rendering, or export is executed.',
+      'No FFmpeg, AudioFlux, Signalsmith Stretch, Essentia, librosa, Rubber Band, whisper.cpp, transcription, beat detection, music generation, SFX generation, rendering, or export is executed.',
       'Future workers must use approved plan snapshots after user approval and credit reservation.',
-      ...(tools.includes('rubber_band') ? ['Rubber Band is future/evaluate only and requires license review before production use.'] : []),
+      ...(tools.includes('signalsmith_stretch') ? ['Signalsmith Stretch is a worker-only launch candidate and needs audio quality benchmarks before production use.'] : []),
+      'Essentia and Rubber Band are not selected for launch defaults; they remain future evaluation only if referenced later.',
     ],
     status: 'planned',
   }

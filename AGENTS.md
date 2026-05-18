@@ -20,6 +20,7 @@ These instructions are for Codex and any future agent working in this repository
 - Read `adaptive-edit-strategy-planner.md` before adaptive segment strategy, generation restraint, visual/tool selection, or reasoned per-beat creative decisions.
 - Read `open-source-tool-registry.md` before open-source tool strategy, deterministic tool planning, tool/provider separation, license review, or controlled-tool decisions.
 - Read `tool-settings-catalog.md` before tool setting, preset, registry profile, map/chart/browser/color/audio/QA tool planning, or tool catalog work.
+- Read `launch-tool-stack-update.md` before launch tool stack, AudioFlux, Signalsmith Stretch, FFmpeg LGPL configuration, VapourSynth, Sharp + libvips, Essentia replacement, or Rubber Band replacement work.
 - Read `remotion-capability-matrix.md` before deciding what Remotion can build directly versus what needs GPT-Image-2, open-source tools, AI video assets, workers, or QA-only tools.
 - Read `render-strategy-planner.md` before render strategy planning, Remotion-only decisions, GPT-image-to-Remotion flows, tool-to-Remotion flows, AI-video-to-Remotion flows, or worker pre/postprocess strategy work.
 - Read `tool-strategy-planner.md` before segment/asset-specific tool chain planning, controlled-tool settings, tool fallbacks, or tool-vs-AI decisions.
@@ -44,10 +45,15 @@ These instructions are for Codex and any future agent working in this repository
 - Read `character-consistency-system.md` before character pack, recurring character, keyframe identity, start/end frame consistency, or likeness-safety work.
 - Read `documentary-fact-safety-system.md` before documentary claims, real named people, allegations, evidence cards, fact-safety planning, or case-study visual treatment work.
 - Read `planner-regression-validation.md` before planner validation, regression checks, demo scenario QA, model-routing tests, prompt-builder tests, or hard product rule validation work.
+- Read `connected-planning-system-overview.md`, `planning-layer-inventory.md`, and `implementation-status-and-next-phase.md` before connected planning-system audits, planning-layer inventory work, next-phase recommendations, or documentation cleanup.
+- Read `supabase-schema-planning-bridge.md`, `database-migration-readiness-checklist.md`, and `supabase-table-specification.md` before Supabase schema planning, table planning, migration bridge work, RLS planning, storage bucket planning, or database readiness work.
+- Read `sql-migration-draft-review.md`, `supabase-rls-policy-draft.md`, and `supabase-storage-bucket-draft.md` before SQL migration draft review, RLS draft policy work, storage bucket draft policy work, or migration readiness follow-up.
+- Read `migration-review-and-rls-hardening.md`, `rls-hardening-matrix.md`, and `data-privacy-retention-plan.md` before migration review, RLS hardening, service-role boundary, access-control matrix, private artifact, browser-capture privacy, or retention planning work.
 - Read `chat-planning-ux-architecture.md` before chat flow organization, planning card priority, collapse behavior, guided/detailed/developer modes, or approval-path UX work.
 - Read `source-sequence-review-ux.md` before source order review, clip reorder UX, uploaded-order semantics, or source-sequence confirmation work.
 - Read `docs/lyria-worker-plan.md` and `docs/google-cloud-audio-worker-plan.md` before Lyria worker, Google Cloud audio worker, music generation job, worker secret, or generated music asset work.
 - Read `docs/lyria-integration-adapter.md` before Lyria provider adapter, Lyria request building, Lyria response parsing, integration mode, or disabled real API path work.
+- Read `supabase-production-test-readiness.md` and `supabase-local-staging-test-plan.md` before active Supabase migration testing, production-test readiness, local/staging database validation, or Supabase advisor review work.
 
 ## Product Identity
 
@@ -73,7 +79,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 
 - Always estimate credits before generation.
 - Deduct credits only after user approval.
-- Do not imply subscription includes unlimited AI editing.
+- Do not imply subscriptions provide open-ended AI editing.
 - Failed ReeditPro generation should be refunded according to `pricing-and-credits.md`.
 - Real Motion is premium and credit-heavy.
 
@@ -176,7 +182,15 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Do not add random SFX; SFX and music must support story, pacing, transition, reveal, or emotion.
 - Music must not overpower voice, and ducking should be planned when music is present under speech.
 - Audio planning should be deterministic and structured, not random.
-- Future FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp workers may execute audio analysis or processing only after approval.
+- Future FFmpeg LGPL Configuration, AudioFlux, Signalsmith Stretch, librosa, whisper.cpp, and any future/evaluation Essentia or Rubber Band workers may execute audio analysis or processing only after approval.
+- Launch audio analysis candidate is AudioFlux, not Essentia.
+- Launch music stretch/pitch candidate is Signalsmith Stretch, not Rubber Band.
+- Essentia and Rubber Band are not selected for launch unless a future legal/product review re-enables them.
+- FFmpeg must be treated as LGPL-configuration-only until reviewed.
+- VapourSynth is worker-only and plugins require separate review.
+- Sharp + libvips needs dependency/security/LGPL review before production execution.
+- AudioFlux and Signalsmith Stretch are worker-only candidates and must not be installed or executed in frontend milestones.
+- No worker tool executes before approval, credit reservation, and future backend worker implementation.
 - No real audio processing unless a milestone explicitly requests it.
 - Audio plans must not enable Veo or change AI-video tier rules.
 - Use controlled map tools for geographic/location visuals instead of AI video.
@@ -233,6 +247,38 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Real generation requires edit plan approval and credit reservation.
 - Lyria response parsing must handle text and audio parts in any order.
 - Generated music must pass Music QA before use in render/export.
+- Do not create real Supabase migrations until an explicit migration milestone.
+- Draft SQL files must live in `database/migration-drafts/`.
+- Do not create active Supabase migrations in `supabase/migrations/` for draft-review tasks.
+- Do not run SQL.
+- Do not connect Supabase.
+- Approved snapshots are immutable.
+- Normal users must not update or delete approved snapshots.
+- Worker jobs must reference `approved_plan_snapshot_id`.
+- Generation requests must reference `approved_plan_snapshot_id` when approved execution starts.
+- Storage buckets are private by default.
+- RLS must scope access by workspace/project membership.
+- Service role is required for worker writes in future backend work.
+- Worker/service writes must be backend/service-role only and audited in future.
+- Normal users must not directly mutate worker/job/generation event tables.
+- Source media, browser captures, QA artifacts, and generated assets are private by default.
+- Browser capture artifacts require privacy and source authorization planning.
+- Audit events should be append-only.
+- Future credit ledger and reservation tables should be service-controlled and append-only.
+- Do not store provider secrets in schema.
+- Draft SQL is for review only.
+- Future credit ledger and reservation records must be append-only.
+- Users must not directly mutate approved snapshots, credit ledger records, or credit reservations.
+- Source media and generated assets should be private by default.
+- Future RLS must scope access to workspace/project membership.
+- Schema planning must preserve Basic/Pro no-Veo and Premium fallback-only Veo through approved snapshot and tier constraints.
+- Any future planning layer must connect to the approved snapshot policy.
+- Any future execution layer must execute approved snapshots, not raw chat.
+- Any future provider or tool execution must respect planner validation rules.
+- Do not introduce new one-off planner fields without documenting which layer consumes them.
+- Do not add UI cards that overwhelm Guided mode.
+- Do not treat frontend mock previews as production rendering.
+- Maintain separation between provider models, open-source tools, Remotion renderer, and worker runtime.
 
 ## Subscription And Credits
 
@@ -323,6 +369,11 @@ Extract Reference DNA:
 - Future backend/database work must use the Supabase project named `reeditpro`.
 - Do not connect, configure, migrate, or reference the Yuza Studio Supabase project for this repo.
 - If Supabase credentials or project refs are introduced later, verify they belong to `reeditpro` before use.
+- RP-DATA-04 active migration files under `supabase/migrations/` are for manual local/staging testing only until explicitly approved.
+- Do not run Supabase migrations, SQL, or Supabase CLI commands from Codex unless a later task explicitly authorizes execution.
+- Approved snapshots, audit events, and credit ledger records must remain protected from normal user mutation.
+- Worker/service writes must stay backend/service-role controlled and audited in future implementation.
+- Source media, browser captures, generated assets, QA artifacts, previews, and exports are private by default unless a later reviewed policy changes that.
 
 ## Local Development
 

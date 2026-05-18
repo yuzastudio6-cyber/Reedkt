@@ -25,6 +25,7 @@ import type {
   FrameTemplateType,
   LayerFitMode,
   MapAnimationPlan,
+  PlanningSystemAuditReport,
   ProfessionalEditStyleId,
   ProfessionalEditingDirective,
   ProviderPromptPlan,
@@ -51,6 +52,10 @@ import type {
   VisualPreference,
   PacingStyleId,
 } from './reeditpro'
+import type { SupabaseSchemaPlan } from './supabase-schema-plan'
+import type { MigrationDraftPlan } from './supabase-migration-drafts'
+import type { MigrationReviewPlan } from './supabase-rls-hardening'
+import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
@@ -591,6 +596,11 @@ export interface ApprovedPlanSnapshot {
   creditEstimateDomain: CreditEstimate
   qaPlan?: QAReportRecord
   qaPlanDomain?: EditPlan['editQAPlan']
+  planningSystemAuditReport?: PlanningSystemAuditReport
+  supabaseSchemaPlan?: SupabaseSchemaPlan
+  migrationDraftPlan?: MigrationDraftPlan
+  migrationReviewPlan?: MigrationReviewPlan
+  supabaseProductionReadinessPlan?: SupabaseProductionReadinessPlan
   tierConstraints: string[]
   modelRoutingConstraints: string[]
   frameBackgroundPolicy: string[]

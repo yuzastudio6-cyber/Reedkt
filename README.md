@@ -73,3 +73,13 @@ Before UI work, read `design.md`. Before product, AI, billing, planning, or work
 This repo currently contains an early web prototype plus product foundation documentation. The documentation is intended to guide future implementation. The foundation docs do not implement backend logic, database migrations, Stripe, AI APIs, video rendering, or mobile app behavior.
 
 Future implementation should stay modular so upload, intent analysis, reference DNA, edit planning, credit estimation, approval gates, rendering jobs, billing, and review workflows can be added safely.
+
+The connected planning foundation now includes chat-native planning, source sequence review, adaptive strategy, visual/story/tool/render planning, color/audio/map/dataviz/browser/depth/mask planning, launch tool stack alignment, worker-runtime architecture notes, production-readiness boundaries, validation, regression, and the planning system audit. See `connected-planning-system-overview.md` for the end-to-end map and `implementation-status-and-next-phase.md` for what remains frontend/mock versus future backend work.
+
+The data preparation foundation now includes a Supabase schema planning bridge. It documents future tables, JSONB approved snapshot strategy, private storage buckets, and migration readiness checks without creating SQL migrations or connecting Supabase. See `supabase-schema-planning-bridge.md`, `supabase-table-specification.md`, and `database-migration-readiness-checklist.md`; the next data step is to convert the bridge into reviewed migrations in a dedicated migration milestone.
+
+RP-DATA-02 adds review-only SQL migration drafts in `database/migration-drafts/`. These are not active Supabase migrations and should not be run or copied into `supabase/migrations/` until a future review/hardening step such as RP-DATA-03. See `sql-migration-draft-review.md`, `supabase-rls-policy-draft.md`, and `supabase-storage-bucket-draft.md`.
+
+RP-DATA-03 adds a draft migration review and RLS hardening layer. Draft SQL remains `DO NOT RUN`; real migration execution, Supabase connection, and backend implementation are still future work. See `migration-review-and-rls-hardening.md`, `rls-hardening-matrix.md`, and `data-privacy-retention-plan.md`.
+
+RP-DATA-04 adds active Supabase migration files in `supabase/migrations/` for manual local/staging testing only. Codex does not run them, connect Supabase, or implement backend behavior. Production remains blocked until manual tests, RLS/storage verification, Supabase advisor review, backups, and approval pass. See `supabase-production-test-readiness.md`, `supabase-local-staging-test-plan.md`, and `database/test-sql/`.

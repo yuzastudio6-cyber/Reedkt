@@ -79,6 +79,84 @@ function qaStatus(plan: EditPlan): ChatCardStatus {
   return status ? 'ready' : 'not_started'
 }
 
+function planningAuditStatus(plan: EditPlan): ChatCardStatus {
+  const status = plan.planningSystemAuditReport?.overallStatus
+
+  if (!status) {
+    return 'not_started'
+  }
+
+  if (status === 'blocking') {
+    return 'blocking'
+  }
+
+  if (status === 'warning' || status === 'partial' || status === 'missing') {
+    return 'warning'
+  }
+
+  return 'complete'
+}
+
+function supabaseSchemaBridgeStatus(plan: EditPlan): ChatCardStatus {
+  const status = plan.supabaseSchemaPlan?.migrationReadinessStatus
+
+  if (!status) {
+    return 'not_started'
+  }
+
+  if (status === 'blocked') {
+    return 'blocking'
+  }
+
+  if (status === 'needs_review') {
+    return 'warning'
+  }
+
+  return 'ready'
+}
+
+function migrationDraftStatus(plan: EditPlan): ChatCardStatus {
+  if (!plan.migrationDraftPlan) {
+    return 'not_started'
+  }
+
+  return plan.migrationDraftPlan.files.every((file) => file.mustNotRun && file.path.startsWith('database/migration-drafts/'))
+    ? 'warning'
+    : 'blocking'
+}
+
+function migrationReviewStatus(plan: EditPlan): ChatCardStatus {
+  const status = plan.migrationReviewPlan?.overallStatus
+
+  if (!status) {
+    return 'not_started'
+  }
+
+  if (status === 'blocked') {
+    return 'blocking'
+  }
+
+  return 'warning'
+}
+
+function supabaseProductionReadinessStatus(plan: EditPlan): ChatCardStatus {
+  const status = plan.supabaseProductionReadinessPlan?.status
+
+  if (!status) {
+    return 'not_started'
+  }
+
+  if (status === 'production_ready_pending_approval') {
+    return 'ready'
+  }
+
+  if (status === 'production_blocked') {
+    return 'blocking'
+  }
+
+  return 'warning'
+}
+
 function hasFactSafetyConcern(plan: EditPlan) {
   const factSafety = plan.documentaryFactSafetyPlan
 
@@ -364,6 +442,11 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const depthItems = plan.depthAwareOverlayPlan?.items ?? []
   const hasRiskyDepth = depthItems.some((item) => item.maskRisk === 'high' || item.maskRisk === 'premium')
   const depthStatus = depthValidationStatus ?? (!plan.depthAwareOverlayPlan?.active ? 'complete' : hasRiskyDepth ? 'warning' : 'ready')
+  const currentPlanningAuditStatus = planningAuditStatus(plan)
+  const currentSupabaseSchemaStatus = supabaseSchemaBridgeStatus(plan)
+  const currentMigrationDraftStatus = migrationDraftStatus(plan)
+  const currentMigrationReviewStatus = migrationReviewStatus(plan)
+  const currentSupabaseProductionReadinessStatus = supabaseProductionReadinessStatus(plan)
 
   return [
     descriptor({
@@ -672,6 +755,82 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       hiddenInCompactMode: true,
     }),
     descriptor({
+      id: 'planning_system_audit',
+      label: 'Planning system audit',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: currentPlanningAuditStatus,
+      defaultExpanded: currentPlanningAuditStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: plan.planningSystemAuditReport
+        ? `${plan.planningSystemAuditReport.overallStatus}: ${plan.planningSystemAuditReport.layers.length} planning layers audited.`
+        : 'Planning system audit is not ready.',
+      hiddenInCompactMode: currentPlanningAuditStatus !== 'blocking',
+    }),
+    descriptor({
+      id: 'launch_tool_stack',
+      label: 'Launch tool stack',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: 'ready',
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: 'AudioFlux and Signalsmith Stretch are the launch audio replacements; no tools execute in this demo.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'supabase_schema_bridge',
+      label: 'Supabase schema bridge',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: currentSupabaseSchemaStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: plan.supabaseSchemaPlan
+        ? `${plan.supabaseSchemaPlan.tables.length} MVP tables and ${plan.supabaseSchemaPlan.storageBuckets.length} private buckets planned; no migrations are created.`
+        : 'Supabase schema bridge is not ready.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'migration_drafts',
+      label: 'SQL migration drafts',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: currentMigrationDraftStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: plan.migrationDraftPlan
+        ? `${plan.migrationDraftPlan.files.length} review-only SQL drafts are listed under database/migration-drafts/; no SQL runs.`
+        : 'SQL migration draft plan is not ready.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'migration_review_rls',
+      label: 'Migration review + RLS hardening',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: currentMigrationReviewStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: plan.migrationReviewPlan
+        ? `${plan.migrationReviewPlan.overallStatus}: ${plan.migrationReviewPlan.checks.length} migration/RLS review checks; no SQL runs.`
+        : 'Migration review and RLS hardening plan is not ready.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'supabase_production_readiness',
+      label: 'Supabase production-test readiness',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: currentSupabaseProductionReadinessStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: plan.supabaseProductionReadinessPlan
+        ? `${plan.supabaseProductionReadinessPlan.status}: ${plan.supabaseProductionReadinessPlan.activeMigrationFiles.length} active migrations and ${plan.supabaseProductionReadinessPlan.manualTestFiles.length} manual tests listed; no SQL runs.`
+        : 'Supabase production-test readiness is not ready.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
       id: 'credit_estimate',
       label: 'Credit estimate',
       phase: 'credits_approval',
@@ -735,6 +894,10 @@ export function shouldShowCard(card: ChatPlanningCardDescriptor | undefined, mod
 
   if (mode === 'detailed') {
     return true
+  }
+
+  if (card.hiddenInCompactMode && card.status !== 'blocking') {
+    return false
   }
 
   if (card.priority === 'developer_detail') {

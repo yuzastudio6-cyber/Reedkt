@@ -23,7 +23,16 @@ The Tool Settings Catalog defines the settings ReeditPro should understand when 
 - assetFitMode
 - panelBackgroundColor
 
-## FFmpeg Settings
+## FFmpeg LGPL Configuration Settings
+
+- configureProfile
+- enableGpl
+- enableNonfree
+- codecPolicy
+- outputContainer
+- audioCodec
+- videoCodec
+- muxingMode
 
 - codec
 - bitrate
@@ -72,19 +81,62 @@ The Tool Settings Catalog defines the settings ReeditPro should understand when 
 - templateMatchThreshold
 - safeZoneCollisionThreshold
 
-## Sharp Settings
+## Sharp + libvips Settings
 
 - resizeWidth
 - resizeHeight
 - fitMode
 - cropPosition
 - outputFormat
+- imageFormat
 - quality
+- alphaHandling
+- watermarkPosition
 - backgroundColor
 - compositeLayers
 - blur
 - sharpen
 - metadataHandling
+- optionalLoaderPolicy
+- untrustedUploadPolicy
+
+## AudioFlux Settings
+
+- sampleRate
+- monoStereo
+- trimStart
+- trimEnd
+- onsetDetection
+- bpmDetection
+- beatPositions
+- rhythmFeatures
+- energyCurve
+- noveltyCurve
+- confidenceThreshold
+- outputTimingMap
+
+## Signalsmith Stretch Settings
+
+- stretchRatio
+- pitchShiftSemitones
+- inputSampleRate
+- outputSampleRate
+- preserveFormants
+- qualityMode
+- maxRecommendedStretchRatio
+- sceneFitTargetSeconds
+- qaListenRequired
+
+## VapourSynth Settings
+
+- frameFormat
+- colorFamily
+- frameRange
+- scriptPreset
+- cachePolicy
+- pluginAllowlist
+- outputFrameMode
+- pythonMemoryPipeline
 
 ## MapLibre Settings
 
@@ -193,7 +245,7 @@ The Tool Settings Catalog defines the settings ReeditPro should understand when 
 
 ## Audio / SoundSync Settings
 
-Essentia and librosa-style settings:
+AudioFlux launch analysis and future/prototype librosa-style settings:
 
 - sampleRate
 - monoStereo

@@ -6371,6 +6371,720 @@ li {
   border-left-color: var(--rp-danger);
 }
 
+.planning-system-audit-card {
+  gap: 16px;
+}
+
+.planning-audit-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.planning-audit-summary-grid span {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.planning-audit-summary-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.planning-audit-layer-list,
+.planning-audit-hard-rule-list,
+.planning-audit-launch-stack-list,
+.planning-audit-warning-list,
+.planning-audit-recommendation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.planning-audit-layer-item,
+.planning-audit-hard-rule-item,
+.planning-audit-launch-stack-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-left: 3px solid var(--rp-border-strong);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.planning-audit-layer-heading {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.planning-audit-layer-item strong,
+.planning-audit-hard-rule-item strong,
+.planning-audit-launch-stack-item strong,
+.planning-audit-warning-list strong,
+.planning-audit-recommendation-list strong {
+  color: var(--rp-text-primary);
+}
+
+.planning-audit-layer-item p,
+.planning-audit-hard-rule-item p,
+.planning-audit-launch-stack-item p {
+  color: var(--rp-text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.planning-audit-launch-stack-item span {
+  color: var(--rp-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.planning-audit-layer-item small {
+  color: var(--rp-text-muted);
+  text-transform: capitalize;
+}
+
+.planning-audit-status-badge,
+.planning-audit-missing-connection,
+.planning-audit-recommendation-list span,
+.planning-audit-warning-list span {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.planning-audit-status-badge {
+  text-transform: capitalize;
+}
+
+.planning-audit-missing-connection {
+  background: var(--rp-surface-3);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-muted);
+}
+
+.planning-audit-connected {
+  border-left-color: var(--rp-success);
+}
+
+.planning-audit-partial,
+.planning-audit-missing {
+  border-left-color: var(--rp-brand-blue);
+}
+
+.planning-audit-warning {
+  border-left-color: var(--rp-warning);
+}
+
+.planning-audit-blocking {
+  border-left-color: var(--rp-danger);
+}
+
+.planning-audit-status-badge.planning-audit-connected {
+  border-color: var(--rp-success);
+  color: var(--rp-success);
+}
+
+.planning-audit-status-badge.planning-audit-partial,
+.planning-audit-status-badge.planning-audit-missing {
+  border-color: var(--rp-brand-blue);
+  color: var(--rp-brand-blue);
+}
+
+.planning-audit-status-badge.planning-audit-warning {
+  border-color: var(--rp-warning);
+  color: var(--rp-warning);
+}
+
+.planning-audit-status-badge.planning-audit-blocking {
+  border-color: var(--rp-danger);
+  color: var(--rp-danger);
+}
+
+.supabase-schema-plan-card {
+  gap: 16px;
+}
+
+.schema-plan-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.schema-plan-summary-grid span,
+.schema-planning-only-note,
+.schema-no-migration-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.schema-plan-summary-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.schema-group-list,
+.schema-table-list,
+.schema-jsonb-field-list,
+.schema-rls-policy-list,
+.schema-storage-bucket-list,
+.schema-column-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.schema-group-section,
+.schema-table-item,
+.schema-storage-bucket-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.schema-group-section h4,
+.schema-table-item strong,
+.schema-storage-bucket-item strong {
+  color: var(--rp-text-primary);
+  margin: 0;
+}
+
+.schema-table-item p,
+.schema-storage-bucket-item p,
+.schema-table-item small,
+.schema-storage-bucket-item small,
+.schema-planning-only-note,
+.schema-no-migration-note {
+  color: var(--rp-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.schema-table-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.schema-table-meta span,
+.schema-jsonb-field-list span,
+.schema-rls-policy-list span,
+.schema-column-summary span,
+.schema-readiness-badge {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.schema-readiness-badge {
+  text-transform: capitalize;
+}
+
+.schema-readiness-planned {
+  border-color: var(--rp-brand-blue);
+  color: var(--rp-brand-blue);
+}
+
+.schema-readiness-needs_review {
+  border-color: var(--rp-warning);
+  color: var(--rp-warning);
+}
+
+.schema-readiness-ready_for_migration {
+  border-color: var(--rp-success);
+  color: var(--rp-success);
+}
+
+.schema-readiness-blocked {
+  border-color: var(--rp-danger);
+  color: var(--rp-danger);
+}
+
+.migration-draft-plan-card {
+  gap: 16px;
+}
+
+.migration-draft-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.migration-draft-summary-grid span,
+.migration-draft-no-supabase-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  line-height: 1.45;
+  padding: 10px;
+}
+
+.migration-draft-summary-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.migration-draft-file-list,
+.migration-draft-warning-list,
+.migration-draft-next-steps,
+.migration-draft-table-list,
+.migration-draft-checklist {
+  display: grid;
+  gap: 10px;
+}
+
+.migration-draft-file-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-left: 3px solid var(--rp-warning);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.migration-draft-file-item p,
+.migration-draft-file-item small,
+.migration-draft-warning-list,
+.migration-draft-next-steps,
+.migration-draft-checklist,
+.migration-draft-no-supabase-note {
+  color: var(--rp-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.migration-draft-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.migration-draft-meta strong {
+  color: var(--rp-text-primary);
+}
+
+.migration-draft-table-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.migration-draft-table-list span,
+.migration-draft-status-badge,
+.migration-draft-do-not-run-badge {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.25;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.migration-draft-status-badge {
+  border-color: var(--rp-warning);
+  color: var(--rp-warning);
+}
+
+.migration-draft-do-not-run-badge {
+  border-color: var(--rp-danger);
+  color: var(--rp-danger);
+}
+
+.migration-review-card {
+  gap: 16px;
+}
+
+.migration-review-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.migration-review-summary-grid span,
+.migration-review-no-sql-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  line-height: 1.45;
+  padding: 10px;
+}
+
+.migration-review-summary-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.migration-review-check-list,
+.rls-table-access-list,
+.migration-review-next-steps {
+  display: grid;
+  gap: 10px;
+}
+
+.migration-review-check-item,
+.rls-table-access-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-left: 3px solid var(--rp-border-strong);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.migration-review-check-item > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.migration-review-check-item strong,
+.rls-table-access-item strong {
+  color: var(--rp-text-primary);
+}
+
+.migration-review-check-item p,
+.migration-review-check-item small,
+.rls-table-access-item small,
+.migration-review-no-sql-note,
+.migration-review-next-steps {
+  color: var(--rp-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.migration-review-blocking,
+.migration-review-error {
+  border-left-color: var(--rp-danger);
+}
+
+.migration-review-warning {
+  border-left-color: var(--rp-warning);
+}
+
+.migration-review-info,
+.migration-review-passed {
+  border-left-color: var(--rp-success);
+}
+
+.rls-access-decision-badge,
+.rls-sensitivity-badge,
+.rls-review-status-badge,
+.rls-immutable-badge,
+.rls-append-only-badge {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.25;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.rls-sensitivity-badge {
+  border-color: var(--rp-brand-violet);
+  color: var(--rp-brand-violet);
+  text-transform: capitalize;
+}
+
+.rls-review-status-badge {
+  border-color: var(--rp-warning);
+  color: var(--rp-warning);
+  text-transform: capitalize;
+}
+
+.rls-immutable-badge {
+  border-color: var(--rp-danger);
+  color: var(--rp-danger);
+}
+
+.rls-append-only-badge {
+  border-color: var(--rp-success);
+  color: var(--rp-success);
+}
+
+.supabase-production-readiness-card {
+  gap: 16px;
+}
+
+.supabase-readiness-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.supabase-readiness-summary-grid span,
+.supabase-no-sql-note,
+.supabase-local-testing-required-badge,
+.supabase-production-blocked-badge {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  line-height: 1.45;
+  padding: 10px;
+}
+
+.supabase-readiness-summary-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.supabase-readiness-check-list,
+.supabase-migration-file-list,
+.supabase-test-file-list,
+.supabase-local-steps,
+.supabase-staging-steps,
+.supabase-production-blocker-list {
+  display: grid;
+  gap: 10px;
+}
+
+.supabase-readiness-check-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-left: 3px solid var(--rp-border-strong);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.supabase-readiness-check-item > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.supabase-readiness-check-item strong {
+  color: var(--rp-text-primary);
+}
+
+.supabase-readiness-check-item p,
+.supabase-readiness-check-item small,
+.supabase-no-sql-note,
+.supabase-local-steps,
+.supabase-staging-steps,
+.supabase-production-blocker-list,
+.supabase-local-testing-required-badge,
+.supabase-production-blocked-badge {
+  color: var(--rp-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.supabase-readiness-blocking,
+.supabase-readiness-error {
+  border-left-color: var(--rp-danger);
+}
+
+.supabase-readiness-warning {
+  border-left-color: var(--rp-warning);
+}
+
+.supabase-readiness-info {
+  border-left-color: var(--rp-success);
+}
+
+.supabase-migration-file-list span,
+.supabase-test-file-list span,
+.supabase-readiness-status-badge,
+.supabase-local-testing-required-badge,
+.supabase-production-blocked-badge {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.3;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.supabase-readiness-status-badge,
+.supabase-local-testing-required-badge {
+  border-color: var(--rp-warning);
+  color: var(--rp-warning);
+}
+
+.supabase-production-blocked-badge {
+  border-color: var(--rp-danger);
+  color: var(--rp-danger);
+}
+
+.launch-tool-stack-card {
+  border-color: var(--rp-border-strong);
+  gap: 16px;
+}
+
+.launch-tool-stack-summary,
+.launch-tool-stack-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.launch-tool-stack-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.launch-tool-stack-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.launch-tool-stack-item h4 {
+  color: var(--rp-text-primary);
+  font-size: 0.98rem;
+  margin: 4px 0;
+}
+
+.launch-tool-stack-item p,
+.license-assumption-note {
+  color: var(--rp-text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.launch-tool-stack-role {
+  color: var(--rp-brand-cyan);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.launch-tool-stack-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.launch-tool-stack-summary span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px;
+}
+
+.launch-tool-stack-summary strong {
+  color: var(--rp-text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.launch-tool-status-badge,
+.tool-replaced-badge,
+.tool-not-selected-badge,
+.tool-review-needed-badge,
+.tool-approved-candidate-badge,
+.tool-worker-only-badge {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.25;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.tool-worker-only-badge {
+  background: color-mix(in srgb, var(--rp-brand-cyan) 14%, var(--rp-surface-2));
+  border-color: color-mix(in srgb, var(--rp-brand-cyan) 32%, var(--rp-border-subtle));
+}
+
+.tool-approved-candidate-badge {
+  background: color-mix(in srgb, var(--rp-success) 12%, var(--rp-surface-2));
+  border-color: color-mix(in srgb, var(--rp-success) 35%, var(--rp-border-subtle));
+}
+
+.tool-review-needed-badge {
+  background: color-mix(in srgb, var(--rp-warning) 12%, var(--rp-surface-2));
+  border-color: color-mix(in srgb, var(--rp-warning) 35%, var(--rp-border-subtle));
+}
+
+.tool-not-selected-badge {
+  background: color-mix(in srgb, var(--rp-danger) 9%, var(--rp-surface-2));
+  border-color: color-mix(in srgb, var(--rp-danger) 28%, var(--rp-border-subtle));
+}
+
+.tool-replaced-badge {
+  background: color-mix(in srgb, var(--rp-brand-violet) 12%, var(--rp-surface-2));
+  border-color: color-mix(in srgb, var(--rp-brand-violet) 30%, var(--rp-border-subtle));
+}
+
+.license-assumption-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
 .planner-regression-card {
   gap: 16px;
 }
@@ -6971,7 +7685,14 @@ li {
   .inline-choice-grid,
   .reference-dna-grid,
   .chat-plan-grid,
-  .professional-direction-grid {
+  .professional-direction-grid,
+  .schema-plan-summary-grid,
+  .migration-draft-summary-grid,
+  .migration-review-summary-grid,
+  .supabase-readiness-summary-grid,
+  .launch-tool-stack-grid,
+  .launch-tool-stack-summary,
+  .planning-audit-summary-grid {
     grid-template-columns: 1fr;
   }
 
@@ -7098,6 +7819,9 @@ li {
   .qa-summary-grid,
   .prompt-plan-meta,
   .regression-summary-grid,
+  .planning-audit-summary-grid,
+  .migration-draft-summary-grid,
+  .migration-review-summary-grid,
   .regression-scenario-item,
   .planning-phase-list,
   .planning-phase-item {

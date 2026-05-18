@@ -180,7 +180,7 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
           <span><strong>Tier notes</strong>{audioPipelinePlan.tierNotes.join(' ')}</span>
           <span><strong>Limitations</strong>{audioPipelinePlan.limitations.join(' ')}</span>
         </div>
-        <p className="audio-tool-note">FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp are future-worker planning responsibilities only. No tools execute in this demo.</p>
+        <p className="audio-tool-note">FFmpeg LGPL Configuration, AudioFlux, Signalsmith Stretch, librosa, whisper.cpp, and any future/evaluation Essentia or Rubber Band references are worker-planning responsibilities only. No tools execute in this demo.</p>
       </details>
     </InlinePlanCardShell>
   )

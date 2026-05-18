@@ -28,11 +28,16 @@ import { createEditQAPlan } from './edit-qa-planner'
 import { getDefaultFrameTemplateForAspectRatio, getFrameLayoutTemplate } from './frame-layouts'
 import { compileEditingIntent } from './intent-compiler'
 import { createMapAnimationPlan } from './map-animation-planner'
+import { createPlanningSystemAuditReport } from './planning-system-audit'
 import { buildProviderPromptPlansForEditPlan } from './prompt-builders'
 import { createRendererCompositionPlan } from './remotion-renderer-planner'
 import { createRenderStrategyPlan } from './render-strategy-planner'
 import { createSpeakerVisualLayoutPlan } from './speaker-visual-layout-planner'
 import { createAdaptiveEditStrategyPlan } from './adaptive-edit-strategy'
+import { createMigrationReviewPlan } from './migration-review-plan'
+import { createSupabaseSchemaPlan } from './supabase-schema-plan'
+import { createMigrationDraftPlan } from './supabase-migration-drafts'
+import { createSupabaseProductionReadinessPlan } from './supabase-production-readiness'
 import { getToolRegistrySummary } from './tool-registry'
 import { createToolStrategyPlan } from './tool-strategy-planner'
 import {
@@ -621,7 +626,7 @@ function attachAudioPipelineToSegments(segmentEditPlans: SegmentEditPlan[], audi
       workerNotes: [
         ...segment.workerNotes,
         `Audio pipeline operations linked: ${audioOperationIds.slice(0, 5).join(', ')}.`,
-        'Future audio workers must use the approved snapshot; no FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp processing runs in the frontend mock.',
+        'Future audio workers must use the approved snapshot; no FFmpeg/AudioFlux/Signalsmith Stretch/Essentia/librosa/Rubber Band/whisper.cpp processing runs in the frontend mock.',
       ],
     }
   })
@@ -1133,7 +1138,11 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
         : `${profile.label} gives workflow context, but the edit plan chooses the hook based on goal, platform, and footage.`,
   } satisfies EditPlan['hookDecision']
 
-  return {
+  const supabaseSchemaPlan = createSupabaseSchemaPlan()
+  const migrationDraftPlan = createMigrationDraftPlan()
+  const migrationReviewPlan = createMigrationReviewPlan({ migrationDraftPlan, supabaseSchemaPlan })
+  const supabaseProductionReadinessPlan = createSupabaseProductionReadinessPlan()
+  const basePlan: EditPlan = {
     goalSummary: compiledIntent.goalSummary,
     sourceSequenceMap,
     sourceSequenceReview: createSourceSequenceReviewState({
@@ -1185,6 +1194,10 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     editQAPlan,
     providerPromptPlans,
     professionalEditingDirective,
+    supabaseSchemaPlan,
+    migrationDraftPlan,
+    migrationReviewPlan,
+    supabaseProductionReadinessPlan,
     soundSyncDirection:
       effectiveInput.editLevel === 'basic'
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
@@ -1192,5 +1205,10 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     captionDirection: 'Use readable captions that avoid faces, important objects, and Real Motion placement zones.',
     creditEstimate: createCreditEstimate(analysisInput, { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, dataVizPlan, depthAwareOverlayPlan, mapAnimationPlan, renderStrategyPlan, rendererCompositionPlan, speakerVisualLayoutPlan, toolStrategyPlan, visualAssetPlan: visualAssetPlanWithRenderStrategy }),
     approvalRequired: true,
+  }
+
+  return {
+    ...basePlan,
+    planningSystemAuditReport: createPlanningSystemAuditReport(basePlan),
   }
 }

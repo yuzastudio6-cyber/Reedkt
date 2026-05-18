@@ -4,7 +4,7 @@
 
 ReeditPro needs a professional audio pipeline so every edit, including Basic, has clean, understandable sound.
 
-The audio pipeline plans voice cleanup, voice leveling, loudness normalization, background noise handling, de-essing, EQ cleanup, compression, silence/dead-space cleanup, breath/filler handling, music beds, ducking, SFX cues, beat timing, transition sounds, emotional pacing, audio QA, and future FFmpeg/Essentia worker responsibilities.
+The audio pipeline plans voice cleanup, voice leveling, loudness normalization, background noise handling, de-essing, EQ cleanup, compression, silence/dead-space cleanup, breath/filler handling, music beds, ducking, SFX cues, beat timing, transition sounds, emotional pacing, audio QA, and future FFmpeg LGPL Configuration / AudioFlux / Signalsmith Stretch worker responsibilities.
 
 ## Basic Is Still Professional
 
@@ -18,7 +18,7 @@ Pro includes Basic plus better music and SoundSync planning, stronger ducking, t
 
 ## Premium Audio Behavior
 
-Premium includes Pro plus deeper SoundSync planning, beat/onset-aware timing notes, more detailed music/SFX placement, emotional pacing, advanced ducking planning, scene-by-scene audio notes, stronger QA/fallback, and future Essentia/librosa/Rubber Band planning where useful.
+Premium includes Pro plus deeper SoundSync planning, beat/onset-aware timing notes, more detailed music/SFX placement, emotional pacing, advanced ducking planning, scene-by-scene audio notes, stronger QA/fallback, and future AudioFlux / Signalsmith Stretch planning where useful.
 
 ## Sound Styles
 
@@ -35,11 +35,13 @@ Premium includes Pro plus deeper SoundSync planning, beat/onset-aware timing not
 
 ## Tool Responsibilities
 
-- FFmpeg future worker: loudness normalization, trim/silence removal, audio filters, simple EQ/compression planning, mux/export audio/video.
-- Essentia future worker: BPM/beat detection, onset detection, energy/mood features, music/beat timing support, SoundSync cue planning.
-- librosa future/prototype: deeper audio feature prototyping and music information retrieval experiments.
-- Rubber Band future/evaluate: tempo/pitch stretch and music bed duration matching; license review required before production.
-- whisper.cpp future/prototype: local transcription/timing experiments, not launch default unless later approved.
+- FFmpeg LGPL Configuration future worker: loudness normalization, trim/silence cleanup, audio filters, simple EQ/compression planning, mux/export audio/video. GPL/nonfree flags remain blocked until review.
+- AudioFlux future worker: onset/rhythm/audio feature analysis, BPM/beat/drop support, energy curves, and SoundSync cue analysis; accuracy benchmarks are required before production use.
+- Signalsmith Stretch future worker: time-stretch, pitch adjustment, and music bed duration matching for moderate stretch ratios; audio quality benchmarks are required before production use.
+- librosa future/prototype: deeper audio feature prototyping and music information retrieval experiments, not a launch default.
+- whisper.cpp future/prototype: local transcription/timing experiments, not a launch default unless later approved.
+- Essentia future/evaluation only: not selected for launch; replaced by AudioFlux for launch SoundSync analysis planning.
+- Rubber Band future/evaluation only: not selected for launch; replaced by Signalsmith Stretch for launch stretch/pitch planning.
 - Remotion: visual timeline placement, preview alignment, and captions/visuals timed to the audio plan; not the full audio processing engine.
 
 ## SoundSync And Visual Timing
@@ -58,4 +60,4 @@ QA should check voice clarity, loudness consistency, music not overpowering voic
 
 ## Non-Goals
 
-This document does not implement real FFmpeg, Essentia, librosa, Rubber Band, whisper.cpp, audio processing, music generation, SFX generation, transcription, rendering, or export.
+This document does not implement real FFmpeg, AudioFlux, Signalsmith Stretch, Essentia, librosa, Rubber Band, whisper.cpp, audio processing, music generation, SFX generation, transcription, rendering, or export.

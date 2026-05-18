@@ -12,13 +12,14 @@ const keyLaunchToolIds: OpenSourceToolId[] = [
   'remotion',
   'ffmpeg',
   'sharp',
+  'audioflux',
+  'signalsmith_stretch',
   'maplibre',
   'turf',
   'd3',
   'echarts',
   'playwright',
   'opencv',
-  'essentia',
 ]
 
 const keyPresetIds = [

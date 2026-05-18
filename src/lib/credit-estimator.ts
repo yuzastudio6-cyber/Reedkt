@@ -397,8 +397,10 @@ function audioPipelinePlanningCredits(input: PlannerInput, audioPipelinePlan?: A
 
   const cueCount = audioPipelinePlan.soundSyncCues.length
   const futureToolCount = audioPipelinePlan.toolsPlanned.filter((tool) =>
+    tool === 'audioflux' ||
     tool === 'essentia' ||
     tool === 'librosa' ||
+    tool === 'signalsmith_stretch' ||
     tool === 'rubber_band' ||
     tool === 'whisper_cpp',
   ).length

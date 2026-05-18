@@ -44,9 +44,13 @@ import { InlineDocumentaryFactSafetyCard } from './InlineDocumentaryFactSafetyCa
 import { InlineEditLevelCard } from './InlineEditLevelCard'
 import { InlineEditPlanCard } from './InlineEditPlanCard'
 import { InlineFrameFormatCard } from './InlineFrameFormatCard'
+import { InlineLaunchToolStackCard } from './InlineLaunchToolStackCard'
 import { InlineMapAnimationPlanCard } from './InlineMapAnimationPlanCard'
+import { InlineMigrationDraftPlanCard } from './InlineMigrationDraftPlanCard'
+import { InlineMigrationReviewCard } from './InlineMigrationReviewCard'
 import { InlinePlanningContextCard } from './InlinePlanningContextCard'
 import { InlinePlanningProgressCard } from './InlinePlanningProgressCard'
+import { InlinePlanningSystemAuditCard } from './InlinePlanningSystemAuditCard'
 import { InlinePlanValidationCard } from './InlinePlanValidationCard'
 import { InlinePlannerRegressionCard } from './InlinePlannerRegressionCard'
 import { InlinePromptPreviewCard } from './InlinePromptPreviewCard'
@@ -59,6 +63,8 @@ import { InlineSpeakerVisualLayoutCard } from './InlineSpeakerVisualLayoutCard'
 import { InlineToolRegistryCard } from './InlineToolRegistryCard'
 import { InlineToolStrategyCard } from './InlineToolStrategyCard'
 import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
+import { InlineSupabaseProductionReadinessCard } from './InlineSupabaseProductionReadinessCard'
+import { InlineSupabaseSchemaPlanCard } from './InlineSupabaseSchemaPlanCard'
 import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
 import { InlineVisualAssetPlanCard } from './InlineVisualAssetPlanCard'
 import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
@@ -656,6 +662,24 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               )}
               {showCard('planner_regression') && (
                 <InlinePlannerRegressionCard descriptor={cardById.planner_regression} report={regressionReport} />
+              )}
+              {showCard('launch_tool_stack') && (
+                <InlineLaunchToolStackCard plan={plan} />
+              )}
+              {showCard('planning_system_audit') && (
+                <InlinePlanningSystemAuditCard plan={plan} />
+              )}
+              {showCard('supabase_schema_bridge') && (
+                <InlineSupabaseSchemaPlanCard plan={plan} />
+              )}
+              {showCard('migration_drafts') && (
+                <InlineMigrationDraftPlanCard plan={plan} />
+              )}
+              {showCard('migration_review_rls') && (
+                <InlineMigrationReviewCard plan={plan} />
+              )}
+              {showCard('supabase_production_readiness') && (
+                <InlineSupabaseProductionReadinessCard plan={plan} />
               )}
               <InlineCreditEstimateCard
                 approved={approved}

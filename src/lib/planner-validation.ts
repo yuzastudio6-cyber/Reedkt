@@ -11,6 +11,8 @@ import type {
   VisualAssetPlanItem,
 } from '../types/reeditpro'
 import { getDemoScenarioById } from './demo-scenarios'
+import { validateMigrationDraftPlan } from './migration-draft-validation'
+import { validateSupabaseSchemaPlan } from './schema-bridge-validation'
 import { getSpeakerVisualLayoutMode } from './speaker-visual-layouts'
 import { getToolRegistrySummary, openSourceToolProfiles } from './tool-registry'
 
@@ -46,6 +48,10 @@ export type PlanValidationCategory =
   | 'prompt_plans'
   | 'character_consistency'
   | 'fact_safety'
+  | 'planning_system_audit'
+  | 'migration_drafts'
+  | 'migration_review_rls'
+  | 'supabase_production_readiness'
   | 'demo_scenario'
   | 'approved_snapshot'
 
@@ -174,6 +180,180 @@ function planText(plan: EditPlan) {
   return JSON.stringify(plan).toLowerCase()
 }
 
+function planningAuditExists(plan: EditPlan) {
+  return Boolean(plan.planningSystemAuditReport)
+}
+
+function planningAuditHardRulesPass(plan: EditPlan) {
+  const checks = plan.planningSystemAuditReport?.hardRuleChecks ?? []
+  return checks.length > 0 && checks.every((check) => check.passed)
+}
+
+function planningAuditLaunchToolStackChecksPass(plan: EditPlan) {
+  const checks = plan.planningSystemAuditReport?.launchToolStackChecks ?? []
+  return checks.length > 0 && checks.every((check) => check.passed)
+}
+
+function planningAuditHasNoBlockingStatus(plan: EditPlan) {
+  return plan.planningSystemAuditReport?.overallStatus !== 'blocking'
+}
+
+function planningAuditMissingConnections(plan: EditPlan) {
+  return (plan.planningSystemAuditReport?.layers ?? []).flatMap((layer) => layer.missingConnections)
+}
+
+function planningAuditImpliesNoExecution(plan: EditPlan) {
+  const text = planText(plan)
+  const executionClaims = [
+    'backend executed',
+    'cloud worker executed',
+    'provider api called',
+    'tool was executed',
+    'ffmpeg executed',
+    'vapoursynth executed',
+    'audioflux executed',
+    'signalsmith stretch executed',
+    'sharp executed',
+    'remotion render executed',
+    'billing charged',
+    'credits deducted',
+    'supabase connected',
+  ]
+
+  return executionClaims.every((claim) => !text.includes(claim))
+}
+
+function productionReadinessRemainsNotLegalAdvice(plan: EditPlan) {
+  const text = planText(plan)
+
+  if (!text.includes('production readiness')) {
+    return true
+  }
+
+  return text.includes('not legal advice') || text.includes('not legal')
+}
+
+function schemaBridgeExists(plan: EditPlan) {
+  return Boolean(plan.supabaseSchemaPlan)
+}
+
+function schemaBridgeValidationPasses(plan: EditPlan, checkId: string) {
+  if (!plan.supabaseSchemaPlan) {
+    return false
+  }
+
+  return validateSupabaseSchemaPlan(plan.supabaseSchemaPlan, plan.migrationDraftPlan, plan.migrationReviewPlan).checks.some((check) => check.id === checkId && check.passed)
+}
+
+function schemaBridgeNoMigrationOrClientImplied(plan: EditPlan) {
+  const schemaPlan = plan.supabaseSchemaPlan
+  const text = [
+    ...(schemaPlan?.nonGoals ?? []),
+    ...(schemaPlan?.requiredReviews ?? []),
+  ].join(' ').toLowerCase()
+  const planLower = planText(plan)
+
+  return Boolean(schemaPlan) &&
+    text.includes('no real supabase migrations') &&
+    text.includes('no supabase client') &&
+    !planLower.includes('migration executed') &&
+    !planLower.includes('sql executed') &&
+    !planLower.includes('createclient(')
+}
+
+function migrationDraftPlanExists(plan: EditPlan) {
+  return Boolean(plan.migrationDraftPlan)
+}
+
+function migrationDraftValidationPasses(plan: EditPlan, checkId: string) {
+  if (!plan.migrationDraftPlan) {
+    return false
+  }
+
+  return validateMigrationDraftPlan(plan.migrationDraftPlan).checks.some((check) => check.id === checkId && check.passed)
+}
+
+function migrationDraftNoSupabaseClientOrSqlRun(plan: EditPlan) {
+  const draftPlan = plan.migrationDraftPlan
+  const planLower = planText(plan)
+
+  if (!draftPlan) {
+    return false
+  }
+
+  const warningText = draftPlan.warnings.join(' ').toLowerCase()
+
+  return (
+    warningText.includes('no sql has been run') &&
+    draftPlan.files.every((file) => file.mustNotRun && file.path.startsWith('database/migration-drafts/') && !file.path.startsWith('supabase/migrations/')) &&
+    !planLower.includes('supabase connected') &&
+    !planLower.includes('createclient(') &&
+    !planLower.includes('sql applied')
+  )
+}
+
+function migrationReviewPlanExists(plan: EditPlan) {
+  return Boolean(plan.migrationReviewPlan)
+}
+
+function migrationReviewCheckPasses(plan: EditPlan, checkId: string) {
+  return Boolean(plan.migrationReviewPlan?.checks.some((check) => check.id === checkId && check.passed))
+}
+
+function rlsHardeningCheckPasses(plan: EditPlan, checkId: string) {
+  return Boolean(plan.migrationReviewPlan?.rlsHardeningPlan.checks.some((check) => check.id === checkId && check.passed))
+}
+
+function migrationReviewNoExecutionImplied(plan: EditPlan) {
+  const reviewPlan = plan.migrationReviewPlan
+  const planLower = planText(plan)
+  const limitations = reviewPlan?.limitations.join(' ').toLowerCase() ?? ''
+
+  return Boolean(reviewPlan) &&
+    limitations.includes('no sql is run') &&
+    limitations.includes('no supabase client') &&
+    !planLower.includes('sql applied') &&
+    !planLower.includes('supabase connected') &&
+    !planLower.includes('createclient(')
+}
+
+function migrationReviewRemainsDraft(plan: EditPlan) {
+  return plan.migrationReviewPlan?.overallStatus === 'hardened_draft' &&
+    plan.migrationReviewPlan.rlsHardeningPlan.overallStatus !== 'ready_for_testing'
+}
+
+function supabaseProductionReadinessExists(plan: EditPlan) {
+  return Boolean(plan.supabaseProductionReadinessPlan)
+}
+
+function supabaseProductionReadinessCheckPasses(plan: EditPlan, checkId: string) {
+  return Boolean(plan.supabaseProductionReadinessPlan?.checks.some((check) => check.id === checkId && check.passed))
+}
+
+function supabaseProductionReadinessStatusSafe(plan: EditPlan) {
+  const status = plan.supabaseProductionReadinessPlan?.status
+
+  return status === 'migration_files_ready' || status === 'local_testing_required'
+}
+
+function supabaseProductionReadinessHasBlockers(plan: EditPlan) {
+  return Boolean(plan.supabaseProductionReadinessPlan?.productionBlockers.length)
+}
+
+function supabaseProductionReadinessNoExecution(plan: EditPlan) {
+  const readinessPlan = plan.supabaseProductionReadinessPlan
+  const limitations = readinessPlan?.limitations.join(' ').toLowerCase() ?? ''
+
+  return Boolean(
+    readinessPlan &&
+    limitations.includes('did not run sql') &&
+    limitations.includes('did not connect supabase') &&
+    limitations.includes('no supabase client') &&
+    supabaseProductionReadinessCheckPasses(plan, 'supabase-readiness-no-sql-run') &&
+    supabaseProductionReadinessCheckPasses(plan, 'supabase-readiness-no-supabase-connection'),
+  )
+}
+
 function videoUnderstandingExists(plan: EditPlan) {
   return Boolean(plan.videoUnderstandingReport)
 }
@@ -294,6 +474,27 @@ function toolRegistrySummaryExists(plan: EditPlan) {
 
 function toolRegistryHasLaunchCoreCoverage(plan: EditPlan) {
   return (plan.toolRegistrySummary?.launchCoreToolCount ?? 0) >= 8
+}
+
+function toolRegistryHasUpdatedLaunchStack() {
+  const tool = (id: string) => openSourceToolProfiles.find((profile) => profile.id === id)
+  const audioFlux = tool('audioflux')
+  const signalsmith = tool('signalsmith_stretch')
+  const ffmpeg = tool('ffmpeg')
+  const sharp = tool('sharp')
+  const vapoursynth = tool('vapoursynth')
+  const essentia = tool('essentia')
+  const rubberBand = tool('rubber_band')
+
+  return Boolean(
+    audioFlux?.adoptionStage === 'launch_core' &&
+    signalsmith?.adoptionStage === 'launch_core' &&
+    ffmpeg?.label.toLowerCase().includes('lgpl') &&
+    sharp?.label.toLowerCase().includes('libvips') &&
+    vapoursynth?.productionNotes.join(' ').toLowerCase().includes('plugin') &&
+    essentia?.productionNotes.join(' ').toLowerCase().includes('replaced by audioflux') &&
+    rubberBand?.productionNotes.join(' ').toLowerCase().includes('replaced by signalsmith'),
+  )
 }
 
 function toolRegistryCountsLicenseReview(plan: EditPlan) {
@@ -567,6 +768,29 @@ function toolStrategyDoesNotBypassApproval(plan: EditPlan) {
   return text.includes('approval') && !text.includes('bypass approval')
 }
 
+function toolStrategyUsesLaunchAudioTools(plan: EditPlan) {
+  const audioItems = (plan.toolStrategyPlan?.items ?? []).filter((item) => item.chainId === 'audio_pipeline_chain')
+
+  return audioItems.every((item) => {
+    const selected = item.selectedToolIds
+    const onlyVoiceCleanup = selected.length === 1 && selected.includes('ffmpeg')
+
+    return !selected.includes('essentia') &&
+      !selected.includes('rubber_band') &&
+      (onlyVoiceCleanup || selected.includes('audioflux'))
+  })
+}
+
+function toolStrategySignalsmithOnlyForStretch(plan: EditPlan) {
+  const items = plan.toolStrategyPlan?.items ?? []
+  const signalsmithItems = items.filter((item) => item.selectedToolIds.includes('signalsmith_stretch'))
+
+  return signalsmithItems.every((item) =>
+    `${item.reason} ${item.userFacingSummary} ${item.settingsSummary}`.toLowerCase().includes('stretch') ||
+    `${item.reason} ${item.userFacingSummary} ${item.settingsSummary}`.toLowerCase().includes('pitch'),
+  )
+}
+
 function colorPipelinePlanExists(plan: EditPlan) {
   return Boolean(plan.colorPipelinePlan)
 }
@@ -744,17 +968,44 @@ function audioPipelineSoundSyncNotVisualSignature(plan: EditPlan) {
   return !text.includes('visual signature system') || text.includes('not a visual signature system')
 }
 
-function audioPipelineRubberBandFlagged(plan: EditPlan) {
-  if (!plan.audioPipelinePlan?.toolsPlanned.includes('rubber_band')) {
+function audioPipelineUsesLaunchAnalysisTool(plan: EditPlan) {
+  const audioPlan = plan.audioPipelinePlan
+
+  if (!audioPlan || audioPlan.beatSyncPlan.strategy === 'none') {
     return true
   }
 
-  const text = [
-    ...(plan.audioPipelinePlan.limitations ?? []),
-    ...(plan.audioPipelinePlan.projectOperations.flatMap((operation) => operation.workerNotes) ?? []),
-  ].join(' ').toLowerCase()
+  if (audioPlan.toolsPlanned.includes('essentia')) {
+    return false
+  }
 
-  return text.includes('license') && (text.includes('future') || text.includes('evaluate'))
+  return audioPlan.toolsPlanned.includes('audioflux')
+}
+
+function audioPipelineUsesLaunchStretchTool(plan: EditPlan) {
+  const audioPlan = plan.audioPipelinePlan
+
+  if (!audioPlan) {
+    return true
+  }
+
+  const stretchOps = audioPlan.projectOperations.some((operation) =>
+    operation.operation === 'tempo_adjustment' || operation.operation === 'pitch_adjustment',
+  )
+
+  if (audioPlan.toolsPlanned.includes('rubber_band')) {
+    return false
+  }
+
+  return !stretchOps || audioPlan.toolsPlanned.includes('signalsmith_stretch')
+}
+
+function audioPipelineFfmpegLgplSafe(plan: EditPlan) {
+  const text = JSON.stringify(plan.audioPipelinePlan ?? {}).toLowerCase()
+  return !text.includes('enablegpl') &&
+    !text.includes('enable gpl') &&
+    !text.includes('nonfree') &&
+    !text.includes('gpl/nonfree')
 }
 
 function mapSignalExists(plan: EditPlan, input: PlannerInput) {
@@ -1682,8 +1933,17 @@ export function validateMockEditPlan(params: {
       label: 'Launch-core tool coverage',
       severity: 'warning',
       passed: toolRegistryHasLaunchCoreCoverage(plan),
-      message: 'Tool registry should include launch-core planning tools such as Remotion, FFmpeg, Sharp, MapLibre, Turf, D3, ECharts, Playwright, OpenCV, and Essentia.',
+      message: 'Tool registry should include launch-core planning tools such as Remotion, FFmpeg LGPL Configuration, Sharp + libvips, MapLibre, Turf, D3, ECharts, Playwright, OpenCV, AudioFlux, and Signalsmith Stretch.',
       relatedField: 'toolRegistrySummary.launchCoreToolCount',
+    }),
+    check({
+      id: 'validation-tool-registry-launch-stack-update',
+      category: 'tool_registry',
+      label: 'Updated launch tool stack',
+      severity: 'warning',
+      passed: toolRegistryHasUpdatedLaunchStack(),
+      message: 'Launch stack should use AudioFlux and Signalsmith Stretch while marking Essentia/Rubber Band as not selected for launch.',
+      relatedField: 'openSourceToolProfiles',
     }),
     check({
       id: 'validation-tool-registry-license-review',
@@ -1826,7 +2086,7 @@ export function validateMockEditPlan(params: {
       label: 'Render strategy does not default to 1080P',
       severity: 'blocking',
       passed: renderStrategyHasNo1080pSettings(plan),
-      message: 'Render strategy settings should not introduce a 1080P default.',
+      message: 'Render strategy settings should not make 1080P the generated-video route.',
       relatedField: 'renderStrategyPlan.items.settings',
     }),
     check({
@@ -1927,6 +2187,24 @@ export function validateMockEditPlan(params: {
       passed: toolStrategyDoesNotBypassApproval(plan),
       message: 'Tool strategy must not bypass edit-plan or credit approval.',
       relatedField: 'toolStrategyPlan.globalRules',
+    }),
+    check({
+      id: 'validation-tool-strategy-launch-audio-tools',
+      category: 'tool_strategy',
+      label: 'Launch audio tools selected',
+      severity: 'warning',
+      passed: toolStrategyUsesLaunchAudioTools(plan),
+      message: 'Audio tool strategy should use AudioFlux for launch SoundSync analysis and avoid Essentia/Rubber Band as defaults.',
+      relatedField: 'toolStrategyPlan.items.selectedToolIds',
+    }),
+    check({
+      id: 'validation-tool-strategy-signalsmith-scope',
+      category: 'tool_strategy',
+      label: 'Signalsmith scoped to stretch/pitch',
+      severity: 'warning',
+      passed: toolStrategySignalsmithOnlyForStretch(plan),
+      message: 'Signalsmith Stretch should appear only when music time-stretch or pitch adjustment is planned.',
+      relatedField: 'toolStrategyPlan.items',
     }),
     check({
       id: 'validation-color-pipeline-plan',
@@ -2060,7 +2338,7 @@ export function validateMockEditPlan(params: {
       label: 'Audio pipeline stays planning-only',
       severity: 'blocking',
       passed: audioPipelineToolsArePlanningOnly(plan),
-      message: 'Audio planning must not imply real FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp execution or media processing.',
+      message: 'Audio planning must not imply real FFmpeg/AudioFlux/Signalsmith Stretch/Essentia/librosa/Rubber Band/whisper.cpp execution or media processing.',
       relatedField: 'audioPipelinePlan.limitations',
     }),
     check({
@@ -2091,13 +2369,31 @@ export function validateMockEditPlan(params: {
       relatedField: 'audioPipelinePlan.limitations',
     }),
     check({
-      id: 'validation-audio-pipeline-rubber-band-license',
+      id: 'validation-audio-pipeline-audioflux-launch',
       category: 'audio_pipeline',
-      label: 'Rubber Band license/future flag',
+      label: 'AudioFlux launch analysis tool',
       severity: 'warning',
-      passed: audioPipelineRubberBandFlagged(plan),
-      message: 'Rubber Band must be marked future/evaluate and license-review when referenced.',
+      passed: audioPipelineUsesLaunchAnalysisTool(plan),
+      message: 'SoundSync beat/onset/rhythm planning should use AudioFlux instead of Essentia as the launch analysis candidate.',
       relatedField: 'audioPipelinePlan.toolsPlanned',
+    }),
+    check({
+      id: 'validation-audio-pipeline-signalsmith-launch',
+      category: 'audio_pipeline',
+      label: 'Signalsmith launch stretch/pitch tool',
+      severity: 'warning',
+      passed: audioPipelineUsesLaunchStretchTool(plan),
+      message: 'Tempo or pitch adjustment planning should use Signalsmith Stretch instead of Rubber Band as the launch stretch candidate.',
+      relatedField: 'audioPipelinePlan.toolsPlanned',
+    }),
+    check({
+      id: 'validation-audio-pipeline-ffmpeg-lgpl',
+      category: 'audio_pipeline',
+      label: 'FFmpeg LGPL configuration boundary',
+      severity: 'warning',
+      passed: audioPipelineFfmpegLgplSafe(plan),
+      message: 'Audio planning should not imply GPL/nonfree FFmpeg configuration before legal/build review.',
+      relatedField: 'audioPipelinePlan.limitations',
     }),
     check({
       id: 'validation-map-animation-expected',
@@ -2168,7 +2464,7 @@ export function validateMockEditPlan(params: {
       label: 'Map plan does not use AI video/Veo',
       severity: 'blocking',
       passed: mapAnimationNoAiVideoOrVeo(plan),
-      message: 'Map planning must not route exact maps to AI video, enable Veo, or introduce 1080P defaults.',
+      message: 'Map planning must not route exact maps to AI video, enable Veo, or make 1080P the generated-video route.',
       relatedField: 'mapAnimationPlan.globalRules',
     }),
     check({
@@ -2240,7 +2536,7 @@ export function validateMockEditPlan(params: {
       label: 'Dataviz plan does not use AI video/Veo',
       severity: 'blocking',
       passed: dataVizNoAiVideoOrVeo(plan),
-      message: 'Dataviz planning must not route exact charts/diagrams to AI video, enable Veo, or introduce 1080P defaults.',
+      message: 'Dataviz planning must not route exact charts/diagrams to AI video, enable Veo, or make 1080P the generated-video route.',
       relatedField: 'dataVizPlan.globalRules',
     }),
     check({
@@ -2350,6 +2646,367 @@ export function validateMockEditPlan(params: {
       passed: checkExists(plan.editQAPlan),
       message: 'QA should check intent, tier rules, frame rules, source order, and professional standards.',
       relatedField: 'editQAPlan',
+    }),
+    check({
+      id: 'validation-planning-system-audit-exists',
+      category: 'planning_system_audit',
+      label: 'Planning system audit exists',
+      severity: 'error',
+      passed: planningAuditExists(plan),
+      message: 'Mock edit plans should include a connected planning system audit report.',
+      relatedField: 'planningSystemAuditReport',
+    }),
+    check({
+      id: 'validation-planning-system-audit-not-blocking',
+      category: 'planning_system_audit',
+      label: 'Planning system audit is not blocking',
+      severity: 'blocking',
+      passed: planningAuditExists(plan) && planningAuditHasNoBlockingStatus(plan),
+      message: 'The audit report should not find blocking product-rule failures.',
+      relatedField: 'planningSystemAuditReport.overallStatus',
+    }),
+    check({
+      id: 'validation-planning-system-audit-hard-rules',
+      category: 'planning_system_audit',
+      label: 'Planning audit hard rules pass',
+      severity: 'blocking',
+      passed: planningAuditHardRulesPass(plan),
+      message: 'All audit hard-rule checks should pass before approval.',
+      relatedField: 'planningSystemAuditReport.hardRuleChecks',
+    }),
+    check({
+      id: 'validation-planning-system-audit-launch-stack',
+      category: 'planning_system_audit',
+      label: 'Planning audit launch stack checks pass',
+      severity: 'warning',
+      passed: planningAuditLaunchToolStackChecksPass(plan),
+      message: 'Launch stack checks should align AudioFlux, Signalsmith Stretch, FFmpeg LGPL Configuration, VapourSynth, Sharp + libvips, and non-default Essentia/Rubber Band policy.',
+      relatedField: 'planningSystemAuditReport.launchToolStackChecks',
+    }),
+    check({
+      id: 'validation-planning-system-audit-missing-connections',
+      category: 'planning_system_audit',
+      label: 'Planning audit missing connections are documented',
+      severity: 'warning',
+      passed: planningAuditExists(plan) && planningAuditMissingConnections(plan).length === 0,
+      message: 'Missing audit connections should remain warnings unless they violate hard model, approval, rendering, or source-order rules.',
+      relatedField: 'planningSystemAuditReport.layers.missingConnections',
+      recommendation: 'Use implementation-status-and-next-phase.md to decide which future phase should close these gaps.',
+    }),
+    check({
+      id: 'validation-planning-system-audit-legacy-warnings',
+      category: 'planning_system_audit',
+      label: 'No audit legacy warnings',
+      severity: 'warning',
+      passed: (plan.planningSystemAuditReport?.duplicateOrLegacyWarnings.length ?? 0) === 0,
+      message: 'Legacy or contradictory plan-object language should be cleaned when safe.',
+      relatedField: 'planningSystemAuditReport.duplicateOrLegacyWarnings',
+    }),
+    check({
+      id: 'validation-planning-system-audit-mock-only',
+      category: 'planning_system_audit',
+      label: 'Planning audit remains mock-only',
+      severity: 'blocking',
+      passed: planningAuditImpliesNoExecution(plan),
+      message: 'Planning audit data must not imply backend, provider, render, tool execution, billing, or Supabase work happened.',
+      relatedField: 'planningSystemAuditReport.limitations',
+    }),
+    check({
+      id: 'validation-planning-system-audit-not-legal-advice',
+      category: 'planning_system_audit',
+      label: 'Production readiness is not legal advice',
+      severity: 'warning',
+      passed: productionReadinessRemainsNotLegalAdvice(plan),
+      message: 'Production readiness and launch tool stack language should remain cautious planning guidance, not legal advice.',
+      relatedField: 'planningSystemAuditReport.limitations',
+    }),
+    check({
+      id: 'validation-supabase-schema-bridge-exists',
+      category: 'planning_system_audit',
+      label: 'Supabase schema bridge exists',
+      severity: 'warning',
+      passed: schemaBridgeExists(plan),
+      message: 'Mock edit plans should include a Supabase schema bridge for future migration planning.',
+      relatedField: 'supabaseSchemaPlan',
+    }),
+    check({
+      id: 'validation-supabase-approved-snapshot-table',
+      category: 'approved_snapshot',
+      label: 'Approved snapshot table planned',
+      severity: 'warning',
+      passed: schemaBridgeValidationPasses(plan, 'schema-approved-snapshots-table'),
+      message: 'Supabase bridge should plan approved_plan_snapshots for immutable worker execution contracts.',
+      relatedField: 'supabaseSchemaPlan.tables.approved_plan_snapshots',
+    }),
+    check({
+      id: 'validation-supabase-approved-snapshot-jsonb',
+      category: 'approved_snapshot',
+      label: 'Approved snapshot JSONB planned',
+      severity: 'warning',
+      passed: schemaBridgeValidationPasses(plan, 'schema-approved-snapshots-jsonb'),
+      message: 'approved_plan_snapshots.snapshot_json should be planned as JSONB.',
+      relatedField: 'supabaseSchemaPlan.tables.approved_plan_snapshots.snapshot_json',
+    }),
+    check({
+      id: 'validation-supabase-approved-snapshot-immutable',
+      category: 'approved_snapshot',
+      label: 'Approved snapshots immutable',
+      severity: 'warning',
+      passed: schemaBridgeValidationPasses(plan, 'schema-approved-snapshots-immutable'),
+      message: 'Approved snapshot immutability should be planned before migration work.',
+      relatedField: 'supabaseSchemaPlan.tables.approved_plan_snapshots.immutable',
+    }),
+    check({
+      id: 'validation-supabase-generation-request-snapshot-link',
+      category: 'approved_snapshot',
+      label: 'Generation requests link snapshots',
+      severity: 'warning',
+      passed: schemaBridgeValidationPasses(plan, 'schema-generation-request-snapshot-link'),
+      message: 'generation_requests should link to approved_plan_snapshot_id.',
+      relatedField: 'supabaseSchemaPlan.tables.generation_requests.approved_plan_snapshot_id',
+    }),
+    check({
+      id: 'validation-supabase-editing-job-snapshot-link',
+      category: 'approved_snapshot',
+      label: 'Editing jobs link snapshots',
+      severity: 'warning',
+      passed: schemaBridgeValidationPasses(plan, 'schema-editing-job-snapshot-link'),
+      message: 'editing_jobs should link to approved_plan_snapshot_id.',
+      relatedField: 'supabaseSchemaPlan.tables.editing_jobs.approved_plan_snapshot_id',
+    }),
+    check({
+      id: 'validation-supabase-private-storage',
+      category: 'planning_system_audit',
+      label: 'Supabase storage private by default',
+      severity: 'warning',
+      passed: schemaBridgeValidationPasses(plan, 'schema-storage-private-default'),
+      message: 'Schema bridge storage buckets should be private by default.',
+      relatedField: 'supabaseSchemaPlan.storageBuckets',
+    }),
+    check({
+      id: 'validation-supabase-rls-planned',
+      category: 'planning_system_audit',
+      label: 'Supabase RLS policies planned',
+      severity: 'warning',
+      passed: schemaBridgeValidationPasses(plan, 'schema-rls-policies-planned'),
+      message: 'Every MVP table should include RLS policy planning.',
+      relatedField: 'supabaseSchemaPlan.tables.rlsPolicies',
+    }),
+    check({
+      id: 'validation-supabase-no-migration-client',
+      category: 'planning_system_audit',
+      label: 'No Supabase migration or client implied',
+      severity: 'blocking',
+      passed: schemaBridgeNoMigrationOrClientImplied(plan),
+      message: 'Schema planning must not imply SQL execution, active Supabase migration creation, or Supabase client connection.',
+      relatedField: 'supabaseSchemaPlan.nonGoals',
+    }),
+    check({
+      id: 'validation-migration-draft-plan-exists',
+      category: 'migration_drafts',
+      label: 'SQL migration draft plan exists',
+      severity: 'warning',
+      passed: migrationDraftPlanExists(plan),
+      message: 'Mock edit plans should include the RP-DATA-02 review-only SQL migration draft registry.',
+      relatedField: 'migrationDraftPlan',
+    }),
+    check({
+      id: 'validation-migration-draft-do-not-run',
+      category: 'migration_drafts',
+      label: 'Draft files are must-not-run',
+      severity: 'blocking',
+      passed: migrationDraftValidationPasses(plan, 'migration-drafts-must-not-run'),
+      message: 'Every SQL draft registry entry must be marked mustNotRun.',
+      relatedField: 'migrationDraftPlan.files.mustNotRun',
+    }),
+    check({
+      id: 'validation-migration-draft-no-active-path',
+      category: 'migration_drafts',
+      label: 'No active Supabase migration path',
+      severity: 'blocking',
+      passed: migrationDraftValidationPasses(plan, 'migration-drafts-no-active-path') &&
+        migrationDraftValidationPasses(plan, 'migration-drafts-draft-folder-only'),
+      message: 'SQL drafts must stay under database/migration-drafts/ and never use supabase/migrations/.',
+      relatedField: 'migrationDraftPlan.files.path',
+    }),
+    check({
+      id: 'validation-migration-draft-extension',
+      category: 'migration_drafts',
+      label: 'Draft SQL extension used',
+      severity: 'warning',
+      passed: migrationDraftValidationPasses(plan, 'migration-drafts-extension'),
+      message: 'Every SQL draft should use the .draft.sql extension.',
+      relatedField: 'migrationDraftPlan.files.fileName',
+    }),
+    check({
+      id: 'validation-migration-draft-approved-snapshot',
+      category: 'approved_snapshot',
+      label: 'Approved snapshot SQL draft represented',
+      severity: 'warning',
+      passed: migrationDraftValidationPasses(plan, 'migration-drafts-approved-snapshot-covered'),
+      message: 'SQL migration drafts should cover approved_plan_snapshots.',
+      relatedField: 'migrationDraftPlan.files.tablesCovered',
+    }),
+    check({
+      id: 'validation-migration-draft-rls-storage',
+      category: 'migration_drafts',
+      label: 'RLS and storage drafts represented',
+      severity: 'warning',
+      passed: migrationDraftValidationPasses(plan, 'migration-drafts-rls-covered') &&
+        migrationDraftValidationPasses(plan, 'migration-drafts-storage-covered'),
+      message: 'SQL migration drafts should include RLS and storage bucket draft files.',
+      relatedField: 'migrationDraftPlan.files',
+    }),
+    check({
+      id: 'validation-migration-draft-no-execution',
+      category: 'migration_drafts',
+      label: 'No SQL or Supabase connection implied',
+      severity: 'blocking',
+      passed: migrationDraftNoSupabaseClientOrSqlRun(plan),
+      message: 'RP-DATA-02 must remain review-only with no SQL run, Supabase client, or Supabase connection implied.',
+      relatedField: 'migrationDraftPlan.warnings',
+    }),
+    check({
+      id: 'validation-migration-review-plan-exists',
+      category: 'migration_review_rls',
+      label: 'Migration review plan exists',
+      severity: 'warning',
+      passed: migrationReviewPlanExists(plan),
+      message: 'Mock edit plans should include the RP-DATA-03 migration review and RLS hardening plan.',
+      relatedField: 'migrationReviewPlan',
+    }),
+    check({
+      id: 'validation-migration-review-rls-hardening-exists',
+      category: 'migration_review_rls',
+      label: 'RLS hardening plan exists',
+      severity: 'warning',
+      passed: Boolean(plan.migrationReviewPlan?.rlsHardeningPlan),
+      message: 'Migration review should include a table-by-table RLS hardening plan.',
+      relatedField: 'migrationReviewPlan.rlsHardeningPlan',
+    }),
+    check({
+      id: 'validation-migration-review-approved-immutable',
+      category: 'approved_snapshot',
+      label: 'Approved snapshots immutable in RLS review',
+      severity: 'blocking',
+      passed: migrationReviewCheckPasses(plan, 'migration-review-approved-snapshot-immutability') &&
+        rlsHardeningCheckPasses(plan, 'rls-approved-snapshots-immutable'),
+      message: 'Approved snapshots should be immutable and user mutation denied in the migration review.',
+      relatedField: 'migrationReviewPlan.rlsHardeningPlan.tableAccessPlans.approved_plan_snapshots',
+    }),
+    check({
+      id: 'validation-migration-review-audit-append-only',
+      category: 'migration_review_rls',
+      label: 'Audit append-only in RLS review',
+      severity: 'blocking',
+      passed: migrationReviewCheckPasses(plan, 'migration-review-audit-append-only') &&
+        rlsHardeningCheckPasses(plan, 'rls-audit-append-only'),
+      message: 'Audit events should be append-only and not user-mutable.',
+      relatedField: 'migrationReviewPlan.rlsHardeningPlan.tableAccessPlans.audit_events',
+    }),
+    check({
+      id: 'validation-migration-review-job-steps-service-only',
+      category: 'migration_review_rls',
+      label: 'Job steps deny user writes',
+      severity: 'blocking',
+      passed: rlsHardeningCheckPasses(plan, 'rls-job-steps-no-user-mutation'),
+      message: 'Normal users must not directly insert or update job_steps.',
+      relatedField: 'migrationReviewPlan.rlsHardeningPlan.tableAccessPlans.job_steps',
+    }),
+    check({
+      id: 'validation-migration-review-worker-service-only',
+      category: 'migration_review_rls',
+      label: 'Generation and worker writes service-only',
+      severity: 'blocking',
+      passed: migrationReviewCheckPasses(plan, 'migration-review-worker-service-only') &&
+        rlsHardeningCheckPasses(plan, 'rls-worker-tables-service-only'),
+      message: 'Generation, worker, job, QA, and export writes should be backend/service-role controlled.',
+      relatedField: 'migrationReviewPlan.rlsHardeningPlan.checks',
+    }),
+    check({
+      id: 'validation-migration-review-private-artifacts',
+      category: 'migration_review_rls',
+      label: 'Private artifact planning exists',
+      severity: 'blocking',
+      passed: migrationReviewCheckPasses(plan, 'migration-review-source-media-private') &&
+        migrationReviewCheckPasses(plan, 'migration-review-browser-capture-private') &&
+        rlsHardeningCheckPasses(plan, 'rls-source-media-private'),
+      message: 'Source media, browser captures, generated assets, and QA artifacts should be private by default.',
+      relatedField: 'migrationReviewPlan.privacyRetentionNotes',
+    }),
+    check({
+      id: 'validation-migration-review-no-execution',
+      category: 'migration_review_rls',
+      label: 'Migration review implies no execution',
+      severity: 'blocking',
+      passed: migrationReviewNoExecutionImplied(plan),
+      message: 'RP-DATA-03 must not imply SQL execution, Supabase connection, active migrations, or backend implementation.',
+      relatedField: 'migrationReviewPlan.limitations',
+    }),
+    check({
+      id: 'validation-migration-review-not-ready-for-testing',
+      category: 'migration_review_rls',
+      label: 'RLS is not marked ready for testing',
+      severity: 'warning',
+      passed: migrationReviewRemainsDraft(plan),
+      message: 'RLS hardening should remain hardened_draft, not ready_for_testing, because Supabase RLS is not tested in this task.',
+      relatedField: 'migrationReviewPlan.overallStatus',
+    }),
+    check({
+      id: 'validation-supabase-production-readiness-exists',
+      category: 'supabase_production_readiness',
+      label: 'Supabase production-test readiness exists',
+      severity: 'warning',
+      passed: supabaseProductionReadinessExists(plan),
+      message: 'Mock edit plans should include the RP-DATA-04 Supabase production-test readiness report.',
+      relatedField: 'supabaseProductionReadinessPlan',
+    }),
+    check({
+      id: 'validation-supabase-production-readiness-status',
+      category: 'supabase_production_readiness',
+      label: 'Readiness remains local-testing required',
+      severity: 'blocking',
+      passed: supabaseProductionReadinessStatusSafe(plan),
+      message: 'Supabase readiness must not claim production-ready status before local/staging tests and approval.',
+      relatedField: 'supabaseProductionReadinessPlan.status',
+    }),
+    check({
+      id: 'validation-supabase-production-readiness-blockers',
+      category: 'supabase_production_readiness',
+      label: 'Production blockers are present',
+      severity: 'warning',
+      passed: supabaseProductionReadinessHasBlockers(plan),
+      message: 'Production blockers should remain listed until local/staging tests, advisor checks, backups, and approval are complete.',
+      relatedField: 'supabaseProductionReadinessPlan.productionBlockers',
+    }),
+    check({
+      id: 'validation-supabase-production-readiness-rls-storage',
+      category: 'supabase_production_readiness',
+      label: 'RLS and storage migrations listed',
+      severity: 'blocking',
+      passed: supabaseProductionReadinessCheckPasses(plan, 'supabase-readiness-rls-migration-listed') &&
+        supabaseProductionReadinessCheckPasses(plan, 'supabase-readiness-storage-migration-listed'),
+      message: 'Production-test readiness should include active RLS and storage migration files.',
+      relatedField: 'supabaseProductionReadinessPlan.activeMigrationFiles',
+    }),
+    check({
+      id: 'validation-supabase-production-readiness-manual-tests',
+      category: 'supabase_production_readiness',
+      label: 'Manual SQL smoke tests listed',
+      severity: 'warning',
+      passed: supabaseProductionReadinessCheckPasses(plan, 'supabase-readiness-manual-tests-listed') &&
+        (plan.supabaseProductionReadinessPlan?.manualTestFiles.length ?? 0) === 4,
+      message: 'Manual RLS, immutability, storage, and append-only SQL smoke-test files should be listed.',
+      relatedField: 'supabaseProductionReadinessPlan.manualTestFiles',
+    }),
+    check({
+      id: 'validation-supabase-production-readiness-no-execution',
+      category: 'supabase_production_readiness',
+      label: 'No Supabase execution implied',
+      severity: 'blocking',
+      passed: supabaseProductionReadinessNoExecution(plan),
+      message: 'RP-DATA-04 must not imply SQL execution, Supabase connection, Supabase client, backend, storage operation, or secrets.',
+      relatedField: 'supabaseProductionReadinessPlan.limitations',
     }),
     check({
       id: 'validation-credit-estimate',

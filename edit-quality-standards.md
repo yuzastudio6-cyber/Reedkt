@@ -73,7 +73,7 @@ Premium includes Pro plus:
 - Stronger QA.
 - Advanced SoundSync.
 - Veo Lite final fallback only.
-- Never default Veo.
+- Never use Veo as the default or primary route.
 
 Premium is the deepest planning tier. It can plan more fallback and rescue depth, but Veo remains fallback-only and must never be primary.
 

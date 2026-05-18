@@ -285,7 +285,7 @@ function toolsForStrategy(strategyType: RenderStrategyType, hints: ToolStrategyH
   }
 
   if (hints.includes('audio_pipeline')) {
-    tools.push('ffmpeg', 'essentia')
+    tools.push('ffmpeg', 'audioflux')
   }
 
   if (hints.includes('qa_vision_tool')) {
@@ -439,7 +439,7 @@ function outputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceT
   if (tools.includes('playwright')) outputs.push('screenshot_asset')
   if (tools.includes('ffmpeg')) outputs.push('processed_video', 'processed_audio')
   if (strategyType === 'qa_tool_only' || tools.includes('opencv')) outputs.push('qa_report')
-  if (tools.includes('essentia')) outputs.push('timing_map')
+  if (tools.includes('audioflux') || tools.includes('essentia')) outputs.push('timing_map')
 
   return unique(outputs)
 }

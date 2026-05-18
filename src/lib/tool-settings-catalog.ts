@@ -69,6 +69,21 @@ export const ffmpegSettings: ToolSettingDefinition[] = [
   setting('silenceDetection', 'Silence detection', 'boolean', 'Whether silence/dead-space detection is planned.'),
 ]
 
+export const ffmpegLgplSettings: ToolSettingDefinition[] = [
+  setting('configureProfile', 'Configure profile', 'select', 'Planned FFmpeg build profile; launch planning assumes LGPL-only configuration.', true, { options: ['lgpl_safe_worker', 'review_required'] }),
+  setting('enableGpl', 'Enable GPL', 'boolean', 'GPL flags must remain false unless legal/build review explicitly approves them.', true, { defaultValue: false }),
+  setting('enableNonfree', 'Enable nonfree', 'boolean', 'Nonfree flags must remain false unless legal/build review explicitly approves them.', true, { defaultValue: false }),
+  setting('codecPolicy', 'Codec policy', 'select', 'Codec/commercial exposure review policy for future workers.', true, { options: ['lgpl_only_until_review', 'codec_patent_review_required'] }),
+  setting('outputContainer', 'Output container', 'select', 'Planned output container for export or muxing.', false, { options: ['mp4_review_required', 'webm', 'mov', 'wav'] }),
+  setting('audioCodec', 'Audio codec', 'select', 'Planned audio codec for future export worker.', false, { options: ['aac_review_required', 'opus', 'pcm_s16le'] }),
+  setting('videoCodec', 'Video codec', 'select', 'Planned video codec for future export worker.', false, { options: ['h264_review_required', 'vp9', 'prores_review_required'] }),
+  setting('pixelFormat', 'Pixel format', 'select', 'Pixel format for compatibility.', false, { options: ['yuv420p', 'yuv422p', 'rgba'] }),
+  setting('crf', 'CRF', 'number', 'Constant rate factor for quality/size tradeoff.', false, { min: 0, max: 51 }),
+  setting('bitrate', 'Bitrate', 'string', 'Target bitrate for planned encoding.'),
+  setting('muxingMode', 'Muxing mode', 'select', 'Planned muxing mode for future worker/export use.', false, { options: ['audio_video_mux', 'audio_only_export', 'preview_proxy'] }),
+  ...ffmpegSettings,
+]
+
 export const openColorIOSettings: ToolSettingDefinition[] = [
   setting('inputColorSpace', 'Input color space', 'string', 'Input color space for source or generated asset.'),
   setting('workingColorSpace', 'Working color space', 'string', 'Working color space for color pipeline.'),
@@ -106,6 +121,19 @@ export const sharpSettings: ToolSettingDefinition[] = [
   setting('blur', 'Blur', 'number', 'Blur radius for image prep.'),
   setting('sharpen', 'Sharpen', 'number', 'Sharpen amount for image prep.'),
   setting('metadataHandling', 'Metadata handling', 'select', 'Metadata preservation/removal policy.', false, { options: ['strip', 'preserve', 'minimal'] }),
+]
+
+export const sharpLibvipsSettings: ToolSettingDefinition[] = [
+  setting('resizeWidth', 'Resize width', 'number', 'Target image width.'),
+  setting('resizeHeight', 'Resize height', 'number', 'Target image height.'),
+  setting('fitMode', 'Fit mode', 'select', 'Image fit mode.', false, { options: ['cover', 'contain', 'fill', 'inside', 'outside'] }),
+  setting('imageFormat', 'Image format', 'select', 'Planned output image format.', false, { options: ['png', 'jpeg', 'webp', 'avif'] }),
+  setting('quality', 'Quality', 'number', 'Image quality/compression setting.', false, { min: 1, max: 100 }),
+  setting('alphaHandling', 'Alpha handling', 'select', 'How transparency/alpha should be handled in generated or uploaded assets.', false, { options: ['preserve_when_needed', 'flatten_to_panel_background', 'strip'] }),
+  setting('watermarkPosition', 'Watermark position', 'select', 'Planned watermark or brand mark placement.', false, { options: ['none', 'bottom_right', 'bottom_left', 'top_right', 'top_left'] }),
+  setting('metadataHandling', 'Metadata handling', 'select', 'Metadata preservation/removal policy.', false, { options: ['strip', 'preserve', 'minimal'] }),
+  setting('optionalLoaderPolicy', 'Optional loader policy', 'select', 'Policy for optional libvips/format dependencies.', false, { options: ['deny_until_review', 'allowlist_only'] }),
+  setting('untrustedUploadPolicy', 'Untrusted upload policy', 'select', 'Security stance for user-uploaded image handling.', false, { options: ['sanitize_in_worker', 'reject_unsupported', 'metadata_strip'] }),
 ]
 
 export const mapLibreSettings: ToolSettingDefinition[] = [
@@ -264,6 +292,44 @@ export const audioAnalysisSettings: ToolSettingDefinition[] = [
   setting('fadeDetection', 'Fade detection', 'boolean', 'Whether fade detection is planned.'),
 ]
 
+export const audioFluxSettings: ToolSettingDefinition[] = [
+  setting('sampleRate', 'Sample rate', 'number', 'AudioFlux analysis sample rate.', false, { unit: 'Hz' }),
+  setting('monoStereo', 'Mono/stereo', 'select', 'Channel mode for AudioFlux analysis.', false, { options: ['mono', 'stereo'] }),
+  setting('trimStart', 'Trim start', 'number', 'Analysis trim start.', false, { unit: 'seconds' }),
+  setting('trimEnd', 'Trim end', 'number', 'Analysis trim end.', false, { unit: 'seconds' }),
+  setting('onsetDetection', 'Onset detection', 'boolean', 'Whether onset detection is planned.'),
+  setting('bpmDetection', 'BPM detection', 'boolean', 'Whether BPM detection is planned.'),
+  setting('beatPositions', 'Beat positions', 'json', 'Detected or planned beat positions.'),
+  setting('rhythmFeatures', 'Rhythm features', 'json', 'Rhythm/tempo feature summary for SoundSync planning.'),
+  setting('energyCurve', 'Energy curve', 'json', 'Energy curve for edit timing and QA.'),
+  setting('noveltyCurve', 'Novelty curve', 'json', 'Novelty/onset curve for beat-drop support.'),
+  setting('confidenceThreshold', 'Confidence threshold', 'number', 'Minimum confidence for using timing features.', false, { min: 0, max: 1 }),
+  setting('outputTimingMap', 'Output timing map', 'boolean', 'Whether a future worker should output a timing map.'),
+]
+
+export const signalsmithStretchSettings: ToolSettingDefinition[] = [
+  setting('stretchRatio', 'Stretch ratio', 'number', 'Time-stretch ratio for music bed fitting.', false, { min: 0.5, max: 2 }),
+  setting('pitchShiftSemitones', 'Pitch shift semitones', 'number', 'Pitch shift amount in semitones.', false, { min: -12, max: 12 }),
+  setting('inputSampleRate', 'Input sample rate', 'number', 'Input sample rate.', false, { unit: 'Hz' }),
+  setting('outputSampleRate', 'Output sample rate', 'number', 'Output sample rate.', false, { unit: 'Hz' }),
+  setting('preserveFormants', 'Preserve formants', 'boolean', 'Whether formant preservation is planned where useful.'),
+  setting('qualityMode', 'Quality mode', 'select', 'Planned quality/performance mode.', false, { options: ['preview', 'balanced', 'high_quality'] }),
+  setting('maxRecommendedStretchRatio', 'Max recommended stretch ratio', 'number', 'Maximum recommended stretch before QA/regeneration.', false, { defaultValue: 1.15 }),
+  setting('sceneFitTargetSeconds', 'Scene fit target seconds', 'number', 'Target scene duration for music fit.', false, { unit: 'seconds' }),
+  setting('qaListenRequired', 'QA listen required', 'boolean', 'Future worker/manual QA should review stretch quality.'),
+]
+
+export const vapourSynthSettings: ToolSettingDefinition[] = [
+  setting('frameFormat', 'Frame format', 'select', 'Planned frame format for future VapourSynth scripts.', false, { options: ['yuv420p', 'yuv444p', 'rgb24', 'rgba'] }),
+  setting('colorFamily', 'Color family', 'select', 'Planned VapourSynth color family.', false, { options: ['YUV', 'RGB', 'GRAY'] }),
+  setting('frameRange', 'Frame range', 'json', 'Frame range for future worker processing.'),
+  setting('scriptPreset', 'Script preset', 'select', 'Approved script preset for future frame pipeline.', false, { options: ['none', 'denoise_review', 'resize_review', 'frame_extract_review'] }),
+  setting('cachePolicy', 'Cache policy', 'select', 'Worker cache policy for scripted frame processing.', false, { options: ['none', 'ephemeral_worker_cache', 'approved_asset_cache'] }),
+  setting('pluginAllowlist', 'Plugin allowlist', 'json', 'Explicit plugin allowlist; plugin licenses require separate review.'),
+  setting('outputFrameMode', 'Output frame mode', 'select', 'How frames would be handed to downstream workers.', false, { options: ['image_sequence', 'pipe_to_encoder', 'analysis_only'] }),
+  setting('pythonMemoryPipeline', 'Python memory pipeline', 'boolean', 'Whether Python-native frame handoff is planned.'),
+]
+
 export const commonToolSettings: ToolSettingDefinition[] = [
   setting('planningOnly', 'Planning only', 'boolean', 'Flags that this is catalog planning only; no package is installed or executed.', true, { defaultValue: true }),
   setting('requiresApproval', 'Requires approval', 'boolean', 'Tool execution can only happen after approved plan snapshot in future workers.', true, { defaultValue: true }),
@@ -271,14 +337,14 @@ export const commonToolSettings: ToolSettingDefinition[] = [
 ]
 
 export const toolSettingsByCategory: Partial<Record<ToolCategory, ToolSettingDefinition[]>> = {
-  audio_analysis: audioAnalysisSettings,
+  audio_analysis: [...audioFluxSettings, ...signalsmithStretchSettings, ...audioAnalysisSettings],
   browser_capture: playwrightSettings,
   charts_dataviz: [...d3Settings, ...eChartsSettings],
   color_management: openColorIOSettings,
-  image_processing: sharpSettings,
+  image_processing: sharpLibvipsSettings,
   maps_geospatial: [...mapLibreSettings, ...turfSettings],
   renderer_compositor: remotionSettings,
-  video_processing: ffmpegSettings,
+  video_processing: [...ffmpegLgplSettings, ...vapourSynthSettings],
   visual_analysis: openCVSettings,
 }
 
@@ -418,8 +484,8 @@ export const toolPresets: ToolPreset[] = [
   preset({
     id: 'soundsync_subtle_premium',
     label: 'SoundSync subtle premium',
-    description: 'Essentia/FFmpeg planning for subtle beat, energy, and loudness-aware SoundSync.',
-    toolIds: ['essentia', 'ffmpeg'],
+    description: 'AudioFlux/FFmpeg planning for subtle beat, energy, and loudness-aware SoundSync.',
+    toolIds: ['audioflux', 'ffmpeg'],
     category: 'audio_analysis',
     settings: { bpmDetection: true, onsetDetection: true, loudnessTarget: -16, planningOnly: true },
     bestUseCases: ['Subtle premium music timing', 'Beat-aware edits', 'Audio energy cues'],

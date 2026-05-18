@@ -16,6 +16,7 @@ const keyLaunchToolIds: OpenSourceToolId[] = [
   'turf',
   'd3',
   'echarts',
+  'lottie',
   'playwright',
   'opencv',
   'essentia',
@@ -69,7 +70,7 @@ export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryC
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Tool intelligence"
-      helper="ReeditPro can use controlled open-source tools for maps, charts, browser captures, color, audio, and QA instead of relying on generative AI for everything. This is a planning registry only; no tools run in this demo."
+      helper="ReeditPro can use controlled open-source tools for maps, charts, browser captures, color, audio, and QA instead of relying on generative AI for everything. Browser-safe packages may be installed for future previews, but no tools run in this demo."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Tool registry"
@@ -88,7 +89,8 @@ export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryC
       </div>
 
       <div className="understanding-chip-row">
-        <span className="not-installed-badge">No packages installed</span>
+        <span className="not-installed-badge">Browser-safe packages installed</span>
+        <span className="not-installed-badge">Lazy-load recommended</span>
         <span className="not-installed-badge">No tool execution</span>
         <span className="not-installed-badge">No backend worker yet</span>
         <span className="not-installed-badge">Provider models separate</span>
@@ -108,10 +110,16 @@ export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryC
                 <span><strong>Execution</strong><em className="tool-execution-badge">{label(tool.executionMode)}</em></span>
                 <span><strong>Adoption</strong><em className="tool-adoption-badge">{label(tool.adoptionStage)}</em></span>
                 <span><strong>Tier</strong><em className="tool-tier-row">{tierText(tool.tierAvailability)}</em></span>
+                <span><strong>Install</strong>{tool.frontendInstallInfo?.installedInFrontend ? `frontend: ${tool.frontendInstallInfo.packageName}` : label(tool.frontendInstallInfo?.installStatus ?? 'planned_only')}</span>
                 <span><strong>Best for</strong>{tool.bestFor.slice(0, 3).join(', ')}</span>
               </div>
               <div className="understanding-chip-row">
-                <span className="not-installed-badge">not installed yet</span>
+                <span className="not-installed-badge">
+                  {tool.frontendInstallInfo?.installedInFrontend ? 'frontend installed' : label(tool.frontendInstallInfo?.installStatus ?? 'planned_only')}
+                </span>
+                {tool.frontendInstallInfo?.lazyLoadRecommended && (
+                  <span className="not-installed-badge">lazy load</span>
+                )}
                 {tool.licenseNotes.slice(0, 1).map((note) => (
                   <span className="license-review-note" key={note}>{note}</span>
                 ))}

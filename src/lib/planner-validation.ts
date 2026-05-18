@@ -4,6 +4,7 @@ import type {
   EditLevel,
   EditPlan,
   FallbackStep,
+  OpenSourceToolId,
   PlannerInput,
   ProviderModel,
   ProviderPromptPlan,
@@ -29,6 +30,7 @@ export type PlanValidationCategory =
   | 'video_understanding'
   | 'adaptive_strategy'
   | 'tool_registry'
+  | 'tool_install_status'
   | 'render_strategy'
   | 'tool_strategy'
   | 'color_pipeline'
@@ -310,9 +312,78 @@ function toolRegistryProviderModelsAreSeparate() {
 
 function toolRegistryIsPlanningOnly() {
   return openSourceToolProfiles.every((tool) => {
-    const text = [...tool.productionNotes, ...tool.qaChecks].join(' ').toLowerCase()
-    return text.includes('planning only') && text.includes('not installed') && text.includes('not executed')
+    const text = [
+      ...tool.productionNotes,
+      ...tool.qaChecks,
+      ...(tool.frontendInstallInfo?.installNotes ?? []),
+    ].join(' ').toLowerCase()
+    const installStatus = tool.frontendInstallInfo?.installStatus
+
+    if (installStatus === 'installed') {
+      return text.includes('not executed') || text.includes('not executed automatically') || text.includes('lazy')
+    }
+
+    return text.includes('planning only') || text.includes('worker-only') || text.includes('future')
   })
+}
+
+const browserSafeInstalledToolIds: OpenSourceToolId[] = ['d3', 'echarts', 'maplibre', 'turf', 'lottie']
+const workerOnlyFrontendToolIds: OpenSourceToolId[] = [
+  'ffmpeg',
+  'opencv',
+  'opencolorio',
+  'openimageio',
+  'playwright',
+  'essentia',
+  'librosa',
+  'whisper_cpp',
+  'rubber_band',
+  'vapoursynth',
+]
+
+function profileForTool(toolId: OpenSourceToolId) {
+  return openSourceToolProfiles.find((tool) => tool.id === toolId)
+}
+
+function installedBrowserSafeToolsMarkedInstalled() {
+  return browserSafeInstalledToolIds.every((toolId) => {
+    const installInfo = profileForTool(toolId)?.frontendInstallInfo
+    return Boolean(
+      installInfo?.installedInFrontend &&
+      installInfo.lazyLoadRecommended &&
+      installInfo.installStatus === 'installed' &&
+      installInfo.packageName,
+    )
+  })
+}
+
+function workerOnlyToolsRemainOutOfFrontend() {
+  return workerOnlyFrontendToolIds.every((toolId) => {
+    const installInfo = profileForTool(toolId)?.frontendInstallInfo
+    return Boolean(installInfo && !installInfo.installedInFrontend && installInfo.installStatus === 'worker_only')
+  })
+}
+
+function toolInstallDoesNotImplyExecution() {
+  return browserSafeInstalledToolIds.every((toolId) => {
+    const tool = profileForTool(toolId)
+    const text = [
+      ...(tool?.productionNotes ?? []),
+      ...(tool?.qaChecks ?? []),
+      ...(tool?.frontendInstallInfo?.installNotes ?? []),
+    ].join(' ').toLowerCase()
+
+    return text.includes('lazy') && (text.includes('not executed') || text.includes('not executed automatically'))
+  })
+}
+
+function toolInstallDoesNotBypassApproval(plan: EditPlan) {
+  const notes = (plan.toolRegistrySummary?.notes ?? getToolRegistrySummary().notes).join(' ').toLowerCase()
+  return notes.includes('approval') && !notes.includes('bypass approval')
+}
+
+function toolInstallDoesNotEnableVeo(plan: EditPlan) {
+  return toolRegistryDoesNotEnableVeo(plan)
 }
 
 function toolRegistryDoesNotEnableVeo(plan: EditPlan) {
@@ -1813,8 +1884,53 @@ export function validateMockEditPlan(params: {
       label: 'Registry is planning-only',
       severity: 'blocking',
       passed: toolRegistryIsPlanningOnly(),
-      message: 'Tool registry profiles must not imply packages are installed or tools are executed in this frontend mock.',
+      message: 'Tool registry profiles may mark approved browser packages installed, but must not imply automatic execution or production rendering.',
       relatedField: 'openSourceToolProfiles.productionNotes',
+    }),
+    check({
+      id: 'validation-tool-install-browser-safe-installed',
+      category: 'tool_install_status',
+      label: 'Browser-safe tools marked installed',
+      severity: 'error',
+      passed: installedBrowserSafeToolsMarkedInstalled(),
+      message: 'D3, ECharts, MapLibre, Turf, and lottie-web should be marked frontend-installed with lazy-load metadata.',
+      relatedField: 'openSourceToolProfiles.frontendInstallInfo',
+    }),
+    check({
+      id: 'validation-tool-install-worker-only-not-frontend',
+      category: 'tool_install_status',
+      label: 'Worker-only tools stay out of frontend',
+      severity: 'blocking',
+      passed: workerOnlyToolsRemainOutOfFrontend(),
+      message: 'FFmpeg, OpenCV, OpenColorIO, OpenImageIO, Playwright, Essentia, librosa, whisper.cpp, Rubber Band, and VapourSynth must not be frontend-installed.',
+      relatedField: 'openSourceToolProfiles.frontendInstallInfo',
+    }),
+    check({
+      id: 'validation-tool-install-no-execution',
+      category: 'tool_install_status',
+      label: 'Install does not imply execution',
+      severity: 'blocking',
+      passed: toolInstallDoesNotImplyExecution(),
+      message: 'Installed browser-safe tools must remain lazy-loaded and must not run automatically in planning or approval flow.',
+      relatedField: 'openSourceToolProfiles.frontendInstallInfo.installNotes',
+    }),
+    check({
+      id: 'validation-tool-install-approval-gate',
+      category: 'tool_install_status',
+      label: 'Install keeps approval gate',
+      severity: 'blocking',
+      passed: toolInstallDoesNotBypassApproval(plan),
+      message: 'Tool installation must not bypass plan approval, credit planning, or future worker/rendering milestones.',
+      relatedField: 'toolRegistrySummary.notes',
+    }),
+    check({
+      id: 'validation-tool-install-no-veo-enable',
+      category: 'tool_install_status',
+      label: 'Install does not enable Veo',
+      severity: 'blocking',
+      passed: toolInstallDoesNotEnableVeo(plan),
+      message: 'Open-source tool installation must not change Basic/Pro no-Veo or Premium final-fallback-only policy.',
+      relatedField: 'toolRegistrySummary.notes',
     }),
     check({
       id: 'validation-tool-registry-no-veo-enable',

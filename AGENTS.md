@@ -20,6 +20,7 @@ These instructions are for Codex and any future agent working in this repository
 - Read `adaptive-planning-layer.md` before adaptive edit strategy, per-segment visual/tool decisions, or anti-template planning work.
 - Read `adaptive-edit-strategy-planner.md` before adaptive segment strategy, generation restraint, visual/tool selection, or reasoned per-beat creative decisions.
 - Read `open-source-tool-registry.md` before open-source tool strategy, deterministic tool planning, tool/provider separation, license review, or controlled-tool decisions.
+- Read `browser-safe-tool-installation.md` before browser-safe frontend package installation, lazy loader wrappers, tool install metadata, or install status UI work.
 - Read `tool-settings-catalog.md` before tool setting, preset, registry profile, map/chart/browser/color/audio/QA tool planning, or tool catalog work.
 - Read `remotion-capability-matrix.md` before deciding what Remotion can build directly versus what needs GPT-Image-2, open-source tools, AI video assets, workers, or QA-only tools.
 - Read `render-strategy-planner.md` before render strategy planning, Remotion-only decisions, GPT-image-to-Remotion flows, tool-to-Remotion flows, AI-video-to-Remotion flows, or worker pre/postprocess strategy work.
@@ -155,6 +156,13 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - The planner should explain why a segment uses still/card, b-roll, map, chart, screen capture, Stroke Motion, Real Motion, captions only, or no visual.
 - ReeditPro should prefer controlled tools over AI generation when exact text, charts, maps, captions, layouts, screenshots, color/audio processing, or QA matters.
 - Do not install tools unless the milestone explicitly asks for installation.
+- Browser-safe tool libraries may be installed only in approved tool installation milestones.
+- Heavy browser libraries should be lazy-loaded where possible.
+- Do not import large tool libraries into the main editor bundle unless needed.
+- Do not install worker-only tools in frontend code.
+- Installing a tool does not mean it is executed in the production planning flow.
+- Tool execution still requires approval, credit planning, and future worker/rendering milestones.
+- Open-source tool installation must not affect Veo/model routing rules.
 - Tool registry guides the AI but does not limit custom requests.
 - Tool strategy must explain why a tool is chosen.
 - License notes must be tracked before production use.

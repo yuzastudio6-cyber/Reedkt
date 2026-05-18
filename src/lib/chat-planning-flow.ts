@@ -8,6 +8,7 @@ import type {
   EditPlan,
 } from '../types/reeditpro'
 import { getSourceSequenceModeLabel } from './source-sequence'
+import { getFrontendToolInstallSummary } from './tool-install-status'
 
 type GetChatPlanningCardsParams = {
   clipsAttached: boolean
@@ -198,7 +199,13 @@ function toolRegistrySummary(plan: EditPlan) {
     return 'Tool registry summary is not ready.'
   }
 
-  return `${summary.launchCoreToolCount} launch-core tools, ${summary.plannedToolCount + summary.futureToolCount} planned/future, ${summary.needsLicenseReviewCount} license review. Planning only; no tools run.`
+  return `${summary.launchCoreToolCount} launch-core tools, ${summary.plannedToolCount + summary.futureToolCount} planned/future, ${summary.needsLicenseReviewCount} license review. Browser-safe installs are lazy-loaded; no tools run automatically.`
+}
+
+function toolInstallStatusSummary() {
+  const summary = getFrontendToolInstallSummary()
+
+  return `${summary.installedCount} browser-safe package${summary.installedCount === 1 ? '' : 's'} installed, ${summary.lazyLoadCount} lazy-load recommended, ${summary.workerOnlyCount} worker-only excluded.`
 }
 
 function renderStrategySummary(plan: EditPlan) {
@@ -360,6 +367,8 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const adaptiveStrategyStatus = adaptiveValidationStatus ?? (plan.adaptiveEditStrategyPlan?.segmentStrategies.length ? 'ready' : 'not_started')
   const toolRegistryValidationStatus = validationCategoryStatus(validationReport, 'tool_registry')
   const toolRegistryStatus = toolRegistryValidationStatus ?? (plan.toolRegistrySummary ? 'ready' : 'not_started')
+  const toolInstallValidationStatus = validationCategoryStatus(validationReport, 'tool_install_status')
+  const toolInstallStatus = toolInstallValidationStatus ?? 'ready'
   const renderStrategyValidationStatus = validationCategoryStatus(validationReport, 'render_strategy')
   const renderStrategyStatus = renderStrategyValidationStatus ?? (plan.renderStrategyPlan?.items.length ? 'ready' : 'not_started')
   const toolStrategyValidationStatus = validationCategoryStatus(validationReport, 'tool_strategy')
@@ -487,6 +496,17 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       defaultExpanded: false,
       requiredBeforeApproval: false,
       summary: toolRegistrySummary(plan),
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'tool_install_status',
+      label: 'Tool install status',
+      phase: 'plan',
+      priority: 'developer_detail',
+      status: toolInstallStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: toolInstallStatusSummary(),
       hiddenInCompactMode: true,
     }),
     descriptor({

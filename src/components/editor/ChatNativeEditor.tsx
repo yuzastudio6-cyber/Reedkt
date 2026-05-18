@@ -58,6 +58,7 @@ import { InlineRenderStrategyCard } from './InlineRenderStrategyCard'
 import { InlineSegmentEditPlanCard } from './InlineSegmentEditPlanCard'
 import { InlineSpeakerVisualLayoutCard } from './InlineSpeakerVisualLayoutCard'
 import { InlineToolRegistryCard } from './InlineToolRegistryCard'
+import { InlineToolInstallStatusCard } from './InlineToolInstallStatusCard'
 import { InlineToolStrategyCard } from './InlineToolStrategyCard'
 import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
 import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
@@ -584,6 +585,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
           {setupReady && showCard('tool_registry') && (
             <ChatMessage role="ai">
               <InlineToolRegistryCard descriptor={cardById.tool_registry} plan={plan} />
+              {displayMode === 'developer' && showCard('tool_install_status') && (
+                <InlineToolInstallStatusCard descriptor={cardById.tool_install_status} />
+              )}
             </ChatMessage>
           )}
 

@@ -29,6 +29,8 @@ import {
 
 const planningOnlyNote = 'Planning only; not installed and not executed in this frontend mock.'
 const approvalNote = 'Future execution must happen only in approved worker flows from approved plan snapshots.'
+const installedFrontendNote = 'Installed in the frontend for future controlled preview components; lazy-load before use.'
+const workerOnlyInstallNote = 'Worker-only or QA-only tool; do not install or execute in the frontend.'
 
 type ProfileParams = Omit<ToolProfile, 'licenseNotes' | 'productionNotes' | 'tierAvailability'> & {
   licenseNotes?: string[]
@@ -49,11 +51,47 @@ function premiumOnly() {
 }
 
 function profile(params: ProfileParams): ToolProfile {
+  const isFrontendInstalled = params.frontendInstallInfo?.installStatus === 'installed'
+  const defaultInstallStatus = params.executionMode === 'worker_preprocess' ||
+    params.executionMode === 'worker_postprocess' ||
+    params.executionMode === 'future_worker'
+    ? 'worker_only'
+    : params.adoptionStage === 'future' || params.adoptionStage === 'experimental'
+      ? 'future'
+      : 'planned_only'
+
   return {
     ...params,
     licenseNotes: params.licenseNotes ?? ['Track license notes before production use.'],
-    productionNotes: params.productionNotes ?? [planningOnlyNote, approvalNote],
+    productionNotes: params.productionNotes ?? (isFrontendInstalled
+      ? ['Installed for future browser-safe preview components; not executed automatically.', approvalNote]
+      : [planningOnlyNote, approvalNote]),
     tierAvailability: params.tierAvailability ?? allTiers(),
+    frontendInstallInfo: params.frontendInstallInfo ?? {
+      installedInFrontend: false,
+      lazyLoadRecommended: false,
+      installStatus: defaultInstallStatus,
+      installNotes: [defaultInstallStatus === 'worker_only' ? workerOnlyInstallNote : planningOnlyNote],
+    },
+  }
+}
+
+function frontendInstalled(packageName: string, installNotes: string[]) {
+  return {
+    packageName,
+    installedInFrontend: true,
+    lazyLoadRecommended: true,
+    installStatus: 'installed' as const,
+    installNotes: [installedFrontendNote, ...installNotes],
+  }
+}
+
+function workerOnlyFrontendInfo(installNotes: string[] = []) {
+  return {
+    installedInFrontend: false,
+    lazyLoadRecommended: false,
+    installStatus: 'worker_only' as const,
+    installNotes: [workerOnlyInstallNote, ...installNotes],
   }
 }
 
@@ -90,6 +128,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     remotionIntegration: 'Future workers can prepare source or final files before/after Remotion composition.',
     qaChecks: ['No FFmpeg execution in frontend.', 'Approved export settings match plan.', 'Loudness targets remain clear.'],
     licenseNotes: ['FFmpeg license and build configuration must be reviewed before production use.'],
+    frontendInstallInfo: workerOnlyFrontendInfo(['FFmpeg was not installed in RP-TOOLS-INSTALL-01.']),
   }),
   profile({
     id: 'opencolorio',
@@ -140,6 +179,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     defaultPresets: ['foreground_safe_zone_qa', 'panel_background_match_qa'],
     remotionIntegration: 'Can validate planned Remotion zones and future rendered frames in worker QA.',
     qaChecks: ['No real OpenCV processing in this task.', 'Safe-zone checks remain mock/planned.'],
+    frontendInstallInfo: workerOnlyFrontendInfo(['OpenCV was not installed in RP-TOOLS-INSTALL-01.']),
   }),
   profile({
     id: 'sharp',
@@ -165,13 +205,14 @@ export const openSourceToolProfiles: ToolProfile[] = [
     executionMode: 'planning_only',
     description: 'Map visual planning for route reveals, pins, camera moves, and location context.',
     bestFor: ['Map animation', 'Pins', 'Routes', 'Fly/zoom camera', 'Travel/real estate/documentary geography'],
-    avoidFor: ['AI-video map labels', 'Unverified geography'],
+    avoidFor: ['AI-video map labels', 'Unverified geography', 'Calling external tile sources in this milestone'],
     inputTypes: ['geojson', 'json_data'],
     outputTypes: ['map_visual', 'renderer_layer'],
     settingDefinitions: mapLibreSettings,
     defaultPresets: ['map_route_reveal', 'real_estate_neighborhood_map'],
-    remotionIntegration: 'Map layers can be planned for Remotion composition; library is not installed here.',
+    remotionIntegration: 'Map layers can be planned for Remotion composition; MapLibre is installed for future browser previews but not executed automatically.',
     qaChecks: ['Map labels remain readable.', 'Route/location claims are user-approved or source-aware.'],
+    frontendInstallInfo: frontendInstalled('maplibre-gl', ['Installed for future map preview components. Do not call external tile sources in this milestone.']),
   }),
   profile({
     id: 'turf',
@@ -188,6 +229,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     defaultPresets: ['map_route_reveal', 'real_estate_neighborhood_map'],
     remotionIntegration: 'Prepares geometry specs for MapLibre/Remotion map layouts later.',
     qaChecks: ['Distance/route labels should be verified before production.'],
+    frontendInstallInfo: frontendInstalled('@turf/turf', ['Installed for future geospatial calculations.']),
   }),
   profile({
     id: 'd3',
@@ -197,13 +239,14 @@ export const openSourceToolProfiles: ToolProfile[] = [
     executionMode: 'planning_only',
     description: 'Custom chart, diagram, money-flow, network, and timeline planning.',
     bestFor: ['Custom diagrams', 'Money flows', 'Network diagrams', 'Timelines', 'SVG/data motion'],
-    avoidFor: ['Random decorative charts', 'Frontend execution before installation'],
+    avoidFor: ['Random decorative charts', 'Automatic frontend execution before an approved preview milestone'],
     inputTypes: ['json_data'],
     outputTypes: ['svg_visual', 'chart_visual', 'json_spec'],
     settingDefinitions: d3Settings,
     defaultPresets: ['money_flow_diagram'],
     remotionIntegration: 'D3-style specs can become SVG/visual layers inside Remotion later.',
     qaChecks: ['Exact labels/arrows remain controlled.', 'Data visuals avoid AI-video routing.'],
+    frontendInstallInfo: frontendInstalled('d3', ['Installed for future controlled chart/diagram preview components.']),
   }),
   profile({
     id: 'echarts',
@@ -220,6 +263,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     defaultPresets: ['money_flow_diagram', 'product_feature_callout'],
     remotionIntegration: 'ECharts specs can be rendered as controlled chart layers later.',
     qaChecks: ['Chart text remains readable.', 'Exact data is not routed to AI video.'],
+    frontendInstallInfo: frontendInstalled('echarts', ['Installed for future standard chart preview components.']),
   }),
   profile({
     id: 'vega_lite',
@@ -252,6 +296,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     defaultPresets: ['browser_dashboard_capture'],
     remotionIntegration: 'Future screenshots can become Remotion visual layers or screen-capture panels.',
     qaChecks: ['Only approved URLs/pages are captured.', 'No Playwright execution in this task.'],
+    frontendInstallInfo: workerOnlyFrontendInfo(['Playwright was not installed in RP-TOOLS-INSTALL-01.']),
   }),
   profile({
     id: 'lottie',
@@ -268,6 +313,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     defaultPresets: [],
     remotionIntegration: 'Future Lottie layers can be placed inside Remotion panels.',
     qaChecks: ['Motion supports the segment meaning.', 'Animation stays inside assigned zone.'],
+    frontendInstallInfo: frontendInstalled('lottie-web', ['Installed for reusable vector animation preview components.']),
   }),
   profile({
     id: 'three_js',
@@ -335,6 +381,7 @@ export const openSourceToolProfiles: ToolProfile[] = [
     defaultPresets: ['soundsync_subtle_premium'],
     remotionIntegration: 'Future timing maps can inform Remotion motion and edit timing.',
     qaChecks: ['Audio analysis remains mock-only until worker implementation.', 'Generated music still needs Music QA.'],
+    frontendInstallInfo: workerOnlyFrontendInfo(['Essentia was not installed in RP-TOOLS-INSTALL-01.']),
   }),
   profile({
     id: 'librosa',
@@ -481,7 +528,8 @@ export function getToolRegistrySummary(): ToolRegistrySummary {
     needsLicenseReviewCount: getToolsNeedingLicenseReview().length,
     categories,
     notes: [
-      'Open-source tool registry is planning-only; no packages are installed or executed in this frontend mock.',
+      'Approved browser-safe packages are installed for future previews, lazy-loaded, and not executed automatically.',
+      'Worker-only tools remain uninstalled in the frontend and future execution must happen only after plan and credit approval.',
       'Provider models such as GPT-Image-2, Wan, Hailuo, and Veo remain separate from OpenSourceToolId entries.',
       'The registry does not enable Veo, change model policy, or bypass plan and credit approval.',
       'Remotion remains the final compositor; tools can provide assets, data, screenshots, maps, charts, processing, or QA in future approved workers.',
@@ -528,7 +576,7 @@ function detail(
     qaChecks: [
       ...tool.qaChecks.slice(0, 2),
       ...qaChecks,
-      'Planning only; no tool execution or package installation in this demo.',
+      'Planning only; installed browser-safe tools are lazy-loaded and no tool execution runs in this demo.',
     ],
   }]
 }

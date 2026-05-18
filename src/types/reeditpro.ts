@@ -323,6 +323,21 @@ export interface ToolPreset {
   }
 }
 
+export type ToolInstallStatus =
+  | 'not_installed'
+  | 'installed'
+  | 'planned_only'
+  | 'worker_only'
+  | 'future'
+
+export interface ToolFrontendInstallInfo {
+  packageName?: string
+  installedInFrontend: boolean
+  lazyLoadRecommended: boolean
+  installStatus: ToolInstallStatus
+  installNotes: string[]
+}
+
 export interface ToolProfile {
   id: OpenSourceToolId
   label: string
@@ -345,6 +360,7 @@ export interface ToolProfile {
   qaChecks: string[]
   licenseNotes: string[]
   productionNotes: string[]
+  frontendInstallInfo?: ToolFrontendInstallInfo
 }
 
 export interface ToolStrategyHintDetail {

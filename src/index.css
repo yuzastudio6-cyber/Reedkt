@@ -4604,7 +4604,7 @@ li {
 .tool-profile-meta {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .tool-profile-meta span {
@@ -4669,6 +4669,163 @@ li {
 .tool-preset-item strong {
   color: var(--rp-text-primary);
   text-transform: capitalize;
+}
+
+.tool-install-status-card {
+  border-color: color-mix(in srgb, var(--rp-brand-cyan) 28%, var(--rp-border-strong));
+}
+
+.tool-install-summary-grid {
+  display: grid;
+  gap: 9px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.tool-install-summary-grid span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.tool-install-summary-grid strong {
+  color: var(--rp-brand-cyan);
+  font-size: 1.05rem;
+}
+
+.tool-install-list,
+.tool-install-check-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tool-install-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.tool-install-item strong {
+  color: var(--rp-text-primary);
+}
+
+.tool-install-item p,
+.tool-install-check-panel p,
+.tool-install-boundary-note {
+  color: var(--rp-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.tool-install-meta {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tool-install-meta span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px;
+}
+
+.tool-install-meta strong {
+  color: var(--rp-text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.tool-install-note {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-muted);
+  display: inline-flex;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  padding: 5px 8px;
+}
+
+.tool-install-chip-list {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tool-install-chip-list span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px;
+}
+
+.tool-install-chip-list strong {
+  color: var(--rp-text-primary);
+}
+
+.tool-install-check-panel {
+  align-items: center;
+  background: color-mix(in srgb, var(--rp-brand-blue) 8%, var(--rp-surface-2));
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.tool-install-check-panel strong {
+  color: var(--rp-text-primary);
+}
+
+.tool-install-check-list span {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+}
+
+.tool-install-check-list strong {
+  color: var(--rp-text-primary);
+}
+
+.tool-install-check-list em {
+  font-size: 0.72rem;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.tool-install-check-available {
+  background: color-mix(in srgb, var(--rp-success) 10%, var(--rp-surface-1));
+  border-color: color-mix(in srgb, var(--rp-success) 35%, var(--rp-border-subtle));
+}
+
+.tool-install-check-failed {
+  background: color-mix(in srgb, var(--rp-danger) 10%, var(--rp-surface-1));
+  border-color: color-mix(in srgb, var(--rp-danger) 35%, var(--rp-border-subtle));
+}
+
+.tool-install-check-not_checked {
+  background: var(--rp-surface-1);
 }
 
 .frame-layout-preview {
@@ -7209,7 +7366,8 @@ li {
   }
 
   .pricing-preview,
-  .security-strip {
+  .security-strip,
+  .tool-install-check-panel {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -7232,6 +7390,12 @@ li {
   .depth-overlay-meta,
   .depth-validation-summary-grid,
   .depth-validation-meta,
+  .tool-registry-summary-grid,
+  .tool-category-list,
+  .tool-profile-meta,
+  .tool-install-summary-grid,
+  .tool-install-meta,
+  .tool-install-chip-list,
   .color-summary-grid,
   .color-stage-list,
   .color-operation-list,

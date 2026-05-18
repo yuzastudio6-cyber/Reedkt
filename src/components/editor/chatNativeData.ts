@@ -39,6 +39,7 @@ export const progressSteps = [
   'Creating captions',
   'Planning Stroke Motion',
   'Creating Graphic Design overlay',
+  'Planning browser/app visuals',
   'Checking Real Motion face-safe placement',
   'Matching SoundSync mood',
   'Preparing preview',

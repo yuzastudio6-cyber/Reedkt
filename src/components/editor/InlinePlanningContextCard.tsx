@@ -38,6 +38,12 @@ function getReferenceStatus(referenceVideoPlan?: ReferenceVideoPlan) {
 export function InlinePlanningContextCard({ plan }: InlinePlanningContextCardProps) {
   const referenceDNA = plan.referenceVideoPlan?.referenceDNA
   const focusSummary = referenceDNA?.focus.map((focus) => focusLabels[focus]).join(', ') ?? 'none'
+  const browserCaptureStatus = plan.browserCapturePlan?.active
+    ? `Active: ${plan.browserCapturePlan.items.map((item) => item.browserVisualType.replaceAll('_', ' ')).join(', ')}`
+    : 'No browser/app capture need detected'
+  const browserSourceSummary =
+    plan.browserCapturePlan?.items.map((item) => `${item.source.permissionStatus.replaceAll('_', ' ')} / ${item.source.safeWording}`).join(', ') ??
+    'none'
 
   return (
     <section className="inline-chat-card planning-context-card">
@@ -57,6 +63,14 @@ export function InlinePlanningContextCard({ plan }: InlinePlanningContextCardPro
         <div>
           <strong>Reference focus</strong>
           <p>{focusSummary}</p>
+        </div>
+        <div>
+          <strong>Browser/app visuals</strong>
+          <p>{browserCaptureStatus}</p>
+        </div>
+        <div>
+          <strong>Source status</strong>
+          <p>{browserSourceSummary}</p>
         </div>
       </div>
 

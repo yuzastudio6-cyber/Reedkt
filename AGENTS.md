@@ -8,6 +8,7 @@ These instructions are for Codex and any future agent working in this repository
 - Read `product-plan.md` before product-scope decisions.
 - Read `intent-led-edit-planning.md` before upload, planning, AI workflow, generation, or approval work.
 - Read `reference-video-dna-ux.md` before reference video, style matching, Reference DNA, or reference-analysis UX work.
+- Read `browser-app-capture-planning.md` and `browser-capture-settings-catalog.md` before browser capture, app capture, website visuals, dashboard visuals, product page visuals, article visuals, evidence page visuals, or UI walkthrough planning.
 - Read `pricing-and-credits.md` before billing, credits, subscription, usage, or estimate work.
 - Read `signature-systems.md` and `real-motion-system.md` before visual AI system work.
 - Read `edit-workflow-blueprints.md` before changing video type dropdowns, workflow profiles, edit setup, or planning prompts.
@@ -152,6 +153,20 @@ Extract Reference DNA:
 - Use of Real Motion-style overlays
 - Mood and tone
 - Why the reference edit works
+
+## Browser And App Capture
+
+Use controlled browser/app capture planning for websites, dashboards, product pages, app screens, articles, ecommerce pages, landing pages, browser evidence pages, tutorial screens, UI comparisons, and feature walkthroughs.
+
+Do not use AI video to invent exact website/app screenshots, UI labels, dashboard metrics, product pages, pricing pages, evidence pages, or article content. Browser/app visuals should plan future Playwright capture, Sharp preparation, and Remotion composition when exact UI/page visuals are needed.
+
+Do not install or execute Playwright unless a milestone explicitly asks for it. Frontend/mock tasks must not access websites, scrape pages, open browsers, capture screenshots, bypass authentication, bypass paywalls, bypass CAPTCHAs, ignore site restrictions, process real browser sessions, or use credentials.
+
+Browser capture must be user-provided or authorized in future production flows. Browser evidence must use safe wording when source status is unclear, and documentary/case-study evidence pages must not be visually treated as verified facts unless source status supports it.
+
+Plan redaction when sensitive data may appear, including emails, names, addresses, payment details, tokens, dashboards, private metrics, account information, or documentary/case-study private data.
+
+Browser capture plans must not bypass edit plan approval, credit estimates, tier/model rules, QA rules, or safety rules.
 
 ## Supabase
 

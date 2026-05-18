@@ -36,7 +36,7 @@ const businessBrandClips: ClipSource[] = [
 export const demoScenarios: DemoScenario[] = [
   {
     id: 'business_brand_pro_product_feature',
-    name: 'Business brand Pro product feature with mock reference',
+    name: 'Business brand Pro product feature with mock reference and browser plan',
     plannerInput: {
       projectName: 'Product feature launch short',
       targetPlatform: 'tiktok_reels_shorts',
@@ -46,11 +46,12 @@ export const demoScenarios: DemoScenario[] = [
       structurePreference: 'improve_if_needed',
       moodStyle: 'premium',
       visualPreference: 'balanced_visual_mix',
-      referenceUrl: 'https://example.com/mock-clean-product-reference',
+      referenceUrl: 'https://example.com/mock-saas-dashboard',
       referenceVideoMode: 'user_pasted_link',
       referenceAdaptationFocus: ['pacing', 'caption_style'],
       referenceNotes: ['Use style DNA only.'],
-      customInstructions: 'Use the reference for pacing and caption style, but do not copy it exactly.',
+      customInstructions:
+        'Create a polished product feature explainer for a SaaS dashboard. Show the dashboard, highlight the feature, and use a clean CTA. Use a mock clean product reference if needed. Use the reference for pacing and caption style, but do not copy it exactly.',
       creditPreference: 'balanced',
       clips: businessBrandClips,
     },
@@ -59,6 +60,8 @@ export const demoScenarios: DemoScenario[] = [
       'Do not copy exact music, exact sequence, copyrighted visuals, or creator identity.',
       'Reference does not enable Veo for Pro.',
       'Credit approval is still required before generation.',
+      'Browser capture chain plans Playwright/Sharp/Remotion only; no AI video for exact dashboard visuals.',
+      'No browser tools run in this frontend demo.',
     ],
   },
 ]

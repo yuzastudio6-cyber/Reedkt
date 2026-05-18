@@ -1,4 +1,5 @@
-import type { ClipSource, EditPlan, PlannerInput, SignatureRoute } from '../types/reeditpro'
+import type { BrowserCapturePlan, ClipSource, EditPlan, PlannerInput, SignatureRoute } from '../types/reeditpro'
+import { createBrowserCapturePlan } from './browser-capture-planner'
 import { createEditQAChecks } from './edit-qa-planner'
 import { compileEditingIntent, inferReferenceAdaptationFocus } from './intent-compiler'
 import { createProfessionalEditingDirective } from './professional-editing-ontology'
@@ -11,6 +12,7 @@ export const mockPlannerLoadingSteps = [
   'Analyzing source sequence',
   'Reading user instructions',
   'Studying Reference DNA',
+  'Planning browser/app visuals',
   'Mapping story beats',
   'Routing signature systems',
   'Estimating credits',
@@ -143,7 +145,7 @@ function createSignatureRoutes(input: PlannerInput): SignatureRoute[] {
   return routes
 }
 
-function createCreditEstimate(routes: SignatureRoute[], input: PlannerInput): EditPlan['creditEstimate'] {
+function createCreditEstimate(routes: SignatureRoute[], input: PlannerInput, browserCapturePlan?: BrowserCapturePlan): EditPlan['creditEstimate'] {
   const breakdown = [
     { label: 'Planning and transcript analysis', credits: 0, reason: 'Included as a mock setup step for this frontend demo.' },
     { label: 'Captions', credits: 10, reason: 'Editable captions aligned with StoryTiming.' },
@@ -164,6 +166,20 @@ function createCreditEstimate(routes: SignatureRoute[], input: PlannerInput): Ed
 
   if (routes.some((route) => route.system === 'sound_sync')) {
     breakdown.push({ label: 'SoundSync', credits: 8, reason: 'Music timing, SFX cues, ducking, and emotional polish.' })
+  }
+
+  if (browserCapturePlan?.active) {
+    const browserCreditImpact = browserCapturePlan.items.some((item) => item.creditImpact === 'premium' || item.creditImpact === 'high')
+      ? 14
+      : browserCapturePlan.items.some((item) => item.creditImpact === 'medium')
+        ? 9
+        : 4
+    breakdown.push({
+      label: 'Browser/app visual planning',
+      credits: browserCreditImpact,
+      reason:
+        'Plans source status, capture mode, browser frame, highlights, redaction, layout, and QA. No browser tools run in this frontend demo.',
+    })
   }
 
   breakdown.push({ label: 'Final render placeholder', credits: 0, reason: 'Rendering is not implemented in this frontend-only phase.' })
@@ -195,6 +211,10 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     directive: baseDirective,
     referenceDNA: referenceVideoPlan.referenceDNA,
     userInstructions: resolvedInput.customInstructions,
+  })
+  const browserCapturePlan = createBrowserCapturePlan({
+    input: resolvedInput,
+    compiledIntent,
   })
   const routes = createSignatureRoutes(resolvedInput)
   const strongerSocialOpen =
@@ -256,8 +276,9 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     input: resolvedInput,
     directive: professionalEditingDirective,
     referenceDNA: referenceVideoPlan.referenceDNA,
+    browserCapturePlan,
   })
-  const qaChecks = createEditQAChecks({ input: resolvedInput, referenceVideoPlan })
+  const qaChecks = createEditQAChecks({ input: resolvedInput, referenceVideoPlan, browserCapturePlan })
 
   const plan: EditPlan = {
     goalSummary: `Create a ${profile.label.toLowerCase()} that feels ${resolvedInput.moodStyle.replaceAll('_', ' ')} while protecting credits with plan-first approval.`,
@@ -284,11 +305,12 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
         : 'Use SoundSync for mood, beat timing, transition sounds, ducking, and emotional polish while speech stays clear.',
     captionDirection: 'Use readable captions that avoid faces, important objects, and Real Motion placement zones.',
+    browserCapturePlan,
     compiledIntent,
     professionalEditingDirective,
     qaChecks,
     providerPromptGuidance,
-    creditEstimate: createCreditEstimate(routes, resolvedInput),
+    creditEstimate: createCreditEstimate(routes, resolvedInput, browserCapturePlan),
     approvalRequired: true,
   }
 

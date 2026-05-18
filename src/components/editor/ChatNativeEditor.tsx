@@ -9,6 +9,7 @@ import { ChatMessage } from './ChatMessage'
 import { ChatThread } from './ChatThread'
 import { defaultChatPlannerInput, progressSteps } from './chatNativeData'
 import { InlineAIQuestionCard } from './InlineAIQuestionCard'
+import { InlineBrowserCapturePlanCard } from './InlineBrowserCapturePlanCard'
 import { InlineCreditEstimateCard } from './InlineCreditEstimateCard'
 import { InlineEditPlanCard } from './InlineEditPlanCard'
 import { InlinePlanningContextCard } from './InlinePlanningContextCard'
@@ -243,6 +244,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
         <ChatMessage role="ai">
           <InlinePlanningContextCard plan={plan} />
+          <InlineBrowserCapturePlanCard plan={plan} />
         </ChatMessage>
 
         <ChatMessage role="ai">

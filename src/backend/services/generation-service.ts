@@ -5,11 +5,40 @@ import type {
   GenerationProviderType,
   GenerationRequestInputRecord,
   GenerationRequestRecord,
+  LyriaPromptPlanRecord,
+  MusicCueSheetItemRecord,
 } from '../../types'
 import type { CreateGenerationRequestRequest } from '../contracts/generation-contracts'
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+
+export interface CreateMockLyriaGenerationRequestInput {
+  workspaceId: string
+  projectId: string
+  editPlanId: string
+  creditReservationId: string
+  musicCueId: string
+  lyriaPromptPlanId: string
+  prompt: string
+  creditEstimateId?: string
+  negativePrompt?: string
+  durationSeconds?: number
+  estimatedCredits?: number
+  planApproved?: boolean
+}
+
+export interface CreateLyriaGenerationRequestFromPromptPlanInput {
+  workspaceId: string
+  projectId: string
+  editPlanId: string
+  creditReservationId: string
+  promptPlan: LyriaPromptPlanRecord
+  musicCue?: MusicCueSheetItemRecord
+  creditEstimateId?: string
+  estimatedCredits?: number
+  planApproved?: boolean
+}
 
 export function createGenerationProviderPlaceholder(
   db: MockDatabase,
@@ -124,6 +153,113 @@ export function createGenerationRequest(
   return ok(insertMockRecord(db, 'generationRequests', generationRequest))
 }
 
+export function createMockLyriaGenerationRequest(
+  db: MockDatabase,
+  input: CreateMockLyriaGenerationRequestInput,
+): ServiceResult<GenerationRequestRecord> {
+  const editPlan = findMockRecord(db, 'editPlans', input.editPlanId)
+  const reservation = findMockRecord(db, 'creditReservations', input.creditReservationId)
+
+  if (editPlan && editPlan.status !== 'approved') {
+    return fail('PLAN_NOT_APPROVED', 'Lyria generation request requires an approved edit plan.')
+  }
+
+  if (!editPlan && input.planApproved !== true) {
+    return fail('PLAN_NOT_APPROVED', 'Lyria generation request requires explicit mock plan approval.')
+  }
+
+  if (!reservation || reservation.status !== 'reserved') {
+    return fail('CREDITS_NOT_RESERVED', 'Lyria generation request requires reserved music credits.')
+  }
+
+  const request: GenerationRequestRecord = {
+    id: createMockId('lyria-generation-request'),
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    requestType: 'music_asset',
+    providerType: 'google_cloud_worker',
+    modelName: 'lyria-3-pro-preview',
+    signatureSystem: 'none',
+    generationType: 'music_asset',
+    inputAssetIds: [],
+    outputAssetType: 'generated_audio',
+    transparentBackgroundRequired: false,
+    wordLevelTimingRequired: false,
+    durationSeconds: input.durationSeconds ?? 60,
+    resolution: 'audio-only',
+    prompt: input.prompt,
+    negativePrompt: input.negativePrompt ?? 'Do not copy existing songs, melodies, lyrics, artists, or reference timing.',
+    styleConstraints: {
+      styleDnaOnly: true,
+      noArtistNames: true,
+      noCopiedLyrics: true,
+      noRealProviderCall: true,
+    },
+    timingConstraints: {
+      exactCueTimingCopied: false,
+      cueRoleOnly: true,
+    },
+    outputRequirements: {
+      assetType: 'music',
+      assetFormat: 'wav',
+      projectAsset: true,
+      qaRequiredBeforePreview: true,
+    },
+    status: 'approved',
+    qualityLevel: 'preview',
+    creditEstimate: input.estimatedCredits ?? 18,
+    estimatedCredits: input.estimatedCredits ?? 18,
+    failureCategory: 'none',
+    idempotencyKey: `mock-lyria-generation-${input.lyriaPromptPlanId}`,
+    workerNotes: [
+      'Mock-only Lyria Pro generation request.',
+      'Future worker must enforce plan approval and credit reservation before generation.',
+    ],
+    providerRequestSummary: {
+      provider: 'Lyria Pro',
+      model: 'lyria-3-pro-preview',
+      runtime: 'future Google Cloud worker',
+    },
+    requestPayload: {
+      mockOnly: true,
+      musicCueId: input.musicCueId,
+      lyriaPromptPlanId: input.lyriaPromptPlanId,
+    },
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+    metadata: { mockOnly: true },
+  }
+
+  return ok(insertMockRecord(db, 'generationRequests', request))
+}
+
+export function createLyriaGenerationRequestFromPromptPlan(
+  db: MockDatabase,
+  input: CreateLyriaGenerationRequestFromPromptPlanInput,
+): ServiceResult<GenerationRequestRecord> {
+  const durationSeconds = input.musicCue?.timeRange
+    ? Math.max(8, input.musicCue.timeRange.endSeconds - input.musicCue.timeRange.startSeconds)
+    : undefined
+
+  return createMockLyriaGenerationRequest(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditReservationId: input.creditReservationId,
+    musicCueId: input.musicCue?.id ?? input.promptPlan.cueSheetItemId,
+    lyriaPromptPlanId: input.promptPlan.id,
+    prompt: input.promptPlan.prompt,
+    negativePrompt: input.promptPlan.negativePrompt,
+    durationSeconds,
+    creditEstimateId: input.creditEstimateId,
+    estimatedCredits: input.estimatedCredits,
+    planApproved: input.planApproved,
+  })
+}
+
 export function createGenerationRequestInputs(
   db: MockDatabase,
   generationRequestId: string,
@@ -166,6 +302,40 @@ export function markGenerationCompleted(
   generationRequestId: string,
 ): ServiceResult<GenerationRequestRecord> {
   return updateGenerationRequestStatus(db, generationRequestId, 'completed')
+}
+
+export function markLyriaGenerationQueued(
+  db: MockDatabase,
+  generationRequestId: string,
+): ServiceResult<GenerationRequestRecord> {
+  return updateGenerationRequestStatus(db, generationRequestId, 'queued')
+}
+
+export function markLyriaGenerationCompleted(
+  db: MockDatabase,
+  generationRequestId: string,
+): ServiceResult<GenerationRequestRecord> {
+  return updateGenerationRequestStatus(db, generationRequestId, 'completed')
+}
+
+export function markLyriaGenerationBlocked(
+  db: MockDatabase,
+  generationRequestId: string,
+  message = 'Lyria generation blocked by mock worker validation.',
+): ServiceResult<GenerationRequestRecord> {
+  const request = findMockRecord(db, 'generationRequests', generationRequestId)
+
+  if (!request) {
+    return fail('GENERATION_REQUEST_NOT_FOUND', `Generation request ${generationRequestId} was not found.`)
+  }
+
+  request.status = 'failed'
+  request.failureCategory = 'credit_not_reserved'
+  request.failureMessage = message
+  request.failedAt = nowIso()
+  request.updatedAt = nowIso()
+
+  return ok(request)
 }
 
 export function createGeneratedAsset(

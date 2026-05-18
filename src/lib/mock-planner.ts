@@ -1,21 +1,40 @@
 import type {
+  AudioPipelinePlan,
   CharacterConsistencyPlan,
   ClipSource,
+  ColorPipelinePlan,
+  DataVizPlan,
+  DepthAwareOverlayPlan,
   DocumentaryFactSafetyPlan,
   EditPlan,
+  MapAnimationPlan,
   PlannerInput,
+  RenderStrategyPlan,
+  SegmentEditPlan,
   SignatureRoute,
+  SpeakerVisualLayoutPlan,
+  ToolStrategyPlan,
   VisualAssetPlanItem,
 } from '../types/reeditpro'
+import { createAudioPipelinePlan } from './audio-pipeline-planner'
 import { createCharacterConsistencyPlan } from './character-consistency'
+import { createColorPipelinePlan } from './color-pipeline-planner'
 import { createCreditEstimate } from './credit-estimator'
+import { createDepthAwareOverlayPlan } from './depth-aware-overlay-planner'
+import { createDataVizPlan } from './dataviz-planner'
 import { createDocumentaryFactSafetyPlan } from './documentary-fact-safety'
 import { createSegmentEditPlans } from './edit-operation-planner'
 import { createEditQAPlan } from './edit-qa-planner'
 import { getDefaultFrameTemplateForAspectRatio, getFrameLayoutTemplate } from './frame-layouts'
 import { compileEditingIntent } from './intent-compiler'
+import { createMapAnimationPlan } from './map-animation-planner'
 import { buildProviderPromptPlansForEditPlan } from './prompt-builders'
 import { createRendererCompositionPlan } from './remotion-renderer-planner'
+import { createRenderStrategyPlan } from './render-strategy-planner'
+import { createSpeakerVisualLayoutPlan } from './speaker-visual-layout-planner'
+import { createAdaptiveEditStrategyPlan } from './adaptive-edit-strategy'
+import { getToolRegistrySummary } from './tool-registry'
+import { createToolStrategyPlan } from './tool-strategy-planner'
 import {
   createSourceSequenceReviewState,
   getClipRoleLabel,
@@ -23,6 +42,7 @@ import {
   inferSourceSequenceMode,
 } from './source-sequence'
 import { createVisualAssetPlan } from './story-asset-planner'
+import { createMockVideoUnderstandingReport } from './video-understanding'
 import { getWorkflowProfile } from './workflow-profiles'
 
 export const mockPlannerLoadingSteps = [
@@ -216,6 +236,509 @@ function enrichVisualAssetsWithSafetyPlans(params: {
   })
 }
 
+function layoutItemForAsset(asset: VisualAssetPlanItem, speakerVisualLayoutPlan: SpeakerVisualLayoutPlan) {
+  return speakerVisualLayoutPlan.items.find((item) => item.assetPlanItemId === asset.id)
+}
+
+function layoutItemForSegment(segment: SegmentEditPlan, speakerVisualLayoutPlan: SpeakerVisualLayoutPlan) {
+  return speakerVisualLayoutPlan.items.find((item) =>
+    item.segmentId === segment.id ||
+    segment.visualAssetPlanItemIds.some((assetId) => item.assetPlanItemId === assetId),
+  )
+}
+
+function depthItemForLayoutItem(layoutItemId: string | undefined, depthAwareOverlayPlan: DepthAwareOverlayPlan) {
+  return depthAwareOverlayPlan.items.find((item) => item.speakerVisualLayoutItemId === layoutItemId)
+}
+
+function depthItemForAsset(asset: VisualAssetPlanItem, depthAwareOverlayPlan: DepthAwareOverlayPlan) {
+  return depthAwareOverlayPlan.items.find((item) =>
+    item.assetPlanItemId === asset.id ||
+    item.speakerVisualLayoutItemId === asset.speakerVisualLayoutItemId,
+  )
+}
+
+function depthItemForSegment(segment: SegmentEditPlan, depthAwareOverlayPlan: DepthAwareOverlayPlan) {
+  return depthAwareOverlayPlan.items.find((item) =>
+    item.segmentId === segment.id ||
+    segment.visualAssetPlanItemIds.some((assetId) => item.assetPlanItemId === assetId),
+  )
+}
+
+function attachDepthToSpeakerVisualLayout(speakerVisualLayoutPlan: SpeakerVisualLayoutPlan, depthAwareOverlayPlan: DepthAwareOverlayPlan): SpeakerVisualLayoutPlan {
+  return {
+    ...speakerVisualLayoutPlan,
+    items: speakerVisualLayoutPlan.items.map((layoutItem) => {
+      const depthItem = depthItemForLayoutItem(layoutItem.id, depthAwareOverlayPlan)
+
+      if (!depthItem) {
+        return layoutItem
+      }
+
+      return {
+        ...layoutItem,
+        depthAwareOverlayItemId: depthItem.id,
+        depthCompositingMode: depthItem.depthCompositingMode,
+        maskStrategy: depthItem.maskStrategy,
+        maskRisk: depthItem.maskRisk,
+        trackingRequirement: depthItem.trackingRequirement,
+        promptImplications: [
+          ...layoutItem.promptImplications,
+          `Depth-aware overlay mode: ${depthItem.depthCompositingMode.replaceAll('_', ' ')}.`,
+          ...depthItem.promptImplications.slice(0, 2),
+        ],
+        remotionNotes: [
+          ...layoutItem.remotionNotes,
+          `Depth layer plan: ${depthItem.depthCompositingMode.replaceAll('_', ' ')} with ${depthItem.maskStrategy.replaceAll('_', ' ')}.`,
+          'Future mask/segmentation worker required before real depth compositing.',
+        ],
+        qaChecks: [
+          ...layoutItem.qaChecks,
+          `Depth-aware QA: ${depthItem.maskRisk} risk, fallback ${depthItem.fallbackLayoutMode?.replaceAll('_', ' ') ?? 'not required'}.`,
+        ],
+      }
+    }),
+  }
+}
+
+function attachLayoutToVisualAssets(visualAssetPlan: VisualAssetPlanItem[], speakerVisualLayoutPlan: SpeakerVisualLayoutPlan) {
+  return visualAssetPlan.map((asset) => {
+    const layoutItem = layoutItemForAsset(asset, speakerVisualLayoutPlan)
+
+    if (!layoutItem) {
+      return asset
+    }
+
+    return {
+      ...asset,
+      speakerVisualLayoutItemId: layoutItem.id,
+      layoutMode: layoutItem.layoutMode,
+      speakerPresence: layoutItem.speakerPresence,
+      visualDominance: layoutItem.visualDominance,
+      qaChecks: [
+        ...asset.qaChecks,
+        `Speaker/visual layout: ${layoutItem.layoutMode.replaceAll('_', ' ')}.`,
+        `Speaker presence: ${layoutItem.speakerPresence.replaceAll('_', ' ')}.`,
+      ],
+    }
+  })
+}
+
+function attachLayoutToSegments(segmentEditPlans: SegmentEditPlan[], speakerVisualLayoutPlan: SpeakerVisualLayoutPlan) {
+  return segmentEditPlans.map((segment) => {
+    const layoutItem = layoutItemForSegment(segment, speakerVisualLayoutPlan)
+
+    if (!layoutItem) {
+      return segment
+    }
+
+    return {
+      ...segment,
+      speakerVisualLayoutItemId: layoutItem.id,
+      layoutMode: layoutItem.layoutMode,
+      speakerPresence: layoutItem.speakerPresence,
+      visualDominance: layoutItem.visualDominance,
+      workerNotes: [
+        ...segment.workerNotes,
+        `Speaker/visual layout: ${layoutItem.layoutMode.replaceAll('_', ' ')}.`,
+        `Speaker presence: ${layoutItem.speakerPresence.replaceAll('_', ' ')}; visual dominance: ${layoutItem.visualDominance.replaceAll('_', ' ')}.`,
+      ],
+    }
+  })
+}
+
+function attachDepthToVisualAssets(visualAssetPlan: VisualAssetPlanItem[], depthAwareOverlayPlan: DepthAwareOverlayPlan) {
+  return visualAssetPlan.map((asset) => {
+    const depthItem = depthItemForAsset(asset, depthAwareOverlayPlan)
+
+    if (!depthItem) {
+      return asset
+    }
+
+    return {
+      ...asset,
+      depthAwareOverlayItemId: depthItem.id,
+      depthCompositingMode: depthItem.depthCompositingMode,
+      maskStrategy: depthItem.maskStrategy,
+      qaChecks: [
+        ...asset.qaChecks,
+        `Depth-aware overlay: ${depthItem.depthCompositingMode.replaceAll('_', ' ')}.`,
+        `Mask strategy: ${depthItem.maskStrategy.replaceAll('_', ' ')}; frontend mock only.`,
+      ],
+    }
+  })
+}
+
+function attachDepthToSegments(segmentEditPlans: SegmentEditPlan[], depthAwareOverlayPlan: DepthAwareOverlayPlan) {
+  return segmentEditPlans.map((segment) => {
+    const depthItem = depthItemForSegment(segment, depthAwareOverlayPlan)
+
+    if (!depthItem) {
+      return segment
+    }
+
+    return {
+      ...segment,
+      depthAwareOverlayItemId: depthItem.id,
+      depthCompositingMode: depthItem.depthCompositingMode,
+      maskStrategy: depthItem.maskStrategy,
+      workerNotes: [
+        ...segment.workerNotes,
+        `Depth-aware overlay plan: ${depthItem.depthCompositingMode.replaceAll('_', ' ')} using ${depthItem.maskStrategy.replaceAll('_', ' ')}.`,
+        'No real mask, tracking, object detection, or Remotion rendering is executed in the frontend mock.',
+      ],
+    }
+  })
+}
+
+function attachRenderStrategyToVisualAssets(visualAssetPlan: VisualAssetPlanItem[], renderStrategyPlan: RenderStrategyPlan) {
+  return visualAssetPlan.map((asset) => {
+    const renderStrategyItem = renderStrategyPlan.items.find((item) => item.assetPlanItemId === asset.id)
+
+    if (!renderStrategyItem) {
+      return asset
+    }
+
+    return {
+      ...asset,
+      renderStrategyItemId: renderStrategyItem.id,
+      renderStrategyType: renderStrategyItem.strategyType,
+      qaChecks: [
+        ...asset.qaChecks,
+        `Render strategy: ${renderStrategyItem.strategyType.replaceAll('_', ' ')}; Remotion owns final composition.`,
+      ],
+    }
+  })
+}
+
+function attachRenderStrategyToSegments(segmentEditPlans: SegmentEditPlan[], renderStrategyPlan: RenderStrategyPlan) {
+  return segmentEditPlans.map((segment) => {
+    const renderStrategyItemIds = renderStrategyPlan.items
+      .filter((item) =>
+        item.segmentId === segment.id ||
+        Boolean(item.assetPlanItemId && segment.visualAssetPlanItemIds.includes(item.assetPlanItemId)),
+      )
+      .map((item) => item.id)
+
+    if (renderStrategyItemIds.length === 0) {
+      return segment
+    }
+
+    return {
+      ...segment,
+      renderStrategyItemIds,
+      workerNotes: [
+        ...segment.workerNotes,
+        `Render strategy items linked: ${renderStrategyItemIds.join(', ')}.`,
+        'Render strategy is planning only; no Remotion rendering or tool execution is started before approval.',
+      ],
+    }
+  })
+}
+
+function attachToolStrategyToRenderStrategy(renderStrategyPlan: RenderStrategyPlan, toolStrategyPlan: ToolStrategyPlan): RenderStrategyPlan {
+  return {
+    ...renderStrategyPlan,
+    items: renderStrategyPlan.items.map((renderItem) => {
+      const toolStrategyItemIds = toolStrategyPlan.items
+        .filter((item) =>
+          item.renderStrategyItemId === renderItem.id ||
+          item.assetPlanItemId === renderItem.assetPlanItemId ||
+          item.segmentId === renderItem.segmentId,
+        )
+        .map((item) => item.id)
+
+      if (toolStrategyItemIds.length === 0) {
+        return renderItem
+      }
+
+      return {
+        ...renderItem,
+        toolStrategyItemIds,
+        workerNotes: [
+          ...renderItem.workerNotes,
+          `Tool strategy items linked: ${toolStrategyItemIds.join(', ')}.`,
+          'Tool strategy is planning-only; no package installation or tool execution is started before approval.',
+        ],
+      }
+    }),
+  }
+}
+
+function attachToolStrategyToVisualAssets(visualAssetPlan: VisualAssetPlanItem[], toolStrategyPlan: ToolStrategyPlan) {
+  return visualAssetPlan.map((asset) => {
+    const toolStrategyItemIds = toolStrategyPlan.items
+      .filter((item) => item.assetPlanItemId === asset.id)
+      .map((item) => item.id)
+
+    if (toolStrategyItemIds.length === 0) {
+      return asset
+    }
+
+    return {
+      ...asset,
+      toolStrategyItemIds,
+      qaChecks: [
+        ...asset.qaChecks,
+        `Tool strategy linked: ${toolStrategyItemIds.join(', ')}; planning-only controlled tool selection.`,
+      ],
+    }
+  })
+}
+
+function attachToolStrategyToSegments(segmentEditPlans: SegmentEditPlan[], toolStrategyPlan: ToolStrategyPlan) {
+  return segmentEditPlans.map((segment) => {
+    const toolStrategyItemIds = toolStrategyPlan.items
+      .filter((item) =>
+        item.segmentId === segment.id ||
+        Boolean(item.assetPlanItemId && segment.visualAssetPlanItemIds.includes(item.assetPlanItemId)),
+      )
+      .map((item) => item.id)
+
+    if (toolStrategyItemIds.length === 0) {
+      return segment
+    }
+
+    return {
+      ...segment,
+      toolStrategyItemIds,
+      workerNotes: [
+        ...segment.workerNotes,
+        `Tool strategy items linked: ${toolStrategyItemIds.join(', ')}.`,
+        'Future tool workers must use the approved snapshot; no tools run in this frontend mock.',
+      ],
+    }
+  })
+}
+
+function attachColorMatchToVisualAssets(visualAssetPlan: VisualAssetPlanItem[], colorPipelinePlan: ColorPipelinePlan) {
+  return visualAssetPlan.map((asset) => {
+    const colorMatchPlan = colorPipelinePlan.assetMatchPlans.find((plan) => plan.assetPlanItemId === asset.id)
+
+    if (!colorMatchPlan) {
+      return asset
+    }
+
+    return {
+      ...asset,
+      colorMatchPlanId: colorMatchPlan.id,
+      qaChecks: [
+        ...asset.qaChecks,
+        `Color match plan: ${colorMatchPlan.matchToColorGrade.replaceAll('_', ' ')} with panel background consistency.`,
+      ],
+    }
+  })
+}
+
+function attachColorPipelineToSegments(segmentEditPlans: SegmentEditPlan[], colorPipelinePlan: ColorPipelinePlan) {
+  return segmentEditPlans.map((segment) => {
+    const sourceClipOperationIds = colorPipelinePlan.clipPlans
+      .filter((clipPlan) => segment.sourceClipIds.includes(clipPlan.clipId))
+      .flatMap((clipPlan) => [
+        ...clipPlan.correctionOperations.map((operation) => operation.id),
+        ...clipPlan.lookOperations.map((operation) => operation.id),
+      ])
+    const assetOperationIds = colorPipelinePlan.assetMatchPlans
+      .filter((assetPlan) => Boolean(assetPlan.assetPlanItemId && segment.visualAssetPlanItemIds.includes(assetPlan.assetPlanItemId)))
+      .flatMap((assetPlan) => assetPlan.operations.map((operation) => operation.id))
+    const colorPipelineOperationIds = Array.from(new Set([
+      ...sourceClipOperationIds,
+      ...assetOperationIds,
+      ...colorPipelinePlan.projectOperations.map((operation) => operation.id).slice(0, 4),
+    ]))
+
+    return {
+      ...segment,
+      colorPipelineOperationIds,
+      colorGradePlan: {
+        ...segment.colorGradePlan,
+        style: colorPipelinePlan.colorGradeStyle,
+        skinToneProtection: segment.colorGradePlan.skinToneProtection ||
+          colorPipelinePlan.projectOperations.some((operation) => operation.operation === 'skin_tone_protection'),
+        shotMatching: segment.colorGradePlan.shotMatching ||
+          colorPipelinePlan.projectOperations.some((operation) => operation.operation === 'shot_matching'),
+        notes: [
+          ...segment.colorGradePlan.notes,
+          `Aligned with project color pipeline: ${colorPipelinePlan.colorGradeStyle.replaceAll('_', ' ')}.`,
+          'Color pipeline planned at project/clip/asset level; no real color processing runs in this frontend mock.',
+        ],
+      },
+      workerNotes: [
+        ...segment.workerNotes,
+        `Color pipeline operations linked: ${colorPipelineOperationIds.slice(0, 5).join(', ')}.`,
+        'Future color workers must use the approved snapshot; no FFmpeg/OpenColorIO/OpenCV/Sharp processing runs in the frontend mock.',
+      ],
+    }
+  })
+}
+
+function attachAudioPipelineToSegments(segmentEditPlans: SegmentEditPlan[], audioPipelinePlan: AudioPipelinePlan) {
+  return segmentEditPlans.map((segment) => {
+    const sourceClipOperationIds = audioPipelinePlan.clipPlans
+      .filter((clipPlan) => segment.sourceClipIds.includes(clipPlan.clipId))
+      .flatMap((clipPlan) => [
+        ...clipPlan.cleanupOperations.map((operation) => operation.id),
+        ...clipPlan.loudnessOperations.map((operation) => operation.id),
+      ])
+    const cueIds = audioPipelinePlan.soundSyncCues
+      .filter((cue) =>
+        cue.linkedSegmentId === segment.id ||
+        Boolean(cue.linkedVisualAssetId && segment.visualAssetPlanItemIds.includes(cue.linkedVisualAssetId)),
+      )
+      .map((cue) => cue.id)
+    const audioOperationIds = Array.from(new Set([
+      ...sourceClipOperationIds,
+      ...audioPipelinePlan.projectOperations.map((operation) => operation.id).slice(0, 5),
+    ]))
+
+    return {
+      ...segment,
+      audioOperationIds,
+      soundSyncCueIds: cueIds,
+      soundPlan: {
+        ...segment.soundPlan,
+        style: audioPipelinePlan.soundStyle,
+        voiceCleanup: true,
+        musicBed: audioPipelinePlan.musicBedPlan.policy !== 'none',
+        ducking: audioPipelinePlan.musicBedPlan.duckingEnabled,
+        sfx: audioPipelinePlan.sfxPlan.policy === 'none'
+          ? []
+          : audioPipelinePlan.sfxPlan.allowedSfxTypes.length
+            ? audioPipelinePlan.sfxPlan.allowedSfxTypes
+            : segment.soundPlan.sfx,
+        avoidRules: [
+          ...segment.soundPlan.avoidRules,
+          ...audioPipelinePlan.sfxPlan.avoidRules.slice(0, 2),
+          ...audioPipelinePlan.musicBedPlan.avoidRules.slice(0, 2),
+        ],
+        notes: [
+          ...segment.soundPlan.notes,
+          `Aligned with project audio pipeline: ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')} (${audioPipelinePlan.audioIntensity}).`,
+          `Music policy: ${audioPipelinePlan.musicBedPlan.policy.replaceAll('_', ' ')}; SFX policy: ${audioPipelinePlan.sfxPlan.policy.replaceAll('_', ' ')}.`,
+          cueIds.length ? `SoundSync cues linked: ${cueIds.join(', ')}.` : 'No segment-specific SoundSync cue required.',
+        ],
+      },
+      workerNotes: [
+        ...segment.workerNotes,
+        `Audio pipeline operations linked: ${audioOperationIds.slice(0, 5).join(', ')}.`,
+        'Future audio workers must use the approved snapshot; no FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp processing runs in the frontend mock.',
+      ],
+    }
+  })
+}
+
+function attachMapAnimationToVisualAssets(visualAssetPlan: VisualAssetPlanItem[], mapAnimationPlan: MapAnimationPlan) {
+  if (!mapAnimationPlan.active) {
+    return visualAssetPlan
+  }
+
+  return visualAssetPlan.map((asset) => {
+    const mapItem = mapAnimationPlan.items.find((item) =>
+      item.visualAssetPlanItemId === asset.id ||
+      item.assetPlanItemId === asset.id,
+    )
+
+    if (!mapItem) {
+      return asset
+    }
+
+    return {
+      ...asset,
+      mapAnimationPlanItemId: mapItem.id,
+      qaChecks: [
+        ...asset.qaChecks,
+        `Map plan: ${mapItem.mapVisualType.replaceAll('_', ' ')} with ${mapItem.locations.map((location) => location.safeWording).join(', ')}.`,
+        'Exact geography uses controlled map planning, not AI video.',
+      ],
+    }
+  })
+}
+
+function attachMapAnimationToSegments(segmentEditPlans: SegmentEditPlan[], mapAnimationPlan: MapAnimationPlan) {
+  if (!mapAnimationPlan.active) {
+    return segmentEditPlans
+  }
+
+  return segmentEditPlans.map((segment) => {
+    const mapAnimationPlanItemIds = mapAnimationPlan.items
+      .filter((item) =>
+        item.segmentId === segment.id ||
+        Boolean(item.visualAssetPlanItemId && segment.visualAssetPlanItemIds.includes(item.visualAssetPlanItemId)),
+      )
+      .map((item) => item.id)
+
+    if (mapAnimationPlanItemIds.length === 0) {
+      return segment
+    }
+
+    return {
+      ...segment,
+      mapAnimationPlanItemIds,
+      workerNotes: [
+        ...segment.workerNotes,
+        `Map/location plan items linked: ${mapAnimationPlanItemIds.join(', ')}.`,
+        'Future map workers must use approved source-safe locations; no MapLibre/Turf execution runs in the frontend mock.',
+      ],
+    }
+  })
+}
+
+function attachDataVizToVisualAssets(visualAssetPlan: VisualAssetPlanItem[], dataVizPlan: DataVizPlan) {
+  if (!dataVizPlan.active) {
+    return visualAssetPlan
+  }
+
+  return visualAssetPlan.map((asset) => {
+    const dataVizItem = dataVizPlan.items.find((item) =>
+      item.visualAssetPlanItemId === asset.id ||
+      item.assetPlanItemId === asset.id,
+    )
+
+    if (!dataVizItem) {
+      return asset
+    }
+
+    return {
+      ...asset,
+      dataVizPlanItemId: dataVizItem.id,
+      qaChecks: [
+        ...asset.qaChecks,
+        `Chart/diagram plan: ${dataVizItem.visualType.replaceAll('_', ' ')} with ${dataVizItem.dataPlan.safeWording}.`,
+        'Exact chart/diagram data uses controlled D3/ECharts/Remotion planning, not AI video.',
+      ],
+    }
+  })
+}
+
+function attachDataVizToSegments(segmentEditPlans: SegmentEditPlan[], dataVizPlan: DataVizPlan) {
+  if (!dataVizPlan.active) {
+    return segmentEditPlans
+  }
+
+  return segmentEditPlans.map((segment) => {
+    const dataVizPlanItemIds = dataVizPlan.items
+      .filter((item) =>
+        item.segmentId === segment.id ||
+        Boolean(item.visualAssetPlanItemId && segment.visualAssetPlanItemIds.includes(item.visualAssetPlanItemId)),
+      )
+      .map((item) => item.id)
+
+    if (dataVizPlanItemIds.length === 0) {
+      return segment
+    }
+
+    return {
+      ...segment,
+      dataVizPlanItemIds,
+      workerNotes: [
+        ...segment.workerNotes,
+        `Chart/diagram plan items linked: ${dataVizPlanItemIds.join(', ')}.`,
+        'Future chart workers must use approved source-aware data; no D3/ECharts/Vega-Lite execution runs in the frontend mock.',
+      ],
+    }
+  })
+}
+
 export function createMockEditPlan(input: PlannerInput): EditPlan {
   const profile = getWorkflowProfile(input.workflowType)
   const sourceOrderConfirmed = input.sourceOrderConfirmed ?? true
@@ -237,63 +760,289 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     sourceOrderConfirmed,
     sourceSequenceMode,
   }
-  const routes = createSignatureRoutes(effectiveInput)
-  const visualAssetPlan = createVisualAssetPlan(effectiveInput)
-  const frameTemplate = resolveFrameTemplate(effectiveInput)
-  const rendererCompositionPlan = createRendererCompositionPlan({
-    aspectRatio: effectiveInput.aspectRatio,
-    editLevel: effectiveInput.editLevel,
-    frameTemplate,
-    targetPlatform: effectiveInput.targetPlatform,
-    visualAssetPlan,
-  })
-  const segmentEditPlans = createSegmentEditPlans({
+  const videoUnderstandingReportBase =
+    input.videoUnderstandingReport ??
+    createMockVideoUnderstandingReport({
+      compiledIntent,
+      input: effectiveInput,
+    })
+  const adaptiveEditStrategyPlan = createAdaptiveEditStrategyPlan({
     compiledIntent,
     input: effectiveInput,
-    rendererCompositionPlan,
+    professionalDirective: professionalEditingDirective,
+    videoUnderstandingReport: videoUnderstandingReportBase,
+  })
+  const videoUnderstandingReport = {
+    ...videoUnderstandingReportBase,
+    adaptiveStrategyPlan: adaptiveEditStrategyPlan,
+  }
+  const adaptiveEditStrategy = videoUnderstandingReport.suggestedStrategy
+  const analysisInput: PlannerInput = {
+    ...effectiveInput,
+    videoUnderstandingReport,
+  }
+  const routes = createSignatureRoutes(analysisInput)
+  const visualAssetPlan = createVisualAssetPlan(analysisInput, { adaptiveEditStrategyPlan, videoUnderstandingReport })
+  const draftSegmentEditPlans = createSegmentEditPlans({
+    adaptiveEditStrategyPlan,
+    compiledIntent,
+    input: analysisInput,
     visualAssetPlan,
   })
+  const speakerVisualLayoutPlanBase = createSpeakerVisualLayoutPlan({
+    adaptiveEditStrategyPlan,
+    compiledIntent,
+    input: analysisInput,
+    segmentEditPlans: draftSegmentEditPlans,
+    videoUnderstandingReport,
+    visualAssetPlan,
+  })
+  const visualAssetPlanWithLayoutBase = attachLayoutToVisualAssets(visualAssetPlan, speakerVisualLayoutPlanBase)
+  const draftSegmentEditPlansWithLayoutBase = attachLayoutToSegments(draftSegmentEditPlans, speakerVisualLayoutPlanBase)
+  const depthAwareOverlayPlan = createDepthAwareOverlayPlan({
+    adaptiveEditStrategyPlan,
+    compiledIntent,
+    input: analysisInput,
+    segmentEditPlans: draftSegmentEditPlansWithLayoutBase,
+    speakerVisualLayoutPlan: speakerVisualLayoutPlanBase,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithLayoutBase,
+  })
+  const speakerVisualLayoutPlan = attachDepthToSpeakerVisualLayout(speakerVisualLayoutPlanBase, depthAwareOverlayPlan)
+  const visualAssetPlanWithLayout = attachDepthToVisualAssets(attachLayoutToVisualAssets(visualAssetPlan, speakerVisualLayoutPlan), depthAwareOverlayPlan)
+  const draftSegmentEditPlansWithLayout = attachDepthToSegments(attachLayoutToSegments(draftSegmentEditPlans, speakerVisualLayoutPlan), depthAwareOverlayPlan)
   const characterConsistencyPlan = createCharacterConsistencyPlan({
     compiledIntent,
-    input: effectiveInput,
-    segmentEditPlans,
-    visualAssetPlan,
+    input: analysisInput,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    visualAssetPlan: visualAssetPlanWithLayout,
   })
   const documentaryFactSafetyPlan = createDocumentaryFactSafetyPlan({
     characterConsistencyPlan,
     compiledIntent,
-    input: effectiveInput,
-    visualAssetPlan,
+    input: analysisInput,
+    visualAssetPlan: visualAssetPlanWithLayout,
   })
   const visualAssetPlanWithSafety = enrichVisualAssetsWithSafetyPlans({
     characterConsistencyPlan,
     documentaryFactSafetyPlan,
-    visualAssetPlan,
+    visualAssetPlan: visualAssetPlanWithLayout,
   })
-  const editQAPlan = createEditQAPlan({
-    characterConsistencyPlan,
+  const frameTemplate = resolveFrameTemplate(effectiveInput)
+  const toolRegistrySummary = getToolRegistrySummary()
+  const renderStrategyPlanBase = createRenderStrategyPlan({
+    adaptiveEditStrategyPlan,
     compiledIntent,
-    documentaryFactSafetyPlan,
-    input: effectiveInput,
-    rendererCompositionPlan,
-    segmentEditPlans,
+    depthAwareOverlayPlan,
+    input: analysisInput,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    speakerVisualLayoutPlan,
+    toolRegistrySummary,
+    videoUnderstandingReport,
     visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const toolStrategyPlanBase = createToolStrategyPlan({
+    adaptiveEditStrategyPlan,
+    depthAwareOverlayPlan,
+    input: analysisInput,
+    renderStrategyPlan: renderStrategyPlanBase,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    speakerVisualLayoutPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const colorPipelinePlanBase = createColorPipelinePlan({
+    adaptiveEditStrategyPlan,
+    compiledIntent,
+    input: analysisInput,
+    professionalDirective: professionalEditingDirective,
+    toolStrategyPlan: toolStrategyPlanBase,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const audioPipelinePlanBase = createAudioPipelinePlan({
+    adaptiveEditStrategyPlan,
+    compiledIntent,
+    input: analysisInput,
+    professionalDirective: professionalEditingDirective,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    toolStrategyPlan: toolStrategyPlanBase,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const mapAnimationPlanBase = createMapAnimationPlan({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan: audioPipelinePlanBase,
+    compiledIntent,
+    depthAwareOverlayPlan,
+    input: analysisInput,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan: toolStrategyPlanBase,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const dataVizPlanBase = createDataVizPlan({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan: audioPipelinePlanBase,
+    compiledIntent,
+    input: analysisInput,
+    renderStrategyPlan: renderStrategyPlanBase,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan: toolStrategyPlanBase,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const toolStrategyPlan = createToolStrategyPlan({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan: audioPipelinePlanBase,
+    colorPipelinePlan: colorPipelinePlanBase,
+    depthAwareOverlayPlan,
+    dataVizPlan: dataVizPlanBase,
+    input: analysisInput,
+    mapAnimationPlan: mapAnimationPlanBase,
+    renderStrategyPlan: renderStrategyPlanBase,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    speakerVisualLayoutPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithSafety,
+  })
+  const renderStrategyPlan = attachToolStrategyToRenderStrategy(renderStrategyPlanBase, toolStrategyPlan)
+  const visualAssetPlanWithRenderStrategyBase = attachToolStrategyToVisualAssets(
+    attachRenderStrategyToVisualAssets(visualAssetPlanWithSafety, renderStrategyPlan),
+    toolStrategyPlan,
+  )
+  const colorPipelinePlan = createColorPipelinePlan({
+    adaptiveEditStrategyPlan,
+    compiledIntent,
+    input: analysisInput,
+    professionalDirective: professionalEditingDirective,
+    toolStrategyPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithRenderStrategyBase,
+  })
+  const audioPipelinePlan = createAudioPipelinePlan({
+    adaptiveEditStrategyPlan,
+    compiledIntent,
+    input: analysisInput,
+    professionalDirective: professionalEditingDirective,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    toolStrategyPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithRenderStrategyBase,
+  })
+  const mapAnimationPlan = createMapAnimationPlan({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan,
+    compiledIntent,
+    depthAwareOverlayPlan,
+    input: analysisInput,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithRenderStrategyBase,
+  })
+  const dataVizPlan = createDataVizPlan({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan,
+    compiledIntent,
+    input: analysisInput,
+    renderStrategyPlan,
+    segmentEditPlans: draftSegmentEditPlansWithLayout,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithRenderStrategyBase,
+  })
+  const visualAssetPlanWithMap = attachMapAnimationToVisualAssets(visualAssetPlanWithRenderStrategyBase, mapAnimationPlan)
+  const visualAssetPlanWithDataViz = attachDataVizToVisualAssets(visualAssetPlanWithMap, dataVizPlan)
+  const visualAssetPlanWithRenderStrategy = attachColorMatchToVisualAssets(visualAssetPlanWithDataViz, colorPipelinePlan)
+  const rendererCompositionPlan = createRendererCompositionPlan({
+    aspectRatio: effectiveInput.aspectRatio,
+    audioPipelinePlan,
+    colorPipelinePlan,
+    depthAwareOverlayPlan,
+    editLevel: effectiveInput.editLevel,
+    frameTemplate,
+    dataVizPlan,
+    mapAnimationPlan,
+    renderStrategyPlan,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan,
+    targetPlatform: effectiveInput.targetPlatform,
+    visualAssetPlan: visualAssetPlanWithRenderStrategy,
+  })
+  const segmentEditPlansBase = attachDepthToSegments(attachLayoutToSegments(createSegmentEditPlans({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan,
+    colorPipelinePlan,
+    compiledIntent,
+    input: analysisInput,
+    rendererCompositionPlan,
+    visualAssetPlan: visualAssetPlanWithRenderStrategy,
+  }), speakerVisualLayoutPlan), depthAwareOverlayPlan)
+  const segmentEditPlans = attachColorPipelineToSegments(
+    attachToolStrategyToSegments(attachRenderStrategyToSegments(segmentEditPlansBase, renderStrategyPlan), toolStrategyPlan),
+    colorPipelinePlan,
+  )
+  const segmentEditPlansWithAudio = attachAudioPipelineToSegments(
+    segmentEditPlans,
+    audioPipelinePlan,
+  )
+  const segmentEditPlansWithAudioAndMap = attachMapAnimationToSegments(
+    segmentEditPlansWithAudio,
+    mapAnimationPlan,
+  )
+  const segmentEditPlansWithAudioMapAndDataViz = attachDataVizToSegments(
+    segmentEditPlansWithAudioAndMap,
+    dataVizPlan,
+  )
+  const editQAPlan = createEditQAPlan({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan,
+    characterConsistencyPlan,
+    colorPipelinePlan,
+    compiledIntent,
+    depthAwareOverlayPlan,
+    documentaryFactSafetyPlan,
+    input: analysisInput,
+    dataVizPlan,
+    mapAnimationPlan,
+    renderStrategyPlan,
+    rendererCompositionPlan,
+    segmentEditPlans: segmentEditPlansWithAudioMapAndDataViz,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithRenderStrategy,
   })
   const providerPromptPlans = buildProviderPromptPlansForEditPlan({
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan,
     characterConsistencyPlan,
+    colorPipelinePlan,
     compiledIntent,
+    depthAwareOverlayPlan,
     documentaryFactSafetyPlan,
-    input: effectiveInput,
+    input: analysisInput,
     professionalDirective: professionalEditingDirective,
+    dataVizPlan,
+    mapAnimationPlan,
+    renderStrategyPlan,
     rendererCompositionPlan,
-    segmentEditPlans,
-    visualAssetPlan: visualAssetPlanWithSafety,
+    segmentEditPlans: segmentEditPlansWithAudioMapAndDataViz,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan,
+    videoUnderstandingReport,
+    visualAssetPlan: visualAssetPlanWithRenderStrategy,
   })
-  const visualAssetPlanWithPrompts = visualAssetPlanWithSafety.map((asset) => ({
+  const visualAssetPlanWithPrompts = visualAssetPlanWithRenderStrategy.map((asset) => ({
     ...asset,
     promptPlans: providerPromptPlans.filter((promptPlan) => promptPlan.assetPlanItemId === asset.id),
   }))
-  const segmentEditPlansWithPrompts = segmentEditPlans.map((segment) => ({
+  const segmentEditPlansWithAudioMapDataVizAndPrompts = segmentEditPlansWithAudioMapAndDataViz.map((segment) => ({
     ...segment,
     promptPlans: providerPromptPlans.filter((promptPlan) => promptPlan.segmentId === segment.id),
   }))
@@ -416,9 +1165,21 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
       reason: `${route.reason} (${systemLabel(route.system)} is selected per segment, not forced by the dropdown.)`,
     })),
     compiledIntent,
+    videoUnderstandingReport,
+    adaptiveEditStrategy,
+    adaptiveEditStrategyPlan,
+    toolRegistrySummary,
+    toolStrategyPlan,
+    colorPipelinePlan,
+    audioPipelinePlan,
+    mapAnimationPlan,
+    dataVizPlan,
+    renderStrategyPlan,
     visualAssetPlan: visualAssetPlanWithPrompts,
+    speakerVisualLayoutPlan,
+    depthAwareOverlayPlan,
     rendererCompositionPlan,
-    segmentEditPlans: segmentEditPlansWithPrompts,
+    segmentEditPlans: segmentEditPlansWithAudioMapDataVizAndPrompts,
     characterConsistencyPlan,
     documentaryFactSafetyPlan,
     editQAPlan,
@@ -429,7 +1190,7 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
         : 'Use SoundSync for mood, beat timing, transition sounds, ducking, and emotional polish while speech stays clear.',
     captionDirection: 'Use readable captions that avoid faces, important objects, and Real Motion placement zones.',
-    creditEstimate: createCreditEstimate(effectiveInput, { rendererCompositionPlan, visualAssetPlan: visualAssetPlanWithSafety }),
+    creditEstimate: createCreditEstimate(analysisInput, { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, dataVizPlan, depthAwareOverlayPlan, mapAnimationPlan, renderStrategyPlan, rendererCompositionPlan, speakerVisualLayoutPlan, toolStrategyPlan, visualAssetPlan: visualAssetPlanWithRenderStrategy }),
     approvalRequired: true,
   }
 }

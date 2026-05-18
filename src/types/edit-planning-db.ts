@@ -1,14 +1,20 @@
 import type {
   AspectRatio,
+  AdaptiveEditStrategy,
+  AdaptiveEditStrategyPlan,
+  AudioPipelinePlan,
   BrollPolicyId,
   CaptionStyleId,
   CharacterConsistencyPlan,
+  ColorPipelinePlan,
   ColorGradeStyleId,
   CompiledEditingIntent,
   CreditEstimate,
   CreditPreference,
   CutIntensity,
+  DataVizPlan,
   DocumentaryFactSafetyPlan,
+  DepthAwareOverlayPlan,
   EditLevel,
   EditOperationStatus,
   EditPlan,
@@ -18,6 +24,7 @@ import type {
   FrameLayoutPlan,
   FrameTemplateType,
   LayerFitMode,
+  MapAnimationPlan,
   ProfessionalEditStyleId,
   ProfessionalEditingDirective,
   ProviderPromptPlan,
@@ -25,15 +32,20 @@ import type {
   ProviderRoute,
   QACategory,
   QAStatus,
+  RenderStrategyPlan,
   RendererCompositionPlan,
   RendererEngine,
   RendererLayerPlan,
   RendererLayerType,
   SegmentEditPlan,
   SignatureSystem,
+  SpeakerVisualLayoutPlan,
   SoundStyleId,
   TargetPlatform,
+  ToolRegistrySummary,
+  ToolStrategyPlan,
   TransitionFamilyId,
+  VideoUnderstandingReport,
   VisualAssetPlanItem,
   VisualAssetType,
   VisualPreference,
@@ -554,6 +566,18 @@ export interface ApprovedPlanSnapshot {
   operations: EditOperationRecord[]
   visualAssetPlan: VisualAssetPlanItemRecord[]
   visualAssetPlanDomain?: VisualAssetPlanItem[]
+  videoUnderstandingReport?: VideoUnderstandingReport
+  adaptiveEditStrategy?: AdaptiveEditStrategy
+  adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
+  toolRegistrySummary?: ToolRegistrySummary
+  toolStrategyPlan?: ToolStrategyPlan
+  renderStrategyPlan?: RenderStrategyPlan
+  colorPipelinePlan?: ColorPipelinePlan
+  audioPipelinePlan?: AudioPipelinePlan
+  mapAnimationPlan?: MapAnimationPlan
+  dataVizPlan?: DataVizPlan
+  speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
+  depthAwareOverlayPlan?: DepthAwareOverlayPlan
   frameLayoutPlan?: FrameLayoutPlanRecord
   frameLayoutPlanDomain?: FrameLayoutPlan
   rendererCompositionPlan?: RendererCompositionPlanRecord

@@ -13,6 +13,25 @@ These instructions are for Codex and any future agent working in this repository
 - Read `visual-storytelling-architecture.md` before visual storytelling, beat planning, visual asset type, or character consistency work.
 - Read `model-routing-policy.md` before provider model routing, fallback, resolution, or generation-policy work.
 - Read `frame-layout-system.md` before frame template, layout panel, compositor, safe-zone, or AI animation background work.
+- Read `speaker-visual-layout-strategy.md` before speaker presence, visual takeover, picture-in-picture, side-by-side, lower panel, map, chart, evidence board, screen capture, b-roll cutaway, or adaptive layout strategy work.
+- Read `depth-aware-overlay-composition.md` before depth-aware overlays, foreground masks, contact object preservation, object anchoring, mask risk, or layered compositing strategy work.
+- Read `video-understanding-report.md` before video understanding, clip analysis, transcript meaning, visual/audio issue planning, opportunity detection, or source-content analysis work.
+- Read `adaptive-planning-layer.md` before adaptive edit strategy, per-segment visual/tool decisions, or anti-template planning work.
+- Read `adaptive-edit-strategy-planner.md` before adaptive segment strategy, generation restraint, visual/tool selection, or reasoned per-beat creative decisions.
+- Read `open-source-tool-registry.md` before open-source tool strategy, deterministic tool planning, tool/provider separation, license review, or controlled-tool decisions.
+- Read `tool-settings-catalog.md` before tool setting, preset, registry profile, map/chart/browser/color/audio/QA tool planning, or tool catalog work.
+- Read `remotion-capability-matrix.md` before deciding what Remotion can build directly versus what needs GPT-Image-2, open-source tools, AI video assets, workers, or QA-only tools.
+- Read `render-strategy-planner.md` before render strategy planning, Remotion-only decisions, GPT-image-to-Remotion flows, tool-to-Remotion flows, AI-video-to-Remotion flows, or worker pre/postprocess strategy work.
+- Read `tool-strategy-planner.md` before segment/asset-specific tool chain planning, controlled-tool settings, tool fallbacks, or tool-vs-AI decisions.
+- Read `tool-usage-planning-ui.md` before changing the chat UI that displays planned tool chains, tool settings, execution modes, or planning-only tool status.
+- Read `color-pipeline-planning.md` before color correction, grading, shot matching, generated asset matching, AI-video panel color consistency, or color QA planning work.
+- Read `color-grading-settings-catalog.md` before color settings, grade presets, LUT/look settings, shot matching settings, generated asset matching settings, or color QA thresholds.
+- Read `soundsync-audio-pipeline-planning.md` before SoundSync, audio cleanup, loudness, music bed, ducking, SFX, beat timing, emotional pacing, or audio QA planning work.
+- Read `audio-settings-catalog.md` before audio cleanup settings, loudness settings, music/SFX settings, SoundSync cue settings, beat sync settings, or audio QA thresholds.
+- Read `map-location-animation-planning.md` before map, route, neighborhood, geography, location card, map-behind-subject, or map evidence planning work.
+- Read `map-animation-settings-catalog.md` before map settings, location confidence, map style, route/camera animation, map safe zones, or map QA threshold work.
+- Read `chart-diagram-planning.md` before chart, diagram, money-flow, metric, timeline, evidence-flow, or VisualExplain data graphic planning work.
+- Read `chart-diagram-settings-catalog.md` before chart/data/diagram settings, source confidence, label density, animation settings, layout settings, or dataviz QA threshold work.
 - Read `remotion-renderer-plan.md` before rendering, compositing, frame layout, motion design, or visual asset assembly work.
 - Read `professional-editing-ontology.md` before professional editing style, pacing, cut, transition, color, caption, b-roll, sound, or custom directive work.
 - Read `edit-quality-standards.md` before changing tier quality, edit QA, professional baseline, or quality-gate behavior.
@@ -27,6 +46,8 @@ These instructions are for Codex and any future agent working in this repository
 - Read `planner-regression-validation.md` before planner validation, regression checks, demo scenario QA, model-routing tests, prompt-builder tests, or hard product rule validation work.
 - Read `chat-planning-ux-architecture.md` before chat flow organization, planning card priority, collapse behavior, guided/detailed/developer modes, or approval-path UX work.
 - Read `source-sequence-review-ux.md` before source order review, clip reorder UX, uploaded-order semantics, or source-sequence confirmation work.
+- Read `docs/lyria-worker-plan.md` and `docs/google-cloud-audio-worker-plan.md` before Lyria worker, Google Cloud audio worker, music generation job, worker secret, or generated music asset work.
+- Read `docs/lyria-integration-adapter.md` before Lyria provider adapter, Lyria request building, Lyria response parsing, integration mode, or disabled real API path work.
 
 ## Product Identity
 
@@ -96,6 +117,80 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - GPT-Image-2 prompts create images, cards, keyframes, start frames, and end frames.
 - Wan, Hailuo, and Veo prompts create AI video clips/assets only, not the final canvas.
 - Remotion owns final layout/composition and receives renderer or motion briefs.
+- ReeditPro must plan speaker/visual layout per segment.
+- Do not use the same layout for every video.
+- Layout should depend on user request, segment meaning, source footage, platform, edit level, and visual need.
+- Speaker should stay visible when trust, emotion, authenticity, or personal story matters.
+- Visuals should take over when explanation, evidence, map, chart, timeline, diagram, or screen capture needs space.
+- Remotion owns final layout/composition; AI models generate assets and clips only.
+- Future depth-aware overlays and contact-object preservation are advanced layout/compositing tasks, not default flat overlays.
+- Depth-aware overlays must be planned, not randomly applied.
+- Preserve contact objects when they affect the depth composition.
+- Person plus contact object can become one foreground depth group.
+- Captions must stay above graphics and masks.
+- Use safer layouts when mask risk is high.
+- Basic should avoid complex depth masks.
+- Pro can plan low/medium risk foreground-aware overlays.
+- Premium can plan advanced depth overlays with stronger QA.
+- Depth-aware composition is a compositing/masking task, not a reason to use Veo.
+- Workers must not execute mask/depth plans before approval.
+- ReeditPro must use video understanding before choosing visual or tool strategy.
+- Do not edit every video with the same template.
+- User intent and video content both shape the plan.
+- Video understanding guides planning but does not override explicit user instructions.
+- The planner should explain why each segment needs speaker, visual, both, b-roll, card, chart, map, Stroke Motion, Real Motion, or no extra visual.
+- Current frontend tasks must not implement real video analysis unless explicitly requested.
+- Every visual/edit decision should have a reason.
+- Do not apply visual systems by category alone.
+- Adaptive strategy must use both user intent and video understanding.
+- Exact charts, maps, labels, screen captures, and data visuals should prefer controlled tools/Remotion instead of AI video.
+- AI video should be reserved for organic or generative motion that actually improves the segment.
+- The planner should explain why a segment uses still/card, b-roll, map, chart, screen capture, Stroke Motion, Real Motion, captions only, or no visual.
+- ReeditPro should prefer controlled tools over AI generation when exact text, charts, maps, captions, layouts, screenshots, color/audio processing, or QA matters.
+- Do not install tools unless the milestone explicitly asks for installation.
+- Tool registry guides the AI but does not limit custom requests.
+- Tool strategy must explain why a tool is chosen.
+- License notes must be tracked before production use.
+- Worker tools should not be bundled into frontend code without a specific milestone.
+- Remotion is the compositor; tools can provide assets, data, screenshots, maps, charts, processing, or QA.
+- Every visual asset should have a render strategy explaining whether Remotion alone is enough or whether GPT-Image-2, open-source tools, AI video assets, or future workers are needed.
+- Do not use AI video for exact charts, captions, maps, cards, labels, screen captures, or diagrams when controlled tools or Remotion can do the job.
+- Basic should prefer simpler Remotion-only, still/card, and controlled tool render strategies.
+- Pro can use richer tool-based and AI-assisted render strategies, but still cannot use Veo.
+- Premium can use advanced hybrid render strategies, but Veo remains final fallback only.
+- Do not install render/tool packages unless the milestone explicitly asks for installation.
+- Tool strategy must be segment- or asset-specific and explain why the selected tool chain is better than AI generation when exact output matters.
+- Tool strategy settings should come from the settings catalog, not raw chat text alone.
+- Provider models are not open-source tools.
+- Tool usage UI must not imply that tools have been installed, executed, rendered, or run before approval.
+- Basic/Pro no-Veo policy and Premium final-fallback-only Veo policy remain unchanged by tool strategy.
+- Basic edits must include professional color correction; never describe Basic as ungraded or low quality.
+- Color grading should be planned deterministically, not randomly generated.
+- Remotion is not the full color grading engine; future FFmpeg/OpenColorIO/OpenImageIO/OpenCV/Sharp workers may execute color and color-QA tasks only after approval.
+- Generated GPT-Image-2, Wan, Hailuo, and Veo assets should be planned to match the chosen color look and panel background.
+- Color plans must preserve skin tones when people are visible.
+- Documentary / Case Study color should avoid sensational overprocessing unless the user requests stylization.
+- No real color processing unless a milestone explicitly requests it.
+- Basic edits must include professional audio cleanup and loudness planning; never describe Basic audio as low quality.
+- SoundSync is the audio/timing support engine, not a visual signature system.
+- Do not add random SFX; SFX and music must support story, pacing, transition, reveal, or emotion.
+- Music must not overpower voice, and ducking should be planned when music is present under speech.
+- Audio planning should be deterministic and structured, not random.
+- Future FFmpeg/Essentia/librosa/Rubber Band/whisper.cpp workers may execute audio analysis or processing only after approval.
+- No real audio processing unless a milestone explicitly requests it.
+- Audio plans must not enable Veo or change AI-video tier rules.
+- Use controlled map tools for geographic/location visuals instead of AI video.
+- Map visuals must be planned with layout, safe zones, label readability, and source certainty.
+- Do not use AI video to invent exact maps, roads, labels, pins, or geography.
+- Documentary/case-study location claims must be treated carefully; unverified locations should use safe wording and approximate visuals.
+- Map behind subject/contact object is a depth-aware composition plan, not a map-generation task.
+- Do not install or execute map tools unless the milestone explicitly asks for installation.
+- Use controlled chart/diagram tools for exact data, labels, arrows, names, money amounts, dates, timelines, and process diagrams.
+- Do not use AI video to invent exact charts, data, labels, numbers, accounts, arrows, timelines, or diagrams.
+- Data/source certainty must be represented in chart and diagram plans; mock data must be clearly marked.
+- Documentary/case-study data and claims must use safe wording when unverified.
+- Chart/diagram visuals must preserve safe zones, label readability, and caption readability.
+- Do not install or execute chart/dataviz tools unless the milestone explicitly asks for installation.
 - Basic and Pro must never create allowed Veo prompts.
 - Premium may create Veo prompts only as final fallback/rescue.
 - Prompts must preserve matching panel background, safe-margin, and frame-panel instructions.
@@ -127,6 +222,17 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Changing source order, clip role, clip notes, important/optional state, or clip list must reset plan approval and mock progress.
 - Do not treat uploaded order as final edit order without showing the recommended edit structure first.
 - Do not implement real upload, playback, thumbnails, transcoding, or media analysis in frontend mock tasks.
+- Lyria Pro integration must remain behind backend/worker boundaries.
+- Lyria adapter defaults to mock mode.
+- Real Lyria calls must never run in the frontend.
+- Never expose Lyria, Google, or service-role secrets to frontend code.
+- Never expose Google/Lyria API keys to Vite/browser code.
+- Lyria workers must enforce plan approval and credit reservation before generation.
+- Worker skeletons are mock-only until explicit real integration is requested.
+- Generated music starts as a project asset and must pass Music QA before preview/export use.
+- Real generation requires edit plan approval and credit reservation.
+- Lyria response parsing must handle text and audio parts in any order.
+- Generated music must pass Music QA before use in render/export.
 
 ## Subscription And Credits
 

@@ -1,13 +1,22 @@
 import type {
+  AdaptiveEditStrategyPlan,
+  AudioPipelinePlan,
+  ColorPipelinePlan,
   CreditEstimate,
   CreditEstimateAssetSummary,
   CreditEstimatePolicyNote,
   CreditEstimateRiskLevel,
+  DataVizPlan,
+  DepthAwareOverlayPlan,
   EditLevel,
   LowerCostAlternative,
+  MapAnimationPlan,
   PlannerInput,
+  RenderStrategyPlan,
   RendererCompositionPlan,
   SignatureSystem,
+  SpeakerVisualLayoutPlan,
+  ToolStrategyPlan,
   VisualAssetPlanItem,
   VisualAssetType,
 } from '../types/reeditpro'
@@ -15,6 +24,15 @@ import type {
 type CreateCreditEstimateParams = {
   visualAssetPlan: VisualAssetPlanItem[]
   rendererCompositionPlan?: RendererCompositionPlan
+  speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
+  depthAwareOverlayPlan?: DepthAwareOverlayPlan
+  adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
+  renderStrategyPlan?: RenderStrategyPlan
+  toolStrategyPlan?: ToolStrategyPlan
+  colorPipelinePlan?: ColorPipelinePlan
+  audioPipelinePlan?: AudioPipelinePlan
+  mapAnimationPlan?: MapAnimationPlan
+  dataVizPlan?: DataVizPlan
 }
 
 const editLevelLabels: Record<EditLevel, string> = {
@@ -148,6 +166,346 @@ function fallbackAllowanceCredits(input: PlannerInput, visualAssetPlan: VisualAs
   return Math.min(5, Math.max(0, fallbackRouteCount))
 }
 
+function layoutPlanningCredits(input: PlannerInput, speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan) {
+  const advancedLayoutCount = (speakerVisualLayoutPlan?.items ?? []).filter((item) =>
+    item.complexity === 'advanced' ||
+    item.complexity === 'premium' ||
+    item.riskLevel === 'high' ||
+    item.riskLevel === 'premium',
+  ).length
+
+  if (advancedLayoutCount === 0) {
+    return 0
+  }
+
+  if (input.editLevel === 'basic') {
+    return 0
+  }
+
+  if (input.editLevel === 'premium') {
+    return Math.min(6, 3 + advancedLayoutCount)
+  }
+
+  return Math.min(4, 2 + Math.max(0, advancedLayoutCount - 1))
+}
+
+function depthPlanningCredits(input: PlannerInput, depthAwareOverlayPlan?: DepthAwareOverlayPlan) {
+  if (!depthAwareOverlayPlan?.active) {
+    return 0
+  }
+
+  if (input.editLevel === 'basic') {
+    return 0
+  }
+
+  const itemCredits: number[] = depthAwareOverlayPlan.items.map((item) => {
+    if (item.depthCompositingMode === 'graphic_on_top' || item.maskStrategy === 'none') return input.editLevel === 'premium' ? 1 : 0
+    if (item.maskStrategy === 'subject_mask') return input.editLevel === 'premium' ? 4 : 3
+    if (item.maskStrategy === 'subject_plus_contact_object_mask') return input.editLevel === 'premium' ? 7 : 5
+    if (item.maskStrategy === 'hero_object_mask' || item.depthCompositingMode === 'object_anchored_overlay') return input.editLevel === 'premium' ? 8 : 5
+    if (item.maskStrategy === 'multi_object_depth_mask' || item.maskStrategy === 'full_cutout_composition') return input.editLevel === 'premium' ? 12 : 0
+    return input.editLevel === 'premium' ? 4 : 3
+  })
+
+  const total = itemCredits.reduce((sum, credits) => sum + credits, 0)
+  return input.editLevel === 'premium' ? Math.min(18, total) : Math.min(10, total)
+}
+
+function depthPlanningReason(depthAwareOverlayPlan?: DepthAwareOverlayPlan) {
+  const items = depthAwareOverlayPlan?.items ?? []
+  const hasContact = items.some((item) => item.maskStrategy === 'subject_plus_contact_object_mask')
+  const hasFallback = items.some((item) => item.fallbackLayoutMode)
+
+  return [
+    hasContact
+      ? 'Plans foreground subject/contact object preservation for integrated map/card overlays.'
+      : 'Plans foreground-aware composition for integrated map/card overlays.',
+    hasFallback ? 'Includes fallback layout because mask risk is medium/high.' : undefined,
+    'Frontend mock only; real segmentation/rendering is not implemented.',
+  ].filter(Boolean).join(' ')
+}
+
+function adaptiveStrategyPlanningCredits(input: PlannerInput, adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan) {
+  if (!adaptiveEditStrategyPlan) {
+    return 0
+  }
+
+  const aiVideoStrategies = adaptiveEditStrategyPlan.segmentStrategies.filter((strategy) =>
+    strategy.generationRestraint === 'allow_generation' ||
+    strategy.generationRestraint === 'prefer_generation' ||
+    strategy.generationRestraint === 'premium_fallback_only',
+  ).length
+
+  if (input.editLevel === 'basic') {
+    return 0
+  }
+
+  if (input.editLevel === 'premium') {
+    return Math.min(4, aiVideoStrategies)
+  }
+
+  return aiVideoStrategies >= 2 ? 2 : 0
+}
+
+function adaptiveStrategyPlanningReason(adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan) {
+  const strategies = adaptiveEditStrategyPlan?.segmentStrategies ?? []
+  const avoidCount = strategies.filter((strategy) => strategy.generationRestraint === 'avoid_generation').length
+  const aiCount = strategies.filter((strategy) => strategy.generationRestraint !== 'avoid_generation').length
+  const exactToolCount = strategies.filter((strategy) =>
+    strategy.recommendedToolHints.some((hint) => hint === 'map_tool' || hint === 'chart_tool' || hint === 'browser_capture_tool'),
+  ).length
+
+  return [
+    `${strategies.length} adaptive segment strateg${strategies.length === 1 ? 'y' : 'ies'} planned with reasons.`,
+    `${avoidCount} avoid generation; ${aiCount} allow or reserve generation where motion helps.`,
+    exactToolCount ? `${exactToolCount} exact map/chart/screen strateg${exactToolCount === 1 ? 'y prefers' : 'ies prefer'} controlled tools/Remotion.` : undefined,
+  ].filter(Boolean).join(' ')
+}
+
+function renderStrategyPlanningCredits(input: PlannerInput, renderStrategyPlan?: RenderStrategyPlan) {
+  if (!renderStrategyPlan) {
+    return 0
+  }
+
+  if (input.editLevel === 'basic') {
+    return 0
+  }
+
+  const advancedCount = renderStrategyPlan.items.filter((item) =>
+    item.complexity === 'advanced' ||
+    item.complexity === 'premium' ||
+    item.strategyType === 'hybrid_generation_then_remotion' ||
+    item.needsWorkerPreprocess ||
+    item.needsWorkerPostprocess,
+  ).length
+  const aiVideoCount = renderStrategyPlan.items.filter((item) => item.needsAiVideo).length
+  const toolCount = renderStrategyPlan.items.filter((item) => item.needsOpenSourceTool).length
+
+  if (advancedCount === 0 && toolCount === 0 && aiVideoCount === 0) {
+    return 0
+  }
+
+  if (input.editLevel === 'premium') {
+    return Math.min(4, Math.max(1, advancedCount + Math.floor((toolCount + aiVideoCount) / 2)))
+  }
+
+  return Math.min(2, Math.max(1, Math.floor((advancedCount + toolCount + aiVideoCount) / 3)))
+}
+
+function renderStrategyPlanningReason(renderStrategyPlan?: RenderStrategyPlan) {
+  const items = renderStrategyPlan?.items ?? []
+  const toolItems = items.filter((item) => item.needsOpenSourceTool).length
+  const aiVideoItems = items.filter((item) => item.needsAiVideo).length
+  const remotionOnlyItems = items.filter((item) => item.strategyType === 'remotion_only').length
+
+  return [
+    `${items.length} render strateg${items.length === 1 ? 'y' : 'ies'} planned.`,
+    `${remotionOnlyItems} Remotion-only; ${toolItems} controlled-tool; ${aiVideoItems} AI-video eligible.`,
+    'Frontend mock only; no real Remotion render, tool execution, provider call, or worker cost is applied.',
+  ].join(' ')
+}
+
+function toolStrategyPlanningCredits(input: PlannerInput, toolStrategyPlan?: ToolStrategyPlan) {
+  if (!toolStrategyPlan) {
+    return 0
+  }
+
+  const mediumChains = toolStrategyPlan.items.filter((item) =>
+    item.chainId === 'map_route_chain' ||
+    item.chainId === 'chart_diagram_chain' ||
+    item.chainId === 'browser_capture_chain',
+  ).length
+  const advancedChains = toolStrategyPlan.items.filter((item) =>
+    item.chainId === 'visual_qa_chain' ||
+    item.chainId === 'premium_rescue_chain' ||
+    item.status === 'future_only' ||
+    item.status === 'needs_license_review',
+  ).length
+
+  if (input.editLevel === 'basic') {
+    return 0
+  }
+
+  if (input.editLevel === 'premium') {
+    return Math.min(4, Math.max(1, Math.ceil((mediumChains + advancedChains) / 2)))
+  }
+
+  return mediumChains + advancedChains >= 2 ? 1 : 0
+}
+
+function toolStrategyPlanningReason(toolStrategyPlan?: ToolStrategyPlan) {
+  const items = toolStrategyPlan?.items ?? []
+  const controlledChains = items.filter((item) =>
+    item.chainId === 'map_route_chain' ||
+    item.chainId === 'chart_diagram_chain' ||
+    item.chainId === 'browser_capture_chain' ||
+    item.chainId === 'remotion_layout_chain',
+  ).length
+  const futureChains = items.filter((item) => item.status === 'future_only' || item.status === 'needs_license_review').length
+
+  return [
+    `${items.length} tool strateg${items.length === 1 ? 'y' : 'ies'} planned.`,
+    `${controlledChains} controlled/Remotion-first chain${controlledChains === 1 ? '' : 's'}; ${futureChains} future/license-review chain${futureChains === 1 ? '' : 's'}.`,
+    'Tool execution is planned only; this frontend demo does not run tools or install packages.',
+  ].join(' ')
+}
+
+function colorPipelinePlanningCredits(input: PlannerInput, colorPipelinePlan?: ColorPipelinePlan) {
+  if (!colorPipelinePlan) {
+    return 0
+  }
+
+  if (input.editLevel === 'basic') {
+    return 0
+  }
+
+  const assetMatchCount = colorPipelinePlan.assetMatchPlans.length
+  const advancedToolCount = colorPipelinePlan.toolsPlanned.filter((tool) =>
+    tool === 'opencolorio' ||
+    tool === 'openimageio' ||
+    tool === 'opencv' ||
+    tool === 'sharp',
+  ).length
+
+  if (input.editLevel === 'premium') {
+    return Math.min(5, Math.max(2, Math.ceil((assetMatchCount + advancedToolCount) / 3)))
+  }
+
+  return assetMatchCount > 2 || advancedToolCount > 1 ? 2 : 1
+}
+
+function colorPipelinePlanningReason(colorPipelinePlan?: ColorPipelinePlan) {
+  if (!colorPipelinePlan) {
+    return 'No color pipeline plan is attached.'
+  }
+
+  return [
+    `Professional ${colorPipelinePlan.colorGradeStyle.replaceAll('_', ' ')} color plan with ${colorPipelinePlan.clipPlans.length} clip plan${colorPipelinePlan.clipPlans.length === 1 ? '' : 's'}.`,
+    `${colorPipelinePlan.assetMatchPlans.length} generated/AI asset color match plan${colorPipelinePlan.assetMatchPlans.length === 1 ? '' : 's'}.`,
+    'Basic clean correction is baseline; future color tool execution is planned only and does not run in this demo.',
+  ].join(' ')
+}
+
+function audioPipelinePlanningCredits(input: PlannerInput, audioPipelinePlan?: AudioPipelinePlan) {
+  if (!audioPipelinePlan) {
+    return 0
+  }
+
+  if (input.editLevel === 'basic') {
+    return 0
+  }
+
+  const cueCount = audioPipelinePlan.soundSyncCues.length
+  const futureToolCount = audioPipelinePlan.toolsPlanned.filter((tool) =>
+    tool === 'essentia' ||
+    tool === 'librosa' ||
+    tool === 'rubber_band' ||
+    tool === 'whisper_cpp',
+  ).length
+
+  if (input.editLevel === 'premium') {
+    return Math.min(5, Math.max(2, Math.ceil((cueCount + futureToolCount) / 3)))
+  }
+
+  return cueCount > 3 || futureToolCount > 1 ? 2 : 1
+}
+
+function audioPipelinePlanningReason(audioPipelinePlan?: AudioPipelinePlan) {
+  if (!audioPipelinePlan) {
+    return 'No audio pipeline plan is attached.'
+  }
+
+  return [
+    `Professional ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')} audio plan with ${audioPipelinePlan.clipPlans.length} clip plan${audioPipelinePlan.clipPlans.length === 1 ? '' : 's'}.`,
+    `${audioPipelinePlan.soundSyncCues.length} SoundSync cue${audioPipelinePlan.soundSyncCues.length === 1 ? '' : 's'} for captions, reveals, transitions, and SFX timing.`,
+    'Voice cleanup and loudness are professional baseline; future audio tool execution is planned only and does not run in this demo.',
+  ].join(' ')
+}
+
+function mapAnimationPlanningCredits(input: PlannerInput, mapAnimationPlan?: MapAnimationPlan) {
+  if (!mapAnimationPlan?.active) {
+    return 0
+  }
+
+  const highComplexity = mapAnimationPlan.items.some((item) =>
+    item.mapVisualType === 'map_behind_subject' ||
+    item.mapVisualType === 'map_behind_subject_and_contact_object' ||
+    item.mapVisualType.includes('future'),
+  )
+  const routeCount = mapAnimationPlan.items.filter((item) =>
+    item.mapVisualType === 'route_reveal' ||
+    item.mapVisualType === 'travel_route' ||
+    item.mapVisualType === 'multi_location_sequence' ||
+    item.mapVisualType === 'money_movement_map',
+  ).length
+
+  if (input.editLevel === 'basic') {
+    return highComplexity ? 2 : 1
+  }
+
+  if (input.editLevel === 'premium') {
+    return highComplexity ? 5 : Math.max(2, routeCount + 1)
+  }
+
+  return highComplexity ? 3 : routeCount > 0 ? 2 : 1
+}
+
+function mapAnimationPlanningReason(mapAnimationPlan?: MapAnimationPlan) {
+  if (!mapAnimationPlan?.active) {
+    return 'No active map/location plan is attached.'
+  }
+
+  return [
+    `${mapAnimationPlan.items.length} map/location item${mapAnimationPlan.items.length === 1 ? '' : 's'} planned with ${mapAnimationPlan.mapToolsPlanned.map((tool) => tool.replaceAll('_', ' ')).join(', ')}.`,
+    'Plans map style, location confidence, route/pin animation, layout, and QA.',
+    'No MapLibre/Turf execution, geocoding, tile calls, or real map rendering runs in this frontend demo.',
+  ].join(' ')
+}
+
+function dataVizPlanningCredits(input: PlannerInput, dataVizPlan?: DataVizPlan) {
+  if (!dataVizPlan?.active) {
+    return 0
+  }
+
+  const complexCount = dataVizPlan.items.filter((item) =>
+    item.visualType === 'money_flow_diagram' ||
+    item.visualType === 'account_flow_diagram' ||
+    item.visualType === 'network_graph' ||
+    item.visualType === 'evidence_flow_diagram' ||
+    item.visualType === 'claim_support_diagram' ||
+    item.creditImpact === 'high' ||
+    item.creditImpact === 'premium',
+  ).length
+  const standardChartCount = dataVizPlan.items.filter((item) =>
+    item.preferredTool === 'echarts' ||
+    item.visualType === 'process_step_diagram' ||
+    item.visualType === 'timeline_diagram' ||
+    item.visualType === 'feature_comparison',
+  ).length
+
+  if (input.editLevel === 'basic') {
+    return complexCount ? 2 : 1
+  }
+
+  if (input.editLevel === 'premium') {
+    return complexCount ? 5 : Math.max(2, standardChartCount + 1)
+  }
+
+  return complexCount ? 3 : standardChartCount > 0 ? 2 : 1
+}
+
+function dataVizPlanningReason(dataVizPlan?: DataVizPlan) {
+  if (!dataVizPlan?.active) {
+    return 'No active chart/diagram plan is attached.'
+  }
+
+  return [
+    `${dataVizPlan.items.length} chart/diagram item${dataVizPlan.items.length === 1 ? '' : 's'} planned with ${dataVizPlan.toolsPlanned.map((tool) => tool.replaceAll('_', ' ')).join(', ')}.`,
+    'Plans data source certainty, safe wording, diagram style, tool chain, layout, animation, and QA.',
+    'No D3/ECharts/Vega-Lite execution, data verification, or real chart rendering runs in this frontend demo.',
+  ].join(' ')
+}
+
 function getFallbackPolicyNotes(input: PlannerInput, visualAssetPlan: VisualAssetPlanItem[]): CreditEstimatePolicyNote[] {
   const notes: CreditEstimatePolicyNote[] = [
     {
@@ -202,6 +560,16 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
     { label: 'Captions', credits: base.captions, reason: 'Editable captions aligned with StoryTiming and safe zones.' },
     { label: 'Edit cleanup', credits: base.cleanup, reason: 'Trim dead space, smooth pacing, and keep the edit professional.' },
   ]
+
+  const adaptiveCredits = adaptiveStrategyPlanningCredits(input, params.adaptiveEditStrategyPlan)
+
+  if (params.adaptiveEditStrategyPlan) {
+    breakdown.push({
+      label: 'Adaptive edit strategy planning',
+      credits: adaptiveCredits,
+      reason: adaptiveStrategyPlanningReason(params.adaptiveEditStrategyPlan),
+    })
+  }
 
   if (stillCount > 0) {
     breakdown.push({
@@ -262,6 +630,76 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
       label: 'Remotion composition plan placeholder',
       credits: 0,
       reason: 'Rendering is planned but not implemented in this frontend milestone.',
+    })
+  }
+
+  const renderStrategyCredits = renderStrategyPlanningCredits(input, params.renderStrategyPlan)
+
+  if (params.renderStrategyPlan) {
+    breakdown.push({
+      label: 'Render strategy planning',
+      credits: renderStrategyCredits,
+      reason: renderStrategyPlanningReason(params.renderStrategyPlan),
+    })
+  }
+
+  if (params.toolStrategyPlan) {
+    breakdown.push({
+      label: 'Tool strategy planning',
+      credits: toolStrategyPlanningCredits(input, params.toolStrategyPlan),
+      reason: toolStrategyPlanningReason(params.toolStrategyPlan),
+    })
+  }
+
+  if (params.colorPipelinePlan) {
+    breakdown.push({
+      label: 'Color pipeline planning',
+      credits: colorPipelinePlanningCredits(input, params.colorPipelinePlan),
+      reason: colorPipelinePlanningReason(params.colorPipelinePlan),
+    })
+  }
+
+  if (params.audioPipelinePlan) {
+    breakdown.push({
+      label: 'Audio + SoundSync planning',
+      credits: audioPipelinePlanningCredits(input, params.audioPipelinePlan),
+      reason: audioPipelinePlanningReason(params.audioPipelinePlan),
+    })
+  }
+
+  if (params.mapAnimationPlan?.active) {
+    breakdown.push({
+      label: 'Map/location planning',
+      credits: mapAnimationPlanningCredits(input, params.mapAnimationPlan),
+      reason: mapAnimationPlanningReason(params.mapAnimationPlan),
+    })
+  }
+
+  if (params.dataVizPlan?.active) {
+    breakdown.push({
+      label: 'Chart/diagram planning',
+      credits: dataVizPlanningCredits(input, params.dataVizPlan),
+      reason: dataVizPlanningReason(params.dataVizPlan),
+    })
+  }
+
+  const layoutCredits = layoutPlanningCredits(input, params.speakerVisualLayoutPlan)
+
+  if (layoutCredits > 0 || (params.speakerVisualLayoutPlan?.items ?? []).some((item) => item.complexity === 'advanced' || item.complexity === 'premium')) {
+    breakdown.push({
+      label: 'Advanced layout planning',
+      credits: layoutCredits,
+      reason: 'Speaker/visual layout and fallback composition planning.',
+    })
+  }
+
+  const depthCredits = depthPlanningCredits(input, params.depthAwareOverlayPlan)
+
+  if ((params.depthAwareOverlayPlan?.active && params.depthAwareOverlayPlan.items.length > 0) || depthCredits > 0) {
+    breakdown.push({
+      label: 'Depth-aware compositing plan',
+      credits: depthCredits,
+      reason: depthPlanningReason(params.depthAwareOverlayPlan),
     })
   }
 
@@ -341,15 +779,33 @@ function visualSystemSummary(input: PlannerInput, visualAssetPlan: VisualAssetPl
     })
 }
 
-function estimateRisk(input: PlannerInput, visualAssetPlan: VisualAssetPlanItem[]): CreditEstimateRiskLevel {
+function estimateRisk(
+  input: PlannerInput,
+  visualAssetPlan: VisualAssetPlanItem[],
+  speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan,
+  depthAwareOverlayPlan?: DepthAwareOverlayPlan,
+): CreditEstimateRiskLevel {
   const aiVideoCount = countAiVideoScenes(visualAssetPlan)
   const realMotionCount = visualAssetPlan.filter((asset) => asset.signatureSystem === 'real_motion' || asset.assetType === 'real_motion_scene').length
+  const advancedLayoutCount = (speakerVisualLayoutPlan?.items ?? []).filter((item) =>
+    item.complexity === 'advanced' ||
+    item.complexity === 'premium' ||
+    item.riskLevel === 'high' ||
+    item.riskLevel === 'premium',
+  ).length
+  const advancedDepthCount = (depthAwareOverlayPlan?.items ?? []).filter((item) =>
+    item.maskRisk === 'high' ||
+    item.maskRisk === 'premium' ||
+    item.maskStrategy === 'subject_plus_contact_object_mask' ||
+    item.maskStrategy === 'multi_object_depth_mask' ||
+    item.maskStrategy === 'full_cutout_composition',
+  ).length
 
-  if (input.editLevel === 'premium' && (aiVideoCount >= 2 || realMotionCount > 0)) {
+  if (input.editLevel === 'premium' && (aiVideoCount >= 2 || realMotionCount > 0 || advancedLayoutCount > 0 || advancedDepthCount > 0)) {
     return 'premium'
   }
 
-  if (realMotionCount > 0 || (input.editLevel === 'pro' && aiVideoCount >= 3)) {
+  if (realMotionCount > 0 || advancedLayoutCount > 0 || advancedDepthCount > 0 || (input.editLevel === 'pro' && aiVideoCount >= 3)) {
     return 'high'
   }
 
@@ -360,7 +816,13 @@ function estimateRisk(input: PlannerInput, visualAssetPlan: VisualAssetPlanItem[
   return 'low'
 }
 
-function lowerCostAlternatives(input: PlannerInput, visualAssetPlan: VisualAssetPlanItem[], fallbackCredits: number, riskLevel: CreditEstimateRiskLevel): LowerCostAlternative[] {
+function lowerCostAlternatives(
+  input: PlannerInput,
+  visualAssetPlan: VisualAssetPlanItem[],
+  fallbackCredits: number,
+  riskLevel: CreditEstimateRiskLevel,
+  depthAwareOverlayPlan?: DepthAwareOverlayPlan,
+): LowerCostAlternative[] {
   const alternatives: LowerCostAlternative[] = []
   const hasAnimation = visualAssetPlan.some((asset) => asset.assetType === 'animated_scene')
   const hasMotionDesign = visualAssetPlan.some((asset) => asset.assetType === 'motion_design_scene')
@@ -402,6 +864,15 @@ function lowerCostAlternatives(input: PlannerInput, visualAssetPlan: VisualAsset
     })
   }
 
+  if (depthAwareOverlayPlan?.active && input.editLevel !== 'basic') {
+    alternatives.push({
+      label: 'Use a safer lower panel instead of depth overlay',
+      estimatedSavings: Math.min(depthPlanningCredits(input, depthAwareOverlayPlan), input.editLevel === 'premium' ? 10 : 6),
+      tradeoff: 'Loses the integrated behind-subject look, but keeps the explanation readable and lower-risk.',
+      actionHint: 'Switch depth-aware items to lower visual panel, PIP, or side-by-side fallback.',
+    })
+  }
+
   if (input.editLevel === 'premium') {
     alternatives.push({
       label: 'Use Pro routing if Premium rescue is not needed',
@@ -422,7 +893,7 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
   const fallbackCredits = fallbackAllowanceCredits(input, params.visualAssetPlan)
   const breakdown = creditBreakdown(input, params, fallbackCredits)
   const total = breakdown.reduce((sum, item) => sum + item.credits, 0)
-  const riskLevel = estimateRisk(input, params.visualAssetPlan)
+  const riskLevel = estimateRisk(input, params.visualAssetPlan, params.speakerVisualLayoutPlan, params.depthAwareOverlayPlan)
 
   return {
     total,
@@ -433,7 +904,7 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
     assetTypeSummary: assetTypeSummary(input, params.visualAssetPlan),
     fallbackAllowanceCredits: fallbackCredits,
     fallbackPolicyNotes: getFallbackPolicyNotes(input, params.visualAssetPlan),
-    lowerCostAlternatives: lowerCostAlternatives(input, params.visualAssetPlan, fallbackCredits, riskLevel),
+    lowerCostAlternatives: lowerCostAlternatives(input, params.visualAssetPlan, fallbackCredits, riskLevel, params.depthAwareOverlayPlan),
     riskLevel,
     approvalCopy: 'Approve the edit plan and credit estimate before mock progress can begin.',
     estimateVersion: 'mock-vs-05',

@@ -1,8 +1,11 @@
 import type {
+  AdaptiveEditStrategyPlan,
+  AudioPipelinePlan,
   BrollPlan,
   CaptionPlan,
   ClipSource,
   ColorGradePlan,
+  ColorPipelinePlan,
   CompiledEditingIntent,
   EditLevel,
   EditOperationPlan,
@@ -555,10 +558,13 @@ export function createOperationsForSegment(segment: SegmentBase): EditOperationP
 export function createSegmentEditPlans(params: {
   input: PlannerInput
   compiledIntent: CompiledEditingIntent
+  adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
   visualAssetPlan?: VisualAssetPlanItem[]
   rendererCompositionPlan?: RendererCompositionPlan
+  colorPipelinePlan?: ColorPipelinePlan
+  audioPipelinePlan?: AudioPipelinePlan
 }): SegmentEditPlan[] {
-  const { compiledIntent, input, rendererCompositionPlan, visualAssetPlan } = params
+  const { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, compiledIntent, input, rendererCompositionPlan, visualAssetPlan } = params
   const directive = compiledIntent.professionalEditingDirective
   const seeds = segmentSeedsForCategory(input.editingCategory)
   const visualAssetsBySegment = mapVisualAssetsToSegments(visualAssetPlan, seeds.length)
@@ -581,6 +587,11 @@ export function createSegmentEditPlans(params: {
         }
       : undefined
     const segmentId = `segment-${index + 1}`
+    const adaptiveStrategy = adaptiveEditStrategyPlan?.segmentStrategies.find((strategy, strategyIndex) =>
+      strategy.segmentId === segmentId ||
+      Boolean(strategy.clipId && clip?.id === strategy.clipId) ||
+      strategyIndex === index,
+    )
     const visualAssetPlanItemIds = visualAssetsBySegment[index]
     const rendererLayerIds = visualAssetPlanItemIds.flatMap((assetId) => rendererLayersByAsset.get(assetId) ?? [])
     const base: SegmentBase = {
@@ -595,19 +606,105 @@ export function createSegmentEditPlans(params: {
       spokenTextSummary: seed.spokenTextSummary,
       pacingStyle: directive.pacingStyle,
       cutIntensity: directive.cutIntensity,
-      captionPlan: getDefaultCaptionPlan(directive, input.editLevel),
-      brollPlan: getDefaultBrollPlan(directive, input.editLevel),
-      colorGradePlan: getDefaultColorGradePlan(directive, input.editLevel),
-      soundPlan: getDefaultSoundPlan(directive, input.editLevel),
-      transitionPlan: getDefaultTransitionPlan(directive, input.editLevel),
+      captionPlan: {
+        ...getDefaultCaptionPlan(directive, input.editLevel),
+        style: adaptiveStrategy?.recommendedCaptionStyle ?? directive.captionStyle,
+        notes: [
+          ...getDefaultCaptionPlan(directive, input.editLevel).notes,
+          ...(adaptiveStrategy ? [`Adaptive strategy: ${adaptiveStrategy.decisionKind.replaceAll('_', ' ')} with ${adaptiveStrategy.generationRestraint.replaceAll('_', ' ')}.`] : []),
+        ],
+      },
+      brollPlan: {
+        ...getDefaultBrollPlan(directive, input.editLevel),
+        policy: adaptiveStrategy?.recommendedBrollPolicy ?? directive.brollPolicy,
+        notes: [
+          ...getDefaultBrollPlan(directive, input.editLevel).notes,
+          ...(adaptiveStrategy?.decisionKind === 'use_b_roll' ? ['Adaptive strategy explicitly recommends meaning-matched b-roll for this segment.'] : []),
+        ],
+      },
+      colorGradePlan: {
+        ...getDefaultColorGradePlan(directive, input.editLevel),
+        style: colorPipelinePlan?.colorGradeStyle ?? adaptiveStrategy?.recommendedColorGrade ?? directive.colorGradeStyle,
+        skinToneProtection: getDefaultColorGradePlan(directive, input.editLevel).skinToneProtection ||
+          Boolean(colorPipelinePlan?.projectOperations.some((operation) => operation.operation === 'skin_tone_protection')),
+        shotMatching: getDefaultColorGradePlan(directive, input.editLevel).shotMatching ||
+          Boolean(colorPipelinePlan?.projectOperations.some((operation) => operation.operation === 'shot_matching')),
+        notes: [
+          ...getDefaultColorGradePlan(directive, input.editLevel).notes,
+          ...(adaptiveStrategy ? [`Adaptive strategy intensity: ${adaptiveStrategy.creativeIntensity.replaceAll('_', ' ')}.`] : []),
+          ...(colorPipelinePlan
+            ? [
+                `Project color pipeline: ${colorPipelinePlan.colorGradeStyle.replaceAll('_', ' ')} (${colorPipelinePlan.intensity}).`,
+                'Segment grade must match the project/clip/asset color pipeline.',
+              ]
+            : []),
+        ],
+      },
+      soundPlan: {
+        ...getDefaultSoundPlan(directive, input.editLevel),
+        style: audioPipelinePlan?.soundStyle ?? directive.soundStyle,
+        musicBed: audioPipelinePlan ? audioPipelinePlan.musicBedPlan.policy !== 'none' : getDefaultSoundPlan(directive, input.editLevel).musicBed,
+        ducking: audioPipelinePlan ? audioPipelinePlan.musicBedPlan.duckingEnabled : getDefaultSoundPlan(directive, input.editLevel).ducking,
+        sfx: audioPipelinePlan
+          ? audioPipelinePlan.sfxPlan.policy === 'none'
+            ? []
+            : audioPipelinePlan.sfxPlan.allowedSfxTypes
+          : getDefaultSoundPlan(directive, input.editLevel).sfx,
+        avoidRules: [
+          ...getDefaultSoundPlan(directive, input.editLevel).avoidRules,
+          ...(audioPipelinePlan?.sfxPlan.avoidRules.slice(0, 2) ?? []),
+          ...(audioPipelinePlan?.musicBedPlan.avoidRules.slice(0, 2) ?? []),
+        ],
+        notes: [
+          ...getDefaultSoundPlan(directive, input.editLevel).notes,
+          ...(audioPipelinePlan
+            ? [
+                `Project audio pipeline: ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')} (${audioPipelinePlan.audioIntensity}).`,
+                'Segment sound plan must match the project/clip/timing audio pipeline.',
+              ]
+            : []),
+        ],
+      },
+      transitionPlan: {
+        ...getDefaultTransitionPlan(directive, input.editLevel),
+        families: adaptiveStrategy?.recommendedTransitionFamilies ?? directive.transitionFamilies,
+        notes: [
+          ...getDefaultTransitionPlan(directive, input.editLevel).notes,
+          ...(adaptiveStrategy ? ['Transition choice must support the adaptive segment strategy, not random motion.'] : []),
+        ],
+      },
       visualAssetPlanItemIds,
       rendererLayerIds,
-      mustFollowRules: compiledIntent.mustFollowRules.slice(0, 4),
-      avoidRules: compiledIntent.avoidRules.slice(0, 4),
+      mustFollowRules: [
+        ...compiledIntent.mustFollowRules.slice(0, 4),
+        ...(adaptiveStrategy?.mustFollowRules.slice(0, 2) ?? []),
+      ],
+      avoidRules: [
+        ...compiledIntent.avoidRules.slice(0, 4),
+        ...(adaptiveStrategy?.avoidRules.slice(0, 2) ?? []),
+      ],
       workerNotes: [
         'Execute only after plan and credit approval.',
         input.editLevel === 'premium' ? 'Premium fallback depth applies; Veo remains final fallback only.' : 'Basic/Pro route cannot use Veo.',
         'Keep captions and visuals safe inside the selected frame layout.',
+        ...(adaptiveStrategy
+          ? [
+              `Adaptive segment strategy: ${adaptiveStrategy.decisionKind.replaceAll('_', ' ')}.`,
+              `Generation restraint: ${adaptiveStrategy.generationRestraint.replaceAll('_', ' ')}.`,
+            ]
+          : []),
+        ...(colorPipelinePlan
+          ? [
+              `Color pipeline planned at project/clip/asset level: ${colorPipelinePlan.colorGradeStyle.replaceAll('_', ' ')}.`,
+              'Segment grade must match project color pipeline; no real color processing runs in this mock.',
+            ]
+          : []),
+        ...(audioPipelinePlan
+          ? [
+              `Audio pipeline planned at project/clip/timing level: ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')}.`,
+              'Segment sound must match project audio pipeline; no real audio processing runs in this mock.',
+            ]
+          : []),
       ],
     }
     const segment: SegmentEditPlan = {

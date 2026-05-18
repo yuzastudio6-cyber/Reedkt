@@ -30,15 +30,21 @@ import { ChatComposer } from './ChatComposer'
 import { ChatMessage } from './ChatMessage'
 import { ChatThread } from './ChatThread'
 import { defaultChatPlannerInput, progressSteps } from './chatNativeData'
+import { InlineAdaptiveEditStrategyCard } from './InlineAdaptiveEditStrategyCard'
+import { InlineAudioPipelineCard } from './InlineAudioPipelineCard'
 import { InlineCompiledIntentCard } from './InlineCompiledIntentCard'
 import { InlineCharacterConsistencyCard } from './InlineCharacterConsistencyCard'
+import { InlineColorPipelineCard } from './InlineColorPipelineCard'
 import { InlineCreditEstimateCard } from './InlineCreditEstimateCard'
 import { InlineDemoScenarioSelector } from './InlineDemoScenarioSelector'
 import { InlineDemoScenarioSummaryCard } from './InlineDemoScenarioSummaryCard'
+import { InlineDepthAwareOverlayCard } from './InlineDepthAwareOverlayCard'
+import { InlineDataVizPlanCard } from './InlineDataVizPlanCard'
 import { InlineDocumentaryFactSafetyCard } from './InlineDocumentaryFactSafetyCard'
 import { InlineEditLevelCard } from './InlineEditLevelCard'
 import { InlineEditPlanCard } from './InlineEditPlanCard'
 import { InlineFrameFormatCard } from './InlineFrameFormatCard'
+import { InlineMapAnimationPlanCard } from './InlineMapAnimationPlanCard'
 import { InlinePlanningContextCard } from './InlinePlanningContextCard'
 import { InlinePlanningProgressCard } from './InlinePlanningProgressCard'
 import { InlinePlanValidationCard } from './InlinePlanValidationCard'
@@ -47,11 +53,17 @@ import { InlinePromptPreviewCard } from './InlinePromptPreviewCard'
 import { InlineQAPlanCard } from './InlineQAPlanCard'
 import { InlineReferenceDNACard } from './InlineReferenceDNACard'
 import { InlineRendererPlanCard } from './InlineRendererPlanCard'
+import { InlineRenderStrategyCard } from './InlineRenderStrategyCard'
 import { InlineSegmentEditPlanCard } from './InlineSegmentEditPlanCard'
+import { InlineSpeakerVisualLayoutCard } from './InlineSpeakerVisualLayoutCard'
+import { InlineToolRegistryCard } from './InlineToolRegistryCard'
+import { InlineToolStrategyCard } from './InlineToolStrategyCard'
 import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
+import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
 import { InlineVisualAssetPlanCard } from './InlineVisualAssetPlanCard'
 import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
 import { MinimalProjectHeader } from './MinimalProjectHeader'
+import { MusicPlanChatFlow } from './music/MusicPlanChatFlow'
 import { PreviewReadyCard } from './PreviewReadyCard'
 
 function normalizeClipOrder(clips: ClipSource[]) {
@@ -114,6 +126,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [progressIndex, setProgressIndex] = useState(0)
   const [previewReady, setPreviewReady] = useState(false)
   const [revisionMessage, setRevisionMessage] = useState('')
+  const [showMusicPlan, setShowMusicPlan] = useState(false)
   const progressTimerRef = useRef<number | null>(null)
 
   const plannerInput = useMemo(
@@ -233,6 +246,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setProgressStarted(false)
     setPreviewReady(false)
     setProgressIndex(0)
+    setShowMusicPlan(false)
   }
 
   function resetAfterSourceChange() {
@@ -540,17 +554,6 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
             </ChatMessage>
           )}
 
-          {setupReady && plan.compiledIntent && (
-            <ChatMessage role="ai">
-              <p>Before I build the plan, here is the structured intent I compiled from your request and the chat choices.</p>
-              <InlineCompiledIntentCard
-                approved={intentApproved}
-                intent={plan.compiledIntent}
-                onApproveIntent={handleApproveIntent}
-              />
-            </ChatMessage>
-          )}
-
           {setupReady && referenceAttached && (
             <ChatMessage role="user">
               <p>Reference: https://example.com/luxury-listing-reference</p>
@@ -560,6 +563,37 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
           {setupReady && referenceAttached && (
             <ChatMessage role="ai">
               <InlineReferenceDNACard />
+            </ChatMessage>
+          )}
+
+          {setupReady && showCard('video_understanding') && (
+            <ChatMessage role="ai">
+              <p>I’ll use a mock video understanding report before choosing visuals, layouts, or tool hints.</p>
+              <InlineVideoUnderstandingCard descriptor={cardById.video_understanding} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {setupReady && showCard('adaptive_edit_strategy') && (
+            <ChatMessage role="ai">
+              <p>Here is how I'll decide what each segment should do instead of using a one-size-fits-all template.</p>
+              <InlineAdaptiveEditStrategyCard descriptor={cardById.adaptive_edit_strategy} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {setupReady && showCard('tool_registry') && (
+            <ChatMessage role="ai">
+              <InlineToolRegistryCard descriptor={cardById.tool_registry} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {setupReady && plan.compiledIntent && (
+            <ChatMessage role="ai">
+              <p>Before I build the plan, here is the structured intent I compiled from your request and the chat choices.</p>
+              <InlineCompiledIntentCard
+                approved={intentApproved}
+                intent={plan.compiledIntent}
+                onApproveIntent={handleApproveIntent}
+              />
             </ChatMessage>
           )}
 
@@ -575,8 +609,32 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               {showCard('segment_operations') && (
                 <InlineSegmentEditPlanCard descriptor={cardById.segment_operations} plan={plan} />
               )}
+              {showCard('color_pipeline') && (
+                <InlineColorPipelineCard descriptor={cardById.color_pipeline} plan={plan} />
+              )}
+              {showCard('audio_pipeline') && (
+                <InlineAudioPipelineCard descriptor={cardById.audio_pipeline} plan={plan} />
+              )}
               {showCard('visual_asset_plan') && (
                 <InlineVisualAssetPlanCard descriptor={cardById.visual_asset_plan} editLevel={planEditLevel} plan={plan} />
+              )}
+              {showCard('speaker_visual_layout') && (
+                <InlineSpeakerVisualLayoutCard descriptor={cardById.speaker_visual_layout} plan={plan} />
+              )}
+              {showCard('depth_aware_overlay') && (
+                <InlineDepthAwareOverlayCard descriptor={cardById.depth_aware_overlay} plan={plan} />
+              )}
+              {showCard('render_strategy') && (
+                <InlineRenderStrategyCard descriptor={cardById.render_strategy} plan={plan} />
+              )}
+              {showCard('tool_strategy') && (
+                <InlineToolStrategyCard descriptor={cardById.tool_strategy} plan={plan} />
+              )}
+              {showCard('map_animation_plan') && (
+                <InlineMapAnimationPlanCard descriptor={cardById.map_animation_plan} plan={plan} />
+              )}
+              {showCard('dataviz_plan') && (
+                <InlineDataVizPlanCard descriptor={cardById.dataviz_plan} plan={plan} />
               )}
               {showCard('character_consistency') && (
                 <InlineCharacterConsistencyCard descriptor={cardById.character_consistency} plan={plan} />
@@ -605,8 +663,20 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                 onApprove={handleApprove}
                 onLowerCost={handleLowerCost}
               />
+              <div className="music-plan-entry-card">
+                <div>
+                  <span className="section-eyebrow">SoundSync</span>
+                  <strong>Plan music inside chat</strong>
+                  <p>Build cue sheets, Lyria prompt previews, music credits, QA, and mix plans without opening a separate music dashboard.</p>
+                </div>
+                <Button onClick={() => setShowMusicPlan(true)} variant={showMusicPlan ? 'secondary' : 'primary'}>
+                  {showMusicPlan ? 'SoundSync plan opened' : 'Plan music with SoundSync'}
+                </Button>
+              </div>
             </ChatMessage>
           )}
+
+          {setupReady && showMusicPlan && <MusicPlanChatFlow />}
 
           {revisionMessage && (
             <ChatMessage role="ai">

@@ -15,6 +15,24 @@ import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
 
+export interface CreateLyriaGenerationJobInput {
+  workspaceId: string
+  projectId: string
+  jobBatchId?: string
+  editPlanId?: string
+  creditEstimateId?: string
+  creditReservationId: string
+  generationRequestId?: string
+  musicCueId?: string
+  lyriaPromptPlanId?: string
+}
+
+export interface LyriaWorkerJobDependencyChain {
+  jobBatch: JobBatchRecord
+  jobs: JobRecord[]
+  dependencies: JobDependencyRecord[]
+}
+
 export function createJobBatch(
   db: MockDatabase,
   input: CreateJobBatchRequest,
@@ -76,6 +94,43 @@ export function createJob(db: MockDatabase, input: CreateJobRequest): ServiceRes
   return ok(insertMockRecord(db, 'jobs', job))
 }
 
+export function createLyriaGenerationJob(
+  db: MockDatabase,
+  input: CreateLyriaGenerationJobInput,
+): ServiceResult<JobRecord> {
+  const jobResult = createJob(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    jobBatchId: input.jobBatchId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    jobType: 'soundsync_generation',
+    jobName: 'Mock Lyria Pro generation worker',
+  })
+
+  if (!jobResult.ok) {
+    return jobResult
+  }
+
+  const job = jobResult.data
+  job.workerTarget = 'soundsync_worker'
+  job.runtimeType = 'cloud_run_job'
+  job.jobDescription = 'Future Google Cloud Lyria worker skeleton. Mock-only in this repo.'
+  job.inputPayload = {
+    mockOnly: true,
+    generationRequestId: input.generationRequestId ?? '',
+    musicCueId: input.musicCueId ?? '',
+    lyriaPromptPlanId: input.lyriaPromptPlanId ?? '',
+  }
+  job.metadata = {
+    mockOnly: true,
+    noCloudDeployment: true,
+  }
+
+  return ok(job)
+}
+
 export function createJobDependency(
   db: MockDatabase,
   jobId: string,
@@ -96,6 +151,108 @@ export function createJobDependency(
   }
 
   return ok(insertMockRecord(db, 'jobDependencies', dependency))
+}
+
+export function createLyriaWorkerJobDependencyChain(
+  db: MockDatabase,
+  input: {
+    workspaceId: string
+    projectId: string
+    editPlanId?: string
+    creditEstimateId?: string
+    creditReservationId: string
+    generationRequestId?: string
+    musicCueId?: string
+    lyriaPromptPlanId?: string
+  },
+): ServiceResult<LyriaWorkerJobDependencyChain> {
+  const batchResult = createJobBatch(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    batchName: 'Mock SoundSync Lyria worker dependency chain',
+  })
+
+  if (!batchResult.ok) {
+    return batchResult
+  }
+
+  const batch = batchResult.data
+  const jobs: JobRecord[] = []
+  const dependencies: JobDependencyRecord[] = []
+  const jobSpecs: Array<{ jobType: JobRecord['jobType']; jobName: string; lyria?: boolean }> = [
+    { jobType: 'music_planning', jobName: 'music_cue_sheet_created' },
+    { jobType: 'music_planning', jobName: 'lyria_prompt_plan_created' },
+    { jobType: 'credit_estimation', jobName: 'credit_estimate_approved' },
+    { jobType: 'credit_reservation', jobName: 'credit_reserved' },
+    { jobType: 'generation_orchestration', jobName: 'generation_request_created' },
+    { jobType: 'soundsync_generation', jobName: 'lyria_generation_job', lyria: true },
+    { jobType: 'quality_check', jobName: 'music_qa_job' },
+    { jobType: 'audio_analysis', jobName: 'mix_plan_job' },
+  ]
+
+  for (const spec of jobSpecs) {
+    const result = spec.lyria
+      ? createLyriaGenerationJob(db, {
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          jobBatchId: batch.id,
+          editPlanId: input.editPlanId,
+          creditEstimateId: input.creditEstimateId,
+          creditReservationId: input.creditReservationId,
+          generationRequestId: input.generationRequestId,
+          musicCueId: input.musicCueId,
+          lyriaPromptPlanId: input.lyriaPromptPlanId,
+        })
+      : createJob(db, {
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          jobBatchId: batch.id,
+          editPlanId: input.editPlanId,
+          creditEstimateId: input.creditEstimateId,
+          creditReservationId: input.creditReservationId,
+          jobType: spec.jobType,
+          jobName: spec.jobName,
+        })
+
+    if (!result.ok) {
+      return result
+    }
+
+    jobs.push(result.data)
+  }
+
+  for (let index = 1; index < jobs.length; index += 1) {
+    const dependency = createJobDependency(
+      db,
+      jobs[index].id,
+      jobs[index - 1].id,
+      input.workspaceId,
+      input.projectId,
+    )
+
+    if (!dependency.ok) {
+      return dependency
+    }
+
+    dependencies.push(dependency.data)
+  }
+
+  batch.batchPurpose =
+    'music_cue_sheet_created -> lyria_prompt_plan_created -> credit_estimate_approved -> credit_reserved -> generation_request_created -> lyria_generation_job -> music_qa_job -> mix_plan_job'
+  batch.outputPayload = {
+    mockOnly: true,
+    dependencyLabels: jobs.map((job) => job.jobName ?? job.jobType),
+  }
+  batch.updatedAt = nowIso()
+
+  return ok({
+    jobBatch: batch,
+    jobs,
+    dependencies,
+  })
 }
 
 export function canRunJob(db: MockDatabase, jobId: string): ServiceResult<boolean> {

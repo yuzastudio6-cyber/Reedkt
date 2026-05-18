@@ -53,6 +53,616 @@ export type FrameTemplateType =
   | 'square_center_panel'
   | 'let_ai_decide'
 
+export type SpeakerPresenceMode =
+  | 'full_speaker'
+  | 'partial_speaker'
+  | 'picture_in_picture'
+  | 'side_panel_speaker'
+  | 'voice_only'
+  | 'hidden'
+
+export type VisualDominanceMode =
+  | 'none'
+  | 'support'
+  | 'balanced'
+  | 'dominant'
+  | 'full_takeover'
+
+export type SpeakerVisualLayoutMode =
+  | 'full_speaker'
+  | 'voiceover_visual_takeover'
+  | 'picture_in_picture_speaker'
+  | 'side_by_side_speaker_visual'
+  | 'vertical_speaker_top_visual_bottom'
+  | 'vertical_visual_top_speaker_bottom'
+  | 'lower_visual_panel'
+  | 'full_graphic_explainer'
+  | 'full_stroke_motion_scene'
+  | 'full_map_takeover'
+  | 'full_evidence_board'
+  | 'screen_capture_with_speaker_pip'
+  | 'speaker_cutout_overlay'
+  | 'b_roll_cutaway'
+  | 'split_screen_comparison'
+  | 'before_after_panel'
+  | 'object_anchored_callout'
+
+export type LayoutRiskLevel =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'premium'
+
+export type LayoutComplexity =
+  | 'simple'
+  | 'moderate'
+  | 'advanced'
+  | 'premium'
+
+export type ForegroundObjectKind =
+  | 'human_subject'
+  | 'contact_object'
+  | 'hero_object'
+  | 'scene_anchor_object'
+  | 'background_object'
+  | 'unknown'
+
+export type DepthCompositingMode =
+  | 'none'
+  | 'graphic_on_top'
+  | 'graphic_behind_subject'
+  | 'graphic_behind_subject_and_contact_objects'
+  | 'graphic_between_background_and_foreground'
+  | 'subject_cutout_overlay'
+  | 'object_anchored_overlay'
+  | 'masked_panel_behind_subject'
+  | 'full_visual_replacement'
+
+export type MaskStrategy =
+  | 'none'
+  | 'subject_mask'
+  | 'subject_plus_contact_object_mask'
+  | 'hero_object_mask'
+  | 'scene_anchor_mask'
+  | 'multi_object_depth_mask'
+  | 'full_cutout_composition'
+
+export type MaskRiskLevel =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'premium'
+
+export type TrackingRequirement =
+  | 'none'
+  | 'static_mask'
+  | 'light_tracking'
+  | 'object_tracking'
+  | 'multi_object_tracking'
+  | 'manual_review_recommended'
+
+export type VideoUnderstandingConfidence =
+  | 'low'
+  | 'medium'
+  | 'high'
+
+export type ClipAnalysisRole =
+  | 'main_story'
+  | 'hook_candidate'
+  | 'context'
+  | 'proof'
+  | 'b_roll'
+  | 'speaker'
+  | 'product'
+  | 'screen_recording'
+  | 'location'
+  | 'transition'
+  | 'ending'
+  | 'optional'
+  | 'unknown'
+
+export type VisualSupportOpportunityType =
+  | 'caption_only'
+  | 'b_roll_cutaway'
+  | 'still_card'
+  | 'fact_card'
+  | 'name_card'
+  | 'timeline_card'
+  | 'evidence_board'
+  | 'graphic_explainer'
+  | 'chart_or_diagram'
+  | 'map_animation'
+  | 'screen_capture'
+  | 'stroke_motion'
+  | 'real_motion'
+  | 'full_visual_takeover'
+  | 'lower_panel_visual'
+  | 'picture_in_picture'
+  | 'no_extra_visual'
+
+export type ToolStrategyHint =
+  | 'remotion_layout'
+  | 'gpt_image_asset'
+  | 'wan_animation'
+  | 'hailuo_fallback'
+  | 'veo_premium_fallback_only'
+  | 'map_tool'
+  | 'chart_tool'
+  | 'browser_capture_tool'
+  | 'color_pipeline'
+  | 'audio_pipeline'
+  | 'qa_vision_tool'
+  | 'none'
+
+export type OpenSourceToolId =
+  | 'remotion'
+  | 'ffmpeg'
+  | 'opencolorio'
+  | 'openimageio'
+  | 'opencv'
+  | 'sharp'
+  | 'maplibre'
+  | 'turf'
+  | 'd3'
+  | 'echarts'
+  | 'vega_lite'
+  | 'playwright'
+  | 'lottie'
+  | 'three_js'
+  | 'pixijs'
+  | 'konva'
+  | 'essentia'
+  | 'librosa'
+  | 'whisper_cpp'
+  | 'deck_gl'
+  | 'cesium_js'
+  | 'vapoursynth'
+  | 'rubber_band'
+  | 'custom'
+
+export type ToolCategory =
+  | 'renderer_compositor'
+  | 'video_processing'
+  | 'color_management'
+  | 'image_processing'
+  | 'visual_analysis'
+  | 'maps_geospatial'
+  | 'charts_dataviz'
+  | 'browser_capture'
+  | 'vector_animation'
+  | 'three_d_visuals'
+  | 'canvas_graphics'
+  | 'audio_analysis'
+  | 'transcription'
+  | 'qa_regression'
+  | 'experimental'
+
+export type ToolExecutionMode =
+  | 'inside_remotion'
+  | 'worker_preprocess'
+  | 'worker_postprocess'
+  | 'qa_only'
+  | 'future_worker'
+  | 'planning_only'
+
+export type ToolAdoptionStage =
+  | 'launch_core'
+  | 'planned'
+  | 'future'
+  | 'experimental'
+  | 'needs_license_review'
+
+export type ToolInputType =
+  | 'source_video'
+  | 'audio'
+  | 'image'
+  | 'generated_image'
+  | 'ai_video_clip'
+  | 'json_data'
+  | 'geojson'
+  | 'url'
+  | 'html'
+  | 'css'
+  | 'transcript'
+  | 'frame_layout'
+  | 'renderer_layer'
+  | 'none'
+
+export type ToolOutputType =
+  | 'processed_video'
+  | 'processed_audio'
+  | 'image_asset'
+  | 'screenshot_asset'
+  | 'map_visual'
+  | 'chart_visual'
+  | 'svg_visual'
+  | 'json_spec'
+  | 'renderer_layer'
+  | 'qa_report'
+  | 'timing_map'
+  | 'none'
+
+export type ToolSettingType =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'select'
+  | 'multi_select'
+  | 'color'
+  | 'json'
+  | 'coordinates'
+  | 'rect'
+  | 'file_reference'
+
+export interface ToolSettingDefinition {
+  id: string
+  label: string
+  type: ToolSettingType
+  description: string
+  required: boolean
+  defaultValue?: unknown
+  options?: string[]
+  min?: number
+  max?: number
+  unit?: string
+}
+
+export interface ToolPreset {
+  id: string
+  label: string
+  description: string
+  toolIds: OpenSourceToolId[]
+  category: ToolCategory
+  settings: Record<string, unknown>
+  bestUseCases: string[]
+  avoidUseCases: string[]
+  tierFit: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+}
+
+export interface ToolProfile {
+  id: OpenSourceToolId
+  label: string
+  category: ToolCategory
+  adoptionStage: ToolAdoptionStage
+  executionMode: ToolExecutionMode
+  description: string
+  bestFor: string[]
+  avoidFor: string[]
+  inputTypes: ToolInputType[]
+  outputTypes: ToolOutputType[]
+  settingDefinitions: ToolSettingDefinition[]
+  defaultPresets: string[]
+  tierAvailability: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  remotionIntegration: string
+  qaChecks: string[]
+  licenseNotes: string[]
+  productionNotes: string[]
+}
+
+export interface ToolStrategyHintDetail {
+  toolId: OpenSourceToolId
+  reason: string
+  expectedInputTypes: ToolInputType[]
+  expectedOutputTypes: ToolOutputType[]
+  suggestedPresetIds: string[]
+  settings: Record<string, unknown>
+  fallbackToolIds: OpenSourceToolId[]
+  qaChecks: string[]
+}
+
+export interface ToolRegistrySummary {
+  launchCoreToolCount: number
+  plannedToolCount: number
+  futureToolCount: number
+  needsLicenseReviewCount: number
+  categories: ToolCategory[]
+  notes: string[]
+}
+
+export type ToolChainId =
+  | 'remotion_layout_chain'
+  | 'map_route_chain'
+  | 'chart_diagram_chain'
+  | 'browser_capture_chain'
+  | 'color_pipeline_chain'
+  | 'audio_pipeline_chain'
+  | 'visual_qa_chain'
+  | 'ai_animation_asset_chain'
+  | 'premium_rescue_chain'
+  | 'custom'
+
+export type ToolStrategyStatus =
+  | 'planned'
+  | 'requires_approval'
+  | 'approved'
+  | 'blocked'
+  | 'future_only'
+  | 'needs_license_review'
+  | 'not_available_in_tier'
+
+export type ToolStrategyPurpose =
+  | 'layout_composition'
+  | 'caption_layout'
+  | 'graphic_design'
+  | 'map_animation'
+  | 'chart_diagram'
+  | 'browser_capture'
+  | 'image_preparation'
+  | 'color_processing'
+  | 'audio_processing'
+  | 'visual_qa'
+  | 'depth_mask_planning'
+  | 'ai_asset_generation_support'
+  | 'render_postprocess'
+  | 'custom'
+
+export interface ToolSettingValue {
+  settingId: string
+  value: unknown
+  source:
+    | 'tool_default'
+    | 'preset'
+    | 'planner'
+    | 'user_request'
+    | 'adaptive_strategy'
+    | 'qa_requirement'
+    | 'custom'
+  notes?: string
+}
+
+export interface ToolChainStep {
+  id: string
+  order: number
+  toolId: OpenSourceToolId
+  label: string
+  executionMode: ToolExecutionMode
+  purpose: ToolStrategyPurpose
+  inputTypes: ToolInputType[]
+  outputTypes: ToolOutputType[]
+  presetIds: string[]
+  settings: ToolSettingValue[]
+  status: ToolStrategyStatus
+  reason: string
+  qaChecks: string[]
+  workerNotes: string[]
+}
+
+export interface ToolStrategyPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  renderStrategyItemId?: string
+  adaptiveStrategyItemId?: string
+  chainId: ToolChainId
+  label: string
+  purpose: ToolStrategyPurpose
+  selectedToolIds: OpenSourceToolId[]
+  primaryToolId: OpenSourceToolId
+  fallbackToolIds: OpenSourceToolId[]
+  steps: ToolChainStep[]
+  expectedInputs: ToolInputType[]
+  expectedOutputs: ToolOutputType[]
+  settingsSummary: string
+  reason: string
+  whyNotAiVideo?: string
+  whyNotRemotionOnly?: string
+  tierAllowed: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  status: ToolStrategyStatus
+  adoptionStage: ToolAdoptionStage
+  creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  fallbackStrategy: string[]
+  qaChecks: string[]
+  licenseNotes: string[]
+  userFacingSummary: string
+  developerNotes: string[]
+}
+
+export interface ToolStrategyPlan {
+  id: string
+  summary: string
+  items: ToolStrategyPlanItem[]
+  toolIdsUsed: OpenSourceToolId[]
+  chainIdsUsed: ToolChainId[]
+  presetsUsed: string[]
+  launchCoreToolsUsed: OpenSourceToolId[]
+  futureToolsReferenced: OpenSourceToolId[]
+  toolsNeedingLicenseReview: OpenSourceToolId[]
+  aiGenerationAvoidedReasons: string[]
+  globalRules: string[]
+  qaChecks: string[]
+  notes: string[]
+}
+
+export type RenderStrategyType =
+  | 'remotion_only'
+  | 'gpt_image_then_remotion'
+  | 'open_source_tool_then_remotion'
+  | 'ai_video_then_remotion'
+  | 'hybrid_generation_then_remotion'
+  | 'worker_preprocess_then_remotion'
+  | 'remotion_then_worker_postprocess'
+  | 'qa_tool_only'
+  | 'none'
+
+export type RemotionCapabilityId =
+  | 'caption_layer'
+  | 'lower_third'
+  | 'title_card'
+  | 'fact_card'
+  | 'name_card'
+  | 'list_card'
+  | 'timeline_card'
+  | 'evidence_board'
+  | 'graphic_panel'
+  | 'motion_design'
+  | 'diagram_build'
+  | 'arrow_flow'
+  | 'number_countup'
+  | 'still_image_motion'
+  | 'split_screen'
+  | 'picture_in_picture'
+  | 'side_by_side_layout'
+  | 'lower_visual_panel'
+  | 'full_visual_takeover_layout'
+  | 'map_layer_placement'
+  | 'chart_layer_placement'
+  | 'screen_capture_placement'
+  | 'ai_video_panel_placement'
+  | 'transition_layer'
+  | 'background_panel'
+  | 'safe_zone_layout'
+  | 'depth_layer_composition'
+  | 'custom'
+
+export type RenderStrategyComplexity =
+  | 'simple'
+  | 'moderate'
+  | 'advanced'
+  | 'premium'
+
+export interface RemotionCapability {
+  id: RemotionCapabilityId
+  label: string
+  description: string
+  bestFor: string[]
+  avoidFor: string[]
+  requiredInputs: ToolInputType[]
+  outputType: ToolOutputType
+  compatibleAssetTypes: VisualAssetType[]
+  compatibleLayouts: SpeakerVisualLayoutMode[]
+  defaultMotionPresets: string[]
+  tierFit: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  qaChecks: string[]
+}
+
+export interface RenderStrategyPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  layoutItemId?: string
+  depthAwareOverlayItemId?: string
+  strategyType: RenderStrategyType
+  label: string
+  purpose: string
+  selectedRemotionCapabilities: RemotionCapabilityId[]
+  selectedOpenSourceTools: OpenSourceToolId[]
+  selectedProviderModels: ProviderModel[]
+  requiredInputs: ToolInputType[]
+  expectedOutputs: ToolOutputType[]
+  complexity: RenderStrategyComplexity
+  creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  tierAllowed: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  needsGptImage: boolean
+  needsAiVideo: boolean
+  needsOpenSourceTool: boolean
+  needsWorkerPreprocess: boolean
+  needsWorkerPostprocess: boolean
+  remotionOwnsFinalComposition: boolean
+  reason: string
+  fallbackStrategyType?: RenderStrategyType
+  fallbackReason?: string
+  settings: Record<string, unknown>
+  qaChecks: string[]
+  workerNotes: string[]
+  toolStrategyItemIds?: string[]
+}
+
+export interface RenderStrategyPlan {
+  id: string
+  summary: string
+  items: RenderStrategyPlanItem[]
+  remotionCapabilitiesUsed: RemotionCapabilityId[]
+  openSourceToolsUsed: OpenSourceToolId[]
+  providerModelsReferenced: ProviderModel[]
+  strategyCounts: Record<RenderStrategyType, number>
+  globalRules: string[]
+  qaChecks: string[]
+  notes: string[]
+}
+
+export type VisualQualityIssue =
+  | 'low_light'
+  | 'overexposed'
+  | 'underexposed'
+  | 'shaky'
+  | 'blurry'
+  | 'busy_background'
+  | 'face_too_low'
+  | 'face_too_high'
+  | 'product_obscured'
+  | 'caption_safe_zone_risk'
+  | 'none'
+
+export type AudioQualityIssue =
+  | 'background_noise'
+  | 'uneven_loudness'
+  | 'too_quiet'
+  | 'clipping'
+  | 'echo'
+  | 'music_over_voice'
+  | 'long_silence'
+  | 'many_fillers'
+  | 'none'
+
+export type AdaptiveDecisionKind =
+  | 'keep_speaker_focus'
+  | 'use_voiceover_visual'
+  | 'use_b_roll'
+  | 'use_still_card'
+  | 'use_graphic_explainer'
+  | 'use_map'
+  | 'use_chart_or_diagram'
+  | 'use_screen_capture'
+  | 'use_stroke_motion'
+  | 'use_real_motion'
+  | 'use_depth_overlay'
+  | 'use_captions_only'
+  | 'use_no_extra_visual'
+  | 'ask_clarifying_question'
+  | 'simplify_for_tier'
+  | 'custom'
+
+export type CreativeIntensity =
+  | 'minimal'
+  | 'balanced'
+  | 'expressive'
+  | 'high_impact'
+  | 'cinematic'
+  | 'restrained'
+
+export type GenerationRestraint =
+  | 'avoid_generation'
+  | 'use_generation_only_if_needed'
+  | 'allow_generation'
+  | 'prefer_generation'
+  | 'premium_fallback_only'
+
+export type StrategyPriority =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'critical'
+
 export type MoodStyle =
   | 'clean'
   | 'premium'
@@ -368,6 +978,759 @@ export type ProviderModel =
   | 'svg_lottie_renderer'
   | 'none'
 
+export type ColorPipelineStage =
+  | 'source_analysis'
+  | 'basic_correction'
+  | 'shot_matching'
+  | 'look_grade'
+  | 'generated_asset_matching'
+  | 'ai_video_asset_matching'
+  | 'output_transform'
+  | 'qa_check'
+  | 'none'
+
+export type ColorCorrectionScope =
+  | 'full_project'
+  | 'clip'
+  | 'segment'
+  | 'visual_asset'
+  | 'ai_video_asset'
+  | 'generated_image'
+  | 'renderer_layer'
+
+export type ColorPipelineToolId =
+  | 'ffmpeg'
+  | 'opencolorio'
+  | 'openimageio'
+  | 'opencv'
+  | 'sharp'
+  | 'remotion_preview'
+  | 'planning_only'
+
+export type ColorOperationId =
+  | 'exposure_correction'
+  | 'white_balance'
+  | 'contrast_curve'
+  | 'highlight_recovery'
+  | 'shadow_control'
+  | 'black_point'
+  | 'white_point'
+  | 'saturation'
+  | 'vibrance'
+  | 'temperature'
+  | 'tint'
+  | 'noise_reduction'
+  | 'sharpening'
+  | 'clarity'
+  | 'skin_tone_protection'
+  | 'shot_matching'
+  | 'lut_application'
+  | 'look_transform'
+  | 'display_transform'
+  | 'generated_asset_match'
+  | 'ai_video_asset_match'
+  | 'panel_background_match'
+  | 'output_color_transform'
+  | 'qa_histogram_check'
+  | 'qa_skin_tone_check'
+  | 'qa_background_match_check'
+
+export type ColorIntensity =
+  | 'subtle'
+  | 'balanced'
+  | 'strong'
+  | 'stylized'
+
+export type ColorPipelineStatus =
+  | 'planned'
+  | 'requires_approval'
+  | 'future_worker'
+  | 'blocked'
+  | 'complete_mock'
+
+export interface ColorOperationPlan {
+  id: string
+  operation: ColorOperationId
+  label: string
+  scope: ColorCorrectionScope
+  toolId: ColorPipelineToolId
+  intensity: ColorIntensity
+  settings: Record<string, unknown>
+  reason: string
+  status: ColorPipelineStatus
+  qaChecks: string[]
+  workerNotes: string[]
+}
+
+export interface ClipColorPlan {
+  id: string
+  clipId: string
+  clipLabel: string
+  colorGradeStyle: ColorGradeStyleId
+  correctionOperations: ColorOperationPlan[]
+  lookOperations: ColorOperationPlan[]
+  shotMatchingNotes: string[]
+  qualityIssues: VisualQualityIssue[]
+  skinToneProtection: boolean
+  referenceClipId?: string
+  qaChecks: string[]
+}
+
+export interface AssetColorMatchPlan {
+  id: string
+  assetPlanItemId?: string
+  rendererLayerId?: string
+  providerModel?: ProviderModel
+  assetLabel: string
+  assetType: VisualAssetType | 'renderer_layer' | 'unknown'
+  matchToColorGrade: ColorGradeStyleId
+  matchPanelBackgroundColor?: string
+  matchSourceClipIds: string[]
+  operations: ColorOperationPlan[]
+  qaChecks: string[]
+  notes: string[]
+}
+
+export interface ColorPipelinePlan {
+  id: string
+  summary: string
+  colorGradeStyle: ColorGradeStyleId
+  intensity: ColorIntensity
+  stages: ColorPipelineStage[]
+  toolsPlanned: ColorPipelineToolId[]
+  projectOperations: ColorOperationPlan[]
+  clipPlans: ClipColorPlan[]
+  assetMatchPlans: AssetColorMatchPlan[]
+  tierNotes: string[]
+  generatedAssetRules: string[]
+  qaChecks: string[]
+  limitations: string[]
+  status: ColorPipelineStatus
+}
+
+export type AudioPipelineStage =
+  | 'source_audio_analysis'
+  | 'voice_cleanup'
+  | 'loudness_normalization'
+  | 'silence_cleanup'
+  | 'music_bed_planning'
+  | 'ducking'
+  | 'sfx_planning'
+  | 'beat_sync'
+  | 'sound_sync_cues'
+  | 'output_audio_transform'
+  | 'qa_check'
+  | 'none'
+
+export type AudioPipelineToolId =
+  | 'ffmpeg'
+  | 'essentia'
+  | 'librosa'
+  | 'rubber_band'
+  | 'whisper_cpp'
+  | 'remotion_timing_preview'
+  | 'planning_only'
+
+export type AudioOperationId =
+  | 'noise_reduction'
+  | 'voice_leveling'
+  | 'de_essing'
+  | 'eq_cleanup'
+  | 'compression'
+  | 'loudness_normalization'
+  | 'true_peak_limit'
+  | 'silence_cleanup'
+  | 'breath_reduction'
+  | 'filler_pause_cleanup'
+  | 'music_bed'
+  | 'music_ducking'
+  | 'sfx_hit'
+  | 'transition_sound'
+  | 'riser'
+  | 'whoosh'
+  | 'ambient_bed'
+  | 'beat_detection'
+  | 'onset_detection'
+  | 'bpm_detection'
+  | 'mood_energy_analysis'
+  | 'tempo_adjustment'
+  | 'pitch_adjustment'
+  | 'caption_timing_alignment'
+  | 'visual_reveal_timing'
+  | 'qa_loudness_check'
+  | 'qa_music_over_voice_check'
+  | 'qa_sfx_density_check'
+  | 'qa_clipping_check'
+
+export type MusicPolicy =
+  | 'none'
+  | 'optional_subtle'
+  | 'required_subtle'
+  | 'energetic'
+  | 'cinematic'
+  | 'documentary_bed'
+  | 'luxury_soft'
+  | 'custom'
+
+export type SfxPolicy =
+  | 'none'
+  | 'minimal'
+  | 'support_transitions'
+  | 'support_key_moments'
+  | 'beat_synced'
+  | 'high_impact'
+  | 'custom'
+
+export type SfxIntensity =
+  | 'none'
+  | 'subtle'
+  | 'balanced'
+  | 'strong'
+
+export type BeatSyncStrategy =
+  | 'none'
+  | 'light'
+  | 'cut_on_major_beats'
+  | 'visual_reveal_on_beats'
+  | 'caption_emphasis_on_beats'
+  | 'full_soundsync'
+
+export type AudioIntensity =
+  | 'clean'
+  | 'subtle'
+  | 'balanced'
+  | 'energetic'
+  | 'cinematic'
+  | 'high_impact'
+
+export type AudioPipelineStatus =
+  | 'planned'
+  | 'requires_approval'
+  | 'future_worker'
+  | 'blocked'
+  | 'complete_mock'
+
+export type SoundSyncCueType =
+  | 'cut'
+  | 'caption_emphasis'
+  | 'visual_reveal'
+  | 'transition'
+  | 'sfx_hit'
+  | 'music_duck'
+  | 'beat_marker'
+  | 'emotional_pause'
+  | 'map_pin_drop'
+  | 'card_reveal'
+  | 'count_up'
+  | 'custom'
+
+export interface AudioOperationPlan {
+  id: string
+  operation: AudioOperationId
+  label: string
+  toolId: AudioPipelineToolId
+  settings: Record<string, unknown>
+  reason: string
+  status: AudioPipelineStatus
+  qaChecks: string[]
+  workerNotes: string[]
+}
+
+export interface ClipAudioPlan {
+  id: string
+  clipId: string
+  clipLabel: string
+  voiceClarity: 'poor' | 'fair' | 'good' | 'excellent'
+  audioIssues: AudioQualityIssue[]
+  cleanupOperations: AudioOperationPlan[]
+  loudnessOperations: AudioOperationPlan[]
+  musicAndDuckingNotes: string[]
+  sfxNotes: string[]
+  qaChecks: string[]
+}
+
+export interface MusicBedPlan {
+  id: string
+  policy: MusicPolicy
+  soundStyle: SoundStyleId
+  energy: AudioIntensity
+  duckingEnabled: boolean
+  duckingStrength: 'none' | 'light' | 'medium' | 'strong'
+  introAllowed: boolean
+  outroAllowed: boolean
+  fadeInSeconds: number
+  fadeOutSeconds: number
+  reason: string
+  avoidRules: string[]
+  qaChecks: string[]
+}
+
+export interface SfxPlan {
+  id: string
+  policy: SfxPolicy
+  intensity: SfxIntensity
+  allowedSfxTypes: string[]
+  maxSfxPerMinute: number
+  cues: string[]
+  avoidRules: string[]
+  qaChecks: string[]
+}
+
+export interface SoundSyncCue {
+  id: string
+  cueType: SoundSyncCueType
+  timeSeconds: number
+  linkedSegmentId?: string
+  linkedVisualAssetId?: string
+  linkedRendererLayerId?: string
+  intensity: SfxIntensity
+  soundStyle: SoundStyleId
+  reason: string
+  qaChecks: string[]
+}
+
+export interface BeatSyncPlan {
+  id: string
+  strategy: BeatSyncStrategy
+  bpmDetectionPlanned: boolean
+  onsetDetectionPlanned: boolean
+  cutOnBeat: boolean
+  visualRevealOnBeat: boolean
+  captionEmphasisOnBeat: boolean
+  emotionalPauseProtection: boolean
+  cues: SoundSyncCue[]
+  notes: string[]
+}
+
+export interface AudioPipelinePlan {
+  id: string
+  summary: string
+  soundStyle: SoundStyleId
+  audioIntensity: AudioIntensity
+  stages: AudioPipelineStage[]
+  toolsPlanned: AudioPipelineToolId[]
+  projectOperations: AudioOperationPlan[]
+  clipPlans: ClipAudioPlan[]
+  musicBedPlan: MusicBedPlan
+  sfxPlan: SfxPlan
+  beatSyncPlan: BeatSyncPlan
+  soundSyncCues: SoundSyncCue[]
+  tierNotes: string[]
+  qaChecks: string[]
+  limitations: string[]
+  status: AudioPipelineStatus
+}
+
+export type MapVisualType =
+  | 'location_pin'
+  | 'route_reveal'
+  | 'multi_location_sequence'
+  | 'region_highlight'
+  | 'real_estate_neighborhood'
+  | 'travel_route'
+  | 'documentary_case_map'
+  | 'evidence_location_map'
+  | 'money_movement_map'
+  | 'screen_map_card'
+  | 'map_behind_subject'
+  | 'map_behind_subject_and_contact_object'
+  | 'picture_in_picture_map'
+  | 'side_by_side_map'
+  | 'lower_panel_map'
+  | 'full_map_takeover'
+  | 'globe_reveal_future'
+  | 'heatmap_future'
+  | 'arc_flow_future'
+  | 'custom'
+
+export type MapStyleFamily =
+  | 'clean_social_map'
+  | 'documentary_evidence_map'
+  | 'muted_case_study_map'
+  | 'warm_lifestyle_travel_map'
+  | 'real_estate_neighborhood_map'
+  | 'business_location_map'
+  | 'luxury_property_map'
+  | 'dark_cinematic_map'
+  | 'high_contrast_simple_map'
+  | 'custom'
+
+export type MapAnimationType =
+  | 'static_hold'
+  | 'pin_drop'
+  | 'fly_to'
+  | 'route_draw'
+  | 'fit_bounds'
+  | 'multi_stop_sequence'
+  | 'region_pulse'
+  | 'zoom_reveal'
+  | 'pan_follow'
+  | 'future_globe_orbit'
+  | 'custom'
+
+export type MapDataSourceType =
+  | 'user_provided_location'
+  | 'script_location'
+  | 'clip_metadata'
+  | 'manual_coordinates'
+  | 'approximate_region'
+  | 'fictional_location'
+  | 'unknown'
+
+export type LocationConfidence =
+  | 'exact'
+  | 'approximate'
+  | 'unknown'
+  | 'fictional'
+
+export type LocationClaimStatus =
+  | 'verified'
+  | 'alleged'
+  | 'claimed_by_source'
+  | 'approximate'
+  | 'fictional'
+  | 'unknown'
+
+export interface MapCoordinate {
+  longitude: number
+  latitude: number
+  label?: string
+}
+
+export interface MapLocationPlan {
+  id: string
+  label: string
+  dataSource: MapDataSourceType
+  confidence: LocationConfidence
+  claimStatus: LocationClaimStatus
+  coordinates?: MapCoordinate
+  approximateRegion?: string
+  sourceNeeded: boolean
+  sourceLabel?: string
+  safeWording: string
+  notes: string[]
+}
+
+export interface MapStylePlan {
+  styleFamily: MapStyleFamily
+  baseMapStyle: string
+  labelDensity: 'low' | 'medium' | 'high'
+  colorPalette: string[]
+  routeColor: string
+  markerColor: string
+  highlightColor: string
+  documentaryNeutrality: boolean
+  darkMode: boolean
+  notes: string[]
+}
+
+export interface MapCameraPlan {
+  animationType: MapAnimationType
+  center?: MapCoordinate
+  zoom?: number
+  bearing?: number
+  pitch?: number
+  flyDurationMs?: number
+  flySpeed?: number
+  curve?: number
+  easing?: string
+  fitBounds?: {
+    coordinates: MapCoordinate[]
+    padding: number
+  }
+  holdDurationMs?: number
+  notes: string[]
+}
+
+export interface MapRoutePlan {
+  id: string
+  routeCoordinates: MapCoordinate[]
+  routeLabel: string
+  routeRevealDurationMs: number
+  routeLineColor: string
+  routeLineWidth: number
+  routeLineDash?: string
+  direction: 'start_to_end' | 'end_to_start' | 'bidirectional'
+  notes: string[]
+}
+
+export interface MapLayoutPlan {
+  layoutMode: SpeakerVisualLayoutMode
+  frameTemplateType: FrameTemplateType
+  mapZone?: RectZone
+  speakerZone?: RectZone
+  captionSafeZone?: RectZone
+  safeMargins: number
+  panelBackgroundColor: string
+  foregroundMaskAware: boolean
+  expectedForegroundZone?: RectZone
+  labelAvoidZones: RectZone[]
+  depthCompositingMode?: DepthCompositingMode
+  maskStrategy?: MaskStrategy
+  fallbackLayoutMode?: SpeakerVisualLayoutMode
+  notes: string[]
+}
+
+export interface MapAnimationPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  visualAssetPlanItemId?: string
+  speakerVisualLayoutItemId?: string
+  depthAwareOverlayItemId?: string
+  mapVisualType: MapVisualType
+  title: string
+  purpose: string
+  locations: MapLocationPlan[]
+  style: MapStylePlan
+  camera: MapCameraPlan
+  route?: MapRoutePlan
+  layout: MapLayoutPlan
+  toolChain: ToolChainId
+  toolIds: OpenSourceToolId[]
+  remotionCapabilities: RemotionCapabilityId[]
+  soundSyncCueIds: string[]
+  creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  tierAllowed: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  reason: string
+  fallbackStrategy: string[]
+  qaChecks: string[]
+  workerNotes: string[]
+}
+
+export interface MapAnimationPlan {
+  id: string
+  active: boolean
+  summary: string
+  items: MapAnimationPlanItem[]
+  mapToolsPlanned: OpenSourceToolId[]
+  globalRules: string[]
+  qaChecks: string[]
+  limitations: string[]
+  notes: string[]
+}
+
+export type DataVizVisualType =
+  | 'money_flow_diagram'
+  | 'account_flow_diagram'
+  | 'process_step_diagram'
+  | 'timeline_diagram'
+  | 'before_after_comparison'
+  | 'metric_card'
+  | 'bar_chart'
+  | 'line_chart'
+  | 'area_chart'
+  | 'pie_or_donut_chart'
+  | 'funnel_chart'
+  | 'gauge_chart'
+  | 'table_card'
+  | 'network_graph'
+  | 'hierarchy_tree'
+  | 'cause_effect_diagram'
+  | 'pros_cons_comparison'
+  | 'feature_comparison'
+  | 'evidence_flow_diagram'
+  | 'claim_support_diagram'
+  | 'document_breakdown_card'
+  | 'custom_visual_explain'
+
+export type DataVizStyleFamily =
+  | 'clean_visual_explain'
+  | 'documentary_evidence_diagram'
+  | 'money_flow_evidence'
+  | 'business_dashboard'
+  | 'education_step_by_step'
+  | 'premium_product_comparison'
+  | 'social_metric_card'
+  | 'minimalist_table_card'
+  | 'cinematic_story_diagram'
+  | 'custom'
+
+export type DataVizToolPreference =
+  | 'd3'
+  | 'echarts'
+  | 'vega_lite_future'
+  | 'remotion_only'
+  | 'gpt_image_frame_only'
+  | 'custom'
+
+export type DataSourceType =
+  | 'user_provided'
+  | 'script_claim'
+  | 'transcript_claim'
+  | 'uploaded_document'
+  | 'mock_demo_data'
+  | 'fictional_story_data'
+  | 'unknown'
+
+export type DataConfidence =
+  | 'verified'
+  | 'reported'
+  | 'claimed'
+  | 'approximate'
+  | 'fictional'
+  | 'mock'
+  | 'unknown'
+
+export type DiagramFlowDirection =
+  | 'left_to_right'
+  | 'right_to_left'
+  | 'top_to_bottom'
+  | 'bottom_to_top'
+  | 'radial'
+  | 'network'
+  | 'timeline'
+  | 'custom'
+
+export type DataVizAnimationType =
+  | 'static_hold'
+  | 'card_pop'
+  | 'step_reveal'
+  | 'count_up'
+  | 'line_draw'
+  | 'bar_grow'
+  | 'arrow_flow'
+  | 'node_pop'
+  | 'timeline_slide'
+  | 'highlight_pulse'
+  | 'sequence_build'
+  | 'custom'
+
+export interface DataVizDataPoint {
+  id: string
+  label: string
+  value?: number | string
+  unit?: string
+  category?: string
+  dateLabel?: string
+  confidence: DataConfidence
+  sourceLabel?: string
+  notes: string[]
+}
+
+export interface DataVizNode {
+  id: string
+  label: string
+  nodeType: 'person' | 'account' | 'company' | 'location' | 'step' | 'object' | 'document' | 'claim' | 'metric' | 'custom'
+  confidence: DataConfidence
+  sourceLabel?: string
+  visualRole: 'primary' | 'secondary' | 'supporting' | 'background'
+  notes: string[]
+}
+
+export interface DataVizEdge {
+  id: string
+  fromNodeId: string
+  toNodeId: string
+  label?: string
+  direction: DiagramFlowDirection
+  confidence: DataConfidence
+  sourceLabel?: string
+  notes: string[]
+}
+
+export interface DataVizDataPlan {
+  id: string
+  dataSourceType: DataSourceType
+  confidence: DataConfidence
+  sourceNeeded: boolean
+  sourceLabel?: string
+  safeWording: string
+  mockData: boolean
+  fictionalData: boolean
+  dataPoints: DataVizDataPoint[]
+  nodes: DataVizNode[]
+  edges: DataVizEdge[]
+  qaChecks: string[]
+  notes: string[]
+}
+
+export interface DataVizStylePlan {
+  styleFamily: DataVizStyleFamily
+  colorPalette: string[]
+  highlightColor: string
+  labelDensity: 'low' | 'medium' | 'high'
+  typographyScale: 'compact' | 'normal' | 'large'
+  lineWeight: 'thin' | 'medium' | 'thick'
+  cardStyle: string
+  documentaryNeutrality: boolean
+  brandColorUse: boolean
+  playfulElementsAllowed: boolean
+  notes: string[]
+}
+
+export interface DataVizAnimationPlan {
+  animationType: DataVizAnimationType
+  durationMs: number
+  revealOrder: string[]
+  easing: string
+  soundSyncCueIds: string[]
+  notes: string[]
+}
+
+export interface DataVizLayoutPlan {
+  layoutMode: SpeakerVisualLayoutMode
+  frameTemplateType: FrameTemplateType
+  visualZone?: RectZone
+  speakerZone?: RectZone
+  captionSafeZone?: RectZone
+  safeMargins: number
+  panelBackgroundColor: string
+  labelAvoidZones: RectZone[]
+  maxLabelCount?: number
+  compactMode: boolean
+  fullTakeoverMode: boolean
+  notes: string[]
+}
+
+export interface DataVizPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  visualAssetPlanItemId?: string
+  speakerVisualLayoutItemId?: string
+  renderStrategyItemId?: string
+  toolStrategyItemId?: string
+  visualType: DataVizVisualType
+  title: string
+  purpose: string
+  dataPlan: DataVizDataPlan
+  style: DataVizStylePlan
+  animation: DataVizAnimationPlan
+  layout: DataVizLayoutPlan
+  preferredTool: DataVizToolPreference
+  toolChain: ToolChainId
+  toolIds: OpenSourceToolId[]
+  remotionCapabilities: RemotionCapabilityId[]
+  creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  tierAllowed: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  reason: string
+  whyNotAiVideo: string
+  fallbackStrategy: string[]
+  qaChecks: string[]
+  workerNotes: string[]
+}
+
+export interface DataVizPlan {
+  id: string
+  active: boolean
+  summary: string
+  items: DataVizPlanItem[]
+  toolsPlanned: OpenSourceToolId[]
+  globalRules: string[]
+  qaChecks: string[]
+  limitations: string[]
+  notes: string[]
+}
+
 export interface RectZone {
   x: number
   y: number
@@ -390,6 +1753,334 @@ export interface FrameLayoutPlan {
   notes: string[]
 }
 
+export interface SpeakerVisualLayoutPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  layoutMode: SpeakerVisualLayoutMode
+  speakerPresence: SpeakerPresenceMode
+  visualDominance: VisualDominanceMode
+  frameTemplateType: FrameTemplateType
+  platformFit: TargetPlatform
+  recommendedForAspectRatio: AspectRatio
+  speakerZone?: RectZone
+  visualZone?: RectZone
+  captionZone?: RectZone
+  safeMargin: number
+  panelBackgroundColor?: string
+  complexity: LayoutComplexity
+  riskLevel: LayoutRiskLevel
+  tierAvailability: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  preferredTools: string[]
+  reason: string
+  avoidRules: string[]
+  fallbackLayoutMode?: SpeakerVisualLayoutMode
+  depthCompositingMode?: DepthCompositingMode
+  maskStrategy?: MaskStrategy
+  maskRisk?: MaskRiskLevel
+  trackingRequirement?: TrackingRequirement
+  depthAwareOverlayItemId?: string
+  promptImplications: string[]
+  remotionNotes: string[]
+  qaChecks: string[]
+}
+
+export interface SpeakerVisualLayoutPlan {
+  id: string
+  summary: string
+  items: SpeakerVisualLayoutPlanItem[]
+  globalRules: string[]
+  qaChecks: string[]
+  notes: string[]
+}
+
+export interface ForegroundObjectPlan {
+  id: string
+  label: string
+  kind: ForegroundObjectKind
+  description: string
+  preserveInFrontOfOverlay: boolean
+  reason: string
+  expectedZone?: RectZone
+  maskDifficulty: MaskRiskLevel
+  trackingRequirement: TrackingRequirement
+  qaChecks: string[]
+}
+
+export interface ForegroundDepthGroup {
+  id: string
+  label: string
+  mainSubjectIds: string[]
+  contactObjectIds: string[]
+  heroObjectIds: string[]
+  sceneAnchorObjectIds: string[]
+  preserveGroupInFront: boolean
+  reason: string
+  maskStrategy: MaskStrategy
+  maskRisk: MaskRiskLevel
+  trackingRequirement: TrackingRequirement
+  fallbackLayoutMode?: SpeakerVisualLayoutMode
+  qaChecks: string[]
+}
+
+export interface DepthAwareOverlayPlanItem {
+  id: string
+  segmentId?: string
+  assetPlanItemId?: string
+  speakerVisualLayoutItemId?: string
+  depthCompositingMode: DepthCompositingMode
+  maskStrategy: MaskStrategy
+  foregroundObjects: ForegroundObjectPlan[]
+  foregroundDepthGroups: ForegroundDepthGroup[]
+  overlayLayerDescription: string
+  overlayShouldSitBehind: string[]
+  overlayShouldSitInFrontOf: string[]
+  captionLayerRule: string
+  maskRisk: MaskRiskLevel
+  trackingRequirement: TrackingRequirement
+  tierAllowed: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  complexityCreditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  reason: string
+  fallbackLayoutMode?: SpeakerVisualLayoutMode
+  promptImplications: string[]
+  remotionLayerNotes: string[]
+  qaChecks: string[]
+  workerNotes: string[]
+}
+
+export interface DepthAwareOverlayPlan {
+  id: string
+  active: boolean
+  summary: string
+  items: DepthAwareOverlayPlanItem[]
+  globalRules: string[]
+  qaChecks: string[]
+  notes: string[]
+}
+
+export interface ClipUnderstandingItem {
+  clipId: string
+  uploadedOrder: number
+  fileName: string
+  duration: string
+  detectedRole: ClipAnalysisRole
+  roleConfidence: VideoUnderstandingConfidence
+  transcriptSummary: string
+  visualSummary: string
+  audioSummary: string
+  strongMoments: string[]
+  weakMoments: string[]
+  hookCandidates: string[]
+  brollOpportunities: string[]
+  visualSupportOpportunities: VisualSupportOpportunityType[]
+  toolStrategyHints: ToolStrategyHint[]
+  visualQualityIssues: VisualQualityIssue[]
+  audioQualityIssues: AudioQualityIssue[]
+  safeZoneNotes: string[]
+  faceOrSpeakerNotes: string[]
+  productOrObjectNotes: string[]
+  foregroundDepthNotes: string[]
+  aiNotes: string[]
+}
+
+export interface TranscriptMeaningReport {
+  summary: string
+  keyPhrases: string[]
+  hookLines: string[]
+  emotionalLines: string[]
+  explanationLines: string[]
+  proofOrClaimLines: string[]
+  ctaLines: string[]
+  unclearLines: string[]
+  visualSupportNeeded: VisualSupportOpportunityType[]
+  captionDensityRecommendation: 'low' | 'medium' | 'high'
+  notes: string[]
+}
+
+export interface VisualUnderstandingReport {
+  sceneTypeSummary: string
+  speakerFraming: string
+  faceSafeZoneNotes: string[]
+  productSafeZoneNotes: string[]
+  emptySpaceOpportunities: string[]
+  foregroundOpportunities: string[]
+  contactObjectOpportunities: string[]
+  depthCompositionOpportunities: string[]
+  brollQualityNotes: string[]
+  colorLightingIssues: VisualQualityIssue[]
+  notes: string[]
+}
+
+export interface AudioUnderstandingReport {
+  voiceClarity: 'poor' | 'fair' | 'good' | 'excellent'
+  musicPresent: boolean
+  noiseLevel: 'low' | 'medium' | 'high'
+  loudnessConsistency: 'poor' | 'fair' | 'good'
+  cleanupNeeded: boolean
+  soundSyncOpportunities: string[]
+  audioIssues: AudioQualityIssue[]
+  notes: string[]
+}
+
+export interface VisualSupportOpportunity {
+  id: string
+  clipId?: string
+  segmentId?: string
+  opportunityType: VisualSupportOpportunityType
+  label: string
+  reason: string
+  suggestedSignatureSystem: SignatureSystem
+  suggestedLayoutMode?: SpeakerVisualLayoutMode
+  suggestedToolHints: ToolStrategyHint[]
+  creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  priority: 'low' | 'medium' | 'high'
+  qaChecks: string[]
+}
+
+export interface AdaptiveStrategyItem {
+  id: string
+  segmentId?: string
+  clipId?: string
+  label: string
+  decision: string
+  reason: string
+  userIntentInfluence: string
+  videoUnderstandingInfluence: string
+  recommendedVisualSupport: VisualSupportOpportunityType
+  recommendedLayoutMode?: SpeakerVisualLayoutMode
+  recommendedToolHints: ToolStrategyHint[]
+  avoidRules: string[]
+  qaChecks: string[]
+}
+
+export interface AdaptiveEditStrategy {
+  id: string
+  summary: string
+  items: AdaptiveStrategyItem[]
+  globalRules: string[]
+  notes: string[]
+}
+
+export interface AdaptiveStrategyReason {
+  id: string
+  source:
+    | 'user_intent'
+    | 'video_understanding'
+    | 'reference_dna'
+    | 'category_default'
+    | 'edit_level'
+    | 'platform'
+    | 'quality_standard'
+    | 'model_policy'
+    | 'frame_layout'
+    | 'fact_safety'
+    | 'custom'
+  explanation: string
+  priority: StrategyPriority
+}
+
+export interface AdaptiveSegmentStrategy {
+  id: string
+  segmentId?: string
+  clipId?: string
+  label: string
+  segmentRole?: EditSegmentRole
+  decisionKind: AdaptiveDecisionKind
+  creativeIntensity: CreativeIntensity
+  generationRestraint: GenerationRestraint
+  recommendedVisualSupport: VisualSupportOpportunityType
+  recommendedSignatureSystem: SignatureSystem
+  recommendedLayoutMode?: SpeakerVisualLayoutMode
+  recommendedSpeakerPresence?: SpeakerPresenceMode
+  recommendedVisualDominance?: VisualDominanceMode
+  recommendedToolHints: ToolStrategyHint[]
+  toolStrategyHintsDetailed?: ToolStrategyHintDetail[]
+  recommendedAssetType?: VisualAssetType
+  recommendedTransitionFamilies: TransitionFamilyId[]
+  recommendedColorGrade: ColorGradeStyleId
+  recommendedCaptionStyle: CaptionStyleId
+  recommendedBrollPolicy: BrollPolicyId
+  costComplexity: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  reasons: AdaptiveStrategyReason[]
+  mustFollowRules: string[]
+  avoidRules: string[]
+  fallbackStrategy: string[]
+  qaChecks: string[]
+}
+
+export interface AdaptiveHookStrategy {
+  policy: HookPolicy
+  recommendation: string
+  selectedClipId?: string
+  selectedLine?: string
+  reason: string
+  alternatives: string[]
+}
+
+export interface AdaptivePacingStrategy {
+  pacingStyle: PacingStyleId
+  cutIntensity: CutIntensity
+  creativeIntensity: CreativeIntensity
+  reason: string
+  keepPausesWhere: string[]
+  tightenWhere: string[]
+  avoidRules: string[]
+}
+
+export interface AdaptiveVisualStrategySummary {
+  speakerLedSegments: number
+  visualTakeoverSegments: number
+  brollSegments: number
+  graphicSegments: number
+  mapOrChartSegments: number
+  aiVideoSegments: number
+  stillCardSegments: number
+  noExtraVisualSegments: number
+  summary: string
+}
+
+export interface AdaptiveEditStrategyPlan {
+  id: string
+  summary: string
+  hookStrategy: AdaptiveHookStrategy
+  pacingStrategy: AdaptivePacingStrategy
+  visualStrategySummary: AdaptiveVisualStrategySummary
+  segmentStrategies: AdaptiveSegmentStrategy[]
+  globalMustFollowRules: string[]
+  globalAvoidRules: string[]
+  tierConstraints: string[]
+  modelPolicyNotes: string[]
+  creditStrategyNotes: string[]
+  qaChecks: string[]
+  limitations: string[]
+}
+
+export interface VideoUnderstandingReport {
+  id: string
+  sourceSequenceMode?: SourceSequenceMode
+  sourceOrderConfirmed: boolean
+  overallSummary: string
+  clips: ClipUnderstandingItem[]
+  transcriptMeaning: TranscriptMeaningReport
+  visualUnderstanding: VisualUnderstandingReport
+  audioUnderstanding: AudioUnderstandingReport
+  visualSupportOpportunities: VisualSupportOpportunity[]
+  suggestedStrategy: AdaptiveEditStrategy
+  adaptiveStrategyPlan?: AdaptiveEditStrategyPlan
+  confidence: VideoUnderstandingConfidence
+  limitations: string[]
+  qaConcerns: string[]
+  notes: string[]
+}
+
 export type RendererEngine =
   | 'remotion'
   | 'svg_lottie'
@@ -409,6 +2100,7 @@ export type RendererLayerType =
   | 'timeline_card'
   | 'graphic_design'
   | 'motion_design'
+  | 'foreground_mask'
   | 'caption'
   | 'sound_sync_marker'
   | 'transition'
@@ -485,6 +2177,14 @@ export interface PromptConstraint {
     | 'frame_layout'
     | 'provider_route'
     | 'qa'
+    | 'video_understanding'
+    | 'adaptive_strategy'
+    | 'render_strategy'
+    | 'tool_strategy'
+    | 'color_pipeline'
+    | 'audio_pipeline'
+    | 'map_animation'
+    | 'dataviz_plan'
     | 'tier_policy'
     | 'safety'
     | 'system'
@@ -516,6 +2216,10 @@ export interface ProviderPromptPlan {
   promptVersion: string
   characterPackIds?: string[]
   factSafetyItemIds?: string[]
+  colorPipelineNotes?: string[]
+  audioPipelineNotes?: string[]
+  mapPlanNotes?: string[]
+  dataVizPlanNotes?: string[]
 }
 
 export type CharacterImportance =
@@ -679,6 +2383,8 @@ export type QAStatus =
   | 'blocked'
 
 export type QACategory =
+  | 'video_understanding'
+  | 'adaptive_strategy'
   | 'user_intent_match'
   | 'source_order_and_structure'
   | 'pacing_and_cuts'
@@ -689,6 +2395,12 @@ export type QACategory =
   | 'transitions'
   | 'visual_assets'
   | 'frame_layout'
+  | 'render_strategy'
+  | 'tool_strategy'
+  | 'color_pipeline'
+  | 'audio_pipeline'
+  | 'map_animation'
+  | 'dataviz_plan'
   | 'model_tier_policy'
   | 'credit_approval'
   | 'safety_and_claims'
@@ -791,6 +2503,20 @@ export interface SegmentEditPlan {
   transitionPlan: TransitionPlan
   visualAssetPlanItemIds: string[]
   rendererLayerIds: string[]
+  speakerVisualLayoutItemId?: string
+  layoutMode?: SpeakerVisualLayoutMode
+  speakerPresence?: SpeakerPresenceMode
+  visualDominance?: VisualDominanceMode
+  depthAwareOverlayItemId?: string
+  depthCompositingMode?: DepthCompositingMode
+  maskStrategy?: MaskStrategy
+  renderStrategyItemIds?: string[]
+  toolStrategyItemIds?: string[]
+  mapAnimationPlanItemIds?: string[]
+  dataVizPlanItemIds?: string[]
+  colorPipelineOperationIds?: string[]
+  audioOperationIds?: string[]
+  soundSyncCueIds?: string[]
   mustFollowRules: string[]
   avoidRules: string[]
   operations: EditOperationPlan[]
@@ -898,6 +2624,19 @@ export interface VisualAssetPlanItem {
   reason: string
   qaChecks: string[]
   creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
+  speakerVisualLayoutItemId?: string
+  layoutMode?: SpeakerVisualLayoutMode
+  speakerPresence?: SpeakerPresenceMode
+  visualDominance?: VisualDominanceMode
+  depthAwareOverlayItemId?: string
+  depthCompositingMode?: DepthCompositingMode
+  maskStrategy?: MaskStrategy
+  renderStrategyItemId?: string
+  renderStrategyType?: RenderStrategyType
+  toolStrategyItemIds?: string[]
+  mapAnimationPlanItemId?: string
+  dataVizPlanItemId?: string
+  colorMatchPlanId?: string
   promptPlans?: ProviderPromptPlan[]
   characterPackIds?: string[]
   factSafetyItemIds?: string[]
@@ -1017,7 +2756,19 @@ export interface EditPlan {
     adaptationRule: string
   }
   signatureRoutes: SignatureRoute[]
+  videoUnderstandingReport?: VideoUnderstandingReport
+  adaptiveEditStrategy?: AdaptiveEditStrategy
+  adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
+  toolRegistrySummary?: ToolRegistrySummary
+  toolStrategyPlan?: ToolStrategyPlan
+  colorPipelinePlan?: ColorPipelinePlan
+  audioPipelinePlan?: AudioPipelinePlan
+  mapAnimationPlan?: MapAnimationPlan
+  dataVizPlan?: DataVizPlan
   visualAssetPlan?: VisualAssetPlanItem[]
+  speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
+  depthAwareOverlayPlan?: DepthAwareOverlayPlan
+  renderStrategyPlan?: RenderStrategyPlan
   rendererCompositionPlan?: RendererCompositionPlan
   compiledIntent?: CompiledEditingIntent
   professionalEditingDirective?: ProfessionalEditingDirective
@@ -1049,6 +2800,7 @@ export interface PlannerInput {
   clips: ClipSource[]
   sourceSequenceMode?: SourceSequenceMode
   sourceOrderConfirmed?: boolean
+  videoUnderstandingReport?: VideoUnderstandingReport
   compiledIntent?: CompiledEditingIntent
   professionalEditingDirective?: ProfessionalEditingDirective
 }

@@ -109,6 +109,169 @@ function hasQaConcern(plan: EditPlan) {
   return qaStatus(plan) === 'warning' || qaStatus(plan) === 'blocking'
 }
 
+function validationCategoryStatus(report: PlanValidationReport, category: string): ChatCardStatus | undefined {
+  const failedChecks = report.checks.filter((check) => check.category === category && !check.passed)
+
+  if (failedChecks.some((check) => check.severity === 'blocking' || check.severity === 'error')) {
+    return 'blocking'
+  }
+
+  if (failedChecks.some((check) => check.severity === 'warning')) {
+    return 'warning'
+  }
+
+  return undefined
+}
+
+function speakerVisualLayoutSummary(plan: EditPlan) {
+  const items = plan.speakerVisualLayoutPlan?.items ?? []
+  const modes = new Set(items.map((item) => item.layoutMode))
+  const highRiskCount = items.filter((item) => item.riskLevel === 'high' || item.riskLevel === 'premium').length
+  const fallbackCount = items.filter((item) => item.fallbackLayoutMode).length
+
+  if (items.length === 0) {
+    return 'Speaker/visual layout strategy is not ready.'
+  }
+
+  return `${items.length} segment layout decision${items.length === 1 ? '' : 's'} across ${modes.size} mode${modes.size === 1 ? '' : 's'}; ${highRiskCount} high-risk, ${fallbackCount} fallback planned.`
+}
+
+function depthAwareOverlaySummary(plan: EditPlan) {
+  const depthPlan = plan.depthAwareOverlayPlan
+
+  if (!depthPlan?.active) {
+    return 'No depth-aware overlay planned; normal layout is sufficient.'
+  }
+
+  const modes = new Set(depthPlan.items.map((item) => item.depthCompositingMode))
+  const contactCount = depthPlan.items
+    .flatMap((item) => item.foregroundObjects)
+    .filter((object) => object.kind === 'contact_object').length
+  const fallbackCount = depthPlan.items.filter((item) => item.fallbackLayoutMode).length
+
+  return `${depthPlan.items.length} depth item${depthPlan.items.length === 1 ? '' : 's'} across ${modes.size} mode${modes.size === 1 ? '' : 's'}; ${contactCount} contact object${contactCount === 1 ? '' : 's'}, ${fallbackCount} fallback${fallbackCount === 1 ? '' : 's'} planned.`
+}
+
+function videoUnderstandingSummary(plan: EditPlan) {
+  const report = plan.videoUnderstandingReport
+
+  if (!report) {
+    return 'Video understanding report is not ready.'
+  }
+
+  return `${report.clips.length} clip${report.clips.length === 1 ? '' : 's'} understood, ${report.visualSupportOpportunities.length} opportunit${report.visualSupportOpportunities.length === 1 ? 'y' : 'ies'} found, confidence ${report.confidence}.`
+}
+
+function adaptiveEditStrategySummary(plan: EditPlan) {
+  const strategyPlan = plan.adaptiveEditStrategyPlan
+
+  if (!strategyPlan) {
+    return 'Adaptive edit strategy is not ready.'
+  }
+
+  const generationAvoided = strategyPlan.segmentStrategies.filter((strategy) => strategy.generationRestraint === 'avoid_generation').length
+  const exactToolCount = strategyPlan.segmentStrategies.filter((strategy) =>
+    strategy.recommendedToolHints.some((hint) => hint === 'map_tool' || hint === 'chart_tool' || hint === 'browser_capture_tool'),
+  ).length
+
+  return `${strategyPlan.segmentStrategies.length} segment strateg${strategyPlan.segmentStrategies.length === 1 ? 'y' : 'ies'}; ${generationAvoided} avoid generation, ${exactToolCount} prefer controlled tools.`
+}
+
+function toolRegistrySummary(plan: EditPlan) {
+  const summary = plan.toolRegistrySummary
+
+  if (!summary) {
+    return 'Tool registry summary is not ready.'
+  }
+
+  return `${summary.launchCoreToolCount} launch-core tools, ${summary.plannedToolCount + summary.futureToolCount} planned/future, ${summary.needsLicenseReviewCount} license review. Planning only; no tools run.`
+}
+
+function renderStrategySummary(plan: EditPlan) {
+  const renderStrategyPlan = plan.renderStrategyPlan
+
+  if (!renderStrategyPlan) {
+    return 'Render strategy plan is not ready.'
+  }
+
+  const activeCounts = Object.entries(renderStrategyPlan.strategyCounts)
+    .filter(([, count]) => count > 0)
+    .map(([strategyType, count]) => `${count} ${strategyType.replaceAll('_', ' ')}`)
+    .slice(0, 3)
+    .join(', ')
+  const toolCount = renderStrategyPlan.openSourceToolsUsed.length
+  const providerCount = renderStrategyPlan.providerModelsReferenced.length
+
+  return `${renderStrategyPlan.items.length} render item${renderStrategyPlan.items.length === 1 ? '' : 's'}; ${activeCounts || 'no active strategies'}; ${toolCount} tool${toolCount === 1 ? '' : 's'}, ${providerCount} provider model${providerCount === 1 ? '' : 's'} referenced.`
+}
+
+function toolStrategySummary(plan: EditPlan) {
+  const toolStrategyPlan = plan.toolStrategyPlan
+
+  if (!toolStrategyPlan) {
+    return 'Tool strategy plan is not ready.'
+  }
+
+  const exactChains = toolStrategyPlan.items.filter((item) =>
+    item.chainId === 'map_route_chain' ||
+    item.chainId === 'chart_diagram_chain' ||
+    item.chainId === 'browser_capture_chain',
+  ).length
+
+  return `${toolStrategyPlan.items.length} tool strateg${toolStrategyPlan.items.length === 1 ? 'y' : 'ies'}; ${toolStrategyPlan.chainIdsUsed.length} chain${toolStrategyPlan.chainIdsUsed.length === 1 ? '' : 's'}, ${exactChains} exact-work chain${exactChains === 1 ? '' : 's'} avoid AI video.`
+}
+
+function colorPipelineSummary(plan: EditPlan) {
+  const colorPlan = plan.colorPipelinePlan
+
+  if (!colorPlan) {
+    return 'Color pipeline plan is not ready.'
+  }
+
+  return `${colorPlan.colorGradeStyle.replaceAll('_', ' ')} (${colorPlan.intensity}); ${colorPlan.clipPlans.length} clip plan${colorPlan.clipPlans.length === 1 ? '' : 's'}, ${colorPlan.assetMatchPlans.length} asset match plan${colorPlan.assetMatchPlans.length === 1 ? '' : 's'}.`
+}
+
+function audioPipelineSummary(plan: EditPlan) {
+  const audioPlan = plan.audioPipelinePlan
+
+  if (!audioPlan) {
+    return 'Audio + SoundSync plan is not ready.'
+  }
+
+  return `${audioPlan.soundStyle.replaceAll('_', ' ')} (${audioPlan.audioIntensity}); ${audioPlan.clipPlans.length} clip plan${audioPlan.clipPlans.length === 1 ? '' : 's'}, ${audioPlan.soundSyncCues.length} SoundSync cue${audioPlan.soundSyncCues.length === 1 ? '' : 's'}.`
+}
+
+function mapAnimationSummary(plan: EditPlan) {
+  const mapPlan = plan.mapAnimationPlan
+
+  if (!mapPlan) {
+    return 'Map/location plan is not ready.'
+  }
+
+  if (!mapPlan.active) {
+    return 'No map/location plan is active for this edit.'
+  }
+
+  const sourceNeeded = mapPlan.items.filter((item) => item.locations.some((location) => location.sourceNeeded)).length
+  return `${mapPlan.items.length} map/location item${mapPlan.items.length === 1 ? '' : 's'}; ${mapPlan.mapToolsPlanned.map((tool) => tool.replaceAll('_', ' ')).join(', ')} planned; ${sourceNeeded} source-needed.`
+}
+
+function dataVizSummary(plan: EditPlan) {
+  const dataVizPlan = plan.dataVizPlan
+
+  if (!dataVizPlan) {
+    return 'Chart/diagram plan is not ready.'
+  }
+
+  if (!dataVizPlan.active) {
+    return 'No chart/diagram plan is active for this edit.'
+  }
+
+  const sourceNeeded = dataVizPlan.items.filter((item) => item.dataPlan.sourceNeeded).length
+  const mockOrFictional = dataVizPlan.items.filter((item) => item.dataPlan.mockData || item.dataPlan.fictionalData).length
+  return `${dataVizPlan.items.length} chart/diagram item${dataVizPlan.items.length === 1 ? '' : 's'}; ${dataVizPlan.toolsPlanned.map((tool) => tool.replaceAll('_', ' ')).join(', ')} planned; ${sourceNeeded} source-needed, ${mockOrFictional} mock/fictional.`
+}
+
 function phaseStatus(cards: ChatPlanningCardDescriptor[]): ChatCardStatus {
   if (cards.some((card) => card.status === 'blocking')) {
     return 'blocking'
@@ -168,6 +331,39 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const regressionStatus = reportStatus(regressionReport.status)
   const currentQaStatus = qaStatus(plan)
   const premium = plan.compiledIntent?.resolvedSettings.editLevel === 'premium'
+  const layoutValidationStatus = validationCategoryStatus(validationReport, 'speaker_visual_layout')
+  const layoutStatus = layoutValidationStatus ?? (plan.speakerVisualLayoutPlan?.items.length ? 'ready' : 'not_started')
+  const understandingValidationStatus = validationCategoryStatus(validationReport, 'video_understanding')
+  const understandingStatus = !clipsAttached || clipCount === 0
+    ? 'not_started'
+    : understandingValidationStatus ??
+      (!plan.videoUnderstandingReport
+        ? 'not_started'
+        : !plan.videoUnderstandingReport.sourceOrderConfirmed
+          ? 'warning'
+          : 'ready')
+  const adaptiveValidationStatus = validationCategoryStatus(validationReport, 'adaptive_strategy')
+  const adaptiveStrategyStatus = adaptiveValidationStatus ?? (plan.adaptiveEditStrategyPlan?.segmentStrategies.length ? 'ready' : 'not_started')
+  const toolRegistryValidationStatus = validationCategoryStatus(validationReport, 'tool_registry')
+  const toolRegistryStatus = toolRegistryValidationStatus ?? (plan.toolRegistrySummary ? 'ready' : 'not_started')
+  const renderStrategyValidationStatus = validationCategoryStatus(validationReport, 'render_strategy')
+  const renderStrategyStatus = renderStrategyValidationStatus ?? (plan.renderStrategyPlan?.items.length ? 'ready' : 'not_started')
+  const toolStrategyValidationStatus = validationCategoryStatus(validationReport, 'tool_strategy')
+  const toolStrategyStatus = toolStrategyValidationStatus ?? (plan.toolStrategyPlan?.items.length ? 'ready' : 'not_started')
+  const colorPipelineValidationStatus = validationCategoryStatus(validationReport, 'color_pipeline')
+  const colorPipelineStatus = colorPipelineValidationStatus ?? (plan.colorPipelinePlan ? 'ready' : 'not_started')
+  const audioPipelineValidationStatus = validationCategoryStatus(validationReport, 'audio_pipeline')
+  const audioPipelineStatus = audioPipelineValidationStatus ?? (plan.audioPipelinePlan ? 'ready' : 'not_started')
+  const mapAnimationValidationStatus = validationCategoryStatus(validationReport, 'map_animation')
+  const mapSourceNeeded = plan.mapAnimationPlan?.items.some((item) => item.locations.some((location) => location.sourceNeeded))
+  const mapAnimationStatus = mapAnimationValidationStatus ?? (!plan.mapAnimationPlan ? 'not_started' : !plan.mapAnimationPlan.active ? 'complete' : mapSourceNeeded ? 'warning' : 'ready')
+  const dataVizValidationStatus = validationCategoryStatus(validationReport, 'dataviz_plan')
+  const dataVizSourceNeeded = plan.dataVizPlan?.items.some((item) => item.dataPlan.sourceNeeded || item.dataPlan.confidence === 'unknown' || item.dataPlan.confidence === 'claimed')
+  const dataVizStatus = dataVizValidationStatus ?? (!plan.dataVizPlan ? 'not_started' : !plan.dataVizPlan.active ? 'complete' : dataVizSourceNeeded ? 'warning' : 'ready')
+  const depthValidationStatus = validationCategoryStatus(validationReport, 'depth_aware_overlay')
+  const depthItems = plan.depthAwareOverlayPlan?.items ?? []
+  const hasRiskyDepth = depthItems.some((item) => item.maskRisk === 'high' || item.maskRisk === 'premium')
+  const depthStatus = depthValidationStatus ?? (!plan.depthAwareOverlayPlan?.active ? 'complete' : hasRiskyDepth ? 'warning' : 'ready')
 
   return [
     descriptor({
@@ -245,6 +441,81 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       summary: 'Current setup choices are summarized before planning.',
     }),
     descriptor({
+      id: 'video_understanding',
+      label: 'Video understanding',
+      phase: 'understanding',
+      priority: 'user_summary',
+      status: understandingStatus,
+      defaultExpanded: understandingStatus === 'warning' || understandingStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: videoUnderstandingSummary(plan),
+    }),
+    descriptor({
+      id: 'adaptive_edit_strategy',
+      label: 'Adaptive edit strategy',
+      phase: 'understanding',
+      priority: 'user_summary',
+      status: adaptiveStrategyStatus,
+      defaultExpanded: adaptiveStrategyStatus === 'warning' || adaptiveStrategyStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: adaptiveEditStrategySummary(plan),
+    }),
+    descriptor({
+      id: 'tool_registry',
+      label: 'Tool registry',
+      phase: 'plan',
+      priority: 'developer_detail',
+      status: toolRegistryStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: toolRegistrySummary(plan),
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'render_strategy',
+      label: 'Render strategy',
+      phase: 'plan',
+      priority: 'developer_detail',
+      status: renderStrategyStatus,
+      defaultExpanded: renderStrategyStatus === 'warning' || renderStrategyStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: renderStrategySummary(plan),
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'tool_strategy',
+      label: 'Tool strategy',
+      phase: 'plan',
+      priority: 'developer_detail',
+      status: toolStrategyStatus,
+      defaultExpanded: toolStrategyStatus === 'warning' || toolStrategyStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: toolStrategySummary(plan),
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'map_animation_plan',
+      label: 'Map + location plan',
+      phase: 'plan',
+      priority: 'advanced_plan_detail',
+      status: mapAnimationStatus,
+      defaultExpanded: mapAnimationStatus === 'warning' || mapAnimationStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: mapAnimationSummary(plan),
+      hiddenInCompactMode: !plan.mapAnimationPlan?.active,
+    }),
+    descriptor({
+      id: 'dataviz_plan',
+      label: 'Chart + diagram plan',
+      phase: 'plan',
+      priority: 'advanced_plan_detail',
+      status: dataVizStatus,
+      defaultExpanded: dataVizStatus === 'warning' || dataVizStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: dataVizSummary(plan),
+      hiddenInCompactMode: !plan.dataVizPlan?.active,
+    }),
+    descriptor({
       id: 'compiled_intent',
       label: 'What I understood',
       phase: 'understanding',
@@ -275,6 +546,26 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       summary: `${plan.segmentEditPlans?.length ?? 0} worker-ready segment plan${(plan.segmentEditPlans?.length ?? 0) === 1 ? '' : 's'}.`,
     }),
     descriptor({
+      id: 'color_pipeline',
+      label: 'Color pipeline',
+      phase: 'plan',
+      priority: 'advanced_plan_detail',
+      status: colorPipelineStatus,
+      defaultExpanded: colorPipelineStatus === 'warning' || colorPipelineStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: colorPipelineSummary(plan),
+    }),
+    descriptor({
+      id: 'audio_pipeline',
+      label: 'Audio + SoundSync',
+      phase: 'plan',
+      priority: 'advanced_plan_detail',
+      status: audioPipelineStatus,
+      defaultExpanded: audioPipelineStatus === 'warning' || audioPipelineStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: audioPipelineSummary(plan),
+    }),
+    descriptor({
       id: 'visual_asset_plan',
       label: 'Visual story plan',
       phase: 'plan',
@@ -283,6 +574,26 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       defaultExpanded: false,
       requiredBeforeApproval: false,
       summary: `${plan.visualAssetPlan?.length ?? 0} visual beat${(plan.visualAssetPlan?.length ?? 0) === 1 ? '' : 's'} planned. ${premium ? 'Premium final fallback only.' : 'Basic/Pro no Veo.'}`,
+    }),
+    descriptor({
+      id: 'speaker_visual_layout',
+      label: 'Speaker + visual layout',
+      phase: 'plan',
+      priority: 'advanced_plan_detail',
+      status: layoutStatus,
+      defaultExpanded: layoutStatus === 'warning' || layoutStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: speakerVisualLayoutSummary(plan),
+    }),
+    descriptor({
+      id: 'depth_aware_overlay',
+      label: 'Depth-aware overlay',
+      phase: 'plan',
+      priority: 'advanced_plan_detail',
+      status: depthStatus,
+      defaultExpanded: depthStatus === 'warning' || depthStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: depthAwareOverlaySummary(plan),
     }),
     descriptor({
       id: 'character_consistency',

@@ -280,6 +280,27 @@ export function reserveCredits(
   return ok(insertMockRecord(db, 'creditReservations', reservation))
 }
 
+export function assertCreditsReservedForMusicGeneration(
+  db: MockDatabase,
+  creditReservationId: string,
+): ServiceResult<CreditReservationRecord> {
+  const reservation = findMockRecord(db, 'creditReservations', creditReservationId)
+
+  if (!reservation) {
+    return fail('CREDITS_NOT_RESERVED', 'Music generation requires an existing credit reservation.')
+  }
+
+  if (reservation.status !== 'reserved') {
+    return fail(
+      'CREDITS_NOT_RESERVED',
+      'Music generation requires credits to be reserved before the worker can run.',
+      { reservationStatus: reservation.status },
+    )
+  }
+
+  return ok(reservation)
+}
+
 export function markCreditsSpent(
   db: MockDatabase,
   creditReservationId: string,

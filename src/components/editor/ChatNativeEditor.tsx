@@ -5,6 +5,7 @@ import { Button } from '../Button'
 import { createApprovedPlanSnapshot } from '../../lib/approved-plan-snapshot'
 import { getChatPlanningCards, getChatPlanningPhaseSummaries, shouldShowCard } from '../../lib/chat-planning-flow'
 import { demoScenarios, getDemoScenarioById, getDefaultDemoScenario } from '../../lib/demo-scenarios'
+import { getDefaultFrameTemplateForAspectRatio } from '../../lib/frame-layouts'
 import { createMockEditPlan } from '../../lib/mock-planner'
 import { runPlannerRegression } from '../../lib/planner-regression'
 import { validateMockEditPlan } from '../../lib/planner-validation'
@@ -13,8 +14,10 @@ import { inferSourceSequenceMode, reorderClipsByMove } from '../../lib/source-se
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
   AspectRatio,
+  AspectRatioSource,
   ChatPlanningDisplayMode,
   ClipSource,
+  CleanupPreference,
   CreditPreference,
   EditLevel,
   EditingCategory,
@@ -31,7 +34,11 @@ import { ChatMessage } from './ChatMessage'
 import { ChatThread } from './ChatThread'
 import { defaultChatPlannerInput, progressSteps } from './chatNativeData'
 import { InlineAdaptiveEditStrategyCard } from './InlineAdaptiveEditStrategyCard'
+import { InlineAspectRatioGateCard } from './InlineAspectRatioGateCard'
+import { InlineAsyncAssetReconciliationCard } from './InlineAsyncAssetReconciliationCard'
+import { InlineAgentQAFallbackCard } from './InlineAgentQAFallbackCard'
 import { InlineAudioPipelineCard } from './InlineAudioPipelineCard'
+import { InlineCaptionVisualCueTimingCard } from './InlineCaptionVisualCueTimingCard'
 import { InlineCompiledIntentCard } from './InlineCompiledIntentCard'
 import { InlineCharacterConsistencyCard } from './InlineCharacterConsistencyCard'
 import { InlineColorPipelineCard } from './InlineColorPipelineCard'
@@ -43,11 +50,12 @@ import { InlineDataVizPlanCard } from './InlineDataVizPlanCard'
 import { InlineDocumentaryFactSafetyCard } from './InlineDocumentaryFactSafetyCard'
 import { InlineEditLevelCard } from './InlineEditLevelCard'
 import { InlineEditPlanCard } from './InlineEditPlanCard'
-import { InlineFrameFormatCard } from './InlineFrameFormatCard'
+import { InlineEditingAgentExecutionPlanCard } from './InlineEditingAgentExecutionPlanCard'
 import { InlineLaunchToolStackCard } from './InlineLaunchToolStackCard'
 import { InlineMapAnimationPlanCard } from './InlineMapAnimationPlanCard'
 import { InlineMigrationDraftPlanCard } from './InlineMigrationDraftPlanCard'
 import { InlineMigrationReviewCard } from './InlineMigrationReviewCard'
+import { InlineMasterTimingPlanCard } from './InlineMasterTimingPlanCard'
 import { InlinePlanningContextCard } from './InlinePlanningContextCard'
 import { InlinePlanningProgressCard } from './InlinePlanningProgressCard'
 import { InlinePlanningSystemAuditCard } from './InlinePlanningSystemAuditCard'
@@ -59,12 +67,16 @@ import { InlineReferenceDNACard } from './InlineReferenceDNACard'
 import { InlineRendererPlanCard } from './InlineRendererPlanCard'
 import { InlineRenderStrategyCard } from './InlineRenderStrategyCard'
 import { InlineSegmentEditPlanCard } from './InlineSegmentEditPlanCard'
+import { InlineSoundSyncTransitionTimingCard } from './InlineSoundSyncTransitionTimingCard'
 import { InlineSpeakerVisualLayoutCard } from './InlineSpeakerVisualLayoutCard'
+import { InlineTimingValidationCard } from './InlineTimingValidationCard'
 import { InlineToolRegistryCard } from './InlineToolRegistryCard'
 import { InlineToolStrategyCard } from './InlineToolStrategyCard'
 import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
+import { InlineSourceCleanupPlanCard } from './InlineSourceCleanupPlanCard'
 import { InlineSupabaseProductionReadinessCard } from './InlineSupabaseProductionReadinessCard'
 import { InlineSupabaseSchemaPlanCard } from './InlineSupabaseSchemaPlanCard'
+import { InlineTrimReviewCard } from './InlineTrimReviewCard'
 import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
 import { InlineVisualAssetPlanCard } from './InlineVisualAssetPlanCard'
 import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
@@ -92,6 +104,12 @@ function getInitialDemoScenario(categoryValue: string | null) {
   return getDefaultDemoScenario()
 }
 
+function targetPlatformForAspectRatio(aspectRatio: AspectRatio): TargetPlatform {
+  if (aspectRatio === '9:16') return 'tiktok_reels_shorts'
+  if (aspectRatio === '16:9') return 'youtube'
+  return 'custom'
+}
+
 type ChatNativeEditorProps = {
   onOpenTimeline: () => void
 }
@@ -111,6 +129,8 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [customInstructions, setCustomInstructions] = useState(initialScenario.customInstructions)
   const [clipsAttached, setClipsAttached] = useState(true)
   const [sourceOrderConfirmed, setSourceOrderConfirmed] = useState(false)
+  const [cleanupPreference, setCleanupPreference] = useState<CleanupPreference | undefined>(undefined)
+  const [cleanupPreferenceConfirmed, setCleanupPreferenceConfirmed] = useState(false)
   const [referenceAttached, setReferenceAttached] = useState(initialScenario.referenceAttached)
   const [referenceUrl, setReferenceUrl] = useState(initialScenario.referenceUrl)
   const [editingCategory, setEditingCategory] = useState<EditingCategory>(initialScenario.editingCategory)
@@ -119,7 +139,8 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(initialScenario.targetPlatform)
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(initialScenario.aspectRatio)
   const [frameTemplateType, setFrameTemplateType] = useState<FrameTemplateType>(initialScenario.frameTemplateType)
-  const [formatConfirmed, setFormatConfirmed] = useState(false)
+  const [aspectRatioConfirmed, setAspectRatioConfirmed] = useState(false)
+  const [aspectRatioSource, setAspectRatioSource] = useState<AspectRatioSource>('demo_scenario')
   const [visualPreference, setVisualPreference] = useState<VisualPreference>(initialScenario.visualPreference)
   const [visualPreferenceConfirmed, setVisualPreferenceConfirmed] = useState(false)
   const [workflowType, setWorkflowType] = useState<VideoWorkflowType>(initialScenario.workflowType)
@@ -139,9 +160,13 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     () => ({
       ...defaultChatPlannerInput,
       aspectRatio,
+      aspectRatioConfirmed,
+      aspectRatioSource,
       clips,
       creditPreference,
       customInstructions,
+      cleanupPreference,
+      cleanupPreferenceConfirmed,
       editingCategory,
       editLevel,
       frameTemplateType,
@@ -155,9 +180,13 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     }),
     [
       aspectRatio,
+      aspectRatioConfirmed,
+      aspectRatioSource,
       clips,
       creditPreference,
       customInstructions,
+      cleanupPreference,
+      cleanupPreferenceConfirmed,
       editingCategory,
       editLevel,
       frameTemplateType,
@@ -179,9 +208,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     () =>
       getChatPlanningCards({
         approved,
+        aspectRatioConfirmed,
         clipsAttached,
         editLevelConfirmed,
-        formatConfirmed,
         intentApproved,
         plan,
         previewReady,
@@ -194,9 +223,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
       }),
     [
       approved,
+      aspectRatioConfirmed,
       clipsAttached,
       editLevelConfirmed,
-      formatConfirmed,
       intentApproved,
       plan,
       previewReady,
@@ -216,7 +245,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const selectedScenario = getDemoScenarioById(selectedScenarioId) ?? getDefaultDemoScenario()
   const planEditLevel = plan.compiledIntent?.resolvedSettings.editLevel ?? editLevel
   const categoryLabel = getCategoryLabel(editingCategory)
-  const setupReady = sourceOrderConfirmed && formatConfirmed && editLevelConfirmed && visualPreferenceConfirmed
+  const cleanupReady = cleanupPreferenceConfirmed && plan.sourceCleanupPlan?.status === 'confirmed'
+  const trimReviewReady = Boolean(plan.trimReviewPlan && !plan.trimReviewPlan.approvalBlocked)
+  const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && editLevelConfirmed && visualPreferenceConfirmed
 
   function showCard(id: string) {
     return shouldShowCard(cardById[id], displayMode)
@@ -257,6 +288,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
   function resetAfterSourceChange() {
     setSourceOrderConfirmed(false)
+    setCleanupPreferenceConfirmed(false)
     resetPlanProgress()
   }
 
@@ -293,7 +325,10 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setSourceSequenceMode(inferSourceSequenceMode(scenario.clips, scenario.customInstructions))
     setClipsAttached(true)
     setSourceOrderConfirmed(false)
-    setFormatConfirmed(false)
+    setCleanupPreference(undefined)
+    setCleanupPreferenceConfirmed(false)
+    setAspectRatioConfirmed(false)
+    setAspectRatioSource('demo_scenario')
     setEditLevelConfirmed(false)
     setVisualPreferenceConfirmed(false)
     setRevisionMessage('')
@@ -350,18 +385,43 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     resetPlanProgress()
   }
 
-  function handleFrameFormatSelect(platform: TargetPlatform, ratio: AspectRatio, frameTemplate: FrameTemplateType) {
-    setTargetPlatform(platform)
+  function handleAspectRatioSelect(ratio: AspectRatio) {
+    setTargetPlatform(targetPlatformForAspectRatio(ratio))
     setAspectRatio(ratio)
-    setFrameTemplateType(frameTemplate)
-    setFormatConfirmed(false)
+    setFrameTemplateType(getDefaultFrameTemplateForAspectRatio(ratio).templateType)
+    setAspectRatioConfirmed(false)
+    setCleanupPreferenceConfirmed(false)
+    setAspectRatioSource('user_selected')
+    setIntentApproved(false)
     setEditLevelConfirmed(false)
     setVisualPreferenceConfirmed(false)
     resetPlanProgress()
   }
 
-  function handleConfirmFormat() {
-    setFormatConfirmed(true)
+  function handleConfirmAspectRatio() {
+    const recommendedAspectRatio = plan.aspectRatioFramePlan?.recommendedAspectRatio?.recommendedAspectRatio
+
+    if (aspectRatio === 'let_ai_decide' && recommendedAspectRatio && recommendedAspectRatio !== 'let_ai_decide') {
+      setAspectRatio(recommendedAspectRatio)
+      setFrameTemplateType(getDefaultFrameTemplateForAspectRatio(recommendedAspectRatio).templateType)
+      setTargetPlatform(targetPlatformForAspectRatio(recommendedAspectRatio))
+    }
+
+    setAspectRatioConfirmed(true)
+    setAspectRatioSource('user_selected')
+    setCleanupPreferenceConfirmed(false)
+    resetPlanProgress()
+  }
+
+  function handleCleanupPreferenceSelect(preference: CleanupPreference) {
+    setCleanupPreference(preference)
+    setCleanupPreferenceConfirmed(false)
+    resetPlanProgress()
+  }
+
+  function handleConfirmCleanupPreference() {
+    setCleanupPreference(cleanupPreference ?? plan.sourceCleanupPlan?.recommendedPreference.recommendedPreference ?? 'balanced_cleanup')
+    setCleanupPreferenceConfirmed(true)
     resetPlanProgress()
   }
 
@@ -401,6 +461,66 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   }
 
   function handleApprove() {
+    if (plan.aspectRatioFramePlan?.status !== 'confirmed') {
+      setRevisionMessage('Confirm the output frame before approving the plan and credit estimate.')
+      setApproved(false)
+      setApprovedSnapshot(null)
+      setProgressStarted(false)
+      setProgressIndex(0)
+      setPreviewReady(false)
+      return
+    }
+
+    if (!plan.sourceCleanupPlan || plan.sourceCleanupPlan.status !== 'confirmed' || !cleanupPreferenceConfirmed) {
+      setRevisionMessage('Confirm the source cleanup style before approving trims, timing, and credits.')
+      setApproved(false)
+      setApprovedSnapshot(null)
+      setProgressStarted(false)
+      setProgressIndex(0)
+      setPreviewReady(false)
+      return
+    }
+
+    if (!plan.trimReviewPlan || plan.trimReviewPlan.approvalBlocked) {
+      setRevisionMessage('Resolve trim review before approving retake selection, meaning-sensitive cuts, timing, and credits.')
+      setApproved(false)
+      setApprovedSnapshot(null)
+      setProgressStarted(false)
+      setProgressIndex(0)
+      setPreviewReady(false)
+      return
+    }
+
+    if (!plan.masterTimingPlan || plan.masterTimingPlan.status === 'needs_frame_confirmation' || plan.masterTimingPlan.status === 'blocked') {
+      setRevisionMessage('Master timing needs the confirmed output frame and timing base before approval.')
+      setApproved(false)
+      setApprovedSnapshot(null)
+      setProgressStarted(false)
+      setProgressIndex(0)
+      setPreviewReady(false)
+      return
+    }
+
+    if (!plan.soundSyncTransitionTimingPlan || plan.soundSyncTransitionTimingPlan.status === 'blocked') {
+      setRevisionMessage('SoundSync + transition timing must be reviewable before approval.')
+      setApproved(false)
+      setApprovedSnapshot(null)
+      setProgressStarted(false)
+      setProgressIndex(0)
+      setPreviewReady(false)
+      return
+    }
+
+    if (!plan.timingValidationPlan || plan.timingValidationPlan.approvalBlocked || plan.timingValidationPlan.overallStatus === 'blocking' || plan.timingValidationPlan.overallStatus === 'failed') {
+      setRevisionMessage('Timing validation must pass before approval. Resolve timing block reasons or choose a lower-cost timing alternative.')
+      setApproved(false)
+      setApprovedSnapshot(null)
+      setProgressStarted(false)
+      setProgressIndex(0)
+      setPreviewReady(false)
+      return
+    }
+
     setApprovedSnapshot(
       createApprovedPlanSnapshot({
         approvedBy: 'mock-user',
@@ -505,19 +625,40 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
           {sourceOrderConfirmed && (
             <ChatMessage role="ai">
-              <p>Where is this video going?</p>
-              <InlineFrameFormatCard
-                confirmed={formatConfirmed}
-                onConfirm={handleConfirmFormat}
-                onSelect={handleFrameFormatSelect}
+              <p>Before I plan the visuals, what frame should this edit be built for?</p>
+              <InlineAspectRatioGateCard
+                aspectRatioConfirmed={aspectRatioConfirmed}
+                onConfirmAspectRatio={handleConfirmAspectRatio}
+                onSelectAspectRatio={handleAspectRatioSelect}
+                plan={plan}
                 selectedAspectRatio={aspectRatio}
-                selectedFrameTemplate={frameTemplateType}
-                selectedPlatform={targetPlatform}
               />
             </ChatMessage>
           )}
 
-          {sourceOrderConfirmed && formatConfirmed && (
+          {sourceOrderConfirmed && aspectRatioConfirmed && (
+            <ChatMessage role="ai">
+              <p>Before I finalize the trim, how clean should I make the cut?</p>
+              <p>I can preserve the natural behind-the-scenes feel, lightly clean dead space, tighten for retention, or aggressively remove repeats/fillers/mistakes.</p>
+              <InlineSourceCleanupPlanCard
+                cleanupPreferenceConfirmed={cleanupPreferenceConfirmed}
+                descriptor={cardById.source_cleanup}
+                onConfirmCleanupPreference={handleConfirmCleanupPreference}
+                onSelectCleanupPreference={handleCleanupPreferenceSelect}
+                plan={plan}
+                selectedCleanupPreference={cleanupPreference}
+              />
+            </ChatMessage>
+          )}
+
+          {sourceOrderConfirmed && aspectRatioConfirmed && plan.trimReviewPlan && (
+            <ChatMessage role="ai">
+              <p>I’ll review retakes and meaning-sensitive cuts before finalizing timing.</p>
+              <InlineTrimReviewCard descriptor={cardById.trim_review} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && (
             <ChatMessage role="ai">
               <p>How deep should this edit be?</p>
               <InlineEditLevelCard
@@ -529,7 +670,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
             </ChatMessage>
           )}
 
-          {sourceOrderConfirmed && formatConfirmed && editLevelConfirmed && (
+          {sourceOrderConfirmed && aspectRatioConfirmed && editLevelConfirmed && (
             <ChatMessage role="ai">
               <p>Do you want me to keep visuals minimal, use a balanced visual mix, or lean into one of our signature systems?</p>
               <InlineVisualPreferenceCard
@@ -549,7 +690,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                 editLevel={editLevel}
                 editLevelConfirmed={editLevelConfirmed}
                 editingCategory={editingCategory}
-                formatConfirmed={formatConfirmed}
+                aspectRatioConfirmed={aspectRatioConfirmed}
                 frameTemplateType={frameTemplateType}
                 clips={clips}
                 sourceOrderConfirmed={sourceOrderConfirmed}
@@ -574,7 +715,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
           {setupReady && showCard('video_understanding') && (
             <ChatMessage role="ai">
-              <p>I’ll use a mock video understanding report before choosing visuals, layouts, or tool hints.</p>
+              <p>I'll use a mock video understanding report before choosing visuals, layouts, or tool hints.</p>
               <InlineVideoUnderstandingCard descriptor={cardById.video_understanding} plan={plan} />
             </ChatMessage>
           )}
@@ -583,6 +724,34 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
             <ChatMessage role="ai">
               <p>Here is how I'll decide what each segment should do instead of using a one-size-fits-all template.</p>
               <InlineAdaptiveEditStrategyCard descriptor={cardById.adaptive_edit_strategy} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {sourceOrderConfirmed && (setupReady || plan.masterTimingPlan?.status === 'needs_frame_confirmation') && showCard('master_timing') && (
+            <ChatMessage role="ai">
+              <p>I'll place captions, visuals, transitions, SFX, AI clips, and Remotion layers on a frame-accurate mock timeline before approval.</p>
+              <InlineMasterTimingPlanCard descriptor={cardById.master_timing} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {sourceOrderConfirmed && (setupReady || plan.captionVisualCueTimingPlan?.status === 'blocked') && showCard('caption_visual_cue_timing') && (
+            <ChatMessage role="ai">
+              <p>I'll refine caption chunks and visual cue timing so text and graphics appear when the viewer needs them, not randomly.</p>
+              <InlineCaptionVisualCueTimingCard descriptor={cardById.caption_visual_cue_timing} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {sourceOrderConfirmed && (setupReady || plan.soundSyncTransitionTimingPlan?.status === 'blocked') && showCard('soundsync_transition_timing') && (
+            <ChatMessage role="ai">
+              <p>I'll keep transitions, SFX, and ducking speech-first, with beat sync used only when it helps the edit.</p>
+              <InlineSoundSyncTransitionTimingCard descriptor={cardById.soundsync_transition_timing} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {sourceOrderConfirmed && (setupReady || plan.timingValidationPlan?.approvalBlocked) && showCard('timing_validation') && (
+            <ChatMessage role="ai">
+              <p>I'll validate the timing plan before approval so credits, prompts, and future workers are not based on invalid frame timing.</p>
+              <InlineTimingValidationCard descriptor={cardById.timing_validation} plan={plan} />
             </ChatMessage>
           )}
 
@@ -662,6 +831,15 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               )}
               {showCard('planner_regression') && (
                 <InlinePlannerRegressionCard descriptor={cardById.planner_regression} report={regressionReport} />
+              )}
+              {showCard('editing_agent_execution') && (
+                <InlineEditingAgentExecutionPlanCard descriptor={cardById.editing_agent_execution} plan={plan} />
+              )}
+              {showCard('async_asset_reconciliation') && (
+                <InlineAsyncAssetReconciliationCard descriptor={cardById.async_asset_reconciliation} plan={plan} />
+              )}
+              {showCard('agent_qa_fallback') && (
+                <InlineAgentQAFallbackCard descriptor={cardById.agent_qa_fallback} plan={plan} />
               )}
               {showCard('launch_tool_stack') && (
                 <InlineLaunchToolStackCard plan={plan} />

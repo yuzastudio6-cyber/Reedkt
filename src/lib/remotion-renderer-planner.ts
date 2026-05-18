@@ -1,6 +1,8 @@
 import type {
   AspectRatio,
+  AspectRatioFramePlan,
   AudioPipelinePlan,
+  CaptionVisualCueTimingPlan,
   ColorPipelinePlan,
   DataVizPlan,
   DepthAwareOverlayPlan,
@@ -9,25 +11,30 @@ import type {
   FrameLayoutPlan,
   LayerFitMode,
   MapAnimationPlan,
+  MasterTimingPlan,
   RectZone,
   RenderStrategyPlan,
   RenderStrategyPlanItem,
   RendererCompositionPlan,
   RendererLayerPlan,
   RendererLayerType,
+  SoundSyncTransitionTimingPlan,
   SpeakerVisualLayoutPlan,
   SpeakerVisualLayoutPlanItem,
   TargetPlatform,
+  TimingValidationPlan,
   ToolStrategyPlan,
   ToolStrategyPlanItem,
   VisualAssetPlanItem,
   VisualAssetType,
 } from '../types/reeditpro'
+import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan } from '../types/editing-agent-runtime'
 
 type CreateRendererCompositionPlanParams = {
   visualAssetPlan: VisualAssetPlanItem[]
   frameTemplate: FrameLayoutPlan
   aspectRatio: AspectRatio
+  aspectRatioFramePlan?: AspectRatioFramePlan
   targetPlatform: TargetPlatform
   editLevel: EditLevel
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
@@ -38,6 +45,12 @@ type CreateRendererCompositionPlanParams = {
   audioPipelinePlan?: AudioPipelinePlan
   mapAnimationPlan?: MapAnimationPlan
   dataVizPlan?: DataVizPlan
+  masterTimingPlan?: MasterTimingPlan
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan
+  timingValidationPlan?: TimingValidationPlan
+  asyncAssetReconciliationPlan?: AsyncAssetReconciliationPlan
+  agentQAFallbackPlan?: AgentQAFallbackPlan
 }
 
 const cardLayerTypes: Partial<Record<VisualAssetType, RendererLayerType>> = {
@@ -576,6 +589,7 @@ function visualLayer(
   audioPipelinePlan?: AudioPipelinePlan,
   mapAnimationPlan?: MapAnimationPlan,
   dataVizPlan?: DataVizPlan,
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan,
 ): RendererLayerPlan {
   const layerType = getLayerTypeForAssetType(asset.assetType)
   const duration = getDisplayDurationForAsset(asset)
@@ -596,7 +610,16 @@ function visualLayer(
     fitMode: fitModeForLayer(layerType),
     backgroundColor: layerType === 'ai_video_panel' ? frameTemplate.panelBackgroundColor : undefined,
     motionPreset: getMotionPresetForAsset(asset),
-    notes: buildRendererNotes(asset, frameTemplate, layoutItem, depthItem, renderStrategyItem, toolStrategyItems, colorPipelinePlan, audioPipelinePlan, mapAnimationPlan, dataVizPlan),
+    notes: [
+      ...buildRendererNotes(asset, frameTemplate, layoutItem, depthItem, renderStrategyItem, toolStrategyItems, colorPipelinePlan, audioPipelinePlan, mapAnimationPlan, dataVizPlan),
+      ...(captionVisualCueTimingPlan?.visualCueTimings
+        .filter((item) => item.linkedVisualAssetPlanItemId === asset.id)
+        .flatMap((item) => [
+          `Caption/visual cue ${item.id}: ${item.cueType.replaceAll('_', ' ')} via ${item.triggerType.replaceAll('_', ' ')} at ${item.timeRange.startFrame}-${item.timeRange.endFrame}f.`,
+          `Reveal/hold/exit: ${item.revealFrames}/${item.holdFrames}/${item.exitFrames}f; read target ${item.visualReadTimeFrames}f.`,
+          ...item.safeZoneNotes,
+        ]) ?? []),
+    ],
   }
 }
 
@@ -652,6 +675,7 @@ export function createRendererCompositionPlan({
   visualAssetPlan,
   frameTemplate,
   aspectRatio,
+  aspectRatioFramePlan,
   targetPlatform,
   editLevel,
   speakerVisualLayoutPlan,
@@ -662,18 +686,51 @@ export function createRendererCompositionPlan({
   audioPipelinePlan,
   mapAnimationPlan,
   dataVizPlan,
+  masterTimingPlan,
+  captionVisualCueTimingPlan,
+  soundSyncTransitionTimingPlan,
+  timingValidationPlan,
+  asyncAssetReconciliationPlan,
+  agentQAFallbackPlan,
 }: CreateRendererCompositionPlanParams): RendererCompositionPlan {
   const visualLayers: RendererLayerPlan[] = []
   let cursor = 0
 
   visualAssetPlan.forEach((asset) => {
-    const layer = visualLayer(asset, frameTemplate, cursor, speakerVisualLayoutPlan, depthAwareOverlayPlan, renderStrategyPlan, toolStrategyPlan, colorPipelinePlan, audioPipelinePlan, mapAnimationPlan, dataVizPlan)
-    visualLayers.push(layer)
-    cursor = layer.endTimeSeconds
+    const refinedCueTiming = captionVisualCueTimingPlan?.visualCueTimings.find((item) => item.linkedVisualAssetPlanItemId === asset.id)
+    const visualTiming = masterTimingPlan?.visualTimingItems.find((item) => item.linkedVisualAssetPlanItemId === asset.id)
+    const effectiveTiming = refinedCueTiming?.timeRange ?? visualTiming?.timeRange
+    const layer = visualLayer(asset, frameTemplate, effectiveTiming?.startSeconds ?? cursor, speakerVisualLayoutPlan, depthAwareOverlayPlan, renderStrategyPlan, toolStrategyPlan, colorPipelinePlan, audioPipelinePlan, mapAnimationPlan, dataVizPlan, captionVisualCueTimingPlan)
+    const timedLayer = effectiveTiming
+      ? {
+          ...layer,
+          startTimeSeconds: effectiveTiming.startSeconds,
+          endTimeSeconds: effectiveTiming.endSeconds,
+          notes: [
+            ...layer.notes,
+            refinedCueTiming
+              ? `Refined caption/visual cue frames: ${refinedCueTiming.timeRange.startFrame}-${refinedCueTiming.timeRange.endFrame}.`
+              : `Master Timing Plan frames: ${visualTiming?.timeRange.startFrame}-${visualTiming?.timeRange.endFrame}.`,
+          ],
+        }
+      : layer
+    visualLayers.push(timedLayer)
+    cursor = timedLayer.endTimeSeconds
   })
 
-  const durationSeconds = Math.max(cursor, 3)
-  const caption = captionLayer(frameTemplate, durationSeconds, speakerVisualLayoutPlan, depthAwareOverlayPlan)
+  const durationSeconds = masterTimingPlan?.timingBase.finalDurationSeconds ?? Math.max(cursor, 3)
+  const captionBase = captionLayer(frameTemplate, durationSeconds, speakerVisualLayoutPlan, depthAwareOverlayPlan)
+  const caption = captionBase && captionVisualCueTimingPlan
+    ? {
+        ...captionBase,
+        notes: [
+          ...captionBase.notes,
+          `Refined caption timing plan: ${captionVisualCueTimingPlan.id}.`,
+          `Caption animation policy: ${captionVisualCueTimingPlan.captionPolicy.animationStyle.replaceAll('_', ' ')}.`,
+          ...captionVisualCueTimingPlan.refinedCaptionTimings.slice(0, 3).map((item) => `Caption ${item.id}: ${item.timeRange.startFrame}-${item.timeRange.endFrame}f; ${item.readabilityRisk} readability risk.`),
+        ],
+      }
+    : captionBase
   const foregroundMask = foregroundMaskLayer(frameTemplate, durationSeconds, speakerVisualLayoutPlan, depthAwareOverlayPlan)
   const layers = [
     sourceLayer(frameTemplate, durationSeconds, speakerVisualLayoutPlan, depthAwareOverlayPlan),
@@ -685,20 +742,60 @@ export function createRendererCompositionPlan({
   const layoutModes = speakerVisualLayoutPlan
     ? Array.from(new Set(speakerVisualLayoutPlan.items.map((item) => formatLabel(item.layoutMode)))).join(', ')
     : 'none'
+  const frameConfirmed = aspectRatioFramePlan?.status === 'confirmed'
+  const frameNotes = aspectRatioFramePlan
+    ? [
+        frameConfirmed
+          ? `Confirmed output frame: ${aspectRatioFramePlan.selectedAspectRatio} at ${aspectRatioFramePlan.canvasWidth}x${aspectRatioFramePlan.canvasHeight}.`
+          : 'Renderer composition is draft-only until the output frame is confirmed.',
+        aspectRatioFramePlan.sourceToOutputFramePlan
+          ? `Source-to-output fit: ${formatLabel(aspectRatioFramePlan.sourceToOutputFramePlan.fitMode)}.`
+          : 'No source-to-output fit plan is available yet.',
+      ]
+    : ['No aspect ratio frame plan was provided; render-ready remains blocked.']
 
   return {
     id: `renderer-composition-${frameTemplate.templateType}`,
     engine: 'remotion',
     frameTemplate,
     durationSeconds,
-    fps: 30,
+    fps: masterTimingPlan?.timingBase.fps ?? 30,
+    masterTimingPlanId: masterTimingPlan?.id,
     layers,
     captionSafeZone: frameTemplate.captionSafeZone,
     panelBackgroundColor: frameTemplate.panelBackgroundColor,
     rendererNotes: [
       'Remotion owns final canvas and timing.',
+      masterTimingPlan
+        ? `Remotion sequence timing comes from MasterTimingPlan ${masterTimingPlan.id}.`
+        : 'Master Timing Plan is not attached yet; renderer timing remains mock-only.',
+      captionVisualCueTimingPlan
+        ? `Refined caption/visual timing comes from ${captionVisualCueTimingPlan.id}; caption layers should use ${captionVisualCueTimingPlan.captionPolicy.animationStyle.replaceAll('_', ' ')} animation.`
+        : 'Caption + Visual Cue Timing Plan is not attached yet; captions and visual cues use broad Master Timing only.',
+      soundSyncTransitionTimingPlan
+        ? `SoundSync transition timing comes from ${soundSyncTransitionTimingPlan.id}; ${soundSyncTransitionTimingPlan.refinedTransitionTimings.length} transition(s), ${soundSyncTransitionTimingPlan.refinedSfxTimings.length} cue-linked SFX item(s), and ${soundSyncTransitionTimingPlan.refinedMusicDuckingTimings.length} ducking range(s) provide frame notes.`
+        : 'SoundSync + Transition Timing Plan is not attached yet; transitions and SFX use broad Master Timing only.',
+      timingValidationPlan
+        ? `Timing validation status: ${timingValidationPlan.overallStatus}; approval blocked=${timingValidationPlan.approvalBlocked}.`
+        : 'Timing Validation Plan is not attached yet; renderer remains guarded by frame and timing-plan status.',
+      ...(timingValidationPlan?.approvalBlocked ? ['Renderer plan is not render-ready while timing validation blocks approval.'] : []),
+      asyncAssetReconciliationPlan
+        ? `Async reconciliation final render readiness: ${asyncAssetReconciliationPlan.finalRenderReadiness.ready ? 'ready' : 'waiting'}; ${asyncAssetReconciliationPlan.finalRenderReadiness.reason}`
+        : 'Async Asset Reconciliation Plan is not attached yet; renderer treats asset merge/checkback policy as pending.',
+      asyncAssetReconciliationPlan?.previewRenderReadiness.ready
+        ? `Preview placeholder policy: ${asyncAssetReconciliationPlan.previewRenderReadiness.placeholderAssetIds.length} placeholder asset(s) may be used in preview only.`
+        : 'Preview placeholders are unavailable unless async reconciliation explicitly allows them.',
+      ...(asyncAssetReconciliationPlan?.finalRenderReadiness.ready === false ? ['Final render remains blocked until required assets are merged, QA is clear, and approved snapshot readiness is resolved.'] : []),
+      agentQAFallbackPlan
+        ? `Agent QA fallback: ${agentQAFallbackPlan.gateChecks.length} gate(s), final render blocked=${agentQAFallbackPlan.finalRenderBlocked}, user review required=${agentQAFallbackPlan.userReviewRequiredCount}.`
+        : 'Agent QA + Fallback Plan is not attached yet; renderer fallback gate notes remain pending.',
+      ...(agentQAFallbackPlan?.finalRenderBlocked ? ['Renderer plan is not final-render ready while Agent QA/fallback has unresolved required failures.'] : []),
+      ...(soundSyncTransitionTimingPlan?.refinedTransitionTimings.slice(0, 3).map((item) => `Refined transition ${item.id}: ${item.timeRange.startFrame}-${item.timeRange.endFrame}f, ${item.transitionType.replaceAll('_', ' ')}, speech-safe=${item.beatSnapDecision?.speechSafe ?? item.phraseBoundaryAligned}.`) ?? []),
+      ...(soundSyncTransitionTimingPlan?.refinedSfxTimings.slice(0, 3).map((item) => `Cue-linked SFX ${item.id}: ${item.timeRange.startFrame}-${item.timeRange.endFrame}f, ${item.cueType.replaceAll('_', ' ')}.`) ?? []),
+      ...(soundSyncTransitionTimingPlan?.refinedMusicDuckingTimings.slice(0, 3).map((item) => `Voice ducking ${item.id}: ${item.timeRange.startFrame}-${item.timeRange.endFrame}f, ${item.duckingStrength} strength.`) ?? []),
       'AI models generate assets/clips only.',
       'AI video panels use matching background color by default.',
+      ...frameNotes,
       `Speaker/visual layout modes: ${layoutModes}.`,
       'Speaker presence, visual dominance, PIP, side-by-side, lower panels, and takeovers are structured plans only.',
       ...renderStrategyPlanNotes(renderStrategyPlan, toolStrategyPlan, colorPipelinePlan, audioPipelinePlan, mapAnimationPlan, dataVizPlan),

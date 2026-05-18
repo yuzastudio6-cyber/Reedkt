@@ -2,6 +2,7 @@ import type { SupabaseSchemaPlan } from './supabase-schema-plan'
 import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
 import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
+import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
 
 export type SignatureSystem =
   | 'stroke_motion'
@@ -48,7 +49,7 @@ export type TargetPlatform =
   | 'client_review'
   | 'custom'
 
-export type AspectRatio = '9:16' | '16:9' | '1:1' | 'let_ai_decide'
+export type AspectRatio = '9:16' | '16:9' | '1:1' | '4:5' | '4:3' | 'let_ai_decide'
 
 export type FrameTemplateType =
   | 'vertical_talking_head_lower_panel'
@@ -56,7 +57,88 @@ export type FrameTemplateType =
   | 'youtube_side_panel'
   | 'youtube_lower_panel'
   | 'square_center_panel'
+  | 'portrait_feed_lower_panel'
+  | 'classic_documentary_center_panel'
   | 'let_ai_decide'
+
+export type AspectRatioConfirmationStatus =
+  | 'not_started'
+  | 'recommended'
+  | 'needs_confirmation'
+  | 'confirmed'
+  | 'changed_after_plan'
+
+export type AspectRatioSource =
+  | 'user_selected'
+  | 'platform_recommended'
+  | 'demo_scenario'
+  | 'reference_video'
+  | 'custom'
+  | 'unknown'
+
+export type SourceToOutputFitMode =
+  | 'crop'
+  | 'contain'
+  | 'pad'
+  | 'blur_background'
+  | 'panel_background'
+  | 'smart_reframe'
+  | 'custom'
+
+export interface AspectRatioOption {
+  id: AspectRatio
+  label: string
+  description: string
+  bestFor: TargetPlatform[]
+  canvasWidth: number
+  canvasHeight: number
+  commonUses: string[]
+  layoutNotes: string[]
+}
+
+export interface AspectRatioRecommendation {
+  recommendedAspectRatio: AspectRatio
+  targetPlatform: TargetPlatform
+  reason: string
+  confidence: 'low' | 'medium' | 'high'
+  mustConfirm: boolean
+}
+
+export interface SourceToOutputFramePlan {
+  id: string
+  sourceAspectRatio?: AspectRatio | string
+  targetAspectRatio: AspectRatio
+  fitMode: SourceToOutputFitMode
+  speakerSafe: boolean
+  productSafe: boolean
+  captionSafe: boolean
+  notes: string[]
+  qaChecks: string[]
+}
+
+export interface AspectRatioFramePlan {
+  id: string
+  status: AspectRatioConfirmationStatus
+  source: AspectRatioSource
+  targetPlatform: TargetPlatform
+  selectedAspectRatio?: AspectRatio
+  recommendedAspectRatio?: AspectRatioRecommendation
+  confirmedAt?: string
+  canvasWidth?: number
+  canvasHeight?: number
+  sourceToOutputFramePlan?: SourceToOutputFramePlan
+  frameTemplateType?: FrameTemplateType
+  safeMargin: number
+  speakerZone?: RectZone
+  visualZone?: RectZone
+  captionSafeZone?: RectZone
+  panelBackgroundColor: string
+  mustConfirmBeforeApproval: boolean
+  resetApprovalOnChange: boolean
+  globalRules: string[]
+  qaChecks: string[]
+  notes: string[]
+}
 
 export type SpeakerPresenceMode =
   | 'full_speaker'
@@ -2144,6 +2226,7 @@ export interface RendererCompositionPlan {
   frameTemplate: FrameLayoutPlan
   durationSeconds: number
   fps: number
+  masterTimingPlanId?: string
   layers: RendererLayerPlan[]
   captionSafeZone?: RectZone
   panelBackgroundColor: string
@@ -2187,6 +2270,8 @@ export interface PromptConstraint {
     | 'provider_route'
     | 'qa'
     | 'video_understanding'
+    | 'source_cleanup'
+    | 'trim_review'
     | 'adaptive_strategy'
     | 'render_strategy'
     | 'tool_strategy'
@@ -2214,6 +2299,13 @@ export interface ProviderPromptPlan {
   frameTemplateType?: FrameTemplateType
   panelBackgroundColor?: string
   safeMarginNotes: string[]
+  aspectRatioFrameNotes?: string[]
+  sourceCleanupNotes?: string[]
+  trimReviewNotes?: string[]
+  timingNotes?: string[]
+  captionVisualCueNotes?: string[]
+  soundSyncTransitionNotes?: string[]
+  providerClipTimingItemId?: string
   styleModeId?: string
   professionalEditStyle?: ProfessionalEditStyleId
   durationSeconds?: number
@@ -2394,9 +2486,17 @@ export type QAStatus =
 export type QACategory =
   | 'video_understanding'
   | 'adaptive_strategy'
+  | 'source_cleanup'
+  | 'trim_review'
+  | 'editing_agent_execution'
+  | 'async_asset_reconciliation'
+  | 'agent_qa_fallback'
   | 'user_intent_match'
   | 'source_order_and_structure'
   | 'pacing_and_cuts'
+  | 'master_timing'
+  | 'caption_visual_cue_timing'
+  | 'timing_validation'
   | 'captions'
   | 'color_grade'
   | 'b_roll'
@@ -2419,6 +2519,1086 @@ export interface TimeRange {
   startSeconds: number
   endSeconds: number
   label?: string
+}
+
+export type TimingCueType =
+  | 'source_trim'
+  | 'final_segment'
+  | 'speech_line'
+  | 'caption_chunk'
+  | 'caption_emphasis'
+  | 'visual_reveal'
+  | 'visual_hold'
+  | 'visual_exit'
+  | 'map_pin_drop'
+  | 'map_route_reveal'
+  | 'chart_build'
+  | 'browser_zoom'
+  | 'stroke_motion_clip'
+  | 'ai_video_clip'
+  | 'transition'
+  | 'sfx'
+  | 'music_duck'
+  | 'beat'
+  | 'downbeat'
+  | 'onset'
+  | 'emotional_pause'
+  | 'remotion_layer'
+  | 'provider_clip'
+  | 'qa_marker'
+  | 'custom'
+
+export type TimingPriority =
+  | 'speech_clarity'
+  | 'story_meaning'
+  | 'visual_readability'
+  | 'music_rhythm'
+  | 'motion_smoothness'
+  | 'retention'
+  | 'decorative'
+
+export type TimingPlanStatus =
+  | 'draft'
+  | 'ready'
+  | 'blocked'
+  | 'needs_frame_confirmation'
+  | 'needs_audio_analysis'
+  | 'needs_transcript_alignment'
+  | 'approved_mock'
+
+export type TimingSnapMode =
+  | 'none'
+  | 'speech_boundary'
+  | 'beat'
+  | 'downbeat'
+  | 'onset'
+  | 'visual_cue'
+  | 'manual'
+
+export type TimingRiskLevel = 'low' | 'medium' | 'high' | 'blocking'
+
+export type CaptionChunkingMode =
+  | 'phrase_based'
+  | 'sentence_based'
+  | 'word_pop'
+  | 'keyword_emphasis'
+  | 'subtitle_block'
+  | 'minimal_caption'
+  | 'no_caption'
+
+export type CaptionAnimationTimingStyle =
+  | 'none'
+  | 'fade'
+  | 'soft_pop'
+  | 'word_highlight'
+  | 'kinetic_word_pop'
+  | 'slide_up'
+  | 'typewriter'
+  | 'documentary_lower_third'
+  | 'premium_minimal'
+
+export type CaptionReadabilityRisk = 'low' | 'medium' | 'high' | 'blocking'
+
+export type VisualCueTriggerType =
+  | 'speech_phrase_start'
+  | 'keyword_spoken'
+  | 'phrase_end'
+  | 'pause_after_phrase'
+  | 'beat'
+  | 'downbeat'
+  | 'onset'
+  | 'emotional_shift'
+  | 'visual_action'
+  | 'transition_boundary'
+  | 'manual_planned'
+
+export type VisualCueSyncStatus =
+  | 'synced'
+  | 'draft'
+  | 'needs_transcript_alignment'
+  | 'needs_audio_analysis'
+  | 'blocked'
+
+export type VisualCueType =
+  | 'card_reveal'
+  | 'name_card_reveal'
+  | 'fact_card_reveal'
+  | 'evidence_card_reveal'
+  | 'map_pin_drop'
+  | 'map_route_start'
+  | 'map_route_complete'
+  | 'chart_start'
+  | 'chart_step_reveal'
+  | 'chart_complete'
+  | 'browser_zoom_start'
+  | 'browser_highlight'
+  | 'stroke_motion_start'
+  | 'stroke_motion_emphasis'
+  | 'ai_video_panel_start'
+  | 'ai_video_panel_end'
+  | 'lower_panel_enter'
+  | 'full_takeover_enter'
+  | 'full_takeover_exit'
+  | 'depth_overlay_enter'
+  | 'foreground_mask_moment'
+  | 'transition_in'
+  | 'transition_out'
+  | 'custom'
+
+export type SoundSyncAnalysisStatus =
+  | 'not_needed'
+  | 'mock_planned'
+  | 'needs_audioflux_analysis'
+  | 'ready_mock'
+  | 'blocked'
+
+export type MusicPhraseType =
+  | 'intro'
+  | 'build'
+  | 'verse'
+  | 'chorus'
+  | 'drop'
+  | 'bridge'
+  | 'outro'
+  | 'silence'
+  | 'voice_only'
+  | 'unknown'
+
+export type BeatSnapDecision =
+  | 'snap_to_beat'
+  | 'snap_to_downbeat'
+  | 'snap_to_onset'
+  | 'snap_to_phrase_boundary'
+  | 'do_not_snap'
+  | 'manual'
+
+export type TransitionTimingType =
+  | 'hard_cut'
+  | 'phrase_cut'
+  | 'beat_cut'
+  | 'downbeat_cut'
+  | 'match_cut'
+  | 'visual_motivated_cut'
+  | 'audio_motivated_cut'
+  | 'smooth_crossfade'
+  | 'whip_or_push'
+  | 'graphic_wipe'
+  | 'card_wipe'
+  | 'map_transition'
+  | 'chart_transition'
+  | 'browser_zoom_transition'
+  | 'stroke_motion_transition'
+  | 'evidence_board_transition'
+  | 'documentary_cut'
+  | 'custom'
+
+export type TransitionRiskLevel = 'low' | 'medium' | 'high' | 'blocking'
+
+export type SfxDensityLevel =
+  | 'none'
+  | 'low'
+  | 'balanced'
+  | 'high'
+  | 'premium_refined'
+
+export type DuckingReasonType =
+  | 'voice_clarity'
+  | 'important_phrase'
+  | 'caption_heavy_section'
+  | 'documentary_source_line'
+  | 'emotional_pause'
+  | 'visual_montage'
+  | 'outro'
+  | 'custom'
+
+export interface FrameTimeRange {
+  startSeconds: number
+  endSeconds: number
+  durationSeconds: number
+  startFrame: number
+  endFrame: number
+  durationFrames: number
+  fps: number
+}
+
+export interface TimingCue {
+  id: string
+  cueType: TimingCueType
+  label: string
+  timeRange: FrameTimeRange
+  priority: TimingPriority
+  snapMode: TimingSnapMode
+  linkedClipId?: string
+  linkedSegmentId?: string
+  linkedTranscriptLineId?: string
+  linkedVisualAssetPlanItemId?: string
+  linkedRendererLayerId?: string
+  linkedBeatId?: string
+  linkedSoundSyncCueId?: string
+  reason: string
+  qaChecks: string[]
+  notes: string[]
+}
+
+export interface TimingBasePlan {
+  fps: number
+  totalDurationSeconds: number
+  totalFrames: number
+  sourceDurationSeconds: number
+  finalDurationSeconds: number
+  frameRoundingMode: 'floor' | 'ceil' | 'round'
+  derivedFromAspectRatioFramePlan: boolean
+  aspectRatioConfirmed: boolean
+  notes: string[]
+}
+
+export interface SourceTimingItem {
+  id: string
+  clipId: string
+  uploadedOrder: number
+  sourceRange: FrameTimeRange
+  selectedRange: FrameTimeRange
+  trimDecisionItemId?: string
+  role: ClipAnalysisRole | ClipSourceRole | 'unknown'
+  reason: string
+  trimNotes: string[]
+  qaChecks: string[]
+}
+
+export interface FinalTimelineSegmentTiming {
+  id: string
+  segmentId?: string
+  label: string
+  role?: EditSegmentRole
+  finalRange: FrameTimeRange
+  sourceTimingItemIds: string[]
+  timingCues: TimingCue[]
+  pacingNotes: string[]
+  qaChecks: string[]
+}
+
+export interface TranscriptTimingLine {
+  id: string
+  text: string
+  timeRange: FrameTimeRange
+  lineType: 'hook' | 'explanation' | 'emotion' | 'proof' | 'claim' | 'cta' | 'filler' | 'unknown'
+  emphasisWords: string[]
+  captionCueIds: string[]
+  visualCueIds: string[]
+  qaChecks: string[]
+}
+
+export interface TranscriptTimingPlan {
+  id: string
+  status: TimingPlanStatus
+  lines: TranscriptTimingLine[]
+  phraseBoundaryCueIds: string[]
+  emotionalPauseCueIds: string[]
+  limitations: string[]
+  qaChecks: string[]
+}
+
+export interface BeatGridItem {
+  id: string
+  beatIndex: number
+  timeSeconds: number
+  frame: number
+  isDownbeat: boolean
+  confidence: 'low' | 'medium' | 'high'
+  energy: 'low' | 'medium' | 'high'
+  notes: string[]
+}
+
+export interface BeatGridPlan {
+  id: string
+  status: TimingPlanStatus
+  bpm?: number
+  beatItems: BeatGridItem[]
+  dropCueIds: string[]
+  onsetCueIds: string[]
+  confidence: 'low' | 'medium' | 'high'
+  limitations: string[]
+  qaChecks: string[]
+}
+
+export interface CaptionTimingItem {
+  id: string
+  captionText: string
+  timeRange: FrameTimeRange
+  linkedTranscriptLineId?: string
+  refinedCaptionTimingItemId?: string
+  animationInFrames: number
+  holdFrames: number
+  animationOutFrames: number
+  emphasisWord?: string
+  readabilityScore: 'low' | 'medium' | 'high'
+  qaChecks: string[]
+}
+
+export interface VisualTimingItem {
+  id: string
+  label: string
+  visualType: VisualSupportOpportunityType | VisualAssetType | 'unknown'
+  timeRange: FrameTimeRange
+  linkedSegmentId?: string
+  linkedVisualAssetPlanItemId?: string
+  linkedLayoutItemId?: string
+  visualCueTimingItemId?: string
+  revealFrames: number
+  holdFrames: number
+  exitFrames: number
+  readTimeFrames: number
+  reason: string
+  qaChecks: string[]
+}
+
+export interface TransitionTimingItem {
+  id: string
+  transitionType: TransitionFamilyId | 'hard_cut' | 'custom'
+  timeRange: FrameTimeRange
+  fromSegmentId?: string
+  toSegmentId?: string
+  refinedTransitionTimingItemId?: string
+  beatAligned: boolean
+  phraseBoundaryAligned: boolean
+  sfxCueId?: string
+  reason: string
+  qaChecks: string[]
+}
+
+export interface SfxTimingItem {
+  id: string
+  cueType: SoundSyncCueType | 'custom'
+  label: string
+  timeRange: FrameTimeRange
+  linkedVisualTimingItemId?: string
+  linkedTransitionTimingItemId?: string
+  refinedSfxTimingItemId?: string
+  intensity: SfxIntensity
+  reason: string
+  avoidRules: string[]
+  qaChecks: string[]
+}
+
+export interface MusicDuckingTimingItem {
+  id: string
+  timeRange: FrameTimeRange
+  duckingStrength: 'none' | 'light' | 'medium' | 'strong'
+  linkedSpeechLineId?: string
+  refinedMusicDuckingTimingItemId?: string
+  attackFrames: number
+  releaseFrames: number
+  reason: string
+  qaChecks: string[]
+}
+
+export interface RemotionLayerTimingItem {
+  id: string
+  rendererLayerId?: string
+  label: string
+  layerType: string
+  timeRange: FrameTimeRange
+  zIndex?: number
+  linkedVisualTimingItemId?: string
+  linkedCaptionTimingItemId?: string
+  linkedSfxTimingItemId?: string
+  reason: string
+  qaChecks: string[]
+}
+
+export interface ProviderClipTimingItem {
+  id: string
+  providerModel?: ProviderModel
+  visualAssetPlanItemId?: string
+  expectedDurationSeconds: number
+  expectedDurationFrames: number
+  placementRange: FrameTimeRange
+  startFramePurpose?: string
+  endFramePurpose?: string
+  reason: string
+  qaChecks: string[]
+}
+
+export interface TimingQaCheck {
+  id: string
+  label: string
+  riskLevel: TimingRiskLevel
+  passedMock: boolean
+  message: string
+  recommendation?: string
+  linkedCueIds: string[]
+}
+
+export interface MasterTimingPlan {
+  id: string
+  status: TimingPlanStatus
+  summary: string
+  sourceCleanupPlanId?: string
+  captionVisualCueTimingPlanId?: string
+  soundSyncTransitionTimingPlanId?: string
+  timingValidationPlanId?: string
+  timingBase: TimingBasePlan
+  sourceTimingItems: SourceTimingItem[]
+  finalTimelineSegments: FinalTimelineSegmentTiming[]
+  transcriptTimingPlan: TranscriptTimingPlan
+  beatGridPlan: BeatGridPlan
+  captionTimingItems: CaptionTimingItem[]
+  visualTimingItems: VisualTimingItem[]
+  transitionTimingItems: TransitionTimingItem[]
+  sfxTimingItems: SfxTimingItem[]
+  musicDuckingTimingItems: MusicDuckingTimingItem[]
+  remotionLayerTimingItems: RemotionLayerTimingItem[]
+  providerClipTimingItems: ProviderClipTimingItem[]
+  globalRules: string[]
+  qaChecks: TimingQaCheck[]
+  limitations: string[]
+  notes: string[]
+}
+
+export interface CaptionWordTiming {
+  id: string
+  word: string
+  timeRange: FrameTimeRange
+  emphasized: boolean
+  confidence: 'low' | 'medium' | 'high'
+  notes: string[]
+}
+
+export interface CaptionPhraseTiming {
+  id: string
+  text: string
+  timeRange: FrameTimeRange
+  words: CaptionWordTiming[]
+  linkedTranscriptLineId?: string
+  phraseRole: 'hook' | 'explanation' | 'emotion' | 'proof' | 'claim' | 'cta' | 'filler' | 'unknown'
+  qaChecks: string[]
+}
+
+export interface CaptionStyleTimingPolicy {
+  id: string
+  chunkingMode: CaptionChunkingMode
+  animationStyle: CaptionAnimationTimingStyle
+  maxWordsPerCaption: number
+  minDurationFrames: number
+  maxDurationFrames: number
+  leadInFrames: number
+  lagFrames: number
+  animationInFrames: number
+  animationOutFrames: number
+  safeGapFrames: number
+  emphasisAllowed: boolean
+  maxEmphasisWordsPerCaption: number
+  avoidRules: string[]
+  qaChecks: string[]
+}
+
+export interface RefinedCaptionTimingItem {
+  id: string
+  captionText: string
+  phraseTimingId?: string
+  linkedMasterCaptionTimingItemId?: string
+  linkedTranscriptLineId?: string
+  timeRange: FrameTimeRange
+  chunkingMode: CaptionChunkingMode
+  animationStyle: CaptionAnimationTimingStyle
+  emphasisWords: string[]
+  readabilityRisk: CaptionReadabilityRisk
+  readabilityScore: 'low' | 'medium' | 'high'
+  safeZoneNotes: string[]
+  collisionAvoidanceNotes: string[]
+  reason: string
+  qaChecks: string[]
+}
+
+export interface VisualCueTimingItem {
+  id: string
+  cueType: VisualCueType
+  triggerType: VisualCueTriggerType
+  status: VisualCueSyncStatus
+  label: string
+  timeRange: FrameTimeRange
+  linkedMasterVisualTimingItemId?: string
+  linkedSegmentId?: string
+  linkedVisualAssetPlanItemId?: string
+  linkedCaptionTimingItemId?: string
+  linkedTranscriptLineId?: string
+  linkedBeatId?: string
+  linkedSoundSyncCueId?: string
+  visualReadTimeFrames: number
+  revealFrames: number
+  holdFrames: number
+  exitFrames: number
+  safeZoneNotes: string[]
+  reason: string
+  fallbackTiming?: FrameTimeRange
+  qaChecks: string[]
+}
+
+export interface CaptionVisualCollisionPlan {
+  id: string
+  label: string
+  affectedCaptionTimingItemIds: string[]
+  affectedVisualCueTimingItemIds: string[]
+  risk: CaptionReadabilityRisk
+  issue: string
+  recommendation: string
+  fallbackLayoutMode?: SpeakerVisualLayoutMode
+  qaChecks: string[]
+}
+
+export interface CaptionVisualCueTimingPlan {
+  id: string
+  status: VisualCueSyncStatus
+  summary: string
+  timingValidationPlanId?: string
+  captionPolicy: CaptionStyleTimingPolicy
+  captionPhraseTimings: CaptionPhraseTiming[]
+  refinedCaptionTimings: RefinedCaptionTimingItem[]
+  visualCueTimings: VisualCueTimingItem[]
+  collisionPlans: CaptionVisualCollisionPlan[]
+  globalRules: string[]
+  qaChecks: TimingQaCheck[]
+  limitations: string[]
+  notes: string[]
+}
+
+export interface MusicPhraseTimingItem {
+  id: string
+  phraseType: MusicPhraseType
+  label: string
+  timeRange: FrameTimeRange
+  energy: 'low' | 'medium' | 'high'
+  confidence: 'low' | 'medium' | 'high'
+  notes: string[]
+}
+
+export interface SoundSyncBeatGridItem {
+  id: string
+  beatIndex: number
+  timeSeconds: number
+  frame: number
+  isDownbeat: boolean
+  isDropMoment: boolean
+  isOnset: boolean
+  energy: 'low' | 'medium' | 'high'
+  confidence: 'low' | 'medium' | 'high'
+  linkedMusicPhraseId?: string
+  notes: string[]
+}
+
+export interface SoundSyncBeatGridPlan {
+  id: string
+  status: SoundSyncAnalysisStatus
+  bpm?: number
+  confidence: 'low' | 'medium' | 'high'
+  beatItems: SoundSyncBeatGridItem[]
+  musicPhrases: MusicPhraseTimingItem[]
+  snapToleranceFrames: number
+  analysisToolPlanned: OpenSourceToolId[]
+  globalRules: string[]
+  limitations: string[]
+  qaChecks: string[]
+}
+
+export interface BeatSnapDecisionPlan {
+  id: string
+  targetCueId?: string
+  requestedFrame: number
+  snappedFrame: number
+  snapDecision: BeatSnapDecision
+  linkedBeatId?: string
+  linkedPhraseBoundaryCueId?: string
+  speechSafe: boolean
+  reason: string
+  qaChecks: string[]
+}
+
+export interface RefinedTransitionTimingItem {
+  id: string
+  transitionType: TransitionTimingType
+  timeRange: FrameTimeRange
+  fromSegmentId?: string
+  toSegmentId?: string
+  fromLayoutMode?: SpeakerVisualLayoutMode
+  toLayoutMode?: SpeakerVisualLayoutMode
+  linkedMasterTransitionTimingItemId?: string
+  beatSnapDecision?: BeatSnapDecisionPlan
+  phraseBoundaryAligned: boolean
+  beatAligned: boolean
+  downbeatAligned: boolean
+  visualMotivated: boolean
+  audioMotivated: boolean
+  durationFrames: number
+  riskLevel: TransitionRiskLevel
+  sfxCueId?: string
+  reason: string
+  fallbackTransitionType?: TransitionTimingType
+  qaChecks: string[]
+}
+
+export interface RefinedSfxTimingItem {
+  id: string
+  cueType: SoundSyncCueType | 'custom'
+  label: string
+  timeRange: FrameTimeRange
+  linkedVisualCueTimingItemId?: string
+  linkedTransitionTimingItemId?: string
+  linkedBeatId?: string
+  intensity: SfxIntensity
+  densityLevel: SfxDensityLevel
+  reason: string
+  avoidRules: string[]
+  qaChecks: string[]
+}
+
+export interface RefinedMusicDuckingTimingItem {
+  id: string
+  timeRange: FrameTimeRange
+  duckingStrength: 'none' | 'light' | 'medium' | 'strong'
+  reasonType: DuckingReasonType
+  linkedSpeechLineId?: string
+  linkedCaptionTimingItemId?: string
+  attackFrames: number
+  releaseFrames: number
+  preserveMusicDrop: boolean
+  voicePriority: boolean
+  reason: string
+  qaChecks: string[]
+}
+
+export interface SoundSyncTransitionTimingQaCheck {
+  id: string
+  label: string
+  riskLevel: TimingRiskLevel
+  passedMock: boolean
+  message: string
+  recommendation?: string
+  linkedTransitionTimingItemIds: string[]
+  linkedSfxTimingItemIds: string[]
+  linkedDuckingTimingItemIds: string[]
+}
+
+export interface SoundSyncTransitionTimingPlan {
+  id: string
+  status: SoundSyncAnalysisStatus
+  summary: string
+  timingValidationPlanId?: string
+  beatGridPlan: SoundSyncBeatGridPlan
+  beatSnapDecisions: BeatSnapDecisionPlan[]
+  refinedTransitionTimings: RefinedTransitionTimingItem[]
+  refinedSfxTimings: RefinedSfxTimingItem[]
+  refinedMusicDuckingTimings: RefinedMusicDuckingTimingItem[]
+  sfxDensityLevel: SfxDensityLevel
+  globalRules: string[]
+  qaChecks: SoundSyncTransitionTimingQaCheck[]
+  limitations: string[]
+  notes: string[]
+}
+
+export type TimingValidationStatus =
+  | 'passed'
+  | 'warning'
+  | 'failed'
+  | 'blocking'
+
+export type TimingValidationCategory =
+  | 'frame_confirmation'
+  | 'timing_base'
+  | 'source_timing'
+  | 'final_timeline'
+  | 'transcript_timing'
+  | 'caption_readability'
+  | 'visual_readability'
+  | 'caption_visual_collision'
+  | 'transition_safety'
+  | 'beat_alignment'
+  | 'sfx_justification'
+  | 'music_ducking'
+  | 'provider_clip_duration'
+  | 'remotion_layer_timing'
+  | 'tier_complexity'
+  | 'credit_impact'
+  | 'approval_gate'
+  | 'worker_readiness'
+
+export type TimingComplexityLevel =
+  | 'none'
+  | 'simple'
+  | 'moderate'
+  | 'advanced'
+  | 'premium'
+
+export type TimingCreditImpactLevel =
+  | 'none'
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'premium'
+
+export interface TimingValidationCheck {
+  id: string
+  category: TimingValidationCategory
+  label: string
+  status: TimingValidationStatus
+  severity: 'info' | 'warning' | 'error' | 'blocking'
+  message: string
+  recommendation?: string
+  relatedCueIds: string[]
+  relatedSegmentId?: string
+  relatedVisualAssetPlanItemId?: string
+  relatedCaptionTimingItemId?: string
+  relatedTransitionTimingItemId?: string
+  relatedSfxTimingItemId?: string
+  relatedProviderClipTimingItemId?: string
+}
+
+export interface TimingCreditProfile {
+  id: string
+  complexity: TimingComplexityLevel
+  label: string
+  description: string
+  creditImpact: TimingCreditImpactLevel
+  estimatedPlanningCredits: number
+  bestFor: string[]
+  avoidFor: string[]
+  tierFit: {
+    basic: boolean
+    pro: boolean
+    premium: boolean
+  }
+  requiresQa: boolean
+  qaChecks: string[]
+}
+
+export interface TimingLowerCostRecommendation {
+  id: string
+  label: string
+  estimatedCreditSavings: number
+  tradeoff: string
+  whatChanges: string[]
+  keepsProfessionalQuality: boolean
+  requiresNewApproval: boolean
+  actionType:
+    | 'simpler_caption_animation'
+    | 'reduce_emphasis_words'
+    | 'reduce_visual_cue_density'
+    | 'use_phrase_cuts_only'
+    | 'remove_beat_sync'
+    | 'reduce_sfx_density'
+    | 'simpler_transitions'
+    | 'shorter_ai_clip_duration'
+    | 'convert_animation_to_still'
+    | 'use_static_card'
+    | 'voice_only_timing'
+    | 'custom'
+}
+
+export interface TimingValidationPlanItem {
+  id: string
+  label: string
+  relatedSegmentId?: string
+  complexity: TimingComplexityLevel
+  creditProfileId: string
+  status: TimingValidationStatus
+  checks: TimingValidationCheck[]
+  creditImpact: TimingCreditImpactLevel
+  estimatedPlanningCredits: number
+  lowerCostRecommendations: TimingLowerCostRecommendation[]
+  userFacingSummary: string
+  developerNotes: string[]
+}
+
+export interface TimingValidationPlan {
+  id: string
+  active: boolean
+  summary: string
+  overallStatus: TimingValidationStatus
+  items: TimingValidationPlanItem[]
+  creditProfilesUsed: string[]
+  totalEstimatedTimingCredits: number
+  lowerCostRecommendations: TimingLowerCostRecommendation[]
+  globalChecks: TimingValidationCheck[]
+  approvalBlocked: boolean
+  approvalBlockReasons: string[]
+  qaChecks: string[]
+  limitations: string[]
+  notes: string[]
+}
+
+export type CleanupPreference =
+  | 'preserve_natural'
+  | 'light_cleanup'
+  | 'balanced_cleanup'
+  | 'tight_retention_cleanup'
+  | 'aggressive_cleanup'
+  | 'documentary_faithful'
+  | 'tutorial_complete'
+  | 'custom'
+
+export type CleanupConfirmationStatus =
+  | 'not_started'
+  | 'recommended'
+  | 'needs_confirmation'
+  | 'confirmed'
+  | 'changed_after_plan'
+
+export type TrimDecisionType =
+  | 'keep'
+  | 'cut'
+  | 'tighten'
+  | 'preserve'
+  | 'move_to_broll'
+  | 'use_as_voiceover'
+  | 'use_as_proof'
+  | 'use_as_alt_take'
+  | 'needs_user_review'
+  | 'cannot_decide_mock'
+
+export type KeepReason =
+  | 'strong_hook'
+  | 'clear_explanation'
+  | 'emotional_moment'
+  | 'product_demo_required'
+  | 'tutorial_step_required'
+  | 'proof_or_evidence'
+  | 'source_context_required'
+  | 'user_marked_important'
+  | 'good_visual_moment'
+  | 'good_audio_moment'
+  | 'key_story_beat'
+  | 'cta'
+  | 'behind_the_scenes_authenticity'
+  | 'transition_context'
+  | 'custom'
+
+export type CutReason =
+  | 'dead_space'
+  | 'long_silence'
+  | 'filler_words'
+  | 'false_start'
+  | 'repeated_take'
+  | 'duplicate_point'
+  | 'mistake'
+  | 'off_topic'
+  | 'weak_explanation'
+  | 'bad_audio'
+  | 'bad_visual'
+  | 'shaky_or_blurry'
+  | 'setup_cleanup'
+  | 'privacy_sensitive'
+  | 'user_marked_optional'
+  | 'pacing_drag'
+  | 'unclear_context'
+  | 'custom'
+
+export type TrimRiskLevel = 'low' | 'medium' | 'high' | 'blocking'
+
+export interface CleanupPreferenceRecommendation {
+  recommendedPreference: CleanupPreference
+  reason: string
+  confidence: 'low' | 'medium' | 'high'
+  mustConfirm: boolean
+}
+
+export interface SourceRangePlan {
+  clipId: string
+  startSeconds: number
+  endSeconds: number
+  startFrame?: number
+  endFrame?: number
+  durationSeconds: number
+  notes: string[]
+}
+
+export interface TrimDecisionItem {
+  id: string
+  clipId: string
+  sourceRange: SourceRangePlan
+  decision: TrimDecisionType
+  keepReasons: KeepReason[]
+  cutReasons: CutReason[]
+  riskLevel: TrimRiskLevel
+  finalUse: 'main_timeline' | 'broll' | 'voiceover_support' | 'proof' | 'alt_take' | 'removed' | 'user_review'
+  userReviewRequired: boolean
+  reason: string
+  affectedMeaningRisk: boolean
+  linkedSegmentId?: string
+  linkedTimingCueIds: string[]
+  meaningPreservationCheckIds?: string[]
+  qaChecks: string[]
+  notes: string[]
+}
+
+export interface RetakeGroupPlan {
+  id: string
+  clipIds: string[]
+  label: string
+  selectedClipId?: string
+  selectedDecisionItemId?: string
+  alternateDecisionItemIds: string[]
+  retakeSelectionPlanItemId?: string
+  reason: string
+  userReviewRequired: boolean
+  qaChecks: string[]
+}
+
+export interface CleanupQuestionPlan {
+  id: string
+  question: string
+  options: CleanupPreference[]
+  recommendedOption: CleanupPreference
+  reason: string
+  requiredBeforeApproval: boolean
+  answered: boolean
+}
+
+export interface SourceCleanupPlan {
+  id: string
+  status: CleanupConfirmationStatus
+  selectedPreference?: CleanupPreference
+  recommendedPreference: CleanupPreferenceRecommendation
+  cleanupQuestion: CleanupQuestionPlan
+  retakeSelectionPlanId?: string
+  meaningPreservationValidationPlanId?: string
+  trimReviewPlanId?: string
+  decisions: TrimDecisionItem[]
+  retakeGroups: RetakeGroupPlan[]
+  preservedRanges: TrimDecisionItem[]
+  cutRanges: TrimDecisionItem[]
+  userReviewItems: TrimDecisionItem[]
+  finalDurationImpactSeconds: number
+  meaningPreservationRules: string[]
+  globalRules: string[]
+  qaChecks: string[]
+  limitations: string[]
+  notes: string[]
+}
+
+export type RetakeSelectionStrategy =
+  | 'latest_good_take'
+  | 'clearest_explanation'
+  | 'strongest_emotion'
+  | 'best_audio_visual_quality'
+  | 'user_marked_important'
+  | 'preserve_multiple_for_broll'
+  | 'preserve_multiple_for_context'
+  | 'ask_user_review'
+  | 'custom'
+
+export type RetakeCandidateQuality =
+  | 'unknown'
+  | 'weak'
+  | 'acceptable'
+  | 'good'
+  | 'best_mock'
+
+export type RetakeSelectionConfidence =
+  | 'low'
+  | 'medium'
+  | 'high'
+
+export type MeaningPreservationCategory =
+  | 'claim_context'
+  | 'evidence_context'
+  | 'tutorial_completeness'
+  | 'product_demo_continuity'
+  | 'story_meaning'
+  | 'emotional_pause'
+  | 'user_marked_important'
+  | 'source_order'
+  | 'privacy_sensitive'
+  | 'documentary_safety'
+  | 'retake_ambiguity'
+  | 'custom'
+
+export type MeaningPreservationStatus =
+  | 'passed'
+  | 'warning'
+  | 'failed'
+  | 'blocking'
+
+export interface RetakeCandidatePlan {
+  id: string
+  clipId: string
+  sourceRange: SourceRangePlan
+  candidateLabel: string
+  inferredTakeNumber?: number
+  quality: RetakeCandidateQuality
+  strengths: string[]
+  weaknesses: string[]
+  userMarkedImportant: boolean
+  userMarkedOptional: boolean
+  suggestedUse: TrimDecisionType
+  reason: string
+  qaChecks: string[]
+}
+
+export interface RetakeSelectionPlanItem {
+  id: string
+  label: string
+  strategy: RetakeSelectionStrategy
+  candidates: RetakeCandidatePlan[]
+  selectedCandidateId?: string
+  alternateCandidateIds: string[]
+  confidence: RetakeSelectionConfidence
+  userReviewRequired: boolean
+  selectedUse: 'main_timeline' | 'broll' | 'proof' | 'alt_take' | 'removed' | 'user_review'
+  reason: string
+  fallbackDecision: string
+  qaChecks: string[]
+}
+
+export interface MeaningPreservationCheck {
+  id: string
+  category: MeaningPreservationCategory
+  label: string
+  status: MeaningPreservationStatus
+  severity: 'info' | 'warning' | 'error' | 'blocking'
+  relatedTrimDecisionItemIds: string[]
+  relatedRetakeSelectionItemIds: string[]
+  relatedClipIds: string[]
+  message: string
+  recommendation: string
+  userReviewRequired: boolean
+}
+
+export interface MeaningPreservationValidationPlan {
+  id: string
+  status: MeaningPreservationStatus
+  summary: string
+  checks: MeaningPreservationCheck[]
+  blockingReasons: string[]
+  userReviewRequired: boolean
+  userReviewItems: MeaningPreservationCheck[]
+  globalRules: string[]
+  qaChecks: string[]
+  limitations: string[]
+  notes: string[]
+}
+
+export interface RetakeSelectionPlan {
+  id: string
+  active: boolean
+  summary: string
+  items: RetakeSelectionPlanItem[]
+  selectedCandidateCount: number
+  userReviewRequiredCount: number
+  globalRules: string[]
+  limitations: string[]
+  notes: string[]
+}
+
+export interface TrimReviewPlan {
+  id: string
+  summary: string
+  retakeSelectionPlan: RetakeSelectionPlan
+  meaningPreservationValidationPlan: MeaningPreservationValidationPlan
+  approvalBlocked: boolean
+  approvalBlockReasons: string[]
+  userFacingReviewSummary: string[]
+  nextUserQuestions: string[]
+  qaChecks: string[]
+  limitations: string[]
 }
 
 export interface CaptionPlan {
@@ -2502,6 +3682,11 @@ export interface SegmentEditPlan {
   sourceClipIds: string[]
   sourceTimeRange?: TimeRange
   finalTimeRange: TimeRange
+  finalTiming?: FrameTimeRange
+  timingCueIds?: string[]
+  captionVisualCueIds?: string[]
+  trimDecisionItemIds?: string[]
+  meaningPreservationCheckIds?: string[]
   spokenTextSummary?: string
   pacingStyle: PacingStyleId
   cutIntensity: CutIntensity
@@ -2629,6 +3814,10 @@ export interface VisualAssetPlanItem {
   needsStartFrame: boolean
   needsEndFrame: boolean
   recommendedDurationSeconds: number
+  plannedDurationFrames?: number
+  timingCueIds?: string[]
+  visualCueTimingIds?: string[]
+  visualTimingItemId?: string
   providerRoute: ProviderRoute
   reason: string
   qaChecks: string[]
@@ -2658,6 +3847,8 @@ export interface CreditEstimate {
     credits: number
     reason: string
   }[]
+  timingCredits?: number
+  timingTradeoffs?: TimingLowerCostRecommendation[]
   editLevel?: EditLevel
   editingCategory?: EditingCategory
   visualSystemSummary?: CreditEstimateAssetSummary[]
@@ -2667,6 +3858,8 @@ export interface CreditEstimate {
   lowerCostAlternatives?: LowerCostAlternative[]
   riskLevel?: CreditEstimateRiskLevel
   approvalCopy?: string
+  approvalBlocked?: boolean
+  draftReason?: string
   estimateVersion?: string
 }
 
@@ -2755,6 +3948,16 @@ export type PlanningSystemAuditStatus =
 
 export type PlanningSystemLayerId =
   | 'source_sequence'
+  | 'source_cleanup'
+  | 'trim_review'
+  | 'editing_agent_execution'
+  | 'async_asset_reconciliation'
+  | 'agent_qa_fallback'
+  | 'aspect_ratio_frame_gate'
+  | 'master_timing'
+  | 'caption_visual_cue_timing'
+  | 'soundsync_transition_timing'
+  | 'timing_validation'
   | 'compiled_intent'
   | 'professional_editing'
   | 'video_understanding'
@@ -2829,6 +4032,11 @@ export interface EditPlan {
   goalSummary: string
   sourceSequenceMap: SourceSequenceMapItem[]
   sourceSequenceReview?: SourceSequenceReviewState
+  sourceCleanupPlan?: SourceCleanupPlan
+  trimReviewPlan?: TrimReviewPlan
+  editingAgentExecutionPlan?: EditingAgentExecutionPlan
+  asyncAssetReconciliationPlan?: AsyncAssetReconciliationPlan
+  agentQAFallbackPlan?: AgentQAFallbackPlan
   recommendedStructure: string[]
   hookDecision: {
     policy: HookPolicy
@@ -2854,6 +4062,11 @@ export interface EditPlan {
   mapAnimationPlan?: MapAnimationPlan
   dataVizPlan?: DataVizPlan
   visualAssetPlan?: VisualAssetPlanItem[]
+  aspectRatioFramePlan?: AspectRatioFramePlan
+  masterTimingPlan?: MasterTimingPlan
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan
+  timingValidationPlan?: TimingValidationPlan
   speakerVisualLayoutPlan?: SpeakerVisualLayoutPlan
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
   renderStrategyPlan?: RenderStrategyPlan
@@ -2880,6 +4093,13 @@ export interface PlannerInput {
   projectName: string
   targetPlatform: TargetPlatform
   aspectRatio: AspectRatio
+  aspectRatioConfirmed?: boolean
+  aspectRatioSource?: AspectRatioSource
+  aspectRatioFramePlan?: AspectRatioFramePlan
+  masterTimingPlan?: MasterTimingPlan
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan
+  timingValidationPlan?: TimingValidationPlan
   frameTemplateType?: FrameTemplateType
   editingCategory: EditingCategory
   workflowType: VideoWorkflowType
@@ -2893,6 +4113,10 @@ export interface PlannerInput {
   clips: ClipSource[]
   sourceSequenceMode?: SourceSequenceMode
   sourceOrderConfirmed?: boolean
+  cleanupPreference?: CleanupPreference
+  cleanupPreferenceConfirmed?: boolean
+  sourceCleanupPlan?: SourceCleanupPlan
+  trimReviewPlan?: TrimReviewPlan
   videoUnderstandingReport?: VideoUnderstandingReport
   compiledIntent?: CompiledEditingIntent
   professionalEditingDirective?: ProfessionalEditingDirective

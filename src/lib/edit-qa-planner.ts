@@ -1,6 +1,7 @@
 import type {
   AdaptiveEditStrategyPlan,
   AudioPipelinePlan,
+  CaptionVisualCueTimingPlan,
   ColorPipelinePlan,
   CompiledEditingIntent,
   CharacterConsistencyPlan,
@@ -11,16 +12,22 @@ import type {
   EditQAPlan,
   FallbackStep,
   MapAnimationPlan,
+  MasterTimingPlan,
   PlannerInput,
   RenderStrategyPlan,
   RendererCompositionPlan,
   SegmentEditPlan,
   SegmentQAPlanItem,
+  SourceCleanupPlan,
+  SoundSyncTransitionTimingPlan,
+  TimingValidationPlan,
+  TrimReviewPlan,
   SpeakerVisualLayoutPlan,
   ToolStrategyPlan,
   VideoUnderstandingReport,
   VisualAssetPlanItem,
 } from '../types/reeditpro'
+import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from '../types/editing-agent-runtime'
 
 function fallbackActionsForLevel(editLevel: EditLevel): FallbackStep[] {
   if (editLevel === 'premium') {
@@ -253,6 +260,516 @@ function createSegmentChecks(input: PlannerInput, segmentEditPlans: SegmentEditP
   ])
 }
 
+function createSourceCleanupChecks(input: PlannerInput, sourceCleanupPlan?: SourceCleanupPlan): SegmentQAPlanItem[] {
+  const fallbackActions = fallbackActionsForLevel(input.editLevel)
+
+  if (!sourceCleanupPlan) {
+    return [
+      createQAItem({
+        id: 'qa-source-cleanup-missing',
+        category: 'source_cleanup',
+        label: 'Source cleanup plan exists',
+        check: 'Source cleanup and trim/select decisions must exist before approval.',
+        editLevel: input.editLevel,
+        severity: 'blocking',
+        status: 'failed',
+        notes: ['SourceCleanupPlan is missing.'],
+      }),
+    ]
+  }
+
+  const importantCut = sourceCleanupPlan.decisions.some((decision) => {
+    const clip = input.clips.find((item) => item.id === decision.clipId)
+    return clip?.isImportant && decision.finalUse === 'removed' && !decision.userReviewRequired
+  })
+  const proofRisk = sourceCleanupPlan.decisions.some((decision) =>
+    decision.keepReasons.includes('proof_or_evidence') &&
+    decision.finalUse === 'removed' &&
+    !decision.userReviewRequired
+  )
+  const tutorialRisk = sourceCleanupPlan.decisions.some((decision) =>
+    decision.keepReasons.includes('tutorial_step_required') &&
+    decision.finalUse === 'removed' &&
+    !decision.userReviewRequired
+  )
+
+  return [
+    {
+      id: 'qa-source-cleanup-confirmed',
+      category: 'source_cleanup',
+      label: 'Cleanup preference confirmed',
+      check: 'Cleanup preference must be confirmed before approval.',
+      status: sourceCleanupPlan.status === 'confirmed' ? 'passed' : 'blocked',
+      severity: 'blocking',
+      fallbackActions,
+      notes: [
+        `Status: ${sourceCleanupPlan.status}.`,
+        `Preference: ${sourceCleanupPlan.selectedPreference ?? sourceCleanupPlan.recommendedPreference.recommendedPreference}.`,
+        sourceCleanupPlan.cleanupQuestion.question,
+      ],
+    },
+    {
+      id: 'qa-source-cleanup-reasoned-decisions',
+      category: 'source_cleanup',
+      label: 'Trim decisions have reasons',
+      check: 'Every trim/select decision includes reason, source range, final use, risk, and QA.',
+      status: sourceCleanupPlan.decisions.every((decision) => decision.reason && decision.sourceRange.durationSeconds >= 0) ? 'not_checked' : 'failed',
+      severity: 'high',
+      fallbackActions,
+      notes: sourceCleanupPlan.decisions.slice(0, 4).map((decision) => `${decision.clipId}: ${decision.decision} as ${decision.finalUse} because ${decision.reason}`),
+    },
+    {
+      id: 'qa-source-cleanup-meaning-preservation',
+      category: 'source_cleanup',
+      label: 'Meaning preservation',
+      check: 'Important, proof, documentary, product, and tutorial context must not be removed without warning.',
+      status: importantCut || proofRisk || tutorialRisk ? 'failed' : 'not_checked',
+      severity: importantCut || proofRisk || tutorialRisk ? 'blocking' : 'high',
+      fallbackActions,
+      notes: sourceCleanupPlan.meaningPreservationRules,
+    },
+    {
+      id: 'qa-source-cleanup-retakes',
+      category: 'source_cleanup',
+      label: 'Retake handling',
+      check: 'Retakes/retries are selected with a reason or marked for review.',
+      status: sourceCleanupPlan.retakeGroups.every((group) => group.selectedClipId || group.userReviewRequired) ? 'not_checked' : 'needs_user_review',
+      severity: sourceCleanupPlan.retakeGroups.length ? 'medium' : 'low',
+      fallbackActions,
+      notes: sourceCleanupPlan.retakeGroups.map((group) => `${group.label}: ${group.reason}`).slice(0, 4),
+    },
+    {
+      id: 'qa-source-cleanup-mock-only',
+      category: 'source_cleanup',
+      label: 'Mock-only cleanup boundary',
+      check: 'Source cleanup must not imply real transcript, silence, audio/video, or media analysis.',
+      status: sourceCleanupPlan.limitations.some((limitation) => /no real transcript|no real silence|mock-only/i.test(limitation)) ? 'passed' : 'warning',
+      severity: 'blocking',
+      fallbackActions,
+      notes: sourceCleanupPlan.limitations,
+    },
+  ]
+}
+
+function createTrimReviewChecks(input: PlannerInput, trimReviewPlan?: TrimReviewPlan): SegmentQAPlanItem[] {
+  if (!trimReviewPlan) {
+    return [
+      {
+        id: 'qa-trim-review-missing',
+        category: 'trim_review',
+        label: 'Trim review plan exists',
+        check: 'TrimReviewPlan must exist before approval.',
+        status: 'failed',
+        severity: 'blocking',
+        fallbackActions: fallbackActionsForLevel(input.editLevel),
+        notes: ['TrimReviewPlan is missing.'],
+      },
+    ]
+  }
+
+  return [
+    {
+      id: 'qa-trim-review-retakes',
+      category: 'trim_review',
+      label: 'Retake selection',
+      check: 'Retake selections have reasons and confidence.',
+      status: trimReviewPlan.retakeSelectionPlan.items.every((item) => item.reason && item.confidence) ? 'not_checked' : 'failed',
+      severity: trimReviewPlan.retakeSelectionPlan.userReviewRequiredCount ? 'medium' : 'low',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: trimReviewPlan.retakeSelectionPlan.items.map((item) => `${item.label}: ${item.confidence}; ${item.reason}`).slice(0, 4),
+    },
+    {
+      id: 'qa-trim-review-meaning',
+      category: 'trim_review',
+      label: 'Meaning preservation',
+      check: 'Meaning preservation validation exists and blocks risky cuts.',
+      status: trimReviewPlan.meaningPreservationValidationPlan.status === 'blocking' ? 'blocked' : 'not_checked',
+      severity: trimReviewPlan.meaningPreservationValidationPlan.status === 'blocking' ? 'blocking' : 'medium',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: trimReviewPlan.meaningPreservationValidationPlan.checks.slice(0, 4).map((check) => `${check.label}: ${check.status}; ${check.message}`),
+    },
+    {
+      id: 'qa-trim-review-approval',
+      category: 'trim_review',
+      label: 'Trim review approval gate',
+      check: 'Blocking trim review prevents approval.',
+      status: trimReviewPlan.approvalBlocked ? 'blocked' : 'passed',
+      severity: trimReviewPlan.approvalBlocked ? 'blocking' : 'low',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: trimReviewPlan.approvalBlockReasons.length ? trimReviewPlan.approvalBlockReasons : ['Trim review is reviewable.'],
+    },
+    {
+      id: 'qa-trim-review-mock-only',
+      category: 'trim_review',
+      label: 'Mock-only trim review',
+      check: 'Trim review does not imply real transcript/media analysis.',
+      status: trimReviewPlan.limitations.some((limitation) => /no real transcript|no real semantic|no real media|mock-only/i.test(limitation)) ? 'passed' : 'warning',
+      severity: 'low',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: trimReviewPlan.limitations,
+    },
+  ]
+}
+
+function createEditingAgentExecutionChecks(input: PlannerInput, editingAgentExecutionPlan?: EditingAgentExecutionPlan): SegmentQAPlanItem[] {
+  const fallbackActions = fallbackActionsForLevel(input.editLevel)
+
+  if (!editingAgentExecutionPlan) {
+    return [
+      {
+        id: 'qa-editing-agent-execution-missing',
+        category: 'editing_agent_execution',
+        label: 'Async execution graph exists',
+        check: 'EditingAgentExecutionPlan should exist before future worker execution planning.',
+        status: 'warning',
+        severity: 'medium',
+        fallbackActions,
+        notes: ['EditingAgentExecutionPlan is missing.'],
+      },
+    ]
+  }
+
+  const generatedWorkItems = editingAgentExecutionPlan.workItems.filter((item) =>
+    item.workItemType === 'generate_image_asset' ||
+    item.workItemType === 'generate_ai_video_asset' ||
+    item.workItemType === 'render_map_asset' ||
+    item.workItemType === 'render_chart_asset' ||
+    item.workItemType === 'capture_browser_asset' ||
+    item.workItemType === 'run_audio_analysis' ||
+    item.workItemType === 'run_audio_stretch' ||
+    item.workItemType === 'process_image_asset' ||
+    item.workItemType === 'process_video_asset' ||
+    item.workItemType === 'generate_mask_asset'
+  )
+  const finalRenderItem = editingAgentExecutionPlan.workItems.find((item) => item.workItemType === 'render_final_export')
+
+  return [
+    {
+      id: 'qa-editing-agent-work-graph',
+      category: 'editing_agent_execution',
+      label: 'Async work graph',
+      check: 'Editing agent work graph exists with structured work items.',
+      status: editingAgentExecutionPlan.workItems.length > 0 ? 'passed' : 'failed',
+      severity: 'medium',
+      fallbackActions,
+      notes: [
+        `${editingAgentExecutionPlan.workItems.length} work item(s).`,
+        `${editingAgentExecutionPlan.parallelGroups.length} parallel group(s).`,
+      ],
+    },
+    {
+      id: 'qa-editing-agent-asset-manifest',
+      category: 'editing_agent_execution',
+      label: 'Asset manifest',
+      check: 'Generated/processed/export assets are represented in an asset manifest.',
+      status: editingAgentExecutionPlan.assetManifest.length > 0 ? 'passed' : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: editingAgentExecutionPlan.assetManifest.slice(0, 4).map((asset) => `${asset.id}: ${asset.assetType} via ${asset.storageProvider}`),
+    },
+    {
+      id: 'qa-editing-agent-orphan-assets',
+      category: 'editing_agent_execution',
+      label: 'No orphan generated assets',
+      check: 'Every manifest item should reference a parent work item.',
+      status: editingAgentExecutionPlan.assetManifest.every((asset) => Boolean(asset.parentWorkItemId)) ? 'passed' : 'failed',
+      severity: 'high',
+      fallbackActions,
+      notes: editingAgentExecutionPlan.assetManifest.filter((asset) => !asset.parentWorkItemId).map((asset) => asset.id),
+    },
+    {
+      id: 'qa-editing-agent-dependencies',
+      category: 'editing_agent_execution',
+      label: 'Required dependencies tracked',
+      check: 'Generated work and final render should carry dependencies, fallback, and checkback policies.',
+      status: generatedWorkItems.every((item) => item.dependencies.length > 0 && item.fallbackPolicy.length > 0 && item.checkbackPolicy.length > 0) ? 'passed' : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: generatedWorkItems.slice(0, 4).map((item) => `${item.id}: ${item.dependencies.length} dependency item(s)`),
+    },
+    {
+      id: 'qa-editing-agent-final-render-waits',
+      category: 'editing_agent_execution',
+      label: 'Final render waits for assets and QA',
+      check: 'Final render work item must wait for required assets and QA.',
+      status: finalRenderItem?.dependencies.some((item) => item.dependencyType === 'required_asset') &&
+        finalRenderItem.dependencies.some((item) => item.dependencyType === 'qa_after')
+        ? 'passed'
+        : 'failed',
+      severity: 'blocking',
+      fallbackActions,
+      notes: finalRenderItem?.dependencies.map((item) => `${item.dependencyType}: ${item.reason}`).slice(0, 5) ?? ['Final render item missing.'],
+    },
+    {
+      id: 'qa-editing-agent-context-loss',
+      category: 'editing_agent_execution',
+      label: 'No context loss / no raw chat execution',
+      check: 'Work graph, manifest, and rules should prevent pending jobs/assets from living only in model memory.',
+      status: editingAgentExecutionPlan.globalRules.some((rule) => /approved snapshots?, not raw chat/i.test(rule)) &&
+        editingAgentExecutionPlan.limitations.some((limitation) => /mock execution graph|no workers|no provider/i.test(limitation))
+        ? 'passed'
+        : 'warning',
+      severity: 'high',
+      fallbackActions,
+      notes: [...editingAgentExecutionPlan.globalRules.slice(0, 3), ...editingAgentExecutionPlan.limitations.slice(0, 2)],
+    },
+  ]
+}
+
+function createAsyncAssetReconciliationChecks(
+  input: PlannerInput,
+  asyncAssetReconciliationPlan?: AsyncAssetReconciliationPlan,
+): SegmentQAPlanItem[] {
+  const fallbackActions = fallbackActionsForLevel(input.editLevel)
+
+  if (!asyncAssetReconciliationPlan) {
+    return [
+      {
+        id: 'qa-async-asset-reconciliation-missing',
+        category: 'async_asset_reconciliation',
+        label: 'Async reconciliation plan exists',
+        check: 'AsyncAssetReconciliationPlan should exist so future workers can check back, merge assets, and avoid context loss.',
+        status: 'warning',
+        severity: 'medium',
+        fallbackActions,
+        notes: ['AsyncAssetReconciliationPlan is missing.'],
+      },
+    ]
+  }
+
+  const finalReadiness = asyncAssetReconciliationPlan.finalRenderReadiness
+  const previewReadiness = asyncAssetReconciliationPlan.previewRenderReadiness
+  const placeholderFinalRisk = finalReadiness.placeholderAssetIds.length > 0 && finalReadiness.ready
+  const failedAssetsHandled = asyncAssetReconciliationPlan.mergePlanItems
+    .filter((item) => item.status === 'qa_failed' || item.status === 'fallback_required')
+    .every((item) => item.fallbackRequired || item.userReviewRequired)
+
+  return [
+    {
+      id: 'qa-async-checkbacks',
+      category: 'async_asset_reconciliation',
+      label: 'Pending work has checkbacks',
+      check: 'Waiting provider, worker, asset, or user-review work should have structured checkback items.',
+      status: asyncAssetReconciliationPlan.checkbackItems.length > 0 ? 'passed' : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: asyncAssetReconciliationPlan.checkbackItems.slice(0, 4).map((item) => `${item.id}: ${item.trigger}/${item.status}`),
+    },
+    {
+      id: 'qa-async-dependency-readiness',
+      category: 'async_asset_reconciliation',
+      label: 'Dependency readiness tracked',
+      check: 'Every execution dependency should have readiness, placeholder, preview, and final-render blocking policy.',
+      status: asyncAssetReconciliationPlan.dependencyReadiness.length > 0 ? 'passed' : 'failed',
+      severity: 'high',
+      fallbackActions,
+      notes: asyncAssetReconciliationPlan.dependencyReadiness.slice(0, 4).map((item) => `${item.dependencyId}: ${item.status}`),
+    },
+    {
+      id: 'qa-async-merge-plan',
+      category: 'async_asset_reconciliation',
+      label: 'Asset merge plan exists',
+      check: 'Every manifest asset should have merge/reconciliation and version tracking before downstream work proceeds.',
+      status: asyncAssetReconciliationPlan.mergePlanItems.length > 0 &&
+        asyncAssetReconciliationPlan.versionReconciliations.length >= asyncAssetReconciliationPlan.mergePlanItems.length
+        ? 'passed'
+        : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: asyncAssetReconciliationPlan.mergePlanItems.slice(0, 4).map((item) => `${item.assetManifestItemId}: ${item.status}/${item.reconciliationDecision}`),
+    },
+    {
+      id: 'qa-async-final-render-readiness',
+      category: 'async_asset_reconciliation',
+      label: 'Final render waits for required assets',
+      check: 'Final render must not be ready while required assets are missing, placeholders are present, or QA remains pending.',
+      status: finalReadiness.ready && (finalReadiness.missingRequiredAssetIds.length > 0 || placeholderFinalRisk || finalReadiness.qaPendingAssetIds.length > 0)
+        ? 'failed'
+        : 'passed',
+      severity: 'blocking',
+      fallbackActions,
+      notes: [
+        finalReadiness.reason,
+        `Missing required assets: ${finalReadiness.missingRequiredAssetIds.length}.`,
+        `QA pending assets: ${finalReadiness.qaPendingAssetIds.length}.`,
+      ],
+    },
+    {
+      id: 'qa-async-preview-placeholder-policy',
+      category: 'async_asset_reconciliation',
+      label: 'Preview placeholder policy',
+      check: 'Preview may use placeholders only when dependency readiness explicitly allows placeholders.',
+      status: previewReadiness.placeholderAssetIds.every((assetId) =>
+        asyncAssetReconciliationPlan.dependencyReadiness.some((item) => item.linkedAssetManifestItemId === assetId && item.placeholderAllowed)
+      ) ? 'passed' : 'failed',
+      severity: 'high',
+      fallbackActions,
+      notes: [previewReadiness.reason, `Placeholder assets: ${previewReadiness.placeholderAssetIds.length}.`],
+    },
+    {
+      id: 'qa-async-failed-assets',
+      category: 'async_asset_reconciliation',
+      label: 'Failed assets trigger fallback/review',
+      check: 'Failed or QA-failed assets must request fallback or user review.',
+      status: failedAssetsHandled ? 'passed' : 'failed',
+      severity: 'high',
+      fallbackActions,
+      notes: asyncAssetReconciliationPlan.mergePlanItems
+        .filter((item) => item.status === 'qa_failed' || item.status === 'fallback_required')
+        .map((item) => `${item.assetManifestItemId}: fallback=${item.fallbackRequired}, review=${item.userReviewRequired}`),
+    },
+    {
+      id: 'qa-async-mock-only',
+      category: 'async_asset_reconciliation',
+      label: 'No real checkback execution',
+      check: 'Async reconciliation must not imply real provider polling, webhooks, storage, worker events, or rendering.',
+      status: asyncAssetReconciliationPlan.limitations.some((limitation) => /no real provider webhook|no real.*polling|no real assets|no remotion render|mock-only/i.test(limitation))
+        ? 'passed'
+        : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: asyncAssetReconciliationPlan.limitations,
+    },
+  ]
+}
+
+function createAgentQAFallbackChecks(input: PlannerInput, agentQAFallbackPlan?: AgentQAFallbackPlan): SegmentQAPlanItem[] {
+  const fallbackActions = fallbackActionsForLevel(input.editLevel)
+
+  if (!agentQAFallbackPlan) {
+    return [
+      {
+        id: 'qa-agent-fallback-missing',
+        category: 'agent_qa_fallback',
+        label: 'Agent QA fallback plan exists',
+        check: 'AgentQAFallbackPlan should exist so failures use approved QA gates and fallback paths.',
+        status: 'warning',
+        severity: 'medium',
+        fallbackActions,
+        notes: ['AgentQAFallbackPlan is missing.'],
+      },
+    ]
+  }
+
+  const scenarioById = new Map(agentQAFallbackPlan.failureScenarios.map((scenario) => [scenario.id, scenario]))
+  const actionById = new Map(agentQAFallbackPlan.fallbackActions.map((action) => [action.id, action]))
+  const exactToolFailureIds = new Set(agentQAFallbackPlan.failureScenarios
+    .filter((scenario) =>
+      scenario.category === 'map_render_failure' ||
+      scenario.category === 'chart_render_failure' ||
+      scenario.category === 'browser_capture_failure' ||
+      scenario.category === 'mask_generation_failure' ||
+      scenario.category === 'timing_validation_failure'
+    )
+    .map((scenario) => scenario.id))
+  const exactToolFailuresAvoidAiVideo = agentQAFallbackPlan.decisions
+    .filter((decision) => exactToolFailureIds.has(decision.failureScenarioId))
+    .every((decision) => decision.selectedFallbackActionIds.every((actionId) => {
+      const providerModels = actionById.get(actionId)?.allowedProviderModels ?? []
+      return providerModels.every((model) => model !== 'wan_2_2_kf2v_flash' && model !== 'wan_2_6_i2v_flash' && model !== 'hailuo_2_3_fast' && model !== 'hailuo_02' && model !== 'veo_3_1_lite')
+    }))
+  const basicProNoVeoFallback = agentQAFallbackPlan.fallbackActions
+    .filter((action) => action.allowedProviderModels.includes('veo_3_1_lite'))
+    .every((action) => !action.allowedForTiers.basic && !action.allowedForTiers.pro && action.allowedForTiers.premium)
+  const localFailuresContinue = agentQAFallbackPlan.localFailureCount === 0 ||
+    agentQAFallbackPlan.independentWorkCanContinue ||
+    agentQAFallbackPlan.decisions.some((decision) => {
+      const scenario = scenarioById.get(decision.failureScenarioId)
+      return scenario?.scope === 'local_asset' && decision.continueIndependentWork
+    })
+
+  return [
+    {
+      id: 'qa-agent-fallback-gates',
+      category: 'agent_qa_fallback',
+      label: 'QA gates exist',
+      check: 'Every work item, asset, merge, provider request, and render path should be covered by gate checks.',
+      status: agentQAFallbackPlan.gateChecks.length > 0 ? 'passed' : 'failed',
+      severity: 'high',
+      fallbackActions,
+      notes: [`${agentQAFallbackPlan.gateChecks.length} gate check(s).`],
+    },
+    {
+      id: 'qa-agent-fallback-decisions',
+      category: 'agent_qa_fallback',
+      label: 'Failure/fallback matrix exists',
+      check: 'Likely failures should have fallback decisions.',
+      status: agentQAFallbackPlan.failureScenarios.length > 0 && agentQAFallbackPlan.decisions.length > 0 ? 'passed' : 'failed',
+      severity: 'high',
+      fallbackActions,
+      notes: [`${agentQAFallbackPlan.failureScenarios.length} scenario(s), ${agentQAFallbackPlan.decisions.length} decision(s).`],
+    },
+    {
+      id: 'qa-agent-fallback-local-continue',
+      category: 'agent_qa_fallback',
+      label: 'Local failures do not stop unrelated work',
+      check: 'Local non-blocking failures should allow independent work to continue.',
+      status: localFailuresContinue ? 'passed' : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: [`Local failures: ${agentQAFallbackPlan.localFailureCount}. Independent work can continue: ${agentQAFallbackPlan.independentWorkCanContinue}.`],
+    },
+    {
+      id: 'qa-agent-fallback-global-blocks-render',
+      category: 'agent_qa_fallback',
+      label: 'Global failures block final render',
+      check: 'Global/approval/final-render failures should block final export.',
+      status: agentQAFallbackPlan.globalFailureCount === 0 || agentQAFallbackPlan.finalRenderBlocked ? 'passed' : 'failed',
+      severity: 'blocking',
+      fallbackActions,
+      notes: [`Global failures: ${agentQAFallbackPlan.globalFailureCount}. Final render blocked: ${agentQAFallbackPlan.finalRenderBlocked}.`],
+    },
+    {
+      id: 'qa-agent-fallback-veo-policy',
+      category: 'agent_qa_fallback',
+      label: 'Basic/Pro no Veo fallback',
+      check: 'Fallback actions must keep Veo Premium-only and final fallback only.',
+      status: basicProNoVeoFallback ? 'passed' : 'failed',
+      severity: 'blocking',
+      fallbackActions,
+      notes: agentQAFallbackPlan.fallbackActions
+        .filter((action) => action.allowedProviderModels.includes('veo_3_1_lite'))
+        .map((action) => `${action.id}: basic=${action.allowedForTiers.basic}, pro=${action.allowedForTiers.pro}, premium=${action.allowedForTiers.premium}`),
+    },
+    {
+      id: 'qa-agent-fallback-no-ai-video-for-exact-tools',
+      category: 'agent_qa_fallback',
+      label: 'No AI-video fallback for exact/tool failures',
+      check: 'Map/chart/browser/timing/mask failures should not fallback to AI video.',
+      status: exactToolFailuresAvoidAiVideo ? 'passed' : 'failed',
+      severity: 'blocking',
+      fallbackActions,
+      notes: agentQAFallbackPlan.decisions
+        .filter((decision) => exactToolFailureIds.has(decision.failureScenarioId))
+        .map((decision) => `${decision.failureScenarioId}: ${decision.selectedFallbackActionIds.join(', ')}`),
+    },
+    {
+      id: 'qa-agent-fallback-user-review',
+      category: 'agent_qa_fallback',
+      label: 'User review for sensitive changes',
+      check: 'Meaning, privacy, source truth, and cost-changing fallback paths should require review/new approval.',
+      status: agentQAFallbackPlan.userReviewRequiredCount > 0 || !agentQAFallbackPlan.decisions.some((decision) => decision.recoveryState === 'needs_user_review' || decision.recoveryState === 'needs_new_approval')
+        ? 'passed'
+        : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: [`User review required count: ${agentQAFallbackPlan.userReviewRequiredCount}.`],
+    },
+    {
+      id: 'qa-agent-fallback-mock-only',
+      category: 'agent_qa_fallback',
+      label: 'No real fallback execution',
+      check: 'Agent QA/fallback planning must not imply real QA, retries, providers, workers, storage, rendering, or billing.',
+      status: agentQAFallbackPlan.limitations.some((limitation) => /mock qa|no real output|no real provider|no real.*fallback|no real.*render|no real.*billing/i.test(limitation))
+        ? 'passed'
+        : 'warning',
+      severity: 'medium',
+      fallbackActions,
+      notes: agentQAFallbackPlan.limitations,
+    },
+  ]
+}
+
 function createApprovalChecks(input: PlannerInput) {
   return [
     createQAItem({
@@ -300,6 +817,330 @@ function createRendererChecks(input: PlannerInput, rendererCompositionPlan: Rend
       severity: 'high',
       notes: rendererCompositionPlan.frameTemplate.notes,
     }),
+  ]
+}
+
+function createMasterTimingChecks(input: PlannerInput, masterTimingPlan?: MasterTimingPlan) {
+  if (!masterTimingPlan) {
+    return [
+      createQAItem({
+        category: 'master_timing',
+        check: 'Every edit must include frame-accurate Master Timing before approval.',
+        editLevel: input.editLevel,
+        id: 'qa-master-timing-exists',
+        label: 'Master Timing Plan exists',
+        severity: 'blocking',
+        notes: ['MasterTimingPlan is missing.'],
+      }),
+    ]
+  }
+
+  const frameConfirmed = input.aspectRatioFramePlan?.status === 'confirmed'
+  const timingChecks = masterTimingPlan.qaChecks.map((check) => check.message).slice(0, 5)
+
+  return [
+    createQAItem({
+      category: 'master_timing',
+      check: 'Timing base must use frames as execution values.',
+      editLevel: input.editLevel,
+      id: 'qa-master-timing-base',
+      label: 'Frame-accurate timing base',
+      severity: masterTimingPlan.timingBase.totalFrames > 0 ? 'medium' : 'blocking',
+      notes: [
+        `${masterTimingPlan.timingBase.fps}fps / ${masterTimingPlan.timingBase.totalFrames} frames.`,
+        'Seconds are display values; frames are execution values.',
+      ],
+    }),
+    createQAItem({
+      category: 'master_timing',
+      check: 'Timing cannot be approved until output frame is confirmed.',
+      editLevel: input.editLevel,
+      id: 'qa-master-timing-frame-gate',
+      label: 'Frame confirmation gates timing',
+      severity: frameConfirmed ? 'medium' : 'blocking',
+      notes: [
+        frameConfirmed ? 'Output frame is confirmed.' : 'Output frame still needs confirmation.',
+        `Timing status: ${masterTimingPlan.status.replaceAll('_', ' ')}.`,
+      ],
+    }),
+    createQAItem({
+      category: 'master_timing',
+      check: 'Captions, visuals, transitions, SFX, provider clips, and Remotion layers should have planned timing.',
+      editLevel: input.editLevel,
+      id: 'qa-master-timing-coverage',
+      label: 'Timing coverage',
+      severity: 'medium',
+      notes: [
+        `${masterTimingPlan.captionTimingItems.length} caption timing item(s).`,
+        `${masterTimingPlan.visualTimingItems.length} visual timing item(s).`,
+        `${masterTimingPlan.transitionTimingItems.length} transition timing item(s).`,
+        `${masterTimingPlan.sfxTimingItems.length} SFX timing item(s).`,
+        `${masterTimingPlan.providerClipTimingItems.length} provider clip timing item(s).`,
+        `${masterTimingPlan.remotionLayerTimingItems.length} Remotion layer timing item(s).`,
+        ...timingChecks,
+      ],
+    }),
+  ]
+}
+
+function createCaptionVisualCueTimingChecks(input: PlannerInput, captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan): SegmentQAPlanItem[] {
+  if (!captionVisualCueTimingPlan) {
+    return [{
+      id: 'qa-caption-visual-cue-missing',
+      category: 'caption_visual_cue_timing',
+      label: 'Caption + Visual Cue Timing Plan',
+      check: 'Refined caption and visual cue timing exists before approval.',
+      status: 'failed',
+      severity: 'blocking',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: ['CaptionVisualCueTimingPlan is missing.'],
+    }]
+  }
+
+  const highRiskCollisions = captionVisualCueTimingPlan.collisionPlans.filter((plan) => plan.risk === 'high' || plan.risk === 'blocking')
+
+  return [
+    {
+      id: 'qa-caption-visual-cue-status',
+      category: 'caption_visual_cue_timing',
+      label: 'Caption/visual timing status',
+      check: 'Caption + Visual Cue Timing is not blocked before approval.',
+      status: captionVisualCueTimingPlan.status === 'blocked' ? 'failed' : 'passed',
+      severity: captionVisualCueTimingPlan.status === 'blocked' ? 'blocking' : 'medium',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: [`Status: ${captionVisualCueTimingPlan.status.replaceAll('_', ' ')}.`],
+    },
+    {
+      id: 'qa-caption-visual-cue-readable-captions',
+      category: 'caption_visual_cue_timing',
+      label: 'Readable refined captions',
+      check: 'Refined captions have frame ranges, readable durations, safe-zone notes, and tier-appropriate animation.',
+      status: captionVisualCueTimingPlan.refinedCaptionTimings.length > 0 ? 'passed' : 'warning',
+      severity: 'high',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: [
+        `${captionVisualCueTimingPlan.refinedCaptionTimings.length} refined caption timing item(s).`,
+        `Policy: ${captionVisualCueTimingPlan.captionPolicy.chunkingMode} / ${captionVisualCueTimingPlan.captionPolicy.animationStyle}.`,
+      ],
+    },
+    {
+      id: 'qa-caption-visual-cue-meaning-sync',
+      category: 'caption_visual_cue_timing',
+      label: 'Visual cue meaning sync',
+      check: 'Visual cues have frame ranges, trigger reasons, and read-time holds tied to speech, meaning, or acceptable beat support.',
+      status: captionVisualCueTimingPlan.visualCueTimings.every((item) => item.reason.length > 0 && item.visualReadTimeFrames > 0) ? 'passed' : 'warning',
+      severity: 'high',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: [
+        `${captionVisualCueTimingPlan.visualCueTimings.length} visual cue timing item(s).`,
+        'Beat support remains subordinate to speech clarity.',
+      ],
+    },
+    {
+      id: 'qa-caption-visual-cue-collisions',
+      category: 'caption_visual_cue_timing',
+      label: 'Caption/visual collisions',
+      check: 'Risky caption/visual overlaps include recommendations.',
+      status: highRiskCollisions.every((item) => item.recommendation.length > 0) ? 'passed' : 'warning',
+      severity: highRiskCollisions.length ? 'high' : 'medium',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: [
+        `${captionVisualCueTimingPlan.collisionPlans.length} collision plan(s).`,
+        highRiskCollisions.length ? `${highRiskCollisions.length} high-risk collision(s) need careful review.` : 'No high-risk collision warnings.',
+      ],
+    },
+    {
+      id: 'qa-caption-visual-cue-mock-only',
+      category: 'caption_visual_cue_timing',
+      label: 'Mock-only timing boundary',
+      check: 'Caption/visual timing states no real transcript, audio, media, tool, provider, or render execution has happened.',
+      status: captionVisualCueTimingPlan.limitations.some((limitation) => /no real|mock-only|no speech-to-text/i.test(limitation)) ? 'passed' : 'warning',
+      severity: 'medium',
+      fallbackActions: fallbackActionsForLevel(input.editLevel),
+      notes: captionVisualCueTimingPlan.limitations.slice(0, 3),
+    },
+  ]
+}
+
+function createSoundSyncTransitionTimingChecks(input: PlannerInput, soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan): SegmentQAPlanItem[] {
+  if (!soundSyncTransitionTimingPlan) {
+    return [createQAItem({
+      category: 'sound_sync',
+      check: 'SoundSync + Transition Timing Plan exists before approval.',
+      editLevel: input.editLevel,
+      id: 'qa-soundsync-transition-missing',
+      label: 'SoundSync transition timing exists',
+      severity: 'blocking',
+      notes: ['SoundSyncTransitionTimingPlan is missing.'],
+    })]
+  }
+
+  const allTransitionsSpeechSafe = soundSyncTransitionTimingPlan.refinedTransitionTimings.every((item) =>
+    item.riskLevel !== 'blocking' &&
+    (item.phraseBoundaryAligned || item.transitionType === 'hard_cut' || item.beatSnapDecision?.speechSafe),
+  )
+  const allSfxLinked = soundSyncTransitionTimingPlan.refinedSfxTimings.every((item) =>
+    Boolean(item.linkedVisualCueTimingItemId || item.linkedTransitionTimingItemId) && item.reason.length > 0,
+  )
+  const beatGridLimit = soundSyncTransitionTimingPlan.beatGridPlan.limitations.some((limitation) => /no real|mock|audioflux/i.test(limitation))
+
+  return [
+    createQAItem({
+      category: 'sound_sync',
+      check: 'SoundSync transition timing is not blocked before approval.',
+      editLevel: input.editLevel,
+      id: 'qa-soundsync-transition-status',
+      label: 'SoundSync transition status',
+      severity: soundSyncTransitionTimingPlan.status === 'blocked' ? 'blocking' : 'medium',
+      notes: [`Status: ${soundSyncTransitionTimingPlan.status.replaceAll('_', ' ')}.`],
+      status: soundSyncTransitionTimingPlan.status === 'blocked' ? 'failed' : 'passed',
+    }),
+    createQAItem({
+      category: 'transitions',
+      check: 'Transitions are frame-accurate and speech-safe before beat alignment.',
+      editLevel: input.editLevel,
+      id: 'qa-soundsync-speech-safe-transitions',
+      label: 'Speech-safe transitions',
+      severity: allTransitionsSpeechSafe ? 'medium' : 'blocking',
+      notes: [
+        `${soundSyncTransitionTimingPlan.refinedTransitionTimings.length} refined transition timing item(s).`,
+        'Speech clarity beats beat alignment.',
+      ],
+      status: allTransitionsSpeechSafe ? 'passed' : 'failed',
+    }),
+    createQAItem({
+      category: 'sound_sync',
+      check: 'SFX are tied to visual or transition cues and are not random.',
+      editLevel: input.editLevel,
+      id: 'qa-soundsync-cue-linked-sfx',
+      label: 'Cue-linked SFX',
+      severity: allSfxLinked ? 'medium' : 'high',
+      notes: [
+        `${soundSyncTransitionTimingPlan.refinedSfxTimings.length} refined SFX cue(s).`,
+        `SFX density: ${soundSyncTransitionTimingPlan.sfxDensityLevel.replaceAll('_', ' ')}.`,
+      ],
+      status: allSfxLinked ? 'passed' : 'warning',
+    }),
+    createQAItem({
+      category: 'sound_sync',
+      check: 'Music ducking protects voice clarity when music and speech are planned.',
+      editLevel: input.editLevel,
+      id: 'qa-soundsync-voice-ducking',
+      label: 'Voice-protective ducking',
+      severity: 'medium',
+      notes: [
+        `${soundSyncTransitionTimingPlan.refinedMusicDuckingTimings.length} ducking range(s).`,
+        'Voice priority must remain true for ducking items.',
+      ],
+      status: soundSyncTransitionTimingPlan.refinedMusicDuckingTimings.every((item) => item.voicePriority) ? 'passed' : 'warning',
+    }),
+    createQAItem({
+      category: 'sound_sync',
+      check: 'Beat grid is mock-only and uses AudioFlux as future analysis metadata only.',
+      editLevel: input.editLevel,
+      id: 'qa-soundsync-audioflux-future-only',
+      label: 'AudioFlux future-only',
+      severity: 'medium',
+      notes: [
+        soundSyncTransitionTimingPlan.beatGridPlan.analysisToolPlanned.includes('audioflux')
+          ? 'AudioFlux planned for future beat/onset analysis only.'
+          : 'No beat analysis tool needed for this voice-led plan.',
+        ...soundSyncTransitionTimingPlan.beatGridPlan.limitations.slice(0, 2),
+      ],
+      status: beatGridLimit ? 'passed' : 'warning',
+    }),
+  ]
+}
+
+function validationSeverity(status: TimingValidationPlan['overallStatus']): SegmentQAPlanItem['severity'] {
+  if (status === 'blocking' || status === 'failed') return 'blocking'
+  if (status === 'warning') return 'medium'
+  return 'low'
+}
+
+function createTimingValidationChecks(input: PlannerInput, timingValidationPlan?: TimingValidationPlan): SegmentQAPlanItem[] {
+  if (!timingValidationPlan) {
+    return [
+      {
+        category: 'timing_validation',
+        check: 'Timing validation must run before approval.',
+        fallbackActions: [],
+        id: 'qa-timing-validation-exists',
+        label: 'Timing validation exists',
+        notes: ['No TimingValidationPlan is attached yet.'],
+        severity: 'blocking',
+        status: 'failed',
+      },
+    ]
+  }
+
+  const blockingChecks = timingValidationPlan.globalChecks.filter((item) => item.status === 'blocking' || item.status === 'failed')
+  const warningChecks = timingValidationPlan.globalChecks.filter((item) => item.status === 'warning')
+
+  return [
+    {
+      category: 'timing_validation',
+      check: 'Timing validation gates approval.',
+      fallbackActions: [],
+      id: 'qa-timing-validation-status',
+      label: 'Timing validation status',
+      notes: [
+        `Overall status: ${timingValidationPlan.overallStatus}.`,
+        `Approval blocked: ${timingValidationPlan.approvalBlocked ? 'yes' : 'no'}.`,
+        ...timingValidationPlan.approvalBlockReasons.slice(0, 3),
+      ],
+      severity: validationSeverity(timingValidationPlan.overallStatus),
+      status: timingValidationPlan.approvalBlocked ? 'failed' : timingValidationPlan.overallStatus === 'warning' ? 'warning' : 'passed',
+    },
+    {
+      category: 'timing_validation',
+      check: 'Timing validation covers frame confirmation, caption readability, visual read time, transition safety, SFX, ducking, provider clips, and Remotion layers.',
+      fallbackActions: [],
+      id: 'qa-timing-validation-coverage',
+      label: 'Timing validation coverage',
+      notes: [
+        `${timingValidationPlan.globalChecks.length} validation check(s).`,
+        `${blockingChecks.length} blocking/failed timing issue(s).`,
+        `${warningChecks.length} timing warning(s).`,
+        `Timing credits: ${timingValidationPlan.totalEstimatedTimingCredits}.`,
+      ],
+      severity: blockingChecks.length ? 'blocking' : warningChecks.length ? 'medium' : 'low',
+      status: blockingChecks.length ? 'failed' : warningChecks.length ? 'warning' : 'passed',
+    },
+    {
+      category: 'timing_validation',
+      check: 'Timing complexity has credit impact and lower-cost alternatives when useful.',
+      fallbackActions: [],
+      id: 'qa-timing-validation-credit-impact',
+      label: 'Timing credit impact',
+      notes: [
+        `Profiles: ${timingValidationPlan.creditProfilesUsed.join(', ') || 'none'}.`,
+        `${timingValidationPlan.lowerCostRecommendations.length} lower-cost timing alternative(s).`,
+        ...timingValidationPlan.lowerCostRecommendations.slice(0, 3).map((item) => item.label),
+      ],
+      severity: timingValidationPlan.totalEstimatedTimingCredits > 4 ? 'medium' : 'low',
+      status: timingValidationPlan.approvalBlocked ? 'failed' : 'passed',
+    },
+    {
+      category: 'timing_validation',
+      check: 'Timing validation remains mock-only and does not run real audio, transcript, media, tool, provider, or render analysis.',
+      fallbackActions: [],
+      id: 'qa-timing-validation-mock-only',
+      label: 'Mock-only timing validation',
+      notes: timingValidationPlan.limitations,
+      severity: 'low',
+      status: timingValidationPlan.limitations.some((limitation) => /mock-only|no real|no .*audioflux|no .*render/i.test(limitation)) ? 'passed' : 'warning',
+    },
+    {
+      category: 'timing_validation',
+      check: 'Basic timing should stay simple or moderate unless the user approves a more complex plan.',
+      fallbackActions: [],
+      id: 'qa-timing-validation-basic-complexity',
+      label: 'Basic timing complexity',
+      notes: timingValidationPlan.items.map((item) => `${item.label}: ${item.complexity}`).slice(0, 4),
+      severity: input.editLevel === 'basic' && timingValidationPlan.items.some((item) => item.complexity === 'advanced' || item.complexity === 'premium') ? 'blocking' : 'low',
+      status: input.editLevel === 'basic' && timingValidationPlan.items.some((item) => item.complexity === 'advanced' || item.complexity === 'premium') ? 'failed' : 'passed',
+    },
   ]
 }
 
@@ -1552,6 +2393,15 @@ export function createEditQAPlan(params: {
   videoUnderstandingReport?: VideoUnderstandingReport
   characterConsistencyPlan?: CharacterConsistencyPlan
   documentaryFactSafetyPlan?: DocumentaryFactSafetyPlan
+  masterTimingPlan?: MasterTimingPlan
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan
+  timingValidationPlan?: TimingValidationPlan
+  sourceCleanupPlan?: SourceCleanupPlan
+  trimReviewPlan?: TrimReviewPlan
+  editingAgentExecutionPlan?: EditingAgentExecutionPlan
+  asyncAssetReconciliationPlan?: AsyncAssetReconciliationPlan
+  agentQAFallbackPlan?: AgentQAFallbackPlan
 }): EditQAPlan {
   const {
     adaptiveEditStrategyPlan,
@@ -1559,6 +2409,15 @@ export function createEditQAPlan(params: {
     compiledIntent,
     depthAwareOverlayPlan,
     documentaryFactSafetyPlan,
+    masterTimingPlan,
+    captionVisualCueTimingPlan,
+    soundSyncTransitionTimingPlan,
+    timingValidationPlan,
+    sourceCleanupPlan,
+    trimReviewPlan,
+    editingAgentExecutionPlan,
+    asyncAssetReconciliationPlan,
+    agentQAFallbackPlan,
     input,
     renderStrategyPlan,
     rendererCompositionPlan,
@@ -1588,6 +2447,15 @@ export function createEditQAPlan(params: {
     ...createMapAnimationChecks({ input, mapAnimationPlan, videoUnderstandingReport: videoUnderstandingReport ?? input.videoUnderstandingReport }),
     ...createDataVizChecks({ input, dataVizPlan, videoUnderstandingReport: videoUnderstandingReport ?? input.videoUnderstandingReport }),
     ...createRendererChecks(input, rendererCompositionPlan),
+    ...createMasterTimingChecks(input, masterTimingPlan ?? input.masterTimingPlan),
+    ...createCaptionVisualCueTimingChecks(input, captionVisualCueTimingPlan ?? input.captionVisualCueTimingPlan),
+    ...createSoundSyncTransitionTimingChecks(input, soundSyncTransitionTimingPlan ?? input.soundSyncTransitionTimingPlan),
+    ...createTimingValidationChecks(input, timingValidationPlan ?? input.timingValidationPlan),
+    ...createSourceCleanupChecks(input, sourceCleanupPlan ?? input.sourceCleanupPlan),
+    ...createTrimReviewChecks(input, trimReviewPlan ?? input.trimReviewPlan),
+    ...createEditingAgentExecutionChecks(input, editingAgentExecutionPlan),
+    ...createAsyncAssetReconciliationChecks(input, asyncAssetReconciliationPlan),
+    ...createAgentQAFallbackChecks(input, agentQAFallbackPlan),
     ...createSpeakerVisualLayoutChecks(input, speakerVisualLayoutPlan),
     ...createDepthAwareOverlayChecks(input, depthAwareOverlayPlan),
     ...createSafetyChecks(input),
@@ -1613,6 +2481,7 @@ export function createEditQAPlan(params: {
       'This is a mock QA plan; no media has been inspected.',
       input.editLevel === 'premium' ? 'Premium keeps Veo Lite final fallback only.' : 'Basic/Pro QA fallback cannot use Veo.',
       'Workers must execute the approved plan version and request review for out-of-scope changes.',
+      'Master Timing is mock-only; no real transcript alignment, beat detection, AudioFlux, FFmpeg, Signalsmith Stretch, Remotion render, or media worker has run.',
     ],
   }
 }

@@ -61,3 +61,27 @@ QA should check voice clarity, loudness consistency, music not overpowering voic
 ## Non-Goals
 
 This document does not implement real FFmpeg, AudioFlux, Signalsmith Stretch, Essentia, librosa, Rubber Band, whisper.cpp, audio processing, music generation, SFX generation, transcription, rendering, or export.
+
+## Master Timing Relationship
+
+SoundSync cues feed the Master Timing Plan as mock SFX, beat, emotional pause, and music ducking timing. Speech clarity stays above beat alignment: cuts, SFX, and music ducking must not damage important words.
+
+Beat grids remain mock-only until a future AudioFlux worker runs real analysis. Music ducking and SFX timing remain planned metadata only in this milestone.
+
+## Caption + Visual Cue Timing Relationship
+
+Caption + Visual Cue Timing can link SFX and SoundSync cues to planned visual reveals, transitions, phrase boundaries, and emotional pauses. SFX should support a cue, never appear randomly, and beat support must not override speech clarity.
+
+The current layer is mock-only and does not perform real audio analysis or beat detection.
+
+## SoundSync + Transition Timing Refinement
+
+SoundSync + Transition Timing is the frame-accurate refinement layer for beat grids, music phrases, transition timing, SFX cues, and ducking ranges. It consumes `MasterTimingPlan`, `CaptionVisualCueTimingPlan`, and the audio pipeline plan, then produces speech-first mock timing metadata for renderer, prompt, credit, QA, validation, and approved snapshots.
+
+AudioFlux is the planned future beat/rhythm analysis worker. Signalsmith Stretch is scoped to stretch/pitch planning only. Essentia and Rubber Band are not launch defaults. This layer does not execute audio analysis, media processing, SFX generation, or rendering.
+
+## Timing Validation + Credit Impact
+
+Timing validation checks SoundSync transition timing before approval: beat sync must remain speech-first, SFX must be cue-linked, ducking must protect voice, and AudioFlux must be represented as future-only analysis. Timing complexity from beat-aware transitions, SFX density, and ducking can affect credits.
+
+No real audio analysis, AudioFlux execution, FFmpeg, Signalsmith Stretch, SFX generation, or media processing is implemented in the frontend/mock timing validation layer.

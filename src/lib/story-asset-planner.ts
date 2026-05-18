@@ -34,6 +34,10 @@ type CreateVisualAssetPlanOptions = {
 }
 
 function getFrameTemplateType(input: PlannerInput): FrameTemplateType {
+  if (input.aspectRatioFramePlan?.status === 'confirmed' && input.aspectRatioFramePlan.frameTemplateType) {
+    return input.aspectRatioFramePlan.frameTemplateType
+  }
+
   if (input.aspectRatio === 'let_ai_decide') {
     return 'let_ai_decide'
   }
@@ -44,6 +48,14 @@ function getFrameTemplateType(input: PlannerInput): FrameTemplateType {
 
   if (input.aspectRatio === '1:1') {
     return 'square_center_panel'
+  }
+
+  if (input.aspectRatio === '4:5') {
+    return 'portrait_feed_lower_panel'
+  }
+
+  if (input.aspectRatio === '4:3') {
+    return 'classic_documentary_center_panel'
   }
 
   return 'vertical_talking_head_lower_panel'
@@ -785,6 +797,53 @@ function qaChecksFor(seed: BeatSeed) {
   return checks
 }
 
+function applySourceCleanupContext(input: PlannerInput, beats: BeatSeed[]): BeatSeed[] {
+  const cleanupPlan = input.sourceCleanupPlan
+
+  if (!cleanupPlan) {
+    return beats
+  }
+
+  const cleanupConfirmed = cleanupPlan.status === 'confirmed'
+  const preference = cleanupPlan.selectedPreference ?? cleanupPlan.recommendedPreference.recommendedPreference
+  const hasCutRanges = cleanupPlan.cutRanges.length > 0
+  const hasBrollSupport = cleanupPlan.decisions.some((decision) => decision.finalUse === 'broll')
+  const hasProofSupport = cleanupPlan.decisions.some((decision) => decision.finalUse === 'proof')
+
+  return beats.map<BeatSeed>((beat) => {
+    const shouldStayNatural = preference === 'preserve_natural' || preference === 'light_cleanup'
+    const naturalBeat =
+      shouldStayNatural && beat.assetType === 'animated_scene' && beat.actionIntensity !== 'high'
+        ? {
+            ...beat,
+            assetType: 'still_with_editor_motion' as VisualAssetType,
+            needsEndFrame: false,
+            recommendedDurationSeconds: 0,
+            creditImpact: beat.creditImpact === 'premium' || beat.creditImpact === 'high' ? 'medium' : beat.creditImpact,
+            reason: `${beat.reason} Source cleanup preference preserves natural source moments, so nonessential animation is softened.`,
+          }
+        : beat
+
+    const cleanupNotes = [
+      !cleanupConfirmed ? 'Visual asset planning remains draft until source cleanup preference is confirmed.' : '',
+      hasCutRanges ? 'Cut ranges are excluded from new visual generation; visuals should use preserved, proof, b-roll, or main-timeline ranges.' : '',
+      hasBrollSupport && naturalBeat.signatureSystem !== 'real_motion' ? 'B-roll cleanup decisions can support this beat without inventing extra visuals.' : '',
+      hasProofSupport && naturalBeat.narrativePhase.includes('evidence')
+        ? 'Proof cleanup decisions should preserve source context for this evidence beat.'
+        : '',
+    ].filter(Boolean)
+
+    if (cleanupNotes.length === 0) {
+      return naturalBeat
+    }
+
+    return {
+      ...naturalBeat,
+      reason: `${naturalBeat.reason} ${cleanupNotes.join(' ')}`,
+    }
+  })
+}
+
 function buildItem(seed: BeatSeed, input: PlannerInput, index: number, frameTemplateType: FrameTemplateType): VisualAssetPlanItem {
   const styleModeId = selectStyleMode({
     actionIntensity: seed.actionIntensity,
@@ -823,7 +882,10 @@ function buildItem(seed: BeatSeed, input: PlannerInput, index: number, frameTemp
       signatureSystem: seed.signatureSystem,
     }),
     reason: seed.reason,
-    qaChecks: qaChecksFor(seed),
+    qaChecks: [
+      ...qaChecksFor(seed),
+      ...(input.sourceCleanupPlan ? ['source cleanup decisions respected', 'cut ranges not used for new visuals'] : []),
+    ],
     creditImpact: seed.creditImpact,
   }
 }
@@ -834,6 +896,7 @@ export function createVisualAssetPlan(
 ): VisualAssetPlanItem[] {
   const frameTemplateType = getFrameTemplateType(input)
   const plannedBeats = mergeUnderstandingBeats(input, categoryBeats(input), options.videoUnderstandingReport, options.adaptiveEditStrategyPlan)
+  const cleanupAwareBeats = applySourceCleanupContext(input, applyPreferenceAndLevel(input, plannedBeats))
 
-  return applyPreferenceAndLevel(input, plannedBeats).map((seed, index) => buildItem(seed, input, index, frameTemplateType))
+  return cleanupAwareBeats.map((seed, index) => buildItem(seed, input, index, frameTemplateType))
 }

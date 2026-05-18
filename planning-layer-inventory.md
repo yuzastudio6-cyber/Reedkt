@@ -5,6 +5,8 @@ This inventory records how the ReeditPro mock planning layers connect today. Sta
 | Layer | Purpose | Main types | Main library files | Main UI card | Inputs | Outputs | Downstream consumers | Hard rules | Current status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Source sequence | Confirm uploaded/source story order before planning. | `ClipSource`, `SourceSequenceReviewState`, `SourceSequenceMapItem` | `src/lib/source-sequence.ts`, `src/lib/mock-planner.ts` | `InlineSourceSequenceCard` | Uploaded clips, notes, roles, source order confirmation | Source map and source review | Intent, video understanding, edit plan, validation, approved snapshot | Uploaded order is source context, not final edit order. | mock planning |
+| Trim review | Validate retake selection and meaning preservation before timing/approval. | `TrimReviewPlan`, `RetakeSelectionPlan`, `MeaningPreservationValidationPlan` | `src/lib/trim-review-planner.ts`, retake/meaning policy modules | `InlineTrimReviewCard` | Source cleanup plan, clips, notes, roles, mock understanding | Retake selections, meaning checks, approval block reasons | Timing, prompts, credits, QA, validation, approved snapshot | Risky cuts and low-confidence retakes require review; mock-only. | mock approval gate |
+| Editing agent execution | Model future approved-snapshot execution as an async work graph. | `EditingAgentExecutionPlan`, work item, dependency, asset manifest, checkpoint types | `src/lib/editing-agent-execution-planner.ts` | `InlineEditingAgentExecutionPlanCard` | EditPlan, provider prompts, assets, renderer, tool/render strategy, timing, QA | Work items, dependency graph, asset manifest, checkpoints, parallel groups | Validation, QA, credit estimate, planning audit, approved snapshot, future workers | No raw chat execution; no provider/tool/backend/rendering execution in mock. | mock execution planning |
 | Intent compiler | Compile raw chat and setup choices into structured intent. | `CompiledEditingIntent`, `PlannerInput` | `src/lib/intent-compiler.ts` | `InlineCompiledIntentCard` | Chat, setup choices, source state, reference flag | Goal, resolved settings, directives, rules | Mock planner, directives, validation, prompts | Do not plan from raw chat alone. | mock planning |
 | Professional editing ontology | Provide professional pacing, color, caption, transition, b-roll, and sound direction. | `ProfessionalEditingDirective` and ontology IDs | `src/lib/professional-editing-ontology.ts` | Edit plan summary cards | Compiled intent, workflow, custom directives | Structured professional directive | Segment ops, prompts, QA, credit estimate | Basic is professional; no random edit choices. | mock planning |
 | Video understanding | Summarize mock clip, transcript, visual, audio, and opportunity context. | `VideoUnderstandingReport` | `src/lib/video-understanding.ts` | `InlineVideoUnderstandingCard` | Clips, compiled intent, source confirmation | Mock understanding report | Adaptive strategy, assets, layout, validation | No real media analysis in frontend mock. | mock planning |
@@ -15,6 +17,9 @@ This inventory records how the ReeditPro mock planning layers connect today. Sta
 | Depth-aware overlay | Plan layered foreground/background composition. | `DepthAwareOverlayPlan` | `src/lib/depth-aware-overlay-planner.ts` | `InlineDepthAwareOverlayCard` | Layout, assets, depth cues | Depth items, mask strategy, fallback layout | Render, map, prompts, QA, credits | No real masks, tracking, or segmentation. | mock planning |
 | Foreground masking | Represent foreground objects and mask risk within depth plans. | `ForegroundObjectPlan`, `ForegroundDepthGroup` | `src/lib/depth-aware-overlays.ts`, `src/lib/depth-aware-overlay-planner.ts` | `InlineDepthAwareOverlayCard` | Depth cues, contact-object hints | Foreground objects, depth groups, risk | Render, QA, future mask workers | Preserve contact objects only when planned and approved. | mock planning |
 | Depth layout validation | Validate depth/mask layout safety. | `EditQAPlan`, depth QA items | `src/lib/edit-qa-planner.ts`, `src/lib/planner-validation.ts` | `InlineQAPlanCard`, `InlinePlanValidationCard` | Depth and layout plans | QA checks and validation results | Approval path, future workers | Captions stay above masks and graphics. | mock planning |
+| Caption + visual cue timing | Refine Master Timing into readable caption chunks, visual cue triggers, read-time holds, and collision plans. | `CaptionVisualCueTimingPlan` | `src/lib/caption-visual-cue-timing-planner.ts`, timing policy modules | `InlineCaptionVisualCueTimingCard` | Master Timing, transcript mock lines, visual/layout/audio plans | Renderer, prompts, credit, QA, validation, approved snapshot | Approval path, future Remotion/audio/transcript workers | Mock-only; no real transcript/audio/media analysis. | mock planning |
+| SoundSync + transition timing | Refine Master Timing transition, SFX, beat snap, and ducking ranges with speech-first rules. | `SoundSyncTransitionTimingPlan` | `src/lib/soundsync-transition-timing-planner.ts`, SoundSync timing policy modules | `InlineSoundSyncTransitionTimingCard` | Master Timing, Caption + Visual Cue Timing, audio pipeline, segments, visuals | Beat grid, music phrases, speech-safe transitions, cue-linked SFX, ducking | Renderer, prompts, credit, QA, validation, approved snapshot | Speech clarity beats beat alignment; AudioFlux is future-only; no random SFX. | mock planning |
+| Timing validation | Validate Master, caption/visual, and SoundSync timing before approval and connect timing complexity to credits. | `TimingValidationPlan` | `src/lib/timing-validation.ts`, `src/lib/timing-credit-policy.ts` | `InlineTimingValidationCard` | Master Timing, Caption + Visual Cue Timing, SoundSync + Transition Timing, renderer, prompts | Timing validation checks, approval block reasons, credit profile, lower-cost alternatives | Credit estimate, QA, planner validation, approved snapshot, planning audit | Blocking or failed timing validation prevents approval; no real media analysis. | mock approval gate |
 | Color pipeline | Plan correction, grading, matching, and color QA. | `ColorPipelinePlan` | `src/lib/color-pipeline-planner.ts` | `InlineColorPipelineCard` | Intent, assets, renderer plan | Color operations and limitations | Segments, prompts, credits, QA | No real color processing in mock. | mock planning |
 | Audio + SoundSync pipeline | Plan cleanup, loudness, music, ducking, SFX, and beat timing. | `AudioPipelinePlan` | `src/lib/audio-pipeline-planner.ts` | `InlineAudioPipelineCard` | Intent, clips, segments | Audio operations, cues, limitations | Segments, credits, QA, music UI | AudioFlux is the launch analysis candidate; Signalsmith Stretch is the launch stretch/pitch candidate; music must not overpower voice. | mock planning |
 | Map/location planning | Plan exact map/location visuals. | `MapAnimationPlan` | `src/lib/map-animation-planner.ts` | `InlineMapAnimationPlanCard` | Understanding, layouts, map opportunities | Map items, tool chain, source certainty | Tool strategy, render, prompts, QA | Use controlled map tools, not AI video, for exact maps. | mock planning |
@@ -31,6 +36,8 @@ This inventory records how the ReeditPro mock planning layers connect today. Sta
 | Provider prompt planning | Build provider and Remotion prompt briefs from approved plan context. | `ProviderPromptPlan` | `src/lib/prompt-builders.ts` | `InlinePromptPreviewCard` | Assets, route, layout, QA, color/audio/map/dataviz/depth | Prompt plans and constraints | Future provider workers, validation | Prompts must not bypass plan or approval. | mock planning |
 | Credit estimate | Estimate user-facing credits and lower-cost alternatives. | `CreditEstimate` | `src/lib/credit-estimator.ts` | `InlineCreditEstimateCard` | Plan layers, edit level, routes | Credit total, breakdown, policy notes | Approval gate, snapshot | Credits estimated before generation. | mock planning |
 | Approved snapshot | Freeze approved execution contract. | `ApprovedPlanSnapshot` | `src/lib/approved-plan-snapshot.ts` | Approval message | Approved `EditPlan`, project/session/user | Snapshot records and source plan | Future workers, persistence, QA | Approved versions are immutable execution sources. | mock planning |
+| Aspect ratio frame gate | Require confirmed output frame before approval. | `AspectRatioFramePlan` | `src/lib/aspect-ratio-frame-planner.ts` | `InlineAspectRatioGateCard` | Platform recommendation, user frame choice, source ratio context | Confirmed frame, canvas, safe zones, source-to-output fit | Layout, prompts, renderer, credit estimate, approved snapshot | No silent default aspect ratio; changing frame resets approval/progress/preview. | mock planning |
+| Master timing | Plan frame-accurate timing before approval. | `MasterTimingPlan` | `src/lib/master-timing-planner.ts` | `InlineMasterTimingPlanCard` | Confirmed frame, segment plans, visual asset plan, audio/SoundSync plan | Timing base, captions, visuals, transitions, SFX, music ducking, provider clips, Remotion layer timing | Renderer, prompts, credit estimate, QA, approved snapshot | Frames are execution values; no final timing approval without confirmed output frame/timing base. | mock planning |
 | Worker runtime | Describe future worker execution and status boundaries. | Worker and job types | `src/types/jobs.ts`, `src/types/google-cloud.ts`, worker docs | No broad video card yet | Approved snapshots and jobs | Future worker jobs and events | Backend phase | No frontend execution. | future worker |
 | Production readiness | Track production launch risks and blockers. | Product docs and checklist concepts | Existing docs when present | No broad card yet | Architecture and risk review | Readiness notes and blockers | Next phase planning | Not legal advice. | documentation-only |
 | Planner validation/regression | Check hard product rules and demo scenarios. | `PlanValidationReport`, `PlannerRegressionReport` | `src/lib/planner-validation.ts`, `src/lib/planner-regression.ts` | `InlinePlanValidationCard`, `InlinePlannerRegressionCard` | Plan and demo scenarios | Validation and regression reports | UI, QA, approval path | Hard model, approval, frame, source-order rules must pass. | mock planning |
@@ -39,3 +46,39 @@ This inventory records how the ReeditPro mock planning layers connect today. Sta
 ## Missing Expected Prior Docs
 
 Several documents named in later milestone prompts are not present in this checkout, including `reference-video-dna-ux.md`, `edit-level-credit-tradeoff-ux.md`, `browser-app-capture-planning.md`, `browser-capture-settings-catalog.md`, `foreground-masking-tracking-architecture.md`, `masking-tracking-settings-catalog.md`, `depth-aware-layout-validation.md`, `depth-composition-credit-policy.md`, `browser-safe-tool-installation.md`, `tool-preview-components.md`, `worker-tool-runtime-architecture.md`, `worker-job-step-catalog.md`, `worker-runtime-status-policy.md`, and `production-launch-checklist.md`. This milestone records those gaps but does not recreate unrelated prior milestone docs. The launch stack update docs now exist and remain documentation-only.
+## Source Cleanup
+
+- Layer id: `source_cleanup`
+- Plan object: `SourceCleanupPlan`
+- Planner module: `src/lib/source-cleanup-planner.ts`
+- UI card: `InlineSourceCleanupPlanCard`
+- Required before approval: yes
+- Snapshot: included after cleanup preference confirmation
+- Notes: confirms cleanup preference, records trim/select decisions with reasons, and remains mock-only with no transcript/silence/media analysis.
+
+## Editing Agent Execution
+
+- Layer id: `editing_agent_execution`
+- Plan object: `EditingAgentExecutionPlan`
+- Planner module: `src/lib/editing-agent-execution-planner.ts`
+- UI card: `InlineEditingAgentExecutionPlanCard`
+- Required before approval: no in the mock flow
+- Snapshot: included when approved snapshot helper freezes the plan
+- Notes: async work graph, asset manifest, dependency graph, checkpoints, and checkback/fallback policy are planning metadata only. No worker, provider, tool, backend, storage, or Remotion execution runs.
+## RP-AGENT-02 Layer Inventory Update
+
+- `async_asset_reconciliation`: checkback policy, dependency readiness, asset merge/reconciliation, version selection, preview readiness, and final render readiness.
+- EditPlan field: `asyncAssetReconciliationPlan`.
+- Planner module: `src/lib/async-asset-reconciliation-planner.ts`.
+- UI card: `InlineAsyncAssetReconciliationCard`.
+- Snapshot inclusion: approved snapshots freeze the reconciliation plan without marking export complete.
+- Mock boundary: no real queues, webhooks, polling, provider calls, workers, storage, rendering, backend, or media processing.
+
+## RP-AGENT-03 Layer Inventory Update
+
+- `agent_qa_fallback`: QA gates, likely failure scenarios, fallback action matrix, fallback decisions, user-review triggers, and final-render block logic.
+- EditPlan field: `agentQAFallbackPlan`.
+- Planner modules: `src/lib/agent-qa-gate-policy.ts`, `src/lib/agent-failure-fallback-matrix.ts`, and `src/lib/agent-qa-fallback-planner.ts`.
+- UI card: `InlineAgentQAFallbackCard`.
+- Snapshot inclusion: approved snapshots freeze QA gates, failure scenarios, fallback actions, fallback decisions, and review requirements.
+- Mock boundary: no real QA, retries, fallback execution, providers, workers, queues, storage, rendering, backend, billing, or media processing.

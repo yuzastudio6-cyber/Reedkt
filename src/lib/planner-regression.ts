@@ -16,6 +16,8 @@ function inputFromScenario(scenario: DemoScenario): PlannerInput {
     projectName: scenario.label,
     targetPlatform: scenario.targetPlatform,
     aspectRatio: scenario.aspectRatio,
+    aspectRatioConfirmed: true,
+    aspectRatioSource: 'demo_scenario',
     frameTemplateType: scenario.frameTemplateType,
     editingCategory: scenario.editingCategory,
     workflowType: scenario.workflowType,
@@ -29,6 +31,14 @@ function inputFromScenario(scenario: DemoScenario): PlannerInput {
     clips: scenario.clips,
     sourceOrderConfirmed: true,
     sourceSequenceMode: inferSourceSequenceMode(scenario.clips, scenario.customInstructions),
+    cleanupPreference: scenario.editingCategory === 'documentary_case_study'
+      ? 'documentary_faithful'
+      : scenario.editingCategory === 'education_explainer'
+        ? 'tutorial_complete'
+        : scenario.editingCategory === 'lifestyle'
+          ? 'preserve_natural'
+          : 'balanced_cleanup',
+    cleanupPreferenceConfirmed: true,
   }
 }
 
@@ -44,7 +54,10 @@ function scenarioCheckPassed(scenario: ScenarioValidationReport, checkId: string
   return scenario.report.checks.some((check) => check.id === checkId && check.passed)
 }
 
-function createGlobalChecks(scenarioReports: ScenarioValidationReport[]): PlanValidationCheck[] {
+function createGlobalChecks(
+  scenarioReports: ScenarioValidationReport[],
+  unconfirmedFrameReport?: ScenarioValidationReport,
+): PlanValidationCheck[] {
   return [
     globalCheck({
       id: 'regression-demo-count',
@@ -117,6 +130,268 @@ function createGlobalChecks(scenarioReports: ScenarioValidationReport[]): PlanVa
       passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-planning-system-audit-exists')),
       message: 'All demo scenarios should include planningSystemAuditReport.',
       relatedField: 'EditPlan.planningSystemAuditReport',
+    }),
+    globalCheck({
+      id: 'regression-aspect-ratio-frame-gate-present',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Aspect ratio frame gate coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-aspect-ratio-frame-plan-exists')),
+      message: 'Every demo scenario should include an AspectRatioFramePlan.',
+      relatedField: 'EditPlan.aspectRatioFramePlan',
+    }),
+    globalCheck({
+      id: 'regression-source-cleanup-present',
+      category: 'source_cleanup',
+      label: 'Source cleanup coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-source-cleanup-plan-exists')),
+      message: 'Every demo scenario should include SourceCleanupPlan.',
+      relatedField: 'EditPlan.sourceCleanupPlan',
+    }),
+    globalCheck({
+      id: 'regression-source-cleanup-confirmed',
+      category: 'source_cleanup',
+      label: 'Confirmed scenarios pass cleanup gate',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-source-cleanup-confirmed')),
+      message: 'Normal regression scenarios should confirm cleanup preference before approval.',
+      relatedField: 'PlannerInput.cleanupPreferenceConfirmed',
+    }),
+    globalCheck({
+      id: 'regression-trim-review-present',
+      category: 'trim_review',
+      label: 'Trim review coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-trim-review-plan-exists')),
+      message: 'Every demo scenario should include TrimReviewPlan.',
+      relatedField: 'EditPlan.trimReviewPlan',
+    }),
+    globalCheck({
+      id: 'regression-trim-review-meaning-validation',
+      category: 'trim_review',
+      label: 'Meaning preservation coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-trim-review-meaning-validation')),
+      message: 'Every demo scenario should include MeaningPreservationValidationPlan.',
+      relatedField: 'EditPlan.trimReviewPlan.meaningPreservationValidationPlan',
+    }),
+    globalCheck({
+      id: 'regression-editing-agent-execution-present',
+      category: 'editing_agent_execution',
+      label: 'Editing agent execution coverage',
+      severity: 'error',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-editing-agent-execution-plan-exists')),
+      message: 'Every demo scenario should include EditingAgentExecutionPlan.',
+      relatedField: 'EditPlan.editingAgentExecutionPlan',
+    }),
+    globalCheck({
+      id: 'regression-editing-agent-manifest-present',
+      category: 'editing_agent_execution',
+      label: 'Execution asset manifest coverage',
+      severity: 'error',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-editing-agent-asset-manifest')),
+      message: 'Every demo scenario should include a mock execution asset manifest.',
+      relatedField: 'EditPlan.editingAgentExecutionPlan.assetManifest',
+    }),
+    globalCheck({
+      id: 'regression-async-asset-reconciliation-present',
+      category: 'async_asset_reconciliation',
+      label: 'Async reconciliation coverage',
+      severity: 'error',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-async-reconciliation-plan-exists')),
+      message: 'Every demo scenario should include AsyncAssetReconciliationPlan.',
+      relatedField: 'EditPlan.asyncAssetReconciliationPlan',
+    }),
+    globalCheck({
+      id: 'regression-async-merge-plan-present',
+      category: 'async_asset_reconciliation',
+      label: 'Async merge plan coverage',
+      severity: 'error',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-async-merge-plan-covers-manifest')),
+      message: 'Every demo scenario should include merge/version policy for the asset manifest.',
+      relatedField: 'asyncAssetReconciliationPlan.mergePlanItems',
+    }),
+    globalCheck({
+      id: 'regression-agent-qa-fallback-present',
+      category: 'agent_qa_fallback',
+      label: 'Agent QA fallback coverage',
+      severity: 'error',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-agent-qa-fallback-plan-exists')),
+      message: 'Every demo scenario should include AgentQAFallbackPlan.',
+      relatedField: 'EditPlan.agentQAFallbackPlan',
+    }),
+    globalCheck({
+      id: 'regression-agent-qa-fallback-veo-policy',
+      category: 'agent_qa_fallback',
+      label: 'Agent fallback model policy coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-agent-basic-pro-no-veo-fallback')),
+      message: 'Agent fallback planning should preserve Basic/Pro no-Veo and Premium final-fallback-only Veo.',
+      relatedField: 'agentQAFallbackPlan.fallbackActions',
+    }),
+    globalCheck({
+      id: 'regression-confirmed-scenarios-pass-frame-gate',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Confirmed demo scenarios pass frame gate',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-aspect-ratio-confirmed-before-approval')),
+      message: 'Normal regression scenarios should set aspectRatioConfirmed true and pass the frame gate.',
+      relatedField: 'PlannerInput.aspectRatioConfirmed',
+    }),
+    globalCheck({
+      id: 'regression-unconfirmed-frame-blocks-approval',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Unconfirmed frame blocks approval',
+      severity: 'blocking',
+      passed: Boolean(unconfirmedFrameReport?.report.checks.some((check) =>
+        check.id === 'validation-aspect-ratio-confirmed-before-approval' &&
+        !check.passed &&
+        check.severity === 'blocking',
+      )),
+      message: 'A recommended-but-unconfirmed aspect ratio must block approval in validation.',
+      relatedField: 'aspectRatioFramePlan.status',
+    }),
+    globalCheck({
+      id: 'regression-master-timing-present',
+      category: 'master_timing',
+      label: 'Master timing coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-master-timing-plan-exists')),
+      message: 'Every demo scenario should include a MasterTimingPlan.',
+      relatedField: 'EditPlan.masterTimingPlan',
+    }),
+    globalCheck({
+      id: 'regression-master-timing-frame-accurate',
+      category: 'master_timing',
+      label: 'Master timing has frame base',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-master-timing-base')),
+      message: 'Every demo scenario should include fps and total frame timing.',
+      relatedField: 'masterTimingPlan.timingBase',
+    }),
+    globalCheck({
+      id: 'regression-unconfirmed-frame-blocks-timing',
+      category: 'master_timing',
+      label: 'Unconfirmed frame blocks timing readiness',
+      severity: 'blocking',
+      passed: Boolean(unconfirmedFrameReport?.report.checks.some((check) =>
+        check.id === 'validation-master-timing-frame-gate' &&
+        check.passed &&
+        check.severity === 'blocking',
+      )),
+      message: 'A recommended-but-unconfirmed aspect ratio must keep Master Timing in a blocked/draft approval state.',
+      relatedField: 'masterTimingPlan.status',
+    }),
+    globalCheck({
+      id: 'regression-caption-visual-cue-timing-present',
+      category: 'caption_visual_cue_timing',
+      label: 'Caption + visual cue timing coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-caption-visual-cue-plan-exists')),
+      message: 'Every demo scenario should include CaptionVisualCueTimingPlan.',
+      relatedField: 'EditPlan.captionVisualCueTimingPlan',
+    }),
+    globalCheck({
+      id: 'regression-caption-visual-cue-frame-ranges',
+      category: 'caption_visual_cue_timing',
+      label: 'Caption + visual cue frame ranges',
+      severity: 'error',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) =>
+        scenarioCheckPassed(scenario, 'validation-refined-caption-ranges') &&
+        scenarioCheckPassed(scenario, 'validation-visual-cue-ranges'),
+      ),
+      message: 'Demo scenarios should include frame-accurate refined captions and visual cues.',
+      relatedField: 'captionVisualCueTimingPlan',
+    }),
+    globalCheck({
+      id: 'regression-caption-visual-cue-basic-restraint',
+      category: 'caption_visual_cue_timing',
+      label: 'Basic caption cue restraint',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-caption-visual-basic-restraint')),
+      message: 'Basic scenarios should avoid aggressive kinetic caption defaults.',
+      relatedField: 'captionVisualCueTimingPlan.captionPolicy',
+    }),
+    globalCheck({
+      id: 'regression-soundsync-transition-timing-present',
+      category: 'soundsync_transition_timing',
+      label: 'SoundSync + transition timing coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-soundsync-transition-plan-exists')),
+      message: 'Every demo scenario should include SoundSyncTransitionTimingPlan.',
+      relatedField: 'EditPlan.soundSyncTransitionTimingPlan',
+    }),
+    globalCheck({
+      id: 'regression-soundsync-transition-ranges',
+      category: 'soundsync_transition_timing',
+      label: 'SoundSync transition frame ranges',
+      severity: 'error',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) =>
+        scenarioCheckPassed(scenario, 'validation-soundsync-transition-ranges') &&
+        scenarioCheckPassed(scenario, 'validation-soundsync-sfx-linked') &&
+        scenarioCheckPassed(scenario, 'validation-soundsync-speech-first'),
+      ),
+      message: 'Demo scenarios should include valid refined transition/SFX ranges with speech-first timing.',
+      relatedField: 'soundSyncTransitionTimingPlan',
+    }),
+    globalCheck({
+      id: 'regression-soundsync-basic-restraint',
+      category: 'soundsync_transition_timing',
+      label: 'Basic SoundSync restraint',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-soundsync-basic-restraint')),
+      message: 'Basic scenarios should keep SFX and beat complexity low.',
+      relatedField: 'soundSyncTransitionTimingPlan.sfxDensityLevel',
+    }),
+    globalCheck({
+      id: 'regression-soundsync-audioflux-not-essentia',
+      category: 'soundsync_transition_timing',
+      label: 'AudioFlux future analysis policy',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-soundsync-audioflux-not-essentia')),
+      message: 'AudioFlux should be represented as the future analysis tool; Essentia must not be the launch default.',
+      relatedField: 'soundSyncTransitionTimingPlan.beatGridPlan.analysisToolPlanned',
+    }),
+    globalCheck({
+      id: 'regression-timing-validation-present',
+      category: 'timing_validation',
+      label: 'Timing validation coverage',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-timing-validation-plan-exists')),
+      message: 'Every demo scenario should include TimingValidationPlan.',
+      relatedField: 'EditPlan.timingValidationPlan',
+    }),
+    globalCheck({
+      id: 'regression-timing-validation-confirmed-not-blocked',
+      category: 'timing_validation',
+      label: 'Confirmed scenarios pass timing validation gate',
+      severity: 'blocking',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-timing-validation-status')),
+      message: 'Confirmed-frame demo scenarios should not have blocking/failed timing validation.',
+      relatedField: 'timingValidationPlan.overallStatus',
+    }),
+    globalCheck({
+      id: 'regression-unconfirmed-frame-blocks-timing-validation',
+      category: 'timing_validation',
+      label: 'Unconfirmed frame blocks timing validation',
+      severity: 'blocking',
+      passed: Boolean(unconfirmedFrameReport?.report.checks.some((check) =>
+        check.id === 'validation-timing-validation-status' &&
+        !check.passed &&
+        check.severity === 'blocking',
+      )),
+      message: 'A recommended-but-unconfirmed aspect ratio should make timing validation approval-blocking.',
+      relatedField: 'timingValidationPlan.approvalBlocked',
+    }),
+    globalCheck({
+      id: 'regression-timing-validation-tradeoffs',
+      category: 'timing_validation',
+      label: 'High timing complexity includes tradeoffs',
+      severity: 'warning',
+      passed: scenarioReports.length > 0 && scenarioReports.every((scenario) => scenarioCheckPassed(scenario, 'validation-timing-validation-credit-tradeoffs')),
+      message: 'High/premium timing credit impact should include lower-cost timing alternatives.',
+      relatedField: 'timingValidationPlan.lowerCostRecommendations',
     }),
     globalCheck({
       id: 'regression-planning-system-audit-not-blocking',
@@ -355,7 +630,30 @@ export function runPlannerRegression(): PlannerRegressionReport {
       report,
     }
   })
-  const globalChecks = createGlobalChecks(scenarioReports)
+  const unconfirmedScenario = demoScenarios[0]
+  const unconfirmedInput = unconfirmedScenario
+    ? {
+        ...inputFromScenario(unconfirmedScenario),
+        aspectRatioConfirmed: false,
+        aspectRatioSource: 'platform_recommended' as const,
+      }
+    : undefined
+  const unconfirmedPlan = unconfirmedInput ? createMockEditPlan(unconfirmedInput) : undefined
+  const unconfirmedFrameReport: ScenarioValidationReport | undefined =
+    unconfirmedScenario && unconfirmedInput && unconfirmedPlan
+      ? {
+          scenarioId: `${unconfirmedScenario.id}-unconfirmed-frame`,
+          scenarioLabel: `${unconfirmedScenario.label} / unconfirmed frame gate`,
+          editLevel: unconfirmedScenario.editLevel,
+          editingCategory: unconfirmedScenario.editingCategory,
+          report: validateMockEditPlan({
+            input: unconfirmedInput,
+            plan: unconfirmedPlan,
+            scenarioId: unconfirmedScenario.id,
+          }),
+        }
+      : undefined
+  const globalChecks = createGlobalChecks(scenarioReports, unconfirmedFrameReport)
   const status = aggregateStatus({ globalChecks, scenarioReports })
   const blockingCount = scenarioReports.reduce((total, scenario) => total + scenario.report.blockingCount, 0) +
     countFailures(globalChecks, 'blocking')

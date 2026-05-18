@@ -61,7 +61,7 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         </div>
         <div className="renderer-badge-row">
           {estimate.riskLevel && <Badge accent={riskAccent[estimate.riskLevel]}>{estimate.riskLevel} risk</Badge>}
-          <Badge accent={approved ? 'success' : 'warning'}>{approved ? 'Plan and credits approved' : 'Before generation'}</Badge>
+          <Badge accent={approved ? 'success' : 'warning'}>{approved ? 'Plan and credits approved' : estimate.approvalBlocked ? 'Approval locked' : 'Before generation'}</Badge>
         </div>
       </div>
       <div className="credit-estimate-summary">
@@ -105,6 +105,16 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
       </div>
 
       {estimate.approvalCopy && <p className="approval-gate-note">{estimate.approvalCopy}</p>}
+      {estimate.draftReason && <p className="frame-confirmation-warning">{estimate.draftReason}</p>}
+
+      {typeof estimate.timingCredits === 'number' && (
+        <div className="timing-credit-section">
+          <strong>Timing complexity</strong>
+          <span>{estimate.timingCredits} timing credit{estimate.timingCredits === 1 ? '' : 's'}</span>
+          <small>Timing affects credits when the plan includes frame-accurate caption animation, visual cues, SoundSync, transitions, SFX, music ducking, AI clip duration, and Remotion layer timing.</small>
+          {estimate.approvalBlocked && <em>Confirm/fix timing before final approval.</em>}
+        </div>
+      )}
 
       <div className="credit-breakdown-list">
         {estimate.breakdown.map((item) => (
@@ -179,13 +189,27 @@ export function InlineCreditEstimateCard({ approved, estimate, onApprove, onLowe
         </div>
       )}
 
+      {(estimate.timingTradeoffs?.length ?? 0) > 0 && (
+        <div className="timing-lower-cost-list">
+          <strong>Timing lower-cost options</strong>
+          {estimate.timingTradeoffs?.slice(0, 4).map((tradeoff) => (
+            <div className="timing-lower-cost-item" key={tradeoff.id}>
+              <span>{tradeoff.label}</span>
+              <strong>Save about {tradeoff.estimatedCreditSavings} credits</strong>
+              <small>{tradeoff.tradeoff}</small>
+              <em>{tradeoff.whatChanges.join('; ')}</em>
+            </div>
+          ))}
+        </div>
+      )}
+
       <p className="inline-helper">
         Credits are estimated before generation. Credits are deducted only after approval. This frontend demo does not deduct real credits.
         Provider costs are internal; users see Reedit Credits. Failed ReeditPro generation would be refunded or restored according to future billing policy.
       </p>
       <div className="inline-card-actions">
-        <Button disabled={approved} onClick={onApprove} variant="primary">
-          {approved ? 'Plan and credits approved' : 'Approve plan and credits'}
+        <Button disabled={approved || estimate.approvalBlocked} onClick={onApprove} variant="primary">
+          {approved ? 'Plan and credits approved' : estimate.approvalBlocked ? 'Resolve approval gate first' : 'Approve plan and credits'}
         </Button>
         <Button disabled={approved} onClick={onLowerCost} variant="secondary">Lower credit cost</Button>
         <Button disabled={approved} variant="ghost">Revise plan</Button>

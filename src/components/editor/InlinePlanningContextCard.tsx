@@ -24,7 +24,7 @@ type InlinePlanningContextCardProps = {
   clips: ClipSource[]
   sourceOrderConfirmed: boolean
   sourceSequenceMode: SourceSequenceMode
-  formatConfirmed: boolean
+  aspectRatioConfirmed: boolean
   editLevelConfirmed: boolean
 }
 
@@ -67,10 +67,10 @@ function veoPolicyForLevel(value: EditLevel) {
 
 export function InlinePlanningContextCard({
   aspectRatio,
+  aspectRatioConfirmed,
   editLevelConfirmed,
   editingCategory,
   editLevel,
-  formatConfirmed,
   frameTemplateType,
   clips,
   sourceOrderConfirmed,
@@ -114,8 +114,8 @@ export function InlinePlanningContextCard({
           <strong>{labelForLevel(editLevel)} / {editLevelConfirmed ? 'confirmed' : 'pending'}</strong>
         </div>
         <div>
-          <span>Format</span>
-          <strong>{platformLabels[targetPlatform]} / {aspectRatio} / {formatConfirmed ? 'confirmed' : 'pending'}</strong>
+          <span>Output frame</span>
+          <strong>{platformLabels[targetPlatform]} / {aspectRatio} / {aspectRatioConfirmed ? 'confirmed' : 'pending'}</strong>
         </div>
         <div>
           <span>Frame template</span>

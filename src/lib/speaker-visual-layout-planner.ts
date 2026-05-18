@@ -58,6 +58,14 @@ function frameTemplateTypeForLayout(mode: SpeakerVisualLayoutMode, aspectRatio: 
     return 'square_center_panel'
   }
 
+  if (aspectRatio === '4:5') {
+    return 'portrait_feed_lower_panel'
+  }
+
+  if (aspectRatio === '4:3') {
+    return 'classic_documentary_center_panel'
+  }
+
   if (fullTakeoverModes.includes(mode) || mode === 'screen_capture_with_speaker_pip') {
     return 'vertical_full_panel'
   }
@@ -68,6 +76,10 @@ function frameTemplateTypeForLayout(mode: SpeakerVisualLayoutMode, aspectRatio: 
 function resolveFrameTemplate(input: PlannerInput, mode: SpeakerVisualLayoutMode, rendererCompositionPlan?: RendererCompositionPlan) {
   if (rendererCompositionPlan?.frameTemplate) {
     return rendererCompositionPlan.frameTemplate
+  }
+
+  if (input.aspectRatioFramePlan?.status === 'confirmed' && input.aspectRatioFramePlan.frameTemplateType) {
+    return getFrameLayoutTemplate(input.aspectRatioFramePlan.frameTemplateType)
   }
 
   const templateType = frameTemplateTypeForLayout(mode, input.aspectRatio, input.frameTemplateType)
@@ -364,6 +376,9 @@ function itemFromSeed(params: {
   const frameTemplate = resolveFrameTemplate(input, definition.id, rendererCompositionPlan)
   const zones = layoutZones(definition.id, frameTemplate)
   const fallbackLayoutMode = fallbackFor(definition.id, input.aspectRatio)
+  const frameGateNotes = input.aspectRatioFramePlan?.status === 'confirmed'
+    ? [`Confirmed output frame: ${input.aspectRatioFramePlan.selectedAspectRatio} / ${input.aspectRatioFramePlan.canvasWidth}x${input.aspectRatioFramePlan.canvasHeight}.`]
+    : ['Draft layout only until the output frame is confirmed.']
   const futurePlanningNotes =
     definition.id === 'speaker_cutout_overlay' || definition.id === 'object_anchored_callout'
       ? ['This is placeholder planning only; no real masking, depth-aware contact preservation, or object tracking is executed.']
@@ -402,6 +417,7 @@ function itemFromSeed(params: {
     ],
     fallbackLayoutMode,
     promptImplications: [
+      ...frameGateNotes,
       ...definition.promptImplications,
       ...(videoUnderstandingReport
         ? [
@@ -419,6 +435,7 @@ function itemFromSeed(params: {
       ...futurePlanningNotes,
     ],
     remotionNotes: [
+      ...frameGateNotes,
       ...definition.remotionNotes,
       'Remotion owns final layout/composition; AI models generate assets or clips only.',
       ...futurePlanningNotes,
@@ -469,6 +486,9 @@ export function createSpeakerVisualLayoutPlan(params: CreateSpeakerVisualLayoutP
     ],
     notes: [
       'Deterministic frontend mock only.',
+      input.aspectRatioFramePlan?.status === 'confirmed'
+        ? `Layouts use confirmed output frame ${input.aspectRatioFramePlan.selectedAspectRatio}.`
+        : 'Layouts are draft until the user confirms the output frame.',
       'No real segmentation, masking, tracking, OpenCV processing, rendering, or provider calls are performed.',
       input.editLevel === 'premium'
         ? 'Premium may plan advanced layout ideas, but Veo remains final fallback only.'

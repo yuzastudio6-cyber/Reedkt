@@ -2,9 +2,11 @@ import type {
   AspectRatio,
   AdaptiveEditStrategy,
   AdaptiveEditStrategyPlan,
+  AspectRatioFramePlan,
   AudioPipelinePlan,
   BrollPolicyId,
   CaptionStyleId,
+  CaptionVisualCueTimingPlan,
   CharacterConsistencyPlan,
   ColorPipelinePlan,
   ColorGradeStyleId,
@@ -25,6 +27,7 @@ import type {
   FrameTemplateType,
   LayerFitMode,
   MapAnimationPlan,
+  MasterTimingPlan,
   PlanningSystemAuditReport,
   ProfessionalEditStyleId,
   ProfessionalEditingDirective,
@@ -40,9 +43,13 @@ import type {
   RendererLayerType,
   SegmentEditPlan,
   SignatureSystem,
+  SourceCleanupPlan,
   SpeakerVisualLayoutPlan,
+  SoundSyncTransitionTimingPlan,
   SoundStyleId,
   TargetPlatform,
+  TimingValidationPlan,
+  TrimReviewPlan,
   ToolRegistrySummary,
   ToolStrategyPlan,
   TransitionFamilyId,
@@ -52,6 +59,7 @@ import type {
   VisualPreference,
   PacingStyleId,
 } from './reeditpro'
+import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
 import type { SupabaseSchemaPlan } from './supabase-schema-plan'
 import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
@@ -565,6 +573,16 @@ export interface ApprovedPlanSnapshot {
   compiledIntent?: CompiledEditingIntent
   professionalEditingDirective?: ProfessionalEditingDirective
   settingsSnapshot: Partial<EditSettingsSnapshotRecord>
+  aspectRatioFramePlan?: AspectRatioFramePlan
+  masterTimingPlan?: MasterTimingPlan
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan
+  timingValidationPlan?: TimingValidationPlan
+  sourceCleanupPlan?: SourceCleanupPlan
+  trimReviewPlan?: TrimReviewPlan
+  editingAgentExecutionPlan?: EditingAgentExecutionPlan
+  asyncAssetReconciliationPlan?: AsyncAssetReconciliationPlan
+  agentQAFallbackPlan?: AgentQAFallbackPlan
   sourceSequence: SourceSequenceItemRecord[]
   editPlanVersion: EditPlanVersionRecord
   segments: EditPlanSegmentRecord[]

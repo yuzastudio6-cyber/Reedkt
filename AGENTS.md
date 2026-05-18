@@ -13,6 +13,12 @@ These instructions are for Codex and any future agent working in this repository
 - Read `visual-storytelling-architecture.md` before visual storytelling, beat planning, visual asset type, or character consistency work.
 - Read `model-routing-policy.md` before provider model routing, fallback, resolution, or generation-policy work.
 - Read `frame-layout-system.md` before frame template, layout panel, compositor, safe-zone, or AI animation background work.
+- Read `aspect-ratio-frame-first-planning.md` before aspect ratio gates, output frame confirmation, frame-first planning, or approval-path frame requirements.
+- Read `master-timing-architecture.md`, `timing-settings-catalog.md`, and `timing-qa-policy.md` before timing, cuts, captions, SFX, music ducking, beat alignment, provider clip duration, Remotion sequence timing, or frame-accurate QA work.
+- Read `caption-visual-cue-timing.md`, `caption-readability-motion-policy.md`, and `visual-cue-synchronization-policy.md` before caption timing, caption animation, caption readability, visual cue timing, cue triggers, cue density, or caption/visual collision planning work.
+- Read `soundsync-beat-grid-transition-timing.md`, `transition-timing-policy.md`, and `sfx-ducking-timing-policy.md` before SoundSync beat grid, transition timing, SFX timing, music ducking, beat snap, AudioFlux planning, or speech-safe transition work.
+- Read `timing-validation-policy.md`, `timing-complexity-credit-policy.md`, and `timing-approval-gate-policy.md` before timing validation, timing approval gates, timing credit impact, lower-cost timing alternatives, or approved timing snapshots work.
+- Read `source-cleanup-trim-planning.md`, `trim-selects-qa-policy.md`, `retake-selection-planning.md`, `meaning-preservation-validation.md`, and `source-cleanup-review-ux.md` before source cleanup, selects, retake selection, trim decisions, cleanup preference, cut lists, trim review, meaning preservation, or trim QA work.
 - Read `speaker-visual-layout-strategy.md` before speaker presence, visual takeover, picture-in-picture, side-by-side, lower panel, map, chart, evidence board, screen capture, b-roll cutaway, or adaptive layout strategy work.
 - Read `depth-aware-overlay-composition.md` before depth-aware overlays, foreground masks, contact object preservation, object anchoring, mask risk, or layered compositing strategy work.
 - Read `video-understanding-report.md` before video understanding, clip analysis, transcript meaning, visual/audio issue planning, opportunity detection, or source-content analysis work.
@@ -41,6 +47,9 @@ These instructions are for Codex and any future agent working in this repository
 - Read `edit-qa-architecture.md` before QA planning, fallback QA, model-policy QA, approval QA, frame-layout QA, or professional delivery checks.
 - Read `edit-planning-database-architecture.md` before future edit-planning persistence, database architecture, approved plan versioning, job tables, QA tables, revision tables, or credit approval schema work.
 - Read `approved-plan-snapshot-policy.md` before approval, approved snapshot, worker execution, credit reservation, revision versioning, or immutable plan version work.
+- Read `editing-agent-execution-architecture.md`, `async-edit-work-graph.md`, and `editing-asset-manifest.md` before editing agent execution, async work graph, dependency planning, asset manifest, checkback policy, fallback policy, or execution-state work.
+- Read `async-checkback-policy.md`, `asset-merge-reconciliation-policy.md`, and `dependency-readiness-policy.md` before async checkback, dependency readiness, asset merge, placeholder preview, final render readiness, fallback/replacement, or asset version reconciliation work.
+- Read `editing-agent-qa-gates.md`, `agent-failure-fallback-decision-matrix.md`, and `agent-recovery-user-review-policy.md` before agent QA gates, failure/fallback decisions, local/global failure handling, recovery policy, retry/fallback planning, or user-review recovery work.
 - Read `provider-prompt-architecture.md` before provider prompt planning, prompt previews, image prompt briefs, AI-video prompt briefs, Remotion motion briefs, or approved prompt snapshot work.
 - Read `character-consistency-system.md` before character pack, recurring character, keyframe identity, start/end frame consistency, or likeness-safety work.
 - Read `documentary-fact-safety-system.md` before documentary claims, real named people, allegations, evidence cards, fact-safety planning, or case-study visual treatment work.
@@ -118,6 +127,88 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Credit estimates and approval records must point to exact plan versions.
 - Basic/Pro no-Veo policy and Premium fallback-only Veo policy must be preserved in approved snapshots.
 - Matching panel background and frame layout rules must be preserved in approved snapshots.
+- Aspect ratio/output frame must be confirmed by the user before approval.
+- Do not silently default to 9:16, 16:9, or any other aspect ratio.
+- Platform can suggest an aspect ratio, but it is not confirmed until the user chooses it.
+- Changing aspect ratio resets approval, progress, preview, and approved snapshot state and requires replanning.
+- All image/video/provider/Remotion/tool planning must use the confirmed frame.
+- Source aspect ratio is not final output aspect ratio unless confirmed.
+- No provider prompt should create final canvas unless the render strategy explicitly says so.
+- No final export plan without confirmed aspect ratio.
+- No worker execution without confirmed aspect ratio in the approved snapshot.
+- Every edit must have a MasterTimingPlan before approval.
+- Timing must be frame-accurate: seconds are display values, frames are execution values.
+- Speech clarity outranks beat alignment, decorative motion, SFX, and retention tricks.
+- Visuals must be timed to meaning, not random moments.
+- Captions must be readable and aligned to speech.
+- Transitions must not cut important words unless the approved plan intentionally says so.
+- SFX must be justified by a visual/story cue and must not cover speech.
+- Music ducking must protect voice clarity.
+- Remotion layer timing must come from the MasterTimingPlan.
+- Provider clip duration and placement must be planned, not arbitrary.
+- No final timing approval without confirmed output frame and timing base.
+- Caption timing must prioritize speech clarity and readability.
+- Visual cue timing must be tied to meaning, not random motion.
+- Beat sync must not override speech clarity.
+- Captions must not cover faces, products, map labels, chart labels, browser highlights, source labels, or fact-safety notes.
+- Text-heavy visuals need enough hold time.
+- Lower panels require simpler labels and longer read time.
+- SFX must be tied to planned visual or transition cues.
+- Caption and visual cue timing must be frame-accurate.
+- No real transcript/audio alignment is implemented unless a future worker milestone adds it.
+- Timing validation must run before approval.
+- Blocking or failed timing validation prevents approval.
+- Timing complexity must be reflected in the credit estimate.
+- Lower-cost timing alternatives must be shown when complexity is high.
+- Timing changes reset approval, progress, preview readiness, and approved snapshot readiness.
+- Master timing, caption/visual cue timing, SoundSync/transition timing, and timing validation must be frozen in approved snapshots.
+- Workers must execute approved timing plans, not reinterpret raw chat timing.
+- No real timing analysis is implemented unless a future worker milestone adds it.
+- Source cleanup preference must be asked and confirmed before final approval.
+- Do not randomly cut footage.
+- Every trim/select decision needs a reason.
+- Preserve meaning over pacing.
+- Documentary and case-study proof/context must not be cut in a misleading way.
+- Tutorial and product demos must preserve required steps.
+- Behind-the-scenes/lifestyle content may intentionally keep natural pauses when the user requests authenticity.
+- Retakes and repeats should be selected professionally, not blindly removed.
+- Retake selection must have reasons and confidence.
+- Meaning preservation must validate trim decisions before approval.
+- User review is required when a cut could change meaning.
+- Documentary/case-study context and evidence must be preserved unless user explicitly approves safe trimming.
+- Tutorial/product demo steps must not be removed if required for understanding.
+- User-marked important clips must not be cut without review.
+- Retake selection and meaning preservation are mock-only until real transcript/media workers exist.
+- Source cleanup is mock-only until real transcript/media analysis workers exist.
+- Future workers must execute approved trim decisions from approved snapshots.
+- The editing agent must use a structured async work graph.
+- The edit must not stop globally while one asset is generating; independent work may continue when dependencies allow it.
+- Required dependencies must block only the affected downstream work.
+- Every generated or processed asset must appear in the asset manifest.
+- The agent must not rely on model memory to remember pending jobs, dependencies, or assets.
+- Every work item needs an idempotency key and approved snapshot reference or explicit pending-snapshot note.
+- Provider/tool execution is future backend/worker only.
+- No final render may start without required assets and QA.
+- Pending provider/tool jobs must have checkback policies.
+- Completed assets must be merged/reconciled before downstream work proceeds.
+- Final render cannot start with missing required assets.
+- Preview may use placeholders only when explicitly allowed.
+- Final render cannot use placeholders for required assets.
+- Every ready asset must link to segment, timing, and renderer layer where applicable.
+- Asset versions and replacements must be tracked.
+- Basic/Pro cannot fallback to Veo.
+- Premium can use Veo only as final fallback for approved AI video assets.
+- No real checkback, polling, webhook, provider, tool, worker, backend, storage, media, or rendering execution is implemented in frontend mock planning.
+- Every work item should have QA gates.
+- Every failure category should have an approved fallback path or user-review path.
+- A local failure should not stop unrelated independent work.
+- A global failure should block final render/export.
+- Final render cannot proceed with unresolved required failures.
+- Preview placeholders are allowed only when explicitly planned.
+- Maps, charts, browser captures, captions, timing, and masks should not fallback to AI video.
+- Meaning, privacy, source truth, and credit-overrun issues require user review or new approval.
+- No real QA, retry, fallback, provider, worker, backend, storage, billing, media, or rendering execution occurs in frontend/mock milestones.
+- Workers execute approved snapshots, not raw chat.
 - Provider prompts must be built from compiled intent, professional editing direction, visual asset plan, style mode, frame layout, provider route, and QA checks.
 - Do not hand-write random prompts disconnected from the approved plan.
 - GPT-Image-2 prompts create images, cards, keyframes, start frames, and end frames.
@@ -182,6 +273,15 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Do not add random SFX; SFX and music must support story, pacing, transition, reveal, or emotion.
 - Music must not overpower voice, and ducking should be planned when music is present under speech.
 - Audio planning should be deterministic and structured, not random.
+- Speech clarity beats music beat alignment.
+- Beat cuts must not cut important words.
+- Transition timing must be phrase-aware.
+- SFX must be tied to a planned cue and reason.
+- Music ducking must protect voice clarity.
+- Documentary and case-study SoundSync timing should stay restrained unless the user requests otherwise.
+- Basic should use simple professional timing, not chaotic beat/SFX timing.
+- Beat grids are mock-only until a future AudioFlux worker exists.
+- No real audio analysis is implemented in frontend/mock milestones.
 - Future FFmpeg LGPL Configuration, AudioFlux, Signalsmith Stretch, librosa, whisper.cpp, and any future/evaluation Essentia or Rubber Band workers may execute audio analysis or processing only after approval.
 - Launch audio analysis candidate is AudioFlux, not Essentia.
 - Launch music stretch/pitch candidate is Signalsmith Stretch, not Rubber Band.

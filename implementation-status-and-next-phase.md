@@ -13,6 +13,11 @@ This document summarizes the current ReeditPro foundation before the next phase.
 - Supabase schema planning bridge for future tables, JSONB approved snapshots, private storage buckets, RLS policy summaries, migration readiness checks, and table specifications.
 - Local/mock SoundSync and Lyria architecture for reference DNA, music QA, mix planning, worker skeletons, and disabled-by-default provider adapter paths.
 - Browser-safe tool and worker concepts as planning data only. No production tool execution is implemented.
+- Master Timing planning for frame-accurate mock timing across captions, visuals, transitions, SFX, music ducking, provider clips, and Remotion layer timing.
+- Caption + Visual Cue Timing planning for refined caption chunks, caption animation policy, visual cue triggers, safe read-time holds, and collision recommendations.
+- SoundSync + Transition Timing planning for mock beat grids, music phrases, speech-safe beat snap decisions, refined transitions, cue-linked SFX, and voice-first ducking.
+- Retake Selection + Meaning Preservation Validation for mock retake choice, selected-candidate confidence, meaning-preservation checks, and trim-review approval blocking.
+- Editing Agent Execution planning for a mock async work graph, dependency records, idempotent work items, asset manifest entries, checkpoints, and checkback/fallback policy. It lets independent future work continue while provider/tool/render jobs are pending, but final render waits for required assets and QA.
 
 ## Explicitly Not Implemented Yet
 
@@ -27,7 +32,11 @@ This document summarizes the current ReeditPro foundation before the next phase.
 - Essentia and Rubber Band launch usage. They are not selected for launch and remain future evaluation/review only.
 - Real map/chart/browser production rendering.
 - Real masks, segmentation, tracking, media analysis, thumbnails, video playback, audio analysis, or media processing.
+- Real transcript alignment, beat detection, AudioFlux timing analysis, frame-accurate media inspection, or production timing worker execution.
+- Real caption word alignment, speech-to-text, pixel collision analysis, beat detection, AudioFlux, Remotion rendering, and media processing remain unimplemented until future worker milestones.
+- Real SoundSync beat detection, SFX generation, music processing, transition rendering, AudioFlux execution, FFmpeg execution, and Signalsmith Stretch execution remain unimplemented until future worker milestones.
 - Cloud worker deployment, Docker images, production job queues, or generated asset storage.
+- Real async execution queues, worker orchestration, provider checkbacks, asset storage writes, execution event logs, or Remotion render workers.
 - Native mobile app or mobile companion screens.
 - Legal conclusions, license clearance, privacy review, or production compliance review.
 
@@ -55,6 +64,34 @@ Do not implement these phases inside this final frontend/mock audit milestone.
 - Browser capture authorization, robots/site policy handling, rate limiting, and redaction.
 - Real Supabase schema deployment to the `reeditpro` project after review.
 
+## Timing Validation Status
+
+The first timing foundation group includes Master Timing, Caption + Visual Cue Timing, SoundSync + Transition Timing, and Timing Validation + Credit Impact as typed frontend/mock planning layers. Timing validation gates approval, feeds QA/planner validation/audit, and explains timing complexity in credits with lower-cost alternatives.
+
+No real timing/audio/transcript/media analysis, provider execution, rendering, backend work, Supabase execution, billing, or worker execution is implemented by these timing milestones.
+
 ## Current Recommendation
 
 Start with `RP-DATA-01` if the next priority is reliable project history, approved plan persistence, and Supabase visibility. Start with `RP-BACKEND-01` if the next priority is execution readiness and future worker queues. Both should preserve the current rule: workers execute approved snapshots, not raw chat.
+## RP-TRIM-01 Status
+
+Source Cleanup + Selects + Trim Decision Planning is a typed frontend/mock planning layer. It introduces cleanup preference confirmation, reasoned trim/select decisions, retake grouping, approval gating, prompt/credit/QA validation, and approved-snapshot preservation.
+
+No real transcript analysis, silence detection, FFmpeg, VapourSynth, AudioFlux, Signalsmith Stretch, Remotion rendering, backend, Supabase, provider calls, billing, or media processing is implemented in this milestone.
+
+## RP-AGENT-01 Status
+
+Editing Agent Execution Layers + Async Work Graph is a typed frontend/mock planning layer. It introduces `EditingAgentExecutionPlan`, structured work items, dependencies, an asset manifest, checkpoints, parallel groups, and no-raw-chat execution rules for future approved-snapshot workers.
+
+No real async queue, provider/tool/backend/rendering execution, asset storage, Google Cloud, Supabase connection, billing, or media processing is implemented by this milestone.
+## RP-AGENT-02 Status
+
+The frontend mock now includes an `AsyncAssetReconciliationPlan` that extends the async execution graph with checkback items, dependency readiness, asset merge plans, version reconciliation, and render-readiness summaries.
+
+This is documentation and typed mock planning only. It does not implement real webhooks, polling, provider status checks, workers, storage, backend queues, Remotion rendering, or media processing. Future backend/GCP worker phases should use the approved snapshot, execution graph, and reconciliation plan as contracts.
+
+## RP-AGENT-03 Status
+
+The frontend mock now includes an `AgentQAFallbackPlan` that adds QA gates, likely failure scenarios, fallback actions, fallback decisions, and local/global failure handling to the agent execution architecture.
+
+This remains documentation and typed mock planning only. It does not implement real QA, retries, fallback execution, provider calls, workers, storage, backend queues, billing, Remotion rendering, or media processing.

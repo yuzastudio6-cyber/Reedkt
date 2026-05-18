@@ -25,6 +25,11 @@ export type PlanValidationCategory =
   | 'tier_policy'
   | 'resolution_policy'
   | 'frame_background'
+  | 'aspect_ratio_frame_gate'
+  | 'master_timing'
+  | 'caption_visual_cue_timing'
+  | 'soundsync_transition_timing'
+  | 'timing_validation'
   | 'approval_gate'
   | 'credit_estimate'
   | 'compiled_intent'
@@ -38,6 +43,11 @@ export type PlanValidationCategory =
   | 'map_animation'
   | 'dataviz_plan'
   | 'source_sequence'
+  | 'source_cleanup'
+  | 'trim_review'
+  | 'editing_agent_execution'
+  | 'async_asset_reconciliation'
+  | 'agent_qa_fallback'
   | 'professional_editing'
   | 'visual_asset_plan'
   | 'speaker_visual_layout'
@@ -1779,10 +1789,468 @@ export function validateMockEditPlan(params: {
   const aiVideoAssets = visualAssetPlan.filter(isAiVideoAsset)
   const directive = plan.professionalEditingDirective
   const sourceSequenceReview = plan.sourceSequenceReview
+  const sourceCleanupPlan = plan.sourceCleanupPlan
+  const trimReviewPlan = plan.trimReviewPlan
+  const editingAgentExecutionPlan = plan.editingAgentExecutionPlan
+  const asyncAssetReconciliationPlan = plan.asyncAssetReconciliationPlan
+  const agentQAFallbackPlan = plan.agentQAFallbackPlan
+  const waitingExecutionWorkItemIds = editingAgentExecutionPlan?.workItems
+    .filter((item) =>
+      item.status === 'waiting_provider' ||
+      item.status === 'waiting_worker' ||
+      item.status === 'waiting_asset' ||
+      item.status === 'waiting_user_review' ||
+      item.status === 'queued' ||
+      item.status === 'running' ||
+      item.status === 'fallback_needed'
+    )
+    .map((item) => item.id) ?? []
+  const checkbackWorkItemIds = new Set(asyncAssetReconciliationPlan?.checkbackItems.map((item) => item.workItemId) ?? [])
+  const executionDependencyIds = editingAgentExecutionPlan?.workItems.flatMap((item) => item.dependencies.map((dependency) => dependency.id)) ?? []
+  const readinessDependencyIds = new Set(asyncAssetReconciliationPlan?.dependencyReadiness.map((item) => item.dependencyId) ?? [])
+  const mergeAssetIds = new Set(asyncAssetReconciliationPlan?.mergePlanItems.map((item) => item.assetManifestItemId) ?? [])
+  const versionAssetIds = new Set(asyncAssetReconciliationPlan?.versionReconciliations.map((item) => item.assetManifestItemId) ?? [])
+  const fallbackActionById = new Map(agentQAFallbackPlan?.fallbackActions.map((item) => [item.id, item]) ?? [])
+  const failureScenarioById = new Map(agentQAFallbackPlan?.failureScenarios.map((item) => [item.id, item]) ?? [])
+  const exactFailureScenarioIds = new Set(agentQAFallbackPlan?.failureScenarios
+    .filter((scenario) =>
+      scenario.category === 'map_render_failure' ||
+      scenario.category === 'chart_render_failure' ||
+      scenario.category === 'browser_capture_failure' ||
+      scenario.category === 'mask_generation_failure' ||
+      scenario.category === 'timing_validation_failure'
+    )
+    .map((scenario) => scenario.id) ?? [])
   const sourceOrderConfirmed = input.sourceOrderConfirmed ?? sourceSequenceReview?.confirmed
   const sourceSequenceMode = input.sourceSequenceMode ?? sourceSequenceReview?.mode
   const multipleClips = input.clips.length > 1
+  const frameConfirmed = input.aspectRatioConfirmed === true && plan.aspectRatioFramePlan?.status === 'confirmed'
   const checks: PlanValidationCheck[] = [
+    check({
+      id: 'validation-aspect-ratio-frame-plan-exists',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Aspect ratio frame plan exists',
+      severity: 'blocking',
+      passed: checkExists(plan.aspectRatioFramePlan),
+      message: 'Every mock plan must include an output-frame gate before approval.',
+      relatedField: 'aspectRatioFramePlan',
+    }),
+    check({
+      id: 'validation-aspect-ratio-confirmed-before-approval',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Output frame confirmed before approval',
+      severity: 'blocking',
+      passed: frameConfirmed,
+      message: 'Aspect ratio/output frame must be explicitly confirmed before plan and credit approval.',
+      relatedField: 'aspectRatioFramePlan.status',
+      recommendation: 'Confirm the output frame in chat before approving the edit plan.',
+    }),
+    check({
+      id: 'validation-aspect-ratio-no-silent-default',
+      category: 'aspect_ratio_frame_gate',
+      label: 'No silent aspect-ratio default',
+      severity: 'blocking',
+      passed: input.aspectRatioConfirmed === true || plan.aspectRatioFramePlan?.status !== 'confirmed',
+      message: 'Recommended aspect ratios must not be treated as confirmed defaults.',
+      relatedField: 'PlannerInput.aspectRatioConfirmed',
+    }),
+    check({
+      id: 'validation-renderer-not-ready-without-frame',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Renderer blocked until frame confirmed',
+      severity: 'blocking',
+      passed: frameConfirmed || plan.rendererCompositionPlan?.renderReady !== true,
+      message: 'Renderer composition must not claim render-ready without a confirmed output frame.',
+      relatedField: 'rendererCompositionPlan.renderReady',
+    }),
+    check({
+      id: 'validation-prompts-blocked-without-frame',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Provider prompts blocked until frame confirmed',
+      severity: 'blocking',
+      passed: frameConfirmed || promptPlans.every((promptPlan) => !promptPlan.tierAllowed),
+      message: 'Provider prompts must not be executable while the output frame is unconfirmed.',
+      relatedField: 'providerPromptPlans.tierAllowed',
+    }),
+    check({
+      id: 'validation-credit-blocked-without-frame',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Credit approval blocked until frame confirmed',
+      severity: 'blocking',
+      passed: frameConfirmed || plan.creditEstimate.approvalBlocked === true,
+      message: 'Credit estimate approval should stay draft/blocked until output frame is confirmed.',
+      relatedField: 'creditEstimate.approvalBlocked',
+    }),
+    check({
+      id: 'validation-source-output-fit-plan',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Source-to-output fit plan exists',
+      severity: 'warning',
+      passed: Boolean(plan.aspectRatioFramePlan?.sourceToOutputFramePlan),
+      message: 'Source aspect ratio and output aspect ratio should be bridged by a crop/fit/pad/panel strategy.',
+      relatedField: 'aspectRatioFramePlan.sourceToOutputFramePlan',
+    }),
+    check({
+      id: 'validation-master-timing-plan-exists',
+      category: 'master_timing',
+      label: 'Master Timing Plan exists',
+      severity: 'blocking',
+      passed: checkExists(plan.masterTimingPlan),
+      message: 'Every edit plan must include a frame-accurate Master Timing Plan before approval.',
+      relatedField: 'masterTimingPlan',
+    }),
+    check({
+      id: 'validation-master-timing-base',
+      category: 'master_timing',
+      label: 'Timing base is frame accurate',
+      severity: 'blocking',
+      passed: Boolean(
+        plan.masterTimingPlan?.timingBase.fps &&
+        plan.masterTimingPlan.timingBase.totalFrames >= 0 &&
+        plan.masterTimingPlan.timingBase.finalDurationSeconds >= 0,
+      ),
+      message: 'Master Timing needs FPS, total frames, and final duration with frames as execution values.',
+      relatedField: 'masterTimingPlan.timingBase',
+    }),
+    check({
+      id: 'validation-master-timing-frame-gate',
+      category: 'master_timing',
+      label: 'Timing blocks approval without frame confirmation',
+      severity: 'blocking',
+      passed: frameConfirmed || plan.masterTimingPlan?.status === 'needs_frame_confirmation' || plan.masterTimingPlan?.status === 'draft',
+      message: 'When the output frame is unconfirmed, Master Timing must remain draft/blocked and approval must not proceed.',
+      relatedField: 'masterTimingPlan.status',
+    }),
+    check({
+      id: 'validation-master-timing-final-segments',
+      category: 'master_timing',
+      label: 'Final timeline segments have frame ranges',
+      severity: 'error',
+      passed: Boolean(plan.masterTimingPlan?.finalTimelineSegments.length) &&
+        (plan.masterTimingPlan?.finalTimelineSegments.every((segment) => segment.finalRange.durationFrames >= 0 && segment.finalRange.endFrame >= segment.finalRange.startFrame) ?? false),
+      message: 'Every important final timeline segment must include a non-negative frame range.',
+      relatedField: 'masterTimingPlan.finalTimelineSegments',
+    }),
+    check({
+      id: 'validation-master-timing-caption-visual-coverage',
+      category: 'master_timing',
+      label: 'Captions and visuals have timing',
+      severity: 'error',
+      passed: Boolean(plan.masterTimingPlan?.captionTimingItems.length) &&
+        (plan.masterTimingPlan?.captionTimingItems.every((item) => item.timeRange.durationFrames >= 0) ?? false) &&
+        (plan.masterTimingPlan?.visualTimingItems.every((item) => item.timeRange.durationFrames >= 0) ?? false),
+      message: 'Caption and visual timing items should have frame ranges and readable durations.',
+      relatedField: 'masterTimingPlan.captionTimingItems',
+    }),
+    check({
+      id: 'validation-master-timing-provider-renderer',
+      category: 'master_timing',
+      label: 'Provider clips and Remotion reference timing',
+      severity: 'warning',
+      passed: Boolean(plan.masterTimingPlan?.remotionLayerTimingItems.length) &&
+        (plan.providerPromptPlans ?? []).every((prompt) => !prompt.assetPlanItemId || Boolean(prompt.timingNotes?.length)) &&
+        (!plan.rendererCompositionPlan || plan.rendererCompositionPlan.masterTimingPlanId === plan.masterTimingPlan?.id),
+      message: 'Provider prompts and renderer composition should reference Master Timing for duration and layer placement.',
+      relatedField: 'providerPromptPlans.timingNotes',
+    }),
+    check({
+      id: 'validation-master-timing-no-real-analysis',
+      category: 'master_timing',
+      label: 'Timing remains mock-only',
+      severity: 'blocking',
+      passed: (plan.masterTimingPlan?.limitations ?? []).some((limitation) => /no real transcript|no real beat|no .*audioflux|no .*media/i.test(limitation)),
+      message: 'Master Timing limitations must clearly state that no real transcript/audio/media analysis has run.',
+      relatedField: 'masterTimingPlan.limitations',
+    }),
+    check({
+      id: 'validation-caption-visual-cue-plan-exists',
+      category: 'caption_visual_cue_timing',
+      label: 'Caption + Visual Cue Timing Plan exists',
+      severity: 'blocking',
+      passed: checkExists(plan.captionVisualCueTimingPlan),
+      message: 'Every edit plan should refine Master Timing into caption chunks, visual cue triggers, and collision recommendations.',
+      relatedField: 'captionVisualCueTimingPlan',
+    }),
+    check({
+      id: 'validation-caption-visual-cue-status',
+      category: 'caption_visual_cue_timing',
+      label: 'Caption/visual cue timing is not blocked',
+      severity: 'blocking',
+      passed: plan.captionVisualCueTimingPlan?.status !== 'blocked',
+      message: 'Caption + Visual Cue Timing may be draft/needs alignment in mock mode, but blocked timing cannot proceed to approval.',
+      relatedField: 'captionVisualCueTimingPlan.status',
+    }),
+    check({
+      id: 'validation-refined-caption-ranges',
+      category: 'caption_visual_cue_timing',
+      label: 'Refined captions have readable frame ranges',
+      severity: 'error',
+      passed: Boolean(plan.captionVisualCueTimingPlan?.refinedCaptionTimings.length) &&
+        (plan.captionVisualCueTimingPlan?.refinedCaptionTimings.every((item) =>
+          item.timeRange.durationFrames >= 0 &&
+          item.timeRange.endFrame >= item.timeRange.startFrame &&
+          item.timeRange.durationFrames >= Math.min(item.timeRange.fps, plan.captionVisualCueTimingPlan?.captionPolicy.minDurationFrames ?? 0),
+        ) ?? false),
+      message: 'Refined captions need non-negative frame ranges and enough duration to remain readable.',
+      relatedField: 'captionVisualCueTimingPlan.refinedCaptionTimings',
+    }),
+    check({
+      id: 'validation-visual-cue-ranges',
+      category: 'caption_visual_cue_timing',
+      label: 'Visual cues have trigger timing and read time',
+      severity: 'error',
+      passed: (plan.visualAssetPlan?.length ?? 0) === 0 ||
+        (Boolean(plan.captionVisualCueTimingPlan?.visualCueTimings.length) &&
+          (plan.captionVisualCueTimingPlan?.visualCueTimings.every((item) =>
+            item.timeRange.durationFrames >= 0 &&
+            item.timeRange.endFrame >= item.timeRange.startFrame &&
+            item.visualReadTimeFrames > 0 &&
+            item.reason.length > 0,
+          ) ?? false)),
+      message: 'Visual cues should include frame ranges, trigger reasons, and read-time estimates.',
+      relatedField: 'captionVisualCueTimingPlan.visualCueTimings',
+    }),
+    check({
+      id: 'validation-caption-visual-collisions',
+      category: 'caption_visual_cue_timing',
+      label: 'Collision plans include recommendations',
+      severity: 'warning',
+      passed: (plan.captionVisualCueTimingPlan?.collisionPlans ?? []).every((item) => item.recommendation.length > 0),
+      message: 'High-risk caption/visual overlaps should include a concrete recommendation.',
+      relatedField: 'captionVisualCueTimingPlan.collisionPlans',
+    }),
+    check({
+      id: 'validation-caption-visual-basic-restraint',
+      category: 'caption_visual_cue_timing',
+      label: 'Basic avoids excessive kinetic captions',
+      severity: 'blocking',
+      passed: plan.creditEstimate.editLevel !== 'basic' ||
+        plan.captionVisualCueTimingPlan?.captionPolicy.animationStyle !== 'kinetic_word_pop',
+      message: 'Basic remains professional and restrained; it should not default to aggressive kinetic captions.',
+      relatedField: 'captionVisualCueTimingPlan.captionPolicy.animationStyle',
+    }),
+    check({
+      id: 'validation-caption-visual-sfx-linked',
+      category: 'caption_visual_cue_timing',
+      label: 'SFX timing links to planned cues',
+      severity: 'warning',
+      passed: (plan.masterTimingPlan?.sfxTimingItems ?? []).every((item) => Boolean(item.linkedVisualTimingItemId || item.linkedTransitionTimingItemId)),
+      message: 'SFX should be tied to planned visual or transition cues, not random hits.',
+      relatedField: 'masterTimingPlan.sfxTimingItems',
+    }),
+    check({
+      id: 'validation-caption-visual-prompt-notes',
+      category: 'caption_visual_cue_timing',
+      label: 'Prompts include caption/visual cue notes',
+      severity: 'warning',
+      passed: (plan.providerPromptPlans ?? []).every((prompt) => !prompt.assetPlanItemId || Boolean(prompt.captionVisualCueNotes?.length)),
+      message: 'Provider and Remotion briefs should carry caption safe-zone, cue timing, and collision notes.',
+      relatedField: 'providerPromptPlans.captionVisualCueNotes',
+    }),
+    check({
+      id: 'validation-soundsync-transition-plan-exists',
+      category: 'soundsync_transition_timing',
+      label: 'SoundSync + Transition Timing Plan exists',
+      severity: 'blocking',
+      passed: checkExists(plan.soundSyncTransitionTimingPlan),
+      message: 'Every edit plan should refine transition, SFX, beat snap, and ducking timing with speech-first rules.',
+      relatedField: 'soundSyncTransitionTimingPlan',
+    }),
+    check({
+      id: 'validation-soundsync-transition-status',
+      category: 'soundsync_transition_timing',
+      label: 'SoundSync timing is reviewable',
+      severity: 'blocking',
+      passed: plan.soundSyncTransitionTimingPlan?.status !== 'blocked',
+      message: 'SoundSync timing may be not_needed, mock_planned, needs_audioflux_analysis, or ready_mock; blocked timing cannot proceed.',
+      relatedField: 'soundSyncTransitionTimingPlan.status',
+    }),
+    check({
+      id: 'validation-soundsync-beat-grid',
+      category: 'soundsync_transition_timing',
+      label: 'Beat grid has mock limitations',
+      severity: 'warning',
+      passed: Boolean(plan.soundSyncTransitionTimingPlan?.beatGridPlan) &&
+        (plan.soundSyncTransitionTimingPlan?.beatGridPlan.status === 'not_needed' ||
+          (plan.soundSyncTransitionTimingPlan?.beatGridPlan.limitations ?? []).some((limitation) => /no real|mock|audioflux/i.test(limitation))),
+      message: 'Beat grid must exist when SoundSync timing exists and must say AudioFlux analysis has not run when needed.',
+      relatedField: 'soundSyncTransitionTimingPlan.beatGridPlan',
+    }),
+    check({
+      id: 'validation-soundsync-transition-ranges',
+      category: 'soundsync_transition_timing',
+      label: 'Refined transitions have valid frame ranges',
+      severity: 'error',
+      passed: Boolean(plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings.length) &&
+        (plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings.every((item) =>
+          item.timeRange.endFrame >= item.timeRange.startFrame &&
+          item.durationFrames >= 0 &&
+          (item.transitionType === 'hard_cut' || item.durationFrames > 0),
+        ) ?? false),
+      message: 'Hard cuts may be 0 frames; every other refined transition should have positive duration and non-negative frame ranges.',
+      relatedField: 'soundSyncTransitionTimingPlan.refinedTransitionTimings',
+    }),
+    check({
+      id: 'validation-soundsync-speech-first',
+      category: 'soundsync_transition_timing',
+      label: 'Beat sync does not override speech',
+      severity: 'blocking',
+      passed: (plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings ?? []).every((item) =>
+        item.transitionType === 'hard_cut' ||
+        item.phraseBoundaryAligned ||
+        item.beatSnapDecision?.speechSafe,
+      ),
+      message: 'Transitions must be phrase-aware or explicitly speech-safe before beat alignment is used.',
+      relatedField: 'soundSyncTransitionTimingPlan.refinedTransitionTimings.beatSnapDecision',
+    }),
+    check({
+      id: 'validation-soundsync-sfx-linked',
+      category: 'soundsync_transition_timing',
+      label: 'SFX are cue-linked',
+      severity: 'blocking',
+      passed: (plan.soundSyncTransitionTimingPlan?.refinedSfxTimings ?? []).every((item) =>
+        Boolean(item.linkedVisualCueTimingItemId || item.linkedTransitionTimingItemId) &&
+        item.reason.length > 0,
+      ),
+      message: 'SFX timing must be tied to a planned visual/transition cue and reason; random SFX are not allowed.',
+      relatedField: 'soundSyncTransitionTimingPlan.refinedSfxTimings',
+    }),
+    check({
+      id: 'validation-soundsync-ducking',
+      category: 'soundsync_transition_timing',
+      label: 'Music ducking protects voice',
+      severity: 'warning',
+      passed: plan.soundSyncTransitionTimingPlan?.status === 'not_needed' ||
+        (plan.soundSyncTransitionTimingPlan?.refinedMusicDuckingTimings.every((item) => item.voicePriority) ?? false),
+      message: 'When music and speech are planned, ducking ranges should protect voice clarity.',
+      relatedField: 'soundSyncTransitionTimingPlan.refinedMusicDuckingTimings',
+    }),
+    check({
+      id: 'validation-soundsync-basic-restraint',
+      category: 'soundsync_transition_timing',
+      label: 'Basic SoundSync stays restrained',
+      severity: 'blocking',
+      passed: plan.creditEstimate.editLevel !== 'basic' ||
+        !['high', 'premium_refined'].includes(plan.soundSyncTransitionTimingPlan?.sfxDensityLevel ?? 'none'),
+      message: 'Basic should not default to high SFX/beat complexity.',
+      relatedField: 'soundSyncTransitionTimingPlan.sfxDensityLevel',
+    }),
+    check({
+      id: 'validation-soundsync-audioflux-not-essentia',
+      category: 'soundsync_transition_timing',
+      label: 'AudioFlux future tool, not Essentia',
+      severity: 'blocking',
+      passed: !(plan.soundSyncTransitionTimingPlan?.beatGridPlan.analysisToolPlanned.includes('essentia')) &&
+        !(plan.audioPipelinePlan?.toolsPlanned.includes('essentia')),
+      message: 'AudioFlux is the launch analysis candidate; Essentia must not be the launch default.',
+      relatedField: 'soundSyncTransitionTimingPlan.beatGridPlan.analysisToolPlanned',
+    }),
+    check({
+      id: 'validation-soundsync-prompts',
+      category: 'soundsync_transition_timing',
+      label: 'Prompts include SoundSync timing notes',
+      severity: 'warning',
+      passed: (plan.providerPromptPlans ?? []).every((prompt) => !prompt.assetPlanItemId || Boolean(prompt.soundSyncTransitionNotes?.length)),
+      message: 'Provider and Remotion briefs should carry transition, SFX, and ducking frame notes.',
+      relatedField: 'providerPromptPlans.soundSyncTransitionNotes',
+    }),
+    check({
+      id: 'validation-timing-validation-plan-exists',
+      category: 'timing_validation',
+      label: 'Timing Validation Plan exists',
+      severity: 'blocking',
+      passed: checkExists(plan.timingValidationPlan),
+      message: 'Every edit plan should validate Master Timing, Caption + Visual Cue Timing, and SoundSync + Transition Timing before approval.',
+      relatedField: 'timingValidationPlan',
+    }),
+    check({
+      id: 'validation-timing-validation-status',
+      category: 'timing_validation',
+      label: 'Timing validation does not block approval',
+      severity: 'blocking',
+      passed: Boolean(plan.timingValidationPlan) &&
+        !plan.timingValidationPlan?.approvalBlocked &&
+        plan.timingValidationPlan?.overallStatus !== 'blocking' &&
+        plan.timingValidationPlan?.overallStatus !== 'failed',
+      message: 'Blocking or failed timing validation prevents approval.',
+      relatedField: 'timingValidationPlan.overallStatus',
+      recommendation: 'Resolve timing validation block reasons or choose lower-cost/simpler timing alternatives.',
+    }),
+    check({
+      id: 'validation-timing-validation-frame-checks',
+      category: 'timing_validation',
+      label: 'Timing validation includes frame gate checks',
+      severity: 'blocking',
+      passed: Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'frame_confirmation')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'timing_base')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'final_timeline')),
+      message: 'Timing validation must check frame confirmation, timing base, and final timeline timing.',
+      relatedField: 'timingValidationPlan.globalChecks',
+    }),
+    check({
+      id: 'validation-timing-validation-readability-checks',
+      category: 'timing_validation',
+      label: 'Timing validation includes caption and visual checks',
+      severity: 'warning',
+      passed: Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'caption_readability')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'visual_readability')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'caption_visual_collision')),
+      message: 'Timing validation should include caption readability, visual read time, and collision checks.',
+      relatedField: 'timingValidationPlan.globalChecks',
+    }),
+    check({
+      id: 'validation-timing-validation-soundsync-checks',
+      category: 'timing_validation',
+      label: 'Timing validation includes transition/SFX/ducking checks',
+      severity: 'warning',
+      passed: Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'transition_safety')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'sfx_justification')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'music_ducking')),
+      message: 'Timing validation should include transition speech safety, SFX justification, and music ducking checks.',
+      relatedField: 'timingValidationPlan.globalChecks',
+    }),
+    check({
+      id: 'validation-timing-validation-provider-renderer-checks',
+      category: 'timing_validation',
+      label: 'Timing validation includes provider and Remotion checks',
+      severity: 'warning',
+      passed: Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'provider_clip_duration')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'remotion_layer_timing')) &&
+        Boolean(plan.timingValidationPlan?.globalChecks.some((item) => item.category === 'approval_gate')),
+      message: 'Timing validation should check provider clip duration, Remotion layer timing, and approval-gate behavior.',
+      relatedField: 'timingValidationPlan.globalChecks',
+    }),
+    check({
+      id: 'validation-timing-validation-credit-tradeoffs',
+      category: 'timing_validation',
+      label: 'Timing credit impact includes tradeoffs',
+      severity: 'warning',
+      passed: !plan.timingValidationPlan ||
+        !['high', 'premium'].includes(plan.timingValidationPlan.items.find((item) => item.id === 'timing-validation-item-credit-impact')?.creditImpact ?? 'none') ||
+        plan.timingValidationPlan.lowerCostRecommendations.length > 0,
+      message: 'High/premium timing credit impact should include lower-cost timing alternatives.',
+      relatedField: 'timingValidationPlan.lowerCostRecommendations',
+    }),
+    check({
+      id: 'validation-timing-validation-basic-complexity',
+      category: 'timing_validation',
+      label: 'Basic timing complexity has fallback',
+      severity: 'warning',
+      passed: plan.creditEstimate.editLevel !== 'basic' ||
+        !(plan.timingValidationPlan?.items.some((item) => item.complexity === 'advanced' || item.complexity === 'premium')) ||
+        Boolean(plan.timingValidationPlan?.lowerCostRecommendations.length),
+      message: 'Basic should not carry advanced/premium timing complexity without lower-cost alternatives.',
+      relatedField: 'timingValidationPlan.items',
+    }),
+    check({
+      id: 'validation-timing-validation-mock-only',
+      category: 'timing_validation',
+      label: 'Timing validation remains mock-only',
+      severity: 'blocking',
+      passed: Boolean(plan.timingValidationPlan?.limitations.some((limitation) => /mock-only|no real|no .*audioflux|no .*render/i.test(limitation))),
+      message: 'Timing validation must not imply real transcript/audio/media analysis or rendering.',
+      relatedField: 'timingValidationPlan.limitations',
+    }),
     check({
       id: 'validation-compiled-intent',
       category: 'compiled_intent',
@@ -3090,6 +3558,548 @@ export function validateMockEditPlan(params: {
       message: 'ChatNativeEditor is responsible for resetting plan approval, approved snapshot, mock progress, and preview when source order or clip metadata changes.',
       relatedField: 'ChatNativeEditor.resetAfterSourceChange',
     }),
+    check({
+      id: 'validation-source-cleanup-plan-exists',
+      category: 'source_cleanup',
+      label: 'Source cleanup plan exists',
+      severity: 'blocking',
+      passed: Boolean(sourceCleanupPlan),
+      message: 'Every mock plan must include SourceCleanupPlan before approval.',
+      relatedField: 'sourceCleanupPlan',
+    }),
+    check({
+      id: 'validation-source-cleanup-confirmed',
+      category: 'source_cleanup',
+      label: 'Cleanup preference confirmed before approval',
+      severity: 'blocking',
+      passed: Boolean(sourceCleanupPlan?.status === 'confirmed' && sourceCleanupPlan.cleanupQuestion.answered && input.cleanupPreferenceConfirmed === true),
+      message: 'Source cleanup preference must be confirmed before final trim decisions, credits, and approval.',
+      relatedField: 'sourceCleanupPlan.status',
+      recommendation: 'Confirm how clean ReeditPro should make the cut.',
+    }),
+    check({
+      id: 'validation-source-cleanup-decisions-have-reasons',
+      category: 'source_cleanup',
+      label: 'Trim decisions have reasons',
+      severity: 'error',
+      passed: Boolean(sourceCleanupPlan?.decisions.length && sourceCleanupPlan.decisions.every((decision) => decision.reason.length > 0)),
+      message: 'Every keep/cut/tighten/preserve decision must include a reason.',
+      relatedField: 'sourceCleanupPlan.decisions.reason',
+    }),
+    check({
+      id: 'validation-source-cleanup-cut-reasons',
+      category: 'source_cleanup',
+      label: 'Cuts have cut reasons',
+      severity: 'error',
+      passed: Boolean(sourceCleanupPlan?.cutRanges.every((decision) => decision.cutReasons.length > 0 || decision.finalUse === 'removed')),
+      message: 'Every cut should have a cut reason or explicit optional-source final use.',
+      relatedField: 'sourceCleanupPlan.cutRanges.cutReasons',
+    }),
+    check({
+      id: 'validation-source-cleanup-keep-reasons',
+      category: 'source_cleanup',
+      label: 'Keeps/preserves have keep reasons',
+      severity: 'error',
+      passed: Boolean(sourceCleanupPlan?.preservedRanges.every((decision) => decision.keepReasons.length > 0 || decision.finalUse === 'proof')),
+      message: 'Every keep/preserve/proof decision should document why it stays.',
+      relatedField: 'sourceCleanupPlan.preservedRanges.keepReasons',
+    }),
+    check({
+      id: 'validation-source-cleanup-important-not-cut',
+      category: 'source_cleanup',
+      label: 'Important clips are not cut without review',
+      severity: 'blocking',
+      passed: !sourceCleanupPlan?.decisions.some((decision) => {
+        const clip = input.clips.find((item) => item.id === decision.clipId)
+        return clip?.isImportant && decision.finalUse === 'removed' && !decision.userReviewRequired
+      }),
+      message: 'User-marked important clips must not be removed without explicit review.',
+      relatedField: 'sourceCleanupPlan.decisions',
+    }),
+    check({
+      id: 'validation-source-cleanup-retake-groups',
+      category: 'source_cleanup',
+      label: 'Retake groups are selected or reviewable',
+      severity: 'warning',
+      passed: Boolean(sourceCleanupPlan?.retakeGroups.every((group) => group.selectedClipId || group.userReviewRequired)),
+      message: 'Retake groups should have a selected take or require user review.',
+      relatedField: 'sourceCleanupPlan.retakeGroups',
+    }),
+    check({
+      id: 'validation-source-cleanup-master-timing-link',
+      category: 'source_cleanup',
+      label: 'Master Timing links source cleanup',
+      severity: 'error',
+      passed: Boolean(plan.masterTimingPlan?.sourceCleanupPlanId === sourceCleanupPlan?.id),
+      message: 'MasterTimingPlan should reference SourceCleanupPlan so source timing inherits trim decisions.',
+      relatedField: 'masterTimingPlan.sourceCleanupPlanId',
+    }),
+    check({
+      id: 'validation-source-cleanup-prompts-blocked-if-unconfirmed',
+      category: 'source_cleanup',
+      label: 'Provider prompts blocked if cleanup unconfirmed',
+      severity: 'blocking',
+      passed: sourceCleanupPlan?.status === 'confirmed' || promptPlans.every((promptPlan) => !promptPlan.tierAllowed),
+      message: 'Provider prompts must remain draft/blocked while cleanup preference is unconfirmed.',
+      relatedField: 'providerPromptPlans.tierAllowed',
+    }),
+    check({
+      id: 'validation-source-cleanup-credit-blocked-if-unconfirmed',
+      category: 'source_cleanup',
+      label: 'Credit estimate blocked if cleanup unconfirmed',
+      severity: 'blocking',
+      passed: sourceCleanupPlan?.status === 'confirmed' || plan.creditEstimate.approvalBlocked === true,
+      message: 'Credit estimate must remain draft/approval-blocked until cleanup style is confirmed.',
+      relatedField: 'creditEstimate.approvalBlocked',
+    }),
+    check({
+      id: 'validation-source-cleanup-mock-only',
+      category: 'source_cleanup',
+      label: 'Source cleanup is mock-only',
+      severity: 'blocking',
+      passed: Boolean(sourceCleanupPlan?.limitations.some((limitation) => /no real transcript|no real silence|no real video|mock-only/i.test(limitation))),
+      message: 'Source cleanup must not imply real transcript, silence, audio/video, or media analysis has run.',
+      relatedField: 'sourceCleanupPlan.limitations',
+    }),
+    check({
+      id: 'validation-trim-review-plan-exists',
+      category: 'trim_review',
+      label: 'Trim review plan exists',
+      severity: 'blocking',
+      passed: Boolean(trimReviewPlan),
+      message: 'TrimReviewPlan must validate retake selection and meaning preservation before approval.',
+      relatedField: 'trimReviewPlan',
+    }),
+    check({
+      id: 'validation-trim-review-retake-selection',
+      category: 'trim_review',
+      label: 'Retake selections have confidence and reasons',
+      severity: 'error',
+      passed: Boolean(trimReviewPlan?.retakeSelectionPlan.items.every((item) => item.reason && item.confidence)),
+      message: 'Every retake selection must have a reason and confidence.',
+      relatedField: 'trimReviewPlan.retakeSelectionPlan.items',
+    }),
+    check({
+      id: 'validation-trim-review-meaning-validation',
+      category: 'trim_review',
+      label: 'Meaning preservation validation exists',
+      severity: 'blocking',
+      passed: Boolean(trimReviewPlan?.meaningPreservationValidationPlan.checks.length),
+      message: 'MeaningPreservationValidationPlan must exist before final trim approval.',
+      relatedField: 'trimReviewPlan.meaningPreservationValidationPlan',
+    }),
+    check({
+      id: 'validation-trim-review-approval-gate',
+      category: 'trim_review',
+      label: 'Blocking trim review prevents approval',
+      severity: 'blocking',
+      passed: !trimReviewPlan?.approvalBlocked,
+      message: 'Blocking trim review or unresolved risky retake/meaning review must prevent approval.',
+      relatedField: 'trimReviewPlan.approvalBlocked',
+    }),
+    check({
+      id: 'validation-trim-review-prompt-gate',
+      category: 'trim_review',
+      label: 'Provider prompts blocked when trim review blocks',
+      severity: 'blocking',
+      passed: !trimReviewPlan?.approvalBlocked || promptPlans.every((promptPlan) => !promptPlan.tierAllowed),
+      message: 'Provider prompts must remain draft/blocked while TrimReviewPlan blocks approval.',
+      relatedField: 'providerPromptPlans.tierAllowed',
+    }),
+    check({
+      id: 'validation-trim-review-credit-gate',
+      category: 'trim_review',
+      label: 'Credit estimate blocked when trim review blocks',
+      severity: 'blocking',
+      passed: !trimReviewPlan?.approvalBlocked || plan.creditEstimate.approvalBlocked === true,
+      message: 'Credit estimate must remain draft/approval-blocked while TrimReviewPlan blocks approval.',
+      relatedField: 'creditEstimate.approvalBlocked',
+    }),
+    check({
+      id: 'validation-trim-review-mock-only',
+      category: 'trim_review',
+      label: 'Trim review is mock-only',
+      severity: 'blocking',
+      passed: Boolean(trimReviewPlan?.limitations.some((limitation) => /no real transcript|no real semantic|no real media|mock-only/i.test(limitation))),
+      message: 'Trim review must not imply real transcript, semantic, audio/video, or media analysis has run.',
+      relatedField: 'trimReviewPlan.limitations',
+    }),
+    check({
+      id: 'validation-editing-agent-execution-plan-exists',
+      category: 'editing_agent_execution',
+      label: 'Editing agent execution plan exists',
+      severity: 'error',
+      passed: Boolean(editingAgentExecutionPlan),
+      message: 'EditPlan should include a mock async execution graph for future workers.',
+      relatedField: 'editingAgentExecutionPlan',
+    }),
+    check({
+      id: 'validation-editing-agent-work-item-idempotency',
+      category: 'editing_agent_execution',
+      label: 'Work items have idempotency keys',
+      severity: 'error',
+      passed: Boolean(editingAgentExecutionPlan?.workItems.length && editingAgentExecutionPlan.workItems.every((item) => item.idempotencyKey.length > 0)),
+      message: 'Every execution work item needs an idempotency key for safe resume/retry.',
+      relatedField: 'editingAgentExecutionPlan.workItems.idempotencyKey',
+    }),
+    check({
+      id: 'validation-editing-agent-snapshot-source',
+      category: 'editing_agent_execution',
+      label: 'Work items reference snapshot or pending snapshot note',
+      severity: 'error',
+      passed: Boolean(editingAgentExecutionPlan?.workItems.every((item) =>
+        Boolean(item.approvedPlanSnapshotId) || item.notes.some((note) => /approved snapshot.*pending|snapshot id is pending/i.test(note)),
+      )),
+      message: 'Work items must execute approved snapshots, not raw chat or memory.',
+      relatedField: 'editingAgentExecutionPlan.workItems.approvedPlanSnapshotId',
+    }),
+    check({
+      id: 'validation-editing-agent-asset-manifest',
+      category: 'editing_agent_execution',
+      label: 'Asset manifest prevents context loss',
+      severity: 'error',
+      passed: Boolean(editingAgentExecutionPlan?.assetManifest.length && editingAgentExecutionPlan.assetManifest.every((asset) =>
+        asset.parentWorkItemId && asset.storageProvider === 'local_mock' && asset.version >= 1,
+      )),
+      message: 'Generated/processed/export assets should be traceable through the asset manifest.',
+      relatedField: 'editingAgentExecutionPlan.assetManifest',
+    }),
+    check({
+      id: 'validation-editing-agent-generated-assets-covered',
+      category: 'editing_agent_execution',
+      label: 'Generated/processed work has manifest outputs',
+      severity: 'error',
+      passed: Boolean(editingAgentExecutionPlan?.workItems
+        .filter((item) =>
+          item.workItemType === 'generate_image_asset' ||
+          item.workItemType === 'generate_ai_video_asset' ||
+          item.workItemType === 'render_map_asset' ||
+          item.workItemType === 'render_chart_asset' ||
+          item.workItemType === 'capture_browser_asset' ||
+          item.workItemType === 'run_audio_analysis' ||
+          item.workItemType === 'run_audio_stretch' ||
+          item.workItemType === 'process_image_asset' ||
+          item.workItemType === 'process_video_asset' ||
+          item.workItemType === 'generate_mask_asset' ||
+          item.workItemType === 'render_final_export')
+        .every((item) => item.expectedOutputs.some((output) => Boolean(output.linkedAssetManifestId)))),
+      message: 'Every generated/processed/final output work item should link to an asset manifest item.',
+      relatedField: 'editingAgentExecutionPlan.workItems.expectedOutputs',
+    }),
+    check({
+      id: 'validation-editing-agent-no-complete-provider-tool-work',
+      category: 'editing_agent_execution',
+      label: 'No provider/tool/render execution marked complete',
+      severity: 'blocking',
+      passed: Boolean(editingAgentExecutionPlan?.workItems.every((item) =>
+        !(
+          (
+            item.agentLayer === 'asset_generation_agent' ||
+            item.agentLayer === 'tool_execution_agent' ||
+            item.workItemType === 'render_final_export' ||
+            item.workItemType === 'render_remotion_preview'
+          ) &&
+          (item.status === 'complete' || item.status === 'merged' || item.status === 'running')
+        ),
+      )),
+      message: 'This milestone must not imply provider, tool, worker, or render execution has run.',
+      relatedField: 'editingAgentExecutionPlan.workItems.status',
+    }),
+    check({
+      id: 'validation-editing-agent-final-render-dependencies',
+      category: 'editing_agent_execution',
+      label: 'Final render waits for assets and QA',
+      severity: 'blocking',
+      passed: Boolean(editingAgentExecutionPlan?.workItems.some((item) =>
+        item.workItemType === 'render_final_export' &&
+        item.dependencies.some((dependencyItem) => dependencyItem.dependencyType === 'required_asset') &&
+        item.dependencies.some((dependencyItem) => dependencyItem.dependencyType === 'qa_after'),
+      )),
+      message: 'Final render must depend on required asset manifest entries and QA.',
+      relatedField: 'editingAgentExecutionPlan.workItems.dependencies',
+    }),
+    check({
+      id: 'validation-editing-agent-parallel-work',
+      category: 'editing_agent_execution',
+      label: 'Independent work can run in parallel',
+      severity: 'warning',
+      passed: Boolean(editingAgentExecutionPlan?.parallelGroups.length && editingAgentExecutionPlan.workItems.some((item) => item.canRunInParallel)),
+      message: 'The work graph should allow independent work to continue while assets are pending.',
+      relatedField: 'editingAgentExecutionPlan.parallelGroups',
+    }),
+    check({
+      id: 'validation-editing-agent-waiting-does-not-block-all-work',
+      category: 'editing_agent_execution',
+      label: 'Waiting jobs do not block unrelated work',
+      severity: 'warning',
+      passed: Boolean(!editingAgentExecutionPlan || editingAgentExecutionPlan.waitingWorkItemIds.length === 0 || editingAgentExecutionPlan.readyWorkItemIds.length > 0 || editingAgentExecutionPlan.parallelGroups.length > 0),
+      message: 'Pending provider/worker assets should block only dependent downstream work.',
+      relatedField: 'editingAgentExecutionPlan.waitingWorkItemIds',
+    }),
+    check({
+      id: 'validation-editing-agent-no-raw-chat-execution',
+      category: 'editing_agent_execution',
+      label: 'No raw chat execution source',
+      severity: 'blocking',
+      passed: Boolean(editingAgentExecutionPlan?.globalRules.some((rule) => /approved snapshots?, not raw chat/i.test(rule))),
+      message: 'The execution graph must state that workers execute approved snapshots, not raw chat.',
+      relatedField: 'editingAgentExecutionPlan.globalRules',
+    }),
+    check({
+      id: 'validation-editing-agent-mock-only',
+      category: 'editing_agent_execution',
+      label: 'Execution graph is mock-only',
+      severity: 'blocking',
+      passed: Boolean(editingAgentExecutionPlan?.limitations.some((limitation) => /mock execution graph|no workers|no provider|no tools|no .*render/i.test(limitation))),
+      message: 'Editing agent execution planning must not imply real backend, provider, tool, storage, queue, or render execution.',
+      relatedField: 'editingAgentExecutionPlan.limitations',
+    }),
+    check({
+      id: 'validation-async-reconciliation-plan-exists',
+      category: 'async_asset_reconciliation',
+      label: 'Async asset reconciliation plan exists',
+      severity: 'error',
+      passed: Boolean(asyncAssetReconciliationPlan),
+      message: 'EditPlan should include mock checkback, dependency readiness, asset merge, and version reconciliation policy.',
+      relatedField: 'asyncAssetReconciliationPlan',
+    }),
+    check({
+      id: 'validation-async-checkbacks-cover-waiting-work',
+      category: 'async_asset_reconciliation',
+      label: 'Waiting work has checkbacks',
+      severity: 'error',
+      passed: Boolean(asyncAssetReconciliationPlan && waitingExecutionWorkItemIds.every((workItemId) => checkbackWorkItemIds.has(workItemId))),
+      message: 'Every waiting/queued/running provider, worker, asset, or user-review work item needs a structured checkback item.',
+      relatedField: 'asyncAssetReconciliationPlan.checkbackItems',
+    }),
+    check({
+      id: 'validation-async-dependency-readiness-covered',
+      category: 'async_asset_reconciliation',
+      label: 'Every dependency has readiness',
+      severity: 'error',
+      passed: Boolean(asyncAssetReconciliationPlan && executionDependencyIds.every((dependencyId) => readinessDependencyIds.has(dependencyId))),
+      message: 'Every execution dependency should have readiness state, placeholder policy, and preview/final blocking policy.',
+      relatedField: 'asyncAssetReconciliationPlan.dependencyReadiness',
+    }),
+    check({
+      id: 'validation-async-merge-plan-covers-manifest',
+      category: 'async_asset_reconciliation',
+      label: 'Manifest assets have merge policy',
+      severity: 'error',
+      passed: Boolean(asyncAssetReconciliationPlan && editingAgentExecutionPlan?.assetManifest.every((asset) =>
+        mergeAssetIds.has(asset.id) && versionAssetIds.has(asset.id),
+      )),
+      message: 'Every asset manifest item should have merge/reconciliation and version-selection policy.',
+      relatedField: 'asyncAssetReconciliationPlan.mergePlanItems',
+    }),
+    check({
+      id: 'validation-async-final-render-blocked-with-missing-assets',
+      category: 'async_asset_reconciliation',
+      label: 'Final render blocks missing required assets',
+      severity: 'blocking',
+      passed: Boolean(asyncAssetReconciliationPlan && (
+        asyncAssetReconciliationPlan.finalRenderReadiness.missingRequiredAssetIds.length === 0 ||
+        asyncAssetReconciliationPlan.finalRenderReadiness.ready === false
+      )),
+      message: 'Final render readiness must be false when required assets are missing.',
+      relatedField: 'asyncAssetReconciliationPlan.finalRenderReadiness',
+    }),
+    check({
+      id: 'validation-async-preview-placeholder-policy',
+      category: 'async_asset_reconciliation',
+      label: 'Preview placeholders are explicit',
+      severity: 'error',
+      passed: Boolean(asyncAssetReconciliationPlan && asyncAssetReconciliationPlan.previewRenderReadiness.placeholderAssetIds.every((assetId) =>
+        asyncAssetReconciliationPlan.dependencyReadiness.some((item) => item.linkedAssetManifestItemId === assetId && item.placeholderAllowed),
+      )),
+      message: 'Preview may use placeholders only when dependency readiness explicitly permits placeholder use.',
+      relatedField: 'asyncAssetReconciliationPlan.previewRenderReadiness.placeholderAssetIds',
+    }),
+    check({
+      id: 'validation-async-final-render-no-placeholders',
+      category: 'async_asset_reconciliation',
+      label: 'Final render does not allow placeholders',
+      severity: 'blocking',
+      passed: Boolean(asyncAssetReconciliationPlan && (
+        asyncAssetReconciliationPlan.finalRenderReadiness.ready === false ||
+        asyncAssetReconciliationPlan.finalRenderReadiness.placeholderAssetIds.length === 0
+      )),
+      message: 'Final render cannot use placeholder assets for required outputs.',
+      relatedField: 'asyncAssetReconciliationPlan.finalRenderReadiness.placeholderAssetIds',
+    }),
+    check({
+      id: 'validation-async-failed-assets-fallback-review',
+      category: 'async_asset_reconciliation',
+      label: 'Failed assets require fallback or review',
+      severity: 'error',
+      passed: Boolean(asyncAssetReconciliationPlan && asyncAssetReconciliationPlan.mergePlanItems
+        .filter((item) => item.status === 'qa_failed' || item.status === 'fallback_required' || item.status === 'user_review_required')
+        .every((item) => item.fallbackRequired || item.userReviewRequired)),
+      message: 'Failed or QA-failed assets should trigger approved fallback or user review.',
+      relatedField: 'asyncAssetReconciliationPlan.mergePlanItems',
+    }),
+    check({
+      id: 'validation-async-mock-only',
+      category: 'async_asset_reconciliation',
+      label: 'Async reconciliation is mock-only',
+      severity: 'blocking',
+      passed: Boolean(asyncAssetReconciliationPlan?.limitations.some((limitation) => /mock-only|no real provider webhook|no real.*polling|no real assets|no remotion render|no .*backend/i.test(limitation))),
+      message: 'Async reconciliation must not imply real checkback, provider status, worker, storage, render, backend, or media execution.',
+      relatedField: 'asyncAssetReconciliationPlan.limitations',
+    }),
+    check({
+      id: 'validation-agent-qa-fallback-plan-exists',
+      category: 'agent_qa_fallback',
+      label: 'Agent QA fallback plan exists',
+      severity: 'error',
+      passed: Boolean(agentQAFallbackPlan),
+      message: 'EditPlan should include AgentQAFallbackPlan for QA gates and approved fallback decisions.',
+      relatedField: 'agentQAFallbackPlan',
+    }),
+    check({
+      id: 'validation-agent-qa-gates-exist',
+      category: 'agent_qa_fallback',
+      label: 'Agent QA gates exist',
+      severity: 'error',
+      passed: Boolean(agentQAFallbackPlan?.gateChecks.length),
+      message: 'AgentQAFallbackPlan should include QA gate checks.',
+      relatedField: 'agentQAFallbackPlan.gateChecks',
+    }),
+    check({
+      id: 'validation-agent-failure-scenarios-exist',
+      category: 'agent_qa_fallback',
+      label: 'Failure scenarios exist',
+      severity: 'error',
+      passed: Boolean(agentQAFallbackPlan?.failureScenarios.length),
+      message: 'AgentQAFallbackPlan should include likely failure scenarios.',
+      relatedField: 'agentQAFallbackPlan.failureScenarios',
+    }),
+    check({
+      id: 'validation-agent-fallback-actions-exist',
+      category: 'agent_qa_fallback',
+      label: 'Fallback actions exist',
+      severity: 'error',
+      passed: Boolean(agentQAFallbackPlan?.fallbackActions.length),
+      message: 'AgentQAFallbackPlan should include fallback action matrix entries.',
+      relatedField: 'agentQAFallbackPlan.fallbackActions',
+    }),
+    check({
+      id: 'validation-agent-fallback-decisions-exist',
+      category: 'agent_qa_fallback',
+      label: 'Fallback decisions exist',
+      severity: 'error',
+      passed: Boolean(agentQAFallbackPlan?.decisions.length),
+      message: 'AgentQAFallbackPlan should include fallback decisions for likely failures.',
+      relatedField: 'agentQAFallbackPlan.decisions',
+    }),
+    check({
+      id: 'validation-agent-provider-gate-blocks-disallowed',
+      category: 'agent_qa_fallback',
+      label: 'Provider request gates block disallowed providers',
+      severity: 'blocking',
+      passed: Boolean(agentQAFallbackPlan?.gateChecks
+        .filter((gate) => gate.gateType === 'provider_request_gate')
+        .every((gate) => gate.status !== 'blocked' || gate.severity === 'blocking')),
+      message: 'Blocked provider request gates must be blocking severity.',
+      relatedField: 'agentQAFallbackPlan.gateChecks',
+    }),
+    check({
+      id: 'validation-agent-basic-pro-no-veo-fallback',
+      category: 'agent_qa_fallback',
+      label: 'Basic/Pro no Veo fallback',
+      severity: 'blocking',
+      passed: Boolean(agentQAFallbackPlan?.fallbackActions
+        .filter((action) => action.allowedProviderModels.includes('veo_3_1_lite'))
+        .every((action) => !action.allowedForTiers.basic && !action.allowedForTiers.pro && action.allowedForTiers.premium)),
+      message: 'Veo fallback actions must be Premium-only.',
+      relatedField: 'agentQAFallbackPlan.fallbackActions',
+    }),
+    check({
+      id: 'validation-agent-premium-veo-ai-video-only',
+      category: 'agent_qa_fallback',
+      label: 'Premium Veo fallback is AI-video final rescue only',
+      severity: 'blocking',
+      passed: Boolean(agentQAFallbackPlan?.fallbackActions
+        .filter((action) => action.allowedProviderModels.includes('veo_3_1_lite'))
+        .every((action) => /final fallback|final rescue|ai video/i.test(`${action.description} ${action.reason} ${action.qaChecks.join(' ')}`))),
+      message: 'Premium Veo fallback must remain final fallback/rescue for approved AI video assets only.',
+      relatedField: 'agentQAFallbackPlan.fallbackActions',
+    }),
+    check({
+      id: 'validation-agent-no-ai-video-for-exact-failures',
+      category: 'agent_qa_fallback',
+      label: 'Exact tool/timing/mask failures avoid AI video fallback',
+      severity: 'blocking',
+      passed: Boolean(agentQAFallbackPlan?.decisions
+        .filter((decision) => exactFailureScenarioIds.has(decision.failureScenarioId))
+        .every((decision) => decision.selectedFallbackActionIds.every((actionId) => {
+          const models = fallbackActionById.get(actionId)?.allowedProviderModels ?? []
+          return models.every((model) =>
+            model !== 'wan_2_2_kf2v_flash' &&
+            model !== 'wan_2_6_i2v_flash' &&
+            model !== 'hailuo_2_3_fast' &&
+            model !== 'hailuo_02' &&
+            model !== 'veo_3_1_lite',
+          )
+        }))),
+      message: 'Map/chart/browser/mask/timing failures should not route to AI video fallback.',
+      relatedField: 'agentQAFallbackPlan.decisions',
+    }),
+    check({
+      id: 'validation-agent-final-render-blocked-for-required-failures',
+      category: 'agent_qa_fallback',
+      label: 'Final render blocked for unresolved required failures',
+      severity: 'blocking',
+      passed: Boolean(agentQAFallbackPlan && (
+        agentQAFallbackPlan.globalFailureCount === 0 ||
+        agentQAFallbackPlan.finalRenderBlocked === true
+      )),
+      message: 'Global/approval/final-render failures should block final export.',
+      relatedField: 'agentQAFallbackPlan.finalRenderBlocked',
+    }),
+    check({
+      id: 'validation-agent-local-failures-can-continue',
+      category: 'agent_qa_fallback',
+      label: 'Local failures can continue independent work',
+      severity: 'warning',
+      passed: Boolean(agentQAFallbackPlan && (
+        agentQAFallbackPlan.localFailureCount === 0 ||
+        agentQAFallbackPlan.independentWorkCanContinue ||
+        agentQAFallbackPlan.decisions.some((decision) => {
+          const scenario = failureScenarioById.get(decision.failureScenarioId)
+          return scenario?.scope === 'local_asset' && decision.continueIndependentWork
+        })
+      )),
+      message: 'Local non-blocking failures should not stop unrelated independent work.',
+      relatedField: 'agentQAFallbackPlan.independentWorkCanContinue',
+    }),
+    check({
+      id: 'validation-agent-user-review-for-sensitive-risks',
+      category: 'agent_qa_fallback',
+      label: 'Sensitive risks require user review',
+      severity: 'error',
+      passed: Boolean(agentQAFallbackPlan && (
+        !agentQAFallbackPlan.failureScenarios.some((scenario) =>
+          scenario.category === 'trim_meaning_failure' ||
+          scenario.category === 'browser_capture_failure' ||
+          scenario.category === 'credit_limit_or_budget_issue' ||
+          scenario.category === 'policy_violation' ||
+          scenario.requiresUserReviewByDefault
+        ) ||
+        agentQAFallbackPlan.userReviewRequiredCount > 0
+      )),
+      message: 'Meaning, privacy/source truth, policy, or credit-overrun issues should trigger user review/new approval.',
+      relatedField: 'agentQAFallbackPlan.userReviewRequiredCount',
+    }),
+    check({
+      id: 'validation-agent-qa-fallback-mock-only',
+      category: 'agent_qa_fallback',
+      label: 'Agent QA/fallback is mock-only',
+      severity: 'blocking',
+      passed: Boolean(agentQAFallbackPlan?.limitations.some((limitation) => /mock qa|no real output|no real provider|no real.*fallback|no real.*render|no real.*billing/i.test(limitation))),
+      message: 'Agent QA/fallback planning must not imply real QA, retry, fallback, provider, worker, render, backend, or billing execution.',
+      relatedField: 'agentQAFallbackPlan.limitations',
+    }),
   ]
 
   if (editLevel !== 'premium') {
@@ -3606,6 +4616,67 @@ export function validateApprovedSnapshot(snapshot: ApprovedPlanSnapshot): PlanVa
       passed: Boolean(snapshot.creditEstimateId),
       message: 'Approved snapshots must point to the exact approved credit estimate.',
       relatedField: 'creditEstimateId',
+    }),
+    check({
+      id: 'snapshot-aspect-ratio-frame-plan',
+      category: 'aspect_ratio_frame_gate',
+      label: 'Snapshot freezes confirmed output frame',
+      severity: 'blocking',
+      passed: snapshot.aspectRatioFramePlan?.status === 'confirmed',
+      message: 'Approved snapshots must freeze the confirmed aspect ratio, canvas, safe zones, and source-to-output fit plan.',
+      relatedField: 'aspectRatioFramePlan',
+    }),
+    check({
+      id: 'snapshot-master-timing-plan',
+      category: 'master_timing',
+      label: 'Snapshot freezes Master Timing Plan',
+      severity: 'blocking',
+      passed: Boolean(snapshot.masterTimingPlan) &&
+        snapshot.masterTimingPlan?.status !== 'needs_frame_confirmation' &&
+        snapshot.masterTimingPlan?.status !== 'blocked',
+      message: 'Approved snapshots must freeze the timing base, final timeline timing, caption timing, visual timing, provider clip timing, and Remotion layer timing.',
+      relatedField: 'masterTimingPlan',
+    }),
+    check({
+      id: 'snapshot-caption-visual-cue-timing-plan',
+      category: 'caption_visual_cue_timing',
+      label: 'Snapshot freezes Caption + Visual Cue Timing Plan',
+      severity: 'blocking',
+      passed: Boolean(snapshot.captionVisualCueTimingPlan) &&
+        snapshot.captionVisualCueTimingPlan?.status !== 'blocked',
+      message: 'Approved snapshots must freeze caption chunk timing, caption animation policy, visual cue timing, collision recommendations, and QA checks.',
+      relatedField: 'captionVisualCueTimingPlan',
+    }),
+    check({
+      id: 'snapshot-soundsync-transition-timing-plan',
+      category: 'soundsync_transition_timing',
+      label: 'Snapshot freezes SoundSync + Transition Timing Plan',
+      severity: 'blocking',
+      passed: Boolean(snapshot.soundSyncTransitionTimingPlan) &&
+        snapshot.soundSyncTransitionTimingPlan?.status !== 'blocked',
+      message: 'Approved snapshots must freeze beat grid, music phrase, beat snap, transition, SFX, and ducking timing plans.',
+      relatedField: 'soundSyncTransitionTimingPlan',
+    }),
+    check({
+      id: 'snapshot-timing-validation-plan',
+      category: 'timing_validation',
+      label: 'Snapshot freezes Timing Validation Plan',
+      severity: 'blocking',
+      passed: Boolean(snapshot.timingValidationPlan) &&
+        !snapshot.timingValidationPlan?.approvalBlocked &&
+        snapshot.timingValidationPlan?.overallStatus !== 'blocking' &&
+        snapshot.timingValidationPlan?.overallStatus !== 'failed',
+      message: 'Approved snapshots must freeze timing validation status, timing credit profile, lower-cost alternatives, and approval gate status.',
+      relatedField: 'timingValidationPlan',
+    }),
+    check({
+      id: 'snapshot-agent-qa-fallback-plan',
+      category: 'agent_qa_fallback',
+      label: 'Snapshot freezes Agent QA + Fallback Plan',
+      severity: 'warning',
+      passed: Boolean(snapshot.agentQAFallbackPlan ?? snapshot.sourcePlan.agentQAFallbackPlan),
+      message: 'Approved snapshots should freeze QA gates, failure scenarios, fallback actions, fallback decisions, and user-review requirements.',
+      relatedField: 'agentQAFallbackPlan',
     }),
     check({
       id: 'snapshot-compiled-intent',

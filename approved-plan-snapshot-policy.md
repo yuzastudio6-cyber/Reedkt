@@ -21,6 +21,8 @@ The snapshot must include:
 - renderer plan
 - QA plan
 - provider routing
+- editing agent async work graph
+- asset manifest and dependency graph
 - credit estimate
 - approval record
 
@@ -77,3 +79,55 @@ The approved snapshot must freeze the frame/background policy:
 Workers execute approved snapshots, not raw chat. If the plan cannot be completed inside the approved route, fallback allowance, credit estimate, or tier policy, the system should request a revision or new approval.
 
 This document does not create a database table, migration, backend route, credit ledger, provider integration, renderer job, or export flow.
+
+## Timing Validation Snapshot Rule
+
+Approved snapshots freeze `MasterTimingPlan`, `CaptionVisualCueTimingPlan`, `SoundSyncTransitionTimingPlan`, and `TimingValidationPlan`. A snapshot must not be created when timing validation is blocking or failed.
+
+Future workers execute approved timing plans and do not reinterpret raw chat timing. Material timing changes require a revised plan and new approval.
+
+## Source Cleanup Snapshot Rule
+
+Approved snapshots freeze `SourceCleanupPlan`, including selected cleanup preference, confirmation status, trim decisions, retake groups, preserved/cut ranges, user-review items, and QA checks.
+
+A snapshot must not be created while cleanup preference is unconfirmed. Future FFmpeg/VapourSynth/transcript/media workers may execute trim decisions only from an approved snapshot; they must not reinterpret raw chat cleanup instructions.
+
+## Trim Review Snapshot Rule
+
+Approved snapshots must include `trimReviewPlan`. The snapshot freezes retake selections, alternate candidates, selected-take reasons/confidence, meaning preservation validation status, user-review decisions, and resolved approval gate status. If trim review is blocking, snapshot creation must be blocked.
+
+## Editing Agent Execution Snapshot Rule
+
+Approved snapshots should include `editingAgentExecutionPlan`. The snapshot freezes the future execution work graph, dependency graph, asset manifest, checkpoints, fallback policy, and checkback policy.
+
+The execution graph prevents context loss by ensuring provider/tool/render assets and pending jobs are represented as structured work items and manifest entries. Future workers execute the approved snapshot and work graph, not raw chat or model memory.
+
+This policy does not create queues, jobs, provider calls, tool execution, backend storage, Remotion rendering, or media processing.
+## Async Asset Reconciliation Snapshot Rule
+
+Approved snapshots should include `asyncAssetReconciliationPlan` when present. The snapshot freezes:
+- checkback policy,
+- dependency readiness,
+- asset merge/reconciliation policy,
+- version and fallback relationships,
+- preview placeholder policy,
+- final render readiness rules.
+
+A snapshot can exist while final render readiness is false, because future execution may still be waiting for provider/tool assets. That does not mean export is complete. Final export remains waiting until required assets are merged, QA is clear, timing and trim gates are resolved, and workers execute the approved snapshot.
+
+This policy does not implement real checkbacks, queues, provider calls, storage, workers, rendering, or credit deduction.
+
+## Agent QA + Fallback Snapshot Rule
+
+Approved snapshots should include `agentQAFallbackPlan` when present. The snapshot freezes:
+- QA gates,
+- likely failure scenarios,
+- fallback actions,
+- fallback decisions,
+- user review requirements,
+- final render block logic,
+- credit impact notes.
+
+If `finalRenderBlocked` is true, approved execution may proceed only to allowed preparation, independent work, fallback planning, or user-review steps. Final export remains blocked until required failures are resolved.
+
+This policy does not implement real QA, retries, fallback execution, provider calls, workers, rendering, storage, or billing.

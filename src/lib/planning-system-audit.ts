@@ -52,6 +52,156 @@ const layerMetadata: LayerMetadata[] = [
     notes: ['Uploaded order is source/story context, not automatic final edit order.'],
   },
   {
+    id: 'source_cleanup',
+    label: 'Source cleanup',
+    planKeys: ['sourceCleanupPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Cleanup preference must be confirmed before approval.',
+      'Trim/select decisions carry reasons and remain mock-only until future transcript/media workers exist.',
+    ],
+  },
+  {
+    id: 'trim_review',
+    label: 'Trim review',
+    planKeys: ['trimReviewPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Retake selection and meaning preservation validate SourceCleanupPlan before approval.',
+      'Trim review is mock-only until future transcript/media comparison workers exist.',
+    ],
+  },
+  {
+    id: 'editing_agent_execution',
+    label: 'Editing agent execution',
+    planKeys: ['editingAgentExecutionPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Async execution graph models future worker work items, dependencies, asset manifest entries, checkpoints, and checkback policies.',
+      'Mock-only: no provider, tool, backend, storage, queue, or Remotion execution runs in the frontend.',
+    ],
+  },
+  {
+    id: 'async_asset_reconciliation',
+    label: 'Async asset reconciliation',
+    planKeys: ['asyncAssetReconciliationPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Checkback, dependency readiness, asset merge, version selection, and render readiness are tracked after work graph creation.',
+      'Mock-only: no webhooks, polling, provider status checks, storage, workers, or rendering run in the frontend.',
+    ],
+  },
+  {
+    id: 'agent_qa_fallback',
+    label: 'Agent QA fallback',
+    planKeys: ['agentQAFallbackPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Agent QA gates, failure scenarios, fallback actions, and fallback decisions are planned before future execution.',
+      'Mock-only: no real QA, retry, fallback execution, provider call, worker, render, storage, or billing runs in the frontend.',
+    ],
+  },
+  {
+    id: 'aspect_ratio_frame_gate',
+    label: 'Aspect ratio frame gate',
+    planKeys: ['aspectRatioFramePlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Output frame must be confirmed before approval, prompts, rendering, workers, or export planning.',
+      'Recommended aspect ratio is not the same as confirmed aspect ratio.',
+    ],
+  },
+  {
+    id: 'master_timing',
+    label: 'Master timing',
+    planKeys: ['masterTimingPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Frame-accurate timing coordinates captions, visuals, transitions, SFX, provider clips, and Remotion layers.',
+      'Timing remains mock-only until future transcript/audio/media workers exist.',
+    ],
+  },
+  {
+    id: 'caption_visual_cue_timing',
+    label: 'Caption + visual cue timing',
+    planKeys: ['captionVisualCueTimingPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Refines Master Timing into readable caption chunks, visual cue triggers, read-time holds, and collision plans.',
+      'Mock-only until future transcript/audio/media workers exist.',
+    ],
+  },
+  {
+    id: 'soundsync_transition_timing',
+    label: 'SoundSync + transition timing',
+    planKeys: ['soundSyncTransitionTimingPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Refines Master Timing transition, SFX, beat snap, and ducking timing with speech-first rules.',
+      'AudioFlux is represented as future analysis metadata only; no audio analysis runs in this mock.',
+    ],
+  },
+  {
+    id: 'timing_validation',
+    label: 'Timing validation',
+    planKeys: ['timingValidationPlan'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: true,
+    includedInValidation: true,
+    includedInCreditEstimate: true,
+    notes: [
+      'Validates frame-accurate timing before approval and connects timing complexity to credits.',
+      'Blocking or failed timing validation locks approval and approved snapshot creation.',
+    ],
+  },
+  {
     id: 'compiled_intent',
     label: 'Compiled intent',
     planKeys: ['compiledIntent'],
@@ -982,6 +1132,293 @@ function createHardRuleChecks(plan: EditPlan): PlanningSystemAuditReport['hardRu
       message: 'Source order confirmation state is present in the plan.',
     },
     {
+      label: 'Source cleanup plan exists',
+      passed: Boolean(plan.sourceCleanupPlan),
+      message: plan.sourceCleanupPlan
+        ? 'Source Cleanup Plan is present in the EditPlan.'
+        : 'Source Cleanup Plan is missing from the EditPlan.',
+    },
+    {
+      label: 'Cleanup preference confirmed before approval',
+      passed: plan.sourceCleanupPlan?.status === 'confirmed',
+      message: plan.sourceCleanupPlan?.status === 'confirmed'
+        ? 'Cleanup preference is confirmed for approved trim/select planning.'
+        : 'Cleanup preference must be confirmed before approval.',
+    },
+    {
+      label: 'Trim decisions have reasons',
+      passed: Boolean(plan.sourceCleanupPlan?.decisions.length && plan.sourceCleanupPlan.decisions.every((decision) => decision.reason.length > 0)),
+      message: 'Every trim/select decision should include a reason and final use.',
+    },
+    {
+      label: 'Trim review plan exists',
+      passed: Boolean(plan.trimReviewPlan),
+      message: plan.trimReviewPlan
+        ? 'Trim Review Plan is present in the EditPlan.'
+        : 'Trim Review Plan is missing from the EditPlan.',
+    },
+    {
+      label: 'Retake selections have reasons and confidence',
+      passed: Boolean(plan.trimReviewPlan?.retakeSelectionPlan.items.every((item) => item.reason.length > 0 && item.confidence)),
+      message: 'Retake selections should include reasons and confidence.',
+    },
+    {
+      label: 'Meaning preservation validation exists',
+      passed: Boolean(plan.trimReviewPlan?.meaningPreservationValidationPlan.checks.length),
+      message: 'Meaning preservation validation should run before approval.',
+    },
+    {
+      label: 'Trim review approval gate connected',
+      passed: !plan.trimReviewPlan?.approvalBlocked || plan.creditEstimate.approvalBlocked === true,
+      message: 'Blocking trim review should keep credits/approval blocked.',
+    },
+    {
+      label: 'Editing agent execution plan exists',
+      passed: Boolean(plan.editingAgentExecutionPlan),
+      message: plan.editingAgentExecutionPlan
+        ? 'EditingAgentExecutionPlan is present in the EditPlan.'
+        : 'EditingAgentExecutionPlan is missing from the EditPlan.',
+    },
+    {
+      label: 'Async work graph exists',
+      passed: Boolean(plan.editingAgentExecutionPlan?.workItems.length),
+      message: 'Execution planning should represent future work as structured work items.',
+    },
+    {
+      label: 'Asset manifest exists',
+      passed: Boolean(plan.editingAgentExecutionPlan?.assetManifest.length),
+      message: 'Generated, processed, and export assets should be tracked in an asset manifest.',
+    },
+    {
+      label: 'Dependency graph exists',
+      passed: Boolean(plan.editingAgentExecutionPlan?.workItems.some((item) => item.dependencies.length > 0)),
+      message: 'Work items should carry dependency records instead of relying on model memory.',
+    },
+    {
+      label: 'Editing agent avoids raw chat execution',
+      passed: Boolean(plan.editingAgentExecutionPlan?.globalRules.some((rule) => /approved snapshots?, not raw chat/i.test(rule))),
+      message: 'Future execution should use approved snapshots, not raw chat.',
+    },
+    {
+      label: 'Approved snapshot linkage planned for execution graph',
+      passed: Boolean(plan.editingAgentExecutionPlan?.workItems.every((item) =>
+        Boolean(item.approvedPlanSnapshotId) || item.notes.some((note) => /approved snapshot.*pending|snapshot id is pending/i.test(note)),
+      )),
+      message: 'Execution work items should reference the approved snapshot or clearly mark the pending snapshot in mock planning.',
+    },
+    {
+      label: 'Async asset reconciliation plan exists',
+      passed: Boolean(plan.asyncAssetReconciliationPlan),
+      message: plan.asyncAssetReconciliationPlan
+        ? 'AsyncAssetReconciliationPlan is present in the EditPlan.'
+        : 'AsyncAssetReconciliationPlan is missing from the EditPlan.',
+    },
+    {
+      label: 'Checkback items cover waiting work',
+      passed: Boolean(plan.asyncAssetReconciliationPlan?.checkbackItems.length),
+      message: 'Waiting provider/worker/asset/user-review work should have structured checkback policy.',
+    },
+    {
+      label: 'Asset merge plan exists',
+      passed: Boolean(plan.asyncAssetReconciliationPlan?.mergePlanItems.length),
+      message: 'Asset manifest entries should have merge/reconciliation policy.',
+    },
+    {
+      label: 'Final render readiness tracked',
+      passed: typeof plan.asyncAssetReconciliationPlan?.finalRenderReadiness.ready === 'boolean',
+      message: 'Final render readiness should explicitly track missing required assets, blockers, placeholders, and QA.',
+    },
+    {
+      label: 'Preview placeholder policy exists',
+      passed: Boolean(plan.asyncAssetReconciliationPlan?.globalRules.some((rule) => /preview placeholders/i.test(rule))),
+      message: 'Preview placeholder policy should be explicit and separate from final render readiness.',
+    },
+    {
+      label: 'Async reconciliation is mock-only',
+      passed: Boolean(plan.asyncAssetReconciliationPlan?.limitations.some((limitation) => /mock-only|no real provider webhook|no real.*polling|no real assets|no remotion render/i.test(limitation))),
+      message: 'Async reconciliation should not imply real webhooks, polling, provider status, workers, storage, rendering, or backend execution.',
+    },
+    {
+      label: 'Agent QA fallback plan exists',
+      passed: Boolean(plan.agentQAFallbackPlan),
+      message: plan.agentQAFallbackPlan
+        ? 'AgentQAFallbackPlan is present in the EditPlan.'
+        : 'AgentQAFallbackPlan is missing from the EditPlan.',
+    },
+    {
+      label: 'Agent QA gates exist',
+      passed: Boolean(plan.agentQAFallbackPlan?.gateChecks.length),
+      message: 'Agent QA gates should cover work items, assets, merge, provider request, render preflight, and final QA.',
+    },
+    {
+      label: 'Failure/fallback matrix exists',
+      passed: Boolean(plan.agentQAFallbackPlan?.failureScenarios.length && plan.agentQAFallbackPlan.fallbackActions.length && plan.agentQAFallbackPlan.decisions.length),
+      message: 'Agent fallback planning should include scenarios, actions, and decisions.',
+    },
+    {
+      label: 'Model/tier fallback rules enforced',
+      passed: Boolean(plan.agentQAFallbackPlan?.fallbackActions
+        .filter((action) => action.allowedProviderModels.includes('veo_3_1_lite'))
+        .every((action) => !action.allowedForTiers.basic && !action.allowedForTiers.pro && action.allowedForTiers.premium)),
+      message: 'Basic/Pro no Veo and Premium final-fallback-only Veo should be represented in fallback actions.',
+    },
+    {
+      label: 'Agent QA fallback snapshot inclusion planned',
+      passed: Boolean(plan.agentQAFallbackPlan),
+      message: 'Approved snapshots should freeze QA gates, fallback scenarios, actions, decisions, and user-review requirements.',
+    },
+    {
+      label: 'Aspect ratio frame gate exists',
+      passed: Boolean(plan.aspectRatioFramePlan),
+      message: plan.aspectRatioFramePlan
+        ? 'Aspect ratio frame planning is present.'
+        : 'Aspect ratio frame planning is missing.',
+    },
+    {
+      label: 'Output frame confirmation required',
+      passed: plan.aspectRatioFramePlan?.mustConfirmBeforeApproval === true,
+      message: 'Recommended aspect ratio must be confirmed before approval.',
+    },
+    {
+      label: 'No silent aspect-ratio default',
+      passed: plan.aspectRatioFramePlan?.status !== 'confirmed' || plan.aspectRatioFramePlan.source === 'user_selected' || plan.aspectRatioFramePlan.source === 'demo_scenario',
+      message: 'Confirmed frame must come from explicit user/demo confirmation, not a silent platform default.',
+    },
+    {
+      label: 'Downstream planning references frame',
+      passed: Boolean(
+        plan.rendererCompositionPlan?.rendererNotes.some((note) => /confirmed output frame|draft-only until the output frame/i.test(note)) ||
+        plan.providerPromptPlans?.some((prompt) => prompt.aspectRatioFrameNotes?.length),
+      ),
+      message: 'Renderer and prompt planning should reference the aspect ratio frame contract.',
+    },
+    {
+      label: 'Master Timing Plan exists',
+      passed: Boolean(plan.masterTimingPlan),
+      message: plan.masterTimingPlan
+        ? 'Master Timing Plan is present in the EditPlan.'
+        : 'Master Timing Plan is missing from the EditPlan.',
+    },
+    {
+      label: 'Timing is frame-accurate',
+      passed: Boolean(plan.masterTimingPlan?.timingBase.fps && plan.masterTimingPlan.timingBase.totalFrames >= 0),
+      message: 'Timing base must include FPS and total frames.',
+    },
+    {
+      label: 'Timing blocks approval without frame confirmation',
+      passed: plan.aspectRatioFramePlan?.status === 'confirmed' || plan.masterTimingPlan?.status === 'needs_frame_confirmation',
+      message: 'Master Timing must remain blocked/draft until the output frame is confirmed.',
+    },
+    {
+      label: 'Remotion and prompts reference timing',
+      passed: Boolean(
+        plan.rendererCompositionPlan?.masterTimingPlanId === plan.masterTimingPlan?.id &&
+        (plan.providerPromptPlans ?? []).every((prompt) => !prompt.assetPlanItemId || Boolean(prompt.timingNotes?.length)),
+      ),
+      message: 'Renderer composition and provider prompts should carry Master Timing references.',
+    },
+    {
+      label: 'No real timing analysis implied',
+      passed: Boolean(plan.masterTimingPlan?.limitations.some((limitation) => /no real transcript|no real beat|no .*audioflux|no .*media/i.test(limitation))),
+      message: 'Timing limitations must state that real transcript/audio/media analysis has not run.',
+    },
+    {
+      label: 'Caption + Visual Cue Timing Plan exists',
+      passed: Boolean(plan.captionVisualCueTimingPlan),
+      message: plan.captionVisualCueTimingPlan
+        ? 'Caption + Visual Cue Timing Plan is present in the EditPlan.'
+        : 'Caption + Visual Cue Timing Plan is missing from the EditPlan.',
+    },
+    {
+      label: 'Caption and visual cues are frame-accurate',
+      passed: Boolean(
+        plan.captionVisualCueTimingPlan?.refinedCaptionTimings.every((item) => item.timeRange.durationFrames >= 0) &&
+        plan.captionVisualCueTimingPlan.visualCueTimings.every((item) => item.timeRange.durationFrames >= 0),
+      ),
+      message: 'Refined captions and visual cues must use frame ranges.',
+    },
+    {
+      label: 'Caption/visual timing flows downstream',
+      passed: Boolean(
+        plan.providerPromptPlans?.every((prompt) => !prompt.assetPlanItemId || Boolean(prompt.captionVisualCueNotes?.length)) &&
+        plan.creditEstimate.breakdown.some((item) => /caption|visual cue|timing planning/i.test(item.label)),
+      ),
+      message: 'Renderer, prompts, credit, QA, and validation should consume the refined timing plan.',
+    },
+    {
+      label: 'Caption/visual timing remains mock-only',
+      passed: Boolean(plan.captionVisualCueTimingPlan?.limitations.some((limitation) => /mock-only|no real|no speech-to-text/i.test(limitation))),
+      message: 'Caption + Visual Cue Timing must not imply real transcript/audio/media analysis has run.',
+    },
+    {
+      label: 'SoundSync + Transition Timing Plan exists',
+      passed: Boolean(plan.soundSyncTransitionTimingPlan),
+      message: plan.soundSyncTransitionTimingPlan
+        ? 'SoundSync + Transition Timing Plan is present in the EditPlan.'
+        : 'SoundSync + Transition Timing Plan is missing from the EditPlan.',
+    },
+    {
+      label: 'Transitions and SFX are frame-accurate',
+      passed: Boolean(
+        plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings.every((item) => item.timeRange.durationFrames >= 0) &&
+        plan.soundSyncTransitionTimingPlan.refinedSfxTimings.every((item) => item.timeRange.durationFrames >= 0),
+      ),
+      message: 'Refined transitions and SFX should use frame ranges from SoundSync + Transition Timing.',
+    },
+    {
+      label: 'SFX are cue-linked',
+      passed: Boolean(plan.soundSyncTransitionTimingPlan?.refinedSfxTimings.every((item) =>
+        Boolean(item.linkedVisualCueTimingItemId || item.linkedTransitionTimingItemId) && item.reason.length > 0,
+      )),
+      message: 'SFX must link to planned cues/reasons instead of random hits.',
+    },
+    {
+      label: 'AudioFlux future-only analysis',
+      passed: Boolean(
+        plan.soundSyncTransitionTimingPlan?.beatGridPlan.status === 'not_needed' ||
+        (
+          plan.soundSyncTransitionTimingPlan?.beatGridPlan.analysisToolPlanned.includes('audioflux') &&
+          plan.soundSyncTransitionTimingPlan.limitations.some((limitation) => /no real .*audioflux|no real beat|mock-only/i.test(limitation))
+        ),
+      ),
+      message: 'AudioFlux should appear only as planned future analysis metadata, never as executed frontend work.',
+    },
+    {
+      label: 'SoundSync timing flows downstream',
+      passed: Boolean(
+        plan.providerPromptPlans?.every((prompt) => !prompt.assetPlanItemId || Boolean(prompt.soundSyncTransitionNotes?.length)) &&
+        plan.creditEstimate.breakdown.some((item) => /soundsync|transition|timing planning/i.test(item.label)),
+      ),
+      message: 'Renderer, prompts, credit, QA, validation, and snapshots should consume SoundSync transition timing.',
+    },
+    {
+      label: 'Timing Validation Plan exists',
+      passed: Boolean(plan.timingValidationPlan),
+      message: plan.timingValidationPlan
+        ? 'Timing Validation Plan is present in the EditPlan.'
+        : 'Timing Validation Plan is missing from the EditPlan.',
+    },
+    {
+      label: 'Timing validation gates approval',
+      passed: Boolean(plan.timingValidationPlan) &&
+        (!plan.timingValidationPlan?.approvalBlocked || plan.creditEstimate.approvalBlocked === true),
+      message: 'Blocking or failed timing validation should lock credit approval.',
+    },
+    {
+      label: 'Timing complexity affects credits',
+      passed: Boolean(
+        typeof plan.creditEstimate.timingCredits === 'number' &&
+        plan.creditEstimate.breakdown.some((item) => /timing planning/i.test(item.label)) &&
+        plan.timingValidationPlan?.creditProfilesUsed.length,
+      ),
+      message: 'Credit estimate should reference timing complexity and timing credit profiles.',
+    },
+    {
+      label: 'Timing validation remains mock-only',
+      passed: Boolean(plan.timingValidationPlan?.limitations.some((limitation) => /mock-only|no real|no .*audioflux|no .*render/i.test(limitation))),
+      message: 'Timing validation must not imply real transcript/audio/media analysis or rendering.',
+    },
+    {
       label: 'Basic is professional, not low quality',
       passed: !planLower.includes('basic low quality') && !planLower.includes('basic is low quality'),
       message: 'Basic is treated as lower-compute professional editing.',
@@ -1149,6 +1586,7 @@ export function createPlanningSystemAuditReport(plan: EditPlan): PlanningSystemA
       'SQL migration drafts are review-only files under database/migration-drafts/; they are not active Supabase migrations and should not be run.',
       'Migration review and RLS hardening remain hardened_draft; RLS is not tested in Supabase in this task.',
       'Supabase production-test readiness lists active migration files and manual tests; Codex did not run SQL or connect Supabase.',
+      'Master Timing is frame-accurate mock planning only; no real transcript alignment, beat detection, AudioFlux, FFmpeg, Signalsmith Stretch, Remotion render, or media worker has run.',
       'Future worker and production-readiness layers are documented as partial until backend milestones connect them.',
       'Browser-safe previews remain developer/mock-only and are not production rendering.',
     ],

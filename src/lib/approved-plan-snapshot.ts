@@ -277,6 +277,35 @@ function modelConstraintsForLevel(editLevel: EditLevel) {
 
 export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotParams): ApprovedPlanSnapshot {
   const { approvedBy, editSessionId, plan, projectId } = params
+
+  if (plan.aspectRatioFramePlan?.status !== 'confirmed') {
+    throw new Error('Cannot create an approved plan snapshot until the output frame/aspect ratio is confirmed.')
+  }
+
+  if (!plan.sourceCleanupPlan || plan.sourceCleanupPlan.status !== 'confirmed') {
+    throw new Error('Cannot create an approved plan snapshot until source cleanup preference and trim decisions are confirmed.')
+  }
+
+  if (!plan.trimReviewPlan || plan.trimReviewPlan.approvalBlocked) {
+    throw new Error('Cannot create an approved plan snapshot until retake selection and meaning preservation trim review are resolved.')
+  }
+
+  if (!plan.masterTimingPlan || plan.masterTimingPlan.status === 'needs_frame_confirmation' || plan.masterTimingPlan.status === 'blocked') {
+    throw new Error('Cannot create an approved plan snapshot until the Master Timing Plan has a confirmed timing base.')
+  }
+
+  if (!plan.captionVisualCueTimingPlan || plan.captionVisualCueTimingPlan.status === 'blocked') {
+    throw new Error('Cannot create an approved plan snapshot until Caption + Visual Cue Timing is reviewable.')
+  }
+
+  if (!plan.soundSyncTransitionTimingPlan || plan.soundSyncTransitionTimingPlan.status === 'blocked') {
+    throw new Error('Cannot create an approved plan snapshot until SoundSync + Transition Timing is reviewable.')
+  }
+
+  if (!plan.timingValidationPlan || plan.timingValidationPlan.approvalBlocked || plan.timingValidationPlan.overallStatus === 'blocking' || plan.timingValidationPlan.overallStatus === 'failed') {
+    throw new Error('Cannot create an approved plan snapshot until Timing Validation has passed or is reviewable without blocking/failing checks.')
+  }
+
   const approvedAt = nowIso()
   const editLevel = getEditLevel(plan)
   const sourceSequence = createSourceSequence(projectId, editSessionId, plan, approvedAt)
@@ -318,6 +347,16 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
       status: 'approved',
       created_at: approvedAt,
     },
+    aspectRatioFramePlan: plan.aspectRatioFramePlan,
+    sourceCleanupPlan: plan.sourceCleanupPlan,
+    trimReviewPlan: plan.trimReviewPlan,
+    editingAgentExecutionPlan: plan.editingAgentExecutionPlan,
+    asyncAssetReconciliationPlan: plan.asyncAssetReconciliationPlan,
+    agentQAFallbackPlan: plan.agentQAFallbackPlan,
+    masterTimingPlan: plan.masterTimingPlan,
+    captionVisualCueTimingPlan: plan.captionVisualCueTimingPlan,
+    soundSyncTransitionTimingPlan: plan.soundSyncTransitionTimingPlan,
+    timingValidationPlan: plan.timingValidationPlan,
     sourceSequence,
     editPlanVersion,
     segments,

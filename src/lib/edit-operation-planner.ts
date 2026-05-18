@@ -382,6 +382,19 @@ function qaItemsForSegment(segment: SegmentBase, editLevel: EditLevel): SegmentQ
       notes: segment.mustFollowRules.slice(0, 2),
     },
     {
+      id: `${segment.id}-qa-source-cleanup`,
+      category: 'source_cleanup',
+      label: 'Source cleanup',
+      check: 'Trim/select decisions must preserve meaning and match the confirmed cleanup preference.',
+      status: segment.trimDecisionItemIds?.length ? 'not_checked' : 'needs_user_review',
+      severity: segment.trimDecisionItemIds?.length ? 'medium' : 'high',
+      fallbackActions,
+      notes: [
+        ...(segment.trimDecisionItemIds?.map((id) => `Trim decision: ${id}.`) ?? ['No source cleanup decision linked yet.']),
+        'No real transcript/silence/media analysis is implied.',
+      ],
+    },
+    {
       id: `${segment.id}-qa-caption`,
       category: 'captions',
       label: 'Caption safety',
@@ -405,6 +418,9 @@ function qaItemsForSegment(segment: SegmentBase, editLevel: EditLevel): SegmentQ
 }
 
 export function createOperationsForSegment(segment: SegmentBase): EditOperationPlan[] {
+  const trimDecisionItemIds = segment.trimDecisionItemIds ?? []
+  const meaningPreservationCheckIds = segment.meaningPreservationCheckIds ?? []
+  const trimNeedsReview = meaningPreservationCheckIds.length > 0
   const operations: EditOperationPlan[] = [
     {
       id: `${segment.id}-op-trim`,
@@ -417,10 +433,17 @@ export function createOperationsForSegment(segment: SegmentBase): EditOperationP
         sourceClipIds: segment.sourceClipIds,
         sourceTimeRange: segment.sourceTimeRange,
         finalTimeRange: segment.finalTimeRange,
+        trimDecisionItemIds,
+        meaningPreservationCheckIds,
       },
-      reason: segment.storyPurpose,
-      status: 'planned',
-      qaChecks: ['Source order context preserved.', 'No important line is cut accidentally.'],
+      reason: `${segment.storyPurpose} Trim/select decisions must follow confirmed source cleanup preference.`,
+      status: trimDecisionItemIds.length && !trimNeedsReview ? 'planned' : 'needs_review',
+      qaChecks: [
+        'Source order context preserved.',
+        'No important line is cut accidentally.',
+        'Trim operation references SourceCleanupPlan decision IDs when available.',
+        'Trim operation references TrimReviewPlan meaning checks when available.',
+      ],
     },
     {
       id: `${segment.id}-op-cut`,
@@ -432,10 +455,12 @@ export function createOperationsForSegment(segment: SegmentBase): EditOperationP
       parameters: {
         pacingStyle: segment.pacingStyle,
         cutIntensity: segment.cutIntensity,
+        trimDecisionItemIds,
+        meaningPreservationCheckIds,
       },
       reason: 'Segment pacing should match the compiled professional editing direction.',
-      status: 'planned',
-      qaChecks: ['Cuts are motivated.', 'No random timing effects.'],
+      status: trimNeedsReview ? 'needs_review' : 'planned',
+      qaChecks: ['Cuts are motivated.', 'No random timing effects.', 'Risky cuts are not finalized without trim review.'],
     },
     {
       id: `${segment.id}-op-caption`,
@@ -594,6 +619,15 @@ export function createSegmentEditPlans(params: {
     )
     const visualAssetPlanItemIds = visualAssetsBySegment[index]
     const rendererLayerIds = visualAssetPlanItemIds.flatMap((assetId) => rendererLayersByAsset.get(assetId) ?? [])
+    const trimDecisions = input.sourceCleanupPlan?.decisions.filter((decision) => clip?.id === decision.clipId) ?? []
+    const trimDecisionItemIds = trimDecisions.map((decision) => decision.id)
+    const meaningPreservationChecks = input.trimReviewPlan?.meaningPreservationValidationPlan.checks.filter((check) =>
+      check.relatedClipIds.some((clipId) => clip?.id === clipId) ||
+      check.relatedTrimDecisionItemIds.some((decisionId) => trimDecisionItemIds.includes(decisionId)),
+    ) ?? []
+    const retakeSelectionItems = input.trimReviewPlan?.retakeSelectionPlan.items.filter((item) =>
+      item.candidates.some((candidate) => clip?.id === candidate.clipId),
+    ) ?? []
     const base: SegmentBase = {
       id: segmentId,
       segmentOrder: index + 1,
@@ -603,6 +637,8 @@ export function createSegmentEditPlans(params: {
       sourceClipIds: clip ? [clip.id] : [],
       sourceTimeRange,
       finalTimeRange,
+      trimDecisionItemIds,
+      meaningPreservationCheckIds: meaningPreservationChecks.map((check) => check.id),
       spokenTextSummary: seed.spokenTextSummary,
       pacingStyle: directive.pacingStyle,
       cutIntensity: directive.cutIntensity,
@@ -619,6 +655,7 @@ export function createSegmentEditPlans(params: {
         policy: adaptiveStrategy?.recommendedBrollPolicy ?? directive.brollPolicy,
         notes: [
           ...getDefaultBrollPlan(directive, input.editLevel).notes,
+          ...trimDecisions.filter((decision) => decision.finalUse === 'broll').map((decision) => `Source cleanup routes ${decision.clipId} as b-roll support.`),
           ...(adaptiveStrategy?.decisionKind === 'use_b_roll' ? ['Adaptive strategy explicitly recommends meaning-matched b-roll for this segment.'] : []),
         ],
       },
@@ -703,6 +740,19 @@ export function createSegmentEditPlans(params: {
           ? [
               `Audio pipeline planned at project/clip/timing level: ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')}.`,
               'Segment sound must match project audio pipeline; no real audio processing runs in this mock.',
+            ]
+          : []),
+        ...(input.sourceCleanupPlan
+          ? [
+              `Source cleanup status: ${input.sourceCleanupPlan.status.replaceAll('_', ' ')}.`,
+              ...trimDecisions.map((decision) => `Trim/select: ${decision.decision.replaceAll('_', ' ')} as ${decision.finalUse} because ${decision.reason}`),
+            ]
+          : []),
+        ...(input.trimReviewPlan
+          ? [
+              `Trim review status: ${input.trimReviewPlan.approvalBlocked ? 'blocked' : 'reviewable'}.`,
+              ...retakeSelectionItems.map((item) => `Retake selection: ${item.label} / ${item.confidence} confidence / ${item.reason}`),
+              ...meaningPreservationChecks.map((check) => `Meaning preservation: ${check.label} is ${check.status}.`),
             ]
           : []),
       ],

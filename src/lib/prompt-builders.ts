@@ -1,8 +1,13 @@
 import type {
+  AgentQAFallbackPlan,
+  AsyncAssetReconciliationPlan,
+} from '../types/editing-agent-runtime'
+import type {
   AdaptiveEditStrategyPlan,
   AdaptiveSegmentStrategy,
   AssetColorMatchPlan,
   AudioPipelinePlan,
+  CaptionVisualCueTimingPlan,
   CompiledEditingIntent,
   CharacterConsistencyPlan,
   ColorPipelinePlan,
@@ -11,6 +16,7 @@ import type {
   DepthAwareOverlayPlanItem,
   DocumentaryFactSafetyPlan,
   FrameLayoutPlan,
+  MasterTimingPlan,
   MapAnimationPlan,
   PlannerInput,
   ProfessionalEditingDirective,
@@ -22,8 +28,12 @@ import type {
   RenderStrategyType,
   RendererCompositionPlan,
   SegmentEditPlan,
+  SoundSyncTransitionTimingPlan,
+  SourceCleanupPlan,
   SpeakerVisualLayoutPlan,
   SpeakerVisualLayoutPlanItem,
+  TimingValidationPlan,
+  TrimReviewPlan,
   ToolStrategyPlan,
   ToolStrategyPlanItem,
   VideoUnderstandingReport,
@@ -54,6 +64,14 @@ type BasePromptParams = {
   audioPipelinePlan?: AudioPipelinePlan
   mapAnimationPlan?: MapAnimationPlan
   dataVizPlan?: DataVizPlan
+  masterTimingPlan?: MasterTimingPlan
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan
+  sourceCleanupPlan?: SourceCleanupPlan
+  trimReviewPlan?: TrimReviewPlan
+  timingValidationPlan?: TimingValidationPlan
+  asyncAssetReconciliationPlan?: AsyncAssetReconciliationPlan
+  agentQAFallbackPlan?: AgentQAFallbackPlan
   adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
   videoUnderstandingReport?: VideoUnderstandingReport
   characterConsistencyPlan?: CharacterConsistencyPlan
@@ -73,6 +91,14 @@ type BuildEditPromptPlansParams = {
   audioPipelinePlan?: AudioPipelinePlan
   mapAnimationPlan?: MapAnimationPlan
   dataVizPlan?: DataVizPlan
+  masterTimingPlan?: MasterTimingPlan
+  captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  soundSyncTransitionTimingPlan?: SoundSyncTransitionTimingPlan
+  sourceCleanupPlan?: SourceCleanupPlan
+  trimReviewPlan?: TrimReviewPlan
+  timingValidationPlan?: TimingValidationPlan
+  asyncAssetReconciliationPlan?: AsyncAssetReconciliationPlan
+  agentQAFallbackPlan?: AgentQAFallbackPlan
   adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
   videoUnderstandingReport?: VideoUnderstandingReport
   compiledIntent?: CompiledEditingIntent
@@ -197,6 +223,10 @@ function getStyleMode(styleModeId?: string) {
 }
 
 function resolveFrameTemplate(input: PlannerInput, asset?: VisualAssetPlanItem) {
+  if (input.aspectRatioFramePlan?.status === 'confirmed' && input.aspectRatioFramePlan.frameTemplateType) {
+    return getFrameLayoutTemplate(input.aspectRatioFramePlan.frameTemplateType)
+  }
+
   const templateType = asset?.frameTemplateType ?? input.frameTemplateType
 
   if (templateType && templateType !== 'let_ai_decide') {
@@ -204,6 +234,214 @@ function resolveFrameTemplate(input: PlannerInput, asset?: VisualAssetPlanItem) 
   }
 
   return getDefaultFrameTemplateForAspectRatio(input.aspectRatio)
+}
+
+function aspectRatioFrameNotes(input: PlannerInput, frameTemplate?: FrameLayoutPlan) {
+  const framePlan = input.aspectRatioFramePlan
+
+  if (!framePlan) {
+    return ['Output frame has not been planned; provider prompts remain draft-only until confirmation.']
+  }
+
+  return [
+    framePlan.status === 'confirmed'
+      ? `Confirmed output frame: ${framePlan.selectedAspectRatio} at ${framePlan.canvasWidth}x${framePlan.canvasHeight}.`
+      : `Output frame status: ${framePlan.status.replaceAll('_', ' ')}. Recommended frame is not confirmed.`,
+    framePlan.visualZone
+      ? `Assigned visual zone: ${framePlan.visualZone.width}x${framePlan.visualZone.height} inside the ReeditPro canvas.`
+      : `Assigned visual zone follows ${frameTemplate?.templateType ?? 'the selected frame template'}.`,
+    framePlan.captionSafeZone
+      ? `Caption safe zone: ${framePlan.captionSafeZone.width}x${framePlan.captionSafeZone.height}; provider output must not place important text there.`
+      : 'Caption safe zone will be resolved by the confirmed frame template.',
+    `Safe margin: ${framePlan.safeMargin}px.`,
+    `Panel background: ${framePlan.panelBackgroundColor}.`,
+    'Remotion owns the final canvas and composition.',
+    'AI models generate only the assigned asset or clip for the planned visual zone.',
+  ]
+}
+
+function masterTimingNotes(params: BasePromptParams) {
+  const masterTimingPlan = params.masterTimingPlan ?? params.input.masterTimingPlan
+  const assetTiming = masterTimingPlan?.visualTimingItems.find((item) => item.linkedVisualAssetPlanItemId === params.asset.id)
+  const providerTiming = masterTimingPlan?.providerClipTimingItems.find((item) => item.visualAssetPlanItemId === params.asset.id)
+
+  if (!masterTimingPlan) {
+    return ['Master Timing Plan is not attached; provider prompt remains draft-only.']
+  }
+
+  return [
+    `Master timing status: ${masterTimingPlan.status.replaceAll('_', ' ')}.`,
+    `Timing base: ${masterTimingPlan.timingBase.fps}fps, ${masterTimingPlan.timingBase.totalFrames} total frames.`,
+    assetTiming
+      ? `Visual cue frames: ${assetTiming.timeRange.startFrame}-${assetTiming.timeRange.endFrame}; hold ${assetTiming.holdFrames}f.`
+      : 'No asset-specific visual cue timing found.',
+    providerTiming
+      ? `Provider clip placement: ${providerTiming.placementRange.startFrame}-${providerTiming.placementRange.endFrame}f; expected ${providerTiming.expectedDurationFrames}f.`
+      : 'No provider clip timing needed for this asset.',
+    'AI video clips are assets placed by Remotion according to MasterTimingPlan.',
+  ]
+}
+
+function captionVisualCueNotes(params: BasePromptParams) {
+  const plan = params.captionVisualCueTimingPlan ?? params.input.captionVisualCueTimingPlan
+  const visualCue = plan?.visualCueTimings.find((item) => item.linkedVisualAssetPlanItemId === params.asset.id)
+  const collision = plan?.collisionPlans.find((item) => item.affectedVisualCueTimingItemIds.includes(visualCue?.id ?? ''))
+
+  if (!plan) {
+    return ['Caption + Visual Cue Timing Plan is not attached; caption/visual cue notes remain broad.']
+  }
+
+  return [
+    `Caption/visual cue timing status: ${plan.status.replaceAll('_', ' ')}.`,
+    `Caption policy: ${plan.captionPolicy.chunkingMode.replaceAll('_', ' ')} / ${plan.captionPolicy.animationStyle.replaceAll('_', ' ')}.`,
+    visualCue
+      ? `Visual cue ${visualCue.cueType.replaceAll('_', ' ')} triggers by ${visualCue.triggerType.replaceAll('_', ' ')} at ${visualCue.timeRange.startFrame}-${visualCue.timeRange.endFrame}f; hold ${visualCue.holdFrames}f, read target ${visualCue.visualReadTimeFrames}f.`
+      : 'No asset-specific refined visual cue found.',
+    collision
+      ? `Collision avoidance: ${collision.recommendation}`
+      : 'No caption/visual collision warning for this asset.',
+    'Provider assets must leave caption safe zones and main visual labels readable for Remotion placement.',
+  ]
+}
+
+function soundSyncTransitionNotes(params: BasePromptParams) {
+  const plan = params.soundSyncTransitionTimingPlan ?? params.input.soundSyncTransitionTimingPlan
+  const transition = plan?.refinedTransitionTimings.find((item) =>
+    item.fromSegmentId === params.segment?.id ||
+    item.toSegmentId === params.segment?.id,
+  )
+  const sfx = plan?.refinedSfxTimings.find((item) =>
+    item.linkedVisualCueTimingItemId && params.captionVisualCueTimingPlan?.visualCueTimings.some((cue) =>
+      cue.id === item.linkedVisualCueTimingItemId && cue.linkedVisualAssetPlanItemId === params.asset.id,
+    ),
+  )
+  const ducking = plan?.refinedMusicDuckingTimings[0]
+
+  if (!plan) {
+    return ['SoundSync + Transition Timing Plan is not attached; transition/SFX/ducking notes remain broad.']
+  }
+
+  return [
+    `SoundSync transition status: ${plan.status.replaceAll('_', ' ')}.`,
+    `Beat grid: ${plan.beatGridPlan.bpm ? `${plan.beatGridPlan.bpm} BPM` : 'voice-led/no BPM'}; ${plan.beatGridPlan.analysisToolPlanned.includes('audioflux') ? 'AudioFlux planned for future analysis only.' : 'No beat analysis needed.'}`,
+    transition
+      ? `Transition context: ${transition.transitionType.replaceAll('_', ' ')} at ${transition.timeRange.startFrame}-${transition.timeRange.endFrame}f; phrase aligned=${transition.phraseBoundaryAligned}; speech safe=${transition.beatSnapDecision?.speechSafe ?? true}.`
+      : 'No segment-specific refined transition timing found.',
+    sfx
+      ? `Cue-linked SFX: ${sfx.cueType.replaceAll('_', ' ')} at ${sfx.timeRange.startFrame}-${sfx.timeRange.endFrame}f; ${sfx.reason}`
+      : 'No asset-specific SFX cue; do not invent SFX in provider output.',
+    ducking
+      ? `Music ducking protects voice from ${ducking.timeRange.startFrame}-${ducking.timeRange.endFrame}f with ${ducking.duckingStrength} strength.`
+      : 'No ducking cue needed or attached for this asset.',
+    'AI video clips should remain silent assets unless a future approved audio-capable route explicitly scopes audio.',
+  ]
+}
+
+function timingValidationNotes(params: BasePromptParams) {
+  const plan = params.timingValidationPlan ?? params.input.timingValidationPlan
+
+  if (!plan) {
+    return ['Timing Validation Plan is not attached; prompt remains governed by frame and timing-plan gates.']
+  }
+
+  return [
+    `Timing validation status: ${plan.overallStatus}.`,
+    `Timing approval blocked: ${plan.approvalBlocked ? 'yes' : 'no'}.`,
+    `Timing credits: ${plan.totalEstimatedTimingCredits}.`,
+    ...(plan.approvalBlocked ? plan.approvalBlockReasons.slice(0, 2).map((reason) => `Timing block: ${reason}`) : []),
+    ...(plan.lowerCostRecommendations.slice(0, 2).map((recommendation) => `Timing fallback: ${recommendation.label} (${recommendation.whatChanges.join('; ')}).`)),
+    'Do not ask providers to solve timing validation; Remotion and future approved workers own timing execution.',
+  ]
+}
+
+function sourceCleanupNotes(params: BasePromptParams) {
+  const plan = params.sourceCleanupPlan ?? params.input.sourceCleanupPlan
+  const linkedDecisions = plan?.decisions.filter((decision) =>
+    (params.segment?.sourceClipIds ?? []).includes(decision.clipId) ||
+    (decision.finalUse === 'broll' && params.asset.assetType !== 'animated_scene') ||
+    (decision.finalUse === 'proof' && params.asset.assetType === 'fact_card'),
+  ) ?? []
+
+  if (!plan) {
+    return ['Source Cleanup Plan is not attached; provider prompt remains draft-safe and should not infer trim decisions.']
+  }
+
+  return [
+    `Source cleanup status: ${plan.status.replaceAll('_', ' ')}.`,
+    `Cleanup preference: ${(plan.selectedPreference ?? plan.recommendedPreference.recommendedPreference).replaceAll('_', ' ')}.`,
+    ...linkedDecisions.slice(0, 2).map((decision) => `Trim decision ${decision.id}: ${decision.decision.replaceAll('_', ' ')} as ${decision.finalUse}; ${decision.reason}`),
+    plan.cutRanges.length
+      ? `Do not generate visuals for cut ranges unless user revises cleanup: ${plan.cutRanges.slice(0, 3).map((decision) => decision.clipId).join(', ')}.`
+      : 'No cut-only range applies to this prompt.',
+    plan.status === 'confirmed'
+      ? 'Cleanup style is confirmed for this mock planning pass.'
+      : 'Provider prompt remains draft/blocked until cleanup style is confirmed.',
+    'No real transcript, silence, video, or audio analysis has run for cleanup.',
+  ]
+}
+
+function trimReviewNotes(params: BasePromptParams) {
+  const plan = params.trimReviewPlan ?? params.input.trimReviewPlan
+
+  if (!plan) {
+    return ['Trim Review Plan is not attached; prompt remains draft-safe around retake and meaning decisions.']
+  }
+
+  const linkedChecks = plan.meaningPreservationValidationPlan.checks.filter((check) =>
+    check.relatedClipIds.some((clipId) => params.segment?.sourceClipIds.includes(clipId)),
+  )
+
+  return [
+    `Trim review: ${plan.approvalBlocked ? 'blocked' : 'reviewable'}.`,
+    plan.summary,
+    ...plan.retakeSelectionPlan.items.slice(0, 2).map((item) => `Retake ${item.id}: ${item.strategy.replaceAll('_', ' ')} / confidence ${item.confidence}.`),
+    ...linkedChecks.slice(0, 2).map((check) => `Meaning check ${check.id}: ${check.status}; ${check.recommendation}`),
+    plan.approvalBlocked
+      ? 'Provider prompt remains draft/blocked until retake selection and meaning preservation review is resolved.'
+      : 'Use trim review context without asking providers to solve retake or meaning validation.',
+    'No real transcript, semantic, or media comparison has run for trim review.',
+  ]
+}
+
+function asyncReconciliationNotes(params: BasePromptParams) {
+  const plan = params.asyncAssetReconciliationPlan
+
+  if (!plan) {
+    return ['Async Asset Reconciliation Plan is not attached; provider prompt remains governed by approved plan and timing gates.']
+  }
+
+  const linkedMissingAssets = plan.finalRenderReadiness.missingRequiredAssetIds.filter((assetId) => assetId.includes(params.asset.id))
+
+  return [
+    `Async reconciliation: ${plan.checkbackItems.length} checkback(s), ${plan.mergePlanItems.length} merge item(s).`,
+    `Final render readiness: ${plan.finalRenderReadiness.ready ? 'ready' : 'waiting'}; ${plan.finalRenderReadiness.reason}`,
+    `Preview readiness: ${plan.previewRenderReadiness.ready ? 'ready' : 'waiting'}; ${plan.previewRenderReadiness.reason}`,
+    ...(linkedMissingAssets.length ? [`Blocked: required upstream asset(s) still missing for this visual route (${linkedMissingAssets.join(', ')}).`] : []),
+    'Provider outputs are not complete until assets are stored, manifested, QA-checked, reconciled, and linked to segment/timing/layer.',
+    'No real provider checkback, polling, worker event, storage, or render has run.',
+  ]
+}
+
+function agentQAFallbackNotes(params: BasePromptParams) {
+  const plan = params.agentQAFallbackPlan
+
+  if (!plan) {
+    return ['Agent QA + Fallback Plan is not attached; provider prompt remains governed by tier, timing, cleanup, trim, and reconciliation gates.']
+  }
+
+  const blockedProviderGates = plan.gateChecks.filter((gate) =>
+    gate.gateType === 'provider_request_gate' && gate.status === 'blocked'
+  )
+
+  return [
+    `Agent QA fallback: ${plan.gateChecks.length} gate(s), ${plan.failureScenarios.length} likely failure scenario(s), ${plan.decisions.length} fallback decision(s).`,
+    plan.finalRenderBlocked
+      ? 'Final render is blocked by unresolved QA/fallback decisions.'
+      : 'Final render block state is governed by required failure and fallback decisions.',
+    ...blockedProviderGates.slice(0, 2).map((gate) => `Provider gate block: ${gate.message}`),
+    'Provider fallback must preserve Basic/Pro no Veo and Premium final-fallback-only Veo.',
+    'No real QA, retry, fallback, provider call, worker event, or render has run.',
+  ]
 }
 
 function segmentForAsset(segments: SegmentEditPlan[] | undefined, assetId: string) {
@@ -264,6 +502,8 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
   const characterPacks = linkedCharacterPacks(asset, characterConsistencyPlan)
   const factSafetyItems = linkedFactSafetyItems(asset, documentaryFactSafetyPlan)
   const report = videoUnderstandingReport ?? input.videoUnderstandingReport
+  const sourceCleanupPlan = params.sourceCleanupPlan ?? input.sourceCleanupPlan
+  const trimReviewPlan = params.trimReviewPlan ?? input.trimReviewPlan
   const adaptiveStrategy = adaptiveStrategyForPrompt({ adaptiveEditStrategyPlan, asset, segment: params.segment })
   const constraints: PromptConstraint[] = [
     {
@@ -314,6 +554,24 @@ function commonConstraints(params: BasePromptParams, providerModel: ProviderMode
         : 'No video understanding report is attached; do not infer real media analysis.',
       source: 'video_understanding',
       required: Boolean(report),
+    },
+    {
+      id: `${asset.id}-constraint-source-cleanup`,
+      label: 'Source cleanup',
+      instruction: sourceCleanupPlan
+        ? `Cleanup status: ${sourceCleanupPlan.status.replaceAll('_', ' ')}. Use only source ranges whose final use supports the approved visual; do not generate visuals for cut ranges.`
+        : 'Source cleanup is not attached; keep prompt draft-safe and do not infer cuts.',
+      source: 'source_cleanup',
+      required: Boolean(sourceCleanupPlan),
+    },
+    {
+      id: `${asset.id}-constraint-trim-review`,
+      label: 'Trim review',
+      instruction: trimReviewPlan
+        ? `Trim review ${trimReviewPlan.approvalBlocked ? 'blocks approval' : 'is reviewable'}; retake selection and meaning preservation must be respected before provider execution.`
+        : 'Trim review is not attached; keep prompt draft-safe around retakes and meaning-sensitive cuts.',
+      source: 'trim_review',
+      required: Boolean(trimReviewPlan),
     },
     {
       id: `${asset.id}-constraint-adaptive-strategy`,
@@ -750,6 +1008,45 @@ function basePromptPlan(params: BasePromptParams & {
     asset,
     segment,
   })
+  const frameNotes = aspectRatioFrameNotes(input, frameTemplate)
+  const timingNotes = masterTimingNotes(params)
+  const refinedCueNotes = captionVisualCueNotes(params)
+  const soundSyncNotes = soundSyncTransitionNotes(params)
+  const validationNotes = timingValidationNotes(params)
+  const cleanupNotes = sourceCleanupNotes(params)
+  const reviewNotes = trimReviewNotes(params)
+  const reconciliationNotes = asyncReconciliationNotes(params)
+  const agentFallbackNotes = agentQAFallbackNotes(params)
+  const masterTimingPlan = params.masterTimingPlan ?? input.masterTimingPlan
+  const captionVisualCueTimingPlan = params.captionVisualCueTimingPlan ?? input.captionVisualCueTimingPlan
+  const soundSyncTransitionTimingPlan = params.soundSyncTransitionTimingPlan ?? input.soundSyncTransitionTimingPlan
+  const timingValidationPlan = params.timingValidationPlan ?? input.timingValidationPlan
+  const sourceCleanupPlan = params.sourceCleanupPlan ?? input.sourceCleanupPlan
+  const trimReviewPlan = params.trimReviewPlan ?? input.trimReviewPlan
+  const providerClipTimingItem = masterTimingPlan?.providerClipTimingItems.find((item) => item.visualAssetPlanItemId === asset.id)
+  const frameConfirmed = input.aspectRatioFramePlan?.status === 'confirmed'
+  const timingReady = !masterTimingPlan || masterTimingPlan.status !== 'needs_frame_confirmation'
+  const refinedTimingReady = !captionVisualCueTimingPlan || captionVisualCueTimingPlan.status !== 'blocked'
+  const soundSyncTimingReady = !soundSyncTransitionTimingPlan || soundSyncTransitionTimingPlan.status !== 'blocked'
+  const timingValidationReady = !timingValidationPlan || !timingValidationPlan.approvalBlocked
+  const sourceCleanupReady = !sourceCleanupPlan || sourceCleanupPlan.status === 'confirmed'
+  const trimReviewReady = !trimReviewPlan || !trimReviewPlan.approvalBlocked
+  const agentProviderGateReady = !params.agentQAFallbackPlan ||
+    !params.agentQAFallbackPlan.gateChecks.some((gate) => gate.gateType === 'provider_request_gate' && gate.status === 'blocked')
+  const gatedTierAllowed = tierAllowed && frameConfirmed && timingReady && refinedTimingReady && soundSyncTimingReady && timingValidationReady && sourceCleanupReady && trimReviewReady && agentProviderGateReady
+  const workerNotes = commonWorkerNotes(
+    providerModel,
+    params.speakerVisualLayoutItem,
+    params.depthAwareOverlayItem,
+    adaptiveStrategy,
+    params.renderStrategyItem,
+    params.toolStrategyItems ?? [],
+    params.colorPipelinePlan,
+    params.assetColorMatchPlan,
+    params.audioPipelinePlan,
+    params.mapAnimationPlan,
+    params.dataVizPlan,
+  )
 
   return {
     id: `${asset.id}-${idSuffix}`,
@@ -772,12 +1069,31 @@ function basePromptPlan(params: BasePromptParams & {
     ),
     styleModeId: styleMode?.id ?? asset.styleModeId,
     professionalEditStyle: professionalDirective?.editStyle,
-    durationSeconds: asset.providerRoute.durationSeconds || asset.recommendedDurationSeconds,
+    durationSeconds: providerClipTimingItem?.expectedDurationSeconds ?? asset.providerRoute.durationSeconds ?? asset.recommendedDurationSeconds,
     resolution: providerModel === 'veo_3_1_lite' ? '720P' : asset.providerRoute.resolution,
-    tierAllowed,
+    tierAllowed: gatedTierAllowed,
     tierPolicyNotes: commonTierNotes(input, providerModel),
     qaNotes: commonQaNotes(params),
-    workerNotes: commonWorkerNotes(providerModel, params.speakerVisualLayoutItem, params.depthAwareOverlayItem, adaptiveStrategy, params.renderStrategyItem, params.toolStrategyItems ?? [], params.colorPipelinePlan, params.assetColorMatchPlan, params.audioPipelinePlan, params.mapAnimationPlan, params.dataVizPlan),
+    workerNotes: [
+      ...workerNotes,
+      ...(frameConfirmed ? [] : ['Blocked: confirm output frame before provider prompt execution.']),
+      ...(timingReady ? [] : ['Blocked: Master Timing Plan needs frame confirmation before provider prompt execution.']),
+      ...(refinedTimingReady ? [] : ['Blocked: Caption + Visual Cue Timing Plan is blocked before provider prompt execution.']),
+      ...(soundSyncTimingReady ? [] : ['Blocked: SoundSync + Transition Timing Plan is blocked before provider prompt execution.']),
+      ...(timingValidationReady ? [] : ['Blocked: Timing Validation Plan must pass before provider prompt execution.']),
+      ...(sourceCleanupReady ? [] : ['Blocked: source cleanup preference must be confirmed before provider prompt execution.']),
+      ...(trimReviewReady ? [] : ['Blocked: trim review must be resolved before provider prompt execution.']),
+      ...reconciliationNotes,
+      ...(agentProviderGateReady ? [] : ['Blocked: Agent QA provider request gate must pass before provider prompt execution.']),
+      ...agentFallbackNotes,
+    ],
+    aspectRatioFrameNotes: frameNotes,
+    sourceCleanupNotes: cleanupNotes,
+    trimReviewNotes: reviewNotes,
+    timingNotes: [...timingNotes, ...validationNotes],
+    captionVisualCueNotes: refinedCueNotes,
+    soundSyncTransitionNotes: soundSyncNotes,
+    providerClipTimingItemId: providerClipTimingItem?.id,
     promptVersion: adaptiveStrategy ? 'mock-v4-adaptive-strategy' : params.depthAwareOverlayItem ? 'mock-v3-depth' : 'mock-v2-layout',
     characterPackIds: asset.characterPackIds,
     factSafetyItemIds: asset.factSafetyItemIds,
@@ -1748,7 +2064,7 @@ export function buildProviderPromptPlansForEditPlan(params: BuildEditPromptPlans
       colorPipelinePlan,
     })
 
-    return buildPromptPlansForAsset({
+    const promptPlans = buildPromptPlansForAsset({
       asset,
       compiledIntent,
       characterConsistencyPlan,
@@ -1774,6 +2090,18 @@ export function buildProviderPromptPlansForEditPlan(params: BuildEditPromptPlans
       toolStrategyItems,
       toolStrategyPlan,
       videoUnderstandingReport,
-    }).filter((promptPlan) => promptPlan.tierAllowed)
+      masterTimingPlan: params.masterTimingPlan,
+      captionVisualCueTimingPlan: params.captionVisualCueTimingPlan,
+      soundSyncTransitionTimingPlan: params.soundSyncTransitionTimingPlan,
+      timingValidationPlan: params.timingValidationPlan,
+      sourceCleanupPlan: params.sourceCleanupPlan,
+      trimReviewPlan: params.trimReviewPlan,
+      asyncAssetReconciliationPlan: params.asyncAssetReconciliationPlan,
+      agentQAFallbackPlan: params.agentQAFallbackPlan,
+    })
+
+    return promptInput.aspectRatioFramePlan?.status === 'confirmed'
+      ? promptPlans.filter((promptPlan) => promptPlan.tierAllowed)
+      : promptPlans
   })
 }

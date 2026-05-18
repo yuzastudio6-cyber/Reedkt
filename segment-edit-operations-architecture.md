@@ -100,6 +100,12 @@ Each segment should be able to define:
 
 These controls come from the compiled intent, the professional editing ontology, the selected edit level, source order, visual asset plan, renderer plan, and user instructions.
 
+## Source Cleanup Operations
+
+Segment trim and cut operations should reference `SourceCleanupPlan` decisions. Each trim operation carries `trimDecisionItemIds`, source range, final use, reason, risk, and QA notes.
+
+If cleanup preference is not confirmed, final trim/cut operations remain draft or needs-review and approval stays locked. Future workers execute approved trim decisions from the approved snapshot rather than improvising from raw chat.
+
 ## Tier Behavior
 
 Basic remains professional. It should include clean cuts, clean captions, natural color correction, voice leveling, tasteful simple transitions, uploaded-footage-first b-roll, and minimal generated assets. Basic never uses Veo.
@@ -115,3 +121,7 @@ Workers must execute the approved segment plan version. Workers should not impro
 If a required edit cannot be completed within the approved plan and fallback allowance, the system should request a revision or new approval. This protects user intent, credit expectations, and tier/model constraints.
 
 No real editing, FFmpeg, Remotion rendering, provider generation, export, billing, backend, or database behavior is implemented by this planning layer.
+
+## Trim Review Operations
+
+Trim and cut operations reference `TrimReviewPlan` where available. Retake selection IDs and meaning-preservation check IDs should flow into operation params, QA notes, and worker notes. If trim review blocks or requires review for risky cuts, operations remain `needs_review` and workers must not execute final trim instructions.

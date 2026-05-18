@@ -25,6 +25,8 @@ type InlineEditPlanCardProps = {
 }
 
 export function InlineEditPlanCard({ onApprove, onLowerCost, onRemoveRealMotion, plan }: InlineEditPlanCardProps) {
+  const frameConfirmed = plan.aspectRatioFramePlan?.status === 'confirmed'
+
   return (
     <section className="inline-chat-card edit-plan-chat-card">
       <div className="inline-card-heading">
@@ -98,10 +100,16 @@ export function InlineEditPlanCard({ onApprove, onLowerCost, onRemoveRealMotion,
         <p>{plan.captionDirection}</p>
       </div>
 
-      <p className="approval-gate-note">Mock progress starts only after you approve both the edit plan and credit estimate.</p>
+      <p className="approval-gate-note">
+        {frameConfirmed
+          ? 'Mock progress starts only after you approve both the edit plan and credit estimate.'
+          : 'Confirm output frame before approving the plan and credit estimate.'}
+      </p>
 
       <div className="inline-card-actions">
-        <Button onClick={onApprove} variant="primary">Approve plan and credits</Button>
+        <Button disabled={!frameConfirmed} onClick={onApprove} variant="primary">
+          {frameConfirmed ? 'Approve plan and credits' : 'Confirm output frame first'}
+        </Button>
         <Button onClick={onLowerCost} variant="secondary">Lower credit cost</Button>
         <Button onClick={onRemoveRealMotion} variant="ghost">Remove Real Motion</Button>
         <Button variant="ghost">Ask a question</Button>

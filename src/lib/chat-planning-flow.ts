@@ -13,7 +13,7 @@ type GetChatPlanningCardsParams = {
   clipsAttached: boolean
   clipCount: number
   sourceOrderConfirmed: boolean
-  formatConfirmed: boolean
+  aspectRatioConfirmed: boolean
   editLevelConfirmed: boolean
   visualPreferenceConfirmed: boolean
   intentApproved: boolean
@@ -389,10 +389,10 @@ function cardCompleted(card: ChatPlanningCardDescriptor) {
 export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPlanningCardDescriptor[] {
   const {
     approved,
+    aspectRatioConfirmed,
     clipsAttached,
     clipCount,
     editLevelConfirmed,
-    formatConfirmed,
     intentApproved,
     plan,
     previewReady,
@@ -402,7 +402,12 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
     validationReport,
     visualPreferenceConfirmed,
   } = params
-  const setupReady = sourceOrderConfirmed && formatConfirmed && editLevelConfirmed && visualPreferenceConfirmed
+  const sourceCleanupConfirmed = plan.sourceCleanupPlan?.status === 'confirmed'
+  const sourceCleanupHasReviewItems = (plan.sourceCleanupPlan?.userReviewItems.length ?? 0) > 0
+  const trimReviewBlocked = Boolean(plan.trimReviewPlan?.approvalBlocked)
+  const trimReviewUserReviewRequired = Boolean(plan.trimReviewPlan?.meaningPreservationValidationPlan.userReviewRequired || (plan.trimReviewPlan?.retakeSelectionPlan.userReviewRequiredCount ?? 0) > 0)
+  const trimReviewReady = Boolean(plan.trimReviewPlan && !trimReviewBlocked)
+  const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && sourceCleanupConfirmed && trimReviewReady && editLevelConfirmed && visualPreferenceConfirmed
   const factSafetyConcern = hasFactSafetyConcern(plan)
   const characterConcern = hasCharacterConcern(plan)
   const validationStatus = reportStatus(validationReport.status)
@@ -447,6 +452,26 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const currentMigrationDraftStatus = migrationDraftStatus(plan)
   const currentMigrationReviewStatus = migrationReviewStatus(plan)
   const currentSupabaseProductionReadinessStatus = supabaseProductionReadinessStatus(plan)
+  const editingAgentExecutionValidationStatus = validationCategoryStatus(validationReport, 'editing_agent_execution')
+  const editingAgentExecutionStatus = editingAgentExecutionValidationStatus ?? (plan.editingAgentExecutionPlan ? 'ready' : 'not_started')
+  const asyncAssetReconciliationValidationStatus = validationCategoryStatus(validationReport, 'async_asset_reconciliation')
+  const asyncAssetReconciliationStatus = asyncAssetReconciliationValidationStatus ?? (
+    !plan.asyncAssetReconciliationPlan
+      ? 'not_started'
+      : plan.asyncAssetReconciliationPlan.finalRenderReadiness.ready
+        ? 'ready'
+        : 'warning'
+  )
+  const agentQAFallbackValidationStatus = validationCategoryStatus(validationReport, 'agent_qa_fallback')
+  const agentQAFallbackStatus = agentQAFallbackValidationStatus ?? (
+    !plan.agentQAFallbackPlan
+      ? 'not_started'
+      : plan.agentQAFallbackPlan.finalRenderBlocked
+        ? 'blocking'
+        : plan.agentQAFallbackPlan.userReviewRequiredCount > 0
+          ? 'warning'
+          : 'ready'
+  )
 
   return [
     descriptor({
@@ -484,22 +509,62 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
           : 'Confirm or reorder uploaded clips.',
     }),
     descriptor({
-      id: 'frame_format',
-      label: 'Frame and output',
+      id: 'aspect_ratio_gate',
+      label: 'Output frame',
       phase: 'edit_setup',
       priority: 'required_user_action',
-      status: formatConfirmed ? 'confirmed' : sourceOrderConfirmed ? 'needs_input' : 'not_started',
-      defaultExpanded: sourceOrderConfirmed && !formatConfirmed,
+      status: aspectRatioConfirmed ? 'confirmed' : sourceOrderConfirmed ? 'needs_input' : 'not_started',
+      defaultExpanded: sourceOrderConfirmed && !aspectRatioConfirmed,
       requiredBeforeApproval: true,
-      summary: formatConfirmed ? 'Output format confirmed.' : 'Choose platform, ratio, and frame layout.',
+      summary: aspectRatioConfirmed
+        ? `Output frame confirmed: ${plan.aspectRatioFramePlan?.selectedAspectRatio ?? plan.compiledIntent?.resolvedSettings.aspectRatio ?? 'selected frame'}.`
+        : 'Confirm target aspect ratio/output frame before approval.',
+    }),
+    descriptor({
+      id: 'source_cleanup',
+      label: 'Source cleanup',
+      phase: 'edit_setup',
+      priority: 'required_user_action',
+      status: !plan.sourceCleanupPlan
+        ? 'not_started'
+        : sourceCleanupConfirmed
+          ? sourceCleanupHasReviewItems
+            ? 'warning'
+            : 'confirmed'
+          : aspectRatioConfirmed
+            ? 'needs_input'
+            : 'not_started',
+      defaultExpanded: Boolean(plan.sourceCleanupPlan && !sourceCleanupConfirmed),
+      requiredBeforeApproval: true,
+      summary: plan.sourceCleanupPlan
+        ? `${plan.sourceCleanupPlan.status.replaceAll('_', ' ')}: recommended ${plan.sourceCleanupPlan.recommendedPreference.recommendedPreference.replaceAll('_', ' ')}, ${plan.sourceCleanupPlan.decisions.length} trim decision(s), ${plan.sourceCleanupPlan.userReviewItems.length} review item(s).`
+        : 'Choose cleanup aggressiveness before approval.',
+    }),
+    descriptor({
+      id: 'trim_review',
+      label: 'Trim review',
+      phase: 'edit_setup',
+      priority: trimReviewBlocked || trimReviewUserReviewRequired ? 'required_user_action' : 'safety_detail',
+      status: !plan.trimReviewPlan
+        ? 'not_started'
+        : trimReviewBlocked
+          ? 'blocking'
+          : trimReviewUserReviewRequired
+            ? 'warning'
+            : 'ready',
+      defaultExpanded: Boolean(plan.trimReviewPlan && (trimReviewBlocked || trimReviewUserReviewRequired)),
+      requiredBeforeApproval: true,
+      summary: plan.trimReviewPlan
+        ? `${plan.trimReviewPlan.approvalBlocked ? 'Blocked' : 'Reviewable'}: ${plan.trimReviewPlan.retakeSelectionPlan.items.length} retake group(s), meaning ${plan.trimReviewPlan.meaningPreservationValidationPlan.status}.`
+        : 'Review retakes and meaning preservation before approval.',
     }),
     descriptor({
       id: 'edit_level',
       label: 'Edit level',
       phase: 'edit_setup',
       priority: 'required_user_action',
-      status: editLevelConfirmed ? 'confirmed' : formatConfirmed ? 'needs_input' : 'not_started',
-      defaultExpanded: formatConfirmed && !editLevelConfirmed,
+      status: editLevelConfirmed ? 'confirmed' : trimReviewReady ? 'needs_input' : 'not_started',
+      defaultExpanded: trimReviewReady && !editLevelConfirmed,
       requiredBeforeApproval: true,
       summary: editLevelConfirmed ? 'Edit depth confirmed.' : 'Choose Basic, Pro, or Premium depth.',
     }),
@@ -542,6 +607,89 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       defaultExpanded: adaptiveStrategyStatus === 'warning' || adaptiveStrategyStatus === 'blocking',
       requiredBeforeApproval: false,
       summary: adaptiveEditStrategySummary(plan),
+    }),
+    descriptor({
+      id: 'master_timing',
+      label: 'Master timing',
+      phase: 'plan',
+      priority: plan.masterTimingPlan?.status === 'needs_frame_confirmation' ? 'user_summary' : 'advanced_plan_detail',
+      status: plan.masterTimingPlan?.status === 'needs_frame_confirmation'
+        ? 'blocking'
+        : plan.masterTimingPlan?.status === 'needs_audio_analysis' || plan.masterTimingPlan?.status === 'needs_transcript_alignment'
+          ? 'warning'
+          : plan.masterTimingPlan
+            ? 'ready'
+            : 'not_started',
+      defaultExpanded: plan.masterTimingPlan?.status === 'needs_frame_confirmation',
+      requiredBeforeApproval: true,
+      summary: plan.masterTimingPlan
+        ? `${plan.masterTimingPlan.status.replaceAll('_', ' ')}: ${plan.masterTimingPlan.timingBase.fps}fps, ${plan.masterTimingPlan.timingBase.totalFrames} frames, ${plan.masterTimingPlan.finalTimelineSegments.length} timed segment(s).`
+        : 'Master timing is not ready.',
+    }),
+    descriptor({
+      id: 'caption_visual_cue_timing',
+      label: 'Caption + visual cue timing',
+      phase: 'plan',
+      priority: plan.captionVisualCueTimingPlan?.status === 'blocked' ||
+        (plan.captionVisualCueTimingPlan?.collisionPlans ?? []).some((item) => item.risk === 'high' || item.risk === 'blocking')
+        ? 'user_summary'
+        : 'advanced_plan_detail',
+      status: plan.captionVisualCueTimingPlan?.status === 'blocked'
+        ? 'blocking'
+        : plan.captionVisualCueTimingPlan?.status === 'needs_audio_analysis' ||
+          plan.captionVisualCueTimingPlan?.status === 'needs_transcript_alignment' ||
+          (plan.captionVisualCueTimingPlan?.collisionPlans ?? []).some((item) => item.risk === 'high' || item.risk === 'blocking')
+          ? 'warning'
+          : plan.captionVisualCueTimingPlan
+            ? 'ready'
+            : 'not_started',
+      defaultExpanded: plan.captionVisualCueTimingPlan?.status === 'blocked' ||
+        (plan.captionVisualCueTimingPlan?.collisionPlans ?? []).some((item) => item.risk === 'high' || item.risk === 'blocking'),
+      requiredBeforeApproval: true,
+      summary: plan.captionVisualCueTimingPlan
+        ? `${plan.captionVisualCueTimingPlan.status.replaceAll('_', ' ')}: ${plan.captionVisualCueTimingPlan.refinedCaptionTimings.length} captions, ${plan.captionVisualCueTimingPlan.visualCueTimings.length} visual cue(s), ${plan.captionVisualCueTimingPlan.collisionPlans.length} collision plan(s).`
+        : 'Caption and visual cue timing is not ready.',
+    }),
+    descriptor({
+      id: 'soundsync_transition_timing',
+      label: 'SoundSync + transition timing',
+      phase: 'plan',
+      priority: plan.soundSyncTransitionTimingPlan?.status === 'blocked' ||
+        (plan.soundSyncTransitionTimingPlan?.qaChecks ?? []).some((item) => item.riskLevel === 'high' || item.riskLevel === 'blocking')
+        ? 'user_summary'
+        : 'advanced_plan_detail',
+      status: plan.soundSyncTransitionTimingPlan?.status === 'blocked'
+        ? 'blocking'
+        : plan.soundSyncTransitionTimingPlan?.status === 'needs_audioflux_analysis' ||
+          (plan.soundSyncTransitionTimingPlan?.qaChecks ?? []).some((item) => item.riskLevel === 'high' || item.riskLevel === 'blocking')
+          ? 'warning'
+          : plan.soundSyncTransitionTimingPlan
+            ? 'ready'
+            : 'not_started',
+      defaultExpanded: plan.soundSyncTransitionTimingPlan?.status === 'blocked' ||
+        (plan.soundSyncTransitionTimingPlan?.qaChecks ?? []).some((item) => item.riskLevel === 'high' || item.riskLevel === 'blocking'),
+      requiredBeforeApproval: true,
+      summary: plan.soundSyncTransitionTimingPlan
+        ? `${plan.soundSyncTransitionTimingPlan.status.replaceAll('_', ' ')}: ${plan.soundSyncTransitionTimingPlan.beatGridPlan.beatItems.length} beat marker(s), ${plan.soundSyncTransitionTimingPlan.refinedTransitionTimings.length} transition(s), ${plan.soundSyncTransitionTimingPlan.refinedSfxTimings.length} SFX cue(s), ${plan.soundSyncTransitionTimingPlan.refinedMusicDuckingTimings.length} ducking cue(s).`
+        : 'SoundSync transition timing is not ready.',
+    }),
+    descriptor({
+      id: 'timing_validation',
+      label: 'Timing validation',
+      phase: 'safety_qa',
+      priority: plan.timingValidationPlan?.approvalBlocked ? 'required_user_action' : 'safety_detail',
+      status: plan.timingValidationPlan?.approvalBlocked
+        ? 'blocking'
+        : plan.timingValidationPlan?.overallStatus === 'warning' || plan.timingValidationPlan?.overallStatus === 'failed'
+          ? 'warning'
+          : plan.timingValidationPlan
+            ? 'ready'
+            : 'not_started',
+      defaultExpanded: Boolean(plan.timingValidationPlan?.approvalBlocked || plan.timingValidationPlan?.overallStatus === 'failed'),
+      requiredBeforeApproval: true,
+      summary: plan.timingValidationPlan
+        ? `${plan.timingValidationPlan.overallStatus}: ${plan.timingValidationPlan.globalChecks.length} check(s), ${plan.timingValidationPlan.totalEstimatedTimingCredits} timing credit(s), ${plan.timingValidationPlan.lowerCostRecommendations.length} lower-cost option(s).`
+        : 'Timing validation is not ready.',
     }),
     descriptor({
       id: 'tool_registry',
@@ -753,6 +901,47 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       requiredBeforeApproval: false,
       summary: `${regressionReport.status}: ${regressionReport.scenarioReports.length} demo scenarios checked.`,
       hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'editing_agent_execution',
+      label: 'Editing agent execution',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: editingAgentExecutionStatus,
+      defaultExpanded: editingAgentExecutionStatus === 'warning' || editingAgentExecutionStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: plan.editingAgentExecutionPlan
+        ? `${plan.editingAgentExecutionPlan.workItems.length} work item(s), ${plan.editingAgentExecutionPlan.assetManifest.length} asset manifest item(s), ${plan.editingAgentExecutionPlan.parallelGroups.length} parallel group(s).`
+        : 'Async execution graph is not ready.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'async_asset_reconciliation',
+      label: 'Async asset reconciliation',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: asyncAssetReconciliationStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: plan.asyncAssetReconciliationPlan
+        ? `${plan.asyncAssetReconciliationPlan.checkbackItems.length} checkback(s), ${plan.asyncAssetReconciliationPlan.mergePlanItems.length} merge item(s), final render ${plan.asyncAssetReconciliationPlan.finalRenderReadiness.ready ? 'ready' : 'waiting'}.`
+        : 'Async reconciliation plan is not ready.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'agent_qa_fallback',
+      label: 'Agent QA + fallback matrix',
+      phase: 'safety_qa',
+      priority: plan.agentQAFallbackPlan?.finalRenderBlocked || (plan.agentQAFallbackPlan?.userReviewRequiredCount ?? 0) > 0
+        ? 'safety_detail'
+        : 'developer_detail',
+      status: agentQAFallbackStatus,
+      defaultExpanded: Boolean(plan.agentQAFallbackPlan?.finalRenderBlocked || (plan.agentQAFallbackPlan?.userReviewRequiredCount ?? 0) > 0),
+      requiredBeforeApproval: agentQAFallbackStatus === 'blocking',
+      summary: plan.agentQAFallbackPlan
+        ? `${plan.agentQAFallbackPlan.gateChecks.length} gate(s), ${plan.agentQAFallbackPlan.failureScenarios.length} failure scenario(s), ${plan.agentQAFallbackPlan.decisions.length} decision(s).`
+        : 'Agent QA fallback plan is not ready.',
+      hiddenInCompactMode: agentQAFallbackStatus !== 'blocking' && agentQAFallbackStatus !== 'warning',
     }),
     descriptor({
       id: 'planning_system_audit',

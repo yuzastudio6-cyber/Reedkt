@@ -26,6 +26,8 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
   if (!rendererPlan) {
     return null
   }
+  const framePlan = plan.aspectRatioFramePlan
+  const frameConfirmed = framePlan?.status === 'confirmed'
 
   return (
     <InlinePlanCardShell
@@ -49,6 +51,7 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
         <Badge accent="cyan">Remotion planned</Badge>
         <Badge accent="muted">Mock only</Badge>
         <Badge accent="warning">Approval required</Badge>
+        <Badge accent={frameConfirmed ? 'success' : 'warning'}>{frameConfirmed ? 'Frame confirmed' : 'Draft until frame confirmed'}</Badge>
         <Badge accent="blue">Matching panel background</Badge>
       </div>
 
@@ -58,8 +61,11 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
           <span><strong>Engine</strong>Remotion</span>
           <span><strong>Aspect ratio</strong>{rendererPlan.frameTemplate.aspectRatio}</span>
           <span><strong>Canvas</strong>{rendererPlan.frameTemplate.canvasWidth}x{rendererPlan.frameTemplate.canvasHeight}</span>
+          <span><strong>Frame gate</strong>{frameConfirmed ? 'Confirmed' : 'Needs confirmation'}</span>
+          <span><strong>Source fit</strong>{framePlan?.sourceToOutputFramePlan?.fitMode.replaceAll('_', ' ') ?? 'Not planned'}</span>
           <span><strong>FPS</strong>{rendererPlan.fps}</span>
           <span><strong>Estimated duration</strong>{formatTime(rendererPlan.durationSeconds)}</span>
+          <span><strong>Timing source</strong>{rendererPlan.masterTimingPlanId ? 'Master Timing Plan' : 'Renderer mock timing'}</span>
           <span><strong>Panel background</strong>{rendererPlan.panelBackgroundColor}</span>
           <span><strong>Approval</strong>{rendererPlan.approvalRequired ? 'Required' : 'Not required'}</span>
           <span><strong>Render ready</strong>{rendererPlan.renderReady ? 'Ready' : 'False / mock only'}</span>

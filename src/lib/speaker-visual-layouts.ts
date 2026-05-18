@@ -39,7 +39,7 @@ type GetDefaultLayoutForAssetParams = {
   segment?: SegmentEditPlan
 }
 
-const allRatios: AspectRatio[] = ['9:16', '16:9', '1:1', 'let_ai_decide']
+const allRatios: AspectRatio[] = ['9:16', '16:9', '1:1', '4:5', '4:3', 'let_ai_decide']
 const allTiers: LayoutTierAvailability = { basic: true, pro: true, premium: true }
 const proPremiumOnly: LayoutTierAvailability = { basic: false, pro: true, premium: true }
 const premiumOnly: LayoutTierAvailability = { basic: false, pro: false, premium: true }

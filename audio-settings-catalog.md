@@ -185,3 +185,13 @@ Planned QA thresholds include voice too quiet warning, music over voice warning,
 - librosa and whisper.cpp remain future/prototype research tools.
 - Essentia and Rubber Band are not selected for launch defaults.
 - No audio tool runs from this frontend/mock catalog.
+
+## SoundSync Transition Timing Settings
+
+RP-TIMING-03 adds mock settings for beat-grid confidence, snap tolerance, music phrase sections, transition duration frames, SFX density, and ducking attack/release frames. These settings are planning metadata only.
+
+Speech-safe snap decisions prefer phrase boundaries over beats when a beat would cut important words. AudioFlux is the future analysis candidate for beat, onset, and energy analysis. Signalsmith Stretch remains stretch/pitch-only. Essentia and Rubber Band are not launch defaults.
+
+## Timing Validation Settings
+
+Timing validation uses the planned settings to flag missing ducking, high SFX density, beat sync that is not speech-safe, and timing complexity that affects credits. These checks remain structured mock validation only and do not execute audio tools.

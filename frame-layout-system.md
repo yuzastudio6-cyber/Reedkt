@@ -65,3 +65,9 @@ AI video generation should default to matching the approved panel background.
 - Near-white or custom panel colors may be used when the brand/style plan requires it.
 - Do not require transparent AI video backgrounds for default animation routing.
 - Use transparent overlays only when a deterministic renderer can provide controlled, inspectable output.
+
+## RP-FRAME-02 Frame Gate
+
+ReeditPro must not silently default to an aspect ratio. Platform and workflow context may recommend `9:16`, `16:9`, `1:1`, `4:5`, or `4:3`, but the recommendation is draft-only until the user confirms the output frame in chat.
+
+All downstream layout, prompt, tool, Remotion, credit, approved snapshot, worker-runtime, and export planning must use the confirmed frame. Changing the frame resets approval, progress, preview, and approved snapshot state.

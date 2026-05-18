@@ -102,6 +102,8 @@ function firstMatch<T extends string>(text: string, matches: KeywordMatch<T>[]) 
 function getFrameForAspectRatio(aspectRatio: AspectRatio): FrameTemplateType {
   if (aspectRatio === '16:9') return 'youtube_side_panel'
   if (aspectRatio === '1:1') return 'square_center_panel'
+  if (aspectRatio === '4:5') return 'portrait_feed_lower_panel'
+  if (aspectRatio === '4:3') return 'classic_documentary_center_panel'
   if (aspectRatio === 'let_ai_decide') return 'let_ai_decide'
   return 'vertical_talking_head_lower_panel'
 }

@@ -69,6 +69,9 @@ export function createRenderStrategyPlan(params: {
       'Premium may reference Veo only as final fallback/rescue.',
       'No generated route defaults to 1080P.',
       'AI video generation uses matching panel backgrounds by default.',
+      params.input.aspectRatioFramePlan?.status === 'confirmed'
+        ? `Render strategy uses confirmed output frame ${params.input.aspectRatioFramePlan.selectedAspectRatio}.`
+        : 'Render strategy is draft until the user confirms the output frame.',
       'This render strategy is mock planning only; no Remotion render, package install, provider call, or tool execution happens here.',
     ],
     qaChecks: [
@@ -83,6 +86,9 @@ export function createRenderStrategyPlan(params: {
         ? `Tool registry available: ${params.toolRegistrySummary.launchCoreToolCount} launch-core tools, ${params.toolRegistrySummary.needsLicenseReviewCount} license-review item(s).`
         : 'Tool registry summary was not supplied; strategy remains planning-only.',
       params.compiledIntent?.goalSummary ? `Compiled goal: ${params.compiledIntent.goalSummary}` : 'No compiled goal supplied to render strategy planner.',
+      params.input.aspectRatioFramePlan?.status === 'confirmed'
+        ? `Confirmed frame canvas: ${params.input.aspectRatioFramePlan.canvasWidth}x${params.input.aspectRatioFramePlan.canvasHeight}.`
+        : 'Output frame is not confirmed; render strategy cannot become approval-ready.',
       'Provider models remain separate from open-source tool IDs.',
     ],
   }
@@ -569,9 +575,13 @@ function workerNotesForStrategy(params: {
   strategyType: RenderStrategyType
   tools: OpenSourceToolId[]
   depthItem?: DepthAwareOverlayPlanItem
+  input: PlannerInput
 }) {
   return [
     'Mock planning only: no packages are installed and no tools are executed.',
+    params.input.aspectRatioFramePlan?.status === 'confirmed'
+      ? `Use confirmed output frame ${params.input.aspectRatioFramePlan.selectedAspectRatio} for future worker inputs.`
+      : 'Frame confirmation is required before future worker inputs can be approved.',
     'Remotion owns final layout/composition after approved assets or tool outputs exist.',
     params.strategyType === 'worker_preprocess_then_remotion'
       ? 'Future worker preprocess output is required before Remotion placement.'
@@ -661,6 +671,6 @@ function createRenderStrategyItem(
     ...fallback,
     settings: settingsForStrategy({ adaptiveStrategy, asset, layoutItem, strategyType, tools }),
     qaChecks: qaChecksForStrategy({ capabilities, depthItem, input: params.input, strategyType, tools }),
-    workerNotes: workerNotesForStrategy({ depthItem, strategyType, tools }),
+    workerNotes: workerNotesForStrategy({ depthItem, input: params.input, strategyType, tools }),
   }
 }

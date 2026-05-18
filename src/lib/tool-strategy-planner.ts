@@ -827,6 +827,9 @@ export function createToolStrategyPlan(params: CreateToolStrategyPlanParams): To
       'Controlled tools are preferred for exact maps, charts, labels, captions, screenshots, color, audio, and QA.',
       'Provider models such as GPT-Image-2, Wan, Hailuo, and Veo are not open-source tools.',
       'Remotion owns final canvas/composition.',
+      params.input.aspectRatioFramePlan?.status === 'confirmed'
+        ? `Tool planning uses confirmed output frame ${params.input.aspectRatioFramePlan.selectedAspectRatio}.`
+        : 'Tool planning remains draft until the output frame is confirmed.',
       'No packages are installed and no tools are executed in this frontend demo.',
       'Tool execution in future workers requires approved plan snapshots and credit approval.',
       params.input.editLevel === 'premium' ? 'Premium may reference Veo only as final fallback/rescue.' : 'Basic/Pro cannot use Veo.',
@@ -840,6 +843,9 @@ export function createToolStrategyPlan(params: CreateToolStrategyPlanParams): To
     ],
     notes: [
       params.renderStrategyPlan ? `Render strategy source: ${params.renderStrategyPlan.summary}` : 'No render strategy plan was supplied; only global tool planning is available.',
+      params.input.aspectRatioFramePlan?.status === 'confirmed'
+        ? `Confirmed frame canvas: ${params.input.aspectRatioFramePlan.canvasWidth}x${params.input.aspectRatioFramePlan.canvasHeight}.`
+        : 'Output frame is unconfirmed; future worker tool inputs are blocked.',
       params.videoUnderstandingReport ? 'Video understanding cues informed tool strategy selection.' : 'No video understanding report supplied to tool strategy planner.',
       'This module imports registry/settings metadata only; it does not import FFmpeg, OpenCV, MapLibre, D3, ECharts, Playwright, Sharp/libvips, OpenColorIO, AudioFlux, Signalsmith Stretch, Essentia, Remotion, or provider SDKs.',
     ],

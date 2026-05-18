@@ -150,6 +150,72 @@ export const frameLayoutTemplates: Record<FrameTemplateType, FrameLayoutPlan> = 
     panelBackgroundColor: '#FFFFFF',
     notes: ['Square centered-panel layout.', 'Works for cards, lists, proof visuals, and short story beats.'],
   },
+  portrait_feed_lower_panel: {
+    templateType: 'portrait_feed_lower_panel',
+    aspectRatio: '4:5',
+    canvasWidth: 1080,
+    canvasHeight: 1350,
+    speakerZone: {
+      x: 90,
+      y: 90,
+      width: 900,
+      height: 620,
+      label: 'Portrait speaker zone',
+      notes: 'Keep faces, products, and body language inside feed-safe margins.',
+    },
+    animationZone: {
+      x: 90,
+      y: 780,
+      width: 900,
+      height: 360,
+      label: 'Portrait lower visual panel',
+      notes: 'Use for cards, proof visuals, compact charts, and product detail panels.',
+    },
+    captionSafeZone: {
+      x: 120,
+      y: 670,
+      width: 840,
+      height: 180,
+      label: 'Portrait caption safe zone',
+      notes: 'Keep captions between speaker framing and lower-panel visuals.',
+    },
+    safeMargin: 80,
+    panelBackgroundColor: '#FFFFFF',
+    notes: ['Portrait feed 4:5 layout.', 'Useful for feed-safe social edits and product/story posts.'],
+  },
+  classic_documentary_center_panel: {
+    templateType: 'classic_documentary_center_panel',
+    aspectRatio: '4:3',
+    canvasWidth: 1440,
+    canvasHeight: 1080,
+    speakerZone: {
+      x: 90,
+      y: 90,
+      width: 560,
+      height: 720,
+      label: 'Documentary speaker/source zone',
+      notes: 'Keep archival or speaker footage readable without over-cropping.',
+    },
+    animationZone: {
+      x: 720,
+      y: 140,
+      width: 600,
+      height: 560,
+      label: 'Classic visual evidence panel',
+      notes: 'Use for archive cards, maps, evidence boards, or supporting visuals.',
+    },
+    captionSafeZone: {
+      x: 130,
+      y: 820,
+      width: 1180,
+      height: 150,
+      label: 'Classic caption safe zone',
+      notes: 'Keep captions wide, quiet, and separate from archive/evidence visuals.',
+    },
+    safeMargin: 80,
+    panelBackgroundColor: '#FFFFFF',
+    notes: ['Classic 4:3 documentary layout.', 'Useful for archive, case-study, or deliberately classic formats.'],
+  },
   let_ai_decide: {
     templateType: 'let_ai_decide',
     aspectRatio: 'let_ai_decide',
@@ -161,7 +227,7 @@ export const frameLayoutTemplates: Record<FrameTemplateType, FrameLayoutPlan> = 
       width: 900,
       height: 980,
       label: 'Default speaker zone',
-      notes: 'Safe default until the planner chooses a ratio-specific template.',
+      notes: 'Draft placeholder only. A user-confirmed frame is required before approval.',
     },
     animationZone: {
       x: 90,
@@ -169,7 +235,7 @@ export const frameLayoutTemplates: Record<FrameTemplateType, FrameLayoutPlan> = 
       width: 900,
       height: 540,
       label: 'Default lower animation panel',
-      notes: 'Defaults to the vertical lower-panel pattern.',
+      notes: 'Draft placeholder only; not render-ready until a concrete output frame is confirmed.',
     },
     captionSafeZone: {
       x: 120,
@@ -181,12 +247,35 @@ export const frameLayoutTemplates: Record<FrameTemplateType, FrameLayoutPlan> = 
     },
     safeMargin: 90,
     panelBackgroundColor: '#FFFFFF',
-    notes: ['Planner should resolve this to a concrete ratio-specific template before generation.'],
+    notes: [
+      'Draft placeholder only.',
+      'Planner must resolve this to a user-confirmed concrete ratio before approval, generation, rendering, or export.',
+    ],
   },
 }
 
 export function getFrameLayoutTemplate(templateType: FrameTemplateType) {
   return frameLayoutTemplates[templateType]
+}
+
+export function getFrameCanvasForAspectRatio(aspectRatio: AspectRatio) {
+  if (aspectRatio === '16:9') {
+    return { width: 1920, height: 1080 }
+  }
+
+  if (aspectRatio === '1:1') {
+    return { width: 1080, height: 1080 }
+  }
+
+  if (aspectRatio === '4:5') {
+    return { width: 1080, height: 1350 }
+  }
+
+  if (aspectRatio === '4:3') {
+    return { width: 1440, height: 1080 }
+  }
+
+  return { width: 1080, height: 1920 }
 }
 
 export function getDefaultFrameTemplateForAspectRatio(aspectRatio: AspectRatio) {
@@ -196,6 +285,18 @@ export function getDefaultFrameTemplateForAspectRatio(aspectRatio: AspectRatio) 
 
   if (aspectRatio === '1:1') {
     return frameLayoutTemplates.square_center_panel
+  }
+
+  if (aspectRatio === '4:5') {
+    return frameLayoutTemplates.portrait_feed_lower_panel
+  }
+
+  if (aspectRatio === '4:3') {
+    return frameLayoutTemplates.classic_documentary_center_panel
+  }
+
+  if (aspectRatio === 'let_ai_decide') {
+    return frameLayoutTemplates.let_ai_decide
   }
 
   return frameLayoutTemplates.vertical_talking_head_lower_panel

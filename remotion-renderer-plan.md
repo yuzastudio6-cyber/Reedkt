@@ -60,3 +60,60 @@ Transparent overlays remain a future option for deterministic SVG, Lottie, Remot
 - Do not use Hyperframe for launch.
 - Do not install Remotion or renderer infrastructure until the backend/rendering milestone.
 - Keep renderer planning frontend/mock-only until explicit rendering work is requested.
+
+## RP-FRAME-02 Output Frame Gate
+
+Remotion composition planning must derive canvas size, safe zones, panel zones, caption placement, and export assumptions from the user-confirmed output frame. A platform recommendation is not enough.
+
+## Master Timing Dependency
+
+The Renderer Composition Plan should reference `masterTimingPlanId`. Remotion sequence duration, fps, layer start/end frames, caption layer timing, visual panel timing, and transition timing should come from the Master Timing Plan.
+
+This milestone still does not render video. Master Timing is frame-accurate mock metadata and future Remotion workers must use the approved snapshot timing contract before production rendering.
+
+## Caption + Visual Cue Timing Dependency
+
+Renderer planning should prefer refined Caption + Visual Cue Timing when it exists. Caption layers should use refined caption frame ranges and animation policy. Visual layers should use visual cue trigger frames, reveal/hold/exit timing, read-time notes, and collision recommendations.
+
+This still does not render. The refined timing is metadata for future Remotion workers.
+
+If the frame is unconfirmed, renderer planning remains draft-only and must not claim render-ready. Changing the frame resets approval, progress, preview, and the approved snapshot.
+
+## SoundSync + Transition Timing Inputs
+
+Remotion composition planning should consume `SoundSyncTransitionTimingPlan` when present. Transition layers use refined start/end frames, SFX markers use cue-linked frame timing, and audio mix briefs reference ducking ranges from the refined plan.
+
+This is still planning-only. Browser-safe preview is not production rendering, and RP-TIMING-03 does not execute Remotion, FFmpeg, AudioFlux, Signalsmith Stretch, SFX generation, or media processing.
+
+## Timing Validation Gate
+
+Renderer composition planning should reference timing validation status when available. If timing validation is blocking or failed, the renderer plan must not be render-ready and approved snapshots must not freeze the plan.
+
+## Editing Agent Execution Dependency
+
+The Editing Agent Execution Plan models future renderer work as async work items:
+
+- prepare Remotion layer metadata
+- allow browser-safe placeholders only when a dependency explicitly permits `can_use_placeholder`
+- wait for required generated/provider/tool assets before final export
+- run timing and final QA before final render
+- store the final export as an asset manifest entry after future render completion
+
+This lets independent caption, timing, layout, asset, and QA work continue while provider/tool jobs are pending. It does not execute Remotion rendering, create queues, or store render outputs in this frontend milestone.
+
+Remotion layer timing still comes from Master Timing plus refined Caption/Visual and SoundSync timing. Timing validation checks the structured plan only; it does not render or inspect frames.
+## Async Asset Readiness
+
+Remotion remains the final compositor, but final render readiness must respect `AsyncAssetReconciliationPlan` when present.
+
+Final render waits for required assets, merged renderer layers, timing validation, trim review resolution, QA, and an approved snapshot. Preview rendering may use placeholders only when dependency readiness explicitly allows `can_use_placeholder`, and those placeholders must never be treated as final required assets.
+
+This milestone does not run Remotion, render previews, render final exports, store assets, check provider status, or execute workers.
+
+## Agent QA + Fallback Readiness
+
+Renderer planning should respect `AgentQAFallbackPlan` when present. A blocked render preflight gate or unresolved required failure keeps final render blocked.
+
+Preview can continue only with explicitly planned placeholders. Final render must wait for required assets, QA gates, fallback decisions, timing validation, trim review, and approved snapshot readiness.
+
+No real rendering, QA, retry, fallback execution, provider call, or worker execution happens in this frontend mock.

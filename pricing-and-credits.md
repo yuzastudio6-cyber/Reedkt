@@ -81,3 +81,9 @@ Weekly bonus credits are included with the Personal plan and should follow weekl
 Purchased credits are bought separately and should be tracked separately from weekly bonus credits in future backend work.
 
 Business credits should be tracked as production/business usage and may require stronger reporting later.
+
+## Timing Complexity Credits
+
+Timing complexity affects Reedit Credits when a plan includes frame-accurate caption animation, visual cue timing, SoundSync, transitions, SFX, music ducking, AI clip duration, and Remotion layer timing.
+
+Basic remains professional with simpler timing. Pro and Premium can include deeper timing when useful. High timing complexity should show lower-cost alternatives such as simpler captions, fewer SFX cues, phrase cuts only, shorter AI clips, static cards, simpler transitions, or voice-only timing. No real credit deduction happens in frontend/mock planning.

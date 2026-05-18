@@ -45,6 +45,7 @@ import {
 } from './source-sequence'
 import { createVisualAssetPlan } from './story-asset-planner'
 import { createMockVideoUnderstandingReport } from './video-understanding'
+import { createWorkerRuntimePlan } from './worker-runtime-planner'
 import { getWorkflowProfile } from './workflow-profiles'
 
 export const mockPlannerLoadingSteps = [
@@ -1190,7 +1191,22 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
         : `${profile.label} gives workflow context, but the edit plan chooses the hook based on goal, platform, and footage.`,
   } satisfies EditPlan['hookDecision']
 
-  return {
+  const creditEstimateParams = {
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan,
+    colorPipelinePlan,
+    dataVizPlan,
+    depthAwareLayoutValidationPlan,
+    depthAwareOverlayPlan,
+    mapAnimationPlan,
+    renderStrategyPlan: renderStrategyPlanWithDepthValidation,
+    rendererCompositionPlan: rendererCompositionPlanWithDepthValidation,
+    speakerVisualLayoutPlan,
+    toolStrategyPlan: toolStrategyPlanWithDepthValidation,
+    visualAssetPlan: visualAssetPlanWithRenderStrategy,
+  }
+
+  const editPlanWithoutWorkerRuntime: EditPlan = {
     goalSummary: compiledIntent.goalSummary,
     sourceSequenceMap,
     sourceSequenceReview: createSourceSequenceReviewState({
@@ -1249,7 +1265,43 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
         : 'Use SoundSync for mood, beat timing, transition sounds, ducking, and emotional polish while speech stays clear.',
     captionDirection: 'Use readable captions that avoid faces, important objects, and Real Motion placement zones.',
-    creditEstimate: createCreditEstimate(analysisInput, { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, dataVizPlan, depthAwareLayoutValidationPlan, depthAwareOverlayPlan, mapAnimationPlan, renderStrategyPlan: renderStrategyPlanWithDepthValidation, rendererCompositionPlan: rendererCompositionPlanWithDepthValidation, speakerVisualLayoutPlan, toolStrategyPlan: toolStrategyPlanWithDepthValidation, visualAssetPlan: visualAssetPlanWithRenderStrategy }),
+    creditEstimate: createCreditEstimate(analysisInput, creditEstimateParams),
     approvalRequired: true,
+  }
+  const workerRuntimePlan = createWorkerRuntimePlan({
+    projectId: 'mock-project',
+    editPlanVersionId: 'mock-plan-version-v1',
+    plan: editPlanWithoutWorkerRuntime,
+  })
+
+  return {
+    ...editPlanWithoutWorkerRuntime,
+    workerRuntimePlan,
+    editQAPlan: createEditQAPlan({
+      adaptiveEditStrategyPlan,
+      audioPipelinePlan,
+      characterConsistencyPlan,
+      colorPipelinePlan,
+      compiledIntent,
+      depthAwareOverlayPlan,
+      depthAwareLayoutValidationPlan,
+      documentaryFactSafetyPlan,
+      foregroundMaskingPlan,
+      input: analysisInput,
+      dataVizPlan,
+      mapAnimationPlan,
+      renderStrategyPlan: renderStrategyPlanWithDepthValidation,
+      rendererCompositionPlan: rendererCompositionPlanWithDepthValidation,
+      segmentEditPlans: segmentEditPlansWithAudioMapDataVizAndPrompts,
+      speakerVisualLayoutPlan,
+      toolStrategyPlan: toolStrategyPlanWithDepthValidation,
+      videoUnderstandingReport,
+      visualAssetPlan: visualAssetPlanWithPrompts,
+      workerRuntimePlan,
+    }),
+    creditEstimate: createCreditEstimate(analysisInput, {
+      ...creditEstimateParams,
+      workerRuntimePlan,
+    }),
   }
 }

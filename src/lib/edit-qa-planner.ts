@@ -23,6 +23,7 @@ import type {
   VideoUnderstandingReport,
   VisualAssetPlanItem,
 } from '../types/reeditpro'
+import type { WorkerRuntimePlan } from '../types/worker-runtime'
 
 function fallbackActionsForLevel(editLevel: EditLevel): FallbackStep[] {
   if (editLevel === 'premium') {
@@ -1491,6 +1492,106 @@ function createDepthLayoutValidationChecks(input: PlannerInput, depthAwareLayout
   ]
 }
 
+function createWorkerRuntimeChecks(input: PlannerInput, workerRuntimePlan?: WorkerRuntimePlan) {
+  if (!workerRuntimePlan) {
+    return [
+      createQAItem({
+        id: 'qa-worker-runtime-missing',
+        category: 'worker_runtime',
+        label: 'Worker runtime plan exists',
+        check: 'Mock edit plans should include a future worker runtime plan before approval.',
+        editLevel: input.editLevel,
+        severity: 'medium',
+        status: 'not_checked',
+        notes: ['No workerRuntimePlan is present in this QA input.'],
+      }),
+    ]
+  }
+
+  const text = JSON.stringify(workerRuntimePlan).toLowerCase()
+  const aiVideoStep = workerRuntimePlan.jobs.flatMap((job) => job.steps).find((step) => step.stepType === 'generate_ai_video_asset')
+  const aiVideoModels = aiVideoStep?.fallbackPolicy.allowedProviderModels ?? []
+  const basicProHasVeo = input.editLevel !== 'premium' && aiVideoModels.includes('veo_3_1_lite')
+  const premiumVeoUnsafe = input.editLevel === 'premium' &&
+    aiVideoModels.includes('veo_3_1_lite') &&
+    !aiVideoStep?.workerNotes.some((note) => /final fallback/i.test(note))
+  const browserStep = workerRuntimePlan.jobs.flatMap((job) => job.steps).find((step) => step.stepType === 'capture_browser_asset')
+  const maskStep = workerRuntimePlan.jobs.flatMap((job) => job.steps).find((step) => step.stepType === 'generate_mask_asset')
+
+  return [
+    createQAItem({
+      id: 'qa-worker-runtime-front-end-disabled',
+      category: 'worker_runtime',
+      label: 'Frontend execution disabled',
+      check: 'Worker runtime plan must not allow frontend execution.',
+      editLevel: input.editLevel,
+      severity: workerRuntimePlan.frontendExecutionAllowed ? 'blocking' : 'low',
+      status: workerRuntimePlan.frontendExecutionAllowed ? 'failed' : 'passed',
+      notes: [`frontendExecutionAllowed: ${workerRuntimePlan.frontendExecutionAllowed}`],
+    }),
+    createQAItem({
+      id: 'qa-worker-runtime-approval-credit',
+      category: 'worker_runtime',
+      label: 'Approval and credit reservation required',
+      check: 'Future workers need approval and credit reservation before expensive work.',
+      editLevel: input.editLevel,
+      severity: workerRuntimePlan.approvalRequired && workerRuntimePlan.creditReservationRequired ? 'low' : 'blocking',
+      status: workerRuntimePlan.approvalRequired && workerRuntimePlan.creditReservationRequired ? 'passed' : 'failed',
+      notes: [`approvalRequired: ${workerRuntimePlan.approvalRequired}`, `creditReservationRequired: ${workerRuntimePlan.creditReservationRequired}`],
+    }),
+    createQAItem({
+      id: 'qa-worker-runtime-approved-snapshot-only',
+      category: 'worker_runtime',
+      label: 'Approved snapshot execution',
+      check: 'Workers execute approved snapshots, not raw chat.',
+      editLevel: input.editLevel,
+      severity: text.includes('approved plan snapshots') || text.includes('approved snapshots') ? 'low' : 'blocking',
+      status: text.includes('approved plan snapshots') || text.includes('approved snapshots') ? 'passed' : 'failed',
+      notes: workerRuntimePlan.globalRules.filter((rule) => /snapshot|raw chat/i.test(rule)),
+    }),
+    createQAItem({
+      id: 'qa-worker-runtime-veo-policy',
+      category: 'worker_runtime',
+      label: 'Worker model fallback policy',
+      check: 'Worker fallback policy must preserve Basic/Pro no Veo and Premium final-fallback-only Veo.',
+      editLevel: input.editLevel,
+      severity: basicProHasVeo || premiumVeoUnsafe ? 'blocking' : 'low',
+      status: basicProHasVeo || premiumVeoUnsafe ? 'failed' : 'passed',
+      notes: aiVideoModels.length ? aiVideoModels : ['No AI video worker fallback models referenced.'],
+    }),
+    createQAItem({
+      id: 'qa-worker-runtime-browser-capture-safety',
+      category: 'worker_runtime',
+      label: 'Browser capture safety',
+      check: 'Browser capture worker notes must require authorized sources and no bypass behavior.',
+      editLevel: input.editLevel,
+      severity: browserStep && !browserStep.workerNotes.some((note) => /authorized|bypass|captcha|paywall/i.test(note)) ? 'blocking' : 'low',
+      status: !browserStep || browserStep.workerNotes.some((note) => /authorized|bypass|captcha|paywall/i.test(note)) ? 'passed' : 'failed',
+      notes: browserStep?.workerNotes.slice(0, 3) ?? ['No browser capture worker step needed for this plan.'],
+    }),
+    createQAItem({
+      id: 'qa-worker-runtime-mask-future-only',
+      category: 'worker_runtime',
+      label: 'Mask worker future-only',
+      check: 'Mask worker notes must say future worker required and no frontend mask execution.',
+      editLevel: input.editLevel,
+      severity: maskStep && !maskStep.workerNotes.some((note) => /future|no real mask|frontend/i.test(note)) ? 'blocking' : 'low',
+      status: !maskStep || maskStep.workerNotes.some((note) => /future|no real mask|frontend/i.test(note)) ? 'passed' : 'failed',
+      notes: maskStep?.workerNotes.slice(0, 3) ?? ['No mask worker step needed for this plan.'],
+    }),
+    createQAItem({
+      id: 'qa-worker-runtime-mock-only',
+      category: 'worker_runtime',
+      label: 'No worker execution in mock',
+      check: 'Worker runtime plan must state that no backend workers run in the frontend mock.',
+      editLevel: input.editLevel,
+      severity: workerRuntimePlan.limitations.some((note) => /no workers are executed|mock/i.test(note)) ? 'low' : 'blocking',
+      status: workerRuntimePlan.limitations.some((note) => /no workers are executed|mock/i.test(note)) ? 'passed' : 'failed',
+      notes: workerRuntimePlan.limitations,
+    }),
+  ]
+}
+
 function createSafetyChecks(input: PlannerInput) {
   if (input.editingCategory !== 'documentary_case_study') {
     return []
@@ -1626,6 +1727,7 @@ export function createEditQAPlan(params: {
   videoUnderstandingReport?: VideoUnderstandingReport
   characterConsistencyPlan?: CharacterConsistencyPlan
   documentaryFactSafetyPlan?: DocumentaryFactSafetyPlan
+  workerRuntimePlan?: WorkerRuntimePlan
 }): EditQAPlan {
   const {
     adaptiveEditStrategyPlan,
@@ -1646,6 +1748,7 @@ export function createEditQAPlan(params: {
     dataVizPlan,
     videoUnderstandingReport,
     visualAssetPlan,
+    workerRuntimePlan,
   } = params
   const globalChecks = [
     ...createGlobalChecks(input, compiledIntent, rendererCompositionPlan),
@@ -1666,6 +1769,7 @@ export function createEditQAPlan(params: {
     ...createSpeakerVisualLayoutChecks(input, speakerVisualLayoutPlan),
     ...createDepthAwareOverlayChecks(input, depthAwareOverlayPlan),
     ...createDepthLayoutValidationChecks(input, depthAwareLayoutValidationPlan),
+    ...createWorkerRuntimeChecks(input, workerRuntimePlan),
     ...createSafetyChecks(input),
     ...createCharacterConsistencyChecks(input, characterConsistencyPlan),
     ...createFactSafetyChecks(input, documentaryFactSafetyPlan),

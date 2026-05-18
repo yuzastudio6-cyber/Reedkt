@@ -64,6 +64,7 @@ import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
 import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
 import { InlineVisualAssetPlanCard } from './InlineVisualAssetPlanCard'
 import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
+import { InlineWorkerRuntimePlanCard } from './InlineWorkerRuntimePlanCard'
 import { MinimalProjectHeader } from './MinimalProjectHeader'
 import { MusicPlanChatFlow } from './music/MusicPlanChatFlow'
 import { PreviewReadyCard } from './PreviewReadyCard'
@@ -664,6 +665,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               )}
               {showCard('planner_regression') && (
                 <InlinePlannerRegressionCard descriptor={cardById.planner_regression} report={regressionReport} />
+              )}
+              {showCard('worker_runtime_plan') && (
+                <InlineWorkerRuntimePlanCard descriptor={cardById.worker_runtime_plan} plan={plan} />
               )}
               <InlineCreditEstimateCard
                 approved={approved}

@@ -4828,6 +4828,175 @@ li {
   background: var(--rp-surface-1);
 }
 
+.worker-runtime-plan-card {
+  border-color: color-mix(in srgb, var(--rp-brand-violet) 28%, var(--rp-border-strong));
+}
+
+.worker-runtime-summary-grid {
+  display: grid;
+  gap: 9px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.worker-runtime-summary-grid span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.worker-runtime-summary-grid strong {
+  color: var(--rp-brand-violet);
+  font-size: 1.05rem;
+}
+
+.worker-job-list,
+.worker-step-list {
+  display: grid;
+  gap: 12px;
+}
+
+.worker-job-item,
+.worker-step-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 11px;
+  padding: 12px;
+}
+
+.worker-job-item h4,
+.worker-step-item h5 {
+  color: var(--rp-text-primary);
+  font-size: 0.98rem;
+  margin: 2px 0 4px;
+}
+
+.worker-job-item p,
+.worker-step-item p {
+  color: var(--rp-text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.worker-step-meta {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.worker-step-meta span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px;
+}
+
+.worker-step-meta strong {
+  color: var(--rp-text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.worker-group-badge,
+.worker-status-badge,
+.worker-execution-badge,
+.frontend-disabled-badge,
+.approved-snapshot-required-badge,
+.credit-reservation-required-badge,
+.worker-mock-note {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-style: normal;
+  line-height: 1.3;
+  padding: 5px 8px;
+}
+
+.worker-group-badge {
+  background: color-mix(in srgb, var(--rp-brand-blue) 12%, var(--rp-surface-1));
+}
+
+.worker-execution-badge,
+.worker-status-badge {
+  background: color-mix(in srgb, var(--rp-brand-cyan) 10%, var(--rp-surface-1));
+}
+
+.frontend-disabled-badge,
+.approved-snapshot-required-badge,
+.credit-reservation-required-badge {
+  background: color-mix(in srgb, var(--rp-warning) 10%, var(--rp-surface-1));
+  border-color: color-mix(in srgb, var(--rp-warning) 35%, var(--rp-border-subtle));
+}
+
+.worker-mock-note {
+  background: var(--rp-surface-1);
+  color: var(--rp-text-muted);
+}
+
+.worker-output-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.worker-output-list span {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-muted);
+  font-size: 0.74rem;
+  padding: 5px 8px;
+}
+
+.worker-fallback-policy {
+  background: var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 9px;
+}
+
+.worker-fallback-policy summary {
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.worker-qa-list {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 9px;
+}
+
+.worker-qa-list span {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+}
+
+.worker-qa-list strong {
+  color: var(--rp-text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
 .frame-layout-preview {
   display: grid;
   gap: 10px;
@@ -7396,6 +7565,9 @@ li {
   .tool-install-summary-grid,
   .tool-install-meta,
   .tool-install-chip-list,
+  .worker-runtime-summary-grid,
+  .worker-step-meta,
+  .worker-qa-list,
   .color-summary-grid,
   .color-stage-list,
   .color-operation-list,

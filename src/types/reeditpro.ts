@@ -1,3 +1,5 @@
+import type { WorkerRuntimePlan } from './worker-runtime'
+
 export type SignatureSystem =
   | 'stroke_motion'
   | 'graphic_design'
@@ -2566,6 +2568,7 @@ export type QACategory =
   | 'audio_pipeline'
   | 'map_animation'
   | 'dataviz_plan'
+  | 'worker_runtime'
   | 'model_tier_policy'
   | 'credit_approval'
   | 'safety_and_claims'
@@ -2939,6 +2942,7 @@ export interface EditPlan {
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
   foregroundMaskingPlan?: ForegroundMaskingPlan
   depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
+  workerRuntimePlan?: WorkerRuntimePlan
   renderStrategyPlan?: RenderStrategyPlan
   rendererCompositionPlan?: RendererCompositionPlan
   compiledIntent?: CompiledEditingIntent

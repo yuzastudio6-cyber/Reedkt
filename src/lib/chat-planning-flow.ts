@@ -208,6 +208,16 @@ function toolInstallStatusSummary() {
   return `${summary.installedCount} browser-safe package${summary.installedCount === 1 ? '' : 's'} installed, ${summary.lazyLoadCount} lazy-load recommended, ${summary.workerOnlyCount} worker-only excluded.`
 }
 
+function workerRuntimeSummary(plan: EditPlan) {
+  const runtimePlan = plan.workerRuntimePlan
+
+  if (!runtimePlan) {
+    return 'Worker runtime plan is not ready.'
+  }
+
+  return `${runtimePlan.jobs.length} job${runtimePlan.jobs.length === 1 ? '' : 's'}, ${runtimePlan.totalSteps} step${runtimePlan.totalSteps === 1 ? '' : 's'}, ${runtimePlan.workerGroupsUsed.length} worker group${runtimePlan.workerGroupsUsed.length === 1 ? '' : 's'}; frontend execution disabled.`
+}
+
 function renderStrategySummary(plan: EditPlan) {
   const renderStrategyPlan = plan.renderStrategyPlan
 
@@ -391,6 +401,8 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const depthLayoutPlan = plan.depthAwareLayoutValidationPlan
   const depthLayoutStatus = depthLayoutValidationCategoryStatus ??
     (!depthLayoutPlan ? 'not_started' : !depthLayoutPlan.active ? 'complete' : depthLayoutPlan.overallStatus === 'blocking' || depthLayoutPlan.overallStatus === 'failed' ? 'blocking' : depthLayoutPlan.overallStatus === 'warning' ? 'warning' : 'ready')
+  const workerRuntimeValidationStatus = validationCategoryStatus(validationReport, 'worker_runtime')
+  const workerRuntimeStatus = workerRuntimeValidationStatus ?? (plan.workerRuntimePlan ? 'ready' : 'not_started')
 
   return [
     descriptor({
@@ -718,6 +730,17 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       defaultExpanded: false,
       requiredBeforeApproval: false,
       summary: `${regressionReport.status}: ${regressionReport.scenarioReports.length} demo scenarios checked.`,
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'worker_runtime_plan',
+      label: 'Worker runtime plan',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: workerRuntimeStatus,
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: workerRuntimeSummary(plan),
       hiddenInCompactMode: true,
     }),
     descriptor({

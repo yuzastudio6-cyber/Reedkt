@@ -21,6 +21,7 @@ import type {
   VisualAssetPlanItem,
   VisualAssetType,
 } from '../types/reeditpro'
+import type { WorkerRuntimePlan } from '../types/worker-runtime'
 
 type CreateCreditEstimateParams = {
   visualAssetPlan: VisualAssetPlanItem[]
@@ -35,6 +36,7 @@ type CreateCreditEstimateParams = {
   audioPipelinePlan?: AudioPipelinePlan
   mapAnimationPlan?: MapAnimationPlan
   dataVizPlan?: DataVizPlan
+  workerRuntimePlan?: WorkerRuntimePlan
 }
 
 const editLevelLabels: Record<EditLevel, string> = {
@@ -728,6 +730,14 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
       label: 'Depth-aware layout planning',
       credits: depthCredits,
       reason: depthAwareLayoutReason(params.depthAwareLayoutValidationPlan, params.depthAwareOverlayPlan),
+    })
+  }
+
+  if (params.workerRuntimePlan) {
+    breakdown.push({
+      label: 'Worker/runtime planning',
+      credits: 0,
+      reason: 'Plans future worker steps, tool execution order, fallback policy, and QA. No backend workers run in this demo.',
     })
   }
 

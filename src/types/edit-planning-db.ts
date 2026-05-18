@@ -53,6 +53,7 @@ import type {
   VisualPreference,
   PacingStyleId,
 } from './reeditpro'
+import type { WorkerRuntimePlan } from './worker-runtime'
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
@@ -582,6 +583,7 @@ export interface ApprovedPlanSnapshot {
   depthAwareOverlayPlan?: DepthAwareOverlayPlan
   foregroundMaskingPlan?: ForegroundMaskingPlan
   depthAwareLayoutValidationPlan?: DepthAwareLayoutValidationPlan
+  workerRuntimePlan?: WorkerRuntimePlan
   frameLayoutPlan?: FrameLayoutPlanRecord
   frameLayoutPlanDomain?: FrameLayoutPlan
   rendererCompositionPlan?: RendererCompositionPlanRecord

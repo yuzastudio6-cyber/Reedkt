@@ -43,6 +43,7 @@ export type PlanValidationCategory =
   | 'speaker_visual_layout'
   | 'depth_aware_overlay'
   | 'depth_layout_validation'
+  | 'worker_runtime'
   | 'renderer_plan'
   | 'segment_operations'
   | 'qa_plan'
@@ -1367,6 +1368,128 @@ function depthValidationLimitationsMockOnly(plan: EditPlan) {
 function depthValidationDoesNotEnableVeo(plan: EditPlan) {
   const text = JSON.stringify(plan.depthAwareLayoutValidationPlan ?? {}).toLowerCase()
   return !text.includes('veo') || text.includes('does not enable veo') || text.includes('no veo')
+}
+
+function workerRuntimeSteps(plan: EditPlan) {
+  return plan.workerRuntimePlan?.jobs.flatMap((job) => job.steps) ?? []
+}
+
+function workerRuntimePlanExists(plan: EditPlan) {
+  return Boolean(plan.workerRuntimePlan?.jobs.length)
+}
+
+function workerRuntimeFrontendDisabled(plan: EditPlan) {
+  return plan.workerRuntimePlan?.frontendExecutionAllowed === false &&
+    (plan.workerRuntimePlan.jobs ?? []).every((job) => job.canRunInFrontend === false)
+}
+
+function workerRuntimeRequiresApprovalAndCredits(plan: EditPlan) {
+  return plan.workerRuntimePlan?.approvalRequired === true &&
+    plan.workerRuntimePlan.creditReservationRequired === true &&
+    (plan.workerRuntimePlan.jobs ?? []).every((job) => job.approvalRequired && job.requiresCreditReservation)
+}
+
+function workerRuntimeHasStep(plan: EditPlan, stepType: string) {
+  return workerRuntimeSteps(plan).some((step) => step.stepType === stepType)
+}
+
+function workerRuntimeHasFoundationalSteps(plan: EditPlan) {
+  return [
+    'validate_approved_snapshot',
+    'reserve_credits',
+    'prepare_source_media',
+    'run_qa_checks',
+    'deliver_preview',
+  ].every((stepType) => workerRuntimeHasStep(plan, stepType))
+}
+
+function workerRuntimeConditionalStep(condition: boolean, plan: EditPlan, stepType: string) {
+  return !condition || workerRuntimeHasStep(plan, stepType)
+}
+
+function workerRuntimeUsesApprovedSnapshots(plan: EditPlan) {
+  const text = JSON.stringify(plan.workerRuntimePlan ?? {}).toLowerCase()
+  return text.includes('approved') && text.includes('snapshot') && text.includes('raw chat')
+}
+
+function workerRuntimeHasMockOnlyLimitations(plan: EditPlan) {
+  const text = (plan.workerRuntimePlan?.limitations ?? []).join(' ').toLowerCase()
+  return text.includes('mock') && text.includes('no workers are executed') && text.includes('no backend')
+}
+
+function workerRuntimeDoesNotRunInFrontend(plan: EditPlan) {
+  return workerRuntimeSteps(plan).every((step) => step.status === 'planned' || step.status === 'ready') &&
+    JSON.stringify(plan.workerRuntimePlan ?? {}).toLowerCase().includes('no frontend worker execution')
+}
+
+function workerRuntimeBasicProNoVeo(plan: EditPlan, editLevel: EditLevel) {
+  if (editLevel === 'premium') {
+    return true
+  }
+
+  return workerRuntimeSteps(plan).every((step) => !step.fallbackPolicy.allowedProviderModels.includes('veo_3_1_lite'))
+}
+
+function workerRuntimePremiumVeoFinalFallbackOnly(plan: EditPlan, editLevel: EditLevel) {
+  if (editLevel !== 'premium') {
+    return true
+  }
+
+  return workerRuntimeSteps(plan).every((step) => {
+    if (!step.fallbackPolicy.allowedProviderModels.includes('veo_3_1_lite')) {
+      return true
+    }
+
+    const text = [...step.workerNotes, ...step.fallbackPolicy.tierPolicyNotes].join(' ').toLowerCase()
+    return step.stepType === 'generate_ai_video_asset' && text.includes('final fallback') && !text.includes('primary/default')
+  })
+}
+
+function workerRuntimeBrowserCaptureSafety(plan: EditPlan) {
+  const browserStep = workerRuntimeSteps(plan).find((step) => step.stepType === 'capture_browser_asset')
+  if (!browserStep) {
+    return true
+  }
+
+  const text = browserStep.workerNotes.join(' ').toLowerCase()
+  return text.includes('authorized') && text.includes('bypass') && text.includes('captcha')
+}
+
+function workerRuntimeMaskWorkerFutureOnly(plan: EditPlan) {
+  const maskStep = workerRuntimeSteps(plan).find((step) => step.stepType === 'generate_mask_asset')
+  if (!maskStep) {
+    return true
+  }
+
+  const text = maskStep.workerNotes.join(' ').toLowerCase()
+  return text.includes('future') && text.includes('no real mask')
+}
+
+function gptImagePromptPlanned(plan: EditPlan) {
+  return (plan.providerPromptPlans ?? []).some((prompt) => prompt.providerModel === 'gpt_image_2') ||
+    (plan.visualAssetPlan ?? []).some((asset) => asset.providerRoute.primaryModel === 'gpt_image_2')
+}
+
+function aiVideoRoutePlanned(plan: EditPlan) {
+  return (plan.providerPromptPlans ?? []).some((prompt) =>
+    prompt.providerModel === 'wan_2_2_kf2v_flash' ||
+    prompt.providerModel === 'wan_2_6_i2v_flash' ||
+    prompt.providerModel === 'hailuo_2_3_fast' ||
+    prompt.providerModel === 'hailuo_02' ||
+    prompt.providerModel === 'veo_3_1_lite',
+  ) || (plan.visualAssetPlan ?? []).some((asset) =>
+    asset.providerRoute.primaryModel === 'wan_2_2_kf2v_flash' ||
+    asset.providerRoute.primaryModel === 'wan_2_6_i2v_flash' ||
+    asset.providerRoute.primaryModel === 'hailuo_2_3_fast' ||
+    asset.providerRoute.primaryModel === 'hailuo_02' ||
+    asset.providerRoute.primaryModel === 'veo_3_1_lite' ||
+    asset.providerRoute.fallbackModels.some((model) => model !== 'none' && model !== 'gpt_image_2' && model !== 'remotion_editor_motion' && model !== 'svg_lottie_renderer'),
+  )
+}
+
+function browserCapturePlanActive(plan: EditPlan) {
+  const maybePlan = plan as EditPlan & { browserCapturePlan?: { active?: boolean } }
+  return Boolean(maybePlan.browserCapturePlan?.active)
 }
 
 function depthItemsNeedFallback(plan: EditPlan) {
@@ -3003,6 +3126,163 @@ export function validateMockEditPlan(params: {
       relatedField: 'depthAwareLayoutValidationPlan',
     }),
     check({
+      id: 'validation-worker-runtime-exists',
+      category: 'worker_runtime',
+      label: 'Worker runtime plan exists',
+      severity: 'error',
+      passed: workerRuntimePlanExists(plan),
+      message: 'Mock edit plans should include a future worker runtime plan before approval.',
+      relatedField: 'workerRuntimePlan',
+    }),
+    check({
+      id: 'validation-worker-runtime-frontend-disabled',
+      category: 'worker_runtime',
+      label: 'Frontend execution disabled',
+      severity: 'blocking',
+      passed: workerRuntimeFrontendDisabled(plan),
+      message: 'Worker runtime plan must not allow frontend worker execution.',
+      relatedField: 'workerRuntimePlan.frontendExecutionAllowed',
+    }),
+    check({
+      id: 'validation-worker-runtime-approval-credit',
+      category: 'worker_runtime',
+      label: 'Approval and credit reservation required',
+      severity: 'blocking',
+      passed: workerRuntimeRequiresApprovalAndCredits(plan),
+      message: 'Future workers must require edit-plan approval and credit reservation before expensive work.',
+      relatedField: 'workerRuntimePlan.approvalRequired',
+    }),
+    check({
+      id: 'validation-worker-runtime-foundational-steps',
+      category: 'worker_runtime',
+      label: 'Foundational worker steps exist',
+      severity: 'error',
+      passed: workerRuntimeHasFoundationalSteps(plan),
+      message: 'Worker runtime plan must include validate_approved_snapshot, reserve_credits, prepare_source_media, run_qa_checks, and deliver_preview.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-color-steps',
+      category: 'worker_runtime',
+      label: 'Color worker steps exist',
+      severity: plan.colorPipelinePlan ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(Boolean(plan.colorPipelinePlan), plan, 'color_correct') &&
+        workerRuntimeConditionalStep(Boolean(plan.colorPipelinePlan), plan, 'color_grade'),
+      message: 'Color pipeline plans should map to color_correct and color_grade worker steps.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-audio-steps',
+      category: 'worker_runtime',
+      label: 'Audio worker steps exist',
+      severity: plan.audioPipelinePlan ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(Boolean(plan.audioPipelinePlan), plan, 'normalize_audio') &&
+        workerRuntimeConditionalStep(Boolean(plan.audioPipelinePlan), plan, 'sound_cleanup'),
+      message: 'Audio pipeline plans should map to normalize_audio and sound_cleanup worker steps.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-map-step',
+      category: 'worker_runtime',
+      label: 'Map worker step exists',
+      severity: plan.mapAnimationPlan?.active ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(Boolean(plan.mapAnimationPlan?.active), plan, 'render_map_asset'),
+      message: 'Active map plans should map to render_map_asset.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-dataviz-step',
+      category: 'worker_runtime',
+      label: 'Data visualization worker step exists',
+      severity: plan.dataVizPlan?.active ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(Boolean(plan.dataVizPlan?.active), plan, 'render_dataviz_asset'),
+      message: 'Active data visualization plans should map to render_dataviz_asset.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-browser-step',
+      category: 'worker_runtime',
+      label: 'Browser capture worker safety',
+      severity: browserCapturePlanActive(plan) ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(browserCapturePlanActive(plan), plan, 'capture_browser_asset') &&
+        workerRuntimeBrowserCaptureSafety(plan),
+      message: 'Active browser capture plans should map to capture_browser_asset with authorized-source/no-bypass notes.',
+      relatedField: 'workerRuntimePlan.jobs.steps.workerNotes',
+    }),
+    check({
+      id: 'validation-worker-runtime-mask-step',
+      category: 'worker_runtime',
+      label: 'Mask worker future-only step',
+      severity: plan.foregroundMaskingPlan?.active ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(Boolean(plan.foregroundMaskingPlan?.active), plan, 'generate_mask_asset') &&
+        workerRuntimeMaskWorkerFutureOnly(plan),
+      message: 'Active foreground masking plans should map to generate_mask_asset with future-worker/no-real-mask notes.',
+      relatedField: 'workerRuntimePlan.jobs.steps.workerNotes',
+    }),
+    check({
+      id: 'validation-worker-runtime-gpt-image-step',
+      category: 'worker_runtime',
+      label: 'GPT image worker step exists',
+      severity: gptImagePromptPlanned(plan) ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(gptImagePromptPlanned(plan), plan, 'generate_gpt_image_asset'),
+      message: 'GPT-Image-2 prompt plans should map to generate_gpt_image_asset.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-ai-video-step',
+      category: 'worker_runtime',
+      label: 'AI video worker step exists',
+      severity: aiVideoRoutePlanned(plan) ? 'warning' : 'info',
+      passed: workerRuntimeConditionalStep(aiVideoRoutePlanned(plan), plan, 'generate_ai_video_asset'),
+      message: 'Wan/Hailuo/Veo provider routes should map to generate_ai_video_asset.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-approved-snapshot-only',
+      category: 'worker_runtime',
+      label: 'Workers execute snapshots',
+      severity: 'blocking',
+      passed: workerRuntimeUsesApprovedSnapshots(plan),
+      message: 'Worker runtime plan must state workers execute approved snapshots, not raw chat.',
+      relatedField: 'workerRuntimePlan.globalRules',
+    }),
+    check({
+      id: 'validation-worker-runtime-basic-pro-no-veo',
+      category: 'worker_runtime',
+      label: 'Worker Basic/Pro no Veo',
+      severity: editLevel !== 'premium' ? 'blocking' : 'info',
+      passed: workerRuntimeBasicProNoVeo(plan, editLevel),
+      message: 'Basic/Pro worker fallback policies must not include Veo.',
+      relatedField: 'workerRuntimePlan.jobs.steps.fallbackPolicy.allowedProviderModels',
+    }),
+    check({
+      id: 'validation-worker-runtime-premium-veo-fallback',
+      category: 'worker_runtime',
+      label: 'Worker Premium Veo final fallback only',
+      severity: editLevel === 'premium' ? 'blocking' : 'info',
+      passed: workerRuntimePremiumVeoFinalFallbackOnly(plan, editLevel),
+      message: 'Premium worker fallback can include Veo only in AI video final fallback notes.',
+      relatedField: 'workerRuntimePlan.jobs.steps',
+    }),
+    check({
+      id: 'validation-worker-runtime-no-frontend-run',
+      category: 'worker_runtime',
+      label: 'No frontend worker execution',
+      severity: 'blocking',
+      passed: workerRuntimeDoesNotRunInFrontend(plan),
+      message: 'Worker runtime plan must not imply any worker step ran or executed in the frontend.',
+      relatedField: 'workerRuntimePlan.jobs.steps.status',
+    }),
+    check({
+      id: 'validation-worker-runtime-mock-limitations',
+      category: 'worker_runtime',
+      label: 'Worker limitations are mock-only',
+      severity: 'blocking',
+      passed: workerRuntimeHasMockOnlyLimitations(plan),
+      message: 'Worker runtime limitations must state mock-only, no workers executed, and no backend integration.',
+      relatedField: 'workerRuntimePlan.limitations',
+    }),
+    check({
       id: 'validation-depth-risk-fallback',
       category: 'depth_aware_overlay',
       label: 'Depth risk has fallback',
@@ -3376,6 +3656,15 @@ export function validateApprovedSnapshot(snapshot: ApprovedPlanSnapshot): PlanVa
       passed: !snapshot.sourcePlan.depthAwareLayoutValidationPlan?.active || Boolean(snapshot.depthAwareLayoutValidationPlan?.items.length),
       message: 'Approved snapshots should freeze active depth layout validation, fallback, credit impact, and mock-only limitations.',
       relatedField: 'depthAwareLayoutValidationPlan',
+    }),
+    check({
+      id: 'snapshot-worker-runtime-plan',
+      category: 'worker_runtime',
+      label: 'Snapshot has worker runtime plan',
+      severity: 'warning',
+      passed: Boolean(snapshot.workerRuntimePlan ?? snapshot.sourcePlan.workerRuntimePlan),
+      message: 'Approved snapshots should freeze worker runtime planning so future workers execute approved snapshots, not raw chat.',
+      relatedField: 'workerRuntimePlan',
     }),
     check({
       id: 'snapshot-renderer-plan',

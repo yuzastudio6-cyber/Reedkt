@@ -4,6 +4,16 @@
 
 This is a future Google Cloud resource plan only. It is not an executable deployment guide and includes no IAM commands, `gcloud` commands, credentials, or resource creation.
 
+## Planned Production Identifiers
+
+These identifiers are planning metadata only. They do not prove that any Google Cloud resources exist.
+
+| Area | Planned Identifier |
+| --- | --- |
+| Google Cloud project | `reeditpro` |
+| Primary regions | `us-east1`, `europe-west1` |
+| Artifact Registry repository | `reeditpro-runtime` |
+
 ## Future Cloud Run Services
 
 | Service | Intent |
@@ -28,16 +38,26 @@ This is a future Google Cloud resource plan only. It is not an executable deploy
 
 ## Future GCS Buckets
 
-| Bucket | Purpose | Default Access |
-| --- | --- | --- |
-| `reeditpro-prod-source-media` | Uploaded/source media | Private |
-| `reeditpro-prod-generated-assets` | Generated images, clips, cards, overlays, specs | Private |
-| `reeditpro-prod-processed-media` | Trimmed, transcoded, cleaned, or normalized assets | Private |
-| `reeditpro-prod-previews` | Preview renders | Private |
-| `reeditpro-prod-exports` | Final exports and variants | Private |
-| `reeditpro-prod-thumbnails` | Thumbnails and lightweight preview imagery | Private |
-| `reeditpro-prod-qa-artifacts` | QA frames, reports, logs, and inspection artifacts | Private |
-| `reeditpro-prod-worker-temp` | Temporary worker intermediates | Private, lifecycle-managed |
+Bucket names are planned production identifiers only. RP-GCP-01 does not create buckets or grant access.
+
+| Region | Bucket | Purpose | Default Access |
+| --- | --- | --- | --- |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-source-media` | Uploaded/source media | Private |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-generated-assets` | Generated images, clips, cards, overlays, specs | Private |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-processed-media` | Trimmed, transcoded, cleaned, or normalized assets | Private |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-previews` | Preview renders | Private |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-exports` | Final exports and variants | Private |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-thumbnails` | Thumbnails and lightweight preview imagery | Private |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-qa-artifacts` | QA frames, reports, logs, and inspection artifacts | Private |
+| `us-east1` | `reeditpro-prod-reeditpro-us-east1-worker-temp` | Temporary worker intermediates | Private, lifecycle-managed |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-source-media` | Uploaded/source media | Private |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-generated-assets` | Generated images, clips, cards, overlays, specs | Private |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-processed-media` | Trimmed, transcoded, cleaned, or normalized assets | Private |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-previews` | Preview renders | Private |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-exports` | Final exports and variants | Private |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-thumbnails` | Thumbnails and lightweight preview imagery | Private |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-qa-artifacts` | QA frames, reports, logs, and inspection artifacts | Private |
+| `europe-west1` | `reeditpro-prod-reeditpro-europe-west1-worker-temp` | Temporary worker intermediates | Private, lifecycle-managed |
 
 Canonical object paths should follow:
 
@@ -71,4 +91,3 @@ Canonical object paths should follow:
 | `sa-export-worker` | Read approved final render assets, write export variants, update export records. |
 
 No real IAM bindings are added in RP-GCP-01. Exact roles must be reviewed in a later deployment milestone.
-

@@ -14,6 +14,7 @@ Future production secrets should use reference names like:
 - `reeditpro-prod-wan-api-key`
 - `reeditpro-prod-hailuo-api-key`
 - `reeditpro-prod-veo-vertex-config`
+- `reeditpro-prod-lyria-api-key`
 - `reeditpro-prod-provider-webhook-signing-secret`
 - `reeditpro-prod-stripe-webhook-secret`
 
@@ -48,4 +49,3 @@ These are frontend-safe public Supabase values. They are not service-role creden
 `.env.example` contains placeholders only. It may document future local variable names, but real production values belong in Secret Manager and secure deployment configuration.
 
 RP-GCP-00 does not add Stripe integration. `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` remain future placeholders only.
-

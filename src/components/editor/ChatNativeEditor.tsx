@@ -83,6 +83,7 @@ import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
 import { MinimalProjectHeader } from './MinimalProjectHeader'
 import { MusicPlanChatFlow } from './music/MusicPlanChatFlow'
 import { PreviewReadyCard } from './PreviewReadyCard'
+import { SFXPlanChatFlow } from './sfx/SFXPlanChatFlow'
 
 function normalizeClipOrder(clips: ClipSource[]) {
   return clips.map((clip, index) => ({ ...clip, uploadedOrder: index + 1 }))
@@ -154,6 +155,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [previewReady, setPreviewReady] = useState(false)
   const [revisionMessage, setRevisionMessage] = useState('')
   const [showMusicPlan, setShowMusicPlan] = useState(false)
+  const [showSFXPlan, setShowSFXPlan] = useState(false)
   const progressTimerRef = useRef<number | null>(null)
 
   const plannerInput = useMemo(
@@ -284,6 +286,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setPreviewReady(false)
     setProgressIndex(0)
     setShowMusicPlan(false)
+    setShowSFXPlan(false)
   }
 
   function resetAfterSourceChange() {
@@ -865,6 +868,17 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                 onApprove={handleApprove}
                 onLowerCost={handleLowerCost}
               />
+              <div className="sfx-plan-entry-card">
+                <div>
+                  <span className="section-eyebrow">SoundSync SFX</span>
+                  <strong>Plan SFX inside chat</strong>
+                  <p>Review edit-layer SFX, provider routes, prompt previews, timing, mix, QA, credits, and library decisions without opening a separate sound dashboard.</p>
+                  <small>By default, SFX supports transitions, graphics, motion design, title cards, Stroke Motion, and Real Motion - not every source-video action.</small>
+                </div>
+                <Button onClick={() => setShowSFXPlan(true)} variant={showSFXPlan ? 'secondary' : 'primary'}>
+                  {showSFXPlan ? 'SFX plan opened' : 'Plan SFX with SoundSync'}
+                </Button>
+              </div>
               <div className="music-plan-entry-card">
                 <div>
                   <span className="section-eyebrow">SoundSync</span>
@@ -877,6 +891,8 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               </div>
             </ChatMessage>
           )}
+
+          {setupReady && showSFXPlan && <SFXPlanChatFlow />}
 
           {setupReady && showMusicPlan && <MusicPlanChatFlow />}
 

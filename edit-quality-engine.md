@@ -337,6 +337,19 @@ Check types:
 - Multi-scene mood control.
 - Higher-end ducking and mix QA.
 
+## SoundSync SFX Director
+
+SoundSync SFX Director plans sound effects only when they improve the edit. By default, SFX support ReeditPro-created edit layers such as transitions, title cards, Graphic Design / VisualExplain reveals, Stroke Motion moments, Real Motion movement, montage hits, CTA reveals, or ambient bridges. ReeditPro should not add fake source-action sounds for every visible footstep, door, car, plate, crowd, or ambience cue unless the user asks for full sound design, the source is silent, ambience needs repair, or there is a clear professional reason.
+
+SFX quality checks should verify:
+
+- The SFX is tied to a timing anchor and edit layer.
+- The generated sound is trimmed, hit-aligned, faded, normalized, and mixed before preview.
+- Voice and important dialogue remain higher priority than music, SFX, beat alignment, or decorative polish.
+- Volume profile is appropriate: `none`, `whisper`, `subtle_polish`, `standard_social`, `impact`, or `premium_soft`.
+- QA can approve, lower volume, trim again, regenerate, replace with a library sound, remove SFX, or ask the user.
+- Generated SFX starts project-only and becomes a reusable library candidate only after QA, privacy, licensing, and provenance review.
+
 ## Worker Notes
 
 Professional edit quality records should create structured notes for downstream workers:
@@ -355,3 +368,6 @@ Examples:
 - Preserve room tone under natural walkthrough footage.
 - Do not add a forced hook when user requested simple edit.
 
+## StoryTiming Handoff
+
+Pacing, cut decisions, transitions, captions, music, SFX, emotional pauses, and signature timing should feed the future StoryTiming Master Timing Map. StoryTiming should coordinate these distributed records into shared anchors, events, dependencies, conflicts, and timing QA. Basic edits still require professional timing; Basic means lower-compute clean editing, not low-quality timing.

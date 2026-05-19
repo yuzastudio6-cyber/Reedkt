@@ -144,6 +144,18 @@ SoundSync provider work may include:
 
 Basic edits should avoid heavy SFX unless appropriate and approved.
 
+## SFX Provider Strategy
+
+SFX provider routing is future worker-only and must stay behind approval, credit reservation, and QA gates. Mirelo SFX V1.5 is the planned production SFX provider for important final polish moments such as premium transitions, Stroke Motion completion, Graphic Design reveals, Real Motion object sounds, title/chapter hits, and signature edits. MMAudio V is the planned cheap/draft/Basic/Pro fallback and video-synced helper for quick timing experiments, draft movement sounds, ambience prototypes, and lower-cost SFX.
+
+Provider prompts should use dedicated adapters instead of one universal prompt. MMAudio prompts should usually be short and focused on target source, texture, and intensity. Mirelo prompting needs a future test matrix before production use, with simple keyword, short phrase, tag list, and structured sentence styles compared against QA results.
+
+No SFX provider integration is implemented in this milestone. Provider secrets must stay outside source control, frontend code, and database rows; database records may store secret reference names only.
+
+RP-SFX-11 adds a mock SFX worker skeleton that routes through internal library, Mirelo, MMAudio, or no-SFX branches only after edit approval and credit reservation gates pass. It returns mock provider metadata and worker events, but still does not call providers, read Secret Manager, upload files, process audio, or spend credits.
+
+RP-SFX-12 adds the first mock-first SFX provider adapter layer. It defines ReeditPro-owned request/response contracts, mock clients, response parsing, safety gates, disabled real-client placeholders, and worker integration. It still does not call Mirelo or MMAudio, invent undocumented provider schemas, import provider SDKs, read secrets, or make network requests.
+
 ## Prompt And Constraint Ownership
 
 Generation requests should store:

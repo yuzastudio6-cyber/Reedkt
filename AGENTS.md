@@ -17,6 +17,7 @@ These instructions are for Codex and any future agent working in this repository
 - Read `master-timing-architecture.md`, `timing-settings-catalog.md`, and `timing-qa-policy.md` before timing, cuts, captions, SFX, music ducking, beat alignment, provider clip duration, Remotion sequence timing, or frame-accurate QA work.
 - Read `caption-visual-cue-timing.md`, `caption-readability-motion-policy.md`, and `visual-cue-synchronization-policy.md` before caption timing, caption animation, caption readability, visual cue timing, cue triggers, cue density, or caption/visual collision planning work.
 - Read `soundsync-beat-grid-transition-timing.md`, `transition-timing-policy.md`, and `sfx-ducking-timing-policy.md` before SoundSync beat grid, transition timing, SFX timing, music ducking, beat snap, AudioFlux planning, or speech-safe transition work.
+- Read `soundsync-sfx-director.md`, `sfx-provider-strategy.md`, `sfx-timing-trim-mix.md`, and `sfx-library-growth.md` before SoundSync SFX Director, SFX provider route, SFX prompt, timing/trim/mix, QA, or generated SFX library work.
 - Read `timing-validation-policy.md`, `timing-complexity-credit-policy.md`, and `timing-approval-gate-policy.md` before timing validation, timing approval gates, timing credit impact, lower-cost timing alternatives, or approved timing snapshots work.
 - Read `source-cleanup-trim-planning.md`, `trim-selects-qa-policy.md`, `retake-selection-planning.md`, `meaning-preservation-validation.md`, and `source-cleanup-review-ux.md` before source cleanup, selects, retake selection, trim decisions, cleanup preference, cut lists, trim review, meaning preservation, or trim QA work.
 - Read `speaker-visual-layout-strategy.md` before speaker presence, visual takeover, picture-in-picture, side-by-side, lower panel, map, chart, evidence board, screen capture, b-roll cutaway, or adaptive layout strategy work.
@@ -271,6 +272,18 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Basic edits must include professional audio cleanup and loudness planning; never describe Basic audio as low quality.
 - SoundSync is the audio/timing support engine, not a visual signature system.
 - Do not add random SFX; SFX and music must support story, pacing, transition, reveal, or emotion.
+- SoundSync SFX Director plans SFX before generation.
+- Default SFX supports ReeditPro-created edit layers, not every real-world source action.
+- Mirelo SFX V1.5 is the future production SFX provider.
+- MMAudio V is the future cheap/draft/Basic/Pro fallback and video-synced helper.
+- Generated SFX should be longer than needed, then trimmed, hit-aligned, mixed, and QA-checked.
+- SFX must be voice-first and never too loud by default.
+- Generated SFX starts project-only and becomes a library candidate only after QA and provenance review.
+- No SFX provider API keys, provider secrets, or real SFX integrations should be added until explicitly requested.
+- SFX provider integrations must remain behind backend/worker boundaries.
+- Never expose Mirelo or MMAudio provider keys to frontend code.
+- SFX workers must enforce edit plan approval and credit reservation before generation.
+- SFX worker skeletons are mock-only until explicit real integration.
 - Music must not overpower voice, and ducking should be planned when music is present under speech.
 - Audio planning should be deterministic and structured, not random.
 - Speech clarity beats music beat alignment.
@@ -419,6 +432,15 @@ SoundSync is not the third visual signature system. SoundSync is the audio and t
 
 StoryTiming coordinates captions, cuts, Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, and story beats.
 
+## StoryTiming
+
+- StoryTiming is the master timing coordination layer.
+- Do not duplicate existing timing fields; consolidate and reference them.
+- Every generated or edited layer should reference timing anchors where possible.
+- Timing must preserve speech meaning, emotional pauses, and viewer comprehension.
+- SFX, music, and animation timing should not override speech meaning unless the approved edit is explicitly music-driven.
+- Future timing migrations should connect existing planning, edit quality, music, SFX, signature, generation, render, review, and QA timing records.
+
 ## Dropdown Workflow Rule
 
 The video type dropdown gives workflow context only. It does not automatically decide which signature systems are used.
@@ -480,6 +502,16 @@ Extract Reference DNA:
 - This repo uses Vite, React, and TypeScript for the current web prototype.
 - On this Windows machine, use `npm.cmd` instead of `npm` in PowerShell.
 - If npm registry certificate verification fails, run commands with `NODE_OPTIONS=--use-system-ca`.
+
+## SoundSync SFX Provider Adapter
+
+- The SFX provider adapter defaults to mock mode.
+- Real Mirelo/MMAudio calls must never run in the frontend.
+- Never expose SFX provider keys to Vite/browser code.
+- Real SFX generation requires edit plan approval and credit reservation.
+- SFX response parsing must tolerate unknown provider response shapes.
+- Generated SFX must pass trim, mix, and QA before preview/export.
+- Generated SFX starts project-only before any library promotion.
 
 ## Do Not Implement Unless Asked
 

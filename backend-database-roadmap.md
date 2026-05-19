@@ -91,6 +91,7 @@ Add RLS policies before using with real user data.
 - Implement Graphic Design / VisualExplain plans.
 - Implement Real Motion plans.
 - Implement SoundSync plans.
+- Keep dedicated SoundSync SFX Director contracts and tables for later SFX milestones. RP-SFX-01 is documentation-only; TypeScript contracts belong in RP-SFX-02 and Supabase tables belong in RP-SFX-03.
 - Keep all systems segment-routed and approval-gated.
 
 ## Phase 14: Generation Provider Layer
@@ -112,6 +113,13 @@ Add RLS policies before using with real user data.
 - Add export QA.
 - Do not publish to social platforms until a later explicit milestone.
 
+## Phase 16A: StoryTiming Master Timing Map
+
+- RP-TIMING-01 is documentation-only and audits existing distributed timing records.
+- Future RP-TIMING-02 should add TypeScript contracts before any schema work.
+- Future RP-TIMING-03 should add reviewed StoryTiming tables that connect existing planning, edit quality, music, SFX, signature, generation, render, review, and QA timing records.
+- Do not create StoryTiming migrations until those contracts and table plans are reviewed.
+
 ## Phase 17: Stripe And Billing
 
 - Add Stripe only after credit ledger rules are implemented.
@@ -126,4 +134,3 @@ Add RLS policies before using with real user data.
 
 - Build mobile only after web product and backend are stable.
 - Keep mobile as companion for upload, review, comments, approvals, export monitoring, and status.
-

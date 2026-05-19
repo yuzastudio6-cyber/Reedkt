@@ -4,7 +4,7 @@ export type ReeditProRuntimeRegion = 'us-east1' | 'europe-west1'
 
 export type ReeditProRuntimeEnvironment = 'production'
 
-export interface ReeditProRegionalBucketMap extends Record<GcsBucketPurpose, string> {}
+export type ReeditProRegionalBucketMap = Record<GcsBucketPurpose, string>
 
 export interface ReeditProRegionalCloudTasksQueues {
   providerCalls: string

@@ -81,5 +81,24 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Depends on: all prior migrations.
 - Creates: `schema-review.md`, `migration-order.md`, `schema-health-checks.sql`, `e2e-mock-scenario.sql`, and `e2e-mock-scenario.md`.
 - Does not create: new production schema, backend APIs, credentials, remote migrations, provider calls, rendering, Stripe, Google Cloud resources, uploads, or mobile screens.
-- Next migration: backend API skeleton and local Supabase client wiring, after the schema is validated locally with Supabase tooling.
+- Next migration: RP-SFX-03 SoundSync SFX Director Tables.
 
+## 10. RP-SFX-03 SoundSync SFX Director Tables
+
+- File: `migrations/202605190001_sfx_director_tables.sql`
+- Purpose: Creates the structured database layer for professional SoundSync SFX planning, provider routing, prompt planning, generated SFX metadata, trim/hit alignment, mix/ducking, QA, usage records, prompt-adapter tests, and generated SFX library candidates.
+- Depends on: RP-DB-03 through RP-DB-10 foundations for workspaces, projects, chat, edit plans, edit quality, Stroke Motion, generation requests/assets, renders, exports, QA, and RLS helpers.
+- Creates: SFX enum types, `sfx_event_plans`, `sfx_provider_routes`, `sfx_prompt_plans`, `sfx_generated_assets`, `sfx_trim_plans`, `sfx_timing_alignments`, `sfx_mix_plans`, `sfx_qa_reports`, `sfx_qa_issues`, `sfx_library_candidates`, `sfx_usage_records`, `sfx_prompt_adapter_tests`, and `sfx_event_summary_view`.
+- Does not create: real SFX generation, provider calls, Mirelo/MMAudio integrations, API keys, provider secrets, Google Cloud resources, rendering, uploads, Stripe, or mobile screens.
+- Notes: SFX is planned before generation. Default SFX supports ReeditPro-created edit layers, not every source-footage action. Mirelo SFX V1.5 and MMAudio V are modeled as future provider routes only. Prompt plans are stored but not executed. Generated SFX should be longer than needed, then trimmed, hit-aligned, voice-first mixed, QA-checked, and kept project-only unless QA/provenance/privacy/licensing review allows library promotion.
+- Next migration: RP-TIMING-03 StoryTiming Master Tables.
+
+## 11. RP-TIMING-03 StoryTiming Master Tables
+
+- File: `migrations/202605190002_storytiming_master_tables.sql`
+- Purpose: Creates the StoryTiming master coordination schema that consolidates distributed timing records without replacing their native timing fields.
+- Depends on: RP-DB-03 through RP-DB-10 foundations plus RP-SFX-03 for SoundSync SFX timing records and shared RLS helpers.
+- Creates: StoryTiming enum types, `master_timing_maps`, `story_timing_segments`, `timing_anchors`, `timing_events`, `timing_dependencies`, `timing_conflicts`, `timing_conflict_resolutions`, `story_timing_qa_checks`, `render_timing_manifests`, `render_timing_manifest_tracks`, `render_timing_manifest_events`, `project_latest_timing_map_view`, `timing_conflicts_open_view`, and `render_ready_timing_maps_view`.
+- Does not create: remote Supabase execution, backend services, UI, real transcript alignment, beat detection, provider calls, Lyria/Mirelo/MMAudio integrations, API keys, provider secrets, Google Cloud resources, rendering, uploads, Stripe, or mobile screens.
+- Notes: Timing already exists across edit plan segments, story beats, pacing, cuts, transitions, captions, Stroke Motion, music, SFX, generation, render, review, and QA. StoryTiming references those systems with direct core FKs where safe and `source_system` / `source_record_id` / `source_table_name` for distributed timing records.
+- Next migration: RP-TIMING-04 mock StoryTiming planner.

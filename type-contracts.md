@@ -19,8 +19,10 @@ The contracts live under `src/types/`:
 - `edit-quality.ts`: Professional Edit Quality Engine records for pacing, cuts, transitions, audio, ambience, music, SFX, captions, and QA checks.
 - `signature-systems.ts`: Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, and future signature support records.
 - `stroke-motion.ts`: Stroke Motion plans, beats, characters, symbols, transitions, timing anchors, generation specs, and meaning expansion examples.
+- `storytiming.ts`: StoryTiming master timing maps, segments, anchors, events, dependencies, conflicts, QA checks, and render timing manifests.
 - `jobs.ts`: jobs, dependencies, events, agent runs, agent outputs, and audit events.
 - `generation.ts`: future provider abstraction for Wan, Veo, Kling, Remotion, SVG, Lottie, Google Cloud workers, custom providers, and generated assets.
+- `sfx-director.ts`: SoundSync SFX Director contracts for event planning, provider routing, prompts, trim/hit alignment, mix/ducking, QA, usage, and generated SFX library growth.
 - `review-render-export.ts`: preview renders, final renders, exports, preview reviews, comments, revisions, approvals, and QA reports.
 - `google-cloud.ts`: reference-only contracts for Cloud Run, Cloud Run Jobs, GPU workers, Cloud Storage, Pub/Sub, Secret Manager, Artifact Registry, and worker runtime configuration.
 - `index.ts`: the future backend-oriented public type entrypoint.
@@ -167,6 +169,37 @@ Supported agents/workers include:
 
 Future Google Cloud workers should receive IDs and safe payload summaries, load trusted records server-side, use Secret Manager for provider keys, and write results back through safe server paths.
 
+## SoundSync SFX Director Type Contracts
+
+`src/types/sfx-director.ts` is the dedicated contract layer for SoundSync SFX Director. It does not replace the existing Professional Edit Quality `SoundEffectPlanRecord`; it gives future SFX-specific workers, services, and migrations a deeper model for individual SFX events, routing, prompts, trimming, timing, mix, QA, usage, provenance, and reusable-library review.
+
+The SFX Director contracts preserve these product rules:
+
+- ReeditPro must not add random SFX.
+- Default SFX supports ReeditPro-created edit layers, not every visible source-footage action.
+- No SFX is always a valid professional decision.
+- SFX must stay voice-first, subtle by default, and QA-checked before preview or export.
+
+Edit-layer SFX is modeled through `SFXEventPlanRecord.targetLayer`, `decisionState`, `sourceFootagePolicy`, `anchorType`, `timingPriority`, `volumeProfile`, and `mixPriority`. `SoundEffectPlanRecord` can optionally reference deeper SFX Director records with `sfxEventPlanIds`, `sfxMixPlanIds`, and `sfxQAReportIds` while existing records remain valid.
+
+Provider routing is modeled through `SFXProviderRouteRecord`. The supported future routes are ReeditPro internal library, MMAudio V, Mirelo SFX V1.5, no SFX, manual upload, and unknown. Internal library is the future first choice, MMAudio V is the cheap/draft/Basic/Pro fallback and video-synced helper, and Mirelo SFX V1.5 is the future production-quality provider for important final-polish moments.
+
+Provider-specific prompting is modeled through `SFXPromptPlanRecord` and `SFXPromptStyle`. MMAudio prompts use `video_conditioned_short_prompt`; Mirelo prompts can use `simple_keyword`, `short_phrase`, `tag_list`, or `structured_sentence` test styles; internal library search uses `library_search_tags`.
+
+RP-SFX-05 adds mock backend prompt adapters that populate these prompt plan records from SFX event plans and provider routes. The adapters store provider-specific prompt text, negative prompts, search tags, duration-to-generate, timing instructions, mix instructions, and validation warnings without calling providers.
+
+RP-SFX-06 adds mock timing contract support with `SFXDurationPlan`, `SFXMockWaveformAnalysisRecord`, `SFXTransientDetectionResult`, `SFXTimelinePlacement`, and `SFXTimingValidationResult`. These types model generate-extra-duration planning, mock waveform shape, transient strength, trim confidence, frame snapping, and timing validation issues without processing real audio.
+
+Generated duration and trim planning are modeled through `SFXGeneratedDurationPolicy`, `SFX_GENERATED_DURATION_POLICY_RANGES`, `SFXGeneratedAssetRecord`, and `SFXTrimPlanRecord`. The contracts support generating longer audio than needed, finding a usable region, trimming, and preserving hit-offset metadata for frame-accurate placement.
+
+Hit alignment and mix planning are modeled through `SFXTimingAlignmentRecord` and `SFXMixPlanRecord`. Timing records store anchor type, anchor time, start/hit/end placement, pre-roll, tail, generated duration, needed duration, and speech-safe placement flags. RP-SFX-06 services derive these from trim windows and hit offsets, then validate late/early hits, long tails, bad trim windows, speech overlap risk, and beat mismatch before the future mix planner. Mix records store volume profile, gain target, voice/music ducking, sidechain intent, fades, EQ notes, stereo width, reverb match, and room match.
+
+RP-SFX-07 adds mock mix contract support with `SFXDuckingIntensity`, `SFXEQProfile`, `SFXStereoWidthProfile`, `SFXReverbProfile`, `SFXMixValidationIssue`, and `SFXMixValidationResult`. The mock mix services create `SFXMixPlanRecord` entries with voice-first target gain hints, ducking, sidechain intent, fade reuse from trim plans, EQ guidance, stereo width, room/reverb match, and validation before handing off to SFX QA.
+
+RP-SFX-08 adds mock QA decision support through `SFXRegenerationReason`, `SFXAdjustmentType`, `SFXAdjustmentDecisionRecord`, and `SFXReplacementDecisionRecord`, while preserving existing `SFXQAReportRecord`, `SFXQAIssue`, and `SFXRegenerationDecisionRecord` usage. QA can approve use, require mix or trim adjustment, regenerate, replace with a future approved library cue, remove SFX, or ask the user. Generated library growth is modeled through `SFXLibraryCandidateRecord`, `SFXUsageRecord`, provenance fields, reuse status, license scope, and privacy flags. Future Supabase migrations should map these contracts to tables only after RP-SFX-03 review.
+
+RP-SFX-09 adds generated SFX library-growth contracts: `SFXLibraryDecision`, `SFXReuseRisk`, `SFXLibrarySearchMatchStrength`, `SFXLibraryPromotionReason`, `SFXLibraryBlockReason`, `SFXProvenanceReviewRecord`, `SFXLibrarySearchRecord`, and `SFXUsageLearningRecord`. These contracts keep generated SFX project-only by default, model provenance/terms review, record library search attempts, evaluate candidates, and capture usage learning without approving real reuse automatically.
+
 ## Generation Providers And Google Cloud
 
 The generation provider contracts do not hard-code one provider. They support future provider routing across Wan, Veo, Kling, Remotion, SVG renderer, Lottie renderer, Google Cloud workers, custom providers, and unknown providers.
@@ -186,6 +219,27 @@ The Google Cloud contracts store references only:
 - estimated compute class
 
 They must never contain real credentials, API keys, service account keys, or provider secrets.
+
+## StoryTiming Type Contracts
+
+RP-TIMING-02 adds `src/types/storytiming.ts` as the master timing coordination contract layer. StoryTiming does not replace existing timing fields in edit plans, story beats, pacing analysis, cuts, transitions, captions, Stroke Motion, music, SFX, generation, render, review, or QA records. It references those systems through `StoryTimingSourceRef`, `sourceSystem`, and `sourceRecordId` so distributed timing can be coordinated without deleting local domain timing.
+
+The core records are `MasterTimingMapRecord`, `StoryTimingSegmentRecord`, `TimingAnchorRecord`, `TimingEventRecord`, `TimingDependencyRecord`, `TimingConflictRecord`, `TimingConflictResolutionRecord`, `StoryTimingQACheckRecord`, and `RenderTimingManifestRecord`. Together they model the approved output timing map, reusable anchors, timeline events, cross-system dependencies, detected conflicts, proposed fixes, timing QA, and the future worker-ready render manifest.
+
+StoryTiming connects existing timing surfaces this way:
+
+- Edit plan segments and story beats become `StoryTimingSegmentRecord` rows and source refs.
+- Pacing, cut, transition, and caption timing become anchors, events, dependencies, and QA checks.
+- Music cue, beat, ducking, and mix timing become music events and speech-protection dependencies.
+- SFX event, trim, alignment, mix, and QA timing become SFX start/hit/end events plus hit-alignment checks.
+- Stroke Motion, Graphic Design, and Real Motion timing become signature animation anchors/events tied to meaning and safe zones.
+- Generated asset timing maps, render inputs, review comments, and QA markers feed render and QA tracks.
+
+`src/lib/mock-storytiming-records.ts` includes Lake Como/lifestyle and serious faith teaching examples with captions, cuts, music cues, ducking, SFX hits, Stroke Motion, Graphic Design, Real Motion, conflicts, QA checks, and render manifests. `src/backend/contracts/storytiming-contracts.ts` provides request/response shapes for future mock services or API skeletons, but RP-TIMING-02 does not add routes, services, migrations, or database tables. RP-TIMING-03 should map these contracts to Supabase tables after review.
+
+RP-TIMING-05 adds mock caption/cut timing contracts for `CaptionTimingPlanRecord` and `CutTimingPlanRecord`. These records do not replace caption plans, cut decisions, pacing analysis, or transcript fields; they coordinate those existing records into StoryTiming transcript anchors, caption events, cut events, pause decisions, J-cut/L-cut hints, focused conflicts, and caption/cut QA.
+
+RP-TIMING-06 adds mock SoundSync timing contracts for `MusicBeatGridRecord`, `MusicDuckingTimingPlanRecord`, and `SoundSyncTimingIntegrationRecord`. These records do not replace music cue sheets, music mix plans, SFX event plans, SFX trim plans, SFX timing alignments, or SFX mix plans. They coordinate those existing records into StoryTiming music cue events, mock beat/downbeat anchors, voice-safe ducking windows, SFX start/hit/end events, SoundSync dependencies, focused conflicts, and music/SFX QA. Beat grids are mock estimates only until a future worker adds real audio analysis.
 
 ## Mock Records
 

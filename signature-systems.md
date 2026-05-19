@@ -83,6 +83,8 @@ StoryTiming coordinates:
 
 StoryTiming decides when elements appear, how long they remain, and how they support speech, emotion, and viewer comprehension.
 
+Future StoryTiming work should consolidate existing timing records into a Master Timing Map. It should coordinate timing across Stroke Motion, Graphic Design / VisualExplain, Real Motion, SoundSync, captions, cuts, and render timing without replacing the systems that decide what those layers are.
+
 ## Segment-By-Segment Routing Logic
 
 The AI planner should decide systems per segment based on:

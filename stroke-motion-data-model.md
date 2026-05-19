@@ -299,3 +299,7 @@ Stroke Motion should eventually use controlled animation systems such as SVG, Lo
 
 AI video models such as Wan, Hailuo, or Premium-only Veo final fallback may support approved animation beats, but the architecture should not depend only on full AI video generation for Stroke Motion. AI video generation should default to matching the approved white/near-white/custom panel background instead of requiring transparency.
 
+## StoryTiming Handoff
+
+Stroke Motion beats, matched words, timing anchors, transitions, SFX hints, and generation specs should become future StoryTiming anchors and events. StoryTiming should coordinate Stroke Motion start, beat, and completion timing with captions, speech meaning, music, SFX, Graphic Design, Real Motion, and render layer timing without replacing Stroke Motion planning.
+

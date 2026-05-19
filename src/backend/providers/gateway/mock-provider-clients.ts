@@ -122,7 +122,7 @@ function createGeneratedAssetDraft(request: ProviderGatewayRequest): ProviderGat
     metadata: {
       mockOnly: true,
       approvedPlanSnapshotId: request.approvedPlanSnapshotId,
-      promptPlanId: request.promptPlanId,
+      promptPlanId: request.promptPlanId ?? null,
       signatureSystem: request.signatureSystem,
     },
   }

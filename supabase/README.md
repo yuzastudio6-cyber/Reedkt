@@ -241,6 +241,53 @@ The review confirms the current schema sequence supports the chat-native path fr
 
 The mock scenario is local-only. It uses placeholder UUIDs and requires a matching local `auth.users` row before inserting `user_profiles`, because Supabase Auth owns profile identity. It does not deploy migrations, connect to remote Supabase, add credentials, call providers, integrate Stripe, upload files, render video, or create mobile screens.
 
+### RP-SFX-03: SoundSync SFX Director Tables
+
+`migrations/202605190001_sfx_director_tables.sql` creates the SoundSync SFX Director database layer:
+
+- SFX event plans
+- SFX provider routes
+- SFX prompt plans
+- generated SFX asset metadata
+- SFX trim plans
+- SFX timing alignments
+- SFX mix plans
+- SFX QA reports and issues
+- SFX library candidates
+- SFX usage records
+- SFX prompt adapter tests
+- a simple SFX event summary view
+
+SFX is planned before generation. By default, ReeditPro SFX supports ReeditPro-created edit layers such as transitions, title/chapter cards, Graphic Design / VisualExplain reveals, Stroke Motion moments, Real Motion object movement, CTA reveals, montage hits, and ambient bridges. It does not add fake SFX for every source-footage action.
+
+Mirelo SFX V1.5 is modeled as the future production SFX provider. MMAudio V is modeled as the future draft, Basic/Pro fallback, and video-synced helper. ReeditPro internal library and no-SFX routes are also modeled. Provider prompts are stored as planning records only and do not execute provider calls.
+
+Generated SFX should be longer than the final needed sound, then trimmed, hit-aligned, faded, normalized, voice-first mixed, and QA-checked before preview/export use. Generated SFX starts project-only; library promotion requires QA, provenance, privacy, and licensing review.
+
+This migration includes RLS, indexes, updated-at triggers, comments, and safe generic prompt-adapter seed rows. It does not integrate Mirelo or MMAudio, add API keys or provider secrets, connect to Supabase remotely, deploy Google Cloud, generate sound, render media, upload files, integrate Stripe, or build mobile screens.
+
+### RP-TIMING-03: StoryTiming Master Tables
+
+`migrations/202605190002_storytiming_master_tables.sql` creates the StoryTiming master coordination database layer:
+
+- master timing maps
+- story timing segments
+- timing anchors
+- timing events
+- timing dependencies
+- timing conflicts
+- timing conflict resolutions
+- StoryTiming QA checks
+- render timing manifests
+- structured render manifest tracks and events
+- simple latest/open-conflict/render-ready views
+
+Timing already exists across edit plan segments, story beats, pacing, cuts, transitions, captions, Stroke Motion, music plans, SFX timing, render inputs, QA, and review comments. StoryTiming does not replace those records. It coordinates them through master maps, source references, anchors, events, dependencies, conflicts, QA checks, and render-ready manifests.
+
+The migration uses safe direct foreign keys for core workspace/project/chat/edit-plan/render relationships and uses `source_system`, `source_record_id`, and `source_table_name` for distributed timing systems whose native tables may evolve independently.
+
+This migration includes enum types, structured tables, indexes, updated-at triggers, RLS policies, comments, and local views. It does not connect to Supabase remotely, run remote migrations, call AI/provider APIs, integrate Lyria/Mirelo/MMAudio, render media, deploy Google Cloud, add secrets, integrate Stripe, or build frontend/mobile UI.
+
 ## Source Clip Order
 
 Uploaded or sent clip order is stored as a source sequence. This is the order the user filmed the clips or believes they belong.
@@ -274,9 +321,11 @@ ReeditPro must never start expensive AI editing, animation generation, rendering
 Later migrations should add, in order:
 
 - backend API skeleton and Supabase client wiring
+- RP-TIMING-04 mock StoryTiming planner
+- RP-SFX-04 mock SFX Director service
 - Google Cloud worker scaffolding for generation and rendering
 - Stripe and billing integration after the credit service boundary is implemented
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-DB-10 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

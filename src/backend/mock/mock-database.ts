@@ -4,6 +4,7 @@ import type {
   AmbientSoundPlanRecord,
   AudioEnvironmentAnalysisRecord,
   CaptionPlanRecord,
+  CaptionTimingPlanRecord,
   ChatActionRecord,
   ChatMessageRecord,
   ChatSessionRecord,
@@ -15,6 +16,7 @@ import type {
   CreditReservationRecord,
   CreditWalletRecord,
   CutDecisionRecord,
+  CutTimingPlanRecord,
   EditInstructionRecord,
   EditPlanRecord,
   EditPlanSegmentRecord,
@@ -31,6 +33,9 @@ import type {
   JobDependencyRecord,
   JobEventRecord,
   JobRecord,
+  MasterTimingMapRecord,
+  MusicBeatGridRecord,
+  MusicDuckingTimingPlanRecord,
   MediaAssetRecord,
   MusicPlanRecord,
   PacingAnalysisRecord,
@@ -42,16 +47,38 @@ import type {
   RenderJobInputRecord,
   RenderJobRecord,
   RenderRecord,
+  RenderTimingManifestRecord,
   RevisionRequestItemRecord,
   RevisionRequestRecord,
+  SFXAdjustmentDecisionRecord,
+  SFXEventPlanRecord,
+  SFXGeneratedAssetRecord,
+  SFXLibraryCandidateRecord,
+  SFXLibrarySearchRecord,
+  SFXMixPlanRecord,
+  SFXMockWaveformAnalysisRecord,
+  SFXPromptAdapterTestRecord,
+  SFXPromptPlanRecord,
+  SFXProvenanceReviewRecord,
+  SFXProviderRouteRecord,
+  SFXQAReportRecord,
+  SFXRegenerationDecisionRecord,
+  SFXReplacementDecisionRecord,
+  SFXTimingAlignmentRecord,
+  SFXTrimPlanRecord,
+  SFXUsageLearningRecord,
+  SFXUsageRecord,
   SignatureRouteRecord,
   SoundEffectPlanRecord,
+  SoundSyncTimingIntegrationRecord,
   SourceClipSequenceItem,
   SourceClipSequenceRecord,
   SourceSequenceMapItemRecord,
   SourceSequenceMapRecord,
   StoryBeatMapRecord,
   StoryBeatRecord,
+  StoryTimingQACheckRecord,
+  StoryTimingSegmentRecord,
   StrokeMotionBeatRecord,
   StrokeMotionCharacterRecord,
   StrokeMotionGenerationSpecRecord,
@@ -61,6 +88,11 @@ import type {
   StrokeMotionSymbolRecord,
   StrokeMotionTimingAnchorRecord,
   StrokeMotionTransitionRecord,
+  TimingAnchorRecord,
+  TimingConflictRecord,
+  TimingConflictResolutionRecord,
+  TimingDependencyRecord,
+  TimingEventRecord,
   TransitionPlanRecord,
   UserRecord,
   WorkspaceRecord,
@@ -91,6 +123,20 @@ export interface MockDatabase {
   storyBeatMaps: StoryBeatMapRecord[]
   storyBeats: StoryBeatRecord[]
   editPlanSegments: EditPlanSegmentRecord[]
+  masterTimingMaps: MasterTimingMapRecord[]
+  storyTimingSegments: StoryTimingSegmentRecord[]
+  timingAnchors: TimingAnchorRecord[]
+  timingEvents: TimingEventRecord[]
+  timingDependencies: TimingDependencyRecord[]
+  timingConflicts: TimingConflictRecord[]
+  timingConflictResolutions: TimingConflictResolutionRecord[]
+  storyTimingQAChecks: StoryTimingQACheckRecord[]
+  renderTimingManifests: RenderTimingManifestRecord[]
+  captionTimingPlans: CaptionTimingPlanRecord[]
+  cutTimingPlans: CutTimingPlanRecord[]
+  musicBeatGrids: MusicBeatGridRecord[]
+  musicDuckingTimingPlans: MusicDuckingTimingPlanRecord[]
+  soundSyncTimingIntegrations: SoundSyncTimingIntegrationRecord[]
   signatureRoutes: SignatureRouteRecord[]
   editInstructions: EditInstructionRecord[]
   editQualityProfiles: EditQualityProfileRecord[]
@@ -101,6 +147,24 @@ export interface MockDatabase {
   ambientSoundPlans: AmbientSoundPlanRecord[]
   musicPlans: MusicPlanRecord[]
   soundEffectPlans: SoundEffectPlanRecord[]
+  sfxEventPlans: SFXEventPlanRecord[]
+  sfxProviderRoutes: SFXProviderRouteRecord[]
+  sfxPromptPlans: SFXPromptPlanRecord[]
+  sfxPromptAdapterTests: SFXPromptAdapterTestRecord[]
+  sfxGeneratedAssets: SFXGeneratedAssetRecord[]
+  sfxWaveformAnalyses: SFXMockWaveformAnalysisRecord[]
+  sfxTrimPlans: SFXTrimPlanRecord[]
+  sfxTimingAlignments: SFXTimingAlignmentRecord[]
+  sfxMixPlans: SFXMixPlanRecord[]
+  sfxQAReports: SFXQAReportRecord[]
+  sfxRegenerationDecisions: SFXRegenerationDecisionRecord[]
+  sfxAdjustmentDecisions: SFXAdjustmentDecisionRecord[]
+  sfxReplacementDecisions: SFXReplacementDecisionRecord[]
+  sfxLibraryCandidates: SFXLibraryCandidateRecord[]
+  sfxUsageRecords: SFXUsageRecord[]
+  sfxProvenanceReviews: SFXProvenanceReviewRecord[]
+  sfxLibrarySearchRecords: SFXLibrarySearchRecord[]
+  sfxUsageLearningRecords: SFXUsageLearningRecord[]
   captionPlans: CaptionPlanRecord[]
   editQualityChecks: EditQualityCheckRecord[]
   strokeMotionPlans: StrokeMotionPlanRecord[]
@@ -181,6 +245,20 @@ export function createMockDatabase(): MockDatabase {
     storyBeatMaps: [],
     storyBeats: [],
     editPlanSegments: [],
+    masterTimingMaps: [],
+    storyTimingSegments: [],
+    timingAnchors: [],
+    timingEvents: [],
+    timingDependencies: [],
+    timingConflicts: [],
+    timingConflictResolutions: [],
+    storyTimingQAChecks: [],
+    renderTimingManifests: [],
+    captionTimingPlans: [],
+    cutTimingPlans: [],
+    musicBeatGrids: [],
+    musicDuckingTimingPlans: [],
+    soundSyncTimingIntegrations: [],
     signatureRoutes: [],
     editInstructions: [],
     editQualityProfiles: [],
@@ -191,6 +269,24 @@ export function createMockDatabase(): MockDatabase {
     ambientSoundPlans: [],
     musicPlans: [],
     soundEffectPlans: [],
+    sfxEventPlans: [],
+    sfxProviderRoutes: [],
+    sfxPromptPlans: [],
+    sfxPromptAdapterTests: [],
+    sfxGeneratedAssets: [],
+    sfxWaveformAnalyses: [],
+    sfxTrimPlans: [],
+    sfxTimingAlignments: [],
+    sfxMixPlans: [],
+    sfxQAReports: [],
+    sfxRegenerationDecisions: [],
+    sfxAdjustmentDecisions: [],
+    sfxReplacementDecisions: [],
+    sfxLibraryCandidates: [],
+    sfxUsageRecords: [],
+    sfxProvenanceReviews: [],
+    sfxLibrarySearchRecords: [],
+    sfxUsageLearningRecords: [],
     captionPlans: [],
     editQualityChecks: [],
     strokeMotionPlans: [],

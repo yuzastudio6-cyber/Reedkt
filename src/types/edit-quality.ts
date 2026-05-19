@@ -354,6 +354,9 @@ export interface SoundEffectPlanRecord extends BaseRecord {
   editPlanSegmentId?: ID
   transitionPlanId?: ID
   signatureRouteId?: ID
+  sfxEventPlanIds?: ID[]
+  sfxMixPlanIds?: ID[]
+  sfxQAReportIds?: ID[]
   sfxNeeded?: boolean
   sfxType?: SoundEffectType
   timingAnchor?: string

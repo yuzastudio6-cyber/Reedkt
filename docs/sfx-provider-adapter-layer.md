@@ -75,6 +75,12 @@ The SFX worker now builds an adapter request, calls `generateSFXWithProvider` in
 
 Internal-library matches still skip provider generation. No-match library scenarios fall back only when the route explicitly allows a fallback provider.
 
+## RP-FIX-14 Project Editing Integration
+
+The project SFX orchestrator now reaches this adapter through the existing mock SFX worker skeleton. Project-level provider routes can exercise Mirelo mock output, MMAudio mock output, internal-library matches, and no-SFX blocks from inside the editor workflow.
+
+Real mode remains fail-closed. RP-FIX-14 does not add provider SDKs, HTTP calls, API keys, audio bytes, storage uploads, or Cloud Run execution.
+
 ## Secrets
 
 `.env.example` contains placeholders only:

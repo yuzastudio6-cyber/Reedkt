@@ -42,6 +42,12 @@ If a scenario marks the primary provider unavailable and the route allows MMAudi
 
 RP-SFX-12 routes worker generation through the mock-first SFX provider adapter. The worker still enforces approval and credit gates first, then builds a normalized provider request, calls the adapter in mock mode, and converts the adapter response back into worker metadata for trim, mix, QA, and library-growth planning.
 
+## RP-FIX-14 Project Flow
+
+Project editing can now call the SFX worker skeleton through `edit-project-sfx-orchestrator.ts` after the edit plan, credit estimate, and reservation gates pass. Worker outputs are collected back into project asset, timing, mix, QA, and library-candidate status for chat-native editor display.
+
+This is still mock-only. No real job is queued outside local memory, and no provider, storage, audio processing, Supabase, Cloud Run, Stripe, or render execution occurs.
+
 ## Mock Runtime
 
 The runtime returns provider response metadata with:

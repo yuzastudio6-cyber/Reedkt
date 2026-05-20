@@ -15,7 +15,7 @@ RP-FIX-08 defines route metadata for the major ReeditPro backend domains. The re
 | Generation | Requests, worker jobs, status, credit gate check, runtime transport mock | Mock gate checks ready; execution metadata only | Provider execution requires backend provider gateway | Provider-secret required |
 | Render | Timing manifest, preview, readiness, status, credit gate check, mock render lease | Timing/readiness, mock gate checks, and generic render lease placeholder ready | Real render/export is worker/backend-only | Backend required for execution |
 | Music | Director plan, cue sheet, prompt plan, QA, mix, credit gate check | Mock planning/QA/mix and mock gate checks ready | Real generation is provider/backend-only | No provider calls in mock runtime |
-| SFX | Director, prompt, timing/trim, mix, QA, library candidate, credit gate check | Mock planning/QA/library and mock gate checks ready | Real SFX generation is provider/backend-only | No provider calls in mock runtime |
+| SFX | Project SFX workflow, Director, prompt, timing/trim, mix, QA, library candidate, credit gate check | Project-level mock SFX flow plus planning/QA/library and mock gate checks ready | Real SFX generation is provider/backend-only | No provider calls in mock runtime |
 | StoryTiming | Master timing, caption/cut, music/SFX, signatures, QA, render manifest | Mock timing flows ready | Real media timing analysis remains worker-only | Workspace member |
 | Storage | Status, upload plan, validation, paths, signed URLs, delete | Status/planning/path ready | Signed uploads/downloads and deletes need backend review | Service-role for privileged operations |
 | Providers | AI planning, music, SFX, AI video | Disabled | Future backend provider gateway | Provider-secret required |
@@ -57,6 +57,13 @@ RP-FIX-08 defines route metadata for the major ReeditPro backend domains. The re
 - `render.preview.create`
 - `render.creditGate.check`
 - `music.creditGate.check`
+- `sfx.project.plan`
+- `sfx.project.providerRoutes`
+- `sfx.project.prompts`
+- `sfx.project.creditEstimate`
+- `sfx.project.queueMockGeneration`
+- `sfx.project.runMockWorker`
+- `sfx.project.status`
 - `sfx.creditGate.check`
 - `providers.openai.planningRequest`
 - `stripe.webhook.handle`
@@ -78,3 +85,9 @@ RP-FIX-11 adds mock-ready route metadata and handlers for runtime envelope creat
 ## RP-FIX-12 Server Route Surface
 
 RP-FIX-12 adds a mock-only Node server scaffold for future Cloud Run deployment. Server routes are `/health`, `/ready`, `/api/runtime/status`, `/api/routes`, and `/api/mock`. `/api/mock` forwards existing API request envelopes into the mock router and continues blocking backend-required/provider/payment/service-role routes.
+
+## RP-FIX-14 Project SFX Workflow Routes
+
+RP-FIX-14 adds mock-ready project SFX route metadata and handlers for SFX project planning, provider routes, prompt plans, credit estimates, mock generation queueing, mock worker execution, and project SFX status. These routes connect the existing SoundSync SFX Director, provider router, prompt adapters, credit gates, mock worker, provider adapter, trim/alignment, mix, QA, and library-decision layers into the editor project flow.
+
+This is still mock-only. Real Mirelo SFX V1.5 and MMAudio V calls, provider keys, storage uploads, Cloud Run worker execution, Supabase persistence, Stripe, and rendering remain backend-required.

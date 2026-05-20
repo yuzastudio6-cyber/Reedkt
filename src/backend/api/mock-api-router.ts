@@ -54,6 +54,8 @@ import { runMockLakeComoSFXPlanningFlow } from '../orchestrators/mock-sfx-planni
 import { runMockLakeComoSFXPromptFlow } from '../orchestrators/mock-sfx-prompt-orchestrator'
 import { runMockLakeComoSFXQAFlow } from '../orchestrators/mock-sfx-qa-orchestrator'
 import { runMockLakeComoSFXTimingFlow } from '../orchestrators/mock-sfx-timing-orchestrator'
+import { runEditProjectSFXFlow } from '../orchestrators/edit-project-sfx-orchestrator'
+import { getDefaultMockEditProjectSFXScenario, getMockEditProjectSFXScenarioById } from '../mock/mock-edit-project-sfx-scenarios'
 import { runMockStoryTimingPlannerFlow } from '../orchestrators/mock-storytiming-orchestrator'
 import { createMediaAssetRecordFromUploadPlan, createReferenceAssetRecordFromUploadPlan } from '../storage/media-asset-service'
 import { buildStoragePathForUploadPurpose, type StoragePathBuildInput } from '../storage/storage-path-builder'
@@ -201,6 +203,13 @@ const DEFAULT_MOCK_HANDLERS: Record<string, ApiRouteHandler> = {
   'music.lyriaPrompt.create': handleMockMusicPlan,
   'music.qa.run': handleMockMusicQA,
   'music.mixPlan.create': handleMockMusicMixPlan,
+  'sfx.project.plan': handleMockEditProjectSFXPlan,
+  'sfx.project.providerRoutes': handleMockEditProjectSFXProviderRoutes,
+  'sfx.project.prompts': handleMockEditProjectSFXPrompts,
+  'sfx.project.creditEstimate': handleMockEditProjectSFXCreditEstimate,
+  'sfx.project.queueMockGeneration': handleMockEditProjectSFXQueueGeneration,
+  'sfx.project.runMockWorker': handleMockEditProjectSFXWorker,
+  'sfx.project.status': handleMockEditProjectSFXStatus,
   'sfx.creditGate.check': handleMockGenerationCreditGate,
   'sfx.jobRuntime.queueMock': handleMockSFXJobRuntime,
   'sfx.directorPlan.create': handleMockSfxDirectorPlan,
@@ -495,6 +504,83 @@ function handleMockMusicQA(): ApiResponseEnvelope {
 function handleMockMusicMixPlan(): ApiResponseEnvelope {
   const result = runMockMusicMixPlanningFlow()
   return createApiMockResponse(result)
+}
+
+function runMockEditProjectSFXApiFlow(request?: ApiRequestEnvelope) {
+  const body = request?.body as { scenarioId?: string } | undefined
+  const scenario = body?.scenarioId
+    ? getMockEditProjectSFXScenarioById(body.scenarioId) ?? getDefaultMockEditProjectSFXScenario()
+    : getDefaultMockEditProjectSFXScenario()
+
+  return runEditProjectSFXFlow(scenario)
+}
+
+function handleMockEditProjectSFXPlan(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const result = runMockEditProjectSFXApiFlow(request)
+  return createApiMockResponse({
+    sfxEventPlans: result.sfxIntegration.sfxEventPlans,
+    providerRoutes: result.sfxIntegration.providerRoutes,
+    nextStep: result.sfxIntegration.nextStep,
+    chatSummary: result.chatSummary,
+  }, result.warnings)
+}
+
+function handleMockEditProjectSFXProviderRoutes(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const result = runMockEditProjectSFXApiFlow(request)
+  return createApiMockResponse({
+    providerRoutes: result.sfxIntegration.providerRoutes,
+    providerRouteSummary: result.sfxIntegration.providerRouteSummary,
+  }, result.warnings)
+}
+
+function handleMockEditProjectSFXPrompts(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const result = runMockEditProjectSFXApiFlow(request)
+  return createApiMockResponse({
+    promptPlans: result.sfxIntegration.promptPlans,
+    skippedPromptPlans: result.sfxIntegration.skippedPromptPlans,
+  }, result.warnings)
+}
+
+function handleMockEditProjectSFXCreditEstimate(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const result = runMockEditProjectSFXApiFlow(request)
+  return createApiMockResponse({
+    creditEstimate: result.sfxIntegration.creditEstimate,
+    creditEstimateLines: result.sfxIntegration.creditEstimateLines,
+    creditApproval: result.sfxIntegration.creditApproval,
+    creditReservation: result.sfxIntegration.creditReservation,
+    creditGateSummary: result.sfxIntegration.creditGateSummary,
+  }, result.warnings)
+}
+
+function handleMockEditProjectSFXQueueGeneration(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const result = runMockEditProjectSFXApiFlow(request)
+  return createApiMockResponse({
+    generationRequests: result.sfxIntegration.generationRequests,
+    jobs: result.sfxIntegration.jobs,
+    jobQueueItems: result.sfxIntegration.jobQueueItems,
+    nextStep: result.sfxIntegration.nextStep,
+  }, result.warnings)
+}
+
+function handleMockEditProjectSFXWorker(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const result = runMockEditProjectSFXApiFlow(request)
+  return createApiMockResponse({
+    workerOutputs: result.workerOutputs.map((run) => run.output),
+    generatedAssets: result.generatedAssets,
+    timingPlans: result.timingPlans,
+    mixPlans: result.mixPlans,
+    qaReports: result.qaReports,
+    projectAssetDecisions: result.projectAssetDecisions,
+  }, result.warnings)
+}
+
+function handleMockEditProjectSFXStatus(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const result = runMockEditProjectSFXApiFlow(request)
+  return createApiMockResponse({
+    statusSummary: result.statusSummary,
+    projectAssetDecisions: result.projectAssetDecisions,
+    chatSummary: result.chatSummary,
+  }, result.warnings)
 }
 
 function handleMockSfxDirectorPlan(): ApiResponseEnvelope {

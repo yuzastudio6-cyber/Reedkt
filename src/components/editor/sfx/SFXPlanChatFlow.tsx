@@ -12,6 +12,7 @@ import { InlineSFXProviderRouteCard } from './InlineSFXProviderRouteCard'
 import { InlineSFXQACard } from './InlineSFXQACard'
 import { InlineSFXRevisionOptionsCard } from './InlineSFXRevisionOptionsCard'
 import { InlineSFXTimingTrimCard } from './InlineSFXTimingTrimCard'
+import { ProjectSFXIntegrationPanel } from './ProjectSFXIntegrationPanel'
 import { createSFXChatUiData } from './sfxChatUiData'
 
 export function SFXPlanChatFlow() {
@@ -64,6 +65,14 @@ export function SFXPlanChatFlow() {
     <>
       <ChatMessage role="ai">
         <p>I found a few edit-layer SFX moments that can improve the polish. I will avoid fake source sounds unless you ask for full sound design.</p>
+        <ProjectSFXIntegrationPanel
+          eventCount={data.projectIntegration.eventCount}
+          generationRequestCount={data.projectIntegration.generationRequestCount}
+          providerRouteSummary={data.projectIntegration.providerRouteSummary}
+          qaPassedCount={data.projectIntegration.qaPassedCount}
+          queuedJobCount={data.projectIntegration.queuedJobCount}
+          statusSummary={data.projectIntegration.statusSummary}
+        />
         <InlineSFXDirectorPlanCard plan={data.directorPlan} />
         <div className="inline-card-actions">
           <Button disabled={sfxPlanApproved} onClick={handlePlanApprove} variant="primary">

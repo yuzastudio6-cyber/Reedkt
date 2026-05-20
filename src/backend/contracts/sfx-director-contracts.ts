@@ -1,6 +1,13 @@
 import type {
+  CreditApprovalRecord,
+  CreditEstimateLineItemRecord,
+  CreditEstimateRecord,
+  CreditReservationRecord,
   EditComplexity,
   EditPlanSegmentRecord,
+  GeneratedAssetRecord,
+  GenerationRequestRecord,
+  JobRecord,
   SFXEventPlanRecord,
   SFXAnchorType,
   SFXDecisionState,
@@ -41,8 +48,10 @@ import type {
   TransitionPlanRecord,
 } from '../../types'
 import type { SfxUseCase } from '../../types/audio-music'
+import type { JobRuntimeQueueItem } from '../../types/job-runtime'
 import type { CreditImpact, ID } from '../../types/shared'
 import type { EditQualityLevel } from '../../types/edit-quality'
+import type { SFXWorkerRunResult } from '../workers/sfx-worker-contracts'
 
 type NewSFXRecord<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'metadata'>
 
@@ -529,4 +538,93 @@ export type CreateSFXLibraryCandidateRequest = NewSFXRecord<SFXLibraryCandidateR
 
 export interface CreateSFXLibraryCandidateResponse {
   sfxLibraryCandidate: SFXLibraryCandidateRecord
+}
+
+export type EditProjectSFXStatus =
+  | 'not_planned'
+  | 'planned'
+  | 'awaiting_credit_approval'
+  | 'approved'
+  | 'queued'
+  | 'mock_generating'
+  | 'generated'
+  | 'timed'
+  | 'mixed'
+  | 'qa_passed'
+  | 'qa_failed'
+  | 'used_in_preview'
+  | 'project_only'
+  | 'library_candidate'
+  | 'skipped_no_sfx'
+  | 'blocked'
+
+export type EditProjectSFXNextStep =
+  | 'await_sfx_credit_approval'
+  | 'queue_mock_sfx_generation'
+  | 'run_mock_sfx_worker'
+  | 'no_sfx_needed'
+
+export interface CreateEditProjectSFXIntegrationRequest {
+  workspaceId?: ID
+  projectId: ID
+  editPlanId: ID
+  chatSessionId?: ID
+  editComplexity: EditComplexity
+  videoTone?: string
+  userInstructions?: string[]
+  avoidInstructions?: string[]
+  mockOnly: true
+  editPlanApproved?: boolean
+  creditApproved?: boolean
+  creditReserved?: boolean
+  runMockWorker?: boolean
+  simulateApprovedLibraryMatch?: boolean
+  simulateMockApproval?: boolean
+  simulateQAFailure?: boolean
+  providerUnavailable?: boolean
+}
+
+export interface EditProjectSFXIntegrationResult {
+  sfxEventPlans: SFXEventPlanRecord[]
+  providerRoutes: SFXProviderRouteRecord[]
+  promptPlans: SFXPromptPlanRecord[]
+  skippedPromptPlans: SFXPromptPlanCreationResult[]
+  creditEstimate?: CreditEstimateRecord
+  creditEstimateLines: CreditEstimateLineItemRecord[]
+  creditApproval?: CreditApprovalRecord
+  creditReservation?: CreditReservationRecord
+  generationRequests: GenerationRequestRecord[]
+  jobs: JobRecord[]
+  jobQueueItems: JobRuntimeQueueItem[]
+  providerRouteSummary: string[]
+  creditGateSummary: string[]
+  nextStep: EditProjectSFXNextStep
+  warnings: string[]
+}
+
+export type CreateEditProjectSFXIntegrationResponse = EditProjectSFXIntegrationResult
+
+export interface EditProjectSFXProjectAssetDecision {
+  sfxEventPlanId: ID
+  status: Extract<
+    EditProjectSFXStatus,
+    'project_only' | 'library_candidate' | 'qa_failed' | 'skipped_no_sfx' | 'blocked'
+  >
+  generatedAssetId?: ID
+  sfxGeneratedAssetId?: ID
+  libraryCandidateId?: ID
+  reason: string
+}
+
+export interface EditProjectSFXFlowResult {
+  sfxIntegration: EditProjectSFXIntegrationResult
+  workerOutputs: SFXWorkerRunResult[]
+  generatedAssets: GeneratedAssetRecord[]
+  timingPlans: SFXTimingAlignmentRecord[]
+  mixPlans: SFXMixPlanRecord[]
+  qaReports: SFXQAReportRecord[]
+  projectAssetDecisions: EditProjectSFXProjectAssetDecision[]
+  chatSummary: string[]
+  statusSummary: string[]
+  warnings: string[]
 }

@@ -145,3 +145,20 @@ The repository now includes a mock-only production backend runtime scaffold:
 Cloud Run API service is selected as the first backend runtime target. The scaffold exposes health, readiness, runtime status, route registry, and mock API transport endpoints without deploying Cloud Run or enabling real backend-required handlers.
 
 It does not deploy Google Cloud, configure Secret Manager, run migrations, call providers, call Stripe, run workers, run FFmpeg/Remotion, render media, mutate remote Supabase, or use service-role credentials.
+
+## RP-FIX-14
+
+Status: partially fixed.
+
+The repository now wires project-level SoundSync SFX into the editing workflow:
+
+- `src/backend/services/edit-project-sfx-integration-service.ts`
+- `src/backend/services/edit-project-sfx-status-service.ts`
+- `src/backend/orchestrators/edit-project-sfx-orchestrator.ts`
+- `src/backend/mock/mock-edit-project-sfx-scenarios.ts`
+- `src/components/editor/sfx/ProjectSFXIntegrationPanel.tsx`
+- `docs/edit-project-sfx-integration.md`
+
+The implementation connects SFX Director planning, provider routes, prompt plans, credit estimate/approval/reservation gates, mock generation requests, mock SFX jobs, the mock worker skeleton, the mock provider adapter, generated asset metadata, trim/hit alignment, mix plans, QA reports, project asset/library decisions, API mock routes, and editor chat status.
+
+It does not call real Mirelo or MMAudio, add provider keys, deploy Cloud Run, connect to Supabase, upload storage files, spend real credits, call Stripe, process audio, render media, or build mobile screens.

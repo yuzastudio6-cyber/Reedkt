@@ -17,6 +17,8 @@ RP-FIX-11 adds mock runtime transport and worker lease routes. These routes can 
 
 RP-FIX-12 exposes the mock router through a local Node HTTP server at `POST /api/mock`. This is a Cloud Run API scaffold only; no deployment or live backend handler is enabled.
 
+RP-FIX-14 adds project-level SFX mock handlers for planning, provider routes, prompt plans, credit estimates, queueing mock generation, running the mock worker, and status summaries. These handlers call local services/orchestrators only and keep Mirelo/MMAudio execution in mock mode.
+
 ## What It Does Not Do
 
 The mock runtime does not:

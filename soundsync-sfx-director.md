@@ -378,3 +378,9 @@ No real worker, provider, storage, rendering, Supabase, Google Cloud, or Secret 
 ## StoryTiming Handoff
 
 SFX event anchors, generated duration, trim windows, hit offsets, final start/hit/end placement, tails, fades, music beat flags, speech-safe placement, mix ducking, and SFX QA timing issues should later feed StoryTiming. The Master Timing Map should represent SFX as timing anchors and events such as `sfx_start`, `sfx_hit`, and `sfx_end`, then validate conflicts with speech, captions, music, ambience, signatures, and render layers.
+
+## RP-FIX-14 Project Editing Integration
+
+RP-FIX-14 wires SoundSync SFX into the mock project editing workflow. Project edits can now create SFX event plans, provider routes, prompt plans, credit estimate lines, mock generation requests, mock worker jobs, mock provider adapter output, timing/trim/hit alignment, mix plans, QA reports, and project/library asset decisions.
+
+This is a partial fix. The project flow is wired locally in mock mode, while real Mirelo/MMAudio calls, provider keys, Cloud Run workers, Supabase persistence, storage/audio files, Stripe, and rendering remain future work.

@@ -156,3 +156,9 @@ RP-SFX-12 adds a provider adapter layer with `mock`, `disabled`, and fail-closed
 ## Approval And Cost
 
 SFX generation must be included in the credit estimate before generation. Production Mirelo generation may cost more than draft MMAudio generation or library reuse. No expensive SFX generation should run before plan approval, credit approval, and credit reservation.
+
+## RP-FIX-14 Project Flow Routing
+
+RP-FIX-14 makes this provider strategy visible inside the mock project editing flow. Project SFX now routes each planned cue to internal library, Mirelo SFX V1.5, MMAudio V fallback, or no SFX, then creates prompt plans and credit-gated mock worker jobs.
+
+The route remains mock-only. Mirelo and MMAudio are not called, and real provider execution remains backend/worker future work.

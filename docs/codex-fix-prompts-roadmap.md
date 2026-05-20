@@ -169,8 +169,30 @@ Still open:
 - provider and render workers;
 - monitoring and production incident controls.
 
+### RP-FIX-14 Project SFX Workflow Integration
+
+Status: partially fixed.
+
+Implemented:
+
+- project-level SFX integration service;
+- project SFX status service;
+- project SFX orchestrator and scenarios;
+- SFX project API route metadata and mock handlers;
+- editor chat project SFX status panel;
+- mock flow from SFX Director to provider route, prompt plan, credit gate, mock generation request, mock job, mock worker, provider adapter, trim/hit alignment, mix, QA, and project/library decision.
+
+Still open:
+
+- real Mirelo/MMAudio provider execution;
+- Secret Manager provider key wiring;
+- Cloud Run worker deployment;
+- real storage/audio outputs;
+- credit spend/refund after worker completion;
+- production provenance and reuse review.
+
 ## Recommended Next Prompt
 
-`RP-FIX-13 - Cloud Run Deployment Readiness And Secret Manager Wiring`
+`RP-FIX-15 - Real SFX Provider Execution Readiness`
 
-Goal: prepare deployment scripts/docs and Secret Manager/IAM wiring plans for the RP-FIX-12 server scaffold without deploying resources, adding real secrets, enabling real providers, rendering media, or integrating Stripe.
+Goal: prepare backend-only real Mirelo/MMAudio execution readiness behind the existing mock adapter and worker gates without adding real keys, deploying Cloud Run, calling providers, processing audio, rendering media, integrating Stripe, or exposing secrets to frontend code.

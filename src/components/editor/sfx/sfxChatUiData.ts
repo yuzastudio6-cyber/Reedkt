@@ -1,6 +1,7 @@
 import {
   runMockLakeComoSFXLibraryFlow,
 } from '../../../backend/orchestrators/mock-sfx-library-orchestrator'
+import { runLakeComoProjectSFXFlow } from '../../../backend/orchestrators/edit-project-sfx-orchestrator'
 import { runMockLakeComoSFXMixFlow } from '../../../backend/orchestrators/mock-sfx-mix-orchestrator'
 import { runMockLakeComoSFXPlanningFlow } from '../../../backend/orchestrators/mock-sfx-planning-orchestrator'
 import { runMockLakeComoSFXPromptFlow } from '../../../backend/orchestrators/mock-sfx-prompt-orchestrator'
@@ -55,6 +56,14 @@ export type SFXCreditEstimateView = {
 }
 
 export type SFXChatData = {
+  projectIntegration: {
+    statusSummary: string[]
+    providerRouteSummary: string[]
+    eventCount: number
+    generationRequestCount: number
+    queuedJobCount: number
+    qaPassedCount: number
+  }
   directorPlan: SFXDirectorPlanView
   eventPlans: SFXEventPlanRecord[]
   providerRoute: SFXProviderRouteRecord
@@ -144,6 +153,7 @@ function createCreditEstimate(eventPlans: SFXEventPlanRecord[], providerRoutes: 
 }
 
 export function createSFXChatUiData(): SFXChatData {
+  const projectFlow = runLakeComoProjectSFXFlow()
   const planningFlow = runMockLakeComoSFXPlanningFlow()
   const promptFlow = runMockLakeComoSFXPromptFlow()
   const timingFlow = runMockLakeComoSFXTimingFlow()
@@ -159,6 +169,14 @@ export function createSFXChatUiData(): SFXChatData {
   const libraryResult = libraryFlow.flows.find((flow) => flow.libraryCandidate) ?? libraryFlow.flows[0]
 
   return {
+    projectIntegration: {
+      statusSummary: projectFlow.statusSummary,
+      providerRouteSummary: projectFlow.sfxIntegration.providerRouteSummary,
+      eventCount: projectFlow.sfxIntegration.sfxEventPlans.length,
+      generationRequestCount: projectFlow.sfxIntegration.generationRequests.length,
+      queuedJobCount: projectFlow.sfxIntegration.jobQueueItems.filter((item) => item.queueStatus === 'queued').length,
+      qaPassedCount: projectFlow.qaReports.filter((report) => report.status === 'passed' || report.approvedForProject).length,
+    },
     directorPlan: createDirectorPlan(eventPlans, providerRoutes),
     eventPlans,
     providerRoute: providerRoutes[0] ?? mockSFXProviderRoutes[0],

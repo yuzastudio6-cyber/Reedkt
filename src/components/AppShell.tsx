@@ -22,49 +22,51 @@ export function AppShell({ children, description, eyebrow, mode = 'standard', pr
 
   return (
     <div className={`app-shell ${isChatMode ? 'app-shell-chat' : ''}`.trim()}>
-      <aside className="sidebar">
-        <BrandLogo />
-        <nav aria-label="Desktop app navigation">
-          {appNav.map((item) => {
-            const [path, hash = ''] = item.to.split('#')
-            const isActive = hash
-              ? location.pathname === path && location.hash === `#${hash}`
-              : (location.pathname === path || (path === '/projects' && location.pathname.startsWith('/projects/'))) && !location.hash
+      {!isChatMode && (
+        <aside className="sidebar">
+          <BrandLogo />
+          <nav aria-label="Desktop app navigation">
+            {appNav.map((item) => {
+              const [path, hash = ''] = item.to.split('#')
+              const isActive = hash
+                ? location.pathname === path && location.hash === `#${hash}`
+                : (location.pathname === path || (path === '/projects' && location.pathname.startsWith('/projects/'))) && !location.hash
 
-            return item.disabled ? (
-              <button className="sidebar-link sidebar-link-disabled" disabled key={item.label} type="button">
-                <item.icon aria-hidden="true" size={18} />
-                <span>{item.label}</span>
-                <small>Later</small>
-              </button>
-            ) : (
-              <Link className={`sidebar-link ${isActive ? 'active' : ''}`} key={item.to + item.label} to={item.to}>
-                <item.icon aria-hidden="true" size={18} />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
-        <div className="sidebar-widget">
-          <span className="widget-kicker">
-            <Zap size={14} /> Personal
-          </span>
-          <strong>100 credits available</strong>
-          <div className="storage-bar" aria-label="Storage 68 percent used">
-            <span style={{ width: '68%' }} />
+              return item.disabled ? (
+                <button className="sidebar-link sidebar-link-disabled" disabled key={item.label} type="button">
+                  <item.icon aria-hidden="true" size={18} />
+                  <span>{item.label}</span>
+                  <small>Later</small>
+                </button>
+              ) : (
+                <Link className={`sidebar-link ${isActive ? 'active' : ''}`} key={item.to + item.label} to={item.to}>
+                  <item.icon aria-hidden="true" size={18} />
+                  <span>{item.label}</span>
+                </Link>
+              )
+            })}
+          </nav>
+          <div className="sidebar-widget">
+            <span className="widget-kicker">
+              <Zap size={14} /> Personal
+            </span>
+            <strong>100 credits available</strong>
+            <div className="storage-bar" aria-label="Storage 68 percent used">
+              <span style={{ width: '68%' }} />
+            </div>
+            <p>68% storage used across active projects.</p>
+            <Button size="sm" to="/wallet" variant="secondary">
+              Open wallet
+            </Button>
           </div>
-          <p>68% storage used across active projects.</p>
-          <Button size="sm" to="/wallet" variant="secondary">
-            Open wallet
-          </Button>
-        </div>
-        <div className="sidebar-profile">
-          <span>
-            <UserRound size={16} /> Tommy
-          </span>
-          <small>Creator workspace</small>
-        </div>
-      </aside>
+          <div className="sidebar-profile">
+            <span>
+              <UserRound size={16} /> Tommy
+            </span>
+            <small>Creator workspace</small>
+          </div>
+        </aside>
+      )}
       <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()}>
         {!isChatMode && (
           <header className="topbar">

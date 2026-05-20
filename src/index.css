@@ -7456,6 +7456,130 @@ li {
   color: var(--rp-danger);
 }
 
+.testing-readiness-card {
+  gap: 16px;
+}
+
+.testing-readiness-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.testing-readiness-summary-grid span,
+.testing-readiness-no-real-execution-note,
+.testing-readiness-manual-required-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 4px;
+  line-height: 1.45;
+  padding: 10px;
+}
+
+.testing-readiness-summary-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.testing-readiness-check-list,
+.testing-readiness-blocker-list,
+.testing-readiness-warning-list,
+.testing-readiness-manual-step-list {
+  display: grid;
+  gap: 10px;
+}
+
+.testing-readiness-check-item {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-left: 3px solid var(--rp-border-strong);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.testing-readiness-check-item > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.testing-readiness-check-item strong,
+.testing-readiness-blocker-list strong {
+  color: var(--rp-text-primary);
+}
+
+.testing-readiness-check-item p,
+.testing-readiness-check-item small,
+.testing-readiness-check-item em,
+.testing-readiness-blocker-list span,
+.testing-readiness-warning-list span,
+.testing-readiness-manual-step-list,
+.testing-readiness-no-real-execution-note,
+.testing-readiness-manual-required-note {
+  color: var(--rp-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.testing-readiness-check-item em {
+  color: var(--rp-text-muted);
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
+.testing-readiness-status-badge,
+.testing-readiness-blocker-list span,
+.testing-readiness-warning-list span {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.3;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.testing-readiness-ready,
+.testing-readiness-info {
+  border-left-color: var(--rp-success);
+  color: var(--rp-success);
+}
+
+.testing-readiness-warning,
+.testing-readiness-not_checked {
+  border-left-color: var(--rp-warning);
+  color: var(--rp-warning);
+}
+
+.testing-readiness-blocked,
+.testing-readiness-blocking,
+.testing-readiness-error {
+  border-left-color: var(--rp-danger);
+  color: var(--rp-danger);
+}
+
+.testing-readiness-blocker-list span {
+  border-color: var(--rp-danger);
+  color: var(--rp-danger);
+}
+
+.testing-readiness-warning-list span,
+.testing-readiness-manual-required-note {
+  border-color: color-mix(in srgb, var(--rp-warning) 40%, var(--rp-border-subtle));
+  color: var(--rp-warning);
+}
+
 .launch-tool-stack-card {
   border-color: var(--rp-border-strong);
   gap: 16px;
@@ -7948,6 +8072,229 @@ li {
   line-height: 1.5;
 }
 
+.timing-plan-entry-card {
+  align-items: center;
+  background: rgba(9, 13, 24, 0.74);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 14px;
+}
+
+.timing-plan-entry-card div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.timing-plan-entry-card strong {
+  color: var(--rp-text-primary);
+}
+
+.timing-plan-entry-card p,
+.timing-plan-entry-card small {
+  color: var(--rp-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.timing-inline-card {
+  border-color: rgba(56, 189, 248, 0.18);
+}
+
+.timing-map-card,
+.timing-qa-card,
+.timing-readiness-card,
+.timing-manifest-card {
+  background:
+    linear-gradient(180deg, rgba(16, 24, 39, 0.92), rgba(11, 18, 32, 0.96)),
+    var(--rp-surface-1);
+}
+
+.timing-pill-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timing-chip {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 750;
+  padding: 5px 9px;
+}
+
+.timing-score-grid,
+.timing-map-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.timing-score-grid span {
+  background: rgba(15, 23, 42, 0.74);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+}
+
+.timing-score-grid strong {
+  color: var(--rp-text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.timing-score-grid em {
+  color: var(--rp-text-primary);
+  font-style: normal;
+  font-weight: 850;
+}
+
+.timing-score-success {
+  color: var(--rp-success) !important;
+}
+
+.timing-score-cyan,
+.timing-score-blue {
+  color: var(--rp-brand-cyan) !important;
+}
+
+.timing-score-warning {
+  color: var(--rp-warning) !important;
+}
+
+.timing-score-danger {
+  color: var(--rp-danger) !important;
+}
+
+.timing-list,
+.timing-detail-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.timing-list-item,
+.timing-event-group,
+.timing-mini-row,
+.timing-mini-issue {
+  background: rgba(9, 13, 24, 0.74);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+}
+
+.timing-list-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.timing-list-heading strong,
+.timing-mini-row strong,
+.timing-mini-issue strong,
+.timing-detail-stack strong {
+  color: var(--rp-text-primary);
+}
+
+.timing-list-heading small,
+.timing-mini-row span,
+.timing-mini-row small,
+.timing-mini-issue span,
+.timing-detail-stack span,
+.timing-detail-stack small,
+.timing-list-item p {
+  color: var(--rp-text-muted);
+  line-height: 1.5;
+}
+
+.timing-event-group-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.timing-event-preview-list {
+  gap: 7px;
+}
+
+.timing-mini-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.timing-conflict-low {
+  border-left: 3px solid var(--rp-border-strong);
+}
+
+.timing-conflict-medium {
+  border-left: 3px solid var(--rp-info);
+}
+
+.timing-conflict-high {
+  border-left: 3px solid var(--rp-warning);
+}
+
+.timing-conflict-critical {
+  border-left: 3px solid var(--rp-danger);
+}
+
+.timing-muted-note,
+.timing-warning,
+.timing-success,
+.timing-critical {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--rp-text-secondary);
+  line-height: 1.55;
+  padding: 10px 12px;
+}
+
+.timing-warning {
+  border-color: rgba(245, 158, 11, 0.32);
+  color: var(--rp-warning);
+}
+
+.timing-success {
+  border-color: rgba(16, 185, 129, 0.28);
+  color: var(--rp-success);
+}
+
+.timing-critical {
+  border-color: rgba(239, 68, 68, 0.32);
+  color: var(--rp-danger);
+}
+
+.timing-readiness-summary {
+  align-items: flex-start;
+  display: grid;
+  gap: 10px;
+}
+
+.timing-readiness-summary p {
+  color: var(--rp-text-secondary);
+  line-height: 1.55;
+}
+
+.timing-action-row,
+.timing-revision-actions {
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .music-inline-card {
   gap: 14px;
 }
@@ -8109,13 +8456,30 @@ li {
 }
 
 @media (max-width: 860px) {
-  .sfx-plan-entry-card {
+  .sfx-plan-entry-card,
+  .timing-plan-entry-card {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .sfx-score-grid {
+  .sfx-score-grid,
+  .timing-score-grid,
+  .timing-map-summary-grid,
+  .timing-event-group-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .timing-score-grid,
+  .timing-map-summary-grid,
+  .timing-event-group-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timing-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
@@ -9197,7 +9561,8 @@ li {
   .edit-expected-output-list,
   .launch-tool-stack-grid,
   .launch-tool-stack-summary,
-  .planning-audit-summary-grid {
+  .planning-audit-summary-grid,
+  .testing-readiness-summary-grid {
     grid-template-columns: 1fr;
   }
 
@@ -9333,6 +9698,7 @@ li {
   .prompt-plan-meta,
   .regression-summary-grid,
   .planning-audit-summary-grid,
+  .testing-readiness-summary-grid,
   .migration-draft-summary-grid,
   .migration-review-summary-grid,
   .regression-scenario-item,

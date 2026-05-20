@@ -198,8 +198,10 @@ Future StoryTiming anchor categories:
 - `stroke_motion_start`
 - `stroke_motion_completion`
 - `graphic_reveal`
+- `graphic_hide`
 - `real_motion_object_enter`
 - `real_motion_object_settle`
+- `real_motion_object_exit`
 - `cta_reveal`
 - `chapter_title`
 - `manual`
@@ -225,7 +227,9 @@ Future StoryTiming event types:
 - `graphic_reveal`
 - `graphic_hide`
 - `real_motion_enter`
+- `real_motion_move`
 - `real_motion_settle`
+- `real_motion_exit`
 - `transition_start`
 - `transition_end`
 - `cta_reveal`
@@ -285,6 +289,10 @@ The manifest should include exact frame ranges, layer names, source/generated as
 1. RP-TIMING-02 defines TypeScript contracts for the conceptual records above.
 2. RP-TIMING-03 creates reviewed local Supabase tables after contract review.
 3. RP-TIMING-04 should create mock services that compile existing timing records into a Master Timing Map.
-4. Later milestones should connect captions, cuts, music, SFX, signature animation, QA, and render manifests.
+4. RP-TIMING-05 connects captions and cuts into focused mock timing records.
+5. RP-TIMING-06 connects music and SFX timing into focused mock SoundSync records.
+6. RP-TIMING-07 connects signature animation timing for Stroke Motion, Graphic Design / VisualExplain, and Real Motion.
+7. RP-TIMING-08 adds the full mock Timing QA engine with scores, readiness decisions, and adjustment recommendations.
+8. Later milestones should add chat review UI and real render worker handoff.
 
-No runtime implementation happens in RP-TIMING-01 through RP-TIMING-03.
+No runtime implementation happens in RP-TIMING-01 through RP-TIMING-03, and the later mock services remain local/demo-safe until worker and persistence milestones explicitly add real execution.

@@ -43,7 +43,17 @@ const persistPlanToMockDatabase = (
   output.conflicts.forEach((conflict) => insertMockRecord(db, 'timingConflicts', conflict))
   output.conflictResolutions.forEach((resolution) => insertMockRecord(db, 'timingConflictResolutions', resolution))
   output.qaChecks.forEach((qaCheck) => insertMockRecord(db, 'storyTimingQAChecks', qaCheck))
+  output.signatureTimingPlans.forEach((plan) => insertMockRecord(db, 'signatureTimingPlans', plan))
+  if (output.timingQAReport) {
+    insertMockRecord(db, 'storyTimingQAReports', output.timingQAReport)
+  }
+  output.timingAdjustmentRecommendations?.forEach((recommendation) =>
+    insertMockRecord(db, 'storyTimingAdjustmentRecommendations', recommendation),
+  )
   insertMockRecord(db, 'renderTimingManifests', output.renderTimingManifest)
+  if (output.renderTimingWorkerInput) {
+    insertMockRecord(db, 'renderTimingWorkerInputs', output.renderTimingWorkerInput)
+  }
 }
 
 export function runMockStoryTimingPlannerFlow(

@@ -245,3 +245,5 @@ Preview approval is not publishing approval. Export should require:
 This task does not implement export or social posting.
 
 RP-DB-10 stores export records and variants, but export execution remains future backend/worker work. Final export should wait for a ready render, non-blocking QA, preview approval when required, and any needed credit approval.
+
+RP-TIMING-10 adds a mock render timing manifest and worker-readiness payload that future preview/render workers can consume after timing is approved. It is metadata only: it does not run FFmpeg, Remotion, uploads, cloud storage, real workers, or export execution.

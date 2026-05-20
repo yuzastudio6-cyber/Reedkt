@@ -62,7 +62,10 @@ import {
 } from './storytiming-conflict-service'
 import { runStoryTimingQA } from './storytiming-qa-service'
 import { createRenderTimingManifest } from './storytiming-render-manifest-service'
+import { buildRenderTimingManifest } from './render-timing-manifest-builder-service'
 import { createStoryTimingChatSummary } from './storytiming-chat-summary-service'
+import { createSignatureTimingIntegration } from './storytiming-signature-service'
+import { runFullStoryTimingQA } from './storytiming-full-qa-service'
 import { choosePrimaryTimingAuthority } from './storytiming-authority-service'
 import { extractTimingSourcesFromMockDatabase } from './storytiming-source-extraction-service'
 
@@ -193,6 +196,22 @@ const chooseNextStep = (input: {
   return input.readyForRender ? 'review_timing_map' : 'create_render_manifest'
 }
 
+const chooseNextStepFromTimingQA = (decision: string, fallback: StoryTimingPlannerNextStep): StoryTimingPlannerNextStep => {
+  if (decision === 'blocked_for_render' || decision === 'requires_timing_adjustment') {
+    return 'resolve_timing_conflicts'
+  }
+
+  if (decision === 'requires_user_review') {
+    return 'await_user_review'
+  }
+
+  if (decision === 'ready_for_preview' || decision === 'ready_with_warnings') {
+    return 'review_timing_map'
+  }
+
+  return fallback
+}
+
 const createSoundSyncTimingIntegration = (
   masterTimingMap: MasterTimingMapRecord,
   sources: StoryTimingPlanningSources,
@@ -282,8 +301,6 @@ export function createStoryTimingPlan(
     storyBeats: request.sources.storyBeats,
     pacingAnalysis: request.sources.pacingAnalysis,
     transitionPlans: request.sources.transitionPlans,
-    strokeMotionBeats: request.sources.strokeMotionBeats,
-    strokeMotionTimingAnchors: request.sources.strokeMotionTimingAnchors,
   })
   if (!anchorResult.ok) return anchorResult
 
@@ -323,8 +340,6 @@ export function createStoryTimingPlan(
 
   const eventResult = createTimingEvents(masterTimingMap, segmentResult.data.segments, preCaptionAnchors, {
     transitionPlans: request.sources.transitionPlans,
-    strokeMotionBeats: request.sources.strokeMotionBeats,
-    signatureRoutes: request.sources.signatureRoutes,
     renderJobInputs: request.sources.renderJobInputs,
     qaReports: request.sources.qaReports,
   })
@@ -367,13 +382,36 @@ export function createStoryTimingPlan(
     captionPlanResult.data.captionTimingPlans,
     transcriptAnchorResult.data.transcriptAnchors,
   )
-  const anchors = preCaptionAnchors
+  const signatureTimingResult = createSignatureTimingIntegration({
+    masterTimingMap,
+    segments: segmentResult.data.segments,
+    transcriptAnchors: transcriptAnchorResult.data.transcriptAnchors,
+    captionEvents,
+    musicEvents,
+    sfxEvents,
+    signatureRoutes: request.sources.signatureRoutes,
+    strokeMotionPlans: request.sources.strokeMotionPlans,
+    strokeMotionBeats: request.sources.strokeMotionBeats,
+    strokeMotionTimingAnchors: request.sources.strokeMotionTimingAnchors,
+    editPlanSegments: request.sources.editPlanSegments,
+    storyBeats: request.sources.storyBeats,
+    transitionPlans: request.sources.transitionPlans,
+    userTimingInstructions: request.userTimingInstructions,
+    editComplexity: request.editComplexity ?? request.sources.editPlan?.complexity,
+  })
+  if (!signatureTimingResult.ok) return signatureTimingResult
+
+  const anchors = [
+    ...preCaptionAnchors,
+    ...signatureTimingResult.data.anchors,
+  ]
   const events = sortEvents([
     ...captionEvents,
     ...cutEvents,
     ...musicEvents,
     ...duckingEvents,
     ...sfxEvents,
+    ...signatureTimingResult.data.events,
     ...eventResult.data.events,
   ])
 
@@ -383,6 +421,7 @@ export function createStoryTimingPlan(
   const dependencies = [
     ...dependencyResult.data.dependencies,
     ...soundSyncDependencies,
+    ...signatureTimingResult.data.dependencies,
   ]
 
   const conflictResult = detectTimingConflicts(masterTimingMap, anchors, events)
@@ -412,12 +451,14 @@ export function createStoryTimingPlan(
     ...captionConflictResult.conflicts,
     ...cutMeaningConflicts,
     ...soundSyncConflictResult.conflicts,
+    ...signatureTimingResult.data.conflicts,
   ])
   const conflictResolutions = [
     ...conflictResult.data.conflictResolutions,
     ...captionConflictResult.conflictResolutions,
     ...cutMeaningConflicts.map((conflict) => createTimingConflictResolution(masterTimingMap, conflict)),
     ...soundSyncConflictResult.conflictResolutions,
+    ...signatureTimingResult.data.conflicts.map((conflict) => createTimingConflictResolution(masterTimingMap, conflict)),
   ]
   const soundSyncTimingIntegration = createSoundSyncTimingIntegration(
     masterTimingMap,
@@ -454,6 +495,7 @@ export function createStoryTimingPlan(
   const qaChecks = [
     ...captionCutQAResult.data.qaChecks,
     ...soundSyncQAResult.data.qaChecks,
+    ...signatureTimingResult.data.qaChecks,
     ...qaResult.data.qaChecks,
   ]
 
@@ -466,18 +508,62 @@ export function createStoryTimingPlan(
   )
   if (!manifestResult.ok) return manifestResult
 
-  const chatSummary = createStoryTimingChatSummary({
+  const fullQAResult = runFullStoryTimingQA({
     masterTimingMap,
+    segments: segmentResult.data.segments,
+    anchors,
     events,
+    dependencies,
     conflicts,
-    qaChecks,
+    captionTimingPlans: captionPlanResult.data.captionTimingPlans,
+    cutTimingPlans: cutPlanResult.data.cutTimingPlans,
+    musicEvents,
+    beatGrids,
+    duckingPlans,
+    sfxEvents,
+    signatureTimingPlans: signatureTimingResult.data.signatureTimingPlans,
     renderTimingManifest: manifestResult.data.renderTimingManifest,
+    qaChecks,
+    userTimingInstructions: request.userTimingInstructions,
+    editComplexity: request.editComplexity ?? request.sources.editPlan?.complexity,
+    videoTone: request.sources.editPlan?.goalSummary,
+    targetPlatform: request.targetPlatform,
   })
-  const nextStep = chooseNextStep({
+  if (!fullQAResult.ok) return fullQAResult
+
+  const renderTimingResult = buildRenderTimingManifest({
+    masterTimingMap,
+    segments: segmentResult.data.segments,
+    events,
+    dependencies,
+    conflicts,
+    conflictResolutions,
+    qaReport: fullQAResult.data.qaReport,
+    qaChecks: fullQAResult.data.qaChecks,
+    platformTarget: request.targetPlatform,
+    userInstructions: request.userTimingInstructions,
+    allowMockAssetPlaceholders: true,
+  })
+  if (!renderTimingResult.ok) return renderTimingResult
+
+  const chatSummary = [
+    ...createStoryTimingChatSummary({
+      masterTimingMap,
+      events,
+      conflicts,
+      qaChecks: fullQAResult.data.qaChecks,
+      renderTimingManifest: renderTimingResult.data.renderTimingManifest,
+    }),
+    ...signatureTimingResult.data.chatSummary,
+    ...fullQAResult.data.chatSummary,
+    ...renderTimingResult.data.chatSummary,
+  ]
+  const fallbackNextStep = chooseNextStep({
     hasBlockingConflicts: conflicts.some((conflict) => conflict.blocksRender),
     hasManualReview: conflicts.some((conflict) => conflict.requiresUserReview),
-    readyForRender: manifestResult.data.renderTimingManifest.readyForRender,
+    readyForRender: renderTimingResult.data.renderTimingManifest.readyForRender,
   })
+  const nextStep = chooseNextStepFromTimingQA(fullQAResult.data.readinessDecision, fallbackNextStep)
   const warnings = mergeWarnings(
     mapResult.data.warnings,
     segmentResult.data.warnings,
@@ -486,12 +572,15 @@ export function createStoryTimingPlan(
     anchorResult.data.warnings,
     eventResult.data.warnings,
     captionPlanResult.data.warnings,
+    signatureTimingResult.data.warnings,
     dependencyResult.data.warnings,
     conflictResult.data.warnings,
     captionCutQAResult.data.warnings,
     soundSyncQAResult.data.warnings,
     qaResult.data.warnings,
     manifestResult.data.warnings,
+    fullQAResult.data.warnings,
+    renderTimingResult.data.warnings,
   )
 
   return ok({
@@ -511,13 +600,26 @@ export function createStoryTimingPlan(
     sfxAnchors,
     sfxEvents,
     soundSyncTimingIntegration,
+    signatureTimingPlans: signatureTimingResult.data.signatureTimingPlans,
+    signatureAnchors: signatureTimingResult.data.anchors,
+    signatureEvents: signatureTimingResult.data.events,
+    signatureDependencies: signatureTimingResult.data.dependencies,
+    signatureConflicts: signatureTimingResult.data.conflicts,
+    signatureQAChecks: signatureTimingResult.data.qaChecks,
     anchors,
     events,
     dependencies,
     conflicts,
     conflictResolutions,
-    qaChecks,
-    renderTimingManifest: manifestResult.data.renderTimingManifest,
+    qaChecks: fullQAResult.data.qaChecks,
+    timingQAReport: fullQAResult.data.qaReport,
+    timingAdjustmentRecommendations: fullQAResult.data.adjustmentRecommendations,
+    timingReadinessDecision: fullQAResult.data.readinessDecision,
+    timingQAChatSummary: fullQAResult.data.chatSummary,
+    renderTimingManifest: renderTimingResult.data.renderTimingManifest,
+    renderTimingWorkerInput: renderTimingResult.data.workerInput,
+    renderTimingValidation: renderTimingResult.data.validation,
+    renderTimingChatSummary: renderTimingResult.data.chatSummary,
     chatSummary,
     nextStep,
     warnings,

@@ -85,8 +85,10 @@ export type StoryTimingAnchorType =
   | 'stroke_motion_start'
   | 'stroke_motion_completion'
   | 'graphic_reveal'
+  | 'graphic_hide'
   | 'real_motion_object_enter'
   | 'real_motion_object_settle'
+  | 'real_motion_object_exit'
   | 'cta_reveal'
   | 'chapter_title'
   | 'manual'
@@ -109,7 +111,9 @@ export type StoryTimingEventType =
   | 'graphic_reveal'
   | 'graphic_hide'
   | 'real_motion_enter'
+  | 'real_motion_move'
   | 'real_motion_settle'
+  | 'real_motion_exit'
   | 'transition_start'
   | 'transition_end'
   | 'cta_reveal'
@@ -160,9 +164,17 @@ export type StoryTimingConflictType =
   | 'sfx_tail_over_speech'
   | 'stroke_motion_late'
   | 'stroke_motion_too_fast'
+  | 'stroke_motion_caption_overlap'
   | 'graphic_reveal_too_early'
+  | 'graphic_reveal_too_late'
   | 'graphic_not_readable_long_enough'
+  | 'graphic_stays_after_topic'
   | 'real_motion_blocks_face'
+  | 'real_motion_blocks_object'
+  | 'real_motion_enters_too_early'
+  | 'real_motion_settles_late'
+  | 'real_motion_distracts_during_speech'
+  | 'signature_overlay_during_emotional_pause'
   | 'transition_cuts_story_beat'
   | 'too_many_events_same_moment'
   | 'overall_pacing_too_rushed'
@@ -212,9 +224,14 @@ export type StoryTimingQACheckType =
   | 'sfx_tail_safety'
   | 'transition_timing'
   | 'stroke_motion_word_sync'
+  | 'stroke_motion_completion_timing'
   | 'graphic_readability_time'
+  | 'graphic_reveal_timing'
   | 'real_motion_entry_exit_timing'
   | 'real_motion_face_safety'
+  | 'signature_overlay_collisions'
+  | 'signature_sfx_sync'
+  | 'signature_timing_story_meaning'
   | 'overall_rhythm'
   | 'platform_pacing'
   | 'render_manifest_integrity'
@@ -228,6 +245,46 @@ export type StoryTimingQACheckStatus =
   | 'requires_manual_review'
   | 'waived'
 
+export type StoryTimingReadinessDecision =
+  | 'ready_for_preview'
+  | 'ready_with_warnings'
+  | 'requires_timing_adjustment'
+  | 'requires_user_review'
+  | 'blocked_for_render'
+
+export type StoryTimingQACategory =
+  | 'caption_cut'
+  | 'music_sfx'
+  | 'signature_animation'
+  | 'overlay_safety'
+  | 'emotional_timing'
+  | 'overall_rhythm'
+  | 'render_manifest'
+
+export type StoryTimingQARecommendedAction =
+  | 'approve_timing'
+  | 'adjust_timing'
+  | 'shift_event'
+  | 'extend_duration'
+  | 'shorten_duration'
+  | 'move_caption'
+  | 'move_overlay'
+  | 'adjust_music_ducking'
+  | 'adjust_sfx_hit'
+  | 'preserve_pause'
+  | 'remove_event'
+  | 'ask_user'
+  | 'manual_review'
+
+export type StoryTimingOverallRhythm =
+  | 'too_rushed'
+  | 'slightly_rushed'
+  | 'balanced'
+  | 'slightly_slow'
+  | 'too_slow'
+  | 'inconsistent'
+  | 'needs_review'
+
 export type RenderTimingManifestStatus =
   | 'draft'
   | 'ready_for_worker'
@@ -235,6 +292,49 @@ export type RenderTimingManifestStatus =
   | 'rendered'
   | 'failed'
   | 'superseded'
+
+export type RenderTimingWorkerReadiness =
+  | 'not_ready'
+  | 'ready_for_mock_worker'
+  | 'ready_for_future_render_worker'
+  | 'blocked_by_timing_conflicts'
+  | 'blocked_by_missing_assets'
+  | 'blocked_by_missing_tracks'
+  | 'requires_user_review'
+
+export type RenderTimingLayerKind =
+  | 'video'
+  | 'audio'
+  | 'overlay'
+  | 'caption'
+  | 'transition'
+  | 'effect'
+  | 'marker'
+  | 'qa'
+
+export type RenderTimingAssetRequirement =
+  | 'source_media_required'
+  | 'generated_asset_required'
+  | 'music_asset_required'
+  | 'sfx_asset_required'
+  | 'caption_asset_generated'
+  | 'overlay_asset_required'
+  | 'no_asset_required'
+  | 'mock_asset_placeholder'
+
+export type RenderTimingValidationIssue =
+  | 'missing_master_timing_map'
+  | 'missing_render_manifest'
+  | 'missing_required_track'
+  | 'missing_required_event'
+  | 'invalid_event_time_range'
+  | 'unresolved_blocking_conflict'
+  | 'timing_qa_failed'
+  | 'missing_source_asset'
+  | 'missing_generated_asset'
+  | 'missing_worker_notes'
+  | 'layer_order_conflict'
+  | 'manual_review_needed'
 
 export type StoryTimingFrameRoundingMode = 'floor' | 'ceil' | 'round'
 
@@ -325,6 +425,52 @@ export type SoundSyncTimingMode =
   | 'montage_driven'
   | 'subtle_support'
   | 'manual'
+
+export type SignatureTimingMode =
+  | 'speech_locked'
+  | 'phrase_locked'
+  | 'story_beat_locked'
+  | 'emotion_locked'
+  | 'sfx_synced'
+  | 'music_synced'
+  | 'visual_motion_locked'
+  | 'loose_support'
+
+export type SignatureOverlaySafetyRisk =
+  | 'none'
+  | 'caption_overlap'
+  | 'face_blocking'
+  | 'object_blocking'
+  | 'too_many_overlays'
+  | 'not_readable_long_enough'
+  | 'animation_too_late'
+  | 'animation_too_fast'
+  | 'manual_review'
+
+export type StrokeMotionTimingRole =
+  | 'story_start'
+  | 'draw'
+  | 'morph'
+  | 'emphasis'
+  | 'completion'
+  | 'transition_out'
+
+export type GraphicDesignTimingRole =
+  | 'card_reveal'
+  | 'label_reveal'
+  | 'list_item_reveal'
+  | 'diagram_trace'
+  | 'callout'
+  | 'hide'
+  | 'transition_out'
+
+export type RealMotionTimingRole =
+  | 'object_enter'
+  | 'object_move'
+  | 'object_scale'
+  | 'object_settle'
+  | 'object_exit'
+  | 'demonstration_moment'
 
 export interface StoryTimingTimebase {
   frameRate: number
@@ -604,6 +750,77 @@ export interface SoundSyncTimingIntegrationRecord {
   createdAt: ISODateString
 }
 
+export interface SignatureTimingPlanRecord {
+  id: ID
+  masterTimingMapId: ID
+  projectId: ID
+  editPlanId: ID
+  signatureRouteId?: ID
+  editPlanSegmentId?: ID
+  signatureSystem: SignatureSystem
+  timingMode: SignatureTimingMode
+  sourceAnchorIds: ID[]
+  outputEventIds: ID[]
+  sfxEventIds: ID[]
+  captionConflictRisk: SignatureOverlaySafetyRisk
+  faceSafetyRisk?: SignatureOverlaySafetyRisk
+  summary: string
+  notes: string[]
+  createdAt: ISODateString
+}
+
+export interface SignatureOverlayTimingWindow {
+  startSeconds: Seconds
+  emphasisSeconds?: Seconds
+  completeSeconds?: Seconds
+  endSeconds: Seconds
+  minReadableDurationSeconds?: Seconds
+  maxRecommendedDurationSeconds?: Seconds
+}
+
+export interface StoryTimingQAReportRecord {
+  id: ID
+  masterTimingMapId: ID
+  projectId: ID
+  editPlanId: ID
+  readinessDecision: StoryTimingReadinessDecision
+  overallScore: Percentage
+  captionCutScore: Percentage
+  musicSfxScore: Percentage
+  signatureTimingScore: Percentage
+  overlaySafetyScore: Percentage
+  emotionalTimingScore: Percentage
+  overallRhythmScore: Percentage
+  renderManifestScore: Percentage
+  conflictIds: ID[]
+  qaCheckIds: ID[]
+  recommendedActions: StoryTimingQARecommendedAction[]
+  blocksPreview: boolean
+  blocksRender: boolean
+  requiresUserReview: boolean
+  summary: string
+  createdAt: ISODateString
+  metadata?: JSONObject
+}
+
+export interface StoryTimingAdjustmentRecommendationRecord {
+  id: ID
+  masterTimingMapId: ID
+  projectId: ID
+  editPlanId: ID
+  relatedConflictId?: ID
+  relatedEventIds: ID[]
+  relatedAnchorIds: ID[]
+  recommendedAction: StoryTimingQARecommendedAction
+  adjustmentType?: StoryTimingAdjustmentType
+  timeShiftSeconds?: Seconds
+  reason: string
+  userFacingSummary: string
+  requiresUserApproval: boolean
+  createdAt: ISODateString
+  metadata?: JSONObject
+}
+
 export interface RenderTimingTrack {
   id: ID
   trackType: StoryTimingTrackType
@@ -640,6 +857,30 @@ export interface RenderTimingManifestRecord extends BaseRecord {
   conflictsResolved: ID[]
   readyForRender: boolean
   workerNotes: string[]
+}
+
+export interface RenderTimingWorkerInputRecord extends BaseRecord {
+  renderTimingManifestId: ID
+  masterTimingMapId: ID
+  projectId: ID
+  editPlanId: ID
+  renderJobId?: ID
+  readiness: RenderTimingWorkerReadiness
+  requiredAssets: RenderTimingAssetRequirement[]
+  trackCount: number
+  eventCount: number
+  blockingConflictIds: ID[]
+  workerPayload: JSONObject
+  workerNotes: string[]
+  mockOnly: boolean
+}
+
+export interface RenderTimingValidationResult {
+  ok: boolean
+  readiness: RenderTimingWorkerReadiness
+  issues: RenderTimingValidationIssue[]
+  warnings: string[]
+  recommendedFixes: string[]
 }
 
 export const STORYTIMING_CORE_RULE =

@@ -41,12 +41,22 @@ import type {
   CutTimingPlanRecord,
   MusicBeatGridRecord,
   MusicDuckingTimingPlanRecord,
+  RenderTimingAssetRequirement,
   RenderTimingManifestRecord,
+  RenderTimingValidationResult,
+  RenderTimingWorkerInputRecord,
+  RenderTimingWorkerReadiness,
+  SignatureTimingPlanRecord,
   SoundSyncTimingIntegrationRecord,
+  StoryTimingAdjustmentRecommendationRecord,
   StoryTimingAuthority,
+  StoryTimingQARecommendedAction,
+  StoryTimingQAReportRecord,
   StoryTimingQACheckRecord,
+  StoryTimingReadinessDecision,
   StoryTimingSourceRef,
   StoryTimingSourceSystem,
+  StoryTimingTrackType,
   TimingAnchorRecord,
   TimingConflictRecord,
   TimingConflictResolutionRecord,
@@ -120,6 +130,16 @@ export interface StoryTimingPlannerOutput {
   sfxAnchors: TimingAnchorRecord[]
   sfxEvents: TimingEventRecord[]
   soundSyncTimingIntegration?: SoundSyncTimingIntegrationRecord
+  signatureTimingPlans: SignatureTimingPlanRecord[]
+  signatureAnchors: TimingAnchorRecord[]
+  signatureEvents: TimingEventRecord[]
+  signatureDependencies: TimingDependencyRecord[]
+  signatureConflicts: TimingConflictRecord[]
+  signatureQAChecks: StoryTimingQACheckRecord[]
+  timingQAReport?: StoryTimingQAReportRecord
+  timingAdjustmentRecommendations?: StoryTimingAdjustmentRecommendationRecord[]
+  timingReadinessDecision?: StoryTimingReadinessDecision
+  timingQAChatSummary?: string[]
   anchors: TimingAnchorRecord[]
   events: TimingEventRecord[]
   dependencies: TimingDependencyRecord[]
@@ -127,6 +147,9 @@ export interface StoryTimingPlannerOutput {
   conflictResolutions: TimingConflictResolutionRecord[]
   qaChecks: StoryTimingQACheckRecord[]
   renderTimingManifest: RenderTimingManifestRecord
+  renderTimingWorkerInput?: RenderTimingWorkerInputRecord
+  renderTimingValidation?: RenderTimingValidationResult
+  renderTimingChatSummary?: string[]
   chatSummary: string[]
   nextStep: StoryTimingPlannerNextStep
   warnings: string[]
@@ -365,6 +388,177 @@ export interface RunSoundSyncTimingQAResponse {
   warnings: string[]
 }
 
+export interface CreateSignatureTimingPlansRequest {
+  masterTimingMap: MasterTimingMapRecord
+  segments: import('../../types/storytiming').StoryTimingSegmentRecord[]
+  transcriptAnchors: TimingAnchorRecord[]
+  captionEvents: TimingEventRecord[]
+  musicEvents: TimingEventRecord[]
+  sfxEvents: TimingEventRecord[]
+  signatureRoutes?: SignatureRouteRecord[]
+  strokeMotionPlans?: StrokeMotionPlanRecord[]
+  strokeMotionBeats?: StrokeMotionBeatRecord[]
+  strokeMotionTimingAnchors?: StrokeMotionTimingAnchorRecord[]
+  editPlanSegments?: EditPlanSegmentRecord[]
+  storyBeats?: StoryBeatRecord[]
+  transitionPlans?: TransitionPlanRecord[]
+  userTimingInstructions?: string[]
+  videoTone?: string
+  editComplexity?: EditComplexity
+}
+
+export interface CreateSignatureTimingPlansResponse {
+  signatureTimingPlans: SignatureTimingPlanRecord[]
+  anchors: TimingAnchorRecord[]
+  events: TimingEventRecord[]
+  dependencies: TimingDependencyRecord[]
+  conflicts: TimingConflictRecord[]
+  qaChecks: StoryTimingQACheckRecord[]
+  chatSummary: string[]
+  warnings: string[]
+}
+
+export interface CreateStrokeMotionTimingEventsRequest {
+  masterTimingMap: MasterTimingMapRecord
+  segments: import('../../types/storytiming').StoryTimingSegmentRecord[]
+  transcriptAnchors: TimingAnchorRecord[]
+  sfxEvents?: TimingEventRecord[]
+  strokeMotionBeats?: StrokeMotionBeatRecord[]
+  strokeMotionTimingAnchors?: StrokeMotionTimingAnchorRecord[]
+}
+
+export interface CreateStrokeMotionTimingEventsResponse {
+  anchors: TimingAnchorRecord[]
+  events: TimingEventRecord[]
+  dependencies: TimingDependencyRecord[]
+  warnings: string[]
+}
+
+export interface CreateGraphicDesignTimingEventsRequest {
+  masterTimingMap: MasterTimingMapRecord
+  segments: import('../../types/storytiming').StoryTimingSegmentRecord[]
+  transcriptAnchors: TimingAnchorRecord[]
+  captionEvents?: TimingEventRecord[]
+  signatureRoutes?: SignatureRouteRecord[]
+  editComplexity?: EditComplexity
+}
+
+export interface CreateGraphicDesignTimingEventsResponse {
+  anchors: TimingAnchorRecord[]
+  events: TimingEventRecord[]
+  dependencies: TimingDependencyRecord[]
+  warnings: string[]
+}
+
+export interface CreateRealMotionTimingEventsRequest {
+  masterTimingMap: MasterTimingMapRecord
+  segments: import('../../types/storytiming').StoryTimingSegmentRecord[]
+  transcriptAnchors: TimingAnchorRecord[]
+  captionEvents?: TimingEventRecord[]
+  sfxEvents?: TimingEventRecord[]
+  signatureRoutes?: SignatureRouteRecord[]
+}
+
+export interface CreateRealMotionTimingEventsResponse {
+  anchors: TimingAnchorRecord[]
+  events: TimingEventRecord[]
+  dependencies: TimingDependencyRecord[]
+  warnings: string[]
+}
+
+export interface RunSignatureTimingQARequest {
+  masterTimingMap: MasterTimingMapRecord
+  signatureTimingPlans: SignatureTimingPlanRecord[]
+  anchors: TimingAnchorRecord[]
+  events: TimingEventRecord[]
+  dependencies: TimingDependencyRecord[]
+  conflicts: TimingConflictRecord[]
+}
+
+export interface RunSignatureTimingQAResponse {
+  qaChecks: StoryTimingQACheckRecord[]
+  warnings: string[]
+}
+
+export interface RunFullStoryTimingQARequest {
+  masterTimingMap: MasterTimingMapRecord
+  segments: import('../../types/storytiming').StoryTimingSegmentRecord[]
+  anchors: TimingAnchorRecord[]
+  events: TimingEventRecord[]
+  dependencies: TimingDependencyRecord[]
+  conflicts: TimingConflictRecord[]
+  captionTimingPlans?: CaptionTimingPlanRecord[]
+  cutTimingPlans?: CutTimingPlanRecord[]
+  musicEvents?: TimingEventRecord[]
+  beatGrids?: MusicBeatGridRecord[]
+  duckingPlans?: MusicDuckingTimingPlanRecord[]
+  sfxEvents?: TimingEventRecord[]
+  signatureTimingPlans?: SignatureTimingPlanRecord[]
+  renderTimingManifest?: RenderTimingManifestRecord
+  qaChecks?: StoryTimingQACheckRecord[]
+  userTimingInstructions?: string[]
+  editComplexity?: EditComplexity
+  videoTone?: string
+  targetPlatform?: TargetPlatform
+}
+
+export type FullStoryTimingQANextStep =
+  | 'ready_for_timing_review'
+  | 'adjust_timing'
+  | 'create_timing_review_ui'
+  | 'create_render_manifest'
+
+export interface RunFullStoryTimingQAResponse {
+  qaReport: StoryTimingQAReportRecord
+  qaChecks: StoryTimingQACheckRecord[]
+  conflicts: TimingConflictRecord[]
+  adjustmentRecommendations: StoryTimingAdjustmentRecommendationRecord[]
+  readinessDecision: StoryTimingReadinessDecision
+  chatSummary: string[]
+  nextStep: FullStoryTimingQANextStep
+  warnings: string[]
+}
+
+export interface CreateStoryTimingQAReportRequest extends RunFullStoryTimingQARequest {
+  readinessDecision: StoryTimingReadinessDecision
+  recommendedActions?: StoryTimingQARecommendedAction[]
+}
+
+export interface CreateStoryTimingQAReportResponse {
+  qaReport: StoryTimingQAReportRecord
+  warnings: string[]
+}
+
+export interface CreateTimingAdjustmentRecommendationsRequest {
+  masterTimingMap: MasterTimingMapRecord
+  conflicts: TimingConflictRecord[]
+  qaChecks: StoryTimingQACheckRecord[]
+  events?: TimingEventRecord[]
+  anchors?: TimingAnchorRecord[]
+}
+
+export interface CreateTimingAdjustmentRecommendationsResponse {
+  adjustmentRecommendations: StoryTimingAdjustmentRecommendationRecord[]
+  warnings: string[]
+}
+
+export interface DetermineStoryTimingReadinessRequest {
+  masterTimingMap: MasterTimingMapRecord
+  conflicts: TimingConflictRecord[]
+  qaChecks: StoryTimingQACheckRecord[]
+  overallScore: number
+  renderTimingManifest?: RenderTimingManifestRecord
+}
+
+export interface DetermineStoryTimingReadinessResponse {
+  readinessDecision: StoryTimingReadinessDecision
+  previewReady: boolean
+  renderReady: boolean
+  requiresAdjustment: boolean
+  requiresUserReview: boolean
+  warnings: string[]
+}
+
 export interface CreateRenderTimingManifestRequest {
   masterTimingMapId: ID
   projectId: ID
@@ -377,5 +571,83 @@ export interface CreateRenderTimingManifestResponse {
   renderTimingManifest: RenderTimingManifestRecord
   readyForRender: boolean
   blockingConflictIds: ID[]
+  warnings: string[]
+}
+
+export interface BuildRenderTimingManifestRequest {
+  masterTimingMap: MasterTimingMapRecord
+  segments?: import('../../types/storytiming').StoryTimingSegmentRecord[]
+  events: TimingEventRecord[]
+  dependencies?: TimingDependencyRecord[]
+  conflicts?: TimingConflictRecord[]
+  conflictResolutions?: TimingConflictResolutionRecord[]
+  qaReport?: StoryTimingQAReportRecord
+  qaChecks?: StoryTimingQACheckRecord[]
+  renderJobId?: ID
+  requiredTrackTypes?: StoryTimingTrackType[]
+  requiredAssets?: RenderTimingAssetRequirement[]
+  missingAssets?: RenderTimingAssetRequirement[]
+  allowMockAssetPlaceholders?: boolean
+}
+
+export interface BuildRenderTimingManifestResponse {
+  renderTimingManifest: RenderTimingManifestRecord
+  tracks: RenderTimingManifestRecord['tracks']
+  manifestEvents: RenderTimingManifestRecord['events']
+  dependencyMap: unknown
+  validation: RenderTimingValidationResult
+  workerInput: RenderTimingWorkerInputRecord
+  chatSummary: string[]
+  warnings: string[]
+}
+
+export interface ValidateRenderTimingManifestRequest {
+  renderTimingManifest?: RenderTimingManifestRecord
+  events?: TimingEventRecord[]
+  dependencies?: TimingDependencyRecord[]
+  conflicts?: TimingConflictRecord[]
+  qaReport?: StoryTimingQAReportRecord
+  qaChecks?: StoryTimingQACheckRecord[]
+  requiredTrackTypes?: StoryTimingTrackType[]
+  requiredAssets?: RenderTimingAssetRequirement[]
+  missingAssets?: RenderTimingAssetRequirement[]
+  allowMockAssetPlaceholders?: boolean
+}
+
+export interface ValidateRenderTimingManifestResponse {
+  validation: RenderTimingValidationResult
+  warnings: string[]
+}
+
+export interface CreateRenderTimingWorkerInputRequest {
+  renderTimingManifest: RenderTimingManifestRecord
+  validation: RenderTimingValidationResult
+  dependencyMap: unknown
+  layerOrder: unknown[]
+  missingAssets?: RenderTimingAssetRequirement[]
+  allowMockAssetPlaceholders?: boolean
+}
+
+export interface CreateRenderTimingWorkerInputResponse {
+  workerInput: RenderTimingWorkerInputRecord
+  warnings: string[]
+}
+
+export interface DetermineRenderTimingWorkerReadinessRequest {
+  renderTimingManifest?: RenderTimingManifestRecord
+  events?: TimingEventRecord[]
+  conflicts?: TimingConflictRecord[]
+  qaReport?: StoryTimingQAReportRecord
+  qaChecks?: StoryTimingQACheckRecord[]
+  requiredTrackTypes?: StoryTimingTrackType[]
+  requiredAssets?: RenderTimingAssetRequirement[]
+  missingAssets?: RenderTimingAssetRequirement[]
+  allowMockAssetPlaceholders?: boolean
+}
+
+export interface DetermineRenderTimingWorkerReadinessResponse {
+  readiness: RenderTimingWorkerReadiness
+  mockWorkerReady: boolean
+  futureRenderWorkerReady: boolean
   warnings: string[]
 }

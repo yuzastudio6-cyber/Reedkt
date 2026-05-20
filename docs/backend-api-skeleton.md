@@ -46,6 +46,18 @@ RP-SFX-12 adds a mock-first SFX provider adapter layer behind the worker boundar
 
 RP-TIMING-06 adds backend contract and mock service shapes for music/SFX timing inside StoryTiming. The mock flow can create music cue events, mock beat grids, ducking timing plans, SFX start/hit/end events, SoundSync dependencies, focused conflicts, and music/SFX QA summaries. These remain local service contracts and orchestrator flows only; no HTTP routes, Supabase calls, audio processing, provider calls, or rendering are added.
 
+## StoryTiming Signature Animation Timing
+
+RP-TIMING-07 adds backend contract and mock service shapes for signature animation timing inside StoryTiming. The mock flow can create signature timing plans, Stroke Motion start/beat/complete events, Graphic Design reveal/hide events, Real Motion enter/move/settle/exit events, signature SFX dependencies, overlay conflicts, focused signature QA, and chat-ready summaries. These remain local service contracts and orchestrator flows only; no HTTP routes, Supabase calls, provider calls, media processing, rendering, or UI are added.
+
+## StoryTiming Full Timing QA
+
+RP-TIMING-08 adds backend contract and mock service shapes for full Timing QA inside StoryTiming. The mock flow can combine focused QA slices, score timing categories, rank issues, create adjustment recommendations, validate render readiness, produce a QA report, and return chat-ready timing QA summaries. These remain local service contracts and orchestrator flows only; no HTTP routes, Supabase calls, provider calls, media processing, rendering, or UI are added.
+
+## StoryTiming Render Timing Manifest
+
+RP-TIMING-10 adds backend contract and mock service shapes for worker-ready render timing manifests. The mock flow can build deterministic tracks, convert StoryTiming events into render manifest payloads, map timing dependencies, validate layer order and required assets, create a mock worker input record, and return chat-ready render timing summaries. These remain local service contracts and orchestrator flows only; no HTTP routes, Supabase calls, provider calls, FFmpeg, Remotion, storage, media processing, real workers, rendering, or UI are added.
+
 ## Supabase Later
 
 Future implementation should replace the placeholders in `src/backend/supabase/` with a real Supabase client for the `reeditpro` project. Service role access must stay in a secure backend or Google Cloud runtime and must never be bundled into the Vite frontend.

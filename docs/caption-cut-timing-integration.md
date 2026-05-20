@@ -100,7 +100,7 @@ No audio is edited or rendered.
 - emotional pause preservation
 - platform/cut pacing
 
-This does not replace the broader StoryTiming QA layer.
+This does not replace the broader StoryTiming QA layer. RP-TIMING-08 consumes these focused checks in the full Timing QA Engine, where caption readability, speech-cut integrity, and pause preservation contribute to category scores, readiness decisions, and timing adjustment recommendations.
 
 ## Examples
 
@@ -116,4 +116,4 @@ Emotional-pause scenarios flag cuts that remove protected pauses.
 
 ## What Remains Mock-Only
 
-Real transcript alignment, real caption rendering, real cut execution, audio edits, media inspection, worker rendering, Supabase writes, and UI review are future milestones. RP-TIMING-06 now builds on these outputs by using caption/cut speech windows to plan music ducking, voice-safe SFX tails, and SoundSync timing dependencies.
+Real transcript alignment, real caption rendering, real cut execution, audio edits, media inspection, worker rendering, Supabase writes, and UI review are future milestones. RP-TIMING-06 builds on these outputs for SoundSync, and RP-TIMING-08 builds on them for mock full Timing QA.

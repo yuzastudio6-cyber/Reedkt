@@ -127,6 +127,21 @@ const layerMetadata: LayerMetadata[] = [
     ],
   },
   {
+    id: 'testing_readiness',
+    label: 'Testing readiness',
+    planKeys: ['testingReadinessReport'],
+    hasTypes: true,
+    hasPlannerModule: true,
+    hasUiCard: true,
+    includedInApprovedSnapshot: false,
+    includedInValidation: true,
+    includedInCreditEstimate: false,
+    notes: [
+      'Static/mock testing readiness verifies build/lint/script expectations, planning gates, tool/provider boundaries, and no-real-execution constraints.',
+      'It does not run Supabase, SQL, providers, tools, cloud, billing, media processing, or rendering.',
+    ],
+  },
+  {
     id: 'aspect_ratio_frame_gate',
     label: 'Aspect ratio frame gate',
     planKeys: ['aspectRatioFramePlan'],

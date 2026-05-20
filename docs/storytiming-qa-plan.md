@@ -8,7 +8,11 @@ This document is architecture guidance. RP-TIMING-03 adds local timing QA tables
 
 RP-TIMING-05 adds mock caption/cut-focused QA services for transcript anchors, caption readability, caption/overlay conflicts, speech cut integrity, emotional pause preservation, and cut pacing.
 
-RP-TIMING-06 adds mock SoundSync-focused QA for music beat alignment, music ducking timing, SFX hit alignment, SFX tail safety, music/SFX density, ambience preservation, and overall rhythm. Beat grids remain mock estimates and do not imply real audio analysis. Signature animation timing QA remains a future milestone.
+RP-TIMING-06 adds mock SoundSync-focused QA for music beat alignment, music ducking timing, SFX hit alignment, SFX tail safety, music/SFX density, ambience preservation, and overall rhythm. Beat grids remain mock estimates and do not imply real audio analysis.
+
+RP-TIMING-07 adds mock signature-focused QA for Stroke Motion word sync and completion timing, Graphic Design reveal/readability timing, Real Motion entry/settle/face safety, signature overlay collisions, signature SFX sync, and story-meaning alignment. Full cross-system Timing QA remains RP-TIMING-08.
+
+RP-TIMING-08 adds the mock full Timing QA Engine. It combines the focused QA slices, creates category scores, ranks issues, recommends timing adjustments, validates render readiness, and returns one readiness decision for preview/render planning.
 
 ## QA Principle
 
@@ -113,4 +117,4 @@ StoryTiming QA connects them and catches cross-system timing problems.
 
 ## Mock-Only Boundary
 
-RP-TIMING-01 does not implement QA logic. Future RP-TIMING-08 should create mock QA services after contracts, tables, and mock StoryTiming planner exist.
+RP-TIMING-01 did not implement QA logic. RP-TIMING-05, RP-TIMING-06, and RP-TIMING-07 add focused mock QA slices for caption/cut, SoundSync, and signature timing. RP-TIMING-08 creates the full cross-system Timing QA engine on top of these slices. RP-TIMING-09 should build the chat-native timing review UI next.

@@ -3,6 +3,7 @@ import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
 import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
+import type { TestingReadinessReport } from './testing-readiness'
 
 export type SignatureSystem =
   | 'stroke_motion'
@@ -3989,6 +3990,7 @@ export type PlanningSystemLayerId =
   | 'migration_drafts'
   | 'migration_review_rls'
   | 'supabase_production_readiness'
+  | 'testing_readiness'
   | 'planner_validation'
   | 'planner_regression'
   | 'tool_previews'
@@ -4083,6 +4085,7 @@ export interface EditPlan {
   migrationDraftPlan?: MigrationDraftPlan
   migrationReviewPlan?: MigrationReviewPlan
   supabaseProductionReadinessPlan?: SupabaseProductionReadinessPlan
+  testingReadinessReport?: TestingReadinessReport
   soundSyncDirection: string
   captionDirection: string
   creditEstimate: CreditEstimate

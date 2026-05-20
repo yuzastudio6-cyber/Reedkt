@@ -138,8 +138,10 @@ Anchor categories:
 - `stroke_motion_start`
 - `stroke_motion_completion`
 - `graphic_reveal`
+- `graphic_hide`
 - `real_motion_object_enter`
 - `real_motion_object_settle`
+- `real_motion_object_exit`
 - `cta_reveal`
 - `chapter_title`
 - `manual`
@@ -167,7 +169,9 @@ Event types:
 - `graphic_reveal`
 - `graphic_hide`
 - `real_motion_enter`
+- `real_motion_move`
 - `real_motion_settle`
+- `real_motion_exit`
 - `transition_start`
 - `transition_end`
 - `cta_reveal`
@@ -252,23 +256,27 @@ StoryTiming does not replace existing systems. It coordinates them.
 
 StoryTiming should connect these through anchors, events, dependencies, conflicts, and render manifests.
 
+## Current Mock Implementation
+
+RP-TIMING-04 through RP-TIMING-07 now provide mock/local services for master map creation, transcript/caption/cut timing, music/SFX timing, and signature animation timing. These services produce deterministic anchors, events, dependencies, conflicts, QA checks, chat summaries, and render manifest placeholders while preserving the source timing records.
+
+RP-TIMING-07 specifically connects Stroke Motion, Graphic Design / VisualExplain, and Real Motion signature timing to StoryTiming. It remains mock-only and stops before the full RP-TIMING-08 Timing QA engine.
+
+RP-TIMING-08 adds the mock full Timing QA Engine. It combines focused QA slices, scores timing categories, ranks issues, recommends adjustments, validates render readiness, and returns a readiness decision before future chat review or worker handoff.
+
 ## What Is Not Implemented Yet
 
-RP-TIMING-01 does not implement:
+The current StoryTiming layer still does not implement:
 
-- TypeScript StoryTiming contracts
-- Supabase StoryTiming tables
-- mock StoryTiming services
 - backend routes
 - UI cards
 - real transcript alignment
 - real beat detection
 - real media analysis
-- real render manifests
+- real render execution
 - render workers
 - provider integrations
-- migrations
-- Supabase connections
+- remote migrations or Supabase connections
 - secrets or API keys
 
 Future milestones should add those pieces in order, using the existing distributed timing records as inputs.

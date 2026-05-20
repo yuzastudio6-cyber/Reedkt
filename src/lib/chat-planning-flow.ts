@@ -157,6 +157,24 @@ function supabaseProductionReadinessStatus(plan: EditPlan): ChatCardStatus {
   return 'warning'
 }
 
+function testingReadinessStatus(plan: EditPlan): ChatCardStatus {
+  const status = plan.testingReadinessReport?.overallStatus
+
+  if (!status) {
+    return 'not_started'
+  }
+
+  if (status === 'blocked') {
+    return 'blocking'
+  }
+
+  if (status === 'warning' || status === 'not_checked') {
+    return 'warning'
+  }
+
+  return 'ready'
+}
+
 function hasFactSafetyConcern(plan: EditPlan) {
   const factSafety = plan.documentaryFactSafetyPlan
 
@@ -452,6 +470,7 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const currentMigrationDraftStatus = migrationDraftStatus(plan)
   const currentMigrationReviewStatus = migrationReviewStatus(plan)
   const currentSupabaseProductionReadinessStatus = supabaseProductionReadinessStatus(plan)
+  const currentTestingReadinessStatus = testingReadinessStatus(plan)
   const editingAgentExecutionValidationStatus = validationCategoryStatus(validationReport, 'editing_agent_execution')
   const editingAgentExecutionStatus = editingAgentExecutionValidationStatus ?? (plan.editingAgentExecutionPlan ? 'ready' : 'not_started')
   const asyncAssetReconciliationValidationStatus = validationCategoryStatus(validationReport, 'async_asset_reconciliation')
@@ -901,6 +920,19 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       requiredBeforeApproval: false,
       summary: `${regressionReport.status}: ${regressionReport.scenarioReports.length} demo scenarios checked.`,
       hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'testing_readiness',
+      label: 'Testing readiness',
+      phase: 'safety_qa',
+      priority: 'developer_detail',
+      status: currentTestingReadinessStatus,
+      defaultExpanded: currentTestingReadinessStatus === 'blocking',
+      requiredBeforeApproval: false,
+      summary: plan.testingReadinessReport
+        ? `${plan.testingReadinessReport.overallStatus}: ${plan.testingReadinessReport.checks.length} static readiness checks; no real execution.`
+        : 'Testing readiness report is not ready.',
+      hiddenInCompactMode: currentTestingReadinessStatus !== 'blocking' && currentTestingReadinessStatus !== 'warning',
     }),
     descriptor({
       id: 'editing_agent_execution',

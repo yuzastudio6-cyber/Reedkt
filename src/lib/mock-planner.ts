@@ -58,6 +58,7 @@ import { createMigrationReviewPlan } from './migration-review-plan'
 import { createSupabaseSchemaPlan } from './supabase-schema-plan'
 import { createMigrationDraftPlan } from './supabase-migration-drafts'
 import { createSupabaseProductionReadinessPlan } from './supabase-production-readiness'
+import { createTestingReadinessReport } from './testing-readiness'
 import { createTimingValidationPlan } from './timing-validation'
 import { getToolRegistrySummary } from './tool-registry'
 import { createToolStrategyPlan } from './tool-strategy-planner'
@@ -2147,8 +2148,18 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     }),
   }
 
-  return {
+  const planWithAudit: EditPlan = {
     ...planWithExecution,
     planningSystemAuditReport: createPlanningSystemAuditReport(planWithExecution),
+  }
+  const testingReadinessReport = createTestingReadinessReport(planWithAudit)
+  const finalPlan: EditPlan = {
+    ...planWithAudit,
+    testingReadinessReport,
+  }
+
+  return {
+    ...finalPlan,
+    planningSystemAuditReport: createPlanningSystemAuditReport(finalPlan),
   }
 }

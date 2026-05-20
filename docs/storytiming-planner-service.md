@@ -26,11 +26,11 @@ Edit plan segment output timing remains the base timeline. StoryTiming stores so
 
 1. Create a `MasterTimingMapRecord`.
 2. Create `StoryTimingSegmentRecord` windows from edit plan segments.
-3. Create timing anchors from story beats, cuts, transitions, music, SFX, Stroke Motion, and manual/source cues.
-4. Create timing events for captions, cuts, transitions, music, SFX, Stroke Motion, Graphic Design, Real Motion, render markers, and QA markers.
+3. Create transcript, caption, cut, music, and SFX timing records.
+4. Create signature animation timing records for Stroke Motion, Graphic Design / VisualExplain, and Real Motion.
 5. Create dependencies across events and anchors.
 6. Detect conservative mock timing conflicts.
-7. Run timing QA checks.
+7. Run focused caption/cut, SoundSync, signature, and general StoryTiming QA checks.
 8. Create a worker-ready render timing manifest placeholder.
 9. Return chat-ready summaries and a next step.
 
@@ -100,6 +100,12 @@ RP-TIMING-05 adds specialized caption and cut timing integration on top of this 
 
 RP-TIMING-06 adds specialized mock SoundSync timing integration. It creates music cue events, mock beat grids, music ducking timing plans, SFX start/hit/end events, SFX tail anchors, music/SFX dependencies, SoundSync conflicts, and focused music/SFX QA. Beat grids are mock estimates only; no real audio analysis or provider calls occur.
 
+RP-TIMING-07 adds specialized mock signature animation timing integration after caption/cut and music/SFX timing. It creates Stroke Motion, Graphic Design / VisualExplain, and Real Motion timing plans, anchors, events, dependencies, conflicts, and focused QA without generating or rendering animations.
+
+RP-TIMING-08 adds the mock full Timing QA Engine after render manifest placeholder creation. It scores caption/cut, music/SFX, signature timing, overlay safety, emotional timing, overall rhythm, and render manifest integrity, then returns a readiness decision and timing recommendations.
+
+RP-TIMING-09 displays those planner and QA outputs in chat-native timing review cards. The UI is optional, compact, and mock-only; it does not replace the advanced timeline drawer or mutate timing records.
+
 ## Mock-Only Limits
 
-These mock services do not implement real caption/cut execution, real beat detection, real audio processing, real render workers, Supabase service reads/writes, provider calls, media processing, Stripe, or mobile. RP-TIMING-07 should add signature animation timing integration next.
+These mock services do not implement real caption/cut execution, real beat detection, real audio processing, real signature rendering, real render workers, Supabase service reads/writes, provider calls, media processing, Stripe, or mobile. RP-TIMING-09 adds the chat-native review surface only; RP-TIMING-10 remains the future render manifest worker step.

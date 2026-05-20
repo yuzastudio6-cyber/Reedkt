@@ -6,6 +6,8 @@ import type {
   RenderJobInputRecord,
   RenderJobRecord,
   RenderRecord,
+  RenderTimingManifestRecord,
+  RenderTimingWorkerInputRecord,
 } from '../../types'
 import type { CreateRenderJobRequest } from '../contracts/render-contracts'
 import type { MockDatabase } from '../mock/mock-database'
@@ -64,6 +66,38 @@ export function createRenderJob(
   }
 
   return ok(insertMockRecord(db, 'renderJobs', renderJob))
+}
+
+export function createRenderPreviewTimingManifestLink(
+  db: MockDatabase,
+  input: {
+    renderJobId: string
+    renderTimingManifest: RenderTimingManifestRecord
+    workerInput?: RenderTimingWorkerInputRecord
+  },
+): ServiceResult<RenderJobRecord> {
+  const renderJob = findMockRecord(db, 'renderJobs', input.renderJobId)
+
+  if (!renderJob) {
+    return fail('RENDER_JOB_NOT_FOUND', `Render job ${input.renderJobId} was not found.`)
+  }
+
+  renderJob.timelineSpec = {
+    ...(renderJob.timelineSpec ?? {}),
+    renderTimingManifestId: input.renderTimingManifest.id,
+    renderTimingWorkerInputId: input.workerInput?.id ?? '',
+    renderTimingReadiness: input.workerInput?.readiness ?? (input.renderTimingManifest.readyForRender ? 'ready_for_future_render_worker' : 'not_ready'),
+    noRenderingExecuted: true,
+    mockOnly: true,
+  }
+  renderJob.metadata = {
+    ...renderJob.metadata,
+    renderTimingManifestId: input.renderTimingManifest.id,
+    renderTimingWorkerInputId: input.workerInput?.id ?? '',
+  }
+  renderJob.updatedAt = nowIso()
+
+  return ok(renderJob)
 }
 
 export function createRenderJobInputs(

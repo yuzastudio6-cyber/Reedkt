@@ -62,6 +62,7 @@ export type PlanValidationCategory =
   | 'migration_drafts'
   | 'migration_review_rls'
   | 'supabase_production_readiness'
+  | 'testing_readiness'
   | 'demo_scenario'
   | 'approved_snapshot'
 
@@ -362,6 +363,39 @@ function supabaseProductionReadinessNoExecution(plan: EditPlan) {
     supabaseProductionReadinessCheckPasses(plan, 'supabase-readiness-no-sql-run') &&
     supabaseProductionReadinessCheckPasses(plan, 'supabase-readiness-no-supabase-connection'),
   )
+}
+
+function testingReadinessExists(plan: EditPlan) {
+  return Boolean(plan.testingReadinessReport)
+}
+
+function testingReadinessHasNoBlockers(plan: EditPlan) {
+  return Boolean(plan.testingReadinessReport && plan.testingReadinessReport.blockers.length === 0)
+}
+
+function testingReadinessNoExecution(plan: EditPlan) {
+  const report = plan.testingReadinessReport
+  const limitations = report?.limitations.join(' ').toLowerCase() ?? ''
+
+  return Boolean(
+    report &&
+    limitations.includes('no real supabase') &&
+    limitations.includes('no provider') &&
+    limitations.includes('no real media') &&
+    report.checks.some((item) => item.id === 'testing-readiness-no-real-execution' && item.passed),
+  )
+}
+
+function testingReadinessGateChecks(plan: EditPlan) {
+  const checkIds = new Set(plan.testingReadinessReport?.checks.map((item) => item.id) ?? [])
+
+  return [
+    'testing-readiness-source-sequence',
+    'testing-readiness-aspect-ratio-gate',
+    'testing-readiness-cleanup-gate',
+    'testing-readiness-timing-validation',
+    'testing-readiness-credit-estimate',
+  ].every((id) => checkIds.has(id))
 }
 
 function videoUnderstandingExists(plan: EditPlan) {
@@ -3475,6 +3509,42 @@ export function validateMockEditPlan(params: {
       passed: supabaseProductionReadinessNoExecution(plan),
       message: 'RP-DATA-04 must not imply SQL execution, Supabase connection, Supabase client, backend, storage operation, or secrets.',
       relatedField: 'supabaseProductionReadinessPlan.limitations',
+    }),
+    check({
+      id: 'validation-testing-readiness-exists',
+      category: 'testing_readiness',
+      label: 'Testing readiness report exists',
+      severity: 'warning',
+      passed: testingReadinessExists(plan),
+      message: 'Mock edit plans should include the RP-TEST-01 testing readiness report.',
+      relatedField: 'testingReadinessReport',
+    }),
+    check({
+      id: 'validation-testing-readiness-no-blockers',
+      category: 'testing_readiness',
+      label: 'Testing readiness has no blockers',
+      severity: 'warning',
+      passed: testingReadinessHasNoBlockers(plan),
+      message: 'Testing readiness should not have hard blockers before moving to local/staging test execution.',
+      relatedField: 'testingReadinessReport.blockers',
+    }),
+    check({
+      id: 'validation-testing-readiness-core-gates',
+      category: 'testing_readiness',
+      label: 'Testing readiness tracks core gates',
+      severity: 'blocking',
+      passed: testingReadinessGateChecks(plan),
+      message: 'Testing readiness must track source order, aspect ratio, cleanup, timing, and credit approval gates.',
+      relatedField: 'testingReadinessReport.checks',
+    }),
+    check({
+      id: 'validation-testing-readiness-no-execution',
+      category: 'testing_readiness',
+      label: 'Testing readiness does not imply execution',
+      severity: 'blocking',
+      passed: testingReadinessNoExecution(plan),
+      message: 'Testing readiness must not imply provider, tool, Supabase, cloud, SQL, rendering, billing, or worker execution.',
+      relatedField: 'testingReadinessReport.limitations',
     }),
     check({
       id: 'validation-credit-estimate',

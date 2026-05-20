@@ -241,6 +241,12 @@ RP-TIMING-05 adds mock caption/cut timing contracts for `CaptionTimingPlanRecord
 
 RP-TIMING-06 adds mock SoundSync timing contracts for `MusicBeatGridRecord`, `MusicDuckingTimingPlanRecord`, and `SoundSyncTimingIntegrationRecord`. These records do not replace music cue sheets, music mix plans, SFX event plans, SFX trim plans, SFX timing alignments, or SFX mix plans. They coordinate those existing records into StoryTiming music cue events, mock beat/downbeat anchors, voice-safe ducking windows, SFX start/hit/end events, SoundSync dependencies, focused conflicts, and music/SFX QA. Beat grids are mock estimates only until a future worker adds real audio analysis.
 
+RP-TIMING-07 adds mock signature animation timing contracts through `SignatureTimingMode`, `SignatureOverlaySafetyRisk`, Stroke/Graphic/Real timing role types, `SignatureTimingPlanRecord`, and `SignatureOverlayTimingWindow`. These records do not replace signature routes, Stroke Motion plans/beats/anchors, Graphic Design route records, Real Motion route records, captions, or SFX records. They coordinate existing signature timing into StoryTiming anchors, events, dependencies, overlay conflicts, SFX sync checks, and focused signature timing QA.
+
+RP-TIMING-08 adds mock full Timing QA contracts through `StoryTimingReadinessDecision`, `StoryTimingQACategory`, `StoryTimingQARecommendedAction`, `StoryTimingOverallRhythm`, `StoryTimingQAReportRecord`, and `StoryTimingAdjustmentRecommendationRecord`. These records do not replace focused QA checks or source timing systems; they summarize cross-system timing quality, recommended fixes, and preview/render readiness.
+
+RP-TIMING-10 adds mock render worker-readiness contracts through `RenderTimingWorkerReadiness`, `RenderTimingLayerKind`, `RenderTimingAssetRequirement`, `RenderTimingValidationIssue`, `RenderTimingWorkerInputRecord`, and `RenderTimingValidationResult`. These records do not execute rendering or replace render jobs; they convert approved/mock-ready StoryTiming records into a worker-readable timing payload with tracks, manifest events, dependency maps, asset requirements, blocking-conflict IDs, worker notes, and validation results.
+
 ## Mock Records
 
 `src/lib/mock-ai-editor-records.ts` contains typed examples that prove the model can represent:

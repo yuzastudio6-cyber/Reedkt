@@ -4,7 +4,7 @@
 
 The future render timing manifest is the worker-ready output of the StoryTiming Master Timing Map. It should tell render and compositing workers exactly when every source clip, caption, music cue, SFX hit, transition, and generated overlay appears.
 
-This document is architecture guidance. RP-TIMING-03 adds local render timing manifest tables, but it still does not create render services, Remotion code, media processing, uploads, remote migrations, or worker execution.
+This document started as architecture guidance. RP-TIMING-03 adds local render timing manifest tables, and RP-TIMING-10 adds mock/local manifest builder services, worker-input payloads, validation, scenarios, and handoff docs. It still does not create Remotion code, media processing, uploads, remote migrations, real render workers, or worker execution.
 
 ## Why A Manifest Is Needed
 
@@ -95,6 +95,12 @@ Render QA should compare the produced render against the manifest:
 - QA markers are preserved for review
 - no required layer starts before or ends after its approved range
 
+RP-TIMING-08 adds mock render readiness checks before real render work exists. The full Timing QA Engine validates that a manifest exists, includes required tracks/events, and has no unresolved blocking timing conflicts before preview/render readiness is granted.
+
+RP-TIMING-09 displays the render timing manifest placeholder inside the chat-native timing review flow. The card explains track/event counts, worker notes, readiness, and resolved conflicts, while making clear that no rendering happens in the mock UI.
+
+RP-TIMING-10 now creates the mock worker-ready layer behind that placeholder. It builds deterministic tracks, converts StoryTiming events into render manifest payloads, maps dependencies, validates layer order and required assets, creates a mock worker input record, and returns chat-ready readiness summaries.
+
 ## Mock-Only Boundary
 
-RP-TIMING-01 does not implement the manifest. It defines the future worker contract at the documentation level only.
+RP-TIMING-01 did not implement the manifest. RP-TIMING-04 and later mock services can create manifest placeholders, RP-TIMING-08 validates readiness locally, RP-TIMING-09 reviews the result in chat, and RP-TIMING-10 creates mock worker-ready timing metadata. Real render workers, asset fetching, storage, FFmpeg, Remotion, and export execution remain future milestones.

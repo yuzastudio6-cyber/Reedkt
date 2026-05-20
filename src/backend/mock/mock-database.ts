@@ -48,6 +48,7 @@ import type {
   RenderJobRecord,
   RenderRecord,
   RenderTimingManifestRecord,
+  RenderTimingWorkerInputRecord,
   RevisionRequestItemRecord,
   RevisionRequestRecord,
   SFXAdjustmentDecisionRecord,
@@ -69,6 +70,7 @@ import type {
   SFXUsageLearningRecord,
   SFXUsageRecord,
   SignatureRouteRecord,
+  SignatureTimingPlanRecord,
   SoundEffectPlanRecord,
   SoundSyncTimingIntegrationRecord,
   SourceClipSequenceItem,
@@ -77,7 +79,9 @@ import type {
   SourceSequenceMapRecord,
   StoryBeatMapRecord,
   StoryBeatRecord,
+  StoryTimingAdjustmentRecommendationRecord,
   StoryTimingQACheckRecord,
+  StoryTimingQAReportRecord,
   StoryTimingSegmentRecord,
   StrokeMotionBeatRecord,
   StrokeMotionCharacterRecord,
@@ -131,12 +135,16 @@ export interface MockDatabase {
   timingConflicts: TimingConflictRecord[]
   timingConflictResolutions: TimingConflictResolutionRecord[]
   storyTimingQAChecks: StoryTimingQACheckRecord[]
+  storyTimingQAReports: StoryTimingQAReportRecord[]
+  storyTimingAdjustmentRecommendations: StoryTimingAdjustmentRecommendationRecord[]
   renderTimingManifests: RenderTimingManifestRecord[]
+  renderTimingWorkerInputs: RenderTimingWorkerInputRecord[]
   captionTimingPlans: CaptionTimingPlanRecord[]
   cutTimingPlans: CutTimingPlanRecord[]
   musicBeatGrids: MusicBeatGridRecord[]
   musicDuckingTimingPlans: MusicDuckingTimingPlanRecord[]
   soundSyncTimingIntegrations: SoundSyncTimingIntegrationRecord[]
+  signatureTimingPlans: SignatureTimingPlanRecord[]
   signatureRoutes: SignatureRouteRecord[]
   editInstructions: EditInstructionRecord[]
   editQualityProfiles: EditQualityProfileRecord[]
@@ -253,12 +261,16 @@ export function createMockDatabase(): MockDatabase {
     timingConflicts: [],
     timingConflictResolutions: [],
     storyTimingQAChecks: [],
+    storyTimingQAReports: [],
+    storyTimingAdjustmentRecommendations: [],
     renderTimingManifests: [],
+    renderTimingWorkerInputs: [],
     captionTimingPlans: [],
     cutTimingPlans: [],
     musicBeatGrids: [],
     musicDuckingTimingPlans: [],
     soundSyncTimingIntegrations: [],
+    signatureTimingPlans: [],
     signatureRoutes: [],
     editInstructions: [],
     editQualityProfiles: [],

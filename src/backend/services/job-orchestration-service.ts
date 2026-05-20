@@ -52,6 +52,12 @@ export interface SFXWorkerJobDependencyChain {
   dependencies: JobDependencyRecord[]
 }
 
+export interface RenderTimingWorkerJobDependencyChain {
+  jobBatch: JobBatchRecord
+  jobs: JobRecord[]
+  dependencies: JobDependencyRecord[]
+}
+
 export function createJobBatch(
   db: MockDatabase,
   input: CreateJobBatchRequest,
@@ -407,6 +413,98 @@ export function createSFXWorkerJobDependencyChain(
     'sfx_event_plan_created -> sfx_prompt_plan_created -> credit_estimate_approved -> credit_reserved -> generation_request_created -> sfx_generation_job -> sfx_trim_alignment_job -> sfx_mix_job -> sfx_qa_job -> sfx_usage_library_job'
   batch.outputPayload = {
     mockOnly: true,
+    dependencyLabels: jobs.map((job) => job.jobName ?? job.jobType),
+  }
+  batch.updatedAt = nowIso()
+
+  return ok({
+    jobBatch: batch,
+    jobs,
+    dependencies,
+  })
+}
+
+export function createRenderTimingWorkerJobDependencyChain(
+  db: MockDatabase,
+  input: {
+    workspaceId: string
+    projectId: string
+    editPlanId?: string
+    creditEstimateId?: string
+    creditReservationId?: string
+    renderTimingManifestId?: string
+    renderTimingWorkerInputId?: string
+  },
+): ServiceResult<RenderTimingWorkerJobDependencyChain> {
+  const batchResult = createJobBatch(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    batchName: 'Mock render timing worker dependency chain',
+  })
+
+  if (!batchResult.ok) {
+    return batchResult
+  }
+
+  const batch = batchResult.data
+  const jobs: JobRecord[] = []
+  const dependencies: JobDependencyRecord[] = []
+  const jobSpecs: Array<{ jobType: JobRecord['jobType']; jobName: string }> = [
+    { jobType: 'quality_check', jobName: 'timing_map_approved' },
+    { jobType: 'quality_check', jobName: 'render_manifest_created' },
+    { jobType: 'quality_check', jobName: 'render_worker_input_ready' },
+    { jobType: 'render_preview', jobName: 'mock_preview_render_job' },
+  ]
+
+  for (const spec of jobSpecs) {
+    const result = createJob(db, {
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      jobBatchId: batch.id,
+      editPlanId: input.editPlanId,
+      creditEstimateId: input.creditEstimateId,
+      creditReservationId: input.creditReservationId,
+      jobType: spec.jobType,
+      jobName: spec.jobName,
+    })
+
+    if (!result.ok) {
+      return result
+    }
+
+    result.data.inputPayload = {
+      ...result.data.inputPayload,
+      renderTimingManifestId: input.renderTimingManifestId ?? '',
+      renderTimingWorkerInputId: input.renderTimingWorkerInputId ?? '',
+      noRenderingExecuted: true,
+    }
+    jobs.push(result.data)
+  }
+
+  for (let index = 1; index < jobs.length; index += 1) {
+    const dependency = createJobDependency(
+      db,
+      jobs[index].id,
+      jobs[index - 1].id,
+      input.workspaceId,
+      input.projectId,
+    )
+
+    if (!dependency.ok) {
+      return dependency
+    }
+
+    dependencies.push(dependency.data)
+  }
+
+  batch.batchPurpose =
+    'timing_map_approved -> render_manifest_created -> render_worker_input_ready -> mock_preview_render_job'
+  batch.outputPayload = {
+    mockOnly: true,
+    noRenderingExecuted: true,
     dependencyLabels: jobs.map((job) => job.jobName ?? job.jobType),
   }
   batch.updatedAt = nowIso()

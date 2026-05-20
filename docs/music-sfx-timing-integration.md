@@ -51,6 +51,8 @@ StoryTiming creates:
 
 SFX events retain source refs back to SFX Director records.
 
+RP-TIMING-07 can then add signature-specific dependencies that align existing SFX hit events to Stroke Motion completion, Graphic Design reveal, or Real Motion settle moments. Those dependencies do not generate, trim, mix, or replace SFX records.
+
 ## Dependencies
 
 SoundSync dependencies connect:
@@ -86,7 +88,7 @@ SoundSync timing QA produces checks for:
 - ambience preservation timing
 - overall rhythm
 
-These checks are focused on RP-TIMING-06. Full timing QA remains a later milestone.
+These checks are focused on RP-TIMING-06. RP-TIMING-07 adds focused signature/SFX sync checks. RP-TIMING-08 consumes both layers in the full Timing QA Engine, where music/SFX timing contributes to category scores, readiness decisions, and adjustment recommendations.
 
 ## Examples
 

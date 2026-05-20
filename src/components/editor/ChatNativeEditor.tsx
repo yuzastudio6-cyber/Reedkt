@@ -76,6 +76,7 @@ import { InlineSourceSequenceCard } from './InlineSourceSequenceCard'
 import { InlineSourceCleanupPlanCard } from './InlineSourceCleanupPlanCard'
 import { InlineSupabaseProductionReadinessCard } from './InlineSupabaseProductionReadinessCard'
 import { InlineSupabaseSchemaPlanCard } from './InlineSupabaseSchemaPlanCard'
+import { InlineTestingReadinessCard } from './InlineTestingReadinessCard'
 import { InlineTrimReviewCard } from './InlineTrimReviewCard'
 import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
 import { InlineVisualAssetPlanCard } from './InlineVisualAssetPlanCard'
@@ -84,6 +85,7 @@ import { MinimalProjectHeader } from './MinimalProjectHeader'
 import { MusicPlanChatFlow } from './music/MusicPlanChatFlow'
 import { PreviewReadyCard } from './PreviewReadyCard'
 import { SFXPlanChatFlow } from './sfx/SFXPlanChatFlow'
+import { TimingReviewChatFlow } from './timing/TimingReviewChatFlow'
 
 function normalizeClipOrder(clips: ClipSource[]) {
   return clips.map((clip, index) => ({ ...clip, uploadedOrder: index + 1 }))
@@ -156,6 +158,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [revisionMessage, setRevisionMessage] = useState('')
   const [showMusicPlan, setShowMusicPlan] = useState(false)
   const [showSFXPlan, setShowSFXPlan] = useState(false)
+  const [showTimingReview, setShowTimingReview] = useState(false)
   const progressTimerRef = useRef<number | null>(null)
 
   const plannerInput = useMemo(
@@ -287,6 +290,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setProgressIndex(0)
     setShowMusicPlan(false)
     setShowSFXPlan(false)
+    setShowTimingReview(false)
   }
 
   function resetAfterSourceChange() {
@@ -835,6 +839,9 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               {showCard('planner_regression') && (
                 <InlinePlannerRegressionCard descriptor={cardById.planner_regression} report={regressionReport} />
               )}
+              {showCard('testing_readiness') && (
+                <InlineTestingReadinessCard plan={plan} />
+              )}
               {showCard('editing_agent_execution') && (
                 <InlineEditingAgentExecutionPlanCard descriptor={cardById.editing_agent_execution} plan={plan} />
               )}
@@ -868,6 +875,17 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                 onApprove={handleApprove}
                 onLowerCost={handleLowerCost}
               />
+              <div className="timing-plan-entry-card">
+                <div>
+                  <span className="section-eyebrow">StoryTiming</span>
+                  <strong>Review timing inside chat</strong>
+                  <p>Check captions, cuts, music, SFX, signature overlays, conflicts, QA scores, readiness, and render timing without opening a timeline dashboard.</p>
+                  <small>Mock-only review. No rendering, provider calls, or backend timing mutation happens here.</small>
+                </div>
+                <Button onClick={() => setShowTimingReview(true)} variant={showTimingReview ? 'secondary' : 'primary'}>
+                  {showTimingReview ? 'Timing review opened' : 'Review timing with StoryTiming'}
+                </Button>
+              </div>
               <div className="sfx-plan-entry-card">
                 <div>
                   <span className="section-eyebrow">SoundSync SFX</span>
@@ -895,6 +913,8 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
           {setupReady && showSFXPlan && <SFXPlanChatFlow />}
 
           {setupReady && showMusicPlan && <MusicPlanChatFlow />}
+
+          {setupReady && showTimingReview && <TimingReviewChatFlow />}
 
           {revisionMessage && (
             <ChatMessage role="ai">

@@ -6,6 +6,10 @@ StoryTiming coordinates timing across ReeditPro systems. It does not replace the
 
 RP-TIMING-01 is documentation only. RP-TIMING-03 adds local master tables for coordination records, but the boundary remains the same: StoryTiming coordinates when systems act and does not replace the systems that decide what to make.
 
+RP-TIMING-07 applies this boundary to signature animation timing. StoryTiming can create mock anchors, events, dependencies, conflicts, and QA checks for Stroke Motion, Graphic Design / VisualExplain, and Real Motion, but it does not generate overlays, render animation, run vision detection, or replace signature system source records.
+
+RP-TIMING-08 applies this boundary to full Timing QA. StoryTiming can score timing, rank issues, recommend adjustments, and decide preview/render readiness, but it does not inspect real media, mutate source timing records, render, or ask providers to fix timing.
+
 ## StoryTiming Should Not Replace
 
 StoryTiming should not replace:

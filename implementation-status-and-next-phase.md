@@ -18,6 +18,7 @@ This document summarizes the current ReeditPro foundation before the next phase.
 - SoundSync + Transition Timing planning for mock beat grids, music phrases, speech-safe beat snap decisions, refined transitions, cue-linked SFX, and voice-first ducking.
 - Retake Selection + Meaning Preservation Validation for mock retake choice, selected-candidate confidence, meaning-preservation checks, and trim-review approval blocking.
 - Editing Agent Execution planning for a mock async work graph, dependency records, idempotent work items, asset manifest entries, checkpoints, and checkback/fallback policy. It lets independent future work continue while provider/tool/render jobs are pending, but final render waits for required assets and QA.
+- Testing Readiness reporting for local/static repo checks, required mock planning gates, launch tool stack classification, provider/tool execution boundaries, and manual local/staging follow-up. The `npm.cmd run test:readiness` script reads repo files only and does not run Supabase, SQL, providers, tools, cloud, rendering, billing, or migrations.
 
 ## Explicitly Not Implemented Yet
 
@@ -95,3 +96,9 @@ This is documentation and typed mock planning only. It does not implement real w
 The frontend mock now includes an `AgentQAFallbackPlan` that adds QA gates, likely failure scenarios, fallback actions, fallback decisions, and local/global failure handling to the agent execution architecture.
 
 This remains documentation and typed mock planning only. It does not implement real QA, retries, fallback execution, provider calls, workers, storage, backend queues, billing, Remotion rendering, or media processing.
+
+## RP-TEST-01 Status
+
+End-to-End Testing Readiness adds a typed `TestingReadinessReport`, chat-native readiness card, planner validation/regression checks, and the local static `npm.cmd run test:readiness` script. It prepares the repo for local/staging test execution without running Supabase, SQL, providers, tools, cloud, rendering, billing, media processing, or migrations.
+
+The next step is manual local/staging test execution after build, lint, and readiness checks pass; real provider/cloud/rendering setup remains a later milestone.

@@ -206,3 +206,10 @@ export function createRenderTimingManifestFromTimingMap(
 export function createRenderTimingManifestSummary(renderTimingManifest: RenderTimingManifestRecord): string {
   return `${renderTimingManifest.status} manifest with ${renderTimingManifest.tracks.length} tracks and ${renderTimingManifest.events.length} timed events.`
 }
+
+export {
+  buildRenderTimingManifest,
+  buildRenderTimingManifestFromMockDatabase,
+  buildRenderTimingManifestFromTimingMap,
+  createRenderTimingManifestSummary as createWorkerReadyRenderTimingManifestSummary,
+} from './render-timing-manifest-builder-service'

@@ -48,6 +48,7 @@ do $$
 begin
   create type public.sfx_provider as enum (
     'reeditpro_internal_library',
+    'mmaudio_v2',
     'mmaudio_v',
     'mirelo_sfx_v1_5',
     'no_sfx',
@@ -456,7 +457,7 @@ create table if not exists public.sfx_provider_routes (
 );
 
 comment on table public.sfx_provider_routes is
-'Chooses between internal library, MMAudio V, Mirelo SFX V1.5, manual upload, unknown, or no SFX. This is routing metadata only and does not call providers.';
+'Chooses between internal library, MMAudio V2, Mirelo SFX V1.5, manual upload, unknown, or no SFX. Legacy mmaudio_v records remain accepted as a compatibility alias. This is routing metadata only and does not call providers.';
 
 create table if not exists public.sfx_prompt_plans (
   id uuid primary key default gen_random_uuid(),
@@ -1286,8 +1287,8 @@ insert into public.sfx_prompt_adapter_tests (
     '{"test_family":"mirelo_stroke_prompt"}'::jsonb
   ),
   (
-    'mmaudio_v',
-    'mmaudio-v',
+    'mmaudio_v2',
+    'mmaudio-v2',
     'video_conditioned_short_prompt',
     'soft transition whoosh',
     'transition_soft_whoosh',
@@ -1296,8 +1297,8 @@ insert into public.sfx_prompt_adapter_tests (
     '{"test_family":"mmaudio_short_prompt"}'::jsonb
   ),
   (
-    'mmaudio_v',
-    'mmaudio-v',
+    'mmaudio_v2',
+    'mmaudio-v2',
     'video_conditioned_short_prompt',
     'gentle line drawing sound',
     'stroke_line_trace',

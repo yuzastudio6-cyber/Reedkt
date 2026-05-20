@@ -7,6 +7,7 @@ import type {
   SFXProviderSafetyGateInput,
   SFXProviderSafetyGateResult,
 } from './sfx-provider-contracts'
+import { normalizeSFXProviderKey } from './sfx-provider-contracts'
 
 function pass(message = 'SFX provider safety gates passed.', warnings: string[] = []): SFXProviderSafetyGateResult {
   return { ok: true, message, warnings }
@@ -24,16 +25,7 @@ function promptWarningsBlock(warnings: string[]) {
 
 function providerKey(input: SFXProviderSafetyGateInput): SFXProviderKey {
   const provider = input.promptPlan?.provider ?? input.providerRoute?.recommendedProvider ?? 'no_sfx'
-  if (
-    provider === 'mirelo_sfx_v1_5' ||
-    provider === 'mmaudio_v' ||
-    provider === 'reeditpro_internal_library' ||
-    provider === 'no_sfx'
-  ) {
-    return provider
-  }
-
-  return 'no_sfx'
+  return normalizeSFXProviderKey(provider)
 }
 
 export function assertSFXPromptPlanAllowed(input: SFXProviderSafetyGateInput): SFXProviderSafetyGateResult {

@@ -15,6 +15,8 @@ Future production secrets should use reference names like:
 - `reeditpro-prod-hailuo-api-key`
 - `reeditpro-prod-veo-vertex-config`
 - `reeditpro-prod-lyria-api-key`
+- `reeditpro-prod-mirelo-api-key`
+- `reeditpro-prod-mmaudio-api-key`
 - `reeditpro-prod-provider-webhook-signing-secret`
 - `reeditpro-prod-stripe-webhook-secret`
 
@@ -47,5 +49,7 @@ These are frontend-safe public Supabase values. They are not service-role creden
 ## Local Placeholder Boundary
 
 `.env.example` contains placeholders only. It may document future local variable names, but real production values belong in Secret Manager and secure deployment configuration.
+
+`GOOGLE_SECRET_MIRELO_API_KEY_NAME` and `GOOGLE_SECRET_MMAUDIO_API_KEY_NAME` are local placeholder variables for future Secret Manager reference names such as `reeditpro-prod-mirelo-api-key` and `reeditpro-prod-mmaudio-api-key`. They must not contain raw provider key values.
 
 RP-GCP-00 does not add Stripe integration. `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` remain future placeholders only.

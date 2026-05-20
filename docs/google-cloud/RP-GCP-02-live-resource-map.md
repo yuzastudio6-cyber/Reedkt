@@ -101,6 +101,8 @@ These secrets exist as empty or placeholder Secret Manager resources. Raw secret
 | `reeditpro-prod-hailuo-api-key` | Future Hailuo provider key. |
 | `reeditpro-prod-veo-vertex-config` | Future Veo/Vertex config. |
 | `reeditpro-prod-lyria-api-key` | Future Lyria/SoundSync music generation key. |
+| `reeditpro-prod-mirelo-api-key` | Future Mirelo SFX V1.5 provider key reference. Backend/worker only. |
+| `reeditpro-prod-mmaudio-api-key` | Future MMAudio V2 provider key reference. Backend/worker only. |
 | `reeditpro-prod-provider-webhook-signing-secret` | Future provider webhook verification secret. |
 | `reeditpro-prod-stripe-webhook-secret` | Future Stripe webhook secret placeholder. |
 

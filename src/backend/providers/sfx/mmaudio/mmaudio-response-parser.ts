@@ -9,11 +9,11 @@ export function parseMMAudioInternalResponse(response: MMAudioInternalResponse):
   return parseSFXProviderResponse({
     rawResponse: response.rawResponse ?? {
       parts: [
-        { text: `Mock MMAudio response for ${response.modelName}.` },
+        { text: `Mock MMAudio V2 response for ${response.modelName}.` },
         { type: 'audio', mimeType: response.outputFormat === 'mp3' ? 'audio/mpeg' : 'audio/wav', data: null },
       ],
     },
-    providerKey: 'mmaudio_v',
+    providerKey: 'mmaudio_v2',
     providerName: response.providerName,
     modelName: response.modelName,
     durationSeconds: response.durationSeconds,

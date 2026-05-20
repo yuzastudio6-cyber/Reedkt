@@ -4,6 +4,7 @@ import type {
   SFXProvider,
 } from '../../types'
 import { nowIso } from '../mock/mock-database'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 import type {
   MockSFXProviderResponse,
   SFXWorkerContext,
@@ -13,7 +14,7 @@ import type {
 function modelForProvider(provider: SFXProvider, promptPlan?: SFXPromptPlanRecord) {
   if (promptPlan?.modelName) return promptPlan.modelName
   if (provider === 'mirelo_sfx_v1_5') return 'mirelo-sfx-v1.5'
-  if (provider === 'mmaudio_v') return 'mmaudio-v'
+  if (isMMAudioProviderKey(provider)) return 'mmaudio-v2'
   if (provider === 'reeditpro_internal_library') return 'reeditpro-internal-sfx-library'
   return 'no-sfx'
 }
@@ -25,7 +26,7 @@ export function createMockSFXStoragePath(
 ): string {
   const providerFolder = provider === 'mirelo_sfx_v1_5'
     ? 'mirelo'
-    : provider === 'mmaudio_v'
+    : isMMAudioProviderKey(provider)
       ? 'mmaudio'
       : 'library'
 
@@ -54,7 +55,7 @@ export function createMockSFXWaveformHint(eventPlan: SFXEventPlanRecord): string
 
 export function simulateSFXGenerationDelay(provider: SFXProvider): number {
   if (provider === 'mirelo_sfx_v1_5') return 1800
-  if (provider === 'mmaudio_v') return 700
+  if (isMMAudioProviderKey(provider)) return 700
   return 120
 }
 
@@ -72,10 +73,10 @@ export function createMockSFXProviderResponse(input: {
   return {
     provider: provider === 'mirelo_sfx_v1_5'
       ? 'Mirelo SFX V1.5'
-      : provider === 'mmaudio_v'
-        ? 'MMAudio V'
+      : isMMAudioProviderKey(provider)
+        ? 'MMAudio V2'
         : 'ReeditPro Internal Library',
-    providerKey: provider,
+    providerKey: isMMAudioProviderKey(provider) ? 'mmaudio_v2' : provider,
     modelName: modelForProvider(provider, promptPlan),
     mockAudioBytes: null,
     mockStoragePath: isLibrary
@@ -110,7 +111,7 @@ export function simulateMMAudioSFXGeneration(input: {
   eventPlan: SFXEventPlanRecord
   promptPlan: SFXPromptPlanRecord
 }): MockSFXProviderResponse {
-  return createMockSFXProviderResponse({ ...input, provider: 'mmaudio_v' })
+  return createMockSFXProviderResponse({ ...input, provider: 'mmaudio_v2' })
 }
 
 export function simulateInternalLibrarySFXMatch(input: {
@@ -134,7 +135,7 @@ export function simulateSFXProviderGeneration(input: {
   promptPlan: SFXPromptPlanRecord
 }): MockSFXProviderResponse {
   if (input.context.providerKey === 'mirelo_sfx_v1_5') return simulateMireloSFXGeneration(input)
-  if (input.context.providerKey === 'mmaudio_v') return simulateMMAudioSFXGeneration(input)
+  if (isMMAudioProviderKey(input.context.providerKey)) return simulateMMAudioSFXGeneration(input)
 
   return simulateInternalLibrarySFXMatch({
     ...input,

@@ -1,4 +1,4 @@
-# Mock SFX Director Service
+﻿# Mock SFX Director Service
 
 ## Purpose
 
@@ -80,8 +80,8 @@ SFX remains voice-first and subtle by default.
 
 Provider routing is planning metadata only.
 
-- Basic/Pro: internal library first, MMAudio V for cheap draft/fallback, Mirelo only for important approved moments.
-- Signature/Premium: Mirelo SFX V1.5 for key production SFX, internal library for common cues, MMAudio V for draft or video-synced helper work.
+- Basic/Pro: internal library first, MMAudio V2 for cheap draft/fallback, Mirelo only for important approved moments.
+- Signature/Premium: Mirelo SFX V1.5 for key production SFX, internal library for common cues, MMAudio V2 for draft or video-synced helper work.
 - No SFX remains a valid provider route.
 
 No route calls a provider or reads credentials.

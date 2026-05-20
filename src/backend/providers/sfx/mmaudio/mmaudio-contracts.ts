@@ -1,5 +1,5 @@
 export interface MMAudioInternalRequest {
-  modelName: 'mmaudio-v' | string
+  modelName: 'mmaudio-v2' | string
   prompt: string
   negativePrompt?: string
   durationSeconds: number
@@ -14,7 +14,7 @@ export interface MMAudioInternalRequest {
 }
 
 export interface MMAudioInternalResponse {
-  providerName: 'MMAudio V'
+  providerName: 'MMAudio V2'
   modelName: string
   mockAudioBytes: null
   mockStoragePath?: string

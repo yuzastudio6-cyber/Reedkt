@@ -13,6 +13,8 @@ export type SFXProviderIntegrationMode = 'mock' | 'disabled' | 'real'
 
 export type SFXProviderKey =
   | 'mirelo_sfx_v1_5'
+  | 'mmaudio_v2'
+  // Legacy alias accepted for existing mock records and older planning data.
   | 'mmaudio_v'
   | 'reeditpro_internal_library'
   | 'no_sfx'
@@ -101,6 +103,26 @@ export interface SFXProviderConfig {
   hasMMAudioCredential: boolean
   mireloSecretReferenceName?: string
   mmaudioSecretReferenceName?: string
+}
+
+export type SFXProviderDisplayKey = SFXProviderKey | 'manual_upload' | 'unknown' | string
+
+export function isMMAudioProviderKey(provider?: SFXProviderDisplayKey): provider is 'mmaudio_v2' | 'mmaudio_v' {
+  return provider === 'mmaudio_v2' || provider === 'mmaudio_v'
+}
+
+export function normalizeSFXProviderKey(provider?: SFXProviderDisplayKey): SFXProviderKey {
+  if (provider === 'mirelo_sfx_v1_5') return 'mirelo_sfx_v1_5'
+  if (isMMAudioProviderKey(provider)) return 'mmaudio_v2'
+  if (provider === 'reeditpro_internal_library') return 'reeditpro_internal_library'
+  return 'no_sfx'
+}
+
+export function getSFXProviderDisplayLabel(provider?: SFXProviderDisplayKey): string {
+  if (provider === 'mirelo_sfx_v1_5') return 'Mirelo SFX V1.5'
+  if (isMMAudioProviderKey(provider)) return 'MMAudio V2'
+  if (provider === 'reeditpro_internal_library') return 'ReeditPro Internal Library'
+  return 'No SFX'
 }
 
 export type SFXProviderReadinessRuntimeMode =

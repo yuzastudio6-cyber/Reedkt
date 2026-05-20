@@ -9,6 +9,7 @@ import type {
 import type { RunSFXQARequest } from '../contracts/sfx-director-contracts'
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, insertMockRecord, nowIso } from '../mock/mock-database'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 
 type RegenerationInput = RunSFXQARequest & {
   qaReport: SFXQAReportRecord
@@ -60,7 +61,7 @@ export function createSFXRegenerationPromptAdjustment(reasons: SFXRegenerationRe
 
 export function createSFXProviderSwitchRecommendation(input: RegenerationInput): SFXProvider {
   if (input.qaReport.recommendedAction === 'remove_sfx') return 'no_sfx'
-  if (input.sfxProviderRoute?.recommendedProvider === 'mmaudio_v' && input.qaReport.recommendedAction === 'regenerate') {
+  if (isMMAudioProviderKey(input.sfxProviderRoute?.recommendedProvider) && input.qaReport.recommendedAction === 'regenerate') {
     return 'mirelo_sfx_v1_5'
   }
   if (input.qaReport.recommendedAction === 'replace_with_library') return 'reeditpro_internal_library'

@@ -13,6 +13,7 @@ import type {
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, insertMockRecord, nowIso } from '../mock/mock-database'
 import { ok, type ServiceResult } from '../service-result'
+import { isMMAudioProviderKey, normalizeSFXProviderKey } from '../providers/sfx/sfx-provider-contracts'
 import { createLibrarySearchPromptPlanFields } from './sfx-library-search-prompt-service'
 import { createMMAudioPromptPlanFields } from './sfx-mmaudio-prompt-service'
 import { createMireloPromptPlanFields } from './sfx-mirelo-prompt-service'
@@ -35,7 +36,7 @@ type PromptAdapterFields = Pick<
 >
 
 export function chooseSFXPromptStyle(providerRoute: SFXProviderRouteRecord): SFXPromptStyle {
-  if (providerRoute.recommendedProvider === 'mmaudio_v') return 'video_conditioned_short_prompt'
+  if (isMMAudioProviderKey(providerRoute.recommendedProvider)) return 'video_conditioned_short_prompt'
   if (providerRoute.recommendedProvider === 'mirelo_sfx_v1_5') return 'structured_sentence'
   if (providerRoute.recommendedProvider === 'reeditpro_internal_library') return 'library_search_tags'
   return 'short_phrase'
@@ -99,7 +100,7 @@ function adapterFieldsForRoute(
   eventPlan: SFXEventPlanRecord,
   providerRoute: SFXProviderRouteRecord,
 ): PromptAdapterFields | undefined {
-  if (providerRoute.recommendedProvider === 'mmaudio_v') return createMMAudioPromptPlanFields(eventPlan)
+  if (isMMAudioProviderKey(providerRoute.recommendedProvider)) return createMMAudioPromptPlanFields(eventPlan)
   if (providerRoute.recommendedProvider === 'mirelo_sfx_v1_5') return createMireloPromptPlanFields(eventPlan)
   if (providerRoute.recommendedProvider === 'reeditpro_internal_library') {
     return createLibrarySearchPromptPlanFields(eventPlan)
@@ -131,6 +132,7 @@ export function createSFXPromptPlan(
   }
 
   const adapterFields = adapterFieldsForRoute(sfxEventPlan, providerRoute)
+  const promptProvider = normalizeSFXProviderKey(providerRoute.recommendedProvider)
 
   if (!adapterFields) {
     return ok({
@@ -145,7 +147,7 @@ export function createSFXPromptPlan(
     editPlanId: sfxEventPlan.editPlanId,
     sfxEventPlanId: sfxEventPlan.id,
     providerRouteId: providerRoute.id,
-    provider: providerRoute.recommendedProvider,
+    provider: promptProvider,
     durationNeededSeconds: calculateSFXDurationNeeded(sfxEventPlan),
     durationToGenerateSeconds: calculateSFXDurationToGenerate(sfxEventPlan, providerRoute),
     generatedDurationPolicy: providerRoute.recommendedProvider === 'reeditpro_internal_library'

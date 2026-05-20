@@ -1,4 +1,4 @@
-# Implementation Status
+﻿# Implementation Status
 
 ## RP-FIX-06
 
@@ -167,7 +167,7 @@ It does not call real Mirelo or MMAudio, add provider keys, deploy Cloud Run, co
 
 Status: partially fixed.
 
-The repository now includes readiness reporting for future real Mirelo SFX V1.5 and MMAudio V execution:
+The repository now includes readiness reporting for future real Mirelo SFX V1.5 and MMAudio V2 execution:
 
 - `src/backend/services/sfx-provider-readiness-service.ts`
 - `src/backend/orchestrators/mock-sfx-provider-readiness-orchestrator.ts`

@@ -29,6 +29,7 @@ import { reserveCreditsForApprovedEstimate } from './credit-reservation-runtime-
 import { createSFXProviderGenerationRequestFromPromptPlan } from './generation-service'
 import { createSFXGenerationJob } from './job-orchestration-service'
 import { queueMockJob } from './job-queue-runtime-service'
+import { getSFXProviderDisplayLabel, isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 
 interface ProjectSFXGateState {
   creditEstimate?: CreditEstimateRecord
@@ -81,14 +82,14 @@ function promptablePlans(promptPlans: SFXPromptPlanRecord[]): SFXPromptPlanRecor
 
 function estimateCreditsForPromptPlan(promptPlan: SFXPromptPlanRecord): number {
   if (promptPlan.provider === 'mirelo_sfx_v1_5') return 8
-  if (promptPlan.provider === 'mmaudio_v') return 4
+  if (isMMAudioProviderKey(promptPlan.provider)) return 4
   if (promptPlan.provider === 'reeditpro_internal_library') return 2
   return 1
 }
 
 function providerLabel(provider: SFXPromptPlanRecord['provider']): string {
   if (provider === 'mirelo_sfx_v1_5') return 'Mirelo production SFX'
-  if (provider === 'mmaudio_v') return 'MMAudio draft/fallback SFX'
+  if (isMMAudioProviderKey(provider)) return 'MMAudio V2 draft/fallback SFX'
   if (provider === 'reeditpro_internal_library') return 'Internal library SFX search'
   return 'SoundSync SFX planning'
 }
@@ -121,8 +122,8 @@ function routeSummary(route: SFXProviderRouteRecord): string {
     return `No SFX route for ${route.sfxEventPlanId}: ${route.reason}`
   }
 
-  return `${route.sfxEventPlanId}: ${route.recommendedProvider}` +
-    `${route.fallbackProvider ? ` with ${route.fallbackProvider} fallback` : ''}. ${route.reason}`
+  return `${route.sfxEventPlanId}: ${getSFXProviderDisplayLabel(route.recommendedProvider)}` +
+    `${route.fallbackProvider ? ` with ${getSFXProviderDisplayLabel(route.fallbackProvider)} fallback` : ''}. ${route.reason}`
 }
 
 function ensureMockCredits(db: MockDatabase, workspaceId: string): string {

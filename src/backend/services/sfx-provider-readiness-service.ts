@@ -9,6 +9,7 @@ import type {
   SFXProviderReadinessRuntimeMode,
   SFXProviderReadinessSafeNextStep,
 } from '../providers/sfx/sfx-provider-contracts'
+import { isMMAudioProviderKey, normalizeSFXProviderKey as normalizeProviderKeyValue } from '../providers/sfx/sfx-provider-contracts'
 
 const FUTURE_BACKEND_CAPABILITIES = [
   'backend_worker_runtime_only',
@@ -24,19 +25,9 @@ function nowIso(): string {
   return new Date().toISOString()
 }
 
-function normalizeProviderKey(input: SFXProviderExecutionReadinessInput): SFXProviderKey {
+function readinessProviderKey(input: SFXProviderExecutionReadinessInput): SFXProviderKey {
   const provider = input.promptPlan?.provider ?? input.providerRoute?.recommendedProvider ?? 'no_sfx'
-
-  if (
-    provider === 'mirelo_sfx_v1_5' ||
-    provider === 'mmaudio_v' ||
-    provider === 'reeditpro_internal_library' ||
-    provider === 'no_sfx'
-  ) {
-    return provider
-  }
-
-  return 'no_sfx'
+  return normalizeProviderKeyValue(provider)
 }
 
 function rawProviderValue(input: SFXProviderExecutionReadinessInput): string | undefined {
@@ -46,6 +37,7 @@ function rawProviderValue(input: SFXProviderExecutionReadinessInput): string | u
 function isSupportedProviderValue(provider: string | undefined): boolean {
   return !provider ||
     provider === 'mirelo_sfx_v1_5' ||
+    provider === 'mmaudio_v2' ||
     provider === 'mmaudio_v' ||
     provider === 'reeditpro_internal_library' ||
     provider === 'no_sfx'
@@ -92,7 +84,7 @@ function addReason(
 
 function secretReferenceForProvider(config: SFXProviderConfig, providerKey: SFXProviderKey): string | undefined {
   if (providerKey === 'mirelo_sfx_v1_5') return config.mireloSecretReferenceName
-  if (providerKey === 'mmaudio_v') return config.mmaudioSecretReferenceName
+  if (isMMAudioProviderKey(providerKey)) return config.mmaudioSecretReferenceName
   if (providerKey === 'reeditpro_internal_library') return 'internal-library-approved-assets'
   return undefined
 }
@@ -101,7 +93,7 @@ function hasRawCredentialHint(config: SFXProviderConfig, providerKey: SFXProvide
   if (providerKey === 'mirelo_sfx_v1_5') {
     return config.hasMireloCredential && !config.mireloSecretReferenceName
   }
-  if (providerKey === 'mmaudio_v') {
+  if (isMMAudioProviderKey(providerKey)) {
     return config.hasMMAudioCredential && !config.mmaudioSecretReferenceName
   }
   return false
@@ -171,7 +163,7 @@ export function checkSFXProviderExecutionReadiness(
   input: SFXProviderExecutionReadinessInput,
 ): SFXProviderExecutionReadinessResult {
   const config = mergeConfig(input)
-  const providerKey = normalizeProviderKey(input)
+  const providerKey = readinessProviderKey(input)
   const rawProvider = rawProviderValue(input)
   const runtimeMode = inferRuntimeMode(input, config)
   const blockReasons: SFXProviderReadinessBlockReason[] = []

@@ -1,4 +1,4 @@
-# Generation Provider Architecture
+﻿# Generation Provider Architecture
 
 ## Purpose
 
@@ -146,7 +146,7 @@ Basic edits should avoid heavy SFX unless appropriate and approved.
 
 ## SFX Provider Strategy
 
-SFX provider routing is future worker-only and must stay behind approval, credit reservation, and QA gates. Mirelo SFX V1.5 is the planned production SFX provider for important final polish moments such as premium transitions, Stroke Motion completion, Graphic Design reveals, Real Motion object sounds, title/chapter hits, and signature edits. MMAudio V is the planned cheap/draft/Basic/Pro fallback and video-synced helper for quick timing experiments, draft movement sounds, ambience prototypes, and lower-cost SFX.
+SFX provider routing is future worker-only and must stay behind approval, credit reservation, and QA gates. Mirelo SFX V1.5 is the planned production SFX provider for important final polish moments such as premium transitions, Stroke Motion completion, Graphic Design reveals, Real Motion object sounds, title/chapter hits, and signature edits. MMAudio V2 is the planned cheap/draft/Basic/Pro fallback and video-synced helper for quick timing experiments, draft movement sounds, ambience prototypes, and lower-cost SFX.
 
 Provider prompts should use dedicated adapters instead of one universal prompt. MMAudio prompts should usually be short and focused on target source, texture, and intensity. Mirelo prompting needs a future test matrix before production use, with simple keyword, short phrase, tag list, and structured sentence styles compared against QA results.
 

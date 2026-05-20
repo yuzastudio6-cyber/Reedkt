@@ -14,6 +14,7 @@ import type {
   SFXProviderReadinessBlockReason,
   SFXProviderReadinessSafeNextStep,
 } from '../providers/sfx/sfx-provider-contracts'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 import { nowIso } from './mock-database'
 
 export interface MockSFXProviderReadinessScenario {
@@ -153,17 +154,17 @@ function providerRoute(provider: SFXProviderKey): SFXProviderRouteRecord {
     recommendedProvider: provider,
     providerRole: provider === 'mirelo_sfx_v1_5'
       ? 'production_final'
-      : provider === 'mmaudio_v'
+      : isMMAudioProviderKey(provider)
         ? 'cheap_draft_fallback'
         : provider === 'reeditpro_internal_library'
           ? 'internal_library_first_choice'
           : 'none',
-    fallbackProvider: provider === 'mirelo_sfx_v1_5' ? 'mmaudio_v' : undefined,
+    fallbackProvider: provider === 'mirelo_sfx_v1_5' ? 'mmaudio_v2' : undefined,
     reason: provider === 'no_sfx'
       ? 'No SFX route is safest for this moment.'
       : 'Provider route is ready to be checked by the backend readiness gate.',
     useInternalLibraryFirst: provider === 'reeditpro_internal_library',
-    useMMAudioForDraft: provider === 'mmaudio_v',
+    useMMAudioForDraft: isMMAudioProviderKey(provider),
     useMireloForProduction: provider === 'mirelo_sfx_v1_5',
     noSfxAllowed: provider === 'no_sfx',
     costSensitivity: provider === 'mirelo_sfx_v1_5' ? 'quality_first' : 'balanced',
@@ -183,7 +184,7 @@ function promptPlan(provider: SFXProviderKey): SFXPromptPlanRecord | undefined {
     sfxEventPlanId: eventPlanId,
     providerRouteId: routeId,
     provider,
-    modelName: provider === 'mirelo_sfx_v1_5' ? 'mirelo-sfx-v1.5' : 'mmaudio-v',
+    modelName: provider === 'mirelo_sfx_v1_5' ? 'mirelo-sfx-v1.5' : 'mmaudio-v2',
     promptStyle: 'structured_sentence',
     prompt: 'Subtle premium transition whoosh, voice-safe, polished but restrained.',
     negativePrompt: 'No harsh hits, no cartoon tone, no speech masking.',
@@ -214,7 +215,7 @@ function generationRequest(provider: SFXProviderKey): GenerationRequestRecord | 
     jobId,
     creditEstimateId,
     providerType: 'external_ai_provider',
-    modelName: provider === 'mirelo_sfx_v1_5' ? 'mirelo-sfx-v1.5' : 'mmaudio-v',
+    modelName: provider === 'mirelo_sfx_v1_5' ? 'mirelo-sfx-v1.5' : 'mmaudio-v2',
     signatureSystem: 'sound_sync',
     generationType: 'sfx_asset',
     inputAssetIds: [],
@@ -293,10 +294,10 @@ function readyInput(provider: SFXProviderKey): SFXProviderExecutionReadinessInpu
     config: {
       mode: 'real',
       isBrowserRuntime: false,
-      mireloSecretReferenceName: provider === 'mirelo_sfx_v1_5' ? 'projects/reeditpro/secrets/mirelo-sfx-api-key' : undefined,
-      mmaudioSecretReferenceName: provider === 'mmaudio_v' ? 'projects/reeditpro/secrets/mmaudio-api-key' : undefined,
+      mireloSecretReferenceName: provider === 'mirelo_sfx_v1_5' ? 'projects/reeditpro/secrets/reeditpro-prod-mirelo-api-key' : undefined,
+      mmaudioSecretReferenceName: isMMAudioProviderKey(provider) ? 'projects/reeditpro/secrets/reeditpro-prod-mmaudio-api-key' : undefined,
       hasMireloCredential: provider === 'mirelo_sfx_v1_5',
-      hasMMAudioCredential: provider === 'mmaudio_v',
+      hasMMAudioCredential: isMMAudioProviderKey(provider),
     },
   }
 }
@@ -304,6 +305,7 @@ function readyInput(provider: SFXProviderKey): SFXProviderExecutionReadinessInpu
 function normalizeExpectedProvider(provider?: string): SFXProviderKey {
   if (
     provider === 'mirelo_sfx_v1_5' ||
+    provider === 'mmaudio_v2' ||
     provider === 'mmaudio_v' ||
     provider === 'reeditpro_internal_library' ||
     provider === 'no_sfx'
@@ -368,7 +370,7 @@ export const mockSFXProviderReadinessScenarios: MockSFXProviderReadinessScenario
       config: {
         mode: 'real',
         isBrowserRuntime: true,
-        mireloSecretReferenceName: 'projects/reeditpro/secrets/mirelo-sfx-api-key',
+        mireloSecretReferenceName: 'projects/reeditpro/secrets/reeditpro-prod-mirelo-api-key',
         hasMireloCredential: true,
       },
     },
@@ -405,7 +407,7 @@ export const mockSFXProviderReadinessScenarios: MockSFXProviderReadinessScenario
     id: 'real-mmaudio-ready-for-future-transport',
     label: 'Real MMAudio prerequisites ready',
     description: 'MMAudio has backend refs and approval gates; future transport still remains unimplemented.',
-    input: readyInput('mmaudio_v'),
+    input: readyInput('mmaudio_v2'),
     expectedReadyForRealTransport: true,
     expectedBlockReasons: [],
     expectedSafeNextStep: 'implement_backend_transport',
@@ -461,7 +463,7 @@ export const mockSFXProviderReadinessScenarios: MockSFXProviderReadinessScenario
     label: 'Provider docs not reviewed',
     description: 'Real provider readiness requires provider docs and policy review flags.',
     input: {
-      ...readyInput('mmaudio_v'),
+      ...readyInput('mmaudio_v2'),
       providerDocsReviewed: false,
     },
     expectedReadyForRealTransport: false,

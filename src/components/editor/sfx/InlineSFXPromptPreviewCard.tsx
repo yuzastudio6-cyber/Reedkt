@@ -7,6 +7,8 @@ type InlineSFXPromptPreviewCardProps = {
 }
 
 export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPreviewCardProps) {
+  const isMMAudioPrompt = promptPlan.provider === 'mmaudio_v2' || promptPlan.provider === 'mmaudio_v'
+
   return (
     <section className="inline-chat-card sfx-inline-card sfx-prompt-preview-card">
       <div className="inline-card-heading">
@@ -18,7 +20,7 @@ export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPrevie
       </div>
 
       <p className="sfx-muted-note">Prompt preview only. ReeditPro has not called Mirelo or MMAudio.</p>
-      {promptPlan.provider === 'mmaudio_v' && <p className="sfx-muted-note">MMAudio prompts are short because the model is expected to use video context.</p>}
+      {isMMAudioPrompt && <p className="sfx-muted-note">MMAudio V2 prompts are short because the model is expected to use video context.</p>}
       {promptPlan.provider === 'mirelo_sfx_v1_5' && <p className="sfx-muted-note">Mirelo prompts are production-style and more controlled.</p>}
 
       <div className="sfx-score-grid">

@@ -37,6 +37,8 @@ export interface ReeditProSecretReferenceMap {
   hailuoApiKey: string
   veoVertexConfig: string
   lyriaApiKey: string
+  mireloApiKey: string
+  mmaudioApiKey: string
   providerWebhookSigningSecret: string
   stripeWebhookSecret: string
 }
@@ -132,6 +134,8 @@ export const REEDITPRO_GCP_PRODUCTION_RESOURCE_MAP: ReeditProGcpProductionResour
     hailuoApiKey: 'reeditpro-prod-hailuo-api-key',
     veoVertexConfig: 'reeditpro-prod-veo-vertex-config',
     lyriaApiKey: 'reeditpro-prod-lyria-api-key',
+    mireloApiKey: 'reeditpro-prod-mirelo-api-key',
+    mmaudioApiKey: 'reeditpro-prod-mmaudio-api-key',
     providerWebhookSigningSecret: 'reeditpro-prod-provider-webhook-signing-secret',
     stripeWebhookSecret: 'reeditpro-prod-stripe-webhook-secret',
   },

@@ -1,8 +1,8 @@
-# SFX Provider Prompting
+﻿# SFX Provider Prompting
 
 ## Purpose
 
-RP-SFX-05 adds mock-only provider-specific prompt adapters for the SoundSync SFX Director. It converts approved SFX event plans and provider routes into prompt plans for future Mirelo SFX V1.5, MMAudio V, and ReeditPro internal library search.
+RP-SFX-05 adds mock-only provider-specific prompt adapters for the SoundSync SFX Director. It converts approved SFX event plans and provider routes into prompt plans for future Mirelo SFX V1.5, MMAudio V2, and ReeditPro internal library search.
 
 This does not call providers, generate audio, connect to Supabase, read secrets, deploy Google Cloud, upload files, render media, or build UI.
 
@@ -10,13 +10,13 @@ This does not call providers, generate audio, connect to Supabase, read secrets,
 
 ReeditPro should not use one universal SFX prompt. Different future routes need different prompt shapes:
 
-- MMAudio V uses short video-conditioned prompts.
+- MMAudio V2 uses short video-conditioned prompts.
 - Mirelo SFX V1.5 uses more controlled production prompts.
 - Internal library search uses tags and reuse metadata, not generation text.
 
-## MMAudio V Strategy
+## MMAudio V2 Strategy
 
-MMAudio V is modeled as a cheap draft, Basic/Pro fallback, and video-synced helper. Its default style is `video_conditioned_short_prompt`.
+MMAudio V2 is modeled as a cheap draft, Basic/Pro fallback, and video-synced helper. Its default style is `video_conditioned_short_prompt`.
 
 Default format:
 

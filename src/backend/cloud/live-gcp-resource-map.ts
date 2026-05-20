@@ -27,6 +27,8 @@ export type ReeditProSecretName =
   | 'reeditpro-prod-hailuo-api-key'
   | 'reeditpro-prod-veo-vertex-config'
   | 'reeditpro-prod-lyria-api-key'
+  | 'reeditpro-prod-mirelo-api-key'
+  | 'reeditpro-prod-mmaudio-api-key'
   | 'reeditpro-prod-provider-webhook-signing-secret'
   | 'reeditpro-prod-stripe-webhook-secret'
 
@@ -125,6 +127,8 @@ export const REEDITPRO_LIVE_GCP_RESOURCE_MAP: ReeditProLiveGcpResourceMap = {
     'reeditpro-prod-hailuo-api-key': 'reeditpro-prod-hailuo-api-key',
     'reeditpro-prod-veo-vertex-config': 'reeditpro-prod-veo-vertex-config',
     'reeditpro-prod-lyria-api-key': 'reeditpro-prod-lyria-api-key',
+    'reeditpro-prod-mirelo-api-key': 'reeditpro-prod-mirelo-api-key',
+    'reeditpro-prod-mmaudio-api-key': 'reeditpro-prod-mmaudio-api-key',
     'reeditpro-prod-provider-webhook-signing-secret': 'reeditpro-prod-provider-webhook-signing-secret',
     'reeditpro-prod-stripe-webhook-secret': 'reeditpro-prod-stripe-webhook-secret',
   },
@@ -147,6 +151,8 @@ export const REEDITPRO_LIVE_GCP_RESOURCE_MAP: ReeditProLiveGcpResourceMap = {
     wan: 'reeditpro-prod-wan-api-key',
     hailuo: 'reeditpro-prod-hailuo-api-key',
     veo: 'reeditpro-prod-veo-vertex-config',
+    mirelo_sfx_v1_5: 'reeditpro-prod-mirelo-api-key',
+    mmaudio_v2: 'reeditpro-prod-mmaudio-api-key',
   },
   workerServiceAccountByType: {
     media_analysis_worker: 'mediaAnalysisWorker',

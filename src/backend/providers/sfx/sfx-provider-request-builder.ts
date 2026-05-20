@@ -14,22 +14,14 @@ import type {
   SFXProviderKey,
   SFXProviderOutputFormat,
 } from './sfx-provider-contracts'
+import { normalizeSFXProviderKey as normalizeProviderKey } from './sfx-provider-contracts'
 
 export function normalizeSFXProviderOutputFormat(outputFormat?: SFXProviderOutputFormat): SFXProviderOutputFormat {
   return getSFXProviderOutputFormat(outputFormat)
 }
 
-export function normalizeSFXProviderKey(provider?: SFXProvider | SFXProviderKey): SFXProviderKey {
-  if (
-    provider === 'mirelo_sfx_v1_5' ||
-    provider === 'mmaudio_v' ||
-    provider === 'reeditpro_internal_library' ||
-    provider === 'no_sfx'
-  ) {
-    return provider
-  }
-
-  return 'no_sfx'
+export function normalizeSFXProviderRequestKey(provider?: SFXProvider | SFXProviderKey): SFXProviderKey {
+  return normalizeProviderKey(provider)
 }
 
 export function normalizeSFXProviderDuration(input: {
@@ -58,13 +50,15 @@ export function buildSFXProviderGenerateRequest(input: {
   ambienceImportant?: boolean
   metadata?: Record<string, unknown>
 }): SFXProviderGenerateRequest {
+  const providerKey = normalizeProviderKey(input.providerKey)
+
   return {
-    providerKey: input.providerKey,
+    providerKey,
     modelName: input.modelName,
     prompt: input.prompt,
     negativePrompt: input.negativePrompt,
     durationSeconds: normalizeSFXProviderDuration({
-      providerKey: input.providerKey,
+      providerKey,
       durationToGenerateSeconds: input.durationSeconds,
       durationNeededSeconds: input.durationNeededSeconds,
     }),
@@ -116,7 +110,7 @@ export function buildSFXProviderRequestFromPromptPlan(input: {
   ambienceImportant?: boolean
   metadata?: Record<string, unknown>
 }): SFXProviderGenerateRequest {
-  const providerKey = normalizeSFXProviderKey(input.providerKey ?? input.promptPlan.provider)
+  const providerKey = normalizeSFXProviderRequestKey(input.providerKey ?? input.promptPlan.provider)
 
   return buildSFXProviderGenerateRequest({
     providerKey,

@@ -1,4 +1,5 @@
 import type { SFXPromptPlanRecord, SFXProviderRouteRecord } from '../../types'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 import type { SFXWorkerContext, SFXWorkerInput } from './sfx-worker-contracts'
 
 function contextForProvider(provider: SFXWorkerContext['providerKey'], modelName?: string): SFXWorkerContext {
@@ -15,12 +16,12 @@ function contextForProvider(provider: SFXWorkerContext['providerKey'], modelName
     }
   }
 
-  if (provider === 'mmaudio_v') {
+  if (isMMAudioProviderKey(provider)) {
     return {
       runtime: 'mock',
-      provider: 'MMAudio V',
-      providerKey: provider,
-      modelName: modelName ?? 'mmaudio-v',
+      provider: 'MMAudio V2',
+      providerKey: 'mmaudio_v2',
+      modelName: modelName ?? 'mmaudio-v2',
       region: 'us-central1',
       secretReferenceName: 'GOOGLE_SECRET_MMAUDIO_API_KEY_NAME',
       outputBucket: 'mock-reeditpro-sfx-output',
@@ -52,7 +53,7 @@ export function shouldUseInternalLibraryInWorker(route: SFXProviderRouteRecord, 
 }
 
 export function shouldUseMMAudioInWorker(route: SFXProviderRouteRecord, input?: SFXWorkerInput): boolean {
-  return route.recommendedProvider === 'mmaudio_v' || Boolean(input?.providerUnavailable && route.fallbackProvider === 'mmaudio_v')
+  return isMMAudioProviderKey(route.recommendedProvider) || Boolean(input?.providerUnavailable && isMMAudioProviderKey(route.fallbackProvider))
 }
 
 export function shouldUseMireloInWorker(route: SFXProviderRouteRecord, input?: SFXWorkerInput): boolean {
@@ -76,13 +77,13 @@ export function routeSFXWorkerProvider(input: {
     return contextForProvider('reeditpro_internal_library', promptPlan.modelName)
   }
   if (providerRoute.recommendedProvider === 'reeditpro_internal_library' && !input.hasApprovedLibraryMatch) {
-    if (providerRoute.fallbackProvider === 'mmaudio_v') return contextForProvider('mmaudio_v', 'mmaudio-v')
+    if (isMMAudioProviderKey(providerRoute.fallbackProvider)) return contextForProvider('mmaudio_v2', 'mmaudio-v2')
     if (providerRoute.fallbackProvider === 'mirelo_sfx_v1_5') return contextForProvider('mirelo_sfx_v1_5', 'mirelo-sfx-v1.5')
     return contextForProvider('no_sfx')
   }
-  if (shouldUseMMAudioInWorker(providerRoute, workerInput)) return contextForProvider('mmaudio_v', promptPlan.modelName)
+  if (shouldUseMMAudioInWorker(providerRoute, workerInput)) return contextForProvider('mmaudio_v2', promptPlan.modelName)
   if (shouldUseMireloInWorker(providerRoute, workerInput)) return contextForProvider('mirelo_sfx_v1_5', promptPlan.modelName)
 
-  if (providerRoute.fallbackProvider === 'mmaudio_v') return contextForProvider('mmaudio_v', 'mmaudio-v')
+  if (isMMAudioProviderKey(providerRoute.fallbackProvider)) return contextForProvider('mmaudio_v2', 'mmaudio-v2')
   return contextForProvider('no_sfx')
 }

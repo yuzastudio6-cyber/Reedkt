@@ -174,7 +174,7 @@ export function createEditProjectSFXStatusSummary(input: {
     providerSummary,
     creditSummary,
     workerSummary,
-    'Mirelo SFX V1.5: production SFX. MMAudio V: cheap draft/basic-pro fallback. Internal library: first choice when available.',
+    'Mirelo SFX V1.5: production SFX. MMAudio V2: cheap draft/basic-pro fallback. Internal library: first choice when available.',
     'Mock mode: ReeditPro has not called Mirelo or MMAudio yet.',
   ]
 }

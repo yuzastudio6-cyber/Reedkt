@@ -83,7 +83,8 @@ export type SFXChatData = {
 
 export const sfxProviderLabels: Record<SFXProvider, string> = {
   mirelo_sfx_v1_5: 'Mirelo SFX V1.5 - production SFX',
-  mmaudio_v: 'MMAudio V - draft/basic/pro fallback',
+  mmaudio_v2: 'MMAudio V2 - draft/basic/pro fallback',
+  mmaudio_v: 'MMAudio V2 - legacy alias',
   reeditpro_internal_library: 'Internal library - reusable approved sounds',
   no_sfx: 'No SFX - valid professional choice',
   manual_upload: 'Manual upload - user-provided sound',
@@ -125,7 +126,7 @@ function createDirectorPlan(eventPlans: SFXEventPlanRecord[], providerRoutes: SF
     avoidedSourceActionSFX: ['Footsteps', 'Fake water everywhere', 'Doors', 'Crowd beds', 'Clothing movement'],
     volumePhilosophy: 'Premium soft / subtle polish, voice-first, never loud by default',
     providerStrategy: providerRoutes.some((route) => route.useInternalLibraryFirst)
-      ? 'Internal library first, MMAudio draft fallback, Mirelo production for key moments, no SFX allowed'
+      ? 'Internal library first, MMAudio V2 draft fallback, Mirelo production for key moments, no SFX allowed'
       : 'Provider route is planned, not executed',
     creditApprovalRule: 'SFX generation starts only after plan and credit approval. This demo spends no real credits.',
     nextStep: 'Create prompt previews, then timing, mix, QA, and project-only library decisions',

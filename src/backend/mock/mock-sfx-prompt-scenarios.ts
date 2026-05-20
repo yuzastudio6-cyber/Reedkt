@@ -6,6 +6,7 @@ import type {
   SFXVolumeProfile,
 } from '../../types'
 import type { SfxUseCase } from '../../types/audio-music'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 
 const createdAt = '2026-05-19T12:00:00.000Z'
 const projectId = 'mock-sfx-prompt-project'
@@ -95,15 +96,15 @@ function providerRoute(input: {
     recommendedProvider: input.provider,
     providerRole: input.provider === 'mirelo_sfx_v1_5'
       ? 'production_final'
-      : input.provider === 'mmaudio_v'
+      : isMMAudioProviderKey(input.provider)
         ? 'cheap_draft_fallback'
         : input.provider === 'reeditpro_internal_library'
           ? 'internal_library_first_choice'
           : 'none',
-    fallbackProvider: input.provider === 'mirelo_sfx_v1_5' ? 'mmaudio_v' : undefined,
+    fallbackProvider: input.provider === 'mirelo_sfx_v1_5' ? 'mmaudio_v2' : undefined,
     reason: 'Mock provider route for SFX prompt adapter testing.',
     useInternalLibraryFirst: input.provider !== 'no_sfx',
-    useMMAudioForDraft: input.provider === 'mmaudio_v',
+    useMMAudioForDraft: isMMAudioProviderKey(input.provider),
     useMireloForProduction: input.provider === 'mirelo_sfx_v1_5',
     noSfxAllowed: true,
     costSensitivity: 'balanced',
@@ -155,12 +156,12 @@ export const mockSFXPromptScenarios: MockSFXPromptScenario[] = [
   }),
   promptScenario({
     id: 'mmaudio-soft-transition-draft',
-    label: 'MMAudio soft transition whoosh draft',
+    label: 'MMAudio V2 soft transition whoosh draft',
     targetLayer: 'transition',
     useCase: 'transition_soft_whoosh',
     sceneContext: 'Draft timing for soft travel transition.',
     videoTone: 'lifestyle travel',
-    expectedProvider: 'mmaudio_v',
+    expectedProvider: 'mmaudio_v2',
     expectedPromptStyle: 'video_conditioned_short_prompt',
     expectedPrompt: 'soft transition whoosh',
     expectedNegativePrompt: 'no loud impact',
@@ -197,12 +198,12 @@ export const mockSFXPromptScenarios: MockSFXPromptScenario[] = [
   }),
   promptScenario({
     id: 'mmaudio-stroke-line-draw-draft',
-    label: 'MMAudio Stroke Motion draft line draw',
+    label: 'MMAudio V2 Stroke Motion draft line draw',
     targetLayer: 'stroke_motion',
     useCase: 'stroke_line_trace',
     sceneContext: 'Draft line drawing sound for timing experiment.',
     videoTone: 'educational clear',
-    expectedProvider: 'mmaudio_v',
+    expectedProvider: 'mmaudio_v2',
     expectedPromptStyle: 'video_conditioned_short_prompt',
     expectedPrompt: 'gentle line drawing sound',
     expectedNegativePrompt: 'no loud impact',
@@ -267,12 +268,12 @@ export const mockSFXPromptScenarios: MockSFXPromptScenario[] = [
   }),
   promptScenario({
     id: 'mmaudio-ambient-bridge',
-    label: 'MMAudio ambient bridge',
+    label: 'MMAudio V2 ambient bridge',
     targetLayer: 'ambient_bridge',
     useCase: 'ambient_soft_bridge',
     sceneContext: 'Soft ambience bridge for silent travel B-roll.',
     videoTone: 'natural documentary',
-    expectedProvider: 'mmaudio_v',
+    expectedProvider: 'mmaudio_v2',
     expectedPromptStyle: 'video_conditioned_short_prompt',
     expectedPrompt: 'soft ambient bridge',
     expectedNegativePrompt: 'no loud impact',
@@ -311,17 +312,17 @@ export const mockSFXPromptScenarios: MockSFXPromptScenario[] = [
   }),
   promptScenario({
     id: 'warning-mmaudio-prompt-too-long',
-    label: 'Validation warning: MMAudio prompt too long',
+    label: 'Validation warning: MMAudio V2 prompt too long',
     targetLayer: 'transition',
     useCase: 'transition_soft_whoosh',
     sceneContext: 'Long prompt should warn in validation tests.',
     videoTone: 'premium travel',
-    expectedProvider: 'mmaudio_v',
+    expectedProvider: 'mmaudio_v2',
     expectedPromptStyle: 'video_conditioned_short_prompt',
     expectedPrompt: 'soft transition whoosh with clean airy premium subtle travel movement and short smooth tail',
     expectedNegativePrompt: 'no loud impact',
     expectedDurationToGenerate: 2.5,
-    expectedWarnings: ['MMAudio prompt may be too long'],
+    expectedWarnings: ['MMAudio V2 prompt may be too long'],
   }),
   promptScenario({
     id: 'warning-impact-whisper-conflict',

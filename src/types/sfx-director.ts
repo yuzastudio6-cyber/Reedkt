@@ -36,6 +36,8 @@ export type SFXTargetLayer =
 
 export type SFXProvider =
   | 'reeditpro_internal_library'
+  | 'mmaudio_v2'
+  // Legacy alias for records created before MMAudio V2 was selected as the launch model.
   | 'mmaudio_v'
   | 'mirelo_sfx_v1_5'
   | 'no_sfx'
@@ -847,7 +849,7 @@ export const SFX_VOICE_FIRST_MIX_RULE =
 
 export const MIRELO_SFX_FUTURE_MODEL_NAME = 'mirelo-sfx-v1.5'
 
-export const MMAUDIO_FUTURE_MODEL_NAME = 'mmaudio-v'
+export const MMAUDIO_FUTURE_MODEL_NAME = 'mmaudio-v2'
 
 export const SFX_GENERATED_DURATION_POLICY_RANGES: Record<
   Exclude<SFXGeneratedDurationPolicy, 'custom'>,

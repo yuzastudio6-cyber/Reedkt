@@ -4,6 +4,7 @@ import type {
   SFXProviderIntegrationMode,
   SFXProviderResult,
 } from './sfx-provider-contracts'
+import { isMMAudioProviderKey, normalizeSFXProviderKey } from './sfx-provider-contracts'
 import { searchInternalSFXLibraryProvider } from './internal-library'
 import { generateMockMireloSFX, generateRealMireloSFXPlaceholder, buildMireloRequestFromSFXProviderRequest } from './mirelo'
 import { generateMockMMAudioSFX, generateRealMMAudioPlaceholder, buildMMAudioRequestFromSFXProviderRequest } from './mmaudio'
@@ -12,10 +13,15 @@ export function generateSFXWithProvider(
   request: SFXProviderGenerateRequest,
   options: { mode?: SFXProviderIntegrationMode } = {},
 ): SFXProviderResult {
+  const providerKey = normalizeSFXProviderKey(request.providerKey)
+  const normalizedRequest = {
+    ...request,
+    providerKey,
+  }
   const config = getSFXProviderConfig({
     mode: options.mode,
-    mireloModelName: request.providerKey === 'mirelo_sfx_v1_5' ? request.modelName : undefined,
-    mmaudioModelName: request.providerKey === 'mmaudio_v' ? request.modelName : undefined,
+    mireloModelName: providerKey === 'mirelo_sfx_v1_5' ? request.modelName : undefined,
+    mmaudioModelName: isMMAudioProviderKey(request.providerKey) ? request.modelName : undefined,
     outputFormat: request.outputFormat,
   })
 
@@ -30,7 +36,7 @@ export function generateSFXWithProvider(
     }
   }
 
-  if (request.providerKey === 'no_sfx') {
+  if (providerKey === 'no_sfx') {
     return {
       ok: false,
       error: {
@@ -41,19 +47,19 @@ export function generateSFXWithProvider(
     }
   }
 
-  if (request.providerKey === 'reeditpro_internal_library') {
-    return searchInternalSFXLibraryProvider(request)
+  if (providerKey === 'reeditpro_internal_library') {
+    return searchInternalSFXLibraryProvider(normalizedRequest)
   }
 
-  if (request.providerKey === 'mirelo_sfx_v1_5') {
-    const mireloRequest = buildMireloRequestFromSFXProviderRequest(request)
+  if (providerKey === 'mirelo_sfx_v1_5') {
+    const mireloRequest = buildMireloRequestFromSFXProviderRequest(normalizedRequest)
     return config.mode === 'real'
       ? generateRealMireloSFXPlaceholder(mireloRequest)
       : generateMockMireloSFX(mireloRequest)
   }
 
-  if (request.providerKey === 'mmaudio_v') {
-    const mmaudioRequest = buildMMAudioRequestFromSFXProviderRequest(request)
+  if (isMMAudioProviderKey(providerKey)) {
+    const mmaudioRequest = buildMMAudioRequestFromSFXProviderRequest(normalizedRequest)
     return config.mode === 'real'
       ? generateRealMMAudioPlaceholder(mmaudioRequest)
       : generateMockMMAudioSFX(mmaudioRequest)

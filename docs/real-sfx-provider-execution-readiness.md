@@ -1,6 +1,6 @@
-# RP-FIX-15 — Real SFX Provider Execution Readiness
+﻿# RP-FIX-15 â€” Real SFX Provider Execution Readiness
 
-RP-FIX-15 prepares ReeditPro for future real Mirelo SFX V1.5 and MMAudio V execution without enabling live provider calls.
+RP-FIX-15 prepares ReeditPro for future real Mirelo SFX V1.5 and MMAudio V2 execution without enabling live provider calls.
 
 The readiness layer is backend-only planning/reporting. It tells developers whether a project SFX provider route is blocked, mock-only, or ready for a future backend worker transport implementation.
 

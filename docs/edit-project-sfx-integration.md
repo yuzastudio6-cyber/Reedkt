@@ -1,10 +1,10 @@
-# Edit Project SFX Integration
+﻿# Edit Project SFX Integration
 
 ## Purpose
 
 RP-FIX-14 wires SoundSync SFX into the project editing workflow in mock mode. ReeditPro can now move from a project/edit plan into SFX event planning, provider routing, prompt planning, credit estimate gating, mock generation requests, mock worker jobs, mock provider adapter output, trim/hit alignment, mix planning, QA, and project/library asset decisions.
 
-This fixes the previous product gap where Mirelo SFX V1.5 and MMAudio V were planned in the SFX stack but were not visible as part of the project editing flow.
+This fixes the previous product gap where Mirelo SFX V1.5 and MMAudio V2 were planned in the SFX stack but were not visible as part of the project editing flow.
 
 ## Project Flow
 
@@ -42,7 +42,7 @@ Provider routing remains edit-layer-first and approval-gated.
 
 Mirelo SFX V1.5 is the mock production route for important transition, title, Stroke Motion, Graphic Design, Real Motion, CTA, premium, and signature polish moments.
 
-MMAudio V is the mock cheap draft, Basic/Pro fallback, and provider-unavailable helper route.
+MMAudio V2 is the mock cheap draft, Basic/Pro fallback, and provider-unavailable helper route.
 
 The internal library is the first-choice route when approved reusable sounds exist. When no approved match exists, the mock worker can fall back to MMAudio or Mirelo only if the route allows it.
 
@@ -66,9 +66,11 @@ Missing credit approval or missing reservation stops before mock generation requ
 The project flow calls the existing mock SFX worker skeleton after gates pass. The worker then routes through the existing provider adapter in mock mode:
 
 - `mirelo_sfx_v1_5` uses the Mirelo mock client;
-- `mmaudio_v` uses the MMAudio mock client;
+- `mmaudio_v2` uses the MMAudio mock client;
 - `reeditpro_internal_library` uses the internal library mock client;
 - `no_sfx` blocks generation.
+
+`mmaudio_v2` is the canonical key for new project SFX records. Older mock records that still say `mmaudio_v` are treated as a legacy alias for MMAudio V2 and do not call a different provider.
 
 The adapter never calls real Mirelo or MMAudio, reads secrets, creates audio bytes, uploads files, runs Cloud Run, connects to Supabase, or renders media.
 
@@ -85,7 +87,7 @@ QA-failed sounds are not approved for preview/export and should be adjusted, reg
 The chat-native editor now shows a compact project SFX integration panel inside the existing SFX flow. It displays:
 
 - Mirelo SFX V1.5 as production SFX;
-- MMAudio V as cheap draft/basic-pro fallback;
+- MMAudio V2 as cheap draft/basic-pro fallback;
 - internal library as first choice when available;
 - no SFX as valid when sound does not improve the edit;
 - a visible mock-mode note.

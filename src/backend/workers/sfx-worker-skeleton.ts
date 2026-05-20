@@ -189,8 +189,8 @@ export function convertSFXProviderResponseToWorkerResponse(input: {
   }
 
   return {
-    provider: input.response.providerName === 'MMAudio V'
-      ? 'MMAudio V'
+    provider: input.response.providerName === 'MMAudio V2'
+      ? 'MMAudio V2'
       : input.response.providerName === 'ReeditPro Internal Library'
         ? 'ReeditPro Internal Library'
         : 'Mirelo SFX V1.5',

@@ -1,4 +1,4 @@
-# RP-DB-12 / RP-FIX-08 Backend API Skeleton
+﻿# RP-DB-12 / RP-FIX-08 Backend API Skeleton
 
 RP-DB-12 added the original mock-only backend/service skeleton for ReeditPro. RP-FIX-08 adds the next boundary layer: route contracts, a route registry, a mock API router, and a frontend-safe API client. This still does not deploy a backend, call providers, call Stripe, start workers, upload files, or render media.
 
@@ -33,7 +33,7 @@ The mock Stroke Motion service supports both `spoken_story_mode` and `source_rea
 
 ## SoundSync SFX Director
 
-The mock SFX Director plans edit-layer sound effects before generation. It decides needed, optional, not-needed, avoid, and needs-user-confirmation states; classifies target layers; recommends timing anchors and volume profiles; creates provider routes for internal library, MMAudio V, Mirelo SFX V1.5, or no SFX; builds mock provider-specific prompt plans; creates mock duration, waveform, trim, hit-alignment, frame-placement, and timing-validation metadata; plans mock volume, ducking, EQ, room/reverb match, and mix validation; runs mock QA/regeneration decisions before preview/export; models generated SFX library growth through search, project-only storage, provenance review, reuse policy, candidates, usage records, and learning metadata; and now includes an approval/credit-gated mock SFX worker skeleton for future generation jobs.
+The mock SFX Director plans edit-layer sound effects before generation. It decides needed, optional, not-needed, avoid, and needs-user-confirmation states; classifies target layers; recommends timing anchors and volume profiles; creates provider routes for internal library, MMAudio V2, Mirelo SFX V1.5, or no SFX; builds mock provider-specific prompt plans; creates mock duration, waveform, trim, hit-alignment, frame-placement, and timing-validation metadata; plans mock volume, ducking, EQ, room/reverb match, and mix validation; runs mock QA/regeneration decisions before preview/export; models generated SFX library growth through search, project-only storage, provenance review, reuse policy, candidates, usage records, and learning metadata; and now includes an approval/credit-gated mock SFX worker skeleton for future generation jobs.
 
 The mock StoryTiming planner consolidates existing distributed timing records into a Master Timing Map. It exposes mock/local service and orchestrator contracts for segments, anchors, events, dependencies, conflicts, QA checks, render timing manifest placeholders, and chat-ready summaries. It does not add routes, execute rendering, connect to Supabase, or replace the source timing records.
 

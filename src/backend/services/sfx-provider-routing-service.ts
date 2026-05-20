@@ -74,7 +74,7 @@ export function chooseProviderForBasicEdit(eventPlan: SFXEventPlanRecord): SFXPr
   return {
     recommendedProvider: 'reeditpro_internal_library',
     providerRole: 'internal_library_first_choice',
-    fallbackProvider: 'mmaudio_v',
+    fallbackProvider: 'mmaudio_v2',
     reason: 'Basic edits use library-first SFX and cheap draft fallback only when a subtle cue is justified.',
     useInternalLibraryFirst: true,
     useMMAudioForDraft: true,
@@ -97,10 +97,10 @@ export function chooseProviderForProEdit(eventPlan: SFXEventPlanRecord): SFXProv
   return {
     recommendedProvider: important ? 'mirelo_sfx_v1_5' : 'reeditpro_internal_library',
     providerRole: important ? 'production_final' : 'internal_library_first_choice',
-    fallbackProvider: 'mmaudio_v',
+    fallbackProvider: 'mmaudio_v2',
     reason: important
       ? 'Pro can plan Mirelo for clearly important production polish, with approval and credits later.'
-      : 'Pro uses library-first SFX with MMAudio as draft or fallback.',
+      : 'Pro uses library-first SFX with MMAudio V2 as draft or fallback.',
     useInternalLibraryFirst: true,
     useMMAudioForDraft: true,
     useMireloForProduction: important,
@@ -122,8 +122,8 @@ export function chooseProviderForSignatureEdit(eventPlan: SFXEventPlanRecord): S
       ? 'mirelo_sfx_v1_5'
       : 'reeditpro_internal_library',
     providerRole: isImportantProductionMoment(eventPlan) ? 'production_final' : 'internal_library_first_choice',
-    fallbackProvider: 'mmaudio_v',
-    reason: 'Signature edits use Mirelo for key Stroke Motion, Graphic Design, Real Motion, title, and transition moments; MMAudio can draft timing.',
+    fallbackProvider: 'mmaudio_v2',
+    reason: 'Signature edits use Mirelo for key Stroke Motion, Graphic Design, Real Motion, title, and transition moments; MMAudio V2 can draft timing.',
     useInternalLibraryFirst: true,
     useMMAudioForDraft: true,
     useMireloForProduction: true,
@@ -143,8 +143,8 @@ export function chooseProviderForPremiumEdit(eventPlan: SFXEventPlanRecord): SFX
   return {
     recommendedProvider: 'mirelo_sfx_v1_5',
     providerRole: 'premium_signature',
-    fallbackProvider: 'mmaudio_v',
-    reason: 'Premium signature edits can plan Mirelo production SFX for key moments, with library reuse for common cues and MMAudio for drafts.',
+    fallbackProvider: 'mmaudio_v2',
+    reason: 'Premium signature edits can plan Mirelo production SFX for key moments, with library reuse for common cues and MMAudio V2 for drafts.',
     useInternalLibraryFirst: true,
     useMMAudioForDraft: true,
     useMireloForProduction: true,

@@ -1,4 +1,4 @@
-# ReeditPro Migration Order
+﻿# ReeditPro Migration Order
 
 Run migrations in timestamp order. This repository targets the Supabase project named `reeditpro`; do not use the Yuza Studio Supabase project and do not commit credentials.
 
@@ -90,7 +90,7 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Depends on: RP-DB-03 through RP-DB-10 foundations for workspaces, projects, chat, edit plans, edit quality, Stroke Motion, generation requests/assets, renders, exports, QA, and RLS helpers.
 - Creates: SFX enum types, `sfx_event_plans`, `sfx_provider_routes`, `sfx_prompt_plans`, `sfx_generated_assets`, `sfx_trim_plans`, `sfx_timing_alignments`, `sfx_mix_plans`, `sfx_qa_reports`, `sfx_qa_issues`, `sfx_library_candidates`, `sfx_usage_records`, `sfx_prompt_adapter_tests`, and `sfx_event_summary_view`.
 - Does not create: real SFX generation, provider calls, Mirelo/MMAudio integrations, API keys, provider secrets, Google Cloud resources, rendering, uploads, Stripe, or mobile screens.
-- Notes: SFX is planned before generation. Default SFX supports ReeditPro-created edit layers, not every source-footage action. Mirelo SFX V1.5 and MMAudio V are modeled as future provider routes only. Prompt plans are stored but not executed. Generated SFX should be longer than needed, then trimmed, hit-aligned, voice-first mixed, QA-checked, and kept project-only unless QA/provenance/privacy/licensing review allows library promotion.
+- Notes: SFX is planned before generation. Default SFX supports ReeditPro-created edit layers, not every source-footage action. Mirelo SFX V1.5 and MMAudio V2 are modeled as future provider routes only. Prompt plans are stored but not executed. Generated SFX should be longer than needed, then trimmed, hit-aligned, voice-first mixed, QA-checked, and kept project-only unless QA/provenance/privacy/licensing review allows library promotion.
 - Next migration: RP-TIMING-03 StoryTiming Master Tables.
 
 ## 11. RP-TIMING-03 StoryTiming Master Tables

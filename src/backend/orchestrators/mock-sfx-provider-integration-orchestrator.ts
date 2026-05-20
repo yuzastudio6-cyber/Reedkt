@@ -1,4 +1,4 @@
-import {
+﻿import {
   getDefaultMockSFXProviderIntegrationScenario,
   getMockSFXProviderIntegrationScenarioById,
   mockSFXProviderIntegrationScenarios,
@@ -149,7 +149,7 @@ export function runMockMMAudioProviderFlow() {
       getMockSFXProviderIntegrationScenarioById(id) ?? missingScenario(id),
     )),
     summary: [
-      'MMAudio V is prepared as the future draft/basic/pro fallback.',
+      'MMAudio V2 is prepared as the future draft/basic/pro fallback.',
       'Mock MMAudio prompts remain short and video-conditioned.',
     ],
     nextStep: 'run_sfx_worker_trim_mix_qa' as const,

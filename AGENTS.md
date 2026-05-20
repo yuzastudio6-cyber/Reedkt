@@ -1,4 +1,4 @@
-# ReeditPro Agent Instructions
+﻿# ReeditPro Agent Instructions
 
 These instructions are for Codex and any future agent working in this repository.
 
@@ -278,7 +278,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - SoundSync SFX Director plans SFX before generation.
 - Default SFX supports ReeditPro-created edit layers, not every real-world source action.
 - Mirelo SFX V1.5 is the future production SFX provider.
-- MMAudio V is the future cheap/draft/Basic/Pro fallback and video-synced helper.
+- MMAudio V2 is the future cheap/draft/Basic/Pro fallback and video-synced helper.
 - Generated SFX should be longer than needed, then trimmed, hit-aligned, mixed, and QA-checked.
 - SFX must be voice-first and never too loud by default.
 - Generated SFX starts project-only and becomes a library candidate only after QA and provenance review.

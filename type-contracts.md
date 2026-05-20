@@ -1,4 +1,4 @@
-# Type Contracts
+﻿# Type Contracts
 
 ## Purpose
 
@@ -182,7 +182,7 @@ The SFX Director contracts preserve these product rules:
 
 Edit-layer SFX is modeled through `SFXEventPlanRecord.targetLayer`, `decisionState`, `sourceFootagePolicy`, `anchorType`, `timingPriority`, `volumeProfile`, and `mixPriority`. `SoundEffectPlanRecord` can optionally reference deeper SFX Director records with `sfxEventPlanIds`, `sfxMixPlanIds`, and `sfxQAReportIds` while existing records remain valid.
 
-Provider routing is modeled through `SFXProviderRouteRecord`. The supported future routes are ReeditPro internal library, MMAudio V, Mirelo SFX V1.5, no SFX, manual upload, and unknown. Internal library is the future first choice, MMAudio V is the cheap/draft/Basic/Pro fallback and video-synced helper, and Mirelo SFX V1.5 is the future production-quality provider for important final-polish moments.
+Provider routing is modeled through `SFXProviderRouteRecord`. The supported future routes are ReeditPro internal library, MMAudio V2, Mirelo SFX V1.5, no SFX, manual upload, and unknown. Internal library is the future first choice, MMAudio V2 is the cheap/draft/Basic/Pro fallback and video-synced helper, and Mirelo SFX V1.5 is the future production-quality provider for important final-polish moments.
 
 Provider-specific prompting is modeled through `SFXPromptPlanRecord` and `SFXPromptStyle`. MMAudio prompts use `video_conditioned_short_prompt`; Mirelo prompts can use `simple_keyword`, `short_phrase`, `tag_list`, or `structured_sentence` test styles; internal library search uses `library_search_tags`.
 

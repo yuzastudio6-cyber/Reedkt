@@ -13,7 +13,7 @@ export function createMockMMAudioResponse(request: MMAudioInternalRequest): MMAu
   const outputFormat = request.outputFormat ?? 'wav'
 
   return {
-    providerName: 'MMAudio V',
+    providerName: 'MMAudio V2',
     modelName: request.modelName,
     mockAudioBytes: null,
     mockStoragePath: mockStoragePath(request),
@@ -23,7 +23,7 @@ export function createMockMMAudioResponse(request: MMAudioInternalRequest): MMAu
       parts: [
         {
           text: [
-            'Mock MMAudio SFX draft.',
+            'Mock MMAudio V2 SFX draft.',
             `Prompt summary: ${request.prompt.slice(0, 120)}${request.prompt.length > 120 ? '...' : ''}`,
             'Video-conditioned placeholder only; no real audio was generated.',
           ].join(' '),
@@ -47,7 +47,7 @@ export function generateMockMMAudioSFX(request: MMAudioInternalRequest): SFXProv
     ok: true,
     response: parsed.response,
     warnings: [
-      'Mock MMAudio client used. No MMAudio API call was made.',
+      'Mock MMAudio V2 client used. No MMAudio API call was made.',
       ...parsed.warnings,
     ],
   }

@@ -1,4 +1,4 @@
-# Mock Vs Real Status
+﻿# Mock Vs Real Status
 
 ## Real / Implemented
 
@@ -16,7 +16,7 @@
 - Backend runtime and worker lease types, mock runtime envelopes, mock transport, mock lease lifecycle, stale recovery, idempotency helpers, and worker runtime registry metadata.
 - Mock-only Node HTTP backend scaffold for future Cloud Run deployment with health, readiness, runtime status, route registry, and mock API transport endpoints.
 - Project-level SoundSync SFX workflow wiring in mock mode, including SFX Director planning, provider routes, prompt plans, credit gates, mock generation requests, mock jobs, mock worker runs, mock provider adapter output, trim/hit alignment, mix, QA, project asset decisions, and editor chat status.
-- SFX provider execution readiness reporting for future Mirelo SFX V1.5 and MMAudio V backend transport, including structured block reasons, Secret Manager reference checks, approval/credit/job checks, and safe next steps.
+- SFX provider execution readiness reporting for future Mirelo SFX V1.5 and MMAudio V2 backend transport, including structured block reasons, Secret Manager reference checks, approval/credit/job checks, and safe next steps.
 
 ## Mock / Placeholder
 
@@ -31,7 +31,7 @@
 - Mock job runtime scenarios and orchestrator for queue, gate, dependency, dispatch, retry, recovery, and status-summary flows.
 - Mock backend runtime and worker lease scenarios/orchestrators for envelope transport, lease claim, heartbeat, renew, release, complete, fail, stale recovery, idempotency conflict, and blocked real transport.
 - Cloud Run API service plan, local runtime docs, deployment checklist, and backend Dockerfile scaffold.
-- Project SFX integration scenarios and chat panel showing Mirelo SFX V1.5, MMAudio V, internal library, and no-SFX routes.
+- Project SFX integration scenarios and chat panel showing Mirelo SFX V1.5, MMAudio V2, internal library, and no-SFX routes.
 - SFX provider readiness scenarios covering mock mode, disabled mode, frontend real-mode blocking, missing Secret Manager references, no-SFX routes, missing approval artifacts, and future transport readiness.
 
 ## Not Implemented

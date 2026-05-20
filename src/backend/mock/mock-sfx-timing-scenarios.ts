@@ -10,6 +10,7 @@ import type {
   SFXWaveformShape,
 } from '../../types'
 import type { SfxUseCase } from '../../types/audio-music'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 
 const createdAt = '2026-05-19T12:00:00.000Z'
 const projectId = 'mock-sfx-timing-project'
@@ -108,8 +109,8 @@ function promptPlan(input: {
     sfxEventPlanId: input.eventPlan.id,
     providerRouteId: `sfx_timing_route_${input.id}`,
     provider: input.provider ?? 'mirelo_sfx_v1_5',
-    modelName: input.provider === 'mmaudio_v' ? 'mmaudio-v' : 'mirelo-sfx-v1.5',
-    promptStyle: input.provider === 'mmaudio_v' ? 'video_conditioned_short_prompt' : 'structured_sentence',
+    modelName: isMMAudioProviderKey(input.provider) ? 'mmaudio-v2' : 'mirelo-sfx-v1.5',
+    promptStyle: isMMAudioProviderKey(input.provider) ? 'video_conditioned_short_prompt' : 'structured_sentence',
     prompt: input.prompt,
     negativePrompt: 'no loud impact, no cartoon, no harsh noise, no vocals',
     librarySearchTags: [],

@@ -1,8 +1,8 @@
-# SFX Provider Adapter Layer
+﻿# SFX Provider Adapter Layer
 
 ## Purpose
 
-RP-SFX-12 adds a mock-first provider adapter layer for SoundSync SFX Director. It prepares ReeditPro for future Mirelo SFX V1.5, MMAudio V, and internal-library generation paths without making real provider calls.
+RP-SFX-12 adds a mock-first provider adapter layer for SoundSync SFX Director. It prepares ReeditPro for future Mirelo SFX V1.5, MMAudio V2, and internal-library generation paths without making real provider calls.
 
 The adapter owns ReeditPro-controlled request and response contracts. It does not define or claim any undocumented Mirelo or MMAudio API endpoint, authentication header, transport schema, or response schema.
 
@@ -26,7 +26,9 @@ No mode in RP-SFX-12 imports provider SDKs, makes HTTP requests, creates audio b
 
 Mirelo SFX V1.5 is prepared as the future production SFX provider for premium transitions, title/chapter hits, Stroke Motion, Graphic Design reveals, Real Motion settles, CTA polish, and signature edits.
 
-MMAudio V is prepared as the future lower-cost draft/basic/pro fallback and video-conditioned helper for timing experiments, ambience drafts, and motion-synced ideas.
+MMAudio V2 is prepared as the future lower-cost draft/basic/pro fallback and video-conditioned helper for timing experiments, ambience drafts, and motion-synced ideas.
+
+The canonical provider key for new records is `mmaudio_v2`. The adapter still accepts legacy `mmaudio_v` records and normalizes them to the MMAudio V2 mock path so older mock data does not break.
 
 The internal library provider checks for approved reusable SFX. When a mock approved match is supplied, it returns a library response and skips provider generation. When no match exists, it returns a no-match result.
 
@@ -94,7 +96,7 @@ Readiness does not weaken the adapter. Real clients still fail closed and no pro
 ```text
 SFX_PROVIDER_INTEGRATION_MODE=mock
 MIRELO_SFX_MODEL_NAME=mirelo-sfx-v1.5
-MMAUDIO_MODEL_NAME=mmaudio-v
+MMAUDIO_MODEL_NAME=mmaudio-v2
 MIRELO_API_KEY=
 MMAUDIO_API_KEY=
 GOOGLE_SECRET_MIRELO_API_KEY_NAME=
@@ -102,6 +104,8 @@ GOOGLE_SECRET_MMAUDIO_API_KEY_NAME=
 ```
 
 Real values must not be committed. Future real integration should load provider credentials only from secure backend/worker runtime, preferably through Secret Manager reference names.
+
+The future production Secret Manager reference names are `reeditpro-prod-mirelo-api-key` and `reeditpro-prod-mmaudio-api-key`. Local `GOOGLE_SECRET_MIRELO_API_KEY_NAME` and `GOOGLE_SECRET_MMAUDIO_API_KEY_NAME` values are placeholders for those reference names only; they must never contain raw provider keys.
 
 ## Provider Docs Needed Later
 

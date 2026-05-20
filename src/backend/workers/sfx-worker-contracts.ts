@@ -63,8 +63,8 @@ export interface SFXWorkerInput {
 
 export interface SFXWorkerContext {
   runtime: SFXWorkerRuntime
-  provider: 'Mirelo SFX V1.5' | 'MMAudio V' | 'ReeditPro Internal Library' | 'No SFX'
-  providerKey: 'mirelo_sfx_v1_5' | 'mmaudio_v' | 'reeditpro_internal_library' | 'no_sfx'
+  provider: 'Mirelo SFX V1.5' | 'MMAudio V2' | 'ReeditPro Internal Library' | 'No SFX'
+  providerKey: 'mirelo_sfx_v1_5' | 'mmaudio_v2' | 'mmaudio_v' | 'reeditpro_internal_library' | 'no_sfx'
   workerId?: string
   leaseId?: string
   leaseToken?: string
@@ -165,7 +165,7 @@ export interface SFXWorkerLoadedRecords {
 }
 
 export interface MockSFXProviderResponse {
-  provider: 'Mirelo SFX V1.5' | 'MMAudio V' | 'ReeditPro Internal Library'
+  provider: 'Mirelo SFX V1.5' | 'MMAudio V2' | 'ReeditPro Internal Library'
   providerKey: Exclude<SFXProvider, 'no_sfx' | 'manual_upload' | 'unknown'>
   modelName: string
   mockAudioBytes: null

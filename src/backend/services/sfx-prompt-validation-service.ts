@@ -4,6 +4,7 @@ import type {
   SFXProviderRouteRecord,
 } from '../../types'
 import type { ValidateSFXPromptPlanResponse } from '../contracts/sfx-director-contracts'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 
 function wordCount(text: string): number {
   return text.split(/\s+/).filter(Boolean).length
@@ -18,12 +19,12 @@ export function validateProviderPromptStyle(
   promptPlan: SFXPromptPlanRecord,
   providerRoute: SFXProviderRouteRecord,
 ): string[] {
-  if (providerRoute.recommendedProvider === 'mmaudio_v' && promptPlan.promptStyle !== 'video_conditioned_short_prompt') {
-    return ['MMAudio prompts should use video_conditioned_short_prompt style.']
+  if (isMMAudioProviderKey(providerRoute.recommendedProvider) && promptPlan.promptStyle !== 'video_conditioned_short_prompt') {
+    return ['MMAudio V2 prompts should use video_conditioned_short_prompt style.']
   }
 
   if (providerRoute.recommendedProvider === 'mirelo_sfx_v1_5' && promptPlan.promptStyle === 'video_conditioned_short_prompt') {
-    return ['Mirelo production prompts should not use MMAudio short prompt style.']
+    return ['Mirelo production prompts should not use MMAudio V2 short prompt style.']
   }
 
   if (providerRoute.recommendedProvider === 'reeditpro_internal_library' && promptPlan.promptStyle !== 'library_search_tags') {
@@ -80,8 +81,8 @@ export function validateSFXPromptSpecificity(
     warnings.push('Prompt may be too vague.')
   }
 
-  if (providerRoute.recommendedProvider === 'mmaudio_v' && count > 10) {
-    warnings.push('MMAudio prompt may be too long for the default video-conditioned style.')
+  if (isMMAudioProviderKey(providerRoute.recommendedProvider) && count > 10) {
+    warnings.push('MMAudio V2 prompt may be too long for the default video-conditioned style.')
   }
 
   if (

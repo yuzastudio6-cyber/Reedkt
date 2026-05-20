@@ -11,6 +11,8 @@ export type ProviderRoute =
   | 'wan'
   | 'hailuo'
   | 'veo'
+  | 'mirelo_sfx_v1_5'
+  | 'mmaudio_v2'
   | 'remotion_deterministic'
   | 'svg_renderer'
   | 'lottie_renderer'

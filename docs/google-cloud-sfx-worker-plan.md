@@ -1,4 +1,4 @@
-# Google Cloud SFX Worker Plan
+﻿# Google Cloud SFX Worker Plan
 
 ## Purpose
 
@@ -31,7 +31,7 @@ The future worker sequence is:
 
 ## Provider Boundaries
 
-Mirelo SFX V1.5 is the future production SFX provider. MMAudio V is the future draft/basic/pro fallback and video-conditioned helper. ReeditPro Internal Library is the future first-choice source when an approved reusable sound exists.
+Mirelo SFX V1.5 is the future production SFX provider. MMAudio V2 is the future draft/basic/pro fallback and video-conditioned helper. ReeditPro Internal Library is the future first-choice source when an approved reusable sound exists.
 
 Provider secrets must never be stored in frontend code, database rows, logs, prompts, or worker payloads. Workers should receive only Secret Manager reference names.
 

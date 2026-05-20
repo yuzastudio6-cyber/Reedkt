@@ -5,6 +5,7 @@ import type {
   SFXProviderOutputFormat,
   SFXProviderResult,
 } from './sfx-provider-contracts'
+import { isMMAudioProviderKey } from './sfx-provider-contracts'
 
 function browserRuntime() {
   return typeof window !== 'undefined'
@@ -43,7 +44,7 @@ export function getMireloModelName(modelName?: string): string {
 }
 
 export function getMMAudioModelName(modelName?: string): string {
-  return modelName ?? readEnv('MMAUDIO_MODEL_NAME') ?? 'mmaudio-v'
+  return modelName ?? readEnv('MMAUDIO_MODEL_NAME') ?? 'mmaudio-v2'
 }
 
 export function getSFXProviderOutputFormat(outputFormat?: SFXProviderOutputFormat): SFXProviderOutputFormat {
@@ -79,7 +80,7 @@ export function getSFXProviderConfig(input: {
 
 function hasCredentialForProvider(config: SFXProviderConfig, providerKey: SFXProviderKey) {
   if (providerKey === 'mirelo_sfx_v1_5') return Boolean(config.mireloSecretReferenceName)
-  if (providerKey === 'mmaudio_v') return Boolean(config.mmaudioSecretReferenceName)
+  if (isMMAudioProviderKey(providerKey)) return Boolean(config.mmaudioSecretReferenceName)
   if (providerKey === 'reeditpro_internal_library') return true
   return false
 }

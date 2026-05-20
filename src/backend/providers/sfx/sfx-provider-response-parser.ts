@@ -7,6 +7,7 @@ import type {
   SFXProviderOutputFormat,
   SFXProviderTextPart,
 } from './sfx-provider-contracts'
+import { getSFXProviderDisplayLabel, normalizeSFXProviderKey } from './sfx-provider-contracts'
 
 type RawPart = {
   type?: unknown
@@ -29,10 +30,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function providerName(providerKey: SFXProviderKey) {
-  if (providerKey === 'mirelo_sfx_v1_5') return 'Mirelo SFX V1.5'
-  if (providerKey === 'mmaudio_v') return 'MMAudio V'
-  if (providerKey === 'reeditpro_internal_library') return 'ReeditPro Internal Library'
-  return 'No SFX'
+  return getSFXProviderDisplayLabel(providerKey)
 }
 
 function extractCandidateParts(rawResponse: unknown): unknown[] {
@@ -122,9 +120,10 @@ export function parseSFXProviderResponse(input: {
   response: SFXProviderGenerateResponse
   warnings: string[]
 } {
-  const providerKey = input.providerKey ?? (isRecord(input.rawResponse) && typeof input.rawResponse.providerKey === 'string'
+  const providerKey = normalizeSFXProviderKey(input.providerKey ?? (isRecord(input.rawResponse) && typeof input.rawResponse.providerKey === 'string'
     ? input.rawResponse.providerKey as SFXProviderKey
     : 'mirelo_sfx_v1_5')
+  )
   const rawParts = extractCandidateParts(input.rawResponse)
   const parts = rawParts.map(partToGeneratedPart).filter((part): part is SFXProviderGeneratedPart => Boolean(part))
   const textParts = extractSFXTextParts(parts)

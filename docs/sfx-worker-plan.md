@@ -1,4 +1,4 @@
-# SFX Worker Plan
+﻿# SFX Worker Plan
 
 ## Purpose
 
@@ -34,7 +34,7 @@ It also blocks `avoid`, `not_needed`, `no_sfx`, source-footage repair without ex
 Routing is mock-only:
 
 - `Mirelo SFX V1.5` simulates a future production SFX provider.
-- `MMAudio V` simulates a future draft/basic/pro fallback and video-conditioned helper.
+- `MMAudio V2` simulates a future draft/basic/pro fallback and video-conditioned helper.
 - `ReeditPro Internal Library` simulates an approved reusable library match.
 - `No SFX` blocks generation because no SFX is a valid professional choice.
 

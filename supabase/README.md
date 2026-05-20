@@ -1,4 +1,4 @@
-# Supabase
+﻿# Supabase
 
 This repository targets the Supabase project named `reeditpro`.
 
@@ -260,7 +260,7 @@ The mock scenario is local-only. It uses placeholder UUIDs and requires a matchi
 
 SFX is planned before generation. By default, ReeditPro SFX supports ReeditPro-created edit layers such as transitions, title/chapter cards, Graphic Design / VisualExplain reveals, Stroke Motion moments, Real Motion object movement, CTA reveals, montage hits, and ambient bridges. It does not add fake SFX for every source-footage action.
 
-Mirelo SFX V1.5 is modeled as the future production SFX provider. MMAudio V is modeled as the future draft, Basic/Pro fallback, and video-synced helper. ReeditPro internal library and no-SFX routes are also modeled. Provider prompts are stored as planning records only and do not execute provider calls.
+Mirelo SFX V1.5 is modeled as the future production SFX provider. MMAudio V2 is modeled as the future draft, Basic/Pro fallback, and video-synced helper. ReeditPro internal library and no-SFX routes are also modeled. Provider prompts are stored as planning records only and do not execute provider calls.
 
 Generated SFX should be longer than the final needed sound, then trimmed, hit-aligned, faded, normalized, voice-first mixed, and QA-checked before preview/export use. Generated SFX starts project-only; library promotion requires QA, provenance, privacy, and licensing review.
 

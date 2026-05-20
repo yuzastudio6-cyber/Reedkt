@@ -1,4 +1,4 @@
-# SFX Provider Strategy
+﻿# SFX Provider Strategy
 
 ## Purpose
 
@@ -10,7 +10,7 @@ Future routing should consider:
 
 1. No SFX if sound does not improve the edit.
 2. Approved internal library when a safe, reusable, high-quality match exists.
-3. MMAudio V for draft, cheap fallback, Basic/Pro helper sounds, or video-synced experiments.
+3. MMAudio V2 for draft, cheap fallback, Basic/Pro helper sounds, or video-synced experiments.
 4. Mirelo SFX V1.5 for production-quality final SFX and premium/key moments.
 
 The SFX Director must justify every generated or selected sound with an edit-layer reason, timing anchor, mix profile, QA checklist, and credit impact.
@@ -32,9 +32,9 @@ Use for:
 
 Mirelo should be used when the final deliverable needs a professional, clean, subtle, high-quality sound that will survive QA. Do not claim exact Mirelo API behavior until provider docs and tests exist.
 
-## MMAudio V
+## MMAudio V2
 
-MMAudio V is the future Basic/Pro fallback, draft audio, and video-synced helper.
+MMAudio V2 is the future Basic/Pro fallback, draft audio, and video-synced helper.
 
 Use for:
 
@@ -159,6 +159,6 @@ SFX generation must be included in the credit estimate before generation. Produc
 
 ## RP-FIX-14 Project Flow Routing
 
-RP-FIX-14 makes this provider strategy visible inside the mock project editing flow. Project SFX now routes each planned cue to internal library, Mirelo SFX V1.5, MMAudio V fallback, or no SFX, then creates prompt plans and credit-gated mock worker jobs.
+RP-FIX-14 makes this provider strategy visible inside the mock project editing flow. Project SFX now routes each planned cue to internal library, Mirelo SFX V1.5, MMAudio V2 fallback, or no SFX, then creates prompt plans and credit-gated mock worker jobs.
 
 The route remains mock-only. Mirelo and MMAudio are not called, and real provider execution remains backend/worker future work.

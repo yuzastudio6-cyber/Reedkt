@@ -22,7 +22,7 @@ export function ProjectSFXIntegrationPanel({
       <div className="inline-card-heading">
         <div>
           <span className="section-eyebrow">Project SFX workflow</span>
-          <h3>Mirelo + MMAudio wired into project editing</h3>
+          <h3>Mirelo + MMAudio V2 wired into project editing</h3>
         </div>
         <Badge accent="warning">Mock mode</Badge>
       </div>
@@ -36,7 +36,7 @@ export function ProjectSFXIntegrationPanel({
 
       <div className="sfx-score-grid">
         <span><strong>Mirelo SFX V1.5</strong>Production SFX</span>
-        <span><strong>MMAudio V</strong>Cheap draft/basic-pro fallback</span>
+        <span><strong>MMAudio V2</strong>Cheap draft/basic-pro fallback</span>
         <span><strong>Internal library</strong>First choice when available</span>
         <span><strong>No SFX</strong>Valid when sound does not improve the edit</span>
       </div>

@@ -75,22 +75,22 @@ export function createMireloPromptStyleTestMatrix(db: MockDatabase): ServiceResu
 export function createMMAudioPromptLengthTestMatrix(db: MockDatabase): ServiceResult<SFXPromptAdapterTestRecord[]> {
   const prompts: Array<Parameters<typeof createSFXPromptAdapterTest>[1]> = [
     {
-      provider: 'mmaudio_v',
-      modelName: 'mmaudio-v',
+      provider: 'mmaudio_v2',
+      modelName: 'mmaudio-v2',
       promptStyle: 'video_conditioned_short_prompt',
       testPrompt: 'soft whoosh',
       expectedUseCase: 'transition_soft_whoosh',
     },
     {
-      provider: 'mmaudio_v',
-      modelName: 'mmaudio-v',
+      provider: 'mmaudio_v2',
+      modelName: 'mmaudio-v2',
       promptStyle: 'video_conditioned_short_prompt',
       testPrompt: 'subtle graphic reveal sound',
       expectedUseCase: 'graphic_card_reveal',
     },
     {
-      provider: 'mmaudio_v',
-      modelName: 'mmaudio-v',
+      provider: 'mmaudio_v2',
+      modelName: 'mmaudio-v2',
       promptStyle: 'video_conditioned_short_prompt',
       testPrompt: 'gentle line drawing sound',
       expectedUseCase: 'stroke_line_trace',

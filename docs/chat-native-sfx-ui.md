@@ -1,4 +1,4 @@
-# Chat-Native SFX UI
+﻿# Chat-Native SFX UI
 
 ## Purpose
 
@@ -33,7 +33,7 @@ The mock SFX chat flow includes:
 Provider routing remains planning metadata only:
 
 - Mirelo SFX V1.5 is shown as a future production SFX route.
-- MMAudio V is shown as a future draft/basic/pro fallback and video-conditioned helper.
+- MMAudio V2 is shown as a future draft/basic/pro fallback and video-conditioned helper.
 - Internal library is shown as reusable approved sounds.
 - No SFX is shown as a valid professional choice.
 

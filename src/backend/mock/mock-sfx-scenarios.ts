@@ -47,7 +47,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: true,
     expectedSFXDecisions: ['optional', 'needed'],
     expectedTargetLayers: ['title_card', 'transition', 'chapter_card', 'montage_hit', 'ambient_bridge', 'cta_reveal'],
-    expectedProviderRoutes: ['mirelo_sfx_v1_5', 'reeditpro_internal_library', 'mmaudio_v'],
+    expectedProviderRoutes: ['mirelo_sfx_v1_5', 'reeditpro_internal_library', 'mmaudio_v2'],
     expectedAvoidedSFX: ['fake water everywhere', 'footsteps by default', 'SFX over dialogue'],
   }),
   scenario({
@@ -66,7 +66,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: true,
     expectedSFXDecisions: ['optional'],
     expectedTargetLayers: ['transition', 'chapter_card', 'ambient_bridge', 'cta_reveal'],
-    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v'],
+    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v2'],
     expectedAvoidedSFX: ['random street foley', 'footsteps by default'],
   }),
   scenario({
@@ -144,7 +144,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: false,
     expectedSFXDecisions: ['optional', 'needed'],
     expectedTargetLayers: ['montage_hit', 'transition', 'title_card', 'cta_reveal'],
-    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v', 'mirelo_sfx_v1_5'],
+    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v2', 'mirelo_sfx_v1_5'],
     expectedAvoidedSFX: ['random gym foley'],
   }),
   scenario({
@@ -163,7 +163,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: false,
     expectedSFXDecisions: ['optional'],
     expectedTargetLayers: ['graphic_design', 'cta_reveal'],
-    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v'],
+    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v2'],
     expectedAvoidedSFX: ['loud UI clicks under speech'],
   }),
   scenario({
@@ -182,7 +182,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: false,
     expectedSFXDecisions: ['needed'],
     expectedTargetLayers: ['stroke_motion'],
-    expectedProviderRoutes: ['mirelo_sfx_v1_5', 'mmaudio_v'],
+    expectedProviderRoutes: ['mirelo_sfx_v1_5', 'mmaudio_v2'],
     expectedAvoidedSFX: ['loud marker scratch'],
   }),
   scenario({
@@ -220,7 +220,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: true,
     expectedSFXDecisions: ['needed'],
     expectedTargetLayers: ['real_motion'],
-    expectedProviderRoutes: ['mirelo_sfx_v1_5', 'mmaudio_v'],
+    expectedProviderRoutes: ['mirelo_sfx_v1_5', 'mmaudio_v2'],
     expectedAvoidedSFX: ['cinematic boom'],
   }),
   scenario({
@@ -239,7 +239,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: false,
     expectedSFXDecisions: ['optional'],
     expectedTargetLayers: ['cta_reveal'],
-    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v'],
+    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v2'],
     expectedAvoidedSFX: ['cartoon chime'],
   }),
   scenario({
@@ -260,7 +260,7 @@ export const mockSFXScenarios: MockSFXScenario[] = [
     ambienceImportant: true,
     expectedSFXDecisions: ['needs_user_confirmation'],
     expectedTargetLayers: ['source_footage_repair'],
-    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v'],
+    expectedProviderRoutes: ['reeditpro_internal_library', 'mmaudio_v2'],
     expectedAvoidedSFX: ['fake footsteps', 'random source foley'],
   }),
 ]

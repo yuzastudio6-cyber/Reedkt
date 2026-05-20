@@ -19,6 +19,7 @@ import type {
   SFXWorkerMockRecordBundle,
   SFXWorkerOutput,
 } from '../workers/sfx-worker-contracts'
+import { isMMAudioProviderKey } from '../providers/sfx/sfx-provider-contracts'
 
 const createdAt = '2026-05-19T00:00:00.000Z'
 const workspaceId = 'mock-workspace-reeditpro'
@@ -226,7 +227,7 @@ function eventPlan(input: {
 
 function providerRole(provider: SFXProvider): SFXProviderRole {
   if (provider === 'mirelo_sfx_v1_5') return 'production_final'
-  if (provider === 'mmaudio_v') return 'cheap_draft_fallback'
+  if (isMMAudioProviderKey(provider)) return 'cheap_draft_fallback'
   if (provider === 'reeditpro_internal_library') return 'internal_library_first_choice'
   return 'none'
 }
@@ -242,10 +243,10 @@ function providerRoute(id: string, event: SFXEventPlanRecord, provider: SFXProvi
     fallbackProvider,
     reason: 'Mock worker provider route. No provider is called.',
     useInternalLibraryFirst: provider === 'reeditpro_internal_library' || Boolean(fallbackProvider),
-    useMMAudioForDraft: provider === 'mmaudio_v' || fallbackProvider === 'mmaudio_v',
+    useMMAudioForDraft: isMMAudioProviderKey(provider) || isMMAudioProviderKey(fallbackProvider),
     useMireloForProduction: provider === 'mirelo_sfx_v1_5',
     noSfxAllowed: true,
-    costSensitivity: provider === 'mmaudio_v' ? 'lowest_cost' : 'balanced',
+    costSensitivity: isMMAudioProviderKey(provider) ? 'lowest_cost' : 'balanced',
     qualityTarget: provider === 'mirelo_sfx_v1_5' ? 'production' : 'preview',
     approvalRequired: true,
     notes: ['Mock route only; no API keys or provider calls.'],
@@ -274,15 +275,15 @@ function promptPlan(
     provider,
     modelName: provider === 'mirelo_sfx_v1_5'
       ? 'mirelo-sfx-v1.5'
-      : provider === 'mmaudio_v'
-        ? 'mmaudio-v'
+      : isMMAudioProviderKey(provider)
+        ? 'mmaudio-v2'
         : 'reeditpro-internal-sfx-library',
-    promptStyle: provider === 'mmaudio_v'
+    promptStyle: isMMAudioProviderKey(provider)
       ? 'video_conditioned_short_prompt'
       : provider === 'reeditpro_internal_library'
         ? 'library_search_tags'
         : 'structured_sentence',
-    prompt: provider === 'mmaudio_v'
+    prompt: isMMAudioProviderKey(provider)
       ? 'soft transition whoosh'
       : `Soft premium ${event.useCase.replaceAll('_', ' ')}, clean and subtle, no cartoon, no harsh impact.`,
     negativePrompt: 'no loud impact, no cartoon, no harsh noise, no vocals',
@@ -454,8 +455,8 @@ export const mockSFXWorkerScenarios: MockSFXWorkerScenario[] = [
   scenario({ id: 'mirelo-stroke-draw-success', label: 'Mirelo Stroke Motion draw success', targetLayer: 'stroke_motion', useCase: 'stroke_draw', provider: 'mirelo_sfx_v1_5', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'candidate_for_library', expectedNextStep: 'library_review', speechPresent: true }),
   scenario({ id: 'mirelo-graphic-reveal-success', label: 'Mirelo Graphic Design card reveal success', targetLayer: 'graphic_design', useCase: 'graphic_card_reveal', provider: 'mirelo_sfx_v1_5', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'candidate_for_library', expectedNextStep: 'library_review' }),
   scenario({ id: 'mirelo-real-motion-settle-success', label: 'Mirelo Real Motion object settle success', targetLayer: 'real_motion', useCase: 'real_motion_object_settle', provider: 'mirelo_sfx_v1_5', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'candidate_for_library', expectedNextStep: 'library_review', ambienceImportant: true }),
-  scenario({ id: 'mmaudio-draft-transition-success', label: 'MMAudio draft transition success', targetLayer: 'transition', useCase: 'transition_soft_whoosh', provider: 'mmaudio_v', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview', musicPresent: true }),
-  scenario({ id: 'mmaudio-ambient-bridge-success', label: 'MMAudio ambient bridge draft success', targetLayer: 'ambient_bridge', useCase: 'ambient_soft_bridge', provider: 'mmaudio_v', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview', ambienceImportant: true }),
+  scenario({ id: 'mmaudio-draft-transition-success', label: 'MMAudio V2 draft transition success', targetLayer: 'transition', useCase: 'transition_soft_whoosh', provider: 'mmaudio_v2', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview', musicPresent: true }),
+  scenario({ id: 'mmaudio-ambient-bridge-success', label: 'MMAudio V2 ambient bridge draft success', targetLayer: 'ambient_bridge', useCase: 'ambient_soft_bridge', provider: 'mmaudio_v2', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview', ambienceImportant: true }),
   scenario({ id: 'internal-library-match-used', label: 'Internal library match used instead of generation', targetLayer: 'transition', useCase: 'transition_soft_whoosh', provider: 'reeditpro_internal_library', approvedLibraryAssetId: 'mock-approved-soft-whoosh-001', expectedWorkerResult: 'library_match_used', expectedQAResult: 'passed', expectedLibraryDecision: 'approved_internal_library', expectedNextStep: 'use_in_preview' }),
   scenario({ id: 'missing-credit-reservation-blocked', label: 'Missing credit reservation blocked', targetLayer: 'transition', useCase: 'transition_soft_whoosh', provider: 'mirelo_sfx_v1_5', includeReservation: false, creditState: 'missing_reservation', expectedWorkerResult: 'blocked', expectedQAResult: 'not_run', expectedLibraryDecision: 'not_run', expectedNextStep: 'reserve_credits' }),
   scenario({ id: 'edit-plan-not-approved-blocked', label: 'Edit plan not approved blocked', targetLayer: 'transition', useCase: 'transition_soft_whoosh', provider: 'mirelo_sfx_v1_5', editPlanStatus: 'awaiting_approval', expectedWorkerResult: 'blocked', expectedQAResult: 'not_run', expectedLibraryDecision: 'not_run', expectedNextStep: 'approve_plan' }),
@@ -464,11 +465,11 @@ export const mockSFXWorkerScenarios: MockSFXWorkerScenario[] = [
   scenario({ id: 'provider-route-no-sfx-blocked', label: 'Provider route no_sfx blocked', targetLayer: 'transition', useCase: 'none', provider: 'no_sfx', promptOverrides: { provider: 'no_sfx', modelName: 'no-sfx', durationNeededSeconds: 0, durationToGenerateSeconds: 0 }, expectedWorkerResult: 'blocked', expectedQAResult: 'not_run', expectedLibraryDecision: 'not_run', expectedNextStep: 'remove_sfx' }),
   scenario({ id: 'qa-too-loud-dialogue-failed', label: 'QA failure due to too loud under dialogue', targetLayer: 'montage_hit', useCase: 'montage_beat_accent', provider: 'mirelo_sfx_v1_5', speechPresent: true, mockOutputSummary: 'impact under dialogue too loud fights voice', expectedWorkerResult: 'failed', expectedQAResult: 'failed', expectedLibraryDecision: 'not_run', expectedNextStep: 'regenerate' }),
   scenario({ id: 'qa-cartoonish-luxury-title-failed', label: 'QA failure due to cartoonish luxury title hit', targetLayer: 'title_card', useCase: 'chapter_title', provider: 'mirelo_sfx_v1_5', mockOutputSummary: 'cartoonish cheap wrong style for luxury premium title hit', expectedWorkerResult: 'failed', expectedQAResult: 'failed', expectedLibraryDecision: 'not_run', expectedNextStep: 'regenerate' }),
-  scenario({ id: 'lake-como-lifestyle-flow', label: 'Lake Como lifestyle multi-SFX flow', targetLayer: 'chapter_card', useCase: 'chapter_title', provider: 'mirelo_sfx_v1_5', fallbackProvider: 'mmaudio_v', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'candidate_for_library', expectedNextStep: 'library_review', musicPresent: true }),
+  scenario({ id: 'lake-como-lifestyle-flow', label: 'Lake Como lifestyle multi-SFX flow', targetLayer: 'chapter_card', useCase: 'chapter_title', provider: 'mirelo_sfx_v1_5', fallbackProvider: 'mmaudio_v2', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'candidate_for_library', expectedNextStep: 'library_review', musicPresent: true }),
   scenario({ id: 'signature-sfx-flow', label: 'Signature SFX flow', targetLayer: 'stroke_motion', useCase: 'stroke_circle_complete', provider: 'mirelo_sfx_v1_5', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'candidate_for_library', expectedNextStep: 'library_review', speechPresent: true }),
-  scenario({ id: 'generated-project-only', label: 'Generated SFX becomes project-only', targetLayer: 'ambient_bridge', useCase: 'lifestyle_restaurant_ambience_bridge', provider: 'mmaudio_v', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview', ambienceImportant: true }),
+  scenario({ id: 'generated-project-only', label: 'Generated SFX becomes project-only', targetLayer: 'ambient_bridge', useCase: 'lifestyle_restaurant_ambience_bridge', provider: 'mmaudio_v2', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview', ambienceImportant: true }),
   scenario({ id: 'generated-library-candidate', label: 'Generated SFX becomes library candidate', targetLayer: 'graphic_design', useCase: 'graphic_label_pop', provider: 'mirelo_sfx_v1_5', expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'candidate_for_library', expectedNextStep: 'library_review' }),
-  scenario({ id: 'provider-unavailable-fallback-mmaudio', label: 'Provider unavailable fallback to MMAudio', targetLayer: 'transition', useCase: 'transition_air_pass', provider: 'mirelo_sfx_v1_5', fallbackProvider: 'mmaudio_v', providerUnavailable: true, expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview' }),
+  scenario({ id: 'provider-unavailable-fallback-mmaudio', label: 'Provider unavailable fallback to MMAudio V2', targetLayer: 'transition', useCase: 'transition_air_pass', provider: 'mirelo_sfx_v1_5', fallbackProvider: 'mmaudio_v2', providerUnavailable: true, expectedWorkerResult: 'mock_generated', expectedQAResult: 'passed', expectedLibraryDecision: 'project_only', expectedNextStep: 'use_in_preview' }),
   scenario({ id: 'prompt-validation-failed-blocked', label: 'Prompt validation failed blocked', targetLayer: 'transition', useCase: 'transition_light_riser', provider: 'mirelo_sfx_v1_5', promptOverrides: { promptWarnings: ['critical forced_worker_block: prompt asks for harsh vocal riser under speech'] }, expectedWorkerResult: 'blocked', expectedQAResult: 'not_run', expectedLibraryDecision: 'not_run', expectedNextStep: 'fix_prompt' }),
 ]
 

@@ -81,7 +81,7 @@ Future IAM hardening should keep least-privilege boundaries. Do not collapse all
 
 ## Secret References
 
-Secret Manager placeholders were created for Supabase backend runtime values, provider credentials, webhook signing, and future billing integration. The exact reference names live in the typed resource map.
+Secret Manager placeholders were created for Supabase backend runtime values, provider credentials, webhook signing, and future billing integration. The exact reference names live in the typed resource map, including future backend-only SFX references `reeditpro-prod-mirelo-api-key` and `reeditpro-prod-mmaudio-api-key`.
 
 Rules:
 

@@ -1,4 +1,4 @@
-# SFX Milestone Roadmap
+﻿# SFX Milestone Roadmap
 
 ## Purpose
 
@@ -24,7 +24,7 @@ Implement deterministic mock SFX planning that detects opportunities, chooses ne
 
 ### RP-SFX-05 - Provider Prompt Adapters: Mirelo + MMAudio
 
-Implement mock-only prompt adapters for Mirelo SFX V1.5, MMAudio V, and internal library search. Keep real provider calls blocked.
+Implement mock-only prompt adapters for Mirelo SFX V1.5, MMAudio V2, and internal library search. Keep real provider calls blocked.
 
 ### RP-SFX-06 - SFX Timing, Trim + Hit Alignment Planner
 

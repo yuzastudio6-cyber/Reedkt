@@ -1,4 +1,4 @@
-# SoundSync SFX Director
+﻿# SoundSync SFX Director
 
 ## Purpose
 
@@ -145,7 +145,7 @@ The SFX plan must explain why the layer needs sound, which visual or story cue i
 
 Mirelo SFX V1.5 is the future production SFX provider. Use it for production-quality final SFX, important transitions, Stroke Motion final draw/morph sounds, Graphic Design reveal sounds, Real Motion object sounds, title/chapter hits, premium signature edits, and high-quality final polish.
 
-MMAudio V is the future cheap draft, Basic/Pro fallback, and video-synced helper. Use it for draft timing ideas, inexpensive generation, movement prototypes, ambience/movement concepts, and SFX experiments where video context matters.
+MMAudio V2 is the future cheap draft, Basic/Pro fallback, and video-synced helper. Use it for draft timing ideas, inexpensive generation, movement prototypes, ambience/movement concepts, and SFX experiments where video context matters.
 
 The internal ReeditPro library is a future first-choice source after enough safe sounds exist. At launch, the library may be empty. That is acceptable.
 

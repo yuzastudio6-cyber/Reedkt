@@ -947,10 +947,14 @@ li {
 }
 
 .app-shell-chat {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: 228px minmax(0, 1fr);
   max-height: 100dvh;
   min-height: 100dvh;
   overflow: hidden;
+}
+
+.app-shell-chat.sidebar-hidden {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .sidebar {
@@ -3198,6 +3202,10 @@ textarea:disabled {
 .chat-project-utility .icon-button {
   height: 34px;
   width: 34px;
+}
+
+.sidebar-toggle-button {
+  color: var(--rp-brand-cyan);
 }
 
 .wallet-chip {

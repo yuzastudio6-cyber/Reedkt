@@ -1,14 +1,23 @@
-import { Bell, MoreHorizontal } from 'lucide-react'
+import { Bell, MoreHorizontal, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Badge } from '../Badge'
 import { IconButton } from '../Button'
+import { useAppShellChatToolbar } from '../AppShellChatToolbarContext'
 
 type MinimalProjectHeaderProps = {
   approved: boolean
   credits: number
+  onToggleSidebar?: () => void
   previewReady: boolean
+  sidebarVisible?: boolean
 }
 
-export function MinimalProjectHeader({ approved, credits, previewReady }: MinimalProjectHeaderProps) {
+export function MinimalProjectHeader({ approved, credits, onToggleSidebar, previewReady, sidebarVisible }: MinimalProjectHeaderProps) {
+  const shellToolbar = useAppShellChatToolbar()
+  const resolvedSidebarVisible = sidebarVisible ?? shellToolbar.sidebarVisible
+  const handleToggleSidebar = onToggleSidebar ?? shellToolbar.toggleSidebar
+  const SidebarToggleIcon = resolvedSidebarVisible ? PanelLeftClose : PanelLeftOpen
+  const canToggleSidebar = Boolean(onToggleSidebar) || shellToolbar.sidebarToggleEnabled
+
   return (
     <header className="chat-project-strip" aria-label="Editor project status">
       <div className="chat-project-strip-main">
@@ -19,6 +28,14 @@ export function MinimalProjectHeader({ approved, credits, previewReady }: Minima
         </div>
       </div>
       <div className="chat-project-utility">
+        {canToggleSidebar && (
+          <IconButton
+            className="sidebar-toggle-button"
+            icon={SidebarToggleIcon}
+            label={resolvedSidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
+            onClick={handleToggleSidebar}
+          />
+        )}
         <Badge accent="cyan">100 credits</Badge>
         <Badge accent="violet">Personal</Badge>
         <IconButton icon={Bell} label="Notifications" />

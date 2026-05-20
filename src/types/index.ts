@@ -18,3 +18,17 @@ export * from './supabase-schema-plan'
 export * from './supabase-migration-drafts'
 export * from './supabase-rls-hardening'
 export * from './supabase-production-readiness'
+export * from './auth-bootstrap'
+export * from './upload'
+export * from './job-runtime'
+export * from './backend-runtime'
+export * from './worker-lease'
+export type {
+  CreditGateCheckInput,
+  CreditGateCheckResult,
+  CreditGateDecision,
+  CreditReservationRuntimeRecord,
+  CreditRuntimeMode,
+  CreditSpendPurpose,
+  CreditReservationStatus as CreditRuntimeReservationStatus,
+} from './credit-runtime'

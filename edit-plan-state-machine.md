@@ -218,6 +218,23 @@ States:
 - `estimate_required`
 - `awaiting_approval`
 - `approved`
+
+## RP-FIX-09 Gate Clarification
+
+RP-FIX-09 adds shared mock gate helpers for the transition from approved planning to generation, rendering, provider work, and worker jobs.
+
+The safe transition remains:
+
+```text
+edit plan approved
+-> credit estimate approved
+-> credits reserved
+-> generation/render/job request may queue
+-> successful job spends reservation
+-> failed job releases or refunds reservation
+```
+
+The frontend can display estimates and mock gate results, but real reservation, spend, release, refund, and job execution stay backend-required.
 - `queued`
 - `completed`
 - `rejected`
@@ -252,4 +269,3 @@ Rules:
 
 - `source_reading_mode` must pass through `meaning_expansion`.
 - Stroke Motion generation cannot start until plan and credit estimate are approved.
-

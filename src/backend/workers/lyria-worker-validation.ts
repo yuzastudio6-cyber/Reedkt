@@ -10,6 +10,7 @@ import type {
   LyriaPromptPlanRecord,
   MusicCueSheetItemRecord,
 } from '../../types'
+import { assertCreditReservationMatchesRequest } from '../services/credit-approval-gate-service'
 
 function pass(warnings: string[] = []): LyriaWorkerValidationResult {
   return { ok: true, warnings }
@@ -158,6 +159,29 @@ export function validateCreditReservationForWorker(
   return pass()
 }
 
+export function validateLyriaSharedCreditGateForWorker(
+  input: LyriaWorkerInput,
+  records: LyriaWorkerMockRecordBundle,
+): LyriaWorkerValidationResult {
+  const gate = assertCreditReservationMatchesRequest(records.creditReservation, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: records.generationRequest?.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    requestedByUserId: input.requestedByUserId,
+    purpose: 'music_generation',
+    estimatedCredits: records.generationRequest?.estimatedCredits ?? 18,
+    requiresApproval: true,
+  })
+
+  if (!gate.ok) {
+    return block('CREDITS_NOT_RESERVED', gate.message, gate.warnings, gate)
+  }
+
+  return pass(gate.warnings)
+}
+
 export function validateMusicCueForWorker(
   cue: MusicCueSheetItemRecord | undefined,
 ): LyriaWorkerValidationResult {
@@ -211,5 +235,6 @@ export function validateLyriaGenerationGate(
     validateMusicCueForWorker(records.musicCue),
     validatePromptPlanForWorker(records.promptPlan, records.musicCue),
     validateCreditReservationForWorker(records.creditReservation),
+    validateLyriaSharedCreditGateForWorker(input, records),
   ])
 }

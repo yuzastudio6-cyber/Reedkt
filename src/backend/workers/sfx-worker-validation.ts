@@ -14,6 +14,7 @@ import type {
   SFXWorkerMockRecordBundle,
   SFXWorkerValidationResult,
 } from './sfx-worker-contracts'
+import { assertCreditReservationMatchesRequest } from '../services/credit-approval-gate-service'
 
 function pass(warnings: string[] = []): SFXWorkerValidationResult {
   return { ok: true, warnings }
@@ -117,6 +118,29 @@ export function validateSFXCreditReservationForWorker(
   }
 
   return pass()
+}
+
+export function validateSFXSharedCreditGateForWorker(
+  input: SFXWorkerInput,
+  records: SFXWorkerMockRecordBundle,
+): SFXWorkerValidationResult {
+  const gate = assertCreditReservationMatchesRequest(records.creditReservation, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: records.creditEstimate?.id ?? records.generationRequest?.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    requestedByUserId: input.requestedByUserId,
+    purpose: 'sfx_generation',
+    estimatedCredits: records.creditEstimate?.totalEstimatedCredits ?? records.generationRequest?.estimatedCredits ?? 6,
+    requiresApproval: true,
+  })
+
+  if (!gate.ok) {
+    return block('CREDITS_NOT_RESERVED', gate.message, gate.warnings, gate)
+  }
+
+  return pass(gate.warnings)
 }
 
 export function validateSFXGenerationRequestForWorker(
@@ -268,6 +292,7 @@ export function validateSFXGenerationGate(
     validateSFXEditPlanApprovalForWorker(records.editPlan),
     validateSFXCreditApprovalForWorker(records.creditEstimate, records.creditApproval),
     validateSFXCreditReservationForWorker(records.creditReservation),
+    validateSFXSharedCreditGateForWorker(input, records),
     validateSFXGenerationRequestForWorker(records.generationRequest),
     validateSFXEventPlanForWorker(records.sfxEventPlan, input),
     validateSFXProviderRouteForWorker(records.sfxProviderRoute, records.sfxEventPlan),

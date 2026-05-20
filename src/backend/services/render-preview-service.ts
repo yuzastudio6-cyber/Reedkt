@@ -11,6 +11,7 @@ import type { CreateRenderJobRequest } from '../contracts/render-contracts'
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+import { checkRenderCreditGate } from './generation-credit-gate-service'
 
 export function createRenderJob(
   db: MockDatabase,
@@ -20,9 +21,22 @@ export function createRenderJob(
   const reservation = input.creditReservationId
     ? findMockRecord(db, 'creditReservations', input.creditReservationId)
     : undefined
+  const gate = checkRenderCreditGate(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    estimatedCredits: 8,
+    requiresApproval: true,
+  })
 
   if (!editPlan || editPlan.status !== 'approved') {
     return fail('PLAN_NOT_APPROVED', 'Render jobs require an approved edit plan.')
+  }
+
+  if (!gate.ok) {
+    return fail('GENERATION_NOT_ALLOWED', gate.message, gate)
   }
 
   if (!reservation || reservation.status !== 'reserved') {

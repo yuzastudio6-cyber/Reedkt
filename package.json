@@ -6,10 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
+    "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
+    "start:server": "node dist-server/server.js",
+    "dev:server": "npm run build:server && npm run start:server",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
     "lucide-react": "^1.14.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

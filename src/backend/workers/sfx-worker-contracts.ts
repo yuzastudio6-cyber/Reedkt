@@ -42,6 +42,10 @@ export type SFXWorkerStatus =
 export interface SFXWorkerInput {
   jobId: string
   jobBatchId?: string
+  workerId?: string
+  leaseId?: string
+  leaseToken?: string
+  idempotencyKey?: string
   workspaceId: string
   projectId: string
   editPlanId: string
@@ -61,6 +65,10 @@ export interface SFXWorkerContext {
   runtime: SFXWorkerRuntime
   provider: 'Mirelo SFX V1.5' | 'MMAudio V' | 'ReeditPro Internal Library' | 'No SFX'
   providerKey: 'mirelo_sfx_v1_5' | 'mmaudio_v' | 'reeditpro_internal_library' | 'no_sfx'
+  workerId?: string
+  leaseId?: string
+  leaseToken?: string
+  idempotencyKey?: string
   modelName?: string
   region?: string
   secretReferenceName?: string

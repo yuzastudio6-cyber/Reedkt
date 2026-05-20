@@ -1,6 +1,6 @@
 export function getSupabaseAdminClientPlaceholder(): never {
   throw new Error(
-    'Supabase admin access is backend-only. Never expose SUPABASE_SERVICE_ROLE_KEY to the Vite frontend; configure it later in Cloud Run or another secure server runtime.',
+    'Supabase admin access is backend-only. Never expose service-role credentials to the Vite frontend; configure them later in Cloud Run or another secure server runtime.',
   )
 }
 

@@ -316,11 +316,42 @@ ReeditPro must never start expensive AI editing, animation generation, rendering
 4. The user approves the plan and credits.
 5. Credits are reserved.
 
+### RP-FIX-07: Storage Upload Pipeline Readiness
+
+`migrations/202605200001_storage_upload_pipeline_readiness.sql` is a local-only readiness migration for the RP-FIX-07 upload path convention.
+
+It keeps the active bucket ids from RP-DATA-04:
+
+- `source-media`
+- `generated-assets`
+- `processed-media`
+- `previews`
+- `exports`
+- `thumbnails`
+- `qa-artifacts`
+- `worker-temp`
+
+It adds conservative storage object policies for `workspace/{workspace_id}/project/{project_id}/...` paths. Direct browser writes remain limited to source media and thumbnails for project editors. Generated assets, previews, exports, QA artifacts, worker temp files, profile assets, and brand assets should use backend workers or signed upload routes until production policies are validated.
+
+This migration has not been run locally, in staging, or in production.
+
+### RP-FIX-11: Worker Leases Runtime Transport
+
+`migrations/202605200002_worker_leases_runtime_transport.sql` is a local-only readiness migration for backend runtime transport and worker lease ownership.
+
+It creates:
+
+- `worker_leases`
+- `backend_runtime_messages`
+- `job_claim_attempts`
+
+The migration is conservative: authenticated users can read records for workspaces/projects they belong to, while insert/update/delete are reserved for future service-role backend workers. It has not been run locally, in staging, or in production.
+
 ## Future Migrations
 
 Later migrations should add, in order:
 
-- backend API skeleton and Supabase client wiring
+- backend API skeleton and signed storage route wiring
 - RP-TIMING-04 mock StoryTiming planner
 - RP-SFX-04 mock SFX Director service
 - Google Cloud worker scaffolding for generation and rendering
@@ -328,4 +359,4 @@ Later migrations should add, in order:
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03 do not connect to Supabase, run remote migrations, configure storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03, RP-FIX-07, and RP-FIX-11 do not connect to Supabase, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

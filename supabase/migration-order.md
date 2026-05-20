@@ -102,3 +102,21 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Does not create: remote Supabase execution, backend services, UI, real transcript alignment, beat detection, provider calls, Lyria/Mirelo/MMAudio integrations, API keys, provider secrets, Google Cloud resources, rendering, uploads, Stripe, or mobile screens.
 - Notes: Timing already exists across edit plan segments, story beats, pacing, cuts, transitions, captions, Stroke Motion, music, SFX, generation, render, review, and QA. StoryTiming references those systems with direct core FKs where safe and `source_system` / `source_record_id` / `source_table_name` for distributed timing records.
 - Next migration: RP-TIMING-04 mock StoryTiming planner.
+
+## 12. RP-FIX-07 Storage Upload Pipeline Readiness
+
+- File: `migrations/202605200001_storage_upload_pipeline_readiness.sql`
+- Purpose: Adds local-only storage policy readiness for `workspace/{workspace_id}/project/{project_id}/...` paths while keeping active RP-DATA-04 bucket ids.
+- Depends on: `202605180007_reeditpro_rls_policies.sql` helper functions and `202605180008_reeditpro_storage_buckets_policies.sql` bucket definitions.
+- Creates: conservative storage object policies for project member reads and project editor writes to `source-media` and `thumbnails` using workspace/project path parsing.
+- Does not create: public buckets, anonymous access, profile/brand workspace-only policies, generated asset writes, preview/export writes, worker-temp writes, remote deployment, real uploads, provider calls, rendering, Stripe, Google Cloud resources, or mobile screens.
+- Notes: Profile/brand assets, generated outputs, previews, exports, QA artifacts, and worker-temp objects remain backend signed-upload or worker-runtime concerns until production policies are validated.
+
+## 13. RP-FIX-11 Worker Leases Runtime Transport
+
+- File: `migrations/202605200002_worker_leases_runtime_transport.sql`
+- Purpose: Adds local-only readiness tables for worker leases, backend runtime messages, and job claim attempts.
+- Depends on: RP-DB-03 core workspaces/projects, RP-DB-07 jobs/job batches, and workspace RLS helpers.
+- Creates: `worker_leases`, `backend_runtime_messages`, `job_claim_attempts`, conservative select policies, indexes, and a partial unique active-lease index for one active lease per job.
+- Does not create: deployed backend runtime, service-role handlers, Cloud Run, Pub/Sub, Supabase Edge Functions, provider calls, render workers, Stripe, real uploads, or remote migration execution.
+- Notes: Authenticated users can only select records scoped to their workspaces/projects. Insert/update/delete grants are service-role only for future backend workers.

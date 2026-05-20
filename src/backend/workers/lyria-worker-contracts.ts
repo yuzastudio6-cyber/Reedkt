@@ -16,6 +16,10 @@ import type {
 export interface LyriaWorkerInput {
   jobId: string
   jobBatchId?: string
+  workerId?: string
+  leaseId?: string
+  leaseToken?: string
+  idempotencyKey?: string
   workspaceId: string
   projectId: string
   editPlanId: string
@@ -32,6 +36,10 @@ export interface LyriaWorkerContext {
   provider: 'Lyria Pro'
   modelName: 'lyria-3-pro-preview'
   runtime: 'mock' | 'cloud_run_job' | 'cloud_run_service'
+  workerId?: string
+  leaseId?: string
+  leaseToken?: string
+  idempotencyKey?: string
   region?: string
   secretReferenceName?: string
   outputBucket?: string

@@ -13,8 +13,10 @@ import type {
   CreditEstimateRecord,
   CreditGrantRecord,
   CreditLedgerEntryRecord,
+  CreditRefundRecord,
   CreditReservationRecord,
   CreditWalletRecord,
+  BackendRuntimeMessageRecord,
   CutDecisionRecord,
   CutTimingPlanRecord,
   EditInstructionRecord,
@@ -96,6 +98,9 @@ import type {
   TransitionPlanRecord,
   UserRecord,
   WorkspaceRecord,
+  RuntimeIdempotencyRecord,
+  WorkerLeaseClaimAttemptRecord,
+  WorkerLeaseRecord,
 } from '../../types'
 import type { ExportRecord } from '../../types/review-render-export'
 import type { RecommendedEditStructureRecord } from '../../types/planning'
@@ -183,6 +188,11 @@ export interface MockDatabase {
   creditEstimateLineItems: CreditEstimateLineItemRecord[]
   creditApprovals: CreditApprovalRecord[]
   creditReservations: CreditReservationRecord[]
+  creditRefunds: CreditRefundRecord[]
+  backendRuntimeMessages: BackendRuntimeMessageRecord[]
+  runtimeIdempotencyRecords: RuntimeIdempotencyRecord[]
+  workerLeases: WorkerLeaseRecord[]
+  workerLeaseClaimAttempts: WorkerLeaseClaimAttemptRecord[]
   jobBatches: JobBatchRecord[]
   jobs: JobRecord[]
   jobDependencies: JobDependencyRecord[]
@@ -305,6 +315,11 @@ export function createMockDatabase(): MockDatabase {
     creditEstimateLineItems: [],
     creditApprovals: [],
     creditReservations: [],
+    creditRefunds: [],
+    backendRuntimeMessages: [],
+    runtimeIdempotencyRecords: [],
+    workerLeases: [],
+    workerLeaseClaimAttempts: [],
     jobBatches: [],
     jobs: [],
     jobDependencies: [],

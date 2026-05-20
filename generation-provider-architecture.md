@@ -156,6 +156,12 @@ RP-SFX-11 adds a mock SFX worker skeleton that routes through internal library, 
 
 RP-SFX-12 adds the first mock-first SFX provider adapter layer. It defines ReeditPro-owned request/response contracts, mock clients, response parsing, safety gates, disabled real-client placeholders, and worker integration. It still does not call Mirelo or MMAudio, invent undocumented provider schemas, import provider SDKs, read secrets, or make network requests.
 
+RP-FIX-09 adds shared credit gate helpers for provider-style generation requests. Provider generation, music generation, SFX generation, signature-system generation, render jobs, and worker jobs must pass approved-plan, approved-estimate, and reservation checks before any real provider call can be queued. The current implementation is mock-only and does not call providers.
+
+RP-FIX-10 adds job runtime gates and mock worker dispatch around those provider routes. Provider routes remain disabled/backend-required unless a future backend worker validates the job gate, loads secrets server-side, and records job events.
+
+RP-FIX-11 adds runtime envelopes, worker leases, heartbeat handling, stale recovery, and idempotency helpers around future provider workers. These are mock-only contracts. Real provider execution still requires backend/cloud runtime, server-side secrets, transactional lease claims, and idempotency checks before retry.
+
 ## Prompt And Constraint Ownership
 
 Generation requests should store:

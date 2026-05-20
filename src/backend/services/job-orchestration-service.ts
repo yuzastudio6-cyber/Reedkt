@@ -12,8 +12,11 @@ import type {
 } from '../../types'
 import type { CreateJobBatchRequest, CreateJobRequest } from '../contracts/job-contracts'
 import type { MockDatabase } from '../mock/mock-database'
+import type { JobRuntimeQueueItem, JobWorkerKind } from '../../types/job-runtime'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+import { checkWorkerJobCreditGate } from './generation-credit-gate-service'
+import { queueMockJob } from './job-queue-runtime-service'
 
 export interface CreateLyriaGenerationJobInput {
   workspaceId: string
@@ -82,6 +85,17 @@ export function createJobBatch(
 }
 
 export function createJob(db: MockDatabase, input: CreateJobRequest): ServiceResult<JobRecord> {
+  const creditGateResult = isGenerationOrRenderJob(input.jobType) && input.editPlanId && input.creditEstimateId
+    ? checkWorkerJobCreditGate(db, {
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        editPlanId: input.editPlanId,
+        creditEstimateId: input.creditEstimateId,
+        creditReservationId: input.creditReservationId,
+        estimatedCredits: estimateCreditsForJob(input.jobType),
+        requiresApproval: true,
+      })
+    : undefined
   const job: JobRecord = {
     id: createMockId('job'),
     jobBatchId: input.jobBatchId,
@@ -91,7 +105,11 @@ export function createJob(db: MockDatabase, input: CreateJobRequest): ServiceRes
     creditEstimateId: input.creditEstimateId,
     creditReservationId: input.creditReservationId,
     jobType: input.jobType,
-    status: input.creditReservationId || !isGenerationOrRenderJob(input.jobType) ? 'queued' : 'waiting_credit_reservation',
+    status: !isGenerationOrRenderJob(input.jobType)
+      ? 'queued'
+      : creditGateResult?.ok
+        ? 'queued'
+        : 'waiting_credit_reservation',
     priority: 'normal',
     workerTarget: workerForJob(input.jobType),
     runtimeType: 'frontend_mock',
@@ -107,7 +125,11 @@ export function createJob(db: MockDatabase, input: CreateJobRequest): ServiceRes
     progressPercent: 0,
     createdAt: nowIso(),
     updatedAt: nowIso(),
-    metadata: { mockOnly: true },
+    metadata: {
+      mockOnly: true,
+      creditGateDecision: creditGateResult?.decision ?? 'not_checked',
+      creditGateMessage: creditGateResult?.message ?? 'Credit gate not required for this mock job.',
+    },
   }
 
   return ok(insertMockRecord(db, 'jobs', job))
@@ -439,6 +461,22 @@ export function canRunJob(db: MockDatabase, jobId: string): ServiceResult<boolea
     return fail('CREDITS_NOT_RESERVED', 'Generation and render jobs require reserved credits.')
   }
 
+  if (isGenerationOrRenderJob(job.jobType) && job.editPlanId && job.creditEstimateId) {
+    const gate = checkWorkerJobCreditGate(db, {
+      workspaceId: job.workspaceId,
+      projectId: job.projectId,
+      editPlanId: job.editPlanId,
+      creditEstimateId: job.creditEstimateId,
+      creditReservationId: job.creditReservationId,
+      estimatedCredits: estimateCreditsForJob(job.jobType),
+      requiresApproval: true,
+    })
+
+    if (!gate.ok) {
+      return fail('GENERATION_NOT_ALLOWED', gate.message, gate)
+    }
+  }
+
   return ok(true)
 }
 
@@ -569,6 +607,33 @@ export function createAgentOutput(
   return ok(insertMockRecord(db, 'agentOutputs', output))
 }
 
+export function createJobRuntimeQueueItemFromJobRecord(
+  db: MockDatabase,
+  job: JobRecord,
+): JobRuntimeQueueItem {
+  return queueMockJob(db, {
+    workspaceId: job.workspaceId,
+    projectId: job.projectId,
+    editPlanId: job.editPlanId,
+    creditEstimateId: job.creditEstimateId,
+    creditReservationId: job.creditReservationId,
+    jobBatchId: job.jobBatchId,
+    jobId: job.id,
+    workerKind: workerKindForRuntime(job.jobType),
+    requiresEditPlanApproval: isGenerationOrRenderJob(job.jobType),
+    requiresCreditEstimateApproval: isGenerationOrRenderJob(job.jobType),
+    requiresCreditReservation: isGenerationOrRenderJob(job.jobType),
+    requiresGenerationRequest: job.jobType === 'generation' || job.jobType === 'soundsync_generation',
+    requiresProvider: job.jobType === 'generation' || job.jobType === 'soundsync_generation',
+    providerRuntimeMode: 'mock',
+    mockSafe: true,
+    payload: {
+      existingJobRecordId: job.id,
+      bridgeSource: 'job-orchestration-service',
+    },
+  })
+}
+
 function isGenerationOrRenderJob(jobType: JobRecord['jobType']): boolean {
   return ['generation', 'stroke_motion_generation', 'graphic_design_generation', 'real_motion_generation', 'soundsync_generation', 'render_preview', 'export'].includes(jobType)
 }
@@ -595,6 +660,30 @@ function workerForJob(jobType: JobRecord['jobType']): AgentType {
   }
 
   return 'chat_intent_agent'
+}
+
+function estimateCreditsForJob(jobType: JobRecord['jobType']): number {
+  if (jobType === 'render_preview') return 8
+  if (jobType === 'export') return 16
+  if (jobType === 'soundsync_generation') return 12
+  if (jobType === 'stroke_motion_generation') return 12
+  if (jobType === 'graphic_design_generation') return 8
+  if (jobType === 'real_motion_generation') return 20
+  if (jobType === 'generation') return 12
+  return 1
+}
+
+function workerKindForRuntime(jobType: JobRecord['jobType']): JobWorkerKind {
+  if (jobType === 'soundsync_generation') return 'music_generation'
+  if (jobType === 'stroke_motion_generation') return 'stroke_motion_generation'
+  if (jobType === 'graphic_design_generation') return 'graphic_design_generation'
+  if (jobType === 'real_motion_generation') return 'real_motion_generation'
+  if (jobType === 'render_preview') return 'render_preview'
+  if (jobType === 'export') return 'render_export'
+  if (jobType === 'quality_check') return 'qa'
+  if (jobType === 'credit_estimation' || jobType === 'credit_reservation') return 'credit'
+  if (jobType === 'generation') return 'video_generation'
+  return 'planning_agent'
 }
 
 function statusToEventType(status: JobStatus): JobEventType {

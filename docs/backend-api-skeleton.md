@@ -1,14 +1,15 @@
-# RP-DB-12 Backend API Skeleton
+# RP-DB-12 / RP-FIX-08 Backend API Skeleton
 
-RP-DB-12 adds a mock-only backend/service skeleton for ReeditPro. It connects the frontend TypeScript domain model to the Supabase migration architecture at the code-structure level without connecting to Supabase, AI providers, Stripe, Google Cloud, storage, uploads, or render workers.
+RP-DB-12 added the original mock-only backend/service skeleton for ReeditPro. RP-FIX-08 adds the next boundary layer: route contracts, a route registry, a mock API router, and a frontend-safe API client. This still does not deploy a backend, call providers, call Stripe, start workers, upload files, or render media.
 
 ## What Was Added
 
 - `src/backend/contracts/` defines future API request and response shapes.
+- `src/backend/api/` defines route metadata, request/response envelopes, runtime status, a mock router, and a frontend API client.
 - `src/backend/services/` owns mock domain behavior for chat, projects, media, intent planning, edit plans, edit quality, Stroke Motion, SoundSync SFX planning, credits, jobs, generation, render/preview, revisions, and QA.
 - `src/backend/orchestrators/` demonstrates the chat-native planning flow, SoundSync SFX planning flow, and the approved mock generation flow.
 - `src/backend/mock/` provides deterministic local sample data and an in-memory record store.
-- `src/backend/supabase/` contains placeholders only. No Supabase package is installed and no client is configured.
+- `src/backend/supabase/` contains the frontend-safe anon client/config layer and admin placeholder. Service-role runtime remains absent.
 
 ## Chat-Native Flow
 
@@ -46,6 +47,18 @@ RP-SFX-12 adds a mock-first SFX provider adapter layer behind the worker boundar
 
 RP-TIMING-06 adds backend contract and mock service shapes for music/SFX timing inside StoryTiming. The mock flow can create music cue events, mock beat grids, ducking timing plans, SFX start/hit/end events, SoundSync dependencies, focused conflicts, and music/SFX QA summaries. These remain local service contracts and orchestrator flows only; no HTTP routes, Supabase calls, audio processing, provider calls, or rendering are added.
 
+## RP-FIX-08 Route Boundary
+
+The API route registry now distinguishes frontend-safe, mock-ready, backend-required, disabled, provider-secret, payment-secret, and service-role routes. The mock router can handle safe local routes such as auth status, upload validation/planning, source sequence upload flow, chat-native planning, StoryTiming, music, and SFX planning/QA mocks.
+
+Backend-required routes are represented but blocked. This includes service-role database writes, credit ledger mutation, provider execution, payment operations, real jobs, rendering/export, signed uploads, destructive storage operations, and admin actions.
+
+## RP-FIX-11 Runtime And Lease Boundary
+
+The API skeleton now includes mock-ready runtime transport and worker lease routes. Mock handlers can create runtime envelopes, send mock transport acknowledgements, claim/heartbeat/renew/release/complete/fail mock leases, recover stale mock leases, check idempotency conflicts, and read worker runtime registry metadata.
+
+Real lease mutation, Cloud Run, Pub/Sub, Supabase Edge, provider calls, rendering, and service-role worker state writes remain backend-required.
+
 ## Supabase Later
 
 Future implementation should replace the placeholders in `src/backend/supabase/` with a real Supabase client for the `reeditpro` project. Service role access must stay in a secure backend or Google Cloud runtime and must never be bundled into the Vite frontend.
@@ -56,12 +69,12 @@ Future workers can connect through job, generation, render, and QA records. Expe
 
 ## Mock-Only Limits
 
-The skeleton does not create HTTP routes, upload files, call AI APIs, call Stripe, deploy Google Cloud resources, run FFmpeg or Remotion, or write to Supabase. It is intended to prove the code structure and the approval-gated flow before real backend implementation.
+The skeleton does not create deployed HTTP routes, upload files, call AI APIs, call Stripe, deploy Google Cloud resources, run FFmpeg or Remotion, or write production records to Supabase. It is intended to prove the code structure, route boundary, and approval-gated flow before real backend implementation.
 
 ## Next Steps
 
-1. Add real backend runtime boundaries for service-role Supabase calls.
-2. Generate typed Supabase database contracts from the applied migrations.
-3. Add HTTP/Cloud Run endpoints around these contracts.
+1. Implement a reviewed backend transport for the route registry.
+2. Add service-role Supabase calls only inside backend runtime code.
+3. Add signed storage upload/download routes.
 4. Add worker queues and idempotent job execution.
-5. Add real provider and render integrations after the approval and credit gates are enforced.
+5. Add real provider, payment, and render integrations after approval and credit gates are enforced.

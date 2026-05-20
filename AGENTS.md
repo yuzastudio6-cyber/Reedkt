@@ -92,10 +92,13 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Do not imply subscriptions provide open-ended AI editing.
 - Failed ReeditPro generation should be refunded according to `pricing-and-credits.md`.
 - Real Motion is premium and credit-heavy.
+- RP-FIX-09 credit runtime helpers are the current mock-safe approval/reservation gate. Real reserve, spend, release, refund, provider execution, rendering, and worker jobs remain backend-required.
+- RP-FIX-10 job runtime helpers are the current mock-safe queue/readiness layer. Real worker dispatch, Cloud Run jobs, service-role job mutation, provider execution, and rendering remain backend-required.
 
 ## Backend And Database Architecture
 
 - RP-DB-01 architecture docs are the source of truth for future backend/database implementation.
+- RP-FIX-08 API route contracts are the current boundary for future backend calls. Frontend code should go through frontend-safe API helpers or mock services, while service-role writes, provider calls, payment operations, workers, rendering, signed storage, and admin actions stay backend-only.
 - ReeditPro editing is chat-native. The chat is the editor, and UI appears inside chat only when the AI needs user input, confirmation, approval, progress, or preview.
 - Every ReeditPro edit, including Basic, must meet a professional editing standard. Basic means lower-compute clean editing, not low-quality editing.
 - Edit level controls complexity, generation depth, credit cost, signature usage, and worker pipeline depth. Edit level does not control quality.
@@ -496,6 +499,8 @@ Extract Reference DNA:
 - Approved snapshots, audit events, and credit ledger records must remain protected from normal user mutation.
 - Worker/service writes must stay backend/service-role controlled and audited in future implementation.
 - Source media, browser captures, generated assets, QA artifacts, previews, and exports are private by default unless a later reviewed policy changes that.
+- Worker leases, runtime messages, job claim attempts, and idempotency records are backend/service-role concerns. Frontend code may inspect mock status but must not claim real leases, call Cloud Run/PubSub/Supabase Edge, mutate worker state, or run providers/renderers directly.
+- The first backend runtime scaffold is a mock-only Cloud Run API service target under `src/server`. Do not export server-only modules through frontend-facing barrels, and do not deploy Cloud Run, configure Secret Manager, or enable real provider/render/payment handlers unless a later task explicitly asks for it.
 
 ## Local Development
 

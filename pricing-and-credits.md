@@ -87,3 +87,17 @@ Business credits should be tracked as production/business usage and may require 
 Timing complexity affects Reedit Credits when a plan includes frame-accurate caption animation, visual cue timing, SoundSync, transitions, SFX, music ducking, AI clip duration, and Remotion layer timing.
 
 Basic remains professional with simpler timing. Pro and Premium can include deeper timing when useful. High timing complexity should show lower-cost alternatives such as simpler captions, fewer SFX cues, phrase cuts only, shorter AI clips, static cards, simpler transitions, or voice-only timing. No real credit deduction happens in frontend/mock planning.
+
+## RP-FIX-09 Runtime Skeleton
+
+RP-FIX-09 adds a mock-safe credit runtime layer for estimates, approval gates, reservations, spend, release, refund, and generation/render/provider gate checks.
+
+The new runtime skeleton makes the product rule explicit:
+
+- expensive operations need an approved edit plan;
+- expensive operations need an approved credit estimate;
+- generation, render, provider, and worker jobs need a valid reservation;
+- successful mock jobs can spend a reservation;
+- failed mock jobs can release or refund a reservation.
+
+This remains a partial implementation. Real credit reservation, spend, refund, Stripe purchase handling, and transactional ledger enforcement still require a deployed backend runtime.

@@ -13,6 +13,11 @@ import type { CreateGenerationRequestRequest } from '../contracts/generation-con
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+import {
+  checkGenerationCreditGate,
+  checkMusicGenerationCreditGate,
+  checkSFXGenerationCreditGate,
+} from './generation-credit-gate-service'
 
 export interface CreateMockLyriaGenerationRequestInput {
   workspaceId: string
@@ -117,9 +122,22 @@ export function createGenerationRequest(
   const reservation = input.creditReservationId
     ? findMockRecord(db, 'creditReservations', input.creditReservationId)
     : undefined
+  const gate = checkGenerationCreditGate(db, {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editPlanId: input.editPlanId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    estimatedCredits: 12,
+    requiresApproval: true,
+  })
 
   if (!editPlan || editPlan.status !== 'approved') {
     return fail('PLAN_NOT_APPROVED', 'Generation request requires an approved edit plan.')
+  }
+
+  if (!gate.ok) {
+    return fail('GENERATION_NOT_ALLOWED', gate.message, gate)
   }
 
   if (!reservation || reservation.status !== 'reserved') {
@@ -189,9 +207,24 @@ export function createMockLyriaGenerationRequest(
 ): ServiceResult<GenerationRequestRecord> {
   const editPlan = findMockRecord(db, 'editPlans', input.editPlanId)
   const reservation = findMockRecord(db, 'creditReservations', input.creditReservationId)
+  const gate = input.creditEstimateId && editPlan
+    ? checkMusicGenerationCreditGate(db, {
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        editPlanId: input.editPlanId,
+        creditEstimateId: input.creditEstimateId,
+        creditReservationId: input.creditReservationId,
+        estimatedCredits: input.estimatedCredits ?? 18,
+        requiresApproval: true,
+      })
+    : undefined
 
   if (editPlan && editPlan.status !== 'approved') {
     return fail('PLAN_NOT_APPROVED', 'Lyria generation request requires an approved edit plan.')
+  }
+
+  if (gate && !gate.ok) {
+    return fail('GENERATION_NOT_ALLOWED', gate.message, gate)
   }
 
   if (!editPlan && input.planApproved !== true) {
@@ -296,9 +329,24 @@ export function createMockSFXGenerationRequest(
 ): ServiceResult<GenerationRequestRecord> {
   const editPlan = findMockRecord(db, 'editPlans', input.editPlanId)
   const reservation = findMockRecord(db, 'creditReservations', input.creditReservationId)
+  const gate = input.creditEstimateId && editPlan
+    ? checkSFXGenerationCreditGate(db, {
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        editPlanId: input.editPlanId,
+        creditEstimateId: input.creditEstimateId,
+        creditReservationId: input.creditReservationId,
+        estimatedCredits: input.estimatedCredits ?? 6,
+        requiresApproval: true,
+      })
+    : undefined
 
   if (editPlan && editPlan.status !== 'approved') {
     return fail('PLAN_NOT_APPROVED', 'SFX generation request requires an approved edit plan.')
+  }
+
+  if (gate && !gate.ok) {
+    return fail('GENERATION_NOT_ALLOWED', gate.message, gate)
   }
 
   if (!editPlan && input.planApproved !== true) {

@@ -46,7 +46,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <UserRound size={14} /> {project.owner}
           </span>
         </div>
-        <Button size="sm" to="/editor" variant="secondary">
+        <Button size="sm" to={project.editorTo ?? '/editor'} variant="secondary">
           Open AI chat editor
         </Button>
       </div>

@@ -15,6 +15,7 @@
 - Job runtime types, mock queue items, job gates, dependency chains, dispatch placeholders, events, retry/recovery, and chat summaries.
 - Backend runtime and worker lease types, mock runtime envelopes, mock transport, mock lease lifecycle, stale recovery, idempotency helpers, and worker runtime registry metadata.
 - Mock-only Node HTTP backend scaffold for future Cloud Run deployment with health, readiness, runtime status, route registry, and mock API transport endpoints.
+- Browser-local MVP persistence for demo user/workspace/project state, source file upload plans, planning gate approvals, mock credit reservation, mock runtime events, and preview-ready state.
 
 ## Mock / Placeholder
 
@@ -29,6 +30,7 @@
 - Mock job runtime scenarios and orchestrator for queue, gate, dependency, dispatch, retry, recovery, and status-summary flows.
 - Mock backend runtime and worker lease scenarios/orchestrators for envelope transport, lease claim, heartbeat, renew, release, complete, fail, stale recovery, idempotency conflict, and blocked real transport.
 - Cloud Run API service plan, local runtime docs, deployment checklist, and backend Dockerfile scaffold.
+- Local end-to-end flow remains mock/local: selected files become metadata and upload plans only, and preview-ready means status placeholder rather than rendered media.
 
 ## Not Implemented
 

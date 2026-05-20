@@ -78,7 +78,11 @@ The connected planning foundation now includes chat-native planning, source sequ
 
 The data preparation foundation now includes a Supabase schema planning bridge. It documents future tables, JSONB approved snapshot strategy, private storage buckets, and migration readiness checks without creating SQL migrations or connecting Supabase. See `supabase-schema-planning-bridge.md`, `supabase-table-specification.md`, and `database-migration-readiness-checklist.md`; the next data step is to convert the bridge into reviewed migrations in a dedicated migration milestone.
 
-The backend readiness foundation now includes frontend-safe auth/bootstrap helpers, storage/upload planning helpers, an API boundary skeleton, credit gates, job runtime readiness, RP-FIX-11 mock runtime transport plus worker leases, and an RP-FIX-12 mock-only Node backend scaffold for a future Cloud Run API service. It remains mock/local only: no backend is deployed, no service-role handler exists, and provider, payment, worker, render, signed storage, lease mutation, and admin routes remain backend-required or disabled.
+The backend readiness foundation now includes frontend-safe auth/bootstrap helpers, storage/upload planning helpers, an API boundary skeleton, credit gates, job runtime readiness, RP-FIX-11 mock runtime transport plus worker leases, and an RP-FIX-12 mock-only Node backend scaffold for a future Cloud Run API service.
+
+The first browser-local end-to-end MVP is now wired: create a local project, select local source files, review source order in chat, confirm planning gates, approve the mock plan and credit estimate, reserve mock credits, run mock queue/lease/dispatch events, and reach a mock preview-ready state. See `docs/local-end-to-end-mvp.md`.
+
+It remains mock/local only: no backend is deployed, no service-role handler exists, and provider, payment, worker, render, signed storage, lease mutation, and admin routes remain backend-required or disabled.
 
 RP-DATA-02 adds review-only SQL migration drafts in `database/migration-drafts/`. These are not active Supabase migrations and should not be run or copied into `supabase/migrations/` until a future review/hardening step such as RP-DATA-03. See `sql-migration-draft-review.md`, `supabase-rls-policy-draft.md`, and `supabase-storage-bucket-draft.md`.
 

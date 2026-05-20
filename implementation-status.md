@@ -1,5 +1,24 @@
 # Implementation Status
 
+## Local End-To-End MVP
+
+Status: locally fixed / production still mock-only.
+
+The browser app now supports a usable local MVP loop:
+
+- create a local project from `/projects/new`;
+- select local source files and create upload plans without uploading;
+- open the project in the chat-native editor;
+- preserve and confirm source order;
+- confirm output frame, cleanup preference, edit level, and visual preference;
+- review the mock edit plan and credit estimate;
+- approve plan and credits;
+- reserve mock credits and run mock queue, worker lease, heartbeat, dispatch, completion, and preview-ready events.
+
+State is stored in browser `localStorage`. Missing Supabase env values safely default to local demo mode.
+
+Production remains open: no Cloud Run deployment, Supabase migration deployment, service-role handler, real upload, real provider call, Stripe flow, worker execution, FFmpeg/Remotion render, or final export pipeline exists yet.
+
 ## RP-FIX-06
 
 Status: partially fixed.

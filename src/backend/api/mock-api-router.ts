@@ -56,6 +56,7 @@ import { runMockLakeComoSFXQAFlow } from '../orchestrators/mock-sfx-qa-orchestra
 import { runMockLakeComoSFXTimingFlow } from '../orchestrators/mock-sfx-timing-orchestrator'
 import { runEditProjectSFXFlow } from '../orchestrators/edit-project-sfx-orchestrator'
 import { getDefaultMockEditProjectSFXScenario, getMockEditProjectSFXScenarioById } from '../mock/mock-edit-project-sfx-scenarios'
+import { runMockSFXProviderReadinessFlow } from '../orchestrators/mock-sfx-provider-readiness-orchestrator'
 import { runMockStoryTimingPlannerFlow } from '../orchestrators/mock-storytiming-orchestrator'
 import { createMediaAssetRecordFromUploadPlan, createReferenceAssetRecordFromUploadPlan } from '../storage/media-asset-service'
 import { buildStoragePathForUploadPurpose, type StoragePathBuildInput } from '../storage/storage-path-builder'
@@ -203,6 +204,7 @@ const DEFAULT_MOCK_HANDLERS: Record<string, ApiRouteHandler> = {
   'music.lyriaPrompt.create': handleMockMusicPlan,
   'music.qa.run': handleMockMusicQA,
   'music.mixPlan.create': handleMockMusicMixPlan,
+  'sfx.providerReadiness.check': handleMockSFXProviderReadiness,
   'sfx.project.plan': handleMockEditProjectSFXPlan,
   'sfx.project.providerRoutes': handleMockEditProjectSFXProviderRoutes,
   'sfx.project.prompts': handleMockEditProjectSFXPrompts,
@@ -504,6 +506,22 @@ function handleMockMusicQA(): ApiResponseEnvelope {
 function handleMockMusicMixPlan(): ApiResponseEnvelope {
   const result = runMockMusicMixPlanningFlow()
   return createApiMockResponse(result)
+}
+
+function handleMockSFXProviderReadiness(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const body = request.body as { scenarioId?: string } | undefined
+  const result = runMockSFXProviderReadinessFlow(body?.scenarioId)
+
+  return createApiMockResponse({
+    readiness: result.readiness,
+    summary: result.summary,
+    scenario: {
+      id: result.scenario.id,
+      label: result.scenario.label,
+      description: result.scenario.description,
+      expected: result.expected,
+    },
+  }, result.warnings)
 }
 
 function runMockEditProjectSFXApiFlow(request?: ApiRequestEnvelope) {

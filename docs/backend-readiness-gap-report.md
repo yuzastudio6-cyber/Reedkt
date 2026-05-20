@@ -11,7 +11,7 @@
 | Worker/job queue runtime missing | Partially fixed | Mock queue items, job gates, dependency chains, dispatch placeholders, events, retry/recovery, scenarios, and route handlers exist. Real cloud/backend queue and worker dispatch remain open. |
 | Backend runtime transport and worker leasing missing | Partially fixed | Mock runtime envelopes, transport placeholders, lease claim/heartbeat/renew/release/complete/fail/cancel, stale recovery, idempotency helpers, route handlers, and a local lease migration exist. Real backend/cloud lease enforcement remains open. |
 | Production backend runtime not chosen or scaffolded | Partially fixed | Cloud Run API service is selected and a mock-only Node HTTP scaffold exists with health/readiness/runtime/routes/mock endpoints. No deployment, Secret Manager, service-role handlers, providers, Stripe, workers, or render execution exists. |
-| Provider integrations missing | Partially reduced | Project SFX now reaches mock Mirelo/MMAudio/internal-library routing through the project workflow, mock worker, and mock provider adapter. Real AI, Lyria, Mirelo, MMAudio, Stripe, and rendering calls are still not added. |
+| Provider integrations missing | Partially reduced | Project SFX now reaches mock Mirelo/MMAudio/internal-library routing and includes readiness reporting for future real SFX transport. Real AI, Lyria, Mirelo, MMAudio, Stripe, and rendering calls are still not added. |
 | Supabase production validation missing | Open | No remote migration, local Supabase test, staging test, or advisor review was run. |
 
 ## RP-FIX-06 Result
@@ -47,3 +47,9 @@ The first backend runtime target is selected and scaffolded. A mock-only Node HT
 Project SFX integration is partially fixed. The repo now wires SFX Director planning, provider routing, prompt planning, credit estimate/approval/reservation gates, mock generation requests, mock job queue items, the SFX worker skeleton, mock Mirelo/MMAudio/internal-library adapter output, trim/hit alignment, mix planning, QA, project asset decisions, and chat status into one project editing flow.
 
 Real Mirelo/MMAudio execution remains disabled. Provider keys, Secret Manager, Cloud Run worker execution, remote Supabase writes, storage uploads, real audio files, Stripe, and rendering remain future backend work.
+
+## RP-FIX-15 Result
+
+Real SFX provider execution readiness is partially fixed. The repo now has a backend-only readiness service, readiness scenarios, a mock readiness orchestrator, and the `sfx.providerReadiness.check` route. The readiness output explains runtime blocks, provider mode, missing Secret Manager reference names, approval/credit/request/job gaps, source-footage approval requirements, storage/provenance requirements, warnings, and safe next steps.
+
+This is readiness-only. Real Mirelo/MMAudio transport, Secret Manager value resolution, Cloud Run workers, Supabase writes, storage uploads, real audio generation, Stripe, and rendering remain future backend work.

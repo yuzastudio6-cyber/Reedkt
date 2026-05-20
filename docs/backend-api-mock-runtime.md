@@ -19,6 +19,8 @@ RP-FIX-12 exposes the mock router through a local Node HTTP server at `POST /api
 
 RP-FIX-14 adds project-level SFX mock handlers for planning, provider routes, prompt plans, credit estimates, queueing mock generation, running the mock worker, and status summaries. These handlers call local services/orchestrators only and keep Mirelo/MMAudio execution in mock mode.
 
+RP-FIX-15 adds a mock SFX provider readiness handler. It reports whether future real Mirelo/MMAudio execution is blocked, mock-only, or ready for a future backend transport implementation. It returns readiness state only and never calls providers.
+
 ## What It Does Not Do
 
 The mock runtime does not:

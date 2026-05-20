@@ -162,3 +162,18 @@ The repository now wires project-level SoundSync SFX into the editing workflow:
 The implementation connects SFX Director planning, provider routes, prompt plans, credit estimate/approval/reservation gates, mock generation requests, mock SFX jobs, the mock worker skeleton, the mock provider adapter, generated asset metadata, trim/hit alignment, mix plans, QA reports, project asset/library decisions, API mock routes, and editor chat status.
 
 It does not call real Mirelo or MMAudio, add provider keys, deploy Cloud Run, connect to Supabase, upload storage files, spend real credits, call Stripe, process audio, render media, or build mobile screens.
+
+## RP-FIX-15
+
+Status: partially fixed.
+
+The repository now includes readiness reporting for future real Mirelo SFX V1.5 and MMAudio V execution:
+
+- `src/backend/services/sfx-provider-readiness-service.ts`
+- `src/backend/orchestrators/mock-sfx-provider-readiness-orchestrator.ts`
+- `src/backend/mock/mock-sfx-provider-readiness-scenarios.ts`
+- `docs/real-sfx-provider-execution-readiness.md`
+
+The implementation reports provider mode, backend/frontend runtime safety, Secret Manager reference readiness, approval/credit/request/job prerequisites, storage/provenance readiness, block reasons, warnings, required backend capabilities, and safe next steps. It also adds `sfx.providerReadiness.check` to the mock route surface.
+
+It does not call real Mirelo or MMAudio, add provider SDKs, add raw keys, resolve Secret Manager values, deploy Cloud Run, connect to Supabase, upload audio, spend credits, call Stripe, process audio, render media, or build mobile screens.

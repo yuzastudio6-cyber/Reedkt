@@ -109,4 +109,6 @@ QA failures happen after mock generation metadata but before preview-ready appro
 
 RP-SFX-11 does not call providers, load secrets, create files, upload media, run audio analysis, spend credits, refund credits, deploy Cloud Run, connect to Supabase, or render previews.
 
+RP-FIX-15 adds real-provider readiness reporting for the worker boundary. It can confirm whether future Mirelo/MMAudio transport prerequisites are present, but it does not start workers, resolve secrets, create audio, upload files, or execute providers.
+
 The next milestone can prepare real provider integration only after backend worker security, Secret Manager, storage, retry, cost, and QA paths are approved.

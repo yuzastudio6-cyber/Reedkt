@@ -78,8 +78,8 @@ export function getSFXProviderConfig(input: {
 }
 
 function hasCredentialForProvider(config: SFXProviderConfig, providerKey: SFXProviderKey) {
-  if (providerKey === 'mirelo_sfx_v1_5') return config.hasMireloCredential || Boolean(config.mireloSecretReferenceName)
-  if (providerKey === 'mmaudio_v') return config.hasMMAudioCredential || Boolean(config.mmaudioSecretReferenceName)
+  if (providerKey === 'mirelo_sfx_v1_5') return Boolean(config.mireloSecretReferenceName)
+  if (providerKey === 'mmaudio_v') return Boolean(config.mmaudioSecretReferenceName)
   if (providerKey === 'reeditpro_internal_library') return true
   return false
 }

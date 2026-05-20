@@ -17,6 +17,7 @@
 | Job queue runtime | 5/10 | Mock queue items, gates, dependencies, events, retry, and dispatch placeholders exist. Real backend/cloud queue is not deployed. |
 | Worker dispatch runtime | 3/10 | Lyria/SFX mock skeleton dispatch is represented; render/custom dispatch remains placeholder and real workers are backend-required. |
 | Project SFX workflow integration | 6/10 | SFX Director, provider routes, prompts, credit gates, mock generation requests, mock jobs, mock worker, provider adapter, timing/mix/QA, and chat status are wired for project editing in mock mode. |
+| Real SFX provider execution readiness | 5/10 | Structured readiness checks now report runtime, provider mode, Secret Manager reference, approval/credit/job, storage, provenance, and safe next-step blockers. Live Mirelo/MMAudio transport remains future backend work. |
 | Runtime transport and worker leases | 4/10 | Mock envelopes, transport placeholders, lease lifecycle, stale recovery, idempotency helpers, and route handlers exist. Real backend/cloud enforcement is not deployed. |
 | Production backend runtime scaffold | 4/10 | Cloud Run API service is selected and a mock-only Node server scaffold exists. No deployment, secrets, service-role handlers, providers, workers, Stripe, or rendering. |
 | Production Supabase validation | 0/10 | Not run by design. |
@@ -25,4 +26,4 @@
 
 RP-FIX-06 through RP-FIX-12 should be treated as partial implementation fixes, not production readiness.
 
-RP-FIX-14 partially fixes project SFX workflow integration. Real provider execution, provider secrets, Cloud Run workers, storage, and credit spending remain open.
+RP-FIX-14 partially fixes project SFX workflow integration. RP-FIX-15 adds readiness reporting for future real SFX execution. Real provider transport, Secret Manager value resolution, Cloud Run workers, storage uploads, and credit spending remain open.

@@ -64,6 +64,7 @@ RP-FIX-08 defines route metadata for the major ReeditPro backend domains. The re
 - `sfx.project.queueMockGeneration`
 - `sfx.project.runMockWorker`
 - `sfx.project.status`
+- `sfx.providerReadiness.check`
 - `sfx.creditGate.check`
 - `providers.openai.planningRequest`
 - `stripe.webhook.handle`
@@ -91,3 +92,9 @@ RP-FIX-12 adds a mock-only Node server scaffold for future Cloud Run deployment.
 RP-FIX-14 adds mock-ready project SFX route metadata and handlers for SFX project planning, provider routes, prompt plans, credit estimates, mock generation queueing, mock worker execution, and project SFX status. These routes connect the existing SoundSync SFX Director, provider router, prompt adapters, credit gates, mock worker, provider adapter, trim/alignment, mix, QA, and library-decision layers into the editor project flow.
 
 This is still mock-only. Real Mirelo SFX V1.5 and MMAudio V calls, provider keys, storage uploads, Cloud Run worker execution, Supabase persistence, Stripe, and rendering remain backend-required.
+
+## RP-FIX-15 SFX Provider Readiness Route
+
+RP-FIX-15 adds `sfx.providerReadiness.check`, a mock-ready readiness route for future real Mirelo SFX V1.5 and MMAudio V execution. The route returns provider mode, runtime mode, block reasons, required backend capabilities, warnings, and a safe next step.
+
+This route is readiness-only. It does not import provider SDKs, make HTTP calls, read raw keys, upload audio, deploy workers, write Supabase rows, spend credits, or render media.

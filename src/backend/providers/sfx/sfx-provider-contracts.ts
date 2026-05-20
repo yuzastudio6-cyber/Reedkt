@@ -1,7 +1,9 @@
 import type {
+  CreditEstimateRecord,
   CreditReservationRecord,
   EditPlanRecord,
   GenerationRequestRecord,
+  JobRecord,
   SFXEventPlanRecord,
   SFXPromptPlanRecord,
   SFXProviderRouteRecord,
@@ -101,6 +103,61 @@ export interface SFXProviderConfig {
   mmaudioSecretReferenceName?: string
 }
 
+export type SFXProviderReadinessRuntimeMode =
+  | 'browser_frontend'
+  | 'vite_frontend'
+  | 'node_backend'
+  | 'backend_worker'
+  | 'mock_runtime'
+  | 'unknown'
+
+export type SFXProviderReadinessBlockReason =
+  | 'provider_mode_mock'
+  | 'provider_mode_disabled'
+  | 'frontend_runtime_blocked'
+  | 'unsupported_provider'
+  | 'provider_route_missing'
+  | 'provider_route_no_sfx'
+  | 'prompt_plan_missing'
+  | 'generation_request_missing'
+  | 'worker_job_missing'
+  | 'edit_plan_not_approved'
+  | 'credit_estimate_not_approved'
+  | 'credit_reservation_missing'
+  | 'secret_reference_missing'
+  | 'provider_docs_not_reviewed'
+  | 'source_footage_not_approved'
+  | 'storage_output_not_configured'
+  | 'provenance_review_missing'
+  | 'safety_gate_blocked'
+
+export type SFXProviderReadinessSafeNextStep =
+  | 'stay_in_mock_mode'
+  | 'keep_provider_disabled'
+  | 'move_check_to_backend_worker'
+  | 'configure_secret_references'
+  | 'review_provider_docs'
+  | 'approve_plan_and_reserve_credits'
+  | 'create_generation_request'
+  | 'queue_backend_worker_job'
+  | 'prepare_storage_and_provenance'
+  | 'do_not_generate_sfx'
+  | 'implement_backend_transport'
+
+export interface SFXProviderExecutionReadinessResult {
+  readyForRealTransport: boolean
+  providerKey: SFXProviderKey
+  providerMode: SFXProviderIntegrationMode
+  runtimeMode: SFXProviderReadinessRuntimeMode
+  blockReasons: SFXProviderReadinessBlockReason[]
+  warnings: string[]
+  requiredBackendCapabilities: string[]
+  safeNextStep: SFXProviderReadinessSafeNextStep
+  summary: string
+  checkedAt: string
+  mockOnly: true
+}
+
 export interface SFXProviderSafetyGateResult {
   ok: boolean
   code?: string
@@ -117,6 +174,18 @@ export interface SFXProviderSafetyGateInput {
   creditReservation?: CreditReservationRecord
   editPlan?: EditPlanRecord
   sourceFootageApproved?: boolean
+}
+
+export interface SFXProviderExecutionReadinessInput extends SFXProviderSafetyGateInput {
+  creditEstimate?: CreditEstimateRecord
+  workerJob?: JobRecord
+  forceBrowserRuntime?: boolean
+  runtimeMode?: SFXProviderReadinessRuntimeMode
+  providerDocsReviewed?: boolean
+  storageOutputConfigured?: boolean
+  provenancePolicyReviewed?: boolean
+  config?: Partial<SFXProviderConfig>
+  requiredBackendCapabilities?: string[]
 }
 
 export interface SFXProviderGenerationPlan {

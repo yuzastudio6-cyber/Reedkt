@@ -191,8 +191,30 @@ Still open:
 - credit spend/refund after worker completion;
 - production provenance and reuse review.
 
+### RP-FIX-15 Real SFX Provider Execution Readiness
+
+Status: partially fixed.
+
+Implemented:
+
+- backend-only SFX provider readiness service;
+- readiness scenarios and mock orchestrator;
+- `sfx.providerReadiness.check` route metadata and mock handler;
+- structured readiness result with provider mode, runtime mode, block reasons, warnings, required backend capabilities, and safe next step;
+- docs for readiness-only real provider execution preparation.
+
+Still open:
+
+- live Mirelo/MMAudio transport;
+- Secret Manager value resolution;
+- Cloud Run worker deployment;
+- private storage output writes;
+- real provider response parsing;
+- credit spend/refund finalization;
+- production provenance and terms review.
+
 ## Recommended Next Prompt
 
-`RP-FIX-15 - Real SFX Provider Execution Readiness`
+`RP-FIX-16 - Cloud Run And Secret Manager Runtime Binding`
 
-Goal: prepare backend-only real Mirelo/MMAudio execution readiness behind the existing mock adapter and worker gates without adding real keys, deploying Cloud Run, calling providers, processing audio, rendering media, integrating Stripe, or exposing secrets to frontend code.
+Goal: prepare the backend runtime deployment and Secret Manager binding path needed before any future real provider transport can be enabled, without adding real provider calls or exposing secrets.

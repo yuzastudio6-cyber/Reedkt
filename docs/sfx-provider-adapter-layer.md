@@ -81,6 +81,12 @@ The project SFX orchestrator now reaches this adapter through the existing mock 
 
 Real mode remains fail-closed. RP-FIX-14 does not add provider SDKs, HTTP calls, API keys, audio bytes, storage uploads, or Cloud Run execution.
 
+## RP-FIX-15 Readiness Reporting
+
+RP-FIX-15 adds a provider readiness service and mock route that explain whether future real Mirelo/MMAudio execution is blocked, mock-only, or ready for a future backend transport implementation. The readiness report checks runtime boundary, provider mode, Secret Manager reference names, approval/credit artifacts, route/prompt/request/job records, storage target readiness, and provenance review.
+
+Readiness does not weaken the adapter. Real clients still fail closed and no provider SDK, HTTP transport, raw key, audio bytes, Supabase write, Cloud Run deployment, or render execution is added.
+
 ## Secrets
 
 `.env.example` contains placeholders only:

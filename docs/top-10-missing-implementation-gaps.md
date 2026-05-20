@@ -8,7 +8,7 @@
 4. Approved snapshot persistence through backend APIs.
 5. Production credit ledger runtime with transactional reserve/spend/refund.
 6. Production worker queue, transactional leases, heartbeats, and idempotent execution.
-7. Provider gateway for AI, music, SFX, and future media services. SFX is now project-wired in mock mode, but real provider execution is still open.
+7. Provider gateway for AI, music, SFX, and future media services. SFX is now project-wired in mock mode with real-execution readiness reporting, but live provider transport is still open.
 8. Real media analysis, transcript alignment, and timing workers.
 9. Render/preview/export execution and QA automation.
 10. Local/staging Supabase migration and RLS validation.
@@ -22,4 +22,4 @@
 - Worker/job queue readiness is no longer fully missing. Mock queue items, dependency chains, dispatch placeholders, events, retry/recovery, scenarios, and API handlers exist, while deployed worker runtime remains open.
 - Backend runtime transport and worker leasing are no longer fully missing. Mock envelopes, transport placeholders, lease lifecycle, stale recovery, idempotency helpers, scenarios, orchestrators, routes, and a local-only lease migration exist, while real backend/cloud enforcement remains open.
 - Production backend runtime target selection is no longer fully missing. Cloud Run API service is selected and a mock-only server scaffold exists, while deployment, Secret Manager, IAM, real handlers, monitoring, and rate limits remain open.
-- Mirelo/MMAudio project editing integration is no longer fully missing. Project SFX now routes through SFX Director, provider routes, prompts, credit gates, mock jobs, the mock worker, the mock provider adapter, timing/mix/QA, and editor chat status. Real provider calls remain open.
+- Mirelo/MMAudio project editing integration is no longer fully missing. Project SFX now routes through SFX Director, provider routes, prompts, credit gates, mock jobs, the mock worker, the mock provider adapter, timing/mix/QA, editor chat status, and real-provider readiness reporting. Real provider calls remain open.

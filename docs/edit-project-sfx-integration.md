@@ -99,6 +99,8 @@ RP-FIX-14 is partially fixed:
 - Real Mirelo/MMAudio calls remain disabled.
 - Real provider keys, Secret Manager, Cloud Run workers, Supabase persistence, storage uploads, real audio files, credit spending, Stripe, rendering, and mobile remain future work.
 
+RP-FIX-15 adds readiness reporting on top of this project flow. ReeditPro can now explain whether future real execution is blocked by frontend runtime, mock/disabled mode, missing Secret Manager reference names, missing approval/credit/request/job records, missing source-footage approval, missing storage target, or missing provenance review. The readiness route still returns metadata only and makes no live provider call.
+
 ## Next Real-Execution Work
 
-The next backend/provider milestone should add secure real-provider readiness behind worker boundaries only after provider documentation, Secret Manager references, storage paths, retries, credit spend/refund, QA/provenance policy, and deployment controls are approved.
+The next backend/provider milestone should add secure backend runtime and Secret Manager binding work before any real provider transport is enabled.

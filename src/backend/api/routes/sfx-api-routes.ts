@@ -2,6 +2,26 @@ import type { ApiRouteDefinition } from '../api-runtime-contracts'
 
 export const SFX_API_ROUTES: ApiRouteDefinition[] = [
   {
+    id: 'sfx.providerReadiness.check',
+    domain: 'sfx',
+    method: 'POST',
+    path: '/api/sfx/provider-readiness',
+    description: 'Check mock-safe readiness for future real Mirelo or MMAudio backend provider execution.',
+    securityLevel: 'workspace_member',
+    runtimeMode: 'mock',
+    status: 'mock_ready',
+    requiresSupabase: false,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    mockHandlerName: 'handleMockSFXProviderReadiness',
+    futureHandlerName: 'checkSFXProviderExecutionReadiness',
+    notes: [
+      'Readiness-only: returns block reasons and next steps.',
+      'No provider SDK, HTTP request, raw key, audio upload, or worker deployment is used.',
+    ],
+  },
+  {
     id: 'sfx.project.plan',
     domain: 'sfx',
     method: 'POST',

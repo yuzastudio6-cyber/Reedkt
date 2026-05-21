@@ -4,9 +4,10 @@ import { Button } from '../Button'
 
 type PreviewReadyCardProps = {
   creditsUsed: number
+  runtimeEvents?: string[]
 }
 
-export function PreviewReadyCard({ creditsUsed }: PreviewReadyCardProps) {
+export function PreviewReadyCard({ creditsUsed, runtimeEvents = [] }: PreviewReadyCardProps) {
   return (
     <section className="inline-chat-card preview-ready-card">
       <div className="inline-card-heading">
@@ -35,6 +36,14 @@ export function PreviewReadyCard({ creditsUsed }: PreviewReadyCardProps) {
         <Badge accent="violet">Real Motion: optional overlay</Badge>
         <Badge accent="success">SoundSync: music + SFX</Badge>
       </div>
+      {runtimeEvents.length > 0 && (
+        <div className="local-preview-runtime-summary">
+          <strong>Local MVP runtime completed</strong>
+          {runtimeEvents.slice(-4).map((event) => (
+            <span key={event}>{event}</span>
+          ))}
+        </div>
+      )}
       <p className="inline-helper">
         This is a mock preview state. In production, generated assets, renderer jobs, and final export would be tracked against the approved credit estimate.
         Failed ReeditPro generation would follow the refund/restore policy.

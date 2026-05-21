@@ -753,6 +753,17 @@ li {
   min-height: 100vh;
 }
 
+.app-shell-chat {
+  grid-template-columns: 228px minmax(0, 1fr);
+  max-height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.app-shell-chat.sidebar-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .sidebar {
   background: rgba(5, 7, 13, 0.86);
   border-right: 1px solid var(--rp-border-subtle);
@@ -763,6 +774,33 @@ li {
   position: sticky;
   top: 0;
   height: 100vh;
+}
+
+.app-shell-chat .sidebar {
+  gap: 18px;
+  padding: 18px 14px;
+}
+
+.app-shell-chat .sidebar .brand-logo-mark {
+  width: 42px;
+}
+
+.app-shell-chat .sidebar .brand-wordmark-tail {
+  font-size: 1.28rem;
+}
+
+.app-shell-chat .sidebar-link {
+  font-size: 0.92rem;
+  min-height: 38px;
+  padding-inline: 10px;
+}
+
+.app-shell-chat .sidebar-widget {
+  display: none;
+}
+
+.app-shell-chat .sidebar-profile {
+  margin-top: auto;
 }
 
 .sidebar nav {
@@ -840,6 +878,16 @@ li {
     var(--rp-bg-base);
   min-width: 0;
   padding: 0 32px 32px;
+}
+
+.app-main-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 24px;
+  scrollbar-color: rgba(0, 229, 255, 0.24) transparent;
 }
 
 .topbar {
@@ -2807,6 +2855,7 @@ li {
 }
 
 .chat-native-header,
+.chat-project-strip,
 .chat-native-shell,
 .project-start-card,
 .project-start-side .rp-card {
@@ -2824,7 +2873,50 @@ li {
   padding: 20px;
 }
 
+.chat-project-strip {
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(15, 17, 23, 0.96), rgba(15, 17, 23, 0.76) 78%, rgba(15, 17, 23, 0));
+  border: 0;
+  border-bottom: 1px solid rgba(36, 48, 68, 0.36);
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  min-height: 72px;
+  padding: 18px 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 12;
+}
+
+.chat-project-strip-main {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.chat-project-status,
+.chat-project-utility {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat-project-utility {
+  justify-content: flex-end;
+}
+
+.sidebar-toggle-button {
+  color: var(--rp-brand-cyan);
+}
+
 .chat-native-header h1,
+.chat-project-strip h1,
 .project-start-heading h2,
 .inline-chat-card h3 {
   letter-spacing: 0;
@@ -2833,6 +2925,12 @@ li {
 
 .chat-native-header h1 {
   font-size: clamp(1.55rem, 2vw, 2.15rem);
+}
+
+.chat-project-strip h1 {
+  font-size: clamp(1rem, 1.18vw, 1.12rem);
+  line-height: 1.1;
+  min-width: min(220px, 100%);
 }
 
 .chat-native-header p,
@@ -3308,7 +3406,8 @@ li {
 .chat-clip-meta input,
 .chat-native-input textarea,
 .project-start-card input,
-.project-start-card select {
+.project-start-card select,
+.project-start-card textarea {
   background: rgba(5, 7, 13, 0.8);
   border: 1px solid var(--rp-border-subtle);
   border-radius: var(--radius-sm);
@@ -3321,9 +3420,83 @@ li {
 .chat-clip-meta input:focus,
 .chat-native-input textarea:focus,
 .project-start-card input:focus,
-.project-start-card select:focus {
+.project-start-card select:focus,
+.project-start-card textarea:focus {
   border-color: var(--rp-brand-cyan);
   box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.14);
+}
+
+.project-start-card textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.local-upload-file-list,
+.local-runtime-event-log,
+.local-preview-runtime-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.local-upload-file-list {
+  background: rgba(5, 7, 13, 0.44);
+  border: 1px solid rgba(51, 65, 85, 0.48);
+  border-radius: var(--radius-md);
+  padding: 10px;
+}
+
+.local-upload-file-list div,
+.local-runtime-event-log div,
+.local-preview-runtime-summary {
+  background: rgba(15, 23, 42, 0.58);
+  border: 1px solid rgba(51, 65, 85, 0.38);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px;
+}
+
+.local-upload-file-list strong,
+.local-runtime-event-log strong,
+.local-preview-runtime-summary strong {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.local-upload-file-list span,
+.local-runtime-event-log span,
+.local-preview-runtime-summary span {
+  color: var(--rp-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.local-runtime-warning-list {
+  display: grid;
+  gap: 6px;
+}
+
+.local-runtime-warning-list p {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: var(--radius-sm);
+  color: #fcd34d;
+  font-size: 0.78rem;
+  margin: 0;
+  padding: 8px 10px;
+}
+
+.local-runtime-status {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 999px;
+  color: var(--rp-text-muted);
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  gap: 6px;
+  padding: 5px 7px;
 }
 
 .chat-clip-flags {
@@ -9115,6 +9288,17 @@ li {
     grid-template-columns: 1fr;
   }
 
+  .app-shell-chat {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: none;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .app-shell-chat .sidebar {
+    display: none;
+  }
+
   .sidebar {
     height: auto;
     position: static;
@@ -9126,6 +9310,22 @@ li {
 
   .app-main {
     padding: 0 20px 24px;
+  }
+
+  .app-main-chat {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    padding: 0 16px 24px;
+  }
+
+  .chat-native-editor,
+  .chat-native-shell,
+  .chat-project-strip,
+  .inline-chat-card,
+  .chat-composer-shell {
+    max-width: 100%;
+    min-width: 0;
   }
 
   .topbar,
@@ -9206,14 +9406,21 @@ li {
   }
 
   .chat-first-panel,
-  .chat-native-header {
+  .chat-native-header,
+  .chat-project-strip {
     min-height: auto;
   }
 
   .chat-native-header,
+  .chat-project-strip,
   .chat-composer-actions {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .chat-project-status,
+  .chat-project-utility {
+    justify-content: flex-start;
   }
 
   .wallet-card,

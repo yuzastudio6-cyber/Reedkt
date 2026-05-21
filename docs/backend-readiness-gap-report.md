@@ -4,6 +4,7 @@
 
 | Gap | Status | Notes |
 | --- | --- | --- |
+| Local E2E video editor demo not testable | Partially fixed | Browser-local project setup, source metadata/upload plans, approval gates, mock credit/job/lease/dispatch events, sidebar toggle, and preview-ready placeholder now work without production services. Real video editing remains production-required. |
 | Auth/profile/workspace bootstrap missing | Partially fixed | Frontend-safe bootstrap exists. Backend/admin fallback still needed for RLS-blocked creation. |
 | Backend runtime missing | Partially fixed | API route contracts, registry, mock router, and frontend client exist. No deployed Cloud Run/API route/Edge Function runtime exists. |
 | Storage/upload runtime missing | Partially fixed | Upload validation, bucket mapping, path planning, mock metadata, source order flows, and local policy readiness exist. Real uploads still need deployed buckets/RLS and likely signed backend routes. |
@@ -13,6 +14,12 @@
 | Production backend runtime not chosen or scaffolded | Partially fixed | Cloud Run API service is selected and a mock-only Node HTTP scaffold exists with health/readiness/runtime/routes/mock endpoints. No deployment, Secret Manager, service-role handlers, providers, Stripe, workers, or render execution exists. |
 | Provider integrations missing | Partially reduced | Project SFX now reaches mock Mirelo/MMAudio/internal-library routing and includes readiness reporting for future real SFX transport. Real AI, Lyria, Mirelo, MMAudio, Stripe, and rendering calls are still not added. |
 | Supabase production validation missing | Open | No remote migration, local Supabase test, staging test, or advisor review was run. |
+
+## Local E2E MVP Result
+
+The consolidated E2E branch makes the first demo-safe product loop testable from one URL. The local flow creates browser-local projects, preserves selected source order, generates mock plans and credit estimates, requires approval gates, runs mock reservation/job/lease/dispatch routes, and reaches a preview-ready placeholder.
+
+This does not replace production backend work. Supabase validation, Cloud Run deployment, real storage uploads, approved snapshot persistence, transactional credits, durable queues/leases, provider gateways, rendering/export, Stripe, monitoring, and production QA remain open.
 
 ## RP-FIX-06 Result
 

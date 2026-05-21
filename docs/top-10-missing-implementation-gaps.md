@@ -15,6 +15,7 @@
 
 ## Closed Or Reduced
 
+- Local E2E demo testing is no longer fully missing. Browser-local project setup, source metadata/upload plans, source order review, approval gates, mock credit/job/lease/dispatch events, sidebar toggle, and preview-ready placeholder now work locally. Real rendered video remains open.
 - Auth/profile/workspace bootstrap is no longer fully missing. A frontend-safe bootstrap layer exists, with backend-required warnings where RLS blocks writes.
 - Storage/upload pipeline is no longer fully missing. Validation, path planning, mock records, source-order flows, and a local policy-readiness migration exist.
 - Backend API/runtime boundary is no longer fully missing. Route contracts, a registry, a mock router, and a frontend API client exist, while deployed transport and privileged handlers remain open.

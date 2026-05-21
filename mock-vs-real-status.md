@@ -2,6 +2,8 @@
 
 ## Real / Implemented
 
+- Browser-local E2E MVP loop: local project setup, local file metadata capture, upload-plan creation, source order review, mock plan/credit approval, mock runtime events, and preview-ready placeholder.
+- AI editor shell with sidebar visible by default and a persistent hide/show toolbar toggle.
 - Frontend-safe Supabase public env detection.
 - Lazy browser anon client creation.
 - Supabase Auth session/user helpers.
@@ -20,6 +22,8 @@
 
 ## Mock / Placeholder
 
+- Local preview/export readiness is a placeholder status, not a rendered video file.
+- Local MVP project state is stored in browser `localStorage`; it is not durable backend persistence.
 - Mock auth bootstrap flow for local/demo contexts.
 - Backend-required warnings for RLS-blocked profile/workspace/member creation.
 - Optional auth status card is standalone and not wired into app routes.
@@ -36,6 +40,8 @@
 
 ## Not Implemented
 
+- Real end-to-end video rendering/export from uploaded media.
+- Durable approved plan snapshot persistence for the local MVP flow.
 - Deployed backend runtime or live API transport.
 - Deployed Cloud Run service, Secret Manager bindings, service account IAM, request auth, monitoring, and rate limits.
 - Service-role backend handlers.

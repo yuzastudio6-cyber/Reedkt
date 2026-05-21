@@ -2,6 +2,7 @@
 
 | Area | Score | Status |
 | --- | ---: | --- |
+| Local E2E demo loop | 7/10 | Browser-local project creation, source metadata/upload plans, source order review, approval gates, mock credit/job/lease/dispatch events, sidebar toggle, and preview-ready placeholder work locally. |
 | Frontend-safe Supabase config | 7/10 | Implemented with missing-env fallback. |
 | Auth session handling | 7/10 | Implemented through Supabase anon client helpers. |
 | Profile bootstrap | 6/10 | Implemented when RLS allows; backend fallback still needed. |
@@ -24,6 +25,6 @@
 
 ## Notes
 
-RP-FIX-06 through RP-FIX-12 should be treated as partial implementation fixes, not production readiness.
+RP-FIX-06 through RP-FIX-12 and the local E2E MVP should be treated as partial implementation fixes, not production readiness.
 
 RP-FIX-14 partially fixes project SFX workflow integration. RP-FIX-15 adds readiness reporting for future real SFX execution. Real provider transport, Secret Manager value resolution, Cloud Run workers, storage uploads, and credit spending remain open.

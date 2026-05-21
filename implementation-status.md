@@ -1,5 +1,19 @@
 ﻿# Implementation Status
 
+## Local E2E MVP Consolidation
+
+Status: partially fixed / working locally.
+
+The `codex/reeditpro-e2e-readiness` branch consolidates the planning-stack backend/runtime/render scaffolds with the pushed AI editor shell and browser-local MVP flow. It now supports a local demo-safe loop:
+
+- `/` opens the AI editor.
+- `/projects/new` creates a browser-local project from selected file metadata.
+- `/editor?projectId=...` loads local source clips, source order, instructions, approvals, mock runtime events, and preview-ready status.
+- The editor sidebar is visible by default and can be hidden/shown from the editor header.
+- Approval routes through mock credit reservation, mock job queue, worker lease, heartbeat, dispatch, completion, and event log before showing preview-ready.
+
+This is not production video editing. Real Supabase validation, deployed Cloud Run, real storage uploads, durable approved snapshots, transactional credits, real workers, provider gateways, Remotion/FFmpeg rendering, Stripe, monitoring, and production QA remain future milestones. See `docs/end-to-end-video-editor-readiness.md`.
+
 ## RP-FIX-06
 
 Status: partially fixed.

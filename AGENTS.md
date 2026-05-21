@@ -94,6 +94,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Real Motion is premium and credit-heavy.
 - RP-FIX-09 credit runtime helpers are the current mock-safe approval/reservation gate. Real reserve, spend, release, refund, provider execution, rendering, and worker jobs remain backend-required.
 - RP-FIX-10 job runtime helpers are the current mock-safe queue/readiness layer. Real worker dispatch, Cloud Run jobs, service-role job mutation, provider execution, and rendering remain backend-required.
+- The local E2E MVP flow is browser-local and mock-only: project setup, selected-file metadata, upload plans, source order, approvals, mock credit reservation, mock job/lease/dispatch events, and preview-ready status can be tested locally, but real uploads, providers, rendering/export, Stripe, Cloud Run, and production Supabase remain backend-required.
 
 ## Backend And Database Architecture
 

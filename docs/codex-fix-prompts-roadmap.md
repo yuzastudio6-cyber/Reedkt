@@ -2,6 +2,26 @@
 
 ## Completed / Partially Completed
 
+### Local E2E MVP Consolidation
+
+Status: partially fixed / working locally.
+
+Implemented:
+
+- consolidated planning-stack backend/runtime/render scaffolds with the AI editor shell and local MVP flow;
+- `/` opens the AI editor and `/projects/new` opens the local project setup flow;
+- selected local files create upload plans and source clip metadata without uploading;
+- `/editor?projectId=...` loads browser-local project state;
+- source order and planning changes reset approval/progress;
+- approval runs mock credit reservation, job queue, worker lease, heartbeat, dispatch, completion events, and preview-ready placeholder;
+- editor sidebar is visible by default and can be hidden/shown from the editor header.
+
+Still open:
+
+- production Supabase validation and durable approved snapshots;
+- deployed Cloud Run backend and service-role handlers;
+- real storage uploads, provider calls, rendering/export, Stripe, monitoring, and production QA.
+
 ### RP-FIX-06 Auth Profile Workspace Bootstrap
 
 Status: partially fixed.

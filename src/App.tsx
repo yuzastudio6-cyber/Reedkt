@@ -12,10 +12,12 @@ import { WalletPage } from './pages/WalletPage'
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<Navigate to="/editor" replace />} />
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/projects/new" element={<CreateProjectPage />} />
+      <Route path="/projects/setup" element={<CreateProjectPage />} />
       <Route path="/editor" element={<EditorPage />} />
       <Route path="/wallet" element={<WalletPage />} />
       <Route path="/pricing" element={<PricingPage />} />
@@ -23,7 +25,7 @@ export default function App() {
       <Route path="/exports" element={<ExportQueuePage />} />
       <Route path="/app" element={<Navigate to="/dashboard" replace />} />
       <Route path="/upload" element={<Navigate to="/projects/new" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/editor" replace />} />
     </Routes>
   )
 }

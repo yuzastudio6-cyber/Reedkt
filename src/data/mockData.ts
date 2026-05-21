@@ -46,6 +46,7 @@ export type Project = {
   summary: string
   tags: string[]
   accent: Accent
+  editorTo?: string
 }
 
 export type MediaAsset = {

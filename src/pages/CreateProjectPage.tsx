@@ -1,8 +1,11 @@
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MessageCircle, Plus, UploadCloud } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { createLocalMvpProject } from '../lib/local-mvp-state'
 import { launchEditingCategories } from '../lib/product-taxonomy'
 import type { EditingCategory } from '../types/reeditpro'
 
@@ -15,6 +18,26 @@ const categoryDescriptions: Record<EditingCategory, string> = {
 }
 
 export function CreateProjectPage() {
+  const navigate = useNavigate()
+  const [projectName, setProjectName] = useState('Untitled ReeditPro edit')
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [customInstructions, setCustomInstructions] = useState('')
+  const totalFileSize = useMemo(
+    () => selectedFiles.reduce((total, file) => total + file.size, 0),
+    [selectedFiles],
+  )
+
+  function handleCreateLocalProject(editingCategory: EditingCategory) {
+    const project = createLocalMvpProject({
+      customInstructions,
+      editingCategory,
+      files: selectedFiles,
+      name: projectName,
+    })
+
+    navigate(`/editor?projectId=${project.id}&category=${editingCategory}`)
+  }
+
   return (
     <AppShell
       description="Pick a category, upload clips, and let ReeditPro ask the rest inside the AI chat editor."
@@ -36,8 +59,45 @@ export function CreateProjectPage() {
 
             <label className="planning-field">
               <span>Project name</span>
-              <input defaultValue="Untitled ReeditPro edit" />
-              <small>Optional for this frontend mock. Real project creation is not wired yet.</small>
+              <input onChange={(event) => setProjectName(event.target.value)} value={projectName} />
+              <small>This creates a local demo project in your browser. It does not write to Supabase.</small>
+            </label>
+
+            <label className="planning-field">
+              <span>Source clips</span>
+              <input
+                accept="video/mp4,video/quicktime,video/webm,audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/aac"
+                multiple
+                onChange={(event) => setSelectedFiles(Array.from(event.target.files ?? []))}
+                type="file"
+              />
+              <small>
+                {selectedFiles.length > 0
+                  ? `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'} selected / ${(totalFileSize / 1_000_000).toFixed(1)} MB metadata planned`
+                  : 'Choose local files to create upload plans. No upload happens in this MVP.'}
+              </small>
+            </label>
+
+            {selectedFiles.length > 0 && (
+              <div className="local-upload-file-list">
+                {selectedFiles.map((file, index) => (
+                  <div key={`${file.name}-${file.size}-${index}`}>
+                    <strong>{index + 1}. {file.name}</strong>
+                    <span>{file.type || 'unknown type'} / {(file.size / 1_000_000).toFixed(1)} MB</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <label className="planning-field">
+              <span>Custom instructions</span>
+              <textarea
+                onChange={(event) => setCustomInstructions(event.target.value)}
+                placeholder="Tell ReeditPro the goal, tone, platform, reference notes, or anything it should preserve."
+                rows={4}
+                value={customInstructions}
+              />
+              <small>These instructions are loaded into the chat editor after project creation.</small>
             </label>
           </Card>
 
@@ -50,8 +110,8 @@ export function CreateProjectPage() {
                   <p>{categoryDescriptions[category.value]}</p>
                 </div>
                 <small>{category.bestUseCases.slice(0, 5).join(' / ')}</small>
-                <Button icon={Plus} to={`/editor?category=${category.value}`} variant="primary">
-                  Upload / start
+                <Button icon={Plus} onClick={() => handleCreateLocalProject(category.value)} variant="primary">
+                  Create local project
                 </Button>
               </article>
             ))}

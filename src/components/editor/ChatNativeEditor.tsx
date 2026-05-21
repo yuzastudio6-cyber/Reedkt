@@ -6,6 +6,14 @@ import { createApprovedPlanSnapshot } from '../../lib/approved-plan-snapshot'
 import { getChatPlanningCards, getChatPlanningPhaseSummaries, shouldShowCard } from '../../lib/chat-planning-flow'
 import { demoScenarios, getDemoScenarioById, getDefaultDemoScenario } from '../../lib/demo-scenarios'
 import { getDefaultFrameTemplateForAspectRatio } from '../../lib/frame-layouts'
+import {
+  getLocalMvpProject,
+  markLocalMvpApproval,
+  runLocalMvpApprovedRuntime,
+  updateLocalMvpProject,
+  updateLocalMvpProjectClips,
+  type LocalMvpProject,
+} from '../../lib/local-mvp-state'
 import { createMockEditPlan } from '../../lib/mock-planner'
 import { runPlannerRegression } from '../../lib/planner-regression'
 import { validateMockEditPlan } from '../../lib/planner-validation'
@@ -118,41 +126,44 @@ type ChatNativeEditorProps = {
 export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [searchParams] = useSearchParams()
   const categoryFromQuery = searchParams.get('category')
-  const initialScenario = getInitialDemoScenario(categoryFromQuery)
+  const projectIdFromQuery = searchParams.get('projectId')
+  const localProjectAtLoad = getLocalMvpProject(projectIdFromQuery)
+  const initialScenario = getInitialDemoScenario(categoryFromQuery ?? localProjectAtLoad?.editingCategory ?? null)
 
+  const [localMvpProject, setLocalMvpProject] = useState<LocalMvpProject | undefined>(localProjectAtLoad)
   const [selectedScenarioId, setSelectedScenarioId] = useState(initialScenario.id)
   const [displayMode, setDisplayMode] = useState<ChatPlanningDisplayMode>('guided')
-  const [clips, setClips] = useState<ClipSource[]>(initialScenario.clips)
+  const [clips, setClips] = useState<ClipSource[]>(localProjectAtLoad?.sourceClips.length ? localProjectAtLoad.sourceClips : initialScenario.clips)
   const [sourceSequenceMode, setSourceSequenceMode] = useState<SourceSequenceMode>(() =>
-    inferSourceSequenceMode(initialScenario.clips, initialScenario.customInstructions),
+    inferSourceSequenceMode(localProjectAtLoad?.sourceClips.length ? localProjectAtLoad.sourceClips : initialScenario.clips, localProjectAtLoad?.customInstructions ?? initialScenario.customInstructions),
   )
-  const [composerValue, setComposerValue] = useState(initialScenario.customInstructions)
-  const [customInstructions, setCustomInstructions] = useState(initialScenario.customInstructions)
-  const [clipsAttached, setClipsAttached] = useState(true)
-  const [sourceOrderConfirmed, setSourceOrderConfirmed] = useState(false)
+  const [composerValue, setComposerValue] = useState(localProjectAtLoad?.customInstructions ?? initialScenario.customInstructions)
+  const [customInstructions, setCustomInstructions] = useState(localProjectAtLoad?.customInstructions ?? initialScenario.customInstructions)
+  const [clipsAttached, setClipsAttached] = useState<boolean>(Boolean(localProjectAtLoad?.sourceClips.length) || true)
+  const [sourceOrderConfirmed, setSourceOrderConfirmed] = useState(Boolean(localProjectAtLoad?.approvals.sourceOrderConfirmed))
   const [cleanupPreference, setCleanupPreference] = useState<CleanupPreference | undefined>(undefined)
-  const [cleanupPreferenceConfirmed, setCleanupPreferenceConfirmed] = useState(false)
+  const [cleanupPreferenceConfirmed, setCleanupPreferenceConfirmed] = useState(Boolean(localProjectAtLoad?.approvals.cleanupConfirmed))
   const [referenceAttached, setReferenceAttached] = useState(initialScenario.referenceAttached)
   const [referenceUrl, setReferenceUrl] = useState(initialScenario.referenceUrl)
-  const [editingCategory, setEditingCategory] = useState<EditingCategory>(initialScenario.editingCategory)
+  const [editingCategory, setEditingCategory] = useState<EditingCategory>(localProjectAtLoad?.editingCategory ?? initialScenario.editingCategory)
   const [editLevel, setEditLevel] = useState<EditLevel>(initialScenario.editLevel)
-  const [editLevelConfirmed, setEditLevelConfirmed] = useState(false)
+  const [editLevelConfirmed, setEditLevelConfirmed] = useState(Boolean(localProjectAtLoad?.approvals.editLevelConfirmed))
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(initialScenario.targetPlatform)
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(initialScenario.aspectRatio)
   const [frameTemplateType, setFrameTemplateType] = useState<FrameTemplateType>(initialScenario.frameTemplateType)
-  const [aspectRatioConfirmed, setAspectRatioConfirmed] = useState(false)
+  const [aspectRatioConfirmed, setAspectRatioConfirmed] = useState(Boolean(localProjectAtLoad?.approvals.aspectRatioConfirmed))
   const [aspectRatioSource, setAspectRatioSource] = useState<AspectRatioSource>('demo_scenario')
   const [visualPreference, setVisualPreference] = useState<VisualPreference>(initialScenario.visualPreference)
-  const [visualPreferenceConfirmed, setVisualPreferenceConfirmed] = useState(false)
+  const [visualPreferenceConfirmed, setVisualPreferenceConfirmed] = useState(Boolean(localProjectAtLoad?.approvals.visualPreferenceConfirmed))
   const [workflowType, setWorkflowType] = useState<VideoWorkflowType>(initialScenario.workflowType)
   const [moodStyle, setMoodStyle] = useState<MoodStyle>(initialScenario.moodStyle)
   const [creditPreference, setCreditPreference] = useState<CreditPreference>(initialScenario.creditPreference)
   const [intentApproved, setIntentApproved] = useState(false)
-  const [approved, setApproved] = useState(false)
+  const [approved, setApproved] = useState(Boolean(localProjectAtLoad?.approvals.planApproved && localProjectAtLoad?.approvals.creditsApproved))
   const [approvedSnapshot, setApprovedSnapshot] = useState<ApprovedPlanSnapshot | null>(null)
-  const [progressStarted, setProgressStarted] = useState(false)
-  const [progressIndex, setProgressIndex] = useState(0)
-  const [previewReady, setPreviewReady] = useState(false)
+  const [progressStarted, setProgressStarted] = useState(Boolean(localProjectAtLoad?.runtime))
+  const [progressIndex, setProgressIndex] = useState(localProjectAtLoad?.runtime?.previewReady ? progressSteps.length - 1 : 0)
+  const [previewReady, setPreviewReady] = useState(Boolean(localProjectAtLoad?.runtime?.previewReady))
   const [revisionMessage, setRevisionMessage] = useState('')
   const [showMusicPlan, setShowMusicPlan] = useState(false)
   const [showSFXPlan, setShowSFXPlan] = useState(false)
@@ -250,6 +261,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const cleanupReady = cleanupPreferenceConfirmed && plan.sourceCleanupPlan?.status === 'confirmed'
   const trimReviewReady = Boolean(plan.trimReviewPlan && !plan.trimReviewPlan.approvalBlocked)
   const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && editLevelConfirmed && visualPreferenceConfirmed
+  const runtimeState = localMvpProject?.runtime
 
   function showCard(id: string) {
     return shouldShowCard(cardById[id], displayMode)
@@ -287,6 +299,18 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setProgressIndex(0)
     setShowMusicPlan(false)
     setShowSFXPlan(false)
+  }
+
+  function persistLocalClips(next: ClipSource[]) {
+    if (!localMvpProject) return
+    const updated = updateLocalMvpProjectClips(localMvpProject.id, next)
+    if (updated) setLocalMvpProject(updated)
+  }
+
+  function persistLocalApproval(updates: Parameters<typeof markLocalMvpApproval>[1]) {
+    if (!localMvpProject) return
+    const updated = markLocalMvpApproval(localMvpProject.id, updates)
+    if (updated) setLocalMvpProject(updated)
   }
 
   function resetAfterSourceChange() {
@@ -354,6 +378,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     ])
     setClips(next)
     updateInferredSourceSequenceMode(next)
+    persistLocalClips(next)
     resetAfterSourceChange()
   }
 
@@ -361,6 +386,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     const next = reorderClipsByMove(clips, id, direction)
     setClips(next)
     updateInferredSourceSequenceMode(next)
+    persistLocalClips(next)
     resetAfterSourceChange()
   }
 
@@ -368,6 +394,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     const next = normalizeClipOrder(clips.filter((clip) => clip.id !== id))
     setClips(next)
     updateInferredSourceSequenceMode(next)
+    persistLocalClips(next)
     resetAfterSourceChange()
   }
 
@@ -375,6 +402,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     const next = clips.map((clip) => (clip.id === id ? { ...clip, ...updates } : clip))
     setClips(next)
     updateInferredSourceSequenceMode(next)
+    persistLocalClips(next)
     resetAfterSourceChange()
   }
 
@@ -385,6 +413,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
   function handleConfirmSourceOrder() {
     setSourceOrderConfirmed(true)
+    persistLocalApproval({ sourceOrderConfirmed: true })
     resetPlanProgress()
   }
 
@@ -398,6 +427,16 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setIntentApproved(false)
     setEditLevelConfirmed(false)
     setVisualPreferenceConfirmed(false)
+    persistLocalApproval({
+      aspectRatioConfirmed: false,
+      cleanupConfirmed: false,
+      editLevelConfirmed: false,
+      visualPreferenceConfirmed: false,
+      planApproved: false,
+      creditsApproved: false,
+      approvedAt: undefined,
+      approvedSnapshotVersion: undefined,
+    })
     resetPlanProgress()
   }
 
@@ -413,18 +452,21 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setAspectRatioConfirmed(true)
     setAspectRatioSource('user_selected')
     setCleanupPreferenceConfirmed(false)
+    persistLocalApproval({ aspectRatioConfirmed: true, cleanupConfirmed: false })
     resetPlanProgress()
   }
 
   function handleCleanupPreferenceSelect(preference: CleanupPreference) {
     setCleanupPreference(preference)
     setCleanupPreferenceConfirmed(false)
+    persistLocalApproval({ cleanupConfirmed: false, planApproved: false, creditsApproved: false })
     resetPlanProgress()
   }
 
   function handleConfirmCleanupPreference() {
     setCleanupPreference(cleanupPreference ?? plan.sourceCleanupPlan?.recommendedPreference.recommendedPreference ?? 'balanced_cleanup')
     setCleanupPreferenceConfirmed(true)
+    persistLocalApproval({ cleanupConfirmed: true })
     resetPlanProgress()
   }
 
@@ -432,22 +474,26 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setEditLevel(value)
     setEditLevelConfirmed(false)
     setVisualPreferenceConfirmed(false)
+    persistLocalApproval({ editLevelConfirmed: false, visualPreferenceConfirmed: false, planApproved: false, creditsApproved: false })
     resetPlanProgress()
   }
 
   function handleConfirmEditLevel() {
     setEditLevelConfirmed(true)
+    persistLocalApproval({ editLevelConfirmed: true })
     resetPlanProgress()
   }
 
   function handleVisualPreferenceSelect(value: VisualPreference) {
     setVisualPreference(value)
     setVisualPreferenceConfirmed(false)
+    persistLocalApproval({ visualPreferenceConfirmed: false, planApproved: false, creditsApproved: false })
     resetPlanProgress()
   }
 
   function handleConfirmVisualPreference() {
     setVisualPreferenceConfirmed(true)
+    persistLocalApproval({ visualPreferenceConfirmed: true })
     resetPlanProgress()
   }
 
@@ -463,7 +509,7 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     resetPlanProgress()
   }
 
-  function handleApprove() {
+  async function handleApprove() {
     if (plan.aspectRatioFramePlan?.status !== 'confirmed') {
       setRevisionMessage('Confirm the output frame before approving the plan and credit estimate.')
       setApproved(false)
@@ -514,7 +560,13 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
       return
     }
 
-    if (!plan.timingValidationPlan || plan.timingValidationPlan.approvalBlocked || plan.timingValidationPlan.overallStatus === 'blocking' || plan.timingValidationPlan.overallStatus === 'failed') {
+    const timingValidationBlocked = !plan.timingValidationPlan ||
+      plan.timingValidationPlan.approvalBlocked ||
+      plan.timingValidationPlan.overallStatus === 'blocking' ||
+      plan.timingValidationPlan.overallStatus === 'failed'
+    const allowLocalMvpMockTimingOverride = Boolean(localMvpProject && setupReady && timingValidationBlocked)
+
+    if (timingValidationBlocked && !allowLocalMvpMockTimingOverride) {
       setRevisionMessage('Timing validation must pass before approval. Resolve timing block reasons or choose a lower-cost timing alternative.')
       setApproved(false)
       setApprovedSnapshot(null)
@@ -524,18 +576,58 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
       return
     }
 
-    setApprovedSnapshot(
-      createApprovedPlanSnapshot({
-        approvedBy: 'mock-user',
-        editSessionId: 'mock-edit-session',
+    let snapshot: ApprovedPlanSnapshot | null = null
+    let snapshotVersion = `local-mvp-mock-approval-${Date.now()}`
+
+    try {
+      snapshot = createApprovedPlanSnapshot({
+        approvedBy: localMvpProject?.userId ?? 'mock-user',
+        editSessionId: localMvpProject ? `local-edit-session-${localMvpProject.id}` : 'mock-edit-session',
         plan,
-        projectId: 'mock-project',
-      }),
-    )
+        projectId: localMvpProject?.id ?? 'mock-project',
+      })
+      snapshotVersion = snapshot.snapshotVersion
+    } catch (error) {
+      if (!allowLocalMvpMockTimingOverride) {
+        setRevisionMessage(error instanceof Error ? error.message : 'Approved snapshot could not be created.')
+        setApproved(false)
+        setApprovedSnapshot(null)
+        setProgressStarted(false)
+        setProgressIndex(0)
+        setPreviewReady(false)
+        return
+      }
+    }
+
+    setApprovedSnapshot(snapshot)
     setApproved(true)
     setProgressStarted(true)
     setPreviewReady(false)
     setProgressIndex(0)
+
+    if (!localMvpProject) {
+      return
+    }
+
+    const approvedProject = markLocalMvpApproval(localMvpProject.id, {
+      approvedAt: new Date().toISOString(),
+      approvedSnapshotVersion: snapshotVersion,
+      creditsApproved: true,
+      planApproved: true,
+    })
+    if (approvedProject) setLocalMvpProject(approvedProject)
+
+    const runtime = await runLocalMvpApprovedRuntime({
+      approvedSnapshotVersion: snapshotVersion,
+      credits: plan.creditEstimate.total,
+      projectId: localMvpProject.id,
+    })
+
+    if (runtime.project) setLocalMvpProject(runtime.project)
+    setRevisionMessage(runtime.message)
+    setProgressIndex(runtime.ok ? progressSteps.length - 1 : 0)
+    setPreviewReady(runtime.ok)
+    if (!runtime.ok) setApproved(false)
   }
 
   function handleLowerCost() {
@@ -564,12 +656,26 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setRevisionMessage(nextMessage)
     setComposerValue('')
     setSourceSequenceMode(inferSourceSequenceMode(clips, nextMessage))
+    if (localMvpProject) {
+      const updated = updateLocalMvpProject(localMvpProject.id, {
+        customInstructions: nextMessage,
+        runtime: undefined,
+        status: 'planning',
+      })
+      if (updated) setLocalMvpProject(updated)
+    }
     resetPlanProgress()
   }
 
   return (
     <section className="chat-native-editor">
-      <MinimalProjectHeader approved={approved} credits={plan.creditEstimate.total} previewReady={previewReady} />
+      <MinimalProjectHeader
+        approved={approved}
+        credits={plan.creditEstimate.total}
+        previewReady={previewReady}
+        projectName={localMvpProject?.name}
+        runtimeStatus={runtimeState?.previewReady ? 'Runtime complete' : localMvpProject ? 'Local MVP' : undefined}
+      />
 
       <div className="chat-native-shell">
         <ChatThread>
@@ -906,14 +1012,20 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
             <ChatMessage role="ai">
               <p>Plan and credit estimate approved. ReeditPro would now begin editing/generation in production.</p>
               {approvedSnapshot && <p>Approved plan snapshot created for this mock session. Snapshot version: {approvedSnapshot.snapshotVersion}.</p>}
-              <AIEditingProgressStage activeIndex={progressIndex} complete={previewReady} />
+              <AIEditingProgressStage
+                activeIndex={progressIndex}
+                complete={previewReady}
+                events={runtimeState?.events}
+                reservationId={runtimeState?.creditReservationId}
+                warnings={runtimeState?.warnings}
+              />
             </ChatMessage>
           )}
 
           {previewReady && (
             <ChatMessage role="ai">
               <p>Preview ready. You can play it, request a revision, export, or keep chatting.</p>
-              <PreviewReadyCard creditsUsed={plan.creditEstimate.total} />
+              <PreviewReadyCard creditsUsed={plan.creditEstimate.total} runtimeEvents={runtimeState?.events} />
             </ChatMessage>
           )}
 

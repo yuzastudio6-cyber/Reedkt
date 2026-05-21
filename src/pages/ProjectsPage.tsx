@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Filter, FolderPlus, Grid3X3, ListFilter, UploadCloud } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
@@ -5,11 +6,43 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { MediaCard, ProjectCard } from '../components/ProjectCard'
 import { SearchInput } from '../components/SearchInput'
-import { mediaAssets, projects } from '../data/mockData'
+import { mediaAssets, projects, type Project } from '../data/mockData'
+import { loadLocalMvpSession, LOCAL_MVP_SESSION_EVENT, type LocalMvpSession } from '../lib/local-mvp-state'
 
 export function ProjectsPage() {
+  const [localSession, setLocalSession] = useState<LocalMvpSession>(() => loadLocalMvpSession())
   const tabs = ['All', 'Draft', 'Planning', 'In review', 'Exported']
   const filters = ['Video', 'Audio', 'Image', 'Shared', 'Credit estimate', 'Approved']
+  const localProjects = useMemo<Project[]>(
+    () =>
+      localSession.projects.map((project) => ({
+        accent: project.status === 'preview_ready' ? 'success' : project.status === 'blocked' ? 'danger' : 'cyan',
+        editorTo: `/editor?projectId=${project.id}&category=${project.editingCategory}`,
+        format: `${project.sourceClips.length || 0} source clip${project.sourceClips.length === 1 ? '' : 's'} / local MVP`,
+        owner: localSession.user.displayName,
+        progress: project.status === 'preview_ready' ? 100 : project.status === 'mock_running' ? 78 : project.status === 'approved' ? 64 : 28,
+        status: localStatusLabel(project.status),
+        summary: project.runtime?.events.at(-1) ?? project.warnings[0] ?? 'Local demo project ready for source-order review and planning.',
+        tags: ['Local MVP', project.approvals.planApproved ? 'Approved' : 'Planning', project.runtime?.previewReady ? 'Preview ready' : 'Mock runtime'],
+        title: project.name,
+        updated: `Updated ${new Date(project.updatedAt).toLocaleString()}`,
+      })),
+    [localSession],
+  )
+  const allProjects = [...localProjects, ...projects]
+
+  useEffect(() => {
+    function refresh() {
+      setLocalSession(loadLocalMvpSession())
+    }
+
+    window.addEventListener(LOCAL_MVP_SESSION_EVENT, refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener(LOCAL_MVP_SESSION_EVENT, refresh)
+      window.removeEventListener('storage', refresh)
+    }
+  }, [])
 
   return (
     <AppShell description="Organize projects, source media, planning states, status filters, tags, and storage metadata." eyebrow="Projects and media" title="Projects">
@@ -41,8 +74,8 @@ export function ProjectsPage() {
       </section>
 
       <section className="project-grid">
-        {projects.map((project) => (
-          <ProjectCard key={project.title} project={project} />
+        {allProjects.map((project) => (
+          <ProjectCard key={`${project.title}-${project.editorTo ?? 'static'}`} project={project} />
         ))}
       </section>
 
@@ -95,4 +128,19 @@ export function ProjectsPage() {
       </Card>
     </AppShell>
   )
+}
+
+function localStatusLabel(status: LocalMvpSession['projects'][number]['status']) {
+  const labels: Record<typeof status, string> = {
+    approved: 'Plan + credits approved',
+    blocked: 'Gate blocked',
+    draft: 'Draft local project',
+    mock_running: 'Mock job running',
+    plan_ready: 'Plan ready',
+    planning: 'Planning in chat',
+    preview_ready: 'Mock preview ready',
+    upload_planned: 'Upload plans ready',
+  }
+
+  return labels[status]
 }

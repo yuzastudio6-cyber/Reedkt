@@ -3,7 +3,7 @@
 ## Real / Implemented
 
 - Browser-local E2E MVP loop: local project setup, local file metadata capture, upload-plan creation, source order review, mock plan/credit approval, mock runtime events, and preview-ready placeholder.
-- AI editor shell with sidebar visible by default and a persistent hide/show toolbar toggle.
+- Focused AI editor shell as the canonical `/editor` UI, with sidebar visible by default, compact project header, source sequence chat card, compact composer, and a persistent hide/show toolbar toggle.
 - Frontend-safe Supabase public env detection.
 - Lazy browser anon client creation.
 - Supabase Auth session/user helpers.
@@ -24,6 +24,7 @@
 
 - Local preview/export readiness is a placeholder status, not a rendered video file.
 - Local MVP project state is stored in browser `localStorage`; it is not durable backend persistence.
+- The focused editor still runs mock-only planning/runtime underneath; visible plan/credit/job/preview cards are local placeholders until production backend and render workers exist.
 - Mock auth bootstrap flow for local/demo contexts.
 - Backend-required warnings for RLS-blocked profile/workspace/member creation.
 - Optional auth status card is standalone and not wired into app routes.

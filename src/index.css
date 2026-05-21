@@ -29,10 +29,20 @@
   --rp-radius-lg: 16px;
   --rp-radius-xl: 20px;
   --rp-radius-2xl: 28px;
+  --radius-xs: var(--rp-radius-xs);
+  --radius-sm: var(--rp-radius-sm);
+  --radius-md: var(--rp-radius-md);
+  --radius-lg: var(--rp-radius-lg);
+  --radius-xl: var(--rp-radius-xl);
+  --radius-2xl: var(--rp-radius-2xl);
   --rp-shadow-card: 0 10px 30px rgba(0, 0, 0, 0.28);
   --rp-shadow-blue: 0 0 28px rgba(37, 99, 255, 0.24);
   --rp-shadow-violet: 0 0 28px rgba(139, 92, 246, 0.24);
   --rp-shadow-cyan: 0 0 22px rgba(0, 229, 255, 0.2);
+  --shadow-card: var(--rp-shadow-card);
+  --shadow-elevated: 0 18px 56px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 229, 255, 0.06);
+  --gradient-brand: var(--rp-gradient-primary);
+  --blur-glass: blur(18px);
   --rp-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--rp-text-primary);
   background: var(--rp-bg-black);
@@ -2850,8 +2860,14 @@ li {
 }
 
 .chat-native-editor {
-  display: grid;
-  gap: 18px;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100%;
+  overflow: visible;
+  padding-block: 0;
+  position: relative;
 }
 
 .chat-native-header,
@@ -2882,12 +2898,16 @@ li {
   border-radius: 0;
   box-shadow: none;
   display: flex;
-  gap: 16px;
+  flex: 0 0 auto;
+  gap: 12px;
   justify-content: space-between;
-  min-height: 72px;
-  padding: 18px 0 12px;
+  margin-inline: auto;
+  max-width: 1120px;
+  min-height: 52px;
+  padding: 8px 0;
   position: sticky;
   top: 0;
+  width: 100%;
   z-index: 12;
 }
 
@@ -2976,7 +2996,12 @@ li {
 
 .chat-native-thread {
   display: grid;
-  gap: 18px;
+  gap: 14px;
+  margin-inline: auto;
+  max-width: 1040px;
+  overflow: visible;
+  padding: 20px 24px 190px;
+  width: 100%;
 }
 
 .chat-native-message {
@@ -6301,27 +6326,45 @@ li {
 }
 
 .chat-composer-shell {
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(51, 65, 85, 0.52);
-  border-radius: var(--radius-lg);
-  bottom: 16px;
-  box-shadow: var(--shadow-elevated);
+  background: rgba(18, 24, 38, 0.82);
+  backdrop-filter: var(--blur-glass);
+  border: 1px solid rgba(36, 48, 68, 0.86);
+  border-radius: 22px;
+  bottom: 18px;
+  box-shadow: 0 18px 56px rgba(0, 0, 0, 0.42), 0 0 18px rgba(0, 229, 255, 0.06);
   display: grid;
-  gap: 12px;
-  padding: 14px;
-  position: sticky;
+  flex: 0 0 auto;
+  gap: 8px;
+  left: calc(228px + (100vw - 228px) / 2);
+  margin: 0;
+  padding: 10px;
+  position: fixed;
+  transform: translateX(-50%);
+  width: min(840px, calc(100vw - 228px - 64px));
+  z-index: 20;
+}
+
+.app-shell-chat.sidebar-hidden .chat-composer-shell {
+  left: 50%;
+  width: min(840px, calc(100vw - 64px));
 }
 
 .chat-attachment-tray {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 9px;
+  gap: 6px;
+}
+
+.chat-attachment-tray .rp-button {
+  font-size: 0.84rem;
+  min-height: 32px;
+  padding-inline: 10px;
 }
 
 .chat-native-input {
   display: grid;
-  gap: 7px;
+  gap: 0;
 }
 
 .chat-native-input span,
@@ -6332,8 +6375,8 @@ li {
 }
 
 .chat-native-input textarea {
-  min-height: 96px;
-  resize: vertical;
+  min-height: 44px;
+  resize: none;
 }
 
 .chat-composer-actions {
@@ -9421,6 +9464,12 @@ li {
   .chat-project-status,
   .chat-project-utility {
     justify-content: flex-start;
+  }
+
+  .chat-composer-shell {
+    bottom: 12px;
+    left: 50%;
+    width: calc(100% - 32px);
   }
 
   .wallet-card,

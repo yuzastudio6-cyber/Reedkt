@@ -8,6 +8,8 @@ Branch target: `codex/reeditpro-e2e-readiness`
 
 This branch consolidates the newest planning-stack backend/runtime/render scaffolds with the pushed AI editor shell and browser-local MVP flow.
 
+The canonical `/editor` UI is now the focused AI Editor chat shell: sidebar visible by default, compact project header, source sequence review inside chat, compact composer, and plan/credit/progress/preview cards only when they are relevant. The old demo scenario selector, planner regression panel, Supabase schema/migration cards, and developer planning-progress surface are removed from the visible editor path.
+
 The local flow is demo-safe:
 
 1. Open `/projects/new`.
@@ -33,7 +35,7 @@ No file upload, provider call, Stripe call, Cloud Run call, Supabase mutation, F
 | Project setup | working locally | `/projects/new` opens the local project setup form. |
 | Local files | working locally | Browser-selected files create metadata and upload plans only. |
 | Upload order | working locally | Selected order becomes source order and can be reviewed/reordered in chat. |
-| Editor shell | working locally | `/editor` uses the chat-native editor with sidebar visible by default. |
+| Editor shell | working locally | `/editor` uses the focused chat-native editor from the AI editor shell; old mega-planning/dev UI is disconnected. |
 | Sidebar toggle | working locally | Header toolbar hides/shows the sidebar and stores preference in `localStorage`. |
 | Project loading | working locally | `/editor?projectId=...` loads browser-local project state. |
 | Demo fallback | working locally | `/editor` without a project falls back to the polished demo chat. |

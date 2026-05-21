@@ -114,5 +114,6 @@ export const REMOTION_WORKER_SKELETON_RUNTIME_RULES = [
   'No Remotion package import is allowed in RP-RENDER-01.',
   'No file download or upload is performed.',
   'No rendered media exists after runRemotionWorkerSkeleton.',
+  'RP-RENDER-02 Cloud Run Job container skeleton must remain mock-only.',
   'Future real rendering must happen only after approved snapshot, reserved credits, timing validation, and QA/fallback gates pass.',
 ] as const

@@ -1,0 +1,14 @@
+# RP-RENDER-02 placeholder only.
+# This file documents the future Remotion render worker image shape.
+# Do not build or deploy this as a production render worker yet.
+# Remotion and @remotion/renderer are intentionally not installed in this repo.
+# No media rendering, provider calls, GCS access, Secret Manager reads, or Cloud Run deployment happens here.
+
+# Future shape, intentionally commented:
+# FROM node:22-slim
+# WORKDIR /app
+# COPY package*.json ./
+# RUN npm ci --omit=dev
+# COPY dist-server ./dist-server
+# ENV SERVER_RUNTIME_MODE=mock
+# CMD ["node", "dist-server/remotion-worker-entrypoint.js"]

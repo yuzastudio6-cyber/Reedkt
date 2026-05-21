@@ -1,8 +1,8 @@
-# RP-RENDER-02 Remotion Worker Container Skeleton
+# Remotion Mock Render Worker
 
-This folder documents the future Cloud Run Job container for ReeditPro preview and export rendering.
+This folder contains the mock-only Cloud Run Job container skeleton for future ReeditPro preview and export rendering.
 
-It is mock-only. It does not install Remotion, run `@remotion/renderer`, render media, read secrets, access real GCS objects, call providers, spend credits, or deploy Cloud Run.
+RP-RENDER-03A proves container build, deploy, job payload validation, and sanitized output wiring. It does not render media, install Remotion, import `@remotion/renderer`, access real GCS objects, read Secret Manager values, call providers, spend credits, or deploy automatically.
 
 ## Planned Cloud Run Jobs
 
@@ -13,7 +13,101 @@ It is mock-only. It does not install Remotion, run `@remotion/renderer`, render 
 
 Cloud Run Job is the future render worker runtime. It is not an always-on VM and not a frontend render path.
 
-## Required Future Environment Variables
+## Build Locally
+
+```bash
+npm run build:remotion-worker:mock
+npm run start:remotion-worker:mock
+```
+
+The local start command uses an embedded mock preview payload when `RENDER_WORKER_PAYLOAD` is not set.
+
+## Build Mock Image
+
+US image:
+
+```bash
+docker build \
+  -f scripts/render/remotion-worker/Dockerfile.mock \
+  -t us-east1-docker.pkg.dev/reeditpro/reeditpro-runtime/remotion-render-worker:mock \
+  .
+```
+
+Europe image:
+
+```bash
+docker build \
+  -f scripts/render/remotion-worker/Dockerfile.mock \
+  -t europe-west1-docker.pkg.dev/reeditpro/reeditpro-runtime/remotion-render-worker:mock \
+  .
+```
+
+## Deploy Mock Job Manually
+
+US:
+
+```bash
+REEDITPRO_ALLOW_MOCK_RENDER_JOB_DEPLOY=mock-only \
+PROJECT_ID=reeditpro \
+RUNTIME_REGION=us-east1 \
+bash scripts/render/remotion-worker/deploy-mock-cloud-run-job.example.sh
+```
+
+Europe:
+
+```bash
+REEDITPRO_ALLOW_MOCK_RENDER_JOB_DEPLOY=mock-only \
+PROJECT_ID=reeditpro \
+RUNTIME_REGION=europe-west1 \
+bash scripts/render/remotion-worker/deploy-mock-cloud-run-job.example.sh
+```
+
+The script builds and pushes one region at a time, creates or updates `remotion-render-worker-job`, and does not execute the job by default.
+
+## Execute A Manual Mock Test
+
+US payload:
+
+```bash
+PAYLOAD="$(tr -d '\n' < scripts/render/remotion-worker/payloads/mock-preview-render.us-east1.json)"
+gcloud run jobs update remotion-render-worker-job \
+  --project reeditpro \
+  --region us-east1 \
+  --set-env-vars "^@@^RENDER_WORKER_PAYLOAD=${PAYLOAD}@@SERVER_RUNTIME_MODE=mock"
+
+gcloud run jobs execute remotion-render-worker-job \
+  --project reeditpro \
+  --region us-east1 \
+  --wait
+```
+
+Europe payload:
+
+```bash
+PAYLOAD="$(tr -d '\n' < scripts/render/remotion-worker/payloads/mock-preview-render.europe-west1.json)"
+gcloud run jobs update remotion-render-worker-job \
+  --project reeditpro \
+  --region europe-west1 \
+  --set-env-vars "^@@^RENDER_WORKER_PAYLOAD=${PAYLOAD}@@SERVER_RUNTIME_MODE=mock"
+
+gcloud run jobs execute remotion-render-worker-job \
+  --project reeditpro \
+  --region europe-west1 \
+  --wait
+```
+
+## Verify Logs
+
+```bash
+gcloud logging read 'resource.type="cloud_run_job" AND resource.labels.job_name="remotion-render-worker-job"' \
+  --project reeditpro \
+  --limit 20 \
+  --format json
+```
+
+Logs should contain sanitized JSON only. They must not contain secrets, signed URLs, provider keys, raw media paths beyond canonical object paths, or rendered media bytes.
+
+## Required Future Env Vars
 
 ```text
 PROJECT_ID=reeditpro
@@ -26,7 +120,7 @@ GCS_EXPORTS_BUCKET
 GCS_WORKER_TEMP_BUCKET
 ```
 
-These are reference names and bucket variables only. Do not commit raw Supabase keys, signed URLs, provider keys, or service account credentials.
+These are references only. The mock worker does not read Secret Manager values or access GCS.
 
 ## Render Gate Rules
 
@@ -35,10 +129,14 @@ These are reference names and bucket variables only. Do not commit raw Supabase 
 - Final export requires `previewApproved`, `qaPassed`, and `exportApproved`.
 - Render jobs must also respect approved snapshot, credit reservation, timing validation, asset readiness, QA, and export gates.
 
-## Files
+## Do Not Do Yet
 
-- `Dockerfile.placeholder` is a commented future image shape only.
-- `deploy-cloud-run-job.example.sh` is an example-only deployment script and must not be run by automation.
-- `run-local-mock-render-worker.example.sh` is an example-only local mock runner sketch.
+- Do not install `remotion` or `@remotion/renderer`.
+- Do not run Chromium, FFmpeg, Remotion, or media rendering.
+- Do not read Secret Manager values.
+- Do not download or upload real media.
+- Do not call providers.
+- Do not execute production renders.
+- Do not bypass approval, credit, timing validation, QA, or export gates.
 
-RP-RENDER-02 stops at worker/container skeleton readiness. Real Remotion execution remains a later backend worker milestone.
+Real rendering remains future RP-RENDER-03B or RP-RENDER-04 work.

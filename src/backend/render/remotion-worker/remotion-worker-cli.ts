@@ -89,7 +89,7 @@ function readRuntimeEnv(): RemotionWorkerCliEnv {
 
   return {
     PROJECT_ID: env.PROJECT_ID,
-    RUNTIME_REGION: env.RUNTIME_REGION === 'europe-west1' ? 'europe-west1' : 'us-east1',
+    RUNTIME_REGION: env.RUNTIME_REGION,
     SERVER_RUNTIME_MODE: env.SERVER_RUNTIME_MODE === 'real' || env.SERVER_RUNTIME_MODE === 'disabled'
       ? env.SERVER_RUNTIME_MODE
       : env.SERVER_RUNTIME_MODE === 'mock'

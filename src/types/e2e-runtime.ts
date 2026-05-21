@@ -1,4 +1,5 @@
 import type { ID, ISODateString, JSONObject } from './shared'
+import type { UploadPurpose as BaseUploadPurpose } from './upload'
 
 export type ApprovedPlanSnapshotRuntimeStatus =
   | 'draft'
@@ -8,18 +9,9 @@ export type ApprovedPlanSnapshotRuntimeStatus =
   | 'cancelled'
   | 'failed'
 
-export type RuntimeUploadPurpose =
-  | 'source_media'
-  | 'reference_media'
-  | 'generated_asset'
-  | 'preview_render'
-  | 'final_export'
-  | 'thumbnail'
-  | 'audio_asset'
-  | 'profile_asset'
-  | 'brand_asset'
-  | 'qa_artifact'
-  | 'worker_temp'
+export type RuntimeUploadPurpose = BaseUploadPurpose
+
+export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
 
 export type UploadIntentStatus =
   | 'planned'
@@ -32,10 +24,13 @@ export type UploadIntentStatus =
   | 'failed'
 
 export type StorageObjectPurpose =
+  | BaseUploadPurpose
   | 'source_media'
   | 'reference_media'
   | 'generated_asset'
   | 'processed_media'
+  | 'preview'
+  | 'export'
   | 'preview_render'
   | 'final_export'
   | 'thumbnail'
@@ -44,6 +39,25 @@ export type StorageObjectPurpose =
   | 'audio_asset'
   | 'caption_asset'
   | 'other'
+
+export interface UploadTarget {
+  uploadMethod: 'PUT' | 'POST'
+  uploadUrl: string
+  uploadHeaders: Record<string, string>
+  expiresAt: ISODateString
+  bucketName: string
+  objectPath: string
+  temporary: true
+}
+
+export interface DownloadTarget {
+  downloadMethod: 'GET'
+  downloadUrl: string
+  expiresAt: ISODateString
+  bucketName: string
+  objectPath: string
+  temporary: true
+}
 
 export type StorageObjectStatus =
   | 'planned'
@@ -92,6 +106,190 @@ export type ToolRuntimeCheckStatus =
   | 'failed'
   | 'missing'
   | 'blocked'
+
+export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
+
+export type WorkerType =
+  | 'noop_worker'
+  | 'approved_snapshot_readiness_worker'
+  | 'source_media_readiness_worker'
+  | 'media_probe_worker'
+  | 'basic_render_smoke_worker'
+  | 'render_worker'
+  | 'sfx_worker'
+  | 'provider_gateway_worker'
+  | 'quality_check_worker'
+
+export type WorkerToolName = ToolRuntimeName
+
+export type ToolReadinessStatus = ToolRuntimeCheckStatus | 'available' | 'unavailable'
+
+export interface ToolReadinessCheckResult {
+  toolName: WorkerToolName
+  status: ToolReadinessStatus
+  required: boolean
+  version?: string
+  binaryPath?: string
+  capabilities: string[]
+  summary: string
+  checkedAt: ISODateString
+  durationMs: number
+  errorCode?: string
+  mockOnly?: boolean
+}
+
+export interface WorkerGateCheckResult {
+  gate: string
+  passed: boolean
+  required: boolean
+  message: string
+  details?: JSONObject
+}
+
+export interface WorkerJobClaimRequest {
+  workspaceId: ID
+  projectId?: ID
+  jobId: ID
+  workerType: WorkerType | string
+  workerInstanceId: string
+  idempotencyKey: string
+  leaseExpiresAt?: ISODateString
+  dryRun?: boolean
+}
+
+export interface WorkerJobClaimResponse {
+  claim?: WorkerJobClaimRecord
+  gateChecks: WorkerGateCheckResult[]
+  toolChecks: ToolReadinessCheckResult[]
+  warnings: string[]
+}
+
+export interface WorkerJobHeartbeatRequest {
+  jobId: ID
+  claimId?: ID
+  workerInstanceId?: string
+}
+
+export interface WorkerJobReleaseRequest {
+  jobId: ID
+  claimId?: ID
+  workerInstanceId?: string
+  claimStatus: Exclude<WorkerJobClaimStatus, 'active'>
+}
+
+export interface WorkerEventPayload {
+  eventName: string
+  jobId: ID
+  workerType: string
+  workerInstanceId?: string
+  message: string
+  progressPercent?: number
+  payloadJson?: JSONObject
+  createdAt: ISODateString
+}
+
+export interface MediaProbeResult {
+  mediaAssetId?: ID
+  storageObjectRecordId?: ID
+  durationSeconds?: number
+  width?: number
+  height?: number
+  codecName?: string
+  formatName?: string
+  sizeBytes?: number
+  streamCount: number
+  probeTool: 'ffprobe'
+  mockOnly?: boolean
+}
+
+export interface MediaProbeSummary {
+  durationSeconds?: number
+  width?: number
+  height?: number
+  videoCodec?: string
+  audioCodec?: string
+  formatName?: string
+  sizeBytes?: number
+  streamCount: number
+  rawSummary: JSONObject
+}
+
+export interface BasicPreviewRenderOutput {
+  durationSeconds: number
+  sizeBytes: number
+  checksumSha256: string
+  commandSummary: JSONObject
+}
+
+export type RenderSmokeStatus = 'preview_ready' | 'skipped' | 'failed'
+
+export interface RenderSmokeQAResult {
+  qaReportId: ID
+  status: 'passed' | 'failed' | 'skipped'
+  checks: string[]
+  warnings: string[]
+}
+
+export interface BasicRenderSmokeRequest {
+  workspaceId?: ID
+  projectId?: ID
+  sourceStorageObjectId: ID
+  sourceStorageObject?: {
+    id: ID
+    mediaAssetId: ID
+    bucketName: string
+    objectPath: string
+    mimeType?: string
+    sizeBytes?: number
+    checksumSha256?: string
+  }
+  approvedPlanSnapshotId: ID
+  creditReservationId: ID
+  workerInstanceId?: string
+  strict?: boolean
+}
+
+export interface BasicRenderSmokeResponse {
+  ok: boolean
+  status: RenderSmokeStatus
+  renderId?: ID
+  renderJobId: ID
+  sourceMediaAssetId?: ID
+  sourceStorageObjectId?: ID
+  previewStorageObjectId?: ID
+  qaReportId?: ID
+  outputBucketName?: string
+  outputObjectPath?: string
+  durationSeconds?: number
+  sizeBytes?: number
+  checksumSha256?: string
+  mediaProbe?: MediaProbeSummary
+  previewRender?: BasicPreviewRenderOutput
+  warnings: string[]
+  error?: {
+    code: string
+    message: string
+  }
+}
+
+export interface WorkerExecutionResult {
+  jobId: ID
+  workerType: string
+  workerInstanceId: string
+  status: 'completed' | 'failed' | 'blocked' | 'dry_run'
+  claim?: WorkerJobClaimRecord
+  gateChecks: WorkerGateCheckResult[]
+  toolChecks: ToolReadinessCheckResult[]
+  events: WorkerEventPayload[]
+  output?: JSONObject | MediaProbeResult | BasicRenderSmokeResponse
+  error?: {
+    code: string
+    message: string
+  }
+  warnings: string[]
+  startedAt: ISODateString
+  completedAt: ISODateString
+}
 
 export type ProviderRequestAttemptStatus =
   | 'queued'
@@ -198,6 +396,23 @@ export interface SignedUrlEventRecord {
   expiresAt: ISODateString
   createdAt: ISODateString
   metadataJson: JSONObject
+}
+
+export interface LocalObjectUploadResponse {
+  uploadIntentId: ID
+  bucketName: string
+  objectPath: string
+  mimeType?: string
+  sizeBytes: number
+  checksumSha256: string
+  status: 'uploaded'
+  temporaryMetadataOnly: boolean
+}
+
+export interface StorageObjectRecordResponse {
+  storageObjectRecord: StorageObjectRecord
+  canonicalOnly: true
+  warnings: string[]
 }
 
 export interface WorkerJobClaimRecord {

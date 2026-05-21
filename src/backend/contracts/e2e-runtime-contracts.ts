@@ -1,20 +1,34 @@
 import type {
   ApiIdempotencyKeyRecord,
   ApprovedPlanSnapshotRuntimeRecord,
+  DownloadTarget,
+  LocalObjectUploadResponse,
   ProviderRequestAttemptRecord,
   ProviderWebhookEventRecord,
   RuntimeRegion,
-  RuntimeUploadPurpose,
   SignedUrlEventRecord,
   SignedUrlPurpose,
   StorageObjectRecord,
-  StorageObjectPurpose,
+  UploadPurpose,
+  UploadTarget,
   ToolRuntimeCheckRecord,
   ToolRuntimeCheckStatus,
   ToolRuntimeName,
   UploadIntentRecord,
   WorkerJobClaimRecord,
   WorkerJobClaimStatus,
+  MediaProbeResult,
+  ToolReadinessCheckResult,
+  WorkerExecutionResult,
+  WorkerGateCheckResult,
+  WorkerRuntimeMode,
+  WorkerType,
+  BasicRenderSmokeRequest,
+  BasicRenderSmokeResponse,
+  BasicPreviewRenderOutput,
+  MediaProbeSummary,
+  RenderSmokeQAResult,
+  RenderSmokeStatus,
 } from '../../types'
 import type { JSONObject } from '../../types/shared'
 
@@ -59,40 +73,80 @@ export interface CreateUploadIntentRequest {
   workspaceId: string
   projectId: string
   chatSessionId?: string
-  requestedByUserId: string
-  uploadPurpose: RuntimeUploadPurpose
-  targetBucket: string
-  targetPath: string
-  originalFileName?: string
-  mimeType?: string
+  uploadPurpose: UploadPurpose
+  originalFileName: string
+  mimeType: string
   expectedSizeBytes?: number
   checksumSha256?: string
-  expiresAt: string
   idempotencyKey?: string
 }
 
 export interface CreateUploadIntentResponse {
   uploadIntent: UploadIntentRecord
+  uploadTarget: UploadTarget
+  signedUrlEvent?: SignedUrlEventRecord
+  warnings: string[]
+}
+
+export interface LocalObjectUploadRequest {
+  uploadIntentId: string
+  mimeType?: string
+}
+
+export interface LocalObjectUploadResult {
+  localObjectUpload: LocalObjectUploadResponse
   warnings: string[]
 }
 
 export interface FinalizeUploadIntentRequest {
   workspaceId: string
-  projectId: string
   uploadIntentId: string
-  mediaAssetId?: string
-  storageObjectPurpose: StorageObjectPurpose
-  bucketName: string
-  objectPath: string
-  mimeType?: string
-  sizeBytes?: number
   checksumSha256?: string
-  region?: RuntimeRegion
+  sizeBytes?: number
 }
 
 export interface FinalizeUploadIntentResponse {
   uploadIntent: UploadIntentRecord
   storageObjectRecord: StorageObjectRecord
+  mediaAsset: Record<string, unknown>
+  warnings: string[]
+}
+
+export interface CreateDownloadTargetRequest {
+  workspaceId: string
+  storageObjectRecordId: string
+  urlPurpose?: SignedUrlPurpose
+}
+
+export interface CreateDownloadTargetResponse {
+  downloadTarget: DownloadTarget
+  signedUrlEvent?: SignedUrlEventRecord
+  warnings: string[]
+}
+
+export interface StorageObjectRecordResponse {
+  storageObjectRecord: StorageObjectRecord
+  canonicalOnly: true
+  warnings: string[]
+}
+
+export interface AttachFinalizedClipsRequest {
+  workspaceId: string
+  projectId?: string
+  chatSessionId: string
+  mediaAssetIds: string[]
+}
+
+export interface AttachFinalizedClipsResponse {
+  attachmentBatch: {
+    id: string
+    workspaceId: string
+    projectId?: string
+    chatSessionId: string
+    mediaAssetIds: string[]
+    sourceOrder: Array<{ mediaAssetId: string; order: number }>
+    mockOnly?: boolean
+  }
   warnings: string[]
 }
 
@@ -125,6 +179,72 @@ export interface ClaimWorkerJobRequest {
 export interface ClaimWorkerJobResponse {
   claim: WorkerJobClaimRecord
   canClaim: boolean
+  warnings: string[]
+}
+
+export interface RunToolReadinessCheckRequest {
+  workspaceId: string
+  workerType?: WorkerType | string
+  toolName?: ToolRuntimeName
+  recordResults?: boolean
+}
+
+export interface RunToolReadinessCheckResponse {
+  runtimeMode: WorkerRuntimeMode
+  checks: ToolReadinessCheckResult[]
+  missingRequiredTools: string[]
+  warnings: string[]
+}
+
+export interface RunWorkerJobRequest {
+  workspaceId: string
+  projectId?: string
+  workerType: WorkerType | string
+  workerInstanceId?: string
+  idempotencyKey: string
+  dryRun?: boolean
+  jobType?: string
+  approvedPlanSnapshotId?: string
+  creditReservationId?: string
+  mediaAssetId?: string
+  storageObjectRecordId?: string
+  payloadJson?: JSONObject
+}
+
+export interface RunWorkerJobResponse {
+  result: WorkerExecutionResult
+}
+
+export interface ProbeMediaJobRequest extends RunWorkerJobRequest {
+  mediaAssetId?: string
+  storageObjectRecordId?: string
+}
+
+export interface ProbeMediaJobResponse {
+  result: WorkerExecutionResult
+  mediaProbe?: MediaProbeResult
+}
+
+export interface RunBasicRenderSmokeRequest extends BasicRenderSmokeRequest {
+  renderJobId: string
+}
+
+export interface RunBasicRenderSmokeResponse {
+  result: WorkerExecutionResult
+  renderSmoke?: BasicRenderSmokeResponse
+}
+
+export type {
+  BasicPreviewRenderOutput,
+  BasicRenderSmokeRequest,
+  BasicRenderSmokeResponse,
+  MediaProbeSummary,
+  RenderSmokeQAResult,
+  RenderSmokeStatus,
+}
+
+export interface WorkerGateCheckResponse {
+  gateChecks: WorkerGateCheckResult[]
   warnings: string[]
 }
 

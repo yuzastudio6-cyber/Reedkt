@@ -72,6 +72,18 @@ export function buildAudioAssetPath(input: StoragePathBuildInput): string {
   return buildProjectAssetPath(input, 'audio')
 }
 
+export function buildProcessedMediaPath(input: StoragePathBuildInput): string {
+  return buildProjectAssetPath(input, 'processed')
+}
+
+export function buildQaArtifactPath(input: StoragePathBuildInput): string {
+  return buildProjectAssetPath(input, 'qa-artifacts')
+}
+
+export function buildWorkerTempPath(input: StoragePathBuildInput): string {
+  return buildProjectAssetPath(input, 'worker-temp')
+}
+
 export function buildProfileAssetPath(input: StoragePathBuildInput): string {
   return createStorageObjectKey([
     'workspace',
@@ -103,6 +115,12 @@ export function buildStoragePathForUploadPurpose(
       return buildReferenceMediaPath(input)
     case 'generated_asset':
       return buildGeneratedAssetPath(input)
+    case 'processed_media':
+      return buildProcessedMediaPath(input)
+    case 'preview':
+      return buildPreviewRenderPath(input)
+    case 'export':
+      return buildFinalExportPath(input)
     case 'preview_render':
       return buildPreviewRenderPath(input)
     case 'final_export':
@@ -115,6 +133,10 @@ export function buildStoragePathForUploadPurpose(
       return buildProfileAssetPath(input)
     case 'brand_asset':
       return buildBrandAssetPath(input)
+    case 'qa_artifact':
+      return buildQaArtifactPath(input)
+    case 'worker_temp':
+      return buildWorkerTempPath(input)
   }
 }
 

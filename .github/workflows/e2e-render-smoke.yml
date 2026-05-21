@@ -1,0 +1,78 @@
+name: RP E2E Render Smoke
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e-render-smoke:
+    runs-on: ubuntu-latest
+    env:
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "true"
+      E2E_RUNTIME_MODE: local
+      WORKER_RUNTIME_MODE: local
+      STORAGE_MODE: local
+      STRICT_PROMPT6_TOOL_READINESS: "true"
+      STRICT_RENDER_SMOKE: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install FFmpeg and FFprobe
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Verify FFmpeg and FFprobe
+        run: |
+          ffmpeg -version
+          ffprobe -version
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Typecheck API
+        run: npm run typecheck:api
+
+      - name: Smoke API
+        run: npm run smoke:api
+
+      - name: Smoke upload
+        run: npm run smoke:upload
+
+      - name: Smoke tools
+        run: npm run smoke:tools
+
+      - name: Smoke worker
+        run: npm run smoke:worker
+
+      - name: Tool summary
+        run: npm run tools:summary
+
+      - name: Prompt 6 readiness
+        run: npm run smoke:prompt6-ready
+
+      - name: Strict render smoke
+        run: npm run smoke:render:strict
+
+      - name: Render smoke test
+        run: npm run smoke:render:test
+
+      - name: Cleanup local smoke storage
+        if: always()
+        run: rm -rf .reeditpro-local-storage .reeditpro-local-storage-smoke

@@ -52,6 +52,21 @@ npm run docker:worker:build
 npm run docker:worker:render-smoke
 ```
 
+## Running Prompt 6 Through GitHub Actions
+
+This branch includes `.github/workflows/e2e-render-smoke.yml` so Prompt 6 can be validated through CI without requiring FFmpeg and FFprobe on every local host.
+
+The workflow runs on `pull_request` and `workflow_dispatch`, installs FFmpeg/FFprobe on `ubuntu-latest`, verifies `ffmpeg -version` and `ffprobe -version`, then runs the strict render smoke path:
+
+```bash
+npm run smoke:render:strict
+npm run smoke:render:test
+```
+
+Local FFmpeg is optional if you rely on CI for strict validation. You can still run `npm run smoke:render:strict` locally after installing FFmpeg and FFprobe on your machine.
+
+The CI path remains no-AI and no-provider: it does not use Remotion, call provider APIs, deploy Cloud Run, add secrets, or run Stripe.
+
 ## Route
 
 ```http

@@ -20,7 +20,22 @@ npm run build:remotion-worker:mock
 npm run start:remotion-worker:mock
 ```
 
-The local start command uses an embedded mock preview payload when `RENDER_WORKER_PAYLOAD` is not set.
+The local start command uses this payload order:
+
+1. `RENDER_WORKER_PAYLOAD` inline JSON.
+2. `RENDER_WORKER_PAYLOAD_PATH` local mock JSON file.
+3. Embedded mock preview payload.
+
+Local payload-file example:
+
+```bash
+npm run build:remotion-worker:mock
+RENDER_WORKER_PAYLOAD_PATH=scripts/render/remotion-worker/payloads/mock-preview-render.us-east1.json \
+SERVER_RUNTIME_MODE=mock \
+npm run start:remotion-worker:mock
+```
+
+`RENDER_WORKER_PAYLOAD_PATH` is only for local mock testing. It does not read media, GCS objects, Secret Manager values, provider keys, or signed URLs.
 
 ## Build Mock Image
 

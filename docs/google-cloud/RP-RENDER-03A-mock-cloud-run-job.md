@@ -8,7 +8,7 @@ It proves container build, deploy, job execution wiring, payload validation, and
 
 ## What The Mock Job Does
 
-- Reads a render payload from `RENDER_WORKER_PAYLOAD`, or uses an embedded mock preview payload.
+- Reads a render payload from `RENDER_WORKER_PAYLOAD`, a local mock JSON path in `RENDER_WORKER_PAYLOAD_PATH`, or an embedded mock preview payload.
 - Requires `renderJobId`, `jobId`, `approvedPlanSnapshotId`, `creditReservationId`, and `idempotencyKey`.
 - Runs the existing Remotion worker preflight and mock manifest path.
 - Prints sanitized JSON only.
@@ -30,6 +30,17 @@ It proves container build, deploy, job execution wiring, payload validation, and
 ```bash
 npm run build:remotion-worker:mock
 ```
+
+Local mock payload file test:
+
+```bash
+npm run build:remotion-worker:mock
+RENDER_WORKER_PAYLOAD_PATH=scripts/render/remotion-worker/payloads/mock-preview-render.us-east1.json \
+SERVER_RUNTIME_MODE=mock \
+npm run start:remotion-worker:mock
+```
+
+`RENDER_WORKER_PAYLOAD_PATH` is a local mock convenience only. It reads a JSON payload file from the local filesystem; it does not read media, GCS objects, Secret Manager values, provider keys, or signed URLs.
 
 US image:
 

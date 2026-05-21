@@ -22,6 +22,7 @@ interface RuntimeGlobalLike {
 
 type RemotionWorkerCliEnv = RemotionWorkerEntrypointEnv & {
   RENDER_WORKER_PAYLOAD?: string
+  RENDER_WORKER_PAYLOAD_PATH?: string
 }
 
 type PayloadParseResult =
@@ -33,6 +34,10 @@ type PayloadParseResult =
       ok: false
       result: RemotionWorkerEntrypointResult
     }
+
+type RuntimeFileSystemModule = {
+  readFile: (path: string, encoding: 'utf8') => Promise<string>
+}
 
 const MOCK_PREVIEW_RENDER_PAYLOAD: Record<string, unknown> = {
   renderJobId: 'render_job_mock_preview_001',
@@ -96,6 +101,7 @@ function readRuntimeEnv(): RemotionWorkerCliEnv {
     GCS_EXPORTS_BUCKET: env.GCS_EXPORTS_BUCKET,
     GCS_WORKER_TEMP_BUCKET: env.GCS_WORKER_TEMP_BUCKET,
     RENDER_WORKER_PAYLOAD: env.RENDER_WORKER_PAYLOAD,
+    RENDER_WORKER_PAYLOAD_PATH: env.RENDER_WORKER_PAYLOAD_PATH,
   }
 }
 
@@ -122,24 +128,50 @@ function createCliBlockedResult(errors: string[], warnings: string[] = []): Remo
   }
 }
 
-function parsePayload(env: RemotionWorkerCliEnv): PayloadParseResult {
-  if (!env.RENDER_WORKER_PAYLOAD) {
-    return {
-      ok: true,
-      payload: MOCK_PREVIEW_RENDER_PAYLOAD,
-    }
-  }
+async function readLocalMockPayload(path: string): Promise<string> {
+  const importRuntimeModule = Function('specifier', 'return import(specifier)') as (
+    specifier: string,
+  ) => Promise<RuntimeFileSystemModule>
+  const fileSystem = await importRuntimeModule('node:fs/promises')
+  return fileSystem.readFile(path, 'utf8')
+}
 
+function parsePayloadJson(payloadJson: string, sourceLabel: string): PayloadParseResult {
   try {
     return {
       ok: true,
-      payload: createRemotionWorkerPayloadFromJson(env.RENDER_WORKER_PAYLOAD),
+      payload: createRemotionWorkerPayloadFromJson(payloadJson),
     }
   } catch {
     return {
       ok: false,
-      result: createCliBlockedResult(['RENDER_WORKER_PAYLOAD must be valid JSON for a render worker payload.']),
+      result: createCliBlockedResult([`${sourceLabel} must be valid JSON for a render worker payload.`]),
     }
+  }
+}
+
+async function parsePayload(env: RemotionWorkerCliEnv): Promise<PayloadParseResult> {
+  if (env.RENDER_WORKER_PAYLOAD) {
+    return parsePayloadJson(env.RENDER_WORKER_PAYLOAD, 'RENDER_WORKER_PAYLOAD')
+  }
+
+  if (env.RENDER_WORKER_PAYLOAD_PATH) {
+    try {
+      const payloadJson = await readLocalMockPayload(env.RENDER_WORKER_PAYLOAD_PATH)
+      return parsePayloadJson(payloadJson, 'RENDER_WORKER_PAYLOAD_PATH')
+    } catch {
+      return {
+        ok: false,
+        result: createCliBlockedResult([
+          'RENDER_WORKER_PAYLOAD_PATH must point to a readable local mock payload JSON file.',
+        ]),
+      }
+    }
+  }
+
+  return {
+    ok: true,
+    payload: MOCK_PREVIEW_RENDER_PAYLOAD,
   }
 }
 
@@ -162,7 +194,9 @@ function setExitCode(result: RemotionWorkerEntrypointResult): void {
   }
 }
 
-export function runRemotionWorkerCli(env: RemotionWorkerCliEnv = readRuntimeEnv()): RemotionWorkerEntrypointResult {
+export async function runRemotionWorkerCli(
+  env: RemotionWorkerCliEnv = readRuntimeEnv(),
+): Promise<RemotionWorkerEntrypointResult> {
   if (shouldBlockRuntimeMode(env)) {
     return createCliBlockedResult(
       ['SERVER_RUNTIME_MODE must be mock for RP-RENDER-03A.'],
@@ -170,7 +204,7 @@ export function runRemotionWorkerCli(env: RemotionWorkerCliEnv = readRuntimeEnv(
     )
   }
 
-  const payloadResult = parsePayload(env)
+  const payloadResult = await parsePayload(env)
   if (!payloadResult.ok) {
     return payloadResult.result
   }
@@ -190,11 +224,11 @@ export function runRemotionWorkerCli(env: RemotionWorkerCliEnv = readRuntimeEnv(
   })
 }
 
-export function executeRemotionWorkerCli(): RemotionWorkerEntrypointResult {
-  const result = runRemotionWorkerCli()
+export async function executeRemotionWorkerCli(): Promise<RemotionWorkerEntrypointResult> {
+  const result = await runRemotionWorkerCli()
   writeSanitizedJson(result)
   setExitCode(result)
   return result
 }
 
-executeRemotionWorkerCli()
+void executeRemotionWorkerCli()

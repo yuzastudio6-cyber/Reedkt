@@ -347,16 +347,35 @@ It creates:
 
 The migration is conservative: authenticated users can read records for workspaces/projects they belong to, while insert/update/delete are reserved for future service-role backend workers. It has not been run locally, in staging, or in production.
 
+### RP-E2E-READY-01: Runtime Database Foundation
+
+`migrations/202605210001_e2e_runtime_readiness_tables.sql` is a local/review-ready runtime foundation for real end-to-end editing tests after staging validation.
+
+It extends the existing `approved_plan_snapshots` table and adds:
+
+- `api_idempotency_keys`
+- `upload_intents`
+- `storage_object_records`
+- `signed_url_events`
+- `worker_job_claims`
+- `tool_runtime_checks`
+- `provider_request_attempts`
+- `provider_webhook_events`
+
+The migration adds helper functions for approved snapshot readiness and worker claim safety, enables RLS on the new tables, and keeps privileged writes reserved for future service-role backend/worker paths. Canonical storage records store bucket and object path only; signed URL audit events do not store the signed URL.
+
+This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
+
 ## Future Migrations
 
 Later migrations should add, in order:
 
-- backend API skeleton and signed storage route wiring
-- RP-TIMING-04 mock StoryTiming planner
-- RP-SFX-04 mock SFX Director service
-- Google Cloud worker scaffolding for generation and rendering
+- local/staging application and verification of RP-E2E-READY-01 runtime readiness tables
+- backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks
+- signed storage route wiring
+- Cloud Run worker scaffolding for generation, media tools, QA, and rendering
 - Stripe and billing integration after the credit service boundary is implemented
 
 ## Local-Only Reminder
 
-These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03, RP-FIX-07, and RP-FIX-11 do not connect to Supabase, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.
+These migrations are local repo artifacts until a later deployment task. RP-DB-03 through RP-TIMING-03, RP-FIX-07, RP-FIX-11, and RP-E2E-READY-01 do not connect to Supabase, run remote migrations, configure remote storage, add real uploads, call AI providers, integrate Stripe, deploy Google Cloud workers, render video, or build mobile app screens.

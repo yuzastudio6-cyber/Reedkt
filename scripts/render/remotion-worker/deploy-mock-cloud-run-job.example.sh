@@ -16,6 +16,7 @@ JOB_NAME="remotion-render-worker-job"
 SERVICE_ACCOUNT="sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com"
 IMAGE="${RUNTIME_REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-runtime/remotion-render-worker:mock"
 PAYLOAD_FILE="scripts/render/remotion-worker/payloads/mock-preview-render.${RUNTIME_REGION}.json"
+DOCKERFILE="scripts/render/remotion-worker/Dockerfile.mock"
 
 case "${RUNTIME_REGION}" in
   us-east1)
@@ -39,14 +40,24 @@ if [[ ! -f "${PAYLOAD_FILE}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${DOCKERFILE}" ]]; then
+  echo "Missing Dockerfile: ${DOCKERFILE}"
+  exit 1
+fi
+
 echo "Building and pushing mock render worker image for ${RUNTIME_REGION}:"
 echo "${IMAGE}"
 
-gcloud builds submit \
-  --project "${PROJECT_ID}" \
-  --tag "${IMAGE}" \
-  --file "scripts/render/remotion-worker/Dockerfile.mock" \
+# gcloud builds submit does not support a --file flag for choosing a non-root Dockerfile.
+# Use Docker in Cloud Shell for this mock-only manual deploy path.
+gcloud auth configure-docker "${RUNTIME_REGION}-docker.pkg.dev" --quiet
+
+docker build \
+  -f "${DOCKERFILE}" \
+  -t "${IMAGE}" \
   .
+
+docker push "${IMAGE}"
 
 gcloud run jobs deploy "${JOB_NAME}" \
   --project "${PROJECT_ID}" \

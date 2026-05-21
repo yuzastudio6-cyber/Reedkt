@@ -6,12 +6,17 @@ export type UploadPurpose =
   | 'source_media'
   | 'reference_media'
   | 'generated_asset'
+  | 'processed_media'
+  | 'preview'
+  | 'export'
   | 'preview_render'
   | 'final_export'
   | 'thumbnail'
   | 'audio_asset'
   | 'profile_asset'
   | 'brand_asset'
+  | 'qa_artifact'
+  | 'worker_temp'
 
 export type UploadValidationStatus =
   | 'valid'

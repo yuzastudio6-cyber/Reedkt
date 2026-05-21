@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'dist-server']),
+  globalIgnores(['dist', 'dist-server', 'dist-remotion-worker']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -20,7 +20,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/server/**/*.ts', 'vite.server.config.ts'],
+    files: ['server/**/*.ts', 'src/server/**/*.ts', 'vite.server.config.ts'],
     languageOptions: {
       globals: globals.node,
     },

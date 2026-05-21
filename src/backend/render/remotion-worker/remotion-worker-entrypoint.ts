@@ -8,10 +8,11 @@ import type {
   RemotionRenderWorkerRequest,
 } from '../../cloud/remotion-render-contracts'
 import type { GcsBucketPurpose, GcsObjectLocation } from '../../cloud/gcs-storage-contracts'
+import type { ReeditProRuntimeRegion } from '../../cloud/live-gcp-resource-map'
 
 export interface RemotionWorkerEntrypointEnv {
   PROJECT_ID?: string
-  RUNTIME_REGION?: 'us-east1' | 'europe-west1'
+  RUNTIME_REGION?: string
   SERVER_RUNTIME_MODE?: 'mock' | 'disabled' | 'real'
   SUPABASE_URL_SECRET_NAME?: string
   SUPABASE_SERVICE_ROLE_SECRET_NAME?: string
@@ -36,6 +37,8 @@ const REQUIRED_RENDER_FIELDS = [
   'creditReservationId',
   'idempotencyKey',
 ] as const
+
+const DEFAULT_RUNTIME_REGION: ReeditProRuntimeRegion = 'us-east1'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -115,8 +118,31 @@ function createBlockedResult(errors: string[], warnings: string[]): RemotionWork
   }
 }
 
-function validateEntrypointEnv(env: RemotionWorkerEntrypointEnv): string[] {
+interface EntrypointRuntimeValidation {
+  errors: string[]
+  warnings: string[]
+  runtimeRegion: ReeditProRuntimeRegion
+}
+
+function isRuntimeRegion(value: unknown): value is ReeditProRuntimeRegion {
+  return value === 'us-east1' || value === 'europe-west1'
+}
+
+function runtimeRegionFromPayload(payload: Record<string, unknown>): unknown {
+  if (!isRecord(payload.metadata)) {
+    return undefined
+  }
+
+  return payload.metadata.runtimeRegion
+}
+
+function validateEntrypointRuntime(
+  env: RemotionWorkerEntrypointEnv,
+  payload: Record<string, unknown>,
+): EntrypointRuntimeValidation {
+  const errors: string[] = []
   const warnings: string[] = []
+  let runtimeRegion: ReeditProRuntimeRegion = DEFAULT_RUNTIME_REGION
 
   if (env.PROJECT_ID && env.PROJECT_ID !== 'reeditpro') {
     warnings.push('PROJECT_ID should be reeditpro for the planned production render worker.')
@@ -126,7 +152,28 @@ function validateEntrypointEnv(env: RemotionWorkerEntrypointEnv): string[] {
     warnings.push('RP-RENDER-02 supports mock mode only; real render transport remains future work.')
   }
 
-  return warnings
+  if (env.RUNTIME_REGION) {
+    if (isRuntimeRegion(env.RUNTIME_REGION)) {
+      runtimeRegion = env.RUNTIME_REGION
+    } else {
+      errors.push('RUNTIME_REGION must be us-east1 or europe-west1.')
+    }
+
+    return { errors, warnings, runtimeRegion }
+  }
+
+  const payloadRuntimeRegion = runtimeRegionFromPayload(payload)
+  if (payloadRuntimeRegion === undefined) {
+    return { errors, warnings, runtimeRegion }
+  }
+
+  if (isRuntimeRegion(payloadRuntimeRegion)) {
+    runtimeRegion = payloadRuntimeRegion
+  } else {
+    warnings.push('payload.metadata.runtimeRegion must be us-east1 or europe-west1 when provided; defaulting to us-east1.')
+  }
+
+  return { errors, warnings, runtimeRegion }
 }
 
 export function createRemotionWorkerPayloadFromJson(json: string): Record<string, unknown> {
@@ -141,8 +188,13 @@ export function runRemotionWorkerEntrypoint(input: {
   env?: RemotionWorkerEntrypointEnv
   payload: Record<string, unknown>
 }): RemotionWorkerEntrypointResult {
-  const envWarnings = validateEntrypointEnv(input.env ?? {})
+  const runtimeValidation = validateEntrypointRuntime(input.env ?? {}, input.payload)
+  const envWarnings = runtimeValidation.warnings
   const missingFields = REQUIRED_RENDER_FIELDS.filter((field) => !stringFromRecord(input.payload, field))
+
+  if (runtimeValidation.errors.length > 0) {
+    return createBlockedResult(runtimeValidation.errors, envWarnings)
+  }
 
   if (missingFields.length > 0) {
     return createBlockedResult(
@@ -152,7 +204,9 @@ export function runRemotionWorkerEntrypoint(input: {
   }
 
   const request = buildRequestFromPayload(input.payload)
-  const result = runRemotionWorkerSkeleton(request)
+  const result = runRemotionWorkerSkeleton(request, {
+    runtimeRegion: runtimeValidation.runtimeRegion,
+  })
   const outputLocation = result.outputLocation ?? result.manifest?.outputLocation
   const sanitizedOutputLocation: JSONObject | null = outputLocation
     ? {
@@ -191,6 +245,7 @@ export function runRemotionWorkerEntrypoint(input: {
       noGcsAccess: true,
       noSecretRead: true,
       noProviderCall: true,
+      runtimeRegion: runtimeValidation.runtimeRegion,
       manifestId: result.manifest?.id ?? null,
       summary: result.summary,
     },

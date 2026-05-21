@@ -35,34 +35,49 @@ const MAX_BYTES_BY_PURPOSE: Record<UploadPurpose, number> = {
   source_media: 2 * GB,
   reference_media: GB,
   generated_asset: GB,
+  processed_media: GB,
+  preview: 2 * GB,
+  export: 5 * GB,
   preview_render: 2 * GB,
   final_export: 5 * GB,
   thumbnail: 20 * MB,
   audio_asset: 200 * MB,
   profile_asset: 20 * MB,
   brand_asset: 20 * MB,
+  qa_artifact: 500 * MB,
+  worker_temp: 5 * GB,
 }
 
 const ALLOWED_MIME_BY_PURPOSE: Record<UploadPurpose, string[]> = {
   source_media: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES],
   reference_media: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
   generated_asset: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
+  processed_media: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
+  preview: [...ALL_VIDEO_MIME_TYPES],
+  export: [...ALL_VIDEO_MIME_TYPES],
   preview_render: [...ALL_VIDEO_MIME_TYPES],
   final_export: [...ALL_VIDEO_MIME_TYPES],
   thumbnail: [...ALL_IMAGE_MIME_TYPES],
   audio_asset: [...ALL_AUDIO_MIME_TYPES],
   profile_asset: [...ALL_IMAGE_MIME_TYPES],
   brand_asset: [...ALL_IMAGE_MIME_TYPES],
+  qa_artifact: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
+  worker_temp: ['application/octet-stream'],
 }
 
 const PROJECT_REQUIRED_PURPOSES = new Set<UploadPurpose>([
   'source_media',
   'reference_media',
   'generated_asset',
+  'processed_media',
+  'preview',
+  'export',
   'preview_render',
   'final_export',
   'thumbnail',
   'audio_asset',
+  'qa_artifact',
+  'worker_temp',
 ])
 
 export function getAllowedMimeTypesForPurpose(purpose: UploadPurpose): string[] {

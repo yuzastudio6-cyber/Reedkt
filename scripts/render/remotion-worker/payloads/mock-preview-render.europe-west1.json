@@ -1,0 +1,41 @@
+{
+  "renderJobId": "render_job_mock_eu_preview_001",
+  "jobId": "job_mock_eu_render_001",
+  "workspaceId": "workspace_mock_eu_001",
+  "projectId": "project_mock_eu_001",
+  "approvedPlanSnapshotId": "snapshot_mock_eu_001",
+  "editPlanId": "edit_plan_mock_eu_001",
+  "creditReservationId": "credit_reservation_mock_eu_001",
+  "renderType": "preview",
+  "renderQualityLevel": "draft",
+  "outputFormat": "mp4",
+  "width": 1080,
+  "height": 1920,
+  "frameRate": 30,
+  "durationSeconds": 12,
+  "timelineSpec": {
+    "masterTimingPlanId": "master_timing_mock_eu_001",
+    "frameLayoutPlanId": "frame_layout_mock_eu_001",
+    "durationFrames": 360,
+    "layers": [
+      {
+        "layerId": "layer_mock_eu_source_video_001",
+        "layerType": "source_video",
+        "startFrame": 0,
+        "endFrame": 360,
+        "zIndex": 0
+      }
+    ]
+  },
+  "sourceAssetLocations": [],
+  "generatedAssetLocations": [],
+  "outputBucketPurpose": "previews",
+  "outputObjectPath": "workspaces/workspace_mock_eu_001/projects/project_mock_eu_001/previews/render_preview_mock_eu_001.mp4",
+  "idempotencyKey": "render-preview-project_mock_eu_001-snapshot_mock_eu_001-v1",
+  "metadata": {
+    "mockOnly": true,
+    "runtimeRegion": "europe-west1",
+    "timingValidationStatus": "passed",
+    "qaFallbackStatus": "passed"
+  }
+}

@@ -1,0 +1,71 @@
+name: RP E2E Staging Supabase Read-Only Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_table_check:
+        description: "Run live table readiness check"
+        required: true
+        default: true
+        type: boolean
+      run_rpc_check:
+        description: "Run live service-role RPC readiness check"
+        required: true
+        default: true
+        type: boolean
+      run_rls_audit:
+        description: "Run live RLS/auth audit"
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  staging-supabase-readonly-validation:
+    runs-on: ubuntu-latest
+    env:
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "false"
+      E2E_RUNTIME_MODE: local
+      WORKER_RUNTIME_MODE: local
+      STORAGE_MODE: local
+      SUPABASE_E2E_SMOKE_MODE: live
+      SUPABASE_E2E_ALLOW_WRITES: "false"
+      SUPABASE_E2E_CLEANUP: "true"
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Typecheck API
+        run: npm run typecheck:api
+
+      - name: Supabase live env check
+        run: npm run smoke:supabase:live-env
+
+      - name: Supabase live migration status
+        run: npm run smoke:supabase:live-migration-status
+
+      - name: Supabase table readiness
+        if: ${{ inputs.run_table_check }}
+        run: npm run smoke:supabase:tables
+
+      - name: Supabase RPC readiness
+        if: ${{ inputs.run_rpc_check }}
+        run: npm run smoke:supabase:rpcs
+
+      - name: Supabase RLS/auth audit
+        if: ${{ inputs.run_rls_audit }}
+        run: npm run smoke:supabase:rls-auth

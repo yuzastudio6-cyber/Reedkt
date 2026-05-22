@@ -1,0 +1,93 @@
+name: RP E2E Staging Supabase Write Smoke Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_writes:
+        description: "Required safety gate for smoke-tagged staging writes"
+        required: true
+        default: false
+        type: boolean
+      cleanup:
+        description: "Clean up smoke-tagged records from this run"
+        required: true
+        default: true
+        type: boolean
+      smoke_user_id:
+        description: "Existing safe staging Supabase auth user id for write smoke"
+        required: true
+        type: string
+
+jobs:
+  staging-supabase-write-smoke:
+    name: Staging write/read smoke with cleanup
+    runs-on: ubuntu-latest
+    env:
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "false"
+      E2E_RUNTIME_MODE: local
+      WORKER_RUNTIME_MODE: local
+      STORAGE_MODE: local
+      SUPABASE_E2E_SMOKE_MODE: live
+      SUPABASE_E2E_ALLOW_WRITES: ${{ inputs.allow_writes && 'true' || 'false' }}
+      SUPABASE_E2E_CLEANUP: ${{ inputs.cleanup && 'true' || 'false' }}
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_E2E_USER_ID: ${{ inputs.smoke_user_id }}
+    steps:
+      - name: Require explicit staging write approval
+        if: ${{ !inputs.allow_writes }}
+        run: |
+          echo "::error::Set allow_writes=true only after read-only staging validation passes."
+          exit 1
+
+      - name: Require smoke cleanup
+        if: ${{ !inputs.cleanup }}
+        run: |
+          echo "::error::This narrow write gate requires cleanup=true."
+          exit 1
+
+      - name: Require smoke user id
+        run: |
+          if [ -z "${SUPABASE_E2E_USER_ID}" ]; then
+            echo "::error::smoke_user_id must be an existing safe staging Supabase auth user id."
+            exit 1
+          fi
+
+      - name: Checkout readiness branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/reeditpro-e2e-readiness
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Typecheck API
+        run: npm run typecheck:api
+
+      - name: Supabase live env check
+        run: npm run smoke:supabase:live-env
+
+      - name: Supabase live migration status
+        run: npm run smoke:supabase:live-migration-status
+
+      - name: Supabase table readiness
+        run: npm run smoke:supabase:tables
+
+      - name: Supabase RPC readiness
+        run: npm run smoke:supabase:rpcs
+
+      - name: Supabase RLS/auth audit
+        run: npm run smoke:supabase:rls-auth
+
+      - name: Strict live write/read smoke
+        run: npm run smoke:supabase:write:strict

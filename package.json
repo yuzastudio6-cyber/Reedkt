@@ -22,6 +22,7 @@
     "smoke:render:test": "tsx server/smoke/basic-render-smoke-test.ts",
     "smoke:supabase:tables": "tsx server/cli/supabase-table-smoke.ts",
     "smoke:supabase:write": "tsx server/cli/supabase-write-smoke.ts",
+    "smoke:supabase:write:strict": "tsx server/cli/supabase-write-smoke-strict.ts",
     "smoke:e2e:persisted-render": "tsx server/cli/persisted-render-smoke.ts",
     "smoke:supabase:rpcs": "tsx server/cli/supabase-rpc-readiness-smoke.ts",
     "smoke:e2e:rpc-persisted-render": "tsx server/cli/e2e-rpc-persisted-render-smoke.ts",

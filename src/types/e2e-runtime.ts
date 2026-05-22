@@ -221,6 +221,8 @@ export interface BasicPreviewRenderOutput {
   commandSummary: JSONObject
 }
 
+export type PersistedRenderExecutionMode = 'metadata_stub' | 'local_ffmpeg'
+
 export type RenderSmokeStatus = 'preview_ready' | 'skipped' | 'failed'
 
 export interface RenderSmokeQAResult {
@@ -424,6 +426,7 @@ export interface E2ERpcReadinessResult {
 }
 
 export interface E2EPersistedRenderPipelineResult extends E2EServiceRoleRpcBaseResult {
+  renderExecutionMode?: PersistedRenderExecutionMode
   workspaceId?: ID
   projectId?: ID
   sourceStorageObjectId?: ID
@@ -446,6 +449,7 @@ export interface E2EPersistedRenderPipelineResult extends E2EServiceRoleRpcBaseR
   previewRender?: BasicPreviewRenderOutput
   rpcReadiness?: E2ERpcReadinessResult
   events?: E2EJobEventRpcResult[]
+  jobEventIds?: ID[]
 }
 
 export type E2EFullEditingFlowMode = 'local' | 'supabase'

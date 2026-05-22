@@ -14,9 +14,14 @@ import { checkSupabaseTableReadiness, getRequiredSupabaseRuntimeTables, type Tab
 import type { ServiceContext } from '../types'
 import { checkBasicRenderSmokeTools } from './render-smoke-service'
 import {
+  findExactSupabaseSmokeRecordLeftovers,
+  type SupabaseSmokeLeftoverRecord,
+} from './supabase-smoke-leftover-service'
+import {
   createRpcSmokeIdempotencyKey,
   runPersistedRenderPipelineViaRpcs,
 } from './e2e-service-role-runtime-service'
+import type { PersistedRenderExecutionMode } from '../../src/types'
 
 type SmokeStatus = 'passed' | 'failed' | 'skipped'
 type SmokeFailureCode = 'disabled' | 'missing_env' | 'writes_disabled' | 'missing_tables' | 'missing_dependency' | 'constraint_blocked' | 'tool_unavailable' | 'storage_mode_blocked' | 'render_failed' | 'rpc_missing'
@@ -71,6 +76,7 @@ interface SmokeRecordIds {
   jobId?: string
   renderJobId?: string
   workerJobClaimId?: string
+  jobEventIds?: string[]
   renderId?: string
   previewStorageObjectId?: string
   qaReportId?: string
@@ -91,6 +97,13 @@ export interface SupabaseE2ESmokeResult {
     errors: string[]
   }
   renderSmoke?: unknown
+  readback?: {
+    ok: boolean
+    checked: Array<{ table: string; id: string; status?: string }>
+    blockers: string[]
+  }
+  leftoverRecords?: SupabaseSmokeLeftoverRecord[]
+  leftoverQueryErrors?: string[]
   warnings: string[]
   error?: {
     code: SmokeFailureCode
@@ -199,7 +212,11 @@ export async function runSupabaseWriteReadSmoke(context: ServiceContext): Promis
   }
 }
 
-export async function runPersistedBasicRenderSmoke(context: ServiceContext): Promise<SupabaseE2ESmokeResult> {
+export async function runPersistedBasicRenderSmoke(
+  context: ServiceContext,
+  options: { renderExecutionMode?: PersistedRenderExecutionMode } = {},
+): Promise<SupabaseE2ESmokeResult> {
+  const renderExecutionMode = options.renderExecutionMode ?? 'local_ffmpeg'
   const writeCheck = await prepareLiveWriteSmoke(context)
   if ('result' in writeCheck) return writeCheck.result
   if (context.env.storageMode !== 'local') {
@@ -207,18 +224,22 @@ export async function runPersistedBasicRenderSmoke(context: ServiceContext): Pro
   }
 
   const { client, tableReadiness, schema } = writeCheck
-  const tools = await checkBasicRenderSmokeTools(context)
-  if (!tools.ready) {
-    return failureResult(context, 'tool_unavailable', 'Persisted render smoke requires available FFmpeg and FFprobe.', {
-      tableReadiness,
-      warnings: tools.warnings,
-    })
+  const toolWarnings: string[] = []
+  if (renderExecutionMode === 'local_ffmpeg') {
+    const tools = await checkBasicRenderSmokeTools(context)
+    toolWarnings.push(...tools.warnings)
+    if (!tools.ready) {
+      return failureResult(context, 'tool_unavailable', 'Persisted render smoke requires available FFmpeg and FFprobe.', {
+        tableReadiness,
+        warnings: tools.warnings,
+      })
+    }
   }
 
   const cleanupRecords: CleanupRecord[] = []
   try {
     const records = await createSupabaseSmokeRecordChain(context, client, schema, cleanupRecords, {
-      createFixture: true,
+      createFixture: renderExecutionMode === 'local_ffmpeg',
       includeRenderMetadata: false,
       runtimeMode: 'rpc_prerequisites',
     })
@@ -241,8 +262,9 @@ export async function runPersistedBasicRenderSmoke(context: ServiceContext): Pro
       sourceObjectPath: records.sourceObjectPath,
       sourceSizeBytes: records.sourceSizeBytes,
       sourceChecksumSha256: records.sourceChecksumSha256,
-      idempotencyKey: createRpcSmokeIdempotencyKey(),
+      idempotencyKey: createRpcSmokeIdempotencyKey(records.smokeRunId),
       smokeRunId: records.smokeRunId,
+      renderExecutionMode,
     })
 
     records.creditReservationId = pipeline.creditReservationId
@@ -252,6 +274,7 @@ export async function runPersistedBasicRenderSmoke(context: ServiceContext): Pro
     records.jobId = pipeline.jobId
     records.renderJobId = pipeline.renderJobId
     records.workerJobClaimId = pipeline.workerJobClaimId
+    records.jobEventIds = pipeline.jobEventIds
     records.renderId = pipeline.renderId
     records.previewStorageObjectId = pipeline.previewStorageObjectId
     records.qaReportId = pipeline.qaReportId
@@ -265,7 +288,9 @@ export async function runPersistedBasicRenderSmoke(context: ServiceContext): Pro
 
     registerRpcPersistedRenderCleanup(cleanupRecords, records)
 
+    const readback = await validatePersistedRenderSmokeReadback(client, records, pipeline.renderExecutionMode ?? renderExecutionMode)
     const cleanup = await maybeCleanupSupabaseSmokeRecords(context, client, cleanupRecords)
+    const leftovers = await findExactSupabaseSmokeRecordLeftovers(client, cleanupRecords)
     return {
       ok: true,
       status: 'passed',
@@ -276,12 +301,15 @@ export async function runPersistedBasicRenderSmoke(context: ServiceContext): Pro
       tableReadiness,
       records,
       renderSmoke: pipeline,
+      readback,
       cleanup,
-      warnings: schema.warnings,
+      leftoverRecords: leftovers.leftovers,
+      leftoverQueryErrors: leftovers.queryErrors,
+      warnings: [...schema.warnings, ...leftovers.queryErrors],
     }
   } catch (error) {
     const cleanup = await maybeCleanupSupabaseSmokeRecords(context, client, cleanupRecords)
-    return failedFromError(context, error, tableReadiness, cleanup, [...schema.warnings, ...tools.warnings])
+    return failedFromError(context, error, tableReadiness, cleanup, [...schema.warnings, ...toolWarnings])
   }
 }
 
@@ -294,6 +322,141 @@ export async function cleanupSupabaseSmokeRecords(
   }
 
   return maybeCleanupSupabaseSmokeRecords(context, context.clients.admin, records)
+}
+
+async function validatePersistedRenderSmokeReadback(
+  client: SupabaseClient,
+  records: SmokeRecordIds,
+  renderExecutionMode: PersistedRenderExecutionMode,
+): Promise<NonNullable<SupabaseE2ESmokeResult['readback']>> {
+  const checked: Array<{ table: string; id: string; status?: string }> = []
+  const blockers: string[] = []
+
+  const creditReservation = await requireSmokeReadback(client, 'credit_reservations', records.creditReservationId, blockers, checked)
+  const snapshot = await requireSmokeReadback(client, 'approved_plan_snapshots', records.approvedPlanSnapshotId, blockers, checked)
+  const jobBatch = await requireSmokeReadback(client, 'job_batches', records.jobBatchId, blockers, checked)
+  const job = await requireSmokeReadback(client, 'jobs', records.jobId, blockers, checked)
+  const renderJob = await requireSmokeReadback(client, 'render_jobs', records.renderJobId, blockers, checked)
+  const workerClaim = await requireSmokeReadback(client, 'worker_job_claims', records.workerJobClaimId, blockers, checked)
+  const previewStorage = await requireSmokeReadback(client, 'storage_object_records', records.previewStorageObjectId, blockers, checked)
+  const render = await requireSmokeReadback(client, 'renders', records.renderId, blockers, checked)
+  const qaReport = await requireSmokeReadback(client, 'qa_reports', records.qaReportId, blockers, checked)
+
+  requireStatus(creditReservation, 'credit_reservations', ['reserved', 'active'], blockers)
+  requireStatus(snapshot, 'approved_plan_snapshots', ['approved'], blockers)
+  requireStatus(jobBatch, 'job_batches', ['queued', 'running', 'completed'], blockers)
+  requireStatus(job, 'jobs', ['completed'], blockers)
+  requireStatus(renderJob, 'render_jobs', ['completed'], blockers)
+  requireStatus(workerClaim, 'worker_job_claims', ['completed', 'released'], blockers, 'claim_status')
+  requireStatus(previewStorage, 'storage_object_records', ['ready'], blockers)
+  requireStatus(render, 'renders', ['ready'], blockers)
+  requireStatus(qaReport, 'qa_reports', ['passed', 'warning'], blockers)
+
+  requireFieldEquals(snapshot, 'approved_plan_snapshots.credit_reservation_id', 'credit_reservation_id', records.creditReservationId, blockers)
+  requireFieldEquals(jobBatch, 'job_batches.credit_reservation_id', 'credit_reservation_id', records.creditReservationId, blockers)
+  requireFieldEquals(job, 'jobs.job_batch_id', 'job_batch_id', records.jobBatchId, blockers)
+  requireFieldEquals(renderJob, 'render_jobs.job_id', 'job_id', records.jobId, blockers)
+  requireFieldEquals(renderJob, 'render_jobs.job_batch_id', 'job_batch_id', records.jobBatchId, blockers)
+  requireFieldEquals(render, 'renders.render_job_id', 'render_job_id', records.renderJobId, blockers)
+  requireFieldEquals(render, 'renders.job_id', 'job_id', records.jobId, blockers)
+  requireFieldEquals(qaReport, 'qa_reports.render_id', 'render_id', records.renderId, blockers)
+  requireFieldEquals(qaReport, 'qa_reports.job_id', 'job_id', records.jobId, blockers)
+
+  for (const hashField of ['snapshot_hash', 'plan_hash', 'credit_hash', 'source_sequence_hash', 'timing_hash']) {
+    const value = snapshot?.[hashField]
+    if (typeof value !== 'string' || value.length === 0) {
+      blockers.push(`approved_plan_snapshots.${hashField} was missing.`)
+    }
+  }
+
+  const snapshotJson = readRecordObject(snapshot?.snapshot_json ?? snapshot?.snapshot_payload)
+  const renderPayload = readRecordObject(render?.render_payload)
+  const renderMetadata = readRecordObject(renderPayload?.metadata)
+  if (snapshotJson?.providerCallsEnabled !== false || renderMetadata?.providerCallsEnabled !== false) {
+    blockers.push('Persisted render smoke did not preserve providerCallsEnabled=false.')
+  }
+  if (snapshotJson?.remotionEnabled !== false || renderMetadata?.remotionEnabled !== false) {
+    blockers.push('Persisted render smoke did not preserve remotionEnabled=false.')
+  }
+  if (snapshotJson?.stripeCallsEnabled !== false || renderMetadata?.stripeCallsEnabled !== false) {
+    blockers.push('Persisted render smoke did not preserve stripeCallsEnabled=false.')
+  }
+  if (snapshotJson?.cloudRunCallsEnabled !== false || renderMetadata?.cloudRunCallsEnabled !== false) {
+    blockers.push('Persisted render smoke did not preserve cloudRunCallsEnabled=false.')
+  }
+  if (snapshotJson?.renderExecutionMode !== renderExecutionMode) {
+    blockers.push(`Approved snapshot renderExecutionMode was not ${renderExecutionMode}.`)
+  }
+
+  return { ok: blockers.length === 0, checked, blockers }
+}
+
+async function requireSmokeReadback(
+  client: SupabaseClient,
+  table: string,
+  id: string | undefined,
+  blockers: string[],
+  checked: Array<{ table: string; id: string; status?: string }>,
+): Promise<Record<string, unknown> | undefined> {
+  if (!id) {
+    blockers.push(`${table} id was missing from persisted render smoke result.`)
+    return undefined
+  }
+
+  const { data, error } = await client.from(table).select('*').eq('id', id).maybeSingle()
+  if (error) {
+    blockers.push(`${table}/${id} readback failed: ${error.message}`)
+    return undefined
+  }
+  if (!data) {
+    blockers.push(`${table}/${id} was not readable after persisted render smoke.`)
+    return undefined
+  }
+
+  const record = data as Record<string, unknown>
+  checked.push({
+    table,
+    id,
+    status: typeof record.status === 'string'
+      ? record.status
+      : typeof record.claim_status === 'string'
+        ? record.claim_status
+        : undefined,
+  })
+  return record
+}
+
+function requireStatus(
+  record: Record<string, unknown> | undefined,
+  label: string,
+  allowed: string[],
+  blockers: string[],
+  field = 'status',
+): void {
+  if (!record) return
+  const status = String(record[field] ?? '')
+  if (!allowed.includes(status)) {
+    blockers.push(`${label}.${field} was ${status || 'missing'}, expected ${allowed.join('/')}.`)
+  }
+}
+
+function requireFieldEquals(
+  record: Record<string, unknown> | undefined,
+  label: string,
+  field: string,
+  expected: string | undefined,
+  blockers: string[],
+): void {
+  if (!record || !expected) return
+  if (String(record[field] ?? '') !== expected) {
+    blockers.push(`${label} did not match expected ${expected}.`)
+  }
+}
+
+function readRecordObject(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined
 }
 
 async function prepareLiveWriteSmoke(context: ServiceContext): Promise<{
@@ -1132,6 +1295,9 @@ function registerRpcPersistedRenderCleanup(cleanupRecords: CleanupRecord[], reco
   }
   if (records.workerJobClaimId) {
     cleanupRecords.push({ table: 'worker_job_claims', id: records.workerJobClaimId, owned: true, smokeRunId })
+  }
+  for (const jobEventId of records.jobEventIds ?? []) {
+    cleanupRecords.push({ table: 'job_events', id: jobEventId, owned: true, smokeRunId })
   }
   if (records.renderJobId) {
     cleanupRecords.push({ table: 'render_jobs', id: records.renderJobId, owned: true, smokeRunId })

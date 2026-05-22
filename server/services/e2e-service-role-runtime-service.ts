@@ -10,6 +10,7 @@ import { checkE2EServiceRoleRpcReadiness, type RpcReadinessResult } from '../sup
 import type { ServiceContext } from '../types'
 import { checkBasicRenderSmokeTools } from './render-smoke-service'
 import type {
+  BasicPreviewRenderOutput,
   E2EApprovedSnapshotRpcResult,
   E2ECreditReservationRpcResult,
   E2EJobBatchRenderJobRpcResult,
@@ -20,6 +21,8 @@ import type {
   E2EPreviewRenderRpcResult,
   E2EPreviewStorageObjectRpcResult,
   E2EWorkerClaimRpcResult,
+  MediaProbeSummary,
+  PersistedRenderExecutionMode,
 } from '../../src/types'
 
 type RpcResult =
@@ -72,6 +75,7 @@ export interface RunPersistedRenderPipelineViaRpcsInput {
   idempotencyKey: string
   smokeRunId?: string
   renderType?: string
+  renderExecutionMode?: PersistedRenderExecutionMode
 }
 
 export async function createApprovedSnapshotViaRpc(context: ServiceContext, input: {
@@ -85,6 +89,8 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
   approvedByUserId: string
   sourceStorageObjectId: string
   idempotencyKey: string
+  smokeRunId?: string
+  renderExecutionMode?: PersistedRenderExecutionMode
 }): Promise<E2EApprovedSnapshotRpcResult> {
   return callJsonRpc<E2EApprovedSnapshotRpcResult>(context, 'e2e_create_approved_plan_snapshot', {
     p_workspace_id: input.workspaceId,
@@ -96,12 +102,15 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
     p_credit_reservation_id: input.creditReservationId,
     p_approved_by_user_id: input.approvedByUserId,
     p_snapshot_json: {
-      ...createSmokeMetadata(input.idempotencyKey),
+      ...createSmokeMetadata(input.smokeRunId ?? input.idempotencyKey),
       rpE2eSmoke: true,
       executionMode: 'no_ai_rpc_persisted_render_smoke',
+      renderExecutionMode: input.renderExecutionMode ?? 'local_ffmpeg',
       sourceStorageObjectId: input.sourceStorageObjectId,
       providerCallsEnabled: false,
       remotionEnabled: false,
+      stripeCallsEnabled: false,
+      cloudRunCallsEnabled: false,
     },
     p_plan_hash: `plan-${input.idempotencyKey}`,
     p_credit_hash: `credit-${input.idempotencyKey}`,
@@ -321,12 +330,15 @@ export async function runPersistedRenderPipelineViaRpcs(
     return failedPipelineResult('LOCAL_STORAGE_REQUIRED', 'RPC persisted render smoke requires STORAGE_MODE=local.', { rpcReadiness })
   }
 
-  const tools = await checkBasicRenderSmokeTools(context)
-  if (!tools.ready) {
-    return failedPipelineResult('RENDER_TOOL_UNAVAILABLE', 'RPC persisted render smoke requires available FFmpeg and FFprobe.', {
-      warnings: tools.warnings,
-      rpcReadiness,
-    })
+  const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
+  if (renderExecutionMode === 'local_ffmpeg') {
+    const tools = await checkBasicRenderSmokeTools(context)
+    if (!tools.ready) {
+      return failedPipelineResult('RENDER_TOOL_UNAVAILABLE', 'RPC persisted render smoke requires available FFmpeg and FFprobe.', {
+        warnings: tools.warnings,
+        rpcReadiness,
+      })
+    }
   }
 
   const eventResults: E2EJobEventRpcResult[] = []
@@ -334,6 +346,7 @@ export async function runPersistedRenderPipelineViaRpcs(
   let workerClaimId: string | undefined
   let jobId: string | undefined
   const partialResult: Partial<E2EPersistedRenderPipelineResult> = {
+    renderExecutionMode,
     workspaceId: input.workspaceId,
     projectId: input.projectId,
     sourceStorageObjectId: input.sourceStorageObjectId,
@@ -364,6 +377,8 @@ export async function runPersistedRenderPipelineViaRpcs(
       approvedByUserId: input.approvedByUserId,
       sourceStorageObjectId: input.sourceStorageObjectId,
       idempotencyKey: input.idempotencyKey,
+      smokeRunId,
+      renderExecutionMode,
     })
     if (!snapshot.ok || !snapshot.approvedPlanSnapshotId) return pipelineFromRpcFailure(snapshot, rpcReadiness, partialResult)
     partialResult.approvedPlanSnapshotId = snapshot.approvedPlanSnapshotId
@@ -409,27 +424,18 @@ export async function runPersistedRenderPipelineViaRpcs(
       payloadJson: { ...createSmokeMetadata(smokeRunId), workerType: 'basic_render_smoke_worker' },
     }))
 
-    const sourcePath = resolveLocalStorageObjectPath(context.env.localStorageRoot, input.sourceBucketName, input.sourceObjectPath)
-    const mediaProbe = await probeMediaFile(sourcePath, {
-      ffprobeBin: context.env.ffprobeBin,
-      timeoutMs: context.env.toolCheckTimeoutMs,
-    })
     const previewBucketName = resolveBucketName(context.env, 'preview')
     const outputObjectPath = buildCanonicalObjectPath({
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       purpose: 'preview',
       ownerId: jobRender.renderJobId,
-      fileName: 'rpc-basic-smoke-preview.mp4',
+      fileName: renderExecutionMode === 'metadata_stub' ? 'rpc-metadata-smoke-preview.mp4' : 'rpc-basic-smoke-preview.mp4',
     })
-    const outputPath = resolveLocalStorageObjectPath(context.env.localStorageRoot, previewBucketName, outputObjectPath)
-    const previewRender = await createBasicPreview(sourcePath, outputPath, {
-      localStorageRoot: context.env.localStorageRoot,
-      ffmpegBin: context.env.ffmpegBin,
-      timeoutMs: 45000,
-      maxDurationSeconds: 3,
-      audioMode: 'muted',
-    })
+    const renderArtifacts = renderExecutionMode === 'metadata_stub'
+      ? createMetadataStubRenderArtifacts(input, smokeRunId)
+      : await createLocalFfmpegRenderArtifacts(context, input, previewBucketName, outputObjectPath)
+    const { mediaProbe, previewRender } = renderArtifacts
 
     const previewStorage = await recordPreviewStorageObjectViaRpc(context, {
       workspaceId: input.workspaceId,
@@ -456,10 +462,15 @@ export async function runPersistedRenderPipelineViaRpcs(
       checksumSha256: previewRender.checksumSha256,
       metadataJson: {
         ...createSmokeMetadata(smokeRunId),
+        renderExecutionMode,
         sourceStorageObjectId: input.sourceStorageObjectId,
         sourceMediaAssetId: input.sourceMediaAssetId,
         mediaProbe,
         commandSummary: previewRender.commandSummary,
+        providerCallsEnabled: false,
+        stripeCallsEnabled: false,
+        cloudRunCallsEnabled: false,
+        remotionEnabled: false,
       },
     })
     if (!render.ok || !render.renderId) return pipelineFromRpcFailure(render, rpcReadiness, partialResult)
@@ -473,10 +484,13 @@ export async function runPersistedRenderPipelineViaRpcs(
       overallStatus: 'passed',
       summary: 'RPC persisted render smoke QA passed.',
       checksJson: [
-        { ...createSmokeMetadata(smokeRunId), check: 'preview_object_created', passed: true },
+        { ...createSmokeMetadata(smokeRunId), check: renderExecutionMode === 'metadata_stub' ? 'preview_metadata_created' : 'preview_object_created', passed: true },
         { ...createSmokeMetadata(smokeRunId), check: 'checksum_created', passed: true },
         { ...createSmokeMetadata(smokeRunId), check: 'canonical_storage_path_only', passed: true },
         { ...createSmokeMetadata(smokeRunId), check: 'provider_calls_not_used', passed: true },
+        { ...createSmokeMetadata(smokeRunId), check: 'stripe_calls_not_used', passed: true },
+        { ...createSmokeMetadata(smokeRunId), check: 'cloud_run_calls_not_used', passed: true },
+        { ...createSmokeMetadata(smokeRunId), check: 'remotion_not_used', passed: true },
       ],
     })
     if (!qa.ok || !qa.qaReportId) return pipelineFromRpcFailure(qa, rpcReadiness, partialResult)
@@ -492,6 +506,8 @@ export async function runPersistedRenderPipelineViaRpcs(
       previewStorageObjectId: previewStorage.previewStorageObjectId,
     })
     if (!complete.ok) return pipelineFromRpcFailure(complete, rpcReadiness, partialResult)
+    const completeJobEvent = normalizeJobEventResult(complete.jobEvent)
+    if (completeJobEvent) eventResults.push(completeJobEvent)
 
     const release = await releaseWorkerJobClaimViaRpc(context, {
       claimId: claim.workerJobClaimId,
@@ -504,6 +520,7 @@ export async function runPersistedRenderPipelineViaRpcs(
     return {
       ok: true,
       status: 'preview_ready',
+      renderExecutionMode,
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       sourceStorageObjectId: input.sourceStorageObjectId,
@@ -531,6 +548,7 @@ export async function runPersistedRenderPipelineViaRpcs(
       },
       rpcReadiness,
       events: eventResults,
+      jobEventIds: eventResults.map((event) => event.jobEventId).filter((id): id is string => Boolean(id)),
       warnings: [...rpcReadiness.warnings],
     }
   } catch (error) {
@@ -548,6 +566,80 @@ export async function runPersistedRenderPipelineViaRpcs(
       events: eventResults,
       partialResult,
     })
+  }
+}
+
+async function createLocalFfmpegRenderArtifacts(
+  context: ServiceContext,
+  input: RunPersistedRenderPipelineViaRpcsInput,
+  previewBucketName: string,
+  outputObjectPath: string,
+): Promise<{ mediaProbe: MediaProbeSummary; previewRender: BasicPreviewRenderOutput }> {
+  const sourcePath = resolveLocalStorageObjectPath(context.env.localStorageRoot, input.sourceBucketName, input.sourceObjectPath)
+  const mediaProbe = await probeMediaFile(sourcePath, {
+    ffprobeBin: context.env.ffprobeBin,
+    timeoutMs: context.env.toolCheckTimeoutMs,
+  })
+  const outputPath = resolveLocalStorageObjectPath(context.env.localStorageRoot, previewBucketName, outputObjectPath)
+  const previewRender = await createBasicPreview(sourcePath, outputPath, {
+    localStorageRoot: context.env.localStorageRoot,
+    ffmpegBin: context.env.ffmpegBin,
+    timeoutMs: 45000,
+    maxDurationSeconds: 3,
+    audioMode: 'muted',
+  })
+
+  return { mediaProbe, previewRender }
+}
+
+function createMetadataStubRenderArtifacts(
+  input: RunPersistedRenderPipelineViaRpcsInput,
+  smokeRunId: string,
+): { mediaProbe: MediaProbeSummary; previewRender: BasicPreviewRenderOutput } {
+  const sizeBytes = input.sourceSizeBytes ?? 0
+  const checksumSha256 = input.sourceChecksumSha256 ?? `metadata-stub-${smokeRunId}`
+  return {
+    mediaProbe: {
+      durationSeconds: 0,
+      width: 320,
+      height: 180,
+      formatName: 'metadata_stub',
+      sizeBytes,
+      streamCount: 0,
+      rawSummary: {
+        renderExecutionMode: 'metadata_stub',
+        noMediaProbe: true,
+        noExternalRender: true,
+      },
+    },
+    previewRender: {
+      durationSeconds: 0,
+      sizeBytes,
+      checksumSha256,
+      commandSummary: {
+        tool: 'metadata_stub',
+        noExternalRender: true,
+        noProviderCalls: true,
+        noStripeCalls: true,
+        noCloudRunCalls: true,
+        noRemotionCalls: true,
+      },
+    },
+  }
+}
+
+function normalizeJobEventResult(value: unknown): E2EJobEventRpcResult | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Record<string, unknown>
+  const jobEventId = typeof record.jobEventId === 'string' ? record.jobEventId : undefined
+  if (!jobEventId) return undefined
+  return {
+    ok: record.ok === true,
+    status: typeof record.status === 'string' ? record.status : 'recorded',
+    warnings: Array.isArray(record.warnings) ? record.warnings.filter((item): item is string => typeof item === 'string') : [],
+    jobEventId,
+    eventName: typeof record.eventName === 'string' ? record.eventName : undefined,
+    eventType: typeof record.eventType === 'string' ? record.eventType : undefined,
   }
 }
 

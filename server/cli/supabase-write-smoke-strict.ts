@@ -4,6 +4,24 @@ import { runSupabaseWriteReadSmoke } from '../services/supabase-e2e-smoke-servic
 import type { ServiceContext } from '../types'
 
 const env = loadRuntimeEnv(process.env)
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+if (!env.supabaseE2eUserId || !UUID_PATTERN.test(env.supabaseE2eUserId)) {
+  console.log(JSON.stringify({
+    ok: false,
+    status: 'failed',
+    error: {
+      code: 'missing_dependency',
+      message: 'SUPABASE_E2E_USER_ID must be an existing safe staging Supabase auth user UUID before live write smoke can run.',
+    },
+    strictValidation: {
+      ok: false,
+      blockers: ['SUPABASE_E2E_USER_ID is missing or is not a UUID.'],
+    },
+  }, null, 2))
+  process.exit(1)
+}
+
 const context: ServiceContext = {
   env,
   clients: {

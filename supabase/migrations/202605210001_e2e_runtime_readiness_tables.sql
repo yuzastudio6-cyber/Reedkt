@@ -15,6 +15,86 @@ begin
 end;
 $$;
 
+-- Staging compatibility: some databases have the RP-E2E base tables but are
+-- missing the earlier workspace/project RLS helper functions. Define the
+-- helpers here so the runtime policies below can be created safely.
+create or replace function public.is_workspace_member(target_workspace_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1
+    from public.workspace_members wm
+    where wm.workspace_id = target_workspace_id
+      and wm.user_id = auth.uid()
+  );
+$$;
+
+create or replace function public.is_project_member(target_project_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1
+    from public.projects p
+    where p.id = target_project_id
+      and public.is_workspace_member(p.workspace_id)
+  );
+$$;
+
+create or replace function public.is_project_editor(target_project_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1
+    from public.projects p
+    join public.workspace_members wm on wm.workspace_id = p.workspace_id
+    where p.id = target_project_id
+      and wm.user_id = auth.uid()
+      and wm.role::text in ('owner', 'admin', 'editor')
+  );
+$$;
+
+comment on function public.is_workspace_member(uuid) is
+'SECURITY DEFINER RLS helper. Added here as a staging-safe dependency bridge for RP-E2E runtime policies.';
+comment on function public.is_project_member(uuid) is
+'SECURITY DEFINER RLS helper. Project access is workspace-membership scoped.';
+comment on function public.is_project_editor(uuid) is
+'SECURITY DEFINER RLS helper. Editor access is workspace role scoped.';
+
+do $$
+begin
+  if to_regprocedure('public.can_run_job(uuid)') is null then
+    execute $function$
+      create function public.can_run_job(target_job_id uuid)
+      returns boolean
+      language sql
+      stable
+      as $body$
+        select exists (
+          select 1
+          from public.jobs j
+          where j.id = target_job_id
+            and j.status::text in ('queued', 'retrying')
+        );
+      $body$;
+    $function$;
+
+    comment on function public.can_run_job(uuid) is
+    'RP-E2E staging compatibility fallback. Checks basic queued/retrying job claimability when the earlier job helper migration is absent.';
+  end if;
+end $$;
+
 -- Extend the existing RP-DATA-04 approved_plan_snapshots table in place.
 -- Workers must execute this frozen snapshot contract instead of raw chat.
 alter table public.approved_plan_snapshots
@@ -546,6 +626,14 @@ grant select, insert, update, delete on table public.provider_webhook_events to 
 revoke execute on function public.can_create_approved_plan_snapshot(uuid, uuid, uuid) from public, anon;
 revoke execute on function public.active_worker_claim_exists(uuid) from public, anon;
 revoke execute on function public.can_claim_worker_job(uuid) from public, anon;
+revoke execute on function public.can_run_job(uuid) from public, anon;
+revoke execute on function public.is_workspace_member(uuid) from public, anon;
+revoke execute on function public.is_project_member(uuid) from public, anon;
+revoke execute on function public.is_project_editor(uuid) from public, anon;
 grant execute on function public.can_create_approved_plan_snapshot(uuid, uuid, uuid) to authenticated, service_role;
 grant execute on function public.active_worker_claim_exists(uuid) to authenticated, service_role;
 grant execute on function public.can_claim_worker_job(uuid) to authenticated, service_role;
+grant execute on function public.can_run_job(uuid) to authenticated, service_role;
+grant execute on function public.is_workspace_member(uuid) to authenticated, service_role;
+grant execute on function public.is_project_member(uuid) to authenticated, service_role;
+grant execute on function public.is_project_editor(uuid) to authenticated, service_role;

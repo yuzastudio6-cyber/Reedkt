@@ -939,8 +939,21 @@ async function insertRow(
   options: { missingDependencyOn23503?: string } = {},
 ): Promise<string> {
   const body = filterRowForTable(schema, table, row)
-  const { data, error } = await client.from(table).insert(body).select('*').single()
-  if (error) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const { data, error } = await client.from(table).insert(body).select('*').single()
+    if (!error) {
+      const id = String((data as Record<string, unknown>).id ?? body.id ?? '')
+      if (id) cleanupRecords.push({ table, id, owned: true, smokeRunId: smokeRunIdFromRow(row) })
+      return id
+    }
+
+    const missingColumn = missingColumnFromPostgrestError(error)
+    if (missingColumn && missingColumn in body) {
+      delete body[missingColumn]
+      pruneSchemaColumn(schema, table, missingColumn)
+      continue
+    }
+
     const code = error.code === '23503' && options.missingDependencyOn23503 ? 'missing_dependency' : 'constraint_blocked'
     throw new SupabaseSmokeError(code, `Could not insert ${table}: ${error.message}`, {
       table,
@@ -949,9 +962,9 @@ async function insertRow(
     })
   }
 
-  const id = String((data as Record<string, unknown>).id ?? body.id ?? '')
-  if (id) cleanupRecords.push({ table, id, owned: true, smokeRunId: smokeRunIdFromRow(row) })
-  return id
+  throw new SupabaseSmokeError('constraint_blocked', `Could not insert ${table}: too many schema compatibility retries.`, {
+    table,
+  })
 }
 
 async function updateRow(
@@ -963,14 +976,38 @@ async function updateRow(
 ): Promise<void> {
   const body = filterRowForTable(schema, table, row)
   if (Object.keys(body).length === 0) return
-  const { error } = await client.from(table).update(body).eq('id', id)
-  if (error) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const { error } = await client.from(table).update(body).eq('id', id)
+    if (!error) return
+
+    const missingColumn = missingColumnFromPostgrestError(error)
+    if (missingColumn && missingColumn in body) {
+      delete body[missingColumn]
+      pruneSchemaColumn(schema, table, missingColumn)
+      if (Object.keys(body).length === 0) return
+      continue
+    }
+
     throw new SupabaseSmokeError('constraint_blocked', `Could not update ${table}: ${error.message}`, {
       table,
       code: error.code,
       hint: error.hint,
     })
   }
+
+  throw new SupabaseSmokeError('constraint_blocked', `Could not update ${table}: too many schema compatibility retries.`, {
+    table,
+  })
+}
+
+function missingColumnFromPostgrestError(error: { code?: string; message?: string }): string | null {
+  if (error.code !== 'PGRST204') return null
+  const match = /'([^']+)'\s+column/i.exec(error.message ?? '')
+  return match?.[1] ?? null
+}
+
+function pruneSchemaColumn(schema: SchemaInfo, table: string, columnName: string): void {
+  schema.columnsByTable[table] = (schema.columnsByTable[table] ?? []).filter((column) => column.name !== columnName)
 }
 
 async function maybeGetById(client: SupabaseClient, table: string, id: string): Promise<Record<string, unknown> | null> {

@@ -41,7 +41,9 @@ export function checkSupabaseLiveEnv(env: RuntimeEnv, source: NodeJS.ProcessEnv 
   if (!checks.supabaseUrlConfigured) blockers.push('SUPABASE_URL is required in live mode.')
   if (!checks.supabaseAnonKeyConfigured) warnings.push('SUPABASE_ANON_KEY is recommended for route auth validation in live mode.')
   if (!checks.supabaseServiceRoleConfigured) blockers.push('SUPABASE_SERVICE_ROLE_KEY is required in live mode.')
-  if (!checks.smokeUserConfigured) blockers.push('SUPABASE_E2E_USER_ID must reference an existing safe staging auth user.')
+  if (checks.writesExplicitlyAllowed && !checks.smokeUserConfigured) {
+    blockers.push('SUPABASE_E2E_USER_ID must reference an existing safe staging auth user when live writes are enabled.')
+  }
   if (!checks.writesExplicitlyAllowed) warnings.push('Live mode is configured, but SUPABASE_E2E_ALLOW_WRITES is not true; write smokes will remain blocked.')
 
   return {

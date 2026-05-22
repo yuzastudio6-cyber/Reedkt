@@ -38,7 +38,7 @@ const REQUIRED_E2E_MIGRATIONS = [
 
 export async function checkMigrationManifest(rootDir = process.cwd()): Promise<MigrationManifestCheckResult> {
   const manifestPath = path.join(rootDir, 'supabase', 'e2e-runtime-migration-manifest.json')
-  const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as MigrationManifest
+  const manifest = await readMigrationManifest(rootDir)
   const migrationFiles = manifest.migrations.map((entry) => entry.file)
   const missingFiles = migrationFiles.filter((file) => !existsSync(path.join(rootDir, 'supabase', 'migrations', file)))
   const missingRequiredE2eMigrations = REQUIRED_E2E_MIGRATIONS.filter((file) => !migrationFiles.includes(file))
@@ -59,6 +59,11 @@ export async function checkMigrationManifest(rootDir = process.cwd()): Promise<M
     orderProblems,
     warnings,
   }
+}
+
+export async function readMigrationManifest(rootDir = process.cwd()): Promise<MigrationManifest> {
+  const manifestPath = path.join(rootDir, 'supabase', 'e2e-runtime-migration-manifest.json')
+  return JSON.parse(await readFile(manifestPath, 'utf8')) as MigrationManifest
 }
 
 function checkTimestampOrder(files: string[]): string[] {

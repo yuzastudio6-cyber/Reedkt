@@ -49,8 +49,8 @@ jobs:
 
       - name: Require smoke user id
         run: |
-          if [ -z "${SUPABASE_E2E_USER_ID}" ]; then
-            echo "::error::smoke_user_id must be an existing safe staging Supabase auth user id."
+          if ! echo "${SUPABASE_E2E_USER_ID}" | grep -Eiq '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'; then
+            echo "::error::smoke_user_id must be an existing safe staging Supabase auth user UUID."
             exit 1
           fi
 

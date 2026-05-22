@@ -825,16 +825,34 @@ async function ensureSmokeUserProfiles(
   }
 
   if (hasTable(schema, 'profiles')) {
-    const { data } = await client.from('profiles').select('*').eq('user_id', userId).maybeSingle()
+    const { data, error } = await client.from('profiles').select('*').eq('user_id', userId).maybeSingle()
+    if (isMissingOptionalTableError(error)) return
+    if (error) {
+      throw new SupabaseSmokeError('constraint_blocked', `Could not read profiles: ${error.message}`, {
+        table: 'profiles',
+        code: error.code,
+        hint: error.hint,
+      })
+    }
     if (!data) {
-      await insertRow(client, schema, cleanupRecords, 'profiles', {
-        id: randomUUID(),
-        user_id: userId,
-        display_name: 'RP-E2E smoke user',
-        metadata_json: smokeMetadata(smokeTag),
-      }, { missingDependencyOn23503: 'SUPABASE_E2E_USER_ID must reference an existing Supabase auth.users row before profiles can be created.' })
+      try {
+        await insertRow(client, schema, cleanupRecords, 'profiles', {
+          id: randomUUID(),
+          user_id: userId,
+          display_name: 'RP-E2E smoke user',
+          metadata_json: smokeMetadata(smokeTag),
+        }, { missingDependencyOn23503: 'SUPABASE_E2E_USER_ID must reference an existing Supabase auth.users row before profiles can be created.' })
+      } catch (error) {
+        if (error instanceof SupabaseSmokeError && error.details?.code === 'PGRST205') return
+        throw error
+      }
     }
   }
+}
+
+function isMissingOptionalTableError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return error.code === 'PGRST205' || /could not find the table/i.test(error.message ?? '')
 }
 
 async function resolveOrCreateWorkspace(

@@ -1056,7 +1056,10 @@ async function maybeCleanupSupabaseSmokeRecords(
   for (const record of [...cleanupRecords].reverse()) {
     if (!record.owned) continue
     if (!record.smokeRunId) {
-      errors.push(`${record.table}/${record.id}: cleanup refused because the record was not tagged with a smokeRunId`)
+      const existing = await maybeGetById(client, record.table, record.id)
+      if (existing) {
+        errors.push(`${record.table}/${record.id}: cleanup refused because the record was not tagged with a smokeRunId`)
+      }
       continue
     }
     try {

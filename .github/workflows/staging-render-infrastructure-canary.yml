@@ -52,6 +52,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   staging-render-infrastructure-canary:
@@ -78,17 +79,28 @@ jobs:
       SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
       SUPABASE_E2E_USER_ID: ${{ inputs.smoke_user_id }}
-      STAGING_RENDER_CANARY_CLOUD_RUN_URL: ${{ secrets.STAGING_RENDER_CANARY_CLOUD_RUN_URL }}
-      STAGING_RENDER_CANARY_AUTH_MODE: ${{ secrets.STAGING_RENDER_CANARY_AUTH_MODE }}
-      STAGING_RENDER_CANARY_REMOTION_COMPOSITION_ID: ${{ secrets.STAGING_RENDER_CANARY_REMOTION_COMPOSITION_ID }}
-      STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT: ${{ secrets.STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT }}
-      STAGING_RENDER_CANARY_OUTPUT_BUCKET: ${{ secrets.STAGING_RENDER_CANARY_OUTPUT_BUCKET }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GOOGLE_CLOUD_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GOOGLE_CLOUD_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      STAGING_RENDER_CANARY_MODE: staging_cloud_run_remotion_canary
+      STAGING_CLOUD_RUN_RENDER_CANARY_URL: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_URL || vars.STAGING_CLOUD_RUN_RENDER_CANARY_URL }}
+      STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE || vars.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE }}
+      STAGING_REMOTION_CANARY_URL: ${{ secrets.STAGING_REMOTION_CANARY_URL || vars.STAGING_REMOTION_CANARY_URL }}
+      STAGING_REMOTION_CANARY_AUDIENCE: ${{ secrets.STAGING_REMOTION_CANARY_AUDIENCE || vars.STAGING_REMOTION_CANARY_AUDIENCE }}
+      STAGING_RENDER_CANARY_CLOUD_RUN_URL: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_URL || vars.STAGING_CLOUD_RUN_RENDER_CANARY_URL }}
+      STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE || vars.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE }}
+      STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX: ${{ secrets.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX || vars.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX }}
+      STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX: ".run.app"
       STAGING_RENDER_CANARY_DURATION_SECONDS: "3"
       STAGING_RENDER_CANARY_WIDTH: "160"
       STAGING_RENDER_CANARY_HEIGHT: "90"
       STAGING_RENDER_CANARY_FPS: "15"
       STAGING_RENDER_CANARY_MAX_RETRIES: "0"
       STAGING_RENDER_CANARY_CONCURRENCY: "1"
+      STAGING_RENDER_CANARY_TIMEOUT_SECONDS: "120"
     steps:
       - name: Require explicit staging write approval
         if: ${{ !inputs.allow_writes }}
@@ -140,11 +152,40 @@ jobs:
             echo "::error::max_wait_seconds must stay between 30 and 300."
             exit 1
           fi
+          for name in GCP_PROJECT_ID GCP_REGION GCP_WORKLOAD_IDENTITY_PROVIDER GCP_SERVICE_ACCOUNT STAGING_CLOUD_RUN_RENDER_CANARY_URL STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX; do
+            if [ -z "${!name}" ]; then
+              echo "::error::${name} is required for the guarded staging Cloud Run Remotion canary."
+              exit 1
+            fi
+          done
+          case "${GCP_PROJECT_ID} ${GCP_SERVICE_ACCOUNT} ${STAGING_CLOUD_RUN_RENDER_CANARY_URL} ${STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE} ${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" in
+            *prod*|*production*|*live*)
+              echo "::error::Staging render canary configuration must not look production/live."
+              exit 1
+              ;;
+          esac
+          if ! echo "${GCP_PROJECT_ID} ${GCP_SERVICE_ACCOUNT} ${STAGING_CLOUD_RUN_RENDER_CANARY_URL} ${STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE} ${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" | grep -Eiq 'staging|canary|smoke|test'; then
+            echo "::error::Staging render canary configuration must be staging/canary/smoke scoped."
+            exit 1
+          fi
 
       - name: Checkout readiness branch
         uses: actions/checkout@v4
         with:
           ref: codex/reeditpro-e2e-readiness
+
+      - name: Authenticate to Google Cloud for canary invocation
+        id: gcp-auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+          token_format: id_token
+          id_token_audience: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE || vars.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE }}
+          create_credentials_file: false
+
+      - name: Mask Cloud Run ID token
+        run: echo "::add-mask::${{ steps.gcp-auth.outputs.id_token }}"
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -182,5 +223,12 @@ jobs:
       - name: Previous sandbox render smoke leftover check
         run: npm run smoke:supabase:leftovers -- --smoke-run-id="${SUPABASE_E2E_PREVIOUS_SANDBOX_RENDER_SMOKE_RUN_ID}"
 
+      - name: Preflight Cloud Run Remotion infrastructure canary
+        env:
+          STAGING_RENDER_CANARY_ID_TOKEN: ${{ steps.gcp-auth.outputs.id_token }}
+        run: npm run smoke:e2e:render-infrastructure-canary:preflight -- --live
+
       - name: Strict Cloud Run Remotion infrastructure canary
+        env:
+          STAGING_RENDER_CANARY_ID_TOKEN: ${{ steps.gcp-auth.outputs.id_token }}
         run: timeout "${SUPABASE_E2E_MAX_WAIT_SECONDS}s" npm run smoke:e2e:render-infrastructure-canary:strict

@@ -427,14 +427,29 @@ begin
     raise exception 'E2E_CREDITS_NOT_RESERVED: credit reservation % is not reserved/active', p_credit_reservation_id;
   end if;
 
-  select epv.id, epv.edit_session_id
-  into v_edit_plan_version_id, v_edit_session_id
-  from public.edit_plan_versions epv
-  where epv.project_id = p_project_id
-    and (epv.credit_estimate_id = p_credit_estimate_id or epv.status = 'approved')
-  order by epv.approved_at desc nulls last, epv.version desc
-  limit 1;
-  if v_edit_plan_version_id is null or v_edit_session_id is null then
+  if to_regclass('public.edit_plan_versions') is not null then
+    execute $query$
+      select epv.id, epv.edit_session_id
+      from public.edit_plan_versions epv
+      where epv.project_id = $1
+        and (epv.credit_estimate_id = $2 or epv.status = 'approved')
+      order by epv.approved_at desc nulls last, epv.version desc
+      limit 1
+    $query$
+    into v_edit_plan_version_id, v_edit_session_id
+    using p_project_id, p_credit_estimate_id;
+  end if;
+
+  if (
+    exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'approved_plan_snapshots'
+        and column_name in ('edit_session_id', 'edit_plan_version_id')
+        and is_nullable = 'NO'
+    )
+    and (v_edit_plan_version_id is null or v_edit_session_id is null)
+  ) then
     raise exception 'E2E_SCHEMA_DEPENDENCY_MISSING: edit_plan_versions/edit_sessions are required before approved snapshots can be created';
   end if;
 
@@ -451,15 +466,17 @@ begin
     approved_by_user_id,
     approved_by,
     approved_at,
-    snapshot_version,
     snapshot_status,
     status,
     snapshot_json,
+    snapshot_payload,
+    snapshot_hash,
     plan_hash,
     credit_hash,
     source_sequence_hash,
     timing_hash,
     immutable,
+    metadata,
     idempotency_key
   )
   values (
@@ -475,15 +492,17 @@ begin
     p_approved_by_user_id,
     p_approved_by_user_id,
     now(),
-    'v1',
     'approved',
     'approved',
-    p_snapshot_json,
+    coalesce(p_snapshot_json, '{}'::jsonb),
+    coalesce(p_snapshot_json, '{}'::jsonb),
+    coalesce(nullif(p_plan_hash, ''), md5(coalesce(p_snapshot_json, '{}'::jsonb)::text)),
     p_plan_hash,
     p_credit_hash,
     p_source_sequence_hash,
     p_timing_hash,
     true,
+    jsonb_build_object('rpE2eSmoke', true, 'rpcRuntime', true),
     p_idempotency_key
   )
   returning id into v_snapshot_id;

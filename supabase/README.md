@@ -362,7 +362,7 @@ It extends the existing `approved_plan_snapshots` table and adds:
 - `provider_request_attempts`
 - `provider_webhook_events`
 
-The migration adds helper functions for approved snapshot readiness and worker claim safety, enables RLS on the new tables, and keeps privileged writes reserved for future service-role backend/worker paths. Canonical storage records store bucket and object path only; signed URL audit events do not store the signed URL.
+The migration adds helper functions for approved snapshot readiness and worker claim safety, enables RLS on the new tables, and keeps privileged writes reserved for future service-role backend/worker paths. It also bridges staging schemas where `approved_plan_snapshots` already uses `snapshot_payload` / `snapshot_hash` by adding the `snapshot_json` alias and runtime hash columns without dropping existing data. Canonical storage records store bucket and object path only; signed URL audit events do not store the signed URL.
 
 This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
 

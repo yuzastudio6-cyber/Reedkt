@@ -21,16 +21,88 @@ alter table public.approved_plan_snapshots
   add column if not exists workspace_id uuid references public.workspaces(id) on delete cascade,
   add column if not exists chat_session_id uuid references public.chat_sessions(id) on delete set null,
   add column if not exists edit_plan_id uuid references public.edit_plans(id) on delete restrict,
+  add column if not exists edit_session_id uuid,
+  add column if not exists edit_plan_version_id uuid,
   add column if not exists credit_approval_id uuid references public.credit_approvals(id) on delete restrict,
   add column if not exists credit_reservation_id uuid references public.credit_reservations(id) on delete restrict,
   add column if not exists approved_by_user_id uuid references auth.users(id) on delete restrict,
   add column if not exists snapshot_status text not null default 'approved'
     check (snapshot_status in ('draft', 'approved', 'locked', 'superseded', 'cancelled', 'failed')),
+  add column if not exists status text not null default 'approved',
+  add column if not exists snapshot_json jsonb not null default '{}'::jsonb,
+  add column if not exists snapshot_payload jsonb not null default '{}'::jsonb,
+  add column if not exists snapshot_hash text not null default md5('{}'),
   add column if not exists plan_hash text,
   add column if not exists credit_hash text,
   add column if not exists source_sequence_hash text,
   add column if not exists timing_hash text,
+  add column if not exists immutable boolean not null default true,
+  add column if not exists metadata jsonb not null default '{}'::jsonb,
   add column if not exists updated_at timestamptz not null default now();
+
+-- Compatibility bridge for staging schemas that already have approved_plan_snapshots
+-- with snapshot_payload/snapshot_hash columns but not the Prompt 7-9 snapshot_json
+-- contract. This preserves existing data and aliases both shapes for the E2E RPCs.
+do $$
+declare
+  v_has_immutable_snapshot_trigger boolean;
+begin
+  select exists (
+    select 1
+    from pg_trigger
+    where tgrelid = 'public.approved_plan_snapshots'::regclass
+      and tgname = 'prevent_immutable_approved_snapshot_update'
+      and not tgisinternal
+  )
+  into v_has_immutable_snapshot_trigger;
+
+  if v_has_immutable_snapshot_trigger then
+    -- Older local schemas may protect existing immutable snapshots from update.
+    -- The compatibility columns have safe defaults, so leave existing rows intact.
+    return;
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'approved_plan_snapshots'
+      and column_name = 'snapshot_payload'
+  ) then
+    update public.approved_plan_snapshots
+    set snapshot_json = snapshot_payload
+    where snapshot_json = '{}'::jsonb
+      and snapshot_payload is not null
+      and snapshot_payload <> '{}'::jsonb;
+  end if;
+
+  update public.approved_plan_snapshots
+  set snapshot_payload = snapshot_json
+  where snapshot_payload = '{}'::jsonb
+    and snapshot_json is not null
+    and snapshot_json <> '{}'::jsonb;
+
+  update public.approved_plan_snapshots
+  set snapshot_hash = md5(coalesce(snapshot_json, '{}'::jsonb)::text)
+  where snapshot_hash is null
+    or snapshot_hash = ''
+    or (snapshot_hash = md5('{}') and snapshot_json <> '{}'::jsonb);
+
+  update public.approved_plan_snapshots
+  set plan_hash = coalesce(plan_hash, nullif(snapshot_hash, ''))
+  where plan_hash is null;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'approved_plan_snapshots'
+      and column_name = 'approved_by'
+  ) then
+    update public.approved_plan_snapshots
+    set approved_by_user_id = approved_by
+    where approved_by_user_id is null
+      and approved_by is not null;
+  end if;
+end $$;
 
 comment on table public.approved_plan_snapshots is
 'Immutable frozen execution contract after user approves edit plan and credit estimate. Future workers execute this snapshot, not raw chat or mutable plan state.';

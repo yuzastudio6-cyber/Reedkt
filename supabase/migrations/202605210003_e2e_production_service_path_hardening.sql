@@ -7,25 +7,50 @@
 
 set check_function_bodies = off;
 
-create index if not exists chat_attachments_chat_session_source_order_idx
-  on public.chat_attachments (chat_session_id, source_order);
+do $$
+begin
+  if to_regclass('public.chat_attachments') is not null
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'chat_attachments' and column_name = 'chat_session_id')
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'chat_attachments' and column_name = 'source_order')
+  then
+    execute 'create index if not exists chat_attachments_chat_session_source_order_idx on public.chat_attachments (chat_session_id, source_order)';
+  end if;
 
-create index if not exists source_clip_sequences_project_active_idx
-  on public.source_clip_sequences (project_id, is_active);
+  if to_regclass('public.source_clip_sequences') is not null
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'source_clip_sequences' and column_name = 'project_id')
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'source_clip_sequences' and column_name = 'is_active')
+  then
+    execute 'create index if not exists source_clip_sequences_project_active_idx on public.source_clip_sequences (project_id, is_active)';
+  end if;
 
-create index if not exists source_clip_sequence_items_sequence_order_idx
-  on public.source_clip_sequence_items (source_clip_sequence_id, uploaded_order);
+  if to_regclass('public.source_clip_sequence_items') is not null
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'source_clip_sequence_items' and column_name = 'source_clip_sequence_id')
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'source_clip_sequence_items' and column_name = 'uploaded_order')
+  then
+    execute 'create index if not exists source_clip_sequence_items_sequence_order_idx on public.source_clip_sequence_items (source_clip_sequence_id, uploaded_order)';
+  end if;
 
-create index if not exists job_events_job_created_at_idx
-  on public.job_events (job_id, created_at);
+  if to_regclass('public.job_events') is not null
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'job_events' and column_name = 'job_id')
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'job_events' and column_name = 'created_at')
+  then
+    execute 'create index if not exists job_events_job_created_at_idx on public.job_events (job_id, created_at)';
+  end if;
 
-create index if not exists credit_reservations_idempotency_idx
-  on public.credit_reservations (workspace_id, idempotency_key)
-  where idempotency_key is not null;
+  if to_regclass('public.credit_reservations') is not null
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'credit_reservations' and column_name = 'workspace_id')
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'credit_reservations' and column_name = 'idempotency_key')
+  then
+    execute 'create index if not exists credit_reservations_idempotency_idx on public.credit_reservations (workspace_id, idempotency_key) where idempotency_key is not null';
+  end if;
 
-create index if not exists credit_refunds_reservation_status_idx
-  on public.credit_refunds (credit_reservation_id, status)
-  where credit_reservation_id is not null;
+  if to_regclass('public.credit_refunds') is not null
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'credit_refunds' and column_name = 'credit_reservation_id')
+    and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'credit_refunds' and column_name = 'status')
+  then
+    execute 'create index if not exists credit_refunds_reservation_status_idx on public.credit_refunds (credit_reservation_id, status) where credit_reservation_id is not null';
+  end if;
+end $$;
 
 create or replace function public.e2e_json_contains_secret_marker(p_payload jsonb)
 returns boolean

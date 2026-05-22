@@ -65,6 +65,14 @@ npm.cmd run smoke:supabase:rls-auth
 3. Re-run the read-only workflow.
 4. Do not enable writes until the missing table/RPC report is resolved or explicitly accepted as a documented staging exception.
 
+## Staging Schema Compatibility Notes
+
+Some staging databases may already have an `approved_plan_snapshots` table with the newer `snapshot_payload` / `snapshot_hash` shape instead of the E2E smoke `snapshot_json` alias. Apply `202605210001_e2e_runtime_readiness_tables.sql` before the Prompt 8/9 RPC migrations; it now bridges both shapes without dropping existing columns or data.
+
+If SQL Editor reports `column "snapshot_json" does not exist`, stop and use the latest version of `202605210001_e2e_runtime_readiness_tables.sql` from `codex/reeditpro-e2e-readiness`, then rerun `202605210002` and `202605210003` in order.
+
+If SQL Editor reports `relation "public.worker_job_claims" does not exist`, `202605210001` has not completed successfully yet. Do not rerun the RPC migrations until `worker_job_claims`, `upload_intents`, and `storage_object_records` exist.
+
 ## Read-Only Pass Criteria
 
 - live env check passes without exposing secrets

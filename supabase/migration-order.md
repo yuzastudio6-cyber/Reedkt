@@ -124,11 +124,11 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 ## 14. RP-E2E-READY-01 Runtime Database Foundation
 
 - File: `migrations/202605210001_e2e_runtime_readiness_tables.sql`
-- Purpose: Adds local/review-ready runtime tables for approved execution snapshots, API idempotency, upload intents, canonical storage records, signed URL audits, worker job claims, tool readiness checks, provider attempt tracking, and sanitized provider webhook summaries.
+- Purpose: Adds local/review-ready runtime tables for approved execution snapshots, API idempotency, upload intents, canonical storage records, signed URL audits, worker job claims, tool readiness checks, provider attempt tracking, and sanitized provider webhook summaries. Also bridges staging schemas where `approved_plan_snapshots` already uses `snapshot_payload` / `snapshot_hash` by adding the E2E `snapshot_json` alias and runtime hash columns without dropping existing data.
 - Depends on: RP-DB-03 core workspaces/projects/chat/media, RP-DB-04 edit plans, RP-DB-06 credits and reservations, RP-DB-07 jobs, RP-DB-09 generation requests/assets, RP-DB-10 render/QA records, RP-FIX-07 storage readiness policies, and RP-FIX-11 worker lease/runtime readiness.
 - Creates: extensions to `approved_plan_snapshots`, `api_idempotency_keys`, `upload_intents`, `storage_object_records`, `signed_url_events`, `worker_job_claims`, `tool_runtime_checks`, `provider_request_attempts`, `provider_webhook_events`, helper functions `can_create_approved_plan_snapshot`, `active_worker_claim_exists`, and `can_claim_worker_job`, plus RLS, indexes, uniqueness constraints, and updated-at triggers.
 - Does not create: remote Supabase execution, deployed backend handlers, signed URL generation, Cloud Run workers, provider calls, render execution, Stripe, secret reads, real uploads, or production migration execution.
-- Notes: Workers must execute approved snapshots, not raw chat. Expensive work remains blocked until approved edit plan, approved credit estimate, credit reservation, idempotency, worker claim, storage, timing, and QA gates are implemented by future backend/service-role code.
+- Notes: Workers must execute approved snapshots, not raw chat. Expensive work remains blocked until approved edit plan, approved credit estimate, credit reservation, idempotency, worker claim, storage, timing, and QA gates are implemented by future backend/service-role code. Apply this migration before the Prompt 8/9 RPC migrations; otherwise RPC creation can fail on missing `worker_job_claims` or approved snapshot compatibility columns.
 
 ## 15. RP-E2E-READY-01 Service-Role Runtime RPCs
 

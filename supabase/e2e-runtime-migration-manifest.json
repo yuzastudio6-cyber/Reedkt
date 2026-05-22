@@ -189,7 +189,7 @@
     },
     {
       "file": "202605210001_e2e_runtime_readiness_tables.sql",
-      "purpose": "RP-E2E runtime readiness tables for approved snapshots, idempotency, uploads, storage records, worker claims, tool checks, and provider attempt/webhook summaries.",
+      "purpose": "RP-E2E runtime readiness tables plus staging-safe approved_plan_snapshots compatibility aliases for snapshot_json/snapshot_payload and runtime hashes.",
       "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130004_credit_ledger_approval_gate.sql", "202605130005_job_orchestration_agent_runs.sql", "202605130008_render_preview_export_revision_qa.sql", "202605200001_storage_upload_pipeline_readiness.sql", "202605200002_worker_leases_runtime_transport.sql"],
       "createsTables": ["api_idempotency_keys", "upload_intents", "storage_object_records", "signed_url_events", "worker_job_claims", "tool_runtime_checks", "provider_request_attempts", "provider_webhook_events"],
       "createsRpcs": ["can_create_approved_plan_snapshot", "active_worker_claim_exists", "can_claim_worker_job"],

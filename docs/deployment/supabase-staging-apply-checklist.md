@@ -30,6 +30,8 @@ Required staging order:
 8. `202605210002_e2e_service_role_runtime_rpcs.sql`
 9. `202605210003_e2e_production_service_path_hardening.sql`
 
+`202605210001` must complete before any RPC migration. It creates the runtime tables such as `worker_job_claims`, `upload_intents`, and `storage_object_records`, and it now bridges staging-approved snapshot schemas that use `snapshot_payload` / `snapshot_hash` rather than `snapshot_json`.
+
 Before applying remotely:
 
 ```bash

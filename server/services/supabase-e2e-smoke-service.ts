@@ -491,7 +491,7 @@ async function createSupabaseSmokeRecordChain(
     approved_at: new Date().toISOString(),
     approved_by: userId,
     plan_payload: smokeSnapshotJson(sourceStorageObjectId),
-  })
+  }, { smokeRunId: smokeTag })
   const creditWalletId = await insertRow(client, schema, cleanupRecords, 'credit_wallets', {
     id: randomUUID(),
     workspace_id: workspaceId,
@@ -595,7 +595,7 @@ async function createSupabaseSmokeRecordChain(
     approved_by_user_id: userId,
     approved_by: userId,
     approved_at: new Date().toISOString(),
-    snapshot_version: 'v1',
+    snapshot_version: 1,
     snapshot_status: 'approved',
     status: 'approved',
     snapshot_json: smokeSnapshotJson(sourceStorageObjectId),
@@ -604,7 +604,7 @@ async function createSupabaseSmokeRecordChain(
     source_sequence_hash: `source-${runId}`,
     timing_hash: `timing-${runId}`,
     immutable: true,
-  })
+  }, { smokeRunId: smokeTag })
   const jobBatchId = await insertRow(client, schema, cleanupRecords, 'job_batches', {
     id: randomUUID(),
     workspace_id: workspaceId,
@@ -1231,7 +1231,20 @@ function storageRegion(context: ServiceContext): string | undefined {
 }
 
 function smokeRunIdFromRow(row: Record<string, unknown>): string | undefined {
-  const candidate = row.metadata_json ?? row.metadata ?? row.input_payload ?? row.render_payload ?? row.qa_payload ?? row.line_payload ?? row.estimate_payload ?? row.approval_payload
+  const candidate = row.metadata_json
+    ?? row.metadata
+    ?? row.content_json
+    ?? row.input_payload
+    ?? row.render_payload
+    ?? row.qa_payload
+    ?? row.line_payload
+    ?? row.estimate_payload
+    ?? row.approval_payload
+    ?? row.plan_payload
+    ?? row.snapshot_json
+    ?? row.snapshot_payload
+    ?? row.timeline_spec
+    ?? row.render_settings
   if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
     const value = (candidate as Record<string, unknown>).smokeRunId
     return typeof value === 'string' ? value : undefined

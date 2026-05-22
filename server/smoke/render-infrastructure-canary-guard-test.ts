@@ -38,8 +38,8 @@ const readyCanaryEnv = {
   GCP_REGION: 'us-east1',
   GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/123/locations/global/workloadIdentityPools/reeditpro-staging/providers/github',
   GCP_SERVICE_ACCOUNT: 'reeditpro-staging-canary-invoker@reeditpro-staging-canary.iam.gserviceaccount.com',
-  STAGING_RENDER_CANARY_CLOUD_RUN_URL: 'https://reeditpro-staging-render-canary-abc-us-east1.run.app/canary/render',
-  STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE: 'https://reeditpro-staging-render-canary-abc-us-east1.run.app',
+  STAGING_CLOUD_RUN_RENDER_CANARY_URL: 'https://reeditpro-staging-render-canary-abc-us-east1.run.app/canary/render',
+  STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: 'https://reeditpro-staging-render-canary-abc-us-east1.run.app',
   STAGING_RENDER_CANARY_ID_TOKEN: 'header.payload.signature',
   STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX: 'gs://reeditpro-staging-render-canary-smoke/previews',
 }
@@ -89,11 +89,32 @@ const missingOidc = evaluateRenderInfrastructureCanaryGuard({
   leftoverChecks: cleanLeftoverChecks,
 })
 
+const missingAudience = evaluateRenderInfrastructureCanaryGuard({
+  env: loadRuntimeEnv(readyCanaryEnv),
+  sourceEnv: {
+    ...readyCanaryEnv,
+    STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: '',
+  },
+  previousSmokeRunIds: smokeIds,
+  leftoverChecks: cleanLeftoverChecks,
+})
+
 const audienceMismatch = evaluateRenderInfrastructureCanaryGuard({
   env: loadRuntimeEnv(readyCanaryEnv),
   sourceEnv: {
     ...readyCanaryEnv,
-    STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE: 'https://different-staging-canary-abc.run.app',
+    STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: 'https://different-staging-canary-abc.run.app',
+  },
+  previousSmokeRunIds: smokeIds,
+  leftoverChecks: cleanLeftoverChecks,
+})
+
+const localhostUrl = evaluateRenderInfrastructureCanaryGuard({
+  env: loadRuntimeEnv(readyCanaryEnv),
+  sourceEnv: {
+    ...readyCanaryEnv,
+    STAGING_CLOUD_RUN_RENDER_CANARY_URL: 'https://localhost/canary/render',
+    STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: 'https://localhost',
   },
   previousSmokeRunIds: smokeIds,
   leftoverChecks: cleanLeftoverChecks,
@@ -104,9 +125,22 @@ const productionUrl = evaluateRenderInfrastructureCanaryGuard({
   sourceEnv: {
     ...readyCanaryEnv,
     GCP_PROJECT_ID: 'reeditpro-production',
-    STAGING_RENDER_CANARY_CLOUD_RUN_URL: 'https://reeditpro-production-render-canary-abc.run.app/canary/render',
-    STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE: 'https://reeditpro-production-render-canary-abc.run.app',
+    STAGING_CLOUD_RUN_RENDER_CANARY_URL: 'https://reeditpro-production-render-canary-abc.run.app/canary/render',
+    STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: 'https://reeditpro-production-render-canary-abc.run.app',
     STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX: 'gs://reeditpro-production-canary-previews',
+  },
+  previousSmokeRunIds: smokeIds,
+  leftoverChecks: cleanLeftoverChecks,
+})
+
+const legacyAliasConfig = evaluateRenderInfrastructureCanaryGuard({
+  env: loadRuntimeEnv(readyCanaryEnv),
+  sourceEnv: {
+    ...readyCanaryEnv,
+    STAGING_CLOUD_RUN_RENDER_CANARY_URL: '',
+    STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: '',
+    STAGING_RENDER_CANARY_CLOUD_RUN_URL: readyCanaryEnv.STAGING_CLOUD_RUN_RENDER_CANARY_URL,
+    STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE: readyCanaryEnv.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE,
   },
   previousSmokeRunIds: smokeIds,
   leftoverChecks: cleanLeftoverChecks,
@@ -162,33 +196,53 @@ const riskyEnv = evaluateRenderInfrastructureCanaryGuard({
   leftoverChecks: cleanLeftoverChecks,
 })
 
+const providerEnv = evaluateRenderInfrastructureCanaryGuard({
+  env: loadRuntimeEnv(readyCanaryEnv),
+  sourceEnv: { ...readyCanaryEnv, OPENAI_API_KEY: 'provider-secret-should-not-leak' },
+  previousSmokeRunIds: smokeIds,
+  leftoverChecks: cleanLeftoverChecks,
+})
+
 const serialized = JSON.stringify({
   disabled,
   missingConfig,
   readyConfig,
   missingOidc,
+  missingAudience,
   audienceMismatch,
+  localhostUrl,
   productionUrl,
+  legacyAliasConfig,
   oversized,
   cleanupDisabled,
   leftoverBlocked,
   riskyEnv,
+  providerEnv,
 })
 const checks = [
   disabled.ok && disabled.status === 'skipped' && disabled.strictValidation.dryRun ? 'disabled_mode_dry_run_skips' : undefined,
   missingConfig.error?.code === 'missing_staging_render_infrastructure_canary_path' ? 'missing_path_blocks' : undefined,
   readyConfig.ok && readyConfig.status === 'ready' ? 'ready_config_passes_guard' : undefined,
-  missingOidc.strictValidation.blockers.some((blocker) => blocker.includes('ID_TOKEN')) ? 'missing_oidc_rejected' : undefined,
+  missingOidc.error?.code === 'missing_gcp_oidc_auth' ? 'missing_oidc_rejected' : undefined,
+  missingAudience.error?.code === 'missing_cloud_run_audience' ? 'missing_audience_rejected' : undefined,
   audienceMismatch.strictValidation.blockers.some((blocker) => blocker.includes('AUDIENCE host')) ? 'audience_mismatch_rejected' : undefined,
+  localhostUrl.error?.code === 'invalid_cloud_run_url' ? 'localhost_url_rejected' : undefined,
   productionUrl.strictValidation.blockers.some((blocker) => blocker.includes('production')) ? 'production_url_rejected' : undefined,
+  legacyAliasConfig.ok && legacyAliasConfig.status === 'ready' ? 'legacy_alias_config_passes_guard' : undefined,
   oversized.strictValidation.blockers.some((blocker) => blocker.includes('320x240')) ? 'oversized_render_rejected' : undefined,
   cleanupDisabled.strictValidation.blockers.some((blocker) => blocker.includes('CLEANUP=true')) ? 'cleanup_required' : undefined,
   leftoverBlocked.strictValidation.blockers.some((blocker) => blocker.includes('leftover check found')) ? 'leftovers_block' : undefined,
-  riskyEnv.strictValidation.blockers.some((blocker) => blocker.includes('STRIPE_SECRET_KEY')) ? 'stripe_env_rejected' : undefined,
-  !serialized.includes('sk_test_should_not_leak') && !serialized.includes('test-service-role-placeholder') && !serialized.includes('header.payload.signature') ? 'secret_values_not_printed' : undefined,
+  riskyEnv.error?.code === 'stripe_must_be_disabled' ? 'stripe_env_rejected' : undefined,
+  providerEnv.error?.code === 'providers_must_be_disabled' ? 'provider_env_rejected' : undefined,
+  !serialized.includes('sk_test_should_not_leak')
+    && !serialized.includes('provider-secret-should-not-leak')
+    && !serialized.includes('test-service-role-placeholder')
+    && !serialized.includes('header.payload.signature')
+    ? 'secret_values_not_printed'
+    : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 11
+const ok = checks.length === 15
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 

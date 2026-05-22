@@ -5,7 +5,7 @@ import {
   readRenderInfrastructureCanaryLiveConfig,
   type RenderInfrastructurePreviousSmokeLeftoverCheck,
 } from '../services/render-infrastructure-canary-guard'
-import { invokeStagingRenderInfrastructureCanary } from '../services/render-infrastructure-canary-client'
+import { invokeStagingRenderInfrastructureCanary } from '../cloud-run/render-canary-client'
 import { runPersistedBasicRenderSmoke } from '../services/supabase-e2e-smoke-service'
 import { findSupabaseSmokeRunLeftovers } from '../services/supabase-smoke-leftover-service'
 import { createSupabaseAdminClient } from '../supabase/admin-client'

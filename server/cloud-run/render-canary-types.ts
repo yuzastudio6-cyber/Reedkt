@@ -1,0 +1,80 @@
+import type { JSONObject } from '../../src/types'
+
+export const RENDER_CANARY_MODE = 'staging_cloud_run_remotion_canary' as const
+export const RENDER_CANARY_FIXTURE = 'tiny-muted-3s' as const
+
+export type RenderCanaryGuardCode =
+  | 'missing_staging_render_infrastructure_canary_path'
+  | 'missing_gcp_oidc_auth'
+  | 'missing_cloud_run_audience'
+  | 'invalid_cloud_run_url'
+  | 'production_like_cloud_run_url'
+  | 'cloud_run_invocation_disabled'
+  | 'remotion_invocation_disabled'
+  | 'unsafe_timeout'
+  | 'cleanup_required'
+  | 'providers_must_be_disabled'
+  | 'stripe_must_be_disabled'
+
+export interface RenderCanaryLimits {
+  maxWaitSeconds: number
+  durationSeconds: number
+  width: number
+  height: number
+  fps: number
+  maxRetries: number
+  concurrency: number
+  timeoutSeconds: number
+}
+
+export interface RenderCanaryConfig {
+  mode: typeof RENDER_CANARY_MODE
+  cloudRunUrl?: string
+  cloudRunAudience?: string
+  remotionUrl?: string
+  remotionAudience?: string
+  idToken?: string
+  outputBucketOrPrefix?: string
+  gcpProjectId?: string
+  gcpRegion?: string
+  workloadIdentityProvider?: string
+  serviceAccount?: string
+  expectedHostSuffix: string
+  durationSeconds: number
+  width: number
+  height: number
+  fps: number
+  maxRetries: number
+  concurrency: number
+  timeoutSeconds: number
+}
+
+export interface RenderCanaryConfigValidationIssue {
+  code: RenderCanaryGuardCode
+  message: string
+}
+
+export interface RenderCanaryInvocationConfig {
+  cloudRunUrl: string
+  audience: string
+  idToken: string
+  durationSeconds: number
+  width: number
+  height: number
+  fps: number
+  timeoutSeconds: number
+}
+
+export interface RenderCanaryInvocationResult {
+  outputBucketName: string
+  outputObjectPath: string
+  durationSeconds: number
+  width: number
+  height: number
+  fps: number
+  frameCount: number
+  sizeBytes: number
+  checksumSha256: string
+  commandSummary: JSONObject
+  outputArtifactSummary: JSONObject
+}

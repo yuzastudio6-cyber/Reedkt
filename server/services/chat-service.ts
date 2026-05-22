@@ -144,8 +144,29 @@ export function createChatService(context: ServiceContext) {
       const foundIds = new Set((mediaAssets ?? []).map((asset) => String(asset.id)))
       const missingAssets = input.mediaAssetIds.filter((id) => !foundIds.has(id))
       if (missingAssets.length > 0) {
-        throw new ApiError('UPLOAD_NOT_FINALIZED', 'Only finalized media assets can be attached as source clips.', 409, {
+        throw new ApiError('MEDIA_ASSET_NOT_FOUND', 'Only finalized media assets can be attached as source clips.', 409, {
           missingMediaAssetIds: missingAssets,
+        })
+      }
+
+      const canonicalPrefix = `workspaces/${input.workspaceId}/projects/${projectId}/`
+      const { data: storageRecords, error: storageError } = await context.clients.admin
+        .from('storage_object_records')
+        .select('id, media_asset_id, object_path, status')
+        .in('media_asset_id', input.mediaAssetIds)
+        .eq('workspace_id', input.workspaceId)
+        .eq('project_id', projectId)
+        .eq('status', 'ready')
+      throwOnSupabaseError(storageError)
+
+      const storageMediaIds = new Set((storageRecords ?? [])
+        .filter((record) => typeof record.object_path === 'string' && record.object_path.startsWith(canonicalPrefix))
+        .map((record) => String(record.media_asset_id)))
+      const missingStorage = input.mediaAssetIds.filter((id) => !storageMediaIds.has(id))
+      if (missingStorage.length > 0) {
+        throw new ApiError('STORAGE_OBJECT_NOT_FOUND', 'Finalized clips must have ready canonical storage records before attachment.', 409, {
+          missingStorageForMediaAssetIds: missingStorage,
+          canonicalPrefix,
         })
       }
 

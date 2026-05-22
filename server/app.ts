@@ -8,11 +8,13 @@ import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditRoutes } from './routes/credit-routes'
+import { createE2ERoutes } from './routes/e2e-routes'
 import { createHealthRoutes } from './routes/health-routes'
 import { createJobRoutes } from './routes/job-routes'
 import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
+import { createSupabaseSmokeRoutes } from './routes/supabase-smoke-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { RuntimeRequest, RuntimeState } from './types'
@@ -45,6 +47,8 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
+  app.use(createSupabaseSmokeRoutes())
+  app.use(createE2ERoutes())
   app.use(createProviderGatewayRoutes())
 
   app.use(errorHandlerMiddleware)

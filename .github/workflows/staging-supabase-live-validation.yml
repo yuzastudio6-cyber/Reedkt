@@ -1,0 +1,117 @@
+name: RP E2E Staging Supabase Live Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_table_check:
+        description: "Run live table readiness check"
+        required: true
+        default: true
+        type: boolean
+      run_rpc_check:
+        description: "Run live service-role RPC readiness check"
+        required: true
+        default: true
+        type: boolean
+      run_rls_auth_audit:
+        description: "Run live RLS/auth audit"
+        required: true
+        default: true
+        type: boolean
+      allow_writes:
+        description: "Allow live staging write smokes"
+        required: true
+        default: false
+        type: boolean
+      run_write_smoke:
+        description: "Run live write/read smoke when writes are allowed"
+        required: true
+        default: false
+        type: boolean
+      run_persisted_render:
+        description: "Run live persisted no-AI render smoke when writes are allowed"
+        required: true
+        default: false
+        type: boolean
+      cleanup:
+        description: "Clean up smoke-tagged records from this run"
+        required: true
+        default: true
+        type: boolean
+      smoke_user_id:
+        description: "Existing safe staging Supabase auth user id for write smokes"
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  staging-supabase-live-validation:
+    runs-on: ubuntu-latest
+    env:
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "false"
+      E2E_RUNTIME_MODE: local
+      WORKER_RUNTIME_MODE: local
+      STORAGE_MODE: local
+      SUPABASE_E2E_SMOKE_MODE: live
+      SUPABASE_E2E_ALLOW_WRITES: ${{ inputs.allow_writes && 'true' || 'false' }}
+      SUPABASE_E2E_CLEANUP: ${{ inputs.cleanup && 'true' || 'false' }}
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_E2E_USER_ID: ${{ inputs.smoke_user_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Typecheck API
+        run: npm run typecheck:api
+
+      - name: Supabase live env check
+        run: npm run smoke:supabase:live-env
+
+      - name: Migration manifest check
+        run: npm run smoke:supabase:migration-manifest
+
+      - name: Supabase table readiness
+        if: ${{ inputs.run_table_check }}
+        run: npm run smoke:supabase:tables
+
+      - name: Supabase RPC readiness
+        if: ${{ inputs.run_rpc_check }}
+        run: npm run smoke:supabase:rpcs
+
+      - name: Supabase RLS/auth audit
+        if: ${{ inputs.run_rls_auth_audit }}
+        run: npm run smoke:supabase:rls-auth
+
+      - name: Live write/read smoke
+        if: ${{ inputs.allow_writes && inputs.run_write_smoke }}
+        run: npm run smoke:supabase:write
+
+      - name: Install FFmpeg and FFprobe
+        if: ${{ inputs.allow_writes && inputs.run_persisted_render }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
+      - name: RPC persisted render smoke
+        if: ${{ inputs.allow_writes && inputs.run_persisted_render }}
+        run: npm run smoke:e2e:rpc-persisted-render
+
+      - name: Supabase full E2E flow
+        if: ${{ inputs.allow_writes && inputs.run_persisted_render }}
+        run: npm run smoke:e2e:supabase-full

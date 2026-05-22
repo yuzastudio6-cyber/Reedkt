@@ -47,7 +47,7 @@ export async function runWorkerClaimRunner(
     },
   })
 
-  const requiredTools = requiredToolsForJob(job.jobType)
+  const requiredTools = requiredToolsForJob(job.jobType, input.workerType)
   const toolResults = requiredTools.length > 0
     ? (await Promise.all(requiredTools.map((requiredTool) => runToolReadinessChecks(context, {
       workspaceId: job.workspaceId,

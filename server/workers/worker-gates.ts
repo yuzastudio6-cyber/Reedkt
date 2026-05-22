@@ -31,7 +31,7 @@ export function collectWorkerGateChecks(input: {
     assertWorkerCanClaimJob(input.job),
     assertApprovedSnapshotForJob(input.job),
     assertCreditReservationForExpensiveJob(input.job),
-    assertRequiredToolReady(input.job.jobType, input.toolResults ?? []),
+    assertRequiredToolReady(input.job.jobType, input.toolResults ?? [], input.workerType),
   ]
 }
 
@@ -126,8 +126,8 @@ export function assertNoRawChatExecution(job: WorkerJobRecord): WorkerGateCheckR
   })
 }
 
-export function assertRequiredToolReady(jobType: string, toolResults: ToolReadinessCheckResult[]): WorkerGateCheckResult {
-  const requiredTools = requiredToolsForJob(jobType)
+export function assertRequiredToolReady(jobType: string, toolResults: ToolReadinessCheckResult[], workerType?: string): WorkerGateCheckResult {
+  const requiredTools = requiredToolsForJob(jobType, workerType)
   if (requiredTools.length === 0) {
     return createGateResult({
       gate: 'required_tool_ready',
@@ -159,12 +159,13 @@ export function assertRequiredToolReady(jobType: string, toolResults: ToolReadin
   })
 }
 
-export function requiredToolForJob(jobType: string): 'ffprobe' | 'remotion' | undefined {
-  return requiredToolsForJob(jobType)[0] as 'ffprobe' | 'remotion' | undefined
+export function requiredToolForJob(jobType: string, workerType?: string): 'ffprobe' | 'remotion' | undefined {
+  return requiredToolsForJob(jobType, workerType)[0] as 'ffprobe' | 'remotion' | undefined
 }
 
-export function requiredToolsForJob(jobType: string): Array<'ffmpeg' | 'ffprobe' | 'remotion'> {
+export function requiredToolsForJob(jobType: string, workerType?: string): Array<'ffmpeg' | 'ffprobe' | 'remotion'> {
   if (jobType === 'media_analysis' || jobType === 'frame_extraction') return ['ffprobe']
+  if (workerType === 'basic_render_smoke_worker') return ['ffmpeg', 'ffprobe']
   if (jobType === 'basic_render_smoke') return ['ffmpeg', 'ffprobe']
   if (jobType === 'render_preview' || jobType === 'export') return ['remotion']
   return []

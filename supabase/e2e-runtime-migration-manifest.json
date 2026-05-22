@@ -1,0 +1,218 @@
+{
+  "project": "reeditpro",
+  "generatedFor": "RP-E2E-READY-01 Prompt 10",
+  "notes": [
+    "Local/review-ready manifest only.",
+    "Do not use this file to apply remote migrations automatically.",
+    "Verify the active Supabase project is reeditpro before manual staging apply."
+  ],
+  "migrations": [
+    {
+      "file": "202605130001_core_reeditpro_tables.sql",
+      "purpose": "Core workspace, project, chat, media, source sequence, and reference asset foundation.",
+      "dependsOn": [],
+      "createsTables": ["plans", "user_profiles", "workspaces", "workspace_members", "subscriptions", "projects", "chat_sessions", "chat_messages", "chat_attachments", "inline_chat_cards", "chat_actions", "media_assets", "source_clip_sequences", "source_clip_sequence_items", "reference_assets"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["core workspace/project/chat/media records"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605130002_intent_edit_planning_tables.sql",
+      "purpose": "Intent analysis, source sequence interpretation, edit plans, segments, and signature routing.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql"],
+      "createsTables": ["intent_analyses", "source_sequence_maps", "source_sequence_map_items", "recommended_edit_structures", "edit_plans", "story_beat_maps", "story_beats", "edit_plan_segments", "signature_routes", "edit_instructions", "planning_notes", "edit_plan_chat_cards"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["approved edit plan prerequisites"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605130003_professional_edit_quality_engine.sql",
+      "purpose": "Professional edit quality planning records for pacing, cuts, transitions, audio, captions, and checks.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130002_intent_edit_planning_tables.sql"],
+      "createsTables": ["edit_quality_profiles", "pacing_analysis", "cut_decisions", "transition_plans", "audio_environment_analysis", "ambient_sound_plans", "music_plans", "sound_effect_plans", "caption_plans", "edit_quality_checks"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["professional edit-quality planning data"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605130004_credit_ledger_approval_gate.sql",
+      "purpose": "Credit wallet, estimate, approval, reservation, ledger, and refund foundation.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130002_intent_edit_planning_tables.sql"],
+      "createsTables": ["credit_wallets", "credit_grants", "credit_ledger_entries", "credit_estimates", "credit_estimate_line_items", "credit_approvals", "credit_reservations", "credit_reservation_line_items", "credit_refunds"],
+      "createsRpcs": ["can_start_generation"],
+      "remoteApplyRequiredFor": ["approved credit estimate", "reserved credit gate"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605130005_job_orchestration_agent_runs.sql",
+      "purpose": "Job batches, jobs, dependencies, events, agent runs, and worker runtime metadata.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130002_intent_edit_planning_tables.sql", "202605130004_credit_ledger_approval_gate.sql"],
+      "createsTables": ["job_batches", "jobs", "job_dependencies", "job_events", "agent_runs", "agent_outputs", "worker_runtime_configs", "worker_heartbeats", "event_log"],
+      "createsRpcs": ["can_run_job"],
+      "remoteApplyRequiredFor": ["worker claim/job readiness gates"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605130006_stroke_motion_data_model.sql",
+      "purpose": "Stroke Motion planning data model.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130002_intent_edit_planning_tables.sql", "202605130004_credit_ledger_approval_gate.sql", "202605130005_job_orchestration_agent_runs.sql"],
+      "createsTables": ["stroke_motion_plans", "stroke_motion_meaning_expansions", "stroke_motion_beats", "stroke_motion_characters", "stroke_motion_symbols", "stroke_motion_beat_characters", "stroke_motion_beat_symbols", "stroke_motion_transitions", "stroke_motion_timing_anchors", "stroke_motion_storyboard_frames", "stroke_motion_generation_specs", "stroke_motion_plan_examples"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["future Stroke Motion planning"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605130007_generation_providers_generated_assets.sql",
+      "purpose": "Provider metadata, generation request, generated asset, asset version, and generation event records.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130002_intent_edit_planning_tables.sql", "202605130004_credit_ledger_approval_gate.sql", "202605130005_job_orchestration_agent_runs.sql", "202605130006_stroke_motion_data_model.sql"],
+      "createsTables": ["generation_providers", "generation_provider_capabilities", "generation_provider_models", "generation_requests", "generation_request_inputs", "generated_assets", "generated_asset_versions", "generated_asset_timing_maps", "generation_events", "generation_request_costs"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["generation/render table readiness checks"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605130008_render_preview_export_revision_qa.sql",
+      "purpose": "Render job, render output, preview review, revision, export, and QA records.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130002_intent_edit_planning_tables.sql", "202605130003_professional_edit_quality_engine.sql", "202605130004_credit_ledger_approval_gate.sql", "202605130005_job_orchestration_agent_runs.sql", "202605130006_stroke_motion_data_model.sql", "202605130007_generation_providers_generated_assets.sql"],
+      "createsTables": ["render_jobs", "render_job_inputs", "renders", "render_events", "exports", "export_variants", "preview_reviews", "review_comments", "revision_requests", "revision_request_items", "qa_reports", "qa_report_items"],
+      "createsRpcs": ["can_export_render"],
+      "remoteApplyRequiredFor": ["render preview metadata", "QA metadata"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605180001_reeditpro_core_workspace_projects.sql",
+      "purpose": "Legacy/current RP-DATA core workspace/project compatibility foundation.",
+      "dependsOn": [],
+      "createsTables": ["workspaces", "workspace_members", "projects"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["current staging schema compatibility"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605180002_reeditpro_media_source_sequence.sql",
+      "purpose": "Legacy/current RP-DATA media and source sequence compatibility foundation.",
+      "dependsOn": ["202605180001_reeditpro_core_workspace_projects.sql"],
+      "createsTables": ["media_assets", "source_clip_sequences", "source_clip_sequence_items"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["upload/source attach compatibility"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605180003_reeditpro_intent_plan_versions.sql",
+      "purpose": "Legacy/current RP-DATA intent and edit plan version compatibility foundation.",
+      "dependsOn": ["202605180001_reeditpro_core_workspace_projects.sql", "202605180002_reeditpro_media_source_sequence.sql"],
+      "createsTables": ["edit_sessions", "edit_plan_versions"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["schema-adaptive smoke prerequisites"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605180004_reeditpro_credits_approval_snapshots.sql",
+      "purpose": "Legacy/current RP-DATA credit approval and approved snapshot compatibility foundation.",
+      "dependsOn": ["202605180001_reeditpro_core_workspace_projects.sql", "202605180003_reeditpro_intent_plan_versions.sql"],
+      "createsTables": ["credit_wallets", "credit_estimates", "credit_approvals", "credit_reservations", "approved_plan_snapshots"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["approved snapshot and credit compatibility"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605180005_reeditpro_generation_assets_jobs.sql",
+      "purpose": "Legacy/current RP-DATA generation, asset, and job compatibility foundation.",
+      "dependsOn": ["202605180001_reeditpro_core_workspace_projects.sql", "202605180004_reeditpro_credits_approval_snapshots.sql"],
+      "createsTables": ["generation_requests", "generated_assets", "job_batches", "jobs", "job_events"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["job/render smoke compatibility"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605180006_reeditpro_qa_exports_audit.sql",
+      "purpose": "Legacy/current RP-DATA QA, export, and audit compatibility foundation.",
+      "dependsOn": ["202605180001_reeditpro_core_workspace_projects.sql", "202605180005_reeditpro_generation_assets_jobs.sql"],
+      "createsTables": ["qa_reports", "qa_report_items", "exports"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["QA smoke compatibility"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605180007_reeditpro_rls_policies.sql",
+      "purpose": "Legacy/current RP-DATA RLS policy compatibility foundation.",
+      "dependsOn": ["202605180001_reeditpro_core_workspace_projects.sql"],
+      "createsTables": [],
+      "createsRpcs": ["is_workspace_member", "is_project_member"],
+      "remoteApplyRequiredFor": ["RLS/auth staging audit"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605180008_reeditpro_storage_buckets_policies.sql",
+      "purpose": "Legacy/current RP-DATA storage bucket and storage policy compatibility foundation.",
+      "dependsOn": ["202605180007_reeditpro_rls_policies.sql"],
+      "createsTables": [],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["storage policy staging audit"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605190001_sfx_director_tables.sql",
+      "purpose": "SoundSync SFX planning, routing, prompt, generated SFX, trim/mix/QA, and library candidate tables.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130008_render_preview_export_revision_qa.sql"],
+      "createsTables": ["sfx_event_plans", "sfx_provider_routes", "sfx_prompt_plans", "sfx_generated_assets", "sfx_trim_plans", "sfx_timing_alignments", "sfx_mix_plans", "sfx_qa_reports", "sfx_qa_issues", "sfx_library_candidates", "sfx_usage_records", "sfx_prompt_adapter_tests"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["SFX/timing table readiness"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605190002_storytiming_master_tables.sql",
+      "purpose": "StoryTiming master maps, anchors, events, conflicts, QA checks, and render timing manifests.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605190001_sfx_director_tables.sql"],
+      "createsTables": ["master_timing_maps", "story_timing_segments", "timing_anchors", "timing_events", "timing_dependencies", "timing_conflicts", "timing_conflict_resolutions", "story_timing_qa_checks", "render_timing_manifests", "render_timing_manifest_tracks", "render_timing_manifest_events"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["SFX/timing table readiness"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605200001_storage_upload_pipeline_readiness.sql",
+      "purpose": "Storage upload policy readiness for source media and thumbnails.",
+      "dependsOn": ["202605180007_reeditpro_rls_policies.sql", "202605180008_reeditpro_storage_buckets_policies.sql"],
+      "createsTables": [],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["storage policy staging validation"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605200002_worker_leases_runtime_transport.sql",
+      "purpose": "Worker leases, backend runtime messages, and job claim attempts.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130005_job_orchestration_agent_runs.sql"],
+      "createsTables": ["worker_leases", "backend_runtime_messages", "job_claim_attempts"],
+      "createsRpcs": [],
+      "remoteApplyRequiredFor": ["worker runtime staging validation"],
+      "rollbackRisk": "medium"
+    },
+    {
+      "file": "202605210001_e2e_runtime_readiness_tables.sql",
+      "purpose": "RP-E2E runtime readiness tables for approved snapshots, idempotency, uploads, storage records, worker claims, tool checks, and provider attempt/webhook summaries.",
+      "dependsOn": ["202605130001_core_reeditpro_tables.sql", "202605130004_credit_ledger_approval_gate.sql", "202605130005_job_orchestration_agent_runs.sql", "202605130008_render_preview_export_revision_qa.sql", "202605200001_storage_upload_pipeline_readiness.sql", "202605200002_worker_leases_runtime_transport.sql"],
+      "createsTables": ["api_idempotency_keys", "upload_intents", "storage_object_records", "signed_url_events", "worker_job_claims", "tool_runtime_checks", "provider_request_attempts", "provider_webhook_events"],
+      "createsRpcs": ["can_create_approved_plan_snapshot", "active_worker_claim_exists", "can_claim_worker_job"],
+      "remoteApplyRequiredFor": ["RP-E2E table readiness", "live upload/storage/worker smoke"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605210002_e2e_service_role_runtime_rpcs.sql",
+      "purpose": "Service-role-only RPCs for no-AI persisted render smoke runtime writes.",
+      "dependsOn": ["202605210001_e2e_runtime_readiness_tables.sql"],
+      "createsTables": [],
+      "createsRpcs": ["e2e_create_approved_plan_snapshot", "e2e_reserve_credits_for_smoke", "e2e_create_job_batch_and_render_job", "e2e_claim_worker_job", "e2e_release_worker_job_claim", "e2e_record_job_event", "e2e_record_preview_storage_object", "e2e_record_preview_render_result", "e2e_record_preview_qa_result", "e2e_complete_render_job_preview_ready"],
+      "remoteApplyRequiredFor": ["RPC readiness", "persisted render smoke"],
+      "rollbackRisk": "high"
+    },
+    {
+      "file": "202605210003_e2e_production_service_path_hardening.sql",
+      "purpose": "Service-role-only RPC hardening for idempotency request hashes, source attach, plan approval bundles, job transitions, and refund placeholders.",
+      "dependsOn": ["202605210001_e2e_runtime_readiness_tables.sql", "202605210002_e2e_service_role_runtime_rpcs.sql"],
+      "createsTables": [],
+      "createsRpcs": ["e2e_assert_idempotent_request", "e2e_attach_finalized_media_to_source_sequence", "e2e_create_plan_approval_bundle", "e2e_transition_job_status", "e2e_record_credit_refund_placeholder"],
+      "remoteApplyRequiredFor": ["Prompt 9/10 full Supabase E2E validation"],
+      "rollbackRisk": "high"
+    }
+  ]
+}

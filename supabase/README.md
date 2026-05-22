@@ -366,12 +366,63 @@ The migration adds helper functions for approved snapshot readiness and worker c
 
 This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
 
+### RP-E2E-READY-01: Service-Role Runtime RPCs
+
+`migrations/202605210002_e2e_service_role_runtime_rpcs.sql` is a local/review-ready migration for transaction-safe backend smoke paths.
+
+It adds service-role-only RPCs for:
+
+- approved plan snapshot creation
+- smoke credit reservation
+- job batch and render job creation
+- worker job claim and release
+- job event recording
+- preview storage object recording
+- preview render metadata
+- preview QA metadata
+- preview-ready completion
+
+The RPCs are designed for backend/service-role execution only. They validate required approved plan, approved credit estimate, reserved credits, approved snapshot, canonical storage, and worker claim boundaries before completing the no-AI persisted render smoke path. JSON payloads are checked for obvious secret-like or signed URL content.
+
+This migration has not been run locally, in staging, or in production by Codex. It does not call providers, integrate Stripe, run Remotion, deploy Google Cloud, add secrets, expose service-role keys, or perform production billing. Future prompts should harden these RPCs beyond smoke usage before real user traffic.
+
+### RP-E2E-READY-01: Production Service Path Hardening
+
+`migrations/202605210003_e2e_production_service_path_hardening.sql` is a local/review-ready migration for Prompt 9 route-integrated no-AI E2E paths.
+
+It adds service-role-only helpers for:
+
+- idempotency request-hash checks
+- finalized media attachment to chat/source sequences
+- smoke plan and credit approval bundles
+- strict job transitions
+- ReeditPro-caused render failure refund placeholders
+
+It also adds supporting indexes and a conservative JSON marker check for secret-like payloads. The migration is not applied remotely by Codex. It does not add providers, Stripe, Remotion, Google Cloud deployment, secrets, production billing reconciliation, or production launch authorization.
+
+### RP-E2E-READY-01: Live Staging Validation
+
+Prompt 10 adds no new migration. It adds a migration manifest and validation commands for a safe manual staging apply:
+
+- `supabase/e2e-runtime-migration-manifest.json`
+- `npm run smoke:supabase:migration-manifest`
+- `npm run smoke:supabase:live-env`
+- `npm run smoke:supabase:tables`
+- `npm run smoke:supabase:rpcs`
+- `npm run smoke:supabase:rls-auth`
+
+Live writes remain disabled until `SUPABASE_E2E_SMOKE_MODE=live` and `SUPABASE_E2E_ALLOW_WRITES=true` are explicitly set. Smoke writes must be tagged with `e2eSmoke=true`, `smokeRunId`, and `createdBy="rp-e2e-smoke"`, and cleanup may delete only records from the same smoke run.
+
+Use `docs/deployment/supabase-staging-apply-checklist.md` before applying migrations to staging.
+
 ## Future Migrations
 
 Later migrations should add, in order:
 
 - local/staging application and verification of RP-E2E-READY-01 runtime readiness tables
-- backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks
+- local/staging application and verification of RP-E2E-READY-01 service-role runtime RPCs
+- local/staging application and verification of RP-E2E-READY-01 production service path hardening RPCs
+- production-hardened backend API service-role handlers for approved snapshots, idempotency, upload intents, storage records, signed URL events, worker claims, tool checks, provider attempts, and webhooks
 - signed storage route wiring
 - Cloud Run worker scaffolding for generation, media tools, QA, and rendering
 - Stripe and billing integration after the credit service boundary is implemented

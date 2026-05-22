@@ -279,6 +279,140 @@ npm run smoke:render:test
 npm run docker:worker:render-smoke
 ```
 
+## Supabase Table Readiness
+
+CLI:
+
+```bash
+npm run smoke:supabase:tables
+```
+
+Route:
+
+```http
+GET /health/supabase/tables
+```
+
+Disabled or missing-env result shape:
+
+```json
+{
+  "ok": true,
+  "status": "skipped",
+  "smokeMode": "disabled",
+  "warnings": [
+    "Supabase E2E smoke mode is disabled; no live connection was attempted."
+  ]
+}
+```
+
+Missing table result shape:
+
+```json
+{
+  "ok": false,
+  "status": "failed",
+  "error": {
+    "code": "missing_tables",
+    "message": "Supabase is reachable, but required RP-E2E runtime tables are missing."
+  },
+  "tableReadiness": {
+    "ok": false,
+    "missingTables": ["approved_plan_snapshots"]
+  }
+}
+```
+```
+
+## Supabase Write/Read Smoke
+
+CLI:
+
+```bash
+npm run smoke:supabase:write
+```
+
+Route:
+
+```http
+POST /v1/e2e/supabase/write-smoke
+Authorization: Bearer <token>
+```
+
+Live write mode is blocked unless `SUPABASE_E2E_SMOKE_MODE=live` and `SUPABASE_E2E_ALLOW_WRITES=true` are set in server-only env. The smoke creates temporary workspace/project/chat/upload/storage/edit-plan/credit/snapshot/job/render/QA metadata and cleans up smoke-owned rows when cleanup is enabled.
+
+Success shape:
+
+```json
+{
+  "ok": true,
+  "status": "passed",
+  "records": {
+    "workspaceId": "...",
+    "projectId": "...",
+    "approvedPlanSnapshotId": "...",
+    "creditReservationId": "...",
+    "renderJobId": "..."
+  },
+  "cleanup": {
+    "attempted": true,
+    "deleted": []
+  }
+}
+```
+
+## Supabase Persisted Render Smoke
+
+CLI:
+
+```bash
+npm run smoke:e2e:persisted-render
+```
+
+Route:
+
+```http
+POST /v1/e2e/supabase/persisted-render-smoke
+Authorization: Bearer <token>
+```
+
+This runs the no-AI FFmpeg/FFprobe preview path only in live write mode with local storage. It writes and reads Supabase metadata for the source, approved snapshot, credit reservation, render job, worker claim, preview storage object, render, QA report, and job events.
+
+Successful result shape:
+
+```json
+{
+  "ok": true,
+  "status": "passed",
+  "records": {
+    "sourceStorageObjectId": "...",
+    "renderJobId": "...",
+    "renderId": "...",
+    "previewStorageObjectId": "...",
+    "qaReportId": "..."
+  },
+  "renderSmoke": {
+    "status": "completed",
+    "output": {
+      "status": "preview_ready"
+    }
+  }
+}
+```
+
+Blocked because live writes are disabled:
+
+```json
+{
+  "ok": true,
+  "status": "skipped",
+  "error": {
+    "code": "disabled",
+    "message": "Set SUPABASE_E2E_SMOKE_MODE=live and SUPABASE_E2E_ALLOW_WRITES=true to run persisted smoke."
+  }
+}
+```
+
 ## Provider Gateway Blocked Real Call
 
 ```http
@@ -440,3 +574,182 @@ Expected failure modes:
 - Missing `ffprobe`: worker blocks before probing.
 - Missing finalized storage metadata: worker fails safely.
 - Non-local storage mode: worker fails with mock/local-only message.
+
+## Supabase RPC Readiness
+
+```bash
+npm run smoke:supabase:rpcs
+```
+
+Disabled default:
+
+```json
+{
+  "ok": true,
+  "status": "skipped",
+  "error": {
+    "code": "disabled",
+    "message": "Set SUPABASE_E2E_SMOKE_MODE=live to run service-role RPC readiness checks."
+  }
+}
+```
+
+Live missing RPCs:
+
+```json
+{
+  "ok": false,
+  "status": "failed",
+  "error": {
+    "code": "E2E_RPC_MISSING",
+    "message": "E2E service-role RPCs are not applied to Supabase.",
+    "details": {
+      "missingRpcs": ["e2e_create_approved_plan_snapshot"]
+    }
+  }
+}
+```
+
+## RPC Persisted Render Smoke
+
+```bash
+SUPABASE_E2E_SMOKE_MODE=live SUPABASE_E2E_ALLOW_WRITES=true npm run smoke:e2e:rpc-persisted-render
+```
+
+Skipped default:
+
+```json
+{
+  "ok": true,
+  "status": "skipped",
+  "error": {
+    "code": "disabled",
+    "message": "Set SUPABASE_E2E_SMOKE_MODE=live and SUPABASE_E2E_ALLOW_WRITES=true to run persisted smoke."
+  }
+}
+```
+
+Success shape:
+
+```json
+{
+  "ok": true,
+  "status": "passed",
+  "renderSmoke": {
+    "ok": true,
+    "status": "preview_ready",
+    "jobId": "job_uuid",
+    "renderJobId": "render_job_uuid",
+    "previewStorageObjectId": "storage_object_uuid",
+    "qaReportId": "qa_report_uuid",
+    "outputObjectPath": "workspaces/.../previews/.../rpc-basic-smoke-preview.mp4"
+  }
+}
+```
+
+Worker claim conflict:
+
+```json
+{
+  "ok": false,
+  "status": "failed",
+  "error": {
+    "code": "E2E_WORKER_CLAIM_CONFLICT",
+    "message": "An active worker claim already exists for this job."
+  }
+}
+```
+
+Credit reservation missing:
+
+```json
+{
+  "ok": false,
+  "status": "failed",
+  "error": {
+    "code": "E2E_CREDIT_RESERVATION_MISSING",
+    "message": "Credit reservation is required before preview-ready completion."
+  }
+}
+```
+
+## Prompt 9 Local Full Editing Flow
+
+```bash
+npm run smoke:e2e:local-full
+```
+
+Route:
+
+```http
+POST /v1/e2e/local/full-editing-flow
+Idempotency-Key: local-full-001
+```
+
+```json
+{
+  "workspaceId": "workspace_local_full",
+  "projectName": "No-AI local full flow"
+}
+```
+
+Success shape:
+
+```json
+{
+  "ok": true,
+  "status": "preview_ready",
+  "mode": "local",
+  "providerCallsAttempted": false,
+  "remotionUsed": false,
+  "signedUrlStoredAsCanonical": false,
+  "previewStorageObjectId": "storage_object_preview",
+  "qaReportId": "qa_report",
+  "steps": [
+    { "name": "create_upload_intent", "status": "passed" },
+    { "name": "create_approved_snapshot", "status": "passed" },
+    { "name": "run_basic_render_worker", "status": "passed" }
+  ]
+}
+```
+
+## Prompt 9 Supabase Full Editing Flow
+
+```bash
+npm run smoke:e2e:supabase-full
+```
+
+Default skipped result:
+
+```json
+{
+  "ok": true,
+  "status": "skipped",
+  "mode": "supabase",
+  "error": {
+    "code": "supabase_full_flow_disabled",
+    "message": "Set SUPABASE_E2E_SMOKE_MODE=live and SUPABASE_E2E_ALLOW_WRITES=true to run Supabase full E2E flow."
+  }
+}
+```
+
+Live mode requires server-only Supabase env, write permission, required tables, Prompt 8/9 RPCs, FFmpeg/FFprobe, and local storage mode. Missing pieces return a structured failure instead of fake success.
+
+## Prompt 9 Readiness Summary
+
+```bash
+npm run e2e:readiness
+```
+
+```json
+{
+  "ok": false,
+  "localFullFlowReady": true,
+  "supabaseFullFlowReady": false,
+  "providerRealCallsDisabled": true,
+  "remotionDisabled": true,
+  "blockers": [
+    "Live Supabase full flow is disabled until SUPABASE_E2E_SMOKE_MODE=live is set."
+  ]
+}
+```

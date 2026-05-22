@@ -113,6 +113,33 @@ The route requires local mode, auth, idempotency, approved snapshot ID, credit r
 - Missing source storage object metadata in mock mode: blocked with `STORAGE_OBJECT_NOT_FOUND`.
 - FFprobe or FFmpeg command failure: blocked with `FFPROBE_FAILED` or `FFMPEG_RENDER_FAILED`.
 
+## Prompt 7 Handoff: From Local/Mock Preview To Supabase-Persisted Preview
+
+Prompt 6 proves the local execution path: FFprobe can inspect a source file, FFmpeg can create a short preview, and the backend can return preview-ready metadata without AI or providers.
+
+Prompt 7 adds the backend persistence check. It verifies Supabase runtime tables, then, only when live smoke mode and writes are explicitly enabled, writes and reads the approved snapshot, credit reservation, render job, worker claim, preview storage object, render metadata, QA metadata, and job events needed for the same no-AI preview path.
+
+The handoff is intentionally narrow: provider calls, Stripe, Remotion rendering, GCS production storage, and Cloud Run deployment still wait for later milestones.
+
+## Prompt 9 Handoff: Route-Integrated Local Full Flow
+
+Prompt 9 runs the no-AI path through route-shaped service boundaries:
+
+```bash
+npm run smoke:e2e:local-full
+npm run smoke:e2e:local-full:test
+```
+
+This creates a synthetic source clip, upload intent, finalized media/storage metadata, source sequence attachment, approved snapshot, credit reservation, render job, worker claim, FFprobe/FFmpeg preview, render metadata, and QA metadata before returning `preview_ready`.
+
+The Supabase full flow remains disabled by default:
+
+```bash
+npm run smoke:e2e:supabase-full
+```
+
+It runs only after live env, write permission, runtime tables, Prompt 8/9 RPCs, local storage, and FFmpeg/FFprobe are explicitly configured.
+
 ## What Remains
 
-Prompt 7 should connect this smoke path to stronger local/staging database records, refine render/QA persistence, and later introduce Remotion only after the FFmpeg/FFprobe foundation is stable.
+Prompt 10 should apply and validate the review-ready migrations in a safe Supabase environment, tighten route authorization/RLS checks, and prepare non-smoke transaction rollout.

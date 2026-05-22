@@ -15,6 +15,7 @@ export async function runBasicRenderSmokeWorker(
 function requestFromJob(job: WorkerJobRecord): BasicRenderSmokeRequest {
   const sourceStorageObjectId = stringFromPayload(job.inputPayload, 'sourceStorageObjectId')
     ?? stringFromPayload(job.inputPayload, 'storageObjectRecordId')
+  const renderJobId = stringFromPayload(job.inputPayload, 'renderJobId') ?? job.id
   const sourceStorageObject = sourceStorageObjectFromPayload(job.inputPayload)
 
   if (!job.projectId) {
@@ -33,7 +34,7 @@ function requestFromJob(job: WorkerJobRecord): BasicRenderSmokeRequest {
   return {
     workspaceId: job.workspaceId,
     projectId: job.projectId,
-    renderJobId: job.id,
+    renderJobId,
     sourceStorageObjectId,
     sourceStorageObject,
     approvedPlanSnapshotId: job.approvedPlanSnapshotId,

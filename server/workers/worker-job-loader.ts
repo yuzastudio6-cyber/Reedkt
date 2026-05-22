@@ -49,6 +49,7 @@ export async function loadWorkerJob(context: ServiceContext, input: WorkerJobLoa
 
   throwOnSupabaseError(error, 'JOB_NOT_FOUND')
   if (!data) throw new ApiError('JOB_NOT_FOUND', 'Job was not found.', 404)
+  const inputPayload = isRecord(data.input_payload) ? data.input_payload : {}
 
   return {
     id: String(data.id),
@@ -56,9 +57,11 @@ export async function loadWorkerJob(context: ServiceContext, input: WorkerJobLoa
     projectId: typeof data.project_id === 'string' ? data.project_id : undefined,
     jobType: String(data.job_type),
     status: String(data.status),
-    approvedPlanSnapshotId: typeof data.approved_plan_snapshot_id === 'string' ? data.approved_plan_snapshot_id : undefined,
+    approvedPlanSnapshotId: typeof data.approved_plan_snapshot_id === 'string'
+      ? data.approved_plan_snapshot_id
+      : stringFromPayload(inputPayload, 'approvedPlanSnapshotId'),
     creditReservationId: typeof data.credit_reservation_id === 'string' ? data.credit_reservation_id : undefined,
-    inputPayload: isRecord(data.input_payload) ? data.input_payload : {},
+    inputPayload,
     outputPayload: isRecord(data.output_payload) ? data.output_payload : undefined,
     jobBatchId: typeof data.job_batch_id === 'string' ? data.job_batch_id : undefined,
   }
@@ -66,4 +69,9 @@ export async function loadWorkerJob(context: ServiceContext, input: WorkerJobLoa
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+function stringFromPayload(payload: Record<string, unknown>, key: string): string | undefined {
+  const value = payload[key]
+  return typeof value === 'string' ? value : undefined
 }

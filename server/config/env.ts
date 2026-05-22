@@ -6,6 +6,7 @@ dotenv.config({ quiet: true })
 export type E2ERuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
 export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
+export type SupabaseE2ESmokeMode = 'disabled' | 'live'
 
 export interface RuntimeEnv {
   nodeEnv: string
@@ -18,6 +19,13 @@ export interface RuntimeEnv {
   supabaseUrl?: string
   supabaseAnonKey?: string
   supabaseServiceRoleKey?: string
+  supabaseE2eSmokeMode: SupabaseE2ESmokeMode
+  supabaseE2eAllowWrites: boolean
+  supabaseE2eCleanup: boolean
+  supabaseE2eWorkspaceId?: string
+  supabaseE2eUserId?: string
+  supabaseE2eProjectId?: string
+  supabaseE2eRegion: string
   googleCloudProjectId?: string
   googleCloudRegion?: string
   gcsDefaultRegion: string
@@ -61,6 +69,13 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().optional(),
   VITE_SUPABASE_ANON_KEY: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  SUPABASE_E2E_SMOKE_MODE: z.enum(['disabled', 'live']).default('disabled'),
+  SUPABASE_E2E_ALLOW_WRITES: z.string().optional(),
+  SUPABASE_E2E_CLEANUP: z.string().optional(),
+  SUPABASE_E2E_WORKSPACE_ID: z.string().optional(),
+  SUPABASE_E2E_USER_ID: z.string().optional(),
+  SUPABASE_E2E_PROJECT_ID: z.string().optional(),
+  SUPABASE_E2E_REGION: z.string().default('local'),
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
   GOOGLE_CLOUD_REGION: z.string().optional(),
   GCS_DEFAULT_REGION: z.string().default('us-east1'),
@@ -100,6 +115,10 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
   const allowMockWithoutSupabase = parseBoolean(parsed.API_ALLOW_MOCK_WITHOUT_SUPABASE)
   const hasSupabaseAdmin = Boolean(supabaseUrl && supabaseServiceRoleKey)
   const hasSupabasePublic = Boolean(supabaseUrl && supabaseAnonKey)
+  const supabaseE2eAllowWrites = parseBoolean(parsed.SUPABASE_E2E_ALLOW_WRITES)
+  const supabaseE2eCleanup = parsed.SUPABASE_E2E_CLEANUP === undefined
+    ? true
+    : parseBoolean(parsed.SUPABASE_E2E_CLEANUP)
   const mockOnly = parsed.E2E_RUNTIME_MODE === 'mock' || parsed.E2E_RUNTIME_MODE === 'disabled' || !hasSupabaseAdmin
   const warnings: string[] = []
 
@@ -113,6 +132,14 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
 
   if (hasSupabaseAdmin && parsed.E2E_RUNTIME_MODE === 'mock') {
     warnings.push('Supabase admin env is present, but E2E_RUNTIME_MODE=mock keeps runtime in mock-only mode.')
+  }
+
+  if (parsed.SUPABASE_E2E_SMOKE_MODE === 'live' && !hasSupabaseAdmin) {
+    warnings.push('SUPABASE_E2E_SMOKE_MODE=live is set, but Supabase service-role runtime is unavailable.')
+  }
+
+  if (parsed.SUPABASE_E2E_SMOKE_MODE !== 'live' && supabaseE2eAllowWrites) {
+    warnings.push('SUPABASE_E2E_ALLOW_WRITES=true is ignored unless SUPABASE_E2E_SMOKE_MODE=live.')
   }
 
   if (parsed.STORAGE_MODE === 'gcs' && !hasRequiredGcsBuckets(parsed)) {
@@ -130,6 +157,13 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     supabaseUrl,
     supabaseAnonKey,
     supabaseServiceRoleKey,
+    supabaseE2eSmokeMode: parsed.SUPABASE_E2E_SMOKE_MODE,
+    supabaseE2eAllowWrites,
+    supabaseE2eCleanup,
+    supabaseE2eWorkspaceId: clean(parsed.SUPABASE_E2E_WORKSPACE_ID),
+    supabaseE2eUserId: clean(parsed.SUPABASE_E2E_USER_ID),
+    supabaseE2eProjectId: clean(parsed.SUPABASE_E2E_PROJECT_ID),
+    supabaseE2eRegion: clean(parsed.SUPABASE_E2E_REGION) ?? 'local',
     googleCloudProjectId: clean(parsed.GOOGLE_CLOUD_PROJECT_ID),
     googleCloudRegion: clean(parsed.GOOGLE_CLOUD_REGION),
     gcsDefaultRegion: clean(parsed.GCS_DEFAULT_REGION) ?? 'us-east1',
@@ -186,6 +220,15 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     supabaseUrlConfigured: Boolean(env.supabaseUrl),
     supabaseAnonKeyConfigured: Boolean(env.supabaseAnonKey),
     supabaseServiceRoleConfigured: env.hasSupabaseAdmin,
+    supabaseE2eSmoke: {
+      mode: env.supabaseE2eSmokeMode,
+      allowWrites: env.supabaseE2eAllowWrites,
+      cleanup: env.supabaseE2eCleanup,
+      workspaceIdConfigured: Boolean(env.supabaseE2eWorkspaceId),
+      userIdConfigured: Boolean(env.supabaseE2eUserId),
+      projectIdConfigured: Boolean(env.supabaseE2eProjectId),
+      region: env.supabaseE2eRegion,
+    },
     googleCloudProjectConfigured: Boolean(env.googleCloudProjectId),
     googleCloudRegionConfigured: Boolean(env.googleCloudRegion),
     gcsBucketsConfigured: {

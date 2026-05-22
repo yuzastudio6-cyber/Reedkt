@@ -272,6 +272,278 @@ export interface BasicRenderSmokeResponse {
   }
 }
 
+export type SupabaseE2ESmokeMode = 'disabled' | 'live'
+
+export type SupabaseE2ESmokeStatus = 'passed' | 'failed' | 'skipped'
+
+export interface SupabaseTableReadinessGroupResult {
+  group: string
+  ok: boolean
+  availableTables: string[]
+  missingTables: string[]
+}
+
+export interface SupabaseTableReadinessResult {
+  ok: boolean
+  checkedAt: ISODateString
+  availableTables: string[]
+  missingTables: string[]
+  groups: SupabaseTableReadinessGroupResult[]
+  warnings: string[]
+}
+
+export interface SupabaseE2ESmokeRecordIds {
+  workspaceId?: ID
+  projectId?: ID
+  userId?: ID
+  chatSessionId?: ID
+  chatMessageId?: ID
+  uploadIntentId?: ID
+  mediaAssetId?: ID
+  sourceStorageObjectId?: ID
+  editSessionId?: ID
+  editPlanVersionId?: ID
+  editPlanId?: ID
+  creditWalletId?: ID
+  creditEstimateId?: ID
+  creditApprovalId?: ID
+  creditReservationId?: ID
+  approvedPlanSnapshotId?: ID
+  jobBatchId?: ID
+  jobId?: ID
+  renderJobId?: ID
+  renderId?: ID
+  previewStorageObjectId?: ID
+  qaReportId?: ID
+}
+
+export interface SupabaseE2ESmokeResponse {
+  ok: boolean
+  status: SupabaseE2ESmokeStatus
+  smokeMode: SupabaseE2ESmokeMode | string
+  liveSupabaseConfigured: boolean
+  writesAllowed: boolean
+  cleanupEnabled: boolean
+  tableReadiness?: SupabaseTableReadinessResult
+  records?: SupabaseE2ESmokeRecordIds
+  cleanup?: {
+    attempted: boolean
+    deleted: Array<{ table: string; id: ID }>
+    errors: string[]
+  }
+  renderSmoke?: WorkerExecutionResult | JSONObject
+  warnings: string[]
+  error?: {
+    code: string
+    message: string
+    details?: JSONObject
+  }
+}
+
+export type E2EServiceRoleRpcStatus =
+  | 'disabled'
+  | 'missing_env'
+  | 'missing_rpc'
+  | 'idempotent_replay'
+  | 'approved'
+  | 'reserved'
+  | 'queued'
+  | 'active'
+  | 'released'
+  | 'completed'
+  | 'recorded'
+  | 'ready'
+  | 'preview_ready'
+  | 'failed'
+
+export interface E2EServiceRoleRpcError {
+  code: string
+  message: string
+  details?: JSONObject
+}
+
+export interface E2EServiceRoleRpcBaseResult {
+  ok: boolean
+  status: E2EServiceRoleRpcStatus | string
+  warnings: string[]
+  error?: E2EServiceRoleRpcError
+}
+
+export interface E2EApprovedSnapshotRpcResult extends E2EServiceRoleRpcBaseResult {
+  approvedPlanSnapshotId?: ID
+}
+
+export interface E2ECreditReservationRpcResult extends E2EServiceRoleRpcBaseResult {
+  creditReservationId?: ID
+  creditLedgerEntryId?: ID
+}
+
+export interface E2EJobBatchRenderJobRpcResult extends E2EServiceRoleRpcBaseResult {
+  jobBatchId?: ID
+  jobId?: ID
+  renderJobId?: ID
+}
+
+export interface E2EWorkerClaimRpcResult extends E2EServiceRoleRpcBaseResult {
+  workerJobClaimId?: ID
+}
+
+export interface E2EJobEventRpcResult extends E2EServiceRoleRpcBaseResult {
+  jobEventId?: ID
+  eventName?: string
+  eventType?: string
+}
+
+export interface E2EPreviewStorageObjectRpcResult extends E2EServiceRoleRpcBaseResult {
+  previewStorageObjectId?: ID
+}
+
+export interface E2EPreviewRenderRpcResult extends E2EServiceRoleRpcBaseResult {
+  renderId?: ID
+}
+
+export interface E2EPreviewQARpcResult extends E2EServiceRoleRpcBaseResult {
+  qaReportId?: ID
+}
+
+export interface E2EPreviewReadyRpcResult extends E2EServiceRoleRpcBaseResult {
+  jobId?: ID
+  renderJobId?: ID
+  renderId?: ID
+  qaReportId?: ID
+  previewStorageObjectId?: ID
+  jobEvent?: JSONObject
+}
+
+export interface E2ERpcReadinessResult {
+  ok: boolean
+  checkedAt: ISODateString
+  availableRpcs: string[]
+  missingRpcs: string[]
+  warnings: string[]
+}
+
+export interface E2EPersistedRenderPipelineResult extends E2EServiceRoleRpcBaseResult {
+  workspaceId?: ID
+  projectId?: ID
+  sourceStorageObjectId?: ID
+  approvedPlanSnapshotId?: ID
+  creditReservationId?: ID
+  creditLedgerEntryId?: ID
+  jobBatchId?: ID
+  jobId?: ID
+  renderJobId?: ID
+  workerJobClaimId?: ID
+  renderId?: ID
+  previewStorageObjectId?: ID
+  qaReportId?: ID
+  outputBucketName?: string
+  outputObjectPath?: string
+  durationSeconds?: number
+  sizeBytes?: number
+  checksumSha256?: string
+  mediaProbe?: MediaProbeSummary
+  previewRender?: BasicPreviewRenderOutput
+  rpcReadiness?: E2ERpcReadinessResult
+  events?: E2EJobEventRpcResult[]
+}
+
+export type E2EFullEditingFlowMode = 'local' | 'supabase'
+
+export type E2EFullEditingFlowStatus = 'preview_ready' | 'failed' | 'skipped'
+
+export type E2EFlowStepStatus = 'pending' | 'passed' | 'failed' | 'skipped'
+
+export interface E2EFlowStepResult {
+  name: string
+  status: E2EFlowStepStatus
+  details?: JSONObject
+  completedAt?: ISODateString
+}
+
+export interface E2EFullEditingFlowRequest {
+  workspaceId?: ID
+  projectId?: ID
+  projectName?: string
+  strict?: boolean
+  cleanup?: boolean
+  idempotencyKey?: string
+}
+
+export interface E2EJobTransitionResult {
+  ok: boolean
+  jobId: ID
+  fromStatus?: string
+  toStatus: string
+  warnings: string[]
+  error?: E2EServiceRoleRpcError
+}
+
+export interface E2ECreditRefundPlaceholderResult {
+  ok: boolean
+  status: 'not_required' | 'modeled' | 'blocked' | 'failed'
+  creditReservationId?: ID
+  jobId?: ID
+  refundRequired: boolean
+  reason?: string
+  warnings: string[]
+  error?: E2EServiceRoleRpcError
+}
+
+export interface E2EReadinessSummary {
+  ok: boolean
+  localFullFlowReady: boolean
+  supabaseFullFlowReady: boolean
+  providerRealCallsDisabled: boolean
+  remotionDisabled: boolean
+  storageMode: StorageMode | string
+  toolReadiness: {
+    ffmpegFfprobeReady: boolean
+    warnings: string[]
+  }
+  supabase: {
+    smokeMode: SupabaseE2ESmokeMode | string
+    writesAllowed: boolean
+    tableStatus: SupabaseE2ESmokeStatus | string
+    rpcStatus: SupabaseE2ESmokeStatus | string
+  }
+  blockers: string[]
+  warnings: string[]
+}
+
+export interface E2EFullEditingFlowResult {
+  ok: boolean
+  status: E2EFullEditingFlowStatus
+  mode: E2EFullEditingFlowMode
+  workspaceId?: ID
+  projectId?: ID
+  chatSessionId?: ID
+  uploadIntentId?: ID
+  mediaAssetId?: ID
+  sourceStorageObjectId?: ID
+  approvedPlanSnapshotId?: ID
+  creditReservationId?: ID
+  jobBatchId?: ID
+  jobId?: ID
+  renderJobId?: ID
+  workerJobClaimId?: ID
+  renderId?: ID
+  previewStorageObjectId?: ID
+  qaReportId?: ID
+  outputObjectPath?: string
+  checksumSha256?: string
+  workerResult?: JSONObject
+  renderSmoke?: JSONObject
+  steps: E2EFlowStepResult[]
+  providerCallsAttempted: boolean
+  remotionUsed: boolean
+  signedUrlStoredAsCanonical: boolean
+  startedAt: ISODateString
+  completedAt: ISODateString
+  warnings: string[]
+  error?: E2EServiceRoleRpcError
+}
+
 export interface WorkerExecutionResult {
   jobId: ID
   workerType: string

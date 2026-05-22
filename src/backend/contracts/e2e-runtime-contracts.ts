@@ -29,6 +29,25 @@ import type {
   MediaProbeSummary,
   RenderSmokeQAResult,
   RenderSmokeStatus,
+  SupabaseE2ESmokeResponse,
+  SupabaseTableReadinessResult,
+  E2EApprovedSnapshotRpcResult,
+  E2ECreditReservationRpcResult,
+  E2EJobBatchRenderJobRpcResult,
+  E2EWorkerClaimRpcResult,
+  E2EJobEventRpcResult,
+  E2EPreviewStorageObjectRpcResult,
+  E2EPreviewRenderRpcResult,
+  E2EPreviewQARpcResult,
+  E2EPreviewReadyRpcResult,
+  E2EPersistedRenderPipelineResult,
+  E2ERpcReadinessResult,
+  E2EFlowStepResult,
+  E2EFullEditingFlowRequest,
+  E2EFullEditingFlowResult,
+  E2EReadinessSummary,
+  E2ECreditRefundPlaceholderResult,
+  E2EJobTransitionResult,
 } from '../../types'
 import type { JSONObject } from '../../types/shared'
 
@@ -241,6 +260,45 @@ export type {
   MediaProbeSummary,
   RenderSmokeQAResult,
   RenderSmokeStatus,
+  SupabaseE2ESmokeResponse,
+  SupabaseTableReadinessResult,
+  E2EApprovedSnapshotRpcResult,
+  E2ECreditReservationRpcResult,
+  E2EJobBatchRenderJobRpcResult,
+  E2EWorkerClaimRpcResult,
+  E2EJobEventRpcResult,
+  E2EPreviewStorageObjectRpcResult,
+  E2EPreviewRenderRpcResult,
+  E2EPreviewQARpcResult,
+  E2EPreviewReadyRpcResult,
+  E2EPersistedRenderPipelineResult,
+  E2ERpcReadinessResult,
+  E2EFlowStepResult,
+  E2EFullEditingFlowRequest,
+  E2EFullEditingFlowResult,
+  E2EReadinessSummary,
+  E2ECreditRefundPlaceholderResult,
+  E2EJobTransitionResult,
+}
+
+export interface RunSupabaseTableReadinessSmokeResponse extends SupabaseE2ESmokeResponse {
+  tableReadiness?: SupabaseTableReadinessResult
+}
+
+export type RunSupabaseWriteReadSmokeResponse = SupabaseE2ESmokeResponse
+
+export type RunPersistedBasicRenderSmokeResponse = SupabaseE2ESmokeResponse
+
+export type RunLocalFullEditingFlowRequest = E2EFullEditingFlowRequest
+
+export type RunLocalFullEditingFlowResponse = E2EFullEditingFlowResult
+
+export type RunSupabaseFullEditingFlowRequest = E2EFullEditingFlowRequest
+
+export type RunSupabaseFullEditingFlowResponse = E2EFullEditingFlowResult
+
+export interface E2EReadinessSummaryResponse {
+  readiness: E2EReadinessSummary
 }
 
 export interface WorkerGateCheckResponse {

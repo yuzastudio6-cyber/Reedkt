@@ -115,6 +115,16 @@ export async function runBasicRenderSmoke(
     maxDurationSeconds: 3,
     audioMode: 'muted',
   })
+  await createSmokeRenderRecord(context, {
+    renderId,
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    renderJobId: input.renderJobId,
+    bucketName: previewBucketName,
+    objectPath: outputObjectPath,
+    sizeBytes: previewRender.sizeBytes,
+    durationSeconds: previewRender.durationSeconds,
+  })
   const previewStorageObject = await createPreviewStorageObjectFromRender(context, {
     workspaceId: input.workspaceId,
     projectId: input.projectId,
@@ -138,6 +148,11 @@ export async function runBasicRenderSmoke(
     renderJobId: input.renderJobId,
     previewStorageObjectId: previewStorageObject.id,
     qaReportId: qa.qaReportId,
+    bucketName: previewBucketName,
+    objectPath: outputObjectPath,
+    sizeBytes: previewRender.sizeBytes,
+    durationSeconds: previewRender.durationSeconds,
+    checksumSha256: previewRender.checksumSha256,
   })
 
   return {
@@ -166,6 +181,47 @@ export async function runBasicRenderSmoke(
       ...qa.warnings,
     ],
   }
+}
+
+export async function createSmokeRenderRecord(
+  context: ServiceContext,
+  input: {
+    renderId: string
+    workspaceId: string
+    projectId: string
+    renderJobId: string
+    bucketName: string
+    objectPath: string
+    sizeBytes: number
+    durationSeconds: number
+  },
+): Promise<void> {
+  if (!context.clients.admin || context.env.mockOnly) return
+
+  const { error } = await context.clients.admin
+    .from('renders')
+    .insert({
+      id: input.renderId,
+      workspace_id: input.workspaceId,
+      project_id: input.projectId,
+      render_job_id: input.renderJobId,
+      status: 'rendering',
+      render_type: 'preview',
+      quality_level: 'draft',
+      output_format: 'mp4',
+      display_name: 'RP-E2E basic smoke preview',
+      storage_provider: 'local_private_storage',
+      storage_bucket: input.bucketName,
+      storage_path: input.objectPath,
+      file_size_bytes: input.sizeBytes,
+      duration_seconds: input.durationSeconds,
+      render_payload: {
+        smoke: true,
+        smokeType: 'basic_render_smoke',
+      },
+    })
+
+  throwOnSupabaseError(error, 'RENDER_NOT_READY')
 }
 
 export async function createPreviewStorageObjectFromRender(
@@ -213,7 +269,7 @@ export async function createPreviewStorageObjectFromRender(
       render_id: input.renderId,
       bucket_name: input.bucketName,
       object_path: input.objectPath,
-      object_purpose: 'preview',
+      object_purpose: 'preview_render',
       mime_type: 'video/mp4',
       size_bytes: metadata.sizeBytes,
       checksum_sha256: metadata.checksumSha256,
@@ -268,7 +324,9 @@ export async function createSmokeQAReport(
       project_id: input.projectId,
       render_id: input.renderId,
       status: passed ? 'passed' : 'failed',
-      summary_json: {
+      summary: passed ? 'Basic render smoke QA passed.' : 'Basic render smoke QA failed.',
+      checked_by: 'rp-e2e-smoke',
+      qa_payload: {
         checks,
         previewStorageObjectId: input.previewStorageObjectId,
       },
@@ -292,6 +350,11 @@ export async function markSmokePreviewReady(
     renderJobId: string
     previewStorageObjectId: string
     qaReportId: string
+    bucketName: string
+    objectPath: string
+    sizeBytes: number
+    durationSeconds: number
+    checksumSha256: string
   },
 ): Promise<{ previewReady: boolean; warnings: string[] }> {
   if (!context.clients.admin || context.env.mockOnly) {
@@ -304,9 +367,18 @@ export async function markSmokePreviewReady(
   const { error } = await context.clients.admin
     .from('renders')
     .update({
-      status: 'preview_ready',
-      preview_storage_object_id: input.previewStorageObjectId,
-      qa_report_id: input.qaReportId,
+      status: 'ready',
+      storage_bucket: input.bucketName,
+      storage_path: input.objectPath,
+      file_size_bytes: input.sizeBytes,
+      duration_seconds: input.durationSeconds,
+      render_payload: {
+        smoke: true,
+        smokeType: 'basic_render_smoke',
+        previewStorageObjectId: input.previewStorageObjectId,
+        qaReportId: input.qaReportId,
+        checksumSha256: input.checksumSha256,
+      },
       updated_at: nowIso(),
     })
     .eq('id', input.renderId)

@@ -73,6 +73,24 @@ jobs:
       - name: Render smoke test
         run: npm run smoke:render:test
 
+      - name: E2E readiness summary
+        run: npm run e2e:readiness
+
+      - name: Local full E2E flow
+        run: npm run smoke:e2e:local-full
+
+      - name: Local full E2E flow test
+        run: npm run smoke:e2e:local-full:test
+
+      - name: E2E readiness summary test
+        run: npm run smoke:e2e:readiness:test
+
+      - name: Supabase migration manifest check
+        run: npm run smoke:supabase:migration-manifest
+
+      - name: Supabase live env disabled-mode test
+        run: npm run smoke:supabase:live-env:test
+
       - name: Cleanup local smoke storage
         if: always()
         run: rm -rf .reeditpro-local-storage .reeditpro-local-storage-smoke

@@ -448,7 +448,7 @@ async function loadStorageObjectRecord(context: ServiceContext, storageObjectRec
   if (mockRecord) return mockRecord
 
   if (!context.clients.admin || context.env.mockOnly) {
-    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found in local/mock state.', 404)
+    throw new ApiError('STORAGE_OBJECT_NOT_FOUND', 'Storage object record was not found in local/mock state.', 404)
   }
 
   const { data, error } = await context.clients.admin
@@ -457,8 +457,8 @@ async function loadStorageObjectRecord(context: ServiceContext, storageObjectRec
     .eq('id', storageObjectRecordId)
     .single()
 
-  throwOnSupabaseError(error, 'UPLOAD_NOT_FINALIZED')
-  if (!data) throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found.', 404)
+  throwOnSupabaseError(error, 'STORAGE_OBJECT_NOT_FOUND')
+  if (!data) throw new ApiError('STORAGE_OBJECT_NOT_FOUND', 'Storage object record was not found.', 404)
   return mapStorageObjectRecord(data)
 }
 

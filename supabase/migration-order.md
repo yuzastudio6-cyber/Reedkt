@@ -129,3 +129,29 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - Creates: extensions to `approved_plan_snapshots`, `api_idempotency_keys`, `upload_intents`, `storage_object_records`, `signed_url_events`, `worker_job_claims`, `tool_runtime_checks`, `provider_request_attempts`, `provider_webhook_events`, helper functions `can_create_approved_plan_snapshot`, `active_worker_claim_exists`, and `can_claim_worker_job`, plus RLS, indexes, uniqueness constraints, and updated-at triggers.
 - Does not create: remote Supabase execution, deployed backend handlers, signed URL generation, Cloud Run workers, provider calls, render execution, Stripe, secret reads, real uploads, or production migration execution.
 - Notes: Workers must execute approved snapshots, not raw chat. Expensive work remains blocked until approved edit plan, approved credit estimate, credit reservation, idempotency, worker claim, storage, timing, and QA gates are implemented by future backend/service-role code.
+
+## 15. RP-E2E-READY-01 Service-Role Runtime RPCs
+
+- File: `migrations/202605210002_e2e_service_role_runtime_rpcs.sql`
+- Purpose: Adds local/review-ready service-role RPCs for the no-AI persisted render smoke path.
+- Depends on: RP-E2E-READY-01 runtime database foundation plus RP-DB-06 credits, RP-DB-07 jobs, and RP-DB-10 render/QA records.
+- Creates: service-role-only RPCs for smoke credit reservation, approved snapshot creation, job batch/render job creation, worker claim/release, job events, preview storage object records, preview render metadata, preview QA metadata, and preview-ready completion.
+- Does not create: remote Supabase execution, production migration application, frontend access, provider calls, Stripe, Remotion rendering, Google Cloud deployment, secrets, or production billing guarantees.
+- Notes: The RPCs raise clear `E2E_*` exceptions for missing approval/credit/job/claim/storage dependencies, unsafe JSON, idempotency conflicts, and missing schema dependencies. They are smoke-focused and should be hardened for production route transactions in Prompt 9.
+
+## 16. RP-E2E-READY-01 Production Service Path Hardening
+
+- File: `migrations/202605210003_e2e_production_service_path_hardening.sql`
+- Purpose: Adds local/review-ready service-role helpers for production-shaped no-AI E2E route paths.
+- Depends on: RP-E2E-READY-01 runtime database foundation, Prompt 8 service-role runtime RPCs, core chat/media/source sequence tables, credit ledger/approval tables, jobs, render records, QA records, and canonical storage records.
+- Creates: idempotency request-hash guard RPC, finalized media/source sequence attachment RPC, plan/credit approval bundle RPC, strict job transition RPC, refund placeholder RPC, JSON safety helper, and supporting indexes.
+- Does not create: remote Supabase execution, production migration application, frontend access, provider calls, Stripe, Remotion rendering, Google Cloud deployment, secrets, production billing reconciliation, or production launch approval.
+- Notes: This migration supports Prompt 9 route-integrated local/Supabase full-flow smokes. Live Supabase remains disabled until migrations are applied manually in a safe environment and `SUPABASE_E2E_ALLOW_WRITES=true` is explicitly set.
+
+## Prompt 10 Live Staging Validation
+
+- Manifest: `e2e-runtime-migration-manifest.json`
+- Checklist: `../docs/deployment/supabase-staging-apply-checklist.md`
+- Purpose: Adds manual-gated validation tooling for staging apply, live env readiness, table/RPC readiness, RLS/auth audit, and smoke-record cleanup safety.
+- Does not create: a new migration, remote migration execution, provider calls, Stripe, Remotion rendering, Cloud Run deployment, secrets, or production launch approval.
+- Notes: Use `npm run smoke:supabase:migration-manifest` before manual apply. Run live checks with writes disabled first. Live writes require `SUPABASE_E2E_SMOKE_MODE=live`, `SUPABASE_E2E_ALLOW_WRITES=true`, and smoke metadata cleanup guards.

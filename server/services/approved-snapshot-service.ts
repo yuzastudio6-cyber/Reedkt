@@ -24,6 +24,7 @@ export function createApprovedSnapshotService(context: ServiceContext) {
     async createApprovedSnapshot(input: CreateApprovedSnapshotInput) {
       const approvedByUserId = context.auth?.userId ?? input.approvedByUserId
       if (!approvedByUserId) throw new ApiError('AUTH_REQUIRED', 'Approved snapshot requires an authenticated approver.', 401)
+      assertSnapshotJsonIsSafe(input.snapshotJson)
 
       if (!context.clients.admin || context.env.mockOnly) {
         return {
@@ -111,5 +112,16 @@ export function createApprovedSnapshotService(context: ServiceContext) {
       if (!data) throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Approved snapshot was not found.', 404)
       return { approvedPlanSnapshot: data, warnings: [] }
     },
+  }
+}
+
+function assertSnapshotJsonIsSafe(snapshotJson: Record<string, unknown>): void {
+  const serialized = JSON.stringify(snapshotJson).toLowerCase()
+  const secretMarkers = ['api_key', 'service_role', 'signed_url', 'password', 'bearer', 'secret', 'token']
+  const marker = secretMarkers.find((candidate) => serialized.includes(candidate))
+  if (marker) {
+    throw new ApiError('VALIDATION_FAILED', 'Approved snapshot JSON must not contain secrets, credentials, tokens, or signed URLs.', 400, {
+      marker,
+    })
   }
 }

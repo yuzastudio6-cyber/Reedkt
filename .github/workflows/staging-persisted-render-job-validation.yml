@@ -1,0 +1,117 @@
+name: RP E2E Staging Persisted Render Job Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_writes:
+        description: "Required safety gate for smoke-tagged staging writes"
+        required: true
+        default: false
+        type: boolean
+      allow_persisted_render:
+        description: "Required safety gate for metadata-only persisted render/job validation"
+        required: true
+        default: false
+        type: boolean
+      cleanup:
+        description: "Clean up smoke-tagged records from this run"
+        required: true
+        default: true
+        type: boolean
+      smoke_user_id:
+        description: "Existing safe staging Supabase auth user id for persisted render smoke"
+        required: true
+        type: string
+      previous_smoke_run_id:
+        description: "Previous successful smoke run id to verify no leftovers before this gate"
+        required: true
+        type: string
+
+jobs:
+  staging-persisted-render-job-validation:
+    name: Staging persisted render/job metadata smoke
+    runs-on: ubuntu-latest
+    env:
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "false"
+      E2E_RUNTIME_MODE: local
+      WORKER_RUNTIME_MODE: local
+      STORAGE_MODE: local
+      SUPABASE_E2E_SMOKE_MODE: live
+      SUPABASE_E2E_ALLOW_WRITES: ${{ inputs.allow_writes && 'true' || 'false' }}
+      SUPABASE_E2E_ALLOW_PERSISTED_RENDER: ${{ inputs.allow_persisted_render && 'true' || 'false' }}
+      SUPABASE_E2E_CLEANUP: ${{ inputs.cleanup && 'true' || 'false' }}
+      SUPABASE_E2E_PREVIOUS_SMOKE_RUN_ID: ${{ inputs.previous_smoke_run_id }}
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_E2E_USER_ID: ${{ inputs.smoke_user_id }}
+    steps:
+      - name: Require explicit staging write approval
+        if: ${{ !inputs.allow_writes }}
+        run: |
+          echo "::error::Set allow_writes=true only after staging write smoke validation passes."
+          exit 1
+
+      - name: Require explicit persisted render approval
+        if: ${{ !inputs.allow_persisted_render }}
+        run: |
+          echo "::error::Set allow_persisted_render=true only for the metadata-only persisted render/job gate."
+          exit 1
+
+      - name: Require smoke cleanup
+        if: ${{ !inputs.cleanup }}
+        run: |
+          echo "::error::This persisted render/job gate requires cleanup=true."
+          exit 1
+
+      - name: Require smoke ids
+        run: |
+          if ! echo "${SUPABASE_E2E_USER_ID}" | grep -Eiq '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'; then
+            echo "::error::smoke_user_id must be an existing safe staging Supabase auth user UUID."
+            exit 1
+          fi
+          if ! echo "${SUPABASE_E2E_PREVIOUS_SMOKE_RUN_ID}" | grep -Eq '^rp-e2e-smoke-[0-9a-f-]{36}$'; then
+            echo "::error::previous_smoke_run_id must be the previous RP E2E smoke run id."
+            exit 1
+          fi
+
+      - name: Checkout readiness branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/reeditpro-e2e-readiness
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Typecheck API
+        run: npm run typecheck:api
+
+      - name: Supabase live env check
+        run: npm run smoke:supabase:live-env
+
+      - name: Supabase live migration status
+        run: npm run smoke:supabase:live-migration-status
+
+      - name: Supabase table readiness
+        run: npm run smoke:supabase:tables
+
+      - name: Supabase RPC readiness
+        run: npm run smoke:supabase:rpcs
+
+      - name: Supabase RLS/auth audit
+        run: npm run smoke:supabase:rls-auth
+
+      - name: Previous smoke leftover check
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id="${SUPABASE_E2E_PREVIOUS_SMOKE_RUN_ID}"
+
+      - name: Strict persisted render/job metadata smoke
+        run: npm run smoke:e2e:persisted-render:strict

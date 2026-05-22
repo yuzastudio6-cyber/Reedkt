@@ -677,7 +677,7 @@ async function createSupabaseSmokeRecordChain(
     frame_rate: 30,
     idempotency_key: smokeTag,
     worker_runtime: 'local',
-  })
+  }, { smokeRunId: smokeTag })
   await updateRow(client, schema, 'jobs', jobId, {
     input_payload: {
       ...smokeMetadata(smokeTag),

@@ -1,0 +1,181 @@
+name: RP E2E Staging Sandbox Render Execution Canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_writes:
+        description: "Required safety gate for smoke-tagged staging writes"
+        required: true
+        default: false
+        type: boolean
+      allow_render_execution:
+        description: "Required safety gate for runner-local sandbox render execution"
+        required: true
+        default: false
+        type: boolean
+      allow_cloud_run:
+        description: "Must remain false for this local FFmpeg sandbox canary"
+        required: true
+        default: false
+        type: boolean
+      allow_remotion:
+        description: "Must remain false for this local FFmpeg sandbox canary"
+        required: true
+        default: false
+        type: boolean
+      cleanup:
+        description: "Clean up smoke-tagged records from this run"
+        required: true
+        default: true
+        type: boolean
+      max_wait_seconds:
+        description: "Maximum time for the strict render canary step"
+        required: true
+        default: 120
+        type: number
+      smoke_user_id:
+        description: "Existing safe staging Supabase auth user id for sandbox render canary"
+        required: true
+        type: string
+      previous_smoke_run_id:
+        description: "Previous write smoke run id to verify no leftovers before this gate"
+        required: true
+        type: string
+      previous_persisted_render_smoke_run_id:
+        description: "Previous persisted render smoke run id to verify no leftovers before this gate"
+        required: false
+        default: "rp-e2e-smoke-c60fc032-7fee-4810-bc4e-4d799d2a1438"
+        type: string
+
+jobs:
+  staging-sandbox-render-execution-canary:
+    name: Staging sandbox render execution canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "false"
+      E2E_RUNTIME_MODE: local
+      WORKER_RUNTIME_MODE: local
+      STORAGE_MODE: local
+      LOCAL_STORAGE_ROOT: .reeditpro-local-storage-sandbox-render-canary
+      SUPABASE_E2E_SMOKE_MODE: live
+      SUPABASE_E2E_ALLOW_WRITES: ${{ inputs.allow_writes && 'true' || 'false' }}
+      SUPABASE_E2E_ALLOW_RENDER_EXECUTION: ${{ inputs.allow_render_execution && 'true' || 'false' }}
+      SUPABASE_E2E_ALLOW_CLOUD_RUN: ${{ inputs.allow_cloud_run && 'true' || 'false' }}
+      SUPABASE_E2E_ALLOW_REMOTION: ${{ inputs.allow_remotion && 'true' || 'false' }}
+      SUPABASE_E2E_CLEANUP: ${{ inputs.cleanup && 'true' || 'false' }}
+      SUPABASE_E2E_MAX_WAIT_SECONDS: ${{ inputs.max_wait_seconds }}
+      SUPABASE_E2E_PREVIOUS_SMOKE_RUN_ID: ${{ inputs.previous_smoke_run_id }}
+      SUPABASE_E2E_PREVIOUS_PERSISTED_RENDER_SMOKE_RUN_ID: ${{ inputs.previous_persisted_render_smoke_run_id }}
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_E2E_USER_ID: ${{ inputs.smoke_user_id }}
+    steps:
+      - name: Require explicit staging write approval
+        if: ${{ !inputs.allow_writes }}
+        run: |
+          echo "::error::Set allow_writes=true only after staging write and persisted metadata gates pass."
+          exit 1
+
+      - name: Require explicit render execution approval
+        if: ${{ !inputs.allow_render_execution }}
+        run: |
+          echo "::error::Set allow_render_execution=true only for the runner-local FFmpeg sandbox render canary."
+          exit 1
+
+      - name: Require smoke cleanup
+        if: ${{ !inputs.cleanup }}
+        run: |
+          echo "::error::This sandbox render execution canary requires cleanup=true."
+          exit 1
+
+      - name: Reject Cloud Run for this canary
+        if: ${{ inputs.allow_cloud_run }}
+        run: |
+          echo "::error::This canary uses local_ffmpeg only; allow_cloud_run must remain false."
+          exit 1
+
+      - name: Reject Remotion for this canary
+        if: ${{ inputs.allow_remotion }}
+        run: |
+          echo "::error::This canary uses local_ffmpeg only; allow_remotion must remain false."
+          exit 1
+
+      - name: Require bounded smoke inputs
+        run: |
+          if ! echo "${SUPABASE_E2E_USER_ID}" | grep -Eiq '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'; then
+            echo "::error::smoke_user_id must be an existing safe staging Supabase auth user UUID."
+            exit 1
+          fi
+          if ! echo "${SUPABASE_E2E_PREVIOUS_SMOKE_RUN_ID}" | grep -Eq '^rp-e2e-smoke-[0-9a-f-]{36}$'; then
+            echo "::error::previous_smoke_run_id must be the previous RP E2E smoke run id."
+            exit 1
+          fi
+          if ! echo "${SUPABASE_E2E_PREVIOUS_PERSISTED_RENDER_SMOKE_RUN_ID}" | grep -Eq '^rp-e2e-smoke-[0-9a-f-]{36}$'; then
+            echo "::error::previous_persisted_render_smoke_run_id must be the previous persisted render smoke run id."
+            exit 1
+          fi
+          if ! echo "${SUPABASE_E2E_MAX_WAIT_SECONDS}" | grep -Eq '^[0-9]+$'; then
+            echo "::error::max_wait_seconds must be numeric."
+            exit 1
+          fi
+          if [ "${SUPABASE_E2E_MAX_WAIT_SECONDS}" -lt 30 ] || [ "${SUPABASE_E2E_MAX_WAIT_SECONDS}" -gt 300 ]; then
+            echo "::error::max_wait_seconds must stay between 30 and 300."
+            exit 1
+          fi
+
+      - name: Checkout readiness branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/reeditpro-e2e-readiness
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install FFmpeg and FFprobe
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Verify FFmpeg and FFprobe
+        run: |
+          ffmpeg -version
+          ffprobe -version
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Typecheck API
+        run: npm run typecheck:api
+
+      - name: Supabase live env check
+        run: npm run smoke:supabase:live-env
+
+      - name: Supabase table readiness
+        run: npm run smoke:supabase:tables
+
+      - name: Supabase RPC readiness
+        run: npm run smoke:supabase:rpcs
+
+      - name: Supabase RLS/auth audit
+        run: npm run smoke:supabase:rls-auth
+
+      - name: Previous write smoke leftover check
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id="${SUPABASE_E2E_PREVIOUS_SMOKE_RUN_ID}"
+
+      - name: Previous persisted render smoke leftover check
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id="${SUPABASE_E2E_PREVIOUS_PERSISTED_RENDER_SMOKE_RUN_ID}"
+
+      - name: Strict sandbox render execution canary
+        run: timeout "${SUPABASE_E2E_MAX_WAIT_SECONDS}s" npm run smoke:e2e:sandbox-render-execution:strict
+
+      - name: Cleanup local sandbox render storage
+        if: always()
+        run: rm -rf "${LOCAL_STORAGE_ROOT}"

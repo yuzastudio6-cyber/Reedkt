@@ -26,6 +26,7 @@
     "smoke:supabase:leftovers": "tsx server/cli/supabase-smoke-leftover-check.ts",
     "smoke:e2e:persisted-render": "tsx server/cli/persisted-render-smoke.ts",
     "smoke:e2e:persisted-render:strict": "tsx server/cli/persisted-render-smoke-strict.ts",
+    "smoke:e2e:sandbox-render-execution:strict": "tsx server/cli/sandbox-render-execution-canary-strict.ts",
     "smoke:supabase:rpcs": "tsx server/cli/supabase-rpc-readiness-smoke.ts",
     "smoke:e2e:rpc-persisted-render": "tsx server/cli/e2e-rpc-persisted-render-smoke.ts",
     "smoke:e2e:local-full": "tsx server/cli/local-full-editing-flow.ts",

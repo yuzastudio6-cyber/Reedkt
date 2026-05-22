@@ -599,6 +599,8 @@ async function createSupabaseSmokeRecordChain(
     snapshot_status: 'approved',
     status: 'approved',
     snapshot_json: smokeSnapshotJson(sourceStorageObjectId),
+    snapshot_payload: smokeSnapshotJson(sourceStorageObjectId),
+    snapshot_hash: `snapshot-${runId}`,
     plan_hash: `plan-${runId}`,
     credit_hash: `credit-${runId}`,
     source_sequence_hash: `source-${runId}`,

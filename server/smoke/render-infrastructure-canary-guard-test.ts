@@ -34,12 +34,12 @@ const liveBaseEnv = {
 
 const readyCanaryEnv = {
   ...liveBaseEnv,
-  GCP_PROJECT_ID: 'reeditpro-staging-canary',
+  GCP_PROJECT_ID: 'reeditpro',
   GCP_REGION: 'us-east1',
   GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/123/locations/global/workloadIdentityPools/reeditpro-staging/providers/github',
-  GCP_SERVICE_ACCOUNT: 'reeditpro-staging-canary-invoker@reeditpro-staging-canary.iam.gserviceaccount.com',
-  STAGING_CLOUD_RUN_RENDER_CANARY_URL: 'https://reeditpro-staging-render-canary-abc-us-east1.run.app/canary/render',
-  STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: 'https://reeditpro-staging-render-canary-abc-us-east1.run.app',
+  GCP_SERVICE_ACCOUNT: 'sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com',
+  STAGING_CLOUD_RUN_RENDER_CANARY_URL: 'https://reeditpro-staging-render-canary-390722338345.us-east1.run.app/canary/render',
+  STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: 'https://reeditpro-staging-render-canary-390722338345.us-east1.run.app',
   STAGING_RENDER_CANARY_ID_TOKEN: 'header.payload.signature',
   STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX: 'gs://reeditpro-staging-render-canary-smoke/previews',
 }

@@ -131,6 +131,10 @@ export function isSafeStagingText(value: string): boolean {
   return /staging|canary|smoke|test/i.test(value) && !PRODUCTION_WORD_PATTERN.test(value)
 }
 
+function looksProduction(value: string): boolean {
+  return PRODUCTION_WORD_PATTERN.test(value)
+}
+
 export function clean(value: string | undefined): string | undefined {
   const trimmed = value?.trim()
   return trimmed ? trimmed : undefined
@@ -191,17 +195,17 @@ function validateEndpointConfig(config: RenderCanaryConfig, limits: RenderCanary
       code: 'missing_gcp_oidc_auth',
       message: 'GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT, and STAGING_RENDER_CANARY_ID_TOKEN are required for GitHub OIDC invocation.',
     })
-  } else if (!isSafeStagingText(config.serviceAccount)) {
+  } else if (looksProduction(config.serviceAccount)) {
     issues.push({
       code: 'missing_gcp_oidc_auth',
-      message: 'GCP_SERVICE_ACCOUNT must be scoped to staging/canary invocation and not production-looking.',
+      message: 'GCP_SERVICE_ACCOUNT must not look production/live.',
     })
   }
 
   if (!config.gcpProjectId) {
     issues.push({ code: 'missing_gcp_oidc_auth', message: 'GCP_PROJECT_ID is required for the staging canary target.' })
-  } else if (!isSafeStagingText(config.gcpProjectId)) {
-    issues.push({ code: 'production_like_cloud_run_url', message: 'GCP_PROJECT_ID must be staging/test/canary scoped and not production-looking.' })
+  } else if (looksProduction(config.gcpProjectId)) {
+    issues.push({ code: 'production_like_cloud_run_url', message: 'GCP_PROJECT_ID must not look production/live.' })
   }
   if (!config.gcpRegion) {
     issues.push({ code: 'missing_gcp_oidc_auth', message: 'GCP_REGION is required for the staging canary target.' })

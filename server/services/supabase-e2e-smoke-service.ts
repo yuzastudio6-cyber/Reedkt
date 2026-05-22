@@ -39,6 +39,11 @@ interface SchemaInfo {
   warnings: string[]
 }
 
+interface InsertRowOptions {
+  missingDependencyOn23503?: string
+  smokeRunId?: string
+}
+
 interface SmokeRecordIds {
   smokeRunId?: string
   workspaceId?: string
@@ -415,7 +420,7 @@ async function createSupabaseSmokeRecordChain(
     checksum_sha256: checksumSha256,
     status: 'finalized',
     expires_at: futureIso(15),
-  })
+  }, { smokeRunId: smokeTag })
   const mediaAssetId = await insertRow(client, schema, cleanupRecords, 'media_assets', {
     id: randomUUID(),
     workspace_id: workspaceId,
@@ -447,10 +452,10 @@ async function createSupabaseSmokeRecordChain(
     checksum_sha256: checksumSha256,
     region: storageRegion(context),
     status: 'ready',
-  })
+  }, { smokeRunId: smokeTag })
 
   const editSessionId = hasTable(schema, 'edit_sessions')
-    ? await insertRow(client, schema, cleanupRecords, 'edit_sessions', {
+    ? await optionalInsertRow(client, schema, cleanupRecords, 'edit_sessions', {
       id: randomUUID(),
       project_id: projectId,
       status: 'setup',
@@ -459,7 +464,7 @@ async function createSupabaseSmokeRecordChain(
     })
     : undefined
   const editPlanVersionId = editSessionId && hasTable(schema, 'edit_plan_versions')
-    ? await insertRow(client, schema, cleanupRecords, 'edit_plan_versions', {
+    ? await optionalInsertRow(client, schema, cleanupRecords, 'edit_plan_versions', {
       id: randomUUID(),
       project_id: projectId,
       edit_session_id: editSessionId,
@@ -900,7 +905,7 @@ async function createWorkspaceMember(
     workspace_id: input.workspaceId,
     user_id: input.userId,
     role: 'owner',
-  })
+  }, { smokeRunId: input.smokeTag })
 }
 
 async function resolveOrCreateProject(
@@ -936,14 +941,14 @@ async function insertRow(
   cleanupRecords: CleanupRecord[],
   table: string,
   row: Record<string, unknown>,
-  options: { missingDependencyOn23503?: string } = {},
+  options: InsertRowOptions = {},
 ): Promise<string> {
   const body = filterRowForTable(schema, table, row)
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const { data, error } = await client.from(table).insert(body).select('*').single()
     if (!error) {
       const id = String((data as Record<string, unknown>).id ?? body.id ?? '')
-      if (id) cleanupRecords.push({ table, id, owned: true, smokeRunId: smokeRunIdFromRow(row) })
+      if (id) cleanupRecords.push({ table, id, owned: true, smokeRunId: options.smokeRunId ?? smokeRunIdFromRow(row) })
       return id
     }
 
@@ -965,6 +970,22 @@ async function insertRow(
   throw new SupabaseSmokeError('constraint_blocked', `Could not insert ${table}: too many schema compatibility retries.`, {
     table,
   })
+}
+
+async function optionalInsertRow(
+  client: SupabaseClient,
+  schema: SchemaInfo,
+  cleanupRecords: CleanupRecord[],
+  table: string,
+  row: Record<string, unknown>,
+  options: InsertRowOptions = {},
+): Promise<string | undefined> {
+  try {
+    return await insertRow(client, schema, cleanupRecords, table, row, options)
+  } catch (error) {
+    if (error instanceof SupabaseSmokeError && error.details?.code === 'PGRST205') return undefined
+    throw error
+  }
 }
 
 async function updateRow(

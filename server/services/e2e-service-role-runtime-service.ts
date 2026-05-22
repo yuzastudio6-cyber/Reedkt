@@ -347,6 +347,7 @@ export async function runPersistedRenderPipelineViaRpcs(
   let jobId: string | undefined
   const partialResult: Partial<E2EPersistedRenderPipelineResult> = {
     renderExecutionMode,
+    smokeRunId,
     workspaceId: input.workspaceId,
     projectId: input.projectId,
     sourceStorageObjectId: input.sourceStorageObjectId,
@@ -521,6 +522,7 @@ export async function runPersistedRenderPipelineViaRpcs(
       ok: true,
       status: 'preview_ready',
       renderExecutionMode,
+      smokeRunId,
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       sourceStorageObjectId: input.sourceStorageObjectId,

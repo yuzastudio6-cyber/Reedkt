@@ -427,6 +427,7 @@ export interface E2ERpcReadinessResult {
 
 export interface E2EPersistedRenderPipelineResult extends E2EServiceRoleRpcBaseResult {
   renderExecutionMode?: PersistedRenderExecutionMode
+  smokeRunId?: ID
   workspaceId?: ID
   projectId?: ID
   sourceStorageObjectId?: ID

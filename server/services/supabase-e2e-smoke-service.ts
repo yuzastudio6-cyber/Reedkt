@@ -707,6 +707,7 @@ async function createSupabaseSmokeRecordChain(
 
   if (options.runtimeMode === 'rpc_prerequisites') {
     return {
+      smokeRunId: smokeTag,
       workspaceId,
       projectId,
       userId,

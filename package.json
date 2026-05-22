@@ -9,6 +9,7 @@
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
     "build:remotion-worker:mock": "npm run typecheck:server && vite build --config vite.remotion-worker.config.ts",
+    "build:staging-render-canary": "npm run typecheck:api && vite build --config vite.staging-render-canary.config.ts",
     "dev:api": "tsx server/index.ts",
     "typecheck:api": "tsc -p tsconfig.server.json --noEmit",
     "build:api": "npm run typecheck:api",
@@ -42,6 +43,7 @@
     "smoke:supabase:write:test": "tsx server/smoke/supabase-write-read-smoke-test.ts",
     "smoke:e2e:persisted-render:test": "tsx server/smoke/persisted-render-smoke-test.ts",
     "smoke:e2e:render-infrastructure-canary:test": "tsx server/smoke/render-infrastructure-canary-guard-test.ts",
+    "smoke:e2e:render-infrastructure-canary-service:test": "tsx server/smoke/render-infrastructure-canary-service-test.ts",
     "smoke:supabase:rpcs:test": "tsx server/smoke/supabase-rpc-readiness-test.ts",
     "smoke:e2e:rpc-persisted-render:test": "tsx server/smoke/e2e-rpc-persisted-render-test.ts",
     "smoke:e2e:local-full:test": "tsx server/smoke/e2e-local-full-flow-test.ts",
@@ -61,12 +63,15 @@
     "docker:worker:render-smoke": "docker run --rm --env API_ALLOW_MOCK_WITHOUT_SUPABASE=true --env E2E_RUNTIME_MODE=local --env WORKER_RUNTIME_MODE=local --env STORAGE_MODE=local --env STRICT_RENDER_SMOKE=true reeditpro-worker-dev npm run smoke:render",
     "start:server": "node dist-server/server.js",
     "start:remotion-worker:mock": "node dist-remotion-worker/remotion-worker-cli.js",
+    "start:staging-render-canary": "node dist-staging-render-canary/staging-render-canary-service.js",
     "dev:server": "npm run build:server && npm run start:server",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
+    "@remotion/bundler": "^4.0.465",
+    "@remotion/renderer": "^4.0.465",
     "@supabase/supabase-js": "^2.106.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -75,6 +80,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.0",
+    "remotion": "^4.0.465",
     "zod": "^4.4.3"
   },
   "devDependencies": {

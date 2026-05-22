@@ -1,5 +1,6 @@
 import type { RuntimeEnv } from '../config/env'
 import type { SupabaseSmokeLeftoverResult } from './supabase-smoke-leftover-service'
+import { STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE } from './staging-render-infrastructure-canary-service'
 
 export interface RenderInfrastructurePreviousSmokeLeftoverCheck {
   label: string
@@ -16,9 +17,29 @@ export interface RenderInfrastructureCanaryGuardInput {
   leftoverChecks?: RenderInfrastructurePreviousSmokeLeftoverCheck[]
 }
 
+export interface RenderInfrastructureCanaryLiveConfig {
+  mode: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+  cloudRunUrl?: string
+  cloudRunAudience?: string
+  idToken?: string
+  outputBucketOrPrefix?: string
+  gcpProjectId?: string
+  gcpRegion?: string
+  workloadIdentityProvider?: string
+  serviceAccount?: string
+  expectedHostSuffix: string
+  durationSeconds: number
+  width: number
+  height: number
+  fps: number
+  maxRetries: number
+  concurrency: number
+  timeoutSeconds: number
+}
+
 export interface RenderInfrastructureCanaryGuardResult {
   ok: boolean
-  status: 'skipped' | 'blocked'
+  status: 'skipped' | 'blocked' | 'ready'
   error?: {
     code: string
     message: string
@@ -50,6 +71,8 @@ export interface RenderInfrastructureCanaryGuardResult {
     cloudRunServiceConfigured: boolean
     remotionPathConfigured: boolean
     dedicatedCanaryTargetConfigured: boolean
+    oidcAuthConfigured: boolean
+    outputBucketConfigured: boolean
     boundedLimits: RenderInfrastructureCanaryLimits
     previousSmokeRunIds: Record<string, string | undefined>
     previousSmokeLeftoverChecks: RenderInfrastructurePreviousSmokeLeftoverCheck[]
@@ -57,7 +80,7 @@ export interface RenderInfrastructureCanaryGuardResult {
     noStripePaymentFlowsRan: true
     noExternalProviderGenerationCallsRan: true
     noBroadE2eSuiteRan: true
-    noSmokeRecordsCreated: true
+    noSmokeRecordsCreated: boolean
   }
 }
 
@@ -69,6 +92,7 @@ interface RenderInfrastructureCanaryLimits {
   fps: number
   maxRetries: number
   concurrency: number
+  timeoutSeconds: number
 }
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -119,10 +143,11 @@ export function evaluateRenderInfrastructureCanaryGuard(
       previousSmokeRunIds,
       leftoverChecks,
       limits,
+      noSmokeRecordsCreated: true,
     })
   }
 
-  const canaryConfig = readCanaryConfig(sourceEnv)
+  const liveConfig = readRenderInfrastructureCanaryLiveConfig(sourceEnv)
   const blockers = [
     ...validateSafetyInputs({
       env: input.env,
@@ -133,17 +158,37 @@ export function evaluateRenderInfrastructureCanaryGuard(
       sourceEnv,
       limits,
     }),
-    ...validateCanaryConfig(canaryConfig, limits),
+    ...validateCanaryConfig(liveConfig, limits),
     ...validateLeftoverChecks(leftoverChecks),
-    'missing_staging_render_infrastructure_canary_path: this repository still has only mock Remotion and placeholder Cloud Run transport, so no real Cloud Run/Remotion canary was invoked.',
   ]
 
+  if (blockers.length > 0) {
+    return createResult({
+      ok: false,
+      status: 'blocked',
+      blockers,
+      errorCode: 'missing_staging_render_infrastructure_canary_path',
+      errorMessage: 'A dedicated staging Cloud Run/Remotion render canary target and GitHub OIDC auth path are not fully configured.',
+      env: input.env,
+      allowRenderExecution,
+      allowCloudRun,
+      allowRemotion,
+      previousSmokeRunIds,
+      leftoverChecks,
+      limits,
+      cloudRunConfigured: Boolean(liveConfig.cloudRunUrl),
+      remotionConfigured: liveConfig.mode === STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
+      dedicatedTargetConfigured: Boolean(liveConfig.cloudRunUrl && liveConfig.cloudRunAudience && liveConfig.outputBucketOrPrefix),
+      oidcAuthConfigured: Boolean(liveConfig.idToken && liveConfig.workloadIdentityProvider && liveConfig.serviceAccount),
+      outputBucketConfigured: Boolean(liveConfig.outputBucketOrPrefix),
+      noSmokeRecordsCreated: true,
+    })
+  }
+
   return createResult({
-    ok: false,
-    status: 'blocked',
-    blockers,
-    errorCode: 'missing_staging_render_infrastructure_canary_path',
-    errorMessage: 'A dedicated staging Cloud Run/Remotion render canary target and auth path are not implemented in this repository yet.',
+    ok: true,
+    status: 'ready',
+    blockers: [],
     env: input.env,
     allowRenderExecution,
     allowCloudRun,
@@ -151,10 +196,38 @@ export function evaluateRenderInfrastructureCanaryGuard(
     previousSmokeRunIds,
     leftoverChecks,
     limits,
-    cloudRunConfigured: Boolean(canaryConfig.cloudRunUrl),
-    remotionConfigured: Boolean(canaryConfig.remotionCompositionId && canaryConfig.remotionEntrypoint),
-    dedicatedTargetConfigured: canaryConfig.dedicatedTargetConfigured,
+    cloudRunConfigured: true,
+    remotionConfigured: true,
+    dedicatedTargetConfigured: true,
+    oidcAuthConfigured: true,
+    outputBucketConfigured: true,
+    noSmokeRecordsCreated: true,
   })
+}
+
+export function readRenderInfrastructureCanaryLiveConfig(
+  sourceEnv: Record<string, string | undefined>,
+): RenderInfrastructureCanaryLiveConfig {
+  return {
+    mode: STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
+    cloudRunUrl: clean(sourceEnv.STAGING_RENDER_CANARY_CLOUD_RUN_URL),
+    cloudRunAudience: clean(sourceEnv.STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE),
+    idToken: clean(sourceEnv.STAGING_RENDER_CANARY_ID_TOKEN),
+    outputBucketOrPrefix: clean(sourceEnv.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX)
+      ?? clean(sourceEnv.STAGING_RENDER_CANARY_OUTPUT_BUCKET),
+    gcpProjectId: clean(sourceEnv.GCP_PROJECT_ID) ?? clean(sourceEnv.GOOGLE_CLOUD_PROJECT_ID),
+    gcpRegion: clean(sourceEnv.GCP_REGION) ?? clean(sourceEnv.GOOGLE_CLOUD_REGION),
+    workloadIdentityProvider: clean(sourceEnv.GCP_WORKLOAD_IDENTITY_PROVIDER),
+    serviceAccount: clean(sourceEnv.GCP_SERVICE_ACCOUNT),
+    expectedHostSuffix: clean(sourceEnv.STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX) ?? '.run.app',
+    durationSeconds: readNumber(sourceEnv.STAGING_RENDER_CANARY_DURATION_SECONDS, 3),
+    width: readNumber(sourceEnv.STAGING_RENDER_CANARY_WIDTH, 160),
+    height: readNumber(sourceEnv.STAGING_RENDER_CANARY_HEIGHT, 90),
+    fps: readNumber(sourceEnv.STAGING_RENDER_CANARY_FPS, 15),
+    maxRetries: readNumber(sourceEnv.STAGING_RENDER_CANARY_MAX_RETRIES, 0),
+    concurrency: readNumber(sourceEnv.STAGING_RENDER_CANARY_CONCURRENCY, 1),
+    timeoutSeconds: readNumber(sourceEnv.STAGING_RENDER_CANARY_TIMEOUT_SECONDS, 120),
+  }
 }
 
 export function readPreviousSmokeRunIds(sourceEnv: Record<string, string | undefined>): Record<string, string | undefined> {
@@ -225,39 +298,51 @@ function validateSafetyInputs(input: {
   if (input.limits.concurrency !== 1) {
     blockers.push('STAGING_RENDER_CANARY_CONCURRENCY must be exactly 1.')
   }
+  if (!isBounded(input.limits.timeoutSeconds, 30, 300)) {
+    blockers.push('STAGING_RENDER_CANARY_TIMEOUT_SECONDS must stay between 30 and 300.')
+  }
 
   return blockers
 }
 
 function validateCanaryConfig(
-  config: ReturnType<typeof readCanaryConfig>,
+  config: RenderInfrastructureCanaryLiveConfig,
   limits: RenderInfrastructureCanaryLimits,
 ): string[] {
   const blockers: string[] = []
   if (!config.cloudRunUrl) {
     blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_URL is required and must point to a dedicated staging canary endpoint.')
   } else {
-    blockers.push(...validateCloudRunUrl(config.cloudRunUrl))
+    blockers.push(...validateCloudRunUrl(config.cloudRunUrl, config.expectedHostSuffix))
   }
-  if (!config.authMode) {
-    blockers.push('STAGING_RENDER_CANARY_AUTH_MODE is required for the dedicated staging Cloud Run canary path.')
-  } else if (!['github_oidc', 'canary_shared_secret'].includes(config.authMode)) {
-    blockers.push('STAGING_RENDER_CANARY_AUTH_MODE must be github_oidc or canary_shared_secret.')
+  if (!config.cloudRunAudience) {
+    blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE is required for GitHub OIDC ID-token invocation.')
+  } else {
+    blockers.push(...validateAudience(config.cloudRunAudience, config.cloudRunUrl))
   }
-  if (!config.remotionCompositionId) {
-    blockers.push('STAGING_RENDER_CANARY_REMOTION_COMPOSITION_ID is required for the tiny Remotion canary.')
-  } else if (!/canary|smoke/i.test(config.remotionCompositionId) || PRODUCTION_WORD_PATTERN.test(config.remotionCompositionId)) {
-    blockers.push('STAGING_RENDER_CANARY_REMOTION_COMPOSITION_ID must be smoke/canary-scoped and not production-looking.')
+  if (!config.idToken) {
+    blockers.push('STAGING_RENDER_CANARY_ID_TOKEN is required and must be generated by google-github-actions/auth.')
   }
-  if (!config.remotionEntrypoint) {
-    blockers.push('STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT is required for the tiny Remotion canary.')
-  } else if (!/canary|smoke/i.test(config.remotionEntrypoint) || PRODUCTION_WORD_PATTERN.test(config.remotionEntrypoint)) {
-    blockers.push('STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT must be smoke/canary-scoped and not production-looking.')
+  if (!config.gcpProjectId) {
+    blockers.push('GCP_PROJECT_ID is required for the staging canary target.')
+  } else if (!isSafeStagingText(config.gcpProjectId)) {
+    blockers.push('GCP_PROJECT_ID must be staging/test/canary scoped and not production-looking.')
   }
-  if (!config.outputBucket) {
-    blockers.push('STAGING_RENDER_CANARY_OUTPUT_BUCKET is required for a traceable tiny staging artifact.')
-  } else if (!/staging/i.test(config.outputBucket) || !/canary|smoke/i.test(config.outputBucket) || PRODUCTION_WORD_PATTERN.test(config.outputBucket)) {
-    blockers.push('STAGING_RENDER_CANARY_OUTPUT_BUCKET must be staging smoke/canary-scoped and not production-looking.')
+  if (!config.gcpRegion) {
+    blockers.push('GCP_REGION is required for the staging canary target.')
+  }
+  if (!config.workloadIdentityProvider) {
+    blockers.push('GCP_WORKLOAD_IDENTITY_PROVIDER is required for GitHub OIDC.')
+  }
+  if (!config.serviceAccount) {
+    blockers.push('GCP_SERVICE_ACCOUNT is required for GitHub OIDC service-account impersonation.')
+  } else if (!isSafeStagingText(config.serviceAccount)) {
+    blockers.push('GCP_SERVICE_ACCOUNT must be scoped to staging/canary invocation and not production-looking.')
+  }
+  if (!config.outputBucketOrPrefix) {
+    blockers.push('STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX is required for a traceable tiny staging artifact.')
+  } else if (!isSafeStagingText(config.outputBucketOrPrefix)) {
+    blockers.push('STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX must be staging smoke/canary-scoped and not production-looking.')
   }
   if (limits.durationSeconds * limits.fps > 90) {
     blockers.push('Render infrastructure canary frame count must stay at or below 90 frames.')
@@ -289,21 +374,7 @@ function validateLeftoverChecks(checks: RenderInfrastructurePreviousSmokeLeftove
   return blockers
 }
 
-function readCanaryConfig(sourceEnv: Record<string, string | undefined>) {
-  const cloudRunUrl = clean(sourceEnv.STAGING_RENDER_CANARY_CLOUD_RUN_URL)
-  const remotionCompositionId = clean(sourceEnv.STAGING_RENDER_CANARY_REMOTION_COMPOSITION_ID)
-  const remotionEntrypoint = clean(sourceEnv.STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT)
-  return {
-    cloudRunUrl,
-    authMode: clean(sourceEnv.STAGING_RENDER_CANARY_AUTH_MODE),
-    remotionCompositionId,
-    remotionEntrypoint,
-    outputBucket: clean(sourceEnv.STAGING_RENDER_CANARY_OUTPUT_BUCKET),
-    dedicatedTargetConfigured: Boolean(cloudRunUrl && remotionCompositionId && remotionEntrypoint),
-  }
-}
-
-function validateCloudRunUrl(value: string): string[] {
+function validateCloudRunUrl(value: string, expectedHostSuffix: string): string[] {
   const blockers: string[] = []
   let url: URL
   try {
@@ -316,14 +387,44 @@ function validateCloudRunUrl(value: string): string[] {
   if (url.protocol !== 'https:') {
     blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_URL must use HTTPS.')
   }
-  if (!url.hostname.endsWith('.run.app')) {
-    blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_URL must target a Cloud Run run.app host.')
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_URL must not target localhost in live mode.')
+  }
+  if (!url.hostname.endsWith(expectedHostSuffix)) {
+    blockers.push(`STAGING_RENDER_CANARY_CLOUD_RUN_URL must target ${expectedHostSuffix}.`)
   }
   if (!/staging/i.test(safeUrlText) || !/canary|smoke/i.test(safeUrlText)) {
     blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_URL must be explicitly staging and smoke/canary scoped.')
   }
   if (PRODUCTION_WORD_PATTERN.test(safeUrlText)) {
     blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_URL must not look like a production/live endpoint.')
+  }
+  return blockers
+}
+
+function validateAudience(audience: string, cloudRunUrl: string | undefined): string[] {
+  const blockers: string[] = []
+  let audienceUrl: URL
+  try {
+    audienceUrl = new URL(audience)
+  } catch {
+    return ['STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE must be a valid HTTPS URL.']
+  }
+  if (audienceUrl.protocol !== 'https:') {
+    blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE must use HTTPS.')
+  }
+  if (!isSafeStagingText(`${audienceUrl.hostname}${audienceUrl.pathname}`)) {
+    blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE must be staging smoke/canary-scoped and not production-looking.')
+  }
+  if (cloudRunUrl) {
+    try {
+      const targetUrl = new URL(cloudRunUrl)
+      if (audienceUrl.hostname !== targetUrl.hostname) {
+        blockers.push('STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE host must match the Cloud Run canary service host.')
+      }
+    } catch {
+      // The URL validator reports malformed target URLs.
+    }
   }
   return blockers
 }
@@ -337,6 +438,7 @@ function readCanaryLimits(sourceEnv: Record<string, string | undefined>): Render
     fps: readNumber(sourceEnv.STAGING_RENDER_CANARY_FPS, 15),
     maxRetries: readNumber(sourceEnv.STAGING_RENDER_CANARY_MAX_RETRIES, 0),
     concurrency: readNumber(sourceEnv.STAGING_RENDER_CANARY_CONCURRENCY, 1),
+    timeoutSeconds: readNumber(sourceEnv.STAGING_RENDER_CANARY_TIMEOUT_SECONDS, 120),
   }
 }
 
@@ -350,7 +452,7 @@ function configuredRiskyEnvNames(sourceEnv: Record<string, string | undefined>):
 
 function createResult(input: {
   ok: boolean
-  status: 'skipped' | 'blocked'
+  status: 'skipped' | 'blocked' | 'ready'
   blockers: string[]
   dryRun?: boolean
   errorCode?: string
@@ -365,6 +467,9 @@ function createResult(input: {
   cloudRunConfigured?: boolean
   remotionConfigured?: boolean
   dedicatedTargetConfigured?: boolean
+  oidcAuthConfigured?: boolean
+  outputBucketConfigured?: boolean
+  noSmokeRecordsCreated: boolean
 }): RenderInfrastructureCanaryGuardResult {
   return {
     ok: input.ok,
@@ -399,6 +504,8 @@ function createResult(input: {
       cloudRunServiceConfigured: input.cloudRunConfigured ?? false,
       remotionPathConfigured: input.remotionConfigured ?? false,
       dedicatedCanaryTargetConfigured: input.dedicatedTargetConfigured ?? false,
+      oidcAuthConfigured: input.oidcAuthConfigured ?? false,
+      outputBucketConfigured: input.outputBucketConfigured ?? false,
       boundedLimits: input.limits,
       previousSmokeRunIds: input.previousSmokeRunIds,
       previousSmokeLeftoverChecks: input.leftoverChecks,
@@ -406,9 +513,13 @@ function createResult(input: {
       noStripePaymentFlowsRan: true,
       noExternalProviderGenerationCallsRan: true,
       noBroadE2eSuiteRan: true,
-      noSmokeRecordsCreated: true,
+      noSmokeRecordsCreated: input.noSmokeRecordsCreated,
     },
   }
+}
+
+function isSafeStagingText(value: string): boolean {
+  return /staging|canary|smoke|test/i.test(value) && !PRODUCTION_WORD_PATTERN.test(value)
 }
 
 function readNumber(value: string | undefined, fallback: number): number {

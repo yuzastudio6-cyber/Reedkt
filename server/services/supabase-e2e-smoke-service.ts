@@ -20,6 +20,7 @@ import {
 import {
   createRpcSmokeIdempotencyKey,
   runPersistedRenderPipelineViaRpcs,
+  type PersistedRenderExternalArtifactFactory,
 } from './e2e-service-role-runtime-service'
 import type { PersistedRenderExecutionMode } from '../../src/types'
 
@@ -214,13 +215,16 @@ export async function runSupabaseWriteReadSmoke(context: ServiceContext): Promis
 
 export async function runPersistedBasicRenderSmoke(
   context: ServiceContext,
-  options: { renderExecutionMode?: PersistedRenderExecutionMode } = {},
+  options: { renderExecutionMode?: PersistedRenderExecutionMode; createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory } = {},
 ): Promise<SupabaseE2ESmokeResult> {
   const renderExecutionMode = options.renderExecutionMode ?? 'local_ffmpeg'
   const writeCheck = await prepareLiveWriteSmoke(context)
   if ('result' in writeCheck) return writeCheck.result
-  if (context.env.storageMode !== 'local') {
+  if (renderExecutionMode !== 'staging_cloud_run_remotion_canary' && context.env.storageMode !== 'local') {
     return failureResult(context, 'storage_mode_blocked', 'Persisted render smoke requires STORAGE_MODE=local.')
+  }
+  if (renderExecutionMode === 'staging_cloud_run_remotion_canary' && context.env.storageMode !== 'gcs') {
+    return failureResult(context, 'storage_mode_blocked', 'Staging Cloud Run Remotion canary requires STORAGE_MODE=gcs.')
   }
 
   const { client, tableReadiness, schema } = writeCheck
@@ -265,6 +269,7 @@ export async function runPersistedBasicRenderSmoke(
       idempotencyKey: createRpcSmokeIdempotencyKey(records.smokeRunId),
       smokeRunId: records.smokeRunId,
       renderExecutionMode,
+      createExternalRenderArtifacts: options.createExternalRenderArtifacts,
     })
 
     records.creditReservationId = pipeline.creditReservationId
@@ -372,17 +377,18 @@ async function validatePersistedRenderSmokeReadback(
   const snapshotJson = readRecordObject(snapshot?.snapshot_json ?? snapshot?.snapshot_payload)
   const renderPayload = readRecordObject(render?.render_payload)
   const renderMetadata = readRecordObject(renderPayload?.metadata)
+  const infrastructureCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
   if (snapshotJson?.providerCallsEnabled !== false || renderMetadata?.providerCallsEnabled !== false) {
     blockers.push('Persisted render smoke did not preserve providerCallsEnabled=false.')
   }
-  if (snapshotJson?.remotionEnabled !== false || renderMetadata?.remotionEnabled !== false) {
-    blockers.push('Persisted render smoke did not preserve remotionEnabled=false.')
+  if (snapshotJson?.remotionEnabled !== infrastructureCanary || renderMetadata?.remotionEnabled !== infrastructureCanary) {
+    blockers.push(`Persisted render smoke did not preserve remotionEnabled=${infrastructureCanary}.`)
   }
   if (snapshotJson?.stripeCallsEnabled !== false || renderMetadata?.stripeCallsEnabled !== false) {
     blockers.push('Persisted render smoke did not preserve stripeCallsEnabled=false.')
   }
-  if (snapshotJson?.cloudRunCallsEnabled !== false || renderMetadata?.cloudRunCallsEnabled !== false) {
-    blockers.push('Persisted render smoke did not preserve cloudRunCallsEnabled=false.')
+  if (snapshotJson?.cloudRunCallsEnabled !== infrastructureCanary || renderMetadata?.cloudRunCallsEnabled !== infrastructureCanary) {
+    blockers.push(`Persisted render smoke did not preserve cloudRunCallsEnabled=${infrastructureCanary}.`)
   }
   if (snapshotJson?.renderExecutionMode !== renderExecutionMode) {
     blockers.push(`Approved snapshot renderExecutionMode was not ${renderExecutionMode}.`)

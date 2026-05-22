@@ -221,7 +221,7 @@ export interface BasicPreviewRenderOutput {
   commandSummary: JSONObject
 }
 
-export type PersistedRenderExecutionMode = 'metadata_stub' | 'local_ffmpeg'
+export type PersistedRenderExecutionMode = 'metadata_stub' | 'local_ffmpeg' | 'staging_cloud_run_remotion_canary'
 
 export type RenderSmokeStatus = 'preview_ready' | 'skipped' | 'failed'
 
@@ -448,6 +448,7 @@ export interface E2EPersistedRenderPipelineResult extends E2EServiceRoleRpcBaseR
   checksumSha256?: string
   mediaProbe?: MediaProbeSummary
   previewRender?: BasicPreviewRenderOutput
+  outputArtifactSummary?: JSONObject
   rpcReadiness?: E2ERpcReadinessResult
   events?: E2EJobEventRpcResult[]
   jobEventIds?: ID[]

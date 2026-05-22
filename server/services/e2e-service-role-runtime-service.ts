@@ -21,6 +21,7 @@ import type {
   E2EPreviewRenderRpcResult,
   E2EPreviewStorageObjectRpcResult,
   E2EWorkerClaimRpcResult,
+  JSONObject,
   MediaProbeSummary,
   PersistedRenderExecutionMode,
 } from '../../src/types'
@@ -76,7 +77,38 @@ export interface RunPersistedRenderPipelineViaRpcsInput {
   smokeRunId?: string
   renderType?: string
   renderExecutionMode?: PersistedRenderExecutionMode
+  createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory
 }
+
+export interface PersistedRenderExternalArtifactFactoryInput {
+  smokeRunId: string
+  workspaceId: string
+  projectId: string
+  chatSessionId?: string
+  editPlanId: string
+  approvedPlanSnapshotId: string
+  creditReservationId: string
+  jobBatchId?: string
+  jobId: string
+  renderJobId: string
+  workerJobClaimId: string
+  sourceStorageObjectId: string
+}
+
+export interface PersistedRenderExternalArtifacts {
+  outputBucketName: string
+  outputObjectPath: string
+  durationSeconds: number
+  sizeBytes: number
+  checksumSha256: string
+  mediaProbe: MediaProbeSummary
+  previewRender: BasicPreviewRenderOutput
+  outputArtifactSummary?: JSONObject
+}
+
+export type PersistedRenderExternalArtifactFactory = (
+  input: PersistedRenderExternalArtifactFactoryInput,
+) => Promise<PersistedRenderExternalArtifacts>
 
 export async function createApprovedSnapshotViaRpc(context: ServiceContext, input: {
   workspaceId: string
@@ -92,6 +124,8 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
   smokeRunId?: string
   renderExecutionMode?: PersistedRenderExecutionMode
 }): Promise<E2EApprovedSnapshotRpcResult> {
+  const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
+  const infrastructureCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
   return callJsonRpc<E2EApprovedSnapshotRpcResult>(context, 'e2e_create_approved_plan_snapshot', {
     p_workspace_id: input.workspaceId,
     p_project_id: input.projectId,
@@ -104,13 +138,13 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
     p_snapshot_json: {
       ...createSmokeMetadata(input.smokeRunId ?? input.idempotencyKey),
       rpE2eSmoke: true,
-      executionMode: 'no_ai_rpc_persisted_render_smoke',
-      renderExecutionMode: input.renderExecutionMode ?? 'local_ffmpeg',
+      executionMode: infrastructureCanary ? 'staging_cloud_run_remotion_canary' : 'no_ai_rpc_persisted_render_smoke',
+      renderExecutionMode,
       sourceStorageObjectId: input.sourceStorageObjectId,
       providerCallsEnabled: false,
-      remotionEnabled: false,
+      remotionEnabled: infrastructureCanary,
       stripeCallsEnabled: false,
-      cloudRunCallsEnabled: false,
+      cloudRunCallsEnabled: infrastructureCanary,
     },
     p_plan_hash: `plan-${input.idempotencyKey}`,
     p_credit_hash: `credit-${input.idempotencyKey}`,
@@ -326,11 +360,17 @@ export async function runPersistedRenderPipelineViaRpcs(
     return missingRpcPipelineResult(rpcReadiness)
   }
 
-  if (context.env.storageMode !== 'local') {
+  const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
+  const infrastructureCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
+  if (!infrastructureCanary && context.env.storageMode !== 'local') {
     return failedPipelineResult('LOCAL_STORAGE_REQUIRED', 'RPC persisted render smoke requires STORAGE_MODE=local.', { rpcReadiness })
   }
-
-  const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
+  if (infrastructureCanary && context.env.storageMode !== 'gcs') {
+    return failedPipelineResult('GCS_STORAGE_REQUIRED', 'Staging Cloud Run Remotion infrastructure canary requires STORAGE_MODE=gcs.', { rpcReadiness })
+  }
+  if (infrastructureCanary && !input.createExternalRenderArtifacts) {
+    return failedPipelineResult('MISSING_INFRASTRUCTURE_CANARY_EXECUTOR', 'Staging Cloud Run Remotion infrastructure canary requires a dedicated Cloud Run invocation executor.', { rpcReadiness })
+  }
   if (renderExecutionMode === 'local_ffmpeg') {
     const tools = await checkBasicRenderSmokeTools(context)
     if (!tools.ready) {
@@ -405,7 +445,7 @@ export async function runPersistedRenderPipelineViaRpcs(
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       jobId: jobRender.jobId,
-      workerType: 'basic_render_smoke_worker',
+      workerType: infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
       workerInstanceId: context.env.workerInstanceId,
       leaseSeconds: context.env.workerClaimLeaseSeconds,
       attemptNumber: 1,
@@ -420,22 +460,54 @@ export async function runPersistedRenderPipelineViaRpcs(
       projectId: input.projectId,
       jobId: jobRender.jobId,
       eventName: 'worker_claimed',
-      eventMessage: 'RPC persisted render smoke worker claimed the job.',
+      eventMessage: infrastructureCanary
+        ? 'Staging Cloud Run Remotion canary worker claimed the smoke job.'
+        : 'RPC persisted render smoke worker claimed the job.',
       progressPercent: 5,
-      payloadJson: { ...createSmokeMetadata(smokeRunId), workerType: 'basic_render_smoke_worker' },
+      payloadJson: {
+        ...createSmokeMetadata(smokeRunId),
+        workerType: infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
+      },
     }))
 
-    const previewBucketName = resolveBucketName(context.env, 'preview')
-    const outputObjectPath = buildCanonicalObjectPath({
+    let previewBucketName = resolveBucketName(context.env, 'preview')
+    let outputObjectPath = buildCanonicalObjectPath({
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       purpose: 'preview',
       ownerId: jobRender.renderJobId,
-      fileName: renderExecutionMode === 'metadata_stub' ? 'rpc-metadata-smoke-preview.mp4' : 'rpc-basic-smoke-preview.mp4',
+      fileName: renderExecutionMode === 'metadata_stub'
+        ? 'rpc-metadata-smoke-preview.mp4'
+        : infrastructureCanary
+          ? 'staging-cloud-run-remotion-canary-preview.mp4'
+          : 'rpc-basic-smoke-preview.mp4',
     })
-    const renderArtifacts = renderExecutionMode === 'metadata_stub'
-      ? createMetadataStubRenderArtifacts(input, smokeRunId)
-      : await createLocalFfmpegRenderArtifacts(context, input, previewBucketName, outputObjectPath)
+    const renderArtifacts: PersistedRenderExternalArtifacts = infrastructureCanary
+      ? await input.createExternalRenderArtifacts!({
+        smokeRunId,
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        chatSessionId: input.chatSessionId,
+        editPlanId: input.editPlanId,
+        approvedPlanSnapshotId: snapshot.approvedPlanSnapshotId,
+        creditReservationId: creditReservation.creditReservationId,
+        jobBatchId: jobRender.jobBatchId,
+        jobId: jobRender.jobId,
+        renderJobId: jobRender.renderJobId,
+        workerJobClaimId: claim.workerJobClaimId,
+        sourceStorageObjectId: input.sourceStorageObjectId,
+      })
+      : renderExecutionMode === 'metadata_stub'
+        ? withPersistedRenderArtifactPaths(createMetadataStubRenderArtifacts(input, smokeRunId), previewBucketName, outputObjectPath)
+        : withPersistedRenderArtifactPaths(
+          await createLocalFfmpegRenderArtifacts(context, input, previewBucketName, outputObjectPath),
+          previewBucketName,
+          outputObjectPath,
+        )
+    if (infrastructureCanary) {
+      previewBucketName = renderArtifacts.outputBucketName
+      outputObjectPath = renderArtifacts.outputObjectPath
+    }
     const { mediaProbe, previewRender } = renderArtifacts
 
     const previewStorage = await recordPreviewStorageObjectViaRpc(context, {
@@ -468,10 +540,11 @@ export async function runPersistedRenderPipelineViaRpcs(
         sourceMediaAssetId: input.sourceMediaAssetId,
         mediaProbe,
         commandSummary: previewRender.commandSummary,
+        outputArtifactSummary: renderArtifacts.outputArtifactSummary,
         providerCallsEnabled: false,
         stripeCallsEnabled: false,
-        cloudRunCallsEnabled: false,
-        remotionEnabled: false,
+        cloudRunCallsEnabled: infrastructureCanary,
+        remotionEnabled: infrastructureCanary,
       },
     })
     if (!render.ok || !render.renderId) return pipelineFromRpcFailure(render, rpcReadiness, partialResult)
@@ -485,13 +558,29 @@ export async function runPersistedRenderPipelineViaRpcs(
       overallStatus: 'passed',
       summary: 'RPC persisted render smoke QA passed.',
       checksJson: [
-        { ...createSmokeMetadata(smokeRunId), check: renderExecutionMode === 'metadata_stub' ? 'preview_metadata_created' : 'preview_object_created', passed: true },
+        {
+          ...createSmokeMetadata(smokeRunId),
+          check: renderExecutionMode === 'metadata_stub'
+            ? 'preview_metadata_created'
+            : infrastructureCanary
+              ? 'staging_cloud_run_remotion_artifact_created_and_cleaned'
+              : 'preview_object_created',
+          passed: true,
+        },
         { ...createSmokeMetadata(smokeRunId), check: 'checksum_created', passed: true },
         { ...createSmokeMetadata(smokeRunId), check: 'canonical_storage_path_only', passed: true },
         { ...createSmokeMetadata(smokeRunId), check: 'provider_calls_not_used', passed: true },
         { ...createSmokeMetadata(smokeRunId), check: 'stripe_calls_not_used', passed: true },
-        { ...createSmokeMetadata(smokeRunId), check: 'cloud_run_calls_not_used', passed: true },
-        { ...createSmokeMetadata(smokeRunId), check: 'remotion_not_used', passed: true },
+        {
+          ...createSmokeMetadata(smokeRunId),
+          check: infrastructureCanary ? 'dedicated_staging_cloud_run_canary_used' : 'cloud_run_calls_not_used',
+          passed: true,
+        },
+        {
+          ...createSmokeMetadata(smokeRunId),
+          check: infrastructureCanary ? 'tiny_remotion_canary_rendered' : 'remotion_not_used',
+          passed: true,
+        },
       ],
     })
     if (!qa.ok || !qa.qaReportId) return pipelineFromRpcFailure(qa, rpcReadiness, partialResult)
@@ -548,6 +637,7 @@ export async function runPersistedRenderPipelineViaRpcs(
         checksumSha256: previewRender.checksumSha256,
         commandSummary: previewRender.commandSummary,
       },
+      outputArtifactSummary: renderArtifacts.outputArtifactSummary,
       rpcReadiness,
       events: eventResults,
       jobEventIds: eventResults.map((event) => event.jobEventId).filter((id): id is string => Boolean(id)),
@@ -627,6 +717,21 @@ function createMetadataStubRenderArtifacts(
         noRemotionCalls: true,
       },
     },
+  }
+}
+
+function withPersistedRenderArtifactPaths(
+  artifacts: { mediaProbe: MediaProbeSummary; previewRender: BasicPreviewRenderOutput },
+  outputBucketName: string,
+  outputObjectPath: string,
+): PersistedRenderExternalArtifacts {
+  return {
+    ...artifacts,
+    outputBucketName,
+    outputObjectPath,
+    durationSeconds: artifacts.previewRender.durationSeconds,
+    sizeBytes: artifacts.previewRender.sizeBytes,
+    checksumSha256: artifacts.previewRender.checksumSha256,
   }
 }
 

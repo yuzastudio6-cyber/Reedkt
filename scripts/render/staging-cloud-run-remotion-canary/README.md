@@ -1,0 +1,31 @@
+# Staging Cloud Run Remotion Canary Service
+
+This folder contains the deployment scaffold for the dedicated staging-only render infrastructure canary service.
+
+The service exposes only `POST /canary/render`. It is meant to be private Cloud Run, invoked by GitHub Actions through Workload Identity Federation and a Google-signed ID token. The caller service account should have `roles/run.invoker` only on this staging canary service.
+
+The canary renders a synthetic 3 second, 160x90, 15 fps, muted Remotion composition, uploads the tiny artifact to a staging canary bucket/prefix, verifies it, deletes it, verifies deletion, and returns a sanitized summary. It does not call Stripe, payment flows, external providers, production URLs, broad queues, or user media.
+
+## Build
+
+```bash
+npm run build:staging-render-canary
+docker build -f scripts/render/staging-cloud-run-remotion-canary/Dockerfile -t REGION-docker.pkg.dev/STAGING_PROJECT/REPO/reeditpro-staging-render-canary:TAG .
+```
+
+## Deploy
+
+Use `deploy-staging-cloud-run-service.example.sh` only from an authenticated staging GCP context:
+
+```bash
+ALLOW_STAGING_CANARY_DEPLOY=true \
+GCP_PROJECT_ID=reeditpro-staging-canary \
+GCP_REGION=us-east1 \
+STAGING_RENDER_CANARY_SERVICE_NAME=reeditpro-staging-render-canary \
+STAGING_RENDER_CANARY_IMAGE=REGION-docker.pkg.dev/STAGING_PROJECT/REPO/reeditpro-staging-render-canary:TAG \
+STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX=gs://reeditpro-staging-render-canary-smoke/previews \
+STAGING_RENDER_CANARY_RUNTIME_SERVICE_ACCOUNT=sa-staging-render-canary@reeditpro-staging-canary.iam.gserviceaccount.com \
+bash scripts/render/staging-cloud-run-remotion-canary/deploy-staging-cloud-run-service.example.sh
+```
+
+The script deploys only the service definition. It does not execute the canary workflow.

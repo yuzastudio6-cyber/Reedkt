@@ -11,6 +11,7 @@
     "src/backend/**/*.ts",
     "src/types/**/*.ts",
     "src/lib/**/*.ts",
-    "vite.server.config.ts"
+    "vite.server.config.ts",
+    "vite.staging-render-canary.config.ts"
   ]
 }

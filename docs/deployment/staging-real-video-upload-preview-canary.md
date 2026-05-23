@@ -1,6 +1,6 @@
 # Staging Real-Video Upload-To-Preview Canary
 
-Status: implementation added. Live run `26342766890` failed safely before record creation because the first implementation crossed into a local-only persisted render smoke path while this gate runs with `STORAGE_MODE=gcs`. The canary is now explicitly GCS-based and must not use the local-only persisted render smoke helper.
+Status: implementation added. Live run `26342766890` failed safely before record creation because the first implementation crossed into a local-only persisted render smoke path while this gate runs with `STORAGE_MODE=gcs`. Live run `26345379342` then passed the GCS storage gate and created smoke-scoped source metadata, but failed safely before Cloud Run execution because the real-video path still crossed into the synthetic canary request contract. The canary is now explicitly GCS-based and uses its own `staging_real_video_upload_preview_canary` request contract.
 
 This gate is the next staging-only RP-E2E readiness gate after the Cloud Run / Remotion infrastructure canary. It proves one tiny controlled source video can move through the ReeditPro upload-to-preview metadata path and produce a preview through the private Cloud Run `/canary/render` service.
 
@@ -20,6 +20,11 @@ This gate is the next staging-only RP-E2E readiness gate after the Cloud Run / R
 ## GCS Metadata Path
 
 This gate requires `STORAGE_MODE=gcs`. It intentionally bypasses the local-only persisted render smoke helper and uses the dedicated GCS real-video metadata path instead.
+
+It is also separate from the synthetic Cloud Run / Remotion infrastructure canary:
+
+- Synthetic infrastructure canary: `mode=staging_cloud_run_remotion_canary`, `fixture=tiny-muted-3s`, synthetic Remotion-only source.
+- Real-video upload-to-preview canary: `mode=staging_real_video_upload_preview_canary`, smoke-tagged GCS source object, smoke-tagged GCS preview object, no synthetic fixture requirement.
 
 Canonical storage rows store only:
 
@@ -72,6 +77,7 @@ The workflow uses GitHub OIDC / Workload Identity Federation. It requires the ex
 - `STAGING_CLOUD_RUN_RENDER_CANARY_URL`
 - `STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE`
 - `STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX`
+- `STAGING_RENDER_CANARY_MODE=staging_real_video_upload_preview_canary`
 
 It also needs the staging canary GCS bucket for source and preview smoke artifacts. If `STAGING_REAL_VIDEO_CANARY_GCS_BUCKET` is not set, the workflow defaults to `reeditpro-staging-render-canary-smoke`.
 

@@ -1,5 +1,4 @@
 import {
-  STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
@@ -125,12 +124,7 @@ export async function invokeStagingRealVideoUploadPreviewCanary(input: {
         smokeRunId: input.smokeRunId,
         stagingOnly: true,
         mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
-        fixture: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
-        maxDurationSeconds: input.config.durationSeconds,
-        maxFrames: Math.ceil(input.config.durationSeconds * input.config.fps),
-        width: input.config.width,
-        height: input.config.height,
-        fps: input.config.fps,
+        maxWaitSeconds: input.config.timeoutSeconds,
         cleanup: true,
         source: {
           bucketName: input.config.source.bucketName,
@@ -138,8 +132,21 @@ export async function invokeStagingRealVideoUploadPreviewCanary(input: {
           mimeType: 'video/mp4',
           sizeBytes: input.config.source.sizeBytes,
           checksumSha256: input.config.source.checksumSha256,
+          durationSecondsMax: 5,
+          smokeTagged: true,
         },
-        preview: input.config.preview,
+        preview: {
+          bucketName: input.config.preview.bucketName,
+          objectPath: input.config.preview.objectPath,
+          mimeType: 'video/mp4',
+        },
+        render: {
+          maxDurationSeconds: input.config.durationSeconds,
+          maxFrames: Math.ceil(input.config.durationSeconds * input.config.fps),
+          width: input.config.width,
+          height: input.config.height,
+          fps: input.config.fps,
+        },
         allow: {
           writes: true,
           renderExecution: true,

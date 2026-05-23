@@ -2,9 +2,10 @@ import { createHash } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
 import { loadRuntimeEnv } from '../config/env'
 import {
-  STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+  STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
   runStagingRenderInfrastructureCanary,
+  validateStagingRealVideoUploadPreviewCanaryRequest,
   validateStagingRenderInfrastructureCanaryRequest,
   type CanaryArtifactStore,
   type CanaryRenderer,
@@ -37,6 +38,7 @@ const safeSourceEnv = {
   STAGING_CLOUD_RUN_RENDER_CANARY_URL: 'https://reeditpro-staging-render-canary-4wkjiqvdqa-ue.a.run.app/canary/render',
   STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: 'https://reeditpro-staging-render-canary-4wkjiqvdqa-ue.a.run.app',
   STAGING_RENDER_CANARY_ID_TOKEN: 'placeholder-id-token',
+  STAGING_RENDER_CANARY_MODE: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
   STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX: 'gs://reeditpro-staging-render-canary-smoke/previews',
   STAGING_RENDER_CANARY_MEMORY: '2Gi',
   STAGING_RENDER_CANARY_CPU: '2',
@@ -66,12 +68,6 @@ const safePayload = {
   allowQueueDrain: false,
   allowUserMedia: false,
   allowProduction: false,
-  fixture: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
-  maxDurationSeconds: 3,
-  width: 160,
-  height: 90,
-  fps: 15,
-  maxFrames: 45,
   maxWaitSeconds: 180,
   cleanup: true,
   source: {
@@ -84,6 +80,14 @@ const safePayload = {
   preview: {
     bucketName: 'reeditpro-staging-render-canary-smoke',
     objectPath: `workspaces/00000000-0000-4000-8000-000000000001/projects/00000000-0000-4000-8000-000000000002/previews/00000000-0000-4000-8000-000000000003/${smokeRunId}-tiny-preview.mp4`,
+    mimeType: 'video/mp4',
+  },
+  render: {
+    maxDurationSeconds: 3,
+    width: 160,
+    height: 90,
+    fps: 15,
+    maxFrames: 45,
   },
 }
 
@@ -125,22 +129,55 @@ const productionBucket = evaluateStagingRealVideoUploadPreviewCanaryPreflight({
   env: loadRuntimeEnv({ ...safeSourceEnv, GCS_SOURCE_MEDIA_BUCKET: 'reeditpro-production-source-media' }),
   sourceEnv: { ...safeSourceEnv, GCS_SOURCE_MEDIA_BUCKET: 'reeditpro-production-source-media' },
 })
-const validRequest = validateStagingRenderInfrastructureCanaryRequest(safePayload)
-const nonSmokeSource = validateStagingRenderInfrastructureCanaryRequest({
+const syntheticRejectsRealVideo = validateStagingRenderInfrastructureCanaryRequest(safePayload)
+const validRequest = validateStagingRealVideoUploadPreviewCanaryRequest(safePayload)
+const syntheticFixtureRequest = validateStagingRealVideoUploadPreviewCanaryRequest({
+  ...safePayload,
+  fixture: 'tiny-muted-3s',
+})
+const missingSource = validateStagingRealVideoUploadPreviewCanaryRequest({
+  ...safePayload,
+  source: undefined,
+})
+const missingPreview = validateStagingRealVideoUploadPreviewCanaryRequest({
+  ...safePayload,
+  preview: undefined,
+})
+const nonSmokeSource = validateStagingRealVideoUploadPreviewCanaryRequest({
   ...safePayload,
   source: {
     ...safePayload.source,
     objectPath: 'workspaces/ws/projects/prj/source-media/customer-upload/tiny-source.mp4',
   },
 })
-const customerMediaPreview = validateStagingRenderInfrastructureCanaryRequest({
+const signedUrlSource = validateStagingRealVideoUploadPreviewCanaryRequest({
+  ...safePayload,
+  source: {
+    ...safePayload.source,
+    signedUrl: 'https://signed.example.invalid/source.mp4',
+  },
+})
+const oversizedRender = validateStagingRealVideoUploadPreviewCanaryRequest({
+  ...safePayload,
+  render: {
+    ...safePayload.render,
+    maxDurationSeconds: 8,
+    width: 640,
+  },
+})
+const customerMediaPreview = validateStagingRealVideoUploadPreviewCanaryRequest({
   ...safePayload,
   preview: {
     ...safePayload.preview,
     objectPath: 'workspaces/ws/projects/prj/customer-media/render.mp4',
   },
 })
-const cleanupFalseRequest = validateStagingRenderInfrastructureCanaryRequest({ ...safePayload, cleanup: false })
+const providerStripeRequest = validateStagingRealVideoUploadPreviewCanaryRequest({
+  ...safePayload,
+  allowProviders: true,
+  allowStripe: true,
+})
+const cleanupFalseRequest = validateStagingRealVideoUploadPreviewCanaryRequest({ ...safePayload, cleanup: false })
 const serviceSuccess = await runStagingRenderInfrastructureCanary(safePayload, {
   serviceMode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
   projectId: 'reeditpro',
@@ -171,9 +208,25 @@ const checks = [
   !localStorageMode.ok && localStorageMode.blockers.some((blocker) => blocker.includes('GCS_STORAGE_REQUIRED')) ? 'gcs_storage_required_for_real_video_canary' : undefined,
   !providerStripe.ok && providerStripe.blockers.some((blocker) => blocker.includes('Provider')) ? 'provider_and_stripe_env_rejected' : undefined,
   !productionBucket.ok && productionBucket.blockers.some((blocker) => blocker.includes('Production')) ? 'production_bucket_rejected' : undefined,
+  !syntheticRejectsRealVideo.ok
+    && syntheticRejectsRealVideo.blockers.some((blocker) => blocker.includes(`mode must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE}`))
+    ? 'synthetic_validator_rejects_real_video_mode'
+    : undefined,
   validRequest.ok ? 'strict_real_video_payload_accepted' : undefined,
+  !syntheticFixtureRequest.ok && syntheticFixtureRequest.blockers.some((blocker) => blocker.includes('fixture is not required'))
+    ? 'real_video_rejects_synthetic_fixture_requirement'
+    : undefined,
+  !missingSource.ok && missingSource.blockers.some((blocker) => blocker.includes('source bucket/object metadata')) ? 'missing_source_rejected' : undefined,
+  !missingPreview.ok && missingPreview.blockers.some((blocker) => blocker.includes('preview bucket/object metadata')) ? 'missing_preview_rejected' : undefined,
   !nonSmokeSource.ok && nonSmokeSource.blockers.some((blocker) => blocker.includes('source object path')) ? 'non_smoke_source_rejected' : undefined,
+  !signedUrlSource.ok && signedUrlSource.blockers.some((blocker) => blocker.includes('signed URLs')) ? 'signed_url_source_rejected' : undefined,
+  !oversizedRender.ok && oversizedRender.blockers.some((blocker) => blocker.includes('width/height')) ? 'oversized_render_rejected' : undefined,
   !customerMediaPreview.ok && customerMediaPreview.blockers.some((blocker) => blocker.includes('preview object path')) ? 'customer_media_preview_rejected' : undefined,
+  !providerStripeRequest.ok
+    && providerStripeRequest.blockers.some((blocker) => blocker.includes('allowProviders'))
+    && providerStripeRequest.blockers.some((blocker) => blocker.includes('allowStripe'))
+    ? 'provider_and_stripe_request_rejected'
+    : undefined,
   !cleanupFalseRequest.ok && cleanupFalseRequest.blockers.some((blocker) => blocker.includes('cleanup')) ? 'request_cleanup_required' : undefined,
   realVideoServiceSource.includes('runPersistedGcsRealVideoUploadPreviewSmoke')
     && !realVideoServiceSource.includes('runPersistedBasicRenderSmoke(context')
@@ -197,7 +250,7 @@ const checks = [
     : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 18
+const ok = checks.length === 25
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 

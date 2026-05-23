@@ -66,6 +66,7 @@ export interface StagingRenderInfrastructureCanaryRequest {
   cleanup?: unknown
   source?: unknown
   preview?: unknown
+  render?: unknown
 }
 
 export type StagingRenderCanaryMode =
@@ -91,7 +92,6 @@ export interface StagingRenderInfrastructureCanaryInput extends BaseStagingRende
 
 export interface StagingRealVideoUploadPreviewCanaryInput extends BaseStagingRenderCanaryInput {
   mode: typeof STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
-  fixture: typeof STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE
   source: {
     bucketName: string
     objectPath: string
@@ -195,6 +195,7 @@ export interface CanaryArtifactStore {
     localPath: string
     checksumSha256: string
     smokeRunId: string
+    canaryMode?: StagingRenderCanaryMode
   }): Promise<void>
   exists(bucketName: string, objectPath: string): Promise<boolean>
   delete(bucketName: string, objectPath: string): Promise<boolean>
@@ -257,82 +258,27 @@ export function loadStagingRenderInfrastructureCanaryEnv(
 
 export function validateStagingRenderInfrastructureCanaryRequest(
   payload: StagingRenderInfrastructureCanaryRequest,
-): { ok: true; input: StagingRenderCanaryInput } | { ok: false; blockers: string[] } {
+): { ok: true; input: StagingRenderInfrastructureCanaryInput } | { ok: false; blockers: string[] } {
   const blockers: string[] = []
   const smokeRunId = typeof payload.smokeRunId === 'string' ? payload.smokeRunId.trim() : ''
-  const maxDurationSeconds = readUnknownNumber(payload.maxDurationSeconds)
-  const maxFrames = readUnknownNumber(payload.maxFrames)
-  const width = readUnknownNumber(payload.width)
-  const height = readUnknownNumber(payload.height)
-  const fps = readUnknownNumber(payload.fps)
+  const render = parseTopLevelRenderSettings(payload)
   const mode = payload.mode
-  const realVideoCanary = mode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
 
   if (payload.canary !== true) blockers.push('canary must be true.')
-  if (mode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE && mode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
-    blockers.push(`mode must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE} or ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE}.`)
+  if (mode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE) {
+    blockers.push(`mode must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE}.`)
   }
   if (!SMOKE_RUN_PATTERN.test(smokeRunId)) {
     blockers.push('smokeRunId must match rp-e2e-smoke-<uuid>.')
   }
-  if (realVideoCanary) {
-    if (payload.fixture !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE) {
-      blockers.push(`fixture must be ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE}.`)
-    }
-  } else if (payload.fixture !== STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE) {
+  if (payload.fixture !== STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE) {
     blockers.push(`fixture must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE}.`)
   }
   if (payload.cleanup !== true) blockers.push('cleanup must be true.')
-  if (!isBounded(maxDurationSeconds, 1, 3)) blockers.push('maxDurationSeconds must stay between 1 and 3.')
-  if (!isBounded(width, 16, 320) || !isBounded(height, 16, 240)) {
-    blockers.push('width/height must stay at or below 320x240.')
-  }
-  if (!isBounded(fps, 1, 30)) blockers.push('fps must stay between 1 and 30.')
-  if (!isBounded(maxFrames, 1, 90)) blockers.push('maxFrames must stay at or below 90.')
-  if (Number.isFinite(maxDurationSeconds) && Number.isFinite(fps) && Number.isFinite(maxFrames)) {
-    const requestedFrames = Math.ceil(maxDurationSeconds * fps)
-    if (requestedFrames > maxFrames) {
-      blockers.push('maxFrames must cover the requested bounded duration and fps.')
-    }
-  }
+  validateRenderSettings(render, blockers)
   validateRequestSafetyPayload(payload, blockers)
 
-  const source = realVideoCanary ? parseArtifactRef(payload.source) : undefined
-  const preview = realVideoCanary ? parsePreviewRef(payload.preview) : undefined
-  if (realVideoCanary) {
-    if (!source) blockers.push('source bucket/object metadata is required for the real-video canary.')
-    if (!preview) blockers.push('preview bucket/object metadata is required for the real-video canary.')
-    if (source && (!source.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(source.objectPath, 'source-media'))) {
-      blockers.push('source object path must be canonical, smoke-tagged, and under source-media.')
-    }
-    if (preview && (!preview.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(preview.objectPath, 'previews'))) {
-      blockers.push('preview object path must be canonical, smoke-tagged, and under previews.')
-    }
-    if (source && source.sizeBytes > 250_000) blockers.push('source video fixture must stay below 250000 bytes.')
-    if (source && source.mimeType !== 'video/mp4') blockers.push('source video fixture must be video/mp4.')
-  }
-
   if (blockers.length > 0) return { ok: false, blockers }
-
-  if (realVideoCanary) {
-    return {
-      ok: true,
-      input: {
-        canary: true,
-        mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
-        smokeRunId,
-        fixture: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
-        maxDurationSeconds,
-        maxFrames,
-        width,
-        height,
-        fps,
-        cleanup: true,
-        source: source!,
-        preview: preview!,
-      },
-    }
-  }
 
   return {
     ok: true,
@@ -341,13 +287,133 @@ export function validateStagingRenderInfrastructureCanaryRequest(
       mode: STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
       smokeRunId,
       fixture: STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE,
-      maxDurationSeconds,
-      maxFrames,
-      width,
-      height,
-      fps,
+      maxDurationSeconds: render.maxDurationSeconds,
+      maxFrames: render.maxFrames,
+      width: render.width,
+      height: render.height,
+      fps: render.fps,
       cleanup: true,
     },
+  }
+}
+
+export function validateStagingRealVideoUploadPreviewCanaryRequest(
+  payload: StagingRenderInfrastructureCanaryRequest,
+): { ok: true; input: StagingRealVideoUploadPreviewCanaryInput } | { ok: false; blockers: string[] } {
+  const blockers: string[] = []
+  const smokeRunId = typeof payload.smokeRunId === 'string' ? payload.smokeRunId.trim() : ''
+  const render = parseNestedRenderSettings(payload.render)
+  const source = parseArtifactRef(payload.source)
+  const preview = parsePreviewRef(payload.preview)
+
+  if (payload.canary !== true) blockers.push('canary must be true.')
+  if (payload.mode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
+    blockers.push(`mode must be ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE}.`)
+  }
+  if (!SMOKE_RUN_PATTERN.test(smokeRunId)) {
+    blockers.push('smokeRunId must match rp-e2e-smoke-<uuid>.')
+  }
+  if (payload.fixture !== undefined && payload.fixture !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE) {
+    blockers.push(`fixture is not required for the real-video canary; if provided it must be ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE}.`)
+  }
+  if (payload.cleanup !== true) blockers.push('cleanup must be true.')
+  if (!recordFromUnknown(payload.render)) blockers.push('render settings are required for the real-video canary.')
+  validateRenderSettings(render, blockers)
+  validateRequestSafetyPayload(payload, blockers)
+
+  if (!source) blockers.push('source bucket/object metadata is required for the real-video canary.')
+  if (!preview) blockers.push('preview bucket/object metadata is required for the real-video canary.')
+  if (source && !isSafeStagingText(source.bucketName)) {
+    blockers.push('source bucket must be staging smoke/canary-scoped and not production-looking.')
+  }
+  if (preview && !isSafeStagingText(preview.bucketName)) {
+    blockers.push('preview bucket must be staging smoke/canary-scoped and not production-looking.')
+  }
+  if (source && (!source.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(source.objectPath, 'source-media'))) {
+    blockers.push('source object path must be canonical, smoke-tagged, and under source-media.')
+  }
+  if (preview && (!preview.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(preview.objectPath, 'previews'))) {
+    blockers.push('preview object path must be canonical, smoke-tagged, and under previews.')
+  }
+  if (source && source.sizeBytes > 250_000) blockers.push('source video fixture must stay below 250000 bytes.')
+  if (source && source.mimeType !== 'video/mp4') blockers.push('source video fixture must be video/mp4.')
+  if (hasSignedUrlLikeField(payload.source)) blockers.push('source metadata must not include signed URLs or URL fields as canonical storage truth.')
+  if (hasSignedUrlLikeField(payload.preview)) blockers.push('preview metadata must not include signed URLs or URL fields as canonical storage truth.')
+
+  if (blockers.length > 0) return { ok: false, blockers }
+
+  return {
+    ok: true,
+    input: {
+      canary: true,
+      mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+      smokeRunId,
+      maxDurationSeconds: render.maxDurationSeconds,
+      maxFrames: render.maxFrames,
+      width: render.width,
+      height: render.height,
+      fps: render.fps,
+      cleanup: true,
+      source: source!,
+      preview: preview!,
+    },
+  }
+}
+
+function validateRenderSettings(
+  render: {
+    maxDurationSeconds: number
+    maxFrames: number
+    width: number
+    height: number
+    fps: number
+  },
+  blockers: string[],
+): void {
+  if (!isBounded(render.maxDurationSeconds, 1, 3)) blockers.push('maxDurationSeconds must stay between 1 and 3.')
+  if (!isBounded(render.width, 16, 320) || !isBounded(render.height, 16, 240)) {
+    blockers.push('width/height must stay at or below 320x240.')
+  }
+  if (!isBounded(render.fps, 1, 30)) blockers.push('fps must stay between 1 and 30.')
+  if (!isBounded(render.maxFrames, 1, 90)) blockers.push('maxFrames must stay at or below 90.')
+  if (Number.isFinite(render.maxDurationSeconds) && Number.isFinite(render.fps) && Number.isFinite(render.maxFrames)) {
+    const requestedFrames = Math.ceil(render.maxDurationSeconds * render.fps)
+    if (requestedFrames > render.maxFrames) {
+      blockers.push('maxFrames must cover the requested bounded duration and fps.')
+    }
+  }
+}
+
+function parseTopLevelRenderSettings(payload: StagingRenderInfrastructureCanaryRequest): {
+  maxDurationSeconds: number
+  maxFrames: number
+  width: number
+  height: number
+  fps: number
+} {
+  return {
+    maxDurationSeconds: readUnknownNumber(payload.maxDurationSeconds),
+    maxFrames: readUnknownNumber(payload.maxFrames),
+    width: readUnknownNumber(payload.width),
+    height: readUnknownNumber(payload.height),
+    fps: readUnknownNumber(payload.fps),
+  }
+}
+
+function parseNestedRenderSettings(value: unknown): {
+  maxDurationSeconds: number
+  maxFrames: number
+  width: number
+  height: number
+  fps: number
+} {
+  const render = recordFromUnknown(value)
+  return {
+    maxDurationSeconds: readUnknownNumber(render?.maxDurationSeconds),
+    maxFrames: readUnknownNumber(render?.maxFrames),
+    width: readUnknownNumber(render?.width),
+    height: readUnknownNumber(render?.height),
+    fps: readUnknownNumber(render?.fps),
   }
 }
 
@@ -424,14 +490,20 @@ export async function runStagingRenderInfrastructureCanary(
   env: StagingRenderInfrastructureCanaryEnv = loadStagingRenderInfrastructureCanaryEnv(),
   deps: StagingRenderInfrastructureCanaryDeps = {},
 ): Promise<StagingRenderInfrastructureCanaryResult> {
-  const requestValidation = validateStagingRenderInfrastructureCanaryRequest(payload)
+  const realVideoRequest = payload.mode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+  const requestValidation = realVideoRequest
+    ? validateStagingRealVideoUploadPreviewCanaryRequest(payload)
+    : validateStagingRenderInfrastructureCanaryRequest(payload)
   const requestInput = requestValidation.ok ? requestValidation.input : undefined
   const envBlockers = validateStagingRenderInfrastructureCanaryEnv(env)
   const blockers = [
     ...(requestValidation.ok ? [] : requestValidation.blockers),
     ...envBlockers,
   ]
-  if (blockers.length > 0) return blockedResult(blockers, requestInput?.smokeRunId)
+  if (blockers.length > 0) {
+    const blockedMode = realVideoRequest ? STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE : STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+    return blockedResult(blockers, requestInput?.smokeRunId, blockedMode)
+  }
 
   const input = requestInput!
   if (input.mode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
@@ -580,6 +652,7 @@ async function runStagingRealVideoUploadPreviewCanary(
       localPath: outputPath,
       checksumSha256,
       smokeRunId: input.smokeRunId,
+      canaryMode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
     })
     const existsBeforeCleanup = await store.exists(input.preview.bucketName, input.preview.objectPath)
     if (!existsBeforeCleanup) throw new Error('Uploaded real-video preview artifact was not readable before caller cleanup.')
@@ -589,7 +662,6 @@ async function runStagingRealVideoUploadPreviewCanary(
       status: 'completed',
       mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
       smokeRunId: input.smokeRunId,
-      fixture: input.fixture,
       sourceArtifact: {
         ...input.source,
         downloaded: true,
@@ -739,6 +811,7 @@ class GcsCanaryArtifactStore implements CanaryArtifactStore {
     localPath: string
     checksumSha256: string
     smokeRunId: string
+    canaryMode?: StagingRenderCanaryMode
   }): Promise<void> {
     await this.storage.bucket(input.bucketName).upload(input.localPath, {
       destination: input.objectPath,
@@ -747,7 +820,7 @@ class GcsCanaryArtifactStore implements CanaryArtifactStore {
         metadata: {
           smokeRunId: input.smokeRunId,
           checksumSha256: input.checksumSha256,
-          canary: STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
+          canary: input.canaryMode ?? STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
         },
       },
     })
@@ -811,6 +884,16 @@ function parsePreviewRef(value: unknown): StagingRealVideoUploadPreviewCanaryInp
   return { bucketName, objectPath: normalizeCanaryObjectPath(objectPath) }
 }
 
+function hasSignedUrlLikeField(value: unknown): boolean {
+  const record = recordFromUnknown(value)
+  if (!record) return false
+  return Object.entries(record).some(([key, fieldValue]) => {
+    const normalizedKey = key.toLowerCase()
+    if (normalizedKey.includes('signed') || normalizedKey === 'url' || normalizedKey.endsWith('url')) return true
+    return typeof fieldValue === 'string' && /^https?:\/\//i.test(fieldValue.trim())
+  })
+}
+
 function normalizeCanaryObjectPath(input: string): string {
   return input.replace(/\\/g, '/').split('/').filter(Boolean).join('/')
 }
@@ -861,11 +944,15 @@ async function sha256File(filePath: string): Promise<string> {
   return createHash('sha256').update(bytes).digest('hex')
 }
 
-function blockedResult(blockers: string[], smokeRunId?: string): StagingRenderInfrastructureCanaryResult {
+function blockedResult(
+  blockers: string[],
+  smokeRunId?: string,
+  mode: StagingRenderCanaryMode = STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
+): StagingRenderInfrastructureCanaryResult {
   return {
     ok: false,
     status: 'blocked',
-    mode: STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
+    mode,
     smokeRunId,
     strictValidation: strictValidation(blockers, false),
     error: {

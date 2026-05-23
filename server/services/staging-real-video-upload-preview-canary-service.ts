@@ -99,6 +99,7 @@ export interface StagingRealVideoUploadPreviewCanaryResult {
     attempted: boolean
     deleted: Array<{ table: string; id: string }>
     errors: string[]
+    warnings?: string[]
   }
   leftoverRecords?: SupabaseSmokeLeftoverRecord[]
   leftoverQueryErrors?: string[]
@@ -177,6 +178,7 @@ export function evaluateStagingRealVideoUploadPreviewCanaryPreflight(
     allowCloudRun,
     allowRemotion: true,
     cleanupAcknowledged: input.env.supabaseE2eCleanup,
+    expectedMode: REAL_VIDEO_MODE,
   })
   const blockers = [
     ...validateRuntimeInputs(input.env, sourceEnv),

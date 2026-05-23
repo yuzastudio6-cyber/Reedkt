@@ -5,6 +5,10 @@ export const RENDER_CANARY_FIXTURE = 'tiny-muted-3s' as const
 export const REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE = 'staging_real_video_upload_preview_canary' as const
 export const REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE = 'tiny-upload-source-3s' as const
 
+export type RenderCanaryConfigMode =
+  | typeof RENDER_CANARY_MODE
+  | typeof REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+
 export type RenderCanaryGuardCode =
   | 'missing_staging_render_infrastructure_canary_path'
   | 'missing_gcp_oidc_auth'
@@ -33,7 +37,7 @@ export interface RenderCanaryLimits {
 }
 
 export interface RenderCanaryConfig {
-  mode: typeof RENDER_CANARY_MODE
+  mode: RenderCanaryConfigMode
   cloudRunUrl?: string
   cloudRunAudience?: string
   remotionUrl?: string

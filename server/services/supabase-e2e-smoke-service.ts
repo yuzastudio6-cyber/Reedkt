@@ -138,6 +138,7 @@ export interface SupabaseE2ESmokeResult {
     attempted: boolean
     deleted: Array<{ table: string; id: string }>
     errors: string[]
+    warnings?: string[]
   }
   renderSmoke?: unknown
   readback?: {
@@ -381,14 +382,14 @@ async function runPersistedRenderSmokePrepared(
     records.previewStorageObjectId = pipeline.previewStorageObjectId
     records.qaReportId = pipeline.qaReportId
 
+    registerRpcPersistedRenderCleanup(cleanupRecords, records)
+
     if (!pipeline.ok || pipeline.status !== 'preview_ready') {
       const code: SmokeFailureCode = pipeline.error?.code === 'E2E_RPC_MISSING' ? 'rpc_missing' : 'render_failed'
       throw new SupabaseSmokeError(code, pipeline.error?.message ?? 'RPC persisted render smoke did not reach preview_ready.', {
         pipeline,
       })
     }
-
-    registerRpcPersistedRenderCleanup(cleanupRecords, records)
 
     const readback = await validatePersistedRenderSmokeReadback(client, records, pipeline.renderExecutionMode ?? renderExecutionMode)
     const cleanup = await maybeCleanupSupabaseSmokeRecords(context, client, cleanupRecords)
@@ -474,18 +475,19 @@ async function validatePersistedRenderSmokeReadback(
   const snapshotJson = readRecordObject(snapshot?.snapshot_json ?? snapshot?.snapshot_payload)
   const renderPayload = readRecordObject(render?.render_payload)
   const renderMetadata = readRecordObject(renderPayload?.metadata)
-  const infrastructureCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
+  const cloudRunRemotionCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
+    || renderExecutionMode === 'staging_real_video_upload_preview_canary'
   if (snapshotJson?.providerCallsEnabled !== false || renderMetadata?.providerCallsEnabled !== false) {
     blockers.push('Persisted render smoke did not preserve providerCallsEnabled=false.')
   }
-  if (snapshotJson?.remotionEnabled !== infrastructureCanary || renderMetadata?.remotionEnabled !== infrastructureCanary) {
-    blockers.push(`Persisted render smoke did not preserve remotionEnabled=${infrastructureCanary}.`)
+  if (snapshotJson?.remotionEnabled !== cloudRunRemotionCanary || renderMetadata?.remotionEnabled !== cloudRunRemotionCanary) {
+    blockers.push(`Persisted render smoke did not preserve remotionEnabled=${cloudRunRemotionCanary}.`)
   }
   if (snapshotJson?.stripeCallsEnabled !== false || renderMetadata?.stripeCallsEnabled !== false) {
     blockers.push('Persisted render smoke did not preserve stripeCallsEnabled=false.')
   }
-  if (snapshotJson?.cloudRunCallsEnabled !== infrastructureCanary || renderMetadata?.cloudRunCallsEnabled !== infrastructureCanary) {
-    blockers.push(`Persisted render smoke did not preserve cloudRunCallsEnabled=${infrastructureCanary}.`)
+  if (snapshotJson?.cloudRunCallsEnabled !== cloudRunRemotionCanary || renderMetadata?.cloudRunCallsEnabled !== cloudRunRemotionCanary) {
+    blockers.push(`Persisted render smoke did not preserve cloudRunCallsEnabled=${cloudRunRemotionCanary}.`)
   }
   if (snapshotJson?.renderExecutionMode !== renderExecutionMode) {
     blockers.push(`Approved snapshot renderExecutionMode was not ${renderExecutionMode}.`)
@@ -1341,6 +1343,7 @@ async function maybeCleanupSupabaseSmokeRecords(
 
   const deleted: Array<{ table: string; id: string }> = []
   const errors: string[] = []
+  const warnings: string[] = []
   for (const record of [...cleanupRecords].reverse()) {
     if (!record.owned) continue
     if (!record.smokeRunId) {
@@ -1365,17 +1368,46 @@ async function maybeCleanupSupabaseSmokeRecords(
         .maybeSingle()
       if (!readbackError && !existingAfterDelete) {
         deleted.push({ table: record.table, id: record.id })
+        warnings.push(`${record.table}/${record.id}: ${error.message}; exact readback confirmed the row was already gone.`)
       } else if (readbackError) {
         errors.push(`${record.table}/${record.id}: ${error.message}; cleanup state could not be verified after delete error: ${readbackError.message}`)
       } else {
-        errors.push(`${record.table}/${record.id}: ${error.message}`)
+        if (record.table === 'credit_approvals' && record.smokeRunId) {
+          const dependencies = await findCreditApprovalSnapshotDependencies(client, record.id, record.smokeRunId)
+          if (dependencies.error) {
+            errors.push(`${record.table}/${record.id}: ${error.message}; dependent snapshot state could not be verified: ${dependencies.error}`)
+          } else if (dependencies.snapshotIds.length > 0) {
+            errors.push(`${record.table}/${record.id}: ${error.message}; smoke approved_plan_snapshots still reference this credit approval: ${dependencies.snapshotIds.join(', ')}`)
+          } else {
+            errors.push(`${record.table}/${record.id}: ${error.message}`)
+          }
+        } else {
+          errors.push(`${record.table}/${record.id}: ${error.message}`)
+        }
       }
     } else {
       deleted.push({ table: record.table, id: record.id })
     }
   }
 
-  return { attempted: true, deleted, errors }
+  return { attempted: true, deleted, errors, warnings }
+}
+
+async function findCreditApprovalSnapshotDependencies(
+  client: SupabaseClient,
+  creditApprovalId: string,
+  smokeRunId: string,
+): Promise<{ snapshotIds: string[]; error?: undefined } | { snapshotIds: []; error: string }> {
+  const { data, error } = await client
+    .from('approved_plan_snapshots')
+    .select('id, metadata, snapshot_json, snapshot_payload')
+    .eq('credit_approval_id', creditApprovalId)
+  if (error) return { snapshotIds: [], error: error.message }
+  const snapshotIds = (data ?? [])
+    .filter((row) => smokeRunIdFromRow(row as Record<string, unknown>) === smokeRunId)
+    .map((row) => String((row as Record<string, unknown>).id))
+    .filter(Boolean)
+  return { snapshotIds }
 }
 
 function getLiveSupabaseAvailability(context: ServiceContext): { canConnect: true; client: SupabaseClient } | { canConnect: false; reason: string; warnings: string[] } {

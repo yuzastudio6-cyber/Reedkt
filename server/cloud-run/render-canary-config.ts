@@ -1,4 +1,5 @@
 import {
+  REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
   RENDER_CANARY_MODE,
   type RenderCanaryConfig,
   type RenderCanaryConfigValidationIssue,
@@ -14,6 +15,7 @@ export interface RenderCanaryConfigValidationInput {
   allowCloudRun: boolean
   allowRemotion: boolean
   cleanupAcknowledged: boolean
+  expectedMode?: RenderCanaryConfig['mode']
 }
 
 const PRODUCTION_WORD_PATTERN = /\b(prod|production|live)\b/i
@@ -33,8 +35,9 @@ const BOUNDED_CANARY_CPU = 2
 const BOUNDED_CANARY_NODE_OPTIONS = '--max-old-space-size=1536'
 
 export function readRenderCanaryConfig(sourceEnv: Record<string, string | undefined>): RenderCanaryConfig {
+  const configuredMode = clean(sourceEnv.STAGING_RENDER_CANARY_MODE)
   return {
-    mode: RENDER_CANARY_MODE,
+    mode: configuredMode === REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE ? REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE : RENDER_CANARY_MODE,
     cloudRunUrl: clean(sourceEnv.STAGING_CLOUD_RUN_RENDER_CANARY_URL)
       ?? clean(sourceEnv.STAGING_RENDER_CANARY_CLOUD_RUN_URL),
     cloudRunAudience: clean(sourceEnv.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE)
@@ -81,11 +84,12 @@ export function readRenderCanaryLimits(sourceEnv: Record<string, string | undefi
 export function validateRenderCanaryConfig(input: RenderCanaryConfigValidationInput): RenderCanaryConfigValidationIssue[] {
   const issues: RenderCanaryConfigValidationIssue[] = []
   const configuredMode = clean(input.sourceEnv.STAGING_RENDER_CANARY_MODE)
+  const expectedMode = input.expectedMode ?? RENDER_CANARY_MODE
 
-  if (configuredMode && configuredMode !== RENDER_CANARY_MODE) {
+  if (configuredMode && configuredMode !== expectedMode) {
     issues.push({
       code: 'missing_staging_render_infrastructure_canary_path',
-      message: `STAGING_RENDER_CANARY_MODE must be ${RENDER_CANARY_MODE}.`,
+      message: `STAGING_RENDER_CANARY_MODE must be ${expectedMode}.`,
     })
   }
   if (!input.allowRenderExecution) {

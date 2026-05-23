@@ -3,6 +3,7 @@ import {
   STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
   runStagingRenderInfrastructureCanary,
+  validateStagingRenderInfrastructureCanaryEnv,
   validateStagingRenderInfrastructureCanaryRequest,
   type CanaryArtifactStore,
   type CanaryRenderer,
@@ -11,12 +12,15 @@ import {
 const smokeRunId = 'rp-e2e-smoke-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const safeEnv = {
   serviceMode: STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
-  projectId: 'reeditpro-staging-canary',
+  projectId: 'reeditpro',
+  googleCloudProject: 'reeditpro',
+  region: 'us-east1',
   outputBucketOrPrefix: 'gs://reeditpro-staging-render-canary-smoke/previews',
   expectedHostSuffix: '.run.app',
   renderTimeoutSeconds: 120,
   maxArtifactBytes: 750_000,
   remotionEntrypoint: 'server/remotion/staging-canary-remotion-entry.ts',
+  forbiddenEnvNames: [],
 }
 const safePayload = {
   canary: true,
@@ -42,13 +46,25 @@ const oversized = validateStagingRenderInfrastructureCanaryRequest({
 const productionEnvResult = await runStagingRenderInfrastructureCanary(safePayload, {
   ...safeEnv,
   projectId: 'reeditpro-production',
+  googleCloudProject: 'reeditpro-production',
   outputBucketOrPrefix: 'gs://reeditpro-production-canary/previews',
 }, fakeDeps())
+const neutralProjectWithoutDedicatedControls = validateStagingRenderInfrastructureCanaryEnv({
+  ...safeEnv,
+  serviceMode: '',
+})
+const providerStripeEnv = validateStagingRenderInfrastructureCanaryEnv({
+  ...safeEnv,
+  forbiddenEnvNames: ['OPENAI_API_KEY', 'STRIPE_SECRET_KEY'],
+})
 const cleanupFailure = await runStagingRenderInfrastructureCanary(safePayload, safeEnv, fakeDeps({ deleteSucceeds: false }))
 const success = await runStagingRenderInfrastructureCanary(safePayload, safeEnv, fakeDeps())
 
 const checks = [
   requestValidation.ok ? 'valid_request_passes' : undefined,
+  validateStagingRenderInfrastructureCanaryEnv(safeEnv).length === 0 ? 'neutral_reeditpro_project_with_dedicated_controls_passes' : undefined,
+  neutralProjectWithoutDedicatedControls.some((blocker) => blocker.includes('verified neutral reeditpro staging project')) ? 'neutral_project_requires_dedicated_controls' : undefined,
+  providerStripeEnv.some((blocker) => blocker.includes('OPENAI_API_KEY')) && providerStripeEnv.some((blocker) => blocker.includes('STRIPE_SECRET_KEY')) ? 'provider_and_stripe_env_rejected' : undefined,
   !missingCleanup.ok && missingCleanup.blockers.some((blocker) => blocker.includes('cleanup')) ? 'cleanup_required' : undefined,
   !oversized.ok && oversized.blockers.some((blocker) => blocker.includes('320x240')) ? 'oversized_render_rejected' : undefined,
   !productionEnvResult.ok && productionEnvResult.strictValidation.blockers.some((blocker) => blocker.includes('production')) ? 'production_env_rejected' : undefined,
@@ -57,7 +73,7 @@ const checks = [
   success.outputArtifact?.objectPath.includes(smokeRunId) ? 'artifact_path_smoke_traceable' : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 7
+const ok = checks.length === 10
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 

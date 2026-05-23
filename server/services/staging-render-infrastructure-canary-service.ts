@@ -11,8 +11,21 @@ export const STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID = 'reeditpro-st
 
 const SMOKE_RUN_PATTERN = /^rp-e2e-smoke-[0-9a-f-]{36}$/i
 const PRODUCTION_WORD_PATTERN = /\b(prod|production|live)\b/i
+const STRIPE_ENV_NAME_PATTERNS = [/^STRIPE/i, /^PAYMENT/i, /^BILLING/i]
+const PROVIDER_ENV_NAME_PATTERNS = [
+  /^OPENAI/i,
+  /^WAN_/i,
+  /^HAILUO/i,
+  /^VEO/i,
+  /^LYRIA/i,
+  /^MIRELO/i,
+  /^MMAUDIO/i,
+  /^GOOGLE_SECRET_(OPENAI|WAN|HAILUO|VEO|LYRIA|MIRELO|MMAUDIO)/i,
+]
 const DEFAULT_MAX_ARTIFACT_BYTES = 750_000
 const DEFAULT_RENDER_TIMEOUT_SECONDS = 120
+const VERIFIED_STAGING_PROJECT_ID = 'reeditpro'
+const VERIFIED_STAGING_REGION = 'us-east1'
 
 export interface StagingRenderInfrastructureCanaryRequest {
   canary?: unknown
@@ -41,13 +54,16 @@ export interface StagingRenderInfrastructureCanaryInput {
 }
 
 export interface StagingRenderInfrastructureCanaryEnv {
-  serviceMode: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+  serviceMode: string
   projectId: string
+  googleCloudProject: string
+  region: string
   outputBucketOrPrefix: string
   expectedHostSuffix: string
   renderTimeoutSeconds: number
   maxArtifactBytes: number
   remotionEntrypoint: string
+  forbiddenEnvNames: string[]
 }
 
 export interface StagingRenderInfrastructureCanaryArtifactSummary {
@@ -135,10 +151,17 @@ export function loadStagingRenderInfrastructureCanaryEnv(
   source: Record<string, string | undefined> = process.env,
 ): StagingRenderInfrastructureCanaryEnv {
   return {
-    serviceMode: readClean(source.STAGING_RENDER_CANARY_MODE) === STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
-      ? STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
-      : STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
-    projectId: readClean(source.GCP_PROJECT_ID) ?? readClean(source.GOOGLE_CLOUD_PROJECT_ID) ?? '',
+    serviceMode: readClean(source.STAGING_RENDER_CANARY_MODE) ?? '',
+    projectId: readClean(source.GCP_PROJECT_ID)
+      ?? readClean(source.GOOGLE_CLOUD_PROJECT_ID)
+      ?? readClean(source.GOOGLE_CLOUD_PROJECT)
+      ?? '',
+    googleCloudProject: readClean(source.GOOGLE_CLOUD_PROJECT)
+      ?? readClean(source.GOOGLE_CLOUD_PROJECT_ID)
+      ?? '',
+    region: readClean(source.GCP_REGION)
+      ?? readClean(source.GOOGLE_CLOUD_REGION)
+      ?? '',
     outputBucketOrPrefix: readClean(source.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX)
       ?? readClean(source.STAGING_RENDER_CANARY_OUTPUT_BUCKET)
       ?? '',
@@ -147,6 +170,7 @@ export function loadStagingRenderInfrastructureCanaryEnv(
     maxArtifactBytes: readNumber(source.STAGING_RENDER_CANARY_MAX_ARTIFACT_BYTES, DEFAULT_MAX_ARTIFACT_BYTES),
     remotionEntrypoint: readClean(source.STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT)
       ?? path.join(process.cwd(), 'server', 'remotion', 'staging-canary-remotion-entry.ts'),
+    forbiddenEnvNames: configuredEnvNames(source, [...STRIPE_ENV_NAME_PATTERNS, ...PROVIDER_ENV_NAME_PATTERNS]),
   }
 }
 
@@ -213,8 +237,22 @@ export function validateStagingRenderInfrastructureCanaryEnv(
   }
   if (!env.projectId) {
     blockers.push('GCP_PROJECT_ID is required for the staging Cloud Run Remotion canary service.')
-  } else if (!/staging|canary|smoke|test/i.test(env.projectId) || PRODUCTION_WORD_PATTERN.test(env.projectId)) {
-    blockers.push('GCP_PROJECT_ID must be staging/test/canary scoped and not production-looking.')
+  } else if (PRODUCTION_WORD_PATTERN.test(env.projectId)) {
+    blockers.push('GCP_PROJECT_ID must not look production/live.')
+  } else if (!isSafeStagingText(env.projectId) && !hasDedicatedNeutralProjectControls(env)) {
+    blockers.push('GCP_PROJECT_ID must be staging/test/canary scoped, or be the verified neutral reeditpro staging project with dedicated canary controls.')
+  }
+  if (!env.googleCloudProject) {
+    blockers.push('GOOGLE_CLOUD_PROJECT is required for the staging Cloud Run Remotion canary service.')
+  } else if (env.googleCloudProject !== env.projectId) {
+    blockers.push('GOOGLE_CLOUD_PROJECT must match GCP_PROJECT_ID for the staging canary service.')
+  } else if (PRODUCTION_WORD_PATTERN.test(env.googleCloudProject)) {
+    blockers.push('GOOGLE_CLOUD_PROJECT must not look production/live.')
+  }
+  if (!env.region) {
+    blockers.push('GCP_REGION is required for the staging Cloud Run Remotion canary service.')
+  } else if (env.region !== VERIFIED_STAGING_REGION) {
+    blockers.push(`GCP_REGION must be ${VERIFIED_STAGING_REGION} for this staging canary service.`)
   }
   if (!env.outputBucketOrPrefix) {
     blockers.push('STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX is required.')
@@ -236,6 +274,9 @@ export function validateStagingRenderInfrastructureCanaryEnv(
   }
   if (!env.remotionEntrypoint || !/canary|smoke/i.test(env.remotionEntrypoint) || PRODUCTION_WORD_PATTERN.test(env.remotionEntrypoint)) {
     blockers.push('STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT must be smoke/canary-scoped and not production-looking.')
+  }
+  for (const name of env.forbiddenEnvNames) {
+    blockers.push(`${name} is configured; provider, Stripe, payment, and billing env must be absent for this staging canary service.`)
   }
   return blockers
 }
@@ -436,6 +477,34 @@ function validateBucketPrefix(output: ParsedBucketPrefix): void {
   if (text.includes('..') || output.prefix.startsWith('/')) {
     throw new Error('Staging canary output bucket/prefix must not contain traversal segments.')
   }
+}
+
+function hasDedicatedNeutralProjectControls(env: StagingRenderInfrastructureCanaryEnv): boolean {
+  if (env.projectId !== VERIFIED_STAGING_PROJECT_ID) return false
+  if (env.googleCloudProject !== VERIFIED_STAGING_PROJECT_ID) return false
+  if (env.region !== VERIFIED_STAGING_REGION) return false
+  if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE) return false
+  if (env.expectedHostSuffix !== '.run.app') return false
+  if (!isBounded(env.renderTimeoutSeconds, 30, 300)) return false
+  if (!isBounded(env.maxArtifactBytes, 1, DEFAULT_MAX_ARTIFACT_BYTES)) return false
+  try {
+    validateBucketPrefix(parseBucketPrefix(env.outputBucketOrPrefix))
+  } catch {
+    return false
+  }
+  return true
+}
+
+function isSafeStagingText(value: string): boolean {
+  return /staging|canary|smoke|test/i.test(value) && !PRODUCTION_WORD_PATTERN.test(value)
+}
+
+function configuredEnvNames(sourceEnv: Record<string, string | undefined>, patterns: RegExp[]): string[] {
+  return Object.entries(sourceEnv)
+    .filter(([, value]) => Boolean(readClean(value)))
+    .map(([name]) => name)
+    .filter((name) => patterns.some((pattern) => pattern.test(name)))
+    .sort()
 }
 
 async function sha256File(filePath: string): Promise<string> {

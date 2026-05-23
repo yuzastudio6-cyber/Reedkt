@@ -19,13 +19,15 @@ Use `deploy-staging-cloud-run-service.example.sh` only from an authenticated sta
 
 ```bash
 ALLOW_STAGING_CANARY_DEPLOY=true \
-GCP_PROJECT_ID=reeditpro-staging-canary \
+GCP_PROJECT_ID=reeditpro \
 GCP_REGION=us-east1 \
+GOOGLE_CLOUD_PROJECT=reeditpro \
 STAGING_RENDER_CANARY_SERVICE_NAME=reeditpro-staging-render-canary \
-STAGING_RENDER_CANARY_IMAGE=REGION-docker.pkg.dev/STAGING_PROJECT/REPO/reeditpro-staging-render-canary:TAG \
+STAGING_RENDER_CANARY_IMAGE=REGION-docker.pkg.dev/reeditpro/REPO/reeditpro-staging-render-canary:TAG \
 STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX=gs://reeditpro-staging-render-canary-smoke/previews \
-STAGING_RENDER_CANARY_RUNTIME_SERVICE_ACCOUNT=sa-staging-render-canary@reeditpro-staging-canary.iam.gserviceaccount.com \
+STAGING_RENDER_CANARY_RUNTIME_SERVICE_ACCOUNT=sa-remotion-render-worker@reeditpro.iam.gserviceaccount.com \
 bash scripts/render/staging-cloud-run-remotion-canary/deploy-staging-cloud-run-service.example.sh
 ```
 
 The script deploys only the service definition. It does not execute the canary workflow.
+The neutral staging project id `reeditpro` is accepted only with the dedicated staging canary service name, `us-east1` region, matching `GOOGLE_CLOUD_PROJECT`, `.run.app` host suffix, and the staging canary smoke bucket/prefix.

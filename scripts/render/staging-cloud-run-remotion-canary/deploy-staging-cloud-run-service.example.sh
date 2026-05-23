@@ -9,6 +9,7 @@ fi
 required=(
   GCP_PROJECT_ID
   GCP_REGION
+  GOOGLE_CLOUD_PROJECT
   STAGING_RENDER_CANARY_SERVICE_NAME
   STAGING_RENDER_CANARY_IMAGE
   STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX
@@ -22,7 +23,17 @@ for name in "${required[@]}"; do
   fi
 done
 
-case "${GCP_PROJECT_ID} ${STAGING_RENDER_CANARY_SERVICE_NAME} ${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" in
+if [[ "${GOOGLE_CLOUD_PROJECT}" != "${GCP_PROJECT_ID}" ]]; then
+  echo "GOOGLE_CLOUD_PROJECT must match GCP_PROJECT_ID for the staging canary service." >&2
+  exit 1
+fi
+
+if [[ "${GCP_REGION}" != "us-east1" ]]; then
+  echo "This staging canary deploy scaffold is pinned to GCP_REGION=us-east1." >&2
+  exit 1
+fi
+
+case "${GCP_PROJECT_ID} ${GOOGLE_CLOUD_PROJECT} ${STAGING_RENDER_CANARY_SERVICE_NAME} ${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" in
   *prod*|*production*|*live*)
     echo "Refusing to deploy a production-looking staging canary target." >&2
     exit 1
@@ -40,7 +51,7 @@ gcloud run deploy "${STAGING_RENDER_CANARY_SERVICE_NAME}" \
   --image "${STAGING_RENDER_CANARY_IMAGE}" \
   --service-account "${STAGING_RENDER_CANARY_RUNTIME_SERVICE_ACCOUNT}" \
   --no-allow-unauthenticated \
-  --set-env-vars "STAGING_RENDER_CANARY_MODE=staging_cloud_run_remotion_canary,STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX=${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX},STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX=.run.app,STAGING_RENDER_CANARY_TIMEOUT_SECONDS=120,STAGING_RENDER_CANARY_MAX_ARTIFACT_BYTES=750000" \
+  --set-env-vars "STAGING_RENDER_CANARY_MODE=staging_cloud_run_remotion_canary,GCP_PROJECT_ID=${GCP_PROJECT_ID},GCP_REGION=${GCP_REGION},GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT},STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX=${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX},STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX=.run.app,STAGING_RENDER_CANARY_TIMEOUT_SECONDS=120,STAGING_RENDER_CANARY_MAX_ARTIFACT_BYTES=750000" \
   --quiet
 
 echo "Staging render canary service deployed/updated. This script does not execute the canary."

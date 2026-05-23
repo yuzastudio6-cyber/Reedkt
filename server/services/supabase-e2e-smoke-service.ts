@@ -1242,7 +1242,18 @@ async function maybeCleanupSupabaseSmokeRecords(
     }
     const { error } = await client.from(record.table).delete().eq('id', record.id)
     if (error) {
-      errors.push(`${record.table}/${record.id}: ${error.message}`)
+      const { data: existingAfterDelete, error: readbackError } = await client
+        .from(record.table)
+        .select('id')
+        .eq('id', record.id)
+        .maybeSingle()
+      if (!readbackError && !existingAfterDelete) {
+        deleted.push({ table: record.table, id: record.id })
+      } else if (readbackError) {
+        errors.push(`${record.table}/${record.id}: ${error.message}; cleanup state could not be verified after delete error: ${readbackError.message}`)
+      } else {
+        errors.push(`${record.table}/${record.id}: ${error.message}`)
+      }
     } else {
       deleted.push({ table: record.table, id: record.id })
     }

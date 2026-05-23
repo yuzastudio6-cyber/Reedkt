@@ -23,6 +23,18 @@ Optional only if the Remotion target is separate from the Cloud Run service:
 
 The legacy names `STAGING_RENDER_CANARY_CLOUD_RUN_URL` and `STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE` are still accepted by the CLI for compatibility, but new workflow configuration should use `STAGING_CLOUD_RUN_RENDER_CANARY_URL` and `STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE`.
 
+The deployed Cloud Run canary service must also receive service-side env that matches the guarded staging target:
+
+- `STAGING_RENDER_CANARY_MODE=staging_cloud_run_remotion_canary`
+- `GCP_PROJECT_ID=reeditpro`
+- `GCP_REGION=us-east1`
+- `GOOGLE_CLOUD_PROJECT=reeditpro`
+- `STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX=gs://reeditpro-staging-render-canary-smoke/previews`
+- `STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX=.run.app`
+- bounded timeout and artifact settings
+
+The neutral project id `reeditpro` is allowed only when those dedicated staging canary controls are present. Production-looking project, bucket, service account, URL, provider, Stripe, payment, or billing env still fails closed.
+
 ## Authentication And IAM
 
 Use GitHub Actions OIDC / Workload Identity Federation. Do not add service account key JSON unless Workload Identity Federation is impossible and a separate security review approves it.

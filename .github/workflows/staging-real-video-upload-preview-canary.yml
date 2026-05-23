@@ -1,0 +1,175 @@
+name: RP E2E Staging Real Video Upload To Preview Canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_writes:
+        description: "Required: acknowledge staging Supabase writes"
+        required: true
+        default: "false"
+      allow_render_execution:
+        description: "Required: acknowledge bounded staging render execution"
+        required: true
+        default: "false"
+      allow_cloud_run:
+        description: "Required: acknowledge private staging Cloud Run invocation"
+        required: true
+        default: "false"
+      cleanup:
+        description: "Required: cleanup smoke DB records and GCS objects"
+        required: true
+        default: "true"
+      max_wait_seconds:
+        description: "Bounded wait for the canary"
+        required: true
+        default: "180"
+      smoke_user_id:
+        description: "Existing safe staging Supabase auth user UUID"
+        required: true
+        default: "bb300bde-97fa-438d-ab97-a47dec0ca7d1"
+      previous_write_smoke_run_id:
+        description: "Previous write smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-79ce5e86-b894-4bf4-967d-d702a1c16ccf"
+      previous_persisted_render_smoke_run_id:
+        description: "Previous persisted render metadata smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-c60fc032-7fee-4810-bc4e-4d799d2a1438"
+      previous_sandbox_render_smoke_run_id:
+        description: "Previous sandbox render smoke run id to check for leftovers"
+        required: true
+        default: "rp-e2e-smoke-5a57ff5e-2017-4cf1-963b-703097fc9ec8"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  staging-real-video-upload-preview-canary:
+    name: Staging real-video upload-to-preview canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NODE_ENV: test
+      E2E_RUNTIME_MODE: cloud_run
+      WORKER_RUNTIME_MODE: cloud_run
+      STORAGE_MODE: gcs
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: "false"
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_E2E_SMOKE_MODE: live
+      SUPABASE_E2E_ALLOW_WRITES: ${{ inputs.allow_writes }}
+      SUPABASE_E2E_ALLOW_RENDER_EXECUTION: ${{ inputs.allow_render_execution }}
+      SUPABASE_E2E_ALLOW_CLOUD_RUN: ${{ inputs.allow_cloud_run }}
+      SUPABASE_E2E_CLEANUP: ${{ inputs.cleanup }}
+      SUPABASE_E2E_USER_ID: ${{ inputs.smoke_user_id }}
+      SUPABASE_E2E_MAX_WAIT_SECONDS: ${{ inputs.max_wait_seconds }}
+      SUPABASE_E2E_PREVIOUS_WRITE_SMOKE_RUN_ID: ${{ inputs.previous_write_smoke_run_id }}
+      SUPABASE_E2E_PREVIOUS_PERSISTED_RENDER_SMOKE_RUN_ID: ${{ inputs.previous_persisted_render_smoke_run_id }}
+      SUPABASE_E2E_PREVIOUS_SANDBOX_RENDER_SMOKE_RUN_ID: ${{ inputs.previous_sandbox_render_smoke_run_id }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GOOGLE_CLOUD_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GOOGLE_CLOUD_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      STAGING_RENDER_CANARY_MODE: staging_cloud_run_remotion_canary
+      STAGING_CLOUD_RUN_RENDER_CANARY_URL: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_URL || vars.STAGING_CLOUD_RUN_RENDER_CANARY_URL }}
+      STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE || vars.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE }}
+      STAGING_RENDER_CANARY_CLOUD_RUN_URL: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_URL || vars.STAGING_CLOUD_RUN_RENDER_CANARY_URL }}
+      STAGING_RENDER_CANARY_CLOUD_RUN_AUDIENCE: ${{ secrets.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE || vars.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE }}
+      STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX: ${{ secrets.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX || vars.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX }}
+      STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX: ".run.app"
+      STAGING_RENDER_CANARY_DURATION_SECONDS: "3"
+      STAGING_RENDER_CANARY_WIDTH: "160"
+      STAGING_RENDER_CANARY_HEIGHT: "90"
+      STAGING_RENDER_CANARY_FPS: "15"
+      STAGING_RENDER_CANARY_MAX_RETRIES: "0"
+      STAGING_RENDER_CANARY_MEMORY: "2Gi"
+      STAGING_RENDER_CANARY_CPU: "2"
+      STAGING_RENDER_CANARY_CONCURRENCY: "1"
+      STAGING_RENDER_CANARY_TIMEOUT_SECONDS: "300"
+      STAGING_RENDER_CANARY_NODE_OPTIONS: "--max-old-space-size=1536"
+      GCS_SOURCE_MEDIA_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_GENERATED_ASSETS_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_PROCESSED_MEDIA_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_PREVIEWS_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_EXPORTS_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_THUMBNAILS_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_QA_ARTIFACTS_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_WORKER_TEMP_BUCKET: ${{ vars.STAGING_REAL_VIDEO_CANARY_GCS_BUCKET || 'reeditpro-staging-render-canary-smoke' }}
+      GCS_DEFAULT_REGION: us-east1
+
+    steps:
+      - name: Fail closed unless explicit staging allow flags are true
+        shell: bash
+        run: |
+          test "${{ inputs.allow_writes }}" = "true"
+          test "${{ inputs.allow_render_execution }}" = "true"
+          test "${{ inputs.allow_cloud_run }}" = "true"
+          test "${{ inputs.cleanup }}" = "true"
+          test "${{ inputs.max_wait_seconds }}" -ge 30
+          test "${{ inputs.max_wait_seconds }}" -le 300
+
+      - name: Checkout readiness branch
+        uses: actions/checkout@v5
+        with:
+          ref: codex/reeditpro-e2e-readiness
+
+      - name: Authenticate to Google Cloud with OIDC/WIF
+        id: gcp-auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          token_format: id_token
+          id_token_audience: ${{ env.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Mask Cloud Run ID token
+        shell: bash
+        run: echo "::add-mask::${{ steps.gcp-auth.outputs.id_token }}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and typecheck API
+        run: |
+          npm run typecheck:api
+          npm run build:api
+
+      - name: Install FFmpeg
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Check staging live env and RPC readiness
+        run: |
+          npm run smoke:supabase:live-env
+          npm run smoke:supabase:tables
+          npm run smoke:supabase:rpcs
+          npm run smoke:supabase:rls-auth
+
+      - name: Check previous write smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_write_smoke_run_id }}
+
+      - name: Check previous persisted render smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_persisted_render_smoke_run_id }}
+
+      - name: Check previous sandbox render smoke leftovers
+        run: npm run smoke:supabase:leftovers -- --smoke-run-id=${{ inputs.previous_sandbox_render_smoke_run_id }}
+
+      - name: Run staging real-video upload-to-preview canary
+        env:
+          STAGING_RENDER_CANARY_ID_TOKEN: ${{ steps.gcp-auth.outputs.id_token }}
+        run: timeout "${SUPABASE_E2E_MAX_WAIT_SECONDS}s" npm run smoke:e2e:staging-real-video-upload-preview:strict

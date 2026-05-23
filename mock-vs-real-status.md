@@ -17,6 +17,7 @@
 - Job runtime types, mock queue items, job gates, dependency chains, dispatch placeholders, events, retry/recovery, and chat summaries.
 - Backend runtime and worker lease types, mock runtime envelopes, mock transport, mock lease lifecycle, stale recovery, idempotency helpers, and worker runtime registry metadata.
 - Mock-only Node HTTP backend scaffold for future Cloud Run deployment with health, readiness, runtime status, route registry, and mock API transport endpoints.
+- Staging-only Cloud Run / Remotion render infrastructure canary passed through the guarded GitHub Actions workflow. It rendered only the fixed tiny smoke fixture and cleaned up all smoke records/artifacts.
 - Project-level SoundSync SFX workflow wiring in mock mode, including SFX Director planning, provider routes, prompt plans, credit gates, mock generation requests, mock jobs, mock worker runs, mock provider adapter output, trim/hit alignment, mix, QA, project asset decisions, and editor chat status.
 - SFX provider execution readiness reporting for future Mirelo SFX V1.5 and MMAudio V2 backend transport, including structured block reasons, Secret Manager reference checks, approval/credit/job checks, and safe next steps.
 
@@ -44,13 +45,13 @@
 - Real end-to-end video rendering/export from uploaded media.
 - Durable approved plan snapshot persistence for the local MVP flow.
 - Deployed backend runtime or live API transport.
-- Deployed Cloud Run service, Secret Manager bindings, service account IAM, request auth, monitoring, and rate limits.
+- Production/general deployed Cloud Run service, Secret Manager bindings, service account IAM, request auth, monitoring, and rate limits. The only passed deployed Cloud Run path is the staging render canary.
 - Service-role backend handlers.
 - Full auth screens.
 - Real storage uploads and deployed bucket policy validation.
 - Production transactional credit ledger runtime.
 - Production worker queue, leases, heartbeat enforcement, and cloud dispatch.
 - Deployed backend runtime transport, transactional worker leases, durable idempotency, and cloud lease recovery.
-- Real provider integrations. Mirelo/MMAudio are wired into the project flow in mock mode and have readiness reporting only; live provider transport remains future backend work.
-- Rendering/export workers.
+- Real provider integrations. Mirelo/MMAudio are wired into the project flow in mock mode and have readiness reporting only; live provider transport remains future backend work. The next safe gate is a disabled-by-default staging provider sandbox limited to one provider and one smoke-tagged job.
+- Production rendering/export workers for customer media. The staging canary render path is passed, but production preview/export remains unimplemented.
 - Remote Supabase migration or validation.

@@ -1,8 +1,36 @@
 # Staging Cloud Run / Remotion Canary
 
-This gate is for the real staging render infrastructure canary only. It must not be treated as passed until the guarded GitHub Actions workflow dispatches against a dedicated private staging Cloud Run canary service and succeeds.
+This gate is for the real staging render infrastructure canary only. It is now passed for the recorded staging workflow run below. Future reruns must still use the same guarded manual workflow and fail-closed controls.
 
-Current readiness status: the repo contains the fail-closed workflow, strict validator, private canary service scaffold, and tiny Remotion fixture. Live dispatch remains blocked unless the staging Cloud Run target, GitHub OIDC authentication, and canary output bucket/prefix are configured.
+Current readiness status: passed as a staging-only infrastructure gate. This does not enable production rendering, provider execution, Stripe/payment flows, customer media, broad E2E suites, or queue draining.
+
+## Passed Gate Record
+
+- Workflow: `RP E2E Staging Cloud Run Remotion Render Infrastructure Canary`
+- Run ID: `26321096931`
+- Head SHA: `915b110548cac27cdaffdbffb17bdfa54a724a01`
+- Smoke run ID: `rp-e2e-smoke-299243de-9589-4f4a-9d02-5d1ca5fd4b35`
+- Result: `PASS`
+- Render status: `preview_ready`
+- Cloud Run path: `/canary/render`
+- Remotion path: `renderMedia / bundle / selectComposition`
+- Output artifact: `video/mp4`, `22,708` bytes, `3s`, `160x90`, `15fps`, `45` frames
+- Cleanup deleted count: `26`
+- Cleanup errors: `[]`
+- Leftover records: `[]`
+- Leftover query errors: `[]`
+
+## Next Gate
+
+The next safe manual gate is the staging provider sandbox gate. It must remain disabled by default and limited to a single provider and a single smoke-tagged job only.
+
+Required next-gate boundaries:
+
+- explicit manual allow flags before any provider sandbox execution
+- staging-only configuration and smoke-tagged staging data
+- one bounded provider request path, not a broad provider suite
+- no Stripe, payment, billing, production, customer media, broad E2E, queue drain, or existing user job processing
+- cleanup and strict leftover detection required before the gate can pass
 
 ## Required Configuration
 

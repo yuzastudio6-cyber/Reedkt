@@ -15,6 +15,23 @@ The `codex/reeditpro-e2e-readiness` branch consolidates the planning-stack backe
 
 This is not production video editing. Real Supabase validation, deployed Cloud Run, real storage uploads, durable approved snapshots, transactional credits, real workers, provider gateways, Remotion/FFmpeg rendering, Stripe, monitoring, and production QA remain future milestones. See `docs/end-to-end-video-editor-readiness.md`.
 
+## Staging Gate Progress
+
+Status: staging Cloud Run / Remotion render infrastructure canary passed.
+
+The guarded workflow `RP E2E Staging Cloud Run Remotion Render Infrastructure Canary` passed on run `26321096931` at head SHA `915b110548cac27cdaffdbffb17bdfa54a724a01`.
+
+- Smoke run ID: `rp-e2e-smoke-299243de-9589-4f4a-9d02-5d1ca5fd4b35`
+- Render status: `preview_ready`
+- Cloud Run path: `/canary/render`
+- Remotion path: `renderMedia / bundle / selectComposition`
+- Output: `video/mp4`, `22,708` bytes, `3s`, `160x90`, `15fps`, `45` frames
+- Cleanup: `26` records deleted, cleanup errors `[]`, leftover records `[]`, leftover query errors `[]`
+
+This pass is staging-only and does not enable production rendering, providers, Stripe/payment, customer media, broad E2E, or queue draining.
+
+Next staging gate: provider sandbox validation, still disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
+
 ## RP-FIX-06
 
 Status: partially fixed.
@@ -37,7 +54,7 @@ The implementation handles missing Supabase env values, signed-out users, profil
 - Full auth UI and route/session integration.
 - Deployed storage/upload runtime and signed URL delivery.
 - Supabase local/staging validation.
-- Credit, provider, worker, rendering, Stripe, and mobile implementation.
+- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure canary is passed, but production/customer rendering remains open.
 
 ## RP-FIX-07
 

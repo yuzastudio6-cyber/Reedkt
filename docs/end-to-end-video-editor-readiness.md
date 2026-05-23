@@ -4,6 +4,21 @@ Status: local E2E MVP is working locally / production video editing remains prod
 
 Branch target: `codex/reeditpro-e2e-readiness`
 
+## Staging Gate Status
+
+The staging Cloud Run / Remotion render infrastructure canary passed as a guarded manual gate:
+
+- Run: `26321096931`
+- Head SHA: `915b110548cac27cdaffdbffb17bdfa54a724a01`
+- Smoke run ID: `rp-e2e-smoke-299243de-9589-4f4a-9d02-5d1ca5fd4b35`
+- Result: `PASS`, render status `preview_ready`
+- Cloud Run path: `/canary/render`
+- Remotion path: `renderMedia / bundle / selectComposition`
+- Artifact: `video/mp4`, `22,708` bytes, `3s`, `160x90`, `15fps`, `45` frames
+- Cleanup: `26` records deleted, no cleanup errors, no leftover records, no leftover query errors
+
+This proves only the staging render infrastructure canary path. It does not enable production rendering, providers, Stripe/payment, customer media, broad E2E suites, or queue draining.
+
 ## What This Branch Proves
 
 This branch consolidates the newest planning-stack backend/runtime/render scaffolds with the pushed AI editor shell and browser-local MVP flow.
@@ -58,7 +73,7 @@ No file upload, provider call, Stripe call, Cloud Run call, Supabase mutation, F
 | Worker queue | production-required | Mock job queue, dependencies, lease, heartbeat, retry, and dispatch exist; durable cloud queue/leases remain. |
 | Backend runtime | production-required | Cloud Run API service is scaffolded but not deployed. |
 | Provider gateway | production-required | OpenAI, Lyria, Mirelo, MMAudio, Wan, Veo, Kling, Hailuo, and related provider calls remain disabled/backend-required. |
-| Render/export | production-required | Remotion/container scaffolds exist; real FFmpeg/Remotion rendering, preview files, exports, and QA remain. |
+| Render/export | production-required | Staging Cloud Run / Remotion infrastructure canary passed with a tiny smoke render. Production render/export workers, customer media processing, final exports, and production QA remain. |
 | Stripe | production-required | Checkout, subscriptions, webhooks, invoices, and credit purchase reconciliation remain missing. |
 | Monitoring/rate limits | production-required | Production logging, metrics, alerts, abuse controls, and quota enforcement remain missing. |
 | QA | production-required | Mock planning QA exists; real media QA, frame/audio validation, render QA, and failure recovery still need workers. |
@@ -98,6 +113,8 @@ Useful URLs:
 
 ## Recommended Next Production Milestone
 
-Next fix prompt: Supabase local/staging validation plus Cloud Run mock backend deployment rehearsal.
+Next safe staging gate: provider sandbox validation, disabled by default and limited to a single provider plus a single smoke-tagged job. It must keep explicit allow flags, staging-only configuration, cleanup, strict leftover checks, no Stripe/payment, no production, no broad E2E, no queue drain, and no customer media.
 
-That milestone should validate active migrations, generated database types, RLS/storage policies, Cloud Run service startup, Secret Manager placeholders, request auth, and live mock API transport without enabling real providers, Stripe, or rendering yet.
+Next production milestone remains separate: production backend/runtime hardening after staging gates complete.
+
+That production milestone should validate active migrations, generated database types, RLS/storage policies, Cloud Run service startup, Secret Manager placeholders, request auth, and live mock API transport without enabling Stripe, broad providers, or production rendering.

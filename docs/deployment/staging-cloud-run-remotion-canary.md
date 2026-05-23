@@ -83,6 +83,24 @@ npm run smoke:e2e:render-infrastructure-canary:preflight -- --live
 
 Preflight performs guard/config validation only. It does not invoke Cloud Run, does not run Remotion, does not create smoke DB records, and does not write storage artifacts.
 
+## Manual Authenticated Probe
+
+After redeploying the canary image, run a single authenticated probe before dispatching the GitHub workflow. Use a JSON payload file, not inline shell JSON:
+
+```bash
+CANARY_AUDIENCE="https://reeditpro-staging-render-canary-4wkjiqvdqa-ue.a.run.app"
+CANARY_URL="${CANARY_AUDIENCE}/canary/render"
+TOKEN="$(gcloud auth print-identity-token --audiences="${CANARY_AUDIENCE}")"
+
+curl -sS \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  --data @scripts/render/staging-cloud-run-remotion-canary/payloads/tiny-muted-3s-canary.json \
+  "${CANARY_URL}"
+```
+
+Copy the payload file and replace only the copy's `smokeRunId` with a fresh smoke id for a real probe. Do not print the token, use service account JSON keys, include provider prompts, include Stripe/payment fields, include user media, or process existing queues.
+
 ## Live Dispatch Conditions
 
 Dispatch `RP E2E Staging Cloud Run Remotion Render Infrastructure Canary` only when all of these are true:

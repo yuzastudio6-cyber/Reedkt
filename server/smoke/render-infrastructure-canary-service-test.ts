@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises'
+import { stringifyCanaryJson } from '../cloud-run/canary-safe-json'
 import {
   STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
@@ -34,8 +35,19 @@ const safePayload = {
   fps: 15,
   cleanup: true,
 }
+const strictManualPayload = {
+  ...safePayload,
+  smokeRunId: 'rp-e2e-smoke-00000000-0000-4000-8000-000000000000',
+  stagingOnly: true,
+  allowCloudRun: true,
+  allowRemotion: true,
+  allowProviders: false,
+  allowStripe: false,
+  maxWaitSeconds: 180,
+}
 
 const requestValidation = validateStagingRenderInfrastructureCanaryRequest(safePayload)
+const strictManualRequestValidation = validateStagingRenderInfrastructureCanaryRequest(strictManualPayload)
 const missingCleanup = validateStagingRenderInfrastructureCanaryRequest({ ...safePayload, cleanup: false })
 const oversized = validateStagingRenderInfrastructureCanaryRequest({
   ...safePayload,
@@ -59,9 +71,15 @@ const providerStripeEnv = validateStagingRenderInfrastructureCanaryEnv({
 })
 const cleanupFailure = await runStagingRenderInfrastructureCanary(safePayload, safeEnv, fakeDeps({ deleteSucceeds: false }))
 const success = await runStagingRenderInfrastructureCanary(safePayload, safeEnv, fakeDeps())
+const strictManualSuccess = await runStagingRenderInfrastructureCanary(strictManualPayload, safeEnv, fakeDeps())
+const hugeCircularError = createHugeCircularError()
+const serializedHugeError = stringifyCanaryJson(hugeCircularError)
+const hugeFailure = await runStagingRenderInfrastructureCanary(safePayload, safeEnv, fakeDeps({ renderError: hugeCircularError }))
+const serializedHugeFailure = stringifyCanaryJson(hugeFailure)
 
 const checks = [
   requestValidation.ok ? 'valid_request_passes' : undefined,
+  strictManualRequestValidation.ok && strictManualSuccess.ok ? 'strict_manual_payload_passes' : undefined,
   validateStagingRenderInfrastructureCanaryEnv(safeEnv).length === 0 ? 'neutral_reeditpro_project_with_dedicated_controls_passes' : undefined,
   neutralProjectWithoutDedicatedControls.some((blocker) => blocker.includes('verified neutral reeditpro staging project')) ? 'neutral_project_requires_dedicated_controls' : undefined,
   providerStripeEnv.some((blocker) => blocker.includes('OPENAI_API_KEY')) && providerStripeEnv.some((blocker) => blocker.includes('STRIPE_SECRET_KEY')) ? 'provider_and_stripe_env_rejected' : undefined,
@@ -71,16 +89,30 @@ const checks = [
   !cleanupFailure.ok && cleanupFailure.error?.message.includes('cleanup') ? 'artifact_cleanup_failure_rejected' : undefined,
   success.ok && success.outputArtifact?.existsBeforeCleanup && success.outputArtifact.existsAfterCleanup === false ? 'artifact_create_verify_cleanup_passes' : undefined,
   success.outputArtifact?.objectPath.includes(smokeRunId) ? 'artifact_path_smoke_traceable' : undefined,
+  serializedHugeError.length < 12_000
+    && serializedHugeError.includes('[redacted]')
+    && serializedHugeError.includes('"byteLength":1048576')
+    && !serializedHugeError.includes('service-role-secret')
+    && !serializedHugeError.includes('Bearer secret-token-value')
+    ? 'safe_serializer_bounds_huge_circular_error'
+    : undefined,
+  !hugeFailure.ok
+    && serializedHugeFailure.length < 6_000
+    && !serializedHugeFailure.includes('service-role-secret')
+    && !serializedHugeFailure.includes('Bearer secret-token-value')
+    ? 'failure_path_sanitizes_huge_error'
+    : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 10
+const ok = checks.length === 13
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 
-function fakeDeps(options: { deleteSucceeds?: boolean } = {}) {
+function fakeDeps(options: { deleteSucceeds?: boolean; renderError?: unknown } = {}) {
   const objects = new Set<string>()
   const renderer: CanaryRenderer = {
     async render(input) {
+      if (options.renderError) throw options.renderError
       await writeFile(input.outputPath, Buffer.from('tiny fake mp4 canary artifact'))
     },
   }
@@ -97,4 +129,23 @@ function fakeDeps(options: { deleteSucceeds?: boolean } = {}) {
     },
   }
   return { renderer, artifactStore: store }
+}
+
+function createHugeCircularError(): Error {
+  const error = new Error(`Huge circular render failure ${'x'.repeat(50_000)} secret-token-value`)
+  error.stack = [
+    `Error: Huge circular render failure ${'x'.repeat(10_000)} secret-token-value`,
+    ...Array.from({ length: 100 }, (_, index) => `    at hugeStackFrame${index} (secret-file-${index}.ts:1:1)`),
+  ].join('\n')
+  const record = error as Error & Record<string, unknown>
+  record.authorization = 'Bearer secret-token-value'
+  record.service_role_key = 'service-role-secret'
+  record.buffer = Buffer.alloc(1024 * 1024)
+  record.self = record
+  record.items = Array.from({ length: 100 }, (_, index) => ({
+    index,
+    secret: `secret-${index}`,
+    value: 'x'.repeat(10_000),
+  }))
+  return error
 }

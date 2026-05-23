@@ -1,0 +1,18 @@
+{
+  "canary": true,
+  "mode": "staging_cloud_run_remotion_canary",
+  "smokeRunId": "rp-e2e-smoke-00000000-0000-4000-8000-000000000000",
+  "stagingOnly": true,
+  "allowCloudRun": true,
+  "allowRemotion": true,
+  "allowProviders": false,
+  "allowStripe": false,
+  "cleanup": true,
+  "fixture": "tiny-muted-3s",
+  "maxDurationSeconds": 3,
+  "width": 160,
+  "height": 90,
+  "fps": 15,
+  "maxFrames": 45,
+  "maxWaitSeconds": 180
+}

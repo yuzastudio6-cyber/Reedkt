@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, stat } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { Storage } from '@google-cloud/storage'
+import { canaryErrorMessage } from '../cloud-run/canary-safe-json'
 
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE = 'staging_cloud_run_remotion_canary' as const
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE = 'tiny-muted-3s' as const
@@ -31,6 +32,18 @@ export interface StagingRenderInfrastructureCanaryRequest {
   canary?: unknown
   mode?: unknown
   smokeRunId?: unknown
+  stagingOnly?: unknown
+  allowCloudRun?: unknown
+  allowRemotion?: unknown
+  allowProviders?: unknown
+  allowStripe?: unknown
+  allowPaymentFlows?: unknown
+  allowQueueDrain?: unknown
+  allowUserMedia?: unknown
+  allowProduction?: unknown
+  maxWaitSeconds?: unknown
+  allow?: unknown
+  safety?: unknown
   fixture?: unknown
   maxDurationSeconds?: unknown
   maxFrames?: unknown
@@ -208,6 +221,7 @@ export function validateStagingRenderInfrastructureCanaryRequest(
       blockers.push('maxFrames must cover the requested bounded duration and fps.')
     }
   }
+  validateRequestSafetyPayload(payload, blockers)
 
   if (blockers.length > 0) return { ok: false, blockers }
 
@@ -366,15 +380,16 @@ export async function runStagingRenderInfrastructureCanary(
       strictValidation: strictValidation([], true),
     }
   } catch (error) {
+    const message = canaryErrorMessage(error)
     return {
       ok: false,
       status: 'failed',
       mode: STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
       smokeRunId: input.smokeRunId,
-      strictValidation: strictValidation([error instanceof Error ? error.message : 'Unknown staging render canary failure.'], true),
+      strictValidation: strictValidation([message], true),
       error: {
         code: 'staging_render_infrastructure_canary_failed',
-        message: error instanceof Error ? error.message : 'Unknown staging render canary failure.',
+        message,
       },
     }
   } finally {
@@ -538,6 +553,68 @@ function strictValidation(blockers: string[], cleanupAcknowledged: boolean): Sta
     noUserMediaUsed: true,
     noQueueDrainRan: true,
   }
+}
+
+function validateRequestSafetyPayload(
+  payload: StagingRenderInfrastructureCanaryRequest,
+  blockers: string[],
+): void {
+  requireOptionalBoolean(payload.stagingOnly, true, 'stagingOnly', blockers)
+  requireOptionalBoolean(payload.allowCloudRun, true, 'allowCloudRun', blockers)
+  requireOptionalBoolean(payload.allowRemotion, true, 'allowRemotion', blockers)
+  requireOptionalBoolean(payload.allowProviders, false, 'allowProviders', blockers)
+  requireOptionalBoolean(payload.allowStripe, false, 'allowStripe', blockers)
+  requireOptionalBoolean(payload.allowPaymentFlows, false, 'allowPaymentFlows', blockers)
+  requireOptionalBoolean(payload.allowQueueDrain, false, 'allowQueueDrain', blockers)
+  requireOptionalBoolean(payload.allowUserMedia, false, 'allowUserMedia', blockers)
+  requireOptionalBoolean(payload.allowProduction, false, 'allowProduction', blockers)
+
+  if (payload.maxWaitSeconds !== undefined && !isBounded(readUnknownNumber(payload.maxWaitSeconds), 30, 300)) {
+    blockers.push('maxWaitSeconds must stay between 30 and 300.')
+  }
+
+  const allow = recordFromUnknown(payload.allow)
+  if (allow) {
+    requireOptionalBoolean(allow.writes, true, 'allow.writes', blockers)
+    requireOptionalBoolean(allow.renderExecution, true, 'allow.renderExecution', blockers)
+    requireOptionalBoolean(allow.cloudRun, true, 'allow.cloudRun', blockers)
+    requireOptionalBoolean(allow.remotion, true, 'allow.remotion', blockers)
+    requireOptionalBoolean(allow.providers, false, 'allow.providers', blockers)
+    requireOptionalBoolean(allow.providerCalls, false, 'allow.providerCalls', blockers)
+    requireOptionalBoolean(allow.stripe, false, 'allow.stripe', blockers)
+    requireOptionalBoolean(allow.paymentFlows, false, 'allow.paymentFlows', blockers)
+    requireOptionalBoolean(allow.queueDrain, false, 'allow.queueDrain', blockers)
+    requireOptionalBoolean(allow.userMedia, false, 'allow.userMedia', blockers)
+    requireOptionalBoolean(allow.production, false, 'allow.production', blockers)
+  }
+
+  const safety = recordFromUnknown(payload.safety)
+  if (safety) {
+    requireOptionalBoolean(safety.providerCallsEnabled, false, 'safety.providerCallsEnabled', blockers)
+    requireOptionalBoolean(safety.stripeCallsEnabled, false, 'safety.stripeCallsEnabled', blockers)
+    requireOptionalBoolean(safety.paymentFlowsEnabled, false, 'safety.paymentFlowsEnabled', blockers)
+    requireOptionalBoolean(safety.queueDrainEnabled, false, 'safety.queueDrainEnabled', blockers)
+    requireOptionalBoolean(safety.userMediaEnabled, false, 'safety.userMediaEnabled', blockers)
+    requireOptionalBoolean(safety.productionEnabled, false, 'safety.productionEnabled', blockers)
+    if (safety.boundedTimeoutSeconds !== undefined && !isBounded(readUnknownNumber(safety.boundedTimeoutSeconds), 30, 300)) {
+      blockers.push('safety.boundedTimeoutSeconds must stay between 30 and 300.')
+    }
+  }
+}
+
+function requireOptionalBoolean(
+  value: unknown,
+  expected: boolean,
+  name: string,
+  blockers: string[],
+): void {
+  if (value === undefined) return
+  if (value !== expected) blockers.push(`${name} must be ${String(expected)}.`)
+}
+
+function recordFromUnknown(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  return value as Record<string, unknown>
 }
 
 function readUnknownNumber(value: unknown): number {

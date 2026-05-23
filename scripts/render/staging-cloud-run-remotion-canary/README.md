@@ -31,3 +31,21 @@ bash scripts/render/staging-cloud-run-remotion-canary/deploy-staging-cloud-run-s
 
 The script deploys only the service definition. It does not execute the canary workflow.
 The neutral staging project id `reeditpro` is accepted only with the dedicated staging canary service name, `us-east1` region, matching `GOOGLE_CLOUD_PROJECT`, `.run.app` host suffix, and the staging canary smoke bucket/prefix.
+
+## Manual Authenticated Canary Probe
+
+Use a JSON payload file rather than inline shell JSON so the request stays inspectable and shell quoting cannot mutate the safety flags. The checked-in example payload is `payloads/tiny-muted-3s-canary.json`; copy it and replace only the copy's `smokeRunId` with a fresh smoke id before a live probe.
+
+```bash
+CANARY_AUDIENCE="https://reeditpro-staging-render-canary-4wkjiqvdqa-ue.a.run.app"
+CANARY_URL="${CANARY_AUDIENCE}/canary/render"
+TOKEN="$(gcloud auth print-identity-token --audiences="${CANARY_AUDIENCE}")"
+
+curl -sS \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  --data @scripts/render/staging-cloud-run-remotion-canary/payloads/tiny-muted-3s-canary.json \
+  "${CANARY_URL}"
+```
+
+Do not print the token, do not use service account JSON keys, and do not add provider, Stripe, production, queue, user-media, or customer-job fields to this payload.

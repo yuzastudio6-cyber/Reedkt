@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { loadRuntimeEnv } from '../config/env'
 import {
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
@@ -113,6 +113,10 @@ const cleanupFalse = evaluateStagingRealVideoUploadPreviewCanaryPreflight({
   env: loadRuntimeEnv({ ...safeSourceEnv, SUPABASE_E2E_CLEANUP: 'false' }),
   sourceEnv: safeSourceEnv,
 })
+const localStorageMode = evaluateStagingRealVideoUploadPreviewCanaryPreflight({
+  env: loadRuntimeEnv({ ...safeSourceEnv, STORAGE_MODE: 'local' }),
+  sourceEnv: { ...safeSourceEnv, STORAGE_MODE: 'local' },
+})
 const providerStripe = evaluateStagingRealVideoUploadPreviewCanaryPreflight({
   env,
   sourceEnv: { ...safeSourceEnv, OPENAI_API_KEY: 'configured', STRIPE_SECRET_KEY: 'configured' },
@@ -153,6 +157,9 @@ const serviceSuccess = await runStagingRenderInfrastructureCanary(safePayload, {
   remotionEntrypoint: 'server/remotion/staging-canary-remotion-entry.ts',
   forbiddenEnvNames: [],
 }, fakeDeps())
+const realVideoServiceSource = await readFile(new URL('../services/staging-real-video-upload-preview-canary-service.ts', import.meta.url), 'utf8')
+const supabaseSmokeServiceSource = await readFile(new URL('../services/supabase-e2e-smoke-service.ts', import.meta.url), 'utf8')
+const serializedPayload = JSON.stringify(safePayload).toLowerCase()
 
 const checks = [
   readyPreflight.status === 'ready' ? 'preflight_ready_with_safe_config' : undefined,
@@ -161,12 +168,27 @@ const checks = [
   !missingRenderExecution.ok && missingRenderExecution.blockers.some((blocker) => blocker.includes('ALLOW_RENDER_EXECUTION')) ? 'allow_render_execution_required' : undefined,
   !missingCloudRun.ok && missingCloudRun.blockers.some((blocker) => blocker.includes('ALLOW_CLOUD_RUN')) ? 'allow_cloud_run_required' : undefined,
   !cleanupFalse.ok && cleanupFalse.blockers.some((blocker) => blocker.includes('CLEANUP')) ? 'cleanup_required' : undefined,
+  !localStorageMode.ok && localStorageMode.blockers.some((blocker) => blocker.includes('GCS_STORAGE_REQUIRED')) ? 'gcs_storage_required_for_real_video_canary' : undefined,
   !providerStripe.ok && providerStripe.blockers.some((blocker) => blocker.includes('Provider')) ? 'provider_and_stripe_env_rejected' : undefined,
   !productionBucket.ok && productionBucket.blockers.some((blocker) => blocker.includes('Production')) ? 'production_bucket_rejected' : undefined,
   validRequest.ok ? 'strict_real_video_payload_accepted' : undefined,
   !nonSmokeSource.ok && nonSmokeSource.blockers.some((blocker) => blocker.includes('source object path')) ? 'non_smoke_source_rejected' : undefined,
   !customerMediaPreview.ok && customerMediaPreview.blockers.some((blocker) => blocker.includes('preview object path')) ? 'customer_media_preview_rejected' : undefined,
   !cleanupFalseRequest.ok && cleanupFalseRequest.blockers.some((blocker) => blocker.includes('cleanup')) ? 'request_cleanup_required' : undefined,
+  realVideoServiceSource.includes('runPersistedGcsRealVideoUploadPreviewSmoke')
+    && !realVideoServiceSource.includes('runPersistedBasicRenderSmoke(context')
+    ? 'real_video_canary_uses_gcs_metadata_helper'
+    : undefined,
+  supabaseSmokeServiceSource.includes('runPersistedGcsRealVideoUploadPreviewSmoke')
+    && supabaseSmokeServiceSource.includes('Persisted render smoke requires STORAGE_MODE=local.')
+    ? 'local_and_gcs_persisted_paths_are_split'
+    : undefined,
+  !serializedPayload.includes('signedurl') && !serializedPayload.includes('signed_url') && !serializedPayload.includes('http://')
+    ? 'canonical_payload_excludes_signed_urls'
+    : undefined,
+  safePayload.source.objectPath.includes('/source-media/') && safePayload.preview.objectPath.includes('/previews/')
+    ? 'gcs_source_and_preview_use_bucket_object_paths'
+    : undefined,
   serviceSuccess.ok
     && serviceSuccess.status === 'completed'
     && serviceSuccess.outputArtifact?.cleanupDelegatedToCaller
@@ -175,7 +197,7 @@ const checks = [
     : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 13
+const ok = checks.length === 18
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 

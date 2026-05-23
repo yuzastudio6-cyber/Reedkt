@@ -1,6 +1,6 @@
 # Staging Real-Video Upload-To-Preview Canary
 
-Status: implementation added, live dispatch not yet run.
+Status: implementation added. Live run `26342766890` failed safely before record creation because the first implementation crossed into a local-only persisted render smoke path while this gate runs with `STORAGE_MODE=gcs`. The canary is now explicitly GCS-based and must not use the local-only persisted render smoke helper.
 
 This gate is the next staging-only RP-E2E readiness gate after the Cloud Run / Remotion infrastructure canary. It proves one tiny controlled source video can move through the ReeditPro upload-to-preview metadata path and produce a preview through the private Cloud Run `/canary/render` service.
 
@@ -17,6 +17,30 @@ This gate is the next staging-only RP-E2E readiness gate after the Cloud Run / R
   `workspaces/{workspaceId}/projects/{projectId}/previews/{renderId}/{smokeRunId}-tiny-preview.mp4`.
 - Cleans up all smoke-tagged Supabase records and both GCS source/preview artifacts, then runs strict leftover detection.
 
+## GCS Metadata Path
+
+This gate requires `STORAGE_MODE=gcs`. It intentionally bypasses the local-only persisted render smoke helper and uses the dedicated GCS real-video metadata path instead.
+
+Canonical storage rows store only:
+
+- `bucket_name`
+- `object_path`
+- size, checksum, MIME type, purpose, region, and status metadata
+
+Signed URLs are never stored as canonical truth. The source and preview object records must point at the staging canary bucket and smoke-scoped object paths only.
+
+Expected source path:
+
+```text
+workspaces/{workspaceId}/projects/{projectId}/source-media/{smokeRunId}/tiny-source.mp4
+```
+
+Expected preview path:
+
+```text
+workspaces/{workspaceId}/projects/{projectId}/previews/{renderId}/{smokeRunId}-tiny-preview.mp4
+```
+
 ## Safety Rules
 
 The workflow is manual only and fails closed unless all are true:
@@ -28,6 +52,14 @@ The workflow is manual only and fails closed unless all are true:
 - `max_wait_seconds` is between `30` and `300`
 
 The canary must remain staging-only. It must not use production resources, Stripe/payment flows, external AI/content providers, customer media, broad E2E suites, broad queue drains, existing user jobs, or service account JSON keys.
+
+The strict CLI fails closed with stable storage errors when the storage path is wrong:
+
+- `GCS_STORAGE_REQUIRED`
+- `STORAGE_MODE_MISMATCH`
+- `LOCAL_STORAGE_ONLY_PATH_USED_IN_GCS_CANARY`
+- `GCS_SOURCE_OBJECT_MISSING`
+- `GCS_PREVIEW_OBJECT_MISSING`
 
 ## Required Configuration
 
@@ -77,7 +109,9 @@ The previous canary rendered synthetic Remotion content and proved the private C
 The gate passes only if:
 
 - previous smoke leftover checks are clean before invocation;
+- `STORAGE_MODE=gcs` is acknowledged by the GCS real-video metadata helper;
 - source and preview artifacts are smoke-scoped;
+- source and preview storage records store bucket/object paths only, not signed URLs;
 - render status reaches `preview_ready`;
 - Cloud Run path is `/canary/render`;
 - Remotion path is `renderMedia / bundle / selectComposition`;

@@ -25,7 +25,22 @@ import {
 import type { PersistedRenderExecutionMode } from '../../src/types'
 
 type SmokeStatus = 'passed' | 'failed' | 'skipped'
-type SmokeFailureCode = 'disabled' | 'missing_env' | 'writes_disabled' | 'missing_tables' | 'missing_dependency' | 'constraint_blocked' | 'tool_unavailable' | 'storage_mode_blocked' | 'render_failed' | 'rpc_missing'
+type SmokeFailureCode =
+  | 'disabled'
+  | 'missing_env'
+  | 'writes_disabled'
+  | 'missing_tables'
+  | 'missing_dependency'
+  | 'constraint_blocked'
+  | 'tool_unavailable'
+  | 'storage_mode_blocked'
+  | 'render_failed'
+  | 'rpc_missing'
+  | 'LOCAL_STORAGE_ONLY_PATH_USED_IN_GCS_CANARY'
+  | 'GCS_STORAGE_REQUIRED'
+  | 'GCS_SOURCE_OBJECT_MISSING'
+  | 'GCS_PREVIEW_OBJECT_MISSING'
+  | 'STORAGE_MODE_MISMATCH'
 
 interface CleanupRecord {
   table: string
@@ -67,6 +82,15 @@ export type PersistedRenderSourceFixtureFactory = (input: {
   objectPath: string
   fileName: string
 }) => Promise<PersistedRenderSourceFixtureFactoryResult>
+
+interface PersistedRenderSmokeOptions {
+  renderExecutionMode?: PersistedRenderExecutionMode
+  createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory
+  sourceFixtureFactory?: PersistedRenderSourceFixtureFactory
+  sourceObjectOwner?: 'upload_intent' | 'smoke_run'
+  sourceFileName?: string
+  precreateRenderIdForOutputPath?: boolean
+}
 
 interface SmokeRecordIds {
   smokeRunId?: string
@@ -233,38 +257,82 @@ export async function runSupabaseWriteReadSmoke(context: ServiceContext): Promis
 
 export async function runPersistedBasicRenderSmoke(
   context: ServiceContext,
-  options: {
-    renderExecutionMode?: PersistedRenderExecutionMode
-    createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory
-    sourceFixtureFactory?: PersistedRenderSourceFixtureFactory
-    sourceObjectOwner?: 'upload_intent' | 'smoke_run'
-    sourceFileName?: string
-    precreateRenderIdForOutputPath?: boolean
-  } = {},
+  options: PersistedRenderSmokeOptions = {},
 ): Promise<SupabaseE2ESmokeResult> {
   const renderExecutionMode = options.renderExecutionMode ?? 'local_ffmpeg'
   const writeCheck = await prepareLiveWriteSmoke(context)
   if ('result' in writeCheck) return writeCheck.result
+  if (renderExecutionMode === 'staging_real_video_upload_preview_canary') {
+    return failureResult(context, 'LOCAL_STORAGE_ONLY_PATH_USED_IN_GCS_CANARY', 'The real-video upload-to-preview canary must use runPersistedGcsRealVideoUploadPreviewSmoke; the legacy persisted render smoke path is local-only for this mode.', {
+      tableReadiness: writeCheck.tableReadiness,
+      details: { requiredStorageMode: 'gcs', actualStorageMode: context.env.storageMode },
+    })
+  }
   if (renderExecutionMode !== 'staging_cloud_run_remotion_canary' && context.env.storageMode !== 'local') {
-    return failureResult(context, 'storage_mode_blocked', 'Persisted render smoke requires STORAGE_MODE=local.')
+    return failureResult(context, 'STORAGE_MODE_MISMATCH', 'Persisted render smoke requires STORAGE_MODE=local.', {
+      tableReadiness: writeCheck.tableReadiness,
+      details: { requiredStorageMode: 'local', actualStorageMode: context.env.storageMode },
+    })
   }
   if (renderExecutionMode === 'staging_cloud_run_remotion_canary' && context.env.storageMode !== 'gcs') {
-    return failureResult(context, 'storage_mode_blocked', 'Staging Cloud Run Remotion canary requires STORAGE_MODE=gcs.')
+    return failureResult(context, 'GCS_STORAGE_REQUIRED', 'Staging Cloud Run Remotion canary requires STORAGE_MODE=gcs.', {
+      tableReadiness: writeCheck.tableReadiness,
+      details: { requiredStorageMode: 'gcs', actualStorageMode: context.env.storageMode },
+    })
   }
 
-  const { client, tableReadiness, schema } = writeCheck
   const toolWarnings: string[] = []
   if (renderExecutionMode === 'local_ffmpeg') {
     const tools = await checkBasicRenderSmokeTools(context)
     toolWarnings.push(...tools.warnings)
     if (!tools.ready) {
       return failureResult(context, 'tool_unavailable', 'Persisted render smoke requires available FFmpeg and FFprobe.', {
-        tableReadiness,
+        tableReadiness: writeCheck.tableReadiness,
         warnings: tools.warnings,
       })
     }
   }
 
+  return runPersistedRenderSmokePrepared(context, writeCheck, options, renderExecutionMode, toolWarnings)
+}
+
+export async function runPersistedGcsRealVideoUploadPreviewSmoke(
+  context: ServiceContext,
+  options: Omit<PersistedRenderSmokeOptions, 'renderExecutionMode'> = {},
+): Promise<SupabaseE2ESmokeResult> {
+  const writeCheck = await prepareLiveWriteSmoke(context)
+  if ('result' in writeCheck) return writeCheck.result
+  if (context.env.storageMode !== 'gcs') {
+    return failureResult(context, 'GCS_STORAGE_REQUIRED', 'Staging real-video upload-to-preview canary requires STORAGE_MODE=gcs.', {
+      tableReadiness: writeCheck.tableReadiness,
+      details: { requiredStorageMode: 'gcs', actualStorageMode: context.env.storageMode },
+    })
+  }
+  if (!options.sourceFixtureFactory) {
+    return failureResult(context, 'GCS_SOURCE_OBJECT_MISSING', 'Staging real-video upload-to-preview canary requires a GCS source fixture factory.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+  if (!options.createExternalRenderArtifacts) {
+    return failureResult(context, 'GCS_PREVIEW_OBJECT_MISSING', 'Staging real-video upload-to-preview canary requires a Cloud Run preview artifact executor.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+
+  return runPersistedRenderSmokePrepared(context, writeCheck, {
+    ...options,
+    renderExecutionMode: 'staging_real_video_upload_preview_canary',
+  }, 'staging_real_video_upload_preview_canary', [])
+}
+
+async function runPersistedRenderSmokePrepared(
+  context: ServiceContext,
+  writeCheck: { client: SupabaseClient; tableReadiness: TableReadinessResult; schema: SchemaInfo },
+  options: PersistedRenderSmokeOptions,
+  renderExecutionMode: PersistedRenderExecutionMode,
+  toolWarnings: string[],
+): Promise<SupabaseE2ESmokeResult> {
+  const { client, tableReadiness, schema } = writeCheck
   const cleanupRecords: CleanupRecord[] = []
   try {
     const records = await createSupabaseSmokeRecordChain(context, client, schema, cleanupRecords, {

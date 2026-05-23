@@ -15,7 +15,7 @@ import type {
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
 import { createSmokeRunId } from '../supabase/live-write-guard'
 import type { ServiceContext } from '../types'
-import { runPersistedBasicRenderSmoke, type PersistedRenderSourceFixtureFactoryResult } from './supabase-e2e-smoke-service'
+import { runPersistedGcsRealVideoUploadPreviewSmoke, type PersistedRenderSourceFixtureFactoryResult } from './supabase-e2e-smoke-service'
 import type { SupabaseSmokeLeftoverRecord } from './supabase-smoke-leftover-service'
 
 const REAL_VIDEO_MODE = 'staging_real_video_upload_preview_canary'
@@ -28,6 +28,23 @@ const TINY_FIXTURE = {
   height: 90,
   fps: 15,
   maxFrames: 45,
+}
+const STABLE_ERROR_CODES = [
+  'LOCAL_STORAGE_ONLY_PATH_USED_IN_GCS_CANARY',
+  'GCS_STORAGE_REQUIRED',
+  'GCS_SOURCE_OBJECT_MISSING',
+  'GCS_PREVIEW_OBJECT_MISSING',
+  'STORAGE_MODE_MISMATCH',
+] as const
+type StableCanaryErrorCode = typeof STABLE_ERROR_CODES[number]
+
+class StagingRealVideoCanaryError extends Error {
+  readonly code: StableCanaryErrorCode
+
+  constructor(code: StableCanaryErrorCode, message: string) {
+    super(message)
+    this.code = code
+  }
 }
 
 export interface StagingRealVideoUploadPreviewCanaryPreflightInput {
@@ -198,7 +215,7 @@ export async function runStagingRealVideoUploadPreviewCanary(
       },
       warnings: [],
       error: preflight.blockers.length > 0
-        ? { code: 'real_video_upload_preview_canary_blocked', message: preflight.blockers.join('; ') }
+        ? { code: stableErrorCodeFromMessages(preflight.blockers) ?? 'real_video_upload_preview_canary_blocked', message: preflight.blockers.join('; ') }
         : undefined,
     }
   }
@@ -212,8 +229,7 @@ export async function runStagingRealVideoUploadPreviewCanary(
   let previewArtifact: GcsObjectRef | undefined
 
   try {
-    const result = await runPersistedBasicRenderSmoke(context, {
-      renderExecutionMode: REAL_VIDEO_MODE,
+    const result = await runPersistedGcsRealVideoUploadPreviewSmoke(context, {
       sourceObjectOwner: 'smoke_run',
       sourceFileName: SOURCE_FILE_NAME,
       precreateRenderIdForOutputPath: true,
@@ -230,7 +246,7 @@ export async function runStagingRealVideoUploadPreviewCanary(
           fps: TINY_FIXTURE.fps,
         })
         if (!fixture.available || !fixture.sizeBytes || !fixture.checksumSha256) {
-          throw new Error(`FFmpeg could not create the real-video source fixture: ${fixture.warnings.join('; ')}`)
+          throw canaryError('GCS_SOURCE_OBJECT_MISSING', `FFmpeg could not create the real-video source fixture: ${fixture.warnings.join('; ')}`)
         }
         const ref = { bucketName, objectPath }
         await gcsStore.uploadLocalFile({
@@ -244,7 +260,7 @@ export async function runStagingRealVideoUploadPreviewCanary(
           },
         })
         if (!await gcsStore.exists(ref)) {
-          throw new Error('Uploaded source fixture was not readable in GCS.')
+          throw canaryError('GCS_SOURCE_OBJECT_MISSING', 'Uploaded source fixture was not readable in GCS.')
         }
         sourceArtifact = ref
         sourceAndPreviewObjects.push(ref)
@@ -259,10 +275,10 @@ export async function runStagingRealVideoUploadPreviewCanary(
       },
       createExternalRenderArtifacts: async (input) => {
         if (!input.plannedRenderId || !input.outputBucketName || !input.outputObjectPath) {
-          throw new Error('Real-video canary requires a precreated render id and canonical preview output path.')
+          throw canaryError('GCS_PREVIEW_OBJECT_MISSING', 'Real-video canary requires a precreated render id and canonical preview output path.')
         }
         if (!input.sourceBucketName || !input.sourceObjectPath || !input.sourceSizeBytes || !input.sourceChecksumSha256) {
-          throw new Error('Real-video canary source metadata is incomplete.')
+          throw canaryError('GCS_SOURCE_OBJECT_MISSING', 'Real-video canary source metadata is incomplete.')
         }
         const invocation = await invokeCloudRun({
           smokeRunId: input.smokeRunId,
@@ -341,7 +357,7 @@ export async function runStagingRealVideoUploadPreviewCanary(
       strictValidation,
       warnings: result.warnings,
       error: strictValidation.ok ? result.error : {
-        code: 'real_video_upload_preview_canary_failed',
+        code: stableErrorCodeFromMessages(strictValidation.blockers) ?? 'real_video_upload_preview_canary_failed',
         message: strictValidation.blockers.join('; '),
       },
     }
@@ -368,7 +384,7 @@ export async function runStagingRealVideoUploadPreviewCanary(
       },
       warnings: [],
       error: {
-        code: 'real_video_upload_preview_canary_failed',
+        code: errorCodeFromUnknown(error) ?? 'real_video_upload_preview_canary_failed',
         message: error instanceof Error ? error.message : 'Real-video upload-to-preview canary failed.',
       },
     }
@@ -440,7 +456,7 @@ async function cleanupGcsObjects(
 }
 
 function buildStrictValidation(
-  result: Awaited<ReturnType<typeof runPersistedBasicRenderSmoke>>,
+  result: Awaited<ReturnType<typeof runPersistedGcsRealVideoUploadPreviewSmoke>>,
   gcsCleanup: StagingRealVideoUploadPreviewCanaryResult['gcsCleanup'],
 ): StagingRealVideoUploadPreviewCanaryResult['strictValidation'] {
   const renderSmoke = result.renderSmoke && typeof result.renderSmoke === 'object' && !Array.isArray(result.renderSmoke)
@@ -504,6 +520,7 @@ function validateRuntimeInputs(env: ServiceContext['env'], sourceEnv: Record<str
   if (env.supabaseE2eSmokeMode !== 'live' || !env.hasSupabaseAdmin) {
     blockers.push('SUPABASE_E2E_SMOKE_MODE=live with staging Supabase service-role env is required.')
   }
+  if (env.storageMode !== 'gcs') blockers.push('GCS_STORAGE_REQUIRED: STORAGE_MODE=gcs is required for the staging real-video upload-to-preview canary.')
   if (!env.supabaseE2eAllowWrites) blockers.push('SUPABASE_E2E_ALLOW_WRITES=true is required.')
   if (!env.supabaseE2eCleanup) blockers.push('SUPABASE_E2E_CLEANUP=true is required.')
   if (sourceEnv.SUPABASE_E2E_ALLOW_RENDER_EXECUTION !== 'true') blockers.push('SUPABASE_E2E_ALLOW_RENDER_EXECUTION=true is required.')
@@ -585,6 +602,18 @@ function uniqueGcsRefs(records: GcsObjectRef[]): GcsObjectRef[] {
     seen.add(key)
     return true
   })
+}
+
+function canaryError(code: StableCanaryErrorCode, message: string): StagingRealVideoCanaryError {
+  return new StagingRealVideoCanaryError(code, message)
+}
+
+function errorCodeFromUnknown(error: unknown): StableCanaryErrorCode | undefined {
+  return error instanceof StagingRealVideoCanaryError ? error.code : undefined
+}
+
+function stableErrorCodeFromMessages(messages: string[]): StableCanaryErrorCode | undefined {
+  return STABLE_ERROR_CODES.find((code) => messages.some((message) => message.includes(code)))
 }
 
 export function createStagingRealVideoSmokeRunId(): string {

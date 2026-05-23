@@ -72,6 +72,7 @@ export interface RunPersistedRenderPipelineViaRpcsInput {
   sourceObjectPath: string
   sourceSizeBytes?: number
   sourceChecksumSha256?: string
+  precreateRenderIdForOutputPath?: boolean
   creditAmount?: number
   idempotencyKey: string
   smokeRunId?: string
@@ -93,6 +94,14 @@ export interface PersistedRenderExternalArtifactFactoryInput {
   renderJobId: string
   workerJobClaimId: string
   sourceStorageObjectId: string
+  sourceMediaAssetId?: string
+  sourceBucketName: string
+  sourceObjectPath: string
+  sourceSizeBytes?: number
+  sourceChecksumSha256?: string
+  plannedRenderId?: string
+  outputBucketName?: string
+  outputObjectPath?: string
 }
 
 export interface PersistedRenderExternalArtifacts {
@@ -125,7 +134,7 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
   renderExecutionMode?: PersistedRenderExecutionMode
 }): Promise<E2EApprovedSnapshotRpcResult> {
   const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
-  const infrastructureCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
+  const infrastructureCanary = isCloudRunRemotionCanaryMode(renderExecutionMode)
   return callJsonRpc<E2EApprovedSnapshotRpcResult>(context, 'e2e_create_approved_plan_snapshot', {
     p_workspace_id: input.workspaceId,
     p_project_id: input.projectId,
@@ -138,7 +147,7 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
     p_snapshot_json: {
       ...createSmokeMetadata(input.smokeRunId ?? input.idempotencyKey),
       rpE2eSmoke: true,
-      executionMode: infrastructureCanary ? 'staging_cloud_run_remotion_canary' : 'no_ai_rpc_persisted_render_smoke',
+      executionMode: infrastructureCanary ? renderExecutionMode : 'no_ai_rpc_persisted_render_smoke',
       renderExecutionMode,
       sourceStorageObjectId: input.sourceStorageObjectId,
       providerCallsEnabled: false,
@@ -361,7 +370,8 @@ export async function runPersistedRenderPipelineViaRpcs(
   }
 
   const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
-  const infrastructureCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
+  const infrastructureCanary = isCloudRunRemotionCanaryMode(renderExecutionMode)
+  const realVideoUploadPreviewCanary = renderExecutionMode === 'staging_real_video_upload_preview_canary'
   if (!infrastructureCanary && context.env.storageMode !== 'local') {
     return failedPipelineResult('LOCAL_STORAGE_REQUIRED', 'RPC persisted render smoke requires STORAGE_MODE=local.', { rpcReadiness })
   }
@@ -445,7 +455,9 @@ export async function runPersistedRenderPipelineViaRpcs(
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       jobId: jobRender.jobId,
-      workerType: infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
+      workerType: realVideoUploadPreviewCanary
+        ? 'staging_real_video_upload_preview_canary_worker'
+        : infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
       workerInstanceId: context.env.workerInstanceId,
       leaseSeconds: context.env.workerClaimLeaseSeconds,
       attemptNumber: 1,
@@ -461,24 +473,46 @@ export async function runPersistedRenderPipelineViaRpcs(
       jobId: jobRender.jobId,
       eventName: 'worker_claimed',
       eventMessage: infrastructureCanary
-        ? 'Staging Cloud Run Remotion canary worker claimed the smoke job.'
+        ? realVideoUploadPreviewCanary
+          ? 'Staging real-video upload-to-preview canary worker claimed the smoke job.'
+          : 'Staging Cloud Run Remotion canary worker claimed the smoke job.'
         : 'RPC persisted render smoke worker claimed the job.',
       progressPercent: 5,
       payloadJson: {
         ...createSmokeMetadata(smokeRunId),
-        workerType: infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
+        workerType: realVideoUploadPreviewCanary
+          ? 'staging_real_video_upload_preview_canary_worker'
+          : infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
       },
     }))
+
+    const plannedRenderId = input.precreateRenderIdForOutputPath ? randomUUID() : undefined
+    if (plannedRenderId) {
+      await precreatePreviewRenderRecord(context, {
+        renderId: plannedRenderId,
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        chatSessionId: input.chatSessionId,
+        editPlanId: input.editPlanId,
+        renderJobId: jobRender.renderJobId,
+        jobId: jobRender.jobId,
+        smokeRunId,
+        renderExecutionMode,
+      })
+      partialResult.renderId = plannedRenderId
+    }
 
     let previewBucketName = resolveBucketName(context.env, 'preview')
     let outputObjectPath = buildCanonicalObjectPath({
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       purpose: 'preview',
-      ownerId: jobRender.renderJobId,
+      ownerId: plannedRenderId ?? jobRender.renderJobId,
       fileName: renderExecutionMode === 'metadata_stub'
         ? 'rpc-metadata-smoke-preview.mp4'
-        : infrastructureCanary
+        : realVideoUploadPreviewCanary
+          ? `${smokeRunId}-tiny-preview.mp4`
+          : infrastructureCanary
           ? 'staging-cloud-run-remotion-canary-preview.mp4'
           : 'rpc-basic-smoke-preview.mp4',
     })
@@ -496,6 +530,14 @@ export async function runPersistedRenderPipelineViaRpcs(
         renderJobId: jobRender.renderJobId,
         workerJobClaimId: claim.workerJobClaimId,
         sourceStorageObjectId: input.sourceStorageObjectId,
+        sourceMediaAssetId: input.sourceMediaAssetId,
+        sourceBucketName: input.sourceBucketName,
+        sourceObjectPath: input.sourceObjectPath,
+        sourceSizeBytes: input.sourceSizeBytes,
+        sourceChecksumSha256: input.sourceChecksumSha256,
+        plannedRenderId,
+        outputBucketName: previewBucketName,
+        outputObjectPath,
       })
       : renderExecutionMode === 'metadata_stub'
         ? withPersistedRenderArtifactPaths(createMetadataStubRenderArtifacts(input, smokeRunId), previewBucketName, outputObjectPath)
@@ -517,6 +559,7 @@ export async function runPersistedRenderPipelineViaRpcs(
       objectPath: outputObjectPath,
       sizeBytes: previewRender.sizeBytes,
       checksumSha256: previewRender.checksumSha256,
+      renderId: plannedRenderId,
     })
     if (!previewStorage.ok || !previewStorage.previewStorageObjectId) return pipelineFromRpcFailure(previewStorage, rpcReadiness, partialResult)
     partialResult.previewStorageObjectId = previewStorage.previewStorageObjectId
@@ -562,6 +605,8 @@ export async function runPersistedRenderPipelineViaRpcs(
           ...createSmokeMetadata(smokeRunId),
           check: renderExecutionMode === 'metadata_stub'
             ? 'preview_metadata_created'
+            : realVideoUploadPreviewCanary
+              ? 'staging_real_video_upload_preview_artifact_created'
             : infrastructureCanary
               ? 'staging_cloud_run_remotion_artifact_created_and_cleaned'
               : 'preview_object_created',
@@ -578,7 +623,9 @@ export async function runPersistedRenderPipelineViaRpcs(
         },
         {
           ...createSmokeMetadata(smokeRunId),
-          check: infrastructureCanary ? 'tiny_remotion_canary_rendered' : 'remotion_not_used',
+          check: realVideoUploadPreviewCanary
+            ? 'uploaded_source_video_remotion_preview_rendered'
+            : infrastructureCanary ? 'tiny_remotion_canary_rendered' : 'remotion_not_used',
           passed: true,
         },
       ],
@@ -748,6 +795,53 @@ function normalizeJobEventResult(value: unknown): E2EJobEventRpcResult | undefin
     eventName: typeof record.eventName === 'string' ? record.eventName : undefined,
     eventType: typeof record.eventType === 'string' ? record.eventType : undefined,
   }
+}
+
+async function precreatePreviewRenderRecord(context: ServiceContext, input: {
+  renderId: string
+  workspaceId: string
+  projectId: string
+  chatSessionId?: string
+  editPlanId: string
+  renderJobId: string
+  jobId: string
+  smokeRunId: string
+  renderExecutionMode: PersistedRenderExecutionMode
+}): Promise<void> {
+  const liveCheck = await getLiveRpcClient(context, input)
+  if (!liveCheck.ok) throw new Error(liveCheck.result.error?.message ?? 'Live service-role client is required to precreate render metadata.')
+  const { error } = await liveCheck.client.from('renders').insert({
+    id: input.renderId,
+    workspace_id: input.workspaceId,
+    project_id: input.projectId,
+    chat_session_id: input.chatSessionId ?? null,
+    edit_plan_id: input.editPlanId,
+    render_job_id: input.renderJobId,
+    job_id: input.jobId,
+    status: 'rendering',
+    render_type: 'preview',
+    quality_level: 'draft',
+    output_format: 'mp4',
+    display_name: 'RP-E2E real-video upload-to-preview canary',
+    storage_provider: 'gcs_private_storage',
+    render_payload: sanitizeRpcPayload({
+      ...createSmokeMetadata(input.smokeRunId),
+      renderExecutionMode: input.renderExecutionMode,
+      precreatedForCanonicalPreviewPath: true,
+      providerCallsEnabled: false,
+      stripeCallsEnabled: false,
+      cloudRunCallsEnabled: true,
+      remotionEnabled: true,
+    }),
+  })
+  if (error) {
+    throw new Error(`Could not precreate smoke render metadata for canonical preview path: ${error.message}`)
+  }
+}
+
+function isCloudRunRemotionCanaryMode(mode: PersistedRenderExecutionMode): boolean {
+  return mode === 'staging_cloud_run_remotion_canary'
+    || mode === 'staging_real_video_upload_preview_canary'
 }
 
 export async function runSupabaseRpcReadinessSmoke(context: ServiceContext): Promise<E2ERpcReadinessSmokeResult> {

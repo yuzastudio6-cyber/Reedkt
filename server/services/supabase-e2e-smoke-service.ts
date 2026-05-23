@@ -50,6 +50,24 @@ interface InsertRowOptions {
   smokeRunId?: string
 }
 
+export interface PersistedRenderSourceFixtureFactoryResult {
+  sizeBytes: number
+  checksumSha256: string
+  durationSeconds: number
+  width: number
+  height: number
+  fps: number
+}
+
+export type PersistedRenderSourceFixtureFactory = (input: {
+  smokeRunId: string
+  workspaceId: string
+  projectId: string
+  bucketName: string
+  objectPath: string
+  fileName: string
+}) => Promise<PersistedRenderSourceFixtureFactoryResult>
+
 interface SmokeRecordIds {
   smokeRunId?: string
   workspaceId?: string
@@ -215,7 +233,14 @@ export async function runSupabaseWriteReadSmoke(context: ServiceContext): Promis
 
 export async function runPersistedBasicRenderSmoke(
   context: ServiceContext,
-  options: { renderExecutionMode?: PersistedRenderExecutionMode; createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory } = {},
+  options: {
+    renderExecutionMode?: PersistedRenderExecutionMode
+    createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory
+    sourceFixtureFactory?: PersistedRenderSourceFixtureFactory
+    sourceObjectOwner?: 'upload_intent' | 'smoke_run'
+    sourceFileName?: string
+    precreateRenderIdForOutputPath?: boolean
+  } = {},
 ): Promise<SupabaseE2ESmokeResult> {
   const renderExecutionMode = options.renderExecutionMode ?? 'local_ffmpeg'
   const writeCheck = await prepareLiveWriteSmoke(context)
@@ -246,6 +271,9 @@ export async function runPersistedBasicRenderSmoke(
       createFixture: renderExecutionMode === 'local_ffmpeg',
       includeRenderMetadata: false,
       runtimeMode: 'rpc_prerequisites',
+      sourceFixtureFactory: options.sourceFixtureFactory,
+      sourceObjectOwner: options.sourceObjectOwner,
+      sourceFileName: options.sourceFileName,
     })
     if (!records.workspaceId || !records.projectId || !records.editPlanId || !records.creditWalletId || !records.creditEstimateId || !records.creditApprovalId || !records.userId || !records.sourceStorageObjectId || !records.sourceBucketName || !records.sourceObjectPath) {
       throw new SupabaseSmokeError('missing_dependency', 'Persisted render smoke prerequisite record chain is incomplete.', { records })
@@ -270,6 +298,7 @@ export async function runPersistedBasicRenderSmoke(
       smokeRunId: records.smokeRunId,
       renderExecutionMode,
       createExternalRenderArtifacts: options.createExternalRenderArtifacts,
+      precreateRenderIdForOutputPath: options.precreateRenderIdForOutputPath,
     })
 
     records.creditReservationId = pipeline.creditReservationId
@@ -510,7 +539,14 @@ async function createSupabaseSmokeRecordChain(
   client: SupabaseClient,
   schema: SchemaInfo,
   cleanupRecords: CleanupRecord[],
-  options: { createFixture: boolean; includeRenderMetadata: boolean; runtimeMode?: 'adaptive' | 'rpc_prerequisites' },
+  options: {
+    createFixture: boolean
+    includeRenderMetadata: boolean
+    runtimeMode?: 'adaptive' | 'rpc_prerequisites'
+    sourceFixtureFactory?: PersistedRenderSourceFixtureFactory
+    sourceObjectOwner?: 'upload_intent' | 'smoke_run'
+    sourceFileName?: string
+  },
 ): Promise<SmokeRecordIds> {
   const runId = randomUUID()
   const smokeTag = createSmokeRunId()
@@ -547,17 +583,29 @@ async function createSupabaseSmokeRecordChain(
 
   const bucketName = resolveBucketName(context.env, 'source_media')
   const uploadIntentId = randomUUID()
+  const sourceFileName = options.sourceFileName ?? 'supabase-persisted-render-source.mp4'
   const objectPath = buildCanonicalObjectPath({
     workspaceId,
     projectId,
     purpose: 'source_media',
-    ownerId: uploadIntentId,
-    fileName: 'supabase-persisted-render-source.mp4',
+    ownerId: options.sourceObjectOwner === 'smoke_run' ? smokeTag : uploadIntentId,
+    fileName: sourceFileName,
   })
   let sizeBytes = 128
   let checksumSha256 = `smoke-${runId}`
 
-  if (options.createFixture) {
+  if (options.sourceFixtureFactory) {
+    const fixture = await options.sourceFixtureFactory({
+      smokeRunId: smokeTag,
+      workspaceId,
+      projectId,
+      bucketName,
+      objectPath,
+      fileName: sourceFileName,
+    })
+    sizeBytes = fixture.sizeBytes
+    checksumSha256 = fixture.checksumSha256
+  } else if (options.createFixture) {
     const outputPath = resolveLocalStorageObjectPath(context.env.localStorageRoot, bucketName, objectPath)
     const fixture = await createSyntheticMp4Fixture({
       outputPath,
@@ -583,7 +631,7 @@ async function createSupabaseSmokeRecordChain(
     upload_purpose: 'source_media',
     target_bucket: bucketName,
     target_path: objectPath,
-    original_file_name: 'supabase-persisted-render-source.mp4',
+    original_file_name: sourceFileName,
     mime_type: 'video/mp4',
     expected_size_bytes: sizeBytes,
     checksum_sha256: checksumSha256,
@@ -597,10 +645,10 @@ async function createSupabaseSmokeRecordChain(
     created_by: userId,
     asset_type: 'source_video',
     processing_status: 'uploaded',
-    file_name: 'supabase-persisted-render-source.mp4',
+    file_name: sourceFileName,
     display_name: 'RP-E2E smoke source',
     mime_type: 'video/mp4',
-    storage_provider: 'local_private_storage',
+    storage_provider: options.sourceFixtureFactory ? 'gcs_private_storage' : 'local_private_storage',
     storage_bucket: bucketName,
     storage_path: objectPath,
     file_size_bytes: sizeBytes,

@@ -1,9 +1,12 @@
 import {
+  STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
+  STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
   type StagingRenderInfrastructureCanaryResult,
 } from '../services/staging-render-infrastructure-canary-service'
 import type {
+  RealVideoUploadPreviewCanaryInvocationConfig,
   RenderCanaryInvocationConfig,
   RenderCanaryInvocationResult,
 } from './render-canary-types'
@@ -95,6 +98,117 @@ export async function invokeStagingRenderInfrastructureCanary(input: {
         ...artifact,
         smokeTraceable: artifact.objectPath.includes(input.smokeRunId),
       },
+    }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function invokeStagingRealVideoUploadPreviewCanary(input: {
+  smokeRunId: string
+  config: RealVideoUploadPreviewCanaryInvocationConfig
+}): Promise<RenderCanaryInvocationResult> {
+  const endpoint = resolveCanaryEndpoint(input.config.cloudRunUrl)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), input.config.timeoutSeconds * 1000)
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${input.config.idToken}`,
+        'content-type': 'application/json',
+        'x-reeditpro-canary': STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+      },
+      body: JSON.stringify({
+        canary: true,
+        smokeRunId: input.smokeRunId,
+        stagingOnly: true,
+        mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+        fixture: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
+        maxDurationSeconds: input.config.durationSeconds,
+        maxFrames: Math.ceil(input.config.durationSeconds * input.config.fps),
+        width: input.config.width,
+        height: input.config.height,
+        fps: input.config.fps,
+        cleanup: true,
+        source: {
+          bucketName: input.config.source.bucketName,
+          objectPath: input.config.source.objectPath,
+          mimeType: 'video/mp4',
+          sizeBytes: input.config.source.sizeBytes,
+          checksumSha256: input.config.source.checksumSha256,
+        },
+        preview: input.config.preview,
+        allow: {
+          writes: true,
+          renderExecution: true,
+          cloudRun: true,
+          remotion: true,
+          providers: false,
+          stripe: false,
+          paymentFlows: false,
+          queueDrain: false,
+          userMedia: false,
+          production: false,
+        },
+        safety: {
+          providerCallsEnabled: false,
+          stripeCallsEnabled: false,
+          paymentFlowsEnabled: false,
+          queueDrainEnabled: false,
+          userMediaEnabled: false,
+          productionEnabled: false,
+          boundedTimeoutSeconds: input.config.timeoutSeconds,
+        },
+      }),
+      signal: controller.signal,
+    })
+
+    const responseJson = await response.json().catch(() => undefined) as StagingRenderInfrastructureCanaryResult | undefined
+    if (!response.ok || !responseJson?.ok || !responseJson.outputArtifact) {
+      throw new Error(responseJson?.error?.message ?? `Cloud Run real-video canary request failed with status ${response.status}.`)
+    }
+
+    const artifact = responseJson.outputArtifact
+    if (!artifact.existsBeforeCleanup || artifact.cleanupDelegatedToCaller !== true) {
+      throw new Error('Cloud Run real-video canary did not leave a caller-cleaned preview artifact for verification.')
+    }
+    if (artifact.sizeBytes <= 0) {
+      throw new Error('Cloud Run real-video canary returned an empty artifact.')
+    }
+
+    const outputArtifactSummary = {
+      ...artifact,
+      smokeTraceable: artifact.objectPath.includes(input.smokeRunId),
+      ...(responseJson.sourceArtifact ? { sourceArtifact: responseJson.sourceArtifact } : {}),
+    }
+
+    return {
+      outputBucketName: artifact.bucketName,
+      outputObjectPath: artifact.objectPath,
+      durationSeconds: artifact.durationSeconds,
+      width: artifact.width,
+      height: artifact.height,
+      fps: artifact.fps,
+      frameCount: artifact.frameCount,
+      sizeBytes: artifact.sizeBytes,
+      checksumSha256: artifact.checksumSha256,
+      commandSummary: {
+        tool: 'cloud_run_real_video_upload_preview_canary',
+        mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+        cloudRunInvoked: true,
+        remotionRenderMediaInvoked: true,
+        remotionBundleInvoked: true,
+        remotionSelectCompositionInvoked: true,
+        sourceVideoDownloaded: responseJson.sourceArtifact?.downloaded === true,
+        providerCallsEnabled: false,
+        stripeCallsEnabled: false,
+        paymentFlowsEnabled: false,
+        queueDrainEnabled: false,
+        audienceConfigured: Boolean(input.config.audience),
+      },
+      outputArtifactSummary,
     }
   } finally {
     clearTimeout(timeout)

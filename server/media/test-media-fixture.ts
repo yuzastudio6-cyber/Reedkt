@@ -28,12 +28,14 @@ export async function createSyntheticMp4Fixture(input: {
   durationSeconds?: number
   width?: number
   height?: number
+  fps?: number
 }): Promise<SyntheticMediaFixtureResult> {
   const absoluteOutputPath = assertPathInsideRoot(input.localStorageRoot, input.outputPath)
   const parsedCommand = parseCommandLine(input.ffmpegBin ?? 'ffmpeg')
   const durationSeconds = input.durationSeconds ?? 2
   const width = input.width ?? 320
   const height = input.height ?? 180
+  const fps = input.fps ?? 30
   await mkdir(path.dirname(absoluteOutputPath), { recursive: true })
 
   try {
@@ -43,7 +45,7 @@ export async function createSyntheticMp4Fixture(input: {
       '-f',
       'lavfi',
       '-i',
-      `testsrc=size=${width}x${height}:rate=30`,
+      `testsrc=size=${width}x${height}:rate=${fps}`,
       '-t',
       String(durationSeconds),
       '-c:v',

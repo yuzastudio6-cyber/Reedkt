@@ -221,7 +221,11 @@ export interface BasicPreviewRenderOutput {
   commandSummary: JSONObject
 }
 
-export type PersistedRenderExecutionMode = 'metadata_stub' | 'local_ffmpeg' | 'staging_cloud_run_remotion_canary'
+export type PersistedRenderExecutionMode =
+  | 'metadata_stub'
+  | 'local_ffmpeg'
+  | 'staging_cloud_run_remotion_canary'
+  | 'staging_real_video_upload_preview_canary'
 
 export type RenderSmokeStatus = 'preview_ready' | 'skipped' | 'failed'
 

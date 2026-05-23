@@ -1,6 +1,8 @@
 import express, { type Response } from 'express'
 import { stringifyCanaryJson, summarizeCanaryError } from './canary-safe-json'
 import {
+  STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+  STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE,
   loadStagingRenderInfrastructureCanaryEnv,
   runStagingRenderInfrastructureCanary,
 } from '../services/staging-render-infrastructure-canary-service'
@@ -109,7 +111,8 @@ export function createStagingRenderCanaryRuntimeSummary(
       timeoutSeconds: env.renderTimeoutSeconds,
       maxArtifactBytes: env.maxArtifactBytes,
     },
-    stagingOnly: env.serviceMode === 'staging_cloud_run_remotion_canary',
+    stagingOnly: env.serviceMode === STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+      || env.serviceMode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
     noProviderCallsConfigured: env.forbiddenEnvNames.length === 0,
     noSecretsReported: true,
   }

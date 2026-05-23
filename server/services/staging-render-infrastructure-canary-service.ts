@@ -5,11 +5,19 @@ import os from 'node:os'
 import path from 'node:path'
 import { Storage } from '@google-cloud/storage'
 import { canaryErrorMessage } from '../cloud-run/canary-safe-json'
-import { STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID } from '../remotion/staging-canary-constants'
+import {
+  STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
+  STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID,
+} from '../remotion/staging-canary-constants'
 
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE = 'staging_cloud_run_remotion_canary' as const
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE = 'tiny-muted-3s' as const
-export { STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID } from '../remotion/staging-canary-constants'
+export const STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE = 'staging_real_video_upload_preview_canary' as const
+export const STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE = 'tiny-upload-source-3s' as const
+export {
+  STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
+  STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID,
+} from '../remotion/staging-canary-constants'
 
 const SMOKE_RUN_PATTERN = /^rp-e2e-smoke-[0-9a-f-]{36}$/i
 const PRODUCTION_WORD_PATTERN = /\b(prod|production|live)\b/i
@@ -56,13 +64,18 @@ export interface StagingRenderInfrastructureCanaryRequest {
   height?: unknown
   fps?: unknown
   cleanup?: unknown
+  source?: unknown
+  preview?: unknown
 }
 
-export interface StagingRenderInfrastructureCanaryInput {
+export type StagingRenderCanaryMode =
+  | typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+  | typeof STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+
+export interface BaseStagingRenderCanaryInput {
   canary: true
-  mode: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+  mode: StagingRenderCanaryMode
   smokeRunId: string
-  fixture: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE
   maxDurationSeconds: number
   maxFrames: number
   width: number
@@ -70,6 +83,31 @@ export interface StagingRenderInfrastructureCanaryInput {
   fps: number
   cleanup: true
 }
+
+export interface StagingRenderInfrastructureCanaryInput extends BaseStagingRenderCanaryInput {
+  mode: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+  fixture: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE
+}
+
+export interface StagingRealVideoUploadPreviewCanaryInput extends BaseStagingRenderCanaryInput {
+  mode: typeof STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+  fixture: typeof STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE
+  source: {
+    bucketName: string
+    objectPath: string
+    mimeType: 'video/mp4'
+    sizeBytes: number
+    checksumSha256: string
+  }
+  preview: {
+    bucketName: string
+    objectPath: string
+  }
+}
+
+export type StagingRenderCanaryInput =
+  | StagingRenderInfrastructureCanaryInput
+  | StagingRealVideoUploadPreviewCanaryInput
 
 export interface StagingRenderInfrastructureCanaryEnv {
   serviceMode: string
@@ -102,15 +140,26 @@ export interface StagingRenderInfrastructureCanaryArtifactSummary {
   existsBeforeCleanup: boolean
   deleted: boolean
   existsAfterCleanup: boolean
+  cleanupDelegatedToCaller?: boolean
+  smokeTraceable?: boolean
 }
 
 export interface StagingRenderInfrastructureCanaryResult {
   ok: boolean
   status: 'completed' | 'blocked' | 'failed'
-  mode: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+  mode: StagingRenderCanaryMode
   smokeRunId?: string
-  fixture?: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE
+  fixture?: typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE | typeof STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE
   outputArtifact?: StagingRenderInfrastructureCanaryArtifactSummary
+  sourceArtifact?: {
+    bucketName: string
+    objectPath: string
+    mimeType: 'video/mp4'
+    sizeBytes: number
+    checksumSha256: string
+    downloaded: boolean
+    smokeTraceable: boolean
+  }
   remotion?: {
     renderer: 'renderMedia'
     bundler: 'bundle'
@@ -135,6 +184,11 @@ export interface StagingRenderInfrastructureCanaryResult {
 }
 
 export interface CanaryArtifactStore {
+  download?(input: {
+    bucketName: string
+    objectPath: string
+    localPath: string
+  }): Promise<void>
   upload(input: {
     bucketName: string
     objectPath: string
@@ -156,6 +210,7 @@ export interface CanaryRenderer {
     durationSeconds: number
     timeoutSeconds: number
     remotionEntrypoint: string
+    sourcePath?: string
   }): Promise<void>
 }
 
@@ -202,7 +257,7 @@ export function loadStagingRenderInfrastructureCanaryEnv(
 
 export function validateStagingRenderInfrastructureCanaryRequest(
   payload: StagingRenderInfrastructureCanaryRequest,
-): { ok: true; input: StagingRenderInfrastructureCanaryInput } | { ok: false; blockers: string[] } {
+): { ok: true; input: StagingRenderCanaryInput } | { ok: false; blockers: string[] } {
   const blockers: string[] = []
   const smokeRunId = typeof payload.smokeRunId === 'string' ? payload.smokeRunId.trim() : ''
   const maxDurationSeconds = readUnknownNumber(payload.maxDurationSeconds)
@@ -210,15 +265,21 @@ export function validateStagingRenderInfrastructureCanaryRequest(
   const width = readUnknownNumber(payload.width)
   const height = readUnknownNumber(payload.height)
   const fps = readUnknownNumber(payload.fps)
+  const mode = payload.mode
+  const realVideoCanary = mode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
 
   if (payload.canary !== true) blockers.push('canary must be true.')
-  if (payload.mode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE) {
-    blockers.push(`mode must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE}.`)
+  if (mode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE && mode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
+    blockers.push(`mode must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE} or ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE}.`)
   }
   if (!SMOKE_RUN_PATTERN.test(smokeRunId)) {
     blockers.push('smokeRunId must match rp-e2e-smoke-<uuid>.')
   }
-  if (payload.fixture !== STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE) {
+  if (realVideoCanary) {
+    if (payload.fixture !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE) {
+      blockers.push(`fixture must be ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE}.`)
+    }
+  } else if (payload.fixture !== STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE) {
     blockers.push(`fixture must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE}.`)
   }
   if (payload.cleanup !== true) blockers.push('cleanup must be true.')
@@ -236,7 +297,42 @@ export function validateStagingRenderInfrastructureCanaryRequest(
   }
   validateRequestSafetyPayload(payload, blockers)
 
+  const source = realVideoCanary ? parseArtifactRef(payload.source) : undefined
+  const preview = realVideoCanary ? parsePreviewRef(payload.preview) : undefined
+  if (realVideoCanary) {
+    if (!source) blockers.push('source bucket/object metadata is required for the real-video canary.')
+    if (!preview) blockers.push('preview bucket/object metadata is required for the real-video canary.')
+    if (source && (!source.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(source.objectPath, 'source-media'))) {
+      blockers.push('source object path must be canonical, smoke-tagged, and under source-media.')
+    }
+    if (preview && (!preview.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(preview.objectPath, 'previews'))) {
+      blockers.push('preview object path must be canonical, smoke-tagged, and under previews.')
+    }
+    if (source && source.sizeBytes > 250_000) blockers.push('source video fixture must stay below 250000 bytes.')
+    if (source && source.mimeType !== 'video/mp4') blockers.push('source video fixture must be video/mp4.')
+  }
+
   if (blockers.length > 0) return { ok: false, blockers }
+
+  if (realVideoCanary) {
+    return {
+      ok: true,
+      input: {
+        canary: true,
+        mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+        smokeRunId,
+        fixture: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE,
+        maxDurationSeconds,
+        maxFrames,
+        width,
+        height,
+        fps,
+        cleanup: true,
+        source: source!,
+        preview: preview!,
+      },
+    }
+  }
 
   return {
     ok: true,
@@ -259,8 +355,8 @@ export function validateStagingRenderInfrastructureCanaryEnv(
   env: StagingRenderInfrastructureCanaryEnv,
 ): string[] {
   const blockers: string[] = []
-  if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE) {
-    blockers.push(`STAGING_RENDER_CANARY_MODE must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE}.`)
+  if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE && env.serviceMode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
+    blockers.push(`STAGING_RENDER_CANARY_MODE must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE} or ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE}.`)
   }
   if (!env.projectId) {
     blockers.push('GCP_PROJECT_ID is required for the staging Cloud Run Remotion canary service.')
@@ -338,6 +434,10 @@ export async function runStagingRenderInfrastructureCanary(
   if (blockers.length > 0) return blockedResult(blockers, requestInput?.smokeRunId)
 
   const input = requestInput!
+  if (input.mode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
+    return runStagingRealVideoUploadPreviewCanary(input, env, deps)
+  }
+
   const output = parseBucketPrefix(env.outputBucketOrPrefix)
   validateBucketPrefix(output)
 
@@ -425,6 +525,119 @@ export async function runStagingRenderInfrastructureCanary(
   }
 }
 
+async function runStagingRealVideoUploadPreviewCanary(
+  input: StagingRealVideoUploadPreviewCanaryInput,
+  env: StagingRenderInfrastructureCanaryEnv,
+  deps: StagingRenderInfrastructureCanaryDeps,
+): Promise<StagingRenderInfrastructureCanaryResult> {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'rp-real-video-canary-'))
+  const sourcePath = path.join(tempDir, 'tiny-source.mp4')
+  const outputPath = path.join(tempDir, 'tiny-preview.mp4')
+  const renderer = deps.renderer ?? { render: renderUploadedSourceRemotionCanary }
+  const store = deps.artifactStore ?? new GcsCanaryArtifactStore(env.projectId)
+
+  try {
+    if (!store.download) {
+      throw new Error('The real-video upload-to-preview canary requires a GCS artifact store with download support.')
+    }
+    await store.download({
+      bucketName: input.source.bucketName,
+      objectPath: input.source.objectPath,
+      localPath: sourcePath,
+    })
+    const sourceStat = await stat(sourcePath)
+    if (sourceStat.size !== input.source.sizeBytes) {
+      throw new Error('Downloaded source video size did not match registered smoke metadata.')
+    }
+    const sourceChecksum = await sha256File(sourcePath)
+    if (sourceChecksum !== input.source.checksumSha256) {
+      throw new Error('Downloaded source video checksum did not match registered smoke metadata.')
+    }
+    if (sourceStat.size <= 0 || sourceStat.size > 250_000) {
+      throw new Error('Downloaded source video is outside the tiny staging fixture bounds.')
+    }
+
+    await renderer.render({
+      outputPath,
+      sourcePath,
+      smokeRunId: input.smokeRunId,
+      width: input.width,
+      height: input.height,
+      fps: input.fps,
+      durationSeconds: input.maxDurationSeconds,
+      timeoutSeconds: env.renderTimeoutSeconds,
+      remotionEntrypoint: env.remotionEntrypoint,
+    })
+
+    const fileStat = await stat(outputPath)
+    if (fileStat.size <= 0 || fileStat.size > env.maxArtifactBytes) {
+      throw new Error(`Rendered real-video canary preview size ${fileStat.size} is outside the allowed staging canary bounds.`)
+    }
+    const checksumSha256 = await sha256File(outputPath)
+    await store.upload({
+      bucketName: input.preview.bucketName,
+      objectPath: input.preview.objectPath,
+      localPath: outputPath,
+      checksumSha256,
+      smokeRunId: input.smokeRunId,
+    })
+    const existsBeforeCleanup = await store.exists(input.preview.bucketName, input.preview.objectPath)
+    if (!existsBeforeCleanup) throw new Error('Uploaded real-video preview artifact was not readable before caller cleanup.')
+
+    return {
+      ok: true,
+      status: 'completed',
+      mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+      smokeRunId: input.smokeRunId,
+      fixture: input.fixture,
+      sourceArtifact: {
+        ...input.source,
+        downloaded: true,
+        smokeTraceable: input.source.objectPath.includes(input.smokeRunId),
+      },
+      outputArtifact: {
+        bucketName: input.preview.bucketName,
+        objectPath: input.preview.objectPath,
+        mimeType: 'video/mp4',
+        sizeBytes: fileStat.size,
+        checksumSha256,
+        durationSeconds: input.maxDurationSeconds,
+        width: input.width,
+        height: input.height,
+        fps: input.fps,
+        frameCount: Math.ceil(input.maxDurationSeconds * input.fps),
+        existsBeforeCleanup,
+        deleted: false,
+        existsAfterCleanup: true,
+        cleanupDelegatedToCaller: true,
+        smokeTraceable: input.preview.objectPath.includes(input.smokeRunId),
+      },
+      remotion: {
+        renderer: 'renderMedia',
+        bundler: 'bundle',
+        selector: 'selectComposition',
+        compositionId: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
+      },
+      strictValidation: strictValidation([], true),
+    }
+  } catch (error) {
+    const message = canaryErrorMessage(error)
+    return {
+      ok: false,
+      status: 'failed',
+      mode: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
+      smokeRunId: input.smokeRunId,
+      strictValidation: strictValidation([message], true),
+      error: {
+        code: 'staging_real_video_upload_preview_canary_failed',
+        message,
+      },
+    }
+  } finally {
+    await rm(tempDir, { recursive: true, force: true }).catch(() => undefined)
+  }
+}
+
 async function renderTinyRemotionCanary(input: Parameters<CanaryRenderer['render']>[0]): Promise<void> {
   if (!existsSync(input.remotionEntrypoint)) {
     throw new Error('Staging canary Remotion entrypoint is missing from the Cloud Run image.')
@@ -460,11 +673,64 @@ async function renderTinyRemotionCanary(input: Parameters<CanaryRenderer['render
   })
 }
 
+async function renderUploadedSourceRemotionCanary(input: Parameters<CanaryRenderer['render']>[0]): Promise<void> {
+  if (!input.sourcePath) throw new Error('Real-video canary render requires a downloaded source video path.')
+  if (!existsSync(input.remotionEntrypoint)) {
+    throw new Error('Staging canary Remotion entrypoint is missing from the Cloud Run image.')
+  }
+
+  const sourceBytes = await readFile(input.sourcePath)
+  if (sourceBytes.byteLength <= 0 || sourceBytes.byteLength > 250_000) {
+    throw new Error('Real-video canary source video must stay below 250000 bytes.')
+  }
+  const sourceDataUrl = `data:video/mp4;base64,${sourceBytes.toString('base64')}`
+
+  const [{ bundle }, { renderMedia, selectComposition }] = await Promise.all([
+    import('@remotion/bundler'),
+    import('@remotion/renderer'),
+  ])
+  const serveUrl = await bundle({ entryPoint: input.remotionEntrypoint })
+  const inputProps = {
+    smokeRunId: input.smokeRunId,
+    durationSeconds: input.durationSeconds,
+    sourceDataUrl,
+  }
+  const composition = await selectComposition({
+    serveUrl,
+    id: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
+    inputProps,
+  })
+
+  await renderMedia({
+    serveUrl,
+    composition,
+    codec: 'h264',
+    outputLocation: input.outputPath,
+    inputProps,
+    muted: true,
+    concurrency: 1,
+    timeoutInMilliseconds: input.timeoutSeconds * 1000,
+    logLevel: 'warn',
+    overwrite: true,
+    videoBitrate: '220K',
+  })
+}
+
 class GcsCanaryArtifactStore implements CanaryArtifactStore {
   private readonly storage: Storage
 
   constructor(projectId: string) {
     this.storage = new Storage({ projectId })
+  }
+
+  async download(input: {
+    bucketName: string
+    objectPath: string
+    localPath: string
+  }): Promise<void> {
+    await this.storage.bucket(input.bucketName).file(input.objectPath).download({
+      destination: input.localPath,
+    })
   }
 
   async upload(input: {
@@ -522,11 +788,46 @@ function validateBucketPrefix(output: ParsedBucketPrefix): void {
   }
 }
 
+function parseArtifactRef(value: unknown): StagingRealVideoUploadPreviewCanaryInput['source'] | undefined {
+  const record = recordFromUnknown(value)
+  if (!record) return undefined
+  const bucketName = typeof record.bucketName === 'string' ? record.bucketName.trim() : ''
+  const objectPath = typeof record.objectPath === 'string' ? record.objectPath.trim() : ''
+  const mimeType = record.mimeType === 'video/mp4' ? 'video/mp4' : undefined
+  const sizeBytes = readUnknownNumber(record.sizeBytes)
+  const checksumSha256 = typeof record.checksumSha256 === 'string' ? record.checksumSha256.trim() : ''
+  if (!bucketName || !objectPath || !mimeType || !isBounded(sizeBytes, 1, 250_000) || !/^[a-f0-9]{64}$/i.test(checksumSha256)) {
+    return undefined
+  }
+  return { bucketName, objectPath: normalizeCanaryObjectPath(objectPath), mimeType, sizeBytes, checksumSha256 }
+}
+
+function parsePreviewRef(value: unknown): StagingRealVideoUploadPreviewCanaryInput['preview'] | undefined {
+  const record = recordFromUnknown(value)
+  if (!record) return undefined
+  const bucketName = typeof record.bucketName === 'string' ? record.bucketName.trim() : ''
+  const objectPath = typeof record.objectPath === 'string' ? record.objectPath.trim() : ''
+  if (!bucketName || !objectPath) return undefined
+  return { bucketName, objectPath: normalizeCanaryObjectPath(objectPath) }
+}
+
+function normalizeCanaryObjectPath(input: string): string {
+  return input.replace(/\\/g, '/').split('/').filter(Boolean).join('/')
+}
+
+function isSmokeCanonicalPath(objectPath: string, segment: 'source-media' | 'previews'): boolean {
+  if (objectPath.includes('..') || objectPath.includes('://')) return false
+  return objectPath.startsWith('workspaces/')
+    && objectPath.includes('/projects/')
+    && objectPath.includes(`/${segment}/`)
+    && !PRODUCTION_WORD_PATTERN.test(objectPath)
+}
+
 function hasDedicatedNeutralProjectControls(env: StagingRenderInfrastructureCanaryEnv): boolean {
   if (env.projectId !== VERIFIED_STAGING_PROJECT_ID) return false
   if (env.googleCloudProject !== VERIFIED_STAGING_PROJECT_ID) return false
   if (env.region !== VERIFIED_STAGING_REGION) return false
-  if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE) return false
+  if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE && env.serviceMode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) return false
   if (env.expectedHostSuffix !== '.run.app') return false
   if (!isBounded(env.renderTimeoutSeconds, 30, 300)) return false
   if (env.renderTimeoutSeconds !== DEFAULT_RENDER_TIMEOUT_SECONDS) return false

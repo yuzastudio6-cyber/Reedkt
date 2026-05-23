@@ -2,6 +2,8 @@ import type { JSONObject } from '../../src/types'
 
 export const RENDER_CANARY_MODE = 'staging_cloud_run_remotion_canary' as const
 export const RENDER_CANARY_FIXTURE = 'tiny-muted-3s' as const
+export const REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE = 'staging_real_video_upload_preview_canary' as const
+export const REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE = 'tiny-upload-source-3s' as const
 
 export type RenderCanaryGuardCode =
   | 'missing_staging_render_infrastructure_canary_path'
@@ -83,4 +85,17 @@ export interface RenderCanaryInvocationResult {
   checksumSha256: string
   commandSummary: JSONObject
   outputArtifactSummary: JSONObject
+}
+
+export interface RealVideoUploadPreviewCanaryInvocationConfig extends RenderCanaryInvocationConfig {
+  source: {
+    bucketName: string
+    objectPath: string
+    sizeBytes: number
+    checksumSha256: string
+  }
+  preview: {
+    bucketName: string
+    objectPath: string
+  }
 }

@@ -1,4 +1,5 @@
-import { writeFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
 import { stringifyCanaryJson } from '../cloud-run/canary-safe-json'
 import {
   STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE,
@@ -104,6 +105,11 @@ const hugeCircularError = createHugeCircularError()
 const serializedHugeError = stringifyCanaryJson(hugeCircularError)
 const hugeFailure = await runStagingRenderInfrastructureCanary(safePayload, safeEnv, fakeDeps({ renderError: hugeCircularError }))
 const serializedHugeFailure = stringifyCanaryJson(hugeFailure)
+const remotionEntrypointSource = await readFile('server/remotion/staging-canary-remotion-entry.ts', 'utf8')
+const builtCanaryOutputPath = 'dist-staging-render-canary/staging-render-canary-service.js'
+const builtCanaryOutput = existsSync(builtCanaryOutputPath)
+  ? await readFile(builtCanaryOutputPath, 'utf8')
+  : ''
 
 const checks = [
   requestValidation.ok ? 'valid_request_passes' : undefined,
@@ -145,9 +151,11 @@ const checks = [
     && runtimeSummary.noSecretsReported
     ? 'runtime_health_summary_reports_bounded_limits'
     : undefined,
+  remotionEntrypointIsBrowserSafe(remotionEntrypointSource) ? 'remotion_entrypoint_has_no_server_only_imports' : undefined,
+  buildOutputKeepsGoogleStorageExternal(builtCanaryOutput) ? 'build_output_keeps_google_storage_external_when_present' : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 16
+const ok = checks.length === 18
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 
@@ -191,4 +199,24 @@ function createHugeCircularError(): Error {
     value: 'x'.repeat(10_000),
   }))
   return error
+}
+
+function remotionEntrypointIsBrowserSafe(source: string): boolean {
+  const forbiddenPatterns = [
+    /from ['"].*\.\.\/services\//,
+    /@google-cloud\//,
+    /google-auth-library/,
+    /\bnode:/,
+    /from ['"](fs|path|crypto|stream|http|https|zlib|url|buffer|events|util)(\/|['"])/,
+  ]
+  return forbiddenPatterns.every((pattern) => !pattern.test(source))
+}
+
+function buildOutputKeepsGoogleStorageExternal(source: string): boolean {
+  if (!source) return true
+  const importsStorageExternally = /from ["']@google-cloud\/storage["']/.test(source)
+    || /import\(["']@google-cloud\/storage["']\)/.test(source)
+  return importsStorageExternally
+    && !source.includes('@google-cloud/paginator/build/src')
+    && !source.includes("Can't resolve 'stream'")
 }

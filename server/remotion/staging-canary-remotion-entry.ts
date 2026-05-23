@@ -1,6 +1,6 @@
 import React from 'react'
 import { AbsoluteFill, Composition, registerRoot, useCurrentFrame } from 'remotion'
-import { STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID } from '../services/staging-render-infrastructure-canary-service'
+import { STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID } from './staging-canary-constants'
 
 function TinyMutedCanary(props: Record<string, unknown>) {
   const smokeRunId = typeof props.smokeRunId === 'string'

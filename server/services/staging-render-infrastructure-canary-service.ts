@@ -5,10 +5,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { Storage } from '@google-cloud/storage'
 import { canaryErrorMessage } from '../cloud-run/canary-safe-json'
+import { STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID } from '../remotion/staging-canary-constants'
 
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE = 'staging_cloud_run_remotion_canary' as const
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE = 'tiny-muted-3s' as const
-export const STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID = 'reeditpro-staging-smoke-remotion-canary'
+export { STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID } from '../remotion/staging-canary-constants'
 
 const SMOKE_RUN_PATTERN = /^rp-e2e-smoke-[0-9a-f-]{36}$/i
 const PRODUCTION_WORD_PATTERN = /\b(prod|production|live)\b/i

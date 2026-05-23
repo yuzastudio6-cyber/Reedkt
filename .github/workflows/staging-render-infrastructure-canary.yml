@@ -100,7 +100,10 @@ jobs:
       STAGING_RENDER_CANARY_FPS: "15"
       STAGING_RENDER_CANARY_MAX_RETRIES: "0"
       STAGING_RENDER_CANARY_CONCURRENCY: "1"
-      STAGING_RENDER_CANARY_TIMEOUT_SECONDS: "120"
+      STAGING_RENDER_CANARY_TIMEOUT_SECONDS: "300"
+      STAGING_RENDER_CANARY_MEMORY: "2Gi"
+      STAGING_RENDER_CANARY_CPU: "2"
+      STAGING_RENDER_CANARY_NODE_OPTIONS: "--max-old-space-size=1536"
     steps:
       - name: Require explicit staging write approval
         if: ${{ !inputs.allow_writes }}

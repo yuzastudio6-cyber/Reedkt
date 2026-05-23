@@ -29,7 +29,10 @@ const liveBaseEnv = {
   STAGING_RENDER_CANARY_FPS: '15',
   STAGING_RENDER_CANARY_MAX_RETRIES: '0',
   STAGING_RENDER_CANARY_CONCURRENCY: '1',
-  STAGING_RENDER_CANARY_TIMEOUT_SECONDS: '120',
+  STAGING_RENDER_CANARY_TIMEOUT_SECONDS: '300',
+  STAGING_RENDER_CANARY_MEMORY: '2Gi',
+  STAGING_RENDER_CANARY_CPU: '2',
+  STAGING_RENDER_CANARY_NODE_OPTIONS: '--max-old-space-size=1536',
 }
 
 const readyCanaryEnv = {
@@ -157,6 +160,21 @@ const oversized = evaluateRenderInfrastructureCanaryGuard({
     STAGING_RENDER_CANARY_FPS: '60',
     STAGING_RENDER_CANARY_MAX_RETRIES: '3',
     STAGING_RENDER_CANARY_CONCURRENCY: '4',
+    STAGING_RENDER_CANARY_TIMEOUT_SECONDS: '600',
+    STAGING_RENDER_CANARY_MEMORY: '4Gi',
+    STAGING_RENDER_CANARY_CPU: '4',
+    STAGING_RENDER_CANARY_NODE_OPTIONS: '--max-old-space-size=4096',
+  },
+  previousSmokeRunIds: smokeIds,
+  leftoverChecks: cleanLeftoverChecks,
+})
+
+const missingNodeOptions = evaluateRenderInfrastructureCanaryGuard({
+  env: loadRuntimeEnv(liveBaseEnv),
+  sourceEnv: {
+    ...readyCanaryEnv,
+    STAGING_RENDER_CANARY_NODE_OPTIONS: '',
+    NODE_OPTIONS: '',
   },
   previousSmokeRunIds: smokeIds,
   leftoverChecks: cleanLeftoverChecks,
@@ -214,6 +232,7 @@ const serialized = JSON.stringify({
   productionUrl,
   legacyAliasConfig,
   oversized,
+  missingNodeOptions,
   cleanupDisabled,
   leftoverBlocked,
   riskyEnv,
@@ -230,6 +249,12 @@ const checks = [
   productionUrl.strictValidation.blockers.some((blocker) => blocker.includes('production')) ? 'production_url_rejected' : undefined,
   legacyAliasConfig.ok && legacyAliasConfig.status === 'ready' ? 'legacy_alias_config_passes_guard' : undefined,
   oversized.strictValidation.blockers.some((blocker) => blocker.includes('320x240')) ? 'oversized_render_rejected' : undefined,
+  oversized.strictValidation.blockers.some((blocker) => blocker.includes('2Gi'))
+    && oversized.strictValidation.blockers.some((blocker) => blocker.includes('exactly 2'))
+    && oversized.strictValidation.blockers.some((blocker) => blocker.includes('NODE_OPTIONS'))
+    ? 'unbounded_resource_profile_rejected'
+    : undefined,
+  missingNodeOptions.strictValidation.blockers.some((blocker) => blocker.includes('NODE_OPTIONS')) ? 'missing_node_options_rejected' : undefined,
   cleanupDisabled.strictValidation.blockers.some((blocker) => blocker.includes('CLEANUP=true')) ? 'cleanup_required' : undefined,
   leftoverBlocked.strictValidation.blockers.some((blocker) => blocker.includes('leftover check found')) ? 'leftovers_block' : undefined,
   riskyEnv.error?.code === 'stripe_must_be_disabled' ? 'stripe_env_rejected' : undefined,
@@ -242,7 +267,7 @@ const checks = [
     : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 15
+const ok = checks.length === 17
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 

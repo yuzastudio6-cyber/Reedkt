@@ -12,6 +12,10 @@ export function createStagingRenderCanaryApp(sourceEnv: Record<string, string | 
   app.disable('x-powered-by')
   app.use(express.json({ limit: '16kb' }))
 
+  app.get('/canary/health', (_request, response) => {
+    sendCanaryJson(response, 200, createStagingRenderCanaryRuntimeSummary(sourceEnv))
+  })
+
   app.post('/canary/render', async (request, response) => {
     try {
       const authHeader = request.header('authorization') ?? request.header('x-serverless-authorization') ?? ''
@@ -58,7 +62,7 @@ export function createStagingRenderCanaryApp(sourceEnv: Record<string, string | 
       status: 'blocked',
       error: {
         code: 'canary_route_only',
-        message: 'This staging canary service exposes only POST /canary/render.',
+        message: 'This staging canary service exposes only POST /canary/render and GET /canary/health.',
       },
     })
   })
@@ -71,9 +75,9 @@ export function startStagingRenderCanaryService(sourceEnv: Record<string, string
   const app = createStagingRenderCanaryApp(sourceEnv)
   return app.listen(port, () => {
     console.log(stringifyCanaryJson({
+      ...createStagingRenderCanaryRuntimeSummary(sourceEnv),
       ok: true,
       status: 'listening',
-      service: 'staging-render-infrastructure-canary',
       port,
     }))
   })
@@ -85,4 +89,28 @@ if (process.env.STAGING_RENDER_CANARY_DISABLE_AUTOSTART !== 'true') {
 
 function sendCanaryJson(response: Response, statusCode: number, value: unknown): void {
   response.status(statusCode).type('application/json').send(stringifyCanaryJson(value))
+}
+
+export function createStagingRenderCanaryRuntimeSummary(
+  sourceEnv: Record<string, string | undefined> = process.env,
+) {
+  const env = loadStagingRenderInfrastructureCanaryEnv(sourceEnv)
+  return {
+    ok: true,
+    status: 'ready',
+    service: 'staging-render-infrastructure-canary',
+    mode: env.serviceMode,
+    runtime: {
+      nodeOptionsPresent: Boolean(env.nodeOptions),
+      nodeOptions: env.nodeOptions ? env.nodeOptions : 'missing',
+      memory: env.memory || 'missing',
+      cpu: Number.isFinite(env.cpu) ? env.cpu : 'missing',
+      concurrency: Number.isFinite(env.concurrency) ? env.concurrency : 'missing',
+      timeoutSeconds: env.renderTimeoutSeconds,
+      maxArtifactBytes: env.maxArtifactBytes,
+    },
+    stagingOnly: env.serviceMode === 'staging_cloud_run_remotion_canary',
+    noProviderCallsConfigured: env.forbiddenEnvNames.length === 0,
+    noSecretsReported: true,
+  }
 }

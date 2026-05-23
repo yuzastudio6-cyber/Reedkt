@@ -28,6 +28,9 @@ const PROVIDER_ENV_NAME_PATTERNS = [
   /^MMAUDIO/i,
   /^GOOGLE_SECRET_(OPENAI|WAN|HAILUO|VEO|LYRIA|MIRELO|MMAUDIO)/i,
 ]
+const BOUNDED_CANARY_MEMORY = '2Gi'
+const BOUNDED_CANARY_CPU = 2
+const BOUNDED_CANARY_NODE_OPTIONS = '--max-old-space-size=1536'
 
 export function readRenderCanaryConfig(sourceEnv: Record<string, string | undefined>): RenderCanaryConfig {
   return {
@@ -52,7 +55,10 @@ export function readRenderCanaryConfig(sourceEnv: Record<string, string | undefi
     fps: readNumber(sourceEnv.STAGING_RENDER_CANARY_FPS, 15),
     maxRetries: readNumber(sourceEnv.STAGING_RENDER_CANARY_MAX_RETRIES, 0),
     concurrency: readNumber(sourceEnv.STAGING_RENDER_CANARY_CONCURRENCY, 1),
-    timeoutSeconds: readNumber(sourceEnv.STAGING_RENDER_CANARY_TIMEOUT_SECONDS, 120),
+    timeoutSeconds: readNumber(sourceEnv.STAGING_RENDER_CANARY_TIMEOUT_SECONDS, 300),
+    memory: clean(sourceEnv.STAGING_RENDER_CANARY_MEMORY) ?? '',
+    cpu: readNumber(sourceEnv.STAGING_RENDER_CANARY_CPU, Number.NaN),
+    nodeOptions: clean(sourceEnv.STAGING_RENDER_CANARY_NODE_OPTIONS) ?? clean(sourceEnv.NODE_OPTIONS),
   }
 }
 
@@ -65,7 +71,10 @@ export function readRenderCanaryLimits(sourceEnv: Record<string, string | undefi
     fps: readNumber(sourceEnv.STAGING_RENDER_CANARY_FPS, 15),
     maxRetries: readNumber(sourceEnv.STAGING_RENDER_CANARY_MAX_RETRIES, 0),
     concurrency: readNumber(sourceEnv.STAGING_RENDER_CANARY_CONCURRENCY, 1),
-    timeoutSeconds: readNumber(sourceEnv.STAGING_RENDER_CANARY_TIMEOUT_SECONDS, 120),
+    timeoutSeconds: readNumber(sourceEnv.STAGING_RENDER_CANARY_TIMEOUT_SECONDS, 300),
+    memory: clean(sourceEnv.STAGING_RENDER_CANARY_MEMORY) ?? '',
+    cpu: readNumber(sourceEnv.STAGING_RENDER_CANARY_CPU, Number.NaN),
+    nodeOptions: clean(sourceEnv.STAGING_RENDER_CANARY_NODE_OPTIONS) ?? clean(sourceEnv.NODE_OPTIONS),
   }
 }
 
@@ -162,6 +171,18 @@ function validateLimits(limits: RenderCanaryLimits): RenderCanaryConfigValidatio
   }
   if (!isBounded(limits.timeoutSeconds, 30, 300)) {
     issues.push({ code: 'unsafe_timeout', message: 'STAGING_RENDER_CANARY_TIMEOUT_SECONDS must stay between 30 and 300.' })
+  }
+  if (limits.timeoutSeconds !== 300) {
+    issues.push({ code: 'unsafe_timeout', message: 'STAGING_RENDER_CANARY_TIMEOUT_SECONDS must be exactly 300 for this bounded Remotion canary.' })
+  }
+  if (limits.memory !== BOUNDED_CANARY_MEMORY) {
+    issues.push({ code: 'unsafe_timeout', message: 'STAGING_RENDER_CANARY_MEMORY must be exactly 2Gi for this bounded Remotion canary.' })
+  }
+  if (limits.cpu !== BOUNDED_CANARY_CPU) {
+    issues.push({ code: 'unsafe_timeout', message: 'STAGING_RENDER_CANARY_CPU must be exactly 2 for this bounded Remotion canary.' })
+  }
+  if (limits.nodeOptions !== BOUNDED_CANARY_NODE_OPTIONS) {
+    issues.push({ code: 'unsafe_timeout', message: 'STAGING_RENDER_CANARY_NODE_OPTIONS or NODE_OPTIONS must be exactly --max-old-space-size=1536.' })
   }
   if (Number.isFinite(limits.durationSeconds) && Number.isFinite(limits.fps) && limits.durationSeconds * limits.fps > 90) {
     issues.push({ code: 'unsafe_timeout', message: 'Render infrastructure canary frame count must stay at or below 90 frames.' })

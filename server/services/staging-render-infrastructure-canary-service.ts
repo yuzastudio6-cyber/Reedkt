@@ -24,7 +24,11 @@ const PROVIDER_ENV_NAME_PATTERNS = [
   /^GOOGLE_SECRET_(OPENAI|WAN|HAILUO|VEO|LYRIA|MIRELO|MMAUDIO)/i,
 ]
 const DEFAULT_MAX_ARTIFACT_BYTES = 750_000
-const DEFAULT_RENDER_TIMEOUT_SECONDS = 120
+const DEFAULT_RENDER_TIMEOUT_SECONDS = 300
+const BOUNDED_CANARY_MEMORY = '2Gi'
+const BOUNDED_CANARY_CPU = 2
+const BOUNDED_CANARY_CONCURRENCY = 1
+const BOUNDED_CANARY_NODE_OPTIONS = '--max-old-space-size=1536'
 const VERIFIED_STAGING_PROJECT_ID = 'reeditpro'
 const VERIFIED_STAGING_REGION = 'us-east1'
 
@@ -75,6 +79,10 @@ export interface StagingRenderInfrastructureCanaryEnv {
   expectedHostSuffix: string
   renderTimeoutSeconds: number
   maxArtifactBytes: number
+  memory: string
+  cpu: number
+  concurrency: number
+  nodeOptions: string
   remotionEntrypoint: string
   forbiddenEnvNames: string[]
 }
@@ -181,6 +189,10 @@ export function loadStagingRenderInfrastructureCanaryEnv(
     expectedHostSuffix: readClean(source.STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX) ?? '.run.app',
     renderTimeoutSeconds: readNumber(source.STAGING_RENDER_CANARY_TIMEOUT_SECONDS, DEFAULT_RENDER_TIMEOUT_SECONDS),
     maxArtifactBytes: readNumber(source.STAGING_RENDER_CANARY_MAX_ARTIFACT_BYTES, DEFAULT_MAX_ARTIFACT_BYTES),
+    memory: readClean(source.STAGING_RENDER_CANARY_MEMORY) ?? '',
+    cpu: readNumber(source.STAGING_RENDER_CANARY_CPU, Number.NaN),
+    concurrency: readNumber(source.STAGING_RENDER_CANARY_CONCURRENCY, Number.NaN),
+    nodeOptions: readClean(source.NODE_OPTIONS) ?? readClean(source.STAGING_RENDER_CANARY_NODE_OPTIONS) ?? '',
     remotionEntrypoint: readClean(source.STAGING_RENDER_CANARY_REMOTION_ENTRYPOINT)
       ?? path.join(process.cwd(), 'server', 'remotion', 'staging-canary-remotion-entry.ts'),
     forbiddenEnvNames: configuredEnvNames(source, [...STRIPE_ENV_NAME_PATTERNS, ...PROVIDER_ENV_NAME_PATTERNS]),
@@ -282,6 +294,21 @@ export function validateStagingRenderInfrastructureCanaryEnv(
   }
   if (!isBounded(env.renderTimeoutSeconds, 30, 300)) {
     blockers.push('STAGING_RENDER_CANARY_TIMEOUT_SECONDS must stay between 30 and 300.')
+  }
+  if (env.renderTimeoutSeconds !== DEFAULT_RENDER_TIMEOUT_SECONDS) {
+    blockers.push('STAGING_RENDER_CANARY_TIMEOUT_SECONDS must be exactly 300 for this bounded Remotion canary.')
+  }
+  if (env.memory !== BOUNDED_CANARY_MEMORY) {
+    blockers.push('STAGING_RENDER_CANARY_MEMORY must be exactly 2Gi for this bounded Remotion canary.')
+  }
+  if (env.cpu !== BOUNDED_CANARY_CPU) {
+    blockers.push('STAGING_RENDER_CANARY_CPU must be exactly 2 for this bounded Remotion canary.')
+  }
+  if (env.concurrency !== BOUNDED_CANARY_CONCURRENCY) {
+    blockers.push('STAGING_RENDER_CANARY_CONCURRENCY must be exactly 1 for this bounded Remotion canary.')
+  }
+  if (env.nodeOptions !== BOUNDED_CANARY_NODE_OPTIONS) {
+    blockers.push('NODE_OPTIONS must be exactly --max-old-space-size=1536 for this bounded Remotion canary.')
   }
   if (!isBounded(env.maxArtifactBytes, 1, DEFAULT_MAX_ARTIFACT_BYTES)) {
     blockers.push(`STAGING_RENDER_CANARY_MAX_ARTIFACT_BYTES must stay below ${DEFAULT_MAX_ARTIFACT_BYTES}.`)
@@ -501,6 +528,11 @@ function hasDedicatedNeutralProjectControls(env: StagingRenderInfrastructureCana
   if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE) return false
   if (env.expectedHostSuffix !== '.run.app') return false
   if (!isBounded(env.renderTimeoutSeconds, 30, 300)) return false
+  if (env.renderTimeoutSeconds !== DEFAULT_RENDER_TIMEOUT_SECONDS) return false
+  if (env.memory !== BOUNDED_CANARY_MEMORY) return false
+  if (env.cpu !== BOUNDED_CANARY_CPU) return false
+  if (env.concurrency !== BOUNDED_CANARY_CONCURRENCY) return false
+  if (env.nodeOptions !== BOUNDED_CANARY_NODE_OPTIONS) return false
   if (!isBounded(env.maxArtifactBytes, 1, DEFAULT_MAX_ARTIFACT_BYTES)) return false
   try {
     validateBucketPrefix(parseBucketPrefix(env.outputBucketOrPrefix))

@@ -31,9 +31,16 @@ The deployed Cloud Run canary service must also receive service-side env that ma
 - `GOOGLE_CLOUD_PROJECT=reeditpro`
 - `STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX=gs://reeditpro-staging-render-canary-smoke/previews`
 - `STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX=.run.app`
-- bounded timeout and artifact settings
+- `STAGING_RENDER_CANARY_TIMEOUT_SECONDS=300`
+- `STAGING_RENDER_CANARY_MEMORY=2Gi`
+- `STAGING_RENDER_CANARY_CPU=2`
+- `STAGING_RENDER_CANARY_CONCURRENCY=1`
+- `NODE_OPTIONS=--max-old-space-size=1536`
+- bounded artifact settings
 
 The neutral project id `reeditpro` is allowed only when those dedicated staging canary controls are present. Production-looking project, bucket, service account, URL, provider, Stripe, payment, or billing env still fails closed.
+
+The 2Gi/2CPU profile is used only because the tiny Remotion canary needs enough Node heap for bundling/render runtime inside Cloud Run. It is not production renderer sizing, and the guard still rejects broad queue processing, customer media, provider calls, Stripe/payment flows, and production-looking resources.
 
 ## Authentication And IAM
 
@@ -63,9 +70,12 @@ The guard fails closed for:
 - `cleanup=false`
 - missing `allow_writes`, `allow_render_execution`, `allow_cloud_run`, or `allow_remotion`
 - unbounded wait, timeout, retry, resolution, frame count, or concurrency settings
+- missing or non-bounded Cloud Run canary resource settings: memory must be `2Gi`, CPU `2`, concurrency `1`, and Node heap `--max-old-space-size=1536`
 - missing previous-smoke leftover checks in the strict live workflow
 
 The canary payload is fixed to a tiny synthetic render: `tiny-muted-3s`, 160x90, 15 fps, cleanup required. It must not include user media, provider prompts, payment data, production IDs, broad queue modes, or existing job IDs.
+
+The deployed service also exposes `GET /canary/health` for a sanitized runtime summary. It reports only non-secret resource and mode fields and must not be used to execute rendering.
 
 ## Preflight
 

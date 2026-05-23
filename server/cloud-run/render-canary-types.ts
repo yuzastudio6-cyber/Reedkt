@@ -25,6 +25,9 @@ export interface RenderCanaryLimits {
   maxRetries: number
   concurrency: number
   timeoutSeconds: number
+  memory: string
+  cpu: number
+  nodeOptions?: string
 }
 
 export interface RenderCanaryConfig {
@@ -47,6 +50,9 @@ export interface RenderCanaryConfig {
   maxRetries: number
   concurrency: number
   timeoutSeconds: number
+  memory: string
+  cpu: number
+  nodeOptions?: string
 }
 
 export interface RenderCanaryConfigValidationIssue {

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { loadRuntimeEnv } from '../config/env'
 import { buildFixedTimelineCompositionSpec, STAGING_TIMELINE_COMPOSITION_CANARY_MODE } from '../timeline/timeline-composition-contracts'
 import {
@@ -322,6 +322,7 @@ const missingRemotion = await runStagingTimelineCompositionCanary(context, {
 })
 
 const serialized = JSON.stringify({ safePayload, success, cloudRunPayload }).toLowerCase()
+const supabaseSmokeServiceSource = await readFile(new URL('../services/supabase-e2e-smoke-service.ts', import.meta.url), 'utf8')
 const checks = [
   readyPreflight.ok && readyPreflight.status === 'ready' ? 'preflight_ready' : undefined,
   disabledPreflight.ok && disabledPreflight.status === 'skipped' ? 'expect_disabled_skips' : undefined,
@@ -360,10 +361,11 @@ const checks = [
   !serialized.includes('https://signed') && !serialized.includes('signed_url') && !serialized.includes('data:video') && !serialized.includes('base64')
     ? 'no_signed_urls_or_raw_video_bytes'
     : undefined,
+  !supabaseSmokeServiceSource.includes('timeline_composition_plan') ? 'timeline_metadata_uses_schema_safe_job_type' : undefined,
   persistedSmokeCalled ? 'uses_timeline_persisted_smoke_path' : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 31
+const ok = checks.length === 32
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 

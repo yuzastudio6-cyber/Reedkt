@@ -82,6 +82,8 @@ interface InsertRowOptions {
   smokeRunId?: string
 }
 
+const TIMELINE_METADATA_JOB_TYPE = 'other'
+
 export interface PersistedRenderSourceFixtureFactoryResult {
   sizeBytes: number
   checksumSha256: string
@@ -685,7 +687,7 @@ async function runPersistedGcsTimelineCompositionSmokePrepared(
       chat_message_id: records.chatMessageId,
       edit_plan_id: records.editPlanId,
       credit_estimate_id: records.creditEstimateId,
-      job_type: 'timeline_composition_plan',
+      job_type: TIMELINE_METADATA_JOB_TYPE,
       status: 'completed',
       priority: 'normal',
       worker_target: 'timeline_composition_agent',

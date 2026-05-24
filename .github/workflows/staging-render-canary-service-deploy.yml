@@ -14,7 +14,7 @@ on:
       target_sha:
         description: "Exact commit SHA to deploy"
         required: true
-        default: "4a72ef64588107ef3222134d87a49b218eb47d5d"
+        default: "3d2ba2eb2c476e117063e52fea01a0b478b0bbd1"
       service_name:
         description: "Staging Cloud Run service name"
         required: true
@@ -94,6 +94,20 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v3
 
+      - name: Capture current Cloud Run revision
+        id: before
+        shell: bash
+        run: |
+          set -euo pipefail
+          before_revision="$(
+            gcloud run services describe '${{ inputs.service_name }}' \
+              --project "${GCP_PROJECT_ID}" \
+              --region "${GCP_REGION}" \
+              --format='value(status.latestReadyRevisionName)'
+          )"
+          echo "revision=${before_revision}" >> "${GITHUB_OUTPUT}"
+          echo "Current revision: ${before_revision}"
+
       - name: Derive fixed staging canary image
         id: image
         shell: bash
@@ -137,7 +151,62 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          service_json="$(mktemp)"
+          policy_json="$(mktemp)"
           gcloud run services describe '${{ inputs.service_name }}' \
             --project "${GCP_PROJECT_ID}" \
             --region "${GCP_REGION}" \
-            --format='json(status.latestReadyRevisionName,status.url,spec.template.spec.containers[0].image)'
+            --format=json > "${service_json}"
+          gcloud run services get-iam-policy '${{ inputs.service_name }}' \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --format=json > "${policy_json}"
+
+          python - "${service_json}" "${policy_json}" "${{ steps.before.outputs.revision }}" "${{ steps.image.outputs.image }}" "${GCP_PROJECT_ID}" "${GCP_REGION}" "${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" "${STAGING_RENDER_CANARY_MEMORY}" "${STAGING_RENDER_CANARY_CPU}" "${STAGING_RENDER_CANARY_CONCURRENCY}" "${STAGING_RENDER_CANARY_NODE_OPTIONS}" <<'PY'
+          import json
+          import sys
+
+          service_path, policy_path, before_revision, expected_image, project_id, region, output_prefix, memory, cpu, concurrency, node_options = sys.argv[1:]
+          service = json.load(open(service_path, encoding='utf-8'))
+          policy = json.load(open(policy_path, encoding='utf-8'))
+          latest_revision = service.get('status', {}).get('latestReadyRevisionName')
+          status_url = service.get('status', {}).get('url')
+          template = service.get('spec', {}).get('template', {})
+          spec = template.get('spec', {})
+          containers = spec.get('containers') or []
+          container = containers[0] if containers else {}
+          resources = container.get('resources', {})
+          limits = resources.get('limits', {})
+          env = {item.get('name'): item.get('value') for item in container.get('env', [])}
+          annotations = template.get('metadata', {}).get('annotations', {})
+          bindings = policy.get('bindings', [])
+          members = [member for binding in bindings for member in binding.get('members', [])]
+
+          checks = {
+              'revision_changed': latest_revision and latest_revision != before_revision,
+              'image_matches_target_sha': container.get('image') == expected_image,
+              'status_url_matches_github_vars': status_url == 'https://reeditpro-staging-render-canary-4wkjiqvdqa-ue.a.run.app',
+              'service_private': 'allUsers' not in members and 'allAuthenticatedUsers' not in members,
+              'memory_2gi': limits.get('memory') == memory,
+              'cpu_2': limits.get('cpu') == cpu,
+              'concurrency_1': str(spec.get('containerConcurrency')) == concurrency,
+              'max_instances_1': annotations.get('autoscaling.knative.dev/maxScale') == '1',
+              'timeout_300': str(spec.get('timeoutSeconds')) == '300',
+              'project_env': env.get('GCP_PROJECT_ID') == project_id,
+              'region_env': env.get('GCP_REGION') == region,
+              'google_cloud_project_env': env.get('GOOGLE_CLOUD_PROJECT') == project_id,
+              'node_options_env': env.get('NODE_OPTIONS') == node_options,
+              'output_bucket_env': env.get('STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX') == output_prefix,
+          }
+          failed = [name for name, ok in checks.items() if not ok]
+          summary = {
+              'latestReadyRevisionName': latest_revision,
+              'previousReadyRevisionName': before_revision,
+              'statusUrl': status_url,
+              'image': container.get('image'),
+              'checks': checks,
+          }
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          if failed:
+              raise SystemExit('Cloud Run deploy verification failed: ' + ', '.join(failed))
+          PY

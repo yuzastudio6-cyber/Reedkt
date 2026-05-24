@@ -83,6 +83,7 @@ interface InsertRowOptions {
 }
 
 const TIMELINE_METADATA_JOB_TYPE = 'other'
+const TIMELINE_METADATA_AGENT_TYPE = 'system'
 
 export interface PersistedRenderSourceFixtureFactoryResult {
   sizeBytes: number
@@ -717,7 +718,7 @@ async function runPersistedGcsTimelineCompositionSmokePrepared(
       progress_percent: 100,
       actor_type: 'system',
       actor_user_id: records.userId,
-      actor_agent_type: 'timeline_composition_agent',
+      actor_agent_type: TIMELINE_METADATA_AGENT_TYPE,
       payload: timelinePreparation.timeline,
     }, { smokeRunId: records.smokeRunId })
 

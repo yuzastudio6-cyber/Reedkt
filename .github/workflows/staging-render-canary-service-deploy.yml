@@ -1,0 +1,147 @@
+name: RP E2E Staging Render Canary Service Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_staging_canary_deploy:
+        description: "Required: deploy only the private staging render canary service"
+        required: true
+        default: "false"
+      target_ref:
+        description: "Readiness branch/ref to deploy"
+        required: true
+        default: "codex/reeditpro-e2e-readiness"
+      target_sha:
+        description: "Exact commit SHA to deploy"
+        required: true
+        default: "4a72ef64588107ef3222134d87a49b218eb47d5d"
+      service_name:
+        description: "Staging Cloud Run service name"
+        required: true
+        default: "reeditpro-staging-render-canary"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-staging-render-canary-service:
+    name: Deploy private staging render canary service
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX: ${{ secrets.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX || vars.STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX }}
+      STAGING_RENDER_CANARY_MEMORY: "2Gi"
+      STAGING_RENDER_CANARY_CPU: "2"
+      STAGING_RENDER_CANARY_CONCURRENCY: "1"
+      STAGING_RENDER_CANARY_TIMEOUT_SECONDS: "300"
+      STAGING_RENDER_CANARY_NODE_OPTIONS: "--max-old-space-size=1536"
+
+    steps:
+      - name: Fail closed unless this is the exact staging canary deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ inputs.allow_staging_canary_deploy }}" = "true"
+          test "${{ inputs.target_ref }}" = "codex/reeditpro-e2e-readiness"
+          [[ "${{ inputs.target_sha }}" =~ ^[0-9a-f]{40}$ ]]
+          test "${{ inputs.service_name }}" = "reeditpro-staging-render-canary"
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test "${GCP_REGION}" = "us-east1"
+          test "${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" = "gs://reeditpro-staging-render-canary-smoke/previews"
+          test "${STAGING_RENDER_CANARY_MEMORY}" = "2Gi"
+          test "${STAGING_RENDER_CANARY_CPU}" = "2"
+          test "${STAGING_RENDER_CANARY_CONCURRENCY}" = "1"
+          test "${STAGING_RENDER_CANARY_TIMEOUT_SECONDS}" = "300"
+          test "${STAGING_RENDER_CANARY_NODE_OPTIONS}" = "--max-old-space-size=1536"
+          case "${GCP_PROJECT_ID} ${GCP_REGION} ${{ inputs.service_name }} ${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" in
+            *prod*|*production*|*live*)
+              echo "Refusing production-looking staging canary deploy target." >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout exact readiness commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_ref }}
+
+      - name: Verify target commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "${actual}" = "${{ inputs.target_sha }}"
+
+      - name: Authenticate to Google Cloud with OIDC/WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Derive current staging canary image repository
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_image="$(gcloud run services describe '${{ inputs.service_name }}' \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --format='value(spec.template.spec.containers[0].image)')"
+          image_repo="${current_image%:*}"
+          if [[ -z "${image_repo}" || "${image_repo}" != *"reeditpro-staging-render-canary"* ]]; then
+            echo "Current image repo is not the staging render canary repo." >&2
+            exit 1
+          fi
+          image="${image_repo}:${{ inputs.target_sha }}"
+          registry_host="${image_repo%%/*}"
+          echo "image=${image}" >> "${GITHUB_OUTPUT}"
+          echo "registry_host=${registry_host}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and push staging canary image
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${{ steps.image.outputs.registry_host }}" --quiet
+          docker build \
+            -f scripts/render/staging-cloud-run-remotion-canary/Dockerfile \
+            -t "${{ steps.image.outputs.image }}" \
+            .
+          docker push "${{ steps.image.outputs.image }}"
+
+      - name: Deploy private staging canary service
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run deploy '${{ inputs.service_name }}' \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --image "${{ steps.image.outputs.image }}" \
+            --service-account "${GCP_SERVICE_ACCOUNT}" \
+            --no-allow-unauthenticated \
+            --memory="${STAGING_RENDER_CANARY_MEMORY}" \
+            --cpu="${STAGING_RENDER_CANARY_CPU}" \
+            --concurrency="${STAGING_RENDER_CANARY_CONCURRENCY}" \
+            --max-instances=1 \
+            --timeout=300 \
+            --set-env-vars "STAGING_RENDER_CANARY_MODE=staging_real_video_upload_preview_canary,GCP_PROJECT_ID=${GCP_PROJECT_ID},GCP_REGION=${GCP_REGION},GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID},STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX=${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX},STAGING_RENDER_CANARY_EXPECTED_HOST_SUFFIX=.run.app,STAGING_RENDER_CANARY_TIMEOUT_SECONDS=${STAGING_RENDER_CANARY_TIMEOUT_SECONDS},STAGING_RENDER_CANARY_MAX_ARTIFACT_BYTES=750000,STAGING_RENDER_CANARY_MEMORY=${STAGING_RENDER_CANARY_MEMORY},STAGING_RENDER_CANARY_CPU=${STAGING_RENDER_CANARY_CPU},STAGING_RENDER_CANARY_CONCURRENCY=${STAGING_RENDER_CANARY_CONCURRENCY},NODE_OPTIONS=${STAGING_RENDER_CANARY_NODE_OPTIONS}" \
+            --quiet
+
+      - name: Report deployed revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run services describe '${{ inputs.service_name }}' \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --format='json(status.latestReadyRevisionName,status.url,spec.template.spec.containers[0].image)'

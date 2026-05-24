@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { mkdtemp, readFile, rm, stat } from 'node:fs/promises'
+import { copyFile, mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { Storage } from '@google-cloud/storage'
@@ -40,6 +40,7 @@ const BOUNDED_CANARY_CONCURRENCY = 1
 const BOUNDED_CANARY_NODE_OPTIONS = '--max-old-space-size=1536'
 const VERIFIED_STAGING_PROJECT_ID = 'reeditpro'
 const VERIFIED_STAGING_REGION = 'us-east1'
+const REAL_VIDEO_STATIC_SOURCE_FILE = 'source.mp4'
 
 export interface StagingRenderInfrastructureCanaryRequest {
   canary?: unknown
@@ -212,6 +213,8 @@ export interface CanaryRenderer {
     timeoutSeconds: number
     remotionEntrypoint: string
     sourcePath?: string
+    sourcePublicDir?: string
+    sourceStaticFilePath?: string
   }): Promise<void>
 }
 
@@ -602,13 +605,17 @@ async function runStagingRealVideoUploadPreviewCanary(
   env: StagingRenderInfrastructureCanaryEnv,
   deps: StagingRenderInfrastructureCanaryDeps,
 ): Promise<StagingRenderInfrastructureCanaryResult> {
-  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'rp-real-video-canary-'))
-  const sourcePath = path.join(tempDir, 'tiny-source.mp4')
+  const tempDir = path.join(os.tmpdir(), 'reeditpro-canary', input.smokeRunId)
+  const publicDir = path.join(tempDir, 'public')
+  const sourcePath = path.join(tempDir, REAL_VIDEO_STATIC_SOURCE_FILE)
+  const publicSourcePath = path.join(publicDir, REAL_VIDEO_STATIC_SOURCE_FILE)
   const outputPath = path.join(tempDir, 'tiny-preview.mp4')
   const renderer = deps.renderer ?? { render: renderUploadedSourceRemotionCanary }
   const store = deps.artifactStore ?? new GcsCanaryArtifactStore(env.projectId)
 
   try {
+    await rm(tempDir, { recursive: true, force: true })
+    await mkdir(publicDir, { recursive: true })
     if (!store.download) {
       throw new Error('The real-video upload-to-preview canary requires a GCS artifact store with download support.')
     }
@@ -628,10 +635,17 @@ async function runStagingRealVideoUploadPreviewCanary(
     if (sourceStat.size <= 0 || sourceStat.size > 250_000) {
       throw new Error('Downloaded source video is outside the tiny staging fixture bounds.')
     }
+    await copyFile(sourcePath, publicSourcePath)
+    const publicSourceStat = await stat(publicSourcePath)
+    if (publicSourceStat.size !== sourceStat.size) {
+      throw new Error('Prepared Remotion static source video size did not match downloaded smoke source.')
+    }
 
     await renderer.render({
       outputPath,
       sourcePath,
+      sourcePublicDir: publicDir,
+      sourceStaticFilePath: REAL_VIDEO_STATIC_SOURCE_FILE,
       smokeRunId: input.smokeRunId,
       width: input.width,
       height: input.height,
@@ -747,25 +761,37 @@ async function renderTinyRemotionCanary(input: Parameters<CanaryRenderer['render
 
 async function renderUploadedSourceRemotionCanary(input: Parameters<CanaryRenderer['render']>[0]): Promise<void> {
   if (!input.sourcePath) throw new Error('Real-video canary render requires a downloaded source video path.')
+  if (!input.sourcePublicDir) throw new Error('Real-video canary render requires a Remotion public directory.')
+  if (!input.sourceStaticFilePath || !isSafeStaticSourceFile(input.sourceStaticFilePath)) {
+    throw new Error('Real-video canary render requires a short safe static source file path.')
+  }
   if (!existsSync(input.remotionEntrypoint)) {
     throw new Error('Staging canary Remotion entrypoint is missing from the Cloud Run image.')
   }
 
-  const sourceBytes = await readFile(input.sourcePath)
-  if (sourceBytes.byteLength <= 0 || sourceBytes.byteLength > 250_000) {
+  const sourceStat = await stat(input.sourcePath)
+  if (sourceStat.size <= 0 || sourceStat.size > 250_000) {
     throw new Error('Real-video canary source video must stay below 250000 bytes.')
   }
-  const sourceDataUrl = `data:video/mp4;base64,${sourceBytes.toString('base64')}`
+  const publicSourcePath = path.join(input.sourcePublicDir, input.sourceStaticFilePath)
+  const publicSourceStat = await stat(publicSourcePath)
+  if (publicSourceStat.size !== sourceStat.size) {
+    throw new Error('Real-video canary static source file does not match downloaded source size.')
+  }
 
   const [{ bundle }, { renderMedia, selectComposition }] = await Promise.all([
     import('@remotion/bundler'),
     import('@remotion/renderer'),
   ])
-  const serveUrl = await bundle({ entryPoint: input.remotionEntrypoint })
+  const serveUrl = await bundle({
+    entryPoint: input.remotionEntrypoint,
+    publicDir: input.sourcePublicDir,
+    symlinkPublicDir: false,
+  })
   const inputProps = {
     smokeRunId: input.smokeRunId,
     durationSeconds: input.durationSeconds,
-    sourceDataUrl,
+    sourceStaticFilePath: input.sourceStaticFilePath,
   }
   const composition = await selectComposition({
     serveUrl,
@@ -786,6 +812,21 @@ async function renderUploadedSourceRemotionCanary(input: Parameters<CanaryRender
     overwrite: true,
     videoBitrate: '220K',
   })
+}
+
+function isSafeStaticSourceFile(value: string): boolean {
+  const lower = value.toLowerCase()
+  return value === REAL_VIDEO_STATIC_SOURCE_FILE
+    && !lower.includes('data:video')
+    && !lower.includes('base64')
+    && !lower.includes('/proxy?src=data')
+    && !lower.startsWith('http://')
+    && !lower.startsWith('https://')
+    && !lower.startsWith('file:')
+    && !value.startsWith('/')
+    && !/^[a-z]:/i.test(value)
+    && !value.includes('\\')
+    && !value.split('/').includes('..')
 }
 
 class GcsCanaryArtifactStore implements CanaryArtifactStore {

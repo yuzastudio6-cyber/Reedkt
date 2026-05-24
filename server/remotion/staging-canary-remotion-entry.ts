@@ -1,5 +1,5 @@
 import React from 'react'
-import { AbsoluteFill, Composition, OffthreadVideo, registerRoot, useCurrentFrame } from 'remotion'
+import { AbsoluteFill, Composition, OffthreadVideo, registerRoot, staticFile, useCurrentFrame } from 'remotion'
 import {
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID,
@@ -65,7 +65,9 @@ function TinyUploadedSourcePreview(props: Record<string, unknown>) {
   const smokeRunId = typeof props.smokeRunId === 'string'
     ? props.smokeRunId
     : 'rp-e2e-smoke-00000000-0000-4000-8000-000000000000'
-  const sourceDataUrl = typeof props.sourceDataUrl === 'string' ? props.sourceDataUrl : ''
+  const sourceStaticFilePath = typeof props.sourceStaticFilePath === 'string' && isSafeCanaryStaticSourcePath(props.sourceStaticFilePath)
+    ? props.sourceStaticFilePath
+    : ''
 
   return React.createElement(
     AbsoluteFill,
@@ -77,9 +79,9 @@ function TinyUploadedSourcePreview(props: Record<string, unknown>) {
         overflow: 'hidden',
       },
     },
-    sourceDataUrl
+    sourceStaticFilePath
       ? React.createElement(OffthreadVideo, {
-        src: sourceDataUrl,
+        src: staticFile(sourceStaticFilePath),
         muted: true,
         style: {
           width: '100%',
@@ -147,10 +149,25 @@ function RemotionRoot() {
       durationInFrames: 45,
       defaultProps: {
         smokeRunId: 'rp-e2e-smoke-00000000-0000-4000-8000-000000000000',
-        sourceDataUrl: '',
+        sourceStaticFilePath: '',
       },
     }),
   )
+}
+
+function isSafeCanaryStaticSourcePath(value: string): boolean {
+  const lower = value.toLowerCase()
+  return value === 'source.mp4'
+    && !lower.includes('data:video')
+    && !lower.includes('base64')
+    && !lower.includes('/proxy?src=data')
+    && !lower.startsWith('http://')
+    && !lower.startsWith('https://')
+    && !lower.startsWith('file:')
+    && !value.startsWith('/')
+    && !/^[a-z]:/i.test(value)
+    && !value.includes('\\')
+    && !value.split('/').includes('..')
 }
 
 registerRoot(RemotionRoot)

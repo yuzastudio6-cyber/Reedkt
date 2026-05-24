@@ -13,6 +13,7 @@ This gate is the next staging-only RP-E2E readiness gate after the Cloud Run / R
 - Attaches the finalized source to the chat/source sequence path and uses the approved plan, credit approval, credit reservation, job, render job, worker claim, render, preview storage, and QA metadata path.
 - Invokes only the private staging Cloud Run canary endpoint with OIDC/WIF.
 - Renders a tiny preview from the uploaded source through Remotion `bundle / selectComposition / renderMedia`.
+- Downloads the GCS source object inside Cloud Run to a smoke-scoped temp path and hands it to Remotion as a short static asset reference, never as a base64 `data:` URL.
 - Stores the preview under:
   `workspaces/{workspaceId}/projects/{projectId}/previews/{renderId}/{smokeRunId}-tiny-preview.mp4`.
 - Cleans up all smoke-tagged Supabase records and both GCS source/preview artifacts, then runs strict leftover detection.
@@ -33,6 +34,14 @@ Canonical storage rows store only:
 - size, checksum, MIME type, purpose, region, and status metadata
 
 Signed URLs are never stored as canonical truth. The source and preview object records must point at the staging canary bucket and smoke-scoped object paths only.
+
+The Cloud Run service downloads the source to a local smoke-scoped temp root:
+
+```text
+/tmp/reeditpro-canary/{smokeRunId}/source.mp4
+```
+
+For Remotion, the file is copied into that run's temporary public directory and referenced as `source.mp4` through `staticFile()`. The real-video path must never pass `data:video/mp4;base64`, raw bytes, signed URLs, `file://` paths, or source media in request URLs.
 
 Expected source path:
 

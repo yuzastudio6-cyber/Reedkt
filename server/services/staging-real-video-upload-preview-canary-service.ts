@@ -94,6 +94,7 @@ export interface StagingRealVideoUploadPreviewCanaryResult {
     attempted: boolean
     deleted: GcsObjectRef[]
     errors: string[]
+    warnings?: string[]
   }
   cleanup?: {
     attempted: boolean
@@ -436,6 +437,7 @@ async function cleanupGcsObjects(
 ): Promise<StagingRealVideoUploadPreviewCanaryResult['gcsCleanup']> {
   const deleted: GcsObjectRef[] = []
   const errors: string[] = []
+  const warnings: string[] = []
   for (const record of uniqueGcsRefs(records).reverse()) {
     if (!isSmokeGcsObject(record)) {
       errors.push(`${record.bucketName}/${record.objectPath}: cleanup refused because object is not smoke-scoped`)
@@ -451,10 +453,21 @@ async function cleanupGcsObjects(
         errors.push(`${record.bucketName}/${record.objectPath}: object still exists after cleanup`)
       }
     } catch (error) {
-      errors.push(`${record.bucketName}/${record.objectPath}: ${error instanceof Error ? error.message : 'delete failed'}`)
+      const message = error instanceof Error ? error.message : 'delete failed'
+      try {
+        const exists = await store.exists(record)
+        if (!exists) {
+          deleted.push(record)
+          warnings.push(`${record.bucketName}/${record.objectPath}: ${message}; exact readback confirmed the object was already gone.`)
+        } else {
+          errors.push(`${record.bucketName}/${record.objectPath}: ${message}; object still exists after cleanup failure`)
+        }
+      } catch (readbackError) {
+        errors.push(`${record.bucketName}/${record.objectPath}: ${message}; cleanup state could not be verified after delete error: ${readbackError instanceof Error ? readbackError.message : 'readback failed'}`)
+      }
     }
   }
-  return { attempted: true, deleted, errors }
+  return { attempted: true, deleted, errors, warnings }
 }
 
 function buildStrictValidation(

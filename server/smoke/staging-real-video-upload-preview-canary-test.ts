@@ -1,5 +1,8 @@
 import { createHash } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import { loadRuntimeEnv } from '../config/env'
 import {
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
@@ -15,6 +18,7 @@ import { evaluateStagingRealVideoUploadPreviewCanaryPreflight } from '../service
 const smokeRunId = 'rp-e2e-smoke-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const sourceBytes = Buffer.from('fake tiny source video bytes')
 const sourceChecksum = createHash('sha256').update(sourceBytes).digest('hex')
+let lastRenderInput: Parameters<CanaryRenderer['render']>[0] | undefined
 
 const safeSourceEnv = {
   NODE_ENV: 'test',
@@ -195,8 +199,12 @@ const serviceSuccess = await runStagingRenderInfrastructureCanary(safePayload, {
   forbiddenEnvNames: [],
 }, fakeDeps())
 const realVideoServiceSource = await readFile(new URL('../services/staging-real-video-upload-preview-canary-service.ts', import.meta.url), 'utf8')
+const stagingCanaryServiceSource = await readFile(new URL('../services/staging-render-infrastructure-canary-service.ts', import.meta.url), 'utf8')
+const remotionEntrySource = await readFile(new URL('../remotion/staging-canary-remotion-entry.ts', import.meta.url), 'utf8')
 const supabaseSmokeServiceSource = await readFile(new URL('../services/supabase-e2e-smoke-service.ts', import.meta.url), 'utf8')
 const serializedPayload = JSON.stringify(safePayload).toLowerCase()
+const sourceHandoffSource = `${stagingCanaryServiceSource}\n${remotionEntrySource}`
+const tempRoot = path.join(os.tmpdir(), 'reeditpro-canary', smokeRunId)
 
 const checks = [
   readyPreflight.status === 'ready' ? 'preflight_ready_with_safe_config' : undefined,
@@ -242,6 +250,37 @@ const checks = [
   safePayload.source.objectPath.includes('/source-media/') && safePayload.preview.objectPath.includes('/previews/')
     ? 'gcs_source_and_preview_use_bucket_object_paths'
     : undefined,
+  !sourceHandoffSource.includes('sourceDataUrl')
+    && !sourceHandoffSource.includes('data:video/mp4;base64')
+    && !stagingCanaryServiceSource.includes("toString('base64')")
+    ? 'real_video_handoff_excludes_base64_data_urls'
+    : undefined,
+  stagingCanaryServiceSource.includes("sourceStaticFilePath: REAL_VIDEO_STATIC_SOURCE_FILE")
+    && stagingCanaryServiceSource.includes("publicDir: input.sourcePublicDir")
+    && stagingCanaryServiceSource.includes('symlinkPublicDir: false')
+    ? 'real_video_renderer_uses_remotion_public_dir'
+    : undefined,
+  stagingCanaryServiceSource.includes("path.join(os.tmpdir(), 'reeditpro-canary', input.smokeRunId)")
+    && stagingCanaryServiceSource.includes("path.join(tempDir, 'public')")
+    ? 'real_video_source_download_uses_smoke_scoped_temp_path'
+    : undefined,
+  remotionEntrySource.includes('sourceStaticFilePath')
+    && remotionEntrySource.includes('staticFile(sourceStaticFilePath)')
+    ? 'remotion_entry_uses_static_file_source'
+    : undefined,
+  remotionEntrySource.includes("value === 'source.mp4'")
+    && remotionEntrySource.includes("lower.includes('data:video')")
+    && remotionEntrySource.includes("lower.includes('base64')")
+    && remotionEntrySource.includes("lower.includes('/proxy?src=data')")
+    && remotionEntrySource.includes("lower.startsWith('file:')")
+    ? 'remotion_entry_rejects_unsafe_source_references'
+    : undefined,
+  lastRenderInput?.sourcePath?.endsWith(path.join('reeditpro-canary', smokeRunId, 'source.mp4'))
+    && lastRenderInput?.sourcePublicDir?.endsWith(path.join('reeditpro-canary', smokeRunId, 'public'))
+    && lastRenderInput?.sourceStaticFilePath === 'source.mp4'
+    ? 'renderer_received_short_static_source_reference'
+    : undefined,
+  !existsSync(tempRoot) ? 'smoke_scoped_temp_source_cleanup_completed' : undefined,
   serviceSuccess.ok
     && serviceSuccess.status === 'completed'
     && serviceSuccess.outputArtifact?.cleanupDelegatedToCaller
@@ -250,7 +289,7 @@ const checks = [
     : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 25
+const ok = checks.length === 32
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 
@@ -258,6 +297,20 @@ function fakeDeps() {
   const objects = new Set<string>()
   const renderer: CanaryRenderer = {
     async render(input) {
+      lastRenderInput = input
+      const renderedInput = JSON.stringify(input).toLowerCase()
+      if (renderedInput.includes('data:video') || renderedInput.includes('base64') || renderedInput.includes('/proxy?src=data')) {
+        throw new Error('Real-video renderer input must not contain raw video data URLs.')
+      }
+      if (!input.sourcePath?.endsWith(path.join('reeditpro-canary', smokeRunId, 'source.mp4'))) {
+        throw new Error('Real-video renderer did not receive the smoke-scoped downloaded source path.')
+      }
+      if (!input.sourcePublicDir?.endsWith(path.join('reeditpro-canary', smokeRunId, 'public'))) {
+        throw new Error('Real-video renderer did not receive the smoke-scoped Remotion public directory.')
+      }
+      if (input.sourceStaticFilePath !== 'source.mp4') {
+        throw new Error('Real-video renderer did not receive a short static source reference.')
+      }
       await writeFile(input.outputPath, Buffer.from('tiny preview render'))
     },
   }

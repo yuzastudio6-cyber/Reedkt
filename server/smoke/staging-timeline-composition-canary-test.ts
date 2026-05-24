@@ -323,6 +323,7 @@ const missingRemotion = await runStagingTimelineCompositionCanary(context, {
 
 const serialized = JSON.stringify({ safePayload, success, cloudRunPayload }).toLowerCase()
 const supabaseSmokeServiceSource = await readFile(new URL('../services/supabase-e2e-smoke-service.ts', import.meta.url), 'utf8')
+const e2eRuntimeServiceSource = await readFile(new URL('../services/e2e-service-role-runtime-service.ts', import.meta.url), 'utf8')
 const checks = [
   readyPreflight.ok && readyPreflight.status === 'ready' ? 'preflight_ready' : undefined,
   disabledPreflight.ok && disabledPreflight.status === 'skipped' ? 'expect_disabled_skips' : undefined,
@@ -364,10 +365,11 @@ const checks = [
   !supabaseSmokeServiceSource.includes('timeline_composition_plan') ? 'timeline_metadata_uses_schema_safe_job_type' : undefined,
   !supabaseSmokeServiceSource.includes("worker_target: 'timeline_composition_agent'") ? 'timeline_metadata_uses_schema_safe_worker_target' : undefined,
   !supabaseSmokeServiceSource.includes("actor_agent_type: 'timeline_composition_agent'") ? 'timeline_metadata_uses_schema_safe_agent_type' : undefined,
+  e2eRuntimeServiceSource.includes('p_snapshot_json: sanitizeRpcPayload({') ? 'approved_snapshot_payload_is_sanitized' : undefined,
   persistedSmokeCalled ? 'uses_timeline_persisted_smoke_path' : undefined,
 ].filter(Boolean)
 
-const ok = checks.length === 34
+const ok = checks.length === 35
 console.log(JSON.stringify({ ok, checks }, null, 2))
 if (!ok) process.exitCode = 1
 

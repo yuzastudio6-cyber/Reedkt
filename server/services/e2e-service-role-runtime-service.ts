@@ -150,7 +150,7 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
     p_credit_approval_id: input.creditApprovalId,
     p_credit_reservation_id: input.creditReservationId,
     p_approved_by_user_id: input.approvedByUserId,
-    p_snapshot_json: {
+    p_snapshot_json: sanitizeRpcPayload({
       ...createSmokeMetadata(input.smokeRunId ?? input.idempotencyKey),
       rpE2eSmoke: true,
       executionMode: infrastructureCanary ? renderExecutionMode : 'no_ai_rpc_persisted_render_smoke',
@@ -163,7 +163,7 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
       timelineSpec: input.timelineSpec,
       mediaAnalysisReport: input.mediaAnalysisReport,
       timelineQaExpectations: input.timelineQaExpectations,
-    },
+    }),
     p_plan_hash: `plan-${input.idempotencyKey}`,
     p_credit_hash: `credit-${input.idempotencyKey}`,
     p_source_sequence_hash: `source-${input.idempotencyKey}`,

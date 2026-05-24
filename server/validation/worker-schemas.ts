@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { WORKER_TOOL_NAMES } from '../workers/tool-readiness-types'
 import { idSchema } from './common-schemas'
 
 export const claimWorkerJobSchema = z.object({
@@ -18,7 +19,7 @@ export const recordToolRuntimeCheckSchema = z.object({
   workspaceId: idSchema,
   workerType: z.string().min(1),
   runtimeRegion: z.enum(['us-east1', 'europe-west1']).optional(),
-  toolName: z.enum(['ffmpeg', 'ffprobe', 'remotion', 'sharp_libvips', 'audioflux', 'signalsmith_stretch', 'opencv', 'vapoursynth', 'playwright']),
+  toolName: z.enum(WORKER_TOOL_NAMES),
   toolVersion: z.string().optional(),
   checkStatus: z.enum(['passed', 'warning', 'failed', 'missing', 'blocked']),
   checkSummary: z.string().min(1),
@@ -29,7 +30,7 @@ export const recordToolRuntimeCheckSchema = z.object({
 export const toolReadinessCheckSchema = z.object({
   workspaceId: idSchema.optional(),
   workerType: z.string().min(1).optional(),
-  toolName: z.enum(['ffmpeg', 'ffprobe', 'remotion', 'sharp_libvips', 'audioflux', 'signalsmith_stretch', 'opencv', 'vapoursynth', 'playwright']).optional(),
+  toolName: z.enum(WORKER_TOOL_NAMES).optional(),
   recordResults: z.boolean().optional(),
 }).strict()
 

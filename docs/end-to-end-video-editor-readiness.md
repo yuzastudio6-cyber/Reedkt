@@ -32,6 +32,13 @@ The staging real-video upload-to-preview canary also passed as a guarded manual 
 
 These prove only staging smoke canary paths. They do not enable production rendering, providers, Stripe/payment, customer media, broad E2E suites, queue draining, or existing user job processing. OIDC/WIF was used and no service account JSON key path was used.
 
+RP-TOOLS-01 now adds code-enforced runtime editing tool contracts for FFmpeg, FFprobe, Remotion, Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper/faster-whisper/whisper.cpp, PySceneDetect, Playwright, and VapourSynth.
+
+- Current strict required tools: `ffmpeg`, `ffprobe`, and `remotion`
+- Code-enforced/proven staging tools: `ffmpeg`, `ffprobe`, and `remotion`
+- Optional/planned tools: Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth
+- Safe checks only: version, import, or package-resolution checks; no media processing, provider calls, Stripe/payment, production deploy, customer media, broad queues, or service account JSON keys
+
 ## What This Branch Proves
 
 This branch consolidates the newest planning-stack backend/runtime/render scaffolds with the pushed AI editor shell and browser-local MVP flow.
@@ -87,6 +94,7 @@ No file upload, provider call, Stripe call, Cloud Run call, Supabase mutation, F
 | Backend runtime | production-required | Cloud Run API service is scaffolded but not deployed. |
 | Provider gateway | production-required | OpenAI, Lyria, Mirelo, MMAudio, Wan, Veo, Kling, Hailuo, and related provider calls remain disabled/backend-required. |
 | Render/export | production-required | Staging Cloud Run / Remotion infrastructure and real-video upload-to-preview canaries passed with tiny smoke artifacts. Production render/export workers, customer media processing, final exports, and production QA remain. |
+| Runtime editing tools | partially fixed | Typed registry and safe readiness checks exist for core/open-source tools. Optional tool installation, license/security review, worker images, worker canaries, and production/customer execution remain blocked. |
 | Stripe | production-required | Checkout, subscriptions, webhooks, invoices, and credit purchase reconciliation remain missing. |
 | Monitoring/rate limits | production-required | Production logging, metrics, alerts, abuse controls, and quota enforcement remain missing. |
 | QA | production-required | Mock planning QA exists; real media QA, frame/audio validation, render QA, and failure recovery still need workers. |
@@ -126,7 +134,14 @@ Useful URLs:
 
 ## Recommended Next Production Milestone
 
-Next safe staging gate: provider sandbox validation, disabled by default and limited to a single provider plus a single smoke-tagged job. It must keep explicit allow flags, staging-only configuration, cleanup, strict leftover checks, no Stripe/payment, no production, no broad E2E, no queue drain, and no customer media.
+Next safe staging gates, in order:
+
+1. Media analysis worker canary.
+2. Real timeline composition canary.
+3. SoundSync analysis canary.
+4. Provider sandbox validation, disabled by default and limited to a single provider plus a single smoke-tagged job.
+
+Every next gate must keep explicit allow flags, staging-only configuration, cleanup, strict leftover checks, no Stripe/payment, no production, no broad E2E, no queue drain, and no customer media.
 
 Next production milestone remains separate: production backend/runtime hardening after staging gates complete.
 

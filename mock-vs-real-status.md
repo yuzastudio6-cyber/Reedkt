@@ -19,6 +19,7 @@
 - Mock-only Node HTTP backend scaffold for future Cloud Run deployment with health, readiness, runtime status, route registry, and mock API transport endpoints.
 - Staging-only Cloud Run / Remotion render infrastructure canary passed through the guarded GitHub Actions workflow. It rendered only the fixed tiny smoke fixture and cleaned up all smoke records/artifacts.
 - Staging-only real-video upload-to-preview canary passed through the guarded GitHub Actions workflow. It created one tiny generated source video in GCS, downloaded it in Cloud Run, rendered a preview through Remotion, recorded render/job/QA metadata, and cleaned up all smoke records/artifacts.
+- Code-enforced runtime editing tool registry for FFmpeg, FFprobe, Remotion, Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright, and VapourSynth. It runs safe version/import/package checks and maps tools to future workers.
 - Project-level SoundSync SFX workflow wiring in mock mode, including SFX Director planning, provider routes, prompt plans, credit gates, mock generation requests, mock jobs, mock worker runs, mock provider adapter output, trim/hit alignment, mix, QA, project asset decisions, and editor chat status.
 - SFX provider execution readiness reporting for future Mirelo SFX V1.5 and MMAudio V2 backend transport, including structured block reasons, Secret Manager reference checks, approval/credit/job checks, and safe next steps.
 
@@ -40,6 +41,7 @@
 - Cloud Run API service plan, local runtime docs, deployment checklist, and backend Dockerfile scaffold.
 - Project SFX integration scenarios and chat panel showing Mirelo SFX V1.5, MMAudio V2, internal library, and no-SFX routes.
 - SFX provider readiness scenarios covering mock mode, disabled mode, frontend real-mode blocking, missing Secret Manager references, no-SFX routes, missing approval artifacts, and future transport readiness.
+- Optional runtime tool installation/execution for Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth. These are tracked and checked safely where possible, but remain planning/worker-canary work.
 
 ## Not Implemented
 
@@ -55,4 +57,12 @@
 - Deployed backend runtime transport, transactional worker leases, durable idempotency, and cloud lease recovery.
 - Real provider integrations. Mirelo/MMAudio are wired into the project flow in mock mode and have readiness reporting only; live provider transport remains future backend work. The next safe gate is a disabled-by-default staging provider sandbox limited to one provider and one smoke-tagged job.
 - Production rendering/export workers for customer media. The staging render infrastructure and real-video upload-to-preview canary paths are passed, but production preview/export remains unimplemented.
+- Production/customer execution of optional open-source tools. The registry is code-enforced, but license/security approval, worker images, resource caps, media canaries, and customer-media authorization remain missing.
 - Remote Supabase migration or validation.
+
+## Next Gates
+
+1. Media analysis worker canary.
+2. Real timeline composition canary.
+3. SoundSync analysis canary.
+4. Provider sandbox gate, still disabled by default and limited to one provider and one smoke-tagged job.

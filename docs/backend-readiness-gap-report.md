@@ -12,6 +12,7 @@
 | Worker/job queue runtime missing | Partially fixed | Mock queue items, job gates, dependency chains, dispatch placeholders, events, retry/recovery, scenarios, and route handlers exist. Real cloud/backend queue and worker dispatch remain open. |
 | Backend runtime transport and worker leasing missing | Partially fixed | Mock runtime envelopes, transport placeholders, lease claim/heartbeat/renew/release/complete/fail/cancel, stale recovery, idempotency helpers, route handlers, and a local lease migration exist. Real backend/cloud lease enforcement remains open. |
 | Production backend runtime not chosen or scaffolded | Partially fixed | Cloud Run API service is selected and a mock-only Node HTTP scaffold exists with health/readiness/runtime/routes/mock endpoints. Separate staging-only Cloud Run / Remotion render infrastructure and real-video upload-to-preview canaries passed. Production deployment, Secret Manager hardening, service-role handlers, providers, Stripe, workers, and customer render execution remain open. |
+| Editing tool runtime registry missing | Partially fixed | RP-TOOLS-01 adds typed server contracts, safe readiness checks, worker-to-tool mapping, CLI output, and smoke tests for FFmpeg, FFprobe, Remotion, Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright, and VapourSynth. It does not install optional tools or approve production/customer execution. |
 | Provider integrations missing | Partially reduced | Project SFX now reaches mock Mirelo/MMAudio/internal-library routing and includes readiness reporting for future real SFX transport. Real AI, Lyria, Mirelo, MMAudio, Stripe, and rendering calls are still not added. |
 | Supabase production validation missing | Open | No remote migration, local Supabase test, staging test, or advisor review was run. |
 
@@ -47,7 +48,19 @@ The staging real-video upload-to-preview gate passed through the guarded workflo
 
 This remains staging-only. It did not run production, Stripe/payment, provider generation, customer media, broad E2E, queue drain, or existing user jobs. OIDC/WIF was used and no service account JSON key path was used.
 
-Next staging gate: provider sandbox validation. It must stay disabled by default, single-provider/single-job only, smoke-tagged, cleanup-enforced, and separate from Stripe/payment or production flows.
+## RP-TOOLS-01 Runtime Tool Registry Result
+
+The open-source editing tool registry is now code-enforced in `server/tools/*` and connected to safe worker readiness checks.
+
+- Current strict required tools: `ffmpeg`, `ffprobe`, and `remotion`
+- Code-enforced/proven staging tools: `ffmpeg`, `ffprobe`, and `remotion`
+- Optional/planned tools: Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth
+- Worker mappings: media analysis, render, audio SoundSync, image asset, browser capture, and advanced frame workers
+- Safety: version/import/package checks only; no media processing, providers, Stripe/payment, production deploy, customer media, queue drain, secrets, or service account JSON keys
+
+Remaining blockers: production/customer tool execution, optional tool installation in worker images, license/security review, resource caps, and worker canaries.
+
+Next staging gates, in order: media analysis worker canary, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox must stay disabled by default, single-provider/single-job only, smoke-tagged, cleanup-enforced, and separate from Stripe/payment or production flows.
 
 ## Local E2E MVP Result
 

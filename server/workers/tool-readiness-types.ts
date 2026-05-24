@@ -1,18 +1,9 @@
 import type { RuntimeEnv } from '../config/env'
+import { EDITING_TOOL_IDS, type EditingToolId } from '../tools/editing-tool-contracts'
 
-export const WORKER_TOOL_NAMES = [
-  'ffmpeg',
-  'ffprobe',
-  'remotion',
-  'sharp_libvips',
-  'audioflux',
-  'signalsmith_stretch',
-  'opencv',
-  'vapoursynth',
-  'playwright',
-] as const
+export const WORKER_TOOL_NAMES = EDITING_TOOL_IDS
 
-export type WorkerToolName = typeof WORKER_TOOL_NAMES[number]
+export type WorkerToolName = EditingToolId
 
 export type ToolReadinessStatus = 'passed' | 'warning' | 'failed' | 'missing' | 'blocked'
 

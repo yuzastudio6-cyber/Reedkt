@@ -1,5 +1,6 @@
 import { ApiError } from '../errors/api-error'
 import type { ToolReadinessCheckResult } from './tool-readiness-types'
+import type { WorkerToolName } from './tool-readiness-types'
 import type { WorkerJobRecord } from './worker-job-loader'
 import { createGateResult, type WorkerGateCheckResult } from './worker-result'
 
@@ -159,11 +160,11 @@ export function assertRequiredToolReady(jobType: string, toolResults: ToolReadin
   })
 }
 
-export function requiredToolForJob(jobType: string, workerType?: string): 'ffprobe' | 'remotion' | undefined {
-  return requiredToolsForJob(jobType, workerType)[0] as 'ffprobe' | 'remotion' | undefined
+export function requiredToolForJob(jobType: string, workerType?: string): WorkerToolName | undefined {
+  return requiredToolsForJob(jobType, workerType)[0]
 }
 
-export function requiredToolsForJob(jobType: string, workerType?: string): Array<'ffmpeg' | 'ffprobe' | 'remotion'> {
+export function requiredToolsForJob(jobType: string, workerType?: string): WorkerToolName[] {
   if (jobType === 'media_analysis' || jobType === 'frame_extraction') return ['ffprobe']
   if (workerType === 'basic_render_smoke_worker') return ['ffmpeg', 'ffprobe']
   if (jobType === 'basic_render_smoke') return ['ffmpeg', 'ffprobe']

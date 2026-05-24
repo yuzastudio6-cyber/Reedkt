@@ -41,7 +41,14 @@ The guarded workflow `RP E2E Staging Real Video Upload To Preview Canary` passed
 
 These passes are staging-only and do not enable production rendering, providers, Stripe/payment, customer media, broad E2E, or queue draining. OIDC/WIF was used and no service account JSON key path was used.
 
-Next staging gate: provider sandbox validation, still disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
+RP-TOOLS-01 adds a code-enforced runtime tool registry for the editing stack. The registry tracks FFmpeg, FFprobe, Remotion, Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper/faster-whisper/whisper.cpp, PySceneDetect, Playwright, and VapourSynth with typed worker boundaries, input/output contracts, resource hints, review status, and production approval status. Safe readiness checks are metadata/version/import only; they do not process media, call providers, call Stripe, deploy production, use customer media, or drain queues.
+
+- Current strict required tools: `ffmpeg`, `ffprobe`, and `remotion`
+- Code-enforced/proven staging tools: `ffmpeg`, `ffprobe`, and `remotion`
+- Optional/planned tools: Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth
+- Runtime scripts: `tools:registry`, `tools:readiness`, `tools:readiness:strict`, `smoke:tools:registry`, `smoke:tools:readiness`, and `smoke:tools:worker-map`
+
+Next staging gates, in order: media analysis worker canary, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox remains disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
 
 ## RP-FIX-06
 
@@ -65,7 +72,7 @@ The implementation handles missing Supabase env values, signed-out users, profil
 - Full auth UI and route/session integration.
 - Deployed storage/upload runtime and signed URL delivery.
 - Supabase local/staging validation.
-- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure and real-video upload-to-preview canaries are passed, but production/customer rendering remains open.
+- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure and real-video upload-to-preview canaries are passed, and the runtime tool registry is code-enforced, but production/customer rendering and optional worker tool execution remain open.
 
 ## RP-FIX-07
 

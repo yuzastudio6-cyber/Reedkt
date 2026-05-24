@@ -5,10 +5,12 @@ import { checkFFmpeg } from './tools/ffmpeg-check'
 import { checkFFprobe } from './tools/ffprobe-check'
 import { checkOpenCV } from './tools/opencv-check'
 import { checkPlaywright } from './tools/playwright-check'
+import { checkPySceneDetect } from './tools/pyscenedetect-check'
 import { checkRemotion } from './tools/remotion-check'
 import { checkSharpLibvips } from './tools/sharp-libvips-check'
 import { checkSignalsmithStretch } from './tools/signalsmith-stretch-check'
 import { checkVapourSynth } from './tools/vapoursynth-check'
+import { checkWhisper } from './tools/whisper-check'
 import type { ToolCheck, ToolReadinessCheckResult, WorkerToolName } from './tool-readiness-types'
 import { WORKER_TOOL_NAMES } from './tool-readiness-types'
 
@@ -19,6 +21,8 @@ const TOOL_CHECKS: Record<WorkerToolName, ToolCheck> = {
   sharp_libvips: checkSharpLibvips,
   audioflux: checkAudioFlux,
   signalsmith_stretch: checkSignalsmithStretch,
+  whisper: checkWhisper,
+  pyscenedetect: checkPySceneDetect,
   opencv: checkOpenCV,
   vapoursynth: checkVapourSynth,
   playwright: checkPlaywright,

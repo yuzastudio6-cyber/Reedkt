@@ -40,6 +40,7 @@ jobs:
       STAGING_RENDER_CANARY_CONCURRENCY: "1"
       STAGING_RENDER_CANARY_TIMEOUT_SECONDS: "300"
       STAGING_RENDER_CANARY_NODE_OPTIONS: "--max-old-space-size=1536"
+      STAGING_RENDER_CANARY_IMAGE_REPOSITORY: "us-east1-docker.pkg.dev/reeditpro/reeditpro-runtime/reeditpro-staging-render-canary"
 
     steps:
       - name: Fail closed unless this is the exact staging canary deploy
@@ -58,6 +59,7 @@ jobs:
           test "${STAGING_RENDER_CANARY_CONCURRENCY}" = "1"
           test "${STAGING_RENDER_CANARY_TIMEOUT_SECONDS}" = "300"
           test "${STAGING_RENDER_CANARY_NODE_OPTIONS}" = "--max-old-space-size=1536"
+          test "${STAGING_RENDER_CANARY_IMAGE_REPOSITORY}" = "us-east1-docker.pkg.dev/reeditpro/reeditpro-runtime/reeditpro-staging-render-canary"
           case "${GCP_PROJECT_ID} ${GCP_REGION} ${{ inputs.service_name }} ${STAGING_RENDER_CANARY_OUTPUT_BUCKET_OR_PREFIX}" in
             *prod*|*production*|*live*)
               echo "Refusing production-looking staging canary deploy target." >&2
@@ -92,22 +94,13 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v3
 
-      - name: Derive current staging canary image repository
+      - name: Derive fixed staging canary image
         id: image
         shell: bash
         run: |
           set -euo pipefail
-          current_image="$(gcloud run services describe '${{ inputs.service_name }}' \
-            --project "${GCP_PROJECT_ID}" \
-            --region "${GCP_REGION}" \
-            --format='value(spec.template.spec.containers[0].image)')"
-          image_repo="${current_image%:*}"
-          if [[ -z "${image_repo}" || "${image_repo}" != *"reeditpro-staging-render-canary"* ]]; then
-            echo "Current image repo is not the staging render canary repo." >&2
-            exit 1
-          fi
-          image="${image_repo}:${{ inputs.target_sha }}"
-          registry_host="${image_repo%%/*}"
+          image="${STAGING_RENDER_CANARY_IMAGE_REPOSITORY}:${{ inputs.target_sha }}"
+          registry_host="${STAGING_RENDER_CANARY_IMAGE_REPOSITORY%%/*}"
           echo "image=${image}" >> "${GITHUB_OUTPUT}"
           echo "registry_host=${registry_host}" >> "${GITHUB_OUTPUT}"
 

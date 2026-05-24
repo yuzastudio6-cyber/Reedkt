@@ -691,7 +691,7 @@ async function runPersistedGcsTimelineCompositionSmokePrepared(
       job_type: TIMELINE_METADATA_JOB_TYPE,
       status: 'completed',
       priority: 'normal',
-      worker_target: 'timeline_composition_agent',
+      worker_target: TIMELINE_METADATA_AGENT_TYPE,
       runtime_type: 'backend_api',
       job_name: 'RP-EDIT-01 staging timeline composition canary metadata',
       job_description: 'Smoke-scoped staging timeline composition metadata; no providers, no Stripe, no customer media.',

@@ -226,6 +226,7 @@ export type PersistedRenderExecutionMode =
   | 'local_ffmpeg'
   | 'staging_cloud_run_remotion_canary'
   | 'staging_real_video_upload_preview_canary'
+  | 'staging_timeline_composition_canary'
 
 export type RenderSmokeStatus = 'preview_ready' | 'skipped' | 'failed'
 

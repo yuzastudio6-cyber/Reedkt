@@ -1,6 +1,7 @@
 import {
   REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE,
   RENDER_CANARY_MODE,
+  TIMELINE_COMPOSITION_CANARY_MODE,
   type RenderCanaryConfig,
   type RenderCanaryConfigValidationIssue,
   type RenderCanaryGuardCode,
@@ -36,8 +37,13 @@ const BOUNDED_CANARY_NODE_OPTIONS = '--max-old-space-size=1536'
 
 export function readRenderCanaryConfig(sourceEnv: Record<string, string | undefined>): RenderCanaryConfig {
   const configuredMode = clean(sourceEnv.STAGING_RENDER_CANARY_MODE)
+  const mode = configuredMode === REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+    ? REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+    : configuredMode === TIMELINE_COMPOSITION_CANARY_MODE
+      ? TIMELINE_COMPOSITION_CANARY_MODE
+      : RENDER_CANARY_MODE
   return {
-    mode: configuredMode === REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE ? REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE : RENDER_CANARY_MODE,
+    mode,
     cloudRunUrl: clean(sourceEnv.STAGING_CLOUD_RUN_RENDER_CANARY_URL)
       ?? clean(sourceEnv.STAGING_RENDER_CANARY_CLOUD_RUN_URL),
     cloudRunAudience: clean(sourceEnv.STAGING_CLOUD_RUN_RENDER_CANARY_AUDIENCE)

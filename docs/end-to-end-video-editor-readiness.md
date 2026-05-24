@@ -39,13 +39,29 @@ RP-TOOLS-01 now adds code-enforced runtime editing tool contracts for FFmpeg, FF
 - Optional/planned tools: Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth
 - Safe checks only: version, import, or package-resolution checks; no media processing, provider calls, Stripe/payment, production deploy, customer media, broad queues, or service account JSON keys
 
-RP-MEDIA-01 is implemented as the next fail-closed staging canary, but it has not yet been live-dispatched or recorded as passed.
+RP-MEDIA-01 passed as the guarded media-analysis worker canary:
 
+- Run: `26349869644`
+- Job: `77566075442`
+- Head SHA: `287e33bead1dcfdab086494723f6e250bc262804`
+- Smoke run ID: `rp-e2e-smoke-c52baa68-bb67-43c1-b9bc-380cc44d9121`
+- Result: `PASS`
 - Required for this gate: FFmpeg and FFprobe
 - Not required for this gate: Remotion and Cloud Run rendering
 - Flow: generated smoke MP4 -> GCS source media -> Supabase source metadata -> FFprobe metadata -> FFmpeg thumbnail/audio check -> GCS analysis artifacts -> smoke-safe media-analysis job metadata -> cleanup and strict leftover checks
+- FFprobe summary: `3s`, `160x90`, `mpeg4`, `mp4` container, one video stream, no audio
+- FFmpeg thumbnail: `image/jpeg`, `160x90`, `3,364` bytes
 - Artifact path: `workspaces/{workspaceId}/projects/{projectId}/media-analysis/{smokeRunId}/...`
 - Optional warnings only: PySceneDetect, Whisper variants, OpenCV, and AudioFlux
+- Cleanup: `15` Supabase records deleted, `5` GCS objects deleted, no cleanup errors, no leftover records, no leftover query errors
+
+RP-EDIT-01 is implemented as the next fail-closed staging canary, but it has not yet been live-dispatched or recorded as passed.
+
+- Required for this gate: FFmpeg, FFprobe, and Remotion
+- Flow: generated smoke MP4 -> GCS source media -> FFprobe/FFmpeg analysis -> deterministic one-segment timeline -> private Cloud Run `/canary/render` -> Remotion preview render -> GCS preview artifact -> render/QA metadata -> cleanup and strict leftover checks
+- Timeline: `3s`, `160x90`, `15fps`, `45` frames, one trimmed source segment, caption placeholder, and lower-third/safe-zone overlay
+- Preview path: `workspaces/{workspaceId}/projects/{projectId}/previews/{renderId}/...`
+- Rollout blocker: Cloud Run service image redeploy is required before live dispatch because the canary service and Remotion entrypoint changed
 
 ## What This Branch Proves
 
@@ -103,7 +119,8 @@ No file upload, provider call, Stripe call, Cloud Run call, Supabase mutation, F
 | Provider gateway | production-required | OpenAI, Lyria, Mirelo, MMAudio, Wan, Veo, Kling, Hailuo, and related provider calls remain disabled/backend-required. |
 | Render/export | production-required | Staging Cloud Run / Remotion infrastructure and real-video upload-to-preview canaries passed with tiny smoke artifacts. Production render/export workers, customer media processing, final exports, and production QA remain. |
 | Runtime editing tools | partially fixed | Typed registry and safe readiness checks exist for core/open-source tools. Optional tool installation, license/security review, worker images, worker canaries, and production/customer execution remain blocked. |
-| Media analysis worker | implementation added | RP-MEDIA-01 adds a staging-only FFprobe/FFmpeg canary for a generated smoke video. Live workflow dispatch/pass recording is still pending; customer media analysis remains blocked. |
+| Media analysis worker | staging smoke passed | RP-MEDIA-01 passed with one generated staging smoke video, FFprobe metadata, FFmpeg thumbnail extraction, GCS artifacts, Supabase cleanup, and no leftovers. Customer media analysis remains blocked. |
+| Timeline composition worker | implementation added | RP-EDIT-01 adds a staging-only canary for a deterministic one-segment edit timeline rendered through Cloud Run/Remotion. Live workflow dispatch/pass recording is still pending; customer timeline rendering remains blocked. |
 | Stripe | production-required | Checkout, subscriptions, webhooks, invoices, and credit purchase reconciliation remain missing. |
 | Monitoring/rate limits | production-required | Production logging, metrics, alerts, abuse controls, and quota enforcement remain missing. |
 | QA | production-required | Mock planning QA exists; real media QA, frame/audio validation, render QA, and failure recovery still need workers. |
@@ -145,10 +162,9 @@ Useful URLs:
 
 Next safe staging gates, in order:
 
-1. Live RP-MEDIA-01 media analysis worker canary dispatch/recording.
-2. Real timeline composition canary.
-3. SoundSync analysis canary.
-4. Provider sandbox validation, disabled by default and limited to a single provider plus a single smoke-tagged job.
+1. Live RP-EDIT-01 real timeline composition canary dispatch/recording.
+2. SoundSync analysis canary.
+3. Provider sandbox validation, disabled by default and limited to a single provider plus a single smoke-tagged job.
 
 Every next gate must keep explicit allow flags, staging-only configuration, cleanup, strict leftover checks, no Stripe/payment, no production, no broad E2E, no queue drain, and no customer media.
 

@@ -17,7 +17,7 @@ This is not production video editing. Real Supabase validation, deployed Cloud R
 
 ## Staging Gate Progress
 
-Status: staging Cloud Run / Remotion render infrastructure and real-video upload-to-preview canaries passed.
+Status: staging Cloud Run / Remotion render infrastructure, real-video upload-to-preview, and media-analysis canaries passed.
 
 The guarded workflow `RP E2E Staging Cloud Run Remotion Render Infrastructure Canary` passed on run `26321096931` at head SHA `915b110548cac27cdaffdbffb17bdfa54a724a01`.
 
@@ -48,13 +48,27 @@ RP-TOOLS-01 adds a code-enforced runtime tool registry for the editing stack. Th
 - Optional/planned tools: Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth
 - Runtime scripts: `tools:registry`, `tools:readiness`, `tools:readiness:strict`, `smoke:tools:registry`, `smoke:tools:readiness`, and `smoke:tools:worker-map`
 
-RP-MEDIA-01 is now implemented as a staging-only media analysis canary, but it has not been live-dispatched or recorded as passed. It generates one tiny smoke MP4, uploads/registers it as GCS source media, runs required FFprobe/FFmpeg analysis in the workflow runner, stores smoke-tagged thumbnail/probe/audio/report artifacts in GCS, records bounded media-analysis job metadata, then cleans Supabase and GCS artifacts with strict leftover checks. Remotion, Cloud Run rendering, providers, Stripe/payment, production resources, customer media, broad E2E, and queue drains remain out of scope.
+The guarded workflow `RP E2E Staging Media Analysis Canary` passed on run `26349869644` / job `77566075442` at head SHA `287e33bead1dcfdab086494723f6e250bc262804`.
+
+- Smoke run ID: `rp-e2e-smoke-c52baa68-bb67-43c1-b9bc-380cc44d9121`
+- Result: `PASS`
+- Source video: generated tiny staging MP4, uploaded as smoke-tagged GCS source media, then cleaned up
+- FFprobe summary: `3s`, `160x90`, `mpeg4`, `mp4` container, one video stream, no audio
+- FFmpeg thumbnail: `image/jpeg`, `160x90`, `3,364` bytes
+- Cleanup: `15` Supabase records deleted, `5` GCS objects deleted, cleanup errors `[]`, leftover records `[]`, leftover query errors `[]`
+- Safety: optional tools produced warnings only; no production, Stripe/payment, provider generation, customer media, broad E2E, queue drain, Cloud Run render invocation, or service account JSON key path ran
 
 - Required RP-MEDIA-01 tools: `ffmpeg` and `ffprobe`
 - Optional warning-only slots: PySceneDetect, Whisper variants, OpenCV, and AudioFlux
-- New scripts: `media:analysis:canary`, `smoke:e2e:staging-media-analysis:test`, and `smoke:e2e:staging-media-analysis:strict`
+- Scripts: `media:analysis:canary`, `smoke:e2e:staging-media-analysis:test`, and `smoke:e2e:staging-media-analysis:strict`
 
-Next staging gates, in order: live RP-MEDIA-01 dispatch/recording, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox remains disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
+RP-EDIT-01 is now implemented as a fail-closed staging timeline composition canary, but it has not been live-dispatched. It generates one tiny smoke source video, runs FFprobe/FFmpeg analysis, builds a deterministic one-segment timeline with a caption placeholder and lower-third/safe-zone overlay, invokes the private Cloud Run `/canary/render` Remotion service, stores/verifies a smoke preview artifact, records bounded Supabase metadata, cleans smoke DB/GCS artifacts, and fails if leftovers remain. Cloud Run redeploy is required before live dispatch because the service and Remotion entrypoint changed.
+
+- Required RP-EDIT-01 tools: `ffmpeg`, `ffprobe`, and `remotion`
+- New mode: `staging_timeline_composition_canary`
+- New scripts: `timeline:composition:canary`, `smoke:e2e:staging-timeline-composition:test`, and `smoke:e2e:staging-timeline-composition:strict`
+
+Next staging gates, in order: live RP-EDIT-01 timeline composition dispatch/recording, SoundSync analysis canary, then provider sandbox validation. The provider sandbox remains disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
 
 ## RP-FIX-06
 
@@ -78,7 +92,7 @@ The implementation handles missing Supabase env values, signed-out users, profil
 - Full auth UI and route/session integration.
 - Deployed storage/upload runtime and signed URL delivery.
 - Supabase local/staging validation.
-- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure and real-video upload-to-preview canaries are passed, the runtime tool registry is code-enforced, and RP-MEDIA-01 is implemented but not live-passed. Production/customer rendering and optional worker tool execution remain open.
+- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure, real-video upload-to-preview, and media-analysis canaries are passed, the runtime tool registry is code-enforced, and RP-EDIT-01 is implemented but not live-passed. Production/customer rendering and optional worker tool execution remain open.
 
 ## RP-FIX-07
 

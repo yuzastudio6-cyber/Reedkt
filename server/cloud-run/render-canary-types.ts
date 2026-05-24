@@ -4,10 +4,12 @@ export const RENDER_CANARY_MODE = 'staging_cloud_run_remotion_canary' as const
 export const RENDER_CANARY_FIXTURE = 'tiny-muted-3s' as const
 export const REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE = 'staging_real_video_upload_preview_canary' as const
 export const REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE = 'tiny-upload-source-3s' as const
+export const TIMELINE_COMPOSITION_CANARY_MODE = 'staging_timeline_composition_canary' as const
 
 export type RenderCanaryConfigMode =
   | typeof RENDER_CANARY_MODE
   | typeof REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+  | typeof TIMELINE_COMPOSITION_CANARY_MODE
 
 export type RenderCanaryGuardCode =
   | 'missing_staging_render_infrastructure_canary_path'
@@ -102,4 +104,9 @@ export interface RealVideoUploadPreviewCanaryInvocationConfig extends RenderCana
     bucketName: string
     objectPath: string
   }
+}
+
+export interface TimelineCompositionCanaryInvocationConfig extends RealVideoUploadPreviewCanaryInvocationConfig {
+  analysis: JSONObject
+  timeline: JSONObject
 }

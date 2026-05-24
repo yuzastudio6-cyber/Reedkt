@@ -20,7 +20,8 @@
 - Staging-only Cloud Run / Remotion render infrastructure canary passed through the guarded GitHub Actions workflow. It rendered only the fixed tiny smoke fixture and cleaned up all smoke records/artifacts.
 - Staging-only real-video upload-to-preview canary passed through the guarded GitHub Actions workflow. It created one tiny generated source video in GCS, downloaded it in Cloud Run, rendered a preview through Remotion, recorded render/job/QA metadata, and cleaned up all smoke records/artifacts.
 - Code-enforced runtime editing tool registry for FFmpeg, FFprobe, Remotion, Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright, and VapourSynth. It runs safe version/import/package checks and maps tools to future workers.
-- RP-MEDIA-01 staging media-analysis canary implementation. It fail-closes unless explicitly allowed, generates one tiny smoke MP4, records GCS source metadata, runs FFprobe/FFmpeg analysis in the workflow runner, stores smoke-tagged thumbnail/probe/audio/report artifacts, and cleans all smoke records/artifacts. It has not yet been live-dispatched or recorded as a passed gate.
+- RP-MEDIA-01 staging media-analysis canary passed through the guarded GitHub Actions workflow. It fail-closes unless explicitly allowed, generated one tiny smoke MP4, recorded GCS source metadata, ran FFprobe/FFmpeg analysis in the workflow runner, stored smoke-tagged thumbnail/probe/audio/report artifacts, and cleaned all smoke records/artifacts.
+- RP-EDIT-01 staging timeline composition canary implementation. It fail-closes unless explicitly allowed, creates a deterministic one-segment edit timeline from a smoke source video plus media-analysis metadata, invokes the private Cloud Run/Remotion render path, stores a smoke-tagged preview, and cleans smoke records/artifacts. It has not yet been live-dispatched or recorded as a passed gate.
 - Project-level SoundSync SFX workflow wiring in mock mode, including SFX Director planning, provider routes, prompt plans, credit gates, mock generation requests, mock jobs, mock worker runs, mock provider adapter output, trim/hit alignment, mix, QA, project asset decisions, and editor chat status.
 - SFX provider execution readiness reporting for future Mirelo SFX V1.5 and MMAudio V2 backend transport, including structured block reasons, Secret Manager reference checks, approval/credit/job checks, and safe next steps.
 
@@ -43,7 +44,7 @@
 - Project SFX integration scenarios and chat panel showing Mirelo SFX V1.5, MMAudio V2, internal library, and no-SFX routes.
 - SFX provider readiness scenarios covering mock mode, disabled mode, frontend real-mode blocking, missing Secret Manager references, no-SFX routes, missing approval artifacts, and future transport readiness.
 - Optional runtime tool installation/execution for Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth. These are tracked and checked safely where possible, but remain planning/worker-canary work.
-- Optional RP-MEDIA-01 analysis slots for PySceneDetect, Whisper variants, OpenCV, and AudioFlux are warning-only; missing optional tools do not fail the gate.
+- Optional RP-MEDIA-01 and RP-EDIT-01 analysis/tool slots for PySceneDetect, Whisper variants, OpenCV, AudioFlux, Sharp/libvips, Signalsmith Stretch, Playwright, and VapourSynth are warning-only; missing optional tools do not fail these gates.
 
 ## Not Implemented
 
@@ -59,12 +60,11 @@
 - Deployed backend runtime transport, transactional worker leases, durable idempotency, and cloud lease recovery.
 - Real provider integrations. Mirelo/MMAudio are wired into the project flow in mock mode and have readiness reporting only; live provider transport remains future backend work. The next safe gate is a disabled-by-default staging provider sandbox limited to one provider and one smoke-tagged job.
 - Production rendering/export workers for customer media. The staging render infrastructure and real-video upload-to-preview canary paths are passed, but production preview/export remains unimplemented.
-- Production/customer execution of optional open-source tools. The registry is code-enforced and RP-MEDIA-01 is implemented for a generated staging smoke video only, but license/security approval, worker images, resource caps, live media-analysis pass recording, and customer-media authorization remain missing.
+- Production/customer execution of optional open-source tools. The registry is code-enforced and RP-MEDIA-01 is passed for a generated staging smoke video only; RP-EDIT-01 is implemented for a generated staging timeline only. License/security approval, worker images, resource caps, live timeline pass recording, and customer-media authorization remain missing.
 - Remote Supabase migration or validation.
 
 ## Next Gates
 
-1. Live RP-MEDIA-01 media analysis worker canary dispatch/recording.
-2. Real timeline composition canary.
-3. SoundSync analysis canary.
-4. Provider sandbox gate, still disabled by default and limited to one provider and one smoke-tagged job.
+1. Live RP-EDIT-01 real timeline composition canary dispatch/recording.
+2. SoundSync analysis canary.
+3. Provider sandbox gate, still disabled by default and limited to one provider and one smoke-tagged job.

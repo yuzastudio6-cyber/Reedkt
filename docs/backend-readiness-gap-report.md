@@ -13,7 +13,8 @@
 | Backend runtime transport and worker leasing missing | Partially fixed | Mock runtime envelopes, transport placeholders, lease claim/heartbeat/renew/release/complete/fail/cancel, stale recovery, idempotency helpers, route handlers, and a local lease migration exist. Real backend/cloud lease enforcement remains open. |
 | Production backend runtime not chosen or scaffolded | Partially fixed | Cloud Run API service is selected and a mock-only Node HTTP scaffold exists with health/readiness/runtime/routes/mock endpoints. Separate staging-only Cloud Run / Remotion render infrastructure and real-video upload-to-preview canaries passed. Production deployment, Secret Manager hardening, service-role handlers, providers, Stripe, workers, and customer render execution remain open. |
 | Editing tool runtime registry missing | Partially fixed | RP-TOOLS-01 adds typed server contracts, safe readiness checks, worker-to-tool mapping, CLI output, and smoke tests for FFmpeg, FFprobe, Remotion, Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright, and VapourSynth. It does not install optional tools or approve production/customer execution. |
-| Media analysis worker canary missing | Partially fixed | RP-MEDIA-01 adds a fail-closed staging media-analysis canary using one generated smoke MP4, GCS source/artifact paths, FFprobe metadata, FFmpeg thumbnail/audio checks, smoke-safe Supabase job metadata, cleanup, and leftover detection. Live dispatch/pass recording is still pending. |
+| Media analysis worker canary missing | Fixed for staging smoke | RP-MEDIA-01 passed as a fail-closed staging media-analysis canary using one generated smoke MP4, GCS source/artifact paths, FFprobe metadata, FFmpeg thumbnail/audio checks, smoke-safe Supabase job metadata, cleanup, and leftover detection. Production/customer media analysis remains blocked. |
+| Timeline composition canary missing | Partially fixed | RP-EDIT-01 adds a fail-closed staging timeline composition canary that builds a deterministic one-segment timeline from a generated smoke source, analyzes it with FFprobe/FFmpeg, invokes Cloud Run/Remotion, records preview/QA metadata, and cleans leftovers. Live dispatch/pass recording is still pending. |
 | Provider integrations missing | Partially reduced | Project SFX now reaches mock Mirelo/MMAudio/internal-library routing and includes readiness reporting for future real SFX transport. Real AI, Lyria, Mirelo, MMAudio, Stripe, and rendering calls are still not added. |
 | Supabase production validation missing | Open | No remote migration, local Supabase test, staging test, or advisor review was run. |
 
@@ -61,19 +62,40 @@ The open-source editing tool registry is now code-enforced in `server/tools/*` a
 
 Remaining blockers: production/customer tool execution, optional tool installation in worker images, license/security review, resource caps, and worker canaries.
 
-## RP-MEDIA-01 Media Analysis Canary Status
+## RP-MEDIA-01 Media Analysis Canary Result
 
-The media analysis worker canary is implemented and fail-closed, but it has not yet been live-dispatched.
+The media analysis worker canary passed through the guarded workflow `RP E2E Staging Media Analysis Canary`.
 
+- Run ID: `26349869644`
+- Job ID: `77566075442`
+- Head SHA: `287e33bead1dcfdab086494723f6e250bc262804`
+- Smoke run ID: `rp-e2e-smoke-c52baa68-bb67-43c1-b9bc-380cc44d9121`
+- Result: `PASS`
 - Required tools: `ffmpeg` and `ffprobe`
 - Not required for this gate: Remotion and Cloud Run rendering
+- FFprobe metadata: `3s`, `160x90`, `mpeg4`, `mp4` container, one video stream, no audio
+- FFmpeg thumbnail: `image/jpeg`, `160x90`, `3,364` bytes
 - Optional warning-only slots: PySceneDetect, Whisper variants, OpenCV, and AudioFlux
 - Source path: `workspaces/{workspaceId}/projects/{projectId}/source-media/{smokeRunId}/tiny-media-analysis-source.mp4`
 - Artifact path: `workspaces/{workspaceId}/projects/{projectId}/media-analysis/{smokeRunId}/...`
 - Records: smoke-owned upload intent, media asset, source/artifact `storage_object_records`, `media_analysis` job, and completion event
+- Cleanup: `15` Supabase records deleted, `5` GCS objects deleted, cleanup errors `[]`, leftover records `[]`, leftover query errors `[]`
 - Safety: no production, Stripe/payment, provider generation, customer media, broad E2E, queue drain, Cloud Run render invocation, or service account JSON key path
 
-Next staging gates, in order: live RP-MEDIA-01 dispatch/recording, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox must stay disabled by default, single-provider/single-job only, smoke-tagged, cleanup-enforced, and separate from Stripe/payment or production flows.
+## RP-EDIT-01 Timeline Composition Canary Status
+
+The real timeline composition canary is implemented and fail-closed, but it has not yet been live-dispatched. It is the first staging gate that combines source upload, FFprobe/FFmpeg analysis, deterministic edit timeline metadata, Cloud Run/Remotion preview rendering, render/QA metadata, cleanup, and strict leftover detection.
+
+- Required tools: `ffmpeg`, `ffprobe`, and `remotion`
+- Mode: `staging_timeline_composition_canary`
+- Timeline: one trimmed source segment, `160x90`, `3s`, `15fps`, `45` frames, caption placeholder, and lower-third/safe-zone overlay
+- Source path: `workspaces/{workspaceId}/projects/{projectId}/source-media/{smokeRunId}/tiny-timeline-source.mp4`
+- Analysis artifact path: `workspaces/{workspaceId}/projects/{projectId}/media-analysis/{smokeRunId}/...`
+- Preview path: `workspaces/{workspaceId}/projects/{projectId}/previews/{renderId}/...`
+- Safety: no production, Stripe/payment, provider generation, customer media, broad E2E, queue drain, signed URL canonical records, or service account JSON key path
+- Rollout blocker: the staging Cloud Run canary image must be rebuilt/redeployed before live dispatch.
+
+Next staging gates, in order: live RP-EDIT-01 timeline composition dispatch/recording, SoundSync analysis canary, then provider sandbox validation. The provider sandbox must stay disabled by default, single-provider/single-job only, smoke-tagged, cleanup-enforced, and separate from Stripe/payment or production flows.
 
 ## Local E2E MVP Result
 

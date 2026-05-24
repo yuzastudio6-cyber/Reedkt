@@ -5,6 +5,7 @@ import type { MediaAnalysisReport } from '../media/media-analysis-contracts'
 import { resolveLocalStorageObjectPath } from '../media/local-media-paths'
 import { resolveBucketName } from '../storage/storage-adapter'
 import { buildCanonicalObjectPath } from '../storage/storage-paths'
+import type { TimelineAnalysisSummary, TimelineCompositionSpec } from '../timeline/timeline-composition-contracts'
 import {
   createSmokeMetadata,
   createSmokeRunId,
@@ -23,7 +24,7 @@ import {
   runPersistedRenderPipelineViaRpcs,
   type PersistedRenderExternalArtifactFactory,
 } from './e2e-service-role-runtime-service'
-import type { PersistedRenderExecutionMode } from '../../src/types'
+import type { JSONObject, PersistedRenderExecutionMode } from '../../src/types'
 
 type SmokeStatus = 'passed' | 'failed' | 'skipped'
 type SmokeFailureCode =
@@ -51,6 +52,12 @@ type SmokeFailureCode =
   | 'MEDIA_ANALYSIS_SOURCE_NOT_SMOKE_TAGGED'
   | 'MEDIA_ANALYSIS_ARTIFACT_NOT_SMOKE_TAGGED'
   | 'MEDIA_ANALYSIS_SIGNED_URL_CANONICAL_FORBIDDEN'
+  | 'TIMELINE_COMPOSITION_NOT_ALLOWED'
+  | 'TIMELINE_COMPOSITION_CLEANUP_REQUIRED'
+  | 'TIMELINE_COMPOSITION_GCS_REQUIRED'
+  | 'TIMELINE_COMPOSITION_SOURCE_NOT_SMOKE_TAGGED'
+  | 'TIMELINE_COMPOSITION_ARTIFACT_NOT_SMOKE_TAGGED'
+  | 'TIMELINE_COMPOSITION_SIGNED_URL_CANONICAL_FORBIDDEN'
 
 interface CleanupRecord {
   table: string
@@ -116,6 +123,22 @@ export type PersistedMediaAnalysisExecutor = (input: {
   artifacts: PersistedMediaAnalysisArtifactRecord[]
 }>
 
+export type PersistedTimelineCompositionExecutor = (input: {
+  smokeRunId: string
+  workspaceId: string
+  projectId: string
+  sourceStorageObjectId: string
+  sourceMediaAssetId?: string
+  sourceBucketName: string
+  sourceObjectPath: string
+  sourceSizeBytes: number
+  sourceChecksumSha256: string
+}) => Promise<{
+  analysis: TimelineAnalysisSummary
+  analysisArtifacts: PersistedMediaAnalysisArtifactRecord[]
+  timeline: TimelineCompositionSpec
+}>
+
 interface PersistedRenderSmokeOptions {
   renderExecutionMode?: PersistedRenderExecutionMode
   createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory
@@ -142,6 +165,9 @@ interface SmokeRecordIds {
   mediaAnalysisJobId?: string
   mediaAnalysisJobEventId?: string
   analysisStorageObjectIds?: string[]
+  timelineMetadataJobId?: string
+  timelineMetadataJobEventId?: string
+  timelineAnalysisStorageObjectIds?: string[]
   editSessionId?: string
   editPlanVersionId?: string
   editPlanId?: string
@@ -364,6 +390,44 @@ export async function runPersistedGcsRealVideoUploadPreviewSmoke(
   }, 'staging_real_video_upload_preview_canary', [])
 }
 
+export async function runPersistedGcsTimelineCompositionSmoke(
+  context: ServiceContext,
+  options: Omit<PersistedRenderSmokeOptions, 'renderExecutionMode'> & {
+    analyzeAndBuildTimeline: PersistedTimelineCompositionExecutor
+  },
+): Promise<SupabaseE2ESmokeResult> {
+  const writeCheck = await prepareLiveWriteSmoke(context)
+  if ('result' in writeCheck) return writeCheck.result
+  if (!context.env.supabaseE2eAllowTimelineComposition) {
+    return failureResult(context, 'TIMELINE_COMPOSITION_NOT_ALLOWED', 'SUPABASE_E2E_ALLOW_TIMELINE_COMPOSITION=true is required before live timeline composition canary writes.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+  if (!context.env.supabaseE2eCleanup) {
+    return failureResult(context, 'TIMELINE_COMPOSITION_CLEANUP_REQUIRED', 'SUPABASE_E2E_CLEANUP=true is required for the staging timeline composition canary.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+  if (context.env.storageMode !== 'gcs') {
+    return failureResult(context, 'TIMELINE_COMPOSITION_GCS_REQUIRED', 'Staging timeline composition canary requires STORAGE_MODE=gcs.', {
+      tableReadiness: writeCheck.tableReadiness,
+      details: { requiredStorageMode: 'gcs', actualStorageMode: context.env.storageMode },
+    })
+  }
+  if (!options.sourceFixtureFactory) {
+    return failureResult(context, 'GCS_SOURCE_OBJECT_MISSING', 'Staging timeline composition canary requires a GCS source fixture factory.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+  if (!options.createExternalRenderArtifacts) {
+    return failureResult(context, 'GCS_PREVIEW_OBJECT_MISSING', 'Staging timeline composition canary requires a Cloud Run preview artifact executor.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+
+  return runPersistedGcsTimelineCompositionSmokePrepared(context, writeCheck, options)
+}
+
 export async function runPersistedGcsMediaAnalysisSmoke(
   context: ServiceContext,
   options: {
@@ -540,6 +604,196 @@ async function runPersistedGcsMediaAnalysisSmokePrepared(
   }
 }
 
+async function runPersistedGcsTimelineCompositionSmokePrepared(
+  context: ServiceContext,
+  writeCheck: { client: SupabaseClient; tableReadiness: TableReadinessResult; schema: SchemaInfo },
+  options: Omit<PersistedRenderSmokeOptions, 'renderExecutionMode'> & {
+    analyzeAndBuildTimeline: PersistedTimelineCompositionExecutor
+  },
+): Promise<SupabaseE2ESmokeResult> {
+  const { client, tableReadiness, schema } = writeCheck
+  const cleanupRecords: CleanupRecord[] = []
+  try {
+    const records = await createSupabaseSmokeRecordChain(context, client, schema, cleanupRecords, {
+      createFixture: false,
+      includeRenderMetadata: false,
+      runtimeMode: 'rpc_prerequisites',
+      sourceFixtureFactory: options.sourceFixtureFactory,
+      sourceObjectOwner: options.sourceObjectOwner ?? 'smoke_run',
+      sourceFileName: options.sourceFileName ?? 'tiny-timeline-source.mp4',
+    })
+    if (!records.smokeRunId || !records.workspaceId || !records.projectId || !records.editPlanId || !records.creditWalletId || !records.creditEstimateId || !records.creditApprovalId || !records.userId || !records.sourceStorageObjectId || !records.sourceBucketName || !records.sourceObjectPath || !records.sourceSizeBytes || !records.sourceChecksumSha256) {
+      throw new SupabaseSmokeError('missing_dependency', 'Timeline composition smoke prerequisite record chain is incomplete.', { records })
+    }
+    if (!isSmokeScopedObjectPath(records.sourceObjectPath, records.smokeRunId, '/source-media/')) {
+      throw new SupabaseSmokeError('TIMELINE_COMPOSITION_SOURCE_NOT_SMOKE_TAGGED', 'Timeline composition source object path is not smoke-scoped.', {
+        objectPath: records.sourceObjectPath,
+        smokeRunId: records.smokeRunId,
+      })
+    }
+
+    const timelinePreparation = await options.analyzeAndBuildTimeline({
+      smokeRunId: records.smokeRunId,
+      workspaceId: records.workspaceId,
+      projectId: records.projectId,
+      sourceStorageObjectId: records.sourceStorageObjectId,
+      sourceMediaAssetId: records.mediaAssetId,
+      sourceBucketName: records.sourceBucketName,
+      sourceObjectPath: records.sourceObjectPath,
+      sourceSizeBytes: records.sourceSizeBytes,
+      sourceChecksumSha256: records.sourceChecksumSha256,
+    })
+    if (containsForbiddenSignedUrlCanonicalField(timelinePreparation)) {
+      throw new SupabaseSmokeError('TIMELINE_COMPOSITION_SIGNED_URL_CANONICAL_FORBIDDEN', 'Timeline composition canonical metadata must not contain signed URL fields.')
+    }
+    if (timelinePreparation.timeline.smokeRunId !== records.smokeRunId) {
+      throw new SupabaseSmokeError('missing_dependency', 'Timeline composition smoke run id did not match the persisted smoke record chain.', {
+        timelineSmokeRunId: timelinePreparation.timeline.smokeRunId,
+        smokeRunId: records.smokeRunId,
+      })
+    }
+
+    const timelineAnalysisStorageObjectIds: string[] = []
+    for (const artifact of timelinePreparation.analysisArtifacts) {
+      if (!isSmokeScopedObjectPath(artifact.objectPath, records.smokeRunId, '/media-analysis/')) {
+        throw new SupabaseSmokeError('TIMELINE_COMPOSITION_ARTIFACT_NOT_SMOKE_TAGGED', 'Timeline analysis artifact path is not smoke-scoped.', {
+          objectPath: artifact.objectPath,
+          smokeRunId: records.smokeRunId,
+        })
+      }
+      timelineAnalysisStorageObjectIds.push(await insertRow(client, schema, cleanupRecords, 'storage_object_records', {
+        id: randomUUID(),
+        workspace_id: records.workspaceId,
+        project_id: records.projectId,
+        media_asset_id: records.mediaAssetId,
+        bucket_name: artifact.bucketName,
+        object_path: artifact.objectPath,
+        object_purpose: artifact.objectPurpose,
+        mime_type: artifact.mimeType,
+        size_bytes: artifact.sizeBytes,
+        checksum_sha256: artifact.checksumSha256,
+        region: storageRegion(context),
+        status: 'ready',
+      }, { smokeRunId: records.smokeRunId }))
+    }
+
+    const metadataJobId = await insertRow(client, schema, cleanupRecords, 'jobs', {
+      id: randomUUID(),
+      workspace_id: records.workspaceId,
+      project_id: records.projectId,
+      chat_session_id: records.chatSessionId,
+      chat_message_id: records.chatMessageId,
+      edit_plan_id: records.editPlanId,
+      credit_estimate_id: records.creditEstimateId,
+      job_type: 'timeline_composition_plan',
+      status: 'completed',
+      priority: 'normal',
+      worker_target: 'timeline_composition_agent',
+      runtime_type: 'backend_api',
+      job_name: 'RP-EDIT-01 staging timeline composition canary metadata',
+      job_description: 'Smoke-scoped staging timeline composition metadata; no providers, no Stripe, no customer media.',
+      idempotency_key: `${records.smokeRunId}:timeline-metadata`,
+      input_payload: {
+        ...smokeMetadata(records.smokeRunId),
+        sourceStorageObjectId: records.sourceStorageObjectId,
+        analysis: timelinePreparation.analysis,
+      },
+      output_payload: timelinePreparation.timeline,
+      progress_percent: 100,
+      progress_message: 'Timeline composition metadata created.',
+      started_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      metadata: smokeMetadata(records.smokeRunId),
+    }, { smokeRunId: records.smokeRunId })
+    const metadataJobEventId = await insertRow(client, schema, cleanupRecords, 'job_events', {
+      id: randomUUID(),
+      job_id: metadataJobId,
+      workspace_id: records.workspaceId,
+      project_id: records.projectId,
+      event_type: 'completed',
+      message: 'RP-EDIT-01 timeline composition metadata completed.',
+      progress_percent: 100,
+      actor_type: 'system',
+      actor_user_id: records.userId,
+      actor_agent_type: 'timeline_composition_agent',
+      payload: timelinePreparation.timeline,
+    }, { smokeRunId: records.smokeRunId })
+
+    const pipeline = await runPersistedRenderPipelineViaRpcs(context, {
+      workspaceId: records.workspaceId,
+      projectId: records.projectId,
+      chatSessionId: records.chatSessionId,
+      editPlanId: records.editPlanId,
+      creditWalletId: records.creditWalletId,
+      creditEstimateId: records.creditEstimateId,
+      creditApprovalId: records.creditApprovalId,
+      approvedByUserId: records.userId,
+      sourceStorageObjectId: records.sourceStorageObjectId,
+      sourceMediaAssetId: records.mediaAssetId,
+      sourceBucketName: records.sourceBucketName,
+      sourceObjectPath: records.sourceObjectPath,
+      sourceSizeBytes: records.sourceSizeBytes,
+      sourceChecksumSha256: records.sourceChecksumSha256,
+      idempotencyKey: createRpcSmokeIdempotencyKey(records.smokeRunId),
+      smokeRunId: records.smokeRunId,
+      renderExecutionMode: 'staging_timeline_composition_canary',
+      createExternalRenderArtifacts: options.createExternalRenderArtifacts,
+      precreateRenderIdForOutputPath: true,
+      timelineSpec: timelinePreparation.timeline as unknown as JSONObject,
+      mediaAnalysisReport: timelinePreparation.analysis as unknown as JSONObject,
+      timelineQaExpectations: timelinePreparation.timeline.qaExpectations as unknown as JSONObject,
+    })
+
+    records.timelineMetadataJobId = metadataJobId
+    records.timelineMetadataJobEventId = metadataJobEventId
+    records.timelineAnalysisStorageObjectIds = timelineAnalysisStorageObjectIds
+    records.creditReservationId = pipeline.creditReservationId
+    records.creditLedgerEntryId = pipeline.creditLedgerEntryId
+    records.approvedPlanSnapshotId = pipeline.approvedPlanSnapshotId
+    records.jobBatchId = pipeline.jobBatchId
+    records.jobId = pipeline.jobId
+    records.renderJobId = pipeline.renderJobId
+    records.workerJobClaimId = pipeline.workerJobClaimId
+    records.jobEventIds = pipeline.jobEventIds
+    records.renderId = pipeline.renderId
+    records.previewStorageObjectId = pipeline.previewStorageObjectId
+    records.qaReportId = pipeline.qaReportId
+
+    registerRpcPersistedRenderCleanup(cleanupRecords, records)
+
+    if (!pipeline.ok || pipeline.status !== 'preview_ready') {
+      const code: SmokeFailureCode = pipeline.error?.code === 'E2E_RPC_MISSING' ? 'rpc_missing' : 'render_failed'
+      throw new SupabaseSmokeError(code, pipeline.error?.message ?? 'Timeline composition canary did not reach preview_ready.', {
+        pipeline,
+      })
+    }
+
+    const readback = await validatePersistedRenderSmokeReadback(client, records, 'staging_timeline_composition_canary')
+    const cleanup = await maybeCleanupSupabaseSmokeRecords(context, client, cleanupRecords)
+    const leftovers = await findExactSupabaseSmokeRecordLeftovers(client, cleanupRecords)
+    return {
+      ok: true,
+      status: 'passed',
+      smokeMode: context.env.supabaseE2eSmokeMode,
+      liveSupabaseConfigured: true,
+      writesAllowed: true,
+      cleanupEnabled: context.env.supabaseE2eCleanup,
+      tableReadiness,
+      records,
+      renderSmoke: pipeline,
+      mediaAnalysis: timelinePreparation.analysis,
+      readback,
+      cleanup,
+      leftoverRecords: leftovers.leftovers,
+      leftoverQueryErrors: leftovers.queryErrors,
+      warnings: [...schema.warnings, ...leftovers.queryErrors],
+    }
+  } catch (error) {
+    const cleanup = await maybeCleanupSupabaseSmokeRecords(context, client, cleanupRecords)
+    return failedFromError(context, error, tableReadiness, cleanup, schema.warnings)
+  }
+}
+
 async function runPersistedRenderSmokePrepared(
   context: ServiceContext,
   writeCheck: { client: SupabaseClient; tableReadiness: TableReadinessResult; schema: SchemaInfo },
@@ -691,6 +945,7 @@ async function validatePersistedRenderSmokeReadback(
   const renderMetadata = readRecordObject(renderPayload?.metadata)
   const cloudRunRemotionCanary = renderExecutionMode === 'staging_cloud_run_remotion_canary'
     || renderExecutionMode === 'staging_real_video_upload_preview_canary'
+    || renderExecutionMode === 'staging_timeline_composition_canary'
   if (snapshotJson?.providerCallsEnabled !== false || renderMetadata?.providerCallsEnabled !== false) {
     blockers.push('Persisted render smoke did not preserve providerCallsEnabled=false.')
   }

@@ -3,6 +3,7 @@ import { AbsoluteFill, Composition, OffthreadVideo, registerRoot, staticFile, us
 import {
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID,
+  STAGING_TIMELINE_COMPOSITION_CANARY_COMPOSITION_ID,
 } from './staging-canary-constants'
 
 function TinyMutedCanary(props: Record<string, unknown>) {
@@ -125,6 +126,103 @@ function TinyUploadedSourcePreview(props: Record<string, unknown>) {
   )
 }
 
+function TinyTimelineCompositionCanary(props: Record<string, unknown>) {
+  const smokeRunId = typeof props.smokeRunId === 'string'
+    ? props.smokeRunId
+    : 'rp-e2e-smoke-00000000-0000-4000-8000-000000000000'
+  const sourceStaticFilePath = typeof props.sourceStaticFilePath === 'string' && isSafeCanaryStaticSourcePath(props.sourceStaticFilePath)
+    ? props.sourceStaticFilePath
+    : ''
+  const frame = useCurrentFrame()
+  const captionOpacity = frame < 4 ? frame / 4 : 1
+
+  return React.createElement(
+    AbsoluteFill,
+    {
+      style: {
+        backgroundColor: '#080b10',
+        color: '#f4f7fb',
+        fontFamily: 'Arial, sans-serif',
+        overflow: 'hidden',
+      },
+    },
+    sourceStaticFilePath
+      ? React.createElement(OffthreadVideo, {
+        src: staticFile(sourceStaticFilePath),
+        muted: true,
+        style: {
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        },
+      })
+      : React.createElement('div', {
+        style: {
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#101820',
+        },
+      }),
+    React.createElement('div', {
+      style: {
+        position: 'absolute',
+        inset: 6,
+        border: '1px solid rgba(244, 247, 251, 0.45)',
+        boxSizing: 'border-box',
+      },
+    }),
+    React.createElement('div', {
+      style: {
+        position: 'absolute',
+        left: 8,
+        right: 8,
+        bottom: 18,
+        height: 13,
+        backgroundColor: 'rgba(8, 11, 16, 0.68)',
+        borderLeft: '2px solid #61d394',
+      },
+    }),
+    React.createElement(
+      'div',
+      {
+        style: {
+          position: 'absolute',
+          left: 12,
+          right: 12,
+          bottom: 20,
+          fontSize: 5,
+          lineHeight: '7px',
+          letterSpacing: 0,
+          opacity: captionOpacity,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        },
+      },
+      'RP-EDIT-01 smoke caption',
+    ),
+    React.createElement(
+      'div',
+      {
+        style: {
+          position: 'absolute',
+          left: 8,
+          right: 8,
+          bottom: 6,
+          padding: '2px 3px',
+          backgroundColor: 'rgba(8, 11, 16, 0.58)',
+          fontSize: 4,
+          letterSpacing: 0,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        },
+      },
+      smokeRunId,
+    ),
+  )
+}
+
 function RemotionRoot() {
   return React.createElement(
     React.Fragment,
@@ -143,6 +241,18 @@ function RemotionRoot() {
     React.createElement(Composition, {
       id: STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
       component: TinyUploadedSourcePreview,
+      width: 160,
+      height: 90,
+      fps: 15,
+      durationInFrames: 45,
+      defaultProps: {
+        smokeRunId: 'rp-e2e-smoke-00000000-0000-4000-8000-000000000000',
+        sourceStaticFilePath: '',
+      },
+    }),
+    React.createElement(Composition, {
+      id: STAGING_TIMELINE_COMPOSITION_CANARY_COMPOSITION_ID,
+      component: TinyTimelineCompositionCanary,
       width: 160,
       height: 90,
       fps: 15,

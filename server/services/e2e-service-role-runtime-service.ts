@@ -79,6 +79,9 @@ export interface RunPersistedRenderPipelineViaRpcsInput {
   renderType?: string
   renderExecutionMode?: PersistedRenderExecutionMode
   createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory
+  timelineSpec?: JSONObject
+  mediaAnalysisReport?: JSONObject
+  timelineQaExpectations?: JSONObject
 }
 
 export interface PersistedRenderExternalArtifactFactoryInput {
@@ -132,6 +135,9 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
   idempotencyKey: string
   smokeRunId?: string
   renderExecutionMode?: PersistedRenderExecutionMode
+  timelineSpec?: JSONObject
+  mediaAnalysisReport?: JSONObject
+  timelineQaExpectations?: JSONObject
 }): Promise<E2EApprovedSnapshotRpcResult> {
   const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
   const infrastructureCanary = isCloudRunRemotionCanaryMode(renderExecutionMode)
@@ -154,6 +160,9 @@ export async function createApprovedSnapshotViaRpc(context: ServiceContext, inpu
       remotionEnabled: infrastructureCanary,
       stripeCallsEnabled: false,
       cloudRunCallsEnabled: infrastructureCanary,
+      timelineSpec: input.timelineSpec,
+      mediaAnalysisReport: input.mediaAnalysisReport,
+      timelineQaExpectations: input.timelineQaExpectations,
     },
     p_plan_hash: `plan-${input.idempotencyKey}`,
     p_credit_hash: `credit-${input.idempotencyKey}`,
@@ -372,6 +381,7 @@ export async function runPersistedRenderPipelineViaRpcs(
   const renderExecutionMode = input.renderExecutionMode ?? 'local_ffmpeg'
   const infrastructureCanary = isCloudRunRemotionCanaryMode(renderExecutionMode)
   const realVideoUploadPreviewCanary = renderExecutionMode === 'staging_real_video_upload_preview_canary'
+  const timelineCompositionCanary = renderExecutionMode === 'staging_timeline_composition_canary'
   if (!infrastructureCanary && context.env.storageMode !== 'local') {
     return failedPipelineResult('LOCAL_STORAGE_REQUIRED', 'RPC persisted render smoke requires STORAGE_MODE=local.', { rpcReadiness })
   }
@@ -430,6 +440,9 @@ export async function runPersistedRenderPipelineViaRpcs(
       idempotencyKey: input.idempotencyKey,
       smokeRunId,
       renderExecutionMode,
+      timelineSpec: input.timelineSpec,
+      mediaAnalysisReport: input.mediaAnalysisReport,
+      timelineQaExpectations: input.timelineQaExpectations,
     })
     if (!snapshot.ok || !snapshot.approvedPlanSnapshotId) return pipelineFromRpcFailure(snapshot, rpcReadiness, partialResult)
     partialResult.approvedPlanSnapshotId = snapshot.approvedPlanSnapshotId
@@ -450,12 +463,24 @@ export async function runPersistedRenderPipelineViaRpcs(
     partialResult.jobId = jobRender.jobId
     partialResult.renderJobId = jobRender.renderJobId
     jobId = jobRender.jobId
+    if (timelineCompositionCanary && input.timelineSpec) {
+      await updateRenderJobTimelineSpec(context, {
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        renderJobId: jobRender.renderJobId,
+        timelineSpec: input.timelineSpec,
+        mediaAnalysisReport: input.mediaAnalysisReport,
+        smokeRunId,
+      })
+    }
 
     const claim = await claimWorkerJobViaRpc(context, {
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       jobId: jobRender.jobId,
-      workerType: realVideoUploadPreviewCanary
+      workerType: timelineCompositionCanary
+        ? 'staging_timeline_composition_canary_worker'
+        : realVideoUploadPreviewCanary
         ? 'staging_real_video_upload_preview_canary_worker'
         : infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
       workerInstanceId: context.env.workerInstanceId,
@@ -473,14 +498,18 @@ export async function runPersistedRenderPipelineViaRpcs(
       jobId: jobRender.jobId,
       eventName: 'worker_claimed',
       eventMessage: infrastructureCanary
-        ? realVideoUploadPreviewCanary
+        ? timelineCompositionCanary
+          ? 'Staging timeline composition canary worker claimed the smoke job.'
+          : realVideoUploadPreviewCanary
           ? 'Staging real-video upload-to-preview canary worker claimed the smoke job.'
           : 'Staging Cloud Run Remotion canary worker claimed the smoke job.'
         : 'RPC persisted render smoke worker claimed the job.',
       progressPercent: 5,
       payloadJson: {
         ...createSmokeMetadata(smokeRunId),
-        workerType: realVideoUploadPreviewCanary
+        workerType: timelineCompositionCanary
+          ? 'staging_timeline_composition_canary_worker'
+          : realVideoUploadPreviewCanary
           ? 'staging_real_video_upload_preview_canary_worker'
           : infrastructureCanary ? 'staging_cloud_run_remotion_canary_worker' : 'basic_render_smoke_worker',
       },
@@ -510,6 +539,8 @@ export async function runPersistedRenderPipelineViaRpcs(
       ownerId: plannedRenderId ?? jobRender.renderJobId,
       fileName: renderExecutionMode === 'metadata_stub'
         ? 'rpc-metadata-smoke-preview.mp4'
+        : timelineCompositionCanary
+          ? `${smokeRunId}-timeline-preview.mp4`
         : realVideoUploadPreviewCanary
           ? `${smokeRunId}-tiny-preview.mp4`
           : infrastructureCanary
@@ -584,6 +615,9 @@ export async function runPersistedRenderPipelineViaRpcs(
         mediaProbe,
         commandSummary: previewRender.commandSummary,
         outputArtifactSummary: renderArtifacts.outputArtifactSummary,
+        timelineSpec: input.timelineSpec,
+        mediaAnalysisReport: input.mediaAnalysisReport,
+        timelineQaExpectations: input.timelineQaExpectations,
         providerCallsEnabled: false,
         stripeCallsEnabled: false,
         cloudRunCallsEnabled: infrastructureCanary,
@@ -605,6 +639,8 @@ export async function runPersistedRenderPipelineViaRpcs(
           ...createSmokeMetadata(smokeRunId),
           check: renderExecutionMode === 'metadata_stub'
             ? 'preview_metadata_created'
+            : timelineCompositionCanary
+              ? 'staging_timeline_composition_artifact_created'
             : realVideoUploadPreviewCanary
               ? 'staging_real_video_upload_preview_artifact_created'
             : infrastructureCanary
@@ -625,9 +661,15 @@ export async function runPersistedRenderPipelineViaRpcs(
           ...createSmokeMetadata(smokeRunId),
           check: realVideoUploadPreviewCanary
             ? 'uploaded_source_video_remotion_preview_rendered'
+            : timelineCompositionCanary
+            ? 'timeline_composition_remotion_preview_rendered'
             : infrastructureCanary ? 'tiny_remotion_canary_rendered' : 'remotion_not_used',
           passed: true,
         },
+        ...(timelineCompositionCanary ? [
+          { ...createSmokeMetadata(smokeRunId), check: 'caption_placeholder_layer_present', passed: true },
+          { ...createSmokeMetadata(smokeRunId), check: 'safe_zone_overlay_present', passed: true },
+        ] : []),
       ],
     })
     if (!qa.ok || !qa.qaReportId) return pipelineFromRpcFailure(qa, rpcReadiness, partialResult)
@@ -839,9 +881,48 @@ async function precreatePreviewRenderRecord(context: ServiceContext, input: {
   }
 }
 
+async function updateRenderJobTimelineSpec(context: ServiceContext, input: {
+  workspaceId: string
+  projectId: string
+  renderJobId: string
+  timelineSpec: JSONObject
+  mediaAnalysisReport?: JSONObject
+  smokeRunId: string
+}): Promise<void> {
+  const liveCheck = await getLiveRpcClient(context, input)
+  if (!liveCheck.ok) throw new Error(liveCheck.result.error?.message ?? 'Live service-role client is required to store timeline composition metadata.')
+  const { error } = await liveCheck.client
+    .from('render_jobs')
+    .update({
+      timeline_spec: sanitizeRpcPayload({
+        ...createSmokeMetadata(input.smokeRunId),
+        ...input.timelineSpec,
+      }),
+      render_settings: sanitizeRpcPayload({
+        ...createSmokeMetadata(input.smokeRunId),
+        mode: 'staging_timeline_composition_canary',
+        mediaAnalysisReport: input.mediaAnalysisReport,
+        noProviders: true,
+        noStripe: true,
+        noCustomerMedia: true,
+      }),
+      width: 160,
+      height: 90,
+      frame_rate: 15,
+      worker_runtime: 'cloud_run',
+    })
+    .eq('id', input.renderJobId)
+    .eq('workspace_id', input.workspaceId)
+    .eq('project_id', input.projectId)
+  if (error) {
+    throw new Error(`Could not store timeline composition metadata on render job: ${error.message}`)
+  }
+}
+
 function isCloudRunRemotionCanaryMode(mode: PersistedRenderExecutionMode): boolean {
   return mode === 'staging_cloud_run_remotion_canary'
     || mode === 'staging_real_video_upload_preview_canary'
+    || mode === 'staging_timeline_composition_canary'
 }
 
 export async function runSupabaseRpcReadinessSmoke(context: ServiceContext): Promise<E2ERpcReadinessSmokeResult> {

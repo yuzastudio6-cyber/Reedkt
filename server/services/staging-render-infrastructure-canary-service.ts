@@ -8,15 +8,19 @@ import { canaryErrorMessage } from '../cloud-run/canary-safe-json'
 import {
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID,
+  STAGING_TIMELINE_COMPOSITION_CANARY_COMPOSITION_ID,
 } from '../remotion/staging-canary-constants'
+import type { TimelineCompositionSpec } from '../timeline/timeline-composition-contracts'
 
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE = 'staging_cloud_run_remotion_canary' as const
 export const STAGING_RENDER_INFRASTRUCTURE_CANARY_FIXTURE = 'tiny-muted-3s' as const
 export const STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE = 'staging_real_video_upload_preview_canary' as const
 export const STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_FIXTURE = 'tiny-upload-source-3s' as const
+export const STAGING_TIMELINE_COMPOSITION_CANARY_MODE = 'staging_timeline_composition_canary' as const
 export {
   STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_COMPOSITION_ID,
   STAGING_RENDER_INFRASTRUCTURE_CANARY_COMPOSITION_ID,
+  STAGING_TIMELINE_COMPOSITION_CANARY_COMPOSITION_ID,
 } from '../remotion/staging-canary-constants'
 
 const SMOKE_RUN_PATTERN = /^rp-e2e-smoke-[0-9a-f-]{36}$/i
@@ -68,11 +72,14 @@ export interface StagingRenderInfrastructureCanaryRequest {
   source?: unknown
   preview?: unknown
   render?: unknown
+  analysis?: unknown
+  timeline?: unknown
 }
 
 export type StagingRenderCanaryMode =
   | typeof STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
   | typeof STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+  | typeof STAGING_TIMELINE_COMPOSITION_CANARY_MODE
 
 export interface BaseStagingRenderCanaryInput {
   canary: true
@@ -106,9 +113,18 @@ export interface StagingRealVideoUploadPreviewCanaryInput extends BaseStagingRen
   }
 }
 
+export interface StagingTimelineCompositionCanaryInput extends BaseStagingRenderCanaryInput {
+  mode: typeof STAGING_TIMELINE_COMPOSITION_CANARY_MODE
+  source: StagingRealVideoUploadPreviewCanaryInput['source']
+  preview: StagingRealVideoUploadPreviewCanaryInput['preview']
+  analysis: Record<string, unknown>
+  timeline: TimelineCompositionSpec
+}
+
 export type StagingRenderCanaryInput =
   | StagingRenderInfrastructureCanaryInput
   | StagingRealVideoUploadPreviewCanaryInput
+  | StagingTimelineCompositionCanaryInput
 
 export interface StagingRenderInfrastructureCanaryEnv {
   serviceMode: string
@@ -160,6 +176,14 @@ export interface StagingRenderInfrastructureCanaryResult {
     checksumSha256: string
     downloaded: boolean
     smokeTraceable: boolean
+  }
+  timeline?: {
+    compositionId: string
+    segmentCount: number
+    layerCount: number
+    captionPlaceholderLayer: boolean
+    safeZoneOverlayLayer: boolean
+    timingMapFrames: number
   }
   remotion?: {
     renderer: 'renderMedia'
@@ -215,6 +239,7 @@ export interface CanaryRenderer {
     sourcePath?: string
     sourcePublicDir?: string
     sourceStaticFilePath?: string
+    timeline?: TimelineCompositionSpec
   }): Promise<void>
 }
 
@@ -363,6 +388,87 @@ export function validateStagingRealVideoUploadPreviewCanaryRequest(
   }
 }
 
+export function validateStagingTimelineCompositionCanaryRequest(
+  payload: StagingRenderInfrastructureCanaryRequest,
+): { ok: true; input: StagingTimelineCompositionCanaryInput } | { ok: false; blockers: string[] } {
+  const blockers: string[] = []
+  const smokeRunId = typeof payload.smokeRunId === 'string' ? payload.smokeRunId.trim() : ''
+  const render = parseNestedRenderSettings(payload.render)
+  const source = parseArtifactRef(payload.source)
+  const preview = parsePreviewRef(payload.preview)
+  const timeline = parseTimelineSpec(payload.timeline)
+  const analysis = recordFromUnknown(payload.analysis)
+
+  if (payload.canary !== true) blockers.push('canary must be true.')
+  if (payload.mode !== STAGING_TIMELINE_COMPOSITION_CANARY_MODE) {
+    blockers.push(`mode must be ${STAGING_TIMELINE_COMPOSITION_CANARY_MODE}.`)
+  }
+  if (!SMOKE_RUN_PATTERN.test(smokeRunId)) {
+    blockers.push('smokeRunId must match rp-e2e-smoke-<uuid>.')
+  }
+  if (payload.cleanup !== true) blockers.push('cleanup must be true.')
+  if (!recordFromUnknown(payload.render)) blockers.push('render settings are required for the timeline canary.')
+  validateRenderSettings(render, blockers)
+  validateRequestSafetyPayload(payload, blockers)
+
+  if (!source) blockers.push('source bucket/object metadata is required for the timeline canary.')
+  if (!preview) blockers.push('preview bucket/object metadata is required for the timeline canary.')
+  if (!analysis) blockers.push('media analysis summary is required for the timeline canary.')
+  if (!timeline) blockers.push('timeline spec is required for the timeline canary.')
+  if (source && !isSafeStagingText(source.bucketName)) {
+    blockers.push('source bucket must be staging smoke/canary-scoped and not production-looking.')
+  }
+  if (preview && !isSafeStagingText(preview.bucketName)) {
+    blockers.push('preview bucket must be staging smoke/canary-scoped and not production-looking.')
+  }
+  if (source && (!source.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(source.objectPath, 'source-media'))) {
+    blockers.push('source object path must be canonical, smoke-tagged, and under source-media.')
+  }
+  if (preview && (!preview.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(preview.objectPath, 'previews'))) {
+    blockers.push('preview object path must be canonical, smoke-tagged, and under previews.')
+  }
+  if (source && source.sizeBytes > 250_000) blockers.push('source video fixture must stay below 250000 bytes.')
+  if (source && source.mimeType !== 'video/mp4') blockers.push('source video fixture must be video/mp4.')
+  if (hasSignedUrlLikeField(payload.source) || hasSignedUrlLikeField(payload.preview) || hasSignedUrlLikeField(payload.timeline) || hasSignedUrlLikeField(payload.analysis)) {
+    blockers.push('timeline canary canonical metadata must not include signed URLs or URL fields.')
+  }
+  if (timeline) {
+    if (timeline.mode !== STAGING_TIMELINE_COMPOSITION_CANARY_MODE) blockers.push(`timeline.mode must be ${STAGING_TIMELINE_COMPOSITION_CANARY_MODE}.`)
+    if (timeline.smokeRunId !== smokeRunId) blockers.push('timeline smokeRunId must match request smokeRunId.')
+    if (timeline.durationSeconds !== 3 || timeline.width !== 160 || timeline.height !== 90 || timeline.fps !== 15 || timeline.totalFrames !== 45) {
+      blockers.push('timeline spec must stay fixed at 3s, 160x90, 15fps, and 45 frames.')
+    }
+    if (timeline.segments.length !== 1) blockers.push('timeline spec must contain exactly one source segment.')
+    if (timeline.layers.length !== 3) blockers.push('timeline spec must contain exactly source, caption placeholder, and overlay layers.')
+    if (!timeline.layers.some((layer) => layer.layerType === 'caption_placeholder')) blockers.push('timeline spec must include a caption placeholder layer.')
+    if (!timeline.layers.some((layer) => layer.layerType === 'safe_zone_overlay' || layer.layerType === 'lower_third_placeholder')) blockers.push('timeline spec must include a safe-zone/lower-third overlay layer.')
+    if (!timeline.source.objectPath.includes(smokeRunId) || !isSmokeCanonicalPath(timeline.source.objectPath, 'source-media')) {
+      blockers.push('timeline source must reference the smoke-tagged source object path.')
+    }
+  }
+
+  if (blockers.length > 0) return { ok: false, blockers }
+
+  return {
+    ok: true,
+    input: {
+      canary: true,
+      mode: STAGING_TIMELINE_COMPOSITION_CANARY_MODE,
+      smokeRunId,
+      maxDurationSeconds: render.maxDurationSeconds,
+      maxFrames: render.maxFrames,
+      width: render.width,
+      height: render.height,
+      fps: render.fps,
+      cleanup: true,
+      source: source!,
+      preview: preview!,
+      analysis: analysis!,
+      timeline: timeline!,
+    },
+  }
+}
+
 function validateRenderSettings(
   render: {
     maxDurationSeconds: number
@@ -424,8 +530,12 @@ export function validateStagingRenderInfrastructureCanaryEnv(
   env: StagingRenderInfrastructureCanaryEnv,
 ): string[] {
   const blockers: string[] = []
-  if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE && env.serviceMode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
-    blockers.push(`STAGING_RENDER_CANARY_MODE must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE} or ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE}.`)
+  if (
+    env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+    && env.serviceMode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+    && env.serviceMode !== STAGING_TIMELINE_COMPOSITION_CANARY_MODE
+  ) {
+    blockers.push(`STAGING_RENDER_CANARY_MODE must be ${STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE}, ${STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE}, or ${STAGING_TIMELINE_COMPOSITION_CANARY_MODE}.`)
   }
   if (!env.projectId) {
     blockers.push('GCP_PROJECT_ID is required for the staging Cloud Run Remotion canary service.')
@@ -494,9 +604,12 @@ export async function runStagingRenderInfrastructureCanary(
   deps: StagingRenderInfrastructureCanaryDeps = {},
 ): Promise<StagingRenderInfrastructureCanaryResult> {
   const realVideoRequest = payload.mode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
-  const requestValidation = realVideoRequest
-    ? validateStagingRealVideoUploadPreviewCanaryRequest(payload)
-    : validateStagingRenderInfrastructureCanaryRequest(payload)
+  const timelineRequest = payload.mode === STAGING_TIMELINE_COMPOSITION_CANARY_MODE
+  const requestValidation = timelineRequest
+    ? validateStagingTimelineCompositionCanaryRequest(payload)
+    : realVideoRequest
+      ? validateStagingRealVideoUploadPreviewCanaryRequest(payload)
+      : validateStagingRenderInfrastructureCanaryRequest(payload)
   const requestInput = requestValidation.ok ? requestValidation.input : undefined
   const envBlockers = validateStagingRenderInfrastructureCanaryEnv(env)
   const blockers = [
@@ -504,11 +617,16 @@ export async function runStagingRenderInfrastructureCanary(
     ...envBlockers,
   ]
   if (blockers.length > 0) {
-    const blockedMode = realVideoRequest ? STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE : STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+    const blockedMode = timelineRequest
+      ? STAGING_TIMELINE_COMPOSITION_CANARY_MODE
+      : realVideoRequest ? STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE : STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
     return blockedResult(blockers, requestInput?.smokeRunId, blockedMode)
   }
 
   const input = requestInput!
+  if (input.mode === STAGING_TIMELINE_COMPOSITION_CANARY_MODE) {
+    return runStagingTimelineCompositionCanary(input, env, deps)
+  }
   if (input.mode === STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) {
     return runStagingRealVideoUploadPreviewCanary(input, env, deps)
   }
@@ -724,6 +842,139 @@ async function runStagingRealVideoUploadPreviewCanary(
   }
 }
 
+async function runStagingTimelineCompositionCanary(
+  input: StagingTimelineCompositionCanaryInput,
+  env: StagingRenderInfrastructureCanaryEnv,
+  deps: StagingRenderInfrastructureCanaryDeps,
+): Promise<StagingRenderInfrastructureCanaryResult> {
+  const tempDir = path.join(os.tmpdir(), 'reeditpro-canary', input.smokeRunId)
+  const publicDir = path.join(tempDir, 'public')
+  const sourcePath = path.join(tempDir, REAL_VIDEO_STATIC_SOURCE_FILE)
+  const publicSourcePath = path.join(publicDir, REAL_VIDEO_STATIC_SOURCE_FILE)
+  const outputPath = path.join(tempDir, 'timeline-preview.mp4')
+  const renderer = deps.renderer ?? { render: renderTimelineCompositionRemotionCanary }
+  const store = deps.artifactStore ?? new GcsCanaryArtifactStore(env.projectId)
+
+  try {
+    await rm(tempDir, { recursive: true, force: true })
+    await mkdir(publicDir, { recursive: true })
+    if (!store.download) {
+      throw new Error('The timeline composition canary requires a GCS artifact store with download support.')
+    }
+    await store.download({
+      bucketName: input.source.bucketName,
+      objectPath: input.source.objectPath,
+      localPath: sourcePath,
+    })
+    const sourceStat = await stat(sourcePath)
+    if (sourceStat.size !== input.source.sizeBytes) {
+      throw new Error('Downloaded timeline source video size did not match registered smoke metadata.')
+    }
+    const sourceChecksum = await sha256File(sourcePath)
+    if (sourceChecksum !== input.source.checksumSha256) {
+      throw new Error('Downloaded timeline source video checksum did not match registered smoke metadata.')
+    }
+    if (sourceStat.size <= 0 || sourceStat.size > 250_000) {
+      throw new Error('Downloaded timeline source video is outside the tiny staging fixture bounds.')
+    }
+    await copyFile(sourcePath, publicSourcePath)
+    const publicSourceStat = await stat(publicSourcePath)
+    if (publicSourceStat.size !== sourceStat.size) {
+      throw new Error('Prepared timeline Remotion static source video size did not match downloaded smoke source.')
+    }
+
+    await renderer.render({
+      outputPath,
+      sourcePath,
+      sourcePublicDir: publicDir,
+      sourceStaticFilePath: REAL_VIDEO_STATIC_SOURCE_FILE,
+      smokeRunId: input.smokeRunId,
+      width: input.width,
+      height: input.height,
+      fps: input.fps,
+      durationSeconds: input.maxDurationSeconds,
+      timeoutSeconds: env.renderTimeoutSeconds,
+      remotionEntrypoint: env.remotionEntrypoint,
+      timeline: input.timeline,
+    })
+
+    const fileStat = await stat(outputPath)
+    if (fileStat.size <= 0 || fileStat.size > env.maxArtifactBytes) {
+      throw new Error(`Rendered timeline canary preview size ${fileStat.size} is outside the allowed staging canary bounds.`)
+    }
+    const checksumSha256 = await sha256File(outputPath)
+    await store.upload({
+      bucketName: input.preview.bucketName,
+      objectPath: input.preview.objectPath,
+      localPath: outputPath,
+      checksumSha256,
+      smokeRunId: input.smokeRunId,
+      canaryMode: STAGING_TIMELINE_COMPOSITION_CANARY_MODE,
+    })
+    const existsBeforeCleanup = await store.exists(input.preview.bucketName, input.preview.objectPath)
+    if (!existsBeforeCleanup) throw new Error('Uploaded timeline preview artifact was not readable before caller cleanup.')
+
+    return {
+      ok: true,
+      status: 'completed',
+      mode: STAGING_TIMELINE_COMPOSITION_CANARY_MODE,
+      smokeRunId: input.smokeRunId,
+      sourceArtifact: {
+        ...input.source,
+        downloaded: true,
+        smokeTraceable: input.source.objectPath.includes(input.smokeRunId),
+      },
+      outputArtifact: {
+        bucketName: input.preview.bucketName,
+        objectPath: input.preview.objectPath,
+        mimeType: 'video/mp4',
+        sizeBytes: fileStat.size,
+        checksumSha256,
+        durationSeconds: input.maxDurationSeconds,
+        width: input.width,
+        height: input.height,
+        fps: input.fps,
+        frameCount: Math.ceil(input.maxDurationSeconds * input.fps),
+        existsBeforeCleanup,
+        deleted: false,
+        existsAfterCleanup: true,
+        cleanupDelegatedToCaller: true,
+        smokeTraceable: input.preview.objectPath.includes(input.smokeRunId),
+      },
+      timeline: {
+        compositionId: STAGING_TIMELINE_COMPOSITION_CANARY_COMPOSITION_ID,
+        segmentCount: input.timeline.segments.length,
+        layerCount: input.timeline.layers.length,
+        captionPlaceholderLayer: input.timeline.layers.some((layer) => layer.layerType === 'caption_placeholder'),
+        safeZoneOverlayLayer: input.timeline.layers.some((layer) => layer.layerType === 'safe_zone_overlay' || layer.layerType === 'lower_third_placeholder'),
+        timingMapFrames: input.timeline.timingMap.totalFrames,
+      },
+      remotion: {
+        renderer: 'renderMedia',
+        bundler: 'bundle',
+        selector: 'selectComposition',
+        compositionId: STAGING_TIMELINE_COMPOSITION_CANARY_COMPOSITION_ID,
+      },
+      strictValidation: strictValidation([], true),
+    }
+  } catch (error) {
+    const message = canaryErrorMessage(error)
+    return {
+      ok: false,
+      status: 'failed',
+      mode: STAGING_TIMELINE_COMPOSITION_CANARY_MODE,
+      smokeRunId: input.smokeRunId,
+      strictValidation: strictValidation([message], true),
+      error: {
+        code: 'staging_timeline_composition_canary_failed',
+        message,
+      },
+    }
+  } finally {
+    await rm(tempDir, { recursive: true, force: true }).catch(() => undefined)
+  }
+}
+
 async function renderTinyRemotionCanary(input: Parameters<CanaryRenderer['render']>[0]): Promise<void> {
   if (!existsSync(input.remotionEntrypoint)) {
     throw new Error('Staging canary Remotion entrypoint is missing from the Cloud Run image.')
@@ -811,6 +1062,63 @@ async function renderUploadedSourceRemotionCanary(input: Parameters<CanaryRender
     logLevel: 'warn',
     overwrite: true,
     videoBitrate: '220K',
+  })
+}
+
+async function renderTimelineCompositionRemotionCanary(input: Parameters<CanaryRenderer['render']>[0]): Promise<void> {
+  if (!input.sourcePath) throw new Error('Timeline canary render requires a downloaded source video path.')
+  if (!input.sourcePublicDir) throw new Error('Timeline canary render requires a Remotion public directory.')
+  if (!input.sourceStaticFilePath || !isSafeStaticSourceFile(input.sourceStaticFilePath)) {
+    throw new Error('Timeline canary render requires a short safe static source file path.')
+  }
+  if (!input.timeline) throw new Error('Timeline canary render requires a bounded timeline spec.')
+  if (!existsSync(input.remotionEntrypoint)) {
+    throw new Error('Staging canary Remotion entrypoint is missing from the Cloud Run image.')
+  }
+
+  const sourceStat = await stat(input.sourcePath)
+  if (sourceStat.size <= 0 || sourceStat.size > 250_000) {
+    throw new Error('Timeline canary source video must stay below 250000 bytes.')
+  }
+  const publicSourcePath = path.join(input.sourcePublicDir, input.sourceStaticFilePath)
+  const publicSourceStat = await stat(publicSourcePath)
+  if (publicSourceStat.size !== sourceStat.size) {
+    throw new Error('Timeline canary static source file does not match downloaded source size.')
+  }
+
+  const [{ bundle }, { renderMedia, selectComposition }] = await Promise.all([
+    import('@remotion/bundler'),
+    import('@remotion/renderer'),
+  ])
+  const serveUrl = await bundle({
+    entryPoint: input.remotionEntrypoint,
+    publicDir: input.sourcePublicDir,
+    symlinkPublicDir: false,
+  })
+  const inputProps = {
+    smokeRunId: input.smokeRunId,
+    durationSeconds: input.durationSeconds,
+    sourceStaticFilePath: input.sourceStaticFilePath,
+    timeline: input.timeline,
+  }
+  const composition = await selectComposition({
+    serveUrl,
+    id: STAGING_TIMELINE_COMPOSITION_CANARY_COMPOSITION_ID,
+    inputProps,
+  })
+
+  await renderMedia({
+    serveUrl,
+    composition,
+    codec: 'h264',
+    outputLocation: input.outputPath,
+    inputProps,
+    muted: true,
+    concurrency: 1,
+    timeoutInMilliseconds: input.timeoutSeconds * 1000,
+    logLevel: 'warn',
+    overwrite: true,
+    videoBitrate: '240K',
   })
 }
 
@@ -925,13 +1233,49 @@ function parsePreviewRef(value: unknown): StagingRealVideoUploadPreviewCanaryInp
   return { bucketName, objectPath: normalizeCanaryObjectPath(objectPath) }
 }
 
+function parseTimelineSpec(value: unknown): TimelineCompositionSpec | undefined {
+  const record = recordFromUnknown(value)
+  if (!record) return undefined
+  const source = recordFromUnknown(record.source)
+  const timingMap = recordFromUnknown(record.timingMap)
+  const qaExpectations = recordFromUnknown(record.qaExpectations)
+  const segments = Array.isArray(record.segments) ? record.segments.filter((item) => recordFromUnknown(item)) : []
+  const layers = Array.isArray(record.layers) ? record.layers.filter((item) => recordFromUnknown(item)) : []
+  if (
+    record.mode !== STAGING_TIMELINE_COMPOSITION_CANARY_MODE
+    || typeof record.smokeRunId !== 'string'
+    || record.durationSeconds !== 3
+    || record.width !== 160
+    || record.height !== 90
+    || record.fps !== 15
+    || record.totalFrames !== 45
+    || !source
+    || !timingMap
+    || !qaExpectations
+    || segments.length !== 1
+    || layers.length !== 3
+  ) {
+    return undefined
+  }
+  return record as unknown as TimelineCompositionSpec
+}
+
 function hasSignedUrlLikeField(value: unknown): boolean {
   const record = recordFromUnknown(value)
   if (!record) return false
   return Object.entries(record).some(([key, fieldValue]) => {
     const normalizedKey = key.toLowerCase()
-    if (normalizedKey.includes('signed') || normalizedKey === 'url' || normalizedKey.endsWith('url')) return true
-    return typeof fieldValue === 'string' && /^https?:\/\//i.test(fieldValue.trim())
+    if (normalizedKey === 'signedurlsstoredascanonicaltruth') return fieldValue !== false
+    if (normalizedKey.includes('signed') || normalizedKey === 'url' || normalizedKey === 'signedurl' || normalizedKey === 'signed_url' || normalizedKey.endsWith('_url')) return true
+    if (typeof fieldValue === 'string') {
+      const trimmed = fieldValue.trim()
+      return /^https?:\/\//i.test(trimmed)
+        || /^data:video/i.test(trimmed)
+        || /base64/i.test(trimmed)
+        || /\/proxy\?src=data/i.test(trimmed)
+    }
+    if (Array.isArray(fieldValue)) return fieldValue.some((item) => hasSignedUrlLikeField(item))
+    return hasSignedUrlLikeField(fieldValue)
   })
 }
 
@@ -951,7 +1295,11 @@ function hasDedicatedNeutralProjectControls(env: StagingRenderInfrastructureCana
   if (env.projectId !== VERIFIED_STAGING_PROJECT_ID) return false
   if (env.googleCloudProject !== VERIFIED_STAGING_PROJECT_ID) return false
   if (env.region !== VERIFIED_STAGING_REGION) return false
-  if (env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE && env.serviceMode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE) return false
+  if (
+    env.serviceMode !== STAGING_RENDER_INFRASTRUCTURE_CANARY_MODE
+    && env.serviceMode !== STAGING_REAL_VIDEO_UPLOAD_PREVIEW_CANARY_MODE
+    && env.serviceMode !== STAGING_TIMELINE_COMPOSITION_CANARY_MODE
+  ) return false
   if (env.expectedHostSuffix !== '.run.app') return false
   if (!isBounded(env.renderTimeoutSeconds, 30, 300)) return false
   if (env.renderTimeoutSeconds !== DEFAULT_RENDER_TIMEOUT_SECONDS) return false
@@ -1041,6 +1389,9 @@ function validateRequestSafetyPayload(
     requireOptionalBoolean(allow.renderExecution, true, 'allow.renderExecution', blockers)
     requireOptionalBoolean(allow.cloudRun, true, 'allow.cloudRun', blockers)
     requireOptionalBoolean(allow.remotion, true, 'allow.remotion', blockers)
+    if (payload.mode === STAGING_TIMELINE_COMPOSITION_CANARY_MODE) {
+      requireOptionalBoolean(allow.timelineComposition, true, 'allow.timelineComposition', blockers)
+    }
     requireOptionalBoolean(allow.providers, false, 'allow.providers', blockers)
     requireOptionalBoolean(allow.providerCalls, false, 'allow.providerCalls', blockers)
     requireOptionalBoolean(allow.stripe, false, 'allow.stripe', blockers)

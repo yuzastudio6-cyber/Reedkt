@@ -1,10 +1,24 @@
 # Staging Media Analysis Canary
 
-Status: implemented and fail-closed; live staging dispatch is not yet run.
+Status: passed staging gate.
 
 RP-MEDIA-01 is the first media-analysis worker gate. It proves the staging runner can take one generated smoke MP4, store it as source media in GCS, record canonical staging Supabase metadata, run required FFprobe/FFmpeg analysis, write smoke-tagged analysis artifacts, clean everything, and verify no leftovers.
 
 This gate does not use Cloud Run, Remotion, providers, Stripe/payment, production resources, customer media, broad E2E suites, queue drains, existing user jobs, or service account JSON keys.
+
+## Passed Gate Record
+
+The guarded workflow `RP E2E Staging Media Analysis Canary` passed as run `26349869644`, job `77566075442`, at head SHA `287e33bead1dcfdab086494723f6e250bc262804`.
+
+- Smoke run ID: `rp-e2e-smoke-c52baa68-bb67-43c1-b9bc-380cc44d9121`
+- Result: `PASS`
+- FFprobe metadata: `3s`, `160x90`, `mpeg4`, `mp4` container, one video stream, no audio
+- FFmpeg thumbnail artifact: `image/jpeg`, `160x90`, `3,364` bytes
+- GCS cleanup: `5` objects deleted, cleanup errors `[]`
+- Supabase cleanup: `15` records deleted, cleanup errors `[]`
+- Leftovers: records `[]`, query errors `[]`
+- Optional tool slots produced warnings only
+- Safety confirmed: no production, Stripe/payment, provider generation, customer media, broad E2E, queue drain, Cloud Run render invocation, or service account JSON key path ran
 
 ## Required Flow
 

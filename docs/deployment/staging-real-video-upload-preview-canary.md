@@ -1,8 +1,29 @@
 # Staging Real-Video Upload-To-Preview Canary
 
-Status: implementation added. Live run `26342766890` failed safely before record creation because the first implementation crossed into a local-only persisted render smoke path while this gate runs with `STORAGE_MODE=gcs`. Live run `26345379342` then passed the GCS storage gate and created smoke-scoped source metadata, but failed safely before Cloud Run execution because the real-video path still crossed into the synthetic canary request contract. The canary is now explicitly GCS-based and uses its own `staging_real_video_upload_preview_canary` request contract.
+Status: passed staging gate. Live run `26348118904` passed with smoke run ID `rp-e2e-smoke-a7606dae-f697-40cb-ae0a-644cd32b4bc9`, render status `preview_ready`, clean Supabase/GCS cleanup, and no leftovers.
 
 This gate is the next staging-only RP-E2E readiness gate after the Cloud Run / Remotion infrastructure canary. It proves one tiny controlled source video can move through the ReeditPro upload-to-preview metadata path and produce a preview through the private Cloud Run `/canary/render` service.
+
+Earlier live attempts failed safely before this pass: run `26342766890` crossed into a local-only persisted render smoke path, and run `26345379342` crossed into the synthetic canary request contract. The passed implementation is explicitly GCS-based and uses its own `staging_real_video_upload_preview_canary` request contract.
+
+## Passed Gate Record
+
+- Workflow: `RP E2E Staging Real Video Upload To Preview Canary`
+- Run ID: `26348118904`
+- Head SHA: `a3dbc6c83dce5dc2b1b3cb83339450ac0b83a574`
+- Smoke run ID: `rp-e2e-smoke-a7606dae-f697-40cb-ae0a-644cd32b4bc9`
+- Result: `PASS`
+- Render status: `preview_ready`
+- Source video: smoke-tagged GCS artifact created, then downloaded by Cloud Run
+- Cloud Run path: `/canary/render`
+- Remotion path: `renderMedia / bundle / selectComposition`
+- Preview artifact: `video/mp4`, `48,232` bytes, `3s`, `160x90`, `15fps`, `45` frames
+- Job transitions: `worker_claimed -> completed`
+- Cleanup: `26` Supabase records deleted and `2` GCS objects deleted
+- Cleanup errors: `[]`
+- Leftover records: `[]`
+- Leftover query errors: `[]`
+- Safety: no production flow, no Stripe/payment flow, no external provider generation, no customer media, no broad E2E suite, no queue drain, OIDC/WIF only, no service account JSON key
 
 ## What It Does
 
@@ -94,7 +115,7 @@ The GitHub auth action creates an ephemeral WIF credentials file for GCS access 
 
 ## Dispatch Command
 
-Do not dispatch until the implementation has been reviewed and disabled-mode validation passes.
+Dispatch only for guarded staging reruns with explicit allow flags and current staging Cloud Run/OIDC configuration.
 
 ```powershell
 $repo = "yuzastudio6-cyber/Reedkt"
@@ -132,4 +153,5 @@ The gate passes only if:
 - Remotion path is `renderMedia / bundle / selectComposition`;
 - source and preview GCS artifacts are deleted;
 - Supabase cleanup errors are empty;
-- leftover records and leftover query errors are empty.
+- leftover records and leftover query errors are empty;
+- no production, Stripe/payment, external provider generation, customer media, broad E2E suite, queue drain, existing user job processing, or service account JSON key path runs.

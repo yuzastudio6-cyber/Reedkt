@@ -17,7 +17,20 @@ The staging Cloud Run / Remotion render infrastructure canary passed as a guarde
 - Artifact: `video/mp4`, `22,708` bytes, `3s`, `160x90`, `15fps`, `45` frames
 - Cleanup: `26` records deleted, no cleanup errors, no leftover records, no leftover query errors
 
-This proves only the staging render infrastructure canary path. It does not enable production rendering, providers, Stripe/payment, customer media, broad E2E suites, or queue draining.
+The staging real-video upload-to-preview canary also passed as a guarded manual gate:
+
+- Run: `26348118904`
+- Head SHA: `a3dbc6c83dce5dc2b1b3cb83339450ac0b83a574`
+- Smoke run ID: `rp-e2e-smoke-a7606dae-f697-40cb-ae0a-644cd32b4bc9`
+- Result: `PASS`, render status `preview_ready`
+- Source video: smoke-tagged GCS artifact created and downloaded by Cloud Run
+- Cloud Run path: `/canary/render`
+- Remotion path: `renderMedia / bundle / selectComposition`
+- Preview artifact: `video/mp4`, `48,232` bytes, `3s`, `160x90`, `15fps`, `45` frames
+- Job transitions: `worker_claimed -> completed`
+- Cleanup: `26` Supabase records deleted, `2` GCS objects deleted, no cleanup errors, no leftover records, no leftover query errors
+
+These prove only staging smoke canary paths. They do not enable production rendering, providers, Stripe/payment, customer media, broad E2E suites, queue draining, or existing user job processing. OIDC/WIF was used and no service account JSON key path was used.
 
 ## What This Branch Proves
 
@@ -73,7 +86,7 @@ No file upload, provider call, Stripe call, Cloud Run call, Supabase mutation, F
 | Worker queue | production-required | Mock job queue, dependencies, lease, heartbeat, retry, and dispatch exist; durable cloud queue/leases remain. |
 | Backend runtime | production-required | Cloud Run API service is scaffolded but not deployed. |
 | Provider gateway | production-required | OpenAI, Lyria, Mirelo, MMAudio, Wan, Veo, Kling, Hailuo, and related provider calls remain disabled/backend-required. |
-| Render/export | production-required | Staging Cloud Run / Remotion infrastructure canary passed with a tiny smoke render. Production render/export workers, customer media processing, final exports, and production QA remain. |
+| Render/export | production-required | Staging Cloud Run / Remotion infrastructure and real-video upload-to-preview canaries passed with tiny smoke artifacts. Production render/export workers, customer media processing, final exports, and production QA remain. |
 | Stripe | production-required | Checkout, subscriptions, webhooks, invoices, and credit purchase reconciliation remain missing. |
 | Monitoring/rate limits | production-required | Production logging, metrics, alerts, abuse controls, and quota enforcement remain missing. |
 | QA | production-required | Mock planning QA exists; real media QA, frame/audio validation, render QA, and failure recovery still need workers. |

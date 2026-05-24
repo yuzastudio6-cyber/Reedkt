@@ -17,7 +17,7 @@ This is not production video editing. Real Supabase validation, deployed Cloud R
 
 ## Staging Gate Progress
 
-Status: staging Cloud Run / Remotion render infrastructure canary passed.
+Status: staging Cloud Run / Remotion render infrastructure and real-video upload-to-preview canaries passed.
 
 The guarded workflow `RP E2E Staging Cloud Run Remotion Render Infrastructure Canary` passed on run `26321096931` at head SHA `915b110548cac27cdaffdbffb17bdfa54a724a01`.
 
@@ -28,7 +28,18 @@ The guarded workflow `RP E2E Staging Cloud Run Remotion Render Infrastructure Ca
 - Output: `video/mp4`, `22,708` bytes, `3s`, `160x90`, `15fps`, `45` frames
 - Cleanup: `26` records deleted, cleanup errors `[]`, leftover records `[]`, leftover query errors `[]`
 
-This pass is staging-only and does not enable production rendering, providers, Stripe/payment, customer media, broad E2E, or queue draining.
+The guarded workflow `RP E2E Staging Real Video Upload To Preview Canary` passed on run `26348118904` at head SHA `a3dbc6c83dce5dc2b1b3cb83339450ac0b83a574`.
+
+- Smoke run ID: `rp-e2e-smoke-a7606dae-f697-40cb-ae0a-644cd32b4bc9`
+- Render status: `preview_ready`
+- Source video: created as a smoke-tagged GCS object and downloaded by Cloud Run
+- Cloud Run path: `/canary/render`
+- Remotion path: `renderMedia / bundle / selectComposition`
+- Preview output: `video/mp4`, `48,232` bytes, `3s`, `160x90`, `15fps`, `45` frames
+- Job transitions: `worker_claimed -> completed`
+- Cleanup: `26` Supabase records deleted, `2` GCS objects deleted, cleanup errors `[]`, leftover records `[]`, leftover query errors `[]`
+
+These passes are staging-only and do not enable production rendering, providers, Stripe/payment, customer media, broad E2E, or queue draining. OIDC/WIF was used and no service account JSON key path was used.
 
 Next staging gate: provider sandbox validation, still disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
 
@@ -54,7 +65,7 @@ The implementation handles missing Supabase env values, signed-out users, profil
 - Full auth UI and route/session integration.
 - Deployed storage/upload runtime and signed URL delivery.
 - Supabase local/staging validation.
-- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure canary is passed, but production/customer rendering remains open.
+- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure and real-video upload-to-preview canaries are passed, but production/customer rendering remains open.
 
 ## RP-FIX-07
 

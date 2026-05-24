@@ -21,6 +21,7 @@ export interface RuntimeEnv {
   supabaseServiceRoleKey?: string
   supabaseE2eSmokeMode: SupabaseE2ESmokeMode
   supabaseE2eAllowWrites: boolean
+  supabaseE2eAllowMediaAnalysis: boolean
   supabaseE2eCleanup: boolean
   supabaseE2eWorkspaceId?: string
   supabaseE2eUserId?: string
@@ -71,6 +72,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   SUPABASE_E2E_SMOKE_MODE: z.enum(['disabled', 'live']).default('disabled'),
   SUPABASE_E2E_ALLOW_WRITES: z.string().optional(),
+  SUPABASE_E2E_ALLOW_MEDIA_ANALYSIS: z.string().optional(),
   SUPABASE_E2E_CLEANUP: z.string().optional(),
   SUPABASE_E2E_WORKSPACE_ID: z.string().optional(),
   SUPABASE_E2E_USER_ID: z.string().optional(),
@@ -116,6 +118,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
   const hasSupabaseAdmin = Boolean(supabaseUrl && supabaseServiceRoleKey)
   const hasSupabasePublic = Boolean(supabaseUrl && supabaseAnonKey)
   const supabaseE2eAllowWrites = parseBoolean(parsed.SUPABASE_E2E_ALLOW_WRITES)
+  const supabaseE2eAllowMediaAnalysis = parseBoolean(parsed.SUPABASE_E2E_ALLOW_MEDIA_ANALYSIS)
   const supabaseE2eCleanup = parsed.SUPABASE_E2E_CLEANUP === undefined
     ? true
     : parseBoolean(parsed.SUPABASE_E2E_CLEANUP)
@@ -159,6 +162,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     supabaseServiceRoleKey,
     supabaseE2eSmokeMode: parsed.SUPABASE_E2E_SMOKE_MODE,
     supabaseE2eAllowWrites,
+    supabaseE2eAllowMediaAnalysis,
     supabaseE2eCleanup,
     supabaseE2eWorkspaceId: clean(parsed.SUPABASE_E2E_WORKSPACE_ID),
     supabaseE2eUserId: clean(parsed.SUPABASE_E2E_USER_ID),
@@ -223,6 +227,7 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     supabaseE2eSmoke: {
       mode: env.supabaseE2eSmokeMode,
       allowWrites: env.supabaseE2eAllowWrites,
+      allowMediaAnalysis: env.supabaseE2eAllowMediaAnalysis,
       cleanup: env.supabaseE2eCleanup,
       workspaceIdConfigured: Boolean(env.supabaseE2eWorkspaceId),
       userIdConfigured: Boolean(env.supabaseE2eUserId),

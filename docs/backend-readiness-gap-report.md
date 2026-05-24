@@ -13,6 +13,7 @@
 | Backend runtime transport and worker leasing missing | Partially fixed | Mock runtime envelopes, transport placeholders, lease claim/heartbeat/renew/release/complete/fail/cancel, stale recovery, idempotency helpers, route handlers, and a local lease migration exist. Real backend/cloud lease enforcement remains open. |
 | Production backend runtime not chosen or scaffolded | Partially fixed | Cloud Run API service is selected and a mock-only Node HTTP scaffold exists with health/readiness/runtime/routes/mock endpoints. Separate staging-only Cloud Run / Remotion render infrastructure and real-video upload-to-preview canaries passed. Production deployment, Secret Manager hardening, service-role handlers, providers, Stripe, workers, and customer render execution remain open. |
 | Editing tool runtime registry missing | Partially fixed | RP-TOOLS-01 adds typed server contracts, safe readiness checks, worker-to-tool mapping, CLI output, and smoke tests for FFmpeg, FFprobe, Remotion, Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright, and VapourSynth. It does not install optional tools or approve production/customer execution. |
+| Media analysis worker canary missing | Partially fixed | RP-MEDIA-01 adds a fail-closed staging media-analysis canary using one generated smoke MP4, GCS source/artifact paths, FFprobe metadata, FFmpeg thumbnail/audio checks, smoke-safe Supabase job metadata, cleanup, and leftover detection. Live dispatch/pass recording is still pending. |
 | Provider integrations missing | Partially reduced | Project SFX now reaches mock Mirelo/MMAudio/internal-library routing and includes readiness reporting for future real SFX transport. Real AI, Lyria, Mirelo, MMAudio, Stripe, and rendering calls are still not added. |
 | Supabase production validation missing | Open | No remote migration, local Supabase test, staging test, or advisor review was run. |
 
@@ -60,7 +61,19 @@ The open-source editing tool registry is now code-enforced in `server/tools/*` a
 
 Remaining blockers: production/customer tool execution, optional tool installation in worker images, license/security review, resource caps, and worker canaries.
 
-Next staging gates, in order: media analysis worker canary, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox must stay disabled by default, single-provider/single-job only, smoke-tagged, cleanup-enforced, and separate from Stripe/payment or production flows.
+## RP-MEDIA-01 Media Analysis Canary Status
+
+The media analysis worker canary is implemented and fail-closed, but it has not yet been live-dispatched.
+
+- Required tools: `ffmpeg` and `ffprobe`
+- Not required for this gate: Remotion and Cloud Run rendering
+- Optional warning-only slots: PySceneDetect, Whisper variants, OpenCV, and AudioFlux
+- Source path: `workspaces/{workspaceId}/projects/{projectId}/source-media/{smokeRunId}/tiny-media-analysis-source.mp4`
+- Artifact path: `workspaces/{workspaceId}/projects/{projectId}/media-analysis/{smokeRunId}/...`
+- Records: smoke-owned upload intent, media asset, source/artifact `storage_object_records`, `media_analysis` job, and completion event
+- Safety: no production, Stripe/payment, provider generation, customer media, broad E2E, queue drain, Cloud Run render invocation, or service account JSON key path
+
+Next staging gates, in order: live RP-MEDIA-01 dispatch/recording, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox must stay disabled by default, single-provider/single-job only, smoke-tagged, cleanup-enforced, and separate from Stripe/payment or production flows.
 
 ## Local E2E MVP Result
 

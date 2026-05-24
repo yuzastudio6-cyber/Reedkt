@@ -10,6 +10,17 @@ Status: planning and runtime-readiness contract. No production installation or d
 | FFprobe | Required for current milestone; staging smoke proven. | Used for safe media metadata checks. Production/customer validation remains blocked. |
 | Remotion | Required for current milestone; staging smoke proven. | Cloud Run staging canaries passed with bounded resources and OIDC/WIF. Production/customer rendering remains blocked. |
 
+## RP-MEDIA-01 Media Analysis Profile
+
+RP-MEDIA-01 uses the GitHub Actions runner, not Cloud Run, to run safe source analysis against a generated smoke MP4. The gate requires only:
+
+- FFmpeg: fixture generation, one thumbnail frame, and audio stream presence check.
+- FFprobe: duration, dimensions, codecs, stream count, format, and size summary.
+
+Remotion is intentionally not required for this media-analysis gate. PySceneDetect, Whisper variants, OpenCV, and AudioFlux are reported as optional readiness slots and warnings only; they must not fail RP-MEDIA-01 unless a later milestone explicitly enables them.
+
+Artifacts are written under `workspaces/{workspaceId}/projects/{projectId}/media-analysis/{smokeRunId}/...` and cleaned before the gate can pass. This profile does not approve production/customer media analysis.
+
 ## Optional / Planned Runtime Tools
 
 | Tool | Install target | Before production use |
@@ -41,5 +52,5 @@ Status: planning and runtime-readiness contract. No production installation or d
 - Production/customer media execution is not approved.
 - License/security review is incomplete for optional tools.
 - Worker images and resource caps are not production-final.
-- Worker canaries for media analysis, real timeline composition, SoundSync, browser capture, image processing, and advanced frame processing are still pending.
+- RP-MEDIA-01 implementation is added but live dispatch/pass recording is still pending. Worker canaries for real timeline composition, SoundSync, browser capture, image processing, and advanced frame processing are still pending.
 - Providers, Stripe/payment, production deployment, broad queues, and service account JSON keys remain outside this plan.

@@ -48,7 +48,13 @@ RP-TOOLS-01 adds a code-enforced runtime tool registry for the editing stack. Th
 - Optional/planned tools: Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth
 - Runtime scripts: `tools:registry`, `tools:readiness`, `tools:readiness:strict`, `smoke:tools:registry`, `smoke:tools:readiness`, and `smoke:tools:worker-map`
 
-Next staging gates, in order: media analysis worker canary, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox remains disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
+RP-MEDIA-01 is now implemented as a staging-only media analysis canary, but it has not been live-dispatched or recorded as passed. It generates one tiny smoke MP4, uploads/registers it as GCS source media, runs required FFprobe/FFmpeg analysis in the workflow runner, stores smoke-tagged thumbnail/probe/audio/report artifacts in GCS, records bounded media-analysis job metadata, then cleans Supabase and GCS artifacts with strict leftover checks. Remotion, Cloud Run rendering, providers, Stripe/payment, production resources, customer media, broad E2E, and queue drains remain out of scope.
+
+- Required RP-MEDIA-01 tools: `ffmpeg` and `ffprobe`
+- Optional warning-only slots: PySceneDetect, Whisper variants, OpenCV, and AudioFlux
+- New scripts: `media:analysis:canary`, `smoke:e2e:staging-media-analysis:test`, and `smoke:e2e:staging-media-analysis:strict`
+
+Next staging gates, in order: live RP-MEDIA-01 dispatch/recording, real timeline composition canary, SoundSync analysis canary, then provider sandbox validation. The provider sandbox remains disabled by default and limited to a single provider and single smoke-tagged job with explicit allow flags, cleanup, and strict leftover checks.
 
 ## RP-FIX-06
 
@@ -72,7 +78,7 @@ The implementation handles missing Supabase env values, signed-out users, profil
 - Full auth UI and route/session integration.
 - Deployed storage/upload runtime and signed URL delivery.
 - Supabase local/staging validation.
-- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure and real-video upload-to-preview canaries are passed, and the runtime tool registry is code-enforced, but production/customer rendering and optional worker tool execution remain open.
+- Credit, provider, worker, production rendering/export, Stripe, and mobile implementation. The staging render infrastructure and real-video upload-to-preview canaries are passed, the runtime tool registry is code-enforced, and RP-MEDIA-01 is implemented but not live-passed. Production/customer rendering and optional worker tool execution remain open.
 
 ## RP-FIX-07
 

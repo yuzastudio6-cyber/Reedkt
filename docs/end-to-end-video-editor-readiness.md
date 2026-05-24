@@ -39,6 +39,14 @@ RP-TOOLS-01 now adds code-enforced runtime editing tool contracts for FFmpeg, FF
 - Optional/planned tools: Sharp/libvips, OpenCV, AudioFlux, Signalsmith Stretch, Whisper variants, PySceneDetect, Playwright runtime capture, and VapourSynth
 - Safe checks only: version, import, or package-resolution checks; no media processing, provider calls, Stripe/payment, production deploy, customer media, broad queues, or service account JSON keys
 
+RP-MEDIA-01 is implemented as the next fail-closed staging canary, but it has not yet been live-dispatched or recorded as passed.
+
+- Required for this gate: FFmpeg and FFprobe
+- Not required for this gate: Remotion and Cloud Run rendering
+- Flow: generated smoke MP4 -> GCS source media -> Supabase source metadata -> FFprobe metadata -> FFmpeg thumbnail/audio check -> GCS analysis artifacts -> smoke-safe media-analysis job metadata -> cleanup and strict leftover checks
+- Artifact path: `workspaces/{workspaceId}/projects/{projectId}/media-analysis/{smokeRunId}/...`
+- Optional warnings only: PySceneDetect, Whisper variants, OpenCV, and AudioFlux
+
 ## What This Branch Proves
 
 This branch consolidates the newest planning-stack backend/runtime/render scaffolds with the pushed AI editor shell and browser-local MVP flow.
@@ -95,6 +103,7 @@ No file upload, provider call, Stripe call, Cloud Run call, Supabase mutation, F
 | Provider gateway | production-required | OpenAI, Lyria, Mirelo, MMAudio, Wan, Veo, Kling, Hailuo, and related provider calls remain disabled/backend-required. |
 | Render/export | production-required | Staging Cloud Run / Remotion infrastructure and real-video upload-to-preview canaries passed with tiny smoke artifacts. Production render/export workers, customer media processing, final exports, and production QA remain. |
 | Runtime editing tools | partially fixed | Typed registry and safe readiness checks exist for core/open-source tools. Optional tool installation, license/security review, worker images, worker canaries, and production/customer execution remain blocked. |
+| Media analysis worker | implementation added | RP-MEDIA-01 adds a staging-only FFprobe/FFmpeg canary for a generated smoke video. Live workflow dispatch/pass recording is still pending; customer media analysis remains blocked. |
 | Stripe | production-required | Checkout, subscriptions, webhooks, invoices, and credit purchase reconciliation remain missing. |
 | Monitoring/rate limits | production-required | Production logging, metrics, alerts, abuse controls, and quota enforcement remain missing. |
 | QA | production-required | Mock planning QA exists; real media QA, frame/audio validation, render QA, and failure recovery still need workers. |
@@ -136,7 +145,7 @@ Useful URLs:
 
 Next safe staging gates, in order:
 
-1. Media analysis worker canary.
+1. Live RP-MEDIA-01 media analysis worker canary dispatch/recording.
 2. Real timeline composition canary.
 3. SoundSync analysis canary.
 4. Provider sandbox validation, disabled by default and limited to a single provider plus a single smoke-tagged job.

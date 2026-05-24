@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
+import type { MediaAnalysisReport } from '../media/media-analysis-contracts'
 import { resolveLocalStorageObjectPath } from '../media/local-media-paths'
 import { resolveBucketName } from '../storage/storage-adapter'
 import { buildCanonicalObjectPath } from '../storage/storage-paths'
@@ -41,6 +42,15 @@ type SmokeFailureCode =
   | 'GCS_SOURCE_OBJECT_MISSING'
   | 'GCS_PREVIEW_OBJECT_MISSING'
   | 'STORAGE_MODE_MISMATCH'
+  | 'MEDIA_ANALYSIS_WRITES_DISABLED'
+  | 'MEDIA_ANALYSIS_NOT_ALLOWED'
+  | 'MEDIA_ANALYSIS_CLEANUP_REQUIRED'
+  | 'MEDIA_ANALYSIS_GCS_REQUIRED'
+  | 'MEDIA_ANALYSIS_FFPROBE_REQUIRED'
+  | 'MEDIA_ANALYSIS_FFMPEG_REQUIRED'
+  | 'MEDIA_ANALYSIS_SOURCE_NOT_SMOKE_TAGGED'
+  | 'MEDIA_ANALYSIS_ARTIFACT_NOT_SMOKE_TAGGED'
+  | 'MEDIA_ANALYSIS_SIGNED_URL_CANONICAL_FORBIDDEN'
 
 interface CleanupRecord {
   table: string
@@ -83,6 +93,29 @@ export type PersistedRenderSourceFixtureFactory = (input: {
   fileName: string
 }) => Promise<PersistedRenderSourceFixtureFactoryResult>
 
+export interface PersistedMediaAnalysisArtifactRecord {
+  bucketName: string
+  objectPath: string
+  mimeType: string
+  sizeBytes: number
+  checksumSha256: string
+  objectPurpose: 'thumbnail' | 'qa_artifact' | 'other'
+}
+
+export type PersistedMediaAnalysisExecutor = (input: {
+  smokeRunId: string
+  workspaceId: string
+  projectId: string
+  sourceStorageObjectId: string
+  sourceBucketName: string
+  sourceObjectPath: string
+  sourceSizeBytes: number
+  sourceChecksumSha256: string
+}) => Promise<{
+  report: MediaAnalysisReport
+  artifacts: PersistedMediaAnalysisArtifactRecord[]
+}>
+
 interface PersistedRenderSmokeOptions {
   renderExecutionMode?: PersistedRenderExecutionMode
   createExternalRenderArtifacts?: PersistedRenderExternalArtifactFactory
@@ -106,6 +139,9 @@ interface SmokeRecordIds {
   sourceObjectPath?: string
   sourceSizeBytes?: number
   sourceChecksumSha256?: string
+  mediaAnalysisJobId?: string
+  mediaAnalysisJobEventId?: string
+  analysisStorageObjectIds?: string[]
   editSessionId?: string
   editPlanVersionId?: string
   editPlanId?: string
@@ -141,6 +177,7 @@ export interface SupabaseE2ESmokeResult {
     warnings?: string[]
   }
   renderSmoke?: unknown
+  mediaAnalysis?: unknown
   readback?: {
     ok: boolean
     checked: Array<{ table: string; id: string; status?: string }>
@@ -195,7 +232,8 @@ const KNOWN_COLUMN_HINTS: Record<string, string[]> = {
   credit_reservations: ['id', 'credit_wallet_id', 'workspace_id', 'project_id', 'chat_session_id', 'credit_estimate_id', 'credit_approval_id', 'edit_plan_id', 'status', 'reserved_credits', 'idempotency_key', 'reserved_at', 'expires_at', 'metadata'],
   approved_plan_snapshots: ['id', 'workspace_id', 'project_id', 'chat_session_id', 'edit_plan_id', 'edit_session_id', 'edit_plan_version_id', 'credit_estimate_id', 'credit_approval_id', 'credit_reservation_id', 'approved_by_user_id', 'approved_by', 'approved_at', 'execution_ready_at', 'snapshot_version', 'snapshot_status', 'status', 'snapshot_json', 'snapshot_payload', 'snapshot_hash', 'plan_hash', 'credit_hash', 'source_sequence_hash', 'timing_hash', 'immutable', 'idempotency_key', 'metadata'],
   job_batches: ['id', 'workspace_id', 'project_id', 'chat_session_id', 'edit_plan_id', 'credit_estimate_id', 'credit_reservation_id', 'status', 'batch_name', 'batch_purpose', 'created_by_user_id', 'idempotency_key', 'input_payload', 'metadata'],
-  jobs: ['id', 'job_batch_id', 'workspace_id', 'project_id', 'chat_session_id', 'edit_plan_id', 'credit_estimate_id', 'credit_reservation_id', 'job_type', 'status', 'worker_target', 'runtime_type', 'job_name', 'idempotency_key', 'input_payload', 'metadata'],
+  jobs: ['id', 'job_batch_id', 'workspace_id', 'project_id', 'chat_session_id', 'chat_message_id', 'edit_plan_id', 'credit_estimate_id', 'credit_reservation_id', 'job_type', 'status', 'priority', 'worker_target', 'runtime_type', 'job_name', 'job_description', 'idempotency_key', 'input_payload', 'output_payload', 'error_payload', 'progress_percent', 'progress_message', 'started_at', 'completed_at', 'metadata'],
+  job_events: ['id', 'job_id', 'job_batch_id', 'workspace_id', 'project_id', 'event_type', 'message', 'progress_percent', 'actor_type', 'actor_user_id', 'actor_agent_type', 'payload'],
   render_jobs: ['id', 'workspace_id', 'project_id', 'chat_session_id', 'edit_plan_id', 'job_id', 'job_batch_id', 'credit_estimate_id', 'credit_reservation_id', 'status', 'render_type', 'quality_level', 'output_format', 'render_name', 'timeline_spec', 'render_settings', 'width', 'height', 'frame_rate', 'idempotency_key', 'worker_runtime'],
   renders: ['id', 'workspace_id', 'project_id', 'render_job_id', 'job_id', 'status', 'render_type', 'quality_level', 'output_format', 'display_name', 'storage_provider', 'storage_bucket', 'storage_path', 'file_size_bytes', 'duration_seconds', 'render_payload'],
   qa_reports: ['id', 'workspace_id', 'project_id', 'render_job_id', 'render_id', 'job_id', 'status', 'overall_score', 'summary', 'requires_retry', 'checked_by', 'qa_payload', 'completed_at'],
@@ -324,6 +362,182 @@ export async function runPersistedGcsRealVideoUploadPreviewSmoke(
     ...options,
     renderExecutionMode: 'staging_real_video_upload_preview_canary',
   }, 'staging_real_video_upload_preview_canary', [])
+}
+
+export async function runPersistedGcsMediaAnalysisSmoke(
+  context: ServiceContext,
+  options: {
+    sourceFixtureFactory: PersistedRenderSourceFixtureFactory
+    analyzeSource: PersistedMediaAnalysisExecutor
+    sourceFileName?: string
+  },
+): Promise<SupabaseE2ESmokeResult> {
+  const writeCheck = await prepareLiveWriteSmoke(context)
+  if ('result' in writeCheck) return writeCheck.result
+  if (!context.env.supabaseE2eAllowMediaAnalysis) {
+    return failureResult(context, 'MEDIA_ANALYSIS_NOT_ALLOWED', 'SUPABASE_E2E_ALLOW_MEDIA_ANALYSIS=true is required before live media analysis canary writes.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+  if (!context.env.supabaseE2eCleanup) {
+    return failureResult(context, 'MEDIA_ANALYSIS_CLEANUP_REQUIRED', 'SUPABASE_E2E_CLEANUP=true is required for the staging media analysis canary.', {
+      tableReadiness: writeCheck.tableReadiness,
+    })
+  }
+  if (context.env.storageMode !== 'gcs') {
+    return failureResult(context, 'MEDIA_ANALYSIS_GCS_REQUIRED', 'Staging media analysis canary requires STORAGE_MODE=gcs.', {
+      tableReadiness: writeCheck.tableReadiness,
+      details: { requiredStorageMode: 'gcs', actualStorageMode: context.env.storageMode },
+    })
+  }
+
+  return runPersistedGcsMediaAnalysisSmokePrepared(context, writeCheck, options)
+}
+
+async function runPersistedGcsMediaAnalysisSmokePrepared(
+  context: ServiceContext,
+  writeCheck: { client: SupabaseClient; tableReadiness: TableReadinessResult; schema: SchemaInfo },
+  options: {
+    sourceFixtureFactory: PersistedRenderSourceFixtureFactory
+    analyzeSource: PersistedMediaAnalysisExecutor
+    sourceFileName?: string
+  },
+): Promise<SupabaseE2ESmokeResult> {
+  const { client, tableReadiness, schema } = writeCheck
+  const cleanupRecords: CleanupRecord[] = []
+  try {
+    const records = await createSupabaseMediaAnalysisRecordChain(context, client, schema, cleanupRecords, {
+      sourceFixtureFactory: options.sourceFixtureFactory,
+      sourceFileName: options.sourceFileName ?? 'tiny-media-analysis-source.mp4',
+    })
+    if (!records.smokeRunId || !records.workspaceId || !records.projectId || !records.sourceStorageObjectId || !records.sourceBucketName || !records.sourceObjectPath || !records.sourceSizeBytes || !records.sourceChecksumSha256) {
+      throw new SupabaseSmokeError('missing_dependency', 'Media analysis smoke prerequisite record chain is incomplete.', { records })
+    }
+    if (!isSmokeScopedObjectPath(records.sourceObjectPath, records.smokeRunId, '/source-media/')) {
+      throw new SupabaseSmokeError('MEDIA_ANALYSIS_SOURCE_NOT_SMOKE_TAGGED', 'Media analysis source object path is not smoke-scoped.', {
+        objectPath: records.sourceObjectPath,
+        smokeRunId: records.smokeRunId,
+      })
+    }
+
+    const analysis = await options.analyzeSource({
+      smokeRunId: records.smokeRunId,
+      workspaceId: records.workspaceId,
+      projectId: records.projectId,
+      sourceStorageObjectId: records.sourceStorageObjectId,
+      sourceBucketName: records.sourceBucketName,
+      sourceObjectPath: records.sourceObjectPath,
+      sourceSizeBytes: records.sourceSizeBytes,
+      sourceChecksumSha256: records.sourceChecksumSha256,
+    })
+
+    if (containsForbiddenSignedUrlCanonicalField(analysis)) {
+      throw new SupabaseSmokeError('MEDIA_ANALYSIS_SIGNED_URL_CANONICAL_FORBIDDEN', 'Media analysis canonical metadata must not contain signed URL fields.')
+    }
+
+    const analysisStorageObjectIds: string[] = []
+    for (const artifact of analysis.artifacts) {
+      if (!isSmokeScopedObjectPath(artifact.objectPath, records.smokeRunId, '/media-analysis/')) {
+        throw new SupabaseSmokeError('MEDIA_ANALYSIS_ARTIFACT_NOT_SMOKE_TAGGED', 'Media analysis artifact path is not smoke-scoped.', {
+          objectPath: artifact.objectPath,
+          smokeRunId: records.smokeRunId,
+        })
+      }
+      analysisStorageObjectIds.push(await insertRow(client, schema, cleanupRecords, 'storage_object_records', {
+        id: randomUUID(),
+        workspace_id: records.workspaceId,
+        project_id: records.projectId,
+        media_asset_id: records.mediaAssetId,
+        bucket_name: artifact.bucketName,
+        object_path: artifact.objectPath,
+        object_purpose: artifact.objectPurpose,
+        mime_type: artifact.mimeType,
+        size_bytes: artifact.sizeBytes,
+        checksum_sha256: artifact.checksumSha256,
+        region: storageRegion(context),
+        status: 'ready',
+      }, { smokeRunId: records.smokeRunId }))
+    }
+
+    const jobId = await insertRow(client, schema, cleanupRecords, 'jobs', {
+      id: randomUUID(),
+      workspace_id: records.workspaceId,
+      project_id: records.projectId,
+      chat_session_id: records.chatSessionId,
+      chat_message_id: records.chatMessageId,
+      job_type: 'media_analysis',
+      status: 'completed',
+      priority: 'normal',
+      worker_target: 'media_analysis_agent',
+      runtime_type: 'backend_api',
+      job_name: 'RP-MEDIA-01 staging media analysis canary',
+      job_description: 'Smoke-scoped staging media analysis canary; no providers, no Stripe, no customer media.',
+      idempotency_key: records.smokeRunId,
+      input_payload: {
+        ...smokeMetadata(records.smokeRunId),
+        sourceStorageObjectId: records.sourceStorageObjectId,
+        sourceStorageObject: {
+          id: records.sourceStorageObjectId,
+          bucketName: records.sourceBucketName,
+          objectPath: records.sourceObjectPath,
+          mimeType: 'video/mp4',
+          sizeBytes: records.sourceSizeBytes,
+          checksumSha256: records.sourceChecksumSha256,
+        },
+      },
+      output_payload: analysis.report,
+      progress_percent: 100,
+      progress_message: 'Media analysis canary completed.',
+      started_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      metadata: smokeMetadata(records.smokeRunId),
+    }, { smokeRunId: records.smokeRunId })
+
+    const jobEventId = await insertRow(client, schema, cleanupRecords, 'job_events', {
+      id: randomUUID(),
+      job_id: jobId,
+      workspace_id: records.workspaceId,
+      project_id: records.projectId,
+      event_type: 'completed',
+      message: 'RP-MEDIA-01 media analysis canary completed.',
+      progress_percent: 100,
+      actor_type: 'system',
+      actor_user_id: records.userId,
+      actor_agent_type: 'media_analysis_agent',
+      payload: analysis.report,
+    }, { smokeRunId: records.smokeRunId })
+
+    records.mediaAnalysisJobId = jobId
+    records.mediaAnalysisJobEventId = jobEventId
+    records.analysisStorageObjectIds = analysisStorageObjectIds
+
+    const readback = await validateMediaAnalysisSmokeReadback(client, records)
+    const cleanup = await maybeCleanupSupabaseSmokeRecords(context, client, cleanupRecords)
+    const leftovers = await findExactSupabaseSmokeRecordLeftovers(client, cleanupRecords)
+    return {
+      ok: readback.ok,
+      status: readback.ok ? 'passed' : 'failed',
+      smokeMode: context.env.supabaseE2eSmokeMode,
+      liveSupabaseConfigured: true,
+      writesAllowed: true,
+      cleanupEnabled: context.env.supabaseE2eCleanup,
+      tableReadiness,
+      records,
+      mediaAnalysis: analysis.report,
+      readback,
+      cleanup,
+      leftoverRecords: leftovers.leftovers,
+      leftoverQueryErrors: leftovers.queryErrors,
+      warnings: [...schema.warnings, ...leftovers.queryErrors],
+      error: readback.ok ? undefined : {
+        code: 'missing_dependency',
+        message: readback.blockers.join('; '),
+      },
+    }
+  } catch (error) {
+    const cleanup = await maybeCleanupSupabaseSmokeRecords(context, client, cleanupRecords)
+    return failedFromError(context, error, tableReadiness, cleanup, schema.warnings)
+  }
 }
 
 async function runPersistedRenderSmokePrepared(
@@ -562,6 +776,26 @@ function readRecordObject(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : undefined
+}
+
+function containsForbiddenSignedUrlCanonicalField(value: unknown, seen = new Set<object>()): boolean {
+  if (!value || typeof value !== 'object') return false
+  if (seen.has(value)) return false
+  seen.add(value)
+
+  if (Array.isArray(value)) {
+    return value.some((item) => containsForbiddenSignedUrlCanonicalField(item, seen))
+  }
+
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    const normalizedKey = key.toLowerCase().replace(/[_-]/g, '')
+    if ((normalizedKey === 'signedurl' || normalizedKey === 'signedurls') && nested !== undefined && nested !== null && nested !== false) {
+      return true
+    }
+    if (containsForbiddenSignedUrlCanonicalField(nested, seen)) return true
+  }
+
+  return false
 }
 
 async function prepareLiveWriteSmoke(context: ServiceContext): Promise<{
@@ -1049,6 +1283,171 @@ async function createSupabaseSmokeRecordChain(
   }
 
   return records
+}
+
+async function createSupabaseMediaAnalysisRecordChain(
+  context: ServiceContext,
+  client: SupabaseClient,
+  schema: SchemaInfo,
+  cleanupRecords: CleanupRecord[],
+  options: {
+    sourceFixtureFactory: PersistedRenderSourceFixtureFactory
+    sourceFileName: string
+  },
+): Promise<SmokeRecordIds> {
+  const smokeTag = createSmokeRunId()
+  const userId = context.env.supabaseE2eUserId
+  if (!userId) {
+    throw new SupabaseSmokeError('missing_dependency', 'SUPABASE_E2E_USER_ID must reference an existing safe Supabase auth user for live media analysis smoke.')
+  }
+
+  await ensureSmokeUserProfiles(client, schema, userId, smokeTag, cleanupRecords)
+  const workspaceId = await resolveOrCreateWorkspace(context, client, schema, userId, smokeTag, cleanupRecords)
+  await createWorkspaceMember(client, schema, { workspaceId, userId, smokeTag }, cleanupRecords)
+  const projectId = await resolveOrCreateProject(context, client, schema, { workspaceId, userId, smokeTag }, cleanupRecords)
+  const chatSessionId = await insertRow(client, schema, cleanupRecords, 'chat_sessions', {
+    id: randomUUID(),
+    workspace_id: workspaceId,
+    project_id: projectId,
+    started_by: userId,
+    status: 'open',
+    title: 'RP-MEDIA-01 smoke media analysis chat session',
+    metadata: smokeMetadata(smokeTag),
+  })
+  const chatMessageId = await insertRow(client, schema, cleanupRecords, 'chat_messages', {
+    id: randomUUID(),
+    chat_session_id: chatSessionId,
+    project_id: projectId,
+    workspace_id: workspaceId,
+    role: 'user',
+    actor_user_id: userId,
+    content: 'RP-MEDIA-01 smoke message; media analysis uses approved smoke source metadata only.',
+    content_json: smokeMetadata(smokeTag),
+    sequence_number: 1,
+    metadata: smokeMetadata(smokeTag),
+  })
+
+  const bucketName = resolveBucketName(context.env, 'source_media')
+  const uploadIntentId = randomUUID()
+  const objectPath = buildCanonicalObjectPath({
+    workspaceId,
+    projectId,
+    purpose: 'source_media',
+    ownerId: smokeTag,
+    fileName: options.sourceFileName,
+  })
+  if (!isSmokeScopedObjectPath(objectPath, smokeTag, '/source-media/')) {
+    throw new SupabaseSmokeError('MEDIA_ANALYSIS_SOURCE_NOT_SMOKE_TAGGED', 'Media analysis source object path is not smoke-scoped.', {
+      objectPath,
+      smokeRunId: smokeTag,
+    })
+  }
+
+  const fixture = await options.sourceFixtureFactory({
+    smokeRunId: smokeTag,
+    workspaceId,
+    projectId,
+    bucketName,
+    objectPath,
+    fileName: options.sourceFileName,
+  })
+
+  const uploadIntentIdInserted = await insertRow(client, schema, cleanupRecords, 'upload_intents', {
+    id: uploadIntentId,
+    workspace_id: workspaceId,
+    project_id: projectId,
+    chat_session_id: chatSessionId,
+    requested_by_user_id: userId,
+    upload_purpose: 'source_media',
+    target_bucket: bucketName,
+    target_path: objectPath,
+    original_file_name: options.sourceFileName,
+    mime_type: 'video/mp4',
+    expected_size_bytes: fixture.sizeBytes,
+    checksum_sha256: fixture.checksumSha256,
+    status: 'finalized',
+    expires_at: futureIso(15),
+  }, { smokeRunId: smokeTag })
+  const mediaAssetId = await insertRow(client, schema, cleanupRecords, 'media_assets', {
+    id: randomUUID(),
+    workspace_id: workspaceId,
+    project_id: projectId,
+    created_by: userId,
+    asset_type: 'source_video',
+    processing_status: 'uploaded',
+    file_name: options.sourceFileName,
+    display_name: 'RP-MEDIA-01 smoke source',
+    mime_type: 'video/mp4',
+    storage_provider: 'gcs_private_storage',
+    storage_bucket: bucketName,
+    storage_path: objectPath,
+    file_size_bytes: fixture.sizeBytes,
+    checksum: fixture.checksumSha256,
+    metadata: smokeMetadata(smokeTag),
+  }, { smokeRunId: smokeTag })
+  const sourceStorageObjectId = await insertRow(client, schema, cleanupRecords, 'storage_object_records', {
+    id: randomUUID(),
+    workspace_id: workspaceId,
+    project_id: projectId,
+    media_asset_id: mediaAssetId,
+    upload_intent_id: uploadIntentIdInserted,
+    bucket_name: bucketName,
+    object_path: objectPath,
+    object_purpose: 'source_media',
+    mime_type: 'video/mp4',
+    size_bytes: fixture.sizeBytes,
+    checksum_sha256: fixture.checksumSha256,
+    region: storageRegion(context),
+    status: 'ready',
+  }, { smokeRunId: smokeTag })
+
+  return {
+    smokeRunId: smokeTag,
+    workspaceId,
+    projectId,
+    userId,
+    chatSessionId,
+    chatMessageId,
+    uploadIntentId: uploadIntentIdInserted,
+    mediaAssetId,
+    sourceStorageObjectId,
+    sourceBucketName: bucketName,
+    sourceObjectPath: objectPath,
+    sourceSizeBytes: fixture.sizeBytes,
+    sourceChecksumSha256: fixture.checksumSha256,
+  }
+}
+
+async function validateMediaAnalysisSmokeReadback(
+  client: SupabaseClient,
+  records: SmokeRecordIds,
+): Promise<NonNullable<SupabaseE2ESmokeResult['readback']>> {
+  const checked: Array<{ table: string; id: string; status?: string }> = []
+  const blockers: string[] = []
+
+  const sourceStorage = await requireSmokeReadback(client, 'storage_object_records', records.sourceStorageObjectId, blockers, checked)
+  const job = await requireSmokeReadback(client, 'jobs', records.mediaAnalysisJobId, blockers, checked)
+  const event = await requireSmokeReadback(client, 'job_events', records.mediaAnalysisJobEventId, blockers, checked)
+  for (const artifactId of records.analysisStorageObjectIds ?? []) {
+    await requireSmokeReadback(client, 'storage_object_records', artifactId, blockers, checked)
+  }
+
+  requireStatus(sourceStorage, 'storage_object_records', ['ready'], blockers)
+  requireStatus(job, 'jobs', ['completed'], blockers)
+
+  const jobPayload = readRecordObject(job?.output_payload)
+  if (jobPayload?.smokeRunId !== records.smokeRunId) {
+    blockers.push('jobs.output_payload did not preserve the media analysis smoke run id.')
+  }
+  const eventPayload = readRecordObject(event?.payload)
+  if (eventPayload?.smokeRunId !== records.smokeRunId) {
+    blockers.push('job_events.payload did not preserve the media analysis smoke run id.')
+  }
+  if (containsForbiddenSignedUrlCanonicalField(jobPayload) || containsForbiddenSignedUrlCanonicalField(eventPayload)) {
+    blockers.push('Media analysis readback included signed URL metadata.')
+  }
+
+  return { ok: blockers.length === 0, checked, blockers }
 }
 
 async function loadSchemaInfo(client: SupabaseClient, tableNames: string[]): Promise<SchemaInfo> {
@@ -1539,6 +1938,15 @@ function smokeMetadata(smokeTag: string): Record<string, unknown> {
     smokeTag,
     milestone: 'RP-E2E-READY-01 Prompt 7',
   })
+}
+
+function isSmokeScopedObjectPath(objectPath: string, smokeRunId: string, requiredSegment: string): boolean {
+  const normalized = objectPath.replace(/\\/g, '/')
+  return normalized.includes(requiredSegment)
+    && normalized.includes(`/${smokeRunId}/`)
+    && normalized.startsWith('workspaces/')
+    && !normalized.includes('customer-media')
+    && !normalized.includes('signed')
 }
 
 function smokeSnapshotJson(sourceStorageObjectId: string): Record<string, unknown> {

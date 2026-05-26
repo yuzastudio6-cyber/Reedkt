@@ -1,0 +1,4 @@
+# ReeditPro M10 render worker Python requirements.
+# Used for OpenTimelineIO handoff support only; render execution remains future work.
+
+opentimelineio

@@ -1,0 +1,8 @@
+# ReeditPro M10 QA worker Python requirements.
+# These support future safe QA import checks and deterministic output inspection.
+# OpenImageIO/OpenColorIO are optional/pending manual dependency review.
+
+opencv-python-headless
+duckdb
+polars
+opentimelineio

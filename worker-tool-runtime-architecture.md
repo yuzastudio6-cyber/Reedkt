@@ -78,10 +78,12 @@ Source media, browser captures, generated assets, QA artifacts, previews, export
 
 Controlled tools and renderers are future worker capabilities, not frontend behavior:
 
+- The production render stack is Hyperframe + Remotion + FFmpeg + libass + OpenTimelineIO.
 - Remotion composes approved assets into the final canvas.
 - FFmpeg/VapourSynth/Sharp/OpenCV style work is future worker preprocess/postprocess/QA work.
 - Playwright/browser capture is future authorized worker capture only.
 - AudioFlux and Signalsmith Stretch are future SoundSync/audio worker candidates.
+- Revideo is evaluation-only/future-optional and is not a core runtime dependency unless a later approved review proves a concrete core-stack gap.
 
 Browser/app capture must be user-authorized and must not bypass authentication, paywalls, CAPTCHAs, robots, rate limits, or site restrictions.
 

@@ -1,0 +1,11 @@
+# ReeditPro M10 CPU worker Python requirements.
+# These are container image declarations only. Codex must not install them on the host.
+# OpenImageIO/OpenColorIO remain optional/pending because production package/build
+# selection needs a separate dependency and license review.
+
+av
+scenedetect
+opencv-python-headless
+duckdb
+polars
+opentimelineio

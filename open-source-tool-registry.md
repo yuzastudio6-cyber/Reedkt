@@ -10,6 +10,12 @@ The registry guides the planner. It does not limit custom user requests. If a us
 
 No package is installed or executed by this milestone.
 
+## Production Registry Boundary
+
+This document and `src/lib/tool-registry.ts` remain frontend/planning-safe. Milestone 2 adds the server-only production registry under `server/tool-registry`, with `ProductionToolId` profiles for backend worker ownership, runtime policy, QA gates, license/model-weight status, and fallback metadata.
+
+The frontend `OpenSourceToolId` union is not expanded with backend-heavy production tools. Browser code may display planning summaries, but it must not import production profiles to execute FFmpeg, GPU AI models, render jobs, provider calls, storage access, or any other worker-only tool path.
+
 ## Tool Execution Modes
 
 ### inside_remotion

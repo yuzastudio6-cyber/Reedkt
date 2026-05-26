@@ -281,6 +281,8 @@ export type ToolStrategyHint =
   | 'qa_vision_tool'
   | 'none'
 
+// Frontend planning IDs only. Backend production tool profiles live in server/tool-registry
+// and must not be imported into browser runtime or used to execute heavy media/AI tools.
 export type OpenSourceToolId =
   | 'remotion'
   | 'ffmpeg'

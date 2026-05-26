@@ -56,8 +56,11 @@ Transparent overlays remain a future option for deterministic SVG, Lottie, Remot
 
 ## Launch Renderer Policy
 
-- Use Remotion as the planned renderer/compositor layer.
-- Do not use Hyperframe for launch.
+- Use the production render stack decision in `docs/production-render-stack-decision.md` as the current architecture lock.
+- Hyperframe is the planned editor/timeline/interactive preview layer.
+- Remotion remains the programmatic composition/render-template layer.
+- FFmpeg, libass, and OpenTimelineIO complete the core render/export/interchange stack.
+- Revideo is evaluation-only and not core.
 - Do not install Remotion or renderer infrastructure until the backend/rendering milestone.
 - Keep renderer planning frontend/mock-only until explicit rendering work is requested.
 

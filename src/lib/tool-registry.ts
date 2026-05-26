@@ -558,6 +558,7 @@ export function getToolRegistrySummary(): ToolRegistrySummary {
       'Provider models such as GPT-Image-2, Wan, Hailuo, and Veo remain separate from OpenSourceToolId entries.',
       'The registry does not enable Veo, change model policy, or bypass plan and credit approval.',
       'Remotion remains the final compositor; tools can provide assets, data, screenshots, maps, charts, processing, or QA in future approved workers.',
+      'Server-only production tool profiles live in server/tool-registry; this frontend registry stays planning-safe and does not expose heavy tool execution.',
     ],
   }
 }

@@ -90,3 +90,11 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm transcript/caption generation passed and caption QA has no blocking findings.
 4. Confirm production, external beta, broad real user media, providers, GPU, and final export remain blocked.
 5. Proceed to Phase 29 only as an explicit controlled smart-cut + captions test.
+
+## After Phase 29
+
+1. Review `activation:real-video:smart-cut:report` and the private Phase 29 artifacts.
+2. Confirm the run used only Phase 28 run `phase28-20260528T01552`.
+3. Confirm SmartCutPlan, TimelineManifest, caption refs, and QA exist privately.
+4. Confirm preview was skipped or private only, and final export remains blocked.
+5. Proceed to Phase 30 only as an explicit controlled private final export test.

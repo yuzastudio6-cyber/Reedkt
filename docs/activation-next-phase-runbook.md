@@ -64,5 +64,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 1. Review `activation:model-weight:summary`, `activation:model-approval:plan`, and `activation:model-approval:report`.
 2. Confirm only `Systran/faster-whisper-tiny` is staging-approved for speech/caption planning.
 3. Confirm the download command plan is text-only and no model files were downloaded or committed.
-4. Proceed toward Phase 28 planning only after the tiny model weights are made available in a later explicit download/load phase.
+4. Proceed to Phase 26B to download only the approved tiny model into private staging storage.
 5. Keep Phase 27 GPU deployment optional/deferred unless a later runtime decision requires it for the tiny speech/caption test.
+
+## After Phase 26B
+
+1. Review `activation:model-download:report` and confirm checksum/revision evidence exists.
+2. Confirm model files were not committed and model storage is private.
+3. Confirm only `Systran/faster-whisper-tiny` was downloaded and all larger/non-speech models remain blocked.
+4. Confirm Phase 28 execution remains blocked if no speech runtime image/job has faster-whisper/CTranslate2 available.
+5. Proceed to Phase 28 only after a controlled speech/caption runtime path is explicitly approved.

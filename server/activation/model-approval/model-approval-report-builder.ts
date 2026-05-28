@@ -5,6 +5,7 @@ import { buildFasterWhisperTinyStoragePlan } from './model-storage-plan'
 import { buildModelDownloadCommandPlan } from './model-download-command-plan'
 import { buildModelApprovalBlockers } from './model-approval-blocker-policy'
 import { buildBlockedModelWeightManifests, buildModelWeightManifest } from './model-manifest-writer'
+import { getApprovedModelDownloadEvidence } from '../model-download/approved-model-download-evidence'
 import type { ModelApprovalReport } from './model-approval-types'
 
 export const MODEL_APPROVAL_REPORT_ID = 'activation-phase-26-model-license-approval'
@@ -12,6 +13,8 @@ export const MODEL_APPROVAL_REPORT_ID = 'activation-phase-26-model-license-appro
 export function buildModelApprovalReport(): ModelApprovalReport {
   const candidates = listModelApprovalCandidates()
   const evidenceSummary = listModelLicenseEvidence()
+  const downloadEvidence = getApprovedModelDownloadEvidence()
+  const downloadVerified = downloadEvidence.status === 'verified'
   const storagePlan = buildFasterWhisperTinyStoragePlan()
   const downloadCommandPlan = buildModelDownloadCommandPlan(storagePlan)
   const decisions = candidates.map((candidate) => evaluateModelApprovalPolicy({
@@ -33,8 +36,12 @@ export function buildModelApprovalReport(): ModelApprovalReport {
   const warnings = [
     ...blockerEvaluation.warnings,
     ...productionApprovalBlockers(),
-    'Actual model weights are not downloaded or available in runtime path during Phase 26.',
-    'Phase 28 execution remains blocked until explicit model availability evidence exists.',
+    downloadVerified
+      ? 'Phase 26B model storage evidence exists, but runtime loading/transcription is still unverified.'
+      : 'Actual model weights are not downloaded or available in runtime path during Phase 26.',
+    downloadVerified
+      ? 'Phase 28 execution remains blocked until a speech runtime image/job is deployed and verified.'
+      : 'Phase 28 execution remains blocked until explicit model availability evidence exists.',
   ]
 
   return {
@@ -57,13 +64,18 @@ export function buildModelApprovalReport(): ModelApprovalReport {
     phase28Readiness: {
       readyForPlanning: approvedModels.length === 1 && blockerEvaluation.blockers.length === 0,
       readyForExecution: false,
-      blockers: [
-        'Actual model weights are missing from approved runtime/storage path until a later explicit download/load phase.',
-        'Phase 28 real-video execution requires a separate explicit approval and generated scope.',
-      ],
+      blockers: downloadVerified
+        ? [
+            'Speech runtime image/job loading for the approved tiny model is not verified.',
+            'Phase 28 real-video execution requires a separate explicit approval and generated scope.',
+          ]
+        : [
+            'Actual model weights are missing from approved runtime/storage path until a later explicit download/load phase.',
+            'Phase 28 real-video execution requires a separate explicit approval and generated scope.',
+          ],
       warnings: ['Planning is limited to speech/caption only with Systran/faster-whisper-tiny.'],
     },
-    modelDownloadExecuted: false,
+    modelDownloadExecuted: downloadEvidence.status !== 'not_started',
     providerExecuted: false,
     gpuDeployed: false,
     realUserMediaProcessed: false,

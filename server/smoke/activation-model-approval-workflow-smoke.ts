@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { getApprovedModelDownloadEvidence } from '../activation/model-download/approved-model-download-evidence'
 import {
   buildFasterWhisperTinyStoragePlan,
   buildModelApprovalReport,
@@ -58,8 +59,14 @@ assert.ok(downloadPlan.every((plan) => plan.safeToRunNow === false), 'download p
 assert.ok(downloadPlan.every((plan) => !/docker\s+run|gcloud\s+run|provider|SECRET_VALUE|HUGGINGFACE_TOKEN=/i.test(plan.commandString)), 'download plan must not execute providers/gcloud run or print tokens.')
 
 const manifest = buildModelWeightManifest(tiny)
+const downloadEvidence = getApprovedModelDownloadEvidence()
 assert.equal(manifest.modelWeightManifestId, 'faster_whisper_tiny_staging_v1', 'manifest id must match Phase 26 required id.')
-assert.equal(manifest.checksum, 'missing_until_download', 'manifest checksum must be pending until actual download.')
+if (downloadEvidence.status === 'verified') {
+  assert.equal(manifest.checksum, downloadEvidence.aggregateSha256, 'manifest checksum must match verified download evidence.')
+  assert.equal(manifest.resolvedRevision, downloadEvidence.resolvedRevision, 'manifest revision must match verified download evidence.')
+} else {
+  assert.equal(manifest.checksum, 'missing_until_download', 'manifest checksum must be pending until actual download.')
+}
 assert.equal(manifest.reviewStatus, 'staging_approved', 'manifest must be staging approved.')
 assert.equal(manifest.productionStatus, 'production_blocked')
 assert.equal(manifest.externalBetaStatus, 'blocked')
@@ -72,7 +79,7 @@ assert.ok(report.blockedModels.length >= 6, 'non-speech models must remain block
 assert.equal(report.productionReadyAllowed, false)
 assert.equal(report.externalBetaAllowed, false)
 assert.equal(report.realUserMediaTestingAllowed, false)
-assert.equal(report.modelDownloadExecuted, false)
+assert.equal(report.modelDownloadExecuted, downloadEvidence.status !== 'not_started')
 assert.equal(report.providerExecuted, false)
 assert.equal(report.gpuDeployed, false)
 assert.equal(report.realUserMediaProcessed, false)

@@ -37,8 +37,12 @@ Any non-commercial model weight is blocked for paid ReeditPro production. Any un
 Activation Phase 26 records evidence for `Systran/faster-whisper-tiny` and
 approves it only for staging speech/caption planning. This does not approve
 production, paid production, external beta, larger Whisper models, non-speech
-models, or real user media execution. Actual weights remain unavailable until a
-future explicit download/load phase records revision and checksum evidence.
+models, or real user media execution.
+
+Activation Phase 26B downloads only the approved tiny model into private staging
+generated-assets storage and records revision/checksum evidence. This still does
+not approve production, external beta, larger models, provider models, GPU
+deployment, or real user media execution.
 ## Milestone 12 Report Integration
 
 Model-weight manifests now appear in the unified production readiness report. Unknown, non-commercial, missing, `needs_review`, and blocked model weights remain production blockers while dry-run/static readiness may surface them as warnings and next actions.

@@ -25,7 +25,7 @@ export function buildFasterWhisperTinyStoragePlan(): ModelStoragePlan {
     ],
     warnings: [
       'Generated-assets bucket is used because Phase 22B did not create a dedicated model-weight bucket.',
-      'Actual weights remain unavailable until an explicit future download/load phase completes.',
+      'Model storage/download status is reported by Phase 26B; runtime loading remains unavailable until an explicit load/verification phase completes.',
     ],
   }
 }

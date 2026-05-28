@@ -1,10 +1,10 @@
 # Activation Readiness State
 
-Phase 34C verified the Real-ESRGAN runtime only for a generated synthetic image
-after Phase 34B private model storage/checksum evidence. It is not ready for
-production launch, external beta, broad real user media testing, provider
-execution, arbitrary media execution, full-video enhancement, real-video
-enhancement, FILM, slow motion, or Revideo.
+Phase 34D completed one bounded Real-ESRGAN enhancement sample from the approved
+Phase 33D representative frame. It is not ready for production launch, external
+beta, broad real user media testing, provider execution, arbitrary media
+execution, full-frame enhancement, full-video enhancement, FILM, slow motion, or
+Revideo.
 
 Phase 33E composed a private text-behind-subject PNG preview from the approved
 Phase 33D frame, mask, and RGBA cutout. It emitted a text layer plan, depth
@@ -14,9 +14,9 @@ Phase 34A adds a static/report-only enhancement/slow-motion model approval
 workflow. `RealESRGAN_x4plus` is staging-approved only for sample-first
 enhancement planning. FILM is evaluated-only and execution/download-blocked.
 
-Phase 34B may add private GCS checksum evidence for the single approved
-`RealESRGAN_x4plus.pth` file. Runtime loading and enhancement execution remain
-blocked until Phase 34C.
+Phase 34B added private GCS checksum evidence for the single approved
+`RealESRGAN_x4plus.pth` file. Phase 34C verified the dedicated Real-ESRGAN L4
+runtime on generated media only.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -24,14 +24,13 @@ blocked until Phase 34C.
 | Smoke suite | Ready | Existing production smoke and summary scripts are available and cataloged by Phase 19. |
 | Local baseline command/report | Ready | `activation:local-baseline` defaults to static-only reporting and requires confirmation before execution. |
 | Container build reporting | Ready | Phase 20 can print build plans and parse human build logs without running Docker. |
-| Docker build | Not yet human-run | Production images have not been built for activation unless humans provide passing build logs. |
+| Staging container images | Built and pushed for completed activation phases | Non-GPU staging images and dedicated speech, BiRefNet, and Real-ESRGAN runtime images were built/pushed only for the approved activation scopes. Production images remain blocked. |
 | Container readiness validation reporting | Ready | Phase 21 can print readiness command plans and parse human-run readiness logs without running Docker. |
-| Actual container readiness run | Human-run required | Humans must run readiness against built images and provide logs; Codex does not run Docker. |
+| Container readiness run | Verified for completed activation paths | Completed activation phases include recorded staging readiness/runtime evidence. This does not approve arbitrary containers or production execution. |
 | GCP staging setup planning | Ready | Phase 22 validates staging config, resource map, IAM, buckets, secrets, and command plans. |
-| Actual GCP staging resources | Human-run required | Resources are not created until humans run reviewed setup with confirmation. |
-| Image push | Not yet human-run | No activation images have been pushed to Artifact Registry. |
-| Non-GPU staging deploy | Not yet done | API, CPU, render, and QA staging deployments are not active. |
-| GPU staging deploy | Not yet done | L4 GPU worker deployment waits for model/license and staging prerequisites. |
+| GCP staging resources | Created/verified for activation staging | Staging resources for `reeditpro` / `us-central1` exist for the completed controlled activation path. Production resources remain blocked. |
+| Non-GPU image push/deploy | Completed where applicable | API/non-GPU jobs were built, pushed, and deployed for the completed staging activation phases. This is not production readiness. |
+| Dedicated runtime jobs | Verified only for approved scopes | CPU speech runtime, BiRefNet L4 runtime, and Real-ESRGAN L4 runtime were verified in their controlled phases. General/broad GPU AI worker execution remains blocked unless a dedicated approved phase enables it. |
 | Model approval workflow | Ready | Phase 26 can report evidence, storage policy, manifests, and text-only future download commands. |
 | faster-whisper tiny model approval | Staging-approved for planning | `Systran/faster-whisper-tiny` is approved only for Phase 28 speech/caption planning. |
 | Mask model approval workflow | Ready | Phase 33A can report BiRefNet/SAM2 evidence, storage policy, manifests, and text-only future download commands. |
@@ -46,11 +45,12 @@ blocked until Phase 34C.
 | Real-ESRGAN weights availability | Private staging storage verified | Phase 34B downloaded only approved `RealESRGAN_x4plus.pth` into private staging storage and recorded checksum evidence. |
 | FILM model approval | Evaluated-only | `google-research/frame-interpolation` evidence is recorded, but FILM download, execution, and slow motion remain blocked. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
-| Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
+| Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
+| Model weights availability | Private staging storage verified for approved activation models | `Systran/faster-whisper-tiny`, `ZhengPeng7/BiRefNet`, and `RealESRGAN_x4plus` have private staging storage and checksum/revision evidence for their approved controlled scopes. |
 | CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
 | First real video speech/caption | Complete for one controlled test | Phase 28 processed `/Users/macuser/Downloads/IMG_6005.MOV` for speech/caption only with private artifacts and no blocking caption QA findings. |
 | Smart cut + captions | Complete for one controlled test | Phase 29 produced private SmartCutPlan, TimelineManifest, caption refs, and QA for `phase29-20260528T02254`; final export and broad real media testing remain blocked. |
-| Final private export | Ready for explicit Phase 30 planning | Phase 30 may proceed only as a controlled private final export test after explicit approval. |
+| Final private export | Complete for one controlled private export | Phase 30 produced a private final export for the approved activation path. Public delivery remains blocked. |
 | Internal beta | Blocked | Requires full private E2E evidence, operations, support, privacy, cost, and rollback readiness. |
 | External beta | Blocked | Requires strict Phase 37 go/no-go approval. |
 | Paid production | Blocked | Not approved by Phase 18 or the activation roadmap. |
@@ -61,20 +61,25 @@ Current classification:
 - local generated fixture testing: ready where supported
 - local baseline command/report: ready
 - container build reporting: ready
-- production container build: not yet human-run
+- staging container images: built and pushed for completed activation phases only; production images remain blocked
 - container readiness validation reporting: ready
-- actual container readiness run: human-run required
+- container readiness/runtime evidence: recorded for completed activation paths only
 - GCP staging setup planning: ready
-- GCP staging resources: not yet human-run
-- staging deployment: not yet done
-- model weights/licenses: faster-whisper tiny staging approval only
-- model files/checksums: private staging storage verified for faster-whisper tiny only
+- GCP staging resources: created/verified for `reeditpro` / `us-central1`
+- staging deployment: complete where applicable for the controlled activation path
+- dedicated runtime jobs: CPU speech runtime verified, BiRefNet L4 runtime verified, Real-ESRGAN L4 runtime verified
+- model weights/licenses: staging approval remains scope-limited per model/tool
+- model files/checksums: private staging storage verified for faster-whisper tiny, BiRefNet, and RealESRGAN_x4plus
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
-- GPU worker: not yet deployed
-- real user video testing: blocked except completed single controlled Phase 28-33E runs and future explicitly approved controlled phases
+- general/broad GPU AI worker execution: blocked unless a dedicated approved phase explicitly enables it
+- controlled real-video chain: complete only for the explicit approved Phase 28-34D path
+- broad real user media testing: blocked
 - mask execution: complete only for the explicit Phase 33D representative-frame test; full-video masks remain blocked
 - text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview; full-video text-behind-subject remains blocked
-- enhancement execution: blocked for real media until a later Phase 34D controlled sample is explicitly approved
+- enhancement execution: blocked except the explicit Phase 34D bounded real-video-derived sample; full-frame and full-video enhancement remain blocked
+- SAM2 execution: blocked; SAM2 remains evaluated-only
 - slow-motion execution: blocked; FILM is evaluated-only
+- provider execution: blocked
+- production: blocked
 - external beta: blocked
 - paid production: blocked

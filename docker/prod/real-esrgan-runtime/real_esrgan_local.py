@@ -59,10 +59,53 @@ def generate_fixture(path: Path) -> Image.Image:
     return image
 
 
+def choose_center_crop(image: Image.Image) -> tuple[Image.Image, dict]:
+    width, height = image.size
+    side = min(512, width, height)
+    if side < 256:
+        raise RuntimeError("Source frame is too small for the minimum 256x256 Phase 34D sample crop.")
+    x = (width - side) // 2
+    y = (height - side) // 2
+    crop = image.crop((x, y, x + side, y + side))
+    reason = "Centered 512x512 crop from the approved Phase 33D representative frame."
+    if side < 512:
+        reason = "Centered fallback crop from the approved Phase 33D representative frame."
+    return crop, {
+        "x": int(x),
+        "y": int(y),
+        "width": int(side),
+        "height": int(side),
+        "reason": reason,
+    }
+
+
+def enhance_rgb_image(model_path: Path, image: Image.Image) -> np.ndarray:
+    from basicsr.archs.rrdbnet_arch import RRDBNet
+    from realesrgan import RealESRGANer
+
+    input_bgr = cv2.cvtColor(np.array(image.convert("RGB")), cv2.COLOR_RGB2BGR)
+    model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
+    upsampler = RealESRGANer(
+        scale=4,
+        model_path=str(model_path),
+        model=model,
+        tile=64,
+        tile_pad=10,
+        pre_pad=0,
+        half=True,
+        gpu_id=0,
+    )
+    output_bgr, _ = upsampler.enhance(input_bgr, outscale=4)
+    return output_bgr
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=["generated_fixture", "real_video_sample"], default="generated_fixture")
     parser.add_argument("--model-path", required=True)
-    parser.add_argument("--fixture-path", required=True)
+    parser.add_argument("--fixture-path")
+    parser.add_argument("--input-image-path")
+    parser.add_argument("--sample-path")
     parser.add_argument("--enhanced-path", required=True)
     parser.add_argument("--output-json", required=True)
     args = parser.parse_args()
@@ -84,28 +127,57 @@ def main() -> None:
     if not model_path.exists() or model_path.stat().st_size <= 0:
         raise RuntimeError("Approved local RealESRGAN_x4plus.pth is missing or empty.")
     if os.environ.get("REAL_ESRGAN_FACE_ENHANCE") != "false":
-        raise RuntimeError("GFPGAN/face enhancement is blocked in Phase 34C.")
+        raise RuntimeError("GFPGAN/face enhancement is blocked in the Real-ESRGAN activation runtime.")
     if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is required for Phase 34C; no CPU fallback is allowed.")
+        raise RuntimeError("CUDA is required for the Real-ESRGAN activation runtime; no CPU fallback is allowed.")
 
-    fixture_path = Path(args.fixture_path)
     enhanced_path = Path(args.enhanced_path)
     output_path = Path(args.output_json)
-    image = generate_fixture(fixture_path)
-    input_bgr = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    if args.mode == "real_video_sample":
+        if not args.input_image_path or not args.sample_path:
+            raise RuntimeError("Phase 34D sample mode requires --input-image-path and --sample-path.")
+        source_path = Path(args.input_image_path)
+        sample_path = Path(args.sample_path)
+        source_image = Image.open(source_path).convert("RGB")
+        sample_image, crop = choose_center_crop(source_image)
+        sample_path.parent.mkdir(parents=True, exist_ok=True)
+        sample_image.save(sample_path)
+        output_bgr = enhance_rgb_image(model_path, sample_image)
+        fixture_payload = None
+        source_payload = {
+            "width": source_image.size[0],
+            "height": source_image.size[1],
+            "path": str(source_path),
+            "kind": "approved_phase33d_frame",
+        }
+        crop_payload = {
+            **crop,
+            "path": str(sample_path),
+        }
+        warnings = [
+            "Real-video-derived bounded sample only; no full-frame or full-video enhancement quality claim.",
+            "GFPGAN/facexlib package dependencies are not execution evidence and no GFPGAN/facexlib weights were used.",
+            "Hallucination, oversharpening, and texture artifact risks require human before/after review.",
+        ]
+    else:
+        if not args.fixture_path:
+            raise RuntimeError("Generated fixture mode requires --fixture-path.")
+        fixture_path = Path(args.fixture_path)
+        image = generate_fixture(fixture_path)
+        output_bgr = enhance_rgb_image(model_path, image)
+        fixture_payload = {
+            "width": image.size[0],
+            "height": image.size[1],
+            "path": str(fixture_path),
+            "kind": "generated_fixture",
+        }
+        source_payload = None
+        crop_payload = None
+        warnings = [
+            "Generated synthetic fixture only; no real-video enhancement quality claim.",
+            "GFPGAN/facexlib package dependencies are not execution evidence and no GFPGAN/facexlib weights were used.",
+        ]
 
-    model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
-    upsampler = RealESRGANer(
-        scale=4,
-        model_path=str(model_path),
-        model=model,
-        tile=64,
-        tile_pad=10,
-        pre_pad=0,
-        half=True,
-        gpu_id=0,
-    )
-    output_bgr, _ = upsampler.enhance(input_bgr, outscale=4)
     enhanced_path.parent.mkdir(parents=True, exist_ok=True)
     if not cv2.imwrite(str(enhanced_path), output_bgr):
         raise RuntimeError("Failed to write enhanced PNG.")
@@ -114,12 +186,6 @@ def main() -> None:
         "ok": True,
         "cudaAvailable": True,
         "deviceName": torch.cuda.get_device_name(0),
-        "fixture": {
-            "width": image.size[0],
-            "height": image.size[1],
-            "path": str(fixture_path),
-            "kind": "generated_fixture",
-        },
         "enhanced": {
             "width": int(output_bgr.shape[1]),
             "height": int(output_bgr.shape[0]),
@@ -135,11 +201,14 @@ def main() -> None:
             "filmUsed": False,
             "modelDownloadedExternally": False,
         },
-        "warnings": [
-            "Generated synthetic fixture only; no real-video enhancement quality claim.",
-            "GFPGAN/facexlib package dependencies are not execution evidence and no GFPGAN/facexlib weights were used.",
-        ],
+        "warnings": warnings,
     }
+    if fixture_payload:
+        output["fixture"] = fixture_payload
+    if source_payload:
+        output["sourceFrame"] = source_payload
+    if crop_payload:
+        output["sampleCrop"] = crop_payload
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
 

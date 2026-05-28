@@ -36,3 +36,7 @@ Container/tool readiness should pass before any Cloud Run deployment. M12 provid
 Do not deploy or run `gcloud` until the M17 hardening scorecard and human approvals pass. Required approvals include production readiness, model/license review, security review, cost controls, privacy/storage review, incident response ownership, and legal/licensing review.
 
 M17 is static/dry-run only and does not create Google Cloud resources.
+
+## Activation Phase 22 Staging Setup
+
+Activation Phase 22 adds staging-specific setup preparation with `.env.gcp.staging.example`, `activation:gcp-staging:plan`, and `activation:gcp-staging:report`. Codex still does not run `gcloud`; humans review the staging plan first, then run setup manually only with `REEDITPRO_CONFIRM_STAGING_GCP_SETUP=true`.

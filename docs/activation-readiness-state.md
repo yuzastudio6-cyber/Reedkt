@@ -1,6 +1,6 @@
 # Activation Readiness State
 
-Phase 22 classifies the repo as ready for GCP staging foundation setup planning, not for staging launch, external beta, real user media, Docker execution, actual GCP resource creation, or paid production.
+Phase 21 classifies the repo as ready for container readiness validation reporting, not for staging launch, external beta, real user media, Docker execution, GCP setup, or paid production.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -11,8 +11,7 @@ Phase 22 classifies the repo as ready for GCP staging foundation setup planning,
 | Docker build | Not yet human-run | Production images have not been built for activation unless humans provide passing build logs. |
 | Container readiness validation reporting | Ready | Phase 21 can print readiness command plans and parse human-run readiness logs without running Docker. |
 | Actual container readiness run | Human-run required | Humans must run readiness against built images and provide logs; Codex does not run Docker. |
-| GCP staging setup planning | Ready | Phase 22 validates staging config, resource map, IAM, buckets, secrets, and command plans. |
-| Actual GCP staging resources | Human-run required | Resources are not created until humans run reviewed setup with confirmation. |
+| GCP setup | Human-run required | Phase 22 handles staging foundation setup after readiness report review. |
 | Image push | Not yet human-run | No activation images have been pushed to Artifact Registry. |
 | Non-GPU staging deploy | Not yet done | API, CPU, render, and QA staging deployments are not active. |
 | GPU staging deploy | Not yet done | L4 GPU worker deployment waits for model/license and staging prerequisites. |
@@ -32,7 +31,6 @@ Current classification:
 - production container build: not yet human-run
 - container readiness validation reporting: ready
 - actual container readiness run: human-run required
-- GCP staging setup planning: ready
 - GCP staging resources: not yet human-run
 - staging deployment: not yet done
 - model weights/licenses: not yet approved

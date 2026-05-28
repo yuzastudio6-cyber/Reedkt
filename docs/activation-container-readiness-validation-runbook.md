@@ -41,4 +41,4 @@ Use repeated `--log` flags for multiple image logs. Unknown logs are treated as 
 
 ## Next Phase
 
-Phase 22 is GCP staging foundation setup preparation. Phase 21 may say Phase 22 setup is ready even while Phase 23 image push remains blocked. Phase 22 validates staging config, resource names, IAM, buckets, secret placeholders, and command plans, but it does not run `gcloud`, deploy services, or unblock beta.
+Phase 22 is GCP staging foundation setup. Phase 21 may say Phase 22 setup is ready even while Phase 23 image push remains blocked. Phase 22 does not deploy services or unblock beta.

@@ -42,3 +42,18 @@ Still blocked:
 - FILM download/execution and slow motion
 - alternate Real-ESRGAN, GFPGAN, and facexlib weights
 - providers, public delivery, Revideo, production, external beta, paid production, and broad real media
+
+## Activation Phase 34D
+
+Phase 34D ran one bounded real-video-derived sample from the approved Phase 33D
+representative frame. It used `RealESRGAN_x4plus` only, copied the model from
+private staging storage, verified checksum evidence, and wrote private
+before/after sample artifacts and QA.
+
+Still blocked:
+
+- full-frame enhancement
+- full-video enhancement
+- FILM download/execution and slow motion
+- alternate Real-ESRGAN, GFPGAN, and facexlib weights
+- providers, public delivery, Revideo, production, external beta, paid production, and broad real media

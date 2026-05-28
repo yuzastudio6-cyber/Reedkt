@@ -1,10 +1,10 @@
 # Activation Readiness State
 
-Phase 34C verified the Real-ESRGAN runtime only for a generated synthetic image
-after Phase 34B private model storage/checksum evidence. It is not ready for
-production launch, external beta, broad real user media testing, provider
-execution, arbitrary media execution, full-video enhancement, real-video
-enhancement, FILM, slow motion, or Revideo.
+Phase 34D completed one bounded Real-ESRGAN enhancement sample from the approved
+Phase 33D representative frame. It is not ready for production launch, external
+beta, broad real user media testing, provider execution, arbitrary media
+execution, full-frame enhancement, full-video enhancement, FILM, slow motion, or
+Revideo.
 
 Phase 33E composed a private text-behind-subject PNG preview from the approved
 Phase 33D frame, mask, and RGBA cutout. It emitted a text layer plan, depth
@@ -46,6 +46,7 @@ blocked until Phase 34C.
 | Real-ESRGAN weights availability | Private staging storage verified | Phase 34B downloaded only approved `RealESRGAN_x4plus.pth` into private staging storage and recorded checksum evidence. |
 | FILM model approval | Evaluated-only | `google-research/frame-interpolation` evidence is recorded, but FILM download, execution, and slow motion remain blocked. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
+| Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
 | Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
 | CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
 | First real video speech/caption | Complete for one controlled test | Phase 28 processed `/Users/macuser/Downloads/IMG_6005.MOV` for speech/caption only with private artifacts and no blocking caption QA findings. |
@@ -74,7 +75,7 @@ Current classification:
 - real user video testing: blocked except completed single controlled Phase 28-33E runs and future explicitly approved controlled phases
 - mask execution: complete only for the explicit Phase 33D representative-frame test; full-video masks remain blocked
 - text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview; full-video text-behind-subject remains blocked
-- enhancement execution: blocked for real media until a later Phase 34D controlled sample is explicitly approved
+- enhancement execution: blocked except the explicit Phase 34D bounded real-video-derived sample; full-frame and full-video enhancement remain blocked
 - slow-motion execution: blocked; FILM is evaluated-only
 - external beta: blocked
 - paid production: blocked

@@ -24,3 +24,11 @@ Phase 34C is generated-image runtime verification only. It may produce a private
 enhanced PNG from a synthetic fixture using the approved `RealESRGAN_x4plus`
 weight. It does not process real media, does not produce a final video export,
 does not run FILM or slow motion, and does not approve full-video enhancement.
+
+## Activation Phase 34D Boundary
+
+Phase 34D processed exactly one bounded crop from the approved Phase 33D
+representative frame and produced private sample and enhanced-sample PNGs,
+before/after metadata, and QA. It does not enhance the full frame, does not
+process video, does not run FILM or slow motion, and does not approve production
+or broad real-media enhancement.

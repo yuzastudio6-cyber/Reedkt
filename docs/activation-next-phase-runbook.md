@@ -175,3 +175,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the only input was a generated synthetic image and the enhanced output is private.
 4. Confirm FILM, alternate Real-ESRGAN weights, GFPGAN/facexlib weights, full-video enhancement, slow motion, providers, public access, secret values, Revideo, production, external beta, and broad real media remain blocked.
 5. Proceed to Phase 34D only if the private enhanced synthetic-image artifact exists and enhancement QA has no blocking failures.
+
+## After Phase 34D
+
+1. Review `activation:real-video:enhancement-sample:report` and the private Phase 34D sample artifacts.
+2. Confirm exactly one bounded sample crop was created from `phase33d-20260528T161056`.
+3. Confirm the runtime copied only `RealESRGAN_x4plus.pth` from private staging GCS and did not download from GitHub or any model host at runtime.
+4. Confirm the input sample, enhanced sample, before/after metadata, and QA report exist privately with no blocking failures.
+5. Confirm no full-frame enhancement, full-video enhancement, FILM, slow motion, providers, public access, secret values, Revideo, production, external beta, or broad real media occurred.
+6. Proceed to Phase 34E only if the private bounded sample enhancement exists and all safety gates remain blocked for broader execution.

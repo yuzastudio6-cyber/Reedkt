@@ -1,4 +1,4 @@
-import { buildRealVideoEnhancementSampleReport, summarizeRealVideoEnhancementSampleReport, validateRealVideoEnhancementSampleEnv } from '../activation/real-video-enhancement-sample'
+import { buildRealVideoEnhancementSampleReport, summarizeRealVideoEnhancementSampleReport, validateRealVideoEnhancementSampleExecutionEnv } from '../activation/real-video-enhancement-sample'
 
 const args = new Set(process.argv.slice(2))
 const json = args.has('--json')
@@ -6,7 +6,7 @@ const executeMode = args.has('--mode') && process.argv.includes('execute')
 
 const report = buildRealVideoEnhancementSampleReport()
 if (executeMode) {
-  const blockers = validateRealVideoEnhancementSampleEnv({
+  const blockers = validateRealVideoEnhancementSampleExecutionEnv({
     projectId: process.env.GCP_PROJECT_ID,
     region: process.env.GCP_REGION,
     env: process.env.REEDITPRO_ENV,

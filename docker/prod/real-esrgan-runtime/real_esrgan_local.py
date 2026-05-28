@@ -127,9 +127,9 @@ def main() -> None:
     if not model_path.exists() or model_path.stat().st_size <= 0:
         raise RuntimeError("Approved local RealESRGAN_x4plus.pth is missing or empty.")
     if os.environ.get("REAL_ESRGAN_FACE_ENHANCE") != "false":
-        raise RuntimeError("GFPGAN/face enhancement is blocked in Phase 34C.")
+        raise RuntimeError("GFPGAN/face enhancement is blocked in the Real-ESRGAN activation runtime.")
     if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is required for Phase 34C; no CPU fallback is allowed.")
+        raise RuntimeError("CUDA is required for the Real-ESRGAN activation runtime; no CPU fallback is allowed.")
 
     enhanced_path = Path(args.enhanced_path)
     output_path = Path(args.output_json)

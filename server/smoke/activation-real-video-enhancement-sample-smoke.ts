@@ -4,8 +4,10 @@ import {
   buildRealVideoEnhancementSampleCommandPlans,
   buildRealVideoEnhancementSampleCropPlan,
   buildRealVideoEnhancementSampleReport,
+  describeRealVideoEnhancementSampleCrop,
   realVideoEnhancementSampleConfig,
   validateRealVideoEnhancementSampleEnv,
+  validateRealVideoEnhancementSampleExecutionEnv,
 } from '../activation/real-video-enhancement-sample'
 import type { RealVideoEnhancementSampleExecutionReport } from '../activation/real-video-enhancement-sample'
 
@@ -32,10 +34,10 @@ const sampleReport: RealVideoEnhancementSampleExecutionReport = {
     aggregateSha256: realVideoEnhancementSampleConfig.modelAggregateSha256,
     copiedFiles: ['RealESRGAN_x4plus.pth', 'file_checksums_sha256.txt', 'model_tree_manifest.json'],
   },
-  sourceFrame: { gcsUri: realVideoEnhancementSampleConfig.sourceFrameGcsUri, width: 3840, height: 2160 },
+  sourceFrame: { gcsUri: realVideoEnhancementSampleConfig.sourceFrameGcsUri, width: 2160, height: 3840 },
   sampleCrop: {
-    x: 1664,
-    y: 824,
+    x: 824,
+    y: 1664,
     width: 512,
     height: 512,
     reason: 'Centered 512x512 crop from the approved Phase 33D representative frame.',
@@ -114,11 +116,42 @@ assert.ok(validateRealVideoEnhancementSampleEnv({ sourceFrameGcsUri: 'gs://other
 assert.ok(validateRealVideoEnhancementSampleEnv({ modelManifestId: 'film_frame_interpolation_evaluated_only_v1' }).length > 0, 'FILM must be blocked.')
 assert.ok(validateRealVideoEnhancementSampleEnv({ faceEnhance: 'true' }).length > 0, 'GFPGAN/face enhancement must be blocked.')
 
+const validExecutionEnv = {
+  projectId: 'reeditpro',
+  region: 'us-central1',
+  env: 'staging',
+  confirmation: 'true',
+  sourceFrameGcsUri: realVideoEnhancementSampleConfig.sourceFrameGcsUri,
+  modelManifestId: realVideoEnhancementSampleConfig.modelManifestId,
+  modelGcsPath: realVideoEnhancementSampleConfig.modelGcsPath,
+  fileSha256: realVideoEnhancementSampleConfig.modelFileSha256,
+  aggregateSha256: realVideoEnhancementSampleConfig.modelAggregateSha256,
+  gpuType: 'nvidia-l4',
+  faceEnhance: 'false',
+  providerExecution: 'false',
+  modelDownloads: 'false',
+}
+assert.deepEqual(validateRealVideoEnhancementSampleExecutionEnv(validExecutionEnv), [])
+assert.ok(validateRealVideoEnhancementSampleExecutionEnv({ ...validExecutionEnv, projectId: undefined }).some((blocker) => blocker.includes('GCP_PROJECT_ID')), 'strict execute env must block missing project.')
+assert.ok(validateRealVideoEnhancementSampleExecutionEnv({ ...validExecutionEnv, projectId: 'prod-reeditpro' }).length > 0, 'strict execute env must block wrong project.')
+assert.ok(validateRealVideoEnhancementSampleExecutionEnv({ ...validExecutionEnv, sourceFrameGcsUri: 'gs://other/frame.png' }).length > 0, 'strict execute env must block wrong frame.')
+assert.ok(validateRealVideoEnhancementSampleExecutionEnv({ ...validExecutionEnv, modelManifestId: 'film_frame_interpolation_evaluated_only_v1' }).length > 0, 'strict execute env must block FILM.')
+assert.ok(validateRealVideoEnhancementSampleExecutionEnv({ ...validExecutionEnv, faceEnhance: 'true' }).length > 0, 'strict execute env must block face enhancement.')
+assert.ok(validateRealVideoEnhancementSampleExecutionEnv({ ...validExecutionEnv, providerExecution: 'true' }).length > 0, 'strict execute env must block provider execution.')
+assert.ok(validateRealVideoEnhancementSampleExecutionEnv({ ...validExecutionEnv, modelDownloads: 'true' }).length > 0, 'strict execute env must block model downloads.')
+
 const cropPlan = buildRealVideoEnhancementSampleCropPlan()
 assert.equal(cropPlan.exactlyOneSample, true)
 assert.equal(cropPlan.fullFrameEnhancementAllowed, false)
 assert.equal(cropPlan.fullVideoEnhancementAllowed, false)
 assert.equal(cropPlan.preferredCrop.width, 512)
+
+const portraitCrop = describeRealVideoEnhancementSampleCrop({ sourceWidth: 2160, sourceHeight: 3840 })
+assert.equal(portraitCrop.x, 824)
+assert.equal(portraitCrop.y, 1664)
+assert.equal(portraitCrop.width, 512)
+assert.equal(portraitCrop.height, 512)
+assert.deepEqual(portraitCrop.blockers, [])
 
 const commands = buildRealVideoEnhancementSampleCommandPlans(runId, 'sha256:example')
 assert.ok(commands.some((command) => command.commandId === 'deploy-job'), 'deploy command must exist.')

@@ -807,7 +807,7 @@ function assertRuntimeOutput(bucketName: string, objectName: string, runId: stri
     'reeditpro-staging-reeditpro-worker-temp',
   ]
   if (!allowedBuckets.includes(bucketName) || !objectName.startsWith(prefix)) {
-    throw new Error(`Blocked Phase 34C output object: gs://${bucketName}/${objectName}`)
+    throw new Error(`Blocked Real-ESRGAN runtime output object: gs://${bucketName}/${objectName}`)
   }
 }
 

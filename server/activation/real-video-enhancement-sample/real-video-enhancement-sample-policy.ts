@@ -62,6 +62,43 @@ export function validateRealVideoEnhancementSampleEnv(input: {
   return blockers
 }
 
+export function validateRealVideoEnhancementSampleExecutionEnv(input: {
+  projectId?: string
+  region?: string
+  env?: string
+  confirmation?: string
+  sourceFrameGcsUri?: string
+  modelManifestId?: string
+  modelGcsPath?: string
+  fileSha256?: string
+  aggregateSha256?: string
+  gpuType?: string
+  faceEnhance?: string
+  providerExecution?: string
+  modelDownloads?: string
+}): string[] {
+  const blockers: string[] = []
+  const required: Array<[keyof typeof input, string]> = [
+    ['projectId', 'GCP_PROJECT_ID is required for Phase 34D execute mode.'],
+    ['region', 'GCP_REGION is required for Phase 34D execute mode.'],
+    ['env', 'REEDITPRO_ENV is required for Phase 34D execute mode.'],
+    ['confirmation', 'REEDITPRO_CONFIRM_REAL_VIDEO_ENHANCEMENT_SAMPLE is required for Phase 34D execute mode.'],
+    ['sourceFrameGcsUri', 'REEDITPRO_PHASE34D_INPUT_FRAME_GCS_URI is required for Phase 34D execute mode.'],
+    ['modelManifestId', 'REEDITPRO_APPROVED_ENHANCEMENT_MODEL_ID is required for Phase 34D execute mode.'],
+    ['modelGcsPath', 'REEDITPRO_MODEL_GCS_PATH is required for Phase 34D execute mode.'],
+    ['fileSha256', 'REEDITPRO_MODEL_EXPECTED_FILE_SHA256 is required for Phase 34D execute mode.'],
+    ['aggregateSha256', 'REEDITPRO_MODEL_EXPECTED_AGGREGATE_SHA256 is required for Phase 34D execute mode.'],
+    ['gpuType', 'REEDITPRO_GPU_TYPE is required for Phase 34D execute mode.'],
+    ['faceEnhance', 'REAL_ESRGAN_FACE_ENHANCE is required for Phase 34D execute mode.'],
+    ['providerExecution', 'PROVIDER_EXECUTION_ENABLED is required for Phase 34D execute mode.'],
+    ['modelDownloads', 'MODEL_DOWNLOADS_ENABLED is required for Phase 34D execute mode.'],
+  ]
+  for (const [key, message] of required) {
+    if (input[key] === undefined || input[key] === '') blockers.push(message)
+  }
+  return blockers.concat(validateRealVideoEnhancementSampleEnv(input))
+}
+
 export function validateRealVideoEnhancementSampleReport(report?: RealVideoEnhancementSampleExecutionReport): string[] {
   if (!report) return ['Phase 34D Real-ESRGAN enhancement sample execution report is missing.']
   const blockers: string[] = []

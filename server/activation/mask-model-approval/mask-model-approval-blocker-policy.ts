@@ -18,7 +18,9 @@ export function buildMaskModelApprovalBlockers(input: {
   if (approved.length !== 1) blockers.push(`Expected exactly one staging-approved mask model; found ${approved.length}.`)
   if (approved[0]?.candidateId !== 'zhengpeng7_birefnet') blockers.push('Only ZhengPeng7/BiRefNet may be staging-approved in Phase 33A.')
   if (!input.approvedManifest || input.approvedManifest.modelWeightManifestId !== 'birefnet_main_staging_v1') blockers.push('BiRefNet staging manifest is missing.')
-  if (input.approvedManifest?.checksum !== 'missing_until_download') blockers.push('Phase 33A manifest checksum must remain missing_until_download.')
+  if (input.approvedManifest?.checksum !== 'missing_until_download' && !/^[a-f0-9]{64}$/.test(input.approvedManifest?.checksum ?? '')) {
+    blockers.push('BiRefNet manifest checksum must be missing_until_download or a valid Phase 33B SHA-256.')
+  }
   if (!input.storagePlan.privateStorageRequired || input.storagePlan.publicAccessAllowed) blockers.push('Storage plan must require private model storage.')
   if (input.storagePlan.sourceMediaBucketAllowed || input.storagePlan.stagingStoragePath.includes('source-media')) blockers.push('Storage plan must not use source-media bucket.')
   if (input.downloadCommandPlan.length === 0) blockers.push('Text-only BiRefNet download command plan is missing.')

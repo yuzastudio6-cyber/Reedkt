@@ -30,3 +30,7 @@ download weights, deploy GPU, run masks, or approve text-behind-subject.
 SAM2 remains evaluated-only and execution-blocked until a separate video
 tracking approval phase. Production, external beta, paid production, and broad
 real media remain blocked.
+
+Phase 33B stores only approved BiRefNet weights in private staging storage with
+revision/checksum evidence. This does not approve GPU deployment or runtime
+inference; Phase 33C must verify runtime loading separately.

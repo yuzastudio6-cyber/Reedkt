@@ -276,14 +276,12 @@ async function copyCaptionSidecars(storage: Storage, env: ExportEnv): Promise<Ar
   const records: ArtifactRecord[] = []
   for (const item of captionObjects) {
     await storage.bucket(env.transcriptsBucket).file(item.source).copy(storage.bucket(env.finalExportsBucket).file(item.target))
-    const [metadata] = await storage.bucket(env.finalExportsBucket).file(item.target).getMetadata()
     records.push({
       id: item.target.replaceAll('/', '-'),
       kind: item.kind,
       bucket: env.finalExportsBucket,
       object: item.target,
       gcsUri: `gs://${env.finalExportsBucket}/${item.target}`,
-      sizeBytes: readMetadataSize(metadata.size),
     })
   }
   return records
@@ -476,10 +474,6 @@ function readNumber(value: unknown): number | undefined {
     return Number.isFinite(parsed) ? parsed : undefined
   }
   return undefined
-}
-
-function readMetadataSize(value: unknown): number | undefined {
-  return readNumber(value)
 }
 
 function requireEnv(name: string): string {

@@ -23,7 +23,8 @@ transcription execution.
 | faster-whisper tiny model approval | Staging-approved for planning | `Systran/faster-whisper-tiny` is approved only for Phase 28 speech/caption planning. |
 | Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
 | CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
-| First real video speech/caption | Ready for explicit Phase 28 execution planning | Phase 28 may proceed only as a controlled speech/caption-only test after explicit approval; broad real media testing remains blocked. |
+| First real video speech/caption | Complete for one controlled test | Phase 28 processed `/Users/macuser/Downloads/IMG_6005.MOV` for speech/caption only with private artifacts and no blocking caption QA findings. |
+| Smart cut + captions | Ready for explicit Phase 29 planning | Phase 29 may proceed only as a controlled private smart-cut/caption test after explicit approval; final export and broad real media testing remain blocked. |
 | Final private export | Not yet allowed | Blocked until controlled upstream real-video tests and render/export gates pass. |
 | Internal beta | Blocked | Requires full private E2E evidence, operations, support, privacy, cost, and rollback readiness. |
 | External beta | Blocked | Requires strict Phase 37 go/no-go approval. |
@@ -45,6 +46,6 @@ Current classification:
 - model files/checksums: private staging storage verified for faster-whisper tiny only
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
 - GPU worker: not yet deployed
-- real user video testing: blocked except explicit Phase 28 controlled speech/caption-only execution
+- real user video testing: blocked except the completed single Phase 28 controlled speech/caption run and future explicitly approved controlled phases
 - external beta: blocked
 - paid production: blocked

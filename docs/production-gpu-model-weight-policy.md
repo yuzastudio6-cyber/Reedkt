@@ -20,3 +20,13 @@ Phase 26 creates a staging-only approval record for
 `Systran/faster-whisper-tiny` for speech/caption planning. GPU deployment and
 all non-speech GPU model weights remain blocked. The approved tiny manifest has
 no checksum until a later explicit model download/load phase.
+
+## Activation Phase 33A
+
+Phase 33A creates a staging-only approval record for `ZhengPeng7/BiRefNet` for
+representative-frame/single-frame background-removal planning. It does not
+download weights, deploy GPU, run masks, or approve text-behind-subject.
+
+SAM2 remains evaluated-only and execution-blocked until a separate video
+tracking approval phase. Production, external beta, paid production, and broad
+real media remain blocked.

@@ -7,3 +7,11 @@ The flow is approved payload validation, mask task planning, model/tool command 
 M15C does not final render/export, run Revideo, download models, run unapproved GPU jobs, call providers, deploy, run enhancement/upscaling, or overwrite source/proxy media.
 
 M16A final render/export consumes private mask, cutout, and depth composition metadata artifacts for render layers and re-checks render asset integrity and mask coverage gates.
+
+## Activation Phase 33A
+
+Phase 33A does not execute mask/background/text-behind-subject work. It only
+creates the staging approval workflow for `ZhengPeng7/BiRefNet` as the first
+single-frame background-removal model scope. SAM2 tracking, text-behind-subject,
+GPU runtime, model downloads, and real mask execution remain blocked until later
+explicit phases.

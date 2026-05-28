@@ -35,14 +35,6 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Proceed to Phase 22 only after the readiness report is reviewed and forbidden findings are resolved.
 5. Do not deploy, push images, run `gcloud`, call providers, download models, add secrets, or process real media from Phase 21.
 
-## After Phase 22
-
-1. Review `activation:gcp-staging:plan -- --project <id> --image-tag <tag>` output.
-2. Confirm staging resource names include `staging`, buckets are private, IAM is least-privilege, and secret plans contain names only.
-3. Humans may copy `.env.gcp.staging.example` to an ignored local env file and set `REEDITPRO_CONFIRM_STAGING_GCP_SETUP=true` only when ready to run setup manually.
-4. Proceed to Phase 23 image push only after staging resources exist and the Phase 22 report has no blockers.
-5. Do not automatically deploy services/jobs; runtime rollout is Phase 24/27.
-
 ## Before Container Build
 
 - Confirm Docker scripts remain examples/human-run only.
@@ -51,4 +43,4 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 - Confirm Revideo remains evaluation-only and production-blocked.
 - Confirm model/license blockers remain active until the Phase 26 approval workflow.
 
-Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 22 is still static/report-only for Codex; it is not deployment or launch approval.
+Phase 21 container readiness validation reporting feeds Phase 22 staging foundation setup. Phase 22 is still human-run setup only; it is not deployment or launch approval.

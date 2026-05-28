@@ -37,3 +37,5 @@ Every Phase 20 report keeps production blocked:
 - `productionReadyAllowed=false`
 - `externalBetaAllowed=false`
 - `realUserMediaTestingAllowed=false`
+
+Phase 20 build reports feed Phase 21 container readiness reports. Phase 21 consumes human build evidence plus readiness logs, but it still does not run Docker or approve production.

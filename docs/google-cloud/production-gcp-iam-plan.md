@@ -32,3 +32,7 @@ Disallowed:
 ## Secret Access
 
 Milestone 3 grants API placeholder access for runtime secrets only. Worker secret access for providers or model weights is deferred until later milestones approve exact use cases.
+
+## Activation Phase 22 Staging IAM
+
+Activation Phase 22 adds a staging least-privilege IAM plan in `docs/activation-gcp-staging-iam-policy.md` and `server/activation/gcp-staging/*`. The staging plan preserves the same prohibitions: no owner/editor, no `allUsers`, no `allAuthenticatedUsers`, no broad project-wide storage admin, and no provider/model secrets before later approval.

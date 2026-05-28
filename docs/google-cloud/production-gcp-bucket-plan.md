@@ -31,3 +31,7 @@ All buckets are private by default, use uniform bucket-level access, enforce pub
 - `qa-artifacts` can have a shorter retention window than final exports once audit policy is approved.
 - `source-media`, `transcripts`, and `final-exports` must follow workspace/project retention and privacy policy.
 - Signed URLs are delivery/access artifacts only and must not be persisted as canonical source-of-truth paths.
+
+## Activation Phase 22 Staging Buckets
+
+Activation Phase 22 adds staging bucket validation in `docs/activation-gcp-staging-bucket-policy.md`. Staging bucket names must include `staging`, remain private, use uniform bucket-level access, enforce public access prevention, and avoid signed URL persistence or public media.

@@ -48,3 +48,7 @@ M16B validates readiness blockers at workflow scope. Production-ready E2E blocks
 M17 consumes readiness output in the production hardening scorecard. Production-ready remains blocked when readiness, model-weight, license, render/libass, FFmpeg LGPL, security, cost, privacy, audit, incident response, or E2E QA blockers remain.
 
 M17 does not run deployment, `gcloud`, Docker builds, provider calls, GPU jobs, model downloads, or real user media. It reports blockers and next actions for a later human-run approval phase.
+
+## Activation Phase 21 Container Readiness Evidence
+
+Activation Phase 21 consumes human-run container readiness evidence using static/report-only helpers. It compares local readiness logs against expected API, tool-readiness, CPU, QA, render, and GPU image tools. Phase 22 staging foundation setup does not require GPU readiness, but Phase 23 image push requires required non-GPU build/readiness evidence and no forbidden findings.

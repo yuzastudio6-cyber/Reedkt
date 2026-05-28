@@ -61,3 +61,7 @@ Cloud Run Jobs should not be deployed until the unified production readiness rep
 Cloud Run service/job deployment is blocked until cost controls, worker concurrency limits, rate limits, job timeouts, kill switches, sanitized logging, and audit policies are approved.
 
 Render/GPU/provider paths must remain kill-switched until the M17 scorecard blockers are cleared by humans.
+
+## Activation Phase 22 Boundary
+
+Activation Phase 22 may plan staging Cloud Run names, but it does not deploy them. Non-GPU staging runtime rollout belongs to Phase 24, and GPU worker rollout belongs to Phase 27 after model/license and GPU readiness gates.

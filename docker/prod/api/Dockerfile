@@ -14,7 +14,7 @@ RUN npm ci --omit=dev
 
 FROM base AS build
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 COPY . .
 RUN npm run build:server
 

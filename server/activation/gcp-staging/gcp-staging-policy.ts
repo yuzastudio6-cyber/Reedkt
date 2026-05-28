@@ -5,6 +5,7 @@ import type {
   GcpStagingResourceMap,
   GcpStagingSecretPlan,
 } from './gcp-staging-types'
+import { validateGcpStagingServiceAccountId } from './gcp-staging-config'
 
 export const gcpStagingDoesNotDo = [
   'no deploy in Phase 22',
@@ -47,8 +48,7 @@ export function validateGcpStagingResourceMap(resourceMap: GcpStagingResourceMap
   }
 
   for (const serviceAccount of resourceMap.serviceAccounts) {
-    if (!serviceAccount.accountId) blockers.push(`${serviceAccount.key} service account is missing.`)
-    if (!serviceAccount.accountId.includes('staging')) blockers.push(`${serviceAccount.accountId} must include staging.`)
+    blockers.push(...validateGcpStagingServiceAccountId(serviceAccount.accountId, `${serviceAccount.key} service account`))
   }
 
   for (const secret of resourceMap.secretPlaceholders) {

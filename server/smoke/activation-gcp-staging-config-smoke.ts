@@ -57,15 +57,24 @@ assert.equal(validateGcpStagingResourceMap(resourceMap).allowed, true, 'resource
 
 const serviceAccountIds = resourceMap.serviceAccounts.map((account) => account.accountId)
 for (const expected of [
-  'reeditpro-staging-api-sa',
-  'reeditpro-staging-cpu-worker-sa',
-  'reeditpro-staging-gpu-worker-sa',
-  'reeditpro-staging-render-worker-sa',
-  'reeditpro-staging-qa-worker-sa',
-  'reeditpro-staging-tool-readiness-sa',
+  'reeditpro-stg-api-sa',
+  'reeditpro-stg-cpu-worker-sa',
+  'reeditpro-stg-gpu-worker-sa',
+  'reeditpro-stg-render-sa',
+  'reeditpro-stg-qa-sa',
+  'reeditpro-stg-tool-ready-sa',
 ]) {
   assert.ok(serviceAccountIds.includes(expected), `service account plan must include ${expected}.`)
+  assert.ok(expected.length <= 30, `${expected} must be valid for Google Cloud service account ID length.`)
 }
+assert.equal(validateGcpStagingConfig({
+  projectId: 'reeditpro-staging-test',
+  environment: 'staging',
+  imageTag: 'staging-test-001',
+  serviceAccounts: {
+    'cpu-worker': 'reeditpro-staging-cpu-worker-sa',
+  },
+}).allowed, false, 'config parser must reject service account IDs longer than 30 characters.')
 
 const iamPlan = buildGcpStagingIamPlan(config, resourceMap)
 assert.equal(validateGcpStagingIamPlan(iamPlan).allowed, true, 'IAM plan must pass policy.')

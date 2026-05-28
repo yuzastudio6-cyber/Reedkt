@@ -53,6 +53,7 @@
     "activation:container-readiness:report": "tsx server/cli/activation-container-readiness-report.ts",
     "activation:gcp-staging:plan": "tsx server/cli/activation-gcp-staging-plan.ts",
     "activation:gcp-staging:report": "tsx server/cli/activation-gcp-staging-report.ts",
+    "activation:artifact-push:plan": "tsx server/cli/activation-artifact-push-plan.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",
     "prod:e2e:summary": "tsx server/cli/production-e2e-workflow-summary.ts",

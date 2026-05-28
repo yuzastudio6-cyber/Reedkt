@@ -1,8 +1,9 @@
 # Activation Readiness State
 
-Phase 29 classifies the repo as ready for explicit Phase 30 controlled private
-final export planning, not for production launch, external beta, broad real
-user media testing, provider execution, or arbitrary media execution.
+Phase 33A classifies the repo as ready for explicit Phase 33B BiRefNet weight
+download planning only, not for production launch, external beta, broad real
+user media testing, provider execution, arbitrary media execution, SAM2
+execution, or text-behind-subject execution.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -20,6 +21,11 @@ user media testing, provider execution, or arbitrary media execution.
 | GPU staging deploy | Not yet done | L4 GPU worker deployment waits for model/license and staging prerequisites. |
 | Model approval workflow | Ready | Phase 26 can report evidence, storage policy, manifests, and text-only future download commands. |
 | faster-whisper tiny model approval | Staging-approved for planning | `Systran/faster-whisper-tiny` is approved only for Phase 28 speech/caption planning. |
+| Mask model approval workflow | Ready | Phase 33A can report BiRefNet/SAM2 evidence, storage policy, manifests, and text-only future download commands. |
+| BiRefNet model approval | Staging-approved for planning | `ZhengPeng7/BiRefNet` is approved only for representative-frame/single-frame background-removal planning. |
+| SAM2 model approval | Evaluated-only | `facebook/sam2-hiera-tiny` and official SAM2 checkpoint evidence are recorded, but execution and download remain blocked. |
+| Mask model weights availability | Pending | BiRefNet checksum/revision evidence is missing until explicit Phase 33B download/load. |
+| Mask runtime | Pending | Phase 33C must verify runtime loading and mask QA before any real-video mask/text-behind-subject test. |
 | Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
 | CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
 | First real video speech/caption | Complete for one controlled test | Phase 28 processed `/Users/macuser/Downloads/IMG_6005.MOV` for speech/caption only with private artifacts and no blocking caption QA findings. |
@@ -45,6 +51,7 @@ Current classification:
 - model files/checksums: private staging storage verified for faster-whisper tiny only
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
 - GPU worker: not yet deployed
-- real user video testing: blocked except the completed single Phase 28 controlled speech/caption run, completed single Phase 29 controlled smart-cut/caption run, and future explicitly approved controlled phases
+- real user video testing: blocked except completed single controlled Phase 28-32 runs and future explicitly approved controlled phases
+- mask/text-behind-subject execution: blocked until BiRefNet weights exist and Phase 33C runtime QA passes
 - external beta: blocked
 - paid production: blocked

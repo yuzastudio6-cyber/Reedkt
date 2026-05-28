@@ -104,6 +104,12 @@ Activation Phase 26 adds the first model-weight/license approval workflow:
 planning, while actual model download, production approval, external beta,
 larger Whisper models, non-speech models, providers, and Revideo remain blocked.
 
+Activation Phase 33A adds the first mask model-weight/license approval workflow:
+`ZhengPeng7/BiRefNet` is staging-approved only for representative-frame
+single-frame background-removal planning, while SAM2 execution, model downloads,
+GPU runtime, text-behind-subject, production, external beta, and broad real media
+remain blocked.
+
 The contracts remain mock-safe and schema-review-only. They do not install tools, process media, call providers, deploy resources, or let the frontend run heavy media/AI work.
 
 ## Milestone 2 Production Tool Registry Metadata

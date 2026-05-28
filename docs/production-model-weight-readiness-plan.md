@@ -48,6 +48,19 @@ Activation Phase 27A verifies the approved tiny model can be copied from private
 staging GCS into a dedicated CPU speech runtime and executed on generated audio
 only. This is not production approval, external beta approval, broad real user
 media approval, or approval for any larger/non-speech model.
+
+## Activation Phase 33A First Mask Model Approval
+
+Activation Phase 33A records evidence for `ZhengPeng7/BiRefNet` and approves it
+only for staging representative-frame/single-frame background-removal planning.
+The approved BiRefNet manifest checksum remains `missing_until_download` until
+an explicit Phase 33B download/load phase records revision and checksum
+evidence.
+
+SAM2 evidence is recorded for future video tracking review only.
+`facebook/sam2-hiera-tiny`, official SAM2 checkpoints/code, DeepFilterNet,
+Demucs, Real-ESRGAN, FILM, PaddleOCR GPU, provider models, Revideo, and
+text-behind-subject execution remain blocked.
 ## Milestone 12 Report Integration
 
 Model-weight manifests now appear in the unified production readiness report. Unknown, non-commercial, missing, `needs_review`, and blocked model weights remain production blockers while dry-run/static readiness may surface them as warnings and next actions.

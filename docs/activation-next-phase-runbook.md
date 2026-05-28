@@ -98,3 +98,18 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm SmartCutPlan, TimelineManifest, caption refs, and QA exist privately.
 4. Confirm preview was skipped or private only, and final export remains blocked.
 5. Proceed to Phase 30 only as an explicit controlled private final export test.
+
+## After Phase 32
+
+1. Review the private Phase 32 color-correction report and confirm final delivery passed only for the controlled private export.
+2. Confirm production, external beta, broad real media, GPU, providers, model downloads, OpenColorIO/OpenImageIO, masks, enhancement, and Revideo remain blocked.
+3. Proceed to Phase 33A only as a static mask model-weight/license approval workflow.
+
+## After Phase 33A
+
+1. Review `activation:mask-model-approval:plan`, `activation:mask-model-approval:report`, and `activation:mask-model-weight:summary`.
+2. Confirm only `ZhengPeng7/BiRefNet` is staging-approved for representative-frame/single-frame background-removal planning.
+3. Confirm SAM2 is evaluated-only and execution-blocked.
+4. Confirm the BiRefNet download command plan is text-only and no model files were downloaded or committed.
+5. Proceed to Phase 33B only to download/load approved BiRefNet weights into private staging storage.
+6. Keep Phase 33C and Phase 33D blocked until checksum/runtime/mask QA evidence exists.

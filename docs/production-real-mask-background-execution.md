@@ -26,3 +26,14 @@ mask QA failures.
 This is not production approval. Full-video masks, SAM2 tracking,
 text-behind-subject execution, public delivery, external beta, and broad real
 media remain blocked until later explicit phases.
+
+## Activation Phase 33E
+
+Phase 33E composed one private text-behind-subject PNG preview from the approved
+Phase 33D frame, mask, and RGBA cutout. It produced a text layer plan, depth
+composition manifest, private preview PNG, and QA report with no blocking
+failures.
+
+This remains single-frame staging evidence only. Full-video text-behind-subject,
+SAM2 tracking, public delivery, production, external beta, and broad real media
+remain blocked.

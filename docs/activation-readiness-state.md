@@ -1,15 +1,13 @@
 # Activation Readiness State
 
-Phase 33D classifies the repo as ready for explicit controlled Phase 33E
-text-behind-subject planning on the single approved representative-frame mask
-artifact set only, not for production launch, external beta, broad real user
-media testing, provider execution, arbitrary media execution, SAM2 execution,
-full-video masks, or text-behind-subject execution.
+Phase 33E classifies the repo as ready for explicit controlled Phase 34
+enhancement/slow-motion planning only, not for production launch, external beta,
+broad real user media testing, provider execution, arbitrary media execution,
+SAM2 execution, full-video masks, or full-video text-behind-subject execution.
 
-Phase 33D extracted exactly one representative frame from the approved Phase 32
-private export, ran the approved BiRefNet runtime on that one frame, generated
-private mask and RGBA cutout artifacts, and emitted mask QA with no blocking
-failures.
+Phase 33E composed a private text-behind-subject PNG preview from the approved
+Phase 33D frame, mask, and RGBA cutout. It emitted a text layer plan, depth
+composition manifest, and QA with no blocking failures.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -33,6 +31,7 @@ failures.
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
 | Real-video representative-frame mask | Complete for one controlled test | Phase 33D produced a private frame, mask, RGBA cutout, metadata, and QA for `phase33d-20260528T161056` with no blocking failures. |
+| Text-behind-subject frame preview | Complete for one controlled test | Phase 33E produced a private preview PNG, text layer plan, depth composition manifest, and QA for `phase33e-20260528T165755` with no blocking failures. |
 | Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
 | CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
 | First real video speech/caption | Complete for one controlled test | Phase 28 processed `/Users/macuser/Downloads/IMG_6005.MOV` for speech/caption only with private artifacts and no blocking caption QA findings. |
@@ -58,8 +57,8 @@ Current classification:
 - model files/checksums: private staging storage verified for faster-whisper tiny only
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
 - GPU worker: not yet deployed
-- real user video testing: blocked except completed single controlled Phase 28-33D runs and future explicitly approved controlled phases
+- real user video testing: blocked except completed single controlled Phase 28-33E runs and future explicitly approved controlled phases
 - mask execution: complete only for the explicit Phase 33D representative-frame test; full-video masks remain blocked
-- text-behind-subject execution: blocked; Phase 33E planning is ready only for the approved Phase 33D frame/mask artifact set
+- text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview; full-video text-behind-subject remains blocked
 - external beta: blocked
 - paid production: blocked

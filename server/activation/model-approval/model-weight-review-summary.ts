@@ -1,9 +1,11 @@
 import { listModelApprovalCandidates } from './model-candidate-registry'
 import { listModelLicenseEvidence } from './model-license-evidence'
+import { getApprovedModelDownloadEvidence } from '../model-download/approved-model-download-evidence'
 
 export function buildModelWeightReviewSummary() {
   const candidates = listModelApprovalCandidates()
   const evidence = listModelLicenseEvidence()
+  const downloadEvidence = getApprovedModelDownloadEvidence()
   const approvedCandidate = candidates.find((candidate) => candidate.candidateId === 'systran_faster_whisper_tiny')
 
   return {
@@ -13,7 +15,7 @@ export function buildModelWeightReviewSummary() {
     evidenceRecords: evidence.length,
     blockedCandidates: candidates.filter((candidate) => candidate.status === 'blocked').map((candidate) => candidate.modelName),
     evaluatedOnlyCandidates: candidates.filter((candidate) => candidate.status === 'evaluated_only').map((candidate) => candidate.modelName),
-    modelDownloadExecuted: false,
+    modelDownloadExecuted: downloadEvidence.status !== 'not_started',
     productionReadyAllowed: false,
     externalBetaAllowed: false,
     realUserMediaTestingAllowed: false,

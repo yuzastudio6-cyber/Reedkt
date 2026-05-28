@@ -114,6 +114,7 @@ export interface ModelWeightManifestRecord {
   toolId: string
   modelName: string
   modelVersion: string
+  resolvedRevision?: string
   source: string
   sourceUrl: string
   expectedPath: string
@@ -128,6 +129,11 @@ export interface ModelWeightManifestRecord {
   paidProductionStatus: 'blocked'
   riskNotes: string[]
   checksum: 'missing_until_download' | string
+  fileCount?: number
+  totalSizeBytes?: number
+  downloadedAt?: string
+  uploadedAt?: string
+  gcsManifestPath?: string
   createdAt: string
   reviewedAt: string
   approvedFor: string[]
@@ -160,7 +166,7 @@ export interface ModelApprovalReport {
   warnings: string[]
   phase27Readiness: ModelApprovalPhase27Readiness
   phase28Readiness: ModelApprovalPhase28Readiness
-  modelDownloadExecuted: false
+  modelDownloadExecuted: boolean
   providerExecuted: false
   gpuDeployed: false
   realUserMediaProcessed: false

@@ -24,3 +24,8 @@ Phase 27 GPU staging remains optional/deferred for the tiny speech/caption
 scope. Phase 28 can be planned after this approval, but execution remains
 blocked until the tiny model weights are explicitly downloaded/loaded into the
 approved private path with revision and checksum evidence.
+
+Phase 26B follows this approval by downloading only the approved tiny model to
+private staging storage and recording revision/checksum evidence. Phase 26B
+still does not run transcription, deploy GPU, approve production, or unblock
+real user media testing.

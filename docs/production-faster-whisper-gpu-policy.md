@@ -13,3 +13,7 @@ speech/caption planning and records faster-whisper/CTranslate2 runtime evidence.
 This is not production approval, not external beta approval, and not proof that
 weights are available in the runtime path. Phase 28 execution still needs a
 separate explicit model download/load step and controlled real-video approval.
+
+Phase 26B stores the approved tiny model in private staging GCS with revision
+and checksum evidence. Runtime loading, transcription execution, GPU deployment,
+production use, external beta, and broad real user media testing remain blocked.

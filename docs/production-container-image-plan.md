@@ -39,6 +39,12 @@ The render image centers on the locked core stack:
 ## Template Boundary
 
 Files under `docker/prod/` are production-oriented templates. Heavy package installation, model downloads, local media processing, image builds, image pushes, and Cloud Run deployment are all later human-approved steps.
+
+## Phase 20 Build Reporting Layer
+
+Phase 20 adds a static container build reporting layer. `activation:container-build:plan` prints reviewed Docker build command text for humans, and `activation:container-build:report` parses optional human-provided local build logs. These commands do not run Docker, push images, run `gcloud`, deploy, call providers, download model weights, add secrets, or process media.
+
+Phase 21 container readiness remains blocked until required non-GPU image build evidence exists. The GPU image can be deferred for non-GPU staging but remains required for the later GPU phase.
 ## Milestone 12 Readiness Validation
 
 M12 adds a unified readiness report that validates expected image contents for API, CPU, GPU, render, QA, and tool-readiness images. The report consumes Dockerfile declarations and tool readiness specs but does not build, push, or deploy images.

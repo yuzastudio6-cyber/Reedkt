@@ -31,4 +31,4 @@ Warnings include known safe local cases, such as generated fixture or FFmpeg ski
 
 ## Phase 20 Comes Next
 
-Phase 19 can mark the repo ready for Phase 20 container build preparation only. It does not build containers, push images, run container readiness, run Docker, or deploy. A human must still review image names/tags and explicitly run Phase 20 outside the local baseline runner.
+Phase 19 can mark the repo ready for Phase 20 container build preparation only. Phase 20 adds static image plans, command-plan text, and build-log reporting. It still does not build containers, push images, run container readiness, run Docker, or deploy.

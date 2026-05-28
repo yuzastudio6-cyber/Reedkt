@@ -147,4 +147,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the fixed text content was `REEDITPRO`.
 4. Confirm the private preview PNG, text layer plan, depth composition manifest, and QA report exist with no blocking failures.
 5. Confirm no video processing, BiRefNet rerun, SAM2, GPU, providers, model downloads, public access, secret values, Revideo, production, external beta, broad real media, or full-video text-behind-subject occurred.
-6. Proceed to Phase 34 only as an explicit controlled enhancement/slow-motion activation phase.
+6. Proceed to Phase 34A only as a static enhancement/slow-motion model-weight/license approval workflow.
+
+## After Phase 34A
+
+1. Review `activation:enhancement-model-approval:plan`, `activation:enhancement-model-approval:report`, and `activation:enhancement-model-weight:summary`.
+2. Confirm only `RealESRGAN_x4plus` is staging-approved for sample-first enhancement planning.
+3. Confirm FILM is evaluated-only and download/execution-blocked.
+4. Confirm the Real-ESRGAN download command plan is text-only and no model files were downloaded or committed.
+5. Confirm production, external beta, broad real media, GPU, providers, enhancement execution, full-video enhancement, slow motion, public delivery, and Revideo remain blocked.
+6. Proceed to Phase 34B only to download/load approved `RealESRGAN_x4plus` weights into private staging storage.
+7. Keep Phase 34C and Phase 34D blocked until checksum/runtime/enhancement QA evidence exists.

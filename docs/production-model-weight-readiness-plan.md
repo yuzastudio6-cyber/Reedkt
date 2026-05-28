@@ -91,3 +91,15 @@ M15C requires approved model-weight manifests for production BiRefNet and SAM2 e
 ## Milestone 15D Enhancement Model Blockers
 
 M15D requires approved model-weight manifests for production Real-ESRGAN and FILM execution. Current `real_esrgan_model` and `film_model` templates remain `needs_review`, so production-ready enhancement and slow-motion execution is blocked until a later review approves source, version, checksum, license, commercial use, redistribution, attribution, and runtime mount policy.
+
+## Activation Phase 34A
+
+Phase 34A creates a staging-only approval record for `RealESRGAN_x4plus` under
+`xinntao/Real-ESRGAN` for sample-first enhancement planning. It does not
+download weights, deploy GPU, run enhancement, process frames/video, or approve
+full-video enhancement.
+
+FILM (`google-research/frame-interpolation`) is evaluated-only and remains
+download/execution-blocked until a separate slow-motion approval/download/runtime
+phase. Production, external beta, paid production, and broad real media remain
+blocked.

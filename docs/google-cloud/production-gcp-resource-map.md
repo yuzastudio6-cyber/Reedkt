@@ -39,3 +39,7 @@
 ## Source Of Truth
 
 The typed non-secret resource contract is `server/config/gcp-production-config.ts`.
+
+## Activation Phase 22 Staging Map
+
+The staging activation map lives in `docs/activation-gcp-staging-resource-map.md` and `server/activation/gcp-staging/*`. It uses staging names such as `reeditpro-staging-workers`, `reeditpro-staging-${GCP_PROJECT_ID}-{purpose}`, and `reeditpro-staging-api`. These are reviewed plans only until humans run setup.

@@ -46,4 +46,4 @@ The report helper reads local text logs only. It does not run Docker, push image
 
 ## Phase 21
 
-Phase 21 container readiness comes after successful human builds. The non-GPU readiness path requires passing build evidence for API, tool-readiness, CPU, QA, and render images. GPU can be deferred for non-GPU staging, but must be built before GPU activation.
+Phase 21 container readiness comes after successful human builds. Use `activation:container-readiness:plan` to print the human-run readiness commands and `activation:container-readiness:report` to parse local readiness logs. The non-GPU readiness path requires passing build/readiness evidence for API, tool-readiness, CPU, QA, and render images. GPU can be deferred for non-GPU staging, but must be built and validated before GPU activation.

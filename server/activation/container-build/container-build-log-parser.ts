@@ -78,14 +78,21 @@ function statusFromFindings(
 }
 
 function inferImageId(sourceName: string, logText: string): ContainerBuildImageId | undefined {
-  const haystack = `${basename(sourceName)}\n${logText}`.toLowerCase()
-  const match = containerImageBuildPlans.find((plan) => {
+  const sourceHaystack = basename(sourceName).toLowerCase()
+  const sourceMatch = matchImagePlan(sourceHaystack)
+  if (sourceMatch) return sourceMatch.imageId
+
+  const logHaystack = logText.toLowerCase()
+  return matchImagePlan(logHaystack)?.imageId
+}
+
+function matchImagePlan(haystack: string) {
+  return containerImageBuildPlans.find((plan) => {
     const imageName = plan.displayName.toLowerCase()
     return haystack.includes(plan.imageId) ||
       haystack.includes(imageName) ||
       haystack.includes(plan.dockerfilePath.toLowerCase())
   })
-  return match?.imageId
 }
 
 function detectImageId(logText: string): string | undefined {

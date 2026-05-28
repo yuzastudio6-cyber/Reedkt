@@ -1,6 +1,6 @@
 # Production Container Readiness Runbook
 
-Phase 21 of the activation roadmap handles container readiness after Phase 20 human-run image builds. Phase 18 does not build images, push images, run Docker readiness containers, deploy, download models, call providers, or process media.
+Phase 21 of the activation roadmap handles container readiness reporting after Phase 20 human-run image builds. The Phase 21 helpers print command plans and parse local readiness logs; they do not run Docker readiness containers, build images, push images, deploy, download models, call providers, or process media.
 
 Human-run order for M12 readiness:
 
@@ -12,3 +12,5 @@ Human-run order for M12 readiness:
 6. Proceed to real execution milestones only after readiness blockers are cleared.
 
 No deployment happens in M12. The scripts under `scripts/docker/prod/08-13-*.example.sh` are examples only and must not mount user source media by default.
+
+For activation, use `activation:container-readiness:plan` before any human readiness run and `activation:container-readiness:report` after logs are captured. Phase 22 staging foundation setup may proceed after report review, but Phase 23 image push remains blocked until required non-GPU build/readiness evidence is present.

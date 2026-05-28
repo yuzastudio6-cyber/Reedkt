@@ -26,3 +26,7 @@ Optional placeholders are created only as names so later milestones can decide w
 - Logs must not include secret values or signed URLs.
 - Database rows may store secret reference names only when needed.
 - Provider/model-weight secrets require separate approval before worker access.
+
+## Activation Phase 22 Staging Secrets
+
+Activation Phase 22 creates a staging secret placeholder plan only. It does not create versions or payloads. Secret values are inserted manually later through approved operator workflows, and service identities receive access only when the matching deployment phase needs it.

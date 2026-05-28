@@ -34,3 +34,10 @@ real media remain blocked.
 Phase 33B stores only approved BiRefNet weights in private staging storage with
 revision/checksum evidence. This does not approve GPU deployment or runtime
 inference; Phase 33C must verify runtime loading separately.
+
+Phase 33C deployed one staging L4 BiRefNet runtime job for generated-image
+verification only. The job loaded the approved BiRefNet snapshot from private
+GCS, verified checksum evidence, generated one synthetic-image mask, and emitted
+mask QA with no blocking failures. This does not approve RTX PRO 6000, SAM2,
+arbitrary real-video masks, production, external beta, or broad real-media
+execution.

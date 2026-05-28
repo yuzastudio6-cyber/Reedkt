@@ -63,6 +63,12 @@ contains custom code files, which are recorded but not executed. Runtime
 inference, GPU deployment, mask execution, text-behind-subject, production,
 external beta, paid production, and broad real media remain blocked.
 
+Activation Phase 33C verified BiRefNet runtime loading only for the approved
+snapshot and one generated synthetic image. The generated-image mask QA had no
+blocking failures. This is not production approval, external beta approval,
+broad real media approval, SAM2 approval, arbitrary real-video mask approval, or
+text-behind-subject approval.
+
 SAM2 evidence is recorded for future video tracking review only.
 `facebook/sam2-hiera-tiny`, official SAM2 checkpoints/code, DeepFilterNet,
 Demucs, Real-ESRGAN, FILM, PaddleOCR GPU, provider models, Revideo, and

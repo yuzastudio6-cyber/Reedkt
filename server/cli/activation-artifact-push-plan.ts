@@ -7,9 +7,9 @@ const jsonOutput = process.argv.includes('--json')
 
 try {
   const report = buildArtifactPushPlanReport({
-    project: readArgValue('--project'),
-    artifactRegion: readArgValue('--artifact-region'),
-    repository: readArgValue('--repository'),
+    project: readArgValue('--project') ?? process.env.GCP_PROJECT_ID,
+    artifactRegion: readArgValue('--artifact-region') ?? process.env.GCP_ARTIFACT_REGION,
+    repository: readArgValue('--repository') ?? process.env.REEDITPRO_ARTIFACT_REPOSITORY,
     imageTag: readArgValue('--image-tag') ?? process.env.REEDITPRO_IMAGE_TAG,
   })
 

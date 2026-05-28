@@ -148,7 +148,7 @@ export interface ModelApprovalPhase27Readiness {
 
 export interface ModelApprovalPhase28Readiness {
   readyForPlanning: boolean
-  readyForExecution: false
+  readyForExecution: boolean
   blockers: string[]
   warnings: string[]
 }

@@ -4,6 +4,11 @@ import {
 import { buildFasterWhisperTinyStoragePlan } from '../model-approval/model-storage-plan'
 import { buildModelDownloadCommandPlan } from '../model-approval/model-download-command-plan'
 import { buildModelWeightManifest } from '../model-approval/model-manifest-writer'
+import {
+  isSpeechRuntimeExecutionVerified,
+  readSpeechRuntimeExecutionReport,
+  SPEECH_RUNTIME_LOCAL_REPORT_PATH,
+} from '../speech-runtime/speech-runtime-report-builder'
 import { getApprovedModelDownloadEvidence } from './approved-model-download-evidence'
 import { buildModelDownloadBlockers } from './model-download-blocker-policy'
 import { buildModelDownloadExecutionCommandPlans } from './model-download-command-runner'
@@ -19,6 +24,7 @@ export function buildModelDownloadReport(): ModelDownloadReport {
   const manifest = buildModelWeightManifest(tinyCandidate)
   const evaluation = buildModelDownloadBlockers()
   const modelAvailable = evidence.status === 'verified' && evaluation.blockers.length === 0
+  const speechRuntimeVerified = isSpeechRuntimeExecutionVerified(readSpeechRuntimeExecutionReport(SPEECH_RUNTIME_LOCAL_REPORT_PATH))
 
   return {
     reportId: MODEL_DOWNLOAD_REPORT_ID,
@@ -46,8 +52,10 @@ export function buildModelDownloadReport(): ModelDownloadReport {
     },
     phase28Readiness: {
       readyForPlanning: modelAvailable,
-      readyForExecution: false,
-      reason: modelAvailable
+      readyForExecution: modelAvailable && speechRuntimeVerified,
+      reason: modelAvailable && speechRuntimeVerified
+        ? 'Phase 27A verified the approved tiny model in a dedicated CPU speech runtime using private GCS and generated audio only; Phase 28 can proceed only as an explicit controlled speech/caption test.'
+        : modelAvailable
         ? 'Model weights are available in private staging storage, but runtime execution remains blocked until a speech runtime image/job is deployed and verified.'
         : 'Model weights are not yet verified in private staging storage.',
     },

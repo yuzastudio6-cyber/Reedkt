@@ -78,7 +78,7 @@ export interface ModelDownloadReport {
   }
   phase28Readiness: {
     readyForPlanning: boolean
-    readyForExecution: false
+    readyForExecution: boolean
     reason: string
   }
   modelDownloadExecuted: boolean

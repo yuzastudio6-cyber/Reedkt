@@ -43,6 +43,11 @@ Activation Phase 26B downloads only the approved tiny model into private staging
 generated-assets storage and records revision/checksum evidence. This still does
 not approve production, external beta, larger models, provider models, GPU
 deployment, or real user media execution.
+
+Activation Phase 27A verifies the approved tiny model can be copied from private
+staging GCS into a dedicated CPU speech runtime and executed on generated audio
+only. This is not production approval, external beta approval, broad real user
+media approval, or approval for any larger/non-speech model.
 ## Milestone 12 Report Integration
 
 Model-weight manifests now appear in the unified production readiness report. Unknown, non-commercial, missing, `needs_review`, and blocked model weights remain production blockers while dry-run/static readiness may surface them as warnings and next actions.

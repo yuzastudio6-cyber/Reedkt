@@ -1,0 +1,6 @@
+# ReeditPro Phase 27A CPU speech runtime requirements.
+# No model weights are fetched by this file.
+# Do not add torch, GPU packages, non-speech model packages, or provider SDKs.
+
+ctranslate2
+faster-whisper

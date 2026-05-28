@@ -17,3 +17,9 @@ separate explicit model download/load step and controlled real-video approval.
 Phase 26B stores the approved tiny model in private staging GCS with revision
 and checksum evidence. Runtime loading, transcription execution, GPU deployment,
 production use, external beta, and broad real user media testing remain blocked.
+
+Phase 27A verifies a dedicated CPU staging speech runtime can copy the approved
+tiny model from private GCS, verify checksums, and run faster-whisper on
+generated audio only. This keeps GPU deployment optional/deferred for the first
+controlled speech/caption test. Production use, external beta, larger models,
+providers, and broad real user media testing remain blocked.

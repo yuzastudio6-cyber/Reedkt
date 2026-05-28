@@ -12,6 +12,7 @@
     "src/types/**/*.ts",
     "src/lib/**/*.ts",
     "vite.server.config.ts",
-    "vite.staging-fixture-worker.config.ts"
+    "vite.staging-fixture-worker.config.ts",
+    "vite.staging-speech-runtime-worker.config.ts"
   ]
 }

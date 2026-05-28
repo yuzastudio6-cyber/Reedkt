@@ -6,6 +6,11 @@ import { buildModelDownloadCommandPlan } from './model-download-command-plan'
 import { buildModelApprovalBlockers } from './model-approval-blocker-policy'
 import { buildBlockedModelWeightManifests, buildModelWeightManifest } from './model-manifest-writer'
 import { getApprovedModelDownloadEvidence } from '../model-download/approved-model-download-evidence'
+import {
+  isSpeechRuntimeExecutionVerified,
+  readSpeechRuntimeExecutionReport,
+  SPEECH_RUNTIME_LOCAL_REPORT_PATH,
+} from '../speech-runtime/speech-runtime-report-builder'
 import type { ModelApprovalReport } from './model-approval-types'
 
 export const MODEL_APPROVAL_REPORT_ID = 'activation-phase-26-model-license-approval'
@@ -15,6 +20,7 @@ export function buildModelApprovalReport(): ModelApprovalReport {
   const evidenceSummary = listModelLicenseEvidence()
   const downloadEvidence = getApprovedModelDownloadEvidence()
   const downloadVerified = downloadEvidence.status === 'verified'
+  const speechRuntimeVerified = isSpeechRuntimeExecutionVerified(readSpeechRuntimeExecutionReport(SPEECH_RUNTIME_LOCAL_REPORT_PATH))
   const storagePlan = buildFasterWhisperTinyStoragePlan()
   const downloadCommandPlan = buildModelDownloadCommandPlan(storagePlan)
   const decisions = candidates.map((candidate) => evaluateModelApprovalPolicy({
@@ -36,10 +42,14 @@ export function buildModelApprovalReport(): ModelApprovalReport {
   const warnings = [
     ...blockerEvaluation.warnings,
     ...productionApprovalBlockers(),
-    downloadVerified
+    speechRuntimeVerified
+      ? 'Phase 27A CPU speech runtime verification passed with private-GCS model sync and generated audio only.'
+      : downloadVerified
       ? 'Phase 26B model storage evidence exists, but runtime loading/transcription is still unverified.'
       : 'Actual model weights are not downloaded or available in runtime path during Phase 26.',
-    downloadVerified
+    speechRuntimeVerified
+      ? 'Phase 28 can proceed only as an explicit controlled speech/caption real-video phase; broad real user media testing remains blocked.'
+      : downloadVerified
       ? 'Phase 28 execution remains blocked until a speech runtime image/job is deployed and verified.'
       : 'Phase 28 execution remains blocked until explicit model availability evidence exists.',
   ]
@@ -63,8 +73,10 @@ export function buildModelApprovalReport(): ModelApprovalReport {
     },
     phase28Readiness: {
       readyForPlanning: approvedModels.length === 1 && blockerEvaluation.blockers.length === 0,
-      readyForExecution: false,
-      blockers: downloadVerified
+      readyForExecution: speechRuntimeVerified && approvedModels.length === 1 && blockerEvaluation.blockers.length === 0,
+      blockers: speechRuntimeVerified
+        ? []
+        : downloadVerified
         ? [
             'Speech runtime image/job loading for the approved tiny model is not verified.',
             'Phase 28 real-video execution requires a separate explicit approval and generated scope.',

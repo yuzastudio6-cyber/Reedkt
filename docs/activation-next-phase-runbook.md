@@ -72,5 +72,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 1. Review `activation:model-download:report` and confirm checksum/revision evidence exists.
 2. Confirm model files were not committed and model storage is private.
 3. Confirm only `Systran/faster-whisper-tiny` was downloaded and all larger/non-speech models remain blocked.
-4. Confirm Phase 28 execution remains blocked if no speech runtime image/job has faster-whisper/CTranslate2 available.
-5. Proceed to Phase 28 only after a controlled speech/caption runtime path is explicitly approved.
+4. Run Phase 27A before any real media execution if no speech runtime image/job has loaded the approved model yet.
+5. Keep Phase 28 blocked until a controlled speech/caption runtime path is explicitly approved.
+
+## After Phase 27A
+
+1. Review `activation:staging:speech-runtime:report` and the private Cloud Run job report.
+2. Confirm the runtime copied only `Systran/faster-whisper-tiny` from private staging GCS and did not download from Hugging Face at runtime.
+3. Confirm generated audio was the only media input and the transcript result completed cleanly.
+4. Confirm GPU, providers, public access, secret values, production, external beta, and broad real user media testing remain blocked.
+5. Proceed to Phase 28 only as an explicit controlled speech/caption-only real-video test.

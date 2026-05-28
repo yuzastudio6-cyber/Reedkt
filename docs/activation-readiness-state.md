@@ -1,8 +1,9 @@
 # Activation Readiness State
 
-Phase 26B classifies the repo as ready for first-model approval and private
-staging model-storage evidence, not for production launch, external beta, broad
-real user media testing, provider execution, or transcription execution.
+Phase 27A classifies the repo as ready for explicit Phase 28 controlled
+speech/caption-only real-video planning, not for production launch, external
+beta, broad real user media testing, provider execution, or arbitrary
+transcription execution.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -20,8 +21,9 @@ real user media testing, provider execution, or transcription execution.
 | GPU staging deploy | Not yet done | L4 GPU worker deployment waits for model/license and staging prerequisites. |
 | Model approval workflow | Ready | Phase 26 can report evidence, storage policy, manifests, and text-only future download commands. |
 | faster-whisper tiny model approval | Staging-approved for planning | `Systran/faster-whisper-tiny` is approved only for Phase 28 speech/caption planning. |
-| Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. Runtime loading is still unverified. |
-| First real video speech/caption | Planning-ready, execution-blocked | Blocked until a speech runtime image/job can load the approved tiny model and Phase 28 explicitly approves the controlled test. |
+| Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
+| CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
+| First real video speech/caption | Ready for explicit Phase 28 execution planning | Phase 28 may proceed only as a controlled speech/caption-only test after explicit approval; broad real media testing remains blocked. |
 | Final private export | Not yet allowed | Blocked until controlled upstream real-video tests and render/export gates pass. |
 | Internal beta | Blocked | Requires full private E2E evidence, operations, support, privacy, cost, and rollback readiness. |
 | External beta | Blocked | Requires strict Phase 37 go/no-go approval. |
@@ -41,7 +43,8 @@ Current classification:
 - staging deployment: not yet done
 - model weights/licenses: faster-whisper tiny staging approval only
 - model files/checksums: private staging storage verified for faster-whisper tiny only
+- CPU speech runtime: verified on generated audio with local private-GCS model copy
 - GPU worker: not yet deployed
-- real user video testing: blocked except future Phase 28 speech/caption-only approval
+- real user video testing: blocked except explicit Phase 28 controlled speech/caption-only execution
 - external beta: blocked
 - paid production: blocked

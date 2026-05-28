@@ -13,4 +13,4 @@ Before external beta, ReeditPro must have:
 - full E2E dry-run and local-dev fixture validation;
 - final delivery/share policy approval.
 
-M17 does not grant go approval.
+M17 does not grant go approval. Phase 18 also does not grant go approval; it only creates the activation baseline audit and human-run roadmap. External beta remains blocked until deployment, model/license, security, cost, privacy/storage, legal, support, and operational approvals are complete.

@@ -1,5 +1,7 @@
 # Production GCP Setup Runbook
 
+Phase 22 of the activation roadmap handles staging foundation setup after the Phase 19 local baseline, Phase 20 human-run image build, and Phase 21 container readiness steps pass. Phase 18 does not run `gcloud`, create resources, deploy services/jobs, add secrets, or process media.
+
 ## Human-Run Order
 
 1. Copy `.env.gcp.production.example` to a local ignored env file.

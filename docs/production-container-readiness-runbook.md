@@ -1,5 +1,7 @@
 # Production Container Readiness Runbook
 
+Phase 21 of the activation roadmap handles container readiness after Phase 20 human-run image builds. Phase 18 does not build images, push images, run Docker readiness containers, deploy, download models, call providers, or process media.
+
 Human-run order for M12 readiness:
 
 1. Run static readiness with `npm.cmd run prod:readiness:summary`.

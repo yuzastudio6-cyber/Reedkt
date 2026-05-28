@@ -54,9 +54,9 @@ Tools must not be exposed as direct user commands or thin wrappers. A production
 - Milestone 16A adds final render/export execution.
 - Milestone 16B adds full E2E production workflow validation.
 - Milestone 17 hardens production beta operations.
-- Phase 18 optional/human-run: build containers and run container readiness.
-- Phase 19 optional/human-run: deploy staging Cloud Run services/jobs.
-- Phase 20 optional/human-run: approve model weights/licenses and run limited staging media tests.
+- Phase 18 starts the activation baseline audit and real video testing roadmap. It is not an automatic launch.
+- Phases 19-37 move step-by-step through local baseline, human-run container build/readiness, staging setup, generated-fixture staging tests, model/license approval, controlled private real video tests, internal beta readiness, and external beta go/no-go.
+- Real video testing begins only after staging, readiness, storage, and model/license prerequisites pass.
 
 ## Milestone 15D Real Enhancement Slowmotion Execution
 
@@ -79,6 +79,10 @@ Milestone 16B adds a dry-run/static E2E workflow suite that validates approved p
 Milestone 17 adds static production hardening, observability templates, sanitized logging, cost controls, privacy/retention policies, security review reports, beta readiness scorecards, and incident runbooks. It does not deploy, call providers, build Docker images, download models, run GPU jobs, process real user media, or mark production readiness passed.
 
 The next work is not automatic launch. It is a human-run approval phase for container builds, staging deployment, tool readiness, model/license review, security, cost, storage, and legal review.
+
+## Phase 18-37 Activation Roadmap
+
+The activation roadmap lives in `docs/activation-phase-roadmap.md`. It begins with Phase 18 baseline audit and proceeds through Phase 37 external beta go/no-go. Production-ready, external beta, real user media testing, and paid production remain blocked unless those later human-run gates explicitly pass.
 
 ## Milestone 1 Contracts And Schema Foundation
 

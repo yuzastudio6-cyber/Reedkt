@@ -4,7 +4,7 @@
 
 This index locks the order of ReeditPro production runtime milestones. Milestone 0 is documentation-only and establishes the architecture boundary before any production worker, tool, provider, render, or deployment work begins.
 
-Current implementation item: Milestone 17, production hardening and beta readiness. Milestone 17 adds static hardening policies, observability templates, sanitized logging, cost controls, privacy/retention policy, security review, beta scorecards, runbooks, and smoke validation. After M17, the next phase is human-run build/deploy/readiness approval, not automatic production launch.
+Current implementation item: Phase 18, activation baseline audit and real video testing roadmap. Milestone 17 completed static hardening policies, observability templates, sanitized logging, cost controls, privacy/retention policy, security review, beta scorecards, runbooks, and smoke validation. Phase 18 starts activation planning only; it is not automatic production launch.
 
 Core rules for every milestone:
 
@@ -108,3 +108,9 @@ Milestone 17 is production hardening and beta readiness.
 Milestone 17 adds static production hardening, observability, sanitized logging, cost controls, privacy/retention, security review, incident response, and beta readiness scorecards. It does not launch production, deploy, run `gcloud`, build Docker images, call providers, download model weights, run GPU jobs, process real user media, add secrets, or mark production readiness as passed.
 
 After M17, the next phase is human-run build/deploy/readiness approval with explicit security, cost, model/license, legal, storage, and operational signoff.
+
+## Phase 18 - Current: Activation Baseline Audit
+
+Phase 18 starts the activation roadmap for human-run staging setup and controlled real video testing. It adds the activation audit, readiness state, next-phase runbook, and structured Phase 18-37 roadmap. It does not build images, run Docker, push images, run `gcloud`, deploy, call providers, download model weights, add secrets, process real media, unblock external beta, or mark production ready.
+
+Phase 19 is the local full smoke/static readiness baseline. Later activation phases remain human-run and gated.

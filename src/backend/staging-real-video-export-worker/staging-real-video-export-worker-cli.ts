@@ -25,6 +25,22 @@ interface ExportEnv {
   phase30Prefix: string
 }
 
+interface AudioCleanupEnv {
+  projectId: 'reeditpro'
+  region: 'us-central1'
+  runId: string
+  phase28RunId: 'phase28-20260528T01552'
+  phase29RunId: 'phase29-20260528T02254'
+  phase30RunId: 'phase30-20260528T12421'
+  inputGcsUri: 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase30/phase30-20260528T12421/final-export.mp4'
+  inputBucket: 'reeditpro-staging-reeditpro-final-exports'
+  inputObject: 'activation-real-video/phase30/phase30-20260528T12421/final-export.mp4'
+  generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets'
+  finalExportsBucket: 'reeditpro-staging-reeditpro-final-exports'
+  qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts'
+  phase31Prefix: string
+}
+
 interface ArtifactRecord {
   id: string
   kind: string
@@ -51,6 +67,10 @@ interface ProbeSummary {
 }
 
 async function main(): Promise<void> {
+  if (process.env.REEDITPRO_PHASE31_MODE === 'audio_cleanup_loudness') {
+    await mainAudioCleanup()
+    return
+  }
   const env = readExportEnv()
   const storage = new Storage({ projectId: env.projectId })
   const workDir = path.join(os.tmpdir(), `reeditpro-phase30-${env.runId}`)
@@ -59,6 +79,21 @@ async function main(): Promise<void> {
 
   try {
     const report = await runPrivateExport(storage, env, workDir)
+    console.log(JSON.stringify(report))
+  } finally {
+    await rm(workDir, { recursive: true, force: true })
+  }
+}
+
+async function mainAudioCleanup(): Promise<void> {
+  const env = readAudioCleanupEnv()
+  const storage = new Storage({ projectId: env.projectId })
+  const workDir = path.join(os.tmpdir(), `reeditpro-phase31-${env.runId}`)
+  await rm(workDir, { recursive: true, force: true })
+  await mkdir(workDir, { recursive: true })
+
+  try {
+    const report = await runAudioCleanup(storage, env, workDir)
     console.log(JSON.stringify(report))
   } finally {
     await rm(workDir, { recursive: true, force: true })
@@ -167,6 +202,104 @@ async function runPrivateExport(storage: Storage, env: ExportEnv, workDir: strin
   return report
 }
 
+async function runAudioCleanup(storage: Storage, env: AudioCleanupEnv, workDir: string): Promise<Record<string, unknown>> {
+  const inputPath = path.join(workDir, 'phase30-final-export.mp4')
+  const normalizedAudioPath = path.join(workDir, 'normalized-audio.m4a')
+  const normalizedExportPath = path.join(workDir, 'audio-normalized-export.mp4')
+  const artifactsDir = path.join(workDir, 'artifacts')
+  await mkdir(artifactsDir, { recursive: true })
+
+  await downloadObject(storage, env.inputBucket, env.inputObject, inputPath)
+  const inputProbe = await ffprobe(inputPath)
+  const inputSummary = readProbeSummary(inputProbe)
+  if (!inputSummary.hasAudio) throw new Error('Phase 31 audio cleanup blocked: Phase 30B final export has no audio stream.')
+
+  const loudnessBefore = await measureLoudness(inputPath)
+  await normalizeAudio({ inputPath, outputPath: normalizedAudioPath, loudnessBefore })
+  const loudnessAfter = await measureLoudness(normalizedAudioPath)
+  const muxWarning = await muxNormalizedExport({
+    inputPath,
+    normalizedAudioPath,
+    outputPath: normalizedExportPath,
+  })
+  const outputProbe = await ffprobe(normalizedExportPath)
+  const outputSummary = readProbeSummary(outputProbe)
+
+  const normalizedAudioObject = `${env.phase31Prefix}/audio/normalized-audio.m4a`
+  const loudnessObject = `${env.phase31Prefix}/audio/loudness-report.json`
+  const normalizedExportObject = `${env.phase31Prefix}/audio-normalized-export.mp4`
+  const qaObject = `${env.phase31Prefix}/qa/audio-cleanup-qa.json`
+  const reportObject = `${env.phase31Prefix}/reports/phase31-report.json`
+  const artifacts: ArtifactRecord[] = []
+
+  const normalizedAudio = await uploadFile(storage, env.generatedAssetsBucket, normalizedAudioObject, normalizedAudioPath, 'audio/mp4', '31')
+  const normalizedExport = await uploadFile(storage, env.finalExportsBucket, normalizedExportObject, normalizedExportPath, 'video/mp4', '31')
+  artifacts.push(normalizedAudio)
+  artifacts.push(normalizedExport)
+
+  const loudnessReport = {
+    phase: '31',
+    runId: env.runId,
+    sourcePhase30RunId: env.phase30RunId,
+    inputFinalExportObject: env.inputGcsUri,
+    targets: {
+      integratedLufs: -16,
+      truePeakDbtp: -1.5,
+      loudnessRange: 11,
+    },
+    before: loudnessBefore,
+    after: loudnessAfter,
+    muxWarning,
+    safety: phase31Safety(),
+  }
+  artifacts.push(await uploadJson(storage, env.generatedAssetsBucket, loudnessObject, loudnessReport, '31'))
+
+  const qa = buildAudioCleanupQaSummary({
+    normalizedExportExists: true,
+    inputDurationSeconds: inputSummary.durationSeconds,
+    outputDurationSeconds: outputSummary.durationSeconds,
+    outputHasAudio: outputSummary.hasAudio,
+    outputVideoCodec: outputSummary.videoCodec,
+    outputAudioCodec: outputSummary.audioCodec,
+    loudnessAfter: loudnessAfter.integratedLufs,
+    truePeakAfter: loudnessAfter.truePeakDbtp,
+  })
+
+  const report = {
+    ok: qa.status !== 'blocked',
+    runId: env.runId,
+    sourcePhase28RunId: env.phase28RunId,
+    sourcePhase29RunId: env.phase29RunId,
+    sourcePhase30RunId: env.phase30RunId,
+    inputFinalExportObject: env.inputGcsUri,
+    inputProbe: inputSummary,
+    outputProbe: outputSummary,
+    loudnessBefore,
+    loudnessAfter,
+    normalizedAudio,
+    normalizedExport,
+    artifacts,
+    qa,
+    safety: phase31Safety(),
+    uploadedReport: {
+      bucket: env.qaBucket,
+      object: reportObject,
+      gcsUri: `gs://${env.qaBucket}/${reportObject}`,
+    },
+    blockers: qa.blockers,
+    warnings: [
+      ...qa.warnings,
+      ...(muxWarning ? [muxWarning] : []),
+      'Phase 31 used FFmpeg loudness normalization only; no DeepFilterNet, RNNoise, Demucs, providers, GPU, model downloads, color, masks, enhancement, or Revideo executed.',
+      'Production, external beta, and broad real user media testing remain blocked.',
+    ],
+  }
+
+  artifacts.push(await uploadJson(storage, env.qaBucket, qaObject, qa, '31'))
+  artifacts.push(await uploadJson(storage, env.qaBucket, reportObject, report, '31'))
+  return report
+}
+
 function readExportEnv(): ExportEnv {
   requireEnvValue('REEDITPRO_ENV', 'staging')
   requireEnvValue('REEDITPRO_CONFIRM_REAL_VIDEO_PRIVATE_EXPORT', 'true')
@@ -200,6 +333,39 @@ function readExportEnv(): ExportEnv {
     qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts',
     phase29Prefix: 'activation-real-video/phase29/phase29-20260528T02254',
     phase30Prefix: `activation-real-video/phase30/${runId}`,
+  }
+}
+
+function readAudioCleanupEnv(): AudioCleanupEnv {
+  requireEnvValue('REEDITPRO_ENV', 'staging')
+  requireEnvValue('REEDITPRO_CONFIRM_REAL_VIDEO_AUDIO_CLEANUP', 'true')
+  requireEnvValue('REEDITPRO_PHASE31_MODE', 'audio_cleanup_loudness')
+  const projectId = (process.env.GCP_PROJECT_ID ?? 'reeditpro') as AudioCleanupEnv['projectId']
+  const region = (process.env.GCP_REGION ?? 'us-central1') as AudioCleanupEnv['region']
+  if (projectId !== 'reeditpro') throw new Error('GCP_PROJECT_ID must be exactly reeditpro.')
+  if (region !== 'us-central1') throw new Error('GCP_REGION must be us-central1.')
+  const phase30RunId = requireEnv('REEDITPRO_PHASE30_RUN_ID') as AudioCleanupEnv['phase30RunId']
+  const inputGcsUri = requireEnv('REEDITPRO_PHASE31_INPUT_GCS_URI') as AudioCleanupEnv['inputGcsUri']
+  if (phase30RunId !== 'phase30-20260528T12421') throw new Error('Phase 31 is locked to Phase 30 run phase30-20260528T12421.')
+  if (inputGcsUri !== 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase30/phase30-20260528T12421/final-export.mp4') {
+    throw new Error('Phase 31 input GCS URI is not the approved Phase 30B private final export.')
+  }
+  const runId = process.env.REEDITPRO_PHASE31_RUN_ID ?? `phase31-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 14)}`
+  if (!/^phase31-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 31 run id: ${runId}`)
+  return {
+    projectId,
+    region,
+    runId,
+    phase28RunId: 'phase28-20260528T01552',
+    phase29RunId: 'phase29-20260528T02254',
+    phase30RunId,
+    inputGcsUri,
+    inputBucket: 'reeditpro-staging-reeditpro-final-exports',
+    inputObject: 'activation-real-video/phase30/phase30-20260528T12421/final-export.mp4',
+    generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets',
+    finalExportsBucket: 'reeditpro-staging-reeditpro-final-exports',
+    qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts',
+    phase31Prefix: `activation-real-video/phase31/${runId}`,
   }
 }
 
@@ -266,6 +432,134 @@ async function renderFinalExport(input: {
   await execFileAsync('ffmpeg', args, { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
 }
 
+async function measureLoudness(inputPath: string): Promise<{
+  integratedLufs?: number
+  truePeakDbtp?: number
+  loudnessRange?: number
+  threshold?: number
+  targetOffset?: number
+  raw: Record<string, unknown>
+}> {
+  const result = await execFileAsync('ffmpeg', [
+    '-hide_banner',
+    '-nostdin',
+    '-i',
+    inputPath,
+    '-af',
+    'loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json',
+    '-f',
+    'null',
+    '-',
+  ], { timeout: 5 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+  const raw = parseLoudnormJson(`${result.stdout ?? ''}\n${result.stderr ?? ''}`)
+  return mapLoudnessStats(raw)
+}
+
+async function normalizeAudio(input: {
+  inputPath: string
+  outputPath: string
+  loudnessBefore: { raw: Record<string, unknown> }
+}): Promise<void> {
+  const raw = input.loudnessBefore.raw
+  const measuredI = readRequiredLoudnormValue(raw, 'input_i')
+  const measuredTp = readRequiredLoudnormValue(raw, 'input_tp')
+  const measuredLra = readRequiredLoudnormValue(raw, 'input_lra')
+  const measuredThresh = readRequiredLoudnormValue(raw, 'input_thresh')
+  const offset = readRequiredLoudnormValue(raw, 'target_offset')
+  const filter = [
+    'loudnorm=I=-16',
+    'TP=-1.5',
+    'LRA=11',
+    `measured_I=${measuredI}`,
+    `measured_TP=${measuredTp}`,
+    `measured_LRA=${measuredLra}`,
+    `measured_thresh=${measuredThresh}`,
+    `offset=${offset}`,
+    'linear=true',
+    'print_format=json',
+  ].join(':')
+  await execFileAsync('ffmpeg', [
+    '-hide_banner',
+    '-nostdin',
+    '-y',
+    '-i',
+    input.inputPath,
+    '-vn',
+    '-af',
+    filter,
+    '-c:a',
+    'aac',
+    '-b:a',
+    '192k',
+    input.outputPath,
+  ], { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+}
+
+async function muxNormalizedExport(input: {
+  inputPath: string
+  normalizedAudioPath: string
+  outputPath: string
+}): Promise<string | undefined> {
+  const streamCopyArgs = [
+    '-hide_banner',
+    '-nostdin',
+    '-y',
+    '-i',
+    input.inputPath,
+    '-i',
+    input.normalizedAudioPath,
+    '-map',
+    '0:v:0',
+    '-map',
+    '1:a:0',
+    '-c:v',
+    'copy',
+    '-c:a',
+    'aac',
+    '-b:a',
+    '192k',
+    '-shortest',
+    '-movflags',
+    '+faststart',
+    input.outputPath,
+  ]
+  try {
+    await execFileAsync('ffmpeg', streamCopyArgs, { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+    return undefined
+  } catch {
+    await execFileAsync('ffmpeg', [
+      '-hide_banner',
+      '-nostdin',
+      '-y',
+      '-i',
+      input.inputPath,
+      '-i',
+      input.normalizedAudioPath,
+      '-map',
+      '0:v:0',
+      '-map',
+      '1:a:0',
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-crf',
+      '23',
+      '-pix_fmt',
+      'yuv420p',
+      '-c:a',
+      'aac',
+      '-b:a',
+      '192k',
+      '-shortest',
+      '-movflags',
+      '+faststart',
+      input.outputPath,
+    ], { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+    return 'Video stream copy mux failed; Phase 31 used safe H.264 re-encode fallback with normalized audio.'
+  }
+}
+
 async function copyCaptionSidecars(storage: Storage, env: ExportEnv): Promise<ArtifactRecord[]> {
   const captionObjects = [
     { kind: 'caption_segments_json', source: `activation-real-video/phase28/${env.phase28RunId}/captions/caption-segments.json`, target: `${env.phase30Prefix}/captions/caption-segments.json` },
@@ -330,7 +624,7 @@ async function downloadObject(storage: Storage, bucket: string, object: string, 
   await storage.bucket(bucket).file(object).download({ destination: outputPath })
 }
 
-async function uploadFile(storage: Storage, bucket: string, object: string, localPath: string, contentType: string): Promise<ArtifactRecord> {
+async function uploadFile(storage: Storage, bucket: string, object: string, localPath: string, contentType: string, phase = '30'): Promise<ArtifactRecord> {
   await storage.bucket(bucket).upload(localPath, {
     destination: object,
     metadata: {
@@ -338,7 +632,7 @@ async function uploadFile(storage: Storage, bucket: string, object: string, loca
       metadata: {
         app: 'reeditpro',
         env: 'staging',
-        phase: '30',
+        phase,
       },
     },
   })
@@ -354,10 +648,145 @@ async function uploadFile(storage: Storage, bucket: string, object: string, loca
   }
 }
 
-async function uploadJson(storage: Storage, bucket: string, object: string, payload: unknown): Promise<ArtifactRecord> {
+async function uploadJson(storage: Storage, bucket: string, object: string, payload: unknown, phase = '30'): Promise<ArtifactRecord> {
   const tempPath = path.join(os.tmpdir(), `${createHash('sha256').update(object).digest('hex')}.json`)
   await writeFile(tempPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8')
-  return uploadFile(storage, bucket, object, tempPath, 'application/json')
+  return uploadFile(storage, bucket, object, tempPath, 'application/json', phase)
+}
+
+function buildAudioCleanupQaSummary(input: {
+  normalizedExportExists: boolean
+  inputDurationSeconds?: number
+  outputDurationSeconds?: number
+  outputHasAudio?: boolean
+  outputVideoCodec?: string
+  outputAudioCodec?: string
+  loudnessAfter?: number
+  truePeakAfter?: number
+}): {
+  status: 'passed' | 'warning' | 'blocked'
+  gates: Array<Record<string, unknown>>
+  blockers: string[]
+  warnings: string[]
+} {
+  const durationDelta = input.inputDurationSeconds === undefined || input.outputDurationSeconds === undefined
+    ? Number.POSITIVE_INFINITY
+    : Math.abs(input.outputDurationSeconds - input.inputDurationSeconds)
+  const loudnessDelta = input.loudnessAfter === undefined ? Number.POSITIVE_INFINITY : Math.abs(input.loudnessAfter - -16)
+  const truePeak = input.truePeakAfter ?? Number.POSITIVE_INFINITY
+  const gates = [
+    audioGate('audio_loudness', loudnessDelta <= 1.5 && truePeak <= -0.1, `Normalized audio measured ${formatNumber(input.loudnessAfter)} LUFS with true peak ${formatNumber(input.truePeakAfter)} dBTP.`),
+    audioGate('audio_sync', Boolean(input.outputHasAudio) && durationDelta <= 0.75, `Output duration delta ${durationDelta.toFixed(3)}s remains within tolerance.`),
+    audioWarningGate('audio_naturalness', 'Phase 31 uses deterministic FFmpeg loudness only; perceptual listening QA remains manual/future.'),
+    audioWarningGate('music_over_voice', 'No music-over-voice classifier ran; Phase 31 records this as warning-only.'),
+    audioGate('export_codec_format', input.outputVideoCodec === 'h264' && input.outputAudioCodec === 'aac', 'Private normalized export uses H.264/AAC MP4.'),
+    audioGate('export_duration_sync', durationDelta <= 0.75, `Export duration is close to the Phase 30B duration (${durationDelta.toFixed(3)}s delta).`),
+  ]
+  const blockersBeforeFinal = gates.filter((item) => item.blocking)
+  gates.push(audioGate('final_delivery', input.normalizedExportExists && blockersBeforeFinal.length === 0, 'Private Phase 31 audio-normalized final delivery exists with no blocking audio QA findings.'))
+  const blockers = gates.filter((item) => item.blocking).map((item) => `${item.gateType}: ${item.message}`)
+  const warnings = gates.filter((item) => item.status === 'warning').map((item) => `${item.gateType}: ${item.message}`)
+  return {
+    status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warning' : 'passed',
+    gates,
+    blockers,
+    warnings,
+  }
+}
+
+function audioGate(gateType: string, passed: boolean, message: string): Record<string, unknown> {
+  return {
+    id: `phase31-gate-${gateType}`,
+    workspaceId: 'activation-phase31',
+    projectId: 'reeditpro',
+    mediaAssetId: 'phase30-20260528T12421-final-export',
+    toolExecutionPlanId: 'activation-phase31-audio-cleanup',
+    recipeId: gateType === 'final_delivery' ? 'private_audio_normalized_export' : 'ffmpeg_loudness_normalization',
+    gateType,
+    status: passed ? 'passed' : 'blocked',
+    score: passed ? 0.95 : 0.2,
+    threshold: 0.8,
+    required: true,
+    blocking: !passed,
+    checkedAt: new Date().toISOString(),
+    checkedByWorkerType: gateType === 'final_delivery' ? 'qa_worker' : 'render_worker',
+    inputArtifactIds: [],
+    outputArtifactIds: [],
+    issues: passed ? [] : [{ code: `${gateType}_failed`, message, severity: 'blocking' }],
+    recommendations: [{ action: passed ? 'continue' : 'block_final_export', reason: message, priority: passed ? 'low' : 'urgent' }],
+    fallbackRequired: !passed,
+    blocksPreview: false,
+    blocksFinalExport: !passed,
+    humanReviewRequired: false,
+    message,
+  }
+}
+
+function audioWarningGate(gateType: string, message: string): Record<string, unknown> {
+  return {
+    ...audioGate(gateType, true, message),
+    status: 'warning',
+    score: 0.78,
+    issues: [{ code: `${gateType}_warning`, message, severity: 'warning' }],
+    recommendations: [{ action: 'continue', reason: message, priority: 'medium' }],
+    humanReviewRequired: true,
+    message,
+  }
+}
+
+function parseLoudnormJson(output: string): Record<string, unknown> {
+  const start = output.lastIndexOf('{')
+  const end = output.lastIndexOf('}')
+  if (start < 0 || end <= start) throw new Error('FFmpeg loudnorm JSON output was not found.')
+  return JSON.parse(output.slice(start, end + 1)) as Record<string, unknown>
+}
+
+function mapLoudnessStats(raw: Record<string, unknown>): {
+  integratedLufs?: number
+  truePeakDbtp?: number
+  loudnessRange?: number
+  threshold?: number
+  targetOffset?: number
+  raw: Record<string, unknown>
+} {
+  return {
+    integratedLufs: readNumber(raw.input_i),
+    truePeakDbtp: readNumber(raw.input_tp),
+    loudnessRange: readNumber(raw.input_lra),
+    threshold: readNumber(raw.input_thresh),
+    targetOffset: readNumber(raw.target_offset),
+    raw,
+  }
+}
+
+function readRequiredLoudnormValue(raw: Record<string, unknown>, key: string): string {
+  const value = raw[key]
+  if (typeof value === 'string' && value.trim()) return value
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  throw new Error(`FFmpeg loudnorm output is missing ${key}.`)
+}
+
+function formatNumber(value: number | undefined): string {
+  return value === undefined || !Number.isFinite(value) ? 'unknown' : value.toFixed(2)
+}
+
+function phase31Safety(): Record<string, unknown> {
+  return {
+    approvedPhase30InputOnly: true,
+    secondSourceVideoUsed: false,
+    providerExecuted: false,
+    gpuUsed: false,
+    modelDownloadedExternally: false,
+    deepFilterNetUsed: false,
+    rnnoiseUsed: false,
+    demucsUsed: false,
+    secretValuesUsed: false,
+    publicAccessEnabled: false,
+    sourceOverwritten: false,
+    colorExecuted: false,
+    masksOrEnhancementExecuted: false,
+    revideoUsed: false,
+  }
 }
 
 function readRanges(value: unknown): TimedRange[] {

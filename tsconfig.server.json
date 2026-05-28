@@ -13,6 +13,8 @@
     "src/lib/**/*.ts",
     "vite.server.config.ts",
     "vite.staging-fixture-worker.config.ts",
-    "vite.staging-speech-runtime-worker.config.ts"
+    "vite.staging-speech-runtime-worker.config.ts",
+    "vite.staging-real-video-export-worker.config.ts",
+    "vite.staging-birefnet-runtime-worker.config.ts"
   ]
 }

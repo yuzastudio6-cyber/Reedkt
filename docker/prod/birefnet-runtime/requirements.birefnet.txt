@@ -1,0 +1,17 @@
+# ReeditPro Phase 33C BiRefNet runtime requirements.
+# No model weights are fetched by this file.
+# Do not add SAM2, provider SDKs, DeepFilterNet, Demucs, Real-ESRGAN, FILM, PaddleOCR, or Revideo.
+
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.5.1+cu124
+torchvision==0.20.1+cu124
+transformers
+safetensors
+pillow
+opencv-python-headless
+numpy<2
+timm
+kornia
+einops
+scipy
+scikit-image

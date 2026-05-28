@@ -16,3 +16,13 @@ mask execution, text-behind-subject, or broad real media.
 `facebook/sam2-hiera-tiny` and Meta SAM2 official checkpoints/code are
 evaluated-only. SAM2 execution stays blocked until a later video tracking and
 mask-propagation approval phase.
+
+## Activation Phase 33C
+
+Phase 33C verified BiRefNet runtime loading on one generated synthetic image
+using the approved Phase 33B snapshot from private staging storage. It executed
+only local allowlisted BiRefNet loader files from that verified snapshot and did
+not import `handler.py`.
+
+SAM2, arbitrary real-video masks, text-behind-subject, production, external
+beta, and broad real-media execution remain blocked.

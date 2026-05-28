@@ -122,3 +122,11 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm production, external beta, broad real media, GPU, providers, mask execution, and text-behind-subject remain blocked.
 5. Proceed to Phase 33C only as explicit BiRefNet runtime verification using private GCS model storage.
 6. Keep Phase 33D blocked until Phase 33C runtime loading and mask QA pass.
+
+## After Phase 33C
+
+1. Review `activation:birefnet-runtime:report` and the private Phase 33C Cloud Run report.
+2. Confirm the runtime copied only `ZhengPeng7/BiRefNet` from private staging GCS and did not download from Hugging Face at runtime.
+3. Confirm the only input was a generated synthetic image.
+4. Confirm SAM2, providers, public access, secret values, production, external beta, broad real media, and text-behind-subject remain blocked.
+5. Proceed to Phase 33D only if the private mask artifact exists and mask QA has no blocking failures.

@@ -1,6 +1,6 @@
 # Phase 30 Real Video Private Export Results
 
-Status: blocked before export by narrow storage IAM
+Status: completed after Phase 30B IAM retry
 
 Source Phase 28 run: `phase28-20260528T01552`
 
@@ -10,60 +10,69 @@ Approved source object:
 
 `gs://reeditpro-staging-reeditpro-source-media/activation-real-video/phase28/phase28-20260528T01552/source-video.mov`
 
-Planned render/export path:
+Render/export path:
 
 - staging render worker
-- linux/amd64 image tag `staging-phase30-export-001`
-- image digest: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-render-worker@sha256:6496221635720ee1dffdd0f40527612ce8c2ff97388fa1233755c0458484fbde`
+- linux/amd64 image tag `staging-phase30b-export-001`
+- image digest: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-render-worker@sha256:23e20b85b316981e636718cdbd30340aa84d2174fe44b85afc4ed7083b1ab114`
 - private MP4 final export
 - caption sidecars only
 - no public URL or final public delivery
 
-Deployment:
+IAM:
 
-- `reeditpro-staging-render-job` was redeployed with the Phase 30 render image.
-- Command: `node dist-staging-real-video-export-worker/staging-real-video-export-worker-cli.js`
-- Service account: `reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com`
-- GPU: not used
-- Providers/model downloads/public access: not used
+Phase 30B added conditional prefix-scoped IAM for `reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com` and removed older unconditioned render-service-account storage bindings from the relevant buckets.
 
 Execution:
 
-- Cloud Run execution: `reeditpro-staging-render-job-bmngx`
-- Result: failed before export
-- Final export created: no
-- Caption handling: `sidecar_only`, not reached
-- Logs: `activation-logs/real-video-private-export/phase30/`
+- Cloud Run execution: `reeditpro-staging-render-job-fpdqq`
+- Result: succeeded
+- Final export created: yes
+- Caption handling: `sidecar_only`
+- Logs: `activation-logs/real-video-private-export/phase30b/`
 
-Blocker:
+Final export:
 
-`reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com` does not have `storage.objects.get` access to the private Phase 28/29 staging artifacts.
+`gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase30/phase30-20260528T12421/final-export.mp4`
 
-Narrow fix needed before retry:
-
-- read access for the render service account to the approved Phase 29 analysis prefix `activation-real-video/phase29/phase29-20260528T02254/`
-- read access to the approved Phase 28 source object and caption sidecars
-- read access to the approved Phase 29 QA/report objects
-- write access to the Phase 30 final exports and QA/report prefixes
-
-Do not grant owner/editor, public principals, broad provider/model secret access, or unrelated media/model prefixes.
+- Size: `86958606` bytes
+- SHA-256: `dea8cb62ffae3e1f593a61b22c3ea594ec30d015e7583f573ac95497bf4390ab`
+- Duration: `15.47s`
+- Video codec: `h264`
+- Audio codec: `aac`
+- Audio present: yes
 
 QA:
 
-- `render_asset_integrity=blocked`
-- `final_delivery=blocked`
+- `render_asset_integrity=passed`
+- `render_timeline_integrity=passed`
+- `export_codec_format=passed`
+- `export_duration_sync=passed`
+- `audio_sync=passed`
+- `caption_timing=warning`
+- `caption_readability=warning`
+- `final_delivery=passed`
+
+Safety:
+
 - no source overwrite
 - no public URL
-- no provider, GPU, model download, Revideo, color/audio cleanup, masks, or enhancement
+- no provider call
+- no GPU
+- no model download
+- no Revideo
+- no color/audio cleanup, masks, enhancement, or slow motion
+- no secret values
 
 Phase31 readiness:
 
-Blocked until the narrow storage IAM issue is fixed and Phase 30 creates a private final export with nonblocking export QA.
+Ready for private-review follow-up planning. Production, external beta, and broad real-media testing remain blocked.
 
 Validation:
 
 - `smoke:activation-real-video-private-export`: passed
-- `activation:real-video:private-export:report`: passed and reports `blocked`
+- `smoke:activation-real-video-private-export-iam`: passed
+- `activation:real-video:private-export:report`: passed
 - `activation:real-video:smart-cut:report`: passed
 - `activation:first-video:speech-caption:report`: passed
 - `activation:staging:healthcheck:summary -- --project reeditpro --region us-central1`: passed

@@ -68,6 +68,11 @@ Milestone 15D adds server-only enhancement and slow-motion execution scaffolds: 
 
 It remains bounded: no package install, model downloads, final render/export, providers, deployment, unapproved GPU jobs, audio/color/mask execution, source overwrite, raw-chat execution, or Revideo.
 
+Activation Phase 34A adds a staging-only approval/reporting layer for this area:
+`RealESRGAN_x4plus` is approved only for future sample-first enhancement
+planning, while FILM and slow motion remain evaluated-only/blocked. Runtime,
+model download, and controlled sample execution remain later phases.
+
 ## Milestone 16A Final Render Export Execution
 
 Milestone 16A adds server-only final render/export execution scaffolds: normalized render execution manifests, private artifact resolution, Remotion/FFmpeg/libass command plans, private preview/final-export artifact records, and `render_asset_integrity`, `render_timeline_integrity`, `export_codec_format`, `export_duration_sync`, and `final_delivery` QA gates.

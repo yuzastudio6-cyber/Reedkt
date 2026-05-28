@@ -47,3 +47,13 @@ representative frame from the approved Phase 32 private export. The resulting
 private mask/cutout artifacts are controlled staging evidence only. Full-video
 masks, SAM2, text-behind-subject execution, RTX PRO 6000, production, external
 beta, and broad real-media execution remain blocked.
+
+## Activation Phase 34A
+
+Phase 34A creates a staging-only approval record for `RealESRGAN_x4plus` for
+sample-first enhancement planning. It does not download weights, deploy GPU,
+run Real-ESRGAN, run enhancement, or approve full-video enhancement.
+
+FILM is evaluated-only for future selected-clip slow-motion planning. FILM
+download, FILM execution, slow motion, production, external beta, paid
+production, and broad real-media execution remain blocked.

@@ -57,6 +57,12 @@ The approved BiRefNet manifest checksum remains `missing_until_download` until
 an explicit Phase 33B download/load phase records revision and checksum
 evidence.
 
+Activation Phase 33B downloads only `ZhengPeng7/BiRefNet` into private staging
+generated-assets storage and records revision/checksum evidence. The snapshot
+contains custom code files, which are recorded but not executed. Runtime
+inference, GPU deployment, mask execution, text-behind-subject, production,
+external beta, paid production, and broad real media remain blocked.
+
 SAM2 evidence is recorded for future video tracking review only.
 `facebook/sam2-hiera-tiny`, official SAM2 checkpoints/code, DeepFilterNet,
 Demucs, Real-ESRGAN, FILM, PaddleOCR GPU, provider models, Revideo, and

@@ -5,6 +5,7 @@ import {
 import { evaluateMaskModelApprovalPolicy } from './mask-model-approval-policy'
 import { maskEvidenceForCandidate } from './mask-model-license-evidence'
 import { buildBiRefNetMaskModelStoragePlan } from './mask-model-storage-plan'
+import { getApprovedMaskModelDownloadEvidence } from '../mask-model-download/approved-mask-model-download-evidence'
 import type { MaskModelCandidateRecord, MaskModelWeightManifestRecord } from './mask-model-approval-types'
 
 export function buildMaskModelWeightManifest(candidate: MaskModelCandidateRecord): MaskModelWeightManifestRecord {
@@ -15,11 +16,16 @@ export function buildMaskModelWeightManifest(candidate: MaskModelCandidateRecord
     storagePlan,
   })
   const approved = decision.stagingSingleFrameBackgroundRemovalAllowed
+  const downloadEvidence = candidate.candidateId === 'zhengpeng7_birefnet'
+    ? getApprovedMaskModelDownloadEvidence()
+    : undefined
+  const verifiedDownload = downloadEvidence?.status === 'verified'
   return {
     modelWeightManifestId: approved ? BIREFNET_MANIFEST_ID : manifestIdForBlockedCandidate(candidate),
     toolId: candidate.toolId,
     modelName: candidate.modelName,
-    modelVersion: approved ? 'staging-v1' : 'pending_separate_approval',
+    modelVersion: verifiedDownload ? downloadEvidence.resolvedRevision ?? 'staging-v1' : approved ? 'staging-v1' : 'pending_separate_approval',
+    resolvedRevision: verifiedDownload ? downloadEvidence.resolvedRevision : undefined,
     source: candidate.sourceUrl ? sourceNameFor(candidate.sourceUrl) : 'manual review pending',
     sourceUrl: candidate.sourceUrl ?? 'manual-review-required',
     expectedPath: candidate.expectedPath ?? `/opt/reeditpro/model-weights/${candidate.toolId}/${candidate.candidateId}`,
@@ -41,7 +47,7 @@ export function buildMaskModelWeightManifest(candidate: MaskModelCandidateRecord
           'Mask execution, text-behind-subject execution, production, external beta, paid production, and broad real media remain blocked.',
         ]
       : [candidate.blockedReason ?? 'Not approved for Phase 33A execution.'],
-    checksum: 'missing_until_download',
+    checksum: verifiedDownload ? downloadEvidence.aggregateSha256 ?? 'missing_until_download' : 'missing_until_download',
     createdAt: MASK_MODEL_APPROVAL_REVIEWED_AT,
     reviewedAt: MASK_MODEL_APPROVAL_REVIEWED_AT,
     approvedFor: approved ? candidate.approvedFor : [],

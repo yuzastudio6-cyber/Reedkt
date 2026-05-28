@@ -113,3 +113,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm the BiRefNet download command plan is text-only and no model files were downloaded or committed.
 5. Proceed to Phase 33B only to download/load approved BiRefNet weights into private staging storage.
 6. Keep Phase 33C and Phase 33D blocked until checksum/runtime/mask QA evidence exists.
+
+## After Phase 33B
+
+1. Review `activation:mask-model-download:report` and confirm BiRefNet revision/checksum evidence exists in private staging storage.
+2. Confirm only `ZhengPeng7/BiRefNet` was downloaded and SAM2 remains evaluated-only and execution-blocked.
+3. Confirm custom code files are recorded but were not executed.
+4. Confirm production, external beta, broad real media, GPU, providers, mask execution, and text-behind-subject remain blocked.
+5. Proceed to Phase 33C only as explicit BiRefNet runtime verification using private GCS model storage.
+6. Keep Phase 33D blocked until Phase 33C runtime loading and mask QA pass.

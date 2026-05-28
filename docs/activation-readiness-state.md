@@ -1,9 +1,9 @@
 # Activation Readiness State
 
-Phase 33A classifies the repo as ready for explicit Phase 33B BiRefNet weight
-download planning only, not for production launch, external beta, broad real
+Phase 33B classifies the repo as ready for explicit Phase 33C BiRefNet runtime
+verification planning only, not for production launch, external beta, broad real
 user media testing, provider execution, arbitrary media execution, SAM2
-execution, or text-behind-subject execution.
+execution, mask execution, or text-behind-subject execution.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ execution, or text-behind-subject execution.
 | Mask model approval workflow | Ready | Phase 33A can report BiRefNet/SAM2 evidence, storage policy, manifests, and text-only future download commands. |
 | BiRefNet model approval | Staging-approved for planning | `ZhengPeng7/BiRefNet` is approved only for representative-frame/single-frame background-removal planning. |
 | SAM2 model approval | Evaluated-only | `facebook/sam2-hiera-tiny` and official SAM2 checkpoint evidence are recorded, but execution and download remain blocked. |
-| Mask model weights availability | Pending | BiRefNet checksum/revision evidence is missing until explicit Phase 33B download/load. |
+| Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Pending | Phase 33C must verify runtime loading and mask QA before any real-video mask/text-behind-subject test. |
 | Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
 | CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
@@ -52,6 +52,6 @@ Current classification:
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
 - GPU worker: not yet deployed
 - real user video testing: blocked except completed single controlled Phase 28-32 runs and future explicitly approved controlled phases
-- mask/text-behind-subject execution: blocked until BiRefNet weights exist and Phase 33C runtime QA passes
+- mask/text-behind-subject execution: blocked until Phase 33C runtime QA passes
 - external beta: blocked
 - paid production: blocked

@@ -13,6 +13,7 @@ export function buildMaskModelWeightSummary(): string {
     ...(evaluated.length ? evaluated.map((item) => `- ${item}`) : ['- none']),
     '',
     `Storage path: ${report.storagePlan.stagingStoragePath}`,
+    `Checksum: ${report.approvedModels[0]?.checksum ?? 'missing_until_download'}`,
     `Download plan: text-only (${report.downloadCommandPlan.length} commands)`,
     `Model download executed: ${report.modelDownloadExecuted}`,
     `Production ready allowed: ${report.productionReadyAllowed}`,

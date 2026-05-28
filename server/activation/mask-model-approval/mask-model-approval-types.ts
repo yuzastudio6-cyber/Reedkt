@@ -150,7 +150,7 @@ export interface MaskModelApprovalReport {
   phase33BReadiness: MaskModelApprovalReadiness
   phase33CReadiness: MaskModelApprovalReadiness
   phase33DReadiness: MaskModelApprovalReadiness
-  modelDownloadExecuted: false
+  modelDownloadExecuted: boolean
   providerExecuted: false
   gpuDeployed: false
   frameOrVideoProcessed: false

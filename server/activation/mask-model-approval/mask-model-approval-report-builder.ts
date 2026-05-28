@@ -9,6 +9,7 @@ import {
   buildEvaluatedMaskModelWeightManifests,
   buildMaskModelWeightManifest,
 } from './mask-model-manifest-writer'
+import { getApprovedMaskModelDownloadEvidence } from '../mask-model-download/approved-mask-model-download-evidence'
 import type { MaskModelApprovalReport } from './mask-model-approval-types'
 
 export const MASK_MODEL_APPROVAL_REPORT_ID = 'activation-phase-33a-mask-model-approval'
@@ -17,6 +18,8 @@ export function buildMaskModelApprovalReport(): MaskModelApprovalReport {
   const candidates = listMaskModelApprovalCandidates()
   const evidenceSummary = listMaskModelLicenseEvidence()
   const storagePlan = buildBiRefNetMaskModelStoragePlan()
+  const downloadEvidence = getApprovedMaskModelDownloadEvidence()
+  const downloadVerified = downloadEvidence.status === 'verified'
   const downloadCommandPlan = buildMaskModelDownloadCommandPlan(storagePlan)
   const decisions = candidates.map((candidate) => evaluateMaskModelApprovalPolicy({
     candidate,
@@ -60,16 +63,18 @@ export function buildMaskModelApprovalReport(): MaskModelApprovalReport {
       warnings: ['Phase 33B may download only ZhengPeng7/BiRefNet to private staging storage; no SAM2 download.'],
     },
     phase33CReadiness: {
-      ready: false,
-      blockers: ['BiRefNet weights are not downloaded and checksummed yet.', 'GPU/runtime verification plan is not prepared in Phase 33A.'],
-      warnings: ['Phase 33C remains blocked until Phase 33B records private storage and checksum evidence.'],
+      ready: downloadVerified && blockerEvaluation.blockers.length === 0,
+      blockers: downloadVerified ? [] : ['BiRefNet weights are not downloaded and checksummed yet.', 'GPU/runtime verification plan is not prepared in Phase 33A.'],
+      warnings: downloadVerified
+        ? ['BiRefNet weights have private storage and checksum evidence; Phase 33C may proceed only as explicit runtime verification, not mask execution.']
+        : ['Phase 33C remains blocked until Phase 33B records private storage and checksum evidence.'],
     },
     phase33DReadiness: {
       ready: false,
       blockers: ['Mask runtime verification has not passed.', 'Text-behind-subject execution remains blocked until mask QA passes.'],
       warnings: ['Phase 33D remains blocked until runtime verification creates safe private mask QA evidence.'],
     },
-    modelDownloadExecuted: false,
+    modelDownloadExecuted: downloadEvidence.status !== 'not_started',
     providerExecuted: false,
     gpuDeployed: false,
     frameOrVideoProcessed: false,

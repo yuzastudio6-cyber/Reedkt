@@ -41,3 +41,9 @@ GCS, verified checksum evidence, generated one synthetic-image mask, and emitted
 mask QA with no blocking failures. This does not approve RTX PRO 6000, SAM2,
 arbitrary real-video masks, production, external beta, or broad real-media
 execution.
+
+Phase 33D reused the dedicated BiRefNet L4 runtime for exactly one
+representative frame from the approved Phase 32 private export. The resulting
+private mask/cutout artifacts are controlled staging evidence only. Full-video
+masks, SAM2, text-behind-subject execution, RTX PRO 6000, production, external
+beta, and broad real-media execution remain blocked.

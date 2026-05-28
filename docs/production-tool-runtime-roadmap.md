@@ -110,6 +110,11 @@ single-frame background-removal planning, while SAM2 execution, model downloads,
 GPU runtime, text-behind-subject, production, external beta, and broad real media
 remain blocked.
 
+Activation Phase 33D adds controlled staging evidence for one real-video
+representative-frame BiRefNet mask only. It does not approve a full-video mask
+runtime, SAM2 tracking, text-behind-subject execution, public delivery,
+production, external beta, or broad real media.
+
 The contracts remain mock-safe and schema-review-only. They do not install tools, process media, call providers, deploy resources, or let the frontend run heavy media/AI work.
 
 ## Milestone 2 Production Tool Registry Metadata

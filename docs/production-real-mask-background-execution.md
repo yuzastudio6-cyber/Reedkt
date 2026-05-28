@@ -15,3 +15,14 @@ creates the staging approval workflow for `ZhengPeng7/BiRefNet` as the first
 single-frame background-removal model scope. SAM2 tracking, text-behind-subject,
 GPU runtime, model downloads, and real mask execution remain blocked until later
 explicit phases.
+
+## Activation Phase 33D
+
+Phase 33D executed the first controlled real-video BiRefNet mask test on exactly
+one representative frame from the approved Phase 32 private export. It produced
+private frame, mask, RGBA cutout, metadata, and QA artifacts with no blocking
+mask QA failures.
+
+This is not production approval. Full-video masks, SAM2 tracking,
+text-behind-subject execution, public delivery, external beta, and broad real
+media remain blocked until later explicit phases.

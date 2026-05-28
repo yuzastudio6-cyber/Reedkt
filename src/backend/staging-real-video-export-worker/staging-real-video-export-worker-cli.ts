@@ -59,6 +59,19 @@ interface ColorCorrectionEnv {
   phase32Prefix: string
 }
 
+interface Phase33DFrameEnv {
+  projectId: 'reeditpro'
+  region: 'us-central1'
+  runId: string
+  phase32RunId: 'phase32-20260528T13330'
+  inputGcsUri: 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4'
+  inputBucket: 'reeditpro-staging-reeditpro-final-exports'
+  inputObject: 'activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4'
+  generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets'
+  qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts'
+  phase33dPrefix: string
+}
+
 interface ArtifactRecord {
   id: string
   kind: string
@@ -123,6 +136,10 @@ interface ColorGradeRecipe {
 }
 
 async function main(): Promise<void> {
+  if (process.env.REEDITPRO_PHASE33D_MODE === 'representative_frame_extract') {
+    await mainPhase33DFrameExtraction()
+    return
+  }
   if (process.env.REEDITPRO_PHASE32_MODE === 'color_correction_ffmpeg') {
     await mainColorCorrection()
     return
@@ -173,6 +190,73 @@ async function mainAudioCleanup(): Promise<void> {
   } finally {
     await rm(workDir, { recursive: true, force: true })
   }
+}
+
+async function mainPhase33DFrameExtraction(): Promise<void> {
+  const env = readPhase33DFrameEnv()
+  const storage = new Storage({ projectId: env.projectId })
+  const workDir = path.join(os.tmpdir(), `reeditpro-phase33d-frame-${env.runId}`)
+  await rm(workDir, { recursive: true, force: true })
+  await mkdir(workDir, { recursive: true })
+
+  try {
+    const report = await runPhase33DFrameExtraction(storage, env, workDir)
+    console.log(JSON.stringify(report))
+  } finally {
+    await rm(workDir, { recursive: true, force: true })
+  }
+}
+
+async function runPhase33DFrameExtraction(storage: Storage, env: Phase33DFrameEnv, workDir: string): Promise<Record<string, unknown>> {
+  const inputPath = path.join(workDir, 'phase32-color-corrected-export.mp4')
+  const framePath = path.join(workDir, 'representative-frame.png')
+
+  await downloadObject(storage, env.inputBucket, env.inputObject, inputPath)
+  const inputProbe = await ffprobe(inputPath)
+  const inputSummary = readProbeSummary(inputProbe)
+  const selection = selectPhase33DFrameTimestamp(inputSummary.durationSeconds)
+  await extractOneFrame({
+    inputPath,
+    outputPath: framePath,
+    timestampSeconds: selection.timestampSeconds,
+  })
+  const frameProbe = await ffprobe(framePath)
+  const frameSummary = readProbeSummary(frameProbe)
+
+  const frameObject = `${env.phase33dPrefix}/representative-frame/frame.png`
+  const qaObject = `${env.phase33dPrefix}/reports/frame-extraction-report.json`
+  const artifacts: ArtifactRecord[] = []
+  const representativeFrame = await uploadFile(storage, env.generatedAssetsBucket, frameObject, framePath, 'image/png', '33d')
+  artifacts.push(representativeFrame)
+
+  const report = {
+    ok: true,
+    runId: env.runId,
+    sourcePhase32RunId: env.phase32RunId,
+    sourceGcsUri: env.inputGcsUri,
+    inputProbe: inputSummary,
+    selectedTimestampSeconds: selection.timestampSeconds,
+    selectionReason: selection.reason,
+    representativeFrame: {
+      ...representativeFrame,
+      width: frameSummary.width,
+      height: frameSummary.height,
+    },
+    artifacts,
+    uploadedReport: {
+      bucket: env.qaBucket,
+      object: qaObject,
+      gcsUri: `gs://${env.qaBucket}/${qaObject}`,
+    },
+    safety: phase33DSafety(),
+    blockers: [],
+    warnings: [
+      'Phase 33D extracted exactly one representative frame; no full-video mask sequence was created.',
+      'Text-behind-subject remains blocked until Phase 33E.',
+    ],
+  }
+  artifacts.push(await uploadJson(storage, env.qaBucket, qaObject, report, '33d'))
+  return report
 }
 
 async function runColorCorrection(storage: Storage, env: ColorCorrectionEnv, workDir: string): Promise<Record<string, unknown>> {
@@ -580,6 +664,38 @@ function readColorCorrectionEnv(): ColorCorrectionEnv {
   }
 }
 
+function readPhase33DFrameEnv(): Phase33DFrameEnv {
+  requireEnvValue('REEDITPRO_ENV', 'staging')
+  requireEnvValue('REEDITPRO_CONFIRM_REAL_VIDEO_BIREFNET_FRAME_MASK', 'true')
+  requireEnvValue('REEDITPRO_PHASE33D_MODE', 'representative_frame_extract')
+  requireEnvValue('PROVIDER_EXECUTION_ENABLED', 'false')
+  requireEnvValue('MODEL_DOWNLOADS_ENABLED', 'false')
+  const projectId = (process.env.GCP_PROJECT_ID ?? 'reeditpro') as Phase33DFrameEnv['projectId']
+  const region = (process.env.GCP_REGION ?? 'us-central1') as Phase33DFrameEnv['region']
+  if (projectId !== 'reeditpro') throw new Error('GCP_PROJECT_ID must be exactly reeditpro.')
+  if (region !== 'us-central1') throw new Error('GCP_REGION must be us-central1.')
+  const phase32RunId = requireEnv('REEDITPRO_PHASE32_RUN_ID') as Phase33DFrameEnv['phase32RunId']
+  const inputGcsUri = requireEnv('REEDITPRO_PHASE33D_INPUT_GCS_URI') as Phase33DFrameEnv['inputGcsUri']
+  if (phase32RunId !== 'phase32-20260528T13330') throw new Error('Phase 33D is locked to Phase 32 run phase32-20260528T13330.')
+  if (inputGcsUri !== 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4') {
+    throw new Error('Phase 33D input GCS URI is not the approved Phase 32 private color-corrected export.')
+  }
+  const runId = process.env.REEDITPRO_PHASE33D_RUN_ID ?? `phase33d-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 14)}`
+  if (!/^phase33d-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 33D run id: ${runId}`)
+  return {
+    projectId,
+    region,
+    runId,
+    phase32RunId,
+    inputGcsUri,
+    inputBucket: 'reeditpro-staging-reeditpro-final-exports',
+    inputObject: 'activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4',
+    generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets',
+    qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts',
+    phase33dPrefix: `activation-real-video/phase33d/${runId}`,
+  }
+}
+
 function assertPhase29Artifacts(
   smartCutPlan: Record<string, unknown>,
   timelineManifest: Record<string, unknown>,
@@ -641,6 +757,40 @@ async function renderFinalExport(input: {
     input.exportPath,
   ]
   await execFileAsync('ffmpeg', args, { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+}
+
+function selectPhase33DFrameTimestamp(durationSeconds?: number): { timestampSeconds: number; reason: string } {
+  if (durationSeconds !== undefined && Number.isFinite(durationSeconds) && durationSeconds > 1) {
+    return {
+      timestampSeconds: Math.max(0, Math.min(durationSeconds / 2, durationSeconds - 0.1)),
+      reason: 'Selected the 50 percent duration midpoint from ffprobe metadata.',
+    }
+  }
+  return {
+    timestampSeconds: 7.7,
+    reason: 'Selected the Phase 33D default midpoint timestamp because duration metadata was unavailable.',
+  }
+}
+
+async function extractOneFrame(input: {
+  inputPath: string
+  outputPath: string
+  timestampSeconds: number
+}): Promise<void> {
+  await execFileAsync('ffmpeg', [
+    '-hide_banner',
+    '-nostdin',
+    '-y',
+    '-ss',
+    input.timestampSeconds.toFixed(3),
+    '-i',
+    input.inputPath,
+    '-frames:v',
+    '1',
+    '-f',
+    'image2',
+    input.outputPath,
+  ], { timeout: 5 * 60_000, maxBuffer: 16 * 1024 * 1024 })
 }
 
 async function measureLoudness(inputPath: string): Promise<{
@@ -1292,6 +1442,19 @@ function phase32Safety(): Record<string, unknown> {
     publicAccessEnabled: false,
     sourceOverwritten: false,
     masksOrEnhancementExecuted: false,
+    revideoUsed: false,
+  }
+}
+
+function phase33DSafety(): Record<string, unknown> {
+  return {
+    approvedPhase32InputOnly: true,
+    exactlyOneFrameExtracted: true,
+    secondSourceVideoUsed: false,
+    publicAccessEnabled: false,
+    sourceOverwritten: false,
+    providerExecuted: false,
+    modelDownloadedExternally: false,
     revideoUsed: false,
   }
 }

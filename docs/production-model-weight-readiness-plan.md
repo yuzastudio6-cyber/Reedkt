@@ -69,6 +69,13 @@ blocking failures. This is not production approval, external beta approval,
 broad real media approval, SAM2 approval, arbitrary real-video mask approval, or
 text-behind-subject approval.
 
+Activation Phase 33D used the verified BiRefNet runtime on exactly one
+representative frame from the approved Phase 32 private export. It created a
+private mask, RGBA cutout, metadata, and QA report with no blocking failures.
+This remains controlled staging evidence only; full-video masks, SAM2,
+production, external beta, broad real media, and text-behind-subject execution
+remain blocked.
+
 SAM2 evidence is recorded for future video tracking review only.
 `facebook/sam2-hiera-tiny`, official SAM2 checkpoints/code, DeepFilterNet,
 Demucs, Real-ESRGAN, FILM, PaddleOCR GPU, provider models, Revideo, and

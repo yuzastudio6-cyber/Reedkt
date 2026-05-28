@@ -167,3 +167,11 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm production, external beta, broad real media, GPU, providers, enhancement execution, slow motion, and media processing remain blocked.
 5. Proceed to Phase 34C only as explicit Real-ESRGAN runtime verification using private GCS model storage.
 6. Keep Phase 34D blocked until Phase 34C runtime loading and enhancement QA pass.
+
+## After Phase 34C
+
+1. Review `activation:real-esrgan-runtime:report` and the private Phase 34C Cloud Run report.
+2. Confirm the runtime copied only `RealESRGAN_x4plus.pth` from private staging GCS and did not download from GitHub or any model host at runtime.
+3. Confirm the only input was a generated synthetic image and the enhanced output is private.
+4. Confirm FILM, alternate Real-ESRGAN weights, GFPGAN/facexlib weights, full-video enhancement, slow motion, providers, public access, secret values, Revideo, production, external beta, and broad real media remain blocked.
+5. Proceed to Phase 34D only if the private enhanced synthetic-image artifact exists and enhancement QA has no blocking failures.

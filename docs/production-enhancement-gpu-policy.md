@@ -27,3 +27,18 @@ Phase 34B is the only approved Real-ESRGAN model download step. It may store
 `RealESRGAN_x4plus.pth` in private staging generated-assets storage with
 checksum evidence. It does not run Real-ESRGAN, deploy GPU, process media,
 enhance frames/video, or approve slow motion.
+
+## Activation Phase 34C
+
+Phase 34C ran one dedicated staging L4 Real-ESRGAN runtime verification job
+against one generated synthetic image. It copied `RealESRGAN_x4plus.pth` from
+private staging storage, verified checksum evidence, disabled face enhancement,
+avoided runtime downloads, and wrote private enhancement QA.
+
+Still blocked:
+
+- real-video enhancement
+- full-video enhancement
+- FILM download/execution and slow motion
+- alternate Real-ESRGAN, GFPGAN, and facexlib weights
+- providers, public delivery, Revideo, production, external beta, paid production, and broad real media

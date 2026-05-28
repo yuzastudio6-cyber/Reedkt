@@ -26,3 +26,13 @@ not import `handler.py`.
 
 SAM2, arbitrary real-video masks, text-behind-subject, production, external
 beta, and broad real-media execution remain blocked.
+
+## Activation Phase 33D
+
+Phase 33D used only `ZhengPeng7/BiRefNet` on exactly one representative frame
+from the approved Phase 32 private export. It did not use SAM2, did not create a
+full-video mask sequence, and did not execute text-behind-subject.
+
+The result is staging evidence for the single controlled frame-mask path only.
+SAM2, production, external beta, broad real media, full-video masks, and public
+delivery remain blocked.

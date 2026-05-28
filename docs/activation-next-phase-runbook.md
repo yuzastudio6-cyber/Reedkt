@@ -130,3 +130,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the only input was a generated synthetic image.
 4. Confirm SAM2, providers, public access, secret values, production, external beta, broad real media, and text-behind-subject remain blocked.
 5. Proceed to Phase 33D only if the private mask artifact exists and mask QA has no blocking failures.
+
+## After Phase 33D
+
+1. Review `activation:real-video:birefnet-frame-mask:report` and the private Phase 33D frame/mask artifacts.
+2. Confirm exactly one representative frame was extracted from `phase32-20260528T13330`.
+3. Confirm BiRefNet used only the private approved model snapshot and did not download from Hugging Face at runtime.
+4. Confirm the mask, RGBA cutout, metadata, and QA artifacts exist privately with no blocking failures.
+5. Confirm no full-video mask sequence, SAM2, providers, public access, secret values, Revideo, production, external beta, broad real media, or text-behind-subject execution occurred.
+6. Proceed to Phase 33E only as controlled text-behind-subject planning for the approved Phase 33D representative-frame mask artifact set.

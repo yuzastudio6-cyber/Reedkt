@@ -14,7 +14,7 @@ from transformers import AutoModelForImageSegmentation
 def block_network() -> None:
     class BlockedSocket(socket.socket):
         def __init__(self, *args, **kwargs):
-            raise RuntimeError("Network sockets are disabled in Phase 33C BiRefNet runtime.")
+            raise RuntimeError("Network sockets are disabled in the BiRefNet runtime.")
 
     socket.socket = BlockedSocket
 
@@ -40,6 +40,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", required=True)
     parser.add_argument("--fixture-path", required=True)
+    parser.add_argument("--input-image-path")
+    parser.add_argument("--input-kind", choices=["generated_fixture", "real_video_frame"], default="generated_fixture")
     parser.add_argument("--mask-path", required=True)
     parser.add_argument("--cutout-path", required=True)
     parser.add_argument("--output-json", required=True)
@@ -63,7 +65,12 @@ def main() -> None:
     cutout_path = Path(args.cutout_path)
     output_path = Path(args.output_json)
 
-    image = generate_fixture(fixture_path)
+    if args.input_kind == "real_video_frame":
+        if not args.input_image_path:
+            raise RuntimeError("Real-video frame mode requires --input-image-path.")
+        image = Image.open(Path(args.input_image_path)).convert("RGB")
+    else:
+        image = generate_fixture(fixture_path)
     model = AutoModelForImageSegmentation.from_pretrained(
         str(model_path),
         trust_remote_code=True,
@@ -101,7 +108,8 @@ def main() -> None:
         "fixture": {
             "width": image.size[0],
             "height": image.size[1],
-            "path": str(fixture_path),
+            "path": str(Path(args.input_image_path) if args.input_kind == "real_video_frame" else fixture_path),
+            "kind": args.input_kind,
         },
         "mask": {
             "width": mask_image.size[0],

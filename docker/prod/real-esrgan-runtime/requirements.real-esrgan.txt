@@ -1,0 +1,14 @@
+# ReeditPro Phase 34C Real-ESRGAN runtime requirements.
+# No model weights are fetched by this file.
+# Do not add FILM, SAM2, BiRefNet execution, DeepFilterNet, Demucs, PaddleOCR, provider SDKs, or Revideo.
+# Real-ESRGAN package dependencies may install GFPGAN/facexlib libraries; Phase 34C still blocks face enhancement and all GFPGAN/facexlib weights.
+
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.5.1+cu124
+torchvision==0.20.1+cu124
+numpy<2
+opencv-python-headless
+pillow
+tqdm
+basicsr==1.4.2
+realesrgan==0.3.0

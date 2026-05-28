@@ -17,3 +17,10 @@ download/execution-blocked.
 No enhancement, slow motion, media/frame processing, GPU job, provider call,
 public delivery, Revideo path, production readiness, external beta, or broad
 real-media unlock is created by Phase 34A.
+
+## Activation Phase 34C Boundary
+
+Phase 34C is generated-image runtime verification only. It may produce a private
+enhanced PNG from a synthetic fixture using the approved `RealESRGAN_x4plus`
+weight. It does not process real media, does not produce a final video export,
+does not run FILM or slow motion, and does not approve full-video enhancement.

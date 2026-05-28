@@ -7,18 +7,33 @@ import {
 const jsonOutput = process.argv.includes('--json')
 const imageTag = readArgValue('--image-tag') ?? process.env.REEDITPRO_IMAGE_TAG ?? 'staging-amd64-001'
 const logDir = `activation-logs/staging-deploy/phase24b-${imageTag}`
+const fixtureLogDir = 'activation-logs/staging-fixture-e2e/phase25'
 const deployedEvidence = readText(`${logDir}/verify-deployments.log`)
 const authHealthEvidence = readText(`${logDir}/auth-health-user.log`)
 const toolExecutionEvidence = readText(`${logDir}/tool-readiness-execution-describe.json`)
-const deploymentReady = hasDeploymentEvidence(deployedEvidence)
-const apiReady = deploymentReady && /reeditpro-staging-api/.test(deployedEvidence) && /HTTP code:\s*200/.test(authHealthEvidence)
-const jobsReady = deploymentReady && [
+const fixtureHealthEvidence = readText(`${fixtureLogDir}/api-health.log`)
+const fixtureToolExecutionEvidence = readText(`${fixtureLogDir}/execute-tool-readiness.log`)
+const fixtureCpuEvidence = readText(`${fixtureLogDir}/execute-cpu.log`)
+const fixtureRenderEvidence = readText(`${fixtureLogDir}/execute-render.log`)
+const fixtureQaEvidence = readText(`${fixtureLogDir}/execute-qa.log`)
+const phase24DeploymentReady = hasDeploymentEvidence(deployedEvidence)
+const phase25ExecutionReady = [
+  fixtureToolExecutionEvidence,
+  fixtureCpuEvidence,
+  fixtureRenderEvidence,
+  fixtureQaEvidence,
+].every(jobLogPassed)
+const deploymentReady = phase24DeploymentReady || phase25ExecutionReady
+const apiReady = (phase24DeploymentReady && /reeditpro-staging-api/.test(deployedEvidence) && /HTTP code:\s*200/.test(authHealthEvidence)) ||
+  /HTTP_CODE=200/.test(fixtureHealthEvidence)
+const jobsReady = (phase24DeploymentReady && [
   'reeditpro-staging-tool-readiness-job',
   'reeditpro-staging-cpu-analysis-job',
   'reeditpro-staging-qa-job',
   'reeditpro-staging-render-job',
-].every((jobName) => deployedEvidence.includes(jobName))
-const toolReadinessPassed = /"succeededCount":\s*1/.test(toolExecutionEvidence) && /"type":\s*"Completed"/.test(toolExecutionEvidence)
+].every((jobName) => deployedEvidence.includes(jobName))) || phase25ExecutionReady
+const toolReadinessPassed = (/"succeededCount":\s*1/.test(toolExecutionEvidence) && /"type":\s*"Completed"/.test(toolExecutionEvidence)) ||
+  jobLogPassed(fixtureToolExecutionEvidence)
 const blockers = deploymentReady
   ? [
       ...(apiReady ? [] : ['Authenticated API health check evidence is missing or not passing.']),
@@ -35,7 +50,9 @@ const summary = buildStagingHealthcheckSummary({
   toolReadinessExecutionStatus: toolReadinessPassed ? 'passed' : deploymentReady ? 'blocked' : 'skipped',
   blockers,
   warnings: deploymentReady
-    ? ['Healthcheck summary is derived from local Phase 24B retry verification logs.']
+    ? [phase24DeploymentReady
+        ? 'Healthcheck summary is derived from local Phase 24B retry verification logs.'
+        : 'Healthcheck summary is derived from local Phase 25 generated-fixture execution logs.']
     : ['API and Cloud Run job health checks are skipped until deploy succeeds.'],
 })
 
@@ -58,4 +75,9 @@ function hasDeploymentEvidence(text: string): boolean {
     /reeditpro-staging-qa-job/.test(text) &&
     /reeditpro-staging-render-job/.test(text) &&
     /GPU job not found, as expected/.test(text)
+}
+
+function jobLogPassed(text: string): boolean {
+  const failed = /ERROR:|Traceback|NonZeroExitCode|exit code:\s*[1-9]|completed with failed|Task .* failed/i.test(text)
+  return /completed successfully|succeededCount['"]?\s*:\s*1|runningState['"]?\s*:\s*['"]?Succeeded|Execution completed successfully/i.test(text) && !failed
 }

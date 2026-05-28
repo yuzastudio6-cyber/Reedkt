@@ -15,6 +15,13 @@ export const STAGING_DEPLOY_IMAGE_DIGESTS_BY_TAG = {
     'qa-job': 'sha256:ee5360f68f16263fd1a8e791c577f696b688f2ed986a38029fe11803674f9c8a',
     'render-job': 'sha256:46f2d8f76b14a2fdc000c1260c9026169a28351763e9d28914046c027b9b0922',
   },
+  'staging-fixture-001': {
+    api: 'sha256:ddb5c6d31fe738ab56291806527e1a5638d1fbfd2b08e05fafb492dc78cb05ac',
+    'tool-readiness-job': 'sha256:775d0c9fffe03a3f2836e246824a5feb0b753fe3e1672f68685144fc5fc79656',
+    'cpu-analysis-job': 'sha256:4e7be87fc24c1cd1efcad129f7d636b084f731f8eb6827d99d7f8b9d54432ddb',
+    'qa-job': 'sha256:0042d3c6eb4e4ff7f1fabd21ec792ee69808e039ec39a2ac422122c2c4ed1ca3',
+    'render-job': 'sha256:798df87aa5fb1dfab239963f9280c4e460300253b83ac5c91d2960f7b9e22ae0',
+  },
 } as const
 
 export const STAGING_DEPLOY_IMAGE_DIGESTS = STAGING_DEPLOY_IMAGE_DIGESTS_BY_TAG['staging-local-001']

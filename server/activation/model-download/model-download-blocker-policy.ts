@@ -1,4 +1,9 @@
 import { buildModelApprovalReport } from '../model-approval'
+import {
+  isSpeechRuntimeExecutionVerified,
+  readSpeechRuntimeExecutionReport,
+  SPEECH_RUNTIME_LOCAL_REPORT_PATH,
+} from '../speech-runtime/speech-runtime-report-builder'
 import { evidenceHasChecksum } from './model-checksum-builder'
 import { getApprovedModelDownloadEvidence } from './approved-model-download-evidence'
 import { validateModelGcsStoragePath } from './model-gcs-uploader'
@@ -6,6 +11,7 @@ import { validateModelGcsStoragePath } from './model-gcs-uploader'
 export function buildModelDownloadBlockers(): { blockers: string[]; warnings: string[] } {
   const approvalReport = buildModelApprovalReport()
   const evidence = getApprovedModelDownloadEvidence()
+  const speechRuntimeVerified = isSpeechRuntimeExecutionVerified(readSpeechRuntimeExecutionReport(SPEECH_RUNTIME_LOCAL_REPORT_PATH))
   const blockers: string[] = []
   const warnings: string[] = []
 
@@ -20,9 +26,13 @@ export function buildModelDownloadBlockers(): { blockers: string[]; warnings: st
   blockers.push(...validateModelGcsStoragePath(evidence.stagingStoragePath))
   if (!evidence.gcsManifestPath || !evidence.gcsChecksumPath) blockers.push('GCS checksum/manifest evidence paths are missing.')
 
-  warnings.push('Phase 26B does not verify faster-whisper runtime execution.')
-  warnings.push('Phase 28 execution remains blocked until a speech runtime image/job is deployed and verified.')
-  warnings.push(...evidence.warnings)
+  if (speechRuntimeVerified) {
+    warnings.push('Phase 27A CPU speech runtime verification passed using the approved tiny model and generated audio only.')
+  } else {
+    warnings.push('Phase 26B does not verify faster-whisper runtime execution.')
+    warnings.push('Phase 28 execution remains blocked until a speech runtime image/job is deployed and verified.')
+  }
+  warnings.push(...evidence.warnings.filter((warning) => !speechRuntimeVerified || !/speech runtime image\/job|Phase 28 execution remains blocked/i.test(warning)))
 
   return {
     blockers: Array.from(new Set([...blockers, ...evidence.blockers])),

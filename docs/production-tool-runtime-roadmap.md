@@ -115,6 +115,11 @@ representative-frame BiRefNet mask only. It does not approve a full-video mask
 runtime, SAM2 tracking, text-behind-subject execution, public delivery,
 production, external beta, or broad real media.
 
+Activation Phase 33E adds controlled staging evidence for one private
+text-behind-subject frame preview only. It does not approve full-video
+text-behind-subject, public delivery, production, external beta, broad real
+media, GPU execution, providers, model downloads, or Revideo.
+
 The contracts remain mock-safe and schema-review-only. They do not install tools, process media, call providers, deploy resources, or let the frontend run heavy media/AI work.
 
 ## Milestone 2 Production Tool Registry Metadata

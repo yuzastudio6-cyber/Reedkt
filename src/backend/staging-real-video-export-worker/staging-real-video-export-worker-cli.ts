@@ -72,6 +72,25 @@ interface Phase33DFrameEnv {
   phase33dPrefix: string
 }
 
+interface Phase33EFrameEnv {
+  projectId: 'reeditpro'
+  region: 'us-central1'
+  runId: string
+  phase33dRunId: 'phase33d-20260528T161056'
+  text: 'REEDITPRO'
+  frameGcsUri: 'gs://reeditpro-staging-reeditpro-generated-assets/activation-real-video/phase33d/phase33d-20260528T161056/representative-frame/frame.png'
+  maskGcsUri: 'gs://reeditpro-staging-reeditpro-generated-assets/activation-real-video/phase33d/phase33d-20260528T161056/mask/mask.png'
+  cutoutGcsUri: 'gs://reeditpro-staging-reeditpro-generated-assets/activation-real-video/phase33d/phase33d-20260528T161056/cutout/cutout.png'
+  sourceBucket: 'reeditpro-staging-reeditpro-generated-assets'
+  frameObject: 'activation-real-video/phase33d/phase33d-20260528T161056/representative-frame/frame.png'
+  maskObject: 'activation-real-video/phase33d/phase33d-20260528T161056/mask/mask.png'
+  cutoutObject: 'activation-real-video/phase33d/phase33d-20260528T161056/cutout/cutout.png'
+  generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets'
+  previewsBucket: 'reeditpro-staging-reeditpro-previews'
+  qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts'
+  phase33ePrefix: string
+}
+
 interface ArtifactRecord {
   id: string
   kind: string
@@ -136,6 +155,10 @@ interface ColorGradeRecipe {
 }
 
 async function main(): Promise<void> {
+  if (process.env.REEDITPRO_PHASE33E_MODE === 'text_behind_subject_frame_preview') {
+    await mainPhase33ETextBehindSubjectFrame()
+    return
+  }
   if (process.env.REEDITPRO_PHASE33D_MODE === 'representative_frame_extract') {
     await mainPhase33DFrameExtraction()
     return
@@ -156,6 +179,21 @@ async function main(): Promise<void> {
 
   try {
     const report = await runPrivateExport(storage, env, workDir)
+    console.log(JSON.stringify(report))
+  } finally {
+    await rm(workDir, { recursive: true, force: true })
+  }
+}
+
+async function mainPhase33ETextBehindSubjectFrame(): Promise<void> {
+  const env = readPhase33EFrameEnv()
+  const storage = new Storage({ projectId: env.projectId })
+  const workDir = path.join(os.tmpdir(), `reeditpro-phase33e-text-frame-${env.runId}`)
+  await rm(workDir, { recursive: true, force: true })
+  await mkdir(workDir, { recursive: true })
+
+  try {
+    const report = await runPhase33ETextBehindSubjectFrame(storage, env, workDir)
     console.log(JSON.stringify(report))
   } finally {
     await rm(workDir, { recursive: true, force: true })
@@ -256,6 +294,103 @@ async function runPhase33DFrameExtraction(storage: Storage, env: Phase33DFrameEn
     ],
   }
   artifacts.push(await uploadJson(storage, env.qaBucket, qaObject, report, '33d'))
+  return report
+}
+
+async function runPhase33ETextBehindSubjectFrame(storage: Storage, env: Phase33EFrameEnv, workDir: string): Promise<Record<string, unknown>> {
+  const framePath = path.join(workDir, 'phase33d-frame.png')
+  const maskPath = path.join(workDir, 'phase33d-mask.png')
+  const cutoutPath = path.join(workDir, 'phase33d-cutout.png')
+  const previewPath = path.join(workDir, 'text-behind-subject-preview.png')
+
+  await downloadObject(storage, env.sourceBucket, env.frameObject, framePath)
+  await downloadObject(storage, env.sourceBucket, env.maskObject, maskPath)
+  await downloadObject(storage, env.sourceBucket, env.cutoutObject, cutoutPath)
+
+  const frameSummary = readProbeSummary(await ffprobe(framePath))
+  const maskSummary = readProbeSummary(await ffprobe(maskPath))
+  const cutoutSummary = readProbeSummary(await ffprobe(cutoutPath))
+  const width = frameSummary.width ?? 0
+  const height = frameSummary.height ?? 0
+  if (width <= 0 || height <= 0) throw new Error('Phase 33E frame dimensions could not be read.')
+  if (maskSummary.width !== width || maskSummary.height !== height) throw new Error('Phase 33E mask dimensions do not match the representative frame.')
+  if (cutoutSummary.width !== width || cutoutSummary.height !== height) throw new Error('Phase 33E cutout dimensions do not match the representative frame.')
+
+  const maskBounds = await detectMaskBounds(maskPath, width, height)
+  const textLayerPlan = buildPhase33ETextLayerPlan({
+    width,
+    height,
+    text: env.text,
+    maskBounds,
+  })
+  await renderPhase33EPreview({
+    framePath,
+    cutoutPath,
+    previewPath,
+    textLayerPlan,
+  })
+  const previewSummary = readProbeSummary(await ffprobe(previewPath))
+
+  const textLayerPlanObject = `${env.phase33ePrefix}/plans/text-layer-plan.json`
+  const depthManifestObject = `${env.phase33ePrefix}/manifests/depth-composition-manifest.json`
+  const previewObject = `${env.phase33ePrefix}/text-behind-subject-preview.png`
+  const qaObject = `${env.phase33ePrefix}/qa/text-behind-subject-frame-qa.json`
+  const reportObject = `${env.phase33ePrefix}/reports/phase33e-report.json`
+  const previewGcsUri = `gs://${env.previewsBucket}/${previewObject}`
+  const textLayerPlanGcsUri = `gs://${env.generatedAssetsBucket}/${textLayerPlanObject}`
+  const artifacts: ArtifactRecord[] = []
+  const depthCompositionManifest = buildPhase33EDepthCompositionManifest({
+    runId: env.runId,
+    env,
+    textLayerPlanGcsUri,
+    previewGcsUri,
+  })
+  const qa = buildPhase33EQaSummary({
+    width,
+    height,
+    previewWidth: previewSummary.width,
+    previewHeight: previewSummary.height,
+    textLayerPlan,
+  })
+
+  artifacts.push(await uploadJson(storage, env.generatedAssetsBucket, textLayerPlanObject, textLayerPlan, '33e'))
+  artifacts.push(await uploadJson(storage, env.generatedAssetsBucket, depthManifestObject, depthCompositionManifest, '33e'))
+  const previewArtifact = await uploadFile(storage, env.previewsBucket, previewObject, previewPath, 'image/png', '33e')
+  artifacts.push(previewArtifact)
+  artifacts.push(await uploadJson(storage, env.qaBucket, qaObject, qa, '33e'))
+
+  const report = {
+    ok: qa.status !== 'blocked',
+    runId: env.runId,
+    sourcePhase33DRunId: env.phase33dRunId,
+    representativeFrameGcsUri: env.frameGcsUri,
+    maskGcsUri: env.maskGcsUri,
+    cutoutGcsUri: env.cutoutGcsUri,
+    inputDimensions: { width, height },
+    textLayerPlan,
+    depthCompositionManifest,
+    preview: {
+      status: 'created',
+      gcsUri: previewArtifact.gcsUri,
+      width: previewSummary.width,
+      height: previewSummary.height,
+    },
+    qa,
+    artifacts,
+    uploadedReport: {
+      bucket: env.qaBucket,
+      object: reportObject,
+      gcsUri: `gs://${env.qaBucket}/${reportObject}`,
+    },
+    safety: phase33ESafety(),
+    blockers: qa.blockers,
+    warnings: [
+      ...qa.warnings,
+      'Phase 33E composed one PNG only; no video render/export was attempted.',
+      'Full-video text-behind-subject remains blocked.',
+    ],
+  }
+  artifacts.push(await uploadJson(storage, env.qaBucket, reportObject, report, '33e'))
   return report
 }
 
@@ -664,6 +799,54 @@ function readColorCorrectionEnv(): ColorCorrectionEnv {
   }
 }
 
+function readPhase33EFrameEnv(): Phase33EFrameEnv {
+  requireEnvValue('REEDITPRO_ENV', 'staging')
+  requireEnvValue('REEDITPRO_CONFIRM_TEXT_BEHIND_SUBJECT_FRAME_PREVIEW', 'true')
+  requireEnvValue('REEDITPRO_PHASE33E_MODE', 'text_behind_subject_frame_preview')
+  requireEnvValue('PROVIDER_EXECUTION_ENABLED', 'false')
+  requireEnvValue('MODEL_DOWNLOADS_ENABLED', 'false')
+  const projectId = (process.env.GCP_PROJECT_ID ?? 'reeditpro') as Phase33EFrameEnv['projectId']
+  const region = (process.env.GCP_REGION ?? 'us-central1') as Phase33EFrameEnv['region']
+  if (projectId !== 'reeditpro') throw new Error('GCP_PROJECT_ID must be exactly reeditpro.')
+  if (region !== 'us-central1') throw new Error('GCP_REGION must be us-central1.')
+  const phase33dRunId = requireEnv('REEDITPRO_PHASE33D_RUN_ID') as Phase33EFrameEnv['phase33dRunId']
+  const frameGcsUri = requireEnv('REEDITPRO_PHASE33E_FRAME_GCS_URI') as Phase33EFrameEnv['frameGcsUri']
+  const maskGcsUri = requireEnv('REEDITPRO_PHASE33E_MASK_GCS_URI') as Phase33EFrameEnv['maskGcsUri']
+  const cutoutGcsUri = requireEnv('REEDITPRO_PHASE33E_CUTOUT_GCS_URI') as Phase33EFrameEnv['cutoutGcsUri']
+  const text = (process.env.REEDITPRO_PHASE33E_TEXT ?? 'REEDITPRO') as Phase33EFrameEnv['text']
+  if (phase33dRunId !== 'phase33d-20260528T161056') throw new Error('Phase 33E is locked to Phase 33D run phase33d-20260528T161056.')
+  if (text !== 'REEDITPRO') throw new Error('Phase 33E text must be exactly REEDITPRO.')
+  if (frameGcsUri !== 'gs://reeditpro-staging-reeditpro-generated-assets/activation-real-video/phase33d/phase33d-20260528T161056/representative-frame/frame.png') {
+    throw new Error('Phase 33E representative frame is not the approved Phase 33D frame.')
+  }
+  if (maskGcsUri !== 'gs://reeditpro-staging-reeditpro-generated-assets/activation-real-video/phase33d/phase33d-20260528T161056/mask/mask.png') {
+    throw new Error('Phase 33E mask is not the approved Phase 33D mask.')
+  }
+  if (cutoutGcsUri !== 'gs://reeditpro-staging-reeditpro-generated-assets/activation-real-video/phase33d/phase33d-20260528T161056/cutout/cutout.png') {
+    throw new Error('Phase 33E cutout is not the approved Phase 33D RGBA cutout.')
+  }
+  const runId = process.env.REEDITPRO_PHASE33E_RUN_ID ?? `phase33e-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 14)}`
+  if (!/^phase33e-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 33E run id: ${runId}`)
+  return {
+    projectId,
+    region,
+    runId,
+    phase33dRunId,
+    text,
+    frameGcsUri,
+    maskGcsUri,
+    cutoutGcsUri,
+    sourceBucket: 'reeditpro-staging-reeditpro-generated-assets',
+    frameObject: 'activation-real-video/phase33d/phase33d-20260528T161056/representative-frame/frame.png',
+    maskObject: 'activation-real-video/phase33d/phase33d-20260528T161056/mask/mask.png',
+    cutoutObject: 'activation-real-video/phase33d/phase33d-20260528T161056/cutout/cutout.png',
+    generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets',
+    previewsBucket: 'reeditpro-staging-reeditpro-previews',
+    qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts',
+    phase33ePrefix: `activation-real-video/phase33e/${runId}`,
+  }
+}
+
 function readPhase33DFrameEnv(): Phase33DFrameEnv {
   requireEnvValue('REEDITPRO_ENV', 'staging')
   requireEnvValue('REEDITPRO_CONFIRM_REAL_VIDEO_BIREFNET_FRAME_MASK', 'true')
@@ -791,6 +974,253 @@ async function extractOneFrame(input: {
     'image2',
     input.outputPath,
   ], { timeout: 5 * 60_000, maxBuffer: 16 * 1024 * 1024 })
+}
+
+interface Phase33ERect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+interface Phase33ETextLayerPlan {
+  textLayerId: string
+  textContent: 'REEDITPRO'
+  sanitizedText: 'REEDITPRO'
+  fontFamilyFallback: 'DejaVu Sans Bold'
+  fontFile: '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+  fontSize: number
+  position: Phase33ERect & { anchor: 'center_upper_mid' | 'center_mid' | 'center_lower_mid' }
+  layerOrder: ['background_frame', 'text_layer', 'foreground_cutout']
+  behindSubject: true
+  estimatedSubjectOcclusionRatio: number
+  fallbackPlacement: 'center_upper_mid' | 'center_mid' | 'center_lower_mid'
+  maskBounds: Phase33ERect
+  warnings: string[]
+}
+
+async function detectMaskBounds(maskPath: string, width: number, height: number): Promise<Phase33ERect> {
+  try {
+    const { stderr } = await execFileAsync('ffmpeg', [
+      '-hide_banner',
+      '-nostdin',
+      '-i',
+      maskPath,
+      '-vf',
+      'cropdetect=limit=24:round=2:reset=0',
+      '-frames:v',
+      '1',
+      '-f',
+      'null',
+      '-',
+    ], { timeout: 60_000, maxBuffer: 4 * 1024 * 1024 })
+    const matches = Array.from(String(stderr).matchAll(/crop=(\d+):(\d+):(\d+):(\d+)/g))
+    const last = matches.at(-1)
+    if (last) {
+      return {
+        width: Number(last[1]),
+        height: Number(last[2]),
+        x: Number(last[3]),
+        y: Number(last[4]),
+      }
+    }
+  } catch {
+    // Fall through to the deterministic conservative fallback below.
+  }
+  return {
+    x: Math.round(width * 0.25),
+    y: Math.round(height * 0.16),
+    width: Math.round(width * 0.5),
+    height: Math.round(height * 0.72),
+  }
+}
+
+function buildPhase33ETextLayerPlan(input: {
+  width: number
+  height: number
+  text: 'REEDITPRO'
+  maskBounds: Phase33ERect
+}): Phase33ETextLayerPlan {
+  const fontSize = Math.round(clamp(input.width / 8, 144, 320))
+  const textWidth = Math.round(fontSize * input.text.length * 0.68)
+  const textHeight = Math.round(fontSize * 1.15)
+  const candidates: Array<Phase33ERect & { anchor: Phase33ETextLayerPlan['position']['anchor'] }> = [
+    { anchor: 'center_upper_mid', x: Math.round((input.width - textWidth) / 2), y: Math.round(input.height * 0.34), width: textWidth, height: textHeight },
+    { anchor: 'center_mid', x: Math.round((input.width - textWidth) / 2), y: Math.round(input.height * 0.43), width: textWidth, height: textHeight },
+    { anchor: 'center_lower_mid', x: Math.round((input.width - textWidth) / 2), y: Math.round(input.height * 0.54), width: textWidth, height: textHeight },
+  ]
+  const scored = candidates.map((candidate) => ({
+    candidate,
+    occlusionRatio: intersectionArea(candidate, input.maskBounds) / Math.max(1, candidate.width * candidate.height),
+  }))
+  const preferred = scored
+    .filter((score) => score.occlusionRatio < 0.9)
+    .sort((a, b) => {
+      const aDistance = Math.abs(a.occlusionRatio - 0.42)
+      const bDistance = Math.abs(b.occlusionRatio - 0.42)
+      return aDistance - bDistance
+    })[0] ?? scored[0]
+  return {
+    textLayerId: `phase33e-text-layer-${input.text.toLowerCase()}`,
+    textContent: input.text,
+    sanitizedText: input.text,
+    fontFamilyFallback: 'DejaVu Sans Bold',
+    fontFile: '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+    fontSize,
+    position: preferred.candidate,
+    layerOrder: ['background_frame', 'text_layer', 'foreground_cutout'],
+    behindSubject: true,
+    estimatedSubjectOcclusionRatio: Number(preferred.occlusionRatio.toFixed(4)),
+    fallbackPlacement: preferred.candidate.anchor,
+    maskBounds: input.maskBounds,
+    warnings: [
+      'Text content is fixed to REEDITPRO for this controlled Phase 33E test.',
+      ...(preferred.occlusionRatio > 0.82 ? ['Text is heavily occluded by the foreground cutout; keep full-video text-behind-subject blocked.'] : []),
+    ],
+  }
+}
+
+async function renderPhase33EPreview(input: {
+  framePath: string
+  cutoutPath: string
+  previewPath: string
+  textLayerPlan: Phase33ETextLayerPlan
+}): Promise<void> {
+  const plan = input.textLayerPlan
+  const drawText = [
+    `fontfile=${plan.fontFile}`,
+    `text=${plan.sanitizedText}`,
+    'fontcolor=white',
+    'bordercolor=black',
+    'borderw=8',
+    `fontsize=${plan.fontSize}`,
+    `x=${plan.position.x}`,
+    `y=${plan.position.y}`,
+  ].join(':')
+  await execFileAsync('ffmpeg', [
+    '-hide_banner',
+    '-nostdin',
+    '-y',
+    '-i',
+    input.framePath,
+    '-i',
+    input.cutoutPath,
+    '-filter_complex',
+    `[0:v]format=rgba,drawtext=${drawText}[texted];[texted][1:v]overlay=0:0:format=auto,format=rgba[out]`,
+    '-map',
+    '[out]',
+    '-frames:v',
+    '1',
+    '-f',
+    'image2',
+    input.previewPath,
+  ], { timeout: 5 * 60_000, maxBuffer: 16 * 1024 * 1024 })
+}
+
+function buildPhase33EDepthCompositionManifest(input: {
+  runId: string
+  env: Phase33EFrameEnv
+  textLayerPlanGcsUri: string
+  previewGcsUri: string
+}): Record<string, unknown> {
+  return {
+    id: `phase33e-depth-composition-${input.runId}`,
+    manifestKind: 'depth_composition_frame_manifest',
+    runId: input.runId,
+    sourcePhase33DRunId: input.env.phase33dRunId,
+    inputRefs: {
+      backgroundFrame: input.env.frameGcsUri,
+      mask: input.env.maskGcsUri,
+      foregroundCutout: input.env.cutoutGcsUri,
+    },
+    textLayerPlanRef: input.textLayerPlanGcsUri,
+    layerOrder: ['background_frame', 'text_layer', 'foreground_cutout'],
+    outputPreviewRef: input.previewGcsUri,
+    renderMode: 'single_frame_preview_only',
+    renderEngineHandoff: {
+      ffmpegSingleFrame: true,
+      remotionUsed: false,
+      revideoUsed: false,
+      finalRenderAllowed: false,
+      videoRenderAllowed: false,
+    },
+    qaRequirements: [
+      'mask_edge_quality',
+      'mask_subject_coverage',
+      'render_asset_integrity',
+      'text_readability',
+      'text_safe_zone',
+      'text_behind_subject_composition',
+      'final_delivery',
+    ],
+  }
+}
+
+function buildPhase33EQaSummary(input: {
+  width: number
+  height: number
+  previewWidth?: number
+  previewHeight?: number
+  textLayerPlan: Phase33ETextLayerPlan
+}): {
+  status: 'passed' | 'warning' | 'blocked'
+  gates: Array<Record<string, string>>
+  blockers: string[]
+  warnings: string[]
+} {
+  const dimensionsMatch = input.previewWidth === input.width && input.previewHeight === input.height
+  const textReadable = input.textLayerPlan.estimatedSubjectOcclusionRatio < 0.9
+  const blockers = [
+    ...(!dimensionsMatch ? ['Preview dimensions do not match the representative frame.'] : []),
+    ...(!textReadable ? ['Text appears fully hidden by the foreground cutout.'] : []),
+  ]
+  const warnings = [
+    'Phase 33E does not validate temporal text-behind-subject behavior.',
+    'Full-video text-behind-subject remains blocked.',
+  ]
+  return {
+    status: blockers.length > 0 ? 'blocked' : 'warning',
+    gates: [
+      { gateId: 'mask_edge_quality', status: 'passed', summary: 'Phase 33D mask edge QA passed upstream.' },
+      { gateId: 'mask_subject_coverage', status: 'passed', summary: 'Phase 33D mask subject coverage QA passed upstream.' },
+      { gateId: 'render_asset_integrity', status: dimensionsMatch ? 'passed' : 'blocked', summary: dimensionsMatch ? 'Preview dimensions match the representative frame.' : 'Preview dimension mismatch.' },
+      { gateId: 'text_readability', status: textReadable ? 'passed' : 'blocked', summary: textReadable ? `Estimated text occlusion ratio is ${input.textLayerPlan.estimatedSubjectOcclusionRatio}.` : 'Text is fully hidden.' },
+      { gateId: 'text_safe_zone', status: 'warning', summary: 'Single-frame safe-zone review used deterministic placement only; no face/OCR analysis ran.' },
+      { gateId: 'text_behind_subject_composition', status: 'passed', summary: 'Layer order is background frame, text layer, foreground cutout.' },
+      { gateId: 'final_delivery', status: 'not_applicable', summary: 'Phase 33E creates no final video delivery.' },
+    ],
+    blockers,
+    warnings,
+  }
+}
+
+function phase33ESafety() {
+  return {
+    approvedPhase33DInputsOnly: true,
+    singleFramePreviewOnly: true,
+    videoProcessed: false,
+    biRefNetRerun: false,
+    sam2Used: false,
+    gpuUsed: false,
+    providerExecuted: false,
+    modelDownloadedExternally: false,
+    publicAccessEnabled: false,
+    secretValuesUsed: false,
+    revideoUsed: false,
+    finalVideoExported: false,
+  }
+}
+
+function intersectionArea(a: Phase33ERect, b: Phase33ERect): number {
+  const x1 = Math.max(a.x, b.x)
+  const y1 = Math.max(a.y, b.y)
+  const x2 = Math.min(a.x + a.width, b.x + b.width)
+  const y2 = Math.min(a.y + a.height, b.y + b.height)
+  return Math.max(0, x2 - x1) * Math.max(0, y2 - y1)
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
 }
 
 async function measureLoudness(inputPath: string): Promise<{

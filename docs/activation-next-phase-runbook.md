@@ -139,3 +139,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm the mask, RGBA cutout, metadata, and QA artifacts exist privately with no blocking failures.
 5. Confirm no full-video mask sequence, SAM2, providers, public access, secret values, Revideo, production, external beta, broad real media, or text-behind-subject execution occurred.
 6. Proceed to Phase 33E only as controlled text-behind-subject planning for the approved Phase 33D representative-frame mask artifact set.
+
+## After Phase 33E
+
+1. Review `activation:text-behind-subject:frame-preview:report` and the private Phase 33E preview artifacts.
+2. Confirm exactly one approved Phase 33D frame/mask/cutout set was used.
+3. Confirm the fixed text content was `REEDITPRO`.
+4. Confirm the private preview PNG, text layer plan, depth composition manifest, and QA report exist with no blocking failures.
+5. Confirm no video processing, BiRefNet rerun, SAM2, GPU, providers, model downloads, public access, secret values, Revideo, production, external beta, broad real media, or full-video text-behind-subject occurred.
+6. Proceed to Phase 34 only as an explicit controlled enhancement/slow-motion activation phase.

@@ -41,6 +41,24 @@ interface AudioCleanupEnv {
   phase31Prefix: string
 }
 
+interface ColorCorrectionEnv {
+  projectId: 'reeditpro'
+  region: 'us-central1'
+  runId: string
+  phase28RunId: 'phase28-20260528T01552'
+  phase29RunId: 'phase29-20260528T02254'
+  phase30RunId: 'phase30-20260528T12421'
+  phase31RunId: 'phase31-20260528T13060'
+  inputGcsUri: 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase31/phase31-20260528T13060/audio-normalized-export.mp4'
+  inputBucket: 'reeditpro-staging-reeditpro-final-exports'
+  inputObject: 'activation-real-video/phase31/phase31-20260528T13060/audio-normalized-export.mp4'
+  analysisBucket: 'reeditpro-staging-reeditpro-analysis-artifacts'
+  generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets'
+  finalExportsBucket: 'reeditpro-staging-reeditpro-final-exports'
+  qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts'
+  phase32Prefix: string
+}
+
 interface ArtifactRecord {
   id: string
   kind: string
@@ -64,9 +82,51 @@ interface ProbeSummary {
   width?: number
   height?: number
   hasAudio: boolean
+  colorSpace?: string
+  colorTransfer?: string
+}
+
+interface ColorSample {
+  sampleId: string
+  timestampSeconds: number
+  stats: Record<string, number>
+}
+
+interface ColorAnalysisSummary {
+  durationSeconds?: number
+  sampledFrameCount: number
+  colorSpaceAssumption: string
+  transferAssumption: string
+  underexposedRisk: 'low' | 'warning' | 'high'
+  overexposedRisk: 'low' | 'warning' | 'high'
+  highlightClippingRisk: 'low' | 'warning' | 'high'
+  shadowCrushingRisk: 'low' | 'warning' | 'high'
+  saturationRisk: 'low' | 'warning' | 'high'
+  whiteBalanceIssue: 'not_detected' | 'warning' | 'unknown'
+  skinToneRisk: 'warning_only_not_measured'
+  shotMismatch: 'not_applicable_single_clip'
+  missingEvidenceWarnings: string[]
+}
+
+interface ColorGradeRecipe {
+  decision: 'no_op' | 'minimal_correction' | 'blocked'
+  reason: string
+  ffmpegFilter?: string
+  parameters: {
+    brightness: number
+    contrast: number
+    saturation: number
+    gamma: number
+  }
+  correctionStrength: 'none' | 'minimal'
+  colorGradeStyle: 'clean_natural'
 }
 
 async function main(): Promise<void> {
+  if (process.env.REEDITPRO_PHASE32_MODE === 'color_correction_ffmpeg') {
+    await mainColorCorrection()
+    return
+  }
   if (process.env.REEDITPRO_PHASE31_MODE === 'audio_cleanup_loudness') {
     await mainAudioCleanup()
     return
@@ -79,6 +139,21 @@ async function main(): Promise<void> {
 
   try {
     const report = await runPrivateExport(storage, env, workDir)
+    console.log(JSON.stringify(report))
+  } finally {
+    await rm(workDir, { recursive: true, force: true })
+  }
+}
+
+async function mainColorCorrection(): Promise<void> {
+  const env = readColorCorrectionEnv()
+  const storage = new Storage({ projectId: env.projectId })
+  const workDir = path.join(os.tmpdir(), `reeditpro-phase32-${env.runId}`)
+  await rm(workDir, { recursive: true, force: true })
+  await mkdir(workDir, { recursive: true })
+
+  try {
+    const report = await runColorCorrection(storage, env, workDir)
     console.log(JSON.stringify(report))
   } finally {
     await rm(workDir, { recursive: true, force: true })
@@ -98,6 +173,107 @@ async function mainAudioCleanup(): Promise<void> {
   } finally {
     await rm(workDir, { recursive: true, force: true })
   }
+}
+
+async function runColorCorrection(storage: Storage, env: ColorCorrectionEnv, workDir: string): Promise<Record<string, unknown>> {
+  const inputPath = path.join(workDir, 'phase31-audio-normalized-export.mp4')
+  const colorExportPath = path.join(workDir, 'color-corrected-export.mp4')
+  const artifactsDir = path.join(workDir, 'artifacts')
+  await mkdir(artifactsDir, { recursive: true })
+
+  await downloadObject(storage, env.inputBucket, env.inputObject, inputPath)
+  const inputProbe = await ffprobe(inputPath)
+  const inputSummary = readProbeSummary(inputProbe)
+  const colorSamples = await collectColorSamples(inputPath, inputSummary.durationSeconds, artifactsDir)
+  const colorAnalysis = buildColorAnalysisSummary({
+    durationSeconds: inputSummary.durationSeconds,
+    colorSpace: inputSummary.colorSpace,
+    colorTransfer: inputSummary.colorTransfer,
+    samples: colorSamples,
+  })
+  const colorGradeRecipe = buildColorGradeRecipe(colorAnalysis)
+  if (colorGradeRecipe.decision === 'blocked') throw new Error(`Phase 32 color correction blocked: ${colorGradeRecipe.reason}`)
+
+  const exportWarning = await renderColorExport({
+    inputPath,
+    outputPath: colorExportPath,
+    recipe: colorGradeRecipe,
+  })
+  const outputProbe = await ffprobe(colorExportPath)
+  const outputSummary = readProbeSummary(outputProbe)
+
+  const colorAnalysisObject = `${env.phase32Prefix}/color/color-analysis.json`
+  const colorGradeRecipeObject = `${env.phase32Prefix}/color/color-grade-recipe.json`
+  const frameStatsObject = `${env.phase32Prefix}/color/frame-signalstats.json`
+  const colorExportObject = `${env.phase32Prefix}/color-corrected-export.mp4`
+  const qaObject = `${env.phase32Prefix}/qa/color-correction-qa.json`
+  const reportObject = `${env.phase32Prefix}/reports/phase32-report.json`
+  const artifacts: ArtifactRecord[] = []
+
+  artifacts.push(await uploadJson(storage, env.analysisBucket, colorAnalysisObject, {
+    phase: '32',
+    runId: env.runId,
+    sourcePhase31RunId: env.phase31RunId,
+    inputColorSourceObject: env.inputGcsUri,
+    inputProbe: inputSummary,
+    samples: colorSamples,
+    summary: colorAnalysis,
+    safety: phase32Safety(),
+  }, '32'))
+  artifacts.push(await uploadJson(storage, env.analysisBucket, colorGradeRecipeObject, colorGradeRecipe, '32'))
+  artifacts.push(await uploadJson(storage, env.generatedAssetsBucket, frameStatsObject, {
+    phase: '32',
+    runId: env.runId,
+    samples: colorSamples,
+  }, '32'))
+  const colorCorrectedExport = await uploadFile(storage, env.finalExportsBucket, colorExportObject, colorExportPath, 'video/mp4', '32')
+  artifacts.push(colorCorrectedExport)
+
+  const qa = buildColorQaSummary({
+    colorExportExists: true,
+    inputDurationSeconds: inputSummary.durationSeconds,
+    outputDurationSeconds: outputSummary.durationSeconds,
+    outputHasAudio: outputSummary.hasAudio,
+    outputVideoCodec: outputSummary.videoCodec,
+    outputAudioCodec: outputSummary.audioCodec,
+    analysis: colorAnalysis,
+    recipe: colorGradeRecipe,
+  })
+
+  const report = {
+    ok: qa.status !== 'blocked',
+    runId: env.runId,
+    sourcePhase28RunId: env.phase28RunId,
+    sourcePhase29RunId: env.phase29RunId,
+    sourcePhase30RunId: env.phase30RunId,
+    sourcePhase31RunId: env.phase31RunId,
+    inputColorSourceObject: env.inputGcsUri,
+    inputProbe: inputSummary,
+    outputProbe: outputSummary,
+    colorAnalysis,
+    colorGradeRecipe,
+    colorCorrectedExport,
+    artifacts,
+    qa,
+    safety: phase32Safety(),
+    uploadedReport: {
+      bucket: env.qaBucket,
+      object: reportObject,
+      gcsUri: `gs://${env.qaBucket}/${reportObject}`,
+    },
+    blockers: qa.blockers,
+    warnings: [
+      ...qa.warnings,
+      ...(exportWarning ? [exportWarning] : []),
+      ...colorAnalysis.missingEvidenceWarnings,
+      'Phase 32 used FFmpeg-only clean color correction; no OpenColorIO, OpenImageIO, GPU, providers, model downloads, audio cleanup rerun, masks, enhancement, or Revideo executed.',
+      'Production, external beta, and broad real user media testing remain blocked.',
+    ],
+  }
+
+  artifacts.push(await uploadJson(storage, env.qaBucket, qaObject, qa, '32'))
+  artifacts.push(await uploadJson(storage, env.qaBucket, reportObject, report, '32'))
+  return report
 }
 
 async function runPrivateExport(storage: Storage, env: ExportEnv, workDir: string): Promise<Record<string, unknown>> {
@@ -369,6 +545,41 @@ function readAudioCleanupEnv(): AudioCleanupEnv {
   }
 }
 
+function readColorCorrectionEnv(): ColorCorrectionEnv {
+  requireEnvValue('REEDITPRO_ENV', 'staging')
+  requireEnvValue('REEDITPRO_CONFIRM_REAL_VIDEO_COLOR_CORRECTION', 'true')
+  requireEnvValue('REEDITPRO_PHASE32_MODE', 'color_correction_ffmpeg')
+  const projectId = (process.env.GCP_PROJECT_ID ?? 'reeditpro') as ColorCorrectionEnv['projectId']
+  const region = (process.env.GCP_REGION ?? 'us-central1') as ColorCorrectionEnv['region']
+  if (projectId !== 'reeditpro') throw new Error('GCP_PROJECT_ID must be exactly reeditpro.')
+  if (region !== 'us-central1') throw new Error('GCP_REGION must be us-central1.')
+  const phase31RunId = requireEnv('REEDITPRO_PHASE31_RUN_ID') as ColorCorrectionEnv['phase31RunId']
+  const inputGcsUri = requireEnv('REEDITPRO_PHASE32_INPUT_GCS_URI') as ColorCorrectionEnv['inputGcsUri']
+  if (phase31RunId !== 'phase31-20260528T13060') throw new Error('Phase 32 is locked to Phase 31 run phase31-20260528T13060.')
+  if (inputGcsUri !== 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase31/phase31-20260528T13060/audio-normalized-export.mp4') {
+    throw new Error('Phase 32 input GCS URI is not the approved Phase 31 private audio-normalized export.')
+  }
+  const runId = process.env.REEDITPRO_PHASE32_RUN_ID ?? `phase32-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 14)}`
+  if (!/^phase32-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 32 run id: ${runId}`)
+  return {
+    projectId,
+    region,
+    runId,
+    phase28RunId: 'phase28-20260528T01552',
+    phase29RunId: 'phase29-20260528T02254',
+    phase30RunId: 'phase30-20260528T12421',
+    phase31RunId,
+    inputGcsUri,
+    inputBucket: 'reeditpro-staging-reeditpro-final-exports',
+    inputObject: 'activation-real-video/phase31/phase31-20260528T13060/audio-normalized-export.mp4',
+    analysisBucket: 'reeditpro-staging-reeditpro-analysis-artifacts',
+    generatedAssetsBucket: 'reeditpro-staging-reeditpro-generated-assets',
+    finalExportsBucket: 'reeditpro-staging-reeditpro-final-exports',
+    qaBucket: 'reeditpro-staging-reeditpro-qa-artifacts',
+    phase32Prefix: `activation-real-video/phase32/${runId}`,
+  }
+}
+
 function assertPhase29Artifacts(
   smartCutPlan: Record<string, unknown>,
   timelineManifest: Record<string, unknown>,
@@ -560,6 +771,200 @@ async function muxNormalizedExport(input: {
   }
 }
 
+async function collectColorSamples(inputPath: string, durationSeconds: number | undefined, workDir: string): Promise<ColorSample[]> {
+  const duration = durationSeconds && durationSeconds > 1 ? durationSeconds : 15.467
+  const timestamps = [
+    { sampleId: 'start', timestampSeconds: Math.min(0.5, Math.max(0, duration / 6)) },
+    { sampleId: 'middle', timestampSeconds: Math.max(0, duration / 2) },
+    { sampleId: 'end', timestampSeconds: Math.max(0, duration - 0.5) },
+  ]
+  const samples: ColorSample[] = []
+  for (const sample of timestamps) {
+    const statsPath = path.join(workDir, `${sample.sampleId}-signalstats.txt`)
+    await execFileAsync('ffmpeg', [
+      '-hide_banner',
+      '-nostdin',
+      '-ss',
+      sample.timestampSeconds.toFixed(3),
+      '-i',
+      inputPath,
+      '-frames:v',
+      '1',
+      '-vf',
+      `signalstats,metadata=mode=print:file=${statsPath}`,
+      '-f',
+      'null',
+      '-',
+    ], { timeout: 2 * 60_000, maxBuffer: 16 * 1024 * 1024 })
+    samples.push({
+      sampleId: sample.sampleId,
+      timestampSeconds: sample.timestampSeconds,
+      stats: parseSignalStats(await readFile(statsPath, 'utf8')),
+    })
+  }
+  return samples
+}
+
+function parseSignalStats(text: string): Record<string, number> {
+  const stats: Record<string, number> = {}
+  for (const line of text.split(/\r?\n/)) {
+    const match = /lavfi\.signalstats\.([A-Z0-9_]+)=(-?\d+(?:\.\d+)?)/.exec(line)
+    if (match) stats[match[1]] = Number(match[2])
+  }
+  return stats
+}
+
+function buildColorAnalysisSummary(input: {
+  durationSeconds?: number
+  colorSpace?: string
+  colorTransfer?: string
+  samples: ColorSample[]
+}): ColorAnalysisSummary {
+  const yAvg = averageStat(input.samples, 'YAVG')
+  const yMin = minStat(input.samples, 'YMIN')
+  const yMax = maxStat(input.samples, 'YMAX')
+  const satAvg = averageStat(input.samples, 'SATAVG')
+  const missingEvidenceWarnings: string[] = []
+  if (input.samples.length < 3) missingEvidenceWarnings.push('Fewer than three representative frame samples were available.')
+  if (yAvg === undefined) missingEvidenceWarnings.push('Luma average was unavailable from signalstats.')
+  if (satAvg === undefined) missingEvidenceWarnings.push('Saturation average was unavailable from signalstats.')
+  return {
+    durationSeconds: input.durationSeconds,
+    sampledFrameCount: input.samples.length,
+    colorSpaceAssumption: input.colorSpace ?? 'bt709_or_source_unspecified',
+    transferAssumption: input.colorTransfer ?? 'bt709_or_source_unspecified',
+    underexposedRisk: colorRisk(yAvg !== undefined && yAvg < 72, yAvg !== undefined && yAvg < 86),
+    overexposedRisk: colorRisk(yAvg !== undefined && yAvg > 205, yAvg !== undefined && yAvg > 190),
+    highlightClippingRisk: colorRisk(yMax !== undefined && yMax > 252, yMax !== undefined && yMax > 246),
+    shadowCrushingRisk: colorRisk(yMin !== undefined && yMin < 3, yMin !== undefined && yMin < 8),
+    saturationRisk: colorRisk(satAvg !== undefined && (satAvg > 145 || satAvg < 25), satAvg !== undefined && (satAvg > 125 || satAvg < 35)),
+    whiteBalanceIssue: 'unknown',
+    skinToneRisk: 'warning_only_not_measured',
+    shotMismatch: 'not_applicable_single_clip',
+    missingEvidenceWarnings,
+  }
+}
+
+function buildColorGradeRecipe(analysis: ColorAnalysisSummary): ColorGradeRecipe {
+  if (analysis.sampledFrameCount <= 0) {
+    return colorRecipe('blocked', 'Color analysis did not produce frame samples.', 0, 1, 1, 1)
+  }
+  if (analysis.highlightClippingRisk === 'high' || analysis.overexposedRisk === 'high') {
+    return colorRecipe('minimal_correction', 'Minimal exposure reduction selected due to overexposure/highlight risk.', -0.015, 0.98, 1, 1)
+  }
+  if (analysis.underexposedRisk === 'high') {
+    return colorRecipe('minimal_correction', 'Minimal brightness/contrast lift selected due to underexposure risk.', 0.025, 1.04, 1.03, 1)
+  }
+  if (analysis.saturationRisk === 'high') {
+    return colorRecipe('minimal_correction', 'Minimal saturation correction selected due to saturation risk.', 0, 1, 0.98, 1)
+  }
+  return colorRecipe('no_op', 'No clear color correction risk justified a visible grade; creating neutral color-reviewed export.', 0, 1, 1, 1)
+}
+
+function colorRecipe(
+  decision: ColorGradeRecipe['decision'],
+  reason: string,
+  brightness: number,
+  contrast: number,
+  saturation: number,
+  gamma: number,
+): ColorGradeRecipe {
+  const ffmpegFilter = decision === 'minimal_correction'
+    ? `eq=brightness=${brightness}:contrast=${contrast}:saturation=${saturation}:gamma=${gamma}`
+    : undefined
+  return {
+    decision,
+    reason,
+    ffmpegFilter,
+    parameters: { brightness, contrast, saturation, gamma },
+    correctionStrength: decision === 'minimal_correction' ? 'minimal' : 'none',
+    colorGradeStyle: 'clean_natural',
+  }
+}
+
+async function renderColorExport(input: {
+  inputPath: string
+  outputPath: string
+  recipe: ColorGradeRecipe
+}): Promise<string | undefined> {
+  if (input.recipe.decision === 'no_op') {
+    await execFileAsync('ffmpeg', [
+      '-hide_banner',
+      '-nostdin',
+      '-y',
+      '-i',
+      input.inputPath,
+      '-c',
+      'copy',
+      '-movflags',
+      '+faststart',
+      input.outputPath,
+    ], { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+    return 'Phase 32 produced a neutral no-op color-reviewed export because no visible correction was justified.'
+  }
+  const filter = input.recipe.ffmpegFilter
+  const allowedFilters = new Set([
+    'eq=brightness=-0.015:contrast=0.98:saturation=1:gamma=1',
+    'eq=brightness=0.025:contrast=1.04:saturation=1.03:gamma=1',
+    'eq=brightness=0:contrast=1:saturation=0.98:gamma=1',
+  ])
+  if (!filter || !allowedFilters.has(filter)) {
+    throw new Error('Phase 32 blocked unsafe or non-allowlisted FFmpeg color filter.')
+  }
+  const args = [
+    '-hide_banner',
+    '-nostdin',
+    '-y',
+    '-i',
+    input.inputPath,
+    '-vf',
+    filter,
+    '-c:v',
+    'libx264',
+    '-preset',
+    'veryfast',
+    '-crf',
+    '20',
+    '-pix_fmt',
+    'yuv420p',
+    '-c:a',
+    'copy',
+    '-movflags',
+    '+faststart',
+    input.outputPath,
+  ]
+  try {
+    await execFileAsync('ffmpeg', args, { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+    return undefined
+  } catch {
+    await execFileAsync('ffmpeg', [
+      '-hide_banner',
+      '-nostdin',
+      '-y',
+      '-i',
+      input.inputPath,
+      '-vf',
+      filter,
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-crf',
+      '20',
+      '-pix_fmt',
+      'yuv420p',
+      '-c:a',
+      'aac',
+      '-b:a',
+      '192k',
+      '-movflags',
+      '+faststart',
+      input.outputPath,
+    ], { timeout: 10 * 60_000, maxBuffer: 24 * 1024 * 1024 })
+    return 'Audio stream copy failed during color export; Phase 32 used AAC re-encode fallback while preserving audio.'
+  }
+}
+
 async function copyCaptionSidecars(storage: Storage, env: ExportEnv): Promise<ArtifactRecord[]> {
   const captionObjects = [
     { kind: 'caption_segments_json', source: `activation-real-video/phase28/${env.phase28RunId}/captions/caption-segments.json`, target: `${env.phase30Prefix}/captions/caption-segments.json` },
@@ -606,6 +1011,8 @@ function readProbeSummary(probe: Record<string, unknown>): ProbeSummary {
     width: readNumber(video?.width),
     height: readNumber(video?.height),
     hasAudio: Boolean(audio),
+    colorSpace: typeof video?.color_space === 'string' ? String(video.color_space) : undefined,
+    colorTransfer: typeof video?.color_transfer === 'string' ? String(video.color_transfer) : undefined,
   }
 }
 
@@ -787,6 +1194,127 @@ function phase31Safety(): Record<string, unknown> {
     masksOrEnhancementExecuted: false,
     revideoUsed: false,
   }
+}
+
+function buildColorQaSummary(input: {
+  colorExportExists: boolean
+  inputDurationSeconds?: number
+  outputDurationSeconds?: number
+  outputHasAudio?: boolean
+  outputVideoCodec?: string
+  outputAudioCodec?: string
+  analysis: ColorAnalysisSummary
+  recipe: ColorGradeRecipe
+}): {
+  status: 'passed' | 'warning' | 'blocked'
+  gates: Array<Record<string, unknown>>
+  blockers: string[]
+  warnings: string[]
+} {
+  const durationDelta = input.inputDurationSeconds === undefined || input.outputDurationSeconds === undefined
+    ? Number.POSITIVE_INFINITY
+    : Math.abs(input.outputDurationSeconds - input.inputDurationSeconds)
+  const hasBlockingExposureRisk = input.analysis.overexposedRisk === 'high' || input.analysis.underexposedRisk === 'high'
+  const gates = [
+    colorGate('color_exposure', !hasBlockingExposureRisk || input.recipe.decision === 'minimal_correction', input.recipe.reason),
+    colorWarningGate('color_skin_tone', 'No face/skin analysis ran; skin tone QA is warning-only for Phase 32.'),
+    colorGate('color_export_space', input.outputVideoCodec === 'h264', 'Private color export uses an MP4-compatible H.264 video stream.'),
+    colorWarningGate('color_shot_match', 'Single controlled clip only; shot matching is not applicable beyond continuity review.'),
+    colorGate('export_codec_format', input.outputVideoCodec === 'h264' && input.outputAudioCodec === 'aac', 'Private color export uses H.264/AAC MP4.'),
+    colorGate('export_duration_sync', durationDelta <= 0.75, `Export duration delta ${durationDelta.toFixed(3)}s remains within tolerance.`),
+    colorGate('audio_sync', Boolean(input.outputHasAudio) && durationDelta <= 0.75, 'Audio stream was preserved from the Phase 31 export.'),
+  ]
+  const blockersBeforeFinal = gates.filter((item) => item.blocking)
+  gates.push(colorGate('final_delivery', input.colorExportExists && blockersBeforeFinal.length === 0, 'Private Phase 32 color-reviewed final delivery exists with no blocking color QA findings.'))
+  const blockers = gates.filter((item) => item.blocking).map((item) => `${item.gateType}: ${item.message}`)
+  const warnings = gates.filter((item) => item.status === 'warning').map((item) => `${item.gateType}: ${item.message}`)
+  return {
+    status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warning' : 'passed',
+    gates,
+    blockers,
+    warnings,
+  }
+}
+
+function colorGate(gateType: string, passed: boolean, message: string): Record<string, unknown> {
+  return {
+    id: `phase32-gate-${gateType}`,
+    workspaceId: 'activation-phase32',
+    projectId: 'reeditpro',
+    mediaAssetId: 'phase31-20260528T13060-audio-normalized-export',
+    toolExecutionPlanId: 'activation-phase32-color-correction',
+    recipeId: gateType === 'final_delivery' ? 'private_color_corrected_export' : 'ffmpeg_clean_color_correction',
+    gateType,
+    status: passed ? 'passed' : 'blocked',
+    score: passed ? 0.95 : 0.2,
+    threshold: 0.8,
+    required: true,
+    blocking: !passed,
+    checkedAt: new Date().toISOString(),
+    checkedByWorkerType: gateType === 'final_delivery' ? 'qa_worker' : 'render_worker',
+    inputArtifactIds: [],
+    outputArtifactIds: [],
+    issues: passed ? [] : [{ code: `${gateType}_failed`, message, severity: 'blocking' }],
+    recommendations: [{ action: passed ? 'continue' : 'block_final_export', reason: message, priority: passed ? 'low' : 'urgent' }],
+    fallbackRequired: !passed,
+    blocksPreview: false,
+    blocksFinalExport: !passed,
+    humanReviewRequired: false,
+    message,
+  }
+}
+
+function colorWarningGate(gateType: string, message: string): Record<string, unknown> {
+  return {
+    ...colorGate(gateType, true, message),
+    status: 'warning',
+    score: 0.78,
+    issues: [{ code: `${gateType}_warning`, message, severity: 'warning' }],
+    recommendations: [{ action: 'continue', reason: message, priority: 'medium' }],
+    humanReviewRequired: true,
+    message,
+  }
+}
+
+function phase32Safety(): Record<string, unknown> {
+  return {
+    approvedPhase31InputOnly: true,
+    secondSourceVideoUsed: false,
+    providerExecuted: false,
+    gpuUsed: false,
+    modelDownloadedExternally: false,
+    openColorIoUsed: false,
+    openImageIoUsed: false,
+    arbitraryFfmpegArgsUsed: false,
+    unapprovedLutUsed: false,
+    audioCleanupRerun: false,
+    secretValuesUsed: false,
+    publicAccessEnabled: false,
+    sourceOverwritten: false,
+    masksOrEnhancementExecuted: false,
+    revideoUsed: false,
+  }
+}
+
+function averageStat(samples: ColorSample[], key: string): number | undefined {
+  const values = samples.map((sample) => sample.stats[key]).filter((value): value is number => Number.isFinite(value))
+  return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : undefined
+}
+
+function minStat(samples: ColorSample[], key: string): number | undefined {
+  const values = samples.map((sample) => sample.stats[key]).filter((value): value is number => Number.isFinite(value))
+  return values.length ? Math.min(...values) : undefined
+}
+
+function maxStat(samples: ColorSample[], key: string): number | undefined {
+  const values = samples.map((sample) => sample.stats[key]).filter((value): value is number => Number.isFinite(value))
+  return values.length ? Math.max(...values) : undefined
+}
+
+function colorRisk(high: boolean, warning: boolean): 'low' | 'warning' | 'high' {
+  if (high) return 'high'
+  if (warning) return 'warning'
+  return 'low'
 }
 
 function readRanges(value: unknown): TimedRange[] {

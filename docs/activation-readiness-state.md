@@ -1,11 +1,12 @@
 # Activation Readiness State
 
-Phase 18 classifies the repo as ready for the next local baseline, not for staging launch, external beta, real user media, or paid production.
+Phase 19 classifies the repo as ready for local baseline reporting and command planning, not for staging launch, external beta, real user media, Docker build, or paid production.
 
 | Area | State | Notes |
 | --- | --- | --- |
 | Repo baseline | Ready | M0-M17 dry-run/static runtime foundation is present. |
-| Smoke suite | Ready | Existing production smoke and summary scripts are available; Phase 19 must run the full baseline. |
+| Smoke suite | Ready | Existing production smoke and summary scripts are available and cataloged by Phase 19. |
+| Local baseline command/report | Ready | `activation:local-baseline` defaults to static-only reporting and requires confirmation before execution. |
 | Docker build | Not yet human-run | Production images have not been built for activation. |
 | Container readiness | Not yet human-run | Readiness has not run against human-built images. |
 | GCP setup | Not yet human-run | Staging resources are not created by Phase 18. |
@@ -23,6 +24,7 @@ Current classification:
 
 - dry-run/static runtime foundation: ready
 - local generated fixture testing: ready where supported
+- local baseline command/report: ready
 - production container build: not yet human-run
 - container readiness: not yet human-run
 - GCP staging resources: not yet human-run

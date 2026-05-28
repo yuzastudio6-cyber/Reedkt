@@ -42,6 +42,8 @@
     "smoke:prod-cost-controls": "tsx server/smoke/production-cost-control-smoke.ts",
     "smoke:beta-readiness": "tsx server/smoke/beta-readiness-smoke.ts",
     "smoke:activation-baseline-audit": "tsx server/smoke/activation-baseline-audit-smoke.ts",
+    "smoke:activation-local-baseline": "tsx server/smoke/activation-local-baseline-smoke.ts",
+    "activation:local-baseline": "tsx server/cli/activation-local-baseline.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",
     "prod:e2e:summary": "tsx server/cli/production-e2e-workflow-summary.ts",

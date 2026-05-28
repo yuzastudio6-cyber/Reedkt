@@ -1,6 +1,6 @@
 # Activation Next Phase Runbook
 
-This runbook starts after Phase 18 is reviewed. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
+This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is available. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
 
 ## After Phase 18
 
@@ -10,6 +10,14 @@ This runbook starts after Phase 18 is reviewed. It does not build images, deploy
 4. Run Phase 19 local full smoke/static readiness baseline.
 5. Review every failure, warning, and existing large-bundle build warning before moving on.
 6. Proceed to container build only after Phase 19 passes and a human approves image names/tags.
+
+## After Phase 19
+
+1. Review `activation:local-baseline` static output and `--command-plan` output.
+2. Confirm the report says Phase 20 is preparation-only and `dockerBuildAllowed=false`.
+3. Resolve or document local baseline blockers and warnings.
+4. Prepare Phase 20 image names/tags for human review.
+5. Do not run Docker automatically from the local baseline command.
 
 ## Before Container Build
 

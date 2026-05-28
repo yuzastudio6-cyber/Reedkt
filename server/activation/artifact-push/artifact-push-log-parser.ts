@@ -11,8 +11,8 @@ import type {
 
 const failurePatterns: Array<{ id: string; pattern: RegExp; message: string }> = [
   { id: 'unauthorized', pattern: /unauthorized|authentication required|unauthenticated/i, message: 'Artifact Registry authentication failed.' },
-  { id: 'denied', pattern: /denied|permission denied|access denied|403/i, message: 'Artifact Registry push permission denied.' },
-  { id: 'not-found', pattern: /repository .*not found|name unknown|404|manifest unknown/i, message: 'Artifact Registry repository or image reference was not found.' },
+  { id: 'denied', pattern: /permission denied|access denied|denied:\s|denied requested access|requested access to the resource is denied|\b403 forbidden\b/i, message: 'Artifact Registry push permission denied.' },
+  { id: 'not-found', pattern: /repository .*not found|name unknown|\b(?:error|status|code)\s*[:=]?\s*404\b|manifest unknown/i, message: 'Artifact Registry repository or image reference was not found.' },
   { id: 'missing-local-image', pattern: /No such image|image .* not found|An image does not exist locally/i, message: 'Local source image is missing.' },
   { id: 'network', pattern: /timeout|timed out|connection reset|TLS handshake|network/i, message: 'Network failure during push.' },
   { id: 'docker-daemon', pattern: /Cannot connect to the Docker daemon|docker daemon.*not running/i, message: 'Docker daemon is not running.' },
@@ -37,7 +37,8 @@ export function parseArtifactPushLog(logText: string, sourceName = ''): ParsedAr
   const detectedDigest = detectDigest(logText)
   const detectedImageName = detectImageName(logText)
   const imageId = inferArtifactPushImageId(sourceName, logText)
-  const success = /digest:\s*sha256:[a-f0-9]{32,64}/i.test(logText) ||
+  const success = /pushing manifest for [^\s]+@sha256:[a-f0-9]{32,64}.*done/i.test(logText) ||
+    /digest:\s*sha256:[a-f0-9]{32,64}/i.test(logText) ||
     /pushed|layer already exists/i.test(logText) && Boolean(detectedDigest)
   const warnings: string[] = []
 
@@ -87,10 +88,14 @@ function statusFromFindings(
 }
 
 function detectDigest(logText: string): string | undefined {
-  return logText.match(/sha256:[a-f0-9]{32,64}/i)?.[0]
+  return logText.match(/pushing manifest for [^\s]+@((?:sha256:)[a-f0-9]{32,64})/i)?.[1] ??
+    logText.match(/digest:\s*((?:sha256:)[a-f0-9]{32,64})/i)?.[1] ??
+    logText.match(/sha256:[a-f0-9]{32,64}/i)?.[0]
 }
 
 function detectImageName(logText: string): string | undefined {
+  const buildxManifestMatch = logText.match(/pushing manifest for ([^\s@]+)@sha256:[a-f0-9]{32,64}/i)?.[1]
+  if (buildxManifestMatch) return buildxManifestMatch
   return logText.match(/(?:repository \[|The push refers to repository \[)([^\]]+)/i)?.[1] ??
     logText.match(/([a-z0-9-]+-docker\.pkg\.dev\/[^\s]+):[A-Za-z0-9_.-]+/i)?.[1]
 }

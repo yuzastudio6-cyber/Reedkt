@@ -1,6 +1,6 @@
 # Activation Readiness State
 
-Phase 22 classifies the repo as ready for GCP staging foundation setup planning, not for staging launch, external beta, real user media, Docker execution, actual GCP resource creation, or paid production.
+Phase 26 classifies the repo as ready for first-model approval reporting, not for production launch, external beta, broad real user media testing, provider execution, or model-weight download execution.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -16,8 +16,10 @@ Phase 22 classifies the repo as ready for GCP staging foundation setup planning,
 | Image push | Not yet human-run | No activation images have been pushed to Artifact Registry. |
 | Non-GPU staging deploy | Not yet done | API, CPU, render, and QA staging deployments are not active. |
 | GPU staging deploy | Not yet done | L4 GPU worker deployment waits for model/license and staging prerequisites. |
-| Model weights | Not yet approved | Model/checkpoint license and security review is still required. |
-| First real video speech/caption | Not yet allowed | Blocked until staging, readiness, storage, and model prerequisites pass. |
+| Model approval workflow | Ready | Phase 26 can report evidence, storage policy, manifests, and text-only future download commands. |
+| faster-whisper tiny model approval | Staging-approved for planning | `Systran/faster-whisper-tiny` is approved only for Phase 28 speech/caption planning. |
+| Model weights availability | Pending | Actual weights are not downloaded and checksums are still missing until a later explicit load/download phase. |
+| First real video speech/caption | Planning-ready, execution-blocked | Blocked until the approved tiny model is available in the runtime/storage path and Phase 28 explicitly approves the controlled test. |
 | Final private export | Not yet allowed | Blocked until controlled upstream real-video tests and render/export gates pass. |
 | Internal beta | Blocked | Requires full private E2E evidence, operations, support, privacy, cost, and rollback readiness. |
 | External beta | Blocked | Requires strict Phase 37 go/no-go approval. |
@@ -35,8 +37,9 @@ Current classification:
 - GCP staging setup planning: ready
 - GCP staging resources: not yet human-run
 - staging deployment: not yet done
-- model weights/licenses: not yet approved
+- model weights/licenses: faster-whisper tiny staging approval only
+- model files/checksums: pending explicit download/load phase
 - GPU worker: not yet deployed
-- real user video testing: not yet allowed
+- real user video testing: blocked except future Phase 28 speech/caption-only approval
 - external beta: blocked
 - paid production: blocked

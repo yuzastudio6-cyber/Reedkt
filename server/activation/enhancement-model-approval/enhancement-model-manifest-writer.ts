@@ -5,6 +5,7 @@ import {
 import { evaluateEnhancementModelApprovalPolicy } from './enhancement-model-approval-policy'
 import { enhancementEvidenceForCandidate } from './enhancement-model-license-evidence'
 import { buildRealEsrganEnhancementModelStoragePlan } from './enhancement-model-storage-plan'
+import { getApprovedEnhancementModelDownloadEvidence } from '../enhancement-model-download/approved-enhancement-model-download-evidence'
 import type {
   EnhancementModelCandidateRecord,
   EnhancementModelWeightManifestRecord,
@@ -18,13 +19,18 @@ export function buildEnhancementModelWeightManifest(candidate: EnhancementModelC
     storagePlan,
   })
   const approved = decision.stagingSampleFirstEnhancementAllowed
+  const downloadEvidence = candidate.candidateId === 'xinntao_real_esrgan_x4plus'
+    ? getApprovedEnhancementModelDownloadEvidence()
+    : undefined
+  const verifiedDownload = downloadEvidence?.status === 'verified'
   return {
     modelWeightManifestId: approved ? REAL_ESRGAN_X4PLUS_MANIFEST_ID : manifestIdForBlockedCandidate(candidate),
     toolId: candidate.toolId,
     modelName: candidate.modelName,
-    modelVersion: approved ? 'staging-v1' : 'pending_separate_approval',
+    modelVersion: verifiedDownload ? downloadEvidence.releaseVersion : approved ? 'staging-v1' : 'pending_separate_approval',
+    resolvedRevision: verifiedDownload ? downloadEvidence.releaseVersion : undefined,
     source: candidate.sourceUrl ? sourceNameFor(candidate.sourceUrl) : 'manual review pending',
-    sourceUrl: candidate.releaseAssetUrl ?? candidate.sourceUrl ?? 'manual-review-required',
+    sourceUrl: verifiedDownload ? downloadEvidence.sourceUrl : candidate.releaseAssetUrl ?? candidate.sourceUrl ?? 'manual-review-required',
     expectedPath: candidate.expectedPath ?? `/opt/reeditpro/model-weights/${candidate.toolId}/${candidate.candidateId}`,
     runtimeTempPath: candidate.runtimeTempPath,
     stagingStoragePath: candidate.stagingStoragePath ?? `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/blocked/${candidate.candidateId}/`,
@@ -50,7 +56,7 @@ export function buildEnhancementModelWeightManifest(candidate: EnhancementModelC
           'Full-video blind enhancement, slow motion, production, external beta, paid production, and broad real media remain blocked.',
         ]
       : [candidate.blockedReason ?? 'Not approved for Phase 34A execution.'],
-    checksum: 'missing_until_download',
+    checksum: verifiedDownload ? downloadEvidence.fileSha256 ?? 'missing_until_download' : 'missing_until_download',
     createdAt: ENHANCEMENT_MODEL_APPROVAL_REVIEWED_AT,
     reviewedAt: ENHANCEMENT_MODEL_APPROVAL_REVIEWED_AT,
     approvedFor: approved ? candidate.approvedFor : [],

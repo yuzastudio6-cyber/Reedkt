@@ -1,10 +1,11 @@
 # Activation Readiness State
 
-Phase 34A classifies the repo as ready for explicit controlled Phase 34B
-Real-ESRGAN weight download planning only, not for production launch, external
-beta, broad real user media testing, provider execution, arbitrary media
-execution, SAM2 execution, full-video masks, full-video text-behind-subject
-execution, enhancement execution, or slow-motion execution.
+Phase 34B classifies the repo as ready for explicit controlled Phase 34C
+Real-ESRGAN runtime verification planning only after the approved x4plus weight
+is verified in private staging storage. It is not ready for production launch,
+external beta, broad real user media testing, provider execution, arbitrary
+media execution, SAM2 execution, full-video masks, full-video text-behind-
+subject execution, enhancement execution, or slow-motion execution.
 
 Phase 33E composed a private text-behind-subject PNG preview from the approved
 Phase 33D frame, mask, and RGBA cutout. It emitted a text layer plan, depth
@@ -13,6 +14,10 @@ composition manifest, and QA with no blocking failures.
 Phase 34A adds a static/report-only enhancement/slow-motion model approval
 workflow. `RealESRGAN_x4plus` is staging-approved only for sample-first
 enhancement planning. FILM is evaluated-only and execution/download-blocked.
+
+Phase 34B may add private GCS checksum evidence for the single approved
+`RealESRGAN_x4plus.pth` file. Runtime loading and enhancement execution remain
+blocked until Phase 34C.
 
 | Area | State | Notes |
 | --- | --- | --- |
@@ -39,7 +44,7 @@ enhancement planning. FILM is evaluated-only and execution/download-blocked.
 | Text-behind-subject frame preview | Complete for one controlled test | Phase 33E produced a private preview PNG, text layer plan, depth composition manifest, and QA for `phase33e-20260528T165755` with no blocking failures. |
 | Enhancement model approval workflow | Ready | Phase 34A can report Real-ESRGAN/FILM evidence, storage policy, manifests, and text-only future download commands. |
 | Real-ESRGAN model approval | Staging-approved for planning | `RealESRGAN_x4plus` is approved only for sample-first representative-frame or short-sample enhancement planning. |
-| Real-ESRGAN weights availability | Pending | Phase 34B must download only approved `RealESRGAN_x4plus` weights into private staging storage and record checksum evidence. |
+| Real-ESRGAN weights availability | Private staging storage verified | Phase 34B downloaded only approved `RealESRGAN_x4plus.pth` into private staging storage and recorded checksum evidence. |
 | FILM model approval | Evaluated-only | `google-research/frame-interpolation` evidence is recorded, but FILM download, execution, and slow motion remain blocked. |
 | Enhancement runtime | Pending | Phase 34C must verify Real-ESRGAN runtime before any controlled real-video enhancement sample. |
 | Model weights availability | Private staging storage verified | `Systran/faster-whisper-tiny` is stored under private generated-assets model storage with revision/checksum evidence. |
@@ -70,7 +75,7 @@ Current classification:
 - real user video testing: blocked except completed single controlled Phase 28-33E runs and future explicitly approved controlled phases
 - mask execution: complete only for the explicit Phase 33D representative-frame test; full-video masks remain blocked
 - text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview; full-video text-behind-subject remains blocked
-- enhancement execution: blocked until Phase 34B weights and Phase 34C runtime QA pass
+- enhancement execution: blocked until Phase 34C runtime QA passes
 - slow-motion execution: blocked; FILM is evaluated-only
 - external beta: blocked
 - paid production: blocked

@@ -158,3 +158,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 5. Confirm production, external beta, broad real media, GPU, providers, enhancement execution, full-video enhancement, slow motion, public delivery, and Revideo remain blocked.
 6. Proceed to Phase 34B only to download/load approved `RealESRGAN_x4plus` weights into private staging storage.
 7. Keep Phase 34C and Phase 34D blocked until checksum/runtime/enhancement QA evidence exists.
+
+## After Phase 34B
+
+1. Review `activation:enhancement-model-download:report` and confirm Real-ESRGAN release/checksum evidence exists in private staging storage.
+2. Confirm only `RealESRGAN_x4plus.pth` was downloaded and FILM remains evaluated-only and download/execution-blocked.
+3. Confirm no alternate Real-ESRGAN, GFPGAN, facexlib, anime, x2plus, or realesr-general weights were downloaded.
+4. Confirm production, external beta, broad real media, GPU, providers, enhancement execution, slow motion, and media processing remain blocked.
+5. Proceed to Phase 34C only as explicit Real-ESRGAN runtime verification using private GCS model storage.
+6. Keep Phase 34D blocked until Phase 34C runtime loading and enhancement QA pass.

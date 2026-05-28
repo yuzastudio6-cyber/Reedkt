@@ -57,3 +57,9 @@ run Real-ESRGAN, run enhancement, or approve full-video enhancement.
 FILM is evaluated-only for future selected-clip slow-motion planning. FILM
 download, FILM execution, slow motion, production, external beta, paid
 production, and broad real-media execution remain blocked.
+
+Phase 34B stores only the approved `RealESRGAN_x4plus.pth` release asset in
+private staging model storage with checksum evidence. This does not approve GPU
+deployment, Real-ESRGAN inference, enhancement execution, full-video
+enhancement, FILM, slow motion, production, external beta, or broad real-media
+execution.

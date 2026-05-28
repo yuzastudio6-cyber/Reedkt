@@ -12,6 +12,7 @@ import {
   buildEnhancementModelWeightManifest,
   buildEvaluatedEnhancementModelWeightManifests,
 } from './enhancement-model-manifest-writer'
+import { getApprovedEnhancementModelDownloadEvidence } from '../enhancement-model-download/approved-enhancement-model-download-evidence'
 import type { EnhancementModelApprovalReport } from './enhancement-model-approval-types'
 
 export const ENHANCEMENT_MODEL_APPROVAL_REPORT_ID = 'activation-phase-34a-enhancement-model-approval'
@@ -20,6 +21,8 @@ export function buildEnhancementModelApprovalReport(): EnhancementModelApprovalR
   const candidates = listEnhancementModelApprovalCandidates()
   const evidenceSummary = listEnhancementModelLicenseEvidence()
   const storagePlan = buildRealEsrganEnhancementModelStoragePlan()
+  const downloadEvidence = getApprovedEnhancementModelDownloadEvidence()
+  const downloadVerified = downloadEvidence.status === 'verified'
   const downloadCommandPlan = buildEnhancementModelDownloadCommandPlan(storagePlan)
   const decisions = candidates.map((candidate) => evaluateEnhancementModelApprovalPolicy({
     candidate,
@@ -63,16 +66,18 @@ export function buildEnhancementModelApprovalReport(): EnhancementModelApprovalR
       warnings: ['Phase 34B may download only RealESRGAN_x4plus to private staging storage; no FILM download.'],
     },
     phase34CReadiness: {
-      ready: false,
-      blockers: ['RealESRGAN_x4plus weights are not downloaded and checksummed yet.', 'Real-ESRGAN runtime verification plan is not prepared in Phase 34A.'],
-      warnings: ['Phase 34C remains blocked until Phase 34B records private storage and checksum evidence.'],
+      ready: downloadVerified && blockerEvaluation.blockers.length === 0,
+      blockers: downloadVerified ? [] : ['RealESRGAN_x4plus weights are not downloaded and checksummed yet.', 'Real-ESRGAN runtime verification plan is not prepared in Phase 34A.'],
+      warnings: downloadVerified
+        ? ['RealESRGAN_x4plus weights have private storage and checksum evidence; Phase 34C may proceed only as explicit runtime verification, not enhancement execution.']
+        : ['Phase 34C remains blocked until Phase 34B records private storage and checksum evidence.'],
     },
     phase34DReadiness: {
       ready: false,
       blockers: ['Real-ESRGAN runtime verification has not passed.', 'Controlled real-video enhancement sample remains blocked until runtime QA passes.'],
       warnings: ['Phase 34D remains blocked until runtime verification creates safe private enhancement QA evidence.'],
     },
-    modelDownloadExecuted: false,
+    modelDownloadExecuted: downloadEvidence.status !== 'not_started',
     providerExecuted: false,
     gpuDeployed: false,
     frameOrVideoProcessed: false,

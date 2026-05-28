@@ -103,3 +103,14 @@ FILM (`google-research/frame-interpolation`) is evaluated-only and remains
 download/execution-blocked until a separate slow-motion approval/download/runtime
 phase. Production, external beta, paid production, and broad real media remain
 blocked.
+
+## Activation Phase 34B
+
+Phase 34B may download only `RealESRGAN_x4plus.pth` from the official
+Real-ESRGAN GitHub release asset into private staging generated-assets storage.
+It records file and aggregate SHA-256 evidence, but it does not run
+Real-ESRGAN, deploy GPU, process media, or approve production use.
+
+FILM, alternate Real-ESRGAN weights, GFPGAN/facexlib weights, enhancement
+execution, slow motion, production, external beta, paid production, and broad
+real media remain blocked.

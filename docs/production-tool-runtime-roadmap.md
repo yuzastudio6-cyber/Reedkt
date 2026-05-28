@@ -56,6 +56,7 @@ Tools must not be exposed as direct user commands or thin wrappers. A production
 - Milestone 17 hardens production beta operations.
 - Phase 18 starts the activation baseline audit and real video testing roadmap. It is not an automatic launch.
 - Phase 19 adds the local baseline command/report and command-plan view before any container build work.
+- Phase 20 prepares human-run production container builds with static image plans, command text, build log parsing, and Phase 21 blocker reporting.
 - Phases 19-37 move step-by-step through local baseline, human-run container build/readiness, staging setup, generated-fixture staging tests, model/license approval, controlled private real video tests, internal beta readiness, and external beta go/no-go.
 - Real video testing begins only after staging, readiness, storage, and model/license prerequisites pass.
 

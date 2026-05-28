@@ -19,6 +19,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Prepare Phase 20 image names/tags for human review.
 5. Do not run Docker automatically from the local baseline command.
 
+## After Phase 20
+
+1. Review `activation:container-build:plan -- --image-tag <tag>` output.
+2. Confirm image order is API, tool-readiness, CPU, QA, render, then GPU.
+3. Humans may run the printed Docker build commands manually after approving image tags.
+4. Capture human build logs and parse them with `activation:container-build:report`.
+5. Proceed to Phase 21 only after required non-GPU image build evidence passes; GPU may remain deferred until GPU activation.
+
 ## Before Container Build
 
 - Confirm Docker scripts remain examples/human-run only.
@@ -27,4 +35,4 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 - Confirm Revideo remains evaluation-only and production-blocked.
 - Confirm model/license blockers remain active until the Phase 26 approval workflow.
 
-Phase 20 container build is the next human-run activation step after Phase 19. It is not automatic.
+Phase 20 container build reporting is the next activation step after Phase 19. Actual Docker builds remain human-run and not automatic.

@@ -44,5 +44,6 @@ RUN npm ci --omit=dev
 COPY dist-server ./dist-server
 COPY dist-remotion-worker ./dist-remotion-worker
 COPY dist-staging-fixture-worker ./dist-staging-fixture-worker
+COPY dist-staging-real-video-export-worker ./dist-staging-real-video-export-worker
 
 CMD ["node", "dist-server/server.js"]

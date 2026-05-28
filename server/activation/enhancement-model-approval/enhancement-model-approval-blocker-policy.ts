@@ -18,7 +18,9 @@ export function buildEnhancementModelApprovalBlockers(input: {
   if (approved.length !== 1) blockers.push(`Expected exactly one staging-approved enhancement model; found ${approved.length}.`)
   if (approved[0]?.candidateId !== 'xinntao_real_esrgan_x4plus') blockers.push('Only RealESRGAN_x4plus may be staging-approved in Phase 34A.')
   if (!input.approvedManifest || input.approvedManifest.modelWeightManifestId !== 'real_esrgan_x4plus_staging_v1') blockers.push('RealESRGAN_x4plus staging manifest is missing.')
-  if (input.approvedManifest?.checksum !== 'missing_until_download') blockers.push('RealESRGAN_x4plus manifest checksum must remain missing_until_download in Phase 34A.')
+  if (input.approvedManifest?.checksum !== 'missing_until_download' && !/^[a-f0-9]{64}$/.test(input.approvedManifest?.checksum ?? '')) {
+    blockers.push('RealESRGAN_x4plus manifest checksum must be missing_until_download or a valid Phase 34B SHA-256.')
+  }
   if (!input.storagePlan.privateStorageRequired || input.storagePlan.publicAccessAllowed) blockers.push('Storage plan must require private model storage.')
   if (input.storagePlan.sourceMediaBucketAllowed || input.storagePlan.stagingStoragePath.includes('source-media')) blockers.push('Storage plan must not use source-media bucket.')
   if (input.downloadCommandPlan.length === 0) blockers.push('Text-only Real-ESRGAN download command plan is missing.')

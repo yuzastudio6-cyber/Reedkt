@@ -20,3 +20,10 @@ Still blocked:
 - slow motion
 - GPU deploy/jobs
 - production, external beta, paid production, and broad real media
+
+## Activation Phase 34B
+
+Phase 34B is the only approved Real-ESRGAN model download step. It may store
+`RealESRGAN_x4plus.pth` in private staging generated-assets storage with
+checksum evidence. It does not run Real-ESRGAN, deploy GPU, process media,
+enhance frames/video, or approve slow motion.

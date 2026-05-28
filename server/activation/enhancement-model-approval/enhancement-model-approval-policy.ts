@@ -30,7 +30,7 @@ export function evaluateEnhancementModelApprovalPolicy(input: {
   if (!directEvidence.some((item) => item.licenseClaim.toLowerCase().includes('bsd-3-clause'))) blockers.push('Real-ESRGAN BSD-3-Clause license claim is missing.')
   if (directEvidence.some((item) => item.commercialUseClaim === 'blocked' || item.commercialUseClaim === 'unknown')) blockers.push('Real-ESRGAN commercial-use evidence is blocked or unknown.')
   if (directEvidence.some((item) => item.redistributionClaim === 'blocked' || item.redistributionClaim === 'unknown')) blockers.push('Real-ESRGAN redistribution evidence is blocked or unknown.')
-  if (directEvidence.some((item) => item.commercialUseClaim === 'requires_manual_review')) warnings.push('RealESRGAN_x4plus release asset remains staging-only until Phase 34B records checksum/review evidence.')
+  if (directEvidence.some((item) => item.commercialUseClaim === 'requires_manual_review')) warnings.push('RealESRGAN_x4plus release asset remains staging-only; runtime and production use require later verification/review.')
   if (directEvidence.some((item) => item.confidence === 'low')) warnings.push('Real-ESRGAN evidence contains low-confidence records; keep staging-only scope.')
 
   if (!storagePlan.privateStorageRequired || storagePlan.publicAccessAllowed) blockers.push('Real-ESRGAN model storage must be private.')

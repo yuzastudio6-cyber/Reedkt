@@ -155,7 +155,7 @@ export interface EnhancementModelApprovalReport {
   phase34BReadiness: EnhancementModelApprovalReadiness
   phase34CReadiness: EnhancementModelApprovalReadiness
   phase34DReadiness: EnhancementModelApprovalReadiness
-  modelDownloadExecuted: false
+  modelDownloadExecuted: boolean
   providerExecuted: false
   gpuDeployed: false
   frameOrVideoProcessed: false

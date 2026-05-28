@@ -99,6 +99,11 @@ Milestone 1 adds the shared TypeScript and draft SQL contract layer for the futu
 - timeline and render manifests;
 - model weight manifests and license review records.
 
+Activation Phase 26 adds the first model-weight/license approval workflow:
+`Systran/faster-whisper-tiny` is staging-approved only for speech/caption
+planning, while actual model download, production approval, external beta,
+larger Whisper models, non-speech models, providers, and Revideo remain blocked.
+
 The contracts remain mock-safe and schema-review-only. They do not install tools, process media, call providers, deploy resources, or let the frontend run heavy media/AI work.
 
 ## Milestone 2 Production Tool Registry Metadata

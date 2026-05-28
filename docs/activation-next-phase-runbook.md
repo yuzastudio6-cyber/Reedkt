@@ -52,3 +52,17 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 - Confirm model/license blockers remain active until the Phase 26 approval workflow.
 
 Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 22 is still static/report-only for Codex; it is not deployment or launch approval.
+
+## After Phase 25
+
+1. Review the generated-fixture E2E results and confirm private artifact/QA evidence passed.
+2. Confirm production, external beta, and real user media testing remain blocked.
+3. Proceed to Phase 26 model-weight/license approval for the first speech/caption model only.
+
+## After Phase 26
+
+1. Review `activation:model-weight:summary`, `activation:model-approval:plan`, and `activation:model-approval:report`.
+2. Confirm only `Systran/faster-whisper-tiny` is staging-approved for speech/caption planning.
+3. Confirm the download command plan is text-only and no model files were downloaded or committed.
+4. Proceed toward Phase 28 planning only after the tiny model weights are made available in a later explicit download/load phase.
+5. Keep Phase 27 GPU deployment optional/deferred unless a later runtime decision requires it for the tiny speech/caption test.

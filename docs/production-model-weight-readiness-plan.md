@@ -31,6 +31,14 @@ Milestone 11 adds explicit manifest templates for faster-whisper, BiRefNet, SAM2
 ## Production Rule
 
 Any non-commercial model weight is blocked for paid ReeditPro production. Any unknown model-weight license is blocked until reviewed.
+
+## Activation Phase 26 First Speech Model Approval
+
+Activation Phase 26 records evidence for `Systran/faster-whisper-tiny` and
+approves it only for staging speech/caption planning. This does not approve
+production, paid production, external beta, larger Whisper models, non-speech
+models, or real user media execution. Actual weights remain unavailable until a
+future explicit download/load phase records revision and checksum evidence.
 ## Milestone 12 Report Integration
 
 Model-weight manifests now appear in the unified production readiness report. Unknown, non-commercial, missing, `needs_review`, and blocked model weights remain production blockers while dry-run/static readiness may surface them as warnings and next actions.

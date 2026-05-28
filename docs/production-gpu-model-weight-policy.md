@@ -13,3 +13,10 @@ Production execution is blocked when model weights are:
 - missing commercial-use, redistribution, attribution, source, or checksum/provenance review.
 
 Milestone 11 creates manifest templates only. No model files are committed, downloaded, or baked into Docker images.
+
+## Activation Phase 26
+
+Phase 26 creates a staging-only approval record for
+`Systran/faster-whisper-tiny` for speech/caption planning. GPU deployment and
+all non-speech GPU model weights remain blocked. The approved tiny manifest has
+no checksum until a later explicit model download/load phase.

@@ -82,3 +82,11 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm generated audio was the only media input and the transcript result completed cleanly.
 4. Confirm GPU, providers, public access, secret values, production, external beta, and broad real user media testing remain blocked.
 5. Proceed to Phase 28 only as an explicit controlled speech/caption-only real-video test.
+
+## After Phase 28
+
+1. Review `activation:first-video:speech-caption:report` and the private Phase 28 artifacts.
+2. Confirm exactly one approved source video was processed and all artifacts are private.
+3. Confirm transcript/caption generation passed and caption QA has no blocking findings.
+4. Confirm production, external beta, broad real user media, providers, GPU, and final export remain blocked.
+5. Proceed to Phase 29 only as an explicit controlled smart-cut + captions test.

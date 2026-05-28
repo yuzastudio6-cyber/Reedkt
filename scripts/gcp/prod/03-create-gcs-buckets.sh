@@ -17,13 +17,13 @@ while IFS= read -r purpose; do
       --project="${GCP_PROJECT_ID}" \
       --location="${GCP_BUCKET_LOCATION}" \
       --uniform-bucket-level-access \
-      --public-access-prevention=enforced \
+      --public-access-prevention \
       --default-storage-class=STANDARD
   fi
 
   run_gcloud storage buckets update "gs://${bucket}" \
     --project="${GCP_PROJECT_ID}" \
     --uniform-bucket-level-access \
-    --public-access-prevention=enforced \
+    --public-access-prevention \
     --update-labels="app=reeditpro,env=${REEDITPRO_ENV}"
 done < <(bucket_purposes)

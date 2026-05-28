@@ -7,12 +7,12 @@ import type {
 } from './gcp-staging-types'
 
 export const gcpStagingDefaultServiceAccounts: Record<GcpStagingServiceAccountKey, string> = {
-  api: 'reeditpro-staging-api-sa',
-  'cpu-worker': 'reeditpro-staging-cpu-worker-sa',
-  'gpu-worker': 'reeditpro-staging-gpu-worker-sa',
-  'render-worker': 'reeditpro-staging-render-worker-sa',
-  'qa-worker': 'reeditpro-staging-qa-worker-sa',
-  'tool-readiness-worker': 'reeditpro-staging-tool-readiness-sa',
+  api: 'reeditpro-stg-api-sa',
+  'cpu-worker': 'reeditpro-stg-cpu-worker-sa',
+  'gpu-worker': 'reeditpro-stg-gpu-worker-sa',
+  'render-worker': 'reeditpro-stg-render-sa',
+  'qa-worker': 'reeditpro-stg-qa-sa',
+  'tool-readiness-worker': 'reeditpro-stg-tool-ready-sa',
 }
 
 export const gcpStagingDefaultConfig = {
@@ -104,11 +104,27 @@ export function validateGcpStagingConfig(
     ...gcpStagingDefaultServiceAccounts,
     ...definedServiceAccounts(input.serviceAccounts),
   })) {
-    if (!accountId) blockers.push(`${key} service account is required.`)
-    if (accountId && !accountId.includes('staging')) blockers.push(`${key} service account must include staging.`)
+    blockers.push(...validateGcpStagingServiceAccountId(accountId, `${key} service account`))
   }
 
   return { allowed: blockers.length === 0, blockers, warnings }
+}
+
+export function validateGcpStagingServiceAccountId(accountId: string | undefined, label = 'service account'): string[] {
+  const blockers: string[] = []
+  const normalized = accountId?.trim() ?? ''
+
+  if (!normalized) return [`${label} is required.`]
+  if (normalized.length < 6 || normalized.length > 30) {
+    blockers.push(`${label} must be 6-30 characters; got ${normalized.length}.`)
+  }
+  if (!/^[a-z]/.test(normalized)) blockers.push(`${label} must start with a lowercase letter.`)
+  if (!/^[a-z0-9-]+$/.test(normalized)) {
+    blockers.push(`${label} must use lowercase letters, numbers, and dashes only.`)
+  }
+  if (!/(?:staging|stg)/.test(normalized)) blockers.push(`${label} must include staging or stg.`)
+
+  return blockers
 }
 
 function definedServiceAccounts(

@@ -23,12 +23,12 @@ All resources are staging resources and are not created by Codex.
 
 ## Service Accounts
 
-- `reeditpro-staging-api-sa`
-- `reeditpro-staging-cpu-worker-sa`
-- `reeditpro-staging-gpu-worker-sa`
-- `reeditpro-staging-render-worker-sa`
-- `reeditpro-staging-qa-worker-sa`
-- `reeditpro-staging-tool-readiness-sa`
+- `reeditpro-stg-api-sa`
+- `reeditpro-stg-cpu-worker-sa`
+- `reeditpro-stg-gpu-worker-sa`
+- `reeditpro-stg-render-sa`
+- `reeditpro-stg-qa-sa`
+- `reeditpro-stg-tool-ready-sa`
 
 ## Secret Placeholders
 

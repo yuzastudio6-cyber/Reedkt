@@ -8,18 +8,36 @@ require_env() {
   fi
 }
 
+require_service_account_id() {
+  local name="$1"
+  require_env "${name}"
+  local value="${!name}"
+  if (( ${#value} < 6 || ${#value} > 30 )); then
+    echo "ERROR: ${name} must be 6-30 characters for Google Cloud service account IDs; got ${#value}." >&2
+    exit 1
+  fi
+  if [[ ! "${value}" =~ ^[a-z][a-z0-9-]*$ ]]; then
+    echo "ERROR: ${name} must start with a lowercase letter and use lowercase letters, numbers, and dashes only." >&2
+    exit 1
+  fi
+  if [[ "${value}" != *staging* && "${value}" != *stg* ]]; then
+    echo "ERROR: ${name} must include staging or stg for staging setup." >&2
+    exit 1
+  fi
+}
+
 require_gcp_foundation_env() {
   require_env GCP_PROJECT_ID
   require_env GCP_REGION
   require_env GCP_ARTIFACT_REGION
   require_env GCP_BUCKET_LOCATION
   require_env REEDITPRO_ENV
-  require_env REEDITPRO_API_SERVICE_ACCOUNT
-  require_env REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT
-  require_env REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT
-  require_env REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT
-  require_env REEDITPRO_QA_WORKER_SERVICE_ACCOUNT
-  require_env REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT
+  require_service_account_id REEDITPRO_API_SERVICE_ACCOUNT
+  require_service_account_id REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT
+  require_service_account_id REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT
+  require_service_account_id REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT
+  require_service_account_id REEDITPRO_QA_WORKER_SERVICE_ACCOUNT
+  require_service_account_id REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT
   require_env REEDITPRO_ARTIFACT_REPOSITORY
   require_env REEDITPRO_IMAGE_TAG
 }

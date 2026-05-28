@@ -26,6 +26,7 @@ export function buildArtifactPushReport(input: BuildArtifactPushReportInput): Ar
   const verificationCommandPlans = buildArtifactPushVerificationCommandPlans(input)
   const inputCheck = validateArtifactPushCommandPlanInput(input)
   const hasEvidence = parsedLogs.length > 0 || (input.digestEvidence?.length ?? 0) > 0
+  const explicitDigestEvidence = input.digestEvidence ?? []
   const pushResults = parsedLogs.length > 0
     ? parsedLogs.map(({ logPath, parsedLog }) => buildArtifactPushResultFromParsedLog({
         logPath,
@@ -33,9 +34,11 @@ export function buildArtifactPushReport(input: BuildArtifactPushReportInput): Ar
         imageTag: input.imageTag,
         targetFullImageName: imageManifests.find((entry) => entry.imageId === parsedLog.imageId)?.targetFullImageName,
       }))
+    : explicitDigestEvidence.length > 0
+      ? verifiedPushResultsFromDigestEvidence(explicitDigestEvidence, input.imageTag)
     : plannedPushResults(input.imageTag)
   const digestEvidence = mergeDigestEvidence(
-    input.digestEvidence ?? [],
+    explicitDigestEvidence,
     pushResults.map(pushResultDigestEvidence).filter((entry): entry is ArtifactImageDigestEvidence => Boolean(entry)),
   )
   const evaluation = hasEvidence
@@ -86,6 +89,37 @@ export function buildArtifactPushReport(input: BuildArtifactPushReportInput): Ar
     externalBetaAllowed: false,
     realUserMediaTestingAllowed: false,
   }
+}
+
+function verifiedPushResultsFromDigestEvidence(
+  digestEvidence: ArtifactImageDigestEvidence[],
+  imageTag?: string,
+): ArtifactPushResult[] {
+  const results: ArtifactPushResult[] = digestEvidence.map((evidence) => ({
+    imageId: evidence.imageId,
+    status: evidence.verified ? 'verified' : 'unknown',
+    targetFullImageName: evidence.targetFullImageName,
+    imageTag,
+    digest: evidence.digest,
+    verified: evidence.verified,
+    warnings: evidence.warnings,
+    errors: [],
+    forbiddenFindings: [],
+  }))
+
+  if (!results.some((result) => result.imageId === 'gpu-worker')) {
+    results.push({
+      imageId: 'gpu-worker',
+      status: 'deferred',
+      imageTag,
+      verified: false,
+      warnings: ['GPU image deferred and not pushed in Phase 23B.'],
+      errors: [],
+      forbiddenFindings: [],
+    })
+  }
+
+  return results
 }
 
 function staticPlanEvaluation(): ReturnType<typeof evaluateArtifactPushBlockers> {

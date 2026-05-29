@@ -184,3 +184,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm the input sample, enhanced sample, before/after metadata, and QA report exist privately with no blocking failures.
 5. Confirm no full-frame enhancement, full-video enhancement, FILM, slow motion, providers, public access, secret values, Revideo, production, external beta, or broad real media occurred.
 6. Proceed to Phase 34E only if the private bounded sample enhancement exists and all safety gates remain blocked for broader execution.
+
+## After Phase 34E
+
+1. Review `activation:film-slowmotion-review:plan`, `activation:film-slowmotion-review:report`, and `docs/activation-phase-34e-film-slowmotion-review-results.md`.
+2. Confirm FILM remains evaluated-only and not approved.
+3. Confirm no FILM checkpoint, checksum, storage path, runtime image/job, model download, runtime execution, or slow-motion execution is approved.
+4. Confirm the future bounded test scope is one explicitly approved short clip only, `<= 2` seconds, private artifacts only, exact checkpoint/checksum required, and blocked until human approval.
+5. Confirm all future command plans are text-only by default, require human approval, are not allowed in Phase 34E, and include blocked reasons.
+6. Confirm production, external beta, broad real media, full-frame enhancement, full-video enhancement, full-video interpolation, providers, public access, secret values, Revideo, and package-lock changes remain blocked.
+7. Proceed to any future FILM approval/download/runtime phase only if a human explicitly approves the need for slow motion and the exact checkpoint/license/checksum/private-storage/runtime/QA scope.

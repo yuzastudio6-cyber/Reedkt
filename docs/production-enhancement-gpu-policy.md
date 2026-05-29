@@ -57,3 +57,19 @@ Still blocked:
 - FILM download/execution and slow motion
 - alternate Real-ESRGAN, GFPGAN, and facexlib weights
 - providers, public delivery, Revideo, production, external beta, paid production, and broad real media
+
+## Activation Phase 34E
+
+Phase 34E is a non-mutating FILM / slow-motion review gate. FILM remains
+evaluated-only. No FILM checkpoint, checksum, storage path, runtime image, Cloud
+Run job, model download, runtime execution, slow-motion execution, or full-video
+interpolation is approved.
+
+Still blocked:
+
+- FILM download/execution and slow motion
+- full-video interpolation
+- full-frame and full-video enhancement beyond the explicit Phase 34D bounded sample
+- runtime model downloads
+- GPU jobs and Cloud Run execution for FILM
+- providers, public delivery, Revideo, production, external beta, paid production, and broad real media

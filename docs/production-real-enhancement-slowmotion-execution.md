@@ -32,3 +32,15 @@ representative frame and produced private sample and enhanced-sample PNGs,
 before/after metadata, and QA. It does not enhance the full frame, does not
 process video, does not run FILM or slow motion, and does not approve production
 or broad real-media enhancement.
+
+## Activation Phase 34E FILM Gate
+
+Phase 34E is review/planning only for FILM / slow motion. FILM remains
+evaluated-only and blocked. It records model evidence gaps, risks, a future
+bounded test scope, and text-only future command plans.
+
+No FILM model download, FILM runtime, slow-motion execution, media processing,
+GPU job, Cloud Run job, Docker build/push, GCP mutation, provider call, public
+artifact, public URL, secret, production readiness, external beta, broad real
+media, full-frame enhancement, full-video enhancement, full-video interpolation,
+or Revideo production path is approved by Phase 34E.

@@ -16,6 +16,7 @@
     "vite.staging-speech-runtime-worker.config.ts",
     "vite.staging-real-video-export-worker.config.ts",
     "vite.staging-birefnet-runtime-worker.config.ts",
-    "vite.staging-real-esrgan-runtime-worker.config.ts"
+    "vite.staging-real-esrgan-runtime-worker.config.ts",
+    "vite.staging-sam2-runtime-worker.config.ts"
   ]
 }

@@ -58,3 +58,10 @@ GCS object verification.
 This is not runtime approval. SAM2 inference, temporal tracking, full-video
 masks, full-video text-behind-subject, public delivery, production, external
 beta, and broad real media remain blocked.
+
+## Activation Phase 35C
+
+Phase 35C verified SAM2 runtime on generated/synthetic frames only for
+`phase35c-20260529T16082`. It does not permit real-video temporal tracking,
+full-video masks, text-behind-subject video, production, external beta, broad
+real media, providers, or public output.

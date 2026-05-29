@@ -26,3 +26,14 @@ and upload verification.
 Phase 35B is not SAM2 execution approval. Phase 35C must separately verify
 runtime loading on generated/synthetic fixtures only before any controlled
 real-video temporal tracking phase can be considered.
+
+## Activation Phase 35C
+
+Phase 35C verified SAM2 runtime loading on generated/synthetic frames only for
+`phase35c-20260529T16082`. It built, deployed, and executed the dedicated
+staging SAM2 runtime job with the approved SAM2.1 tiny checkpoint/config copied
+from private GCS.
+
+Phase 35C is not real-video tracking approval. Full-video masks,
+text-behind-subject video, production, external beta, broad real media,
+providers, Revideo, FILM, and slow motion remain blocked after this phase.

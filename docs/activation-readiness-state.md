@@ -1,8 +1,9 @@
 # Activation Readiness State
 
-Phase 35B is the approved SAM2.1 tiny download/load phase after Phase 35A. It
-stores only the approved checkpoint/config in private staging GCS and records
-checksum/source evidence. SAM2 runtime, temporal tracking, full-video masks,
+Phase 35C completed SAM2 generated/synthetic runtime verification after Phase
+35B. The dedicated staging SAM2 runtime loaded the private SAM2.1 tiny
+checkpoint/config, verified checksums, and produced generated-fixture masks for
+`phase35c-20260529T16082`. Real-video temporal tracking, full-video masks,
 full-video text-behind-subject, production launch, external beta, broad real
 user media, provider execution, arbitrary media execution, FILM, slow motion,
 and Revideo remain blocked. FILM/slow-motion is deferred to future Phase 38A
@@ -48,6 +49,7 @@ runtime on generated media only.
 | BiRefNet model approval | Staging-approved for planning | `ZhengPeng7/BiRefNet` is approved only for representative-frame/single-frame background-removal planning. |
 | SAM2 model approval | Phase 35A review complete | Official SAM2.1 tiny source/license evidence is clear for staging download. Phase 35B is the approved download/load step for the tiny checkpoint/config only. |
 | SAM2 model weights availability | Private staging storage verified | `sam2.1_hiera_tiny.pt` and `sam2.1_hiera_t.yaml` are stored under private generated-assets model storage with checksum/source evidence. Phase 35C may use them only for generated/synthetic runtime verification. |
+| SAM2 runtime | Phase 35C generated-fixture verification complete | The dedicated SAM2 runtime ran on generated/synthetic frames only for `phase35c-20260529T16082`; real-video temporal tracking remains blocked until Phase 35D. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
 | Real-video representative-frame mask | Complete for one controlled test | Phase 33D produced a private frame, mask, RGBA cutout, metadata, and QA for `phase33d-20260528T161056` with no blocking failures. |
@@ -80,7 +82,7 @@ Current classification:
 - GCP staging setup planning: ready
 - GCP staging resources: created/verified for `reeditpro` / `us-central1`
 - staging deployment: complete where applicable for the controlled activation path
-- dedicated runtime jobs: CPU speech runtime verified, BiRefNet L4 runtime verified, Real-ESRGAN L4 runtime verified
+- dedicated runtime jobs: CPU speech runtime verified, BiRefNet L4 runtime verified, Real-ESRGAN L4 runtime verified, SAM2 L4 runtime verified on generated synthetic frames only
 - model weights/licenses: staging approval remains scope-limited per model/tool
 - model files/checksums: private staging storage verified for faster-whisper tiny, BiRefNet, and RealESRGAN_x4plus
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
@@ -93,8 +95,8 @@ Current classification:
 - Real-ESRGAN broader-scope policy: Phase 34E complete; human visual review required before broader scope
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
-- SAM2 execution: blocked; SAM2 runtime and temporal tracking remain unapproved after Phase 35B
-- next activation phase: Phase 35C SAM2 runtime verification on generated/synthetic fixtures only after private model evidence verifies
+- SAM2 execution: Phase 35C generated/synthetic runtime verification complete; real-video temporal tracking remains blocked until a separate Phase 35D controlled short segment
+- next activation phase: Phase 35D controlled short real-video temporal mask tracking only
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

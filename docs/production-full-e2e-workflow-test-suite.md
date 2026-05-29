@@ -19,7 +19,7 @@ full-video text-behind-subject output after Phase 35A. SAM2 remains
 download/runtime blocked until later explicit Phase 35B/35C/35D gates pass, and
 all SAM2 artifacts must remain private.
 
-After Phase 35B, the full E2E workflow still must not consume SAM2 masks or
-tracking output. Phase 35B provides private model storage evidence only; Phase
-35C generated/synthetic runtime verification is still required before any SAM2
-runtime path can be considered.
+After Phase 35C, the full E2E workflow still must not consume SAM2 real-video
+masks or tracking output. Phase 35C provides generated/synthetic runtime proof
+only; Phase 35D controlled short real-video temporal tracking must pass before
+any SAM2 real-video mask path can be considered.

@@ -213,3 +213,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm no SAM2 runtime, GPU job, media processing, public access, provider call, Docker build/push, Cloud Run deploy, or Revideo path occurred.
 5. Proceed to Phase 35C only as generated/synthetic SAM2 runtime verification using the private checkpoint/config.
 6. Keep Phase 35D real-video temporal tracking and Phase 35E full-video text-behind-subject blocked until runtime and temporal QA pass.
+
+## After Phase 35C
+
+1. Review `activation:sam2-runtime:report` and `docs/activation-phase-35c-sam2-runtime-verification-results.md`.
+2. Confirm the runtime copied only `sam2.1_hiera_tiny.pt` and `sam2.1_hiera_t.yaml` from private staging GCS and verified Phase 35B checksums.
+3. Confirm the only input was a generated synthetic five-frame sequence.
+4. Confirm the private frame, mask, overlay, metadata, QA, and report artifacts exist with no blocking failures.
+5. Confirm no real video, real user media, full-video mask, full-video text-behind-subject, providers, public access, Revideo, FILM, slow motion, production, external beta, or broad real media occurred.
+6. Proceed to Phase 35D only as controlled short real-video temporal mask tracking planning/execution with a very short approved segment.

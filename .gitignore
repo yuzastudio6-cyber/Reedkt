@@ -15,6 +15,7 @@ dist-server
 dist-remotion-worker
 dist-staging-fixture-worker
 dist-staging-speech-runtime-worker
+dist-staging-sam2-runtime-worker
 *.local
 
 # Editor directories and files

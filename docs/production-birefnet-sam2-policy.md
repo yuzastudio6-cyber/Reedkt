@@ -41,6 +41,14 @@ temporal tracking. Full-video masks, full-video text-behind-subject,
 production, external beta, paid production, broad real media, providers, and
 Revideo remain blocked.
 
+## Activation Phase 35C
+
+Phase 35C verified only generated/synthetic SAM2 runtime loading and mask output
+for `phase35c-20260529T16082` using the private Phase 35B SAM2.1 tiny
+checkpoint/config. It does not replace BiRefNet's proven single-frame scope and
+does not approve real-video temporal tracking, full-video masks,
+text-behind-subject video, production, beta, or broad real media.
+
 ## Activation Phase 33C
 
 Phase 33C verified BiRefNet runtime loading on one generated synthetic image

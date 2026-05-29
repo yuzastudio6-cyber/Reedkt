@@ -198,9 +198,18 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 ## After Phase 35A
 
 1. Review `activation:sam2-model-approval:plan`, `activation:sam2-model-approval:report`, and `activation:sam2-model-weight:summary`.
-2. Confirm SAM2 remains evaluated-only and pending human legal/model review.
-3. Confirm no SAM2 checkpoint is approved, no checksum is recorded, no private SAM2 model artifact exists, and no runtime image/job is approved.
+2. Confirm Phase 35B is limited to official SAM2.1 tiny source/license verification plus private checkpoint/config download.
+3. Confirm no SAM2 checkpoint checksum is recorded, no private SAM2 model artifact exists, and no runtime image/job is approved before Phase 35B runs.
 4. Confirm SAM2 download, runtime, temporal tracking, full-video masks, full-video text-behind-subject, providers, public access, Revideo, production, external beta, and broad real media remain blocked.
-5. Proceed to Phase 35B only after a human approves the exact SAM2 checkpoint source, license/provenance, private storage path, and checksum plan.
+5. Proceed to Phase 35B only if Codex verifies official SAM2 source/license evidence and the exact approved checkpoint/config URLs.
 6. Keep Phase 35C, 35D, and 35E blocked until the preceding SAM2 download/runtime/temporal QA phases pass.
 7. Keep FILM/slow-motion outside Phase 35; FILM remains a future Phase 38A model approval workflow candidate only.
+
+## After Phase 35B
+
+1. Review `activation:sam2-model-download:report` and `docs/activation-phase-35b-download-approved-sam2-model-results.md`.
+2. Confirm only `sam2.1_hiera_tiny.pt`, `sam2.1_hiera_t.yaml`, checksum manifest, model tree manifest, and source evidence were uploaded.
+3. Confirm the target path is private staging GCS: `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/sam2/sam2.1-hiera-tiny/`.
+4. Confirm no SAM2 runtime, GPU job, media processing, public access, provider call, Docker build/push, Cloud Run deploy, or Revideo path occurred.
+5. Proceed to Phase 35C only as generated/synthetic SAM2 runtime verification using the private checkpoint/config.
+6. Keep Phase 35D real-video temporal tracking and Phase 35E full-video text-behind-subject blocked until runtime and temporal QA pass.

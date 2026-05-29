@@ -1,10 +1,14 @@
 # Activation Readiness State
 
+Phase 34E is the Real-ESRGAN broader-scope policy decision after the Phase 34D
+bounded sample. It keeps full-frame enhancement, full-video enhancement, blind
+full-video enhancement, production launch, external beta, broad real user media
+testing, provider execution, arbitrary media execution, FILM, slow motion, and
+Revideo blocked. FILM/slow-motion is not Phase 34E and is deferred to future
+Phase 38A approval if still needed.
+
 Phase 34D completed one bounded Real-ESRGAN enhancement sample from the approved
-Phase 33D representative frame. It is not ready for production launch, external
-beta, broad real user media testing, provider execution, arbitrary media
-execution, full-frame enhancement, full-video enhancement, FILM, slow motion, or
-Revideo.
+Phase 33D representative frame.
 
 Phase 33E composed a private text-behind-subject PNG preview from the approved
 Phase 33D frame, mask, and RGBA cutout. It emitted a text layer plan, depth
@@ -46,6 +50,7 @@ runtime on generated media only.
 | FILM model approval | Evaluated-only | `google-research/frame-interpolation` evidence is recorded, but FILM download, execution, and slow motion remain blocked. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
 | Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
+| Real-ESRGAN broader-scope policy | Policy complete; broader execution blocked | Phase 34E records that human visual review is required and no full-frame/full-video/blind enhancement scope is allowed yet. Additional bounded sample planning may be considered only in a later approved phase. |
 | Model weights availability | Private staging storage verified for approved activation models | `Systran/faster-whisper-tiny`, `ZhengPeng7/BiRefNet`, and `RealESRGAN_x4plus` have private staging storage and checksum/revision evidence for their approved controlled scopes. |
 | CPU speech runtime | Verified for generated audio | Dedicated staging CPU speech runtime image loaded the approved tiny model from private GCS and ran faster-whisper on generated audio only. |
 | First real video speech/caption | Complete for one controlled test | Phase 28 processed `/Users/macuser/Downloads/IMG_6005.MOV` for speech/caption only with private artifacts and no blocking caption QA findings. |
@@ -77,8 +82,10 @@ Current classification:
 - mask execution: complete only for the explicit Phase 33D representative-frame test; full-video masks remain blocked
 - text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview; full-video text-behind-subject remains blocked
 - enhancement execution: blocked except the explicit Phase 34D bounded real-video-derived sample; full-frame and full-video enhancement remain blocked
+- Real-ESRGAN broader-scope policy: Phase 34E complete; human visual review required before broader scope
 - SAM2 execution: blocked; SAM2 remains evaluated-only
-- slow-motion execution: blocked; FILM is evaluated-only
+- next activation phase: Phase 35A SAM2 model approval workflow
+- slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked
 - external beta: blocked

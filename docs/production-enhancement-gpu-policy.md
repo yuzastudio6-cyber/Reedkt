@@ -57,3 +57,15 @@ Still blocked:
 - FILM download/execution and slow motion
 - alternate Real-ESRGAN, GFPGAN, and facexlib weights
 - providers, public delivery, Revideo, production, external beta, paid production, and broad real media
+
+## Activation Phase 34E
+
+Phase 34E is a non-mutating Real-ESRGAN broader-scope policy decision after the
+Phase 34D bounded sample. It does not run Real-ESRGAN again and does not process
+media. Because no explicit human visual review artifact is present, full-frame
+enhancement, full-video enhancement, blind full-video enhancement, production,
+external beta, paid production, and broad real media remain blocked.
+
+Phase 34E may only allow future planning for human visual review or one
+additional bounded sample under a separate approved phase. FILM/slow-motion is
+not part of Phase 34E and is deferred to future Phase 38A approval if needed.

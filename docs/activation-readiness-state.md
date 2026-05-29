@@ -8,6 +8,14 @@ static/report-only: it does not add desktop runtime packages, local workers,
 hardware scans, local AI, Docker/gcloud/model/provider/media execution, or any
 production/external beta/broad real media unlock.
 
+Phase 44B adds the web app structure migration in transitional mode. `apps/web`
+is the canonical web boundary, but active source remains in root `src`, active
+assets remain in `public`, and root Vite scripts remain preserved while
+browser UI is separated safely from `src/backend` contracts in later phases.
+Phase 44B does not add desktop runtime packages, local workers, Docker/gcloud,
+provider calls, model downloads, media processing, secrets, Revideo core, or
+any production/external beta/broad real media unlock.
+
 Phase 35B is the approved SAM2.1 tiny download/load phase after Phase 35A. It
 stores only the approved checkpoint/config in private staging GCS and records
 checksum/source evidence. SAM2 runtime, temporal tracking, full-video masks,
@@ -73,6 +81,7 @@ runtime on generated media only.
 | Smart cut + captions | Complete for one controlled test | Phase 29 produced private SmartCutPlan, TimelineManifest, caption refs, and QA for `phase29-20260528T02254`; final export and broad real media testing remain blocked. |
 | Final private export | Complete for one controlled private export | Phase 30 produced a private final export for the approved activation path. Public delivery remains blocked. |
 | Web-first platform boundary | Ready | Phase 44A documents `apps/web`, deferred `apps/desktop`, shared package boundaries, server ownership, static report, CLI summary, and smoke coverage. |
+| Web app structure migration | Transitional | Phase 44B makes `apps/web` canonical while preserving root `src`, `public`, `index.html`, and root scripts for current web behavior. |
 | Desktop product path | Future/planned only | No desktop framework, active runtime, installer, local worker, hardware scan, or local AI is added in Phase 44A. |
 | Internal beta | Blocked | Requires full private E2E evidence, operations, support, privacy, cost, and rollback readiness. |
 | External beta | Blocked | Requires strict Phase 37 go/no-go approval. |
@@ -106,9 +115,10 @@ Current classification:
 - SAM2 execution: blocked; SAM2 runtime and temporal tracking remain unapproved after Phase 35B
 - next activation phase: Phase 35C SAM2 runtime verification on generated/synthetic fixtures only after private model evidence verifies
 - web-first app boundary: ready for Phase 44B structure migration planning
+- web app structure migration: transitional; `apps/web` canonical, root Vite source preserved
 - desktop implementation: blocked/deferred; future/planned only
 - shared packages: planned boundaries only, with no workspace/package implementation yet
-- next platform phase: Phase 44B web app structure migration
+- next platform phase: Phase 44C web production shell
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

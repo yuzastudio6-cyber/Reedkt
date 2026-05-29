@@ -42,8 +42,18 @@ export function getRequestId(request: Request): string {
   return (request as RuntimeRequest).context?.requestId ?? 'request-unknown'
 }
 
-export function normalizeUnknownError(error: unknown): ApiError {
+export interface NormalizeUnknownErrorOptions {
+  exposeUnexpectedErrorMessages?: boolean
+}
+
+export function normalizeUnknownError(error: unknown, options: NormalizeUnknownErrorOptions = {}): ApiError {
   if (error instanceof ApiError) return error
-  if (error instanceof Error) return new ApiError('INTERNAL_ERROR', error.message, 500)
+  if (error instanceof Error) {
+    return new ApiError(
+      'INTERNAL_ERROR',
+      options.exposeUnexpectedErrorMessages ? error.message : 'Unexpected backend runtime error.',
+      500,
+    )
+  }
   return new ApiError('INTERNAL_ERROR', 'Unexpected backend runtime error.', 500)
 }

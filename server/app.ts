@@ -3,7 +3,10 @@ import express, { type Express } from 'express'
 import type { RuntimeEnv } from './config/env'
 import { createSupabaseAdminClient } from './supabase/admin-client'
 import { createSupabasePublicClient } from './supabase/public-client'
+import { createCorsOptions } from './middleware/cors-policy'
 import { requestIdMiddleware } from './middleware/request-id'
+import { createRequestLoggingMiddleware } from './middleware/request-logging'
+import { createSecurityHeadersMiddleware } from './middleware/security-headers'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createChatRoutes } from './routes/chat-routes'
@@ -28,13 +31,15 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
 
   const app = express()
   app.disable('x-powered-by')
-  app.use(cors({ origin: true, credentials: true }))
+  app.use(createSecurityHeadersMiddleware(env))
+  app.use(cors(createCorsOptions(env)))
   app.use(express.json({ limit: '1mb' }))
   app.use((request, _response, next) => {
     ;(request as RuntimeRequest).runtime = runtime
     next()
   })
   app.use(requestIdMiddleware)
+  app.use(createRequestLoggingMiddleware(env))
 
   app.use(createHealthRoutes())
   app.use(createProjectRoutes())

@@ -65,3 +65,26 @@ export interface ProductStrategyReport {
   externalBetaAllowed: false
   broadRealMediaAllowed: false
 }
+
+export type WebAppStructureMode = 'moved' | 'transitional' | 'scaffolded'
+
+export interface WebAppStructureReport {
+  reportId: string
+  createdAt: string
+  structureMode: WebAppStructureMode
+  webAppPath: string
+  currentSourcePath: string
+  viteEntryPath: string
+  publicAssetsPath: string
+  rootScriptsPreserved: string[]
+  webScriptsAdded: string[]
+  desktopStatus: PlatformReadinessStatus
+  forbiddenFindings: string[]
+  blockers: string[]
+  warnings: string[]
+  nextActions: string[]
+  revideoReadiness: RevideoPlatformReadiness
+  productionReadyAllowed: false
+  externalBetaAllowed: false
+  broadRealMediaAllowed: false
+}

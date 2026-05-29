@@ -2,6 +2,13 @@
 
 The web app should expose the launch workflow as one professional cloud-backed editing path.
 
+## Phase 44B Structure
+
+`apps/web` is the canonical boundary, but the active Vite app remains rooted at
+`index.html`, `src`, and `public` in transitional mode. Phase 44C should build
+the production web shell within this boundary before Phase 44D backend
+integration.
+
 ## Product Surfaces
 
 - Dashboard: project list, status, recent work, readiness warnings, and next actions.

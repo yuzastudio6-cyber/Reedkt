@@ -194,3 +194,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 5. Confirm any future Real-ESRGAN work is limited to human review or separately approved additional bounded-sample planning.
 6. Proceed to Phase 35A only as the SAM2 model approval workflow.
 7. Keep FILM/slow-motion outside Phase 34E; FILM is a future Phase 38A model approval workflow candidate only.
+
+## After Phase 35A
+
+1. Review `activation:sam2-model-approval:plan`, `activation:sam2-model-approval:report`, and `activation:sam2-model-weight:summary`.
+2. Confirm SAM2 remains evaluated-only and pending human legal/model review.
+3. Confirm no SAM2 checkpoint is approved, no checksum is recorded, no private SAM2 model artifact exists, and no runtime image/job is approved.
+4. Confirm SAM2 download, runtime, temporal tracking, full-video masks, full-video text-behind-subject, providers, public access, Revideo, production, external beta, and broad real media remain blocked.
+5. Proceed to Phase 35B only after a human approves the exact SAM2 checkpoint source, license/provenance, private storage path, and checksum plan.
+6. Keep Phase 35C, 35D, and 35E blocked until the preceding SAM2 download/runtime/temporal QA phases pass.
+7. Keep FILM/slow-motion outside Phase 35; FILM remains a future Phase 38A model approval workflow candidate only.

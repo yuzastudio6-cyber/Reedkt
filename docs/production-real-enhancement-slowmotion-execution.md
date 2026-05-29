@@ -32,3 +32,16 @@ representative frame and produced private sample and enhanced-sample PNGs,
 before/after metadata, and QA. It does not enhance the full frame, does not
 process video, does not run FILM or slow motion, and does not approve production
 or broad real-media enhancement.
+
+## Activation Phase 34E Boundary
+
+Phase 34E is the Real-ESRGAN full-frame/full-video policy decision after the
+bounded Phase 34D sample. It is report-only and does not run Real-ESRGAN, process
+media, build images, deploy jobs, mutate cloud resources, call providers, run
+FILM, or run slow motion.
+
+Phase 34E keeps full-frame enhancement, full-video enhancement, blind full-video
+enhancement, production, external beta, paid production, broad real media, FILM,
+and slow motion blocked. A future Real-ESRGAN step may only be human visual
+review or separately approved additional bounded-sample planning. FILM/slow
+motion is deferred to future Phase 38A approval if still needed.

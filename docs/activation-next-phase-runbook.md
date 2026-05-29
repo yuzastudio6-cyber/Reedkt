@@ -183,4 +183,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the runtime copied only `RealESRGAN_x4plus.pth` from private staging GCS and did not download from GitHub or any model host at runtime.
 4. Confirm the input sample, enhanced sample, before/after metadata, and QA report exist privately with no blocking failures.
 5. Confirm no full-frame enhancement, full-video enhancement, FILM, slow motion, providers, public access, secret values, Revideo, production, external beta, or broad real media occurred.
-6. Proceed to Phase 34E only if the private bounded sample enhancement exists and all safety gates remain blocked for broader execution.
+6. Proceed to Phase 34E only as a non-mutating Real-ESRGAN broader-scope policy decision after the bounded sample.
+
+## After Phase 34E
+
+1. Review `activation:real-esrgan-policy-decision:report` and `docs/activation-phase-34e-real-esrgan-policy-decision-results.md`.
+2. Confirm Phase 34D evidence is linked and exactly one bounded sample is recorded.
+3. Confirm human visual review is still required unless an explicit review artifact exists.
+4. Confirm full-frame enhancement, full-video enhancement, blind full-video enhancement, production, external beta, broad real media, FILM, slow motion, providers, public access, and Revideo remain blocked.
+5. Confirm any future Real-ESRGAN work is limited to human review or separately approved additional bounded-sample planning.
+6. Proceed to Phase 35A only as the SAM2 model approval workflow.
+7. Keep FILM/slow-motion outside Phase 34E; FILM is a future Phase 38A model approval workflow candidate only.

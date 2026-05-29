@@ -62,7 +62,7 @@ Tools must not be exposed as direct user commands or thin wrappers. A production
 - Phase 22 prepares the GCP staging foundation with staging config, resource maps, IAM/bucket/secret plans, and text-only command plans. It does not run `gcloud`, create resources, deploy, push images, or unblock beta.
 - Phase 44A adds web-first platform boundaries, deferred desktop boundaries, shared package policies, a static report, CLI summary, and smoke coverage. It does not add desktop runtime packages, local workers, hardware scans, local AI, Docker/gcloud/model/provider/media execution, or launch unlocks.
 - Phase 44B adds the web app structure migration in transitional mode: `apps/web` becomes canonical while root `src`, `public`, `index.html`, and existing Vite scripts remain active. It does not add desktop runtime packages, local workers, Docker/gcloud/model/provider/media execution, or launch unlocks.
-- Phase 44C is the next platform phase for the web production shell.
+- Phase 44C adds the browser-safe web production shell under root `src/web-shell`, with project, editor, job, artifact, readiness, and compute route surfaces. It does not add desktop runtime, local workers, browser heavy execution, Docker/gcloud/model/provider/media execution, or launch unlocks.
 - Phases 19-37 move step-by-step through local baseline, human-run container build/readiness, staging setup, generated-fixture staging tests, model/license approval, controlled private real video tests, internal beta readiness, and external beta go/no-go.
 - Real video testing begins only after staging, readiness, storage, and model/license prerequisites pass.
 

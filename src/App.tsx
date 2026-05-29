@@ -1,29 +1,41 @@
+import type { ReactElement } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { BrandKitPage } from './pages/BrandKitPage'
-import { DashboardPage } from './pages/DashboardPage'
-import { EditorPage } from './pages/EditorPage'
-import { ExportQueuePage } from './pages/ExportQueuePage'
-import { LandingPage } from './pages/LandingPage'
-import { PricingPage } from './pages/PricingPage'
-import { CreateProjectPage } from './pages/CreateProjectPage'
-import { ProjectsPage } from './pages/ProjectsPage'
-import { WalletPage } from './pages/WalletPage'
+import { AppShell } from './web-shell/components/AppShell'
+import { ArtifactLibraryPage } from './web-shell/pages/ArtifactLibraryPage'
+import { ComputeRoutesPage } from './web-shell/pages/ComputeRoutesPage'
+import { EditorWorkspacePage } from './web-shell/pages/EditorWorkspacePage'
+import { JobQueuePage } from './web-shell/pages/JobQueuePage'
+import { NotFoundPage } from './web-shell/pages/NotFoundPage'
+import { ProjectDashboardPage } from './web-shell/pages/ProjectDashboardPage'
+import { ProjectIntakePage } from './web-shell/pages/ProjectIntakePage'
+import { SettingsPage } from './web-shell/pages/SettingsPage'
+import { SystemReadinessPage } from './web-shell/pages/SystemReadinessPage'
+import { WebHomePage } from './web-shell/pages/WebHomePage'
+import { getProjectRoutePath, getWebShellRoute } from './web-shell/web-shell-routes'
+
+function inShell(element: ReactElement) {
+  return <AppShell>{element}</AppShell>
+}
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/projects" element={<ProjectsPage />} />
-      <Route path="/projects/new" element={<CreateProjectPage />} />
-      <Route path="/editor" element={<EditorPage />} />
-      <Route path="/wallet" element={<WalletPage />} />
-      <Route path="/pricing" element={<PricingPage />} />
-      <Route path="/brand-kit" element={<BrandKitPage />} />
-      <Route path="/exports" element={<ExportQueuePage />} />
-      <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+      <Route path={getWebShellRoute('home').path} element={inShell(<WebHomePage />)} />
+      <Route path={getWebShellRoute('projects').path} element={inShell(<ProjectDashboardPage />)} />
+      <Route path={getWebShellRoute('project_intake').path} element={inShell(<ProjectIntakePage />)} />
+      <Route path={getWebShellRoute('project_overview').path} element={inShell(<ProjectDashboardPage />)} />
+      <Route path={getWebShellRoute('editor_workspace').path} element={inShell(<EditorWorkspacePage />)} />
+      <Route path={getWebShellRoute('job_queue').path} element={inShell(<JobQueuePage />)} />
+      <Route path={getWebShellRoute('artifact_library').path} element={inShell(<ArtifactLibraryPage />)} />
+      <Route path={getWebShellRoute('system_readiness').path} element={inShell(<SystemReadinessPage />)} />
+      <Route path={getWebShellRoute('compute_routes').path} element={inShell(<ComputeRoutesPage />)} />
+      <Route path={getWebShellRoute('settings').path} element={inShell(<SettingsPage />)} />
+      <Route path="/dashboard" element={<Navigate to="/projects" replace />} />
+      <Route path="/editor" element={<Navigate to={getProjectRoutePath('editor_workspace')} replace />} />
+      <Route path="/exports" element={<Navigate to={getProjectRoutePath('artifact_library')} replace />} />
+      <Route path="/app" element={<Navigate to="/" replace />} />
       <Route path="/upload" element={<Navigate to="/projects/new" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path={getWebShellRoute('not_found').path} element={inShell(<NotFoundPage />)} />
     </Routes>
   )
 }

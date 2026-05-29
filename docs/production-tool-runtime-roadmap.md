@@ -14,6 +14,7 @@ Milestone 0 is documentation-only. It does not install packages, execute tools, 
 - Production tools are recipe pipelines with validation, confidence scoring, QA, fallback, and timeline/render integration.
 - Revideo is `evaluation_only` and `future_optional`, not a core launch dependency.
 - The core render stack is Hyperframe, Remotion, FFmpeg, libass, and OpenTimelineIO.
+- Web is the first product launch path; desktop is deferred until the web path is finished enough to justify a second shell.
 
 ## Runtime Flow
 
@@ -59,6 +60,8 @@ Tools must not be exposed as direct user commands or thin wrappers. A production
 - Phase 20 prepares human-run production container builds with static image plans, command text, build log parsing, and Phase 21 blocker reporting.
 - Phase 21 adds container readiness validation reporting before GCP staging foundation setup. It parses human-run readiness logs and keeps Docker, GCP, providers, model downloads, real media, production-ready, and external beta blocked.
 - Phase 22 prepares the GCP staging foundation with staging config, resource maps, IAM/bucket/secret plans, and text-only command plans. It does not run `gcloud`, create resources, deploy, push images, or unblock beta.
+- Phase 44A adds web-first platform boundaries, deferred desktop boundaries, shared package policies, a static report, CLI summary, and smoke coverage. It does not add desktop runtime packages, local workers, hardware scans, local AI, Docker/gcloud/model/provider/media execution, or launch unlocks.
+- Phase 44B is the next platform phase for web app structure migration.
 - Phases 19-37 move step-by-step through local baseline, human-run container build/readiness, staging setup, generated-fixture staging tests, model/license approval, controlled private real video tests, internal beta readiness, and external beta go/no-go.
 - Real video testing begins only after staging, readiness, storage, and model/license prerequisites pass.
 

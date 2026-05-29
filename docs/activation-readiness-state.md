@@ -1,5 +1,13 @@
 # Activation Readiness State
 
+Phase 44A adds the web-first platform boundary foundation. Web is the launch
+path, desktop is deferred, shared packages are bounded, and the server remains
+the owner for activation runtime, workers, Cloud Run job orchestration, private
+artifacts, model policies, cost, security, and readiness. Phase 44A is
+static/report-only: it does not add desktop runtime packages, local workers,
+hardware scans, local AI, Docker/gcloud/model/provider/media execution, or any
+production/external beta/broad real media unlock.
+
 Phase 35B is the approved SAM2.1 tiny download/load phase after Phase 35A. It
 stores only the approved checkpoint/config in private staging GCS and records
 checksum/source evidence. SAM2 runtime, temporal tracking, full-video masks,
@@ -64,6 +72,8 @@ runtime on generated media only.
 | First real video speech/caption | Complete for one controlled test | Phase 28 processed `/Users/macuser/Downloads/IMG_6005.MOV` for speech/caption only with private artifacts and no blocking caption QA findings. |
 | Smart cut + captions | Complete for one controlled test | Phase 29 produced private SmartCutPlan, TimelineManifest, caption refs, and QA for `phase29-20260528T02254`; final export and broad real media testing remain blocked. |
 | Final private export | Complete for one controlled private export | Phase 30 produced a private final export for the approved activation path. Public delivery remains blocked. |
+| Web-first platform boundary | Ready | Phase 44A documents `apps/web`, deferred `apps/desktop`, shared package boundaries, server ownership, static report, CLI summary, and smoke coverage. |
+| Desktop product path | Future/planned only | No desktop framework, active runtime, installer, local worker, hardware scan, or local AI is added in Phase 44A. |
 | Internal beta | Blocked | Requires full private E2E evidence, operations, support, privacy, cost, and rollback readiness. |
 | External beta | Blocked | Requires strict Phase 37 go/no-go approval. |
 | Paid production | Blocked | Not approved by Phase 18 or the activation roadmap. |
@@ -95,6 +105,10 @@ Current classification:
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: blocked; SAM2 runtime and temporal tracking remain unapproved after Phase 35B
 - next activation phase: Phase 35C SAM2 runtime verification on generated/synthetic fixtures only after private model evidence verifies
+- web-first app boundary: ready for Phase 44B structure migration planning
+- desktop implementation: blocked/deferred; future/planned only
+- shared packages: planned boundaries only, with no workspace/package implementation yet
+- next platform phase: Phase 44B web app structure migration
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

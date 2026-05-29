@@ -12,6 +12,9 @@ dist
 dist-ssr
 dist-server
 dist-remotion-worker
+test-results
+playwright-report
+blob-report
 *.local
 
 # Editor directories and files

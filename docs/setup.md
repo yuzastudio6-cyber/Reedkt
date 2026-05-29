@@ -17,6 +17,7 @@ Frontend-safe values:
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_REEDITPRO_API_BASE_URL`
 - `VITE_REEDITPRO_API_MODE`
+- `VITE_E2E_BROWSER_TEST` for hidden local-only Playwright runtime assertions
 
 Server-only values:
 
@@ -41,6 +42,13 @@ npm run dev:api
 npm run build
 npm run build:server
 npm run start:server
+npm run test:e2e:browser
+```
+
+Install the local Chromium browser binary before running Playwright for the first time:
+
+```bash
+npx playwright install chromium
 ```
 
 ## Database
@@ -56,3 +64,7 @@ Do not run migrations against staging or production without a reviewed Supabase 
 ## Reddit Handoff Note
 
 This repository does not implement Reddit OAuth or Reddit API behavior. Do not add `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_REDIRECT_URI`, Reddit token tables, or Reddit posting flows unless a future product decision targets this ReeditPro application intentionally.
+
+## Browser E2E Safety
+
+The Playwright browser suite is mocked/local only. It starts Vite and Express on `127.0.0.1`, uses mock runtime env, blocks external browser requests in tests, and does not require Supabase, provider, cloud, deployment, real media, Docker, or worker credentials.

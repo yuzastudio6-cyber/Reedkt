@@ -62,9 +62,9 @@ The current repository does not contain Reddit OAuth, Reddit API clients, Reddit
 
 - The repo uses `tsx` smoke scripts today, not Vitest/Jest/Playwright.
 - Existing smoke scripts live under `server/smoke/`.
-- This slice adds `npm test`, `npm run test:unit`, `npm run test:integration`, and `npm run test:e2e` as offline smoke-style commands.
-- Mocked E2E currently means an HTTP-level backend runtime smoke, not browser automation.
-- Formal Playwright browser E2E remains a recommended next slice and should be added with an explicit lockfile/dependency decision.
+- The foundation slice added `npm test`, `npm run test:unit`, `npm run test:integration`, and `npm run test:e2e` as offline smoke-style commands.
+- The mocked browser E2E slice adds Playwright Chromium coverage through `npm run test:e2e:browser`.
+- Formal live/staging browser E2E remains a future controlled slice requiring deployment credentials and approval.
 
 ## Deployment And Build Status
 
@@ -80,7 +80,7 @@ The current repository does not contain Reddit OAuth, Reddit API clients, Reddit
 - Before this slice, CORS allowed all origins in the Express runtime.
 - Before this slice, unexpected production errors could expose raw error messages.
 - Runtime rate limiting is documented in policy docs but not enforced by backend middleware yet.
-- No production-grade browser E2E or deployed staging smoke is wired.
+- No deployed staging browser smoke is wired.
 - Production secrets, provider credentials, Supabase credentials, and deployment credentials must be supplied by humans through secure infrastructure, not committed.
 
 ## Reliability Issues
@@ -99,7 +99,7 @@ The current repository does not contain Reddit OAuth, Reddit API clients, Reddit
 ## Missing Production Readiness Pieces
 
 - Human-provisioned Supabase staging/production credentials and migration execution.
-- Formal browser E2E harness.
+- Live staging browser E2E harness.
 - Runtime rate limiting.
 - Production observability and alerting.
 - Deployed backend API service.
@@ -110,8 +110,7 @@ The current repository does not contain Reddit OAuth, Reddit API clients, Reddit
 ## Prioritized Implementation Plan
 
 1. Keep this foundation branch focused on environment validation, backend HTTP hardening, offline tests, and docs.
-2. Add formal Playwright mocked browser E2E in a dedicated dependency/lockfile slice.
-3. Add runtime rate limiting and production observability once dependency and deployment targets are approved.
-4. Run Supabase local/staging migration validation with human-provided database credentials.
-5. Deploy a staging backend only after secrets, CORS URLs, Supabase credentials, and rollback steps are approved.
-6. Expand E2E tests across the real approval-gated edit flow before any production/beta claim.
+2. Add runtime rate limiting and production observability once dependency and deployment targets are approved.
+3. Run Supabase local/staging migration validation with human-provided database credentials.
+4. Deploy a staging backend only after secrets, CORS URLs, Supabase credentials, and rollback steps are approved.
+5. Expand browser E2E across the real approval-gated edit flow before any production/beta claim.

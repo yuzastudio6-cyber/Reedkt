@@ -1,11 +1,19 @@
 # Activation Readiness State
 
-Phase 34E is the Real-ESRGAN broader-scope policy decision after the Phase 34D
-bounded sample. It keeps full-frame enhancement, full-video enhancement, blind
-full-video enhancement, production launch, external beta, broad real user media
-testing, provider execution, arbitrary media execution, FILM, slow motion, and
-Revideo blocked. FILM/slow-motion is not Phase 34E and is deferred to future
-Phase 38A approval if still needed.
+Phase 35A is the SAM2 model approval workflow after the corrected Phase 34E
+Real-ESRGAN broader-scope policy decision. It records SAM2 source/license
+evidence from Phase 33A, but no human legal/model approval artifact exists yet.
+SAM2 download, runtime, temporal tracking, full-video masks, full-video
+text-behind-subject, production launch, external beta, broad real user media,
+provider execution, arbitrary media execution, FILM, slow motion, and Revideo
+remain blocked. FILM/slow-motion is deferred to future Phase 38A approval if
+still needed.
+
+Phase 34E completed the Real-ESRGAN broader-scope policy decision after the
+Phase 34D bounded sample. It keeps full-frame enhancement, full-video
+enhancement, blind full-video enhancement, production launch, external beta,
+broad real user media testing, provider execution, arbitrary media execution,
+FILM, slow motion, and Revideo blocked.
 
 Phase 34D completed one bounded Real-ESRGAN enhancement sample from the approved
 Phase 33D representative frame.
@@ -39,7 +47,7 @@ runtime on generated media only.
 | faster-whisper tiny model approval | Staging-approved for planning | `Systran/faster-whisper-tiny` is approved only for Phase 28 speech/caption planning. |
 | Mask model approval workflow | Ready | Phase 33A can report BiRefNet/SAM2 evidence, storage policy, manifests, and text-only future download commands. |
 | BiRefNet model approval | Staging-approved for planning | `ZhengPeng7/BiRefNet` is approved only for representative-frame/single-frame background-removal planning. |
-| SAM2 model approval | Evaluated-only | `facebook/sam2-hiera-tiny` and official SAM2 checkpoint evidence are recorded, but execution and download remain blocked. |
+| SAM2 model approval | Phase 35A review complete; pending human review | `facebook/sam2-hiera-tiny` and official SAM2 checkpoint evidence are recorded, but no exact checkpoint, checksum, private storage artifact, runtime image, or human legal/model approval is recorded. Download, runtime, and temporal tracking remain blocked. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
 | Real-video representative-frame mask | Complete for one controlled test | Phase 33D produced a private frame, mask, RGBA cutout, metadata, and QA for `phase33d-20260528T161056` with no blocking failures. |
@@ -83,8 +91,9 @@ Current classification:
 - text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview; full-video text-behind-subject remains blocked
 - enhancement execution: blocked except the explicit Phase 34D bounded real-video-derived sample; full-frame and full-video enhancement remain blocked
 - Real-ESRGAN broader-scope policy: Phase 34E complete; human visual review required before broader scope
-- SAM2 execution: blocked; SAM2 remains evaluated-only
-- next activation phase: Phase 35A SAM2 model approval workflow
+- SAM2 model approval: Phase 35A review complete; pending human legal/model review
+- SAM2 execution: blocked; SAM2 remains evaluated-only with no download/runtime/temporal tracking approval
+- next activation phase: Phase 35B SAM2 download/load, blocked until human legal/model approval and exact checkpoint/checksum/storage plan exist
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

@@ -17,6 +17,18 @@ mask execution, text-behind-subject, or broad real media.
 evaluated-only. SAM2 execution stays blocked until a later video tracking and
 mask-propagation approval phase.
 
+## Activation Phase 35A
+
+Phase 35A is that later SAM2 review phase, but it remains non-mutating. It
+records SAM2 as a future staging-planning candidate for temporal masks while
+blocking Phase 35B readiness until human legal/model approval is recorded for an
+exact checkpoint, checksum plan, and private storage path.
+
+Phase 35A does not download SAM2 weights, run SAM2, deploy GPU jobs, process
+media, or approve temporal tracking. Full-video masks, full-video
+text-behind-subject, production, external beta, paid production, broad real
+media, providers, and Revideo remain blocked.
+
 ## Activation Phase 33C
 
 Phase 33C verified BiRefNet runtime loading on one generated synthetic image

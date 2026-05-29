@@ -37,3 +37,14 @@ failures.
 This remains single-frame staging evidence only. Full-video text-behind-subject,
 SAM2 tracking, public delivery, production, external beta, and broad real media
 remain blocked.
+
+## Activation Phase 35A
+
+Phase 35A reviews SAM2 as a future temporal segmentation and mask propagation
+candidate. It reuses the Phase 33A evaluated-only SAM2 source/license evidence
+but records that no human legal/model approval, exact checkpoint, checksum,
+private storage artifact, runtime image, or runtime job is approved yet.
+
+SAM2 download, runtime, temporal tracking, full-video masks, full-video
+text-behind-subject, public delivery, production, external beta, and broad real
+media remain blocked until later explicit phases pass.

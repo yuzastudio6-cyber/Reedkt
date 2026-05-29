@@ -11,3 +11,10 @@ The E2E orchestrator validates stage ordering, artifact handoff, QA aggregation,
 M17 consumes E2E dry-run results for beta readiness. Internal dry-run testing may be allowed only when the E2E suite passes and safety/cost/security docs exist.
 
 External beta, real user media beta, and paid production remain blocked until human-run deployment, readiness, model/license, security, cost, storage, and legal approvals pass.
+
+## Activation Phase 35A Dependency
+
+The full E2E workflow must not consume SAM2 masks, temporal tracking, or
+full-video text-behind-subject output after Phase 35A. SAM2 remains
+download/runtime blocked until later explicit Phase 35B/35C/35D gates pass, and
+all SAM2 artifacts must remain private.

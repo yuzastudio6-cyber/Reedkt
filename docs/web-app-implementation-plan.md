@@ -5,9 +5,8 @@ The web app should expose the launch workflow as one professional cloud-backed e
 ## Phase 44B Structure
 
 `apps/web` is the canonical boundary, but the active Vite app remains rooted at
-`index.html`, `src`, and `public` in transitional mode. Phase 44C should build
-the production web shell within this boundary before Phase 44D backend
-integration.
+`index.html`, `src`, and `public` in transitional mode. Phase 44C adds the
+production web shell under `src/web-shell` before Phase 44D backend integration.
 
 ## Product Surfaces
 
@@ -21,6 +20,12 @@ integration.
 - Artifact browser: private transcripts, captions, masks, previews, QA reports, and export artifacts.
 - QA panel: blocking findings, warnings, manual review items, and passed gates.
 - Private export review: private final export metadata, QA state, and delivery blockers.
+
+## Phase 44C Shell Status
+
+The shell now exposes these surfaces with mock-safe fixtures and disabled
+execution controls. Upload, run AI, render, export, public delivery, desktop
+local worker, and broad real media testing remain blocked until later phases.
 
 ## Runtime Boundary
 

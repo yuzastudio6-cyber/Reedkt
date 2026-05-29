@@ -139,6 +139,8 @@
     "platform:boundary:summary": "tsx server/cli/platform-boundary-summary.ts",
     "smoke:web-app-structure": "tsx server/smoke/web-app-structure-smoke.ts",
     "web:structure:summary": "tsx server/cli/web-app-structure-summary.ts",
+    "smoke:web-production-shell": "tsx server/smoke/web-production-shell-smoke.ts",
+    "web:shell:summary": "tsx server/cli/web-production-shell-summary.ts",
     "web:dev": "vite",
     "web:build": "tsc -b && vite build",
     "web:lint": "eslint .",

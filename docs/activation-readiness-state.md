@@ -16,6 +16,14 @@ Phase 44B does not add desktop runtime packages, local workers, Docker/gcloud,
 provider calls, model downloads, media processing, secrets, Revideo core, or
 any production/external beta/broad real media unlock.
 
+Phase 44C adds the production web shell under root `src/web-shell` while
+preserving the Phase 44B transitional layout. The shell exposes projects,
+disabled intake, editor workspace, jobs, private artifacts, system readiness,
+compute route visibility, settings, and static safety gates. It does not upload
+real media, execute tools, import server workers, call providers, run Docker or
+`gcloud`, add desktop runtime, enable local workers, download models, expose
+secrets, make Revideo core, or unlock production/external beta/broad real media.
+
 Phase 35B is the approved SAM2.1 tiny download/load phase after Phase 35A. It
 stores only the approved checkpoint/config in private staging GCS and records
 checksum/source evidence. SAM2 runtime, temporal tracking, full-video masks,
@@ -82,6 +90,7 @@ runtime on generated media only.
 | Final private export | Complete for one controlled private export | Phase 30 produced a private final export for the approved activation path. Public delivery remains blocked. |
 | Web-first platform boundary | Ready | Phase 44A documents `apps/web`, deferred `apps/desktop`, shared package boundaries, server ownership, static report, CLI summary, and smoke coverage. |
 | Web app structure migration | Transitional | Phase 44B makes `apps/web` canonical while preserving root `src`, `public`, `index.html`, and root scripts for current web behavior. |
+| Web production shell | Ready for backend integration planning | Phase 44C adds the browser-safe shell under `src/web-shell` with disabled execution controls and report-driven readiness. |
 | Desktop product path | Future/planned only | No desktop framework, active runtime, installer, local worker, hardware scan, or local AI is added in Phase 44A. |
 | Internal beta | Blocked | Requires full private E2E evidence, operations, support, privacy, cost, and rollback readiness. |
 | External beta | Blocked | Requires strict Phase 37 go/no-go approval. |
@@ -116,9 +125,10 @@ Current classification:
 - next activation phase: Phase 35C SAM2 runtime verification on generated/synthetic fixtures only after private model evidence verifies
 - web-first app boundary: ready for Phase 44B structure migration planning
 - web app structure migration: transitional; `apps/web` canonical, root Vite source preserved
+- web production shell: ready for Phase 44D planning; execution remains disabled/mock-safe
 - desktop implementation: blocked/deferred; future/planned only
 - shared packages: planned boundaries only, with no workspace/package implementation yet
-- next platform phase: Phase 44C web production shell
+- next platform phase: Phase 44D web backend integration planning
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

@@ -135,6 +135,8 @@
     "activation:sam2-model-download": "tsx server/cli/activation-sam2-model-download.ts",
     "activation:sam2-model-download:report": "tsx server/cli/activation-sam2-model-download-report.ts",
     "smoke:activation-sam2-model-download": "tsx server/smoke/activation-sam2-model-download-smoke.ts",
+    "smoke:platform-boundaries": "tsx server/smoke/platform-boundary-smoke.ts",
+    "platform:boundary:summary": "tsx server/cli/platform-boundary-summary.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",
     "prod:e2e:summary": "tsx server/cli/production-e2e-workflow-summary.ts",

@@ -1,0 +1,121 @@
+import type { PlatformRoadmapPhase } from './platform-boundary-types'
+
+export const WEB_PRODUCTION_READINESS_ROADMAP: PlatformRoadmapPhase[] = [
+  {
+    phaseId: '44A',
+    title: 'platform boundaries',
+    track: 'web',
+    status: 'ready',
+    summary: 'Create web-first platform boundaries, package policies, docs, static report, CLI summary, and smoke coverage.',
+    mustNotDo: ['desktop runtime', 'Docker build', 'gcloud mutation', 'provider call', 'model download', 'media processing'],
+  },
+  {
+    phaseId: '44B',
+    title: 'web app structure migration',
+    track: 'web',
+    status: 'planned',
+    summary: 'Move the visible web shell toward the target app layout without changing backend activation safety gates.',
+    mustNotDo: ['desktop runtime', 'production launch', 'external beta'],
+  },
+  {
+    phaseId: '44C',
+    title: 'web production shell',
+    track: 'web',
+    status: 'planned',
+    summary: 'Build the professional web app shell for dashboard, projects, editor entry, and review surfaces.',
+    mustNotDo: ['desktop runtime', 'provider call', 'broad real media testing'],
+  },
+  {
+    phaseId: '44D',
+    title: 'web backend integration',
+    track: 'web',
+    status: 'planned',
+    summary: 'Connect browser-safe flows to server-owned jobs, private artifacts, readiness state, and progress reporting.',
+    mustNotDo: ['browser-owned workers', 'service-role secrets in web', 'model weights in web'],
+  },
+  {
+    phaseId: '44E',
+    title: 'web editing E2E',
+    track: 'web',
+    status: 'planned',
+    summary: 'Validate upload, project state, editor shell, timeline, transcript/captions, jobs, and artifacts end to end.',
+    mustNotDo: ['external beta', 'production-ready claim', 'desktop runtime'],
+  },
+  {
+    phaseId: '44F',
+    title: 'web review and QA interface',
+    track: 'web',
+    status: 'planned',
+    summary: 'Expose QA, artifact review, private export review, and human approval workflows in the web product.',
+    mustNotDo: ['public delivery bypass', 'QA bypass', 'broad real user media'],
+  },
+  {
+    phaseId: '44G',
+    title: 'internal web beta readiness',
+    track: 'web',
+    status: 'planned',
+    summary: 'Assess internal web beta readiness after app, backend, QA, privacy, support, and rollback gates are reviewed.',
+    mustNotDo: ['external beta', 'paid production approval', 'desktop runtime'],
+  },
+]
+
+export const DESKTOP_DEFERRED_ROADMAP: PlatformRoadmapPhase[] = [
+  {
+    phaseId: 'desktop-framework-decision',
+    title: 'desktop framework decision',
+    track: 'desktop',
+    status: 'future',
+    summary: 'Choose a desktop framework only after the web path has enough product proof.',
+    mustNotDo: ['install Tauri', 'install Electron', 'create active desktop runtime'],
+  },
+  {
+    phaseId: 'desktop-install-capability-wizard',
+    title: 'install capability wizard',
+    track: 'desktop',
+    status: 'future',
+    summary: 'Plan an opt-in wizard that explains local capabilities and privacy before any scans.',
+    mustNotDo: ['hardware scan execution in Phase 44A', 'installer scripts in Phase 44A'],
+  },
+  {
+    phaseId: 'desktop-local-worker-sidecar',
+    title: 'local worker sidecar',
+    track: 'local_worker_future',
+    status: 'future',
+    summary: 'Introduce a local worker sidecar later for preview/proxy/waveform tasks if approved.',
+    mustNotDo: ['local AI by default', 'bypass server readiness', 'provider calls from desktop'],
+  },
+  {
+    phaseId: 'desktop-mac-app',
+    title: 'Mac app',
+    track: 'desktop',
+    status: 'future',
+    summary: 'Package a Mac shell only after the framework and local-worker boundaries are approved.',
+    mustNotDo: ['Phase 44A implementation', 'installer scripts now'],
+  },
+  {
+    phaseId: 'desktop-windows-app',
+    title: 'Windows app',
+    track: 'desktop',
+    status: 'future',
+    summary: 'Package a Windows shell only after Mac and shared runtime assumptions are validated.',
+    mustNotDo: ['Phase 44A implementation', 'installer scripts now'],
+  },
+  {
+    phaseId: 'desktop-local-compute-routing',
+    title: 'local compute routing',
+    track: 'local_worker_future',
+    status: 'future',
+    summary: 'Route optional local/cloud work only through approved capability profiles and server policy.',
+    mustNotDo: ['local AI by default', 'unreviewed device scans'],
+  },
+  {
+    phaseId: 'desktop-local-cloud-fallback',
+    title: 'local/cloud fallback',
+    track: 'local_worker_future',
+    status: 'future',
+    summary: 'Define fallback rules so cloud-backed editing remains reliable when local capability is absent or declined.',
+    mustNotDo: ['make desktop required for launch', 'weaken cloud-backed server runtime'],
+  },
+]
+
+export const NEXT_PLATFORM_PHASE = 'Phase 44B web app structure migration'

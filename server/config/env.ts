@@ -11,6 +11,9 @@ export interface RuntimeEnv {
   nodeEnv: string
   mode: E2ERuntimeMode
   apiPort: number
+  frontendUrl?: string
+  backendUrl?: string
+  databaseUrl?: string
   allowMockWithoutSupabase: boolean
   storageMode: StorageMode
   localStorageRoot: string
@@ -51,6 +54,9 @@ const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
   API_PORT: z.coerce.number().int().positive().max(65535).default(8787),
   PORT: z.coerce.number().int().positive().max(65535).optional(),
+  FRONTEND_URL: z.string().optional(),
+  BACKEND_URL: z.string().optional(),
+  DATABASE_URL: z.string().optional(),
   E2E_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
   API_ALLOW_MOCK_WITHOUT_SUPABASE: z.string().optional(),
   STORAGE_MODE: z.enum(['local', 'gcs_disabled', 'gcs']).default('local'),
@@ -97,6 +103,9 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
   const supabaseUrl = clean(parsed.SUPABASE_URL) ?? clean(parsed.VITE_SUPABASE_URL)
   const supabaseAnonKey = clean(parsed.SUPABASE_ANON_KEY) ?? clean(parsed.VITE_SUPABASE_ANON_KEY)
   const supabaseServiceRoleKey = clean(parsed.SUPABASE_SERVICE_ROLE_KEY)
+  const frontendUrl = clean(parsed.FRONTEND_URL)
+  const backendUrl = clean(parsed.BACKEND_URL)
+  const databaseUrl = clean(parsed.DATABASE_URL)
   const allowMockWithoutSupabase = parseBoolean(parsed.API_ALLOW_MOCK_WITHOUT_SUPABASE)
   const hasSupabaseAdmin = Boolean(supabaseUrl && supabaseServiceRoleKey)
   const hasSupabasePublic = Boolean(supabaseUrl && supabaseAnonKey)
@@ -111,6 +120,12 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     warnings.push('API_ALLOW_MOCK_WITHOUT_SUPABASE is false; server startup should fail unless Supabase admin env is configured.')
   }
 
+  if (requiresExternalRuntimeConfig(parsed.NODE_ENV, parsed.E2E_RUNTIME_MODE, allowMockWithoutSupabase)) {
+    if (!frontendUrl) warnings.push('FRONTEND_URL is missing; production CORS allowlisting cannot be enforced.')
+    if (!backendUrl) warnings.push('BACKEND_URL is missing; deployed backend self-reference is not configured.')
+    if (!hasSupabasePublic) warnings.push('Supabase public auth runtime is unavailable; bearer-token verification cannot run.')
+  }
+
   if (hasSupabaseAdmin && parsed.E2E_RUNTIME_MODE === 'mock') {
     warnings.push('Supabase admin env is present, but E2E_RUNTIME_MODE=mock keeps runtime in mock-only mode.')
   }
@@ -123,6 +138,9 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     nodeEnv: parsed.NODE_ENV,
     mode: parsed.E2E_RUNTIME_MODE,
     apiPort: parsed.API_PORT ?? parsed.PORT ?? 8787,
+    frontendUrl,
+    backendUrl,
+    databaseUrl,
     allowMockWithoutSupabase,
     storageMode: parsed.STORAGE_MODE,
     localStorageRoot: parsed.LOCAL_STORAGE_ROOT,
@@ -169,8 +187,21 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
 }
 
 export function assertRuntimeCanStart(env: RuntimeEnv): void {
+  const missing: string[] = []
+
   if (!env.hasSupabaseAdmin && !env.allowMockWithoutSupabase) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing. Set API_ALLOW_MOCK_WITHOUT_SUPABASE=true for explicit local mock mode.')
+    missing.push('SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY')
+  }
+
+  if (requiresExternalRuntimeConfig(env.nodeEnv, env.mode, env.allowMockWithoutSupabase)) {
+    if (!env.hasSupabasePublic) missing.push('SUPABASE_ANON_KEY')
+    if (!env.frontendUrl) missing.push('FRONTEND_URL')
+    if (!env.backendUrl) missing.push('BACKEND_URL')
+  }
+
+  if (missing.length > 0) {
+    const uniqueMissing = [...new Set(missing)].join(', ')
+    throw new Error(`Missing required ReeditPro backend runtime env: ${uniqueMissing}. Set API_ALLOW_MOCK_WITHOUT_SUPABASE=true only for explicit local/mock tests.`)
   }
 }
 
@@ -179,6 +210,9 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     nodeEnv: env.nodeEnv,
     mode: env.mode,
     apiPort: env.apiPort,
+    frontendUrlConfigured: Boolean(env.frontendUrl),
+    backendUrlConfigured: Boolean(env.backendUrl),
+    databaseUrlConfigured: Boolean(env.databaseUrl),
     allowMockWithoutSupabase: env.allowMockWithoutSupabase,
     storageMode: env.storageMode,
     localStorageRootConfigured: Boolean(env.localStorageRoot),
@@ -226,6 +260,10 @@ function parseBoolean(value: string | undefined): boolean {
 function clean(value: string | undefined): string | undefined {
   const trimmed = value?.trim()
   return trimmed ? trimmed : undefined
+}
+
+function requiresExternalRuntimeConfig(nodeEnv: string, mode: E2ERuntimeMode, allowMockWithoutSupabase: boolean): boolean {
+  return nodeEnv !== 'test' && mode !== 'mock' && mode !== 'disabled' && !allowMockWithoutSupabase
 }
 
 function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {

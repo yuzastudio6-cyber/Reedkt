@@ -16,6 +16,8 @@
     "test:unit": "tsx server/smoke/backend-runtime-smoke.ts",
     "test:integration": "tsx server/smoke/production-readiness-foundation-smoke.ts --integration",
     "test:e2e": "tsx server/smoke/production-readiness-foundation-smoke.ts --e2e",
+    "test:e2e:browser": "playwright test",
+    "test:e2e:browser:headed": "playwright test --headed",
     "smoke:api": "tsx server/smoke/backend-runtime-smoke.ts",
     "smoke:prod-foundation": "tsx server/smoke/production-readiness-foundation-smoke.ts",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
@@ -85,6 +87,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.60.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.12.3",

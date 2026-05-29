@@ -7,6 +7,7 @@
 - `npm run test:unit` passes.
 - `npm run test:integration` passes.
 - `npm run test:e2e` passes in mocked/offline mode.
+- `npm run test:e2e:browser` passes in mocked/local Chromium mode.
 - `npm run build` passes.
 - `npm run build:server` passes.
 - `git diff --check` passes.
@@ -29,6 +30,7 @@
 - Unexpected production errors are sanitized.
 - Protected API routes reject unauthenticated requests.
 - Real provider calls remain disabled unless a future approved backend/worker milestone enables them.
+- Browser E2E does not request non-local, production, Supabase, provider, cloud, Reddit, or public URL origins.
 
 ## Database Gate
 
@@ -48,6 +50,5 @@
 
 - No Reddit OAuth/API implementation.
 - No direct PostgreSQL `pg` pool implementation.
-- No Playwright browser E2E dependency.
 - No production deploy.
 - No provider, render, worker, payment, or media-processing execution.

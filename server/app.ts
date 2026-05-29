@@ -7,6 +7,7 @@ import { createCorsOptions } from './middleware/cors-policy'
 import { requestIdMiddleware } from './middleware/request-id'
 import { createRequestLoggingMiddleware } from './middleware/request-logging'
 import { createSecurityHeadersMiddleware } from './middleware/security-headers'
+import { notFoundMiddleware } from './middleware/not-found'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createChatRoutes } from './routes/chat-routes'
@@ -52,6 +53,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createRenderRoutes())
   app.use(createProviderGatewayRoutes())
 
+  app.use(notFoundMiddleware)
   app.use(errorHandlerMiddleware)
   return app
 }

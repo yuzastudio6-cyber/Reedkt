@@ -32,6 +32,7 @@ export const API_ERROR_CODES = [
   'PREVIEW_QA_FAILED',
   'QA_BLOCKED_PREVIEW',
   'MOCK_ONLY',
+  'ROUTE_NOT_FOUND',
   'INTERNAL_ERROR',
 ] as const
 

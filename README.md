@@ -82,6 +82,8 @@ The backend readiness foundation now includes frontend-safe auth/bootstrap helpe
 
 The production-readiness audit/foundation layer now documents the actual React/Vite, Express, and Supabase/PostgreSQL runtime shape in `docs/production-readiness-audit.md`. Local setup, mocked test commands, and production testing gates live in `docs/setup.md`, `docs/testing.md`, and `docs/production-testing-checklist.md`. The current app is ReeditPro's AI video editing product; Reddit OAuth/API integration is not present in this repository and is treated as an out-of-scope handoff mismatch unless a future product decision explicitly adds it.
 
+The mocked browser E2E layer adds Playwright Chromium coverage for the local React/Vite frontend plus local Express backend. It runs with mock/test env only, keeps PR #32's HTTP-level `npm run test:e2e` smoke intact, and adds `npm run test:e2e:browser` plus headed mode for browser validation without Supabase, provider, cloud, worker, media, deployment, or Reddit credentials.
+
 RP-DATA-02 adds review-only SQL migration drafts in `database/migration-drafts/`. These are not active Supabase migrations and should not be run or copied into `supabase/migrations/` until a future review/hardening step such as RP-DATA-03. See `sql-migration-draft-review.md`, `supabase-rls-policy-draft.md`, and `supabase-storage-bucket-draft.md`.
 
 RP-DATA-03 adds a draft migration review and RLS hardening layer. Draft SQL remains `DO NOT RUN`; real migration execution, Supabase connection, and backend implementation are still future work. See `migration-review-and-rls-hardening.md`, `rls-hardening-matrix.md`, and `data-privacy-retention-plan.md`.

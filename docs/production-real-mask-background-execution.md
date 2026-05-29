@@ -48,3 +48,13 @@ private storage artifact, runtime image, or runtime job is approved yet.
 SAM2 download, runtime, temporal tracking, full-video masks, full-video
 text-behind-subject, public delivery, production, external beta, and broad real
 media remain blocked until later explicit phases pass.
+
+## Activation Phase 35B
+
+Phase 35B downloads and loads only the approved SAM2.1 tiny checkpoint/config
+into private staging model storage. It records checksums, source evidence, and
+GCS object verification.
+
+This is not runtime approval. SAM2 inference, temporal tracking, full-video
+masks, full-video text-behind-subject, public delivery, production, external
+beta, and broad real media remain blocked.

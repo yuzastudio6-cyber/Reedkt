@@ -16,3 +16,13 @@ Phase 35A does not download checkpoints, run SAM2, run GPU jobs, process media,
 deploy Cloud Run, mutate storage, or approve full-video masks. Phase 35B remains
 blocked until an exact checkpoint, license/provenance approval, private storage
 path, and checksum plan are approved.
+
+## Activation Phase 35B
+
+Phase 35B stores only the approved SAM2.1 tiny checkpoint/config in private
+staging GCS. It records source evidence, file checksums, an aggregate checksum,
+and upload verification.
+
+Phase 35B is not SAM2 execution approval. Phase 35C must separately verify
+runtime loading on generated/synthetic fixtures only before any controlled
+real-video temporal tracking phase can be considered.

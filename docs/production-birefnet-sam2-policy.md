@@ -29,6 +29,18 @@ media, or approve temporal tracking. Full-video masks, full-video
 text-behind-subject, production, external beta, paid production, broad real
 media, providers, and Revideo remain blocked.
 
+## Activation Phase 35B
+
+Phase 35B downloads and loads only `sam2.1_hiera_tiny.pt` and
+`sam2.1_hiera_t.yaml` into private staging model storage. Official SAM2 source
+evidence is treated as clear for this staging-only download, and Codex records
+the Apache-2.0 license decision with checksums and private GCS object evidence.
+
+Phase 35B still does not run SAM2, deploy GPU jobs, process media, or approve
+temporal tracking. Full-video masks, full-video text-behind-subject,
+production, external beta, paid production, broad real media, providers, and
+Revideo remain blocked.
+
 ## Activation Phase 33C
 
 Phase 33C verified BiRefNet runtime loading on one generated synthetic image

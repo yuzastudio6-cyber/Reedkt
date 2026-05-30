@@ -1,14 +1,18 @@
 # Activation Readiness State
 
+Phase 36B completed the DeepFilterNet-only artifact download/load gate after
+Phase 36A. It stored only the selected DeepFilterNet `v0.5.6` linux x86_64
+CLI and DeepFilterNet3 ONNX archive in private staging GCS with checksum,
+source, license, and download evidence. DeepFilterNet runtime, RNNoise,
+Demucs, audio/media processing, real-video AI cleanup, providers, Revideo,
+production, external beta, paid production, and broad real media remain
+blocked. Phase 36C is limited to generated-audio DeepFilterNet runtime
+verification after private upload evidence is complete.
+
 Phase 36A records the non-mutating audio AI approval workflow after Phase 35F.
 It recommends DeepFilterNet first for future staging planning, keeps RNNoise as
 a lightweight fallback candidate, and keeps Demucs restricted/deferred for
-source-separation workflows only. Phase 36B remains blocked with
-`blocked_missing_artifact_evidence` until an exact DeepFilterNet artifact
-source, checksum plan, private staging storage path, and no-runtime-download
-constraint are recorded. Audio AI download, runtime, real-video AI cleanup,
-providers, Revideo, production, external beta, paid production, and broad real
-media remain blocked.
+source-separation workflows only.
 
 Phase 35F completed the private SAM2 feature E2E beta-readiness gate after
 Phase 35E for `phase35f-20260530T02293`. It was limited to the approved Phase
@@ -83,8 +87,9 @@ runtime on generated media only.
 | SAM2 real-video temporal mask | Phase 35D complete for one controlled short segment | `phase35d-20260530T004442` used the approved Phase 32 export, Phase 33D anchor evidence, and a 6.9s-8.9s bounded segment. Full-video masks remain blocked. |
 | Segment text-behind-subject preview | Phase 35E complete for one controlled short segment | `phase35e-20260530T01355` used the Phase 35D short segment and private masks. It created private preview frames only; full-video text-behind-subject and final export remain blocked. |
 | SAM2 feature E2E beta-readiness | Phase 35F complete for internal testing only | `phase35f-20260530T02293` used the approved controlled video chain, structured plan snapshot, 77-frame 768x432 private preview scope, private SAM2 masks, private preview frames, and QA. External beta and paid production remain blocked regardless of outcome. |
-| Audio AI approval workflow | Phase 36A review complete; Phase 36B blocked | DeepFilterNet is recommended first for future staging planning; RNNoise is fallback planning only; Demucs is restricted/deferred. No audio AI download/runtime/media processing is approved. |
-| Audio AI model/tool artifacts | Not downloaded | No DeepFilterNet, RNNoise, or Demucs artifact source/checksum/storage evidence is approved yet. Phase 36B is blocked with `blocked_missing_artifact_evidence`. |
+| Audio AI approval workflow | Phase 36A review complete | DeepFilterNet is recommended first for future staging planning; RNNoise is fallback planning only; Demucs is restricted/deferred. |
+| DeepFilterNet artifacts | Private staging storage verified | Phase 36B stored only the selected DeepFilterNet v0.5.6 CLI and DeepFilterNet3 ONNX archive under private generated-assets model storage with checksum/source/license evidence. Runtime and audio processing remain blocked until Phase 36C. |
+| RNNoise/Demucs artifacts | Not downloaded | RNNoise remains fallback planning only; Demucs remains restricted/deferred. No RNNoise or Demucs artifact source/checksum/storage path is approved by Phase 36B. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
 | Real-video representative-frame mask | Complete for one controlled test | Phase 33D produced a private frame, mask, RGBA cutout, metadata, and QA for `phase33d-20260528T161056` with no blocking failures. |
@@ -119,7 +124,7 @@ Current classification:
 - staging deployment: complete where applicable for the controlled activation path
 - dedicated runtime jobs: CPU speech runtime verified, BiRefNet L4 runtime verified, Real-ESRGAN L4 runtime verified, SAM2 L4 runtime verified on generated synthetic frames only
 - model weights/licenses: staging approval remains scope-limited per model/tool
-- model files/checksums: private staging storage verified for faster-whisper tiny, BiRefNet, and RealESRGAN_x4plus
+- model files/checksums: private staging storage verified for faster-whisper tiny, BiRefNet, RealESRGAN_x4plus, SAM2.1 tiny, and selected DeepFilterNet v0.5.6 artifacts
 - CPU speech runtime: verified on generated audio with local private-GCS model copy
 - general/broad GPU AI worker execution: blocked unless a dedicated approved phase explicitly enables it
 - controlled real-video chain: complete only for the explicit approved Phase 28-34D path
@@ -131,7 +136,7 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next activation phase: Phase 36B first approved audio AI download/load only after missing DeepFilterNet artifact evidence is resolved; do not treat Phase 36A as audio AI runtime, external beta, or paid production approval
+- next activation phase: Phase 36C generated-audio DeepFilterNet runtime verification only after Phase 36B private artifact upload/checksum evidence passes; do not treat Phase 36B as audio AI runtime, external beta, or paid production approval
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

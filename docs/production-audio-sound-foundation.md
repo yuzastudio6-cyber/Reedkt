@@ -23,3 +23,8 @@ keeps RNNoise as a fallback planning candidate, and keeps Demucs restricted to
 future source-separation review. It does not approve audio AI download,
 runtime, media processing, providers, production, external beta, or broad real
 media.
+
+Phase 36B may download/load only the approved DeepFilterNet v0.5.6 artifacts to
+private staging model storage. Runtime verification remains Phase 36C and must
+start with generated audio only; real-video audio AI cleanup remains blocked
+until later controlled QA.

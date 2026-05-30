@@ -255,3 +255,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 6. If fallback segment scope was used, mark readiness as segment-level internal testing only, not full SAM2 feature beta candidate.
 7. Confirm no arbitrary media, public access, providers, Revideo, FILM, slow motion, Real-ESRGAN, final export, production, external beta, paid production, or broad real media occurred.
 8. Proceed to Phase 36A only as a separate audio AI approval workflow after Phase 35F report is recorded. Do not treat Phase 35F as external beta or paid production approval.
+
+## After Phase 38A
+
+1. Review `activation:film-slowmotion-approval:plan`, `activation:film-slowmotion-approval:report`, and `activation:film-tool:summary`.
+2. Confirm Phase 38A is Track A visual/video only and is based on the Phase 35F Track A branch, not Track B audio/OCR branches.
+3. Confirm official FILM source, Apache-2.0 license, project page, and README checkpoint-source evidence are recorded.
+4. Confirm the recommended Phase 38B candidate is `film_net/Style/saved_model` from the official README Google Drive TF2 Saved Models folder.
+5. Confirm Phase 38B readiness is limited to exact artifact download/load planning with checksum and private GCS storage evidence.
+6. Confirm FILM download, FILM runtime, slow-motion execution, real-video slow motion, full-video interpolation, providers, Revideo, public access, production, external beta, paid production, and broad real media remain blocked.
+7. Proceed to Phase 38B only as FILM download/load to private staging GCS; do not run FILM or process media in Phase 38B.

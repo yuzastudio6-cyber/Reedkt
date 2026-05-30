@@ -45,3 +45,15 @@ enhancement, production, external beta, paid production, broad real media, FILM,
 and slow motion blocked. A future Real-ESRGAN step may only be human visual
 review or separately approved additional bounded-sample planning. FILM/slow
 motion is deferred to future Phase 38A approval if still needed.
+
+## Activation Phase 38A Boundary
+
+Phase 38A is the Track A FILM slow-motion approval workflow. It records official
+Google Research FILM source, Apache-2.0 license, README checkpoint-source
+evidence, risk register, and future Phase 38B-38E scope. It approves staging
+planning only for a future exact official artifact download/load phase.
+
+Phase 38A does not download FILM weights, run FILM, process images/video, build
+Docker images, mutate GCP, call providers, use Revideo, create public URLs, or
+unlock production, external beta, paid production, broad real media, real-video
+slow motion, or full-video interpolation.

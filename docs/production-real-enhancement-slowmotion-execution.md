@@ -70,3 +70,16 @@ Docker images, deploy or execute Cloud Run jobs, call providers, use Revideo,
 create public URLs, or unlock production, external beta, paid production, broad
 real media, real-video slow motion, or full-video interpolation. Phase 38C is
 limited to generated-frame runtime verification only.
+
+## Activation Phase 38C Boundary
+
+Phase 38C verified FILM runtime loading on generated synthetic frames only using
+the private Phase 38B `film_net/Style/saved_model` artifact tree and checksum
+evidence. It built, pushed, deployed, and executed one CPU-only Cloud Run Job for
+that generated-frame fixture.
+
+Phase 38C does not process real video or user media, produce full-video
+interpolation, run a real-video slow-motion feature, create public output, use
+providers or Revideo, or unlock production, external beta, paid production,
+broad media, or final delivery exports. Phase 38D remains the first possible
+controlled selected real-video slow-motion sample gate.

@@ -317,7 +317,16 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 
 1. Review `activation:ocr-model-approval:plan`, `activation:ocr-model-approval:report`, and `activation:ocr-model-weight:summary`.
 2. Confirm PaddleOCR is approved only for generated UI/text OCR safe-zone planning.
-3. Confirm PaddlePaddle is runtime planning only and PP-OCRv5 exact det/rec/cls assets remain deferred to Phase 37B.
+3. Confirm PaddlePaddle is runtime planning only and PP-OCRv5 exact assets must be selected by Phase 37B before any runtime work.
 4. Confirm the download command plan is text-only and no model files were downloaded or committed.
 5. Confirm no OCR inference, real media OCR, Docker/GCP mutation, GPU job, provider call, public output, Revideo, production, external beta, or broad real media occurred.
 6. Proceed to Phase 37B only as exact official OCR asset selection/download planning into private staging storage.
+
+## After Phase 37B
+
+1. Review `activation:ocr-model-download:plan`, `activation:ocr-model-download:report`, and `docs/activation-phase-37b-paddleocr-exact-assets-download.md`.
+2. Confirm the selected assets are exactly `PP-OCRv5_mobile_det_infer.tar`, `PP-OCRv5_mobile_rec_infer.tar`, and `ppocrv5_dict.txt` under the `paddle3.0.0-mobile-safe-zone-v1` private prefix.
+3. Confirm `PP-LCNet_x1_0_textline_ori` is optional/deferred and the safe-zone profile disables document orientation, document unwarping, and textline orientation.
+4. Confirm default plan/report/smoke modes did not download model files, mutate GCS, run OCR, process media, or create public artifacts.
+5. If a human runs the download/upload CLI, confirm both `REEDITPRO_CONFIRM_OCR_MODEL_DOWNLOAD=true` and `REEDITPRO_CONFIRM_PRIVATE_GCS_UPLOAD=true` were set and that checksum, source, license, tree, download, upload, and phase reports exist.
+6. Proceed to Phase 37C only after private GCS verification and checksum evidence pass. OCR runtime, real-media OCR, real-video OCR, caption/render integration, production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.

@@ -1,0 +1,9 @@
+export const OCR_MODEL_DOWNLOAD_PHASE = '37B'
+export const OCR_MODEL_DOWNLOAD_PROJECT_ID = 'reeditpro'
+export const OCR_MODEL_DOWNLOAD_REGION = 'us-central1'
+export const OCR_MODEL_DOWNLOAD_ENV = 'staging'
+export const OCR_MODEL_DOWNLOAD_BUCKET = 'reeditpro-staging-reeditpro-generated-assets'
+export const OCR_MODEL_DOWNLOAD_TARGET_PREFIX = 'model-weights/paddleocr/pp-ocrv5/paddle3.0.0-mobile-safe-zone-v1/'
+export const OCR_MODEL_DOWNLOAD_GCS_PATH = `gs://${OCR_MODEL_DOWNLOAD_BUCKET}/${OCR_MODEL_DOWNLOAD_TARGET_PREFIX}`
+export const OCR_MODEL_DOWNLOAD_TEMP_ROOT = '/tmp/reeditpro-ocr-model-download'
+export const OCR_MODEL_DOWNLOAD_LOCAL_DIR = `${OCR_MODEL_DOWNLOAD_TEMP_ROOT}/paddle3.0.0-mobile-safe-zone-v1`

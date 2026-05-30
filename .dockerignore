@@ -19,3 +19,5 @@ secrets
 *.mkv
 *.wav
 *.mp3
+._*
+**/._*

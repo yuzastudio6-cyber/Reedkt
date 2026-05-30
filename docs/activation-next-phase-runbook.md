@@ -274,3 +274,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm all FILM artifacts and evidence manifests are under the private generated-assets model-weight prefix.
 5. Confirm no FILM runtime, slow motion, generated-frame interpolation, real-video slow motion, full-video interpolation, Docker, Cloud Run, providers, Revideo, public access, production, external beta, paid production, or broad real media occurred.
 6. Proceed to Phase 38C only as generated-frame FILM runtime verification using the private Phase 38B artifact tree and checksum evidence.
+
+## After Phase 38C
+
+1. Review `activation:film-runtime:report` and `docs/activation-phase-38c-film-runtime-verification-results.md`.
+2. Confirm the runtime used only the private Phase 38B `film_net/Style/saved_model` tree and checksum `6f619330c4785a251883b96627dad6ed3a1e1aedc56ed4aa54e5e3f0b57ec97b`.
+3. Confirm the input frames were generated synthetic frames only and one private midpoint interpolation artifact was produced.
+4. Confirm the Cloud Run job was CPU-only with 4 CPU, 8Gi memory, parallelism 1, max retries 0, and the staging CPU worker service account.
+5. Confirm no real video, full-video interpolation, real-video slow motion, providers, Revideo, public output, production, external beta, paid production, or broad real media occurred.
+6. Proceed to Phase 38D only for one controlled selected real-video slow-motion sample if Phase 38C QA passed.

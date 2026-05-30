@@ -28,3 +28,10 @@ Phase 36B may download/load only the approved DeepFilterNet v0.5.6 artifacts to
 private staging model storage. Runtime verification remains Phase 36C and must
 start with generated audio only; real-video audio AI cleanup remains blocked
 until later controlled QA.
+
+Phase 36D completed that first controlled real-video audio AI cleanup sample for
+`phase36d-20260530T141724`. It was locked to the approved Phase 32 private
+export and Phase 31 audio reference, used only the private Phase 36B
+DeepFilterNet artifacts, and remains private review only. RNNoise, Demucs,
+arbitrary media, providers, Revideo, FILM, slow motion, production, beta, broad
+media, and final delivery remain blocked.

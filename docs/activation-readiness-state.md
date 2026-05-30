@@ -1,11 +1,17 @@
 # Activation Readiness State
 
+Phase 36D completed the controlled real-video DeepFilterNet audio cleanup
+sample for `phase36d-20260530T141724`. It used only the approved Phase 32
+private export, copied approved private DeepFilterNet v0.5.6 artifacts, verified
+checksums, created a private cleaned WAV and private review MP4, and emitted
+private metrics/QA. It does not unlock production, external beta, broad media,
+RNNoise, Demucs, providers, Revideo, FILM, slow motion, or final delivery.
+
 Phase 36C verified the dedicated CPU-only DeepFilterNet generated-audio runtime
 after Phase 36B. The runtime copied the approved private DeepFilterNet v0.5.6
 artifacts from staging GCS, verified checksums, generated a synthetic 48 kHz mono
 fixture, ran the approved `deep-filter` CLI, wrote a private enhanced WAV and
-metrics, and kept real-media audio AI cleanup blocked. Phase 36D is ready only
-for one controlled real-video audio AI cleanup sample. RNNoise, Demucs,
+metrics, and kept real-media audio AI cleanup blocked until Phase 36D. RNNoise, Demucs,
 providers, Revideo, production, external beta, paid production, and broad real
 media remain blocked.
 
@@ -95,6 +101,7 @@ runtime on generated media only.
 | Audio AI approval workflow | Phase 36A review complete | DeepFilterNet is recommended first for future staging planning; RNNoise is fallback planning only; Demucs is restricted/deferred. |
 | DeepFilterNet artifacts | Private staging storage verified | Phase 36B stored only the selected DeepFilterNet v0.5.6 CLI and DeepFilterNet3 ONNX archive under private generated-assets model storage with checksum/source/license evidence. |
 | DeepFilterNet runtime | Generated-audio verification complete | Phase 36C ran DeepFilterNet v0.5.6 on generated synthetic audio only for `phase36c-20260530T133009`, verified private artifact checksums, produced private enhanced WAV/metrics, and leaves real-media cleanup blocked until Phase 36D. |
+| Real-video DeepFilterNet audio cleanup | Phase 36D complete for one controlled sample | `phase36d-20260530T141724` used the approved Phase 32 private export and Phase 31 reference audio, produced private cleaned WAV, private review MP4, metrics, and QA with no blocking findings. Production, beta, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked. |
 | RNNoise/Demucs artifacts | Not downloaded | RNNoise remains fallback planning only; Demucs remains restricted/deferred. No RNNoise or Demucs artifact source/checksum/storage path is approved by Phase 36B. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
@@ -142,7 +149,7 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next activation phase: Phase 36D controlled real-video audio AI cleanup sample only; arbitrary media, production, beta, RNNoise, Demucs, providers, Revideo, FILM, and slow motion remain blocked
+- next activation phase: Phase 36E private DeepFilterNet audio feature E2E/readiness gate only; arbitrary media, production, beta, RNNoise, Demucs, providers, Revideo, FILM, and slow motion remain blocked
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

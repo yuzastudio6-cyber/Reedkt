@@ -36,3 +36,10 @@ DeepFilterNet CLI, and wrote private enhanced-audio metrics. This does not
 approve real-video audio AI cleanup, RNNoise, Demucs, providers, Revideo,
 production, external beta, or broad real media. Phase 36D remains the first
 allowed controlled real-video audio AI cleanup sample.
+
+Phase 36D completed the controlled real-video DeepFilterNet audio cleanup sample
+for `phase36d-20260530T141724` using the approved Phase 32 private export only.
+It created a private cleaned WAV, private metrics/QA, and a private review MP4,
+but it is not final delivery and does not approve arbitrary media, RNNoise,
+Demucs, providers, Revideo, FILM, slow motion, production, external beta, paid
+production, or broad real media.

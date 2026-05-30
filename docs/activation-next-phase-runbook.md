@@ -280,3 +280,11 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm DeepFilterNet ran only after private model artifact copy and checksum verification passed.
 4. Confirm no real video/audio input, RNNoise, Demucs, providers, Revideo, FILM, slow motion, production, external beta, paid production, or broad real media occurred.
 5. Proceed to Phase 36D only as one controlled real-video audio AI cleanup sample on the approved controlled chain; do not process arbitrary media or unlock broader beta/production.
+
+## After Phase 36D
+
+1. Review `activation:real-video:deepfilternet-audio-cleanup:report` and `docs/activation-phase-36d-real-video-deepfilternet-audio-cleanup-results.md`.
+2. Confirm the completed run is `phase36d-20260530T141724`, the source was exactly the approved Phase 32 private export, and the reference was exactly the approved Phase 31 normalized-audio export.
+3. Confirm the approved plan snapshot exists, DeepFilterNet artifacts were copied from private GCS, checksums matched, and no external model/tool download occurred.
+4. Confirm the cleaned WAV, metrics, QA, and optional private review MP4 are private only and no final delivery export was created.
+5. Proceed to Phase 36E only as a private DeepFilterNet audio feature E2E/readiness gate; arbitrary media, production, external beta, RNNoise, Demucs, providers, Revideo, FILM, and slow motion remain blocked.

@@ -14,4 +14,9 @@ feature testing. It is not external beta, paid production, broad real media,
 arbitrary media, RNNoise, Demucs, provider, Revideo, FILM, slow-motion, public
 delivery, or final export approval.
 
+Phase 36F audio system readiness evidence counts only toward controlled
+internal audio feature testing. It is not external beta, paid production, broad
+real media, arbitrary media, RNNoise, Demucs, provider, Revideo, FILM,
+slow-motion, public delivery, or final export approval.
+
 Phase 18 does not change this status. The activation roadmap may prepare human-run staging and controlled private video tests, but external beta and paid production stay blocked until the Phase 37 go/no-go checklist receives all required approvals.

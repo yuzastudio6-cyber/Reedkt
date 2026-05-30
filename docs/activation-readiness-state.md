@@ -1,12 +1,17 @@
 # Activation Readiness State
 
+Phase 36F completed the audio system internal beta readiness gate for
+`phase36f-20260530T161352`. It verified Phase 31 and Phase 36A-36E evidence,
+validated the private Phase 36E artifact set in GCS, uploaded a private audio
+beta-scope manifest, and marked the audio system ready for internal audio
+feature testing only. Phase 37A OCR approval planning may begin. Production,
+external beta, broad media, arbitrary media, RNNoise, Demucs, providers,
+Revideo, FILM, slow motion, and final delivery remain blocked.
+
 Phase 36E completed the private DeepFilterNet audio feature E2E gate for
 `phase36e-20260530T152327`. It used only the approved Phase 32 private export
 and Phase 36D evidence; local `/Users/macuser/Downloads/IMG_6024.MOV` was
-intentionally not processed. The result is ready for internal DeepFilterNet
-feature testing only and lets Phase 37A OCR approval planning begin.
-Production, external beta, broad media, arbitrary media, RNNoise, Demucs,
-providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+intentionally not processed.
 
 Phase 36D completed the controlled real-video DeepFilterNet audio cleanup
 sample for `phase36d-20260530T141724`. It used only the approved Phase 32
@@ -111,6 +116,7 @@ runtime on generated media only.
 | DeepFilterNet runtime | Generated-audio verification complete | Phase 36C ran DeepFilterNet v0.5.6 on generated synthetic audio only for `phase36c-20260530T133009`, verified private artifact checksums, produced private enhanced WAV/metrics, and leaves real-media cleanup blocked until Phase 36D. |
 | Real-video DeepFilterNet audio cleanup | Phase 36D complete for one controlled sample | `phase36d-20260530T141724` used the approved Phase 32 private export and Phase 31 reference audio, produced private cleaned WAV, private review MP4, metrics, and QA with no blocking findings. Production, beta, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked. |
 | DeepFilterNet feature E2E | Phase 36E complete for internal testing only | `phase36e-20260530T152327` used the approved Phase 32 private export and Phase 36D evidence, created a private cleaned WAV, private review MP4, metrics, QA, and a local backup review copy. External beta, paid production, broad media, arbitrary media, and final delivery remain blocked. |
+| Audio system internal readiness | Phase 36F complete for internal audio feature testing only | `phase36f-20260530T161352` verified Phase 31 and Phase 36A-36E evidence, private Phase 36E artifacts, beta-scope manifest, rollback/fallback policy, and blocked external beta/production scopes. |
 | RNNoise/Demucs artifacts | Not downloaded | RNNoise remains fallback planning only; Demucs remains restricted/deferred. No RNNoise or Demucs artifact source/checksum/storage path is approved by Phase 36B. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |

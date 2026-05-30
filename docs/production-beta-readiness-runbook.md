@@ -15,3 +15,9 @@ Phase 36E produced private DeepFilterNet audio feature E2E evidence for
 internal audio feature testing only. It does not approve external beta, paid
 production, broad real media, arbitrary media, public delivery, final export,
 RNNoise, Demucs, providers, Revideo, FILM, or slow motion.
+
+Phase 36F marked the audio system ready for controlled internal audio feature
+testing only after artifact verification and beta-scope QA passed. It still
+does not approve external beta, paid production, broad real media, arbitrary
+media, public delivery, final export, RNNoise, Demucs, providers, Revideo, FILM,
+or slow motion.

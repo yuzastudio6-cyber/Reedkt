@@ -42,3 +42,9 @@ private review package and a local backup copy for Finder review, but GCS
 remains the source of truth and production, external beta, paid production,
 broad media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow
 motion, and final delivery remain blocked.
+
+Phase 36F closed internal audio feature testing readiness for the audio system
+with `phase36f-20260530T161352`. The internal scope includes FFmpeg loudness and
+DeepFilterNet only. It excludes RNNoise, Demucs, provider audio/music/SFX,
+Revideo, FILM, slow motion, arbitrary media, external beta, paid production,
+broad media, and production.

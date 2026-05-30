@@ -50,3 +50,10 @@ Phase 36D evidence only; local Finder media such as
 `/Users/macuser/Downloads/IMG_6024.MOV` was not part of this phase. The result
 permits internal DeepFilterNet feature testing only and does not approve final
 delivery, production, external beta, paid production, or broad real media.
+
+Phase 36F completed the audio system internal readiness closure for
+`phase36f-20260530T161352`. It verified Phase 31 and Phase 36A-36E evidence,
+checked private Phase 36E artifacts in GCS, and documented FFmpeg loudness plus
+DeepFilterNet as the only initial internal audio feature scope. RNNoise, Demucs,
+providers, Revideo, FILM, slow motion, arbitrary media, external beta, paid
+production, production-ready status, and broad media remain blocked.

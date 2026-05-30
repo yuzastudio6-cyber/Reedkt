@@ -265,3 +265,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 5. Confirm Phase 38B readiness is limited to exact artifact download/load planning with checksum and private GCS storage evidence.
 6. Confirm FILM download, FILM runtime, slow-motion execution, real-video slow motion, full-video interpolation, providers, Revideo, public access, production, external beta, paid production, and broad real media remain blocked.
 7. Proceed to Phase 38B only as FILM download/load to private staging GCS; do not run FILM or process media in Phase 38B.
+
+## After Phase 38B
+
+1. Review `activation:film-model-download:report` and `docs/activation-phase-38b-download-approved-film-artifacts-results.md`.
+2. Confirm the only downloaded model tree was `film_net/Style/saved_model` from the official README Google Drive TF2 Saved Models folder.
+3. Confirm the aggregate checksum is `6f619330c4785a251883b96627dad6ed3a1e1aedc56ed4aa54e5e3f0b57ec97b`.
+4. Confirm all FILM artifacts and evidence manifests are under the private generated-assets model-weight prefix.
+5. Confirm no FILM runtime, slow motion, generated-frame interpolation, real-video slow motion, full-video interpolation, Docker, Cloud Run, providers, Revideo, public access, production, external beta, paid production, or broad real media occurred.
+6. Proceed to Phase 38C only as generated-frame FILM runtime verification using the private Phase 38B artifact tree and checksum evidence.

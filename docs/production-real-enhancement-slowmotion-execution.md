@@ -57,3 +57,16 @@ Phase 38A does not download FILM weights, run FILM, process images/video, build
 Docker images, mutate GCP, call providers, use Revideo, create public URLs, or
 unlock production, external beta, paid production, broad real media, real-video
 slow motion, or full-video interpolation.
+
+## Activation Phase 38B Boundary
+
+Phase 38B downloaded and loaded only the official FILM
+`film_net/Style/saved_model` artifact tree into private staging GCS. It recorded
+source/license evidence, SHA-256 checksums, an aggregate checksum, and private
+upload verification evidence.
+
+Phase 38B does not run FILM, interpolate frames, process images/video, build
+Docker images, deploy or execute Cloud Run jobs, call providers, use Revideo,
+create public URLs, or unlock production, external beta, paid production, broad
+real media, real-video slow motion, or full-video interpolation. Phase 38C is
+limited to generated-frame runtime verification only.

@@ -11,10 +11,10 @@ export function buildAudioStackToolRoutingDecision(): AudioToolRoutingDecision[]
     },
     {
       toolId: 'demucs',
-      productStatus: 'candidate_blocked',
-      ownsActions: ['Separate Vocals', 'Remove Background Music', 'Split Audio Stems', 'isolate voice', 'vocal/music separation'],
-      explicitlyNotFor: ['general denoise', 'speech enhancement', 'production delivery without model-license approval'],
-      decision: 'Demucs is the intended separation engine, but active execution is blocked because official pretrained-model license/provenance evidence is ambiguous.',
+      productStatus: 'active_manifest_gated',
+      ownsActions: ['Separate Vocals', 'Remove Background Music', 'Split Stems', 'Create Instrumental', 'Isolate Voice from Music'],
+      explicitlyNotFor: ['Clean Voice', 'Enhance Speech', 'Remove Background Noise', 'Speech Denoise', 'Voice Cleanup', 'general denoise'],
+      decision: 'Demucs is the active separation engine only behind an approved company-controlled model artifact, approval.json, and checksum gate.',
     },
     {
       toolId: 'rnnoise',

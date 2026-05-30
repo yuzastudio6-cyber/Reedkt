@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Card } from '../components/Card'
 import { MediaCard } from '../components/ProjectCard'
+import { AudioSeparationPanel } from '../components/audio/AudioSeparationPanel'
 import { UploadDropzone } from '../components/UploadDropzone'
 import { mediaAssets } from '../data/mockData'
 
@@ -28,6 +29,8 @@ export function UploadPage() {
           <p>Storage and database integration are placeholders. Future Supabase work must use the reeditpro project.</p>
         </Card>
       </section>
+
+      <AudioSeparationPanel />
 
       <section className="media-library-section">
         <div className="panel-heading">

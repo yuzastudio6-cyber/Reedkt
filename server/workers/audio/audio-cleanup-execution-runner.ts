@@ -65,9 +65,10 @@ export async function runAudioCleanupExecution(input: {
       runMode: toAudioFoundationMode(input.executionInput.mode),
       localDevToolExecution: input.executionInput.enableModelAudioExecution,
       modelWeightManifestId: input.executionInput.modelWeightManifestIds?.find((id) => id === 'demucs_model'),
+      separationMode: 'vocals',
       allowModelDownload: input.executionInput.allowModelDownload,
     })
-    skipReasons.push(result.skipReason)
+    if (result.status === 'skipped') skipReasons.push(result.skipReason)
     try {
       buildDemucsCommand({
         sourceAudioLocalPath: input.executionInput.sourceAudioLocalPath,
@@ -76,6 +77,7 @@ export async function runAudioCleanupExecution(input: {
         runMode: toAudioFoundationMode(input.executionInput.mode),
         localDevToolExecution: input.executionInput.enableModelAudioExecution,
         modelWeightManifestId: input.executionInput.modelWeightManifestIds?.find((id) => id === 'demucs_model'),
+        separationMode: 'vocals',
         allowModelDownload: input.executionInput.allowModelDownload,
       })
     } catch (error) {

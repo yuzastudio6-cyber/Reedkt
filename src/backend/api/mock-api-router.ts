@@ -62,6 +62,12 @@ import { createMediaAssetRecordFromUploadPlan, createReferenceAssetRecordFromUpl
 import { buildStoragePathForUploadPurpose, type StoragePathBuildInput } from '../storage/storage-path-builder'
 import { getStorageClientStatus } from '../storage/storage-client-service'
 import { createUploadPlan } from '../storage/upload-plan-service'
+import {
+  createMockAudioSeparationJob,
+  getMockAudioSeparationJob,
+  getMockAudioSeparationStems,
+  requestMockAudioSeparationRemux,
+} from '../audio-separation'
 import { validateUploadFile } from '../storage/upload-validation-service'
 import type { CreateUploadPlanInput, UploadPlan, UploadPurpose } from '../../types/upload'
 import { createWorkerRuntimeRegistrySummary, WORKER_RUNTIME_REGISTRY } from '../runtime/worker-runtime-registry'
@@ -220,6 +226,10 @@ const DEFAULT_MOCK_HANDLERS: Record<string, ApiRouteHandler> = {
   'sfx.mixPlan.create': handleMockSfxMixPlan,
   'sfx.qa.run': handleMockSfxQA,
   'sfx.libraryCandidate.evaluate': handleMockSfxLibraryCandidate,
+  'audio.separation.job.create': handleMockAudioSeparationJobCreate,
+  'audio.separation.job.get': handleMockAudioSeparationJobGet,
+  'audio.separation.stems.list': handleMockAudioSeparationStemsList,
+  'audio.separation.remux.create': handleMockAudioSeparationRemuxCreate,
   'storytiming.masterTimingMap.create': handleMockStoryTimingPlan,
   'storytiming.captionCut.run': handleMockCaptionCutTiming,
   'storytiming.musicSfx.run': handleMockMusicSfxTiming,
@@ -628,6 +638,35 @@ function handleMockSfxQA(): ApiResponseEnvelope {
 
 function handleMockSfxLibraryCandidate(): ApiResponseEnvelope {
   const result = runMockLakeComoSFXLibraryFlow()
+  return createApiMockResponse(result, result.warnings)
+}
+
+function handleMockAudioSeparationJobCreate(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  try {
+    const job = createMockAudioSeparationJob(request.body as Parameters<typeof createMockAudioSeparationJob>[0])
+    return createApiMockResponse(job, job.warnings)
+  } catch (error) {
+    return createApiErrorResponse('invalid_audio_separation_request', error instanceof Error ? error.message : 'Invalid audio separation request.', {
+      statusCode: 400,
+      mockOnly: true,
+    })
+  }
+}
+
+function handleMockAudioSeparationJobGet(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const jobId = request.params?.jobId ?? 'mock-demucs-vocals-mock-media-asset'
+  const job = getMockAudioSeparationJob(jobId)
+  return createApiMockResponse(job, job.warnings)
+}
+
+function handleMockAudioSeparationStemsList(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const jobId = request.params?.jobId ?? 'mock-demucs-vocals-mock-media-asset'
+  return createApiMockResponse({ jobId, stems: getMockAudioSeparationStems(jobId) }, ['Private mock stem references only; no public URLs.'])
+}
+
+function handleMockAudioSeparationRemuxCreate(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const jobId = request.params?.jobId ?? 'mock-demucs-vocals-mock-media-asset'
+  const result = requestMockAudioSeparationRemux(jobId)
   return createApiMockResponse(result, result.warnings)
 }
 

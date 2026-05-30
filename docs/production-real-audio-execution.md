@@ -8,7 +8,7 @@ The flow is:
 2. build an `AudioExecutionPlan`;
 3. prepare allowlisted FFmpeg loudness and normalization command plans;
 4. optionally run local-dev FFmpeg against safe local/generated audio only;
-5. keep DeepFilterNet, RNNoise, and Demucs skip-safe and model-weight gated;
+5. keep DeepFilterNet and Demucs model-gated, with RNNoise inactive and unreachable;
 6. write private cleaned-audio, stem, SoundSync metadata, and QA artifact records;
 7. emit `audio_loudness`, `audio_sync`, `audio_naturalness`, and `music_over_voice` gates.
 
@@ -18,24 +18,26 @@ M16A final render/export consumes private cleaned-audio, stem, SoundSync, and QA
 
 Phase 36A adds a non-mutating audio AI approval layer after the SAM2 feature
 gate. DeepFilterNet is the first planning recommendation for future staging
-review, RNNoise is fallback planning only, and Demucs is restricted/deferred for
-source separation. No Phase 36A command may download an audio AI artifact, run
-audio AI, process media, mutate GCP, call providers, or unlock production,
-external beta, or broad real media.
+review. Phase 36G later removes RNNoise from active product routing and makes
+Demucs separation-only behind an approved-model manifest gate. No Phase 36A
+command may download an audio AI artifact, run audio AI, process media, mutate
+GCP, call providers, or unlock production, external beta, or broad real media.
 
 Phase 36B is narrower than runtime: it may store only the selected
 DeepFilterNet v0.5.6 CLI and DeepFilterNet3 ONNX archive in private staging GCS
 with checksum/source/license evidence. It still does not run DeepFilterNet,
-RNNoise, Demucs, media processing, Docker, Cloud Run, providers, Revideo, FILM,
-slow motion, production, external beta, or broad real media.
+RNNoise active routing, unapproved Demucs runtime, media processing, Docker,
+Cloud Run, providers, Revideo, FILM, slow motion, production, external beta, or
+broad real media.
 
 Phase 36C verified the generated-audio DeepFilterNet runtime only. The completed
 run `phase36c-20260530T133009` copied approved private DeepFilterNet artifacts,
 verified checksums, generated a synthetic audio fixture, ran the approved
 DeepFilterNet CLI, and wrote private enhanced-audio metrics. This does not
-approve real-video audio AI cleanup, RNNoise, Demucs, providers, Revideo,
-production, external beta, or broad real media. Phase 36D remains the first
-allowed controlled real-video audio AI cleanup sample.
+approve real-video audio AI cleanup, RNNoise active routing, unapproved Demucs
+runtime, providers, Revideo, production, external beta, or broad real media.
+Phase 36D remains the first allowed controlled real-video audio AI cleanup
+sample.
 
 Phase 36D completed the controlled real-video DeepFilterNet audio cleanup sample
 for `phase36d-20260530T141724` using the approved Phase 32 private export only.
@@ -57,8 +59,10 @@ checked private Phase 36E artifacts in GCS, and documented FFmpeg loudness plus
 DeepFilterNet as the only initial internal audio feature scope.
 
 Phase 36G closes the RNNoise/Demucs correction: RNNoise is removed from active
-product flow, DeepFilterNet remains speech cleanup, and Demucs is documented as
-the future vocal/music/stem separation candidate. Demucs htdemucs download and
-runtime are blocked because official pretrained-model license/provenance remains
-ambiguous. Providers, Revideo, FILM, slow motion, arbitrary media, external beta,
-paid production, production-ready status, and broad media remain blocked.
+product flow, DeepFilterNet remains speech cleanup, and Demucs becomes the
+manifest-gated product route for vocal/music/stem separation. The UI/API/mock
+job flow routes separation actions to Demucs, but non-mock runtime fails closed
+unless an approved company-controlled model artifact, approval manifest, and
+checksum manifest are present with runtime downloads disabled. Providers,
+Revideo, FILM, slow motion, arbitrary media, external beta, paid production,
+production-ready status, and broad media remain blocked.

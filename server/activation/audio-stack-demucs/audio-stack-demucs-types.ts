@@ -1,4 +1,4 @@
-export type AudioStackDemucsStatus = 'planned' | 'closed_with_demucs_blocked' | 'blocked'
+export type AudioStackDemucsStatus = 'planned' | 'closed_with_demucs_blocked' | 'closed_with_manifest_gate' | 'blocked'
 export type AudioStackDemucsQaStatus = 'passed' | 'warning' | 'blocked' | 'not_applicable'
 
 export interface AudioStackDemucsConfig {
@@ -45,7 +45,7 @@ export interface AudioStackDemucsValidationResult {
 
 export interface AudioToolRoutingDecision {
   toolId: 'deepfilternet' | 'demucs' | 'rnnoise'
-  productStatus: 'active_internal' | 'candidate_blocked' | 'removed_from_active_flow'
+  productStatus: 'active_internal' | 'active_manifest_gated' | 'candidate_blocked' | 'removed_from_active_flow'
   ownsActions: string[]
   explicitlyNotFor: string[]
   decision: string
@@ -105,9 +105,9 @@ export interface AudioStackDemucsQaGate {
 
 export interface ApprovedAudioStackDemucsEvidence {
   phase: '36G'
-  status: 'closed_with_demucs_blocked'
+  status: 'closed_with_demucs_blocked' | 'closed_with_manifest_gate'
   runId: 'phase36g-static-demucs-model-license-block'
-  demucsBlocked: true
+  demucsBlocked: boolean
   demucsBlocker: string
   rnnoiseRemovedFromActiveFlow: true
   deepFilterNetInternalSpeechCleanupPreserved: true
@@ -138,6 +138,7 @@ export interface AudioStackDemucsReport {
   warnings: string[]
   deepFilterNetSpeechCleanupAllowed: true
   rnnoiseActiveProductFlowAllowed: false
+  demucsProductRoutingAllowed: boolean
   demucsDownloadAllowed: false
   demucsRuntimeAllowed: false
   demucsInternalBetaAllowed: false

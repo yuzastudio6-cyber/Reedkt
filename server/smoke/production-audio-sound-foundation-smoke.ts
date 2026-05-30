@@ -20,7 +20,6 @@ import {
   buildFFmpegAudioNormalizeCommand,
   buildLoudnessNormalizationPlan,
   buildMusicDuckingPlan,
-  buildRNNoiseSkipReason,
   buildSfxDensityPlan,
   buildSignalsmithStretchSkipReason,
   buildSkipReason as buildSoundTouchSkipReason,
@@ -180,7 +179,6 @@ try {
   check(qa.qualityGateResults.some((gate) => gate.gateType === 'music_over_voice'), 'Audio QA builder must emit music_over_voice gate.')
 
   check(buildDeepFilterNetSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'deepfilternet_not_enabled', 'DeepFilterNet adapter must skip gracefully if unavailable/no model.')
-  check(buildRNNoiseSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'rnnoise_not_enabled', 'RNNoise adapter must skip gracefully if unavailable.')
   check(buildDemucsSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'demucs_not_enabled', 'Demucs adapter must skip gracefully if unavailable/no model.')
   check(buildSoundTouchSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'soundtouch_not_enabled', 'SoundTouch adapter must skip gracefully if unavailable.')
   check(buildSignalsmithStretchSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'signalsmith_stretch_not_enabled', 'Signalsmith adapter must skip gracefully if unavailable.')

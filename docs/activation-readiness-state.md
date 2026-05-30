@@ -1,13 +1,13 @@
 # Activation Readiness State
 
-Phase 36G closes the RNNoise/Demucs audio stack correction. DeepFilterNet remains the internal speech-cleanup path, RNNoise is removed from active product routing, and Demucs is documented only as the future vocal/music/stem separation candidate. Demucs htdemucs download and runtime are blocked because the official pretrained-model license/provenance remains ambiguous in the archived facebookresearch/demucs repository. Phase 37A OCR approval workflow may start without treating Demucs as approved. Production, external beta, broad media, arbitrary media, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+Phase 36G closes the RNNoise/Demucs audio stack correction. DeepFilterNet remains the internal speech-cleanup path, RNNoise is removed from active product routing, and Demucs becomes the manifest-gated product route for vocal/music/stem separation. Demucs non-mock execution still requires a company-controlled approved model artifact, valid approval manifest, matching checksum, and `DEMUCS_ALLOW_RUNTIME_DOWNLOADS=false`; unapproved htdemucs downloads and runtime auto-downloads remain blocked. Phase 37A OCR approval workflow may start without treating arbitrary Demucs pretrained weights as approved. Production, external beta, broad media, arbitrary media, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
 
 Phase 36F completed the audio system internal beta readiness gate for
 `phase36f-20260530T161352`. It verified Phase 31 and Phase 36A-36E evidence,
 validated the private Phase 36E artifact set in GCS, uploaded a private audio
 beta-scope manifest, and marked the audio system ready for internal audio
 feature testing only. Phase 37A OCR approval planning may begin. Production,
-external beta, broad media, arbitrary media, RNNoise, Demucs, providers,
+external beta, broad media, arbitrary media, RNNoise active routing, unapproved Demucs runtime, providers,
 Revideo, FILM, slow motion, and final delivery remain blocked.
 
 Phase 36E completed the private DeepFilterNet audio feature E2E gate for
@@ -20,15 +20,16 @@ sample for `phase36d-20260530T141724`. It used only the approved Phase 32
 private export, copied approved private DeepFilterNet v0.5.6 artifacts, verified
 checksums, created a private cleaned WAV and private review MP4, and emitted
 private metrics/QA. It does not unlock production, external beta, broad media,
-RNNoise, Demucs, providers, Revideo, FILM, slow motion, or final delivery.
+RNNoise active routing, unapproved Demucs runtime, providers, Revideo, FILM,
+slow motion, or final delivery.
 
 Phase 36C verified the dedicated CPU-only DeepFilterNet generated-audio runtime
 after Phase 36B. The runtime copied the approved private DeepFilterNet v0.5.6
 artifacts from staging GCS, verified checksums, generated a synthetic 48 kHz mono
 fixture, ran the approved `deep-filter` CLI, wrote a private enhanced WAV and
-metrics, and kept real-media audio AI cleanup blocked until Phase 36D. RNNoise, Demucs,
-providers, Revideo, production, external beta, paid production, and broad real
-media remain blocked.
+metrics, and kept real-media audio AI cleanup blocked until Phase 36D. RNNoise
+active routing, unapproved Demucs runtime, providers, Revideo, production,
+external beta, paid production, and broad real media remain blocked.
 
 Phase 36B completed the DeepFilterNet-only artifact download/load gate after
 Phase 36A. It stored only the selected DeepFilterNet `v0.5.6` linux x86_64 CLI
@@ -36,9 +37,9 @@ and DeepFilterNet3 ONNX archive in private staging GCS with checksum, source,
 license, and download evidence.
 
 Phase 36A records the non-mutating audio AI approval workflow after Phase 35F.
-It recommends DeepFilterNet first for future staging planning, keeps RNNoise as
-a lightweight fallback candidate, and keeps Demucs restricted/deferred for
-source-separation workflows only.
+It recommended DeepFilterNet first for future staging planning. Phase 36G later
+removed RNNoise from active routing and moved Demucs to a manifest-gated
+separation-only product route.
 
 Phase 35F completed the private SAM2 feature E2E beta-readiness gate after
 Phase 35E for `phase35f-20260530T02293`. It was limited to the approved Phase
@@ -113,13 +114,13 @@ runtime on generated media only.
 | SAM2 real-video temporal mask | Phase 35D complete for one controlled short segment | `phase35d-20260530T004442` used the approved Phase 32 export, Phase 33D anchor evidence, and a 6.9s-8.9s bounded segment. Full-video masks remain blocked. |
 | Segment text-behind-subject preview | Phase 35E complete for one controlled short segment | `phase35e-20260530T01355` used the Phase 35D short segment and private masks. It created private preview frames only; full-video text-behind-subject and final export remain blocked. |
 | SAM2 feature E2E beta-readiness | Phase 35F complete for internal testing only | `phase35f-20260530T02293` used the approved controlled video chain, structured plan snapshot, 77-frame 768x432 private preview scope, private SAM2 masks, private preview frames, and QA. External beta and paid production remain blocked regardless of outcome. |
-| Audio AI approval workflow | Phase 36A review complete | DeepFilterNet is recommended first for future staging planning; RNNoise is fallback planning only; Demucs is restricted/deferred. |
+| Audio AI approval workflow | Phase 36A review complete; Phase 36G supersedes tool routing | DeepFilterNet is recommended first for speech cleanup. RNNoise fallback planning was superseded by Phase 36G removal from active routing; Demucs is separation-only and manifest-gated. |
 | DeepFilterNet artifacts | Private staging storage verified | Phase 36B stored only the selected DeepFilterNet v0.5.6 CLI and DeepFilterNet3 ONNX archive under private generated-assets model storage with checksum/source/license evidence. |
 | DeepFilterNet runtime | Generated-audio verification complete | Phase 36C ran DeepFilterNet v0.5.6 on generated synthetic audio only for `phase36c-20260530T133009`, verified private artifact checksums, produced private enhanced WAV/metrics, and leaves real-media cleanup blocked until Phase 36D. |
-| Real-video DeepFilterNet audio cleanup | Phase 36D complete for one controlled sample | `phase36d-20260530T141724` used the approved Phase 32 private export and Phase 31 reference audio, produced private cleaned WAV, private review MP4, metrics, and QA with no blocking findings. Production, beta, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked. |
+| Real-video DeepFilterNet audio cleanup | Phase 36D complete for one controlled sample | `phase36d-20260530T141724` used the approved Phase 32 private export and Phase 31 reference audio, produced private cleaned WAV, private review MP4, metrics, and QA with no blocking findings. Production, beta, arbitrary media, RNNoise active routing, unapproved Demucs runtime, providers, Revideo, FILM, slow motion, and final delivery remain blocked. |
 | DeepFilterNet feature E2E | Phase 36E complete for internal testing only | `phase36e-20260530T152327` used the approved Phase 32 private export and Phase 36D evidence, created a private cleaned WAV, private review MP4, metrics, QA, and a local backup review copy. External beta, paid production, broad media, arbitrary media, and final delivery remain blocked. |
 | Audio system internal readiness | Phase 36F complete for internal audio feature testing only | `phase36f-20260530T161352` verified Phase 31 and Phase 36A-36E evidence, private Phase 36E artifacts, beta-scope manifest, rollback/fallback policy, and blocked external beta/production scopes. |
-| RNNoise/Demucs status | Phase 36G closed with Demucs blocked | RNNoise is removed from active product flow. Demucs is the vocal/music/stem separation candidate, but htdemucs download/runtime is blocked pending pretrained-model license/provenance clarity. No RNNoise or Demucs artifacts are approved or downloaded. |
+| RNNoise/Demucs status | Phase 36G closed with Demucs manifest-gated | RNNoise is removed from active product flow. Demucs owns vocal/music/stem separation actions only when a company-controlled approved model artifact, approval manifest, and matching checksum are installed outside git. Runtime model downloads and unapproved pretrained weights remain blocked. |
 | OCR approval workflow | Phase 37A planning approved | PaddleOCR/PaddlePaddle evidence is recorded for generated OCR safe-zone planning only. PP-OCRv5 exact assets are deferred to Phase 37B; OCR download/runtime, real-video OCR, production, beta, and broad media remain blocked. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
@@ -167,7 +168,7 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next activation phase: Phase 37B exact OCR asset selection/download planning only. Arbitrary media, OCR runtime, real-video OCR, production, beta, RNNoise active routing, Demucs download/runtime, providers, Revideo, FILM, and slow motion remain blocked
+- next activation phase: Phase 37B exact OCR asset selection/download planning only. Arbitrary media, OCR runtime, real-video OCR, production, beta, RNNoise active routing, unapproved Demucs runtime/downloads, providers, Revideo, FILM, and slow motion remain blocked
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

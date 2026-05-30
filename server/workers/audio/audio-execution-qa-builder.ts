@@ -36,7 +36,7 @@ export function buildAudioExecutionQAResults(input: {
     ...(input.executionPlan.cleanupOperationPlan.strength === 'strong'
       ? [issue('overprocessing_risk', 'Strong cleanup risks voice naturalness and requires review.', 'blocking')]
       : []),
-    ...(input.cleanupResult?.skipReasons ?? []).filter((reason) => reason.tool === 'deepfilternet' || reason.tool === 'rnnoise').map((reason) =>
+    ...(input.cleanupResult?.skipReasons ?? []).filter((reason) => reason.tool === 'deepfilternet').map((reason) =>
       issue(reason.code, reason.message, 'warning'),
     ),
   ]

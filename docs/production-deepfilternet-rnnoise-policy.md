@@ -14,3 +14,7 @@ constraint are still missing.
 RNNoise is removed from active product fallback routing. Any future reconsideration would require a new approval phase, exact model pinning, and checksum evidence before execution.
 
 Phase 36G update: DeepFilterNet remains the active internal speech cleanup path. RNNoise is removed from active product fallback routing and must not be auto-selected for internal beta jobs.
+
+Current product-flow update: DeepFilterNet owns Clean Voice, Enhance Speech,
+Remove Background Noise, Speech Denoise, and Voice Cleanup. Demucs owns
+vocal/music/stem separation only. RNNoise remains inactive and unreachable.

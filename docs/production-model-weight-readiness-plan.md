@@ -114,3 +114,7 @@ Real-ESRGAN, deploy GPU, process media, or approve production use.
 FILM, alternate Real-ESRGAN weights, GFPGAN/facexlib weights, enhancement
 execution, slow motion, production, external beta, paid production, and broad
 real media remain blocked.
+
+## Phase 37A OCR Approval Update
+
+Phase 37A OCR approval update: PaddleOCR/PaddlePaddle are approved only for staging generated OCR safe-zone planning. Exact PP-OCRv5 assets are deferred to Phase 37B, OCR runtime is deferred to Phase 37C, controlled real-video OCR is deferred to Phase 37D, and production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.

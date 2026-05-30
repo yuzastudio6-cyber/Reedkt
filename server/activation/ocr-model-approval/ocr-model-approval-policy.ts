@@ -1,0 +1,43 @@
+import type { OcrApprovalPolicy } from './ocr-model-approval-types'
+
+export const ocrModelApprovalPolicy: OcrApprovalPolicy = {
+  phase: '37A',
+  projectId: 'reeditpro',
+  region: 'us-central1',
+  env: 'staging',
+  approvedPlanningScope: 'staging_generated_ocr_safe_zone_planning',
+  phase37BPlanningAllowed: true,
+  phase37CPlanningAllowed: true,
+  phase37DPlanningAllowed: true,
+  ocrExecutionAllowed: false,
+  ocrModelDownloadAllowed: false,
+  runtimeAutoDownloadAllowed: false,
+  realMediaOcrAllowed: false,
+  realVideoOcrAllowed: false,
+  gpuDeploymentAllowed: false,
+  providerAllowed: false,
+  publicOutputAllowed: false,
+  revideoAllowed: false,
+  productionReadyAllowed: false,
+  externalBetaAllowed: false,
+  broadRealUserMediaAllowed: false,
+}
+
+export const phase37ABlockedExecutionScopes = [
+  'OCR inference execution',
+  'PaddleOCR model download',
+  'PaddlePaddle runtime execution',
+  'runtime model auto-download',
+  'real media OCR',
+  'real video OCR',
+  'arbitrary media OCR',
+  'Docker build or push',
+  'GCP deployment or mutation',
+  'GPU jobs',
+  'provider calls',
+  'public URLs or public output',
+  'Revideo execution',
+  'production readiness',
+  'external beta',
+  'broad real media testing',
+]

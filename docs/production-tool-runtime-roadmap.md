@@ -287,3 +287,7 @@ Milestone 13 starts real speech/caption execution: faster-whisper may run only i
 ## Milestone 14 Execution
 
 Milestone 14 starts real smart cut/media timeline execution planning: approved `SmartCutPlan` inputs become validated cut execution plans, preview-only FFmpeg command plans, timeline manifests, OTIO-style metadata, and QA gates. It does not final export, full render, deploy, call providers, run GPU tools, overwrite source media, or execute raw chat.
+
+## Phase 37A OCR Approval Update
+
+Phase 37A OCR approval update: PaddleOCR/PaddlePaddle are approved only for staging generated OCR safe-zone planning. Exact PP-OCRv5 assets are deferred to Phase 37B, OCR runtime is deferred to Phase 37C, controlled real-video OCR is deferred to Phase 37D, and production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.

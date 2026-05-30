@@ -45,6 +45,11 @@ motion, and final delivery remain blocked.
 
 Phase 36F closed internal audio feature testing readiness for the audio system
 with `phase36f-20260530T161352`. The internal scope includes FFmpeg loudness and
-DeepFilterNet only. It excludes RNNoise, Demucs, provider audio/music/SFX,
-Revideo, FILM, slow motion, arbitrary media, external beta, paid production,
-broad media, and production.
+DeepFilterNet only.
+
+Phase 36G removes RNNoise from active audio routing and records Demucs as the
+future vocal/music/stem separation candidate. Demucs remains blocked because
+the official pretrained-model license/provenance evidence is ambiguous, so no
+Demucs model download, runtime, media processing, Docker, or Cloud Run job is
+approved. External beta, paid production, broad media, arbitrary media,
+providers, Revideo, FILM, slow motion, and production remain blocked.

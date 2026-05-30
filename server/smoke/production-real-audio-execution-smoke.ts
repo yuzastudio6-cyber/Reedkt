@@ -176,20 +176,6 @@ try {
   })
   check(deepFilterResult.skipReasons.some((reason) => reason.tool === 'deepfilternet'), 'DeepFilterNet execution must skip if unavailable/unapproved/no model.')
 
-  const rnnoisePlan = buildAudioExecutionPlan({
-    ...baseInput,
-    audioCleanupPlan: buildMockCleanupPlan({ selectedPrimaryTool: 'rnnoise' }),
-  })
-  const rnnoiseResult = await runAudioCleanupExecution({
-    executionInput: {
-      ...baseInput,
-      mode: 'local_dev',
-      enableModelAudioExecution: true,
-      audioCleanupPlan: buildMockCleanupPlan({ selectedPrimaryTool: 'rnnoise' }),
-    },
-    executionPlan: rnnoisePlan,
-  })
-  check(rnnoiseResult.skipReasons.some((reason) => reason.tool === 'rnnoise'), 'RNNoise execution must skip if unavailable.')
 
   const demucsExecutionPlan = buildAudioExecutionPlan({
     ...baseInput,

@@ -89,7 +89,6 @@ function buildOperations(input: {
   if (input.loudnessShouldNormalize) operations.push('normalize_loudness')
   if (input.cleanupPlan.selectedPrimaryTool === 'ffmpeg') operations.push('clean_voice_ffmpeg_basic')
   if (input.cleanupPlan.selectedPrimaryTool === 'deepfilternet') operations.push('clean_voice_deepfilternet')
-  if (input.cleanupPlan.selectedPrimaryTool === 'rnnoise') operations.push('clean_voice_rnnoise')
   if (input.demucsJustified && input.cleanupPlan.fallbackTools.includes('demucs')) operations.push('separate_music_speech_demucs')
   if (input.duckingEnabled) operations.push('duck_music_under_voice')
   if (input.soundSyncCueCount > 0) operations.push('generate_soundsync_cues')

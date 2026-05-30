@@ -1,6 +1,5 @@
 import { buildDeepFilterNetCommand, runDeepFilterNetCleanup } from './deepfilternet-adapter'
 import { buildDemucsCommand, runDemucsSeparation } from './demucs-adapter'
-import { buildRNNoiseCommand, runRNNoiseCleanup } from './rnnoise-adapter'
 import { buildAudioExecutionArtifactRecord } from './audio-execution-artifact-writer'
 import type { AudioCleanupExecutionResult, AudioExecutionInput, AudioExecutionPlan } from './audio-execution-types'
 import type { AudioFoundationRunMode, AudioToolSkipReason } from './audio-foundation-types'
@@ -56,24 +55,6 @@ export async function runAudioCleanupExecution(input: {
     } catch (error) {
       warnings.push(error instanceof Error ? error.message : 'DeepFilterNet command planning failed.')
     }
-  }
-
-  if (selectedTool === 'rnnoise') {
-    const result = await runRNNoiseCleanup({
-      sourceAudioLocalPath: input.executionInput.sourceAudioLocalPath,
-      outputAudioLocalPath: input.executionInput.outputDirectory ? `${input.executionInput.outputDirectory}/rnnoise-cleaned.wav` : undefined,
-      timeoutMs: input.executionInput.timeoutMs ?? 20_000,
-      runMode: toAudioFoundationMode(input.executionInput.mode),
-      localDevToolExecution: input.executionInput.enableModelAudioExecution,
-    })
-    skipReasons.push(result.skipReason)
-    buildRNNoiseCommand({
-      sourceAudioLocalPath: input.executionInput.sourceAudioLocalPath,
-      outputAudioLocalPath: input.executionInput.outputDirectory ? `${input.executionInput.outputDirectory}/rnnoise-cleaned.wav` : undefined,
-      timeoutMs: input.executionInput.timeoutMs ?? 20_000,
-      runMode: toAudioFoundationMode(input.executionInput.mode),
-      localDevToolExecution: input.executionInput.enableModelAudioExecution,
-    })
   }
 
   if (input.executionPlan.selectedOperations.includes('separate_music_speech_demucs')) {

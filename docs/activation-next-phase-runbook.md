@@ -295,4 +295,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 2. Confirm the source was exactly the approved Phase 32 private export; `/Users/macuser/Downloads/IMG_6024.MOV` must remain unprocessed in Phase 36E.
 3. Confirm the approved plan snapshot, Phase 36D evidence link, cleaned WAV, private review MP4, private review manifest, metrics, and QA report exist under private Phase 36E prefixes.
 4. Use the local backup review copy only for Finder viewing; private GCS artifacts remain the source of truth.
-5. Proceed to Phase 37A only as an OCR approval workflow. Production, external beta, paid production, broad real media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+5. Proceed to Phase 36F only as the audio system internal beta readiness gate. Production, external beta, paid production, broad real media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+
+## After Phase 36F
+
+1. Review `activation:audio-system-readiness:report` and `docs/activation-phase-36f-audio-system-internal-beta-readiness-results.md`.
+2. Confirm the evidence chain includes Phase 31 and Phase 36A-36E.
+3. Confirm the Phase 36E private cleaned WAV, review MP4, metrics, QA, model checksum metadata, and private review manifest were verified in private GCS.
+4. Confirm the audio beta-scope manifest includes FFmpeg loudness and DeepFilterNet only, and excludes RNNoise, Demucs, providers, Revideo, FILM, slow motion, arbitrary media, and production delivery.
+5. Proceed to Phase 37A only as an OCR approval workflow if Phase 36F passes. Production, external beta, paid production, broad real media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked.

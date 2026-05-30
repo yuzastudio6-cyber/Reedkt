@@ -12,6 +12,7 @@ const PROJECT_ID = 'reeditpro'
 const ENVIRONMENT = 'staging'
 const RUNTIME_MODE = 'generated_audio'
 const REAL_VIDEO_RUNTIME_MODE = 'real_video_audio_cleanup_sample'
+const FEATURE_E2E_RUNTIME_MODE = 'audio_feature_e2e'
 const TOOL_ID = 'deepfilternet'
 const TOOL_VERSION = 'v0.5.6'
 const ARTIFACT_GCS_PATH = 'gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/'
@@ -28,8 +29,11 @@ const ANALYSIS_BUCKET = 'reeditpro-staging-reeditpro-analysis-artifacts'
 const QA_BUCKET = 'reeditpro-staging-reeditpro-qa-artifacts'
 const REPORT_PREFIX = 'activation-audio-ai/phase36c'
 const PHASE36D_REPORT_PREFIX = 'activation-audio-ai/phase36d'
+const PHASE36E_REPORT_PREFIX = 'activation-audio-ai/phase36e'
 const PHASE36D_APPROVED_INPUT_VIDEO = 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4'
 const PHASE36D_REFERENCE_AUDIO = 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase31/phase31-20260528T13060/audio-normalized-export.mp4'
+const PHASE36D_RUN_ID = 'phase36d-20260530T141724'
+const PHASE36D_REPORT_URI = 'gs://reeditpro-staging-reeditpro-qa-artifacts/activation-audio-ai/phase36d/phase36d-20260530T141724/reports/phase36d-report.json'
 const PHASE36D_EXPECTED_DURATION_SECONDS = 15.467
 const PHASE36D_MAX_DURATION_SECONDS = 20
 const SAMPLE_RATE = 48000
@@ -91,12 +95,12 @@ interface RuntimeEnv {
   imageRef?: string
   imageDigest?: string
   artifactRuntimePath: string
-  runtimeMode: typeof RUNTIME_MODE | typeof REAL_VIDEO_RUNTIME_MODE
+  runtimeMode: typeof RUNTIME_MODE | typeof REAL_VIDEO_RUNTIME_MODE | typeof FEATURE_E2E_RUNTIME_MODE
 }
 
 async function main(): Promise<void> {
   const env = readRuntimeEnv()
-  if (env.runtimeMode === REAL_VIDEO_RUNTIME_MODE) {
+  if (env.runtimeMode === REAL_VIDEO_RUNTIME_MODE || env.runtimeMode === FEATURE_E2E_RUNTIME_MODE) {
     await runRealVideoAudioCleanup(env)
     return
   }
@@ -303,8 +307,16 @@ async function main(): Promise<void> {
 }
 
 async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
+  const isFeatureE2E = env.runtimeMode === FEATURE_E2E_RUNTIME_MODE
+  const phase = isFeatureE2E ? '36E' : '36D'
+  const reportPrefix = isFeatureE2E ? PHASE36E_REPORT_PREFIX : PHASE36D_REPORT_PREFIX
+  const reportFileName = isFeatureE2E ? 'phase36e-report.json' : 'phase36d-report.json'
+  const qaFileName = isFeatureE2E ? 'deepfilternet-feature-e2e-qa.json' : 'deepfilternet-real-video-audio-qa.json'
+  const reviewFileName = isFeatureE2E ? 'deepfilternet-audio-feature-review.mp4' : 'deepfilternet-audio-cleaned-preview.mp4'
+  const reviewFeatureName = isFeatureE2E ? 'deepfilternet_audio_feature_e2e' : 'real_video_deepfilternet_audio_cleanup'
+  const planRunField = isFeatureE2E ? 'phase36ERunId' : 'phase36DRunId'
   const storage = new Storage({ projectId: env.projectId })
-  const artifactPrefix = `${PHASE36D_REPORT_PREFIX}/${env.runId}`
+  const artifactPrefix = `${reportPrefix}/${env.runId}`
   const workDir = path.join(os.tmpdir(), `reeditpro-real-video-deepfilternet-${env.runId}`)
   const artifactRuntimePath = env.artifactRuntimePath
   const sourceDir = path.join(workDir, 'source')
@@ -321,7 +333,7 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
   const inputAudioPath = path.join(audioDir, 'input-audio.wav')
   const cleanedAudioPath = path.join(audioDir, 'deepfilternet-cleaned.wav')
   const rawCleanedAudioPath = path.join(enhancedDir, 'deepfilternet-raw-cleaned.wav')
-  const reviewPreviewPath = path.join(reviewDir, 'deepfilternet-audio-cleaned-preview.mp4')
+  const reviewPreviewPath = path.join(reviewDir, reviewFileName)
   const privateReviewManifestPath = path.join(reviewDir, 'private-review-manifest.json')
   const checksumVerificationPath = path.join(metadataDir, 'model-checksum-verification.json')
   const runtimeMetadataPath = path.join(metadataDir, 'deepfilternet-real-video-runtime-metadata.json')
@@ -329,8 +341,8 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
   const outputMetricsPath = path.join(analysisDir, 'output-metrics.json')
   const comparisonMetricsPath = path.join(analysisDir, 'comparison-metrics.json')
   const loudnessReportPath = path.join(analysisDir, 'loudness-report.json')
-  const qaPath = path.join(qaDir, 'deepfilternet-real-video-audio-qa.json')
-  const reportPath = path.join(qaDir, 'phase36d-report.json')
+  const qaPath = path.join(qaDir, qaFileName)
+  const reportPath = path.join(qaDir, reportFileName)
 
   await resetWorkDirs(workDir, artifactRuntimePath)
   try {
@@ -348,7 +360,7 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
     const sourceProbe = await probeMedia(sourceVideoPath)
     const referenceProbe = await probeMedia(referenceVideoPath)
     const sourceValidation = {
-      phase: '36D',
+      phase,
       runId: env.runId,
       approvedInputVideo: PHASE36D_APPROVED_INPUT_VIDEO,
       referencePhase31Audio: PHASE36D_REFERENCE_AUDIO,
@@ -366,17 +378,29 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
     if (!sourceValidation.durationWithinBounds) throw new Error(`Approved Phase 32 source duration ${sourceProbe.durationSeconds}s exceeds Phase 36D max ${PHASE36D_MAX_DURATION_SECONDS}s.`)
 
     const planSnapshot = {
-      planId: `activation-phase36d-real-video-deepfilternet-audio-cleanup-${env.runId}`,
-      phase36DRunId: env.runId,
+      planId: isFeatureE2E
+        ? `activation-phase36e-deepfilternet-audio-feature-e2e-${env.runId}`
+        : `activation-phase36d-real-video-deepfilternet-audio-cleanup-${env.runId}`,
+      [planRunField]: env.runId,
+      ...(isFeatureE2E ? {
+        phase36DRunId: PHASE36D_RUN_ID,
+      } : {}),
       approvedInputVideo: PHASE36D_APPROVED_INPUT_VIDEO,
       referencePhase31Audio: PHASE36D_REFERENCE_AUDIO,
       sourceValidation,
-      feature: 'real_video_deepfilternet_audio_cleanup',
+      feature: reviewFeatureName,
       tool: {
         id: TOOL_ID,
         version: TOOL_VERSION,
         artifactGcsPath: ARTIFACT_GCS_PATH,
       },
+      ...(isFeatureE2E ? {
+        phase36DEvidence: {
+          runId: PHASE36D_RUN_ID,
+          qaReportUri: PHASE36D_REPORT_URI,
+          completed: true,
+        },
+      } : {}),
       audioExtractionPlan: {
         outputFormat: 'wav',
         sampleRate: SAMPLE_RATE,
@@ -421,7 +445,7 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
     const outputMetrics = runtimeResult.exitCode === 0 ? await readAudioMetrics(cleanedAudioPath) : undefined
     const comparisonMetrics = outputMetrics ? compareRealVideoAudioMetrics(inputMetrics, outputMetrics) : undefined
     const loudnessReport = {
-      phase: '36D',
+      phase,
       runId: env.runId,
       input: inputMetrics,
       output: outputMetrics,
@@ -446,7 +470,7 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
         if (!reviewProbe.audioStreamPresent || !reviewProbe.videoStreamPresent) throw new Error('Remuxed review MP4 must contain audio and video streams.')
         reviewPreview = {
           status: 'created',
-          gcsUri: `gs://${FINAL_EXPORTS_BUCKET}/${artifactPrefix}/review/deepfilternet-audio-cleaned-preview.mp4`,
+          gcsUri: `gs://${FINAL_EXPORTS_BUCKET}/${artifactPrefix}/review/${reviewFileName}`,
         }
       } catch (error) {
         reviewPreview = {
@@ -457,14 +481,14 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
     }
 
     const runtimeMetadata = {
-      phase: '36D',
+      phase,
       runId: env.runId,
       projectId: env.projectId,
       jobName: env.jobName,
       executionId: process.env.CLOUD_RUN_EXECUTION,
       imageRef: env.imageRef,
       imageDigest: env.imageDigest,
-      runtimeMode: REAL_VIDEO_RUNTIME_MODE,
+      runtimeMode: env.runtimeMode,
       toolId: TOOL_ID,
       toolVersion: TOOL_VERSION,
       runtimeStartedAt,
@@ -479,30 +503,31 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
     }
     await writeJson(runtimeMetadataPath, runtimeMetadata)
     await writeJson(privateReviewManifestPath, {
-      phase: '36D',
+      phase,
       runId: env.runId,
       privateReviewOnly: true,
       finalDeliveryAllowed: false,
+      featureReadinessPackage: isFeatureE2E,
       preview: reviewPreview,
     })
 
     const artifacts: ArtifactRecord[] = []
-    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/plan/approved-plan-snapshot.json`, planSnapshotPath, 'application/json', '36D'))
-    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/source/source-validation.json`, sourceValidationPath, 'application/json', '36D'))
-    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/audio/input-audio.wav`, inputAudioPath, 'audio/wav', '36D'))
+    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/plan/approved-plan-snapshot.json`, planSnapshotPath, 'application/json', phase))
+    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/source/source-validation.json`, sourceValidationPath, 'application/json', phase))
+    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/audio/input-audio.wav`, inputAudioPath, 'audio/wav', phase))
     if (runtimeResult.exitCode === 0) {
-      artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/audio/deepfilternet-cleaned.wav`, cleanedAudioPath, 'audio/wav', '36D'))
+      artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/audio/deepfilternet-cleaned.wav`, cleanedAudioPath, 'audio/wav', phase))
     }
-    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/metadata/model-checksum-verification.json`, checksumVerificationPath, 'application/json', '36D'))
-    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/metadata/deepfilternet-real-video-runtime-metadata.json`, runtimeMetadataPath, 'application/json', '36D'))
-    artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/input-metrics.json`, inputMetricsPath, 'application/json', '36D'))
-    if (outputMetrics) artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/output-metrics.json`, outputMetricsPath, 'application/json', '36D'))
-    if (comparisonMetrics) artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/comparison-metrics.json`, comparisonMetricsPath, 'application/json', '36D'))
-    artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/loudness-report.json`, loudnessReportPath, 'application/json', '36D'))
+    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/metadata/model-checksum-verification.json`, checksumVerificationPath, 'application/json', phase))
+    artifacts.push(await uploadFile(storage, GENERATED_ASSETS_BUCKET, `${artifactPrefix}/metadata/deepfilternet-feature-e2e-runtime-metadata.json`, runtimeMetadataPath, 'application/json', phase))
+    artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/input-metrics.json`, inputMetricsPath, 'application/json', phase))
+    if (outputMetrics) artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/output-metrics.json`, outputMetricsPath, 'application/json', phase))
+    if (comparisonMetrics) artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/comparison-metrics.json`, comparisonMetricsPath, 'application/json', phase))
+    artifacts.push(await uploadFile(storage, ANALYSIS_BUCKET, `${artifactPrefix}/audio-metrics/loudness-report.json`, loudnessReportPath, 'application/json', phase))
     if (reviewPreview.status === 'created') {
-      artifacts.push(await uploadFile(storage, FINAL_EXPORTS_BUCKET, `${artifactPrefix}/review/deepfilternet-audio-cleaned-preview.mp4`, reviewPreviewPath, 'video/mp4', '36D'))
+      artifacts.push(await uploadFile(storage, FINAL_EXPORTS_BUCKET, `${artifactPrefix}/review/${reviewFileName}`, reviewPreviewPath, 'video/mp4', phase))
     }
-    artifacts.push(await uploadFile(storage, FINAL_EXPORTS_BUCKET, `${artifactPrefix}/review/private-review-manifest.json`, privateReviewManifestPath, 'application/json', '36D'))
+    artifacts.push(await uploadFile(storage, FINAL_EXPORTS_BUCKET, `${artifactPrefix}/review/private-review-manifest.json`, privateReviewManifestPath, 'application/json', phase))
 
     const qa = buildRealVideoQa({
       sourceValidation,
@@ -513,9 +538,9 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
       comparisonMetrics,
       reviewPreview,
       artifacts,
-    })
+    }, isFeatureE2E)
     await writeJson(qaPath, {
-      phase: '36D',
+      phase,
       runId: env.runId,
       ...qa,
       arbitraryRealUserMediaAllowed: false,
@@ -530,7 +555,7 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
       broadRealUserMediaAllowed: false,
       finalDeliveryAllowed: false,
     })
-    artifacts.push(await uploadFile(storage, QA_BUCKET, `${artifactPrefix}/qa/deepfilternet-real-video-audio-qa.json`, qaPath, 'application/json', '36D'))
+    artifacts.push(await uploadFile(storage, QA_BUCKET, `${artifactPrefix}/qa/${qaFileName}`, qaPath, 'application/json', phase))
 
     const report = {
       ok: runtimeResult.exitCode === 0 && qa.status !== 'blocked',
@@ -553,6 +578,13 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
         gcsUri: `gs://${GENERATED_ASSETS_BUCKET}/${artifactPrefix}/plan/approved-plan-snapshot.json`,
         rawPromptExecution: false,
       },
+      ...(isFeatureE2E ? {
+        phase36DEvidence: {
+          runId: PHASE36D_RUN_ID,
+          reportUri: PHASE36D_REPORT_URI,
+          completed: true,
+        },
+      } : {}),
       model: {
         toolId: TOOL_ID,
         toolVersion: TOOL_VERSION,
@@ -581,18 +613,20 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
       safety: buildRealVideoSafety(false),
       uploadedReport: {
         bucket: QA_BUCKET,
-        object: `${artifactPrefix}/reports/phase36d-report.json`,
-        gcsUri: `gs://${QA_BUCKET}/${artifactPrefix}/reports/phase36d-report.json`,
+        object: `${artifactPrefix}/reports/${reportFileName}`,
+        gcsUri: `gs://${QA_BUCKET}/${artifactPrefix}/reports/${reportFileName}`,
       },
       warnings: [
-        'Phase 36D used one controlled Phase 32 private export only.',
+        isFeatureE2E
+          ? 'Phase 36E used one controlled Phase 32 private export only and created a private feature review package.'
+          : 'Phase 36D used one controlled Phase 32 private export only.',
         'Subjective listening review is recommended before broader internal audio review.',
         ...(reviewPreview.status === 'blocked' ? [`Private review MP4 blocked: ${reviewPreview.reason}`] : []),
       ],
     }
 
     await writeJson(reportPath, report)
-    artifacts.push(await uploadFile(storage, QA_BUCKET, `${artifactPrefix}/reports/phase36d-report.json`, reportPath, 'application/json', '36D'))
+    artifacts.push(await uploadFile(storage, QA_BUCKET, `${artifactPrefix}/reports/${reportFileName}`, reportPath, 'application/json', phase))
     console.log(JSON.stringify(report))
   } finally {
     await resetWorkDirs(workDir, artifactRuntimePath)
@@ -602,10 +636,16 @@ async function runRealVideoAudioCleanup(env: RuntimeEnv): Promise<void> {
 function readRuntimeEnv(): RuntimeEnv {
   requireEnvValue('REEDITPRO_ENV', ENVIRONMENT)
   const runtimeMode = process.env.REEDITPRO_DEEPFILTERNET_RUNTIME_MODE
-  if (runtimeMode === REAL_VIDEO_RUNTIME_MODE) {
-    requireEnvValue('REEDITPRO_CONFIRM_REAL_VIDEO_DEEPFILTERNET_AUDIO_CLEANUP', 'true')
-    requireEnvValue('REEDITPRO_PHASE36D_INPUT_VIDEO_GCS_URI', PHASE36D_APPROVED_INPUT_VIDEO)
-    requireEnvValue('REEDITPRO_PHASE36D_REFERENCE_AUDIO_GCS_URI', PHASE36D_REFERENCE_AUDIO)
+  if (runtimeMode === REAL_VIDEO_RUNTIME_MODE || runtimeMode === FEATURE_E2E_RUNTIME_MODE) {
+    if (runtimeMode === FEATURE_E2E_RUNTIME_MODE) {
+      requireEnvValue('REEDITPRO_CONFIRM_DEEPFILTERNET_AUDIO_FEATURE_E2E', 'true')
+      requireEnvValue('REEDITPRO_PHASE36E_INPUT_VIDEO_GCS_URI', PHASE36D_APPROVED_INPUT_VIDEO)
+      requireEnvValue('REEDITPRO_PHASE36E_REFERENCE_AUDIO_GCS_URI', PHASE36D_REFERENCE_AUDIO)
+    } else {
+      requireEnvValue('REEDITPRO_CONFIRM_REAL_VIDEO_DEEPFILTERNET_AUDIO_CLEANUP', 'true')
+      requireEnvValue('REEDITPRO_PHASE36D_INPUT_VIDEO_GCS_URI', PHASE36D_APPROVED_INPUT_VIDEO)
+      requireEnvValue('REEDITPRO_PHASE36D_REFERENCE_AUDIO_GCS_URI', PHASE36D_REFERENCE_AUDIO)
+    }
     requireEnvValue('PUBLIC_ACCESS_ENABLED', 'false')
     requireEnvValue('FINAL_DELIVERY_ENABLED', 'false')
   } else {
@@ -616,9 +656,9 @@ function readRuntimeEnv(): RuntimeEnv {
   requireEnvValue('REEDITPRO_DEEPFILTERNET_CLI_SHA256', CLI_SHA256)
   requireEnvValue('REEDITPRO_DEEPFILTERNET_MODEL_ARCHIVE_SHA256', MODEL_ARCHIVE_SHA256)
   requireEnvValue('REEDITPRO_DEEPFILTERNET_AGGREGATE_SHA256', AGGREGATE_SHA256)
-  if (runtimeMode !== REAL_VIDEO_RUNTIME_MODE) requireEnvValue('GENERATED_AUDIO_ONLY', 'true')
+  if (runtimeMode !== REAL_VIDEO_RUNTIME_MODE && runtimeMode !== FEATURE_E2E_RUNTIME_MODE) requireEnvValue('GENERATED_AUDIO_ONLY', 'true')
   requireEnvValue('PROVIDER_EXECUTION_ENABLED', 'false')
-  if (runtimeMode !== REAL_VIDEO_RUNTIME_MODE) requireEnvValue('REAL_MEDIA_INPUT_ENABLED', 'false')
+  if (runtimeMode !== REAL_VIDEO_RUNTIME_MODE && runtimeMode !== FEATURE_E2E_RUNTIME_MODE) requireEnvValue('REAL_MEDIA_INPUT_ENABLED', 'false')
   requireEnvValue('RNNOISE_ENABLED', 'false')
   requireEnvValue('DEMUCS_ENABLED', 'false')
   requireEnvValue('REEDITPRO_PRODUCTION_READY', 'false')
@@ -627,11 +667,14 @@ function readRuntimeEnv(): RuntimeEnv {
   requireOptionalFalse('MODEL_DOWNLOADS_ENABLED')
   const projectId = process.env.GCP_PROJECT_ID ?? PROJECT_ID
   if (projectId !== PROJECT_ID) throw new Error('GCP_PROJECT_ID must be exactly reeditpro.')
-  const runId = runtimeMode === REAL_VIDEO_RUNTIME_MODE
-    ? process.env.REEDITPRO_PHASE36D_RUN_ID ?? `phase36d-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
-    : process.env.REEDITPRO_PHASE36C_RUN_ID ?? `phase36c-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+  const runId = runtimeMode === FEATURE_E2E_RUNTIME_MODE
+    ? process.env.REEDITPRO_PHASE36E_RUN_ID ?? `phase36e-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+    : runtimeMode === REAL_VIDEO_RUNTIME_MODE
+      ? process.env.REEDITPRO_PHASE36D_RUN_ID ?? `phase36d-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+      : process.env.REEDITPRO_PHASE36C_RUN_ID ?? `phase36c-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+  if (runtimeMode === FEATURE_E2E_RUNTIME_MODE && !/^phase36e-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 36E run id: ${runId}`)
   if (runtimeMode === REAL_VIDEO_RUNTIME_MODE && !/^phase36d-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 36D run id: ${runId}`)
-  if (runtimeMode !== REAL_VIDEO_RUNTIME_MODE && !/^phase36c-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 36C run id: ${runId}`)
+  if (runtimeMode !== REAL_VIDEO_RUNTIME_MODE && runtimeMode !== FEATURE_E2E_RUNTIME_MODE && !/^phase36c-[0-9A-Za-z]+$/.test(runId)) throw new Error(`Unsafe Phase 36C run id: ${runId}`)
   return {
     runId,
     projectId,
@@ -639,7 +682,7 @@ function readRuntimeEnv(): RuntimeEnv {
     imageRef: process.env.REEDITPRO_IMAGE_REF,
     imageDigest: process.env.REEDITPRO_IMAGE_DIGEST,
     artifactRuntimePath: process.env.REEDITPRO_DEEPFILTERNET_ARTIFACT_RUNTIME_PATH ?? '/tmp/reeditpro-audio-ai/deepfilternet/v0.5.6',
-    runtimeMode: runtimeMode === REAL_VIDEO_RUNTIME_MODE ? REAL_VIDEO_RUNTIME_MODE : RUNTIME_MODE,
+    runtimeMode: runtimeMode === FEATURE_E2E_RUNTIME_MODE ? FEATURE_E2E_RUNTIME_MODE : runtimeMode === REAL_VIDEO_RUNTIME_MODE ? REAL_VIDEO_RUNTIME_MODE : RUNTIME_MODE,
   }
 }
 
@@ -854,7 +897,7 @@ function buildRealVideoQa(input: {
   comparisonMetrics?: Record<string, number | string | boolean>
   reviewPreview: { status: 'created' | 'blocked'; reason?: string }
   artifacts: ArtifactRecord[]
-}) {
+}, featureE2E = false) {
   const gates = [
     {
       gateId: 'source_integrity',
@@ -866,6 +909,11 @@ function buildRealVideoQa(input: {
       status: 'passed',
       summary: 'Approved plan snapshot was created and raw prompt execution is false.',
     },
+    ...(featureE2E ? [{
+      gateId: 'phase36d_evidence',
+      status: 'passed',
+      summary: 'Approved Phase 36D controlled real-video DeepFilterNet QA evidence was linked before the feature E2E run.',
+    }] : []),
     {
       gateId: 'model_artifacts',
       status: input.checksumVerification.checksumsMatch ? 'passed' : 'blocked',
@@ -898,6 +946,11 @@ function buildRealVideoQa(input: {
       status: input.artifacts.every((artifact) => artifact.gcsUri.startsWith('gs://reeditpro-staging-')) ? 'passed' : 'blocked',
       summary: 'Artifacts were written only to private staging GCS prefixes; no public or signed URLs are produced.',
     },
+    ...(featureE2E ? [{
+      gateId: 'feature_readiness_evidence',
+      status: input.runtimeResult.exitCode === 0 && input.reviewPreview.status === 'created' ? 'passed' : 'blocked',
+      summary: 'The private audio cleanup feature path produced cleaned audio, metrics, QA, and a private review manifest for internal testing only.',
+    }] : []),
     {
       gateId: 'blocked_features',
       status: 'passed',
@@ -1231,14 +1284,20 @@ await main().catch(async (error) => {
   const stack = error instanceof Error ? error.stack : undefined
   const runtimeMode = process.env.REEDITPRO_DEEPFILTERNET_RUNTIME_MODE
   const isPhase36D = runtimeMode === REAL_VIDEO_RUNTIME_MODE
-  const runId = isPhase36D
-    ? process.env.REEDITPRO_PHASE36D_RUN_ID ?? `phase36d-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
-    : process.env.REEDITPRO_PHASE36C_RUN_ID ?? `phase36c-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+  const isFeatureE2E = runtimeMode === FEATURE_E2E_RUNTIME_MODE
+  const isRealVideoStyle = isPhase36D || isFeatureE2E
+  const runId = isFeatureE2E
+    ? process.env.REEDITPRO_PHASE36E_RUN_ID ?? `phase36e-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+    : isPhase36D
+      ? process.env.REEDITPRO_PHASE36D_RUN_ID ?? `phase36d-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+      : process.env.REEDITPRO_PHASE36C_RUN_ID ?? `phase36c-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
   const storage = new Storage({ projectId: PROJECT_ID })
-  const reportObject = isPhase36D
-    ? `${PHASE36D_REPORT_PREFIX}/${runId}/reports/phase36d-report.json`
+  const reportObject = isFeatureE2E
+    ? `${PHASE36E_REPORT_PREFIX}/${runId}/reports/phase36e-report.json`
+    : isPhase36D
+      ? `${PHASE36D_REPORT_PREFIX}/${runId}/reports/phase36d-report.json`
     : `${REPORT_PREFIX}/${runId}/reports/phase36c-report.json`
-  const report = isPhase36D ? {
+  const report = isRealVideoStyle ? {
     ok: false,
     runId,
     projectId: PROJECT_ID,
@@ -1253,6 +1312,13 @@ await main().catch(async (error) => {
       gcsUri: '',
       rawPromptExecution: false,
     },
+    ...(isFeatureE2E ? {
+      phase36DEvidence: {
+        runId: PHASE36D_RUN_ID,
+        reportUri: PHASE36D_REPORT_URI,
+        completed: false,
+      },
+    } : {}),
     model: {
       toolId: TOOL_ID,
       toolVersion: TOOL_VERSION,
@@ -1285,7 +1351,9 @@ await main().catch(async (error) => {
       object: reportObject,
       gcsUri: `gs://${QA_BUCKET}/${reportObject}`,
     },
-    warnings: ['Phase 36D failed before successful controlled real-video DeepFilterNet audio cleanup verification.'],
+    warnings: [isFeatureE2E
+      ? 'Phase 36E failed before successful private DeepFilterNet audio feature E2E verification.'
+      : 'Phase 36D failed before successful controlled real-video DeepFilterNet audio cleanup verification.'],
   } : {
     ok: false,
     runId,

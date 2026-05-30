@@ -35,3 +35,10 @@ export and Phase 31 audio reference, used only the private Phase 36B
 DeepFilterNet artifacts, and remains private review only. RNNoise, Demucs,
 arbitrary media, providers, Revideo, FILM, slow motion, production, beta, broad
 media, and final delivery remain blocked.
+
+Phase 36E completed the private DeepFilterNet audio feature E2E gate on the
+same approved controlled chain for `phase36e-20260530T152327`. It created a
+private review package and a local backup copy for Finder review, but GCS
+remains the source of truth and production, external beta, paid production,
+broad media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow
+motion, and final delivery remain blocked.

@@ -526,7 +526,12 @@ function buildQa(input: {
 async function downloadGcsObject(storage: Storage, gcsUri: string, destination: string): Promise<void> {
   const { bucket, object } = parseGcsUri(gcsUri)
   await mkdir(path.dirname(destination), { recursive: true })
-  await storage.bucket(bucket).file(object).download({ destination })
+  try {
+    await storage.bucket(bucket).file(object).download({ destination })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Failed to download approved Phase 36C artifact ${gcsUri}: ${message}`, { cause: error })
+  }
 }
 
 async function uploadFile(storage: Storage, bucket: string, object: string, localPath: string, contentType: string): Promise<ArtifactRecord> {

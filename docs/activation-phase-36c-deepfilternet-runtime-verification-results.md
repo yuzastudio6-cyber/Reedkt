@@ -2,16 +2,16 @@
 
 - phase: 36C
 - status: blocked
-- runId: `phase36c-20260530T123258`
+- runId: `phase36c-20260530T125233`
 - tool: DeepFilterNet
 - selectedVersion: v0.5.6
 - runtimeMode: generated_audio
 - generatedAudioOnly: true
-- runtimeImage: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-deepfilternet-runtime@sha256:a798e659eec6c001d0cc4b735632359f5fa61e299715cf19d1421c9aba96bde2`
+- runtimeImage: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-deepfilternet-runtime@sha256:2c709d298628a5189ec0f4ddc0f11ac78554af328a81f647414837c9388402bc`
 - runtimeImageTag: `staging-deepfilternet-runtime-001`
-- runtimeImageDigest: `sha256:a798e659eec6c001d0cc4b735632359f5fa61e299715cf19d1421c9aba96bde2`
+- runtimeImageDigest: `sha256:2c709d298628a5189ec0f4ddc0f11ac78554af328a81f647414837c9388402bc`
 - cloudRunJob: `reeditpro-staging-deepfilternet-runtime-job`
-- cloudRunExecutionId: `reeditpro-staging-deepfilternet-runtime-job-sp2fc`
+- cloudRunExecutionId: `reeditpro-staging-deepfilternet-runtime-job-b6mmw`
 - serviceAccount: `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`
 - artifactGcsPath: `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/`
 - deepFilterNetRuntimeVerified: false
@@ -41,11 +41,17 @@
 
 Phase 36B private artifact upload/checksum evidence is complete. Phase 36C
 built and pushed the dedicated CPU-only runtime image, deployed the Cloud Run
-Job, and executed it in generated-audio mode. The Phase 36C IAM retry confirmed
-that the expected prefix-scoped artifact-read binding is present, redeployed the
-approved runtime image with a fresh run ID, and executed the job once. The retry
-still stopped before copying the DeepFilterNet CLI because the CPU worker
-service account could not read the approved Phase 36B artifact objects.
+Job, and executed it in generated-audio mode. The Phase 36C access diagnostic
+confirmed that the worker downloads explicit object names and does not list the
+artifact prefix. The approved artifact objects exist with exact matching names,
+the Cloud Run job uses the expected CPU worker service account and Cloud Run ADC,
+and the blocked permission remains `storage.objects.get`.
+
+The diagnostic added a managed folder on the exact approved artifact prefix and
+granted only `roles/storage.objectViewer` to the CPU worker on that managed
+folder. A rebuilt diagnostic image was redeployed with a fresh run ID and still
+stopped before copying the DeepFilterNet CLI because the CPU worker service
+account could not read the approved Phase 36B artifact objects.
 
 ## Execution Attempts
 
@@ -62,6 +68,13 @@ service account could not read the approved Phase 36B artifact objects.
   fresh run ID `phase36c-20260530T123258`; blocked on the same
   `storage.objects.get` access after confirming the exact conditional
   objectViewer bindings are present.
+- `reeditpro-staging-deepfilternet-runtime-job-d7pq2`: diagnostic retry with
+  managed-folder objectViewer on the approved artifact prefix and run ID
+  `phase36c-20260530T124907`; still blocked on `storage.objects.get`.
+- `reeditpro-staging-deepfilternet-runtime-job-b6mmw`: final diagnostic retry
+  with rebuilt diagnostic image `sha256:2c709d298628a5189ec0f4ddc0f11ac78554af328a81f647414837c9388402bc`
+  and run ID `phase36c-20260530T125233`; still blocked on
+  `storage.objects.get`.
 
 ## IAM
 
@@ -79,8 +92,37 @@ The Phase 36C IAM retry did not add a broad grant. The artifact-read binding was
 already present with the exact approved prefix expression:
 `resource.name.startsWith("projects/_/buckets/reeditpro-staging-reeditpro-generated-assets/objects/model-weights/audio-ai/deepfilternet/v0.5.6/")`.
 
+The Phase 36C diagnostic also created this managed folder and applied only
+managed-folder-scoped read access:
+
+- managed folder:
+  `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/`
+- role: `roles/storage.objectViewer`
+- member:
+  `serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`
+
 No `storage.admin`, `storage.objectAdmin`, owner/editor, public principal, or
 broad write role was granted.
+
+## Access Diagnostics
+
+- all seven Phase 36B objects exist under the approved prefix
+- object names match the runtime policy exactly
+- worker code downloads explicit object names and does not list the prefix
+- Cloud Run job and executions use
+  `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`
+- no `GOOGLE_APPLICATION_CREDENTIALS` override is present in the job env
+- active account cannot impersonate the CPU worker because
+  `iam.serviceAccounts.getAccessToken` is denied
+- Policy Troubleshooter could not run because
+  `policytroubleshooter.googleapis.com` is disabled
+- Cloud Asset IAM analysis could not run because `cloudasset.googleapis.com` is
+  disabled
+- project-level deny policy list returned no deny policies
+- org-level deny policy and Principal Access Boundary inspection require admin
+  permissions not available to the active account
+- Access Context Manager inspection could not run because
+  `accesscontextmanager.googleapis.com` is disabled
 
 ## QA Summary
 
@@ -104,13 +146,17 @@ runtime QA.
 `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com` does not have
 `storage.objects.get` access to the approved Phase 36B DeepFilterNet artifact
 objects, despite the Phase 36C prefix-scoped conditional objectViewer bindings
-being present on the bucket IAM policy.
+being present on the bucket IAM policy and despite managed-folder-scoped
+objectViewer being present on the approved artifact prefix.
 
 Required human/GCP admin action: review why the existing conditional
 `roles/storage.objectViewer` binding does not authorize
 `storage.objects.get` for
 `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com` on
 `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/`.
+Also review whether an org-level deny policy, Principal Access Boundary, VPC-SC
+perimeter, disabled diagnostics API, or other admin-only policy control is
+blocking Cloud Run service-account access.
 Do not unblock Phase 36D until this access issue is resolved and Phase 36C
 generated-audio runtime QA passes.
 

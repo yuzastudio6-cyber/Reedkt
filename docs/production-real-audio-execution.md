@@ -29,9 +29,10 @@ with checksum/source/license evidence. It still does not run DeepFilterNet,
 RNNoise, Demucs, media processing, Docker, Cloud Run, providers, Revideo, FILM,
 slow motion, production, external beta, or broad real media.
 
-Phase 36C builds/deploys the generated-audio DeepFilterNet runtime only. The
-current Phase 36C result is blocked before runtime verification because the CPU
-worker service account cannot read the approved Phase 36B artifact prefix from
-private staging GCS. This does not approve real-video audio AI cleanup,
-RNNoise, Demucs, providers, Revideo, production, external beta, or broad real
-media.
+Phase 36C verified the generated-audio DeepFilterNet runtime only. The completed
+run `phase36c-20260530T133009` copied approved private DeepFilterNet artifacts,
+verified checksums, generated a synthetic audio fixture, ran the approved
+DeepFilterNet CLI, and wrote private enhanced-audio metrics. This does not
+approve real-video audio AI cleanup, RNNoise, Demucs, providers, Revideo,
+production, external beta, or broad real media. Phase 36D remains the first
+allowed controlled real-video audio AI cleanup sample.

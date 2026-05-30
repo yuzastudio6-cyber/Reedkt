@@ -3,31 +3,34 @@ import type { ApprovedDeepFilterNetRuntimeEvidence } from './deepfilternet-runti
 
 export const approvedDeepFilterNetRuntimeEvidence: ApprovedDeepFilterNetRuntimeEvidence = {
   phase: '36C',
-  status: 'blocked',
-  runId: 'phase36c-20260530T131522',
-  runtimeImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-deepfilternet-runtime@sha256:883df7f72317fec06b8e908ff836ff9844803c02366f0067b2f8fcda8d95cb1a',
-  runtimeImageDigest: 'sha256:883df7f72317fec06b8e908ff836ff9844803c02366f0067b2f8fcda8d95cb1a',
+  status: 'verified',
+  runId: 'phase36c-20260530T133009',
+  runtimeImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-deepfilternet-runtime@sha256:363d436bbd958a38ddb18cfb028ce2d3eb379317c28cef81dda502567a0aafce',
+  runtimeImageDigest: 'sha256:363d436bbd958a38ddb18cfb028ce2d3eb379317c28cef81dda502567a0aafce',
   cloudRunJobName: deepFilterNetRuntimeConfig.runtimeJobName,
-  cloudRunExecutionId: 'reeditpro-staging-deepfilternet-runtime-job-7jm4n',
+  cloudRunExecutionId: 'reeditpro-staging-deepfilternet-runtime-job-pxjbq',
   toolId: deepFilterNetRuntimeConfig.toolId,
   toolVersion: deepFilterNetRuntimeConfig.toolVersion,
   artifactGcsPath: deepFilterNetRuntimeConfig.artifactGcsPath,
   cliSha256: deepFilterNetRuntimeConfig.cliSha256,
   modelArchiveSha256: deepFilterNetRuntimeConfig.modelArchiveSha256,
   aggregateSha256: deepFilterNetRuntimeConfig.aggregateSha256,
-  qaReportUri: 'gs://reeditpro-staging-reeditpro-qa-artifacts/activation-audio-ai/phase36c/phase36c-20260530T131522/reports/phase36c-report.json',
-  phase36DReadiness: {
-    readyForControlledRealVideoAudioAiCleanupSample: false,
-    reason: 'Phase 36C is blocked because the Cloud Run CPU worker service account cannot read the approved Phase 36B DeepFilterNet artifact prefix from private staging GCS.',
+  generatedFixture: {
+    sampleRate: 48000,
+    channels: 1,
+    durationSeconds: 10,
   },
-  blockers: [
-    'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com does not have storage.objects.get access to the approved Phase 36B DeepFilterNet artifact objects despite prefix-scoped, managed-folder, bucket-level exact-object, and project-level exact-object Phase 36C objectViewer bindings.',
-  ],
+  enhancedAudioUri: 'gs://reeditpro-staging-reeditpro-generated-assets/activation-audio-ai/phase36c/phase36c-20260530T133009/enhanced/deepfilternet-enhanced.wav',
+  artifactPrefix: 'gs://reeditpro-staging-reeditpro-generated-assets/activation-audio-ai/phase36c/phase36c-20260530T133009/',
+  qaReportUri: 'gs://reeditpro-staging-reeditpro-qa-artifacts/activation-audio-ai/phase36c/phase36c-20260530T133009/reports/phase36c-report.json',
+  phase36DReadiness: {
+    readyForControlledRealVideoAudioAiCleanupSample: true,
+    reason: 'Phase 36C verified DeepFilterNet runtime on generated audio only; Phase 36D may plan one controlled real-video audio AI cleanup sample.',
+  },
+  blockers: [],
   warnings: [
-    'The Phase 36C diagnostic image was rebuilt and redeployed with a fresh run ID, but DeepFilterNet did not run and no generated audio was processed.',
-    'Bucket-level conditional objectViewer, managed-folder objectViewer, bucket-level exact-object objectViewer, and project-level exact-object objectViewer were present for the CPU worker service account; artifact read access still requires GCS/IAM admin review.',
-    'Policy Troubleshooter returned NOT_GRANTED with ERROR_IAM_DENY for storage.objects.get on the generated-assets bucket, while Cloud Asset analysis found the conditional objectViewer bindings; org-level deny and Principal Access Boundary inspection is not permitted for the active account.',
-    'Phase 36C remains generated-audio-only and must not process real video/audio.',
+    'Phase 36C uses generated synthetic audio only; no real-video audio cleanup is approved until Phase 36D.',
+    'Metrics are deterministic runtime sanity checks, not subjective audio quality approval.',
   ],
 }
 

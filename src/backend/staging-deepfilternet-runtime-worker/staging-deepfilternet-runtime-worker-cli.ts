@@ -1,7 +1,7 @@
 import { Storage } from '@google-cloud/storage'
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { chmod, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
@@ -154,7 +154,7 @@ async function main(): Promise<void> {
       toolVersion: TOOL_VERSION,
       runtimeStartedAt,
       runtimeCompletedAt: new Date().toISOString(),
-      cliCommand: 'deep-filter --model <local DeepFilterNet3_onnx.tar.gz> --out-dir <enhanced-dir> <generated-noisy-input.wav>',
+      cliCommand: 'deep-filter --model <local DeepFilterNet3_onnx.tar.gz> --output-dir <enhanced-dir> <generated-noisy-input.wav>',
       cpuOnly: true,
       generatedAudioOnly: true,
       realMediaUsed: false,
@@ -428,7 +428,7 @@ async function runDeepFilterNet(cliPath: string, modelArchivePath: string, outpu
   stderr: string
 }> {
   try {
-    const { stdout, stderr } = await execFileAsync(cliPath, ['--model', modelArchivePath, '--out-dir', outputDir, noisyInputPath], {
+    const { stdout, stderr } = await execFileAsync(cliPath, ['--model', modelArchivePath, '--output-dir', outputDir, noisyInputPath], {
       timeout: 4 * 60 * 1000,
       maxBuffer: 8 * 1024 * 1024,
       env: {
@@ -535,6 +535,7 @@ async function downloadGcsObject(storage: Storage, gcsUri: string, destination: 
 }
 
 async function uploadFile(storage: Storage, bucket: string, object: string, localPath: string, contentType: string): Promise<ArtifactRecord> {
+  const [fileStats, sha256] = await Promise.all([stat(localPath), sha256File(localPath)])
   await storage.bucket(bucket).upload(localPath, {
     destination: object,
     contentType,
@@ -546,15 +547,14 @@ async function uploadFile(storage: Storage, bucket: string, object: string, loca
       },
     },
   })
-  const [metadata] = await storage.bucket(bucket).file(object).getMetadata()
   return {
     id: path.basename(object).replace(/[^A-Za-z0-9_-]/g, '-'),
     kind: contentType,
     bucket,
     object,
     gcsUri: `gs://${bucket}/${object}`,
-    sizeBytes: Number(metadata.size ?? 0),
-    sha256: contentType === 'audio/wav' || contentType === 'application/json' ? await sha256File(localPath) : undefined,
+    sizeBytes: fileStats.size,
+    sha256,
   }
 }
 

@@ -276,7 +276,7 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 ## After Phase 36C
 
 1. Review `activation:deepfilternet-runtime:report` and `docs/activation-phase-36c-deepfilternet-runtime-verification-results.md`.
-2. If Phase 36C is still blocked, fix only the approved Phase 36B artifact-prefix read access for `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`; do not grant public access, `storage.admin`, `storage.objectAdmin`, owner/editor, provider secrets, or broad write roles.
-3. Confirm DeepFilterNet did not run unless model artifact copy and checksum verification passed.
+2. Confirm the successful run is `phase36c-20260530T133009` with private generated-audio fixture, enhanced WAV, metrics, QA, and report artifacts only.
+3. Confirm DeepFilterNet ran only after private model artifact copy and checksum verification passed.
 4. Confirm no real video/audio input, RNNoise, Demucs, providers, Revideo, FILM, slow motion, production, external beta, paid production, or broad real media occurred.
-5. Proceed to Phase 36D only after a successful generated-audio DeepFilterNet runtime report has no blocking QA failures.
+5. Proceed to Phase 36D only as one controlled real-video audio AI cleanup sample on the approved controlled chain; do not process arbitrary media or unlock broader beta/production.

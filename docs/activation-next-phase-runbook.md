@@ -233,3 +233,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 6. Confirm private segment frames, masks, overlays, metadata, QA, and report artifacts exist with no blocking failures.
 7. Confirm no arbitrary media, full-video masks, full-video text-behind-subject, providers, public access, Revideo, FILM, slow motion, production, external beta, or broad real media occurred.
 8. Proceed to Phase 35E only as controlled segment text-behind-subject preview planning/execution if Phase 35D QA passes.
+
+## After Phase 35E
+
+1. Review `activation:segment-text-behind-subject-preview:report` and `docs/activation-phase-35e-segment-text-behind-subject-preview-results.md`.
+2. Confirm the only source run was `phase35d-20260530T004442`.
+3. Confirm the selected segment remained 6.9s-8.9s, 2.0 seconds, 10 frames, and 768x432.
+4. Confirm the fixed text content was `REEDITPRO`.
+5. Confirm private preview frames, composition metadata, QA, and report artifacts exist with no blocking failures.
+6. Confirm preview clip generation, if absent, is documented as optional and no final export was created.
+7. Confirm no arbitrary media, full-video masks, full-video text-behind-subject, providers, public access, Revideo, FILM, slow motion, Real-ESRGAN, production, external beta, or broad real media occurred.
+8. Proceed to Phase 36A only as a separate audio AI approval workflow. Do not treat Phase 35E as full-video text-behind-subject, beta, or production approval.

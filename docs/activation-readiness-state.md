@@ -1,14 +1,20 @@
 # Activation Readiness State
 
+Phase 35E completed the controlled segment text-behind-subject preview gate for
+`phase35e-20260530T01355`. It was locked to Phase 35D run
+`phase35d-20260530T004442`, the 6.9s-8.9s segment, 10 bounded 768x432 frames,
+Phase 35D SAM2 masks, and fixed text `REEDITPRO`. It created private preview
+frames and metadata only. Full-video masks, full-video text-behind-subject,
+final export, production launch, external beta, broad real user media, provider
+execution, arbitrary media execution, FILM, slow motion, Real-ESRGAN, and
+Revideo remain blocked.
+FILM/slow-motion is deferred to future Phase 38A approval if still needed.
+
 Phase 35D completed the controlled SAM2 gate after Phase 35C for exactly one
 approved Phase 32 private-export segment from 6.9s to 8.9s, 10 bounded frames
 at 768x432, and a prompt derived from the Phase 33D mask. It produced private
 mask/overlay/QA artifacts for `phase35d-20260530T004442` with no blocking QA
-failures and warning-only temporal/human-review limitations. Full-video masks,
-full-video text-behind-subject, production launch, external beta, broad real
-user media, provider execution, arbitrary media execution, FILM, slow motion,
-and Revideo remain blocked. FILM/slow-motion is deferred to future Phase 38A
-approval if still needed.
+failures and warning-only temporal/human-review limitations.
 
 Phase 35C completed SAM2 generated/synthetic runtime verification after Phase
 35B. The dedicated staging SAM2 runtime loaded the private SAM2.1 tiny
@@ -57,6 +63,7 @@ runtime on generated media only.
 | SAM2 model weights availability | Private staging storage verified | `sam2.1_hiera_tiny.pt` and `sam2.1_hiera_t.yaml` are stored under private generated-assets model storage with checksum/source evidence. Phase 35C may use them only for generated/synthetic runtime verification. |
 | SAM2 runtime | Phase 35C generated-fixture verification complete | The dedicated SAM2 runtime ran on generated/synthetic frames only for `phase35c-20260529T16082`. |
 | SAM2 real-video temporal mask | Phase 35D complete for one controlled short segment | `phase35d-20260530T004442` used the approved Phase 32 export, Phase 33D anchor evidence, and a 6.9s-8.9s bounded segment. Full-video masks remain blocked. |
+| Segment text-behind-subject preview | Phase 35E complete for one controlled short segment | `phase35e-20260530T01355` used the Phase 35D short segment and private masks. It created private preview frames only; full-video text-behind-subject and final export remain blocked. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
 | Real-video representative-frame mask | Complete for one controlled test | Phase 33D produced a private frame, mask, RGBA cutout, metadata, and QA for `phase33d-20260528T161056` with no blocking failures. |
@@ -97,13 +104,13 @@ Current classification:
 - controlled real-video chain: complete only for the explicit approved Phase 28-34D path
 - broad real user media testing: blocked
 - mask execution: complete only for the explicit Phase 33D representative-frame test; full-video masks remain blocked
-- text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview; full-video text-behind-subject remains blocked
+- text-behind-subject execution: complete only for the explicit Phase 33E single-frame preview and Phase 35E controlled segment preview; full-video text-behind-subject remains blocked
 - enhancement execution: blocked except the explicit Phase 34D bounded real-video-derived sample; full-frame and full-video enhancement remain blocked
 - Real-ESRGAN broader-scope policy: Phase 34E complete; human visual review required before broader scope
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment
-- next activation phase: Phase 35E controlled segment text-behind-subject preview only; full-video text-behind-subject remains blocked
+- next activation phase: Phase 36A audio AI approval workflow only; full-video text-behind-subject remains blocked
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

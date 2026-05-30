@@ -1,12 +1,8 @@
-# syntax=docker/dockerfile:1
-#
-# ReeditPro Phase 35C SAM2 runtime image.
-# Dedicated to generated/synthetic SAM2 runtime verification only.
+# ReeditPro Phase 35D SAM2 runtime image.
+# Extends the approved Phase 35C runtime for one approved bounded real-video sample only.
 # It must not include model weights, providers, Revideo, FILM, slow motion, or secrets.
 
-FROM node:24-bookworm AS node-runtime
-
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
+FROM us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-sam2-runtime@sha256:d40444269ba867dfae4ef09da803a67870bc03b381e41359e482eeed3ab381c9 AS base
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -18,36 +14,18 @@ ENV SAM2_BUILD_CUDA=0
 ENV MODEL_DOWNLOADS_ENABLED=false
 ENV PROVIDER_EXECUTION_ENABLED=false
 ENV REAL_MEDIA_INPUT_ENABLED=false
+ENV FULL_VIDEO_MASK_ENABLED=false
+ENV TEXT_BEHIND_SUBJECT_VIDEO_ENABLED=false
 ENV HF_HUB_OFFLINE=1
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    git \
-    python3 \
-    python3-pip \
-    python3-setuptools \
-    libglib2.0-0 \
-    libgl1 \
-    libgomp1 \
-    libjpeg-turbo8 \
-    libpng16-16 \
-  && rm -rf /var/lib/apt/lists/*
-
-COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
-COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-  && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
-
-COPY docker/prod/sam2-runtime/requirements.sam2.txt /tmp/requirements.sam2.txt
-RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN python3 -m pip install --no-cache-dir -r /tmp/requirements.sam2.txt
-
-COPY package*.json ./
-RUN npm ci --omit=dev
+RUN if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then \
+    apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*; \
+  fi
 
 COPY dist-staging-sam2-runtime-worker ./dist-staging-sam2-runtime-worker
 COPY docker/prod/sam2-runtime/sam2_runtime_local.py ./sam2-runtime/sam2_runtime_local.py
+COPY docker/prod/sam2-runtime/sam2_real_video_temporal.py ./sam2-runtime/sam2_real_video_temporal.py
 
 CMD ["node", "dist-staging-sam2-runtime-worker/staging-sam2-runtime-worker-cli.js"]

@@ -222,3 +222,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm the private frame, mask, overlay, metadata, QA, and report artifacts exist with no blocking failures.
 5. Confirm no real video, real user media, full-video mask, full-video text-behind-subject, providers, public access, Revideo, FILM, slow motion, production, external beta, or broad real media occurred.
 6. Proceed to Phase 35D only as controlled short real-video temporal mask tracking planning/execution with a very short approved segment.
+
+## After Phase 35D
+
+1. Review `activation:real-video:sam2-temporal-mask:report` and `docs/activation-phase-35d-real-video-sam2-temporal-mask-results.md`.
+2. Confirm the only source video was the approved Phase 32 private export and the only anchor evidence came from Phase 33D.
+3. Confirm the selected segment was 6.9s-8.9s, no longer than 2.0 seconds, with no more than 12 extracted frames.
+4. Confirm the runtime copied only the Phase 35B private SAM2.1 tiny checkpoint/config and did not download model weights at runtime.
+5. Confirm the prompt was derived from the Phase 33D mask/frame evidence, not raw chat or untracked coordinates.
+6. Confirm private segment frames, masks, overlays, metadata, QA, and report artifacts exist with no blocking failures.
+7. Confirm no arbitrary media, full-video masks, full-video text-behind-subject, providers, public access, Revideo, FILM, slow motion, production, external beta, or broad real media occurred.
+8. Proceed to Phase 35E only as controlled segment text-behind-subject preview planning/execution if Phase 35D QA passes.

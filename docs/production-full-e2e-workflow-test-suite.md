@@ -23,3 +23,7 @@ After Phase 35C, the full E2E workflow still must not consume SAM2 real-video
 masks or tracking output. Phase 35C provides generated/synthetic runtime proof
 only; Phase 35D controlled short real-video temporal tracking must pass before
 any SAM2 real-video mask path can be considered.
+
+After Phase 35D, the full E2E workflow still must not consume full-video SAM2
+masks or text-behind-subject video output. Phase 35D is limited to one private
+short segment and can only inform a later controlled segment preview gate.

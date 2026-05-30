@@ -65,3 +65,14 @@ Phase 35C verified SAM2 runtime on generated/synthetic frames only for
 `phase35c-20260529T16082`. It does not permit real-video temporal tracking,
 full-video masks, text-behind-subject video, production, external beta, broad
 real media, providers, or public output.
+
+## Activation Phase 35D
+
+Phase 35D completed one controlled short real-video SAM2 temporal mask path for
+`phase35d-20260530T004442`. It was locked to the approved Phase 32 private
+export, Phase 33D anchor frame/mask, a 6.9s-8.9s segment, 10 bounded 768x432
+frames, private artifacts, and no public output.
+
+This is not production approval. Full-video masks, full-video text-behind-subject
+video, arbitrary media, providers, Revideo, FILM, slow motion, external beta,
+and broad real media remain blocked after Phase 35D.

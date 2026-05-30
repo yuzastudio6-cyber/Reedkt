@@ -2,16 +2,16 @@
 
 - phase: 36C
 - status: blocked
-- runId: `phase36c-20260530T125233`
+- runId: `phase36c-20260530T131522`
 - tool: DeepFilterNet
 - selectedVersion: v0.5.6
 - runtimeMode: generated_audio
 - generatedAudioOnly: true
-- runtimeImage: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-deepfilternet-runtime@sha256:2c709d298628a5189ec0f4ddc0f11ac78554af328a81f647414837c9388402bc`
+- runtimeImage: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-deepfilternet-runtime@sha256:883df7f72317fec06b8e908ff836ff9844803c02366f0067b2f8fcda8d95cb1a`
 - runtimeImageTag: `staging-deepfilternet-runtime-001`
-- runtimeImageDigest: `sha256:2c709d298628a5189ec0f4ddc0f11ac78554af328a81f647414837c9388402bc`
+- runtimeImageDigest: `sha256:883df7f72317fec06b8e908ff836ff9844803c02366f0067b2f8fcda8d95cb1a`
 - cloudRunJob: `reeditpro-staging-deepfilternet-runtime-job`
-- cloudRunExecutionId: `reeditpro-staging-deepfilternet-runtime-job-b6mmw`
+- cloudRunExecutionId: `reeditpro-staging-deepfilternet-runtime-job-7jm4n`
 - serviceAccount: `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`
 - artifactGcsPath: `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/`
 - deepFilterNetRuntimeVerified: false
@@ -47,9 +47,11 @@ artifact prefix. The approved artifact objects exist with exact matching names,
 the Cloud Run job uses the expected CPU worker service account and Cloud Run ADC,
 and the blocked permission remains `storage.objects.get`.
 
-The diagnostic added a managed folder on the exact approved artifact prefix and
+The diagnostic added a managed folder on the exact approved artifact prefix,
 granted only `roles/storage.objectViewer` to the CPU worker on that managed
-folder. A rebuilt diagnostic image was redeployed with a fresh run ID and still
+folder, added a bucket-level exact-seven-object conditional objectViewer
+binding, and added a project-level exact-seven-object conditional objectViewer
+binding. A rebuilt diagnostic image was redeployed with fresh run IDs and still
 stopped before copying the DeepFilterNet CLI because the CPU worker service
 account could not read the approved Phase 36B artifact objects.
 
@@ -75,6 +77,15 @@ account could not read the approved Phase 36B artifact objects.
   with rebuilt diagnostic image `sha256:2c709d298628a5189ec0f4ddc0f11ac78554af328a81f647414837c9388402bc`
   and run ID `phase36c-20260530T125233`; still blocked on
   `storage.objects.get`.
+- `reeditpro-staging-deepfilternet-runtime-job-g4vwv`: retry with bucket-level
+  exact-seven-object conditional objectViewer and rebuilt diagnostic image
+  `sha256:883df7f72317fec06b8e908ff836ff9844803c02366f0067b2f8fcda8d95cb1a`;
+  run ID `phase36c-20260530T130843`; still blocked on `storage.objects.get`.
+- `reeditpro-staging-deepfilternet-runtime-job-fdpgb`: retry with additional
+  project-level exact-seven-object conditional objectViewer; run ID
+  `phase36c-20260530T131144`; still blocked on `storage.objects.get`.
+- `reeditpro-staging-deepfilternet-runtime-job-7jm4n`: propagation retry with
+  run ID `phase36c-20260530T131522`; still blocked on `storage.objects.get`.
 
 ## IAM
 
@@ -101,6 +112,18 @@ managed-folder-scoped read access:
 - member:
   `serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`
 
+The follow-up diagnostic added only exact-object viewer bindings for these seven
+approved Phase 36B artifacts, first on the generated-assets bucket and then on
+the project:
+
+- `deep-filter-0.5.6-x86_64-unknown-linux-musl`
+- `DeepFilterNet3_onnx.tar.gz`
+- `file_checksums_sha256.txt`
+- `model_tree_manifest.json`
+- `source_evidence.json`
+- `license_evidence.json`
+- `download_report.json`
+
 No `storage.admin`, `storage.objectAdmin`, owner/editor, public principal, or
 broad write role was granted.
 
@@ -114,13 +137,22 @@ broad write role was granted.
 - no `GOOGLE_APPLICATION_CREDENTIALS` override is present in the job env
 - active account cannot impersonate the CPU worker because
   `iam.serviceAccounts.getAccessToken` is denied
-- Policy Troubleshooter could not run because
-  `policytroubleshooter.googleapis.com` is disabled
-- Cloud Asset IAM analysis could not run because `cloudasset.googleapis.com` is
-  disabled
+- `policytroubleshooter.googleapis.com` and `cloudasset.googleapis.com` were
+  enabled for the diagnostic so the requested access checks could run
+- Policy Troubleshooter on the generated-assets bucket returned `NOT_GRANTED`
+  for `storage.objects.get`; it saw the relevant conditional objectViewer
+  bindings but also returned `ERROR_IAM_DENY` while trying to generate the deny
+  explanation
+- Cloud Asset IAM analysis fully explored the project/bucket scope and found
+  the conditional objectViewer bindings for the CPU worker, including the
+  Phase 36C prefix binding, bucket-level exact-seven-object binding, and
+  project-level exact-seven-object binding
 - project-level deny policy list returned no deny policies
-- org-level deny policy and Principal Access Boundary inspection require admin
-  permissions not available to the active account
+- org-level deny policy list for organization `622755361329` requires
+  `iam.googleapis.com/denypolicies.list`, which the active account does not have
+- Principal Access Boundary inspection for organization `622755361329` requires
+  `iam.principalaccessboundarypolicies.list`, which the active account does not
+  have
 - Access Context Manager inspection could not run because
   `accesscontextmanager.googleapis.com` is disabled
 
@@ -146,17 +178,19 @@ runtime QA.
 `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com` does not have
 `storage.objects.get` access to the approved Phase 36B DeepFilterNet artifact
 objects, despite the Phase 36C prefix-scoped conditional objectViewer bindings
-being present on the bucket IAM policy and despite managed-folder-scoped
-objectViewer being present on the approved artifact prefix.
+being present on the bucket IAM policy, despite managed-folder-scoped
+objectViewer being present on the approved artifact prefix, and despite exact
+seven-object conditional objectViewer bindings being present on both the bucket
+and project.
 
-Required human/GCP admin action: review why the existing conditional
-`roles/storage.objectViewer` binding does not authorize
-`storage.objects.get` for
+Required human/GCP admin action: review why Policy Troubleshooter returns
+`NOT_GRANTED` / `ERROR_IAM_DENY` and why the existing conditional
+`roles/storage.objectViewer` bindings do not authorize `storage.objects.get` for
 `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com` on
 `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/`.
-Also review whether an org-level deny policy, Principal Access Boundary, VPC-SC
-perimeter, disabled diagnostics API, or other admin-only policy control is
-blocking Cloud Run service-account access.
+Specifically review organization-level deny policies, Principal Access Boundary,
+VPC-SC/service perimeter behavior, and any org-level policy control not visible
+to the active project owner.
 Do not unblock Phase 36D until this access issue is resolved and Phase 36C
 generated-audio runtime QA passes.
 

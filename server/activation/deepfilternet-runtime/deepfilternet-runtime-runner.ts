@@ -33,8 +33,9 @@ export async function runDeepFilterNetRuntimeVerification(input: {
   if (!preflight.allowed) throw new Error(`DeepFilterNet runtime preflight blocked:\n- ${preflight.blockers.join('\n- ')}`)
 
   const iamChanges = await ensureDeepFilterNetRuntimeIamBindings()
+  await runCommand('find', ['.', '-name', '._*', '-type', 'f', '-delete'])
   await runCommand('npm', ['run', 'build:staging-deepfilternet-runtime-worker'])
-  await runCommand('find', ['dist-staging-deepfilternet-runtime-worker', '-name', '._*', '-delete'])
+  await runCommand('find', ['.', '-name', '._*', '-type', 'f', '-delete'])
   await runCommand('docker', [
     'buildx',
     'build',
@@ -215,6 +216,7 @@ function buildRuntimeEnvVars(runId: string, imageRef: string, imageDigest: strin
   return [
     'REEDITPRO_ENV=staging',
     'REEDITPRO_CONFIRM_DEEPFILTERNET_RUNTIME=true',
+    'REEDITPRO_CONFIRM_DEEPFILTERNET_IAM_DIAGNOSTIC=true',
     'REEDITPRO_DEEPFILTERNET_RUNTIME_MODE=generated_audio',
     `REEDITPRO_PHASE36C_RUN_ID=${runId}`,
     `REEDITPRO_DEEPFILTERNET_ARTIFACT_GCS_PATH=${deepFilterNetRuntimeConfig.artifactGcsPath}`,

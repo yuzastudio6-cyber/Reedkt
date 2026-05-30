@@ -28,3 +28,11 @@ DeepFilterNet v0.5.6 CLI and DeepFilterNet3 ONNX archive in private staging GCS
 with checksum/source/license evidence. It still does not run DeepFilterNet,
 RNNoise, Demucs, media processing, Docker, Cloud Run, providers, Revideo, FILM,
 slow motion, production, external beta, or broad real media.
+
+Phase 36C verified the generated-audio DeepFilterNet runtime only. The completed
+run `phase36c-20260530T133009` copied approved private DeepFilterNet artifacts,
+verified checksums, generated a synthetic audio fixture, ran the approved
+DeepFilterNet CLI, and wrote private enhanced-audio metrics. This does not
+approve real-video audio AI cleanup, RNNoise, Demucs, providers, Revideo,
+production, external beta, or broad real media. Phase 36D remains the first
+allowed controlled real-video audio AI cleanup sample.

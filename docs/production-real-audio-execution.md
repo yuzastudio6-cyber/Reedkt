@@ -43,3 +43,10 @@ It created a private cleaned WAV, private metrics/QA, and a private review MP4,
 but it is not final delivery and does not approve arbitrary media, RNNoise,
 Demucs, providers, Revideo, FILM, slow motion, production, external beta, paid
 production, or broad real media.
+
+Phase 36E completed the private DeepFilterNet audio feature E2E gate for
+`phase36e-20260530T152327`. It used the approved Phase 32 private export and
+Phase 36D evidence only; local Finder media such as
+`/Users/macuser/Downloads/IMG_6024.MOV` was not part of this phase. The result
+permits internal DeepFilterNet feature testing only and does not approve final
+delivery, production, external beta, paid production, or broad real media.

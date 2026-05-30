@@ -288,3 +288,11 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the approved plan snapshot exists, DeepFilterNet artifacts were copied from private GCS, checksums matched, and no external model/tool download occurred.
 4. Confirm the cleaned WAV, metrics, QA, and optional private review MP4 are private only and no final delivery export was created.
 5. Proceed to Phase 36E only as a private DeepFilterNet audio feature E2E/readiness gate; arbitrary media, production, external beta, RNNoise, Demucs, providers, Revideo, FILM, and slow motion remain blocked.
+
+## After Phase 36E
+
+1. Review `activation:deepfilternet-feature-e2e:report` and `docs/activation-phase-36e-deepfilternet-feature-e2e-results.md`.
+2. Confirm the source was exactly the approved Phase 32 private export; `/Users/macuser/Downloads/IMG_6024.MOV` must remain unprocessed in Phase 36E.
+3. Confirm the approved plan snapshot, Phase 36D evidence link, cleaned WAV, private review MP4, private review manifest, metrics, and QA report exist under private Phase 36E prefixes.
+4. Use the local backup review copy only for Finder viewing; private GCS artifacts remain the source of truth.
+5. Proceed to Phase 37A only as an OCR approval workflow. Production, external beta, paid production, broad real media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked.

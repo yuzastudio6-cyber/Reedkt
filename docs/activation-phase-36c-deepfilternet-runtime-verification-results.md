@@ -2,7 +2,7 @@
 
 - phase: 36C
 - status: blocked
-- runId: `phase36c-20260530T114158`
+- runId: `phase36c-20260530T123258`
 - tool: DeepFilterNet
 - selectedVersion: v0.5.6
 - runtimeMode: generated_audio
@@ -11,7 +11,7 @@
 - runtimeImageTag: `staging-deepfilternet-runtime-001`
 - runtimeImageDigest: `sha256:a798e659eec6c001d0cc4b735632359f5fa61e299715cf19d1421c9aba96bde2`
 - cloudRunJob: `reeditpro-staging-deepfilternet-runtime-job`
-- cloudRunExecutionId: `reeditpro-staging-deepfilternet-runtime-job-9rcfc`
+- cloudRunExecutionId: `reeditpro-staging-deepfilternet-runtime-job-sp2fc`
 - serviceAccount: `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`
 - artifactGcsPath: `gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/`
 - deepFilterNetRuntimeVerified: false
@@ -41,9 +41,11 @@
 
 Phase 36B private artifact upload/checksum evidence is complete. Phase 36C
 built and pushed the dedicated CPU-only runtime image, deployed the Cloud Run
-Job, and executed it in generated-audio mode. The execution stopped before
-copying the DeepFilterNet CLI because the CPU worker service account could not
-read the approved Phase 36B artifact objects.
+Job, and executed it in generated-audio mode. The Phase 36C IAM retry confirmed
+that the expected prefix-scoped artifact-read binding is present, redeployed the
+approved runtime image with a fresh run ID, and executed the job once. The retry
+still stopped before copying the DeepFilterNet CLI because the CPU worker
+service account could not read the approved Phase 36B artifact objects.
 
 ## Execution Attempts
 
@@ -56,6 +58,10 @@ read the approved Phase 36B artifact objects.
 - `reeditpro-staging-deepfilternet-runtime-job-9rcfc`: blocked on the same
   `storage.objects.get` access after adding an additional explicit object
   resource-context prefix binding.
+- `reeditpro-staging-deepfilternet-runtime-job-sp2fc`: Phase 36C IAM retry with
+  fresh run ID `phase36c-20260530T123258`; blocked on the same
+  `storage.objects.get` access after confirming the exact conditional
+  objectViewer bindings are present.
 
 ## IAM
 
@@ -68,6 +74,10 @@ Added only prefix-scoped conditional bindings for
   artifact prefix
 - `roles/storage.objectCreator` on Phase 36C generated, analysis, QA, and
   worker-temp prefixes
+
+The Phase 36C IAM retry did not add a broad grant. The artifact-read binding was
+already present with the exact approved prefix expression:
+`resource.name.startsWith("projects/_/buckets/reeditpro-staging-reeditpro-generated-assets/objects/model-weights/audio-ai/deepfilternet/v0.5.6/")`.
 
 No `storage.admin`, `storage.objectAdmin`, owner/editor, public principal, or
 broad write role was granted.
@@ -95,6 +105,14 @@ runtime QA.
 `storage.objects.get` access to the approved Phase 36B DeepFilterNet artifact
 objects, despite the Phase 36C prefix-scoped conditional objectViewer bindings
 being present on the bucket IAM policy.
+
+Required human/GCP admin action: review why the existing conditional
+`roles/storage.objectViewer` binding does not authorize
+`storage.objects.get` for
+`reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com` on
+`gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/`.
+Do not unblock Phase 36D until this access issue is resolved and Phase 36C
+generated-audio runtime QA passes.
 
 ## Blocked Scope
 

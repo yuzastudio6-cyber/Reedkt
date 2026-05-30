@@ -243,4 +243,15 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 5. Confirm private preview frames, composition metadata, QA, and report artifacts exist with no blocking failures.
 6. Confirm preview clip generation, if absent, is documented as optional and no final export was created.
 7. Confirm no arbitrary media, full-video masks, full-video text-behind-subject, providers, public access, Revideo, FILM, slow motion, Real-ESRGAN, production, external beta, or broad real media occurred.
-8. Proceed to Phase 36A only as a separate audio AI approval workflow. Do not treat Phase 35E as full-video text-behind-subject, beta, or production approval.
+8. Proceed to Phase 35F only as the private SAM2 feature E2E beta-readiness gate for the approved controlled video chain. Do not treat Phase 35E as full-video text-behind-subject, beta, or production approval.
+
+## After Phase 35F
+
+1. Review `activation:sam2-feature-e2e:report` and `docs/activation-phase-35f-sam2-feature-e2e-beta-readiness-results.md`.
+2. Confirm the approved source was the Phase 32 private export, with local source used only as matching evidence if present.
+3. Confirm the structured approved plan snapshot existed before worker execution and `rawPromptExecution=false`.
+4. Confirm the preview scope was bounded to 768x432, <= 8 fps, and <= 125 frames.
+5. Confirm private SAM2 masks, text-behind-subject preview frames, private review manifest, QA, and report artifacts exist with no blocking failures.
+6. If fallback segment scope was used, mark readiness as segment-level internal testing only, not full SAM2 feature beta candidate.
+7. Confirm no arbitrary media, public access, providers, Revideo, FILM, slow motion, Real-ESRGAN, final export, production, external beta, paid production, or broad real media occurred.
+8. Proceed to Phase 36A only as a separate audio AI approval workflow after Phase 35F report is recorded. Do not treat Phase 35F as external beta or paid production approval.

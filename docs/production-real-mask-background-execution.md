@@ -88,3 +88,17 @@ This is still not production approval. It does not create a final export, full
 video text-behind-subject asset, full-video mask sequence, public URL,
 provider output, Revideo render, FILM/slow-motion output, or broad-media
 approval.
+
+## Activation Phase 35F
+
+Phase 35F adds a private SAM2 feature E2E beta-readiness gate for the approved
+controlled video chain. It requires a structured approved plan snapshot before
+execution, bounded preview extraction at 768x432 and <= 8 fps, the approved
+private SAM2.1 tiny checkpoint/config, private SAM2 masks, private
+text-behind-subject preview frames, and QA.
+
+This may support internal SAM2 feature testing only if the full controlled
+private preview scope passes. If the fallback segment scope is used, readiness
+is segment-only. External beta, paid production, broad media, arbitrary media,
+public delivery, final export, providers, Revideo, FILM, slow motion, and
+Real-ESRGAN remain blocked.

@@ -27,5 +27,6 @@ RUN if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>
 COPY dist-staging-sam2-runtime-worker ./dist-staging-sam2-runtime-worker
 COPY docker/prod/sam2-runtime/sam2_runtime_local.py ./sam2-runtime/sam2_runtime_local.py
 COPY docker/prod/sam2-runtime/sam2_real_video_temporal.py ./sam2-runtime/sam2_real_video_temporal.py
+COPY docker/prod/sam2-runtime/sam2_feature_e2e.py ./sam2-runtime/sam2_feature_e2e.py
 
 CMD ["node", "dist-staging-sam2-runtime-worker/staging-sam2-runtime-worker-cli.js"]

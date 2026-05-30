@@ -15,3 +15,10 @@ The flow is:
 M15A does not final mux, render, color grade, run masks, deploy, call providers, download models, run GPU production jobs, overwrite source audio, or use Revideo.
 
 M16A final render/export consumes private cleaned-audio, stem, SoundSync, and QA artifacts for audio layers and final audio sync checks.
+
+Phase 36A adds a non-mutating audio AI approval layer after the SAM2 feature
+gate. DeepFilterNet is the first planning recommendation for future staging
+review, RNNoise is fallback planning only, and Demucs is restricted/deferred for
+source separation. No Phase 36A command may download an audio AI artifact, run
+audio AI, process media, mutate GCP, call providers, or unlock production,
+external beta, or broad real media.

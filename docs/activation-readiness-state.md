@@ -1,5 +1,15 @@
 # Activation Readiness State
 
+Phase 36A records the non-mutating audio AI approval workflow after Phase 35F.
+It recommends DeepFilterNet first for future staging planning, keeps RNNoise as
+a lightweight fallback candidate, and keeps Demucs restricted/deferred for
+source-separation workflows only. Phase 36B remains blocked with
+`blocked_missing_artifact_evidence` until an exact DeepFilterNet artifact
+source, checksum plan, private staging storage path, and no-runtime-download
+constraint are recorded. Audio AI download, runtime, real-video AI cleanup,
+providers, Revideo, production, external beta, paid production, and broad real
+media remain blocked.
+
 Phase 35F completed the private SAM2 feature E2E beta-readiness gate after
 Phase 35E for `phase35f-20260530T02293`. It was limited to the approved Phase
 32 controlled video chain, a structured approved plan snapshot, private SAM2
@@ -73,6 +83,8 @@ runtime on generated media only.
 | SAM2 real-video temporal mask | Phase 35D complete for one controlled short segment | `phase35d-20260530T004442` used the approved Phase 32 export, Phase 33D anchor evidence, and a 6.9s-8.9s bounded segment. Full-video masks remain blocked. |
 | Segment text-behind-subject preview | Phase 35E complete for one controlled short segment | `phase35e-20260530T01355` used the Phase 35D short segment and private masks. It created private preview frames only; full-video text-behind-subject and final export remain blocked. |
 | SAM2 feature E2E beta-readiness | Phase 35F complete for internal testing only | `phase35f-20260530T02293` used the approved controlled video chain, structured plan snapshot, 77-frame 768x432 private preview scope, private SAM2 masks, private preview frames, and QA. External beta and paid production remain blocked regardless of outcome. |
+| Audio AI approval workflow | Phase 36A review complete; Phase 36B blocked | DeepFilterNet is recommended first for future staging planning; RNNoise is fallback planning only; Demucs is restricted/deferred. No audio AI download/runtime/media processing is approved. |
+| Audio AI model/tool artifacts | Not downloaded | No DeepFilterNet, RNNoise, or Demucs artifact source/checksum/storage evidence is approved yet. Phase 36B is blocked with `blocked_missing_artifact_evidence`. |
 | Mask model weights availability | Private staging storage verified | `ZhengPeng7/BiRefNet` is stored under private generated-assets model storage with revision/checksum evidence. |
 | Mask runtime | Verified for generated image and one controlled real-video frame | Phase 33C ran the generated-image L4 BiRefNet runtime job; Phase 33D ran BiRefNet on exactly one representative frame from `phase32-20260528T13330`. |
 | Real-video representative-frame mask | Complete for one controlled test | Phase 33D produced a private frame, mask, RGBA cutout, metadata, and QA for `phase33d-20260528T161056` with no blocking failures. |
@@ -119,7 +131,7 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next activation phase: Phase 36A audio AI approval workflow; do not treat Phase 35F as external beta or paid production approval
+- next activation phase: Phase 36B first approved audio AI download/load only after missing DeepFilterNet artifact evidence is resolved; do not treat Phase 36A as audio AI runtime, external beta, or paid production approval
 - slow-motion execution: blocked; FILM is evaluated-only and deferred to future Phase 38A
 - provider execution: blocked
 - production: blocked

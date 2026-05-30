@@ -255,3 +255,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 6. If fallback segment scope was used, mark readiness as segment-level internal testing only, not full SAM2 feature beta candidate.
 7. Confirm no arbitrary media, public access, providers, Revideo, FILM, slow motion, Real-ESRGAN, final export, production, external beta, paid production, or broad real media occurred.
 8. Proceed to Phase 36A only as a separate audio AI approval workflow after Phase 35F report is recorded. Do not treat Phase 35F as external beta or paid production approval.
+
+## After Phase 36A
+
+1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.
+2. Confirm the planning recommendation is `deepfilternet_first`.
+3. Confirm RNNoise remains fallback planning only and Demucs remains restricted/deferred for source-separation workflows only.
+4. Confirm Phase 36B readiness is blocked with `blocked_missing_artifact_evidence` until the exact DeepFilterNet artifact source, checksum plan, private staging storage path, and no-runtime-download constraint are recorded.
+5. Confirm command plans are text-only and no model download, audio AI runtime, audio/media processing, Docker/GCP mutation, provider call, public access, Revideo path, production unlock, external beta unlock, or broad real media unlock occurred.
+6. Proceed to Phase 36B only as an explicit first approved audio AI artifact download/load phase after the missing artifact evidence is resolved.

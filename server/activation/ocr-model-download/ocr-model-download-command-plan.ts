@@ -40,7 +40,7 @@ export function buildOcrModelDownloadExecutionCommandPlans(): OcrModelDownloadEx
         'gcloud projects describe reeditpro',
         'gcloud storage buckets describe gs://reeditpro-staging-reeditpro-generated-assets',
         'gcloud storage buckets get-iam-policy gs://reeditpro-staging-reeditpro-generated-assets',
-        `gcloud storage objects list ${OCR_MODEL_DOWNLOAD_GCS_PATH} --recursive --limit=50 || true`,
+        `gcloud storage objects list ${OCR_MODEL_DOWNLOAD_GCS_PATH} --limit=50 || true`,
       ].join(' && '),
       textOnlyByDefault: true,
       requiresConfirmation: false,

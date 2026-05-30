@@ -1,16 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { buildOcrAssetSelectionManifest } from './ocr-model-asset-registry'
-import { buildOcrChecksumTextManifest, buildPendingOcrChecksumManifest } from './ocr-model-checksum-manifest'
+import { buildOcrChecksumTextManifest } from './ocr-model-checksum-manifest'
 import { OCR_MODEL_DOWNLOAD_EXPECTED_ARTIFACTS } from './ocr-model-download-blocker-policy'
 import {
   buildOcrDownloadLifecycleReport,
   buildOcrModelDownloadReport,
-  buildOcrPrivateGcsUploadReport,
 } from './ocr-model-download-report-builder'
-import { buildOcrModelTreeManifest } from './ocr-model-tree-manifest'
-import { buildStaticOcrModelLicenseEvidence } from './ocr-model-license-evidence'
-import { buildStaticOcrModelSourceEvidence } from './ocr-model-source-evidence'
 import type {
   OcrAssetSelectionManifest,
   OcrChecksumManifest,
@@ -34,19 +29,16 @@ export interface OcrModelDownloadArtifactInputs {
 }
 
 export function buildOcrModelDownloadArtifactMap(input: OcrModelDownloadArtifactInputs = {}): Record<OcrModelDownloadArtifactName, string> {
-  const sourceEvidence = input.sourceEvidence ?? buildStaticOcrModelSourceEvidence()
-  const licenseEvidence = input.licenseEvidence ?? buildStaticOcrModelLicenseEvidence()
-  const assetSelectionManifest = input.assetSelectionManifest ?? buildOcrAssetSelectionManifest()
-  const checksumManifest = input.checksumManifest ?? buildPendingOcrChecksumManifest()
-  const modelTreeManifest = input.modelTreeManifest ?? buildOcrModelTreeManifest({
-    files: checksumManifest.entries,
-    createdAt: checksumManifest.generatedAt,
-  })
-  const privateGcsUploadReport = input.privateGcsUploadReport ?? buildOcrPrivateGcsUploadReport()
   const phaseReport = input.phaseReport ?? buildOcrModelDownloadReport({
-    checksumManifest,
-    privateGcsUploadReport,
+    checksumManifest: input.checksumManifest,
+    privateGcsUploadReport: input.privateGcsUploadReport,
   })
+  const sourceEvidence = input.sourceEvidence ?? phaseReport.sourceEvidence
+  const licenseEvidence = input.licenseEvidence ?? phaseReport.licenseEvidence
+  const assetSelectionManifest = input.assetSelectionManifest ?? phaseReport.assetSelectionManifest
+  const checksumManifest = input.checksumManifest ?? phaseReport.checksumManifest
+  const modelTreeManifest = input.modelTreeManifest ?? phaseReport.modelTreeManifest
+  const privateGcsUploadReport = input.privateGcsUploadReport ?? phaseReport.privateGcsUploadReport
   const downloadReport = buildOcrDownloadLifecycleReport({
     evidence: phaseReport.downloadEvidence,
     checksumManifest,

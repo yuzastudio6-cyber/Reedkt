@@ -1,5 +1,6 @@
 export * from './ocr-model-download-config'
 export * from './ocr-model-download-types'
+export * from './approved-ocr-model-download-evidence'
 export * from './ocr-model-asset-registry'
 export * from './ocr-model-source-evidence'
 export * from './ocr-model-license-evidence'

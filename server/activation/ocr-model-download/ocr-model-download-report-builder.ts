@@ -6,6 +6,7 @@ import { buildPendingOcrChecksumManifest } from './ocr-model-checksum-manifest'
 import { buildOcrModelTreeManifest } from './ocr-model-tree-manifest'
 import { buildStaticOcrModelLicenseEvidence } from './ocr-model-license-evidence'
 import { buildStaticOcrModelSourceEvidence } from './ocr-model-source-evidence'
+import { buildApprovedOcrModelDownloadChecksumManifest, getApprovedOcrModelDownloadEvidence } from './approved-ocr-model-download-evidence'
 import type {
   ApprovedOcrModelDownloadEvidence,
   OcrChecksumManifest,
@@ -14,6 +15,10 @@ import type {
 } from './ocr-model-download-types'
 
 export const OCR_MODEL_DOWNLOAD_REPORT_ID = 'activation-phase-37b-paddleocr-exact-assets-download'
+
+export function getDefaultOcrModelDownloadEvidence(): ApprovedOcrModelDownloadEvidence {
+  return getApprovedOcrModelDownloadEvidence()
+}
 
 export function buildPlannedOcrModelDownloadEvidence(createdAt = new Date().toISOString()): ApprovedOcrModelDownloadEvidence {
   return {
@@ -75,8 +80,8 @@ export function buildOcrDownloadLifecycleReport(input: {
   checksumManifest?: OcrChecksumManifest
   createdAt?: string
 } = {}) {
-  const evidence = input.evidence ?? buildPlannedOcrModelDownloadEvidence(input.createdAt)
-  const checksumManifest = input.checksumManifest ?? buildPendingOcrChecksumManifest(input.createdAt)
+  const evidence = input.evidence ?? getDefaultOcrModelDownloadEvidence()
+  const checksumManifest = input.checksumManifest ?? buildDefaultOcrChecksumManifest(evidence, input.createdAt)
   return {
     phase: '37B',
     reportId: 'paddleocr_ppocrv5_download_report_v1',
@@ -99,7 +104,7 @@ export function buildOcrModelDownloadReport(input: {
   privateGcsUploadReport?: OcrPrivateGcsUploadReport
 } = {}): OcrModelDownloadReport {
   const createdAt = new Date().toISOString()
-  const evidence = input.evidence ?? buildPlannedOcrModelDownloadEvidence(createdAt)
+  const evidence = input.evidence ?? getDefaultOcrModelDownloadEvidence()
   const sourceEvidence = buildStaticOcrModelSourceEvidence()
   const licenseEvidence = buildStaticOcrModelLicenseEvidence()
   const assetSelectionManifest = buildOcrAssetSelectionManifest(createdAt)
@@ -108,13 +113,13 @@ export function buildOcrModelDownloadReport(input: {
     assetSelectionManifest.privateGcsUploadVerified = true
     assetSelectionManifest.blockers = []
   }
-  const checksumManifest = input.checksumManifest ?? buildPendingOcrChecksumManifest(createdAt)
+  const checksumManifest = input.checksumManifest ?? buildDefaultOcrChecksumManifest(evidence, createdAt)
   const modelTreeManifest = buildOcrModelTreeManifest({
     files: checksumManifest.entries,
     createdAt,
     localTempPath: evidence.sanitizedLocalTempPath,
   })
-  const privateGcsUploadReport = input.privateGcsUploadReport ?? buildOcrPrivateGcsUploadReport({ createdAt })
+  const privateGcsUploadReport = input.privateGcsUploadReport ?? buildDefaultOcrPrivateGcsUploadReport(evidence, createdAt)
   const blockers = [
     ...evidence.blockers,
     ...sourceEvidence.blockers,
@@ -182,6 +187,28 @@ export function buildOcrModelDownloadReport(input: {
     publicOutputAllowed: false,
     signedUrlSourceOfTruthAllowed: false,
   }
+}
+
+function buildDefaultOcrChecksumManifest(
+  evidence: ApprovedOcrModelDownloadEvidence,
+  createdAt = new Date().toISOString(),
+): OcrChecksumManifest {
+  if (evidence.status === 'verified') return buildApprovedOcrModelDownloadChecksumManifest(evidence.downloadedAt ?? createdAt)
+  return buildPendingOcrChecksumManifest(createdAt)
+}
+
+function buildDefaultOcrPrivateGcsUploadReport(
+  evidence: ApprovedOcrModelDownloadEvidence,
+  createdAt = new Date().toISOString(),
+): OcrPrivateGcsUploadReport {
+  if (evidence.status === 'verified') {
+    return buildOcrPrivateGcsUploadReport({
+      createdAt: evidence.verifiedAt ?? evidence.uploadedAt ?? createdAt,
+      uploadedObjects: evidence.uploadedObjects,
+      uploadVerified: true,
+    })
+  }
+  return buildOcrPrivateGcsUploadReport({ createdAt })
 }
 
 export function summarizeOcrModelDownloadReport(report: OcrModelDownloadReport): string {

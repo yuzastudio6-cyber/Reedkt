@@ -213,7 +213,7 @@ export async function runOcrModelDownloadPreflight(localDir = OCR_MODEL_DOWNLOAD
     runGcloud(['projects', 'describe', 'reeditpro', '--format=value(projectId)']),
     runGcloud(['storage', 'buckets', 'describe', `gs://${OCR_MODEL_DOWNLOAD_BUCKET}`, '--format=json']),
     runGcloud(['storage', 'buckets', 'get-iam-policy', `gs://${OCR_MODEL_DOWNLOAD_BUCKET}`, '--format=json']),
-    runGcloudAllowingFailure(['storage', 'objects', 'list', OCR_MODEL_DOWNLOAD_GCS_PATH, '--recursive', '--limit=50']),
+    runGcloudAllowingFailure(['storage', 'objects', 'list', OCR_MODEL_DOWNLOAD_GCS_PATH, '--limit=50']),
   ])
   const blockers: string[] = []
   const warnings: string[] = []

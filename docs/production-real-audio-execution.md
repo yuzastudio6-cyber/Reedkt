@@ -22,3 +22,9 @@ review, RNNoise is fallback planning only, and Demucs is restricted/deferred for
 source separation. No Phase 36A command may download an audio AI artifact, run
 audio AI, process media, mutate GCP, call providers, or unlock production,
 external beta, or broad real media.
+
+Phase 36B is narrower than runtime: it may store only the selected
+DeepFilterNet v0.5.6 CLI and DeepFilterNet3 ONNX archive in private staging GCS
+with checksum/source/license evidence. It still does not run DeepFilterNet,
+RNNoise, Demucs, media processing, Docker, Cloud Run, providers, Revideo, FILM,
+slow motion, production, external beta, or broad real media.

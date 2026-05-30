@@ -18,6 +18,18 @@ dist-staging-speech-runtime-worker
 dist-staging-sam2-runtime-worker
 *.local
 
+# Approved model artifact slots keep only templates in git.
+models/demucs/approved/**/approval.json
+models/demucs/approved/**/checksums.sha256
+models/demucs/approved/**/*.pt
+models/demucs/approved/**/*.th
+models/demucs/approved/**/*.bin
+models/demucs/approved/**/*.safetensors
+models/demucs/approved/**/*.onnx
+models/demucs/approved/**/*.ckpt
+models/demucs/approved/**/*.tar
+models/demucs/approved/**/*.tar.gz
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

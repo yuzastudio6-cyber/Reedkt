@@ -13,16 +13,16 @@ The flow is:
 
 Milestone 9 does not final mux, render, export, call providers, download model weights, or run production GPU audio jobs.
 
-Milestone 10 adds FFmpeg/ffprobe core readiness for safe loudness/version checks only. Audio AI tools such as DeepFilterNet and Demucs remain skip-first scaffolds until later GPU/model install milestones approve packages and model weights.
+Milestone 10 adds FFmpeg/ffprobe core readiness for safe loudness/version checks only. Audio AI tools such as DeepFilterNet and Demucs start as skip-first scaffolds until later model/install milestones approve exact packages, artifacts, and runtime gates.
 
 Milestone 15A builds on this foundation with controlled audio execution planning, optional local-dev FFmpeg loudness/normalization, private cleaned-audio and SoundSync metadata artifacts, and audio QA gates. It still does not final mux/export, download model weights, run production GPU audio jobs, overwrite source audio, or use Revideo.
 
 Phase 36A is the first audio AI approval workflow after the controlled SAM2
-feature gates. It recommends DeepFilterNet first for future staging planning,
-keeps RNNoise as a fallback planning candidate, and keeps Demucs restricted to
-future source-separation review. It does not approve audio AI download,
-runtime, media processing, providers, production, external beta, or broad real
-media.
+feature gates. It recommends DeepFilterNet first for future staging planning.
+Phase 36G later removes RNNoise from active routing and makes Demucs
+separation-only behind an approved-model manifest gate. Phase 36A itself does
+not approve audio AI download, runtime, media processing, providers,
+production, external beta, or broad real media.
 
 Phase 36B may download/load only the approved DeepFilterNet v0.5.6 artifacts to
 private staging model storage. Runtime verification remains Phase 36C and must
@@ -32,24 +32,25 @@ until later controlled QA.
 Phase 36D completed that first controlled real-video audio AI cleanup sample for
 `phase36d-20260530T141724`. It was locked to the approved Phase 32 private
 export and Phase 31 audio reference, used only the private Phase 36B
-DeepFilterNet artifacts, and remains private review only. RNNoise, Demucs,
-arbitrary media, providers, Revideo, FILM, slow motion, production, beta, broad
-media, and final delivery remain blocked.
+DeepFilterNet artifacts, and remains private review only. RNNoise active
+routing, unapproved Demucs runtime, arbitrary media, providers, Revideo, FILM,
+slow motion, production, beta, broad media, and final delivery remain blocked.
 
 Phase 36E completed the private DeepFilterNet audio feature E2E gate on the
 same approved controlled chain for `phase36e-20260530T152327`. It created a
 private review package and a local backup copy for Finder review, but GCS
 remains the source of truth and production, external beta, paid production,
-broad media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow
-motion, and final delivery remain blocked.
+broad media, arbitrary media, RNNoise active routing, unapproved Demucs runtime,
+providers, Revideo, FILM, slow motion, and final delivery remain blocked.
 
 Phase 36F closed internal audio feature testing readiness for the audio system
 with `phase36f-20260530T161352`. The internal scope includes FFmpeg loudness and
 DeepFilterNet only.
 
-Phase 36G removes RNNoise from active audio routing and records Demucs as the
-future vocal/music/stem separation candidate. Demucs remains blocked because
-the official pretrained-model license/provenance evidence is ambiguous, so no
-Demucs model download, runtime, media processing, Docker, or Cloud Run job is
-approved. External beta, paid production, broad media, arbitrary media,
-providers, Revideo, FILM, slow motion, and production remain blocked.
+Phase 36G removes RNNoise from active audio routing and makes Demucs the
+manifest-gated product route for vocal/music/stem separation. Non-mock Demucs
+execution requires a company-controlled approved model artifact, valid approval
+manifest, matching checksum, and disabled runtime downloads. Unapproved
+pretrained-weight downloads, runtime auto-downloads, public delivery, external
+beta, paid production, broad media, arbitrary media, providers, Revideo, FILM,
+slow motion, and production remain blocked.

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "tool": "demucs",
+  "model_id": "htdemucs-or-company-model",
+  "model_file": "model.th",
+  "model_source": "company-controlled-artifact-uri-or-reviewed-source",
+  "model_license": "approved-model-license-name",
+  "commercial_use_approved": true,
+  "redistribution_approved": false,
+  "license_status": "approved",
+  "approved_by": "legal-or-model-reviewer",
+  "approved_at": "2026-05-30T00:00:00Z",
+  "sha256": "replace-with-real-model-sha256",
+  "intended_uses": [
+    "Separate Vocals",
+    "Remove Background Music",
+    "Split Stems",
+    "Create Instrumental",
+    "Isolate Voice from Music"
+  ],
+  "blocked_uses": [
+    "Clean Voice",
+    "Enhance Speech",
+    "Remove Background Noise",
+    "Speech Denoise",
+    "Voice Cleanup"
+  ]
+}

@@ -26,6 +26,7 @@ export type JobWorkerKind =
   | 'render_export'
   | 'qa'
   | 'credit'
+  | 'audio_separation'
   | 'storage'
   | 'custom'
 

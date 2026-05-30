@@ -1,5 +1,6 @@
 import type { ApiDomain, ApiRouteDefinition } from './api-runtime-contracts'
 import { ADMIN_API_ROUTES } from './routes/admin-api-routes'
+import { AUDIO_SEPARATION_API_ROUTES } from './routes/audio-separation-api-routes'
 import { AUTH_BOOTSTRAP_API_ROUTES } from './routes/auth-bootstrap-api-routes'
 import { CREDIT_API_ROUTES } from './routes/credit-api-routes'
 import { EDIT_PLANNING_API_ROUTES } from './routes/edit-planning-api-routes'
@@ -36,6 +37,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...RENDER_API_ROUTES,
   ...MUSIC_API_ROUTES,
   ...SFX_API_ROUTES,
+  ...AUDIO_SEPARATION_API_ROUTES,
   ...STORYTIMING_API_ROUTES,
   ...STORAGE_API_ROUTES,
   ...PROVIDER_API_ROUTES,
@@ -54,6 +56,7 @@ const API_DOMAINS: ApiDomain[] = [
   'render',
   'music',
   'sfx',
+  'audio',
   'storytiming',
   'storage',
   'providers',
@@ -124,6 +127,7 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     render: 0,
     music: 0,
     sfx: 0,
+    audio: 0,
     storytiming: 0,
     storage: 0,
     providers: 0,

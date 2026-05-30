@@ -35,6 +35,7 @@ export type ApiDomain =
   | 'render'
   | 'music'
   | 'sfx'
+  | 'audio'
   | 'storytiming'
   | 'storage'
   | 'providers'

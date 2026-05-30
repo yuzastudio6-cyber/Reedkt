@@ -2,10 +2,10 @@ import type { ApprovedAudioStackDemucsEvidence } from './audio-stack-demucs-type
 
 export const approvedAudioStackDemucsEvidence: ApprovedAudioStackDemucsEvidence = {
   phase: '36G',
-  status: 'closed_with_demucs_blocked',
+  status: 'closed_with_manifest_gate',
   runId: 'phase36g-static-demucs-model-license-block',
-  demucsBlocked: true,
-  demucsBlocker: 'Demucs code is MIT, but official pretrained-model license/provenance remains ambiguous in facebookresearch/demucs issue #327; no htdemucs artifact is approved for download/runtime.',
+  demucsBlocked: false,
+  demucsBlocker: 'Official htdemucs auto-download remains blocked; Demucs product routing is allowed only with a company-controlled approved model artifact, approval.json, and checksum match.',
   rnnoiseRemovedFromActiveFlow: true,
   deepFilterNetInternalSpeechCleanupPreserved: true,
   demucsSeparationCandidateDocumented: true,
@@ -13,14 +13,13 @@ export const approvedAudioStackDemucsEvidence: ApprovedAudioStackDemucsEvidence 
   demucsRuntimeCompleted: false,
   phase37AReadiness: {
     readyForOcrApprovalWorkflow: true,
-    reason: 'The audio stack is no longer ambiguous: DeepFilterNet remains internal speech cleanup, RNNoise is removed from active flow, and Demucs separation is blocked pending model-license clarity. Phase 37A OCR approval workflow may start without treating Demucs as approved.',
+    reason: 'The audio stack is no longer ambiguous: DeepFilterNet remains internal speech cleanup, RNNoise is removed from active flow, and Demucs owns separation behind a strict approved-model manifest gate.',
   },
-  blockers: [
-    'Demucs pretrained-model license/provenance is ambiguous; do not download htdemucs or run Demucs.',
-  ],
+  blockers: [],
   warnings: [
-    'Demucs should not be described as general denoise; it is only a vocal/music/stem separation candidate.',
-    'No Demucs generated-audio or controlled-video E2E execution was performed.',
+    'Demucs must not be described as general denoise; it is only a vocal/music/stem separation tool.',
+    'Runtime auto-download of htdemucs remains blocked.',
+    'Non-mock Demucs execution requires an approved company-controlled model artifact and matching checksum.',
     'External beta, paid production, broad real media, providers, Revideo, FILM, and slow motion remain blocked.',
   ],
 }

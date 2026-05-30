@@ -26,7 +26,7 @@ assert.equal(audioStackDemucsConfig.demucsModelCandidate, 'htdemucs')
 
 const routing = buildAudioStackToolRoutingDecision()
 assert.equal(routing.find((tool) => tool.toolId === 'deepfilternet')?.productStatus, 'active_internal')
-assert.equal(routing.find((tool) => tool.toolId === 'demucs')?.productStatus, 'candidate_blocked')
+assert.equal(routing.find((tool) => tool.toolId === 'demucs')?.productStatus, 'active_manifest_gated')
 assert.equal(routing.find((tool) => tool.toolId === 'rnnoise')?.productStatus, 'removed_from_active_flow')
 assert.ok(routing.find((tool) => tool.toolId === 'deepfilternet')?.ownsActions.includes('Clean Voice'))
 assert.ok(routing.find((tool) => tool.toolId === 'demucs')?.ownsActions.includes('Separate Vocals'))
@@ -94,12 +94,13 @@ assert.deepEqual(audioStackDemucsQaGateIds, [
   'blocked_features',
   'phase37a_scope',
 ])
-assert.ok(buildAudioStackDemucsQaGates().some((gate) => gate.gateId === 'demucs_license_provenance' && gate.status === 'blocked'))
+assert.ok(buildAudioStackDemucsQaGates().some((gate) => gate.gateId === 'demucs_license_provenance' && gate.status === 'warning'))
 
 const report = buildAudioStackDemucsReport()
-assert.equal(report.status, 'closed_with_demucs_blocked')
+assert.equal(report.status, 'closed_with_manifest_gate')
 assert.equal(report.deepFilterNetSpeechCleanupAllowed, true)
 assert.equal(report.rnnoiseActiveProductFlowAllowed, false)
+assert.equal(report.demucsProductRoutingAllowed, true)
 assert.equal(report.demucsDownloadAllowed, false)
 assert.equal(report.demucsRuntimeAllowed, false)
 assert.equal(report.demucsInternalBetaAllowed, false)
@@ -126,8 +127,8 @@ console.log(JSON.stringify({
   checks: [
     'deepfilternet_speech_cleanup_preserved',
     'rnnoise_removed_from_active_flow',
-    'demucs_separation_candidate_documented',
-    'demucs_model_license_blocked',
+    'demucs_separation_product_routing_enabled',
+    'demucs_manifest_gate_required',
     'no_demucs_download_or_runtime',
     'approved_phase32_scope_only',
     'blocked_external_beta_production_provider_revideo_film_slow_motion',

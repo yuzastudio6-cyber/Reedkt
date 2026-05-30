@@ -15,7 +15,6 @@ import { buildFFmpegAudioLoudnessCommand, buildFFmpegAudioSkipReason, parseLoudn
 import { buildLoudnessNormalizationPlan } from './loudness-normalization-policy'
 import { buildMusicDuckingPlan } from './music-ducking-plan-builder'
 import { evaluateMusicSpeechOverlap } from './music-speech-overlap-policy'
-import { buildRNNoiseSkipReason } from './rnnoise-adapter'
 import { buildSfxDensityPlan } from './sfx-density-policy'
 import { buildSkipReason as buildSoundTouchSkipReason } from './soundtouch-adapter'
 import { buildSignalsmithStretchSkipReason } from './signalsmith-stretch-adapter'
@@ -87,7 +86,6 @@ export async function runAudioFoundation(input: AudioFoundationRunnerInput): Pro
   skipReasons.push(
     ...[
       buildDeepFilterNetSkipReason({ runMode: input.mode, timeoutMs: input.timeoutMs ?? 10_000, localDevToolExecution: input.localDevToolExecution, sourceAudioLocalPath: input.sourceAudioLocalPath }),
-      buildRNNoiseSkipReason({ runMode: input.mode, timeoutMs: input.timeoutMs ?? 10_000, localDevToolExecution: input.localDevToolExecution, sourceAudioLocalPath: input.sourceAudioLocalPath }),
       buildDemucsSkipReason({ runMode: input.mode, timeoutMs: input.timeoutMs ?? 10_000, localDevToolExecution: input.localDevToolExecution, sourceAudioLocalPath: input.sourceAudioLocalPath }),
       buildSoundTouchSkipReason({ runMode: input.mode, timeoutMs: input.timeoutMs ?? 10_000, localDevToolExecution: input.localDevToolExecution, sourceAudioLocalPath: input.sourceAudioLocalPath }),
       buildSignalsmithStretchSkipReason({ runMode: input.mode, timeoutMs: input.timeoutMs ?? 10_000, localDevToolExecution: input.localDevToolExecution, sourceAudioLocalPath: input.sourceAudioLocalPath }),

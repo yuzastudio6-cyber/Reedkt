@@ -4,16 +4,13 @@ import { buildAudioStackDemucsIamPlan } from './audio-stack-demucs-iam-plan'
 import { audioStackDemucsConfig } from './audio-stack-demucs-policy'
 import { buildAudioStackDemucsQaGates } from './audio-stack-demucs-qa-summary'
 import { buildAudioStackToolRoutingDecision } from './audio-stack-tool-routing'
-import { buildDemucsLicenseReview, buildDemucsSourceEvidence, demucsEvidenceBlockers } from './demucs-source-evidence'
+import { buildDemucsLicenseReview, buildDemucsSourceEvidence } from './demucs-source-evidence'
 import type { AudioStackDemucsReport } from './audio-stack-demucs-types'
 
 export function buildAudioStackDemucsReport(): AudioStackDemucsReport {
   const approvedEvidence = getApprovedAudioStackDemucsEvidence()
   const sourceEvidence = buildDemucsSourceEvidence()
-  const blockers = Array.from(new Set([
-    ...approvedEvidence.blockers,
-    ...demucsEvidenceBlockers(sourceEvidence),
-  ]))
+  const blockers = Array.from(new Set(approvedEvidence.blockers))
 
   return {
     reportId: 'activation-phase-36g-audio-stack-demucs',
@@ -26,11 +23,12 @@ export function buildAudioStackDemucsReport(): AudioStackDemucsReport {
     commandPlans: buildAudioStackDemucsCommandPlans(),
     qaGates: buildAudioStackDemucsQaGates(),
     approvedEvidence,
-    status: 'closed_with_demucs_blocked',
+    status: 'closed_with_manifest_gate',
     blockers,
     warnings: Array.from(new Set(approvedEvidence.warnings)),
     deepFilterNetSpeechCleanupAllowed: true,
     rnnoiseActiveProductFlowAllowed: false,
+    demucsProductRoutingAllowed: true,
     demucsDownloadAllowed: false,
     demucsRuntimeAllowed: false,
     demucsInternalBetaAllowed: false,
@@ -54,6 +52,7 @@ export function summarizeAudioStackDemucsReport(report: AudioStackDemucsReport):
     `Run ID: ${report.approvedEvidence.runId}`,
     `DeepFilterNet speech cleanup allowed: ${report.deepFilterNetSpeechCleanupAllowed}`,
     `RNNoise active product flow allowed: ${report.rnnoiseActiveProductFlowAllowed}`,
+    `Demucs product routing allowed: ${report.demucsProductRoutingAllowed}`,
     `Demucs download allowed: ${report.demucsDownloadAllowed}`,
     `Demucs runtime allowed: ${report.demucsRuntimeAllowed}`,
     `Demucs internal beta allowed: ${report.demucsInternalBetaAllowed}`,

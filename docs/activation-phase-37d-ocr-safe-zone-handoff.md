@@ -1,10 +1,22 @@
 # Phase 37D OCR Safe-Zone Handoff
 
-Phase 37D is ready only for controlled real-video OCR/caption safe-zone planning because Phase 37C generated OCR runtime QA passed for `phase37c-20260530T230413`.
+Phase 37D now records a metadata-only controlled real-video OCR/caption safe-zone planning gate because Phase 37C generated OCR runtime QA passed for `phase37c-20260530T230413`.
 
-If Phase 37C passes, Phase 37D may plan exactly one controlled real-video OCR/caption safe-zone test using approved private media only. Phase 37D should inherit these limits:
+Phase 37D selects exactly one future controlled sample from approved private media only:
+
+- Source: `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`
+- Sample: `phase37d-phase32-color-export-safe-zone-window-v1`
+- Window: `6.9s`-`8.9s`
+- Future offsets: `6.9, 7.3, 7.7, 8.1, 8.5, 8.9`
+
+Phase 37D inherits these limits:
 
 - No arbitrary uploads or broad real-user media.
+- No media byte reads.
+- No frame extraction.
+- No real-video OCR execution.
+- No artifact upload.
+- No IAM/GCP mutation.
 - No provider calls.
 - No public artifacts.
 - No beta or production unlock.
@@ -12,4 +24,4 @@ If Phase 37C passes, Phase 37D may plan exactly one controlled real-video OCR/ca
 - No textline orientation model auto-download.
 - No caption/render integration until Phase 37E.
 
-Phase 37D should focus on controlled real-video OCR/caption safe-zone planning and evidence only. It should not become final caption QA integration or a production OCR runtime.
+Phase 37D focuses on controlled real-video OCR/caption safe-zone planning and schema evidence only. It is not final caption QA integration, real-video OCR execution, or a production OCR runtime.

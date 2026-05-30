@@ -76,3 +76,15 @@ frames, private artifacts, and no public output.
 This is not production approval. Full-video masks, full-video text-behind-subject
 video, arbitrary media, providers, Revideo, FILM, slow motion, external beta,
 and broad real media remain blocked after Phase 35D.
+
+## Activation Phase 35E
+
+Phase 35E composed one controlled private segment text-behind-subject preview
+for `phase35e-20260530T01355` from the approved Phase 35D frames and masks. It
+was locked to `phase35d-20260530T004442`, the 6.9s-8.9s segment, 10 frames at
+768x432, and the fixed text `REEDITPRO`.
+
+This is still not production approval. It does not create a final export, full
+video text-behind-subject asset, full-video mask sequence, public URL,
+provider output, Revideo render, FILM/slow-motion output, or broad-media
+approval.

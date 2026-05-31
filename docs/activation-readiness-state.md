@@ -16,8 +16,10 @@ Phase 45B completed Remotion render validation for `phase45b-20260531T19552`
 using only the approved Phase 32 private export and Phase 45A private
 preview/report evidence. Phase 45C completed OpenTimelineIO-compatible timeline
 validation for `phase45c-20260531T20404`, referencing only the approved Phase
-32, 45A, and 45B private artifacts. Phase 45D may start FFmpeg/FFprobe final
-render/export hardening only.
+32, 45A, and 45B private artifacts. Phase 45D completed FFmpeg/FFprobe final
+render/export hardening for `phase45d-20260531T22235`, producing one bounded
+private hardened review export only. Phase 45E may start full visual-video
+private E2E validation only.
 Preferred base
 `origin/codex/rp-activation-38e-film-private-feature-e2e-readiness` was
 unavailable after fetch, so Phase 40A and Phase 40B are based on the completed
@@ -127,6 +129,7 @@ runtime on generated media only.
 | Libass caption burn-in validation | Phase 45A complete | Dedicated CPU validation job `reeditpro-staging-libass-burnin-validation-job` verified FFmpeg/libass caption burn-in and FFprobe decode on a 5-second private preview for `phase45a-20260531T19033`. Phase 45B Remotion validation is complete; final delivery, production, external beta, broad media, providers, Revideo, public delivery, arbitrary media, and Track B tools remain blocked. |
 | Remotion render validation | Phase 45B complete | Dedicated CPU validation job `reeditpro-staging-remotion-render-validation-job` invoked Remotion and verified FFprobe decode on a bounded private preview for `phase45b-20260531T19552`. Phase 45C is ready only for OpenTimelineIO timeline validation; final delivery, production, external beta, broad media, providers, Revideo, public delivery, arbitrary media, and Track B tools remain blocked. |
 | OpenTimelineIO timeline validation | Phase 45C complete | Phase 45C created and validated an OTIO-compatible one-track/one-clip metadata timeline for `phase45c-20260531T20404`, tying the approved Phase 32 source to Phase 45A libass and Phase 45B Remotion evidence. Phase 45D is ready only for FFmpeg/FFprobe final render/export hardening; final delivery, production, external beta, broad media, providers, Revideo, public delivery, arbitrary media, and Track B tools remain blocked. |
+| FFmpeg/FFprobe final render hardening | Phase 45D complete | Dedicated CPU validation job `reeditpro-staging-final-render-hardening-job` created one bounded private H.264/AAC faststart review export for `phase45d-20260531T22235` and FFprobe verified duration, codecs, streams, and container integrity. Phase 45E is ready only for full visual-video private E2E validation; user final delivery, production, external beta, broad media, providers, Revideo, public delivery, arbitrary media, and Track B tools remain blocked. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
 | Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
 | Real-ESRGAN broader-scope policy | Policy complete; broader execution blocked | Phase 34E records that human visual review is required and no full-frame/full-video/blind enhancement scope is allowed yet. Additional bounded sample planning may be considered only in a later approved phase. |
@@ -165,11 +168,12 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next Track A activation phase: Phase 45D FFmpeg/FFprobe final render/export hardening only after Phase 45C OpenTimelineIO-compatible timeline validation passed
+- next Track A activation phase: Phase 45E full visual-video private E2E validation only after Phase 45D FFmpeg/FFprobe final render/export hardening passed
 - pro color/image approval/runtime: Phase 40A review complete; Phase 40B verified OpenColorIO, OpenImageIO, and Kornia on generated fixtures; Phase 40C verified the same Track A stack on three bounded approved real-video frames; Phase 40D verified the private feature E2E gate and does not approve full-video processing, final delivery, external beta, or paid production
 - libass caption burn-in: Phase 45A verified FFmpeg/libass burn-in on a bounded 5-second private preview from the approved Phase 32 export and Phase 28 ASS captions
 - Remotion render validation: Phase 45B verified Remotion invocation and FFprobe decode on a bounded 5-second private preview from the approved Phase 45A preview
-- OpenTimelineIO timeline validation: Phase 45C verified OTIO-compatible timeline metadata, bounded duration, clip source references, and Phase 45A/45B render references for `phase45c-20260531T20404`; Phase 45D readiness is limited to FFmpeg/FFprobe final render/export hardening only
+- OpenTimelineIO timeline validation: Phase 45C verified OTIO-compatible timeline metadata, bounded duration, clip source references, and Phase 45A/45B render references for `phase45c-20260531T20404`
+- FFmpeg/FFprobe final render hardening: Phase 45D verified deterministic private review export hardening, faststart MP4, H.264/AAC streams, duration bounds, and private artifact scope for `phase45d-20260531T22235`; Phase 45E readiness is limited to full visual-video private E2E validation only
 - slow-motion execution: complete only for the explicit Phase 38D selected-segment gate; full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, and broad media remain blocked
 - provider execution: blocked
 - production: blocked

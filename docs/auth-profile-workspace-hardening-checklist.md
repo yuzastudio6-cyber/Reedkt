@@ -17,3 +17,15 @@ Use this checklist when reviewing auth/profile/workspace/project changes before 
 | Sanitized audit if used | Audit is not implemented in Prompt 3A. | not in scope |
 | RLS tests available | Draft RLS checklist exists. | draft-only |
 | Build/lint status known | Recorded in Prompt 3A results. | lint/server typecheck pass; full build blocked by Vite/Rolldown native binding |
+
+## Prompt 3B Validation Checklist
+
+| Check | Required result | Prompt 3B status |
+| --- | --- | --- |
+| Build path known | Full build either passes or has an exact environment blocker. | environment-blocked by Vite/Rolldown Darwin native binding code-signature/native-binding failure |
+| Lint path known | Lint can run through a documented local command. | passed with arm64 Node path workaround |
+| Server typecheck known | Server typecheck can run through a documented local command. | passed with arm64 Node path workaround |
+| Supabase CLI status known | Local CLI either works or has an exact blocker. | blocked by `Unknown system error -86` / `bad CPU type in executable` |
+| RLS execution path known | RLS SQL status is draft, executable local-only, or executed. | draft-only; not run |
+| Blocked table scan known | Prompt 3/3A runtime files are scanned for blocked tables and forbidden runtime domains. | 0 blocked table matches, 0 legacy `user_profiles` matches, 0 forbidden runtime-domain matches |
+| Prompt 4 decision recorded | Decision is explicit in Prompt 3B results. | Prompt 4 should wait; recommended Prompt 3C |

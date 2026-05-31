@@ -179,10 +179,27 @@ Validation status after Prompt 3A is recorded in `docs/prompt-03a-auth-rls-fix-r
 
 Prompt 4 should not proceed until Prompt 3A validation shows build/lint and auth/RLS readiness are sufficient, or until Prompt 3B resolves the remaining validation environment blockers.
 
+## Prompt 3B Follow-Up
+
+Prompt 3B adds validation-environment documentation and a local diagnostics script without changing route/service behavior or expanding production scope.
+
+Validation result:
+
+- `npm ci` succeeds from the existing lockfile when npm is run with the arm64 Codex Node path first in `PATH`.
+- `npm run lint` passes.
+- `npm run typecheck:server` passes.
+- Full `npm run build` remains blocked by Vite/Rolldown native binding loading on Darwin.
+- Supabase CLI remains blocked by a local architecture mismatch.
+- RLS SQL remains draft-only and unexecuted.
+
+The auth/profile/workspace/project foundation is not validated enough for Prompt 4. Prompt 4 should wait for Prompt 3C or equivalent validation toolchain repair.
+
 ## What Remains Blocked
 
 - Remote/staging Supabase validation.
 - Executed RLS tests.
+- Full frontend build validation on this host.
+- Working local Supabase CLI validation.
 - Conversion of the draft RLS SQL file to executable local-only SQL.
 - Auth pages and account lifecycle UX.
 - Membership invite/admin flows.

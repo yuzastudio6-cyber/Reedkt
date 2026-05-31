@@ -88,6 +88,10 @@ Prompt 3 defines and partially implements only auth/profile/workspace/project ac
 - Broad project creation remains disabled and performs no body validation or database write.
 - Missing backend/admin runtime continues to return blocked/backend-required behavior without exposing project data.
 
+## Prompt 3B Validation Note
+
+Prompt 3B does not change route behavior. It adds validation-environment diagnostics and confirms no blocked table references, legacy `user_profiles` references, or forbidden runtime-domain references appear in Prompt 3/3A runtime auth/project route, service, and validation files.
+
 ## Forbidden Side Effects For All Prompt 3 Routes
 
 - No storage upload, signed URL, or storage object record creation.

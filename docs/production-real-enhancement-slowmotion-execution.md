@@ -96,3 +96,16 @@ Phase 38D does not process arbitrary media, interpolate the full video, preserve
 or stretch audio, create a final delivery export, create public output, use
 providers or Revideo, use Track B tools, or unlock production, external beta,
 paid production, broad media, or final delivery.
+
+## Activation Phase 40A Boundary
+
+Phase 40A starts the Track A professional color/image planning lane after the
+completed Phase 38D fallback base because the preferred Phase 38E branch was
+unavailable. It is static/report-only and does not change the FILM slow-motion
+runtime, model artifacts, selected-sample evidence, or blocked full-video
+slow-motion gates.
+
+OpenColorIO, OpenImageIO, and Kornia planning is limited to future generated
+fixtures in Phase 40B. Real-video pro color/image samples, final delivery,
+providers, Revideo, production, external beta, paid production, broad media, and
+arbitrary media remain blocked.

@@ -292,3 +292,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm source frames, interpolated frames, optional preview MP4, metadata, and QA artifacts exist only under private Phase 38D GCS prefixes.
 5. Confirm no full-video interpolation, audio stretch, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, broad real media, or arbitrary media occurred.
 6. Proceed to Phase 38E only as a private FILM feature E2E readiness gate if Phase 38D QA passed.
+
+## After Phase 40A
+
+1. Review `activation:pro-color-image-approval:plan`, `activation:pro-color-image-approval:report`, and `activation:pro-color-tool:summary`.
+2. Confirm the preferred Phase 38E base was unavailable and Phase 40A was based on completed Phase 38D as the documented Track A fallback.
+3. Confirm official source/license evidence is recorded for OpenColorIO, OpenImageIO, and Kornia.
+4. Confirm tool ownership is explicit: OpenColorIO owns color management and LUT/look transforms, OpenImageIO owns image/frame I/O and metadata validation, Kornia owns local helper metrics and generated-fixture visual QA, and FFmpeg/FFprobe keeps existing video probe/decode/extraction/export integrity scope.
+5. Confirm all future command plans are text-only and blocked in Phase 40A.
+6. Confirm runtime install, generated-fixture execution, real-video pro color/image execution, final delivery, providers, Revideo, public output, production, external beta, paid production, and broad real media remain blocked.
+7. Proceed to Phase 40B only as generated-fixture pro color/image runtime verification; do not process real video or install runtime dependencies from Phase 40A.

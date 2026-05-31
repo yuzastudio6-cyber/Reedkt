@@ -15,9 +15,12 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 
 - Purpose: lock frontend/backend/Supabase/worker/provider/render/tool boundaries before deeper implementation.
 - Implements: architecture decision records for service ownership, trust boundaries, allowed transports, idempotency, auth, secrets, storage, credit, worker, provider, render, and QA boundaries.
+- Expected deliverables: `docs/production-architecture-freeze.md`, `docs/architecture-boundary-matrix.md`, `docs/execution-gates-contract.md`, `docs/future-backend-service-map.md`, and `docs/future-worker-lanes.md`.
+- Status after Prompt 1: architecture-frozen / docs-only. This does not mark the milestone production-ready.
 - Must not implement: production handlers, migrations, provider clients, Stripe, Cloud Run deployment, render workers, or tool execution.
 - Main files/tables/services: `PRODUCTION_FOUNDATION_STATUS.md`, `docs/source-of-truth-map.md`, `database-architecture.md`, `worker-tool-runtime-architecture.md`, `docs/backend-api-route-map.md`.
 - Acceptance criteria: every future production capability has an owner boundary, blocked/allowed state, required gates, and rollback/validation expectation.
+- Next prompt: Prompt 2 - Supabase Schema Review and Migration Validation.
 - GitHub deliverable: branch, commit, push, PR with architecture-freeze summary and explicit no-execution statement.
 
 ## 2. Supabase Schema Review And Migration Validation

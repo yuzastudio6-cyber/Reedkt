@@ -2,6 +2,8 @@
 
 Prompt 3A reviews and hardens the Prompt 3 auth/profile/workspace/project foundation before any Prompt 4 storage/upload work begins. It does not expand production scope.
 
+PR: [#76](https://github.com/yuzastudio6-cyber/Reedkt/pull/76)
+
 ## Files Inspected
 
 - `PRODUCTION_FOUNDATION_STATUS.md`

@@ -357,3 +357,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm source integrity, Phase 45A/45B evidence, OTIO schema, timeline duration bounds, clip references, caption/render references, privacy, no-final-delivery, and blocked-feature gates passed.
 5. Confirm no media processing, arbitrary media, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
 6. Proceed to Phase 45D only as FFmpeg/FFprobe final render/export hardening. Phase 45C does not approve final delivery, product beta, production, public delivery, or broad real media.
+
+## After Phase 45D
+
+1. Review `activation:final-render-hardening:report` and `docs/activation-phase-45d-ffmpeg-ffprobe-final-render-hardening-results.md`.
+2. Confirm run `phase45d-20260531T22235` used only the approved Phase 32 private source plus Phase 45A, Phase 45B, and Phase 45C private evidence.
+3. Confirm the approved plan snapshot, source validation, evidence validation, private hardened review export MP4, FFprobe export validation, QA JSON, and Phase 45D report artifacts exist only under private Phase 45D GCS prefixes.
+4. Confirm FFmpeg export, FFprobe validation, codec/container integrity, duration bounds, audio/video integrity, private artifacts, no-public-access, no-final-delivery, and blocked-feature gates passed.
+5. Confirm no arbitrary media, user final delivery, public delivery, providers, Revideo, Track B tools, production, external beta, paid production, or broad real media occurred.
+6. Proceed to Phase 45E only as full visual-video private E2E validation. Phase 45D does not approve product beta, production, public delivery, or user final delivery.

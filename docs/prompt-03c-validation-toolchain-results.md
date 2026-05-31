@@ -2,6 +2,8 @@
 
 Prompt 3C creates a reusable validation runner and Linux CI route for foundation validation. It does not expand product/backend functionality.
 
+PR: [#79](https://github.com/yuzastudio6-cyber/Reedkt/pull/79)
+
 ## Files Inspected
 
 - `PRODUCTION_FOUNDATION_STATUS.md`

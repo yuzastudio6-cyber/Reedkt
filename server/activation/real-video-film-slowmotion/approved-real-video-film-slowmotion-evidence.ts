@@ -2,12 +2,12 @@ import type { ApprovedRealVideoFilmSlowmotionEvidence } from './real-video-film-
 
 export const approvedRealVideoFilmSlowmotionEvidence: ApprovedRealVideoFilmSlowmotionEvidence = {
   phase: '38D',
-  status: 'blocked',
-  runId: 'phase38d-20260531T00414',
+  status: 'verified',
+  runId: 'phase38d-20260531T00471',
   runtimeImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-film-runtime@sha256:50f94ec6289fbbdbba21ab11e89aed3a846015b6f26180c43da14cee7732f6ac',
   runtimeImageDigest: 'sha256:50f94ec6289fbbdbba21ab11e89aed3a846015b6f26180c43da14cee7732f6ac',
   cloudRunJobName: 'reeditpro-staging-film-runtime-job',
-  cloudRunExecutionId: 'reeditpro-staging-film-runtime-job-kvrbc',
+  cloudRunExecutionId: 'reeditpro-staging-film-runtime-job-pmxs7',
   sourceVideo: 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4',
   selectedSegment: {
     startSeconds: 6.9835,
@@ -18,20 +18,18 @@ export const approvedRealVideoFilmSlowmotionEvidence: ApprovedRealVideoFilmSlowm
     height: 288,
     outputFrameCount: 17,
   },
-  artifactPrefix: 'gs://reeditpro-staging-reeditpro-generated-assets/activation-film-runtime/phase38d/phase38d-20260531T00414/',
-  previewPrefix: 'gs://reeditpro-staging-reeditpro-previews/activation-film-runtime/phase38d/phase38d-20260531T00414/',
+  artifactPrefix: 'gs://reeditpro-staging-reeditpro-generated-assets/activation-film-runtime/phase38d/phase38d-20260531T00471/',
+  previewPrefix: 'gs://reeditpro-staging-reeditpro-previews/activation-film-runtime/phase38d/phase38d-20260531T00471/',
+  qaReportUri: 'gs://reeditpro-staging-reeditpro-qa-artifacts/activation-film-runtime/phase38d/phase38d-20260531T00471/reports/phase38d-report.json',
   phase38EReadiness: {
-    readyForFilmPrivateFeatureE2EReadinessGate: false,
-    reason: 'Phase 38D remains blocked because Cloud Run execution could not complete after a targeted IAM correction; gcloud reauthentication is required before the bounded retry can run.',
+    readyForFilmPrivateFeatureE2EReadinessGate: true,
+    reason: 'Phase 38D verified one controlled selected real-video FILM slow-motion sample only; Phase 38E may plan a private FILM feature E2E readiness gate.',
   },
-  blockers: [
-    'Initial Cloud Run execution reeditpro-staging-film-runtime-job-kvrbc failed because the CPU worker lacked storage.objects.get on the approved Phase 38D plan snapshot.',
-    'A narrow phase38d-plan-read objectViewer IAM plan was added for the approved Phase 38D generated-assets prefix, but the guarded retry was blocked by gcloud token reauthentication: cannot prompt during non-interactive execution.',
-    'No Phase 38D runtime QA report exists yet.',
-  ],
+  blockers: [],
   warnings: [
+    'Selected real-video segment only; no full-video interpolation or audio stretch executed.',
+    'Very short selected segment only; human visual review is required before broader use.',
     'Full-video interpolation, final delivery, audio stretch, production, beta, and broad media remain blocked.',
-    'The first runtime image was built and pushed, but Phase 38D did not pass QA.',
   ],
 }
 

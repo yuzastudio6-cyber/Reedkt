@@ -1,10 +1,10 @@
 # Phase 38D Real-Video FILM Slow-Motion Results
 
-Status: blocked.
+Status: completed with warning-only QA.
 
-Run ID: `phase38d-20260531T00414`
+Run ID: `phase38d-20260531T00471`
 
-Cloud Run execution: `reeditpro-staging-film-runtime-job-kvrbc`
+Cloud Run execution: `reeditpro-staging-film-runtime-job-pmxs7`
 
 Runtime image: `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-film-runtime@sha256:50f94ec6289fbbdbba21ab11e89aed3a846015b6f26180c43da14cee7732f6ac`
 
@@ -19,7 +19,7 @@ Selected segment:
 - Duration: `1.5s`
 - Source frames: `9`
 - Frame size: `512x288`
-- Expected preview frames: `17`
+- Preview frames: `17`
 
 Model:
 
@@ -32,26 +32,39 @@ Cloud Run:
 - Job: `reeditpro-staging-film-runtime-job`
 - Image tag: `staging-film-real-video-slowmotion-001`
 - CPU-only: `4` CPU, `8Gi`, parallelism `1`, max retries `0`
+- Service account: `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com`
+
+Artifacts:
+
+- Generated assets: `gs://reeditpro-staging-reeditpro-generated-assets/activation-film-runtime/phase38d/phase38d-20260531T00471/`
+- Previews: `gs://reeditpro-staging-reeditpro-previews/activation-film-runtime/phase38d/phase38d-20260531T00471/`
+- QA report: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-film-runtime/phase38d/phase38d-20260531T00471/reports/phase38d-report.json`
+- QA JSON: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-film-runtime/phase38d/phase38d-20260531T00471/qa/film-real-video-slowmotion-qa.json`
+- Preview MP4: `gs://reeditpro-staging-reeditpro-previews/activation-film-runtime/phase38d/phase38d-20260531T00471/preview/film-slowmotion-preview.mp4`
 
 QA:
 
-- Blocked. The initial Cloud Run execution failed before FILM inference because `reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com` did not have `storage.objects.get` on the approved Phase 38D plan snapshot:
-  `gs://reeditpro-staging-reeditpro-generated-assets/activation-film-runtime/phase38d/phase38d-20260531T00414/plan/approved-plan-snapshot.json`.
-- The implementation now includes a narrow conditional `phase38d-plan-read` `roles/storage.objectViewer` binding for the approved Phase 38D generated-assets prefix so the worker can validate the plan snapshot.
-- A guarded retry was attempted after the targeted IAM correction, but `gcloud run jobs execute` was blocked by Google reauthentication: `Reauthentication failed. cannot prompt during non-interactive execution.`
-- No Phase 38D runtime QA report exists yet.
+- `source_integrity`: passed
+- `plan_snapshot_integrity`: passed
+- `segment_bounds`: passed
+- `model_artifacts`: passed
+- `runtime_integrity`: passed
+- `interpolated_artifacts`: passed
+- `motion_sanity`: passed
+- `preview_artifacts`: passed
+- `artifact_privacy`: passed
+- `blocked_features`: passed
+- Warnings: selected real-video segment only; human visual review is required before broader use.
 
 Phase 38E readiness:
 
-- Blocked until Phase 38D selected-segment runtime QA passes after Google auth is refreshed.
-
-Human action required:
-
-- Refresh Google Cloud CLI authentication for `aiediting@reeditpro.com`, for example with `gcloud auth login`, then rerun the bounded Phase 38D execution command from this branch.
+- Ready for FILM private feature E2E readiness gate only.
+- Not ready for full-video interpolation, final delivery, audio stretch, production, external beta, paid production, or broad real media.
 
 Blocked:
 
 - Full-video interpolation
+- Full-video slow motion
 - Final delivery export
 - Audio stretch
 - Providers

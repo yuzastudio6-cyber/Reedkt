@@ -81,15 +81,16 @@ that generated-frame fixture.
 Phase 38C does not process real video or user media, produce full-video
 interpolation, run a real-video slow-motion feature, create public output, use
 providers or Revideo, or unlock production, external beta, paid production,
-broad media, or final delivery exports. Phase 38D remains the first possible
+broad media, or final delivery exports. Phase 38D completed only the first
 controlled selected real-video slow-motion sample gate.
 
 ## Activation Phase 38D Boundary
 
-Phase 38D may process exactly one controlled selected segment from the approved
-Phase 32 private export using the private Phase 38B FILM SavedModel. It is
-bounded to `6.9835s-8.4835s`, 9 source frames at 512x288, and midpoint
-interpolation only.
+Phase 38D processed exactly one controlled selected segment from the approved
+Phase 32 private export using the private Phase 38B FILM SavedModel. It was
+bounded to `6.9835s-8.4835s`, 9 source frames at 512x288, 8 midpoint frames,
+17 preview frames, and a private silent preview MP4 for
+`phase38d-20260531T00471`.
 
 Phase 38D does not process arbitrary media, interpolate the full video, preserve
 or stretch audio, create a final delivery export, create public output, use

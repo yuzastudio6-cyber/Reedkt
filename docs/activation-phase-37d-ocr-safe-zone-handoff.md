@@ -33,4 +33,4 @@ Phase 37D inherits these limits:
 - No textline orientation model auto-download.
 - No caption/render integration until Phase 37E.
 
-Phase 37D is now ready only to plan Phase 37E caption/render QA integration. It is not final caption QA integration, broad real-video OCR, arbitrary media OCR, or a production OCR runtime.
+Phase 37E has now consumed Phase 37D private JSON metadata for OCR safe-zone caption/render QA metadata integration only. The next allowed step is Phase 37F Track B runtime hook planning. Phase 37D remains not broad real-video OCR, arbitrary media OCR, render execution, or a production OCR runtime.

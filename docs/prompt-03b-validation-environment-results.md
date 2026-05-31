@@ -155,3 +155,14 @@ Remote and staging Supabase were intentionally not used.
 Prompt 4 should not proceed from this branch yet. The auth/profile/workspace/project foundation has lint and server typecheck coverage, but full build and local RLS validation are still environment-blocked.
 
 Recommended next prompt: Prompt 3C - Validation Toolchain Repair.
+
+## Prompt 3C Follow-Up
+
+Prompt 3C is tracked in `docs/prompt-03c-validation-toolchain-results.md`.
+
+Prompt 3C adds a foundation validation runner, package scripts, and a Linux CI workflow so the project can distinguish:
+
+- default required validation checks;
+- local Darwin full-build environment blockers;
+- CI/Linux full-build validation;
+- RLS validation that remains draft-only until the local Supabase toolchain is repaired.

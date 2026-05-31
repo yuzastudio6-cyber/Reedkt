@@ -50,12 +50,13 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Prompt 3A build/lint status: lint and server typecheck pass; full build is blocked by a Vite/Rolldown native binding code-signature issue. See `docs/prompt-03a-auth-rls-fix-results.md`.
 - Prompt 3A RLS status: `database/test-sql/006_auth_workspace_rls_smoke_tests.draft.sql` remains draft-only until local fixtures and schema-era cleanup are ready.
 - Prompt 3B validation state: validation environment runbook and diagnostics script exist. `npm ci`, lint, and server typecheck pass when npm uses the arm64 Codex Node path. Full build remains blocked by Vite/Rolldown Darwin native binding loading. Supabase CLI remains blocked by architecture mismatch. RLS SQL remains draft-only and unexecuted.
+- Prompt 3C validation toolchain: foundation validation runner, default/with-build package scripts, and Linux CI workflow exist. Default validation runs lint, server typecheck, static schema audit, and auth/RLS diagnostics. Full build is separated into the with-build path so local native-binding blockers are classified instead of confused with code failures.
 - Must not implement: provider calls, rendering, Stripe, media processing, storage uploads, planning records, approved snapshots, credits, jobs, workers, tools, broad admin routes, SQL migrations, or bypasses around RLS.
 - Main files/tables/services: `auth.users`, `profiles`, `workspaces`, `workspace_members`, `projects`, `docs/canonical-schema-contract.md`, `docs/prompt-03-schema-target-guardrails.md`, auth bootstrap docs, backend auth middleware, service-role boundary docs.
 - What remains blocked: full build on this host, local Supabase/RLS execution, broad project create/update/list behavior, membership admin/invites, remote Supabase validation, audit event writes, and all non-auth production capabilities.
-- Prompt 4 guardrail: Prompt 4 should wait until Prompt 3C or equivalent toolchain repair provides a passing full build path or approved CI route, plus a working local/staging RLS validation path.
+- Prompt 4 guardrail: Prompt 4 should wait until Prompt 3C default validation passes and the Linux CI full-build path is green; local/staging RLS may remain documented as blocked only if Prompt 4 does not depend on executing auth/RLS SQL.
 - Acceptance criteria: Prompt 3 uses only canonical allowed tables, avoids legacy/draft/blocked tables, documents route contracts and RLS tests, honestly records validation, and enables no production capability outside the auth/profile/workspace/project boundary.
-- Next prompt recommendation: Prompt 3C - Validation Toolchain Repair because Prompt 3B confirmed full build and local RLS validation remain environment-blocked.
+- Next prompt recommendation: Prompt 4 - Storage/Upload Production Runtime if Prompt 3C validation/CI passes; otherwise Prompt 3D - CI/Local Supabase Validation Repair.
 - GitHub deliverable: branch, commit, push, PR with tests and clear capability enabled statement.
 
 ## 4. Storage/Upload Production Runtime

@@ -34,7 +34,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "schema:static-audit": "node scripts/validation/supabase-schema-static-audit.mjs",
-    "auth:rls:diagnostics": "node scripts/validation/auth-rls-validation-diagnostics.mjs"
+    "auth:rls:diagnostics": "node scripts/validation/auth-rls-validation-diagnostics.mjs",
+    "foundation:validate": "node scripts/validation/run-foundation-validation.mjs",
+    "foundation:validate:with-build": "REEDITPRO_INCLUDE_FULL_BUILD=true node scripts/validation/run-foundation-validation.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

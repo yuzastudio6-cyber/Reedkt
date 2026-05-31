@@ -6,4 +6,4 @@ Future prompt records should be updated when a PR is opened, revised, blocked, o
 
 | Prompt | Milestone | Branch | PR | Status | Production capability enabled? | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| 00 | Source-of-truth repo consolidation | `codex/rp-foundation-00-source-of-truth` | Pending PR creation | In progress | No | Docs-only consolidation. No backend execution, provider calls, rendering, Stripe, migrations, deployment, package installs, or tool execution. |
+| 00 | Source-of-truth repo consolidation | `codex/rp-foundation-00-source-of-truth` | [PR #69](https://github.com/yuzastudio6-cyber/Reedkt/pull/69) | PR open | No | Docs-only consolidation. No backend execution, provider calls, rendering, Stripe, migrations, deployment, package installs, or tool execution. |

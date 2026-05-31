@@ -4,12 +4,16 @@ Phase 40A records the Track A pro color/image approval workflow for
 OpenColorIO, OpenImageIO, and Kornia. Phase 40B is the generated-fixture runtime
 verification gate for those tools only and completed for `phase40b-20260531T10390`
 after the dedicated CPU runtime image added `torch==2.7.1+cpu` for Kornia.
+Phase 40C completed one bounded Track A real-video sample for
+`phase40c-20260531T11504`, using only three 768x432 frames from the approved
+Phase 32 private export and the Phase 40B QA evidence.
 Preferred base
 `origin/codex/rp-activation-38e-film-private-feature-e2e-readiness` was
 unavailable after fetch, so Phase 40A and Phase 40B are based on the completed
-Track A Phase 38D/40A chain and document that fallback. Real-video processing,
-final delivery, provider calls, Revideo, production, external beta, paid
-production, broad real media, arbitrary media, and Track B tools remain blocked.
+Track A Phase 38D/40A chain and document that fallback. Full-video pro
+color/image, final delivery, provider calls, Revideo, production, external
+beta, paid production, broad real media, arbitrary media, public delivery, and
+Track B tools remain blocked.
 
 Phase 38D completed the Track A controlled selected real-video FILM slow-motion
 sample after Phase 38C verified generated-frame runtime and Phase 38B stored
@@ -107,8 +111,8 @@ runtime on generated media only.
 | FILM model weights availability | Private staging storage verified | Phase 38B downloaded only `film_net/Style/saved_model`, recorded aggregate checksum `6f619330c4785a251883b96627dad6ed3a1e1aedc56ed4aa54e5e3f0b57ec97b`, and uploaded 9 private GCS objects. |
 | FILM runtime availability | Generated-frame runtime verified | Phase 38C execution `phase38c-20260530T23315` loaded the private Phase 38B model tree with TensorFlow 2.15.0, produced one private generated midpoint interpolation, and kept real-video slow motion, full-video interpolation, production, beta, providers, Revideo, and broad media blocked. |
 | FILM real-video slow-motion sample | Complete for one controlled selected segment | Phase 38D execution `reeditpro-staging-film-runtime-job-pmxs7` for `phase38d-20260531T00471` processed one approved Phase 32 segment from 6.9835s to 8.4835s, 9 source frames at 512x288, 8 midpoint frames, 17 preview frames, and a private silent preview MP4. Full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, Track B tools, and broad media remain blocked. |
-| Pro color/image approval | Phase 40A review complete | Official OpenColorIO, OpenImageIO, and Kornia source/license evidence is recorded. Phase 40B generated-fixture runtime verification is complete; real-video processing, final delivery, providers, Revideo, production, beta, and broad media remain blocked. |
-| Pro color/image runtime | Phase 40B generated-fixture verification complete | Dedicated CPU runtime verified OpenColorIO `2.4.2`, OpenImageIO `3.0.18.1`, Torch `2.7.1+cpu`, and Kornia `0.8.1` on generated `256x256` color/image fixtures for `phase40b-20260531T10390`. Phase 40C is ready only for one controlled real-video pro color/image sample. |
+| Pro color/image approval | Phase 40A review complete | Official OpenColorIO, OpenImageIO, and Kornia source/license evidence is recorded. Phase 40B generated-fixture runtime verification and Phase 40C bounded real-video sample are complete; full-video pro color/image, final delivery, providers, Revideo, production, beta, and broad media remain blocked. |
+| Pro color/image runtime | Phase 40C bounded real-video sample complete | Dedicated CPU runtime verified OpenColorIO `2.4.2`, OpenImageIO `3.0.18.1`, Torch `2.7.1+cpu`, and Kornia `0.8.1` on generated `256x256` fixtures for `phase40b-20260531T10390`, then on three bounded 768x432 frames from the approved Phase 32 export for `phase40c-20260531T11504`. Phase 40D is ready only for a private pro color/image feature E2E readiness gate. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
 | Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
 | Real-ESRGAN broader-scope policy | Policy complete; broader execution blocked | Phase 34E records that human visual review is required and no full-frame/full-video/blind enhancement scope is allowed yet. Additional bounded sample planning may be considered only in a later approved phase. |
@@ -147,8 +151,8 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next Track A activation phase: Phase 40C controlled real-video pro color/image sample only after Phase 40B generated-fixture runtime QA passed
-- pro color/image approval/runtime: Phase 40A review complete; Phase 40B verified OpenColorIO, OpenImageIO, and Kornia on generated fixtures only and does not approve real-video, final delivery, external beta, or paid production
+- next Track A activation phase: Phase 40D private pro color/image feature E2E readiness gate only after Phase 40C bounded real-video sample QA passed
+- pro color/image approval/runtime: Phase 40A review complete; Phase 40B verified OpenColorIO, OpenImageIO, and Kornia on generated fixtures; Phase 40C verified the same Track A stack on three bounded approved real-video frames and does not approve full-video processing, final delivery, external beta, or paid production
 - slow-motion execution: complete only for the explicit Phase 38D selected-segment gate; full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, and broad media remain blocked
 - provider execution: blocked
 - production: blocked

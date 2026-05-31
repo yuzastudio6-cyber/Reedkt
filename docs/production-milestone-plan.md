@@ -29,11 +29,14 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Implements: migration inventory, active-vs-draft comparison, schema conflict inventory, local/staging/prod validation runbook, RLS/storage policy validation test plan, validation results record, and local-only static audit tooling.
 - Expected deliverables: `docs/supabase-schema-review-report.md`, `docs/supabase-migration-validation-runbook.md`, `docs/rls-and-storage-policy-validation-plan.md`, `docs/schema-conflict-inventory.md`, `docs/schema-validation-results.md`, optional `scripts/validation/supabase-schema-static-audit.mjs`, and generated static audit JSON when the script runs.
 - Status after Prompt 2: validation-infrastructure / docs-plus-static-audit. This does not mark the milestone production-ready.
+- Required follow-up: Prompt 2A - Schema Gap Fix Plan is required because Prompt 2 found duplicate active table concepts across schema eras.
+- Status after Prompt 2A: architecture_decision / docs-only. Prompt 2A chooses canonical table targets and Prompt 3 guardrails but does not clean up SQL migrations.
+- Prompt 3 decision: Prompt 3 may proceed only for `auth.users`, `profiles`, `workspaces`, `workspace_members`, and `projects`, using `docs/canonical-schema-contract.md` and `docs/prompt-03-schema-target-guardrails.md`.
 - Validation expectations: `git diff --check`, base diff whitespace check, static schema audit, and build/lint when code/package files are touched. Local Supabase reset and SQL smoke tests should be run only after schema conflict resolution or explicit disposable-local approval.
 - Must not implement: production migration execution, service-role API handlers, provider calls, rendering, Stripe, or worker dispatch.
 - Main files/tables/services: `supabase/migration-order.md`, `database-migration-readiness-checklist.md`, `supabase/migrations/`, `database/test-sql/`, runtime tables from `docs/e2e-readiness/RP-E2E-READY-01-runtime-tables.md`.
 - Acceptance criteria: migrations are inventoried, active/draft conflicts are documented, RLS/storage tests are documented, validation results are honest about what did and did not run, no credentials are committed, and no production execution is enabled.
-- Next prompt recommendation: Prompt 2A - Schema Gap Fix Plan before Prompt 3 if duplicate active schema concepts remain unresolved.
+- Next prompt recommendation after Prompt 2A: Prompt 3 - Auth/Profile/Workspace/RLS Production Path.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and production-migration status.
 
 ## 3. Auth/Profile/Workspace/RLS Production Path
@@ -41,7 +44,7 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Purpose: make user, profile, workspace, and membership bootstrap production safe.
 - Implements: authenticated backend/service-role bootstrap path, RLS-safe profile/workspace creation, workspace membership checks, audit events, and frontend-safe fallback behavior.
 - Must not implement: provider calls, rendering, Stripe, media processing, broad admin routes, or bypasses around RLS.
-- Main files/tables/services: `users`, `workspaces`, `workspace_members`, auth bootstrap docs, backend auth middleware, service-role boundary docs.
+- Main files/tables/services: `auth.users`, `profiles`, `workspaces`, `workspace_members`, `projects`, `docs/canonical-schema-contract.md`, `docs/prompt-03-schema-target-guardrails.md`, auth bootstrap docs, backend auth middleware, service-role boundary docs.
 - Acceptance criteria: normal users cannot directly perform privileged writes, bootstrap is idempotent, RLS tests pass, missing-env frontend remains safe.
 - GitHub deliverable: branch, commit, push, PR with tests and clear capability enabled statement.
 

@@ -24,6 +24,12 @@ const sampleExecution: ProColorImageRuntimeExecutionReport = {
     memory: '8Gi',
     gpuRequested: false,
   },
+  runtimeDiagnostics: {
+    pythonVersion: '3.11.x',
+    pythonExecutable: '/usr/bin/python3',
+    numpyVersion: '1.26.4',
+    pillowVersion: '10.4.0',
+  },
   fixture: {
     generated: true,
     width: 256,
@@ -109,7 +115,7 @@ assert.equal(proColorImageRuntimeConfig.phase, '40B')
 assert.equal(proColorImageRuntimeConfig.track, 'A visual/video')
 assert.equal(proColorImageRuntimeConfig.runtimeMode, 'generated_fixture_color_image')
 assert.equal(proColorImageRuntimeConfig.runtimeJobName, 'reeditpro-staging-pro-color-image-runtime-job')
-assert.equal(proColorImageRuntimeConfig.runtimeTargetImage, 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-pro-color-image-runtime:staging-pro-color-image-runtime-001')
+assert.equal(proColorImageRuntimeConfig.runtimeTargetImage, 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-pro-color-image-runtime:staging-pro-color-image-runtime-torch-001')
 assert.equal(proColorImageRuntimeConfig.serviceAccountEmail, 'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com')
 assert.equal(proColorImageRuntimeConfig.computeMode, 'cpu')
 assert.equal(proColorImageRuntimeConfig.cpu, 4)
@@ -132,6 +138,7 @@ const env = validateProColorImageRuntimeExecutionEnv({
   region: 'us-central1',
   env: 'staging',
   confirmation: 'true',
+  korniaTorchFixConfirmation: 'true',
   runtimeMode: 'generated_fixture_color_image',
   providerExecutionEnabled: 'false',
   realMediaInputEnabled: 'false',
@@ -142,6 +149,7 @@ const env = validateProColorImageRuntimeExecutionEnv({
 })
 assert.equal(env.allowed, true)
 assert.ok(validateProColorImageRuntimeExecutionEnv({ confirmation: 'false' }).blockers.some((blocker) => blocker.includes('REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_RUNTIME=true')))
+assert.ok(validateProColorImageRuntimeExecutionEnv({ korniaTorchFixConfirmation: 'false' }).blockers.some((blocker) => blocker.includes('REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_KORNIA_TORCH_FIX=true')))
 assert.ok(validateProColorImageRuntimeExecutionEnv({ runtimeMode: 'real_video_color_image' }).blockers.length > 0)
 assert.ok(validateProColorImageRuntimeExecutionEnv({ realMediaInputEnabled: 'true' }).blockers.length > 0)
 

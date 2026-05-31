@@ -21,7 +21,7 @@ export const proColorImageRuntimeToolResolvers: ProColorImageRuntimeToolResolver
     toolId: 'kornia',
     displayName: 'Kornia',
     pythonImport: 'kornia',
-    pinnedPackage: 'kornia==0.8.1 with torch==2.7.1 from the CPU wheel index',
+    pinnedPackage: 'kornia==0.8.1 with torch==2.7.1+cpu from the PyTorch CPU wheel index',
     expectedOperation: 'Run CPU-only local transform and image-difference metrics on generated tensors.',
     requiredForPhase40CPromotion: true,
   },

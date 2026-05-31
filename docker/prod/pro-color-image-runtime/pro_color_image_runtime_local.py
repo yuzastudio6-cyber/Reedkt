@@ -3,9 +3,11 @@ import argparse
 import json
 import math
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
+import PIL
 from PIL import Image, PngImagePlugin
 
 
@@ -42,6 +44,7 @@ def main() -> None:
     ]
     output = {
         "ok": all(tool["status"] == "passed" for tool in tools),
+        "runtimeDiagnostics": runtime_diagnostics(),
         "fixture": {
             "width": WIDTH,
             "height": HEIGHT,
@@ -54,6 +57,15 @@ def main() -> None:
         "warnings": ["Generated fixture runtime only; no real media loaded."],
     }
     output_path.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
+
+
+def runtime_diagnostics() -> dict:
+    return {
+        "pythonVersion": sys.version,
+        "pythonExecutable": sys.executable,
+        "numpyVersion": np.__version__,
+        "pillowVersion": PIL.__version__,
+    }
 
 
 def generate_fixtures(fixtures_dir: Path) -> list[Path]:

@@ -21,7 +21,7 @@ export interface ProColorImageRuntimeConfig {
   env: 'staging'
   runtimeMode: ProColorImageRuntimeMode
   runtimeJobName: 'reeditpro-staging-pro-color-image-runtime-job'
-  runtimeImageTag: 'staging-pro-color-image-runtime-001'
+  runtimeImageTag: 'staging-pro-color-image-runtime-torch-001'
   runtimeTargetImage: string
   runtimeImageRepository: string
   serviceAccountEmail: 'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
@@ -43,6 +43,7 @@ export interface ProColorImageRuntimeEnvValidationInput {
   region?: string
   env?: string
   confirmation?: string
+  korniaTorchFixConfirmation?: string
   runtimeMode?: string
   providerExecutionEnabled?: string
   realMediaInputEnabled?: string
@@ -145,6 +146,12 @@ export interface ProColorImageRuntimeExecutionReport {
   image?: {
     image?: string
     digest?: string
+  }
+  runtimeDiagnostics?: {
+    pythonVersion?: string
+    pythonExecutable?: string
+    numpyVersion?: string
+    pillowVersion?: string
   }
   fixture: {
     generated: true

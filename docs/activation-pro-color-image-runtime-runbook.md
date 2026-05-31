@@ -20,6 +20,7 @@ GCP_PROJECT_ID=reeditpro \
 GCP_REGION=us-central1 \
 REEDITPRO_ENV=staging \
 REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_RUNTIME=true \
+REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_KORNIA_TORCH_FIX=true \
 REEDITPRO_PRO_COLOR_IMAGE_RUNTIME_MODE=generated_fixture_color_image \
 npm run activation:pro-color-image-runtime -- --execute
 ```
@@ -32,3 +33,7 @@ deploy Cloud Run, mutate GCP, or process media.
 No real video, user media, final delivery, public output, provider execution,
 Revideo, production, external beta, paid production, broad media, or Track B
 audio/OCR/VLM/hybrid tools are allowed in Phase 40B.
+
+The dedicated runtime image must keep Torch/Kornia CPU-only. If Torch or Kornia
+cannot import during Docker build or generated-fixture execution, Phase 40B
+stays blocked and Phase 40C must not start.

@@ -31,6 +31,12 @@ interface PythonToolResult {
 
 interface PythonOutput {
   ok: boolean
+  runtimeDiagnostics: {
+    pythonVersion: string
+    pythonExecutable: string
+    numpyVersion: string
+    pillowVersion: string
+  }
   fixture: {
     width: number
     height: number
@@ -98,6 +104,7 @@ async function main(): Promise<void> {
       digest: process.env.REEDITPRO_IMAGE_DIGEST,
     },
     tools: pythonOutput.tools,
+    runtimeDiagnostics: pythonOutput.runtimeDiagnostics,
     safety: runtimeSafety(),
   }, 'runtime_metadata')
   artifacts.push(fixtureManifestArtifact, metadataArtifact)
@@ -131,6 +138,7 @@ async function main(): Promise<void> {
       image: process.env.REEDITPRO_IMAGE_REF,
       digest: process.env.REEDITPRO_IMAGE_DIGEST,
     },
+    runtimeDiagnostics: pythonOutput.runtimeDiagnostics,
     fixture: {
       generated: true,
       width: pythonOutput.fixture.width,
@@ -252,6 +260,7 @@ function readRuntimeEnv(): RuntimeEnv {
   mustEqual('GCP_REGION', 'us-central1')
   mustEqual('REEDITPRO_ENV', 'staging')
   mustEqual('REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_RUNTIME', 'true')
+  mustEqual('REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_KORNIA_TORCH_FIX', 'true')
   mustEqual('PROVIDER_EXECUTION_ENABLED', 'false')
   mustEqual('REAL_MEDIA_INPUT_ENABLED', 'false')
   mustEqual('REVIDEO_ENABLED', 'false')

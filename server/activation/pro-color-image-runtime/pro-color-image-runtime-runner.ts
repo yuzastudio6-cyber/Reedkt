@@ -78,6 +78,20 @@ export async function runProColorImageRuntimeVerification(input: {
     '--wait',
   ], 60 * 60 * 1000)
   const executionId = parseExecutionId(executionOutput)
+    ?? lastGcloudValue(await runGcloud([
+      'run',
+      'jobs',
+      'executions',
+      'list',
+      '--job',
+      proColorImageRuntimeConfig.runtimeJobName,
+      '--region',
+      proColorImageRuntimeConfig.region,
+      '--project',
+      proColorImageRuntimeConfig.projectId,
+      '--limit=1',
+      '--format=value(metadata.name)',
+    ]))
   const localReportPath = path.join(os.tmpdir(), `reeditpro-pro-color-image-runtime-${runId}`, 'pro-color-image-runtime-report.json')
   await mkdir(path.dirname(localReportPath), { recursive: true })
   const reportUri = `gs://${proColorImageRuntimeConfig.qaBucket}/${artifactPrefix}/reports/phase40b-report.json`
@@ -152,6 +166,7 @@ export async function runProColorImageRuntimePreflight() {
     region: process.env.GCP_REGION,
     env: process.env.REEDITPRO_ENV,
     confirmation: process.env.REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_RUNTIME,
+    korniaTorchFixConfirmation: process.env.REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_KORNIA_TORCH_FIX,
     runtimeMode: process.env.REEDITPRO_PRO_COLOR_IMAGE_RUNTIME_MODE ?? proColorImageRuntimeConfig.runtimeMode,
     providerExecutionEnabled: process.env.PROVIDER_EXECUTION_ENABLED ?? 'false',
     realMediaInputEnabled: process.env.REAL_MEDIA_INPUT_ENABLED ?? 'false',

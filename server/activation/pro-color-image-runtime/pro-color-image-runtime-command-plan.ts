@@ -7,6 +7,7 @@ export function buildProColorImageRuntimeEnvVars(runId = 'phase40b-YYYYMMDDTHHMM
     `GCP_REGION=${proColorImageRuntimeConfig.region}`,
     `REEDITPRO_ENV=${proColorImageRuntimeConfig.env}`,
     'REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_RUNTIME=true',
+    'REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_KORNIA_TORCH_FIX=true',
     `REEDITPRO_PRO_COLOR_IMAGE_RUNTIME_MODE=${proColorImageRuntimeConfig.runtimeMode}`,
     `REEDITPRO_PHASE40B_RUN_ID=${runId}`,
     `REEDITPRO_PHASE40B_GENERATED_ASSETS_BUCKET=${proColorImageRuntimeConfig.generatedAssetsBucket}`,

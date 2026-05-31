@@ -8,8 +8,8 @@ export const proColorImageRuntimeConfig: ProColorImageRuntimeConfig = {
   env: 'staging',
   runtimeMode: 'generated_fixture_color_image',
   runtimeJobName: 'reeditpro-staging-pro-color-image-runtime-job',
-  runtimeImageTag: 'staging-pro-color-image-runtime-001',
-  runtimeTargetImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-pro-color-image-runtime:staging-pro-color-image-runtime-001',
+  runtimeImageTag: 'staging-pro-color-image-runtime-torch-001',
+  runtimeTargetImage: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-pro-color-image-runtime:staging-pro-color-image-runtime-torch-001',
   runtimeImageRepository: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-pro-color-image-runtime',
   serviceAccountEmail: 'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com',
   computeMode: 'cpu',
@@ -43,6 +43,7 @@ export function validateProColorImageRuntimeExecutionEnv(input: ProColorImageRun
   const region = input.region ?? process.env.GCP_REGION
   const env = input.env ?? process.env.REEDITPRO_ENV
   const confirmation = input.confirmation ?? process.env.REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_RUNTIME
+  const korniaTorchFixConfirmation = input.korniaTorchFixConfirmation ?? process.env.REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_KORNIA_TORCH_FIX
   const runtimeMode = input.runtimeMode ?? process.env.REEDITPRO_PRO_COLOR_IMAGE_RUNTIME_MODE
 
   if (projectId !== proColorImageRuntimeConfig.projectId) blockers.push('GCP_PROJECT_ID must be exactly reeditpro.')
@@ -50,6 +51,7 @@ export function validateProColorImageRuntimeExecutionEnv(input: ProColorImageRun
   if (region !== proColorImageRuntimeConfig.region) blockers.push('GCP_REGION must be exactly us-central1.')
   if (env !== proColorImageRuntimeConfig.env) blockers.push('REEDITPRO_ENV must be exactly staging.')
   if (confirmation !== 'true') blockers.push('REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_RUNTIME=true is required for execution.')
+  if (korniaTorchFixConfirmation !== 'true') blockers.push('REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_KORNIA_TORCH_FIX=true is required for the Phase 40B Kornia/Torch completion retry.')
   if (runtimeMode !== proColorImageRuntimeConfig.runtimeMode) blockers.push('Runtime mode must be exactly generated_fixture_color_image.')
   if ((input.providerExecutionEnabled ?? process.env.PROVIDER_EXECUTION_ENABLED ?? 'false') !== 'false') blockers.push('Provider execution must remain disabled.')
   if ((input.realMediaInputEnabled ?? process.env.REAL_MEDIA_INPUT_ENABLED ?? 'false') !== 'false') blockers.push('Real media input must remain disabled.')

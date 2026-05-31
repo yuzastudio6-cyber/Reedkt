@@ -1,5 +1,5 @@
-# ReeditPro Phase 40B pro color/image generated-fixture runtime image.
-# CPU-only, generated fixtures only. No model weights, providers, Revideo, real media, or secrets are baked in.
+# ReeditPro Phase 40B/40C pro color/image runtime image.
+# CPU-only Track A runtime. No model weights, providers, Revideo, Track B tools, or secrets are baked in.
 
 FROM node:24-bookworm
 WORKDIR /app
@@ -16,7 +16,7 @@ ENV REVIDEO_ENABLED=false
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates python3 python3-pip python3-venv \
+  && apt-get install -y --no-install-recommends ca-certificates ffmpeg python3 python3-pip python3-venv \
   && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --no-cache-dir --break-system-packages --only-binary=:all: \
@@ -35,11 +35,14 @@ import OpenImageIO
 import PyOpenColorIO
 import kornia
 import torch
+import subprocess
 
 print("torch", torch.__version__)
 print("kornia", kornia.__version__)
 print("opencolorio", getattr(PyOpenColorIO, "__version__", "unknown"))
 print("openimageio", getattr(OpenImageIO, "VERSION_STRING", "unknown"))
+subprocess.run(["ffmpeg", "-version"], check=True, stdout=subprocess.DEVNULL)
+subprocess.run(["ffprobe", "-version"], check=True, stdout=subprocess.DEVNULL)
 assert torch.cuda.is_available() is False
 PY
 

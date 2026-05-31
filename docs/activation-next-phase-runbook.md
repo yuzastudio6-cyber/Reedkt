@@ -311,3 +311,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm artifacts exist only under private Phase 40B generated-assets and QA prefixes.
 5. Confirm no real video, user media, final delivery, public output, providers, Revideo, Track B tools, production, external beta, paid production, or broad real media were enabled.
 6. Proceed to Phase 40C only as one controlled real-video pro color/image sample if Phase 40B mandatory QA gates pass.
+
+## After Phase 40C
+
+1. Review `activation:real-video:pro-color-image:report` and `docs/activation-phase-40c-real-video-pro-color-image-results.md`.
+2. Confirm the run used only the approved Phase 32 private export and Phase 40B QA evidence.
+3. Confirm the sample was bounded to timestamps `0.5`, `7.7335`, and `14.5`, three frames total, and 768x432 output frames.
+4. Confirm OpenImageIO, OpenColorIO, and Kornia each have explicit real-frame pass/block evidence.
+5. Confirm sample frames, transformed frames, contact sheet, metadata, QA, and report artifacts exist only under private Phase 40C GCS prefixes.
+6. Confirm no arbitrary media, full-video pro color/image, full 4K frames, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
+7. Proceed to Phase 40D only as a private pro color/image feature E2E readiness gate if Phase 40C mandatory QA gates passed.

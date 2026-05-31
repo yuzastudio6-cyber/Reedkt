@@ -1,0 +1,76 @@
+import { vlmRuntimeConfig, vlmRuntimeDoesNotDo } from './vlm-runtime-policy'
+import type { VlmRuntimeCommandPlan } from './vlm-runtime-types'
+
+export function buildVlmRuntimeCommandPlan(): VlmRuntimeCommandPlan[] {
+  return [
+    {
+      commandId: 'phase39c-static-plan',
+      phase: 'preflight',
+      commandString: 'npm run activation:vlm-runtime:plan',
+      requiresConfirmation: false,
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Static plan mode does not read model payloads or run VLM inference.'],
+    },
+    {
+      commandId: 'phase39c-private-gcs-read',
+      phase: 'model-copy',
+      commandString: `gcloud storage cp ${vlmRuntimeConfig.modelGcsPath}<selected-files> /tmp/reeditpro-vlm-runtime/phase39c/<run-id>/models/`,
+      requiresConfirmation: true,
+      confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ',
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Copies only the 15 Phase 39B selected private model/tokenizer/processor/config files.'],
+    },
+    {
+      commandId: 'phase39c-checksum-verify',
+      phase: 'checksum',
+      commandString: 'verify every copied file SHA256 and aggregate SHA256 against Phase 39B evidence',
+      requiresConfirmation: true,
+      confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ',
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Runtime is blocked if any file is missing or mismatched.'],
+    },
+    {
+      commandId: 'phase39c-generated-fixture-runtime',
+      phase: 'execute',
+      commandString: 'npm run activation:vlm-runtime -- --execute --keep-temp',
+      requiresConfirmation: true,
+      confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE',
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Runs generated synthetic fixtures only and starts vLLM with a local model path only.'],
+    },
+    {
+      commandId: 'phase39c-private-artifact-upload',
+      phase: 'upload',
+      commandString: `gcloud storage cp <json-reports> gs://${vlmRuntimeConfig.qaBucket}/${vlmRuntimeConfig.qaArtifactPrefix}/<run-id>/`,
+      requiresConfirmation: true,
+      confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD',
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Uploads JSON reports and allowed generated fixture metadata only to the private QA bucket.'],
+    },
+    {
+      commandId: 'phase39c-staging-image-build',
+      phase: 'docker',
+      commandString: 'docker buildx build -f docker/prod/vlm-runtime/Dockerfile -t <staging-vlm-runtime-image> .',
+      requiresConfirmation: true,
+      confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD',
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Optional staging fallback only; no model files or secrets may be baked into the image.'],
+    },
+    {
+      commandId: 'phase39c-staging-cloud-run-job',
+      phase: 'cloud-run',
+      commandString: 'gcloud run jobs execute <guarded-phase39c-vlm-runtime-job> --region=us-central1',
+      requiresConfirmation: true,
+      confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_STAGING_CLOUD_RUN_JOB',
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Optional guarded L4 staging path only; no production deploy or public endpoint is created.'],
+    },
+  ]
+}

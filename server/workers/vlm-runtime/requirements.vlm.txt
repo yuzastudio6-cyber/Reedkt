@@ -1,0 +1,6 @@
+vllm==0.8.5
+transformers==4.51.3
+qwen-vl-utils==0.0.11
+Pillow==10.4.0
+numpy==1.26.4
+opencv-python-headless==4.10.0.84

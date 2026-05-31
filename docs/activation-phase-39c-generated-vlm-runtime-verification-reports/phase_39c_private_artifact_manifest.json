@@ -1,0 +1,167 @@
+{
+  "phase": "39C",
+  "runId": "phase39c-20260531T111759",
+  "createdAt": "2026-05-31T11:18:34.886Z",
+  "privateOnly": true,
+  "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+  "prefix": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759",
+  "artifactCount": 12,
+  "artifacts": [
+    {
+      "id": "phase_39c_generated_fixture_manifest_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_generated_fixture_manifest.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_generated_fixture_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_generated_fixture_manifest.json",
+      "sizeBytes": 6129,
+      "sha256": "85c1e4fd09d44297d7c8efaac7962e53b6e2d343bb0c590cfd423dbe2c63b7aa",
+      "generation": "1780226290889575"
+    },
+    {
+      "id": "phase_39c_generated_vlm_runtime_report_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_generated_vlm_runtime_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_generated_vlm_runtime_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_generated_vlm_runtime_report.json",
+      "sizeBytes": 28536,
+      "sha256": "5b551153c5c89028dad7bf0d897fd7810c19ca419c942e9a9138dfec16206528",
+      "generation": "1780226292972839"
+    },
+    {
+      "id": "phase_39c_private_artifact_manifest_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_private_artifact_manifest.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_private_artifact_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_private_artifact_manifest.json",
+      "sizeBytes": 9584,
+      "sha256": "32e861ee9f136471ea9bd17eed1ad642334d6ffdbd3c225c2c0cf03f91cb14f5",
+      "generation": "1780226295133584"
+    },
+    {
+      "id": "phase_39c_prompt_template_manifest_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_prompt_template_manifest.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_prompt_template_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_prompt_template_manifest.json",
+      "sizeBytes": 5411,
+      "sha256": "1c88f805533103a979ce74423ee805360c9306e2bfe3b290e4278e1ef790c0fb",
+      "generation": "1780226297245185"
+    },
+    {
+      "id": "phase_39c_vlm_hallucination_safety_report_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_hallucination_safety_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_hallucination_safety_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_hallucination_safety_report.json",
+      "sizeBytes": 243,
+      "sha256": "99adf7b39140ba3832ed5d5ab79d4d42bc79cfbe32896e60597e69b6b5ed3507",
+      "generation": "1780226299305867"
+    },
+    {
+      "id": "phase_39c_vlm_model_asset_verification_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_model_asset_verification.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_model_asset_verification.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_model_asset_verification.json",
+      "sizeBytes": 8364,
+      "sha256": "f5666e81961f0db55996182573a2eb0461c336ffe0bcc0a51fda9d00fbb073d4",
+      "generation": "1780226301436870"
+    },
+    {
+      "id": "phase_39c_vlm_object_region_qa_report_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_object_region_qa_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_object_region_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_object_region_qa_report.json",
+      "sizeBytes": 206,
+      "sha256": "83608711a125ac939dc9c5a988615f869b94cec91c1f3257f28bb2e82e49957f",
+      "generation": "1780226303506302"
+    },
+    {
+      "id": "phase_39c_vlm_output_schema_validation_report_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_output_schema_validation_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_output_schema_validation_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_output_schema_validation_report.json",
+      "sizeBytes": 222,
+      "sha256": "1e65e45a5b6b066ce6a971c8e6ed80cd663d3b118b497818e3d32e343a4876e5",
+      "generation": "1780226305666383"
+    },
+    {
+      "id": "phase_39c_vlm_runtime_cost_memory_report_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_runtime_cost_memory_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_runtime_cost_memory_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_runtime_cost_memory_report.json",
+      "sizeBytes": 846,
+      "sha256": "daee9249779562aefb04e3bb00f206220de31a117103467316287903d92fc514",
+      "generation": "1780226307758517"
+    },
+    {
+      "id": "phase_39c_vlm_runtime_plan_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_runtime_plan.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_runtime_plan.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_runtime_plan.json",
+      "sizeBytes": 25668,
+      "sha256": "4c54d9655ae93f26b4fde0e77ff2179777a786b856935495226d88ecf56bf99d",
+      "generation": "1780226309873401"
+    },
+    {
+      "id": "phase_39c_vlm_runtime_results_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_runtime_results.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_runtime_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_runtime_results.json",
+      "sizeBytes": 551,
+      "sha256": "55ef0ff156078690f99e8c34aa3a1f2ace0d75f8bcf03260b96d86f406ef1f53",
+      "generation": "1780226311970465"
+    },
+    {
+      "id": "phase_39c_vlm_safe_zone_qa_report_json",
+      "kind": "report",
+      "localPath": "/tmp/reeditpro-vlm-runtime/phase39c/phase39c-20260531T111759/reports/phase_39c_vlm_safe_zone_qa_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_safe_zone_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T111759/phase_39c_vlm_safe_zone_qa_report.json",
+      "sizeBytes": 120,
+      "sha256": "f14cb906ce9da757768d704ed5a068ff1df2a93c091cc526e7b2a1450ae6fa31",
+      "generation": "1780226314033298"
+    }
+  ],
+  "blockers": [
+    "phase39c_l4_or_local_gpu_runtime_unavailable",
+    "local_model_payload_checksum_verification_not_run"
+  ],
+  "warnings": [
+    "Phase 39C verifies generated synthetic VLM fixtures only.",
+    "Passing Phase 39C does not approve controlled real-frame VLM until Phase 39D or planning integration until Phase 39E.",
+    "No local NVIDIA GPU is available and the guarded staging L4 Cloud Run Job path is not fully confirmed; skipping 17.5GB model copy and vLLM startup.",
+    "metadata_only_verification_for:README.md",
+    "metadata_only_verification_for:chat_template.json",
+    "metadata_only_verification_for:config.json",
+    "metadata_only_verification_for:generation_config.json",
+    "metadata_only_verification_for:merges.txt",
+    "metadata_only_verification_for:model-00001-of-00004.safetensors",
+    "metadata_only_verification_for:model-00002-of-00004.safetensors",
+    "metadata_only_verification_for:model-00003-of-00004.safetensors",
+    "metadata_only_verification_for:model-00004-of-00004.safetensors",
+    "metadata_only_verification_for:model.safetensors.index.json",
+    "metadata_only_verification_for:preprocessor_config.json",
+    "metadata_only_verification_for:tokenizer.json",
+    "metadata_only_verification_for:tokenizer_config.json",
+    "metadata_only_verification_for:video_preprocessor_config.json",
+    "metadata_only_verification_for:vocab.json"
+  ]
+}

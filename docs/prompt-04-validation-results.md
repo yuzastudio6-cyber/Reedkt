@@ -140,7 +140,14 @@ Default foundation validation passed. With-build foundation validation classifie
 
 ## CI Status
 
-Prompt 3C Foundation Validation passed on PR #79 before Prompt 4. Prompt 4 PR: [#81](https://github.com/yuzastudio6-cyber/Reedkt/pull/81). The Prompt 3C workflow branch filter was expanded to include `codex/rp-foundation-03c-validation-toolchain-repair` so Prompt 4 can receive the intended Foundation Validation check.
+Prompt 3C Foundation Validation passed on PR #79 before Prompt 4. Prompt 4 PR: [#81](https://github.com/yuzastudio6-cyber/Reedkt/pull/81). The Prompt 3C workflow branch filter was expanded to include `codex/rp-foundation-03c-validation-toolchain-repair`.
+
+Prompt 4 Foundation Validation passed on GitHub Actions:
+
+```text
+Foundation validation pass 1m4s
+https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26728184779/job/78767014120
+```
 
 ## Remaining Blockers
 

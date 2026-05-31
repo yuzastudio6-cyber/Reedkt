@@ -339,3 +339,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm FFmpeg/libass burn-in and FFprobe preview decode gates passed on the bounded 5-second private preview.
 5. Confirm no arbitrary media, newly generated captions, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
 6. Proceed to Phase 45B only as Remotion render validation. Phase 45A does not approve final delivery, product beta, production, public delivery, or broad real media.
+
+## After Phase 45B
+
+1. Review `activation:remotion-render-validation:report` and `docs/activation-phase-45b-remotion-render-validation-results.md`.
+2. Confirm run `phase45b-20260531T19552` used only the approved Phase 32 private export and Phase 45A private preview/report evidence.
+3. Confirm the approved plan snapshot, source validation, Remotion render metadata, private Remotion preview MP4, FFprobe preview validation, QA JSON, and Phase 45B report artifacts exist only under private Phase 45B GCS prefixes.
+4. Confirm Remotion render invocation and FFprobe preview decode gates passed on the bounded 5-second private preview.
+5. Confirm no arbitrary media, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
+6. Proceed to Phase 45C only as OpenTimelineIO timeline validation. Phase 45B does not approve final delivery, product beta, production, public delivery, or broad real media.

@@ -30,6 +30,8 @@ def main() -> None:
         output = run_generated_fixture_mode(work_dir)
     elif mode == "real_video_sample":
         output = run_real_video_sample_mode(work_dir)
+    elif mode == "pro_color_image_feature_e2e":
+        output = run_pro_color_image_feature_e2e_mode(work_dir)
     else:
         raise RuntimeError(f"Unsupported pro color/image runtime mode: {mode}")
     output_path.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
@@ -137,6 +139,76 @@ def run_real_video_sample_mode(work_dir: Path) -> dict:
         "contactSheetPath": str(contact_sheet_path),
         "warnings": [
             "Phase 40C processed bounded real-video-derived frames only.",
+            "No final delivery or full-video color processing was created.",
+        ],
+    }
+
+def run_pro_color_image_feature_e2e_mode(work_dir: Path) -> dict:
+    source_path = Path(required_env("REEDITPRO_PHASE40D_LOCAL_INPUT_VIDEO"))
+    timestamps = parse_float_list(required_env("REEDITPRO_PHASE40D_TIMESTAMPS_SECONDS"))
+    max_frame_count = int(required_env("REEDITPRO_PHASE40D_MAX_FRAME_COUNT"))
+    frame_width = int(required_env("REEDITPRO_PHASE40D_FRAME_WIDTH"))
+    frame_height = int(required_env("REEDITPRO_PHASE40D_FRAME_HEIGHT"))
+    if len(timestamps) > max_frame_count:
+        raise RuntimeError("Phase 40D timestamp count exceeds max frame count.")
+    if frame_width > 768 or frame_height > 432:
+        raise RuntimeError("Phase 40D frame dimensions exceed the approved bound.")
+
+    frames_dir = work_dir / "feature-e2e" / "frames"
+    tool_dir = work_dir / "tool-artifacts"
+    frames_dir.mkdir(parents=True, exist_ok=True)
+    tool_dir.mkdir(parents=True, exist_ok=True)
+
+    ffprobe_result, source = run_ffprobe(source_path)
+    ffmpeg_result, frame_paths = run_ffmpeg_extract(source_path, timestamps, frames_dir, frame_width, frame_height)
+    sample_manifest = work_dir / "feature-e2e" / "sample-manifest.json"
+    sample_manifest.write_text(json.dumps({
+        "timestampsSeconds": timestamps,
+        "frameCount": len(frame_paths),
+        "width": frame_width,
+        "height": frame_height,
+        "fullVideoExtractionAllowed": False,
+        "full4KProcessingAllowed": False,
+        "feature": "pro_color_image_feature_e2e",
+    }, indent=2) + "\n", encoding="utf-8")
+
+    tools = [
+        ffprobe_result,
+        ffmpeg_result,
+        run_openimageio(frame_paths, tool_dir / "openimageio", frame_width, frame_height, "Phase 40D feature sample frames"),
+        run_opencolorio(frame_paths, tool_dir / "opencolorio", frame_width, frame_height, "Phase 40D feature sample raw identity transform"),
+        run_kornia(frame_paths[0], tool_dir / "kornia"),
+    ]
+    contact_sheet_path = make_contact_sheet(frame_paths, tool_dir / "contact-sheet" / "pro-color-image-feature-contact-sheet.png")
+    metadata_path = work_dir / "pro-color-image-feature-e2e-runtime-metadata.json"
+    metadata_path.write_text(json.dumps({
+        "mode": "pro_color_image_feature_e2e",
+        "source": source,
+        "sample": {
+            "timestampsSeconds": timestamps,
+            "frameCount": len(frame_paths),
+            "width": frame_width,
+            "height": frame_height,
+        },
+        "tools": tools,
+    }, indent=2) + "\n", encoding="utf-8")
+    return {
+        "ok": all(tool["status"] == "passed" for tool in tools),
+        "runtimeDiagnostics": runtime_diagnostics(),
+        "source": source,
+        "sample": {
+            "width": frame_width,
+            "height": frame_height,
+            "frameCount": len(frame_paths),
+            "timestampsSeconds": timestamps,
+            "framePaths": [str(path) for path in frame_paths],
+            "manifestPath": str(sample_manifest),
+        },
+        "tools": tools,
+        "metadataPath": str(metadata_path),
+        "contactSheetPath": str(contact_sheet_path),
+        "warnings": [
+            "Phase 40D processed bounded real-video-derived frames only.",
             "No final delivery or full-video color processing was created.",
         ],
     }

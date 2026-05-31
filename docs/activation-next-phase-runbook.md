@@ -321,3 +321,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 5. Confirm sample frames, transformed frames, contact sheet, metadata, QA, and report artifacts exist only under private Phase 40C GCS prefixes.
 6. Confirm no arbitrary media, full-video pro color/image, full 4K frames, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
 7. Proceed to Phase 40D only as a private pro color/image feature E2E readiness gate if Phase 40C mandatory QA gates passed.
+
+## After Phase 40D
+
+1. Review `activation:pro-color-image-feature-e2e:report` and `docs/activation-phase-40d-pro-color-image-feature-e2e-results.md`.
+2. Confirm run `phase40d-20260531T12493` used only the approved Phase 32 private export and Phase 40C QA report.
+3. Confirm the approved Phase 40D plan snapshot, source validation, sample manifest, contact sheet, private review manifest, QA JSON, and report artifacts exist only under private Phase 40D GCS prefixes.
+4. Confirm OpenImageIO, OpenColorIO, and Kornia feature gates passed on the bounded three-frame 768x432 sample.
+5. Confirm no arbitrary media, full-video pro color/image, full 4K frames, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
+6. Proceed to Phase 45A only as libass caption burn-in validation. Phase 40D does not approve product beta, production, public delivery, or full-video pro color/image.

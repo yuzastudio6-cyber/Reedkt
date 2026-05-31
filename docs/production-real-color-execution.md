@@ -34,3 +34,16 @@ validation, approved frame extraction, and export integrity scope.
 Phase 40A does not install these runtimes, process images/video, build Docker
 images, mutate GCP, call providers, use Revideo, create public output, or unlock
 final delivery, production, external beta, paid production, or broad media.
+
+## Activation Phase 40D Boundary
+
+Phase 40D completed the private Track A pro color/image feature E2E readiness
+gate for `phase40d-20260531T12493`. It used only the approved Phase 32 private
+export, the passed Phase 40C QA report, three bounded 768x432 frames, and the
+dedicated CPU pro color/image runtime stack.
+
+OpenColorIO, OpenImageIO, and Kornia passed the private feature E2E gates, so
+internal pro color/image feature testing may proceed. This does not approve
+full-video pro color/image processing, full 4K frame processing, final delivery,
+public output, provider execution, Revideo, production, external beta, paid
+production, or broad real media.

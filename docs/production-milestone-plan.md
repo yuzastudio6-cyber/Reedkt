@@ -42,10 +42,15 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 3. Auth/Profile/Workspace/RLS Production Path
 
 - Purpose: make user, profile, workspace, and membership bootstrap production safe.
-- Implements: authenticated backend/service-role bootstrap path, RLS-safe profile/workspace creation, workspace membership checks, audit events, and frontend-safe fallback behavior.
-- Must not implement: provider calls, rendering, Stripe, media processing, broad admin routes, or bypasses around RLS.
+- Implements: authenticated backend route/service boundaries for current user, profile ensure, workspace ensure/current, workspace membership checks, and project access checks.
+- Expected deliverables: `docs/auth-profile-workspace-production-path.md`, `docs/auth-profile-workspace-rls-test-plan.md`, `docs/auth-profile-workspace-route-contract.md`, `docs/prompt-03-validation-results.md`, `database/test-sql/006_auth_workspace_rls_smoke_tests.draft.sql`, narrow server route/service updates, and implementation prompt tracking.
+- Status after Prompt 3: partially_implemented / limited auth-profile-workspace-project foundation only. This does not mark the milestone fully production-ready.
+- Validation status after Prompt 3: build/lint/static audit results are recorded in `docs/prompt-03-validation-results.md`; local/remote RLS execution is not assumed unless that file says it ran.
+- Must not implement: provider calls, rendering, Stripe, media processing, storage uploads, planning records, approved snapshots, credits, jobs, workers, tools, broad admin routes, SQL migrations, or bypasses around RLS.
 - Main files/tables/services: `auth.users`, `profiles`, `workspaces`, `workspace_members`, `projects`, `docs/canonical-schema-contract.md`, `docs/prompt-03-schema-target-guardrails.md`, auth bootstrap docs, backend auth middleware, service-role boundary docs.
-- Acceptance criteria: normal users cannot directly perform privileged writes, bootstrap is idempotent, RLS tests pass, missing-env frontend remains safe.
+- What remains blocked: broad project create/update/list behavior, membership admin/invites, executed RLS validation, remote Supabase validation, audit event writes, and all non-auth production capabilities.
+- Acceptance criteria: Prompt 3 uses only canonical allowed tables, avoids legacy/draft/blocked tables, documents route contracts and RLS tests, honestly records validation, and enables no production capability outside the auth/profile/workspace/project boundary.
+- Next prompt recommendation: Prompt 4 - Storage/Upload Production Runtime, or Prompt 3A - Auth/RLS Fix Plan if validation finds auth/RLS blockers.
 - GitHub deliverable: branch, commit, push, PR with tests and clear capability enabled statement.
 
 ## 4. Storage/Upload Production Runtime

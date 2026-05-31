@@ -6,6 +6,7 @@ import { createSupabasePublicClient } from './supabase/public-client'
 import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
+import { createAuthRoutes } from './routes/auth-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditRoutes } from './routes/credit-routes'
 import { createHealthRoutes } from './routes/health-routes'
@@ -37,6 +38,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(requestIdMiddleware)
 
   app.use(createHealthRoutes())
+  app.use(createAuthRoutes())
   app.use(createProjectRoutes())
   app.use(createChatRoutes())
   app.use(createUploadRoutes())

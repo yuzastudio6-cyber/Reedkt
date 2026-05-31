@@ -1,0 +1,99 @@
+[
+  {
+    "runtimeId": "vllm",
+    "runtimeName": "vLLM",
+    "role": "primary",
+    "qwen3VlSupported": true,
+    "minVersionEvidence": "vLLM supported models list includes qwen3_vl; Qwen vLLM docs mention vLLM version/CUDA/Torch caveats, while current Qwen3-VL docs indicate vLLM>=0.11.0 for Qwen3-VL support.",
+    "localPathRequired": true,
+    "defaultExternalDownloadRisk": true,
+    "gpuRequiredForPracticalRuntime": "expected_for_vllm",
+    "cpuOnlyPlanningAllowed": false,
+    "evidence": [
+      {
+        "evidenceId": "vllm_supported_models_qwen3_vl",
+        "sourceName": "vLLM supported models documentation",
+        "sourceUrl": "https://docs.vllm.ai/en/latest/models/supported_models/",
+        "sourceType": "docs",
+        "claim": "vLLM supported model listings include qwen3_vl.",
+        "evidenceSummary": "The vLLM supported-models page lists the qwen3_vl architecture key, making vLLM the primary runtime candidate for future generated-fixture VLM runtime verification.",
+        "reviewedAt": "2026-05-31T00:00:00.000Z",
+        "confidence": "high",
+        "notes": [
+          "Runtime support evidence does not authorize vLLM execution in Phase 39A."
+        ]
+      },
+      {
+        "evidenceId": "qwen_vllm_docs_runtime_caveats",
+        "sourceName": "Qwen vLLM deployment documentation",
+        "sourceUrl": "https://qwen.readthedocs.io/en/latest/deployment/vllm.html",
+        "sourceType": "runtime_docs",
+        "claim": "Qwen vLLM docs recommend vLLM, discuss vLLM version/CUDA/Torch caveats, and warn that a non-local model path can trigger Hugging Face Hub downloads.",
+        "evidenceSummary": "Qwen vLLM docs support vLLM deployment planning and explicitly create a future no-runtime-download requirement because default behavior can fetch from Hugging Face when no valid local path is provided.",
+        "reviewedAt": "2026-05-31T00:00:00.000Z",
+        "confidence": "high",
+        "notes": [
+          "Prompt-specified evidence mentions vllm>=0.8.5 for general Qwen3 notes; current Qwen3-VL repo deployment notes vLLM>=0.11.0 for Qwen3-VL support.",
+          "Phase 39B/39C must pin a runtime version after reconciling that version discrepancy."
+        ]
+      }
+    ],
+    "blockers": [
+      "Phase 39A cannot run vLLM.",
+      "Phase 39C must use private local model paths only and fail closed if vLLM attempts Hugging Face or ModelScope downloads.",
+      "Phase 39C must pin CUDA/Torch/vLLM compatibility before any GPU runtime."
+    ],
+    "warnings": [
+      "Prompt-provided Qwen vLLM evidence mentions vllm>=0.8.5 for general Qwen3; Qwen3-VL repo deployment currently states vLLM>=0.11.0 for Qwen3-VL support.",
+      "vLLM default behavior can download model files from Hugging Face when a valid local directory is not provided."
+    ]
+  },
+  {
+    "runtimeId": "transformers",
+    "runtimeName": "local Transformers",
+    "role": "fallback_planning_only",
+    "qwen3VlSupported": "supported_by_model_definition_only",
+    "minVersionEvidence": "Qwen3-VL repository states Qwen3-VL requires Transformers >= 4.57.0; future fallback must pin a current compatible version before use.",
+    "localPathRequired": true,
+    "defaultExternalDownloadRisk": true,
+    "gpuRequiredForPracticalRuntime": true,
+    "cpuOnlyPlanningAllowed": false,
+    "evidence": [
+      {
+        "evidenceId": "qwen3_vl_repo_multimodal_vlm",
+        "sourceName": "Qwen3-VL GitHub repository",
+        "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+        "sourceType": "github",
+        "claim": "Qwen3-VL is a multimodal vision-language model series with image, video, spatial, OCR, and agent capabilities.",
+        "evidenceSummary": "Official Qwen3-VL repository describes Qwen3-VL as a vision-language model series with stronger visual perception, spatial reasoning, video understanding, OCR, and agent interaction capabilities.",
+        "reviewedAt": "2026-05-31T00:00:00.000Z",
+        "confidence": "high",
+        "notes": [
+          "Phase 39A records capability/source evidence only; it does not run prompts or inspect media.",
+          "The official repository currently notes Qwen3-VL deployment with vLLM needs a newer vLLM line than older general Qwen3 text-only docs."
+        ]
+      },
+      {
+        "evidenceId": "transformers_repo_apache2_multimodal",
+        "sourceName": "Transformers GitHub repository",
+        "sourceUrl": "https://github.com/huggingface/transformers",
+        "sourceType": "github",
+        "claim": "Transformers is Apache-2.0 and supports text, computer vision, audio, video, and multimodal model definitions.",
+        "evidenceSummary": "Transformers is recorded as fallback runtime planning only, useful for model-definition compatibility checks if vLLM is not viable in future phases.",
+        "reviewedAt": "2026-05-31T00:00:00.000Z",
+        "confidence": "high",
+        "notes": [
+          "Fallback planning does not authorize Phase 39A Transformers execution or model download."
+        ]
+      }
+    ],
+    "blockers": [
+      "Phase 39A cannot run Transformers.",
+      "Fallback runtime remains planning-only unless vLLM is blocked by future generated-fixture evidence.",
+      "Future fallback must disable remote Hub downloads and use private local model paths only."
+    ],
+    "warnings": [
+      "Transformers fallback may have higher memory/cost and different structured-output behavior than vLLM."
+    ]
+  }
+]

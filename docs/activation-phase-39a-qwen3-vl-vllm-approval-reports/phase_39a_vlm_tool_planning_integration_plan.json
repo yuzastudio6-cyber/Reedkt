@@ -1,0 +1,29 @@
+{
+  "planId": "phase39e_vlm_tool_planning_integration_v1",
+  "futurePhase": "39E",
+  "integrationMode": "structured_planning_hints_only",
+  "directToolExecutionAllowed": false,
+  "rawPromptExecutionAllowed": false,
+  "userFacingProductionAllowed": false,
+  "lowConfidenceAutomaticActionsAllowed": false,
+  "allowedHintTypes": [
+    "object-aware caption safe-zone hints",
+    "manual-review visual risk flags",
+    "layout/crop caution hints",
+    "tool-selection confidence annotations",
+    "bounded QA observations for internal planning"
+  ],
+  "blockedHintTypes": [
+    "automatic render edits",
+    "automatic frame crop execution",
+    "direct tool calls",
+    "raw prompt replay",
+    "provider calls",
+    "public user-facing claims",
+    "low-confidence automatic actions"
+  ],
+  "handoffNotes": [
+    "Phase 39E must integrate hints through structured planner fields, not raw model prose.",
+    "If runtime or render hooks are needed, defer to a later Track B hook phase instead of modifying Track A execution code."
+  ]
+}

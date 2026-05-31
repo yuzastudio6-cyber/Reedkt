@@ -1,0 +1,28 @@
+{
+  "storagePlanId": "qwen3_vl_8b_instruct_private_staging_storage_v1",
+  "futurePhase": "39B",
+  "baseStagingPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/<revision>/",
+  "privateStorageRequired": true,
+  "sourceMediaBucketAllowed": false,
+  "publicAccessAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "committedToGitAllowed": false,
+  "exactRevisionRequiredBeforeDownload": true,
+  "exactFileManifestRequiredBeforeDownload": true,
+  "checksumRequiredAfterDownload": true,
+  "noRuntimeAutoDownloadRequired": true,
+  "expectedAssetClasses": [
+    "model weight shards",
+    "safetensors index/config files",
+    "tokenizer files",
+    "processor/image processor files",
+    "generation/config files",
+    "model card/license snapshot metadata"
+  ],
+  "notes": [
+    "Phase 39A records the future private prefix only; it does not create GCS objects.",
+    "Phase 39B must replace <revision> with an exact immutable revision before any download.",
+    "Model, tokenizer, and processor files must never be committed to git.",
+    "Phase 39C must resolve runtime from private staged assets and fail closed on runtime auto-download attempts."
+  ]
+}

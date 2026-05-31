@@ -283,3 +283,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm the Cloud Run job was CPU-only with 4 CPU, 8Gi memory, parallelism 1, max retries 0, and the staging CPU worker service account.
 5. Confirm no real video, full-video interpolation, real-video slow motion, providers, Revideo, public output, production, external beta, paid production, or broad real media occurred.
 6. Proceed to Phase 38D only for one controlled selected real-video slow-motion sample if Phase 38C QA passed.
+
+## After Phase 38D
+
+1. Review `activation:real-video:film-slowmotion:report` and `docs/activation-phase-38d-real-video-film-slowmotion-results.md`.
+2. Confirm the run used only the approved Phase 32 private export and private Phase 38B FILM model tree.
+3. Confirm the segment was bounded to `6.9835s-8.4835s`, 9 source frames at 512x288, and 17 preview frames.
+4. Confirm source frames, interpolated frames, optional preview MP4, metadata, and QA artifacts exist only under private Phase 38D GCS prefixes.
+5. Confirm no full-video interpolation, audio stretch, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, broad real media, or arbitrary media occurred.
+6. Proceed to Phase 38E only as a private FILM feature E2E readiness gate if Phase 38D QA passed.

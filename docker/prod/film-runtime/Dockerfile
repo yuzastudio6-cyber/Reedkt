@@ -18,7 +18,7 @@ ENV REVIDEO_ENABLED=false
 ENV TF_CPP_MIN_LOG_LEVEL=1
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates \
+  && apt-get install -y --no-install-recommends ca-certificates ffmpeg \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
@@ -30,5 +30,6 @@ RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 
 COPY dist-staging-film-runtime-worker ./dist-staging-film-runtime-worker
 COPY docker/prod/film-runtime/film_runtime_local.py ./film-runtime/film_runtime_local.py
+COPY docker/prod/film-runtime/film_real_video_slowmotion.py ./film-runtime/film_real_video_slowmotion.py
 
 CMD ["node", "dist-staging-film-runtime-worker/staging-film-runtime-worker-cli.js"]

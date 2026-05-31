@@ -1,0 +1,1796 @@
+{
+  "reportId": "activation-phase-39b-qwen3-vl-exact-assets-private-staging",
+  "createdAt": "2026-05-31T03:28:37.392Z",
+  "status": "private_staging_verified",
+  "downloadEvidence": {
+    "phase": "39B",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "modelFamily": "Qwen3-VL",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "status": "verified",
+    "licenseName": "apache-2.0",
+    "codexLicenseDecision": "staging_download_approved_by_codex",
+    "humanLegalReviewRequiredBeforePhase39C": false,
+    "productionLegalApprovalComplete": false,
+    "targetGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+    "selectedAssets": [
+      {
+        "relativePath": "README.md",
+        "role": "model_card",
+        "requiredStatus": "required_for_source_license_evidence",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "expectedSizeBytes": 7133,
+        "blobId": "06fb2c8220b4fb51ccca87dd694ef9d240c36745",
+        "selectionReason": "Model card snapshot for source/license evidence."
+      },
+      {
+        "relativePath": "chat_template.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "expectedSizeBytes": 5499,
+        "blobId": "1081bacf1af7c7c6de4a585ce02cd0fd34e382da",
+        "selectionReason": "Qwen chat template used by later bounded prompt formatting."
+      },
+      {
+        "relativePath": "config.json",
+        "role": "config",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "expectedSizeBytes": 1474,
+        "blobId": "0e2df614c5fe1ad2b6b540c8625bebf2d7ec43ca",
+        "selectionReason": "Model architecture/configuration for local runtime."
+      },
+      {
+        "relativePath": "generation_config.json",
+        "role": "config",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "expectedSizeBytes": 269,
+        "blobId": "e116347d7ef42621c7a5957f82c015c38d939c1f",
+        "selectionReason": "Generation defaults for future bounded runtime templates."
+      },
+      {
+        "relativePath": "merges.txt",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "expectedSizeBytes": 1671839,
+        "blobId": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0",
+        "selectionReason": "Tokenizer merge rules."
+      },
+      {
+        "relativePath": "model-00001-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "expectedSizeBytes": 4902275944,
+        "blobId": "392e405fa984ab082e4db6cf265567819f687bcb",
+        "lfsSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+        "selectionReason": "Pinned model weight shard 1 of 4."
+      },
+      {
+        "relativePath": "model-00002-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "expectedSizeBytes": 4915962496,
+        "blobId": "1540d5047c7a275d06c06c8e271c4974f310e87e",
+        "lfsSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+        "selectionReason": "Pinned model weight shard 2 of 4."
+      },
+      {
+        "relativePath": "model-00003-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "expectedSizeBytes": 4999831048,
+        "blobId": "8e8450c4763c2a7e026dd9e83211603eb3e06207",
+        "lfsSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+        "selectionReason": "Pinned model weight shard 3 of 4."
+      },
+      {
+        "relativePath": "model-00004-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "expectedSizeBytes": 2716270024,
+        "blobId": "10f83d82617301ff5adc5588b8b1b2f0552aa9e3",
+        "lfsSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+        "selectionReason": "Pinned model weight shard 4 of 4."
+      },
+      {
+        "relativePath": "model.safetensors.index.json",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "expectedSizeBytes": 67759,
+        "blobId": "5857ec62530eb589b1876034dd5386f1d98131a6",
+        "selectionReason": "Safetensors shard index for local runtime."
+      },
+      {
+        "relativePath": "preprocessor_config.json",
+        "role": "processor",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "expectedSizeBytes": 390,
+        "blobId": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64",
+        "selectionReason": "Vision preprocessing configuration."
+      },
+      {
+        "relativePath": "tokenizer.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "expectedSizeBytes": 7032403,
+        "blobId": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421",
+        "selectionReason": "Tokenizer model file."
+      },
+      {
+        "relativePath": "tokenizer_config.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "expectedSizeBytes": 10868,
+        "blobId": "d3d3763207692c78780f4bf42d4dadf49a5c8012",
+        "selectionReason": "Tokenizer runtime configuration."
+      },
+      {
+        "relativePath": "video_preprocessor_config.json",
+        "role": "processor",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "expectedSizeBytes": 385,
+        "blobId": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe",
+        "selectionReason": "Video processor configuration, staged for future runtime parity but not executed in Phase 39B."
+      },
+      {
+        "relativePath": "vocab.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "expectedSizeBytes": 2776833,
+        "blobId": "4783fe10ac3adce15ac8f358ef5462739852c569",
+        "selectionReason": "Tokenizer vocabulary."
+      }
+    ],
+    "assetSha256": {
+      "README.md": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7",
+      "chat_template.json": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+      "config.json": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
+      "generation_config.json": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44",
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "model-00001-of-00004.safetensors": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+      "model-00002-of-00004.safetensors": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+      "model-00003-of-00004.safetensors": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+      "model-00004-of-00004.safetensors": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+      "model.safetensors.index.json": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+      "preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "tokenizer.json": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "tokenizer_config.json": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+      "video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    "aggregateSha256": "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908",
+    "assetSizeBytes": {
+      "README.md": 7133,
+      "chat_template.json": 5499,
+      "config.json": 1474,
+      "generation_config.json": 269,
+      "merges.txt": 1671839,
+      "model-00001-of-00004.safetensors": 4902275944,
+      "model-00002-of-00004.safetensors": 4915962496,
+      "model-00003-of-00004.safetensors": 4999831048,
+      "model-00004-of-00004.safetensors": 2716270024,
+      "model.safetensors.index.json": 67759,
+      "preprocessor_config.json": 390,
+      "tokenizer.json": 7032403,
+      "tokenizer_config.json": 10868,
+      "video_preprocessor_config.json": 385,
+      "vocab.json": 2776833
+    },
+    "fileCount": 15,
+    "selectedTotalSizeBytes": 17545914364,
+    "downloadedAt": "2026-05-31T03:08:33.221Z",
+    "sanitizedLocalTempPath": "/tmp/reeditpro/activation/phase39b/qwen3-vl-8b-instruct/phase39b-20260531T025648",
+    "uploadedObjects": [
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "relativePath": "README.md",
+        "sizeBytes": 7133,
+        "localSha256": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7",
+        "generation": "1780196915114659",
+        "crc32c": "iQXKsw==",
+        "md5Hash": "7OWxYJllQ6QMeAY5kzVanQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "relativePath": "chat_template.json",
+        "sizeBytes": 5499,
+        "localSha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+        "generation": "1780196916966250",
+        "crc32c": "euaTdg==",
+        "md5Hash": "NA1mlhNpVLg+i1Q0pZjMsQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "relativePath": "config.json",
+        "sizeBytes": 1474,
+        "localSha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
+        "generation": "1780196918909530",
+        "crc32c": "Y+/hmA==",
+        "md5Hash": "FwaNcQnn33iuF6lS9jE4wA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "relativePath": "generation_config.json",
+        "sizeBytes": 269,
+        "localSha256": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44",
+        "generation": "1780196920805525",
+        "crc32c": "HofJtA==",
+        "md5Hash": "/4M0HLNhdO3ST2SsAzFSdA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "relativePath": "merges.txt",
+        "sizeBytes": 1671839,
+        "localSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+        "generation": "1780196923035319",
+        "crc32c": "TsXDRw==",
+        "md5Hash": "54iCwuIkp1+oGA7GELriQw=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "relativePath": "model-00001-of-00004.safetensors",
+        "sizeBytes": 4902275944,
+        "localSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+        "generation": "1780197312068182",
+        "crc32c": "rNua9Q=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "relativePath": "model-00002-of-00004.safetensors",
+        "sizeBytes": 4915962496,
+        "localSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+        "generation": "1780197625122751",
+        "crc32c": "anrvSA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "relativePath": "model-00003-of-00004.safetensors",
+        "sizeBytes": 4999831048,
+        "localSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+        "generation": "1780197922867701",
+        "crc32c": "mTL3og=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "relativePath": "model-00004-of-00004.safetensors",
+        "sizeBytes": 2716270024,
+        "localSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+        "generation": "1780198066365852",
+        "crc32c": "xabQcg=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "relativePath": "model.safetensors.index.json",
+        "sizeBytes": 67759,
+        "localSha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+        "generation": "1780198068603691",
+        "crc32c": "zGJWgA==",
+        "md5Hash": "FbsncbepYQtPEpgxn1jlNQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "relativePath": "preprocessor_config.json",
+        "sizeBytes": 390,
+        "localSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+        "generation": "1780198070116804",
+        "crc32c": "8VGvsA==",
+        "md5Hash": "e8rt9yagWSRZWwMC0N1Nxw=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "relativePath": "tokenizer.json",
+        "sizeBytes": 7032403,
+        "localSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+        "generation": "1780198072411670",
+        "crc32c": "kbuigA==",
+        "md5Hash": "8TGUaAiR5f1YF6VqNBvwFQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "relativePath": "tokenizer_config.json",
+        "sizeBytes": 10868,
+        "localSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+        "generation": "1780198074196242",
+        "crc32c": "cGn/Jg==",
+        "md5Hash": "UMXTfZ05BODiQ+cJvbtsNw=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "relativePath": "video_preprocessor_config.json",
+        "sizeBytes": 385,
+        "localSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+        "generation": "1780198075858186",
+        "crc32c": "cNRL4Q==",
+        "md5Hash": "QbyE16pwh5leC4/TwKKd+g=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "relativePath": "vocab.json",
+        "sizeBytes": 2776833,
+        "localSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+        "generation": "1780198077910354",
+        "crc32c": "DhkvIQ==",
+        "md5Hash": "YTuOSmIsSiyQ6eEkX8VA1g=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_download_plan.json",
+        "relativePath": "phase_39b_vlm_model_download_plan.json",
+        "sizeBytes": 10138,
+        "generation": "1780198079509656",
+        "crc32c": "BuViZg==",
+        "md5Hash": "ZyhJjXLJh07KU1PUEsrGrg=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_exact_revision_manifest.json",
+        "relativePath": "phase_39b_vlm_exact_revision_manifest.json",
+        "sizeBytes": 3874,
+        "generation": "1780198081233365",
+        "crc32c": "r9C9gQ==",
+        "md5Hash": "TyXPZHJJg/m+SesMjXqxWA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_source_evidence.json",
+        "relativePath": "phase_39b_vlm_source_evidence.json",
+        "sizeBytes": 1253,
+        "generation": "1780198082920008",
+        "crc32c": "hkaDpw==",
+        "md5Hash": "0o25kz5oSdDeSfGgmh1q6A=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_license_evidence.json",
+        "relativePath": "phase_39b_vlm_license_evidence.json",
+        "sizeBytes": 797,
+        "generation": "1780198084746083",
+        "crc32c": "UpDn5g==",
+        "md5Hash": "PzUnr3lWQxP0OCKwI7foqQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_asset_selection_manifest.json",
+        "relativePath": "phase_39b_vlm_asset_selection_manifest.json",
+        "sizeBytes": 10821,
+        "generation": "1780198086288152",
+        "crc32c": "DSR+ow==",
+        "md5Hash": "H/TRfGZAh/RKIB7LSFknZg=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_download_command_plan.json",
+        "relativePath": "phase_39b_vlm_download_command_plan.json",
+        "sizeBytes": 8192,
+        "generation": "1780198087930568",
+        "crc32c": "kxq9rg==",
+        "md5Hash": "ShEN17NHd7cNbTle3NTKcA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_checksum_manifest.json",
+        "relativePath": "phase_39b_vlm_checksum_manifest.json",
+        "sizeBytes": 6755,
+        "generation": "1780198089659220",
+        "crc32c": "LYzxjQ==",
+        "md5Hash": "GXgXt8vmz+G1ZsxTRDD+1A=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_file_checksums_sha256.txt",
+        "relativePath": "phase_39b_vlm_file_checksums_sha256.txt",
+        "sizeBytes": 1330,
+        "generation": "1780198091290340",
+        "crc32c": "CGQurQ==",
+        "md5Hash": "JTkU0rHdvVeb6dqNAfFASA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_tree_manifest.json",
+        "relativePath": "phase_39b_vlm_model_tree_manifest.json",
+        "sizeBytes": 12992,
+        "generation": "1780198092973855",
+        "crc32c": "Z0Umow==",
+        "md5Hash": "b58APP4Zgo1skSEb4St01w=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_private_gcs_upload_report.json",
+        "relativePath": "phase_39b_vlm_private_gcs_upload_report.json",
+        "sizeBytes": 740,
+        "generation": "1780198094655318",
+        "crc32c": "SNNrnw==",
+        "md5Hash": "vDP2FMVPIipw4v6E7y1mUA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_runtime_handoff_manifest.json",
+        "relativePath": "phase_39b_vlm_runtime_handoff_manifest.json",
+        "sizeBytes": 2040,
+        "generation": "1780198096430078",
+        "crc32c": "duArmQ==",
+        "md5Hash": "bUjN2jUz0bCp3qbSWa6G1Q=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_cost_risk_update.json",
+        "relativePath": "phase_39b_vlm_cost_risk_update.json",
+        "sizeBytes": 596,
+        "generation": "1780198098340761",
+        "crc32c": "sXvnpQ==",
+        "md5Hash": "b32yq5WeXWwZWXz1+uu53w=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_blocker_report.json",
+        "relativePath": "phase_39b_vlm_blocker_report.json",
+        "sizeBytes": 2725,
+        "generation": "1780198100035490",
+        "crc32c": "e2Gb0Q==",
+        "md5Hash": "WINKIag5R9pOlIK80D9A7Q=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_download_report.json",
+        "relativePath": "phase_39b_vlm_model_download_report.json",
+        "sizeBytes": 68257,
+        "generation": "1780198101820447",
+        "crc32c": "0716dQ==",
+        "md5Hash": "oDYMjfdzJHOmOHiV1XBtFg=="
+      }
+    ],
+    "blockers": [],
+    "warnings": [
+      "Phase 39B downloaded selected Qwen3-VL assets only; it did not run VLM runtime or inference.",
+      "Generated VLM runtime remains blocked until Phase 39C verifies local private assets and no runtime auto-download."
+    ],
+    "uploadedAt": "2026-05-31T03:28:37.392Z",
+    "verifiedAt": "2026-05-31T03:28:37.392Z",
+    "uploadedObjectCount": 29,
+    "gcsPhaseReportPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_download_report.json"
+  },
+  "exactRevisionManifest": {
+    "phase": "39B",
+    "manifestId": "qwen3_vl_8b_instruct_exact_revision_manifest_v1",
+    "collectedAt": "2026-05-31T02:56:48.156Z",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "modelFamily": "Qwen3-VL",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "sourceApiUrl": "https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct?blobs=true",
+    "modelCardUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+    "lastModified": "2025-10-15T16:16:59.000Z",
+    "private": false,
+    "gated": false,
+    "disabled": false,
+    "pipelineTag": "image-text-to-text",
+    "libraryName": "transformers",
+    "tags": [
+      "transformers",
+      "safetensors",
+      "qwen3_vl",
+      "image-text-to-text",
+      "conversational",
+      "arxiv:2505.09388",
+      "arxiv:2502.13923",
+      "arxiv:2409.12191",
+      "arxiv:2308.12966",
+      "license:apache-2.0",
+      "eval-results",
+      "endpoints_compatible",
+      "deploy:azure",
+      "region:us"
+    ],
+    "authenticationRequired": false,
+    "authenticationAvailable": false,
+    "repoFileCount": 16,
+    "expectedRepoFileCount": 16,
+    "revisionPinned": true,
+    "licenseTagPresent": true,
+    "architectureTagPresent": true,
+    "siblings": [
+      {
+        "rfilename": ".gitattributes",
+        "size": 1519,
+        "blobId": "a6344aac8c09253b3b630fb776ae94478aa0275b"
+      },
+      {
+        "rfilename": "chat_template.json",
+        "size": 5499,
+        "blobId": "1081bacf1af7c7c6de4a585ce02cd0fd34e382da"
+      },
+      {
+        "rfilename": "config.json",
+        "size": 1474,
+        "blobId": "0e2df614c5fe1ad2b6b540c8625bebf2d7ec43ca"
+      },
+      {
+        "rfilename": "generation_config.json",
+        "size": 269,
+        "blobId": "e116347d7ef42621c7a5957f82c015c38d939c1f"
+      },
+      {
+        "rfilename": "merges.txt",
+        "size": 1671839,
+        "blobId": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0"
+      },
+      {
+        "rfilename": "model-00001-of-00004.safetensors",
+        "size": 4902275944,
+        "blobId": "392e405fa984ab082e4db6cf265567819f687bcb",
+        "lfsSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa"
+      },
+      {
+        "rfilename": "model-00002-of-00004.safetensors",
+        "size": 4915962496,
+        "blobId": "1540d5047c7a275d06c06c8e271c4974f310e87e",
+        "lfsSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5"
+      },
+      {
+        "rfilename": "model-00003-of-00004.safetensors",
+        "size": 4999831048,
+        "blobId": "8e8450c4763c2a7e026dd9e83211603eb3e06207",
+        "lfsSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192"
+      },
+      {
+        "rfilename": "model-00004-of-00004.safetensors",
+        "size": 2716270024,
+        "blobId": "10f83d82617301ff5adc5588b8b1b2f0552aa9e3",
+        "lfsSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5"
+      },
+      {
+        "rfilename": "model.safetensors.index.json",
+        "size": 67759,
+        "blobId": "5857ec62530eb589b1876034dd5386f1d98131a6"
+      },
+      {
+        "rfilename": "preprocessor_config.json",
+        "size": 390,
+        "blobId": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64"
+      },
+      {
+        "rfilename": "README.md",
+        "size": 7133,
+        "blobId": "06fb2c8220b4fb51ccca87dd694ef9d240c36745"
+      },
+      {
+        "rfilename": "tokenizer_config.json",
+        "size": 10868,
+        "blobId": "d3d3763207692c78780f4bf42d4dadf49a5c8012"
+      },
+      {
+        "rfilename": "tokenizer.json",
+        "size": 7032403,
+        "blobId": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421"
+      },
+      {
+        "rfilename": "video_preprocessor_config.json",
+        "size": 385,
+        "blobId": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe"
+      },
+      {
+        "rfilename": "vocab.json",
+        "size": 2776833,
+        "blobId": "4783fe10ac3adce15ac8f358ef5462739852c569"
+      }
+    ],
+    "blockers": [],
+    "warnings": [
+      "Phase 39B uses Hugging Face metadata for revision/file selection only; it does not call inference providers."
+    ]
+  },
+  "sourceEvidence": {
+    "phase": "39B",
+    "collectedAt": "2026-05-31T02:56:48.156Z",
+    "phase39APr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/62",
+    "phase39ACommit": "698410e",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "modelCardUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+    "qwenRepoUrl": "https://github.com/QwenLM/Qwen3-VL",
+    "vllmSupportedModelsUrl": "https://docs.vllm.ai/en/latest/models/supported_models/",
+    "qwenVllmDocsUrl": "https://qwen.readthedocs.io/en/latest/deployment/vllm.html",
+    "sourceVerificationMethod": "Hugging Face model API metadata with blobs enabled: https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct?blobs=true",
+    "exactRevisionResolved": true,
+    "fileListResolved": true,
+    "authenticationRequired": false,
+    "authenticationAvailable": false,
+    "blockers": [],
+    "warnings": [
+      "Qwen3-VL repo, Hugging Face model card, vLLM supported-models, and Qwen vLLM docs remain source references for planning and Phase 39C handoff.",
+      "Phase 39B does not call vLLM, Transformers, SGLang, provider APIs, or inference endpoints.",
+      "Phase 39B uses Hugging Face metadata for revision/file selection only; it does not call inference providers."
+    ]
+  },
+  "licenseEvidence": {
+    "phase": "39B",
+    "collectedAt": "2026-05-31T02:56:48.156Z",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "licenseName": "apache-2.0",
+    "licenseTagPresent": true,
+    "modelCardEvidenceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+    "qwenRepoEvidenceUrl": "https://github.com/QwenLM/Qwen3-VL",
+    "codexLicenseDecision": "staging_download_approved_by_codex",
+    "humanLegalReviewRequiredBeforePhase39C": false,
+    "productionLegalApprovalComplete": false,
+    "blockers": [],
+    "warnings": [
+      "Apache-2.0 metadata supports private staging evidence only; production legal approval remains incomplete.",
+      "Human legal/source review is required before broad production use, provider use, or any redistribution decision."
+    ]
+  },
+  "assetSelectionManifest": {
+    "phase": "39B",
+    "manifestId": "qwen3_vl_8b_instruct_exact_asset_selection_v1",
+    "selectedAt": "2026-05-31T03:28:37.392Z",
+    "selectedBy": "codex_phase39b_huggingface_revision_registry",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "modelFamily": "Qwen3-VL",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "targetGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+    "selectedAssets": [
+      {
+        "relativePath": "README.md",
+        "role": "model_card",
+        "requiredStatus": "required_for_source_license_evidence",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "expectedSizeBytes": 7133,
+        "blobId": "06fb2c8220b4fb51ccca87dd694ef9d240c36745",
+        "selectionReason": "Model card snapshot for source/license evidence."
+      },
+      {
+        "relativePath": "chat_template.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "expectedSizeBytes": 5499,
+        "blobId": "1081bacf1af7c7c6de4a585ce02cd0fd34e382da",
+        "selectionReason": "Qwen chat template used by later bounded prompt formatting."
+      },
+      {
+        "relativePath": "config.json",
+        "role": "config",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "expectedSizeBytes": 1474,
+        "blobId": "0e2df614c5fe1ad2b6b540c8625bebf2d7ec43ca",
+        "selectionReason": "Model architecture/configuration for local runtime."
+      },
+      {
+        "relativePath": "generation_config.json",
+        "role": "config",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "expectedSizeBytes": 269,
+        "blobId": "e116347d7ef42621c7a5957f82c015c38d939c1f",
+        "selectionReason": "Generation defaults for future bounded runtime templates."
+      },
+      {
+        "relativePath": "merges.txt",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "expectedSizeBytes": 1671839,
+        "blobId": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0",
+        "selectionReason": "Tokenizer merge rules."
+      },
+      {
+        "relativePath": "model-00001-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "expectedSizeBytes": 4902275944,
+        "blobId": "392e405fa984ab082e4db6cf265567819f687bcb",
+        "lfsSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+        "selectionReason": "Pinned model weight shard 1 of 4."
+      },
+      {
+        "relativePath": "model-00002-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "expectedSizeBytes": 4915962496,
+        "blobId": "1540d5047c7a275d06c06c8e271c4974f310e87e",
+        "lfsSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+        "selectionReason": "Pinned model weight shard 2 of 4."
+      },
+      {
+        "relativePath": "model-00003-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "expectedSizeBytes": 4999831048,
+        "blobId": "8e8450c4763c2a7e026dd9e83211603eb3e06207",
+        "lfsSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+        "selectionReason": "Pinned model weight shard 3 of 4."
+      },
+      {
+        "relativePath": "model-00004-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "expectedSizeBytes": 2716270024,
+        "blobId": "10f83d82617301ff5adc5588b8b1b2f0552aa9e3",
+        "lfsSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+        "selectionReason": "Pinned model weight shard 4 of 4."
+      },
+      {
+        "relativePath": "model.safetensors.index.json",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "expectedSizeBytes": 67759,
+        "blobId": "5857ec62530eb589b1876034dd5386f1d98131a6",
+        "selectionReason": "Safetensors shard index for local runtime."
+      },
+      {
+        "relativePath": "preprocessor_config.json",
+        "role": "processor",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "expectedSizeBytes": 390,
+        "blobId": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64",
+        "selectionReason": "Vision preprocessing configuration."
+      },
+      {
+        "relativePath": "tokenizer.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "expectedSizeBytes": 7032403,
+        "blobId": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421",
+        "selectionReason": "Tokenizer model file."
+      },
+      {
+        "relativePath": "tokenizer_config.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "expectedSizeBytes": 10868,
+        "blobId": "d3d3763207692c78780f4bf42d4dadf49a5c8012",
+        "selectionReason": "Tokenizer runtime configuration."
+      },
+      {
+        "relativePath": "video_preprocessor_config.json",
+        "role": "processor",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "expectedSizeBytes": 385,
+        "blobId": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe",
+        "selectionReason": "Video processor configuration, staged for future runtime parity but not executed in Phase 39B."
+      },
+      {
+        "relativePath": "vocab.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "expectedSizeBytes": 2776833,
+        "blobId": "4783fe10ac3adce15ac8f358ef5462739852c569",
+        "selectionReason": "Tokenizer vocabulary."
+      }
+    ],
+    "excludedRepoFiles": [
+      ".gitattributes"
+    ],
+    "selectedFileCount": 15,
+    "selectedTotalSizeBytes": 17545914364,
+    "exactRevisionPinned": true,
+    "downloadExecuted": true,
+    "privateGcsUploadVerified": true,
+    "runtimeAutoDownloadAllowed": false,
+    "vlmRuntimeAllowed": false,
+    "inferenceAllowed": false,
+    "mediaProcessingAllowed": false,
+    "blockers": [],
+    "warnings": [
+      "Private GCS verification passed for selected assets and JSON/text manifests."
+    ]
+  },
+  "checksumManifest": {
+    "phase": "39B",
+    "manifestId": "qwen3_vl_8b_instruct_checksum_manifest_v1",
+    "generatedAt": "2026-05-31T03:08:33.221Z",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "status": "computed",
+    "entries": [
+      {
+        "relativePath": "README.md",
+        "role": "model_card",
+        "sizeBytes": 7133,
+        "sha256": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "chat_template.json",
+        "role": "tokenizer",
+        "sizeBytes": 5499,
+        "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "config.json",
+        "role": "config",
+        "sizeBytes": 1474,
+        "sha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "generation_config.json",
+        "role": "config",
+        "sizeBytes": 269,
+        "sha256": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "merges.txt",
+        "role": "tokenizer",
+        "sizeBytes": 1671839,
+        "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "model-00001-of-00004.safetensors",
+        "role": "model_weight",
+        "sizeBytes": 4902275944,
+        "sha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "model-00002-of-00004.safetensors",
+        "role": "model_weight",
+        "sizeBytes": 4915962496,
+        "sha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "model-00003-of-00004.safetensors",
+        "role": "model_weight",
+        "sizeBytes": 4999831048,
+        "sha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "model-00004-of-00004.safetensors",
+        "role": "model_weight",
+        "sizeBytes": 2716270024,
+        "sha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "model.safetensors.index.json",
+        "role": "model_weight",
+        "sizeBytes": 67759,
+        "sha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "preprocessor_config.json",
+        "role": "processor",
+        "sizeBytes": 390,
+        "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "tokenizer.json",
+        "role": "tokenizer",
+        "sizeBytes": 7032403,
+        "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "tokenizer_config.json",
+        "role": "tokenizer",
+        "sizeBytes": 10868,
+        "sha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "video_preprocessor_config.json",
+        "role": "processor",
+        "sizeBytes": 385,
+        "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "checksumStatus": "computed"
+      },
+      {
+        "relativePath": "vocab.json",
+        "role": "tokenizer",
+        "sizeBytes": 2776833,
+        "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "checksumStatus": "computed"
+      }
+    ],
+    "aggregateSha256": "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908",
+    "totalSizeBytes": 17545914364,
+    "fileCount": 15,
+    "blockers": [],
+    "warnings": [
+      "SHA256 was computed locally while streaming Hugging Face resolve URLs.",
+      "No VLM runtime or inference was imported or executed."
+    ]
+  },
+  "modelTreeManifest": {
+    "phase": "39B",
+    "manifestId": "qwen3_vl_8b_instruct_model_tree_manifest_v1",
+    "createdAt": "2026-05-31T03:08:33.221Z",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "modelFamily": "Qwen3-VL",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "targetGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+    "localTempPath": "/tmp/reeditpro/activation/phase39b/qwen3-vl-8b-instruct/phase39b-20260531T025648/downloads",
+    "selectedAssets": [
+      {
+        "relativePath": "README.md",
+        "role": "model_card",
+        "requiredStatus": "required_for_source_license_evidence",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "expectedSizeBytes": 7133,
+        "blobId": "06fb2c8220b4fb51ccca87dd694ef9d240c36745",
+        "selectionReason": "Model card snapshot for source/license evidence."
+      },
+      {
+        "relativePath": "chat_template.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "expectedSizeBytes": 5499,
+        "blobId": "1081bacf1af7c7c6de4a585ce02cd0fd34e382da",
+        "selectionReason": "Qwen chat template used by later bounded prompt formatting."
+      },
+      {
+        "relativePath": "config.json",
+        "role": "config",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "expectedSizeBytes": 1474,
+        "blobId": "0e2df614c5fe1ad2b6b540c8625bebf2d7ec43ca",
+        "selectionReason": "Model architecture/configuration for local runtime."
+      },
+      {
+        "relativePath": "generation_config.json",
+        "role": "config",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "expectedSizeBytes": 269,
+        "blobId": "e116347d7ef42621c7a5957f82c015c38d939c1f",
+        "selectionReason": "Generation defaults for future bounded runtime templates."
+      },
+      {
+        "relativePath": "merges.txt",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "expectedSizeBytes": 1671839,
+        "blobId": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0",
+        "selectionReason": "Tokenizer merge rules."
+      },
+      {
+        "relativePath": "model-00001-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "expectedSizeBytes": 4902275944,
+        "blobId": "392e405fa984ab082e4db6cf265567819f687bcb",
+        "lfsSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+        "selectionReason": "Pinned model weight shard 1 of 4."
+      },
+      {
+        "relativePath": "model-00002-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "expectedSizeBytes": 4915962496,
+        "blobId": "1540d5047c7a275d06c06c8e271c4974f310e87e",
+        "lfsSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+        "selectionReason": "Pinned model weight shard 2 of 4."
+      },
+      {
+        "relativePath": "model-00003-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "expectedSizeBytes": 4999831048,
+        "blobId": "8e8450c4763c2a7e026dd9e83211603eb3e06207",
+        "lfsSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+        "selectionReason": "Pinned model weight shard 3 of 4."
+      },
+      {
+        "relativePath": "model-00004-of-00004.safetensors",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "expectedSizeBytes": 2716270024,
+        "blobId": "10f83d82617301ff5adc5588b8b1b2f0552aa9e3",
+        "lfsSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+        "selectionReason": "Pinned model weight shard 4 of 4."
+      },
+      {
+        "relativePath": "model.safetensors.index.json",
+        "role": "model_weight",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "expectedSizeBytes": 67759,
+        "blobId": "5857ec62530eb589b1876034dd5386f1d98131a6",
+        "selectionReason": "Safetensors shard index for local runtime."
+      },
+      {
+        "relativePath": "preprocessor_config.json",
+        "role": "processor",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "expectedSizeBytes": 390,
+        "blobId": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64",
+        "selectionReason": "Vision preprocessing configuration."
+      },
+      {
+        "relativePath": "tokenizer.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "expectedSizeBytes": 7032403,
+        "blobId": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421",
+        "selectionReason": "Tokenizer model file."
+      },
+      {
+        "relativePath": "tokenizer_config.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "expectedSizeBytes": 10868,
+        "blobId": "d3d3763207692c78780f4bf42d4dadf49a5c8012",
+        "selectionReason": "Tokenizer runtime configuration."
+      },
+      {
+        "relativePath": "video_preprocessor_config.json",
+        "role": "processor",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "expectedSizeBytes": 385,
+        "blobId": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe",
+        "selectionReason": "Video processor configuration, staged for future runtime parity but not executed in Phase 39B."
+      },
+      {
+        "relativePath": "vocab.json",
+        "role": "tokenizer",
+        "requiredStatus": "required_for_phase39c_runtime",
+        "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "expectedSizeBytes": 2776833,
+        "blobId": "4783fe10ac3adce15ac8f358ef5462739852c569",
+        "selectionReason": "Tokenizer vocabulary."
+      }
+    ],
+    "fileSha256": {
+      "README.md": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7",
+      "chat_template.json": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+      "config.json": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
+      "generation_config.json": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44",
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "model-00001-of-00004.safetensors": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+      "model-00002-of-00004.safetensors": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+      "model-00003-of-00004.safetensors": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+      "model-00004-of-00004.safetensors": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+      "model.safetensors.index.json": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+      "preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "tokenizer.json": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "tokenizer_config.json": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+      "video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    "fileSizes": {
+      "README.md": 7133,
+      "chat_template.json": 5499,
+      "config.json": 1474,
+      "generation_config.json": 269,
+      "merges.txt": 1671839,
+      "model-00001-of-00004.safetensors": 4902275944,
+      "model-00002-of-00004.safetensors": 4915962496,
+      "model-00003-of-00004.safetensors": 4999831048,
+      "model-00004-of-00004.safetensors": 2716270024,
+      "model.safetensors.index.json": 67759,
+      "preprocessor_config.json": 390,
+      "tokenizer.json": 7032403,
+      "tokenizer_config.json": 10868,
+      "video_preprocessor_config.json": 385,
+      "vocab.json": 2776833
+    },
+    "aggregateSha256": "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908",
+    "downloadAllowedInPhase39B": true,
+    "privateGcsUploadAllowedInPhase39B": true,
+    "runtimeAutoDownloadAllowed": false,
+    "vlmRuntimeAllowed": false,
+    "inferenceAllowed": false,
+    "mediaProcessingAllowed": false,
+    "providerAllowed": false,
+    "publicOutputAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "productionReadyAllowed": false,
+    "internalBetaAllowed": false,
+    "externalBetaAllowed": false,
+    "broadRealUserMediaAllowed": false,
+    "trackAExecutionAllowed": false
+  },
+  "privateGcsUploadReport": {
+    "phase": "39B",
+    "reportId": "qwen3_vl_8b_instruct_private_gcs_upload_report_v1",
+    "createdAt": "2026-05-31T03:28:37.392Z",
+    "targetGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+    "privateStorageRequired": true,
+    "publicAccessAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "sourceMediaBucketAllowed": false,
+    "uploadedObjects": [
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+        "relativePath": "README.md",
+        "sizeBytes": 7133,
+        "localSha256": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7",
+        "generation": "1780196915114659",
+        "crc32c": "iQXKsw==",
+        "md5Hash": "7OWxYJllQ6QMeAY5kzVanQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+        "relativePath": "chat_template.json",
+        "sizeBytes": 5499,
+        "localSha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+        "generation": "1780196916966250",
+        "crc32c": "euaTdg==",
+        "md5Hash": "NA1mlhNpVLg+i1Q0pZjMsQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+        "relativePath": "config.json",
+        "sizeBytes": 1474,
+        "localSha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
+        "generation": "1780196918909530",
+        "crc32c": "Y+/hmA==",
+        "md5Hash": "FwaNcQnn33iuF6lS9jE4wA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+        "relativePath": "generation_config.json",
+        "sizeBytes": 269,
+        "localSha256": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44",
+        "generation": "1780196920805525",
+        "crc32c": "HofJtA==",
+        "md5Hash": "/4M0HLNhdO3ST2SsAzFSdA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+        "relativePath": "merges.txt",
+        "sizeBytes": 1671839,
+        "localSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+        "generation": "1780196923035319",
+        "crc32c": "TsXDRw==",
+        "md5Hash": "54iCwuIkp1+oGA7GELriQw=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+        "relativePath": "model-00001-of-00004.safetensors",
+        "sizeBytes": 4902275944,
+        "localSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+        "generation": "1780197312068182",
+        "crc32c": "rNua9Q=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+        "relativePath": "model-00002-of-00004.safetensors",
+        "sizeBytes": 4915962496,
+        "localSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+        "generation": "1780197625122751",
+        "crc32c": "anrvSA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+        "relativePath": "model-00003-of-00004.safetensors",
+        "sizeBytes": 4999831048,
+        "localSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+        "generation": "1780197922867701",
+        "crc32c": "mTL3og=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+        "relativePath": "model-00004-of-00004.safetensors",
+        "sizeBytes": 2716270024,
+        "localSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+        "generation": "1780198066365852",
+        "crc32c": "xabQcg=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+        "relativePath": "model.safetensors.index.json",
+        "sizeBytes": 67759,
+        "localSha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+        "generation": "1780198068603691",
+        "crc32c": "zGJWgA==",
+        "md5Hash": "FbsncbepYQtPEpgxn1jlNQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+        "relativePath": "preprocessor_config.json",
+        "sizeBytes": 390,
+        "localSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+        "generation": "1780198070116804",
+        "crc32c": "8VGvsA==",
+        "md5Hash": "e8rt9yagWSRZWwMC0N1Nxw=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+        "relativePath": "tokenizer.json",
+        "sizeBytes": 7032403,
+        "localSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+        "generation": "1780198072411670",
+        "crc32c": "kbuigA==",
+        "md5Hash": "8TGUaAiR5f1YF6VqNBvwFQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+        "relativePath": "tokenizer_config.json",
+        "sizeBytes": 10868,
+        "localSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+        "generation": "1780198074196242",
+        "crc32c": "cGn/Jg==",
+        "md5Hash": "UMXTfZ05BODiQ+cJvbtsNw=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+        "relativePath": "video_preprocessor_config.json",
+        "sizeBytes": 385,
+        "localSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+        "generation": "1780198075858186",
+        "crc32c": "cNRL4Q==",
+        "md5Hash": "QbyE16pwh5leC4/TwKKd+g=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+        "relativePath": "vocab.json",
+        "sizeBytes": 2776833,
+        "localSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+        "generation": "1780198077910354",
+        "crc32c": "DhkvIQ==",
+        "md5Hash": "YTuOSmIsSiyQ6eEkX8VA1g=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_download_plan.json",
+        "relativePath": "phase_39b_vlm_model_download_plan.json",
+        "sizeBytes": 10138,
+        "generation": "1780198079509656",
+        "crc32c": "BuViZg==",
+        "md5Hash": "ZyhJjXLJh07KU1PUEsrGrg=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_exact_revision_manifest.json",
+        "relativePath": "phase_39b_vlm_exact_revision_manifest.json",
+        "sizeBytes": 3874,
+        "generation": "1780198081233365",
+        "crc32c": "r9C9gQ==",
+        "md5Hash": "TyXPZHJJg/m+SesMjXqxWA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_source_evidence.json",
+        "relativePath": "phase_39b_vlm_source_evidence.json",
+        "sizeBytes": 1253,
+        "generation": "1780198082920008",
+        "crc32c": "hkaDpw==",
+        "md5Hash": "0o25kz5oSdDeSfGgmh1q6A=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_license_evidence.json",
+        "relativePath": "phase_39b_vlm_license_evidence.json",
+        "sizeBytes": 797,
+        "generation": "1780198084746083",
+        "crc32c": "UpDn5g==",
+        "md5Hash": "PzUnr3lWQxP0OCKwI7foqQ=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_asset_selection_manifest.json",
+        "relativePath": "phase_39b_vlm_asset_selection_manifest.json",
+        "sizeBytes": 10821,
+        "generation": "1780198086288152",
+        "crc32c": "DSR+ow==",
+        "md5Hash": "H/TRfGZAh/RKIB7LSFknZg=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_download_command_plan.json",
+        "relativePath": "phase_39b_vlm_download_command_plan.json",
+        "sizeBytes": 8192,
+        "generation": "1780198087930568",
+        "crc32c": "kxq9rg==",
+        "md5Hash": "ShEN17NHd7cNbTle3NTKcA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_checksum_manifest.json",
+        "relativePath": "phase_39b_vlm_checksum_manifest.json",
+        "sizeBytes": 6755,
+        "generation": "1780198089659220",
+        "crc32c": "LYzxjQ==",
+        "md5Hash": "GXgXt8vmz+G1ZsxTRDD+1A=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_file_checksums_sha256.txt",
+        "relativePath": "phase_39b_vlm_file_checksums_sha256.txt",
+        "sizeBytes": 1330,
+        "generation": "1780198091290340",
+        "crc32c": "CGQurQ==",
+        "md5Hash": "JTkU0rHdvVeb6dqNAfFASA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_tree_manifest.json",
+        "relativePath": "phase_39b_vlm_model_tree_manifest.json",
+        "sizeBytes": 12992,
+        "generation": "1780198092973855",
+        "crc32c": "Z0Umow==",
+        "md5Hash": "b58APP4Zgo1skSEb4St01w=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_private_gcs_upload_report.json",
+        "relativePath": "phase_39b_vlm_private_gcs_upload_report.json",
+        "sizeBytes": 740,
+        "generation": "1780198094655318",
+        "crc32c": "SNNrnw==",
+        "md5Hash": "vDP2FMVPIipw4v6E7y1mUA=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_runtime_handoff_manifest.json",
+        "relativePath": "phase_39b_vlm_runtime_handoff_manifest.json",
+        "sizeBytes": 2040,
+        "generation": "1780198096430078",
+        "crc32c": "duArmQ==",
+        "md5Hash": "bUjN2jUz0bCp3qbSWa6G1Q=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_cost_risk_update.json",
+        "relativePath": "phase_39b_vlm_cost_risk_update.json",
+        "sizeBytes": 596,
+        "generation": "1780198098340761",
+        "crc32c": "sXvnpQ==",
+        "md5Hash": "b32yq5WeXWwZWXz1+uu53w=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_blocker_report.json",
+        "relativePath": "phase_39b_vlm_blocker_report.json",
+        "sizeBytes": 2725,
+        "generation": "1780198100035490",
+        "crc32c": "e2Gb0Q==",
+        "md5Hash": "WINKIag5R9pOlIK80D9A7Q=="
+      },
+      {
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_download_report.json",
+        "relativePath": "phase_39b_vlm_model_download_report.json",
+        "sizeBytes": 68257,
+        "generation": "1780198101820447",
+        "crc32c": "0716dQ==",
+        "md5Hash": "oDYMjfdzJHOmOHiV1XBtFg=="
+      }
+    ],
+    "uploadVerified": true,
+    "blockers": [],
+    "warnings": [
+      "GCS object metadata is recorded with generation, CRC32C, and MD5 when available; SHA256 comes from the local checksum manifest."
+    ]
+  },
+  "runtimeHandoffManifest": {
+    "phase": "39B",
+    "nextPhase": "39C",
+    "manifestId": "qwen3_vl_8b_instruct_phase39c_runtime_handoff_v1",
+    "createdAt": "2026-05-31T03:28:37.392Z",
+    "phase39CReadyForGeneratedRuntimeVerification": true,
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "privateGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+    "requiredRuntimeRules": [
+      "Phase 39C must copy only these private staged assets and verify SHA256 before runtime.",
+      "Phase 39C must start vLLM with a local model path, not the Hugging Face model id.",
+      "Phase 39C must disable and guard against vLLM/Hugging Face/ModelScope runtime auto-download.",
+      "Phase 39C may run generated fixtures only with bounded prompt templates and JSON-only output.",
+      "Phase 39C must block raw prompt execution, provider calls, arbitrary images/videos, real media, broad media, beta, and production.",
+      "Phase 39C must report hallucination, coordinate, grounding, and safety QA before Phase 39D."
+    ],
+    "blockedScopes": [
+      "VLM runtime execution",
+      "vLLM runtime execution",
+      "Transformers inference",
+      "SGLang runtime execution",
+      "runtime model auto-download",
+      "generated VLM inference before Phase 39C",
+      "controlled real-frame VLM before Phase 39D",
+      "VLM planning integration before Phase 39E",
+      "GPU jobs",
+      "image processing",
+      "video processing",
+      "real media processing",
+      "arbitrary media processing",
+      "provider calls",
+      "public output",
+      "production",
+      "internal beta",
+      "external beta",
+      "paid production",
+      "broad real user media",
+      "Track A execution/runtime code"
+    ],
+    "blockers": [],
+    "warnings": [
+      "Qwen/vLLM docs require local-path discipline because runtimes may auto-download when given a model id or missing local path."
+    ]
+  },
+  "costRiskUpdate": {
+    "phase": "39B",
+    "reportId": "qwen3_vl_8b_instruct_cost_risk_update_v1",
+    "createdAt": "2026-05-31T03:08:33.221Z",
+    "selectedTotalSizeBytes": 17545914364,
+    "selectedFileCount": 15,
+    "gpuRuntimeApprovedNow": false,
+    "runtimeCostReviewed": false,
+    "warnings": [
+      "Phase 39B downloads/stages approximately 16.34 GiB of assets but does not run GPU jobs.",
+      "Phase 39C must separately size GPU memory, max tokens, batch size, image size, and timeout before runtime execution."
+    ],
+    "blockers": [
+      "GPU/runtime cost review remains blocked until Phase 39C runtime planning."
+    ]
+  },
+  "executionCommandPlans": [
+    {
+      "commandId": "phase39b_preflight_static_validation",
+      "phase": "preflight",
+      "commandString": "npm run smoke:activation-vlm-model-download && npm run activation:vlm-model-download:plan",
+      "textOnlyByDefault": true,
+      "requiresConfirmation": false,
+      "doesNotDo": [
+        "no vLLM runtime execution",
+        "no Transformers inference",
+        "no SGLang runtime execution",
+        "no VLM inference",
+        "no runtime model auto-download",
+        "no image processing",
+        "no video processing",
+        "no real-media processing",
+        "no arbitrary media input",
+        "no GPU jobs",
+        "no Cloud Run deploy or execution",
+        "no Docker build or push",
+        "no provider calls",
+        "no public model storage",
+        "no signed URL source of truth",
+        "no source-media bucket storage",
+        "no model payloads committed to git",
+        "no production, internal beta, or external beta unlock",
+        "no Track A runtime or visual stack work"
+      ],
+      "warnings": [
+        "Safe validation does not download model files or mutate GCS."
+      ]
+    },
+    {
+      "commandId": "phase39b_hf_metadata_resolution",
+      "phase": "metadata",
+      "commandString": "Resolve Qwen/Qwen3-VL-8B-Instruct via Hugging Face model API and require revision 0c351dd01ed87e9c1b53cbc748cba10e6187ff3b.",
+      "textOnlyByDefault": true,
+      "requiresConfirmation": false,
+      "doesNotDo": [
+        "no vLLM runtime execution",
+        "no Transformers inference",
+        "no SGLang runtime execution",
+        "no VLM inference",
+        "no runtime model auto-download",
+        "no image processing",
+        "no video processing",
+        "no real-media processing",
+        "no arbitrary media input",
+        "no GPU jobs",
+        "no Cloud Run deploy or execution",
+        "no Docker build or push",
+        "no provider calls",
+        "no public model storage",
+        "no signed URL source of truth",
+        "no source-media bucket storage",
+        "no model payloads committed to git",
+        "no production, internal beta, or external beta unlock",
+        "no Track A runtime or visual stack work"
+      ],
+      "warnings": [
+        "Metadata refresh may use HF_TOKEN from the environment if the model ever becomes gated, but token values are never printed or persisted."
+      ]
+    },
+    {
+      "commandId": "phase39b_download_selected_assets",
+      "phase": "download",
+      "commandString": "Set the current-shell VLM model download confirmation, then run npm run activation:vlm-model-download -- --execute --keep-temp",
+      "textOnlyByDefault": true,
+      "requiresConfirmation": true,
+      "confirmationEnvVar": "REEDITPRO_CONFIRM_VLM_MODEL_DOWNLOAD",
+      "doesNotDo": [
+        "no vLLM runtime execution",
+        "no Transformers inference",
+        "no SGLang runtime execution",
+        "no VLM inference",
+        "no runtime model auto-download",
+        "no image processing",
+        "no video processing",
+        "no real-media processing",
+        "no arbitrary media input",
+        "no GPU jobs",
+        "no Cloud Run deploy or execution",
+        "no Docker build or push",
+        "no provider calls",
+        "no public model storage",
+        "no signed URL source of truth",
+        "no source-media bucket storage",
+        "no model payloads committed to git",
+        "no production, internal beta, or external beta unlock",
+        "no Track A runtime or visual stack work"
+      ],
+      "warnings": [
+        "Downloads only the pinned selected files into /tmp/reeditpro/activation/phase39b/qwen3-vl-8b-instruct/<run-id>/downloads/."
+      ]
+    },
+    {
+      "commandId": "phase39b_compute_sha256",
+      "phase": "checksum",
+      "commandString": "Compute SHA256 while streaming each selected Hugging Face file and build aggregate manifest.",
+      "textOnlyByDefault": true,
+      "requiresConfirmation": false,
+      "doesNotDo": [
+        "no vLLM runtime execution",
+        "no Transformers inference",
+        "no SGLang runtime execution",
+        "no VLM inference",
+        "no runtime model auto-download",
+        "no image processing",
+        "no video processing",
+        "no real-media processing",
+        "no arbitrary media input",
+        "no GPU jobs",
+        "no Cloud Run deploy or execution",
+        "no Docker build or push",
+        "no provider calls",
+        "no public model storage",
+        "no signed URL source of truth",
+        "no source-media bucket storage",
+        "no model payloads committed to git",
+        "no production, internal beta, or external beta unlock",
+        "no Track A runtime or visual stack work"
+      ],
+      "warnings": [
+        "Checksum manifests are safe metadata; model payloads are not committed."
+      ]
+    },
+    {
+      "commandId": "phase39b_private_gcs_upload",
+      "phase": "upload",
+      "commandString": "With the current-shell private GCS upload confirmation set, upload selected files and JSON manifests to gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+      "textOnlyByDefault": true,
+      "requiresConfirmation": true,
+      "confirmationEnvVar": "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_UPLOAD",
+      "doesNotDo": [
+        "no vLLM runtime execution",
+        "no Transformers inference",
+        "no SGLang runtime execution",
+        "no VLM inference",
+        "no runtime model auto-download",
+        "no image processing",
+        "no video processing",
+        "no real-media processing",
+        "no arbitrary media input",
+        "no GPU jobs",
+        "no Cloud Run deploy or execution",
+        "no Docker build or push",
+        "no provider calls",
+        "no public model storage",
+        "no signed URL source of truth",
+        "no source-media bucket storage",
+        "no model payloads committed to git",
+        "no production, internal beta, or external beta unlock",
+        "no Track A runtime or visual stack work"
+      ],
+      "warnings": [
+        "Uploads only verified selected assets and safe manifests to the approved private generated-assets prefix."
+      ]
+    },
+    {
+      "commandId": "phase39b_verify_private_gcs_objects",
+      "phase": "verify",
+      "commandString": "gcloud storage objects describe gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/<relative-path> --format=json",
+      "textOnlyByDefault": true,
+      "requiresConfirmation": false,
+      "doesNotDo": [
+        "no vLLM runtime execution",
+        "no Transformers inference",
+        "no SGLang runtime execution",
+        "no VLM inference",
+        "no runtime model auto-download",
+        "no image processing",
+        "no video processing",
+        "no real-media processing",
+        "no arbitrary media input",
+        "no GPU jobs",
+        "no Cloud Run deploy or execution",
+        "no Docker build or push",
+        "no provider calls",
+        "no public model storage",
+        "no signed URL source of truth",
+        "no source-media bucket storage",
+        "no model payloads committed to git",
+        "no production, internal beta, or external beta unlock",
+        "no Track A runtime or visual stack work"
+      ],
+      "warnings": [
+        "Verification records size, generation, metageneration, CRC32C, MD5 when available, and local SHA256 from the manifest."
+      ]
+    },
+    {
+      "commandId": "phase39b_cleanup_policy",
+      "phase": "cleanup",
+      "commandString": "Delete local temp staging unless --keep-temp is intentionally provided for review.",
+      "textOnlyByDefault": true,
+      "requiresConfirmation": false,
+      "doesNotDo": [
+        "no vLLM runtime execution",
+        "no Transformers inference",
+        "no SGLang runtime execution",
+        "no VLM inference",
+        "no runtime model auto-download",
+        "no image processing",
+        "no video processing",
+        "no real-media processing",
+        "no arbitrary media input",
+        "no GPU jobs",
+        "no Cloud Run deploy or execution",
+        "no Docker build or push",
+        "no provider calls",
+        "no public model storage",
+        "no signed URL source of truth",
+        "no source-media bucket storage",
+        "no model payloads committed to git",
+        "no production, internal beta, or external beta unlock",
+        "no Track A runtime or visual stack work"
+      ],
+      "warnings": [
+        "No temp payloads, HF cache, or model files may be committed."
+      ]
+    }
+  ],
+  "expectedArtifacts": [
+    "phase_39b_vlm_model_download_plan.json",
+    "phase_39b_vlm_exact_revision_manifest.json",
+    "phase_39b_vlm_source_evidence.json",
+    "phase_39b_vlm_license_evidence.json",
+    "phase_39b_vlm_asset_selection_manifest.json",
+    "phase_39b_vlm_download_command_plan.json",
+    "phase_39b_vlm_checksum_manifest.json",
+    "phase_39b_vlm_file_checksums_sha256.txt",
+    "phase_39b_vlm_model_tree_manifest.json",
+    "phase_39b_vlm_private_gcs_upload_report.json",
+    "phase_39b_vlm_runtime_handoff_manifest.json",
+    "phase_39b_vlm_cost_risk_update.json",
+    "phase_39b_vlm_blocker_report.json",
+    "phase_39b_vlm_model_download_report.json"
+  ],
+  "blockers": [],
+  "warnings": [
+    "Phase 39B downloaded selected Qwen3-VL assets only; it did not run VLM runtime or inference.",
+    "Generated VLM runtime remains blocked until Phase 39C verifies local private assets and no runtime auto-download.",
+    "Phase 39B uses Hugging Face metadata for revision/file selection only; it does not call inference providers.",
+    "Qwen3-VL repo, Hugging Face model card, vLLM supported-models, and Qwen vLLM docs remain source references for planning and Phase 39C handoff.",
+    "Phase 39B does not call vLLM, Transformers, SGLang, provider APIs, or inference endpoints.",
+    "Phase 39B uses Hugging Face metadata for revision/file selection only; it does not call inference providers.",
+    "Apache-2.0 metadata supports private staging evidence only; production legal approval remains incomplete.",
+    "Human legal/source review is required before broad production use, provider use, or any redistribution decision.",
+    "Private GCS verification passed for selected assets and JSON/text manifests.",
+    "SHA256 was computed locally while streaming Hugging Face resolve URLs.",
+    "No VLM runtime or inference was imported or executed.",
+    "GCS object metadata is recorded with generation, CRC32C, and MD5 when available; SHA256 comes from the local checksum manifest.",
+    "Qwen/vLLM docs require local-path discipline because runtimes may auto-download when given a model id or missing local path.",
+    "Phase 39B downloads/stages approximately 16.34 GiB of assets but does not run GPU jobs.",
+    "Phase 39C must separately size GPU memory, max tokens, batch size, image size, and timeout before runtime execution."
+  ],
+  "phase39CReadiness": {
+    "readyForGeneratedVlmRuntimeVerification": true,
+    "readyForRuntimeExecution": false,
+    "reason": "Phase 39B verified pinned Qwen3-VL assets in private GCS at gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/."
+  },
+  "notReadyFor": [
+    "VLM runtime execution",
+    "vLLM runtime execution",
+    "Transformers inference",
+    "SGLang runtime execution",
+    "runtime model auto-download",
+    "generated VLM inference before Phase 39C",
+    "controlled real-frame VLM before Phase 39D",
+    "VLM planning integration before Phase 39E",
+    "GPU jobs",
+    "image processing",
+    "video processing",
+    "real media processing",
+    "arbitrary media processing",
+    "provider calls",
+    "public output",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "broad real user media",
+    "Track A execution/runtime code"
+  ],
+  "modelDownloadCompleted": true,
+  "exactAssetSelectionApproved": true,
+  "vlmRuntimeAllowed": false,
+  "vlmInferenceAllowed": false,
+  "transformersInferenceAllowed": false,
+  "vllmRuntimeAllowed": false,
+  "runtimeAutoDownloadAllowed": false,
+  "providerAllowed": false,
+  "mediaProcessingAllowed": false,
+  "realMediaProcessingAllowed": false,
+  "gpuJobAllowed": false,
+  "publicOutputAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "gcpIamMutationAllowed": false,
+  "cloudRunDeployAllowed": false,
+  "dockerBuildPushAllowed": false,
+  "productionReadyAllowed": false,
+  "internalBetaAllowed": false,
+  "externalBetaAllowed": false,
+  "broadRealUserMediaAllowed": false,
+  "trackAExecutionAllowed": false
+}

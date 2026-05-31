@@ -49,5 +49,6 @@
 -- - POST /v1/projects/access/check returns access for user_a/user_b and denies user_c.
 -- - POST /v1/projects fails closed in Prompt 3.
 
--- TODO(Prompt 3A or later): replace this draft with executable local-only SQL once fixture creation and
--- schema-era cleanup are settled.
+-- Prompt 3A decision: keep this file draft-only.
+-- Conversion to executable local-only SQL requires disposable auth fixtures, a clean local migration reset,
+-- and confirmation that the active schema-era conflicts do not invalidate the auth/workspace/project policies.

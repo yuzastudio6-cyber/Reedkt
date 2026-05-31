@@ -116,6 +116,14 @@ function membershipSummary(member: WorkspaceMemberRow) {
   }
 }
 
+function safeUserSummary(context: ServiceContext) {
+  return {
+    userId: context.auth?.userId,
+    email: context.auth?.email,
+    isMockUser: Boolean(context.auth?.isMockUser),
+  }
+}
+
 function backendUnavailable(scope: string) {
   return {
     status: 'backend_required' as const,
@@ -130,6 +138,7 @@ function assertCanonicalId(value: string | undefined, label: string): string {
 }
 
 export function createAuthService(context: ServiceContext) {
+  // Server-only boundary: Prompt 3A keeps service-role access limited to auth/profile/workspace/project tables.
   async function listWorkspaceMemberships(userId: string) {
     const admin = context.clients.admin
     if (!admin || context.env.mockOnly) return []
@@ -160,11 +169,7 @@ export function createAuthService(context: ServiceContext) {
     },
 
     getCurrentUserSummary() {
-      return {
-        userId: context.auth?.userId,
-        email: context.auth?.email,
-        isMockUser: Boolean(context.auth?.isMockUser),
-      }
+      return safeUserSummary(context)
     },
 
     async ensureProfile(input: EnsureProfileInput = {}) {
@@ -175,7 +180,7 @@ export function createAuthService(context: ServiceContext) {
         return {
           ...backendUnavailable('Profile bootstrap'),
           profile: null,
-          user: this.getCurrentUserSummary(),
+          user: safeUserSummary(context),
         }
       }
 
@@ -197,7 +202,7 @@ export function createAuthService(context: ServiceContext) {
             status: 'ready' as const,
             available: true,
             profile: profileSummary(existingProfile as ProfileRow),
-            user: this.getCurrentUserSummary(),
+            user: safeUserSummary(context),
             warnings: [],
           }
         }
@@ -214,7 +219,7 @@ export function createAuthService(context: ServiceContext) {
           status: 'ready' as const,
           available: true,
           profile: profileSummary(updatedProfile as ProfileRow),
-          user: this.getCurrentUserSummary(),
+          user: safeUserSummary(context),
           warnings: [],
         }
       }
@@ -239,7 +244,7 @@ export function createAuthService(context: ServiceContext) {
         status: 'ready' as const,
         available: true,
         profile: profileSummary(insertedProfile as ProfileRow),
-        user: this.getCurrentUserSummary(),
+        user: safeUserSummary(context),
         warnings: [],
       }
     },

@@ -4,6 +4,12 @@ This is the Prompt 3 RLS/access validation plan for the canonical auth/profile/w
 
 Do not run these checks against production in this milestone.
 
+## Prompt 3A Status
+
+Prompt 3A keeps `database/test-sql/006_auth_workspace_rls_smoke_tests.draft.sql` as draft-only. It is not renamed to `.sql` because fixture creation and schema-era cleanup are still unresolved.
+
+Before conversion to executable local-only SQL, a later prompt must define disposable local auth user fixtures, confirm the active migration chain applies cleanly, and prove the test touches only `auth.users`, `profiles`, `workspaces`, `workspace_members`, and `projects`.
+
 ## Scope
 
 Allowed tables:
@@ -60,6 +66,7 @@ Use disposable local/staging users only:
 | APW-RLS-18 | `projects.access.check` returns access for member. | Pass. |
 | APW-RLS-19 | `projects.access.check` denies non-member without leaking extra project data. | Pass. |
 | APW-RLS-20 | Broad project creation remains disabled in Prompt 3 server route. | Pass. `POST /v1/projects` fails closed. |
+| APW-RLS-20A | Prompt 3A disabled project creation route ignores create body shape. | Pass. Route fails before any project-create validation or write. |
 
 ## Bootstrap Idempotency Tests
 

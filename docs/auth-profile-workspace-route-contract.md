@@ -22,6 +22,7 @@ Prompt 3 defines and partially implements only auth/profile/workspace/project ac
 | `workspaces.membership.check` | POST | `/v1/workspaces/membership/check` | Check authenticated user membership in one workspace. | frontend/backend callers | Yes | `workspace_members`, `workspaces` | Yes when available | Read-only | future on denied |
 | `projects.access.check` | POST | `/v1/projects/access/check` | Check authenticated user access to one project through workspace membership. | frontend/backend callers | Yes | `projects`, `workspace_members` | Yes when available | Read-only | future on denied |
 | `projects.get` | GET | `/v1/projects/:projectId` | Return project summary after workspace membership check. | frontend | Yes | `projects`, `workspace_members` | Yes when available | Read-only | future on denied |
+| `projects.create` | POST | `/v1/projects` | Disabled compatibility route that fails closed. | frontend | Yes | none | No | No | none |
 | `projects.bootstrap.default` | POST | not implemented | Future default project bootstrap if product requires it. | none | Yes | `projects` | Yes | Required later | future |
 
 ## Input And Output Summaries
@@ -58,21 +59,34 @@ Prompt 3 defines and partially implements only auth/profile/workspace/project ac
 
 ### `workspaces.membership.check`
 
-- Input: `workspaceId`.
+- Input: UUID `workspaceId`.
 - Output: `hasAccess`, status, safe workspace summary when accessible, safe membership summary when accessible.
 - Forbidden side effects: membership creation, role mutation, invite creation.
 
 ### `projects.access.check`
 
-- Input: `projectId`.
+- Input: UUID `projectId`.
 - Output: `hasAccess`, status, safe project summary when accessible, safe membership summary.
 - Forbidden side effects: project creation, chat session creation, media reads, execution-state mutation.
 
 ### `projects.get`
 
-- Input: route `projectId`.
-- Output: safe project summary and membership after access check.
+- Input: route UUID `projectId`.
+- Output: `status`, `hasAccess`, safe project summary, and membership after access check.
 - Forbidden side effects: writes.
+
+### `projects.create`
+
+- Input: ignored.
+- Output: fail-closed API error.
+- Forbidden side effects: all writes. Prompt 3A intentionally removed request-body validation from this disabled route so it cannot appear implementation-ready.
+
+## Prompt 3A Route Hardening
+
+- Workspace and project access routes now require UUID-shaped IDs.
+- Project read responses include explicit access status fields.
+- Broad project creation remains disabled and performs no body validation or database write.
+- Missing backend/admin runtime continues to return blocked/backend-required behavior without exposing project data.
 
 ## Forbidden Side Effects For All Prompt 3 Routes
 

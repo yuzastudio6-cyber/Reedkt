@@ -164,10 +164,26 @@ Those events must not include secrets, tokens, signed URLs, raw auth headers, or
 
 Validation is recorded in `docs/prompt-03-validation-results.md`.
 
+## Prompt 3A Follow-Up
+
+Prompt 3A hardens the Prompt 3 implementation without expanding scope:
+
+- broad `POST /v1/projects` creation remains fail-closed and no longer validates a project-create body;
+- workspace and project access IDs are UUID-validated;
+- `GET /v1/projects/:projectId` returns explicit `status` and `hasAccess` alongside safe summaries;
+- auth/project services no longer rely on object method `this` for internal calls;
+- service-role boundary comments were added where server-only behavior is intentionally limited;
+- no blocked table references were found in the Prompt 3A server route/service/validation files.
+
+Validation status after Prompt 3A is recorded in `docs/prompt-03a-auth-rls-fix-results.md`.
+
+Prompt 4 should not proceed until Prompt 3A validation shows build/lint and auth/RLS readiness are sufficient, or until Prompt 3B resolves the remaining validation environment blockers.
+
 ## What Remains Blocked
 
 - Remote/staging Supabase validation.
 - Executed RLS tests.
+- Conversion of the draft RLS SQL file to executable local-only SQL.
 - Auth pages and account lifecycle UX.
 - Membership invite/admin flows.
 - Broad project creation/update/list routes.

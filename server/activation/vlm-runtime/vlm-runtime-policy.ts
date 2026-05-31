@@ -88,6 +88,10 @@ export function validateVlmRuntimeExecutionEnv(input: VlmRuntimeEnvValidationInp
   if ((input.trackAExecutionEnabled ?? process.env.TRACK_A_EXECUTION_ENABLED ?? 'false') !== 'false') blockers.push('Track A execution must remain disabled.')
   if ((input.modelIdRuntimePath ?? process.env.REEDITPRO_VLM_RUNTIME_MODEL_PATH ?? '') === vlmRuntimeConfig.modelId) blockers.push('Runtime model path cannot be the Hugging Face model id; Phase 39C must use a local model directory.')
   if (runtimeMode !== 'local' && runtimeMode !== 'staging_cloud_run_job') blockers.push('REEDITPRO_VLM_RUNTIME_MODE must be local or staging_cloud_run_job.')
+  if ((input.tuningProfileMatrix ?? process.env.REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX) === 'l4-oom-remediation-v1'
+    && (input.l4TuningRerunConfirmation ?? process.env.REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN) !== 'true') {
+    blockers.push('REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN=true is required for Phase 39C L4 tuning profile execution.')
+  }
 
   if (stagingRequested) {
     if ((input.dockerBuildConfirmation ?? process.env.REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD) !== 'true') blockers.push('REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD=true is required for staging image build.')

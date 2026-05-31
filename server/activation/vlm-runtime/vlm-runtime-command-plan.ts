@@ -45,12 +45,22 @@ export function buildVlmRuntimeCommandPlan(): VlmRuntimeCommandPlan[] {
     {
       commandId: 'phase39c-generated-fixture-runtime',
       phase: 'execute',
-      commandString: 'npm run activation:vlm-runtime -- --execute --keep-temp',
+      commandString: 'npm run activation:vlm-runtime -- --execute --keep-temp --tuning-profile-matrix l4-oom-remediation-v1',
       requiresConfirmation: true,
       confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE',
       textOnlyByDefault: true,
       doesNotDo: vlmRuntimeDoesNotDo,
       warnings: ['Runs generated synthetic fixtures only and starts vLLM with a local model path only.'],
+    },
+    {
+      commandId: 'phase39c-l4-tuning-rerun',
+      phase: 'execute',
+      commandString: 'npm run activation:vlm-runtime:cloud-run-job -- --execute --keep-temp --tuning-profile-matrix l4-oom-remediation-v1',
+      requiresConfirmation: true,
+      confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN',
+      textOnlyByDefault: true,
+      doesNotDo: vlmRuntimeDoesNotDo,
+      warnings: ['Runs only the approved L4 tuning profile matrix against generated fixtures and the pinned Phase 39B assets.'],
     },
     {
       commandId: 'phase39c-private-artifact-upload',

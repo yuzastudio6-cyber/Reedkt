@@ -57,7 +57,9 @@ export interface VlmRuntimeEnvValidationInput {
   dockerPushConfirmation?: string
   cloudRunJobConfirmation?: string
   l4GpuConfirmation?: string
+  l4TuningRerunConfirmation?: string
   runtimeMode?: string
+  tuningProfileMatrix?: string
   modelGcsPath?: string
   modelIdRuntimePath?: string
   aggregateSha256?: string
@@ -95,6 +97,7 @@ export interface VlmRuntimeCommandPlan {
     | 'REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_PUSH'
     | 'REEDITPRO_CONFIRM_VLM_STAGING_CLOUD_RUN_JOB'
     | 'REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE'
+    | 'REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN'
   textOnlyByDefault: true
   doesNotDo: string[]
   warnings: string[]
@@ -273,6 +276,83 @@ export interface VlmFixtureRuntimeResult {
   warnings: string[]
 }
 
+export interface VlmRuntimeOomClassification {
+  isCudaOom: boolean
+  stage:
+    | 'not_oom'
+    | 'vllm_engine_initialization'
+    | 'scheduler_or_kv_cache_profile'
+    | 'cuda_graph_capture'
+    | 'generated_fixture_inference'
+    | 'unclassified_cuda_oom'
+  enforceEager?: boolean
+  cudaGraphLikely: boolean
+  fixtureInferenceReached: boolean
+  memory?: {
+    requestedGiB: number
+    gpuTotalGiB: number
+    gpuFreeGiB: number
+    processId: string
+    processMemoryGiB: number
+    torchAllocatedGiB: number
+    torchReservedUnallocatedMiB: number
+  }
+  safeSummary: string
+}
+
+export interface VlmRuntimeL4TuningProfile {
+  profileId: string
+  description: string
+  launchArgs: {
+    maxModelLen: number | null
+    maxNumSeqs: number
+    maxNumBatchedTokens: number
+    maxTokens: number
+    enforceEager: boolean
+    gpuMemoryUtilization: number
+    mmProcessorCacheGb?: number
+    cpuOffloadGb?: number
+    limitMmPerPrompt: { image: 1 }
+  }
+  fixtureImageConstraints: {
+    generatedOnly: true
+    maxSizePx: number
+    imageCountPerPrompt: 1
+  }
+  expectedMemoryEffect: string
+  safetyStatus: 'allowed' | 'skipped_unsupported'
+  diagnosticOnly: boolean
+  fixtureIds?: VlmGeneratedFixtureId[]
+  unsupportedReason?: string
+}
+
+export interface VlmRuntimeL4TuningProfileResult {
+  profileId: string
+  status: 'passed' | 'blocked' | 'skipped' | 'diagnostic_passed'
+  diagnosticOnly: boolean
+  profile: VlmRuntimeL4TuningProfile
+  fixtureResults: VlmFixtureRuntimeResult[]
+  runtimeVersion?: string
+  blockers: string[]
+  warnings: string[]
+  oomClassification?: VlmRuntimeOomClassification
+}
+
+export interface VlmRuntimeL4TuningMatrixReport {
+  phase: '39C'
+  runId: string
+  createdAt: string
+  matrixId: 'l4-oom-remediation-v1'
+  status: 'planned' | 'passed' | 'blocked'
+  selectedProfileId?: string
+  profilesDefined: VlmRuntimeL4TuningProfile[]
+  profilesAttempted: VlmRuntimeL4TuningProfileResult[]
+  allProfilesFailed: boolean
+  fullPhase39CPassRequiresAllGeneratedFixtures: true
+  minimalSmokeCompletesPhase39C: false
+  blockedScopesStillBlocked: string[]
+}
+
 export interface VlmRuntimeArtifact {
   id: string
   kind: 'report' | 'fixture_image' | 'metadata'
@@ -322,6 +402,7 @@ export interface VlmRuntimeExecutionReport {
     fallbackRuntime: 'transformers_fallback'
     runtimeStatus: VlmRuntimeQaStatus
     runtimeVersion?: string
+    selectedProfileId?: string
     transformersFallbackStatus: VlmRuntimeQaStatus
     localModelPathUsed: boolean
     modelIdRuntimePathBlocked: boolean
@@ -361,7 +442,10 @@ export interface VlmRuntimeExecutionReport {
     memoryRisk: 'high'
     costRisk: 'medium' | 'high'
     notes: string[]
+    selectedProfileId?: string
+    tuningMatrixStatus?: 'planned' | 'passed' | 'blocked'
   }
+  l4TuningMatrix?: VlmRuntimeL4TuningMatrixReport
   artifacts: VlmRuntimeArtifact[]
   privateArtifactPrefix?: string
   vlmToolFamilyBetaStatus: VlmToolFamilyBetaStatus

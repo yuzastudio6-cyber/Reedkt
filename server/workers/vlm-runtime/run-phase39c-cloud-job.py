@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 
 from google.cloud import storage
 
+from l4_tuning_profiles import MATRIX_ID, all_profile_reports, get_profile, profile_ids_from_env
+
 
 PHASE = "39C"
 MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct"
@@ -30,6 +32,7 @@ EXPECTED_ARTIFACTS = [
     "phase_39c_vlm_safe_zone_qa_report.json",
     "phase_39c_vlm_hallucination_safety_report.json",
     "phase_39c_vlm_runtime_cost_memory_report.json",
+    "phase_39c_vlm_l4_tuning_matrix_report.json",
     "phase_39c_private_artifact_manifest.json",
     "phase_39c_generated_vlm_runtime_report.json",
 ]
@@ -282,7 +285,41 @@ def download_and_verify_assets(client: storage.Client, model_root: Path, blocker
     }
 
 
-def run_worker(run_id: str, report_dir: Path, fixture_dir: Path, model_root: Path, blockers: List[str], warnings: List[str]) -> Dict[str, Any]:
+def selected_tuning_profile_ids() -> List[str]:
+    return profile_ids_from_env(os.environ.get("REEDITPRO_VLM_L4_TUNING_PROFILE_IDS"))
+
+
+def tuning_matrix_result(run_id: str, created_at: str, profile_results: List[Dict[str, Any]], status: str, selected_profile_id: Optional[str]) -> Dict[str, Any]:
+    return {
+        "phase": PHASE,
+        "runId": run_id,
+        "createdAt": created_at,
+        "matrixId": os.environ.get("REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX", MATRIX_ID),
+        "status": status,
+        "selectedProfileId": selected_profile_id,
+        "profilesDefined": all_profile_reports(),
+        "profilesAttempted": profile_results,
+        "allProfilesFailed": status != "passed" and all(result.get("status") not in ["passed", "diagnostic_passed"] for result in profile_results),
+        "fullPhase39CPassRequiresAllGeneratedFixtures": True,
+        "minimalSmokeCompletesPhase39C": False,
+        "blockedScopesStillBlocked": [
+            "Phase 39D controlled real-frame VLM",
+            "Phase 39E planning integration",
+            "provider calls",
+            "production",
+            "beta",
+            "public output",
+            "broad media",
+            "arbitrary media",
+            "unapproved GPU types",
+            "quantized variants",
+            "smaller model candidates",
+            "Track A",
+        ],
+    }
+
+
+def run_worker(run_id: str, created_at: str, report_dir: Path, fixture_dir: Path, model_root: Path, blockers: List[str], warnings: List[str]) -> Dict[str, Any]:
     env = os.environ.copy()
     env.update({
         "HF_HOME": str(report_dir.parent / ".hf-home"),
@@ -295,37 +332,100 @@ def run_worker(run_id: str, report_dir: Path, fixture_dir: Path, model_root: Pat
         "REAL_MEDIA_INPUT_ENABLED": "false",
         "PROVIDER_EXECUTION_ENABLED": "false",
         "RAW_VLM_PROMPT_ENABLED": "false",
+        "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
     })
-    command = [
-        sys.executable,
-        str(Path(__file__).with_name("run-generated-vlm-fixture.py")),
-        "--run-id",
-        run_id,
-        "--output-dir",
-        str(report_dir),
-        "--fixture-dir",
-        str(fixture_dir),
-        "--model-dir",
-        str(model_root),
-        "--fixture-manifest-path",
-        str(report_dir / "phase_39c_generated_fixture_manifest.json"),
-        "--prompt-manifest-path",
-        str(report_dir / "phase_39c_prompt_template_manifest.json"),
-    ]
-    try:
-        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=3 * 60 * 60, env=env)
-        if result.stderr.strip():
-            warnings.append(result.stderr[-3000:])
-        json_lines = [line.strip() for line in result.stdout.splitlines() if line.strip().startswith("{") and line.strip().endswith("}")]
-        if not json_lines:
-            blockers.append(f"phase39c_worker_summary_missing:exit={result.returncode}")
-            return {"runtimeStatus": "blocked", "runtimeVersion": None, "fixtureResults": [], "blockers": blockers}
-        summary = json.loads(json_lines[-1])
-        blockers.extend(summary.get("blockers", []))
-        return summary
-    except Exception as exc:
-        blockers.append(f"phase39c_worker_execution_failed:{str(exc)[:240]}")
-        return {"runtimeStatus": "blocked", "runtimeVersion": None, "fixtureResults": [], "blockers": blockers}
+    profile_results: List[Dict[str, Any]] = []
+    selected_profile_id: Optional[str] = None
+    selected_fixture_results: List[Dict[str, Any]] = []
+    selected_runtime_version: Optional[str] = None
+    profile_ids = selected_tuning_profile_ids()
+    for profile_id in profile_ids:
+        profile = get_profile(profile_id)
+        profile_env = {**env, "REEDITPRO_VLM_L4_TUNING_PROFILE_ID": profile_id}
+        command = [
+            sys.executable,
+            str(Path(__file__).with_name("run-generated-vlm-fixture.py")),
+            "--run-id",
+            run_id,
+            "--output-dir",
+            str(report_dir),
+            "--fixture-dir",
+            str(fixture_dir),
+            "--model-dir",
+            str(model_root),
+            "--fixture-manifest-path",
+            str(report_dir / "phase_39c_generated_fixture_manifest.json"),
+            "--prompt-manifest-path",
+            str(report_dir / "phase_39c_prompt_template_manifest.json"),
+            "--tuning-profile-id",
+            profile_id,
+        ]
+        try:
+            result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=3 * 60 * 60, env=profile_env)
+            if result.stderr.strip():
+                warnings.append(f"phase39c_profile_stderr:{profile_id}:{result.stderr[-3000:]}")
+            json_lines = [line.strip() for line in result.stdout.splitlines() if line.strip().startswith("{") and line.strip().endswith("}")]
+            if not json_lines:
+                profile_result = {
+                    "profileId": profile_id,
+                    "status": "blocked",
+                    "diagnosticOnly": profile.diagnostic_only,
+                    "profile": profile.to_report(),
+                    "fixtureResults": [],
+                    "blockers": [f"phase39c_worker_summary_missing:{profile_id}:exit={result.returncode}"],
+                    "warnings": [],
+                    "oomClassification": {"isCudaOom": False, "stage": "unknown", "safeSummary": "Worker did not emit a JSON summary."},
+                }
+            else:
+                summary = json.loads(json_lines[-1])
+                profile_result = summary.get("tuningProfileResult", {
+                    "profileId": profile_id,
+                    "status": summary.get("runtimeStatus", "blocked"),
+                    "diagnosticOnly": profile.diagnostic_only,
+                    "profile": profile.to_report(),
+                    "fixtureResults": summary.get("fixtureResults", []),
+                    "blockers": summary.get("blockers", []),
+                    "warnings": summary.get("warnings", []),
+                })
+                if summary.get("runtimeVersion"):
+                    profile_result["runtimeVersion"] = summary.get("runtimeVersion")
+                if summary.get("warnings"):
+                    profile_result["warnings"] = sorted(set(profile_result.get("warnings", []) + summary.get("warnings", [])))
+                if summary.get("blockers"):
+                    profile_result["blockers"] = sorted(set(profile_result.get("blockers", []) + summary.get("blockers", [])))
+            profile_results.append(profile_result)
+            if profile_result.get("status") == "passed":
+                selected_profile_id = profile_id
+                selected_fixture_results = profile_result.get("fixtureResults", [])
+                selected_runtime_version = profile_result.get("runtimeVersion")
+                break
+        except Exception as exc:
+            profile_result = {
+                "profileId": profile_id,
+                "status": "blocked",
+                "diagnosticOnly": profile.diagnostic_only,
+                "profile": profile.to_report(),
+                "fixtureResults": [],
+                "blockers": [f"phase39c_worker_execution_failed:{profile_id}:{str(exc)[:240]}"],
+                "warnings": [],
+            }
+            profile_results.append(profile_result)
+
+    matrix_status = "passed" if selected_profile_id else "blocked"
+    if not selected_profile_id:
+        profile_blockers = [blocker for result in profile_results for blocker in result.get("blockers", [])]
+        blockers.extend(profile_blockers)
+        blockers.append("phase39c_l4_tuning_profiles_exhausted")
+    matrix = tuning_matrix_result(run_id, created_at, profile_results, matrix_status, selected_profile_id)
+    return {
+        "runtimeStatus": "passed" if selected_profile_id else "blocked",
+        "runtimeVersion": selected_runtime_version,
+        "fixtureResults": selected_fixture_results,
+        "selectedProfileId": selected_profile_id,
+        "tuningMatrix": matrix,
+        "blockers": blockers,
+        "warnings": warnings,
+    }
 
 
 def average(values: List[float]) -> float:
@@ -342,6 +442,7 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
     combined_blockers = sorted(set(blockers + asset_verification.get("blockers", []) + [blocker for item in fixture_results for blocker in item.get("blockers", [])]))
     combined_warnings = sorted(set(warnings + asset_verification.get("warnings", []) + [warning for item in fixture_results for warning in item.get("warnings", [])]))
     runtime_status = runtime_summary.get("runtimeStatus", "blocked")
+    tuning_matrix = runtime_summary.get("tuningMatrix") or tuning_matrix_result(run_id, created_at, [], "blocked", None)
     runtime_passed = (
         runtime_status == "passed"
         and asset_verification.get("status") == "verified"
@@ -374,8 +475,20 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
         "trackAAllowed": False,
         "stagingCloudRunJob": "reeditpro-stg-vlm-runtime-phase39c",
         "gpuType": "nvidia-l4",
+        "tuningProfileMatrix": os.environ.get("REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX", MATRIX_ID),
+        "selectedTuningProfileIds": selected_tuning_profile_ids(),
     }
-    runtime_results = {"phase": PHASE, "runId": run_id, "runtimeStatus": runtime_status, "runtimeVersion": runtime_summary.get("runtimeVersion"), "fixtureResults": fixture_results, "blockers": combined_blockers, "warnings": combined_warnings}
+    runtime_results = {
+        "phase": PHASE,
+        "runId": run_id,
+        "runtimeStatus": runtime_status,
+        "runtimeVersion": runtime_summary.get("runtimeVersion"),
+        "selectedProfileId": runtime_summary.get("selectedProfileId"),
+        "fixtureResults": fixture_results,
+        "tuningMatrix": tuning_matrix,
+        "blockers": combined_blockers,
+        "warnings": combined_warnings,
+    }
     schema_report = {
         "phase": PHASE,
         "runId": run_id,
@@ -429,6 +542,8 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
             "Official Qwen3-VL docs require vllm>=0.11.0; this staging image uses vllm/vllm-openai:v0.11.0.",
             *combined_warnings,
         ],
+        "selectedProfileId": runtime_summary.get("selectedProfileId"),
+        "tuningMatrixStatus": tuning_matrix.get("status"),
     }
     private_manifest = {
         "phase": PHASE,
@@ -457,6 +572,7 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
             "fallbackRuntime": "transformers_fallback",
             "runtimeStatus": runtime_status,
             "runtimeVersion": runtime_summary.get("runtimeVersion"),
+            "selectedProfileId": runtime_summary.get("selectedProfileId"),
             "transformersFallbackStatus": "skipped",
             "localModelPathUsed": runtime_passed,
             "modelIdRuntimePathBlocked": True,
@@ -487,6 +603,7 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
             "warnings": combined_warnings,
         },
         "costMemory": cost_report,
+        "l4TuningMatrix": tuning_matrix,
         "artifacts": report_artifacts,
         "privateArtifactPrefix": f"gs://{os.environ.get('REEDITPRO_PHASE39C_QA_BUCKET', QA_BUCKET)}/{os.environ.get('REEDITPRO_PHASE39C_QA_PREFIX', f'activation/phase39c/generated-vlm-runtime/{run_id}')}/",
         "vlmToolFamilyBetaStatus": "phase-complete but tool-family incomplete" if runtime_passed else "blocked",
@@ -508,6 +625,7 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
         "phase_39c_vlm_safe_zone_qa_report.json": safe_zone_report,
         "phase_39c_vlm_hallucination_safety_report.json": hallucination_report,
         "phase_39c_vlm_runtime_cost_memory_report.json": cost_report,
+        "phase_39c_vlm_l4_tuning_matrix_report.json": tuning_matrix,
         "phase_39c_private_artifact_manifest.json": private_manifest,
         "phase_39c_generated_vlm_runtime_report.json": full_report,
     }
@@ -571,6 +689,8 @@ def validate_env(blockers: List[str]) -> None:
         "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE": "true",
         "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD": "true",
         "REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE": "true",
+        "REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN": "true",
+        "REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX": MATRIX_ID,
         "GENERATED_VLM_FIXTURES_ONLY": "true",
         "HF_HUB_OFFLINE": "1",
         "TRANSFORMERS_OFFLINE": "1",
@@ -636,7 +756,7 @@ def main() -> int:
         if not blockers:
             asset_verification = download_and_verify_assets(client, model_root, blockers, warnings)
         if asset_verification.get("status") == "verified" and not blockers:
-            runtime_summary = run_worker(run_id, report_dir, fixture_dir, model_root, blockers, warnings)
+            runtime_summary = run_worker(run_id, created_at, report_dir, fixture_dir, model_root, blockers, warnings)
     except Exception as exc:
         traceback.print_exc(file=sys.stderr)
         blockers.append(f"phase39c_cloud_job_unhandled_error:{str(exc)[:240]}")

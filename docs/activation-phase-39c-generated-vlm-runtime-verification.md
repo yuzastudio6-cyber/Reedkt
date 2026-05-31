@@ -1,12 +1,12 @@
 # Phase 39C Generated Qwen3-VL/vLLM Runtime Verification
 
-Status: `blocked_l4_vllm_cuda_oom`
+Status: `blocked_l4_vllm_cuda_oom_after_tuning`
 
-Guarded run: `phase39c-20260531T202358`
+Latest guarded run: `phase39c-20260531T214216`
 
-Private artifact prefix: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T202358/`
+Latest private artifact prefix: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/`
 
-Uploaded JSON artifacts verified: `12`
+Latest uploaded JSON artifacts verified: `13`
 
 Phase 39C is the Track B generated-fixture VLM runtime verification gate for `Qwen/Qwen3-VL-8B-Instruct`. It consumes Phase 39A approval evidence and Phase 39B private model staging evidence only.
 
@@ -71,10 +71,20 @@ The delta report records two applied conditional bindings for `reeditpro-stg-gpu
 
 ## Current Blocker
 
-The guarded L4 path reran as `phase39c-20260531T202358`, built and pushed the staging image `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:phase39c-20260531t202358` with digest `sha256:cdc2b7361740cb33c04ed7b4615396242f4a1cd999591ef958a3441dab9b29c9`, deployed job `reeditpro-stg-vlm-runtime-phase39c` with one `nvidia-l4`, `8` CPU, `32Gi` memory, max retries `0`, and no public endpoint, then executed Cloud Run execution `reeditpro-stg-vlm-runtime-phase39c-fjdgw`.
+The L4 tuning follow-up added a bounded `l4-oom-remediation-v1` profile matrix and reran the staging Cloud Run Job without changing model revision, model files, GPU class, prompt scope, or media scope.
 
-The latest worker copied all 15 exact Phase 39B private model objects, verified every per-file SHA-256, recomputed the Phase 39B aggregate SHA-256 `3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908`, prepared the local model directory, and uploaded 12 private JSON QA artifacts to the approved Phase 39C QA prefix. Runtime auto-download remained blocked because vLLM was invoked with the verified local model directory only.
+Attempted profiles:
 
-vLLM did not reach generated-fixture inference. Engine initialization on the L4 task failed with `torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.40 GiB is free. Process 3028 has 17.56 GiB memory in use. Of the allocated memory 17.23 GiB is allocated by PyTorch, and 78.55 MiB is reserved by PyTorch but unallocated.` Cloud Run marked the execution `Completed=False` with `NonZeroExitCode`.
+- `conservative-eager-short-context`: blocked during vLLM engine initialization with CUDA OOM before fixture inference.
+- `conservative-cuda-graph-lower-reservation`: blocked during vLLM engine initialization with CUDA OOM before fixture inference.
+- `auto-fit-context`: skipped because vLLM `0.11.0` does not expose a safe auto-fit `max_model_len` value for this worker path.
+- `cpu-offload-short-context`: not executed because Cloud Run rejected both `48Gi` and `64Gi` for the approved `8` CPU L4 job shape; the current platform limit reported by gcloud is `4Gi` to `32Gi`.
+- `minimal-smoke-one-fixture`: executed as diagnostic-only run `phase39c-20260531T214216` and still blocked during vLLM engine initialization with CUDA OOM before a single generated fixture could run.
 
-Because vLLM initialization failed, structured output validation, object-region QA, safe-zone QA, hallucination/safety QA, and generated fixture inference remain blocked. VLM tool-family beta status is `blocked`. Phase 39D remains blocked until Phase 39C reruns with an approved remediation, starts vLLM successfully from the verified local model path, and passes generated-fixture QA. Approved remediation must stay within Phase 39C scope, such as L4 runtime configuration tuning or a later explicit approval for a smaller model, quantized variant, or different GPU class; Phase 39C does not approve those changes by itself.
+The latest diagnostic run built and pushed the staging image `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:phase39c-20260531t214216`, deployed job `reeditpro-stg-vlm-runtime-phase39c` with one `nvidia-l4`, `8` CPU, `32Gi` memory, max retries `0`, and no public endpoint, then executed Cloud Run execution `reeditpro-stg-vlm-runtime-phase39c-xcz4t`.
+
+The worker copied the exact Phase 39B private model objects, verified every per-file SHA-256, recomputed the Phase 39B aggregate SHA-256 `3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908`, prepared the local model directory, and uploaded 13 private JSON QA artifacts to the approved Phase 39C QA prefix. Runtime auto-download remained blocked because vLLM was invoked with the verified local model directory only.
+
+The safe log summary for the minimal profile reported `OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.56 GiB is free. Process 3093 has 17.40 GiB memory in use. Of the allocated memory 17.11 GiB is allocated by PyTorch, and 39.77 MiB is reserved by PyTorch but unallocated.` The stack failed inside vLLM `LLM(...)` / `EngineCoreClient.make_client` / `wait_for_engine_startup`, so fixture inference was never reached.
+
+Because vLLM initialization failed for the L4-safe profiles, structured output validation, object-region QA, safe-zone QA, hallucination/safety QA, and generated fixture inference remain blocked. VLM tool-family beta status is `blocked`. Phase 39D remains blocked until a later approved path changes the blocker, such as official quantized Qwen3-VL approval/private staging, smaller VLM candidate approval/private staging, a different GPU-class approval, or a deeper vLLM configuration follow-up only if new logs identify a specific fix. Phase 39C does not approve those changes by itself.

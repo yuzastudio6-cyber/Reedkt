@@ -3,12 +3,14 @@ import { buildVlmGeneratedFixtureManifest } from './vlm-generated-fixture-regist
 import { buildVlmPromptTemplateManifest, phase39CVlmOutputSchema } from './vlm-prompt-template-registry'
 import { buildVlmRuntimeCommandPlan } from './vlm-runtime-command-plan'
 import { buildVlmRuntimeIamPlan } from './vlm-runtime-iam-plan'
+import { buildVlmRuntimeL4TuningMatrixReport } from './vlm-runtime-l4-tuning-report-builder'
 import { validateVlmRuntimeStaticPlan, vlmRuntimeConfig, vlmRuntimeDoesNotDo } from './vlm-runtime-policy'
 import { vlmRuntimeBlockedScopes, vlmRuntimeSafetyGates } from './vlm-runtime-blocker-policy'
 import type {
   VlmFixtureRuntimeResult,
   VlmModelAssetVerificationReport,
   VlmRuntimeExecutionReport,
+  VlmRuntimeL4TuningMatrixReport,
   VlmRuntimeStaticReportInput,
 } from './vlm-runtime-types'
 
@@ -56,6 +58,7 @@ export function buildVlmRuntimePlan(createdAt = new Date().toISOString(), runId 
     commandPlan: buildVlmRuntimeCommandPlan(),
     iamPlan: buildVlmRuntimeIamPlan(createdAt),
     safetyGates: vlmRuntimeSafetyGates,
+    l4TuningMatrix: buildVlmRuntimeL4TuningMatrixReport({ runId, createdAt }),
     blockedScopes: vlmRuntimeBlockedScopes,
     doesNotDo: vlmRuntimeDoesNotDo,
     blockers: validation.blockers,
@@ -110,6 +113,7 @@ export function buildVlmRuntimeStaticReports(input: VlmRuntimeStaticReportInput 
     safeZoneQaReport: buildSafeZoneQaReport(runId, []),
     hallucinationSafetyReport: buildHallucinationSafetyReport(runId, []),
     costMemoryReport: buildCostMemoryReport(runId, false, false, ['Execution not run.']),
+    l4TuningMatrixReport: buildVlmRuntimeL4TuningMatrixReport({ runId, createdAt }),
     privateArtifactManifest: {
       phase: '39C' as const,
       runId,
@@ -136,6 +140,7 @@ export function buildVlmRuntimeExecutionReport(input: {
   localGpuAvailable: boolean
   stagingCloudRunRequested: boolean
   runtimeVersion?: string
+  l4TuningMatrix?: VlmRuntimeL4TuningMatrixReport
 }): VlmRuntimeExecutionReport {
   const phase39B = getApprovedVlmModelDownloadEvidence()
   const qaBlockers = [
@@ -209,6 +214,7 @@ export function buildVlmRuntimeExecutionReport(input: {
       warnings: Array.from(new Set(qaWarnings)),
     },
     costMemory: buildCostMemoryReport(input.runId, input.localGpuAvailable, input.stagingCloudRunRequested, qaWarnings),
+    l4TuningMatrix: input.l4TuningMatrix,
     artifacts: input.uploadedArtifacts,
     privateArtifactPrefix: input.privateArtifactPrefix,
     vlmToolFamilyBetaStatus,

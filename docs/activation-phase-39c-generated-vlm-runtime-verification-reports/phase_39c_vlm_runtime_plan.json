@@ -1,8 +1,8 @@
 {
   "phase": "39C",
   "reportId": "phase_39c_vlm_runtime_plan",
-  "createdAt": "2026-05-31T20:25:20.654660Z",
-  "runId": "phase39c-20260531T202358",
+  "createdAt": "2026-05-31T21:44:00.619428Z",
+  "runId": "phase39c-20260531T214216",
   "modelId": "Qwen/Qwen3-VL-8B-Instruct",
   "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
   "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
@@ -20,5 +20,9 @@
   "betaReadyAllowed": false,
   "trackAAllowed": false,
   "stagingCloudRunJob": "reeditpro-stg-vlm-runtime-phase39c",
-  "gpuType": "nvidia-l4"
+  "gpuType": "nvidia-l4",
+  "tuningProfileMatrix": "l4-oom-remediation-v1",
+  "selectedTuningProfileIds": [
+    "minimal-smoke-one-fixture"
+  ]
 }

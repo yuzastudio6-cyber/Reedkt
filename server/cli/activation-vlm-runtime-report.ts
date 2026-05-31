@@ -22,6 +22,7 @@ if (writeArtifacts && artifactDir) {
   await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_vlm_safe_zone_qa_report.json'), reports.safeZoneQaReport)
   await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_vlm_hallucination_safety_report.json'), reports.hallucinationSafetyReport)
   await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_vlm_runtime_cost_memory_report.json'), reports.costMemoryReport)
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_vlm_l4_tuning_matrix_report.json'), reports.l4TuningMatrixReport)
   await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_private_artifact_manifest.json'), reports.privateArtifactManifest)
   await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_generated_vlm_runtime_report.json'), reports.fullReport)
 }

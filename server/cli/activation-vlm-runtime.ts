@@ -13,6 +13,10 @@ const artifactDirArg = process.argv.find((arg) => arg.startsWith('--safe-artifac
 const artifactDir = artifactDirArg?.split('=')[1]
 const runIdArg = process.argv.find((arg) => arg.startsWith('--run-id='))
 const runId = runIdArg?.split('=')[1]
+const tuningProfileMatrixArg = process.argv.find((arg) => arg.startsWith('--tuning-profile-matrix='))
+const tuningProfileMatrixFlagIndex = process.argv.indexOf('--tuning-profile-matrix')
+const tuningProfileMatrix = tuningProfileMatrixArg?.split('=')[1]
+  ?? (tuningProfileMatrixFlagIndex >= 0 ? process.argv[tuningProfileMatrixFlagIndex + 1] : undefined)
 
 if (!execute) {
   console.log([
@@ -26,6 +30,7 @@ if (!execute) {
     execute: true,
     keepTemp,
     runId,
+    tuningProfileMatrix,
   })
   if (artifactDir) await copyVlmRuntimeSafeArtifacts({
     fromReportDir: result.localArtifactDir,

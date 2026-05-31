@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import inspect
 import json
 import os
 import socket
@@ -11,6 +12,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from PIL import Image, ImageDraw, ImageFont
+
+from classify_oom import classify_oom
+from l4_tuning_profiles import get_profile
 
 
 MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct"
@@ -97,7 +101,8 @@ def draw_text(draw: ImageDraw.ImageDraw, xy: Tuple[int, int], text: str, size: i
     draw.text(xy, text, font=load_font(size, bold=bold), fill=fill)
 
 
-def generate_fixture(spec: Dict[str, Any], out_dir: Path) -> Path:
+def generate_fixture(spec: Dict[str, Any], out_dir: Path, image_max_size: int) -> Path:
+    out_dir.mkdir(parents=True, exist_ok=True)
     image = Image.new("RGB", (int(spec["width"]), int(spec["height"])), (246, 248, 250))
     draw = ImageDraw.Draw(image)
     fixture_id = spec["fixtureId"]
@@ -140,6 +145,8 @@ def generate_fixture(spec: Dict[str, Any], out_dir: Path) -> Path:
     else:
         draw_text(draw, (70, 70), fixture_id, 42)
     out_path = out_dir / f"{fixture_id}.png"
+    if image_max_size and max(image.size) > image_max_size:
+        image.thumbnail((image_max_size, image_max_size), Image.Resampling.LANCZOS)
     image.save(out_path)
     return out_path
 
@@ -156,29 +163,66 @@ def build_prompt(template: Dict[str, Any], fixture_path: Path) -> str:
     )
 
 
-def run_vllm(model_dir: Path, fixtures: List[Dict[str, Any]], templates: List[Dict[str, Any]], fixture_dir: Path) -> Tuple[str, List[Dict[str, Any]]]:
+def supported_llm_kwargs(llm_class, kwargs: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
+    signature = inspect.signature(llm_class.__init__)
+    parameters = signature.parameters
+    if any(parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters.values()):
+        return kwargs, []
+    filtered: Dict[str, Any] = {}
+    dropped: List[str] = []
+    for key, value in kwargs.items():
+        if key in parameters:
+            filtered[key] = value
+        else:
+            dropped.append(key)
+    return filtered, dropped
+
+
+def run_vllm(model_dir: Path, fixtures: List[Dict[str, Any]], templates: List[Dict[str, Any]], fixture_dir: Path, profile_id: str) -> Tuple[str, List[Dict[str, Any]], Dict[str, Any]]:
     if str(model_dir) == MODEL_ID or not model_dir.exists():
         raise RuntimeError("PHASE39C_LOCAL_MODEL_PATH_REQUIRED")
+    profile = get_profile(profile_id)
+    if profile.unsupported_reason:
+        return "skipped", [], {
+            "profileId": profile.profile_id,
+            "status": "skipped",
+            "diagnosticOnly": profile.diagnostic_only,
+            "profile": profile.to_report(),
+            "fixtureResults": [],
+            "blockers": [f"tuning_profile_unsupported:{profile.profile_id}:{profile.unsupported_reason}"],
+            "warnings": [],
+            "oomClassification": classify_oom(""),
+        }
     with NetworkGuard() as guard:
         import vllm
         from vllm import LLM, SamplingParams
 
-        llm = LLM(
-            model=str(model_dir),
-            tokenizer=str(model_dir),
-            trust_remote_code=True,
-            max_model_len=4096,
-            limit_mm_per_prompt={"image": 1},
-            max_num_seqs=1,
-            max_num_batched_tokens=4096,
-            enforce_eager=True,
-            gpu_memory_utilization=0.9,
-        )
-        sampling = SamplingParams(temperature=0.0, max_tokens=256)
+        llm_kwargs = {
+            "model": str(model_dir),
+            "tokenizer": str(model_dir),
+            "trust_remote_code": True,
+            "max_model_len": profile.max_model_len,
+            "limit_mm_per_prompt": {"image": 1},
+            "max_num_seqs": profile.max_num_seqs,
+            "max_num_batched_tokens": profile.max_num_batched_tokens,
+            "enforce_eager": profile.enforce_eager,
+            "gpu_memory_utilization": profile.gpu_memory_utilization,
+            "mm_processor_cache_gb": profile.mm_processor_cache_gb,
+            "cpu_offload_gb": profile.cpu_offload_gb,
+            "disable_log_stats": True,
+        }
+        llm_kwargs = {key: value for key, value in llm_kwargs.items() if value is not None}
+        llm_kwargs, dropped_kwargs = supported_llm_kwargs(LLM, llm_kwargs)
+        llm = LLM(**llm_kwargs)
+        sampling = SamplingParams(temperature=0.0, top_p=1.0, max_tokens=profile.max_tokens)
         requests = []
         fixture_paths = {}
-        for spec in fixtures:
-            fixture_path = generate_fixture(spec, fixture_dir)
+        selected_fixtures = [
+            spec for spec in fixtures
+            if profile.fixture_ids is None or spec["fixtureId"] in profile.fixture_ids
+        ]
+        for spec in selected_fixtures:
+            fixture_path = generate_fixture(spec, fixture_dir / profile.profile_id, profile.image_max_size)
             fixture_paths[spec["fixtureId"]] = fixture_path
             template = next(item for item in templates if item["fixtureId"] == spec["fixtureId"])
             requests.append({"prompt": build_prompt(template, fixture_path), "multi_modal_data": {"image": Image.open(fixture_path)}})
@@ -186,10 +230,22 @@ def run_vllm(model_dir: Path, fixtures: List[Dict[str, Any]], templates: List[Di
         if guard.network_attempted:
             raise RuntimeError("PHASE39C_RUNTIME_NETWORK_ATTEMPTED")
     results = []
-    for spec, output in zip(fixtures, outputs):
+    for spec, output in zip(selected_fixtures, outputs):
         text = output.outputs[0].text if output.outputs else ""
         results.append(score_fixture(spec, text, runtime="vllm"))
-    return getattr(vllm, "__version__", "unknown"), results
+    profile_status = "passed" if all(result["status"] in ["passed", "warning"] for result in results) and len(results) == len(selected_fixtures) else "blocked"
+    if profile.diagnostic_only and profile_status == "passed":
+        profile_status = "diagnostic_passed"
+    return getattr(vllm, "__version__", "unknown"), results, {
+        "profileId": profile.profile_id,
+        "status": profile_status,
+        "diagnosticOnly": profile.diagnostic_only,
+        "profile": profile.to_report(),
+        "fixtureResults": results,
+        "blockers": [] if profile_status == "passed" else [f"tuning_profile_incomplete:{profile.profile_id}"],
+        "warnings": [f"unsupported_llm_kwarg_dropped:{key}" for key in dropped_kwargs],
+        "oomClassification": classify_oom("", enforce_eager=profile.enforce_eager),
+    }
 
 
 def score_fixture(spec: Dict[str, Any], raw_text: str, runtime: str) -> Dict[str, Any]:
@@ -197,7 +253,10 @@ def score_fixture(spec: Dict[str, Any], raw_text: str, runtime: str) -> Dict[str
     warnings: List[str] = []
     parsed: Dict[str, Any] = {}
     try:
-        parsed = json.loads(raw_text.strip())
+        text = raw_text.strip()
+        if not text.startswith("{") and "{" in text and "}" in text:
+            text = text[text.find("{"):text.rfind("}") + 1]
+        parsed = json.loads(text)
     except Exception:
         blockers.append("output_json_parse_failed")
     objects = parsed.get("objects", []) if isinstance(parsed, dict) else []
@@ -252,6 +311,7 @@ def main() -> int:
     parser.add_argument("--model-dir", required=True)
     parser.add_argument("--fixture-manifest-path", required=True)
     parser.add_argument("--prompt-manifest-path", required=True)
+    parser.add_argument("--tuning-profile-id", default=os.environ.get("REEDITPRO_VLM_L4_TUNING_PROFILE_ID", "conservative-eager-short-context"))
     args = parser.parse_args()
 
     for key in ["HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"]:
@@ -265,16 +325,39 @@ def main() -> int:
     fixtures = json.loads(Path(args.fixture_manifest_path).read_text())["specs"]
     templates = json.loads(Path(args.prompt_manifest_path).read_text())["templates"]
     try:
-        runtime_version, results = run_vllm(Path(args.model_dir), fixtures, templates, fixture_dir)
-        runtime_status = "passed" if all(result["status"] in ["passed", "warning"] for result in results) else "blocked"
-        summary = {"runtimeStatus": runtime_status, "runtimeVersion": runtime_version, "fixtureResults": results}
+        runtime_version, results, profile_result = run_vllm(Path(args.model_dir), fixtures, templates, fixture_dir, args.tuning_profile_id)
+        runtime_status = "passed" if profile_result["status"] == "passed" else "blocked"
+        summary = {
+            "runtimeStatus": runtime_status,
+            "runtimeVersion": runtime_version,
+            "fixtureResults": results,
+            "selectedProfileId": args.tuning_profile_id if runtime_status == "passed" else None,
+            "tuningProfileResult": profile_result,
+            "blockers": profile_result.get("blockers", []),
+            "warnings": profile_result.get("warnings", []),
+        }
     except Exception as exc:
         traceback.print_exc(file=sys.stderr)
+        profile = get_profile(args.tuning_profile_id)
+        text = traceback.format_exc()
+        classification = classify_oom(text, enforce_eager=profile.enforce_eager)
         summary = {
             "runtimeStatus": "blocked",
             "runtimeVersion": None,
             "fixtureResults": [],
+            "selectedProfileId": None,
+            "tuningProfileResult": {
+                "profileId": args.tuning_profile_id,
+                "status": "blocked",
+                "diagnosticOnly": profile.diagnostic_only,
+                "profile": profile.to_report(),
+                "fixtureResults": [],
+                "blockers": [f"vllm_runtime_failed:{str(exc)[:240]}"],
+                "warnings": [],
+                "oomClassification": classification,
+            },
             "blockers": [f"vllm_runtime_failed:{str(exc)[:240]}"],
+            "warnings": [classification["safeSummary"]] if classification.get("isCudaOom") else [],
         }
     print(json.dumps(summary, separators=(",", ":")))
     return 0

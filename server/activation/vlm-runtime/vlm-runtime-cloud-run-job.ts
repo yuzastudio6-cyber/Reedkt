@@ -5,6 +5,7 @@ import { promisify } from 'node:util'
 import { VLM_RUNTIME_EXPECTED_ARTIFACTS } from './vlm-runtime-blocker-policy'
 import { sha256File } from './vlm-runtime-checksum-verifier'
 import { parseGcloudJson, runGcloud } from './vlm-runtime-gcs-model-resolver'
+import { VLM_RUNTIME_L4_TUNING_MATRIX_ID } from './vlm-runtime-l4-tuning-profiles'
 import { phase39CVlmRuntimeArtifactPrefix, vlmRuntimeConfig } from './vlm-runtime-policy'
 import type { VlmRuntimeArtifact, VlmRuntimeExecutionReport } from './vlm-runtime-types'
 
@@ -58,6 +59,7 @@ export async function buildAndPushVlmRuntimeStagingImage(runId: string): Promise
 export async function runVlmRuntimeStagingCloudRunJob(input: {
   runId: string
   reportDir: string
+  tuningProfileMatrix?: string
 }): Promise<{
   executionReport?: VlmRuntimeExecutionReport
   uploadedArtifacts: VlmRuntimeArtifact[]
@@ -71,14 +73,19 @@ export async function runVlmRuntimeStagingCloudRunJob(input: {
   const imageBuild = await buildAndPushVlmRuntimeStagingImage(input.runId)
   blockers.push(...imageBuild.blockers)
   warnings.push(...imageBuild.warnings)
+  let executionAttempted = false
   if (blockers.length === 0) {
+    let deployed = false
     try {
       await deployVlmRuntimeCloudRunJob({
         runId: input.runId,
         imageRef: imageBuild.imageRef,
         artifactPrefix,
+        tuningProfileMatrix: input.tuningProfileMatrix,
       })
+      deployed = true
       warnings.push(`staging_cloud_run_job_deployed:${vlmRuntimeConfig.stagingCloudRunJobName}`)
+      executionAttempted = true
       await runGcloud([
         'run',
         'jobs',
@@ -93,16 +100,27 @@ export async function runVlmRuntimeStagingCloudRunJob(input: {
       warnings.push(`staging_cloud_run_job_executed:${vlmRuntimeConfig.stagingCloudRunJobName}`)
     } catch (error) {
       blockers.push(`phase39c_staging_cloud_run_job_failed:${summarizeCommandError(error)}`)
-      const diagnostics = await collectLatestCloudRunExecutionDiagnostics()
-      blockers.push(...diagnostics.blockers)
-      warnings.push(...diagnostics.warnings)
+      if (deployed) {
+        const diagnostics = await collectLatestCloudRunExecutionDiagnostics()
+        blockers.push(...diagnostics.blockers)
+        warnings.push(...diagnostics.warnings)
+      } else {
+        warnings.push('phase39c_cloud_run_execution_diagnostics_skipped:deploy_failed_before_execution')
+      }
     }
   }
 
-  const download = await downloadVlmRuntimeStagingReports({
-    reportDir: input.reportDir,
-    artifactPrefix,
-  })
+  const download = executionAttempted
+    ? await downloadVlmRuntimeStagingReports({
+        reportDir: input.reportDir,
+        artifactPrefix,
+      })
+    : {
+        executionReport: undefined,
+        uploadedArtifacts: [] as VlmRuntimeArtifact[],
+        blockers: ['phase39c_staging_artifact_download_skipped:cloud_run_execution_not_started'],
+        warnings: [] as string[],
+      }
   blockers.push(...download.blockers)
   warnings.push(...download.warnings)
   return {
@@ -118,7 +136,11 @@ async function deployVlmRuntimeCloudRunJob(input: {
   runId: string
   imageRef: string
   artifactPrefix: string
+  tuningProfileMatrix?: string
 }): Promise<void> {
+  const tuningMatrix = input.tuningProfileMatrix || process.env.REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX || VLM_RUNTIME_L4_TUNING_MATRIX_ID
+  const tuningProfileIds = process.env.REEDITPRO_VLM_L4_TUNING_PROFILE_IDS || 'conservative-eager-short-context,conservative-cuda-graph-lower-reservation,auto-fit-context'
+  const memory = resolveCloudRunMemory(tuningProfileIds)
   const jobEnv = serializeEnvVars({
     GCP_PROJECT_ID: vlmRuntimeConfig.projectId,
     GCP_REGION: vlmRuntimeConfig.region,
@@ -133,6 +155,9 @@ async function deployVlmRuntimeCloudRunJob(input: {
     REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE: 'true',
     REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD: 'true',
     REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE: 'true',
+    REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN: 'true',
+    REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX: tuningMatrix,
+    REEDITPRO_VLM_L4_TUNING_PROFILE_IDS: tuningProfileIds,
     GENERATED_VLM_FIXTURES_ONLY: 'true',
     HF_HUB_OFFLINE: '1',
     TRANSFORMERS_OFFLINE: '1',
@@ -150,6 +175,7 @@ async function deployVlmRuntimeCloudRunJob(input: {
     REEDITPRO_BROAD_REAL_MEDIA_READY: 'false',
     TRACK_A_EXECUTION_ENABLED: 'false',
     VLLM_WORKER_MULTIPROC_METHOD: 'spawn',
+    PYTORCH_CUDA_ALLOC_CONF: 'expandable_segments:True',
   })
   await runGcloud([
     'run',
@@ -175,7 +201,7 @@ async function deployVlmRuntimeCloudRunJob(input: {
     '--cpu',
     '8',
     '--memory',
-    '32Gi',
+    memory,
     '--gpu',
     '1',
     '--gpu-type',
@@ -184,6 +210,14 @@ async function deployVlmRuntimeCloudRunJob(input: {
     '--set-env-vars',
     jobEnv,
   ], 30 * 60 * 1000)
+}
+
+function resolveCloudRunMemory(profileIds: string): '32Gi' | '48Gi' | '64Gi' {
+  const requested = process.env.REEDITPRO_VLM_CLOUD_RUN_MEMORY
+  if (!requested) return '32Gi'
+  if (requested === '32Gi') return '32Gi'
+  if ((requested === '48Gi' || requested === '64Gi') && profileIds === 'cpu-offload-short-context') return requested
+  throw new Error(`Phase 39C refuses Cloud Run memory ${requested} for profile ids ${profileIds}. 48Gi/64Gi is allowed only for cpu-offload-short-context.`)
 }
 
 async function downloadVlmRuntimeStagingReports(input: {
@@ -312,12 +346,15 @@ async function runCommand(command: string, args: string[], timeout: number): Pro
 }
 
 function serializeEnvVars(values: Record<string, string>): string {
-  return Object.entries(values)
-    .map(([key, value]) => `${key}=${value.replaceAll(',', '\\,')}`)
-    .join(',')
+  const delimiter = '@'
+  return `^${delimiter}^${Object.entries(values)
+    .map(([key, value]) => `${key}=${value.replaceAll(delimiter, '')}`)
+    .join(delimiter)}`
 }
 
 function summarizeCommandError(error: unknown): string {
   const maybe = error as { message?: string; stderr?: string; stdout?: string }
-  return String(maybe?.stderr || maybe?.stdout || maybe?.message || error).replace(/\s+/g, ' ').slice(0, 900)
+  const summary = String(maybe?.stderr || maybe?.stdout || maybe?.message || error).replace(/\s+/g, ' ').trim()
+  if (summary.length <= 900) return summary
+  return `${summary.slice(0, 420)} … ${summary.slice(-420)}`
 }

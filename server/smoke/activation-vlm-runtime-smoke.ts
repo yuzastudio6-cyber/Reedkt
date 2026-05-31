@@ -5,6 +5,7 @@ import {
   buildVlmPromptTemplateManifest,
   buildVlmRuntimeCommandPlan,
   buildVlmRuntimeIamPlan,
+  buildVlmRuntimeL4TuningMatrixReport,
   buildVlmRuntimePlan,
   buildVlmRuntimeReadiness,
   getApprovedVlmRuntimeEvidence,
@@ -12,6 +13,7 @@ import {
   phase39CVlmOutputSchema,
   validateVlmRuntimeExecutionEnv,
   validateVlmRuntimeStaticPlan,
+  vlmRuntimeL4TuningProfiles,
   vlmRuntimeBlockedScopes,
   vlmRuntimeConfig,
 } from '../activation/vlm-runtime'
@@ -63,7 +65,9 @@ assert.equal(validateVlmRuntimeExecutionEnv({
   env: 'staging',
   privateGcsReadConfirmation: 'true',
   runtimeExecuteConfirmation: 'true',
-  artifactUploadConfirmation: 'true',
+    artifactUploadConfirmation: 'true',
+    l4TuningRerunConfirmation: 'true',
+    tuningProfileMatrix: 'l4-oom-remediation-v1',
   modelGcsPath: vlmRuntimeConfig.modelGcsPath,
   aggregateSha256: vlmRuntimeConfig.aggregateSha256,
   generatedFixturesOnly: 'true',
@@ -103,6 +107,7 @@ assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_C
 assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD'), true)
 assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_STAGING_CLOUD_RUN_JOB'), true)
 assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE'), true)
+assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN'), true)
 assert.match(commandPlan.map((plan) => plan.commandString).join('\n'), /--cpu=8 --memory=32Gi/)
 assert.equal(commandPlan.every((plan) => plan.textOnlyByDefault), true)
 assert.doesNotMatch(commandPlan.map((plan) => plan.commandString).join('\n'), /Qwen\/Qwen3-VL-8B-Instruct\s*$|provider|dashscope|openai/i)
@@ -128,6 +133,12 @@ assert.equal(plan.realMediaAllowed, false)
 assert.equal(plan.publicOutputAllowed, false)
 assert.equal(plan.productionReadyAllowed, false)
 assert.equal(plan.trackAAllowed, false)
+assert.equal(vlmRuntimeL4TuningProfiles.some((profile) => profile.profileId === 'conservative-eager-short-context'), true)
+assert.equal(vlmRuntimeL4TuningProfiles.some((profile) => profile.profileId === 'cpu-offload-short-context' && profile.launchArgs.cpuOffloadGb === 8), true)
+assert.equal(vlmRuntimeL4TuningProfiles.some((profile) => profile.profileId === 'minimal-smoke-one-fixture' && profile.diagnosticOnly), true)
+const tuningReport = buildVlmRuntimeL4TuningMatrixReport({ runId: 'phase39c-test' })
+assert.equal(tuningReport.matrixId, 'l4-oom-remediation-v1')
+assert.equal(tuningReport.minimalSmokeCompletesPhase39C, false)
 
 const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { scripts: Record<string, string> }
 assert.equal(packageJson.scripts['activation:vlm-runtime:plan'], 'tsx server/cli/activation-vlm-runtime-plan.ts')

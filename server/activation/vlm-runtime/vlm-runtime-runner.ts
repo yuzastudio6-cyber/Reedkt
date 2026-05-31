@@ -9,6 +9,7 @@ import { VLM_RUNTIME_EXPECTED_ARTIFACTS } from './vlm-runtime-blocker-policy'
 import { buildVlmModelAssetVerificationReport } from './vlm-runtime-checksum-verifier'
 import { runVlmRuntimeStagingCloudRunJob } from './vlm-runtime-cloud-run-job'
 import { describePhase39BVlmObjects, copyPhase39BVlmAssetsFromPrivateGcs, parseGcloudJson, runGcloud, verifyVlmRuntimeBuckets } from './vlm-runtime-gcs-model-resolver'
+import { buildVlmRuntimeL4TuningMatrixReport } from './vlm-runtime-l4-tuning-report-builder'
 import { phase39CVlmRuntimeArtifactPrefix, validateVlmRuntimeExecutionEnv, vlmRuntimeConfig } from './vlm-runtime-policy'
 import {
   buildCostMemoryReport,
@@ -34,6 +35,7 @@ export async function runVlmRuntimeVerification(input: {
   keepTemp?: boolean
   runId?: string
   localRoot?: string
+  tuningProfileMatrix?: string
 }): Promise<VlmRuntimeExecutionResult> {
   if (!input.execute) throw new Error('Pass --execute to run the Phase 39C generated VLM runtime verification flow.')
   const runId = input.runId ?? `phase39c-${new Date().toISOString().replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
@@ -46,12 +48,13 @@ export async function runVlmRuntimeVerification(input: {
   let fixtureResults: VlmFixtureRuntimeResult[] = []
   let runtimeStatus: 'passed' | 'warning' | 'blocked' | 'skipped' = 'blocked'
   let runtimeVersion: string | undefined
+  let l4TuningMatrix = buildVlmRuntimeL4TuningMatrixReport({ runId, createdAt })
   let artifactsAlreadyUploadedAndVerified = false
 
   await rm(localRoot, { recursive: true, force: true })
   await mkdir(reportDir, { recursive: true })
 
-  const preflight = await runVlmRuntimePreflight(runId)
+  const preflight = await runVlmRuntimePreflight(runId, input.tuningProfileMatrix)
   const executionBlockers = [...preflight.blockers]
   const executionWarnings = [...preflight.warnings]
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_vlm_runtime_plan.json'), buildVlmRuntimePlan(createdAt, runId))
@@ -66,7 +69,7 @@ export async function runVlmRuntimeVerification(input: {
   })
 
   if (preflight.allowed && preflight.stagingCloudRunRequested) {
-    const stagingRun = await runVlmRuntimeStagingCloudRunJob({ runId, reportDir })
+    const stagingRun = await runVlmRuntimeStagingCloudRunJob({ runId, reportDir, tuningProfileMatrix: input.tuningProfileMatrix })
     uploadedArtifacts = stagingRun.uploadedArtifacts
     artifactsAlreadyUploadedAndVerified = uploadedArtifacts.length >= VLM_RUNTIME_EXPECTED_ARTIFACTS.length
     executionBlockers.push(...stagingRun.blockers)
@@ -78,6 +81,7 @@ export async function runVlmRuntimeVerification(input: {
         ? stagingRun.executionReport.runtime.runtimeStatus
         : 'blocked'
       runtimeVersion = stagingRun.executionReport.runtime.runtimeVersion
+      l4TuningMatrix = stagingRun.executionReport.l4TuningMatrix ?? l4TuningMatrix
       executionBlockers.push(...stagingRun.executionReport.blockers)
       executionWarnings.push(...stagingRun.executionReport.warnings)
     }
@@ -120,6 +124,7 @@ export async function runVlmRuntimeVerification(input: {
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_vlm_safe_zone_qa_report.json'), buildSafeZoneQaReport(runId, fixtureResults))
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_vlm_hallucination_safety_report.json'), buildHallucinationSafetyReport(runId, fixtureResults))
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_vlm_runtime_cost_memory_report.json'), buildCostMemoryReport(runId, preflight.localGpuAvailable, preflight.stagingCloudRunRequested, executionWarnings))
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_vlm_l4_tuning_matrix_report.json'), l4TuningMatrix)
 
   let finalReport = buildVlmRuntimeExecutionReport({
     runId,
@@ -134,6 +139,7 @@ export async function runVlmRuntimeVerification(input: {
     localGpuAvailable: preflight.localGpuAvailable,
     stagingCloudRunRequested: preflight.stagingCloudRunRequested,
     runtimeVersion,
+    l4TuningMatrix,
   })
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_generated_vlm_runtime_report.json'), finalReport)
 
@@ -200,6 +206,7 @@ export async function runVlmRuntimeVerification(input: {
     localGpuAvailable: preflight.localGpuAvailable,
     stagingCloudRunRequested: preflight.stagingCloudRunRequested,
     runtimeVersion,
+    l4TuningMatrix,
   })
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_generated_vlm_runtime_report.json'), finalReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_private_artifact_manifest.json'), {
@@ -244,7 +251,7 @@ export async function runVlmRuntimeVerification(input: {
   }
 }
 
-export async function runVlmRuntimePreflight(runId: string): Promise<VlmRuntimePreflightReport & {
+export async function runVlmRuntimePreflight(runId: string, tuningProfileMatrix?: string): Promise<VlmRuntimePreflightReport & {
   allowed: boolean
   modelObjectMetadata: Awaited<ReturnType<typeof describePhase39BVlmObjects>>
 }> {
@@ -277,6 +284,7 @@ export async function runVlmRuntimePreflight(runId: string): Promise<VlmRuntimeP
 
   const envValidation = validateVlmRuntimeExecutionEnv({
     activeProject,
+    tuningProfileMatrix,
   })
   blockers.push(...envValidation.blockers)
   warnings.push(...envValidation.warnings)

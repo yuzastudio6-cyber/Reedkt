@@ -1,166 +1,212 @@
 {
   "phase": "39C",
-  "runId": "phase39c-20260531T114924",
+  "runId": "phase39c-20260531T202358",
   "modelId": "Qwen/Qwen3-VL-8B-Instruct",
   "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
   "modelGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
   "aggregateSha256": "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908",
+  "computedAggregateSha256": "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908",
   "entries": [
     {
       "relativePath": "README.md",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+      "localPath": "redacted_phase39c_local_model_dir/README.md",
       "expectedSha256": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7",
       "expectedSizeBytes": 7133,
-      "actualSizeBytes": 7133,
+      "verified": true,
       "generation": "1780196915114659",
-      "verified": true
+      "crc32c": "iQXKsw==",
+      "md5Hash": "7OWxYJllQ6QMeAY5kzVanQ==",
+      "actualSizeBytes": 7133,
+      "actualSha256": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7"
     },
     {
       "relativePath": "chat_template.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+      "localPath": "redacted_phase39c_local_model_dir/chat_template.json",
       "expectedSha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
       "expectedSizeBytes": 5499,
-      "actualSizeBytes": 5499,
+      "verified": true,
       "generation": "1780196916966250",
-      "verified": true
+      "crc32c": "euaTdg==",
+      "md5Hash": "NA1mlhNpVLg+i1Q0pZjMsQ==",
+      "actualSizeBytes": 5499,
+      "actualSha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce"
     },
     {
       "relativePath": "config.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+      "localPath": "redacted_phase39c_local_model_dir/config.json",
       "expectedSha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
       "expectedSizeBytes": 1474,
-      "actualSizeBytes": 1474,
+      "verified": true,
       "generation": "1780196918909530",
-      "verified": true
+      "crc32c": "Y+/hmA==",
+      "md5Hash": "FwaNcQnn33iuF6lS9jE4wA==",
+      "actualSizeBytes": 1474,
+      "actualSha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661"
     },
     {
       "relativePath": "generation_config.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+      "localPath": "redacted_phase39c_local_model_dir/generation_config.json",
       "expectedSha256": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44",
       "expectedSizeBytes": 269,
-      "actualSizeBytes": 269,
+      "verified": true,
       "generation": "1780196920805525",
-      "verified": true
+      "crc32c": "HofJtA==",
+      "md5Hash": "/4M0HLNhdO3ST2SsAzFSdA==",
+      "actualSizeBytes": 269,
+      "actualSha256": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44"
     },
     {
       "relativePath": "merges.txt",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+      "localPath": "redacted_phase39c_local_model_dir/merges.txt",
       "expectedSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
       "expectedSizeBytes": 1671839,
-      "actualSizeBytes": 1671839,
+      "verified": true,
       "generation": "1780196923035319",
-      "verified": true
+      "crc32c": "TsXDRw==",
+      "md5Hash": "54iCwuIkp1+oGA7GELriQw==",
+      "actualSizeBytes": 1671839,
+      "actualSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
     },
     {
       "relativePath": "model-00001-of-00004.safetensors",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+      "localPath": "redacted_phase39c_local_model_dir/model-00001-of-00004.safetensors",
       "expectedSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
       "expectedSizeBytes": 4902275944,
-      "actualSizeBytes": 4902275944,
+      "verified": true,
       "generation": "1780197312068182",
-      "verified": true
+      "crc32c": "rNua9Q==",
+      "md5Hash": null,
+      "actualSizeBytes": 4902275944,
+      "actualSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa"
     },
     {
       "relativePath": "model-00002-of-00004.safetensors",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+      "localPath": "redacted_phase39c_local_model_dir/model-00002-of-00004.safetensors",
       "expectedSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
       "expectedSizeBytes": 4915962496,
-      "actualSizeBytes": 4915962496,
+      "verified": true,
       "generation": "1780197625122751",
-      "verified": true
+      "crc32c": "anrvSA==",
+      "md5Hash": null,
+      "actualSizeBytes": 4915962496,
+      "actualSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5"
     },
     {
       "relativePath": "model-00003-of-00004.safetensors",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+      "localPath": "redacted_phase39c_local_model_dir/model-00003-of-00004.safetensors",
       "expectedSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
       "expectedSizeBytes": 4999831048,
-      "actualSizeBytes": 4999831048,
+      "verified": true,
       "generation": "1780197922867701",
-      "verified": true
+      "crc32c": "mTL3og==",
+      "md5Hash": null,
+      "actualSizeBytes": 4999831048,
+      "actualSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192"
     },
     {
       "relativePath": "model-00004-of-00004.safetensors",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+      "localPath": "redacted_phase39c_local_model_dir/model-00004-of-00004.safetensors",
       "expectedSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
       "expectedSizeBytes": 2716270024,
-      "actualSizeBytes": 2716270024,
+      "verified": true,
       "generation": "1780198066365852",
-      "verified": true
+      "crc32c": "xabQcg==",
+      "md5Hash": null,
+      "actualSizeBytes": 2716270024,
+      "actualSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5"
     },
     {
       "relativePath": "model.safetensors.index.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+      "localPath": "redacted_phase39c_local_model_dir/model.safetensors.index.json",
       "expectedSha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
       "expectedSizeBytes": 67759,
-      "actualSizeBytes": 67759,
+      "verified": true,
       "generation": "1780198068603691",
-      "verified": true
+      "crc32c": "zGJWgA==",
+      "md5Hash": "FbsncbepYQtPEpgxn1jlNQ==",
+      "actualSizeBytes": 67759,
+      "actualSha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070"
     },
     {
       "relativePath": "preprocessor_config.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+      "localPath": "redacted_phase39c_local_model_dir/preprocessor_config.json",
       "expectedSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
       "expectedSizeBytes": 390,
-      "actualSizeBytes": 390,
+      "verified": true,
       "generation": "1780198070116804",
-      "verified": true
+      "crc32c": "8VGvsA==",
+      "md5Hash": "e8rt9yagWSRZWwMC0N1Nxw==",
+      "actualSizeBytes": 390,
+      "actualSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
     },
     {
       "relativePath": "tokenizer.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+      "localPath": "redacted_phase39c_local_model_dir/tokenizer.json",
       "expectedSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
       "expectedSizeBytes": 7032403,
-      "actualSizeBytes": 7032403,
+      "verified": true,
       "generation": "1780198072411670",
-      "verified": true
+      "crc32c": "kbuigA==",
+      "md5Hash": "8TGUaAiR5f1YF6VqNBvwFQ==",
+      "actualSizeBytes": 7032403,
+      "actualSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7"
     },
     {
       "relativePath": "tokenizer_config.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+      "localPath": "redacted_phase39c_local_model_dir/tokenizer_config.json",
       "expectedSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
       "expectedSizeBytes": 10868,
-      "actualSizeBytes": 10868,
+      "verified": true,
       "generation": "1780198074196242",
-      "verified": true
+      "crc32c": "cGn/Jg==",
+      "md5Hash": "UMXTfZ05BODiQ+cJvbtsNw==",
+      "actualSizeBytes": 10868,
+      "actualSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399"
     },
     {
       "relativePath": "video_preprocessor_config.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+      "localPath": "redacted_phase39c_local_model_dir/video_preprocessor_config.json",
       "expectedSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
       "expectedSizeBytes": 385,
-      "actualSizeBytes": 385,
+      "verified": true,
       "generation": "1780198075858186",
-      "verified": true
+      "crc32c": "cNRL4Q==",
+      "md5Hash": "QbyE16pwh5leC4/TwKKd+g==",
+      "actualSizeBytes": 385,
+      "actualSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"
     },
     {
       "relativePath": "vocab.json",
       "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+      "localPath": "redacted_phase39c_local_model_dir/vocab.json",
       "expectedSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
       "expectedSizeBytes": 2776833,
-      "actualSizeBytes": 2776833,
+      "verified": true,
       "generation": "1780198077910354",
-      "verified": true
+      "crc32c": "DhkvIQ==",
+      "md5Hash": "YTuOSmIsSiyQ6eEkX8VA1g==",
+      "actualSizeBytes": 2776833,
+      "actualSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
     }
   ],
-  "status": "blocked",
-  "blockers": [
-    "local_model_payload_checksum_verification_not_run"
-  ],
+  "status": "verified",
+  "blockers": [],
   "warnings": [
-    "metadata_only_verification_for:README.md",
-    "metadata_only_verification_for:chat_template.json",
-    "metadata_only_verification_for:config.json",
-    "metadata_only_verification_for:generation_config.json",
-    "metadata_only_verification_for:merges.txt",
-    "metadata_only_verification_for:model-00001-of-00004.safetensors",
-    "metadata_only_verification_for:model-00002-of-00004.safetensors",
-    "metadata_only_verification_for:model-00003-of-00004.safetensors",
-    "metadata_only_verification_for:model-00004-of-00004.safetensors",
-    "metadata_only_verification_for:model.safetensors.index.json",
-    "metadata_only_verification_for:preprocessor_config.json",
-    "metadata_only_verification_for:tokenizer.json",
-    "metadata_only_verification_for:tokenizer_config.json",
-    "metadata_only_verification_for:video_preprocessor_config.json",
-    "metadata_only_verification_for:vocab.json"
+    "phase39c_staging_l4_cloud_run_job_path_used",
+    "(EngineCore_DP0 pid=51)\u001b[0;0m                ^^^^^^^^^^^^^^^^^\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.40 GiB is free. Process 3028 has 17.56 GiB memory in use. Of the allocated memory 17.23 GiB is allocated by PyTorch, and 78.55 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n[rank0]:[W531 13:32:21.503989991 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nTraceback (most recent call last):\n  File \"/app/server/workers/vlm-runtime/run-generated-vlm-fixture.py\", line 268, in main\n    runtime_version, results = run_vllm(Path(args.model_dir), fixtures, templates, fixture_dir)\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/server/workers/vlm-runtime/run-generated-vlm-fixture.py\", line 166, in run_vllm\n    llm = LLM(\n          ^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/llm.py\", line 297, in __init__\n    self.llm_engine = LLMEngine.from_engine_args(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 177, in from_engine_args\n    return cls(vllm_config=vllm_config,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 114, in __init__\n    self.engine_core = EngineCoreClient.make_client(\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 80, in make_client\n    return SyncMPClient(vllm_config, executor_class, log_stats)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 602, in __init__\n    super().__init__(\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 448, in __init__\n    with launch_core_engines(vllm_config, executor_class,\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/contextlib.py\", line 144, in __exit__\n    next(self.gen)\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py\", line 732, in launch_core_engines\n    wait_for_engine_startup(\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py\", line 785, in wait_for_engine_startup\n    raise RuntimeError(\"Engine core initialization failed. \"\nRuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}\n"
   ]
 }

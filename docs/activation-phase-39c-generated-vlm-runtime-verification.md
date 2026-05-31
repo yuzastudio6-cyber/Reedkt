@@ -1,10 +1,10 @@
 # Phase 39C Generated Qwen3-VL/vLLM Runtime Verification
 
-Status: `blocked_pending_guarded_l4_rerun`
+Status: `blocked_l4_vllm_cuda_oom`
 
-Guarded run: `phase39c-20260531T114924`
+Guarded run: `phase39c-20260531T202358`
 
-Private artifact prefix: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T114924/`
+Private artifact prefix: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T202358/`
 
 Uploaded JSON artifacts verified: `12`
 
@@ -67,12 +67,14 @@ After the first guarded L4 failure, Phase 39C recorded a scoped IAM plan/apply e
 - `phase_39c_vlm_runtime_iam_after.json`
 - `phase_39c_vlm_runtime_iam_delta_report.json`
 
-The delta report records two applied conditional bindings for `reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com`: `roles/storage.objectViewer` limited to the exact Phase 39B model prefix and `roles/storage.objectCreator` limited to the Phase 39C generated VLM runtime QA prefix. `missingRequiredBindings` is empty, `broadAccessGranted` is `false`, and `publicAccessGranted` is `false`, meaning this Phase 39C update did not grant broad or public access. The delta report also preserves warnings for a pre-existing unconditioned storage binding for the Phase 39C member that was detected and left unchanged. The plan still rejects `storage.objects.list`, public principals, project-wide storage roles, unconditioned bucket-wide Phase 39C roles, and broad admin/editor roles. QA artifact readback remains optional/deferred and skipped by default.
+The delta report records two applied conditional bindings for `reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com`: `roles/storage.objectViewer` limited to the exact Phase 39B model prefix and `roles/storage.objectCreator` limited to the Phase 39C generated VLM runtime QA prefix. `missingRequiredBindings` is empty, `broadAccessGranted` is `false`, and `publicAccessGranted` is `false`, meaning this Phase 39C update did not grant broad or public access. The delta report also preserves warnings for a pre-existing unconditioned storage binding for the Phase 39C member that was detected and left unchanged. The plan still rejects `storage.objects.list`, public principals, project-wide storage roles, unconditioned bucket-wide Phase 39C roles, and broad admin/editor roles. QA artifact readback remains optional/deferred and skipped by default. The latest guarded rerun used exact Phase 39B object names from the manifest and did not require broad prefix listing.
 
 ## Current Blocker
 
-The guarded L4 path built and pushed the staging image `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:phase39c-20260531t114924` with digest `sha256:c7d01243dcc2b21db6709ab5e55b25122980836114db5bd4f3f04936be99c885`, deployed job `reeditpro-stg-vlm-runtime-phase39c` with one `nvidia-l4`, `8` CPU, `32Gi` memory, max retries `0`, and no public endpoint, then executed it. The Cloud Run task failed before checksum verification because `reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com` received `403` responses reading the Phase 39B model objects and writing the Phase 39C QA reports.
+The guarded L4 path reran as `phase39c-20260531T202358`, built and pushed the staging image `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:phase39c-20260531t202358` with digest `sha256:cdc2b7361740cb33c04ed7b4615396242f4a1cd999591ef958a3441dab9b29c9`, deployed job `reeditpro-stg-vlm-runtime-phase39c` with one `nvidia-l4`, `8` CPU, `32Gi` memory, max retries `0`, and no public endpoint, then executed Cloud Run execution `reeditpro-stg-vlm-runtime-phase39c-fjdgw`.
 
-The scoped IAM evidence above addresses the original worker storage-access blocker, but the generated-fixture runtime has not been rerun in the current shell because the required execution confirmations are absent. The local runner uploaded 12 safe JSON blocker reports from the developer account after the worker failed. vLLM did not start, the 15 model files were not copied by the worker, local SHA-256 verification did not run, and generated fixture QA did not execute.
+The latest worker copied all 15 exact Phase 39B private model objects, verified every per-file SHA-256, recomputed the Phase 39B aggregate SHA-256 `3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908`, prepared the local model directory, and uploaded 12 private JSON QA artifacts to the approved Phase 39C QA prefix. Runtime auto-download remained blocked because vLLM was invoked with the verified local model directory only.
 
-VLM tool-family beta status is `blocked`. Phase 39D remains blocked until the guarded L4 job is rerun from the current source, the worker verifies all Phase 39B checksums, starts vLLM from the local model path, and passes generated-fixture QA.
+vLLM did not reach generated-fixture inference. Engine initialization on the L4 task failed with `torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.40 GiB is free. Process 3028 has 17.56 GiB memory in use. Of the allocated memory 17.23 GiB is allocated by PyTorch, and 78.55 MiB is reserved by PyTorch but unallocated.` Cloud Run marked the execution `Completed=False` with `NonZeroExitCode`.
+
+Because vLLM initialization failed, structured output validation, object-region QA, safe-zone QA, hallucination/safety QA, and generated fixture inference remain blocked. VLM tool-family beta status is `blocked`. Phase 39D remains blocked until Phase 39C reruns with an approved remediation, starts vLLM successfully from the verified local model path, and passes generated-fixture QA. Approved remediation must stay within Phase 39C scope, such as L4 runtime configuration tuning or a later explicit approval for a smaller model, quantized variant, or different GPU class; Phase 39C does not approve those changes by itself.

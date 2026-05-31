@@ -1,7 +1,7 @@
 {
   "phase": "39C",
-  "runId": "phase39c-20260531T114924",
-  "createdAt": "2026-05-31T11:49:24.411Z",
+  "runId": "phase39c-20260531T202358",
+  "createdAt": "2026-05-31T20:25:20.654660Z",
   "schemaId": "phase39c_vlm_fixture_output_v1",
   "rawPromptAllowed": false,
   "providerCallsAllowed": false,

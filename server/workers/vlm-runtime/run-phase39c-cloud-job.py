@@ -52,6 +52,24 @@ EXPECTED_ASSETS = [
     ("vocab.json", 2776833, "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"),
 ]
 
+PHASE39B_AGGREGATE_ORDER = {
+    "chat_template.json": 0,
+    "config.json": 1,
+    "generation_config.json": 2,
+    "merges.txt": 3,
+    "model-00001-of-00004.safetensors": 4,
+    "model-00002-of-00004.safetensors": 5,
+    "model-00003-of-00004.safetensors": 6,
+    "model-00004-of-00004.safetensors": 7,
+    "model.safetensors.index.json": 8,
+    "preprocessor_config.json": 9,
+    "README.md": 10,
+    "tokenizer_config.json": 11,
+    "tokenizer.json": 12,
+    "video_preprocessor_config.json": 13,
+    "vocab.json": 14,
+}
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -197,13 +215,13 @@ def sha256_file(path: Path) -> str:
 
 def aggregate_sha(entries: List[Dict[str, Any]]) -> str:
     lines = []
-    for entry in sorted(entries, key=lambda item: item["relativePath"]):
+    for entry in sorted(entries, key=lambda item: (PHASE39B_AGGREGATE_ORDER[item["relativePath"]], item["relativePath"])):
         actual_sha = entry.get("actualSha256")
         actual_size = entry.get("actualSizeBytes")
         if not actual_sha or actual_size is None:
             continue
         lines.append(f"{entry['relativePath']} {actual_sha} {actual_size}")
-    return hashlib.sha256(("\n".join(lines) + "\n").encode("utf-8")).hexdigest()
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
 
 
 def download_and_verify_assets(client: storage.Client, model_root: Path, blockers: List[str], warnings: List[str]) -> Dict[str, Any]:
@@ -527,15 +545,15 @@ def upload_reports(client: storage.Client, report_dir: Path, bucket_name: str, p
     for artifact in collect_report_artifacts(report_dir, bucket_name, prefix):
         try:
             blob = bucket.blob(artifact["object"])
-            blob.upload_from_filename(artifact["localPath"], content_type="application/json")
-            blob.reload()
+            blob.upload_from_filename(
+                artifact["localPath"],
+                content_type="application/json",
+                if_generation_match=0,
+            )
             uploaded.append({
                 **artifact,
                 "generation": str(blob.generation) if blob.generation is not None else None,
                 "metageneration": str(blob.metageneration) if blob.metageneration is not None else None,
-                "crc32c": blob.crc32c,
-                "md5Hash": blob.md5_hash,
-                "sizeBytes": blob.size,
             })
         except Exception as exc:
             blockers.append(f"phase39c_private_artifact_upload_failed:{artifact['id']}:{str(exc)[:240]}")
@@ -624,8 +642,8 @@ def main() -> int:
         blockers.append(f"phase39c_cloud_job_unhandled_error:{str(exc)[:240]}")
     reports = build_reports(run_id, created_at, report_dir, asset_verification, runtime_summary, blockers, warnings)
     write_reports(report_dir, reports)
-    uploaded = upload_reports(client, report_dir, bucket_name, prefix, blockers)
-    reports = build_reports(run_id, created_at, report_dir, asset_verification, runtime_summary, blockers, warnings, uploaded)
+    planned_uploads = collect_report_artifacts(report_dir, bucket_name, prefix)
+    reports = build_reports(run_id, created_at, report_dir, asset_verification, runtime_summary, blockers, warnings, planned_uploads)
     write_reports(report_dir, reports)
     uploaded = upload_reports(client, report_dir, bucket_name, prefix, blockers)
     print(json.dumps({

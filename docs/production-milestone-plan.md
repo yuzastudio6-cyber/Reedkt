@@ -49,11 +49,13 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Prompt 3A hardening result: broad project creation remains fail-closed, access IDs use UUID validation, project reads return explicit access status, and service-role summaries remain limited to safe auth/profile/workspace/project fields.
 - Prompt 3A build/lint status: lint and server typecheck pass; full build is blocked by a Vite/Rolldown native binding code-signature issue. See `docs/prompt-03a-auth-rls-fix-results.md`.
 - Prompt 3A RLS status: `database/test-sql/006_auth_workspace_rls_smoke_tests.draft.sql` remains draft-only until local fixtures and schema-era cleanup are ready.
+- Prompt 3B validation state: validation environment runbook and diagnostics script exist. `npm ci`, lint, and server typecheck pass when npm uses the arm64 Codex Node path. Full build remains blocked by Vite/Rolldown Darwin native binding loading. Supabase CLI remains blocked by architecture mismatch. RLS SQL remains draft-only and unexecuted.
 - Must not implement: provider calls, rendering, Stripe, media processing, storage uploads, planning records, approved snapshots, credits, jobs, workers, tools, broad admin routes, SQL migrations, or bypasses around RLS.
 - Main files/tables/services: `auth.users`, `profiles`, `workspaces`, `workspace_members`, `projects`, `docs/canonical-schema-contract.md`, `docs/prompt-03-schema-target-guardrails.md`, auth bootstrap docs, backend auth middleware, service-role boundary docs.
-- What remains blocked: broad project create/update/list behavior, membership admin/invites, executed RLS validation, remote Supabase validation, audit event writes, and all non-auth production capabilities.
+- What remains blocked: full build on this host, local Supabase/RLS execution, broad project create/update/list behavior, membership admin/invites, remote Supabase validation, audit event writes, and all non-auth production capabilities.
+- Prompt 4 guardrail: Prompt 4 should wait until Prompt 3C or equivalent toolchain repair provides a passing full build path or approved CI route, plus a working local/staging RLS validation path.
 - Acceptance criteria: Prompt 3 uses only canonical allowed tables, avoids legacy/draft/blocked tables, documents route contracts and RLS tests, honestly records validation, and enables no production capability outside the auth/profile/workspace/project boundary.
-- Next prompt recommendation: Prompt 3B - Auth/RLS Validation Environment Fix because full build and local RLS validation remain blocked.
+- Next prompt recommendation: Prompt 3C - Validation Toolchain Repair because Prompt 3B confirmed full build and local RLS validation remain environment-blocked.
 - GitHub deliverable: branch, commit, push, PR with tests and clear capability enabled statement.
 
 ## 4. Storage/Upload Production Runtime

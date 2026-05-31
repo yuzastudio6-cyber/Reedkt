@@ -10,6 +10,19 @@ Prompt 3A keeps `database/test-sql/006_auth_workspace_rls_smoke_tests.draft.sql`
 
 Before conversion to executable local-only SQL, a later prompt must define disposable local auth user fixtures, confirm the active migration chain applies cleanly, and prove the test touches only `auth.users`, `profiles`, `workspaces`, `workspace_members`, and `projects`.
 
+## Prompt 3B Status
+
+Prompt 3B keeps `database/test-sql/006_auth_workspace_rls_smoke_tests.draft.sql` draft-only.
+
+It was not promoted to executable SQL because:
+
+- the local Supabase CLI cannot execute on this host (`Unknown system error -86` / `bad CPU type in executable`);
+- disposable local auth fixtures are not defined;
+- schema-era cleanup/compatibility remains unresolved;
+- no local, staging, or remote Supabase SQL execution was performed.
+
+The next validation step is repairing the local or CI Supabase validation toolchain before converting or running RLS SQL.
+
 ## Scope
 
 Allowed tables:

@@ -115,3 +115,18 @@ Remote and staging Supabase were intentionally not used.
 ## Prompt 4 Decision
 
 Prompt 4 should wait. Recommended next prompt: Prompt 3B - Auth/RLS Validation Environment Fix.
+
+## Prompt 3B Follow-Up
+
+Prompt 3B is tracked in `docs/prompt-03b-validation-environment-results.md`.
+
+Prompt 3B created a validation environment runbook and local diagnostics script. It confirmed:
+
+- `npm ci` can complete from the lockfile when `PATH` prefers the arm64 Codex Node binary.
+- `npm run lint` passes with that validation path.
+- `npm run typecheck:server` passes with that validation path.
+- `npm run build` remains blocked by the same Vite/Rolldown Darwin native binding code-signature/native-binding failure.
+- Supabase CLI remains unusable on this host with `Unknown system error -86` / `bad CPU type in executable`.
+- The RLS smoke test remains draft-only and unexecuted.
+
+Prompt 4 should still wait. Recommended next prompt: Prompt 3C - Validation Toolchain Repair.

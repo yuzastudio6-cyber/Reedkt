@@ -140,7 +140,7 @@ Default foundation validation passed. With-build foundation validation classifie
 
 ## CI Status
 
-Prompt 3C Foundation Validation passed on PR #79 before Prompt 4. Prompt 4 CI status should be checked after the Prompt 4 PR opens.
+Prompt 3C Foundation Validation passed on PR #79 before Prompt 4. Prompt 4 PR: [#81](https://github.com/yuzastudio6-cyber/Reedkt/pull/81). Prompt 4 CI status should be checked after the tracker-link follow-up commit is pushed.
 
 ## Remaining Blockers
 

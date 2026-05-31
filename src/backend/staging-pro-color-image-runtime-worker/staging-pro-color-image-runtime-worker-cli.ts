@@ -8,7 +8,7 @@ import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 
-type RuntimeMode = 'generated_fixture_color_image' | 'real_video_sample'
+type RuntimeMode = 'generated_fixture_color_image' | 'real_video_sample' | 'pro_color_image_feature_e2e'
 
 interface BaseRuntimeEnv {
   projectId: 'reeditpro'
@@ -35,7 +35,18 @@ interface Phase40CRuntimeEnv extends BaseRuntimeEnv {
   maxFrameCount: number
 }
 
-type RuntimeEnv = Phase40BRuntimeEnv | Phase40CRuntimeEnv
+interface Phase40DRuntimeEnv extends BaseRuntimeEnv {
+  mode: 'pro_color_image_feature_e2e'
+  previewsBucket: 'reeditpro-staging-reeditpro-previews'
+  inputVideoGcsUri: string
+  phase40CReportGcsUri: string
+  timestampsSeconds: number[]
+  frameWidth: number
+  frameHeight: number
+  maxFrameCount: number
+}
+
+type RuntimeEnv = Phase40BRuntimeEnv | Phase40CRuntimeEnv | Phase40DRuntimeEnv
 
 interface PythonToolResult {
   toolId: 'ffprobe' | 'ffmpeg' | 'opencolorio' | 'openimageio' | 'kornia'
@@ -108,7 +119,12 @@ async function main(): Promise<void> {
     return
   }
 
-  await runPhase40CRealVideoSampleMode(storage, env, workDir, outputPath)
+  if (env.mode === 'real_video_sample') {
+    await runPhase40CRealVideoSampleMode(storage, env, workDir, outputPath)
+    return
+  }
+
+  await runPhase40DFeatureE2EMode(storage, env, workDir, outputPath)
 }
 
 async function runPhase40BGeneratedFixtureMode(storage: Storage, env: Phase40BRuntimeEnv, workDir: string, outputPath: string): Promise<void> {
@@ -356,6 +372,176 @@ async function runPhase40CRealVideoSampleMode(storage: Storage, env: Phase40CRun
   }, null, 2))
 }
 
+async function runPhase40DFeatureE2EMode(storage: Storage, env: Phase40DRuntimeEnv, workDir: string, outputPath: string): Promise<void> {
+  const sourcePath = path.join(workDir, 'source', 'phase32-color-corrected-export.mp4')
+  const phase40CReportPath = path.join(workDir, 'evidence', 'phase40c-report.json')
+  await mkdir(path.dirname(sourcePath), { recursive: true })
+  await mkdir(path.dirname(phase40CReportPath), { recursive: true })
+  await downloadGcsUri(storage, env.inputVideoGcsUri, sourcePath)
+  await downloadGcsUri(storage, env.phase40CReportGcsUri, phase40CReportPath)
+  const phase40CReport = JSON.parse(await readFile(phase40CReportPath, 'utf8')) as {
+    ok?: boolean
+    qa?: { status?: string; blockers?: string[] }
+    tools?: Array<{ toolId?: string; status?: string; version?: string; metrics?: Record<string, unknown> }>
+  }
+  const phase40CBlockers = validatePhase40CReport(phase40CReport)
+  if (phase40CBlockers.length) throw new Error(`Phase 40C evidence is not eligible for Phase 40D:\n- ${phase40CBlockers.join('\n- ')}`)
+
+  const planSnapshot = buildPhase40DPlanSnapshot(env)
+  const planArtifact = await uploadJson(storage, env.generatedAssetsBucket, `${env.artifactPrefix}/plan/approved-plan-snapshot.json`, planSnapshot, 'approved_plan_snapshot')
+  const pythonOutput = await runLocalRuntime(workDir, outputPath, {
+    REEDITPRO_PHASE40D_LOCAL_INPUT_VIDEO: sourcePath,
+    REEDITPRO_PHASE40C_LOCAL_REPORT: phase40CReportPath,
+  })
+  if (!pythonOutput.source || !pythonOutput.sample) throw new Error('Phase 40D feature E2E runtime did not return source/sample output.')
+
+  const artifacts: ArtifactRecord[] = [planArtifact]
+  const frameUris: string[] = []
+  for (const framePath of pythonOutput.sample.framePaths) {
+    const artifact = await uploadFile(storage, env.generatedAssetsBucket, `${env.artifactPrefix}/frames/input/${path.basename(framePath)}`, framePath, 'image/png', 'input_frame')
+    artifacts.push(artifact)
+    frameUris.push(artifact.gcsUri)
+  }
+  for (const tool of pythonOutput.tools) {
+    for (const artifactPath of tool.artifacts) {
+      const bucket = artifactPath === pythonOutput.contactSheetPath ? env.previewsBucket : env.generatedAssetsBucket
+      const object = artifactPath === pythonOutput.contactSheetPath
+        ? `${env.artifactPrefix}/contact-sheet/${path.basename(artifactPath)}`
+        : `${env.artifactPrefix}/frames/${tool.toolId}/${path.basename(artifactPath)}`
+      artifacts.push(await uploadFile(storage, bucket, object, artifactPath, mimeForPath(artifactPath), `${tool.toolId}_artifact`))
+    }
+  }
+  if (pythonOutput.contactSheetPath && !artifacts.some((artifact) => artifact.kind === 'contact_sheet')) {
+    artifacts.push(await uploadFile(storage, env.previewsBucket, `${env.artifactPrefix}/contact-sheet/${path.basename(pythonOutput.contactSheetPath)}`, pythonOutput.contactSheetPath, 'image/png', 'contact_sheet'))
+  }
+
+  const sourceArtifact = await uploadJson(storage, env.generatedAssetsBucket, `${env.artifactPrefix}/source/source-validation.json`, {
+    phase: '40D',
+    runId: env.runId,
+    inputVideoGcsUri: env.inputVideoGcsUri,
+    sourceRunId: 'phase32-20260528T13330',
+    ...pythonOutput.source,
+  }, 'source_validation')
+  const sampleArtifact = await uploadJson(storage, env.generatedAssetsBucket, `${env.artifactPrefix}/sample/sample-manifest.json`, {
+    phase: '40D',
+    runId: env.runId,
+    timestampsSeconds: pythonOutput.sample.timestampsSeconds,
+    frameCount: pythonOutput.sample.frameCount,
+    width: pythonOutput.sample.width,
+    height: pythonOutput.sample.height,
+    frameUris,
+    fullVideoExtractionAllowed: false,
+    full4KProcessingAllowed: false,
+  }, 'sample_manifest')
+  const metadataArtifact = await uploadJson(storage, env.generatedAssetsBucket, `${env.artifactPrefix}/metadata/pro-color-image-feature-e2e-runtime-metadata.json`, {
+    phase: '40D',
+    runId: env.runId,
+    runtimeMode: env.mode,
+    image: imageInfo(),
+    tools: pythonOutput.tools,
+    runtimeDiagnostics: pythonOutput.runtimeDiagnostics,
+    phase40CReport: {
+      runId: 'phase40c-20260531T11504',
+      gcsUri: env.phase40CReportGcsUri,
+      ok: phase40CReport.ok === true,
+    },
+    safety: phase40DRuntimeSafety(),
+  }, 'runtime_metadata')
+  const contactSheetUri = artifacts.find((artifact) => artifact.kind === 'contact_sheet')?.gcsUri
+  const reviewManifestArtifact = await uploadJson(storage, env.previewsBucket, `${env.artifactPrefix}/review/private-review-manifest.json`, {
+    phase: '40D',
+    runId: env.runId,
+    contactSheet: contactSheetUri,
+    feature: 'pro_color_image_feature_e2e',
+    publicAccessAllowed: false,
+    signedUrlsCreated: false,
+    finalDeliveryCreated: false,
+    fullVideoProcessed: false,
+  }, 'private_review_manifest')
+  artifacts.push(sourceArtifact, sampleArtifact, metadataArtifact, reviewManifestArtifact)
+
+  const qa = buildPhase40DQa(pythonOutput, artifacts, env, phase40CReport)
+  const qaArtifact = await uploadJson(storage, env.qaBucket, `${env.artifactPrefix}/qa/pro-color-image-feature-e2e-qa.json`, {
+    phase: '40D',
+    runId: env.runId,
+    ...qa,
+    productionReadyAllowed: false,
+    externalBetaAllowed: false,
+    paidProductionAllowed: false,
+    broadRealUserMediaAllowed: false,
+  }, 'qa')
+  artifacts.push(qaArtifact)
+
+  const report = {
+    ok: qa.status === 'passed',
+    phase: '40D',
+    runId: env.runId,
+    projectId: env.projectId,
+    jobName: 'reeditpro-staging-pro-color-image-runtime-job',
+    runtimeMode: env.mode,
+    compute: cpuCompute(),
+    image: imageInfo(),
+    runtimeDiagnostics: pythonOutput.runtimeDiagnostics,
+    source: {
+      inputVideoGcsUri: env.inputVideoGcsUri,
+      durationSeconds: pythonOutput.source.durationSeconds,
+      videoStreamPresent: pythonOutput.source.videoStreamPresent,
+      audioStreamPresent: pythonOutput.source.audioStreamPresent,
+      sourceRunId: 'phase32-20260528T13330',
+    },
+    phase40CEvidence: {
+      runId: 'phase40c-20260531T11504',
+      reportUri: env.phase40CReportGcsUri,
+      ok: phase40CReport.ok === true && phase40CReport.qa?.status === 'passed',
+    },
+    sample: {
+      timestampsSeconds: pythonOutput.sample.timestampsSeconds,
+      frameCount: pythonOutput.sample.frameCount,
+      width: pythonOutput.sample.width,
+      height: pythonOutput.sample.height,
+      frameUris,
+    },
+    planSnapshot: {
+      approvedPlanSnapshot: true,
+      rawPromptExecution: false,
+      gcsUri: planArtifact.gcsUri,
+    },
+    reviewArtifacts: {
+      contactSheetUri,
+      reviewManifestUri: reviewManifestArtifact.gcsUri,
+    },
+    tools: pythonOutput.tools,
+    artifacts,
+    qa,
+    safety: phase40DRuntimeSafety(),
+    featureReadiness: {
+      readyForInternalProColorImageFeatureTesting: qa.status === 'passed',
+      reason: qa.status === 'passed'
+        ? 'Phase 40D private pro color/image feature E2E QA passed for bounded approved real-video-derived frames.'
+        : 'Internal pro color/image feature testing remains blocked because Phase 40D QA did not pass.',
+    },
+    phase45AReadiness: {
+      readyForLibassCaptionBurnInValidation: qa.status === 'passed',
+      reason: qa.status === 'passed'
+        ? 'Phase 40D passed; Phase 45A may start libass caption burn-in validation only.'
+        : 'Phase 45A remains blocked because Phase 40D QA did not pass.',
+    },
+    blockers: qa.blockers,
+    warnings: [
+      ...pythonOutput.warnings,
+      'Private feature E2E sample only; no full-video color QA or final delivery.',
+      'Subjective visual review is recommended before broader internal use.',
+    ],
+  }
+  await uploadJson(storage, env.qaBucket, `${env.artifactPrefix}/reports/phase40d-report.json`, report, 'phase40d_report')
+  console.log(JSON.stringify({
+    ok: report.ok,
+    runId: env.runId,
+    reportUri: `gs://${env.qaBucket}/${env.artifactPrefix}/reports/phase40d-report.json`,
+    blockers: qa.blockers,
+  }, null, 2))
+}
+
 async function runLocalRuntime(workDir: string, outputPath: string, extraEnv: Record<string, string> = {}): Promise<PythonOutput> {
   const { stdout, stderr } = await execFileAsync('python3', ['/app/pro_color_image_runtime_local.py', '--work-dir', workDir, '--output', outputPath], {
     timeout: 15 * 60 * 1000,
@@ -429,6 +615,38 @@ function buildPhase40CQa(output: PythonOutput, artifacts: ArtifactRecord[], env:
   ])
 }
 
+function buildPhase40DQa(output: PythonOutput, artifacts: ArtifactRecord[], env: Phase40DRuntimeEnv, phase40CReport: { ok?: boolean; qa?: { status?: string } }) {
+  if (!output.source || !output.sample) throw new Error('Phase 40D QA requires source and sample output.')
+  const toolById = new Map(output.tools.map((tool) => [tool.toolId, tool]))
+  const blockers = output.tools.flatMap((tool) => tool.blockers)
+  if (env.inputVideoGcsUri !== 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4') blockers.push('Unexpected input video URI.')
+  if (output.sample.frameCount > env.maxFrameCount) blockers.push(`Frame count exceeds cap: ${output.sample.frameCount} > ${env.maxFrameCount}.`)
+  if (output.sample.width > env.frameWidth || output.sample.height > env.frameHeight) blockers.push(`Sample dimensions exceed cap: ${output.sample.width}x${output.sample.height}.`)
+  if (!artifacts.every((artifact) => artifact.gcsUri.startsWith('gs://reeditpro-staging-reeditpro-generated-assets/activation-pro-color-image/phase40d/')
+    || artifact.gcsUri.startsWith('gs://reeditpro-staging-reeditpro-previews/activation-pro-color-image/phase40d/')
+    || artifact.gcsUri.startsWith('gs://reeditpro-staging-reeditpro-qa-artifacts/activation-pro-color-image/phase40d/'))) {
+    blockers.push('One or more artifacts were uploaded outside approved private Phase 40D prefixes.')
+  }
+  const gates = [
+    gate('source_integrity', output.source.videoStreamPresent && output.source.audioStreamPresent && env.inputVideoGcsUri.includes('phase32-20260528T13330'), 'Approved Phase 32 source validated with video and audio streams present.'),
+    gate('phase40c_evidence', phase40CReport.ok === true && phase40CReport.qa?.status === 'passed', 'Phase 40C QA report exists and passed.'),
+    gate('plan_snapshot_integrity', artifacts.some((artifact) => artifact.kind === 'approved_plan_snapshot'), 'Approved Phase 40D plan snapshot exists and raw prompt execution is false.'),
+    gate('sample_bounds', output.sample.frameCount <= env.maxFrameCount && output.sample.width <= env.frameWidth && output.sample.height <= env.frameHeight, 'Frame count and dimensions stayed within Phase 40D bounds.'),
+    gate('openimageio_feature', toolById.get('openimageio')?.status === 'passed', toolById.get('openimageio')?.blockers.join('; ') || 'OpenImageIO feature-frame read/write passed.'),
+    gate('opencolorio_feature', toolById.get('opencolorio')?.status === 'passed', toolById.get('opencolorio')?.blockers.join('; ') || 'OpenColorIO feature-frame raw transform passed.'),
+    gate('kornia_feature', toolById.get('kornia')?.status === 'passed', toolById.get('kornia')?.blockers.join('; ') || 'Kornia feature-frame CPU metrics passed.'),
+    gate('review_artifacts', artifacts.some((artifact) => artifact.kind === 'contact_sheet') && artifacts.some((artifact) => artifact.kind === 'private_review_manifest'), 'Private contact sheet and review manifest exist.'),
+    gate('artifact_privacy', blockers.every((blocker) => !blocker.includes('outside approved private')), 'Artifacts use private staging GCS prefixes only.'),
+    gate('feature_readiness_evidence', artifacts.some((artifact) => artifact.kind === 'private_review_manifest'), 'Feature-readiness evidence includes private review manifest and automated QA.'),
+    gate('blocked_features', blockedFeaturesStillBlocked(env), 'Full-video processing, final delivery, providers, Revideo, production, beta, and broad media stayed blocked.'),
+  ]
+  return qaFromGates(blockers, gates, [
+    ...output.warnings,
+    'Private feature E2E sample only; no full-video color QA.',
+    'Subjective visual review is recommended before broader internal use.',
+  ])
+}
+
 function qaFromGates(blockers: string[], gates: ReturnType<typeof gate>[], warnings: string[]) {
   const gateBlockers = gates.filter((gateItem) => !gateItem.passed).map((gateItem) => `${gateItem.gateId}: ${gateItem.summary}`)
   return {
@@ -450,6 +668,17 @@ function validatePhase40BReport(report: { ok?: boolean; qa?: { status?: string; 
   for (const toolId of ['opencolorio', 'openimageio', 'kornia']) {
     const tool = report.tools?.find((candidate) => candidate.toolId === toolId)
     if (!tool || tool.status !== 'passed') blockers.push(`Phase 40B ${toolId} result is not passed.`)
+  }
+  return blockers
+}
+
+function validatePhase40CReport(report: { ok?: boolean; qa?: { status?: string; blockers?: string[] }; tools?: Array<{ toolId?: string; status?: string; version?: string; metrics?: Record<string, unknown> }> }): string[] {
+  const blockers: string[] = []
+  if (report.ok !== true) blockers.push('Phase 40C report does not have ok=true.')
+  if (report.qa?.status !== 'passed') blockers.push('Phase 40C QA status is not passed.')
+  for (const toolId of ['ffprobe', 'ffmpeg', 'opencolorio', 'openimageio', 'kornia']) {
+    const tool = report.tools?.find((candidate) => candidate.toolId === toolId)
+    if (!tool || tool.status !== 'passed') blockers.push(`Phase 40C ${toolId} result is not passed.`)
   }
   return blockers
 }
@@ -489,6 +718,56 @@ function buildPhase40CPlanSnapshot(env: Phase40CRuntimeEnv) {
       rawPromptExecution: false,
     },
     safety: phase40CRuntimeSafety(),
+  }
+}
+
+function buildPhase40DPlanSnapshot(env: Phase40DRuntimeEnv) {
+  return {
+    planId: 'phase40d-pro-color-image-feature-e2e-plan-v1',
+    phase: '40D',
+    phase40DRunId: env.runId,
+    approvedInputVideo: env.inputVideoGcsUri,
+    sourcePhase: 32,
+    phase40CRunId: 'phase40c-20260531T11504',
+    feature: 'pro_color_image_feature_e2e',
+    sourceValidation: {
+      expectedDurationSeconds: 15.467,
+      approvedSourceOnly: true,
+      privateSourceOnly: true,
+    },
+    tools: ['FFprobe', 'FFmpeg', 'OpenColorIO', 'OpenImageIO', 'Kornia'],
+    toolVersions: {
+      openColorIOVersion: '2.4.2',
+      openImageIOVersion: '3.0.18.1',
+      torchVersion: '2.7.1+cpu',
+      korniaVersion: '0.8.1',
+    },
+    samplePlan: {
+      timestampsSeconds: env.timestampsSeconds,
+      frameCount: env.timestampsSeconds.length,
+      frameWidth: env.frameWidth,
+      frameHeight: env.frameHeight,
+      reason: 'Private feature E2E review sample from the approved Phase 32 private export.',
+    },
+    processingPlan: [
+      'ffprobe validation',
+      'ffmpeg frame extraction and downscale',
+      'OpenImageIO read/write/metadata validation',
+      'OpenColorIO raw identity transform validation',
+      'Kornia CPU tensor metrics and grayscale output',
+      'private contact sheet and review manifest generation',
+    ],
+    outputPrefixes: {
+      generatedAssets: `gs://${env.generatedAssetsBucket}/${env.artifactPrefix}/`,
+      previews: `gs://${env.previewsBucket}/${env.artifactPrefix}/`,
+      qa: `gs://${env.qaBucket}/${env.artifactPrefix}/`,
+      workerTemp: `gs://${env.workerTempBucket}/${env.artifactPrefix}/`,
+    },
+    approval: {
+      approvedPlanSnapshot: true,
+      rawPromptExecution: false,
+    },
+    safety: phase40DRuntimeSafety(),
   }
 }
 
@@ -560,10 +839,28 @@ function phase40CRuntimeSafety() {
   }
 }
 
+function phase40DRuntimeSafety() {
+  return {
+    approvedSourceOnly: true,
+    arbitraryMediaUsed: false as const,
+    fullVideoProcessed: false as const,
+    full4KFramesProcessed: false as const,
+    finalDeliveryCreated: false as const,
+    providerExecuted: false as const,
+    revideoUsed: false as const,
+    publicAccessEnabled: false as const,
+    productionReadyAllowed: false as const,
+    externalBetaAllowed: false as const,
+    paidProductionAllowed: false as const,
+    broadRealUserMediaAllowed: false as const,
+  }
+}
+
 function readRuntimeEnv(): RuntimeEnv {
-  const mode = mustOneOf('REEDITPRO_PRO_COLOR_IMAGE_RUNTIME_MODE', ['generated_fixture_color_image', 'real_video_sample'] as const)
+  const mode = mustOneOf('REEDITPRO_PRO_COLOR_IMAGE_RUNTIME_MODE', ['generated_fixture_color_image', 'real_video_sample', 'pro_color_image_feature_e2e'] as const)
   if (mode === 'generated_fixture_color_image') return readPhase40BEnv()
-  return readPhase40CEnv()
+  if (mode === 'real_video_sample') return readPhase40CEnv()
+  return readPhase40DEnv()
 }
 
 function readPhase40BEnv(): Phase40BRuntimeEnv {
@@ -620,6 +917,39 @@ function readPhase40CEnv(): Phase40CRuntimeEnv {
   mustEqual('REEDITPRO_BROAD_REAL_MEDIA_READY', 'false')
   if (!env.artifactPrefix.endsWith(env.runId)) throw new Error('Phase 40C artifact prefix must end with the run ID.')
   if (env.timestampsSeconds.length > env.maxFrameCount) throw new Error('Phase 40C timestamp count must not exceed max frame count.')
+  return env
+}
+
+function readPhase40DEnv(): Phase40DRuntimeEnv {
+  const env: Phase40DRuntimeEnv = {
+    projectId: mustEqual('GCP_PROJECT_ID', 'reeditpro'),
+    runId: mustMatch('REEDITPRO_PHASE40D_RUN_ID', /^phase40d-[0-9A-Za-z]+$/),
+    mode: 'pro_color_image_feature_e2e',
+    generatedAssetsBucket: mustEqual('REEDITPRO_PHASE40D_GENERATED_ASSETS_BUCKET', 'reeditpro-staging-reeditpro-generated-assets'),
+    previewsBucket: mustEqual('REEDITPRO_PHASE40D_PREVIEWS_BUCKET', 'reeditpro-staging-reeditpro-previews'),
+    qaBucket: mustEqual('REEDITPRO_PHASE40D_QA_BUCKET', 'reeditpro-staging-reeditpro-qa-artifacts'),
+    workerTempBucket: mustEqual('REEDITPRO_PHASE40D_WORKER_TEMP_BUCKET', 'reeditpro-staging-reeditpro-worker-temp'),
+    artifactPrefix: mustMatch('REEDITPRO_PHASE40D_ARTIFACT_PREFIX', /^activation-pro-color-image\/phase40d\/phase40d-[0-9A-Za-z]+$/),
+    inputVideoGcsUri: mustEqual('REEDITPRO_PHASE40D_INPUT_VIDEO_GCS_URI', 'gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4'),
+    phase40CReportGcsUri: mustEqual('REEDITPRO_PHASE40C_REPORT_GCS_URI', 'gs://reeditpro-staging-reeditpro-qa-artifacts/activation-pro-color-image/phase40c/phase40c-20260531T11504/reports/phase40c-report.json'),
+    timestampsSeconds: mustNumberList('REEDITPRO_PHASE40D_TIMESTAMPS_SECONDS', [0.5, 7.7335, 14.5]),
+    frameWidth: mustNumber('REEDITPRO_PHASE40D_FRAME_WIDTH', 768),
+    frameHeight: mustNumber('REEDITPRO_PHASE40D_FRAME_HEIGHT', 432),
+    maxFrameCount: mustNumber('REEDITPRO_PHASE40D_MAX_FRAME_COUNT', 5),
+  }
+  mustEqual('GCP_REGION', 'us-central1')
+  mustEqual('REEDITPRO_ENV', 'staging')
+  mustEqual('REEDITPRO_CONFIRM_PRO_COLOR_IMAGE_FEATURE_E2E', 'true')
+  mustEqual('PROVIDER_EXECUTION_ENABLED', 'false')
+  mustEqual('REVIDEO_ENABLED', 'false')
+  mustEqual('PUBLIC_ACCESS_ENABLED', 'false')
+  mustEqual('FULL_VIDEO_PROCESSING_ENABLED', 'false')
+  mustEqual('FINAL_DELIVERY_ENABLED', 'false')
+  mustEqual('REEDITPRO_PRODUCTION_READY', 'false')
+  mustEqual('REEDITPRO_EXTERNAL_BETA_READY', 'false')
+  mustEqual('REEDITPRO_BROAD_REAL_MEDIA_READY', 'false')
+  if (!env.artifactPrefix.endsWith(env.runId)) throw new Error('Phase 40D artifact prefix must end with the run ID.')
+  if (env.timestampsSeconds.length > env.maxFrameCount) throw new Error('Phase 40D timestamp count must not exceed max frame count.')
   return env
 }
 

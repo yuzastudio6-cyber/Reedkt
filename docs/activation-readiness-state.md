@@ -10,7 +10,9 @@ Phase 32 private export and the Phase 40B QA evidence. Phase 40D completed the
 private Track A pro color/image feature E2E readiness gate for
 `phase40d-20260531T12493`, using only the approved Phase 32 source and Phase
 40C QA evidence. Internal pro color/image feature testing is ready; Phase 45A
-may start libass caption burn-in validation only.
+completed libass caption burn-in validation for `phase45a-20260531T19033`
+using only the approved Phase 32 private export and Phase 28 ASS sidecar.
+Phase 45B may start Remotion render validation only.
 Preferred base
 `origin/codex/rp-activation-38e-film-private-feature-e2e-readiness` was
 unavailable after fetch, so Phase 40A and Phase 40B are based on the completed
@@ -117,6 +119,7 @@ runtime on generated media only.
 | FILM real-video slow-motion sample | Complete for one controlled selected segment | Phase 38D execution `reeditpro-staging-film-runtime-job-pmxs7` for `phase38d-20260531T00471` processed one approved Phase 32 segment from 6.9835s to 8.4835s, 9 source frames at 512x288, 8 midpoint frames, 17 preview frames, and a private silent preview MP4. Full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, Track B tools, and broad media remain blocked. |
 | Pro color/image approval | Phase 40A review complete | Official OpenColorIO, OpenImageIO, and Kornia source/license evidence is recorded. Phase 40B generated-fixture runtime verification, Phase 40C bounded real-video sample, and Phase 40D private feature E2E readiness are complete; full-video pro color/image, final delivery, providers, Revideo, production, beta, and broad media remain blocked. |
 | Pro color/image runtime | Phase 40D private feature E2E complete | Dedicated CPU runtime verified OpenColorIO `2.4.2`, OpenImageIO `3.0.18.1`, Torch `2.7.1+cpu`, and Kornia `0.8.1` on generated `256x256` fixtures for `phase40b-20260531T10390`, on three bounded 768x432 frames from the approved Phase 32 export for `phase40c-20260531T11504`, and through the private feature E2E gate for `phase40d-20260531T12493`. Internal pro color/image feature testing is ready; Phase 45A is ready only for libass caption burn-in validation. |
+| Libass caption burn-in validation | Phase 45A complete | Dedicated CPU validation job `reeditpro-staging-libass-burnin-validation-job` verified FFmpeg/libass caption burn-in and FFprobe decode on a 5-second private preview for `phase45a-20260531T19033`. Phase 45B is ready only for Remotion render validation; final delivery, production, external beta, broad media, providers, Revideo, public delivery, arbitrary media, and Track B tools remain blocked. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
 | Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
 | Real-ESRGAN broader-scope policy | Policy complete; broader execution blocked | Phase 34E records that human visual review is required and no full-frame/full-video/blind enhancement scope is allowed yet. Additional bounded sample planning may be considered only in a later approved phase. |
@@ -155,8 +158,9 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next Track A activation phase: Phase 45A libass caption burn-in validation only after Phase 40D private pro color/image feature E2E QA passed
+- next Track A activation phase: Phase 45B Remotion render validation only after Phase 45A libass caption burn-in validation passed
 - pro color/image approval/runtime: Phase 40A review complete; Phase 40B verified OpenColorIO, OpenImageIO, and Kornia on generated fixtures; Phase 40C verified the same Track A stack on three bounded approved real-video frames; Phase 40D verified the private feature E2E gate and does not approve full-video processing, final delivery, external beta, or paid production
+- libass caption burn-in: Phase 45A verified FFmpeg/libass burn-in on a bounded 5-second private preview from the approved Phase 32 export and Phase 28 ASS captions; Phase 45B readiness is limited to Remotion render validation only
 - slow-motion execution: complete only for the explicit Phase 38D selected-segment gate; full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, and broad media remain blocked
 - provider execution: blocked
 - production: blocked

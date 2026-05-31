@@ -105,6 +105,8 @@ interface LocalObjectUploadView {
   temporaryMetadataOnly: boolean
 }
 
+const USER_UPLOAD_PURPOSES: UploadPurpose[] = ['source_media', 'reference_media', 'thumbnail']
+
 const mockUploadIntents = new Map<string, UploadIntentView>()
 const mockStorageObjects = new Map<string, StorageObjectView>()
 const mockStorageObjectByUploadIntent = new Map<string, string>()
@@ -120,11 +122,13 @@ export function createUploadService(context: ServiceContext) {
   return {
     async createUploadIntent(input: CreateUploadIntentInput) {
       const userId = getRequiredAuthUserId(context)
+      assertUserUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
         purpose: input.uploadPurpose,
         mimeType: input.mimeType,
         expectedSizeBytes: input.expectedSizeBytes,
       })
+      const accessWarnings = await assertProjectStorageAccess(context, input.workspaceId, input.projectId, 'Upload intent creation')
 
       const uploadIntentId = randomUUID()
       const now = nowIso()
@@ -181,6 +185,7 @@ export function createUploadService(context: ServiceContext) {
           uploadTarget,
           signedUrlEvent: signedUrlEvent.signedUrlEvent,
           warnings: [
+            ...accessWarnings,
             mockWarning('Upload intent creation'),
             'Upload target is temporary; canonical storage truth is bucketName + objectPath only.',
           ],
@@ -221,7 +226,20 @@ export function createUploadService(context: ServiceContext) {
         uploadIntent: mapUploadIntent(data),
         uploadTarget,
         signedUrlEvent: signedUrlEvent.signedUrlEvent,
-        warnings: ['Upload intent created without storing a signed URL as canonical truth.'],
+        warnings: [...accessWarnings, 'Upload intent created without storing a signed URL as canonical truth.'],
+      }
+    },
+
+    async getUploadIntent(uploadIntentId: string, workspaceId: string) {
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId)
+      if (uploadIntent.workspaceId !== workspaceId) {
+        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
+      }
+
+      const accessWarnings = await assertProjectStorageAccess(context, uploadIntent.workspaceId, uploadIntent.projectId, 'Upload intent lookup')
+      return {
+        uploadIntent,
+        warnings: [...accessWarnings, 'Upload intent lookup returned canonical bucket/path metadata only.'],
       }
     },
 
@@ -234,12 +252,28 @@ export function createUploadService(context: ServiceContext) {
       if (uploadIntent.status === 'finalized') {
         throw new ApiError('UPLOAD_NOT_FINALIZED', 'Upload intent is already finalized.', 409)
       }
+      const uploadMimeType = mimeType ?? uploadIntent.mimeType
+      if (mimeType && mimeType !== uploadIntent.mimeType) {
+        throw new ApiError('VALIDATION_FAILED', 'Uploaded object content type does not match the upload intent.', 400)
+      }
+      if (uploadIntent.expectedSizeBytes !== undefined && body.byteLength !== uploadIntent.expectedSizeBytes) {
+        throw new ApiError('UPLOAD_NOT_FINALIZED', 'Uploaded object size does not match expected size.', 409, {
+          expectedSizeBytes: uploadIntent.expectedSizeBytes,
+          actualSizeBytes: body.byteLength,
+        })
+      }
+      assertAllowedUpload({
+        purpose: uploadIntent.uploadPurpose,
+        mimeType: uploadMimeType,
+        expectedSizeBytes: body.byteLength,
+      })
+      const accessWarnings = await assertProjectStorageAccess(context, uploadIntent.workspaceId, uploadIntent.projectId, 'Local object upload')
 
       const metadata = await storage.putObject({
         bucketName: uploadIntent.targetBucket,
         objectPath: uploadIntent.targetPath,
         body,
-        mimeType: mimeType ?? uploadIntent.mimeType,
+        mimeType: uploadMimeType,
       })
 
       await markUploadIntentUploaded(context, uploadIntentId)
@@ -256,7 +290,10 @@ export function createUploadService(context: ServiceContext) {
 
       return {
         localObjectUpload,
-        warnings: ['Local object upload stored private test bytes under the backend storage root; no filesystem path was exposed.'],
+        warnings: [
+          ...accessWarnings,
+          'Local object upload stored private test bytes under the backend storage root; no filesystem path was exposed.',
+        ],
       }
     },
 
@@ -265,9 +302,14 @@ export function createUploadService(context: ServiceContext) {
       if (uploadIntent.workspaceId !== input.workspaceId) {
         throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
       }
+      const accessWarnings = await assertProjectStorageAccess(context, uploadIntent.workspaceId, uploadIntent.projectId, 'Upload finalization')
 
       if (uploadIntent.status === 'finalized' && uploadIntent.mediaAssetId) {
-        return loadFinalizedUploadResult(uploadIntent)
+        const result = loadFinalizedUploadResult(uploadIntent)
+        return {
+          ...result,
+          warnings: [...accessWarnings, ...result.warnings],
+        }
       }
 
       const metadata = await storage.verifyUploadedObject({
@@ -294,12 +336,17 @@ export function createUploadService(context: ServiceContext) {
         uploadIntent: finalizedIntent,
         storageObjectRecord,
         mediaAsset,
-        warnings: ['Upload finalized with canonical bucket/object metadata only; no signed URL was stored.'],
+        warnings: [...accessWarnings, 'Upload finalized with canonical bucket/object metadata only; no signed URL was stored.'],
       }
     },
 
     async recordSignedUrlEvent(input: SignedUrlEventInput) {
-      return recordSignedUrlEvent(context, input)
+      const accessWarnings = await assertSignedUrlEventAccess(context, input)
+      const result = await recordSignedUrlEvent(context, input)
+      return {
+        ...result,
+        warnings: [...accessWarnings, ...result.warnings],
+      }
     },
 
     async getStorageObjectRecord(storageObjectRecordId: string, workspaceId: string) {
@@ -307,11 +354,12 @@ export function createUploadService(context: ServiceContext) {
       if (storageObjectRecord.workspaceId !== workspaceId) {
         throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
       }
+      const accessWarnings = await assertStorageObjectAccess(context, storageObjectRecord, workspaceId, 'Storage object lookup')
 
       return {
         storageObjectRecord,
         canonicalOnly: true,
-        warnings: ['Canonical storage metadata does not include temporary URLs.'],
+        warnings: [...accessWarnings, 'Canonical storage metadata does not include temporary URLs.'],
       }
     },
 
@@ -320,6 +368,7 @@ export function createUploadService(context: ServiceContext) {
       if (storageObjectRecord.workspaceId !== workspaceId) {
         throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
       }
+      const accessWarnings = await assertStorageObjectAccess(context, storageObjectRecord, workspaceId, 'Download target creation')
 
       const expiresAt = new Date(Date.now() + context.env.signedUrlTtlSeconds * 1000).toISOString()
       const downloadTarget = await storage.createDownloadTarget({
@@ -347,7 +396,7 @@ export function createUploadService(context: ServiceContext) {
       return {
         downloadTarget,
         signedUrlEvent: signedUrlEvent.signedUrlEvent,
-        warnings: ['Download target is temporary and was not stored as canonical truth.'],
+        warnings: [...accessWarnings, 'Download target is temporary and was not stored as canonical truth.'],
       }
     },
 
@@ -363,11 +412,159 @@ export function createUploadService(context: ServiceContext) {
       if (storageObjectRecord.workspaceId !== workspaceId) {
         throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
       }
+      await assertStorageObjectAccess(context, storageObjectRecord, workspaceId, 'Local object read')
 
       const stream = await storage.createReadStream(storageObjectRecord.bucketName, storageObjectRecord.objectPath)
       return { stream, storageObjectRecord }
     },
   }
+}
+
+function assertUserUploadPurpose(purpose: UploadPurpose): void {
+  if (!USER_UPLOAD_PURPOSES.includes(purpose)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `${purpose} uploads are backend/worker-only in Prompt 4. User upload intents may target source media, reference media, or thumbnails only.`,
+      400,
+    )
+  }
+}
+
+async function assertProjectStorageAccess(
+  context: ServiceContext,
+  workspaceId: string,
+  projectId: string,
+  operation: string,
+): Promise<string[]> {
+  const userId = getRequiredAuthUserId(context)
+  const admin = context.clients.admin
+
+  if (!admin || context.env.mockOnly) {
+    if (context.env.storageMode === 'local' && context.env.allowMockWithoutSupabase) {
+      return [
+        mockWarning(`${operation} project access check`),
+        'Project/workspace access is mock-only in local storage mode without Supabase admin runtime.',
+      ]
+    }
+
+    throw new ApiError('BACKEND_REQUIRED', `${operation} requires backend project access validation.`, 503)
+  }
+
+  const { data: projectData, error: projectError } = await admin
+    .from('projects')
+    .select('id, workspace_id')
+    .eq('id', projectId)
+    .maybeSingle()
+
+  throwOnSupabaseError(projectError, 'PROJECT_NOT_FOUND')
+  if (!projectData) throw new ApiError('PROJECT_NOT_FOUND', 'Project was not found or is not accessible.', 404)
+  if (String(projectData.workspace_id) !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Project does not belong to the requested workspace.', 403)
+  }
+
+  const { data: membershipData, error: membershipError } = await admin
+    .from('workspace_members')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  throwOnSupabaseError(membershipError)
+  if (!membershipData) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Project was not found or is not accessible.', 403)
+  }
+
+  return []
+}
+
+async function assertWorkspaceStorageAccess(
+  context: ServiceContext,
+  workspaceId: string,
+  operation: string,
+): Promise<string[]> {
+  const userId = getRequiredAuthUserId(context)
+  const admin = context.clients.admin
+
+  if (!admin || context.env.mockOnly) {
+    if (context.env.storageMode === 'local' && context.env.allowMockWithoutSupabase) {
+      return [
+        mockWarning(`${operation} workspace access check`),
+        'Workspace access is mock-only in local storage mode without Supabase admin runtime.',
+      ]
+    }
+
+    throw new ApiError('BACKEND_REQUIRED', `${operation} requires backend workspace access validation.`, 503)
+  }
+
+  const { data: membershipData, error } = await admin
+    .from('workspace_members')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  throwOnSupabaseError(error)
+  if (!membershipData) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Workspace was not found or is not accessible.', 403)
+  }
+
+  return []
+}
+
+async function assertStorageObjectAccess(
+  context: ServiceContext,
+  storageObjectRecord: StorageObjectView,
+  workspaceId: string,
+  operation: string,
+): Promise<string[]> {
+  if (storageObjectRecord.workspaceId !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
+  }
+
+  if (storageObjectRecord.projectId) {
+    return assertProjectStorageAccess(context, workspaceId, storageObjectRecord.projectId, operation)
+  }
+
+  return assertWorkspaceStorageAccess(context, workspaceId, operation)
+}
+
+async function assertSignedUrlEventAccess(context: ServiceContext, input: SignedUrlEventInput): Promise<string[]> {
+  if (input.uploadIntentId) {
+    const uploadIntent = await loadUploadIntent(context, input.uploadIntentId)
+    if (uploadIntent.workspaceId !== input.workspaceId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
+    }
+    if (input.projectId && input.projectId !== uploadIntent.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match the upload intent.', 403)
+    }
+    if (input.storageObjectRecordId) {
+      const storageObjectRecord = await loadStorageObjectRecord(context, input.storageObjectRecordId)
+      if (storageObjectRecord.workspaceId !== uploadIntent.workspaceId) {
+        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event storage object does not match the upload intent workspace.', 403)
+      }
+      if (storageObjectRecord.projectId && storageObjectRecord.projectId !== uploadIntent.projectId) {
+        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event storage object does not match the upload intent project.', 403)
+      }
+      if (storageObjectRecord.uploadIntentId && storageObjectRecord.uploadIntentId !== uploadIntent.id) {
+        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event storage object does not match the upload intent.', 403)
+      }
+    }
+    return assertProjectStorageAccess(context, uploadIntent.workspaceId, uploadIntent.projectId, 'Signed URL event recording')
+  }
+
+  if (input.storageObjectRecordId) {
+    const storageObjectRecord = await loadStorageObjectRecord(context, input.storageObjectRecordId)
+    if (input.projectId && storageObjectRecord.projectId && input.projectId !== storageObjectRecord.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match the storage object.', 403)
+    }
+    return assertStorageObjectAccess(context, storageObjectRecord, input.workspaceId, 'Signed URL event recording')
+  }
+
+  if (input.projectId) {
+    return assertProjectStorageAccess(context, input.workspaceId, input.projectId, 'Signed URL event recording')
+  }
+
+  return assertWorkspaceStorageAccess(context, input.workspaceId, 'Signed URL event recording')
 }
 
 function uploadTargetMetadata(

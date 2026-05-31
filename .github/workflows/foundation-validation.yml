@@ -3,6 +3,7 @@ name: Foundation Validation
 on:
   pull_request:
     branches:
+      - codex/rp-foundation-03c-validation-toolchain-repair
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

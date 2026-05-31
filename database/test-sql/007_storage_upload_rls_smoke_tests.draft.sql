@@ -1,0 +1,71 @@
+-- Prompt 4 storage/upload RLS smoke tests - draft only.
+--
+-- Status:
+-- - Local/staging validation plan only.
+-- - Do not run against production.
+-- - Do not run against remote Supabase without explicit human approval.
+-- - Do not run until the local Supabase CLI/toolchain is validated.
+-- - Do not use production data, credentials, signed URLs, or private media.
+--
+-- Allowed scope:
+-- - workspaces
+-- - workspace_members
+-- - projects
+-- - upload_intents
+-- - storage_object_records
+-- - signed_url_events
+-- - media_assets only as source media finalization boundary
+--
+-- Blocked scope:
+-- - edit planning
+-- - approved snapshots
+-- - credits
+-- - jobs/workers
+-- - providers
+-- - renders/exports execution
+-- - tool runtime
+-- - SFX
+-- - StoryTiming
+-- - Stripe/billing
+--
+-- Draft fixture outline:
+--
+-- 1. Create disposable auth test users:
+--    - owner_user
+--    - member_user
+--    - outsider_user
+--
+-- 2. Create disposable workspace/project records:
+--    - workspace_a owned by owner_user
+--    - project_a in workspace_a
+--    - member_user as a workspace member/editor if roles exist
+--    - outsider_user with no membership
+--
+-- 3. Validate upload_intents:
+--    - owner/member can read upload intents scoped to project_a.
+--    - outsider cannot read upload intents for project_a.
+--    - normal user cannot create privileged/backend-only upload purposes.
+--    - expired upload intent cannot be finalized by backend logic.
+--
+-- 4. Validate storage_object_records:
+--    - backend/service-role can create bucket/path canonical records.
+--    - normal user cannot directly insert or mutate canonical records unless a reviewed policy explicitly permits it.
+--    - record stores bucket/path only; no signed URL value is present.
+--
+-- 5. Validate signed_url_events:
+--    - backend/service-role can append sanitized lifecycle events.
+--    - normal user cannot insert signed URL values or mutate existing events.
+--    - event metadata rejects credential-like/signed URL-like keys in backend validation.
+--
+-- 6. Validate storage policies:
+--    - source-media is private.
+--    - generated-assets, processed-media, previews, exports, thumbnails, qa-artifacts, and worker-temp are private by default.
+--    - worker-temp is not user-writable directly.
+--    - object paths must include workspace/project scope.
+--
+-- 7. Cleanup:
+--    - Delete disposable fixture records only.
+--    - Do not delete production or shared staging data.
+--
+-- This file intentionally remains non-executable draft SQL until the schema target,
+-- fixture helpers, and Supabase CLI environment are repaired.

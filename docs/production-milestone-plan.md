@@ -62,10 +62,15 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 4. Storage/Upload Production Runtime
 
 - Purpose: add private source media upload and storage record runtime without enabling editing execution.
-- Implements: upload intents, signed upload/download route design or implementation, canonical storage object records, source order preservation, file validation, and private bucket/RLS verification.
-- Must not implement: provider calls, media transforms, transcript analysis, rendering, export, public buckets, or persistent signed URLs.
-- Main files/tables/services: `upload_intents`, `storage_object_records`, `signed_url_events`, `media_assets`, `source_clip_sequences`, private Supabase/GCS storage services.
-- Acceptance criteria: uploads are private, canonical records store bucket/path only, signed URLs are temporary, source order is preserved, tests cover unauthorized access.
+- Implements: backend-gated upload intent creation, upload validation, canonical private storage paths, local/mock upload targets, storage object record boundaries, signed URL event boundaries, source media finalization boundaries, workspace/project access checks, route contracts, diagnostics, and draft RLS validation tests.
+- Deliverables after Prompt 4: `docs/storage-upload-production-runtime.md`, `docs/storage-upload-route-contract.md`, `docs/storage-upload-rls-test-plan.md`, `docs/prompt-04-validation-results.md`, `database/test-sql/007_storage_upload_rls_smoke_tests.draft.sql`, `scripts/validation/storage-upload-scope-diagnostics.mjs`, storage/upload route metadata updates, and storage/upload server hardening.
+- Implementation status after Prompt 4: partially implemented / limited storage-upload route-service foundation only. Production remote storage execution remains backend-required and unvalidated in this milestone.
+- Validation status after Prompt 4: lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, and foundation validation should pass locally; full build may remain locally environment-blocked and should rely on the Prompt 3C CI path; SQL/RLS remains draft-only unless a working local Supabase environment is available.
+- Must not implement: provider calls, media transforms, transcript analysis, edit planning, approved snapshots, credits, jobs, workers, rendering, export execution, public buckets, persistent signed URLs, tools, Stripe, remote Supabase migrations, or production deployment.
+- Main files/tables/services: `upload_intents`, `storage_object_records`, `signed_url_events`, `media_assets`, `uploaded_clips`, `source_sequence_items`, `projects`, `workspaces`, `workspace_members`, private Supabase/GCS storage services, `server/services/upload-service.ts`, `server/routes/upload-routes.ts`, `server/validation/upload-schemas.ts`, and `server/storage/*`.
+- What remains blocked: remote Supabase/storage validation, local/staging RLS execution, deployed bucket policy verification, production signed URL runtime without configured backend credentials, media analysis, planning, snapshots, credits, jobs, workers, providers, rendering, tools, and billing.
+- Acceptance criteria: upload boundaries are private, canonical records store bucket/path only, signed URLs are temporary response data, source media finalization does not trigger analysis/planning/execution, unauthorized access fails closed, diagnostics and validation results are honest, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 5 - Approved Plan Snapshot Service if Prompt 4 validation and CI pass; otherwise Prompt 4A - Storage Upload Validation Hardening.
 - GitHub deliverable: branch, commit, push, PR with storage validation and no provider/render/tool execution statement.
 
 ## 5. Approved Plan Snapshot Service

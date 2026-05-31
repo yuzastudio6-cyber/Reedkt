@@ -34,6 +34,15 @@ export function sanitizeFileName(input: string | undefined): string {
 }
 
 export function normalizeStoragePath(input: string): string {
+  if (!input.trim()) {
+    throw new Error('Storage path cannot be empty.')
+  }
+  if (input.includes('\0')) {
+    throw new Error('Storage path cannot contain null bytes.')
+  }
+  if (input.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(input)) {
+    throw new Error('Storage path cannot be absolute.')
+  }
   const normalized = input.replace(/\\/g, '/').split('/').filter(Boolean)
   if (normalized.some((segment) => segment === '..' || segment === '.')) {
     throw new Error('Storage path cannot contain traversal segments.')

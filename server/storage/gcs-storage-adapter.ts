@@ -154,4 +154,16 @@ function assertGcsConfigured(env: RuntimeEnv): void {
   if (!env.googleCloudProjectId) {
     throw new ApiError('MOCK_ONLY', 'GOOGLE_CLOUD_PROJECT_ID is required for STORAGE_MODE=gcs.', 503)
   }
+  if (
+    !env.gcsSourceMediaBucket
+    || !env.gcsGeneratedAssetsBucket
+    || !env.gcsProcessedMediaBucket
+    || !env.gcsPreviewsBucket
+    || !env.gcsExportsBucket
+    || !env.gcsThumbnailsBucket
+    || !env.gcsQaArtifactsBucket
+    || !env.gcsWorkerTempBucket
+  ) {
+    throw new ApiError('MOCK_ONLY', 'All private GCS bucket names are required for STORAGE_MODE=gcs.', 503)
+  }
 }

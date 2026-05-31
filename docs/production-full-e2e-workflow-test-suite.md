@@ -27,3 +27,12 @@ any SAM2 real-video mask path can be considered.
 After Phase 35D, the full E2E workflow still must not consume full-video SAM2
 masks or text-behind-subject video output. Phase 35D is limited to one private
 short segment and can only inform a later controlled segment preview gate.
+
+## Activation Phase 40A Dependency
+
+The full E2E workflow must not consume OpenColorIO, OpenImageIO, or Kornia
+runtime output after Phase 40A. Phase 40A records source/license/scope evidence
+only and approves Phase 40B generated-fixture runtime planning. Pro color/image
+real-video processing, final delivery color transforms, providers, Revideo,
+production, external beta, paid production, broad media, and public output remain
+blocked until later explicit phases.

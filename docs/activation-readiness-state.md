@@ -1,13 +1,22 @@
 # Activation Readiness State
 
+Phase 40A records the Track A pro color/image approval workflow for
+OpenColorIO, OpenImageIO, and Kornia. It is static/report-only and approves
+planning for Phase 40B generated-fixture runtime verification only. Preferred
+base `origin/codex/rp-activation-38e-film-private-feature-e2e-readiness` was
+unavailable after fetch, so Phase 40A is based on completed Phase 38D and
+documents that fallback. Runtime installation, media processing, Docker/GCP
+mutation, provider calls, Revideo, final delivery, production, external beta,
+paid production, and broad real media remain blocked.
+
 Phase 38D completed the Track A controlled selected real-video FILM slow-motion
-sample after Phase 38C verified generated-frame runtime and
-Phase 38B stored the official Google Research `film_net/Style/saved_model`
-artifact tree privately. The completed sample is limited to one approved Phase
-32 segment from `6.9835s` to `8.4835s`, 9 source frames at 512x288, and 17
-preview frames for `phase38d-20260531T00471`. Full-video interpolation, final
-delivery, audio stretching, production, external beta, broad media, providers,
-Revideo, public delivery, arbitrary media, and Track B tools remain blocked.
+sample after Phase 38C verified generated-frame runtime and Phase 38B stored
+the official Google Research `film_net/Style/saved_model` artifact tree
+privately. The completed sample is limited to one approved Phase 32 segment
+from `6.9835s` to `8.4835s`, 9 source frames at 512x288, and 17 preview frames
+for `phase38d-20260531T00471`. Full-video interpolation, final delivery, audio
+stretching, production, external beta, broad media, providers, Revideo, public
+delivery, arbitrary media, and Track B tools remain blocked.
 
 Phase 35F completed the private SAM2 feature E2E beta-readiness gate after
 Phase 35E for `phase35f-20260530T02293`. It was limited to the approved Phase
@@ -96,6 +105,7 @@ runtime on generated media only.
 | FILM model weights availability | Private staging storage verified | Phase 38B downloaded only `film_net/Style/saved_model`, recorded aggregate checksum `6f619330c4785a251883b96627dad6ed3a1e1aedc56ed4aa54e5e3f0b57ec97b`, and uploaded 9 private GCS objects. |
 | FILM runtime availability | Generated-frame runtime verified | Phase 38C execution `phase38c-20260530T23315` loaded the private Phase 38B model tree with TensorFlow 2.15.0, produced one private generated midpoint interpolation, and kept real-video slow motion, full-video interpolation, production, beta, providers, Revideo, and broad media blocked. |
 | FILM real-video slow-motion sample | Complete for one controlled selected segment | Phase 38D execution `reeditpro-staging-film-runtime-job-pmxs7` for `phase38d-20260531T00471` processed one approved Phase 32 segment from 6.9835s to 8.4835s, 9 source frames at 512x288, 8 midpoint frames, 17 preview frames, and a private silent preview MP4. Full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, Track B tools, and broad media remain blocked. |
+| Pro color/image approval | Phase 40A review complete | Official OpenColorIO, OpenImageIO, and Kornia source/license evidence is recorded. Phase 40B is ready only for generated-fixture runtime verification planning; runtime install, real-video processing, final delivery, providers, Revideo, production, beta, and broad media remain blocked. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
 | Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
 | Real-ESRGAN broader-scope policy | Policy complete; broader execution blocked | Phase 34E records that human visual review is required and no full-frame/full-video/blind enhancement scope is allowed yet. Additional bounded sample planning may be considered only in a later approved phase. |
@@ -134,7 +144,8 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next Track A activation phase: Phase 38E FILM private feature E2E readiness gate only; do not treat Phase 38D as full-video, external beta, or paid production approval
+- next Track A activation phase: Phase 40B generated-fixture pro color/image runtime verification only; do not treat Phase 40A as runtime install, real-video, final delivery, external beta, or paid production approval
+- pro color/image approval: Phase 40A review complete; OpenColorIO, OpenImageIO, and Kornia are approved only for future generated-fixture planning
 - slow-motion execution: complete only for the explicit Phase 38D selected-segment gate; full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, and broad media remain blocked
 - provider execution: blocked
 - production: blocked

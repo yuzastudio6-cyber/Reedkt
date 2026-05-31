@@ -338,13 +338,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm Phase 37C copied only the three verified Phase 37B PP-OCRv5 assets, matched SHA-256, safely extracted tar archives, and used local detection/recognition model paths.
 4. Confirm generated fixtures only were processed and required OCR recall, confidence, broad-region, and lower caption conflict-zone checks passed.
 5. Confirm runtime model auto-download, textline orientation auto-download, real media OCR, providers, Cloud Run deploy, Docker push, GPU jobs, public output, Track A, beta, production, and broad media remained blocked.
-6. Proceed to Phase 37D only as one controlled real-video OCR/caption safe-zone planning gate. Do not integrate caption/render QA until Phase 37E.
+6. Proceed to Phase 37D only as one controlled real-video OCR/caption safe-zone planning and execution gate. Do not integrate caption/render QA until Phase 37E.
 
 ## After Phase 37D
 
-1. Review `activation:controlled-real-video-ocr-safe-zone:report` and `docs/activation-phase-37d-controlled-real-video-ocr-safe-zone.md`.
+1. Review `activation:controlled-real-video-ocr-safe-zone:report`, `activation:controlled-real-video-ocr-safe-zone:execution-report`, `docs/activation-phase-37d-controlled-real-video-ocr-safe-zone.md`, and `docs/activation-phase-37d-controlled-real-video-ocr-safe-zone-execution.md`.
 2. Confirm the selected source is only the private Phase 32 export `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`.
-3. Confirm the only planned sample is `phase37d-phase32-color-export-safe-zone-window-v1`, window `6.9s`-`8.9s`, with future offsets `6.9, 7.3, 7.7, 8.1, 8.5, 8.9`.
-4. Confirm no media bytes were read, no frames were extracted, no OCR ran on real video, no artifacts were uploaded, and no IAM/GCP mutation occurred.
-5. Confirm `REEDITPRO_CONFIRM_CONTROLLED_REAL_VIDEO_OCR_EXECUTE=true`, `REEDITPRO_CONFIRM_CONTROLLED_REAL_VIDEO_FRAME_EXTRACTION=true`, and `REEDITPRO_CONFIRM_CONTROLLED_REAL_VIDEO_ARTIFACT_UPLOAD=true` were not set for Phase 37D.
-6. Keep Phase 37E caption/render QA integration blocked until a later explicit controlled real-video OCR execution phase produces private OCR/collision QA evidence.
+3. Confirm the only executed sample is `phase37d-phase32-color-export-safe-zone-window-v1`, window `6.9s`-`8.9s`, with offsets `6.9, 7.3, 7.7, 8.1, 8.5, 8.9`.
+4. Confirm run `phase37d-20260531T002046` extracted exactly 6 local temp frames, ran OCR only on those frames, uploaded 10 private JSON QA artifacts, found 11 OCR text regions, and found zero lower-third collision frames.
+5. Confirm raw frames, overlays, model files, source video, venvs, credentials, signed URLs, and temp folders were not committed or uploaded.
+6. Proceed to Phase 37E only as controlled OCR safe-zone caption/render QA integration planning. Broad OCR, arbitrary media, Track A, beta, production, providers, public output, Cloud Run, Docker push, and GPU jobs remain blocked.

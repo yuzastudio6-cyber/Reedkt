@@ -224,6 +224,8 @@
     "activation:vlm-runtime:report": "tsx server/cli/activation-vlm-runtime-report.ts",
     "activation:vlm-runtime:iam-plan": "tsx server/cli/activation-vlm-runtime-iam-plan.ts",
     "activation:vlm-runtime:cost-summary": "tsx server/cli/activation-vlm-runtime-cost-summary.ts",
+    "activation:vlm-runtime:cloud-run-job": "REEDITPRO_VLM_RUNTIME_MODE=staging_cloud_run_job tsx server/cli/activation-vlm-runtime.ts",
+    "build:staging-vlm-runtime-worker": "tsx server/cli/build-staging-vlm-runtime-worker.ts",
     "smoke:activation-vlm-runtime": "tsx server/smoke/activation-vlm-runtime-smoke.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",

@@ -39,7 +39,7 @@ export async function copyPhase39BVlmAssetsFromPrivateGcs(input: {
   for (const asset of getPhase39CVlmRuntimeAssets()) {
     const localPath = path.join(modelRoot, asset.relativePath)
     await mkdir(path.dirname(localPath), { recursive: true })
-    await runGcloud(['storage', 'cp', asset.gcsUri, localPath], 60 * 60 * 1000)
+    await copyPrivateGcsObject(asset.gcsUri, localPath)
   }
   return modelRoot
 }
@@ -80,6 +80,36 @@ export async function runGcloud(args: string[], timeout = 5 * 60 * 1000): Promis
     },
   })
   return stdout
+}
+
+async function copyPrivateGcsObject(gcsUri: string, localPath: string): Promise<void> {
+  try {
+    await runGcloud(['storage', 'cp', gcsUri, localPath], 60 * 60 * 1000)
+    return
+  } catch (gcloudError) {
+    try {
+      await execFileAsync('gsutil', ['cp', gcsUri, localPath], {
+        timeout: 60 * 60 * 1000,
+        maxBuffer: 120 * 1024 * 1024,
+        env: {
+          ...process.env,
+          CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
+        },
+      })
+      return
+    } catch (gsutilError) {
+      throw new Error([
+        `private_gcs_copy_failed:${gcsUri}`,
+        `gcloud=${summarizeCommandError(gcloudError)}`,
+        `gsutil=${summarizeCommandError(gsutilError)}`,
+      ].join(' '), { cause: gsutilError })
+    }
+  }
+}
+
+function summarizeCommandError(error: unknown): string {
+  const maybe = error as { message?: string; stderr?: string; stdout?: string }
+  return String(maybe?.stderr || maybe?.stdout || maybe?.message || error).replace(/\s+/g, ' ').slice(0, 500)
 }
 
 export function parseGcloudJson(output: string): unknown {

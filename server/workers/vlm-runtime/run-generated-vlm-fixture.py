@@ -30,18 +30,36 @@ class NetworkGuard(AbstractContextManager):
         self._create_connection = socket.create_connection
         self._urlopen = urllib.request.urlopen
 
-        def blocked(*_args, **_kwargs):
+        def is_loopback_address(address: Any) -> bool:
+            if isinstance(address, tuple) and address:
+                host = str(address[0])
+                return host in {"127.0.0.1", "::1", "localhost", "0.0.0.0"}
+            return False
+
+        def blocked_socket(sock, address):
+            if is_loopback_address(address):
+                return self._socket_connect(sock, address)
             self.network_attempted = True
             raise RuntimeError("PHASE39C_RUNTIME_NETWORK_BLOCKED")
 
-        socket.socket.connect = blocked
-        socket.create_connection = blocked
-        urllib.request.urlopen = blocked
+        def blocked_connection(address, *args, **kwargs):
+            if is_loopback_address(address):
+                return self._create_connection(address, *args, **kwargs)
+            self.network_attempted = True
+            raise RuntimeError("PHASE39C_RUNTIME_NETWORK_BLOCKED")
+
+        def blocked_urlopen(*_args, **_kwargs):
+            self.network_attempted = True
+            raise RuntimeError("PHASE39C_RUNTIME_NETWORK_BLOCKED")
+
+        socket.socket.connect = blocked_socket
+        socket.create_connection = blocked_connection
+        urllib.request.urlopen = blocked_urlopen
         try:
             import requests
 
             self._requests_request = requests.sessions.Session.request
-            requests.sessions.Session.request = blocked
+            requests.sessions.Session.request = blocked_urlopen
         except Exception:
             self._requests_request = None
         return self
@@ -142,6 +160,7 @@ def run_vllm(model_dir: Path, fixtures: List[Dict[str, Any]], templates: List[Di
     if str(model_dir) == MODEL_ID or not model_dir.exists():
         raise RuntimeError("PHASE39C_LOCAL_MODEL_PATH_REQUIRED")
     with NetworkGuard() as guard:
+        import vllm
         from vllm import LLM, SamplingParams
 
         llm = LLM(
@@ -150,10 +169,12 @@ def run_vllm(model_dir: Path, fixtures: List[Dict[str, Any]], templates: List[Di
             trust_remote_code=True,
             max_model_len=4096,
             limit_mm_per_prompt={"image": 1},
+            max_num_seqs=1,
+            max_num_batched_tokens=4096,
             enforce_eager=True,
-            gpu_memory_utilization=0.82,
+            gpu_memory_utilization=0.9,
         )
-        sampling = SamplingParams(temperature=0.0, max_tokens=512)
+        sampling = SamplingParams(temperature=0.0, max_tokens=256)
         requests = []
         fixture_paths = {}
         for spec in fixtures:
@@ -168,7 +189,7 @@ def run_vllm(model_dir: Path, fixtures: List[Dict[str, Any]], templates: List[Di
     for spec, output in zip(fixtures, outputs):
         text = output.outputs[0].text if output.outputs else ""
         results.append(score_fixture(spec, text, runtime="vllm"))
-    return getattr(llm, "__version__", "unknown"), results
+    return getattr(vllm, "__version__", "unknown"), results
 
 
 def score_fixture(spec: Dict[str, Any], raw_text: str, runtime: str) -> Dict[str, Any]:

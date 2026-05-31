@@ -31,8 +31,10 @@ export interface VlmRuntimeConfig {
   qaArtifactPrefix: 'activation/phase39c/generated-vlm-runtime'
   localTempRoot: '/tmp/reeditpro-vlm-runtime/phase39c'
   stagingImagePath: 'us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c'
+  stagingCloudRunJobName: 'reeditpro-stg-vlm-runtime-phase39c'
   serviceAccountEmail: 'reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com'
   requiredRuntime: 'vllm'
+  requiredVllmVersion: '0.11.0'
   fallbackRuntime: 'transformers_fallback'
   approvedGpuType: 'L4'
   requiredBroadRegionAccuracyThreshold: 0.7

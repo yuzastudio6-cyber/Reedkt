@@ -55,7 +55,7 @@ export function buildVlmRuntimeCommandPlan(): VlmRuntimeCommandPlan[] {
     {
       commandId: 'phase39c-staging-image-build',
       phase: 'docker',
-      commandString: 'docker buildx build -f docker/prod/vlm-runtime/Dockerfile -t <staging-vlm-runtime-image> .',
+      commandString: `docker buildx build --platform linux/amd64 --push -f docker/prod/vlm-runtime/Dockerfile -t ${vlmRuntimeConfig.stagingImagePath}:<run-id> .`,
       requiresConfirmation: true,
       confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD',
       textOnlyByDefault: true,
@@ -65,7 +65,7 @@ export function buildVlmRuntimeCommandPlan(): VlmRuntimeCommandPlan[] {
     {
       commandId: 'phase39c-staging-cloud-run-job',
       phase: 'cloud-run',
-      commandString: 'gcloud run jobs execute <guarded-phase39c-vlm-runtime-job> --region=us-central1',
+      commandString: `gcloud run jobs deploy ${vlmRuntimeConfig.stagingCloudRunJobName} --region=${vlmRuntimeConfig.region} --cpu=8 --memory=32Gi --gpu=1 --gpu-type=nvidia-l4 && gcloud run jobs execute ${vlmRuntimeConfig.stagingCloudRunJobName} --region=${vlmRuntimeConfig.region} --wait`,
       requiresConfirmation: true,
       confirmationEnvVar: 'REEDITPRO_CONFIRM_VLM_STAGING_CLOUD_RUN_JOB',
       textOnlyByDefault: true,

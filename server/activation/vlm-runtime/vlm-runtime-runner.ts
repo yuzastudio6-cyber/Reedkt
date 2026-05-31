@@ -7,6 +7,7 @@ import { buildVlmPromptTemplateManifest } from './vlm-prompt-template-registry'
 import { collectVlmRuntimeArtifacts, writeVlmRuntimeJsonArtifact } from './vlm-runtime-artifact-manifest-writer'
 import { VLM_RUNTIME_EXPECTED_ARTIFACTS } from './vlm-runtime-blocker-policy'
 import { buildVlmModelAssetVerificationReport } from './vlm-runtime-checksum-verifier'
+import { runVlmRuntimeStagingCloudRunJob } from './vlm-runtime-cloud-run-job'
 import { describePhase39BVlmObjects, copyPhase39BVlmAssetsFromPrivateGcs, parseGcloudJson, runGcloud, verifyVlmRuntimeBuckets } from './vlm-runtime-gcs-model-resolver'
 import { phase39CVlmRuntimeArtifactPrefix, validateVlmRuntimeExecutionEnv, vlmRuntimeConfig } from './vlm-runtime-policy'
 import {
@@ -44,6 +45,8 @@ export async function runVlmRuntimeVerification(input: {
   let modelRoot: string | undefined
   let fixtureResults: VlmFixtureRuntimeResult[] = []
   let runtimeStatus: 'passed' | 'warning' | 'blocked' | 'skipped' = 'blocked'
+  let runtimeVersion: string | undefined
+  let artifactsAlreadyUploadedAndVerified = false
 
   await rm(localRoot, { recursive: true, force: true })
   await mkdir(reportDir, { recursive: true })
@@ -62,7 +65,23 @@ export async function runVlmRuntimeVerification(input: {
     metadataOnlyEntries: preflight.modelObjectMetadata,
   })
 
-  if (preflight.allowed) {
+  if (preflight.allowed && preflight.stagingCloudRunRequested) {
+    const stagingRun = await runVlmRuntimeStagingCloudRunJob({ runId, reportDir })
+    uploadedArtifacts = stagingRun.uploadedArtifacts
+    artifactsAlreadyUploadedAndVerified = uploadedArtifacts.length >= VLM_RUNTIME_EXPECTED_ARTIFACTS.length
+    executionBlockers.push(...stagingRun.blockers)
+    executionWarnings.push(...stagingRun.warnings)
+    if (stagingRun.executionReport) {
+      assetVerification = stagingRun.executionReport.assetVerification
+      fixtureResults = stagingRun.executionReport.fixtureResults
+      runtimeStatus = stagingRun.executionReport.runtime.runtimeStatus === 'passed' || stagingRun.executionReport.runtime.runtimeStatus === 'warning'
+        ? stagingRun.executionReport.runtime.runtimeStatus
+        : 'blocked'
+      runtimeVersion = stagingRun.executionReport.runtime.runtimeVersion
+      executionBlockers.push(...stagingRun.executionReport.blockers)
+      executionWarnings.push(...stagingRun.executionReport.warnings)
+    }
+  } else if (preflight.allowed) {
     try {
       modelRoot = await copyPhase39BVlmAssetsFromPrivateGcs({ localRoot })
       assetVerification = await buildVlmModelAssetVerificationReport({ runId, localModelRoot: modelRoot })
@@ -79,6 +98,7 @@ export async function runVlmRuntimeVerification(input: {
         const runtimeResults = parseRuntimeResults(workerOutput.stdout)
         fixtureResults = runtimeResults.fixtureResults
         runtimeStatus = runtimeResults.runtimeStatus
+        runtimeVersion = runtimeResults.runtimeVersion
       }
     } catch (error) {
       runtimeStatus = 'blocked'
@@ -113,14 +133,17 @@ export async function runVlmRuntimeVerification(input: {
     privateArtifactPrefix: `gs://${vlmRuntimeConfig.qaBucket}/${artifactPrefix}/`,
     localGpuAvailable: preflight.localGpuAvailable,
     stagingCloudRunRequested: preflight.stagingCloudRunRequested,
+    runtimeVersion,
   })
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_generated_vlm_runtime_report.json'), finalReport)
 
-  uploadedArtifacts = await collectVlmRuntimeArtifacts({
-    rootDir: reportDir,
-    bucket: vlmRuntimeConfig.qaBucket,
-    objectPrefix: artifactPrefix,
-  })
+  if (!artifactsAlreadyUploadedAndVerified) {
+    uploadedArtifacts = await collectVlmRuntimeArtifacts({
+      rootDir: reportDir,
+      bucket: vlmRuntimeConfig.qaBucket,
+      objectPrefix: artifactPrefix,
+    })
+  }
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_private_artifact_manifest.json'), {
     phase: '39C',
     runId,
@@ -143,15 +166,19 @@ export async function runVlmRuntimeVerification(input: {
     blockers: finalReport.blockers,
     warnings: finalReport.warnings,
   })
-  uploadedArtifacts = await collectVlmRuntimeArtifacts({
-    rootDir: reportDir,
-    bucket: vlmRuntimeConfig.qaBucket,
-    objectPrefix: artifactPrefix,
-  })
+  if (!artifactsAlreadyUploadedAndVerified) {
+    uploadedArtifacts = await collectVlmRuntimeArtifacts({
+      rootDir: reportDir,
+      bucket: vlmRuntimeConfig.qaBucket,
+      objectPrefix: artifactPrefix,
+    })
+  }
 
   const uploadBlockers: string[] = []
   const uploadWarnings: string[] = []
-  if (process.env.REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD === 'true') {
+  if (artifactsAlreadyUploadedAndVerified) {
+    uploadWarnings.push('private_artifact_upload_verified_by_staging_cloud_run_job')
+  } else if (process.env.REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD === 'true') {
     const uploadResult = await uploadAndVerifyVlmRuntimeArtifacts(reportDir, uploadedArtifacts)
     uploadedArtifacts = uploadResult.artifacts
     uploadBlockers.push(...uploadResult.blockers)
@@ -172,6 +199,7 @@ export async function runVlmRuntimeVerification(input: {
     privateArtifactPrefix: `gs://${vlmRuntimeConfig.qaBucket}/${artifactPrefix}/`,
     localGpuAvailable: preflight.localGpuAvailable,
     stagingCloudRunRequested: preflight.stagingCloudRunRequested,
+    runtimeVersion,
   })
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_generated_vlm_runtime_report.json'), finalReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'phase_39c_private_artifact_manifest.json'), {
@@ -266,8 +294,7 @@ export async function runVlmRuntimePreflight(runId: string): Promise<VlmRuntimeP
     blockers.push('phase39c_l4_or_local_gpu_runtime_unavailable')
     warnings.push('No local NVIDIA GPU is available and the guarded staging L4 Cloud Run Job path is not fully confirmed; skipping 17.5GB model copy and vLLM startup.')
   }
-  if (stagingCloudRunRequested) blockers.push('phase39c_staging_cloud_run_job_execution_not_implemented_in_local_runner')
-
+  if (stagingCloudRunRequested && !dockerAvailable) blockers.push('phase39c_docker_unavailable_for_staging_cloud_run_job')
   return {
     phase: '39C',
     runId,
@@ -332,14 +359,16 @@ async function runVlmWorker(input: {
 
 function parseRuntimeResults(stdout: string): {
   runtimeStatus: 'passed' | 'warning' | 'blocked'
+  runtimeVersion?: string
   fixtureResults: VlmFixtureRuntimeResult[]
 } {
   const lines = stdout.split('\n').map((line) => line.trim()).filter(Boolean)
   const jsonLine = lines.reverse().find((line) => line.startsWith('{') && line.endsWith('}'))
   if (!jsonLine) throw new Error(`VLM worker did not emit JSON summary. stdout=${stdout.slice(0, 1000)}`)
-  const parsed = JSON.parse(jsonLine) as { runtimeStatus?: string; fixtureResults?: VlmFixtureRuntimeResult[] }
+  const parsed = JSON.parse(jsonLine) as { runtimeStatus?: string; runtimeVersion?: string; fixtureResults?: VlmFixtureRuntimeResult[] }
   return {
     runtimeStatus: parsed.runtimeStatus === 'passed' || parsed.runtimeStatus === 'warning' ? parsed.runtimeStatus : 'blocked',
+    runtimeVersion: parsed.runtimeVersion,
     fixtureResults: parsed.fixtureResults ?? [],
   }
 }

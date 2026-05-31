@@ -1,8 +1,8 @@
 {
   "phase": "39C",
   "reportId": "phase_39c_vlm_runtime_plan",
-  "createdAt": "2026-05-31T11:17:59.128Z",
-  "runId": "phase39c-20260531T111759",
+  "createdAt": "2026-05-31T11:49:24.411Z",
+  "runId": "phase39c-20260531T114924",
   "modelId": "Qwen/Qwen3-VL-8B-Instruct",
   "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
   "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
@@ -21,6 +21,7 @@
   },
   "runtimeScope": "generated_synthetic_fixture_vlm_runtime_only",
   "requiredRuntime": "vllm",
+  "requiredVllmVersion": "0.11.0",
   "fallbackRuntime": "transformers_fallback",
   "localModelPathOnly": true,
   "runtimeAutoDownloadAllowed": false,
@@ -34,8 +35,8 @@
   "trackAAllowed": false,
   "generatedFixtureManifest": {
     "phase": "39C",
-    "runId": "phase39c-20260531T111759",
-    "createdAt": "2026-05-31T11:17:59.128Z",
+    "runId": "phase39c-20260531T114924",
+    "createdAt": "2026-05-31T11:49:24.411Z",
     "generatedOnly": true,
     "fixtureImagesCommitted": false,
     "specs": [
@@ -259,8 +260,8 @@
   },
   "promptTemplateManifest": {
     "phase": "39C",
-    "runId": "phase39c-20260531T111759",
-    "createdAt": "2026-05-31T11:17:59.128Z",
+    "runId": "phase39c-20260531T114924",
+    "createdAt": "2026-05-31T11:49:24.411Z",
     "schemaId": "phase39c_vlm_fixture_output_v1",
     "rawPromptAllowed": false,
     "providerCallsAllowed": false,
@@ -512,7 +513,7 @@
     {
       "commandId": "phase39c-staging-image-build",
       "phase": "docker",
-      "commandString": "docker buildx build -f docker/prod/vlm-runtime/Dockerfile -t <staging-vlm-runtime-image> .",
+      "commandString": "docker buildx build --platform linux/amd64 --push -f docker/prod/vlm-runtime/Dockerfile -t us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:<run-id> .",
       "requiresConfirmation": true,
       "confirmationEnvVar": "REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD",
       "textOnlyByDefault": true,
@@ -538,7 +539,7 @@
     {
       "commandId": "phase39c-staging-cloud-run-job",
       "phase": "cloud-run",
-      "commandString": "gcloud run jobs execute <guarded-phase39c-vlm-runtime-job> --region=us-central1",
+      "commandString": "gcloud run jobs deploy reeditpro-stg-vlm-runtime-phase39c --region=us-central1 --gpu=1 --gpu-type=nvidia-l4 && gcloud run jobs execute reeditpro-stg-vlm-runtime-phase39c --region=us-central1 --wait",
       "requiresConfirmation": true,
       "confirmationEnvVar": "REEDITPRO_CONFIRM_VLM_STAGING_CLOUD_RUN_JOB",
       "textOnlyByDefault": true,
@@ -565,7 +566,7 @@
   "iamPlan": {
     "phase": "39C",
     "reportId": "phase_39c_vlm_runtime_iam_plan",
-    "createdAt": "2026-05-31T11:17:59.128Z",
+    "createdAt": "2026-05-31T11:49:24.411Z",
     "iamMutationAllowed": false,
     "plans": [
       {

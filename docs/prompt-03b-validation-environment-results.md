@@ -35,6 +35,7 @@ Prompt 3B diagnoses the validation environment for the limited auth/profile/work
 - `PATH="/Applications/Codex.app/Contents/Resources:$PATH" npm run build`
 - `git diff --check`
 - `git diff --cached --check`
+- `git diff --check origin/codex/rp-foundation-03a-auth-rls-fix-validation...HEAD`
 
 ## Npm CI Status
 

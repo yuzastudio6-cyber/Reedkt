@@ -32,7 +32,8 @@
     "start:remotion-worker:mock": "node dist-remotion-worker/remotion-worker-cli.js",
     "dev:server": "npm run build:server && npm run start:server",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "schema:static-audit": "node scripts/validation/supabase-schema-static-audit.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

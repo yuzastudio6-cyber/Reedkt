@@ -1,0 +1,35 @@
+name: Foundation Validation
+
+on:
+  pull_request:
+    branches:
+      - codex/rp-foundation-03b-auth-rls-validation-environment-fix
+      - codex/reeditpro-planning-stack
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  foundation-validation:
+    name: Foundation validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run default foundation validation
+        run: npm run foundation:validate
+
+      - name: Run foundation validation with full build
+        run: npm run foundation:validate:with-build

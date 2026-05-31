@@ -100,3 +100,14 @@ Prompt 3B decision:
 
 - Prompt 4 should wait because full build and local RLS validation remain environment-blocked.
 - Recommended next prompt: Prompt 3C - Validation Toolchain Repair.
+
+## Prompt 3C Follow-Up
+
+Prompt 3C adds `scripts/validation/run-foundation-validation.mjs` and two package scripts:
+
+- `npm run foundation:validate`
+- `npm run foundation:validate:with-build`
+
+Default foundation validation runs lint, server typecheck, static schema audit, and auth/RLS diagnostics. Full build is attempted only through the with-build script or `REEDITPRO_INCLUDE_FULL_BUILD=true`.
+
+Prompt 3C also adds a Linux GitHub Actions workflow for full-build validation without Supabase credentials, migrations, deployment, provider calls, rendering, or tool execution.

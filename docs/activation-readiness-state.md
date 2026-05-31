@@ -1,12 +1,13 @@
 # Activation Readiness State
 
-Phase 38B completed the Track A FILM artifact download/load step after the
-Phase 38A approval workflow. Only the official Google Research
-`film_net/Style/saved_model` TF2 Saved Model tree was downloaded, checksummed,
-uploaded to private staging GCS, and verified. FILM runtime, slow-motion
-execution, real-video slow motion, full-video interpolation, production,
-external beta, broad media, providers, Revideo, public delivery, final export,
-and arbitrary media remain blocked.
+Phase 38D completed the Track A controlled selected real-video FILM slow-motion
+sample after Phase 38C verified generated-frame runtime and
+Phase 38B stored the official Google Research `film_net/Style/saved_model`
+artifact tree privately. The completed sample is limited to one approved Phase
+32 segment from `6.9835s` to `8.4835s`, 9 source frames at 512x288, and 17
+preview frames for `phase38d-20260531T00471`. Full-video interpolation, final
+delivery, audio stretching, production, external beta, broad media, providers,
+Revideo, public delivery, arbitrary media, and Track B tools remain blocked.
 
 Phase 35F completed the private SAM2 feature E2E beta-readiness gate after
 Phase 35E for `phase35f-20260530T02293`. It was limited to the approved Phase
@@ -24,9 +25,10 @@ frames and metadata only. Full-video masks, full-video text-behind-subject,
 final export, production launch, external beta, broad real user media, provider
 execution, arbitrary media execution, FILM, slow motion, Real-ESRGAN, and
 Revideo remain blocked.
-FILM/slow-motion approval and artifact download are complete through Phase 38B,
-but runtime and slow-motion execution remain blocked until later explicit
-phases.
+FILM/slow-motion approval, artifact download, generated-frame runtime
+verification, and one controlled selected real-video sample are complete
+through Phase 38D, but real-video slow motion remains limited to the explicit
+Phase 38D selected-segment gate.
 
 Phase 35D completed the controlled SAM2 gate after Phase 35C for exactly one
 approved Phase 32 private-export segment from 6.9s to 8.9s, 10 bounded frames
@@ -93,6 +95,7 @@ runtime on generated media only.
 | FILM slow-motion approval | Phase 38A review complete | Official `google-research/frame-interpolation` source/license/checkpoint evidence is recorded. Staging planning approved Phase 38B download/load only. |
 | FILM model weights availability | Private staging storage verified | Phase 38B downloaded only `film_net/Style/saved_model`, recorded aggregate checksum `6f619330c4785a251883b96627dad6ed3a1e1aedc56ed4aa54e5e3f0b57ec97b`, and uploaded 9 private GCS objects. |
 | FILM runtime availability | Generated-frame runtime verified | Phase 38C execution `phase38c-20260530T23315` loaded the private Phase 38B model tree with TensorFlow 2.15.0, produced one private generated midpoint interpolation, and kept real-video slow motion, full-video interpolation, production, beta, providers, Revideo, and broad media blocked. |
+| FILM real-video slow-motion sample | Complete for one controlled selected segment | Phase 38D execution `reeditpro-staging-film-runtime-job-pmxs7` for `phase38d-20260531T00471` processed one approved Phase 32 segment from 6.9835s to 8.4835s, 9 source frames at 512x288, 8 midpoint frames, 17 preview frames, and a private silent preview MP4. Full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, Track B tools, and broad media remain blocked. |
 | Enhancement runtime | Verified for generated image | Phase 34C ran a dedicated L4 Real-ESRGAN runtime job on one generated synthetic image and emitted private enhancement QA with no blocking failures. |
 | Real-video enhancement sample | Complete for one bounded controlled test | Phase 34D produced one private 512x512 sample crop and one 2048x2048 enhanced sample from `phase33d-20260528T161056`; full-frame and full-video enhancement remain blocked. |
 | Real-ESRGAN broader-scope policy | Policy complete; broader execution blocked | Phase 34E records that human visual review is required and no full-frame/full-video/blind enhancement scope is allowed yet. Additional bounded sample planning may be considered only in a later approved phase. |
@@ -131,8 +134,8 @@ Current classification:
 - SAM2 model approval: Phase 35A review complete; official SAM2.1 tiny staging download approved for Phase 35B
 - SAM2 model download/load: Phase 35B private storage evidence verified for `sam2.1_hiera_tiny`
 - SAM2 execution: Phase 35C generated/synthetic runtime verification complete; Phase 35D controlled short real-video temporal mask test complete for one approved segment; Phase 35F private feature E2E gate complete for internal SAM2 feature testing only
-- next Track A activation phase: Phase 38C FILM generated-frame runtime verification only; do not treat Phase 38B as real-video, external beta, or paid production approval
-- slow-motion execution: blocked; FILM artifacts are stored privately after Phase 38B, but runtime, slow motion, real-video slow motion, and full-video interpolation remain blocked until later explicit phases
+- next Track A activation phase: Phase 38E FILM private feature E2E readiness gate only; do not treat Phase 38D as full-video, external beta, or paid production approval
+- slow-motion execution: complete only for the explicit Phase 38D selected-segment gate; full-video interpolation, audio stretch, final delivery, production, beta, providers, Revideo, and broad media remain blocked
 - provider execution: blocked
 - production: blocked
 - external beta: blocked

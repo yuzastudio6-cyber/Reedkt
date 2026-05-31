@@ -1,18 +1,18 @@
 # VLM Blocker Matrix
 
-| Scope | Phase 39B status | Reason |
+| Scope | Current VLM status | Reason |
 | --- | --- | --- |
 | Exact asset selection | Allowed after HF metadata verification | Uses pinned `Qwen/Qwen3-VL-8B-Instruct` revision only. |
-| Private model download | Confirmation-gated | Requires the current-shell VLM model download confirmation. |
-| Private GCS upload | Confirmation-gated | Requires the current-shell VLM private GCS upload confirmation and approved private prefix. |
-| vLLM runtime | Blocked | Phase 39C only after private staged assets pass. |
-| Transformers inference | Blocked | No inference or model instantiation in Phase 39B. |
-| GPU jobs | Blocked | Runtime/cost review deferred to Phase 39C. |
-| Images/video/media | Blocked | Phase 39B handles model files only. |
+| Private model download | Phase 39B passed | Exact selected assets are staged privately and must be reused by later phases. |
+| Private GCS upload | Phase 39B passed for model assets | Phase 39C may upload only private JSON QA artifacts to the approved QA prefix. |
+| vLLM runtime | Phase 39C blocked on L4 CUDA OOM after tuning | Conservative eager, lower-reservation, and minimal one-fixture profiles copied exact private assets and verified checksums, but vLLM engine initialization exhausted L4 memory before any generated fixture inference. Auto-fit is unsupported in this vLLM path, and CPU-offload memory increase is unavailable on the approved Cloud Run L4 job shape. |
+| Transformers inference | Fallback-only and clearly labeled | It may not be called a vLLM pass and cannot unlock Phase 39D if primary vLLM is required and failed. |
+| GPU jobs | Guarded L4 only | No unapproved GPU type, provider fallback, or quantized variant is approved. |
+| Images/video/media | Generated fixtures only | Real frames, real video, broad media, and arbitrary images/video remain blocked. |
 | Provider calls | Blocked | No Qwen, DashScope, HF Inference Providers, OpenAI-compatible VLM endpoints, or external inference. |
-| Public output | Blocked | All model assets and safe manifests remain private. |
-| IAM/GCP infrastructure mutation | Blocked | Upload to approved prefix only; no IAM changes or bucket creation. |
-| Beta/production | Blocked | Phase 39B is private staging evidence only. |
+| Public output | Blocked | All model assets, runtime reports, and QA artifacts remain private. |
+| IAM/GCP infrastructure mutation | Guarded scoped IAM only | Phase 39C defaults to text-only IAM plans. Recorded evidence adds only conditional model-read and QA-create bindings for the staging GPU worker service account; future IAM mutation still requires explicit current-shell confirmation. |
+| Beta/production | Blocked | Phase 39C can only become phase-complete while the VLM tool family remains incomplete. |
 | Track A | Blocked | No SAM2/render/visual runtime or Track A code changes. |
 
-If source/license metadata changes, the exact revision cannot be resolved, the file list differs, disk/access is insufficient, download/checksum/upload/verification fails, or GCS object metadata is unreliable, Phase 39B remains incomplete and Phase 39C remains blocked.
+If private model read, checksum verification, local model preparation, vLLM startup, generated fixture inference, schema validation, hallucination/safety QA, private artifact upload, or GPU/runtime availability fails, Phase 39C remains incomplete and Phase 39D remains blocked. Current missing prerequisite: explicit approval for one of the next VLM remediation paths, such as official quantized Qwen3-VL private staging, a smaller VLM candidate, a different GPU class, or a deeper vLLM configuration follow-up only if new evidence identifies a concrete configuration fix.

@@ -1,0 +1,331 @@
+{
+  "phase": "39C",
+  "matrixId": "l4-oom-remediation-v1",
+  "status": "blocked",
+  "runId": "phase39c-l4-tuning-combined-20260531",
+  "sourceRuns": [
+    {
+      "runId": "phase39c-20260531T212558",
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T212558/",
+      "purpose": "profiles_a_b_c"
+    },
+    {
+      "runId": "phase39c-20260531T213808",
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T213808/",
+      "purpose": "profile_d_64gi_deploy_probe"
+    },
+    {
+      "runId": "phase39c-20260531T214117",
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214117/",
+      "purpose": "profile_d_48gi_deploy_probe"
+    },
+    {
+      "runId": "phase39c-20260531T214216",
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/",
+      "purpose": "profile_e_minimal_smoke"
+    }
+  ],
+  "selectedProfileId": null,
+  "profilesAttempted": [
+    {
+      "profileId": "conservative-eager-short-context",
+      "status": "blocked",
+      "diagnosticOnly": false,
+      "profile": {
+        "profileId": "conservative-eager-short-context",
+        "description": "Short context, eager execution, one image per prompt, and tiny multimodal cache to reduce startup/KV pressure on L4.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 2048,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.92,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 384,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Reduces context/KV and multimodal processor cache while avoiding CUDA graph capture.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      "fixtureResults": [],
+      "blockers": [
+        "vllm_runtime_failed:Engine core initialization failed. See root cause above. Failed core proc(s): {}"
+      ],
+      "warnings": [],
+      "oomClassification": {
+        "isCudaOom": true,
+        "stage": "vllm_engine_initialization",
+        "enforceEager": true,
+        "cudaGraphLikely": false,
+        "fixtureInferenceReached": false,
+        "memory": {
+          "requestedGiB": 4.62,
+          "gpuTotalGiB": 21.96,
+          "gpuFreeGiB": 4.52,
+          "processMemoryGiB": 17.44,
+          "torchAllocatedGiB": 17.13,
+          "torchReservedUnallocatedMiB": 63.75
+        },
+        "safeSummary": "CUDA OOM during vLLM engine initialization: requested 4.62 GiB with 4.52 GiB free on a 21.96 GiB L4; fixture inference was not reached."
+      }
+    },
+    {
+      "profileId": "conservative-cuda-graph-lower-reservation",
+      "status": "blocked",
+      "diagnosticOnly": false,
+      "profile": {
+        "profileId": "conservative-cuda-graph-lower-reservation",
+        "description": "Lower GPU reservation and smaller generated fixtures while allowing CUDA graph behavior if vLLM selects it.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 2048,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.82,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 256,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Leaves more unreserved L4 memory and reduces image token pressure.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      "fixtureResults": [],
+      "blockers": [
+        "vllm_runtime_failed:Engine core initialization failed. See root cause above. Failed core proc(s): {}"
+      ],
+      "warnings": [],
+      "oomClassification": {
+        "isCudaOom": true,
+        "stage": "vllm_engine_initialization",
+        "enforceEager": false,
+        "cudaGraphLikely": true,
+        "fixtureInferenceReached": false,
+        "memory": {
+          "requestedGiB": 4.62,
+          "gpuTotalGiB": 21.96,
+          "gpuFreeGiB": 4.52,
+          "processMemoryGiB": 17.44,
+          "torchAllocatedGiB": 17.13,
+          "torchReservedUnallocatedMiB": 63.75
+        },
+        "safeSummary": "CUDA OOM during vLLM engine initialization: requested 4.62 GiB with 4.52 GiB free on a 21.96 GiB L4; fixture inference was not reached."
+      }
+    },
+    {
+      "profileId": "auto-fit-context",
+      "status": "skipped",
+      "diagnosticOnly": false,
+      "profile": {
+        "profileId": "auto-fit-context",
+        "description": "Reserved for a vLLM-supported safe auto-fit context mode.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.9,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 256,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Would allow vLLM to choose a smaller safe context if a supported auto-fit API exists.",
+        "safetyStatus": "skipped_unsupported",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": "vLLM 0.11.0 LLM API does not expose a safe max_model_len auto-fit value for this worker path."
+      },
+      "fixtureResults": [],
+      "blockers": [
+        "tuning_profile_unsupported:auto-fit-context:vLLM 0.11.0 LLM API does not expose a safe max_model_len auto-fit value for this worker path."
+      ],
+      "warnings": [],
+      "oomClassification": {
+        "isCudaOom": false,
+        "stage": "not_oom",
+        "enforceEager": null,
+        "cudaGraphLikely": false,
+        "fixtureInferenceReached": false,
+        "memory": {},
+        "safeSummary": "No CUDA OOM signature detected."
+      },
+      "runtimeVersion": "skipped"
+    },
+    {
+      "profileId": "cpu-offload-short-context",
+      "status": "blocked",
+      "diagnosticOnly": false,
+      "blockers": [
+        "cloud_run_memory_increase_unavailable:8cpu_l4_allows_4Gi_to_32Gi_only",
+        "profile_not_executed:cpu_offload_requires_48Gi_or_64Gi_memory_increase_in_phase39c_policy"
+      ],
+      "warnings": [
+        "gcloud.run.jobs.deploy rejected 48Gi and 64Gi for the approved 8 CPU L4 job shape."
+      ],
+      "oomClassification": {
+        "isCudaOom": false,
+        "stage": "not_executed_cloud_run_memory_unavailable",
+        "enforceEager": true,
+        "cudaGraphLikely": false,
+        "fixtureInferenceReached": false,
+        "memory": {},
+        "safeSummary": "Profile D was not executed because the approved Cloud Run L4 job shape rejects 48Gi/64Gi memory required for the CPU-offload profile."
+      }
+    },
+    {
+      "profileId": "minimal-smoke-one-fixture",
+      "status": "blocked",
+      "diagnosticOnly": true,
+      "profile": {
+        "profileId": "minimal-smoke-one-fixture",
+        "description": "Diagnostic-only one-fixture smoke to determine whether any generated VLM inference can run on L4.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 1024,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 512,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.9,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 224,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 64
+        },
+        "expectedMemoryEffect": "Smallest approved L4 smoke envelope; cannot complete Phase 39C by itself.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": true,
+        "fixtureIds": [
+          "generated-object-layout"
+        ],
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      "fixtureResults": [],
+      "blockers": [
+        "vllm_runtime_failed:Engine core initialization failed. See root cause above. Failed core proc(s): {}"
+      ],
+      "warnings": [],
+      "oomClassification": {
+        "isCudaOom": true,
+        "stage": "vllm_engine_initialization",
+        "enforceEager": true,
+        "cudaGraphLikely": false,
+        "fixtureInferenceReached": false,
+        "memory": {
+          "requestedGiB": 4.62,
+          "gpuTotalGiB": 21.96,
+          "gpuFreeGiB": 4.56,
+          "processMemoryGiB": 17.4,
+          "torchAllocatedGiB": 17.11,
+          "torchReservedUnallocatedMiB": 39.77
+        },
+        "safeSummary": "CUDA OOM during vLLM engine initialization: requested 4.62 GiB with 4.56 GiB free on a 21.96 GiB L4; fixture inference was not reached."
+      }
+    }
+  ],
+  "blockers": [
+    "phase39c_l4_tuning_profiles_exhausted",
+    "vllm_runtime_failed_before_generated_fixture_inference",
+    "profile_d_cloud_run_memory_increase_unavailable"
+  ],
+  "warnings": [
+    "Combined safe metadata summary derived from private Phase 39C QA artifacts and deploy failure summaries; no model files, fixture images, credentials, signed URLs, or raw media are included."
+  ],
+  "vlmToolFamilyBetaStatus": "blocked",
+  "phase39DReady": false,
+  "nextRecommendedPath": [
+    "official_quantized_qwen3_vl_candidate_approval_private_staging",
+    "smaller_vlm_candidate_approval_private_staging",
+    "different_gpu_class_approval",
+    "deeper_vllm_config_followup_only_if_new_logs_identify_a_specific_fix"
+  ]
+}

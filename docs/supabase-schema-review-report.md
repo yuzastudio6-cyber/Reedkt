@@ -12,6 +12,12 @@ Prompt 2 reviewed the Supabase schema and migration foundation before production
 
 Recommended next prompt: Prompt 2A - Schema Gap Fix Plan before Prompt 3.
 
+## Prompt 2A Follow-Up Note
+
+Prompt 2A created the schema gap fix plan, canonical schema contract, table concept resolution matrix, schema era deprecation plan, and Prompt 3 schema target guardrails. The decision is docs-only: future backend work must target the newer RP-DATA/runtime contract for duplicated runtime concepts, while older RP-DB tables remain legacy/reference unless they are unique planning-domain tables that still need service-specific review.
+
+Prompt 3 may proceed after Prompt 2A, but only for `auth.users`, `profiles`, `workspaces`, `workspace_members`, and `projects`. SQL schema cleanup, local/staging migration validation, storage/upload runtime, approved snapshots, credits, jobs, workers, providers, rendering, Stripe, and tool execution remain blocked for later prompts.
+
 ## B. Migration Inventory
 
 The static audit scanned 21 active migration files, 8 draft migration files, and 5 test SQL files. Active migrations currently include 161 `create table` statements, 148 `create type` statements, 36 `create function` statements, 378 `create policy` statements, 1022 `create index` statements, 7 views, 113 triggers, 151 RLS enable statements, and 2 storage bucket insert groups. See `docs/generated/supabase-schema-static-audit.json` for machine-readable details.

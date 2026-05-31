@@ -102,3 +102,46 @@ Resolution should decide which table family is canonical for requests, attempts,
 4. Update `supabase/migration-order.md` and planning docs to remove ambiguity.
 5. Add local-only SQL validation for duplicate table conflicts before staging.
 6. Only after local validation passes, proceed to Prompt 3 auth/profile/workspace/RLS production path.
+
+## Prompt 2A Follow-Up
+
+Prompt 2A creates `docs/schema-gap-fix-plan.md`, `docs/canonical-schema-contract.md`, `docs/table-concept-resolution-matrix.md`, `docs/schema-era-deprecation-plan.md`, and `docs/prompt-03-schema-target-guardrails.md`.
+
+### Resolved By Decision
+
+- Future backend work targets the newer RP-DATA/runtime contract for duplicated runtime concepts.
+- Older RP-DB tables remain legacy/reference for duplicated runtime concepts.
+- Unique older planning tables may remain compatibility/read-only or active-but-needs-review until a service-specific prompt validates them.
+- Draft migrations remain docs-only planning references.
+- Prompt 3 can proceed only for `auth.users`, `profiles`, `workspaces`, `workspace_members`, and `projects`.
+
+### Unresolved
+
+- Active SQL still contains duplicate create-table concepts.
+- Some unique older table families, such as provider catalog, render jobs, preview reviews, comments, and signature routes, still need service-specific review.
+- Job orchestration still has a split between RP-DATA `editing_jobs`/`job_steps` and older `jobs`/`job_batches` references used by some readiness docs.
+- Storage path policy conflict between `<project_id>/...` and `workspace/{workspace_id}/project/{project_id}/...` remains unvalidated.
+
+### Requires Future Cleanup
+
+- Migration history and duplicate table creation.
+- RLS smoke tests and SQL health checks.
+- TypeScript schema types.
+- Mock data and route contracts that reference legacy table families.
+- Compatibility views or migration aliases if needed after local validation.
+- Documentation warning banners for legacy/draft schema docs.
+
+### Safe For Prompt 3
+
+- `auth.users`
+- `profiles`
+- `workspaces`
+- `workspace_members`
+- `projects`
+- `audit_events` only if Prompt 3 explicitly includes append-only auth/workspace audit events.
+
+### Blocked For Prompt 3
+
+- `user_profiles`.
+- Chat, media, source sequence, storage, planning, approved snapshot, credit, job, worker, provider, generation, render, export, QA, revision, tool, SFX, StoryTiming, and draft-only tables.
+- Any SQL migration, schema-changing migration, remote Supabase migration, service-role execution beyond auth/profile/workspace/project bootstrap, provider call, rendering, Stripe, worker execution, or tool execution.

@@ -1,0 +1,36 @@
+{
+  "reportId": "phase_39a_vlm_gpu_cost_risk_report",
+  "gpuRuntimeApprovedNow": false,
+  "likelyGpuNeed": "high",
+  "candidateRuntime": "vLLM",
+  "risks": [
+    {
+      "riskId": "vlm-gpu-memory-cost",
+      "severity": "blocker",
+      "currentStatus": "Qwen3-VL 8B runtime is not costed or GPU-sized in Phase 39A.",
+      "mitigation": "Phase 39C must choose bounded generated fixtures, max tokens, image size, batch size, and GPU class before execution.",
+      "evidenceRequiredToClear": "Pinned runtime profile with memory estimate, timeout, max tokens, and cost guard."
+    },
+    {
+      "riskId": "runtime-auto-download",
+      "severity": "blocker",
+      "currentStatus": "vLLM/Transformers may fetch model files if local paths are not used.",
+      "mitigation": "Future runtime must use private local paths and a network/model-download guard.",
+      "evidenceRequiredToClear": "Phase 39C no-download-at-runtime proof."
+    },
+    {
+      "riskId": "vlm-output-overtrust",
+      "severity": "warning",
+      "currentStatus": "VLM object/safe-zone suggestions are advisory and may be wrong.",
+      "mitigation": "Route low-confidence or collision-risk outputs to manual review and deterministic QA.",
+      "evidenceRequiredToClear": "Generated and controlled fixture QA showing structured confidence/manual-review behavior."
+    },
+    {
+      "riskId": "version-compatibility-drift",
+      "severity": "warning",
+      "currentStatus": "Qwen/vLLM minimum-version evidence varies across docs and model families.",
+      "mitigation": "Phase 39C must pin exact vLLM, CUDA, Torch, Transformers, and qwen-vl-utils versions after current-source review.",
+      "evidenceRequiredToClear": "Runtime dependency lock and local generated-fixture pass."
+    }
+  ]
+}

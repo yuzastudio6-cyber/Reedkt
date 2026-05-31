@@ -1,0 +1,1223 @@
+{
+  "phase": "39A",
+  "track": "B",
+  "reportId": "phase_39a_vlm_model_approval_report",
+  "createdAt": "2026-05-31T01:52:16.227Z",
+  "status": "staging_planning_approved",
+  "approvedPlanningScopes": [
+    "track_b_vlm_model_runtime_approval_planning",
+    "qwen3_vl_8b_instruct_exact_revision_selection_planning",
+    "vllm_generated_fixture_runtime_planning",
+    "controlled_real_frame_vlm_planning",
+    "structured_tool_planning_hint_planning"
+  ],
+  "plan": {
+    "phase": "39A",
+    "track": "B",
+    "reportId": "phase_39a_vlm_model_approval_plan",
+    "createdAt": "2026-05-31T01:52:16.227Z",
+    "approvalDecision": "staging_planning_approved",
+    "candidateModel": "Qwen/Qwen3-VL-8B-Instruct",
+    "candidateFamily": "Qwen3-VL",
+    "runtimeCandidate": "vLLM",
+    "fallbackRuntimePlanningOnly": "local Transformers",
+    "expectedArtifacts": [
+      "phase_39a_vlm_model_approval_plan.json",
+      "phase_39a_vlm_candidate_registry.json",
+      "phase_39a_vlm_source_evidence.json",
+      "phase_39a_vlm_license_evidence.json",
+      "phase_39a_vlm_runtime_support_evidence.json",
+      "phase_39a_vlm_storage_plan.json",
+      "phase_39a_vlm_download_handoff_plan.json",
+      "phase_39a_vlm_runtime_handoff_plan.json",
+      "phase_39a_vlm_generated_fixture_plan.json",
+      "phase_39a_vlm_controlled_real_frame_plan.json",
+      "phase_39a_vlm_tool_planning_integration_plan.json",
+      "phase_39a_vlm_privacy_security_policy_report.json",
+      "phase_39a_vlm_gpu_cost_risk_report.json",
+      "phase_39a_vlm_approval_blocker_report.json",
+      "phase_39a_vlm_model_approval_report.json"
+    ],
+    "futureSequence": [
+      "39B",
+      "39C",
+      "39D",
+      "39E"
+    ],
+    "blockedScopes": [
+      "Qwen3-VL model weight download",
+      "Qwen3-VL tokenizer download",
+      "Qwen3-VL processor download",
+      "vLLM runtime execution",
+      "Transformers runtime execution",
+      "SGLang runtime execution",
+      "runtime model auto-download",
+      "GPU jobs",
+      "image processing",
+      "video processing",
+      "real media processing",
+      "arbitrary file processing",
+      "public artifact paths",
+      "signed URLs as source of truth",
+      "provider calls",
+      "GCP or IAM mutation",
+      "Cloud Run deploy",
+      "Docker build or push",
+      "Track A execution/runtime code",
+      "beta readiness",
+      "production readiness",
+      "broad real user media"
+    ],
+    "safety": {
+      "metadataOnly": true,
+      "modelDownloadExecuted": false,
+      "tokenizerDownloadExecuted": false,
+      "processorDownloadExecuted": false,
+      "runtimeExecuted": false,
+      "mediaProcessed": false,
+      "gpuJobExecuted": false,
+      "gcpMutated": false,
+      "trackATouched": false,
+      "betaAllowed": false,
+      "productionAllowed": false
+    }
+  },
+  "candidateRegistry": [
+    {
+      "candidateId": "qwen3_vl_8b_instruct",
+      "displayName": "Qwen3-VL 8B Instruct",
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+      "family": "Qwen3-VL",
+      "role": "Object-aware visual reasoning, safe-zone suggestions, frame understanding, and internal planning/QA signal.",
+      "runtimeRole": "model_candidate",
+      "taskScope": [
+        "image-text-to-text planning",
+        "object-aware frame understanding",
+        "safe-zone suggestion planning",
+        "caption/render QA hints",
+        "internal visual reasoning signal"
+      ],
+      "firstReeditProScope": [
+        "generated VLM fixture planning",
+        "future controlled real-frame VLM planning",
+        "Track B tool-planning hints after runtime evidence"
+      ],
+      "sourceUrls": [
+        "https://github.com/QwenLM/Qwen3-VL",
+        "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct"
+      ],
+      "licenseName": "Apache-2.0",
+      "reviewStatus": "staging_approved_for_track_b_planning",
+      "downloadStatus": "blocked_until_phase39b",
+      "runtimeStatus": "blocked_until_phase39c",
+      "noDownloadInPhase39A": true,
+      "noRuntimeInPhase39A": true,
+      "noMediaProcessingInPhase39A": true,
+      "evidence": [
+        {
+          "evidenceId": "qwen3_vl_repo_multimodal_vlm",
+          "sourceName": "Qwen3-VL GitHub repository",
+          "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+          "sourceType": "github",
+          "claim": "Qwen3-VL is a multimodal vision-language model series with image, video, spatial, OCR, and agent capabilities.",
+          "evidenceSummary": "Official Qwen3-VL repository describes Qwen3-VL as a vision-language model series with stronger visual perception, spatial reasoning, video understanding, OCR, and agent interaction capabilities.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Phase 39A records capability/source evidence only; it does not run prompts or inspect media.",
+            "The official repository currently notes Qwen3-VL deployment with vLLM needs a newer vLLM line than older general Qwen3 text-only docs."
+          ]
+        },
+        {
+          "evidenceId": "qwen3_vl_repo_apache2_license",
+          "sourceName": "Qwen3-VL GitHub repository license badge/file",
+          "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+          "sourceType": "github",
+          "claim": "Qwen3-VL repository license is Apache-2.0.",
+          "evidenceSummary": "The official repository exposes an Apache-2.0 license entry. Exact model-card/license metadata must still be rechecked at the selected Phase 39B revision.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Legal approval is planning-only until exact model revision/file evidence is selected."
+          ]
+        },
+        {
+          "evidenceId": "qwen3_vl_8b_hf_model_card_identity",
+          "sourceName": "Hugging Face model card",
+          "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+          "sourceType": "huggingface",
+          "claim": "The model card identifies Qwen/Qwen3-VL-8B-Instruct with Image-Text-to-Text, Transformers, Safetensors, qwen3_vl, conversational, and apache-2.0 metadata.",
+          "evidenceSummary": "The selected candidate exists as a Hugging Face model card with the intended model id, architecture tag, task tag, and Apache-2.0 model-card license metadata.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Phase 39B must pin the exact revision and file manifest before any download."
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "qwen3_vl_family",
+      "displayName": "Qwen3-VL model family",
+      "family": "Qwen3-VL",
+      "role": "Model-family planning context for future size/revision/file selection and risk comparison.",
+      "runtimeRole": "model_family",
+      "taskScope": [
+        "model-family evidence",
+        "revision selection planning",
+        "capability/risk comparison"
+      ],
+      "firstReeditProScope": [
+        "Phase 39B exact revision/file manifest selection only"
+      ],
+      "sourceUrls": [
+        "https://github.com/QwenLM/Qwen3-VL"
+      ],
+      "licenseName": "Apache-2.0",
+      "reviewStatus": "blocked_until_exact_revision_selected",
+      "downloadStatus": "blocked_until_phase39b",
+      "runtimeStatus": "blocked_until_phase39c",
+      "noDownloadInPhase39A": true,
+      "noRuntimeInPhase39A": true,
+      "noMediaProcessingInPhase39A": true,
+      "evidence": [
+        {
+          "evidenceId": "qwen3_vl_repo_multimodal_vlm",
+          "sourceName": "Qwen3-VL GitHub repository",
+          "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+          "sourceType": "github",
+          "claim": "Qwen3-VL is a multimodal vision-language model series with image, video, spatial, OCR, and agent capabilities.",
+          "evidenceSummary": "Official Qwen3-VL repository describes Qwen3-VL as a vision-language model series with stronger visual perception, spatial reasoning, video understanding, OCR, and agent interaction capabilities.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Phase 39A records capability/source evidence only; it does not run prompts or inspect media.",
+            "The official repository currently notes Qwen3-VL deployment with vLLM needs a newer vLLM line than older general Qwen3 text-only docs."
+          ]
+        },
+        {
+          "evidenceId": "qwen3_vl_repo_apache2_license",
+          "sourceName": "Qwen3-VL GitHub repository license badge/file",
+          "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+          "sourceType": "github",
+          "claim": "Qwen3-VL repository license is Apache-2.0.",
+          "evidenceSummary": "The official repository exposes an Apache-2.0 license entry. Exact model-card/license metadata must still be rechecked at the selected Phase 39B revision.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Legal approval is planning-only until exact model revision/file evidence is selected."
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "vllm",
+      "displayName": "vLLM",
+      "role": "Primary runtime candidate for future private Qwen3-VL generated-fixture runtime verification.",
+      "runtimeRole": "primary_runtime_candidate",
+      "taskScope": [
+        "LLM/VLM serving",
+        "OpenAI-compatible API planning",
+        "structured JSON output planning",
+        "GPU runtime planning"
+      ],
+      "firstReeditProScope": [
+        "Phase 39C generated VLM runtime verification planning only"
+      ],
+      "sourceUrls": [
+        "https://docs.vllm.ai/en/latest/models/supported_models/",
+        "https://github.com/vllm-project/vllm",
+        "https://qwen.readthedocs.io/en/latest/deployment/vllm.html"
+      ],
+      "licenseName": "Apache-2.0",
+      "reviewStatus": "planning_only",
+      "downloadStatus": "not_applicable",
+      "runtimeStatus": "blocked_until_phase39c",
+      "noDownloadInPhase39A": true,
+      "noRuntimeInPhase39A": true,
+      "noMediaProcessingInPhase39A": true,
+      "evidence": [
+        {
+          "evidenceId": "vllm_supported_models_qwen3_vl",
+          "sourceName": "vLLM supported models documentation",
+          "sourceUrl": "https://docs.vllm.ai/en/latest/models/supported_models/",
+          "sourceType": "docs",
+          "claim": "vLLM supported model listings include qwen3_vl.",
+          "evidenceSummary": "The vLLM supported-models page lists the qwen3_vl architecture key, making vLLM the primary runtime candidate for future generated-fixture VLM runtime verification.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Runtime support evidence does not authorize vLLM execution in Phase 39A."
+          ]
+        },
+        {
+          "evidenceId": "qwen_vllm_docs_runtime_caveats",
+          "sourceName": "Qwen vLLM deployment documentation",
+          "sourceUrl": "https://qwen.readthedocs.io/en/latest/deployment/vllm.html",
+          "sourceType": "runtime_docs",
+          "claim": "Qwen vLLM docs recommend vLLM, discuss vLLM version/CUDA/Torch caveats, and warn that a non-local model path can trigger Hugging Face Hub downloads.",
+          "evidenceSummary": "Qwen vLLM docs support vLLM deployment planning and explicitly create a future no-runtime-download requirement because default behavior can fetch from Hugging Face when no valid local path is provided.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Prompt-specified evidence mentions vllm>=0.8.5 for general Qwen3 notes; current Qwen3-VL repo deployment notes vLLM>=0.11.0 for Qwen3-VL support.",
+            "Phase 39B/39C must pin a runtime version after reconciling that version discrepancy."
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "transformers",
+      "displayName": "local Transformers fallback planning",
+      "role": "Fallback runtime planning only if vLLM cannot satisfy future private local-path/no-download constraints.",
+      "runtimeRole": "fallback_runtime_planning",
+      "taskScope": [
+        "model definition support planning",
+        "offline local-path fallback planning"
+      ],
+      "firstReeditProScope": [
+        "fallback planning only; no Phase 39A runtime execution"
+      ],
+      "sourceUrls": [
+        "https://github.com/huggingface/transformers"
+      ],
+      "licenseName": "Apache-2.0",
+      "reviewStatus": "planning_only",
+      "downloadStatus": "not_applicable",
+      "runtimeStatus": "planning_only",
+      "noDownloadInPhase39A": true,
+      "noRuntimeInPhase39A": true,
+      "noMediaProcessingInPhase39A": true,
+      "evidence": [
+        {
+          "evidenceId": "transformers_repo_apache2_multimodal",
+          "sourceName": "Transformers GitHub repository",
+          "sourceUrl": "https://github.com/huggingface/transformers",
+          "sourceType": "github",
+          "claim": "Transformers is Apache-2.0 and supports text, computer vision, audio, video, and multimodal model definitions.",
+          "evidenceSummary": "Transformers is recorded as fallback runtime planning only, useful for model-definition compatibility checks if vLLM is not viable in future phases.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Fallback planning does not authorize Phase 39A Transformers execution or model download."
+          ]
+        }
+      ]
+    },
+    {
+      "candidateId": "qwen_vl_utils",
+      "displayName": "qwen-vl-utils",
+      "role": "Future utility-dependency candidate for packaging Qwen visual inputs under bounded generated/controlled fixtures.",
+      "runtimeRole": "utility_dependency",
+      "taskScope": [
+        "visual input preprocessing planning",
+        "frame/image packaging planning"
+      ],
+      "firstReeditProScope": [
+        "Phase 39C dependency planning only after version/hash pinning"
+      ],
+      "sourceUrls": [
+        "https://pypi.org/project/qwen-vl-utils/"
+      ],
+      "licenseName": "Apache-2.0",
+      "reviewStatus": "planning_only",
+      "downloadStatus": "not_applicable",
+      "runtimeStatus": "planning_only",
+      "noDownloadInPhase39A": true,
+      "noRuntimeInPhase39A": true,
+      "noMediaProcessingInPhase39A": true,
+      "evidence": [
+        {
+          "evidenceId": "qwen_vl_utils_pypi_apache2",
+          "sourceName": "qwen-vl-utils PyPI",
+          "sourceUrl": "https://pypi.org/project/qwen-vl-utils/",
+          "sourceType": "pypi",
+          "claim": "qwen-vl-utils is a Qwen vision-language utility package with Apache-2.0 metadata.",
+          "evidenceSummary": "qwen-vl-utils is recorded as a future utility-dependency candidate for local private image/frame packaging only after a later runtime phase approves dependencies.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "medium",
+          "notes": [
+            "PyPI package metadata is useful for planning, but Phase 39C must pin package version and hashes before installation."
+          ]
+        }
+      ]
+    }
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceId": "qwen3_vl_repo_multimodal_vlm",
+      "sourceName": "Qwen3-VL GitHub repository",
+      "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+      "sourceType": "github",
+      "claim": "Qwen3-VL is a multimodal vision-language model series with image, video, spatial, OCR, and agent capabilities.",
+      "evidenceSummary": "Official Qwen3-VL repository describes Qwen3-VL as a vision-language model series with stronger visual perception, spatial reasoning, video understanding, OCR, and agent interaction capabilities.",
+      "reviewedAt": "2026-05-31T00:00:00.000Z",
+      "confidence": "high",
+      "notes": [
+        "Phase 39A records capability/source evidence only; it does not run prompts or inspect media.",
+        "The official repository currently notes Qwen3-VL deployment with vLLM needs a newer vLLM line than older general Qwen3 text-only docs."
+      ]
+    },
+    {
+      "evidenceId": "qwen3_vl_repo_apache2_license",
+      "sourceName": "Qwen3-VL GitHub repository license badge/file",
+      "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+      "sourceType": "github",
+      "claim": "Qwen3-VL repository license is Apache-2.0.",
+      "evidenceSummary": "The official repository exposes an Apache-2.0 license entry. Exact model-card/license metadata must still be rechecked at the selected Phase 39B revision.",
+      "reviewedAt": "2026-05-31T00:00:00.000Z",
+      "confidence": "high",
+      "notes": [
+        "Legal approval is planning-only until exact model revision/file evidence is selected."
+      ]
+    },
+    {
+      "evidenceId": "qwen3_vl_8b_hf_model_card_identity",
+      "sourceName": "Hugging Face model card",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+      "sourceType": "huggingface",
+      "claim": "The model card identifies Qwen/Qwen3-VL-8B-Instruct with Image-Text-to-Text, Transformers, Safetensors, qwen3_vl, conversational, and apache-2.0 metadata.",
+      "evidenceSummary": "The selected candidate exists as a Hugging Face model card with the intended model id, architecture tag, task tag, and Apache-2.0 model-card license metadata.",
+      "reviewedAt": "2026-05-31T00:00:00.000Z",
+      "confidence": "high",
+      "notes": [
+        "Phase 39B must pin the exact revision and file manifest before any download."
+      ]
+    },
+    {
+      "evidenceId": "vllm_supported_models_qwen3_vl",
+      "sourceName": "vLLM supported models documentation",
+      "sourceUrl": "https://docs.vllm.ai/en/latest/models/supported_models/",
+      "sourceType": "docs",
+      "claim": "vLLM supported model listings include qwen3_vl.",
+      "evidenceSummary": "The vLLM supported-models page lists the qwen3_vl architecture key, making vLLM the primary runtime candidate for future generated-fixture VLM runtime verification.",
+      "reviewedAt": "2026-05-31T00:00:00.000Z",
+      "confidence": "high",
+      "notes": [
+        "Runtime support evidence does not authorize vLLM execution in Phase 39A."
+      ]
+    },
+    {
+      "evidenceId": "qwen_vllm_docs_runtime_caveats",
+      "sourceName": "Qwen vLLM deployment documentation",
+      "sourceUrl": "https://qwen.readthedocs.io/en/latest/deployment/vllm.html",
+      "sourceType": "runtime_docs",
+      "claim": "Qwen vLLM docs recommend vLLM, discuss vLLM version/CUDA/Torch caveats, and warn that a non-local model path can trigger Hugging Face Hub downloads.",
+      "evidenceSummary": "Qwen vLLM docs support vLLM deployment planning and explicitly create a future no-runtime-download requirement because default behavior can fetch from Hugging Face when no valid local path is provided.",
+      "reviewedAt": "2026-05-31T00:00:00.000Z",
+      "confidence": "high",
+      "notes": [
+        "Prompt-specified evidence mentions vllm>=0.8.5 for general Qwen3 notes; current Qwen3-VL repo deployment notes vLLM>=0.11.0 for Qwen3-VL support.",
+        "Phase 39B/39C must pin a runtime version after reconciling that version discrepancy."
+      ]
+    },
+    {
+      "evidenceId": "transformers_repo_apache2_multimodal",
+      "sourceName": "Transformers GitHub repository",
+      "sourceUrl": "https://github.com/huggingface/transformers",
+      "sourceType": "github",
+      "claim": "Transformers is Apache-2.0 and supports text, computer vision, audio, video, and multimodal model definitions.",
+      "evidenceSummary": "Transformers is recorded as fallback runtime planning only, useful for model-definition compatibility checks if vLLM is not viable in future phases.",
+      "reviewedAt": "2026-05-31T00:00:00.000Z",
+      "confidence": "high",
+      "notes": [
+        "Fallback planning does not authorize Phase 39A Transformers execution or model download."
+      ]
+    },
+    {
+      "evidenceId": "qwen_vl_utils_pypi_apache2",
+      "sourceName": "qwen-vl-utils PyPI",
+      "sourceUrl": "https://pypi.org/project/qwen-vl-utils/",
+      "sourceType": "pypi",
+      "claim": "qwen-vl-utils is a Qwen vision-language utility package with Apache-2.0 metadata.",
+      "evidenceSummary": "qwen-vl-utils is recorded as a future utility-dependency candidate for local private image/frame packaging only after a later runtime phase approves dependencies.",
+      "reviewedAt": "2026-05-31T00:00:00.000Z",
+      "confidence": "medium",
+      "notes": [
+        "PyPI package metadata is useful for planning, but Phase 39C must pin package version and hashes before installation."
+      ]
+    }
+  ],
+  "licenseEvidence": [
+    {
+      "candidateId": "qwen3_vl_8b_instruct",
+      "packageOrModelName": "Qwen/Qwen3-VL-8B-Instruct",
+      "licenseIdentified": true,
+      "licenseName": "Apache-2.0",
+      "commercialUseClaim": true,
+      "redistributionClaim": "requires_human_review",
+      "modelAssetLicenseClear": "deferred_until_exact_revision_selected",
+      "humanLegalReviewRequiredBeforePhase39B": true,
+      "evidenceRequired": [
+        "Pin exact Hugging Face revision before Phase 39B.",
+        "Record all selected model/tokenizer/processor file names before download.",
+        "Recheck model-card license metadata and any gated/disclaimer terms at the selected revision.",
+        "Compute SHA-256 for every downloaded file and upload only to private generated-assets storage."
+      ],
+      "notes": [
+        "Phase 39A approves planning only; it does not approve model-file redistribution.",
+        "Human legal review is required before Phase 39B if exact source/license/model-card evidence differs from Phase 39A metadata."
+      ]
+    },
+    {
+      "candidateId": "qwen3_vl_family",
+      "packageOrModelName": "Qwen3-VL family",
+      "licenseIdentified": true,
+      "licenseName": "Apache-2.0",
+      "commercialUseClaim": true,
+      "redistributionClaim": "requires_human_review",
+      "modelAssetLicenseClear": "deferred_until_exact_revision_selected",
+      "humanLegalReviewRequiredBeforePhase39B": true,
+      "evidenceRequired": [
+        "Confirm selected family member, size, quantization status, and model-card terms.",
+        "Block any alternate Qwen3-VL checkpoint if model-card license/source metadata does not match the approved candidate."
+      ],
+      "notes": [
+        "Family evidence is planning context only; only Qwen/Qwen3-VL-8B-Instruct is the Phase 39A default candidate."
+      ]
+    },
+    {
+      "candidateId": "vllm",
+      "packageOrModelName": "vLLM",
+      "licenseIdentified": true,
+      "licenseName": "Apache-2.0",
+      "commercialUseClaim": true,
+      "redistributionClaim": true,
+      "modelAssetLicenseClear": "not_applicable",
+      "humanLegalReviewRequiredBeforePhase39B": false,
+      "evidenceRequired": [
+        "Pin vLLM runtime version in Phase 39C only after reconciling Qwen3-VL minimum-version requirements.",
+        "Record CUDA/Torch/image dependency compatibility before any GPU runtime."
+      ],
+      "notes": [
+        "vLLM is runtime planning only in Phase 39A and may not be installed or executed."
+      ]
+    },
+    {
+      "candidateId": "transformers",
+      "packageOrModelName": "Transformers",
+      "licenseIdentified": true,
+      "licenseName": "Apache-2.0",
+      "commercialUseClaim": true,
+      "redistributionClaim": true,
+      "modelAssetLicenseClear": "not_applicable",
+      "humanLegalReviewRequiredBeforePhase39B": false,
+      "evidenceRequired": [
+        "Pin Transformers version only in a future fallback runtime phase.",
+        "Record local-path and no-Hub-download behavior before execution."
+      ],
+      "notes": [
+        "Transformers remains fallback planning only."
+      ]
+    },
+    {
+      "candidateId": "qwen_vl_utils",
+      "packageOrModelName": "qwen-vl-utils",
+      "licenseIdentified": true,
+      "licenseName": "Apache-2.0",
+      "commercialUseClaim": true,
+      "redistributionClaim": true,
+      "modelAssetLicenseClear": "not_applicable",
+      "humanLegalReviewRequiredBeforePhase39B": false,
+      "evidenceRequired": [
+        "Pin qwen-vl-utils version and package hashes before any runtime install.",
+        "Review optional extras such as decord before enabling video-frame utilities."
+      ],
+      "notes": [
+        "qwen-vl-utils is not installed or executed in Phase 39A."
+      ]
+    }
+  ],
+  "runtimeSupportEvidence": [
+    {
+      "runtimeId": "vllm",
+      "runtimeName": "vLLM",
+      "role": "primary",
+      "qwen3VlSupported": true,
+      "minVersionEvidence": "vLLM supported models list includes qwen3_vl; Qwen vLLM docs mention vLLM version/CUDA/Torch caveats, while current Qwen3-VL docs indicate vLLM>=0.11.0 for Qwen3-VL support.",
+      "localPathRequired": true,
+      "defaultExternalDownloadRisk": true,
+      "gpuRequiredForPracticalRuntime": "expected_for_vllm",
+      "cpuOnlyPlanningAllowed": false,
+      "evidence": [
+        {
+          "evidenceId": "vllm_supported_models_qwen3_vl",
+          "sourceName": "vLLM supported models documentation",
+          "sourceUrl": "https://docs.vllm.ai/en/latest/models/supported_models/",
+          "sourceType": "docs",
+          "claim": "vLLM supported model listings include qwen3_vl.",
+          "evidenceSummary": "The vLLM supported-models page lists the qwen3_vl architecture key, making vLLM the primary runtime candidate for future generated-fixture VLM runtime verification.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Runtime support evidence does not authorize vLLM execution in Phase 39A."
+          ]
+        },
+        {
+          "evidenceId": "qwen_vllm_docs_runtime_caveats",
+          "sourceName": "Qwen vLLM deployment documentation",
+          "sourceUrl": "https://qwen.readthedocs.io/en/latest/deployment/vllm.html",
+          "sourceType": "runtime_docs",
+          "claim": "Qwen vLLM docs recommend vLLM, discuss vLLM version/CUDA/Torch caveats, and warn that a non-local model path can trigger Hugging Face Hub downloads.",
+          "evidenceSummary": "Qwen vLLM docs support vLLM deployment planning and explicitly create a future no-runtime-download requirement because default behavior can fetch from Hugging Face when no valid local path is provided.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Prompt-specified evidence mentions vllm>=0.8.5 for general Qwen3 notes; current Qwen3-VL repo deployment notes vLLM>=0.11.0 for Qwen3-VL support.",
+            "Phase 39B/39C must pin a runtime version after reconciling that version discrepancy."
+          ]
+        }
+      ],
+      "blockers": [
+        "Phase 39A cannot run vLLM.",
+        "Phase 39C must use private local model paths only and fail closed if vLLM attempts Hugging Face or ModelScope downloads.",
+        "Phase 39C must pin CUDA/Torch/vLLM compatibility before any GPU runtime."
+      ],
+      "warnings": [
+        "Prompt-provided Qwen vLLM evidence mentions vllm>=0.8.5 for general Qwen3; Qwen3-VL repo deployment currently states vLLM>=0.11.0 for Qwen3-VL support.",
+        "vLLM default behavior can download model files from Hugging Face when a valid local directory is not provided."
+      ]
+    },
+    {
+      "runtimeId": "transformers",
+      "runtimeName": "local Transformers",
+      "role": "fallback_planning_only",
+      "qwen3VlSupported": "supported_by_model_definition_only",
+      "minVersionEvidence": "Qwen3-VL repository states Qwen3-VL requires Transformers >= 4.57.0; future fallback must pin a current compatible version before use.",
+      "localPathRequired": true,
+      "defaultExternalDownloadRisk": true,
+      "gpuRequiredForPracticalRuntime": true,
+      "cpuOnlyPlanningAllowed": false,
+      "evidence": [
+        {
+          "evidenceId": "qwen3_vl_repo_multimodal_vlm",
+          "sourceName": "Qwen3-VL GitHub repository",
+          "sourceUrl": "https://github.com/QwenLM/Qwen3-VL",
+          "sourceType": "github",
+          "claim": "Qwen3-VL is a multimodal vision-language model series with image, video, spatial, OCR, and agent capabilities.",
+          "evidenceSummary": "Official Qwen3-VL repository describes Qwen3-VL as a vision-language model series with stronger visual perception, spatial reasoning, video understanding, OCR, and agent interaction capabilities.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Phase 39A records capability/source evidence only; it does not run prompts or inspect media.",
+            "The official repository currently notes Qwen3-VL deployment with vLLM needs a newer vLLM line than older general Qwen3 text-only docs."
+          ]
+        },
+        {
+          "evidenceId": "transformers_repo_apache2_multimodal",
+          "sourceName": "Transformers GitHub repository",
+          "sourceUrl": "https://github.com/huggingface/transformers",
+          "sourceType": "github",
+          "claim": "Transformers is Apache-2.0 and supports text, computer vision, audio, video, and multimodal model definitions.",
+          "evidenceSummary": "Transformers is recorded as fallback runtime planning only, useful for model-definition compatibility checks if vLLM is not viable in future phases.",
+          "reviewedAt": "2026-05-31T00:00:00.000Z",
+          "confidence": "high",
+          "notes": [
+            "Fallback planning does not authorize Phase 39A Transformers execution or model download."
+          ]
+        }
+      ],
+      "blockers": [
+        "Phase 39A cannot run Transformers.",
+        "Fallback runtime remains planning-only unless vLLM is blocked by future generated-fixture evidence.",
+        "Future fallback must disable remote Hub downloads and use private local model paths only."
+      ],
+      "warnings": [
+        "Transformers fallback may have higher memory/cost and different structured-output behavior than vLLM."
+      ]
+    }
+  ],
+  "storagePlan": {
+    "storagePlanId": "qwen3_vl_8b_instruct_private_staging_storage_v1",
+    "futurePhase": "39B",
+    "baseStagingPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/<revision>/",
+    "privateStorageRequired": true,
+    "sourceMediaBucketAllowed": false,
+    "publicAccessAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "committedToGitAllowed": false,
+    "exactRevisionRequiredBeforeDownload": true,
+    "exactFileManifestRequiredBeforeDownload": true,
+    "checksumRequiredAfterDownload": true,
+    "noRuntimeAutoDownloadRequired": true,
+    "expectedAssetClasses": [
+      "model weight shards",
+      "safetensors index/config files",
+      "tokenizer files",
+      "processor/image processor files",
+      "generation/config files",
+      "model card/license snapshot metadata"
+    ],
+    "notes": [
+      "Phase 39A records the future private prefix only; it does not create GCS objects.",
+      "Phase 39B must replace <revision> with an exact immutable revision before any download.",
+      "Model, tokenizer, and processor files must never be committed to git.",
+      "Phase 39C must resolve runtime from private staged assets and fail closed on runtime auto-download attempts."
+    ]
+  },
+  "downloadHandoffPlan": [
+    {
+      "planId": "phase39b_exact_revision_file_selection",
+      "futurePhase": "39B",
+      "description": "Select exact Qwen/Qwen3-VL-8B-Instruct revision and file manifest before any model/tokenizer/processor download.",
+      "executionMode": "text_only",
+      "safeToRunNow": false,
+      "executableCommand": null,
+      "requiresFutureApproval": true,
+      "requiredConfirmations": [
+        "REEDITPRO_CONFIRM_VLM_MODEL_DOWNLOAD=true",
+        "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_UPLOAD=true"
+      ],
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/<revision>/",
+      "blockedReason": "Phase 39A is approval/planning only and cannot download model files.",
+      "allowedOnlyAfter": [
+        "Exact Hugging Face revision is selected.",
+        "Exact file manifest is selected.",
+        "Human legal review confirms model-card/source terms are unchanged or acceptable."
+      ],
+      "stillBlocked": [
+        "vLLM runtime execution",
+        "generated-fixture inference",
+        "controlled real-frame inference",
+        "beta",
+        "production"
+      ],
+      "warnings": [
+        "Do not use mutable main/latest model references.",
+        "Do not commit model, tokenizer, or processor payloads."
+      ]
+    },
+    {
+      "planId": "phase39b_private_gcs_checksum_manifest",
+      "futurePhase": "39B",
+      "description": "Compute SHA-256 for selected files and stage them only in private generated-assets GCS storage.",
+      "executionMode": "text_only",
+      "safeToRunNow": false,
+      "executableCommand": null,
+      "requiresFutureApproval": true,
+      "requiredConfirmations": [
+        "REEDITPRO_CONFIRM_VLM_MODEL_DOWNLOAD=true",
+        "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_UPLOAD=true"
+      ],
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/<revision>/",
+      "blockedReason": "No private model object creation or GCS upload is allowed in Phase 39A.",
+      "allowedOnlyAfter": [
+        "Phase 39B current-shell confirmations are set.",
+        "Active project/bucket privacy preflight passes.",
+        "Temp download path is outside the repo."
+      ],
+      "stillBlocked": [
+        "runtime auto-download",
+        "media processing",
+        "public model artifacts",
+        "Docker push",
+        "Cloud Run deploy"
+      ],
+      "warnings": [
+        "GCS object metadata may not expose SHA-256; keep local checksum manifest as evidence."
+      ]
+    }
+  ],
+  "runtimeHandoffPlan": [
+    {
+      "planId": "phase39c_generated_fixture_vlm_runtime",
+      "futurePhase": "39C",
+      "description": "Run generated-fixture VLM runtime verification only after Phase 39B private model assets and checksums pass.",
+      "executionMode": "text_only",
+      "safeToRunNow": false,
+      "executableCommand": null,
+      "requiresFutureApproval": true,
+      "requiredConfirmations": [
+        "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ=true",
+        "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE=true",
+        "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD=true"
+      ],
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/<run-id>/",
+      "blockedReason": "Phase 39A cannot run vLLM/Transformers or generated fixture inference.",
+      "allowedOnlyAfter": [
+        "Phase 39B private model asset checksum verification passes.",
+        "Runtime dependency versions are pinned and reviewed.",
+        "Network/model-download guard is implemented and tested."
+      ],
+      "stillBlocked": [
+        "real media",
+        "controlled real frames",
+        "arbitrary media",
+        "provider calls",
+        "beta",
+        "production"
+      ],
+      "warnings": [
+        "Runtime must use local private paths only.",
+        "JSON-only outputs must avoid raw prompt dumps and unsafe media paths."
+      ]
+    },
+    {
+      "planId": "phase39d_controlled_real_frame_vlm",
+      "futurePhase": "39D",
+      "description": "Use exactly one approved private controlled real frame/sample after generated runtime passes.",
+      "executionMode": "text_only",
+      "safeToRunNow": false,
+      "executableCommand": null,
+      "requiresFutureApproval": true,
+      "requiredConfirmations": [
+        "REEDITPRO_CONFIRM_CONTROLLED_REAL_FRAME_VLM_EXECUTE=true",
+        "REEDITPRO_CONFIRM_CONTROLLED_REAL_FRAME_VLM_ARTIFACT_UPLOAD=true",
+        "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ=true",
+        "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE=true"
+      ],
+      "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39d/controlled-real-frame-vlm/<run-id>/",
+      "blockedReason": "Phase 39A cannot process real frames or media bytes.",
+      "allowedOnlyAfter": [
+        "Phase 39C generated-fixture runtime verification passes.",
+        "Phase 39D gate selects exactly one approved private sample/window.",
+        "Frame count and prompt scope are bounded by the Phase 39D gate."
+      ],
+      "stillBlocked": [
+        "broad real-video VLM",
+        "arbitrary media",
+        "public output",
+        "Track A execution code",
+        "beta",
+        "production"
+      ],
+      "warnings": [
+        "Phase 39D may compare to Phase 37 OCR safe-zone metadata but must not broaden OCR/VLM scope automatically."
+      ]
+    }
+  ],
+  "generatedFixturePlan": {
+    "planId": "phase39c_generated_vlm_fixture_plan_v1",
+    "futurePhase": "39C",
+    "fixtureIds": [
+      "generated-frame-object-layout-basic",
+      "generated-caption-safe-zone-reasoning",
+      "generated-ui-text-and-object-grounding",
+      "generated-crowded-layout-warning",
+      "generated-low-confidence-manual-review"
+    ],
+    "requiredOutputFormat": "json_only",
+    "boundedPromptTemplatesRequired": true,
+    "realMediaAllowed": false,
+    "providerAllowed": false,
+    "publicOutputAllowed": false,
+    "qaMetrics": [
+      "schema validity",
+      "object/region recall against generated fixture metadata",
+      "safe-zone recommendation consistency",
+      "confidence/manual-review routing",
+      "no network/model download attempts"
+    ],
+    "blockers": [
+      "Missing Phase 39B private staged model checksum evidence.",
+      "Runtime auto-download attempt.",
+      "Output includes raw media bytes, public URLs, or unredacted unsafe paths."
+    ],
+    "warnings": [
+      "VLM safe-zone suggestions are advisory planning hints until later render QA validates them."
+    ]
+  },
+  "controlledRealFramePlan": {
+    "planId": "phase39d_controlled_real_frame_plan_v1",
+    "futurePhase": "39D",
+    "approvedSampleCount": 1,
+    "selectedSamplePolicy": "one_approved_private_controlled_frame_or_bounded_sample_only",
+    "frameCount": "decided_by_phase39d_gate",
+    "sourceMediaBytesAllowedInPhase39A": false,
+    "comparisonInputs": [
+      "Phase 39C generated-fixture VLM runtime report",
+      "Phase 37D OCR safe-zone metadata, if selected by the Phase 39D gate",
+      "Phase 37E caption/render QA metadata, if selected by the Phase 39D gate"
+    ],
+    "blockers": [
+      "No controlled real-frame source may be read in Phase 39A.",
+      "No frame extraction may occur in Phase 39A.",
+      "No raw VLM text for controlled media may be committed."
+    ],
+    "warnings": [
+      "Controlled real-frame VLM evidence should be redacted/hash-only where it derives from private media."
+    ]
+  },
+  "toolPlanningIntegrationPlan": {
+    "planId": "phase39e_vlm_tool_planning_integration_v1",
+    "futurePhase": "39E",
+    "integrationMode": "structured_planning_hints_only",
+    "directToolExecutionAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "userFacingProductionAllowed": false,
+    "lowConfidenceAutomaticActionsAllowed": false,
+    "allowedHintTypes": [
+      "object-aware caption safe-zone hints",
+      "manual-review visual risk flags",
+      "layout/crop caution hints",
+      "tool-selection confidence annotations",
+      "bounded QA observations for internal planning"
+    ],
+    "blockedHintTypes": [
+      "automatic render edits",
+      "automatic frame crop execution",
+      "direct tool calls",
+      "raw prompt replay",
+      "provider calls",
+      "public user-facing claims",
+      "low-confidence automatic actions"
+    ],
+    "handoffNotes": [
+      "Phase 39E must integrate hints through structured planner fields, not raw model prose.",
+      "If runtime or render hooks are needed, defer to a later Track B hook phase instead of modifying Track A execution code."
+    ]
+  },
+  "privacySecurityPolicyReport": {
+    "reportId": "phase_39a_vlm_privacy_security_policy_report",
+    "metadataOnly": true,
+    "privateArtifactsOnly": true,
+    "publicArtifactPathsAllowed": false,
+    "signedUrlsAllowed": false,
+    "credentialsOrSecretsAllowed": false,
+    "mediaBytesAllowed": false,
+    "modelBytesAllowed": false,
+    "generatedReportsSafeToCommit": true,
+    "blockedInputs": [
+      "public artifact paths",
+      "signed URLs",
+      "local media files",
+      "image/video bytes",
+      "model/tokenizer/processor payloads",
+      "credential files",
+      "secret logs"
+    ],
+    "retentionNotes": [
+      "Phase 39A reports are safe metadata only and may be committed.",
+      "Future private model assets must live in generated-assets private GCS and outside git.",
+      "Future VLM QA artifacts must be JSON-only and private unless a later explicit policy permits otherwise."
+    ]
+  },
+  "gpuCostRiskReport": {
+    "reportId": "phase_39a_vlm_gpu_cost_risk_report",
+    "gpuRuntimeApprovedNow": false,
+    "likelyGpuNeed": "high",
+    "candidateRuntime": "vLLM",
+    "risks": [
+      {
+        "riskId": "vlm-gpu-memory-cost",
+        "severity": "blocker",
+        "currentStatus": "Qwen3-VL 8B runtime is not costed or GPU-sized in Phase 39A.",
+        "mitigation": "Phase 39C must choose bounded generated fixtures, max tokens, image size, batch size, and GPU class before execution.",
+        "evidenceRequiredToClear": "Pinned runtime profile with memory estimate, timeout, max tokens, and cost guard."
+      },
+      {
+        "riskId": "runtime-auto-download",
+        "severity": "blocker",
+        "currentStatus": "vLLM/Transformers may fetch model files if local paths are not used.",
+        "mitigation": "Future runtime must use private local paths and a network/model-download guard.",
+        "evidenceRequiredToClear": "Phase 39C no-download-at-runtime proof."
+      },
+      {
+        "riskId": "vlm-output-overtrust",
+        "severity": "warning",
+        "currentStatus": "VLM object/safe-zone suggestions are advisory and may be wrong.",
+        "mitigation": "Route low-confidence or collision-risk outputs to manual review and deterministic QA.",
+        "evidenceRequiredToClear": "Generated and controlled fixture QA showing structured confidence/manual-review behavior."
+      },
+      {
+        "riskId": "version-compatibility-drift",
+        "severity": "warning",
+        "currentStatus": "Qwen/vLLM minimum-version evidence varies across docs and model families.",
+        "mitigation": "Phase 39C must pin exact vLLM, CUDA, Torch, Transformers, and qwen-vl-utils versions after current-source review.",
+        "evidenceRequiredToClear": "Runtime dependency lock and local generated-fixture pass."
+      }
+    ]
+  },
+  "approvalBlockerReport": {
+    "reportId": "phase_39a_vlm_approval_blocker_report",
+    "blockers": [
+      "phase39a_no_model_download: Qwen3-VL model/tokenizer/processor downloads are blocked until Phase 39B.",
+      "phase39a_no_runtime_execution: vLLM, Transformers, SGLang, GPU, and inference execution are blocked until later approved phases.",
+      "phase39a_no_media_processing: images, videos, real media, arbitrary files, and controlled frames are blocked.",
+      "phase39a_no_gcp_mutation: GCS uploads, IAM changes, Cloud Run deploys, Docker build/push, and GPU jobs are blocked.",
+      "phase39a_no_track_a_or_launch_unlock: Track A, beta, production, providers, and public output remain blocked."
+    ],
+    "warnings": [
+      "Qwen3-VL/vLLM evidence supports planning only; Phase 39B must revalidate exact revision and file metadata before download.",
+      "The prompt-provided Qwen vLLM version note and current Qwen3-VL repo runtime note differ; Phase 39C must pin a compatible vLLM version after runtime review.",
+      "vLLM and Transformers can download from external model hubs by default unless future runtime code uses private local paths and a network/model-download guard.",
+      "Qwen3-VL practical runtime likely requires GPU memory/cost review before generated-fixture verification."
+    ],
+    "blockedScopes": [
+      "Qwen3-VL model weight download",
+      "Qwen3-VL tokenizer download",
+      "Qwen3-VL processor download",
+      "vLLM runtime execution",
+      "Transformers runtime execution",
+      "SGLang runtime execution",
+      "runtime model auto-download",
+      "GPU jobs",
+      "image processing",
+      "video processing",
+      "real media processing",
+      "arbitrary file processing",
+      "public artifact paths",
+      "signed URLs as source of truth",
+      "provider calls",
+      "GCP or IAM mutation",
+      "Cloud Run deploy",
+      "Docker build or push",
+      "Track A execution/runtime code",
+      "beta readiness",
+      "production readiness",
+      "broad real user media"
+    ],
+    "requiredHumanReviews": [
+      "Human legal/source review before Phase 39B if exact model-card license/source metadata differs from Phase 39A evidence.",
+      "Human GPU/cost review before Phase 39C runtime execution.",
+      "Human privacy review before any Phase 39D controlled real-frame VLM run."
+    ]
+  },
+  "privateArtifactManifest": {
+    "manifestId": "phase39a_vlm_model_approval_metadata_manifest",
+    "createdAt": "2026-05-31T01:52:16.227Z",
+    "artifactCount": 15,
+    "localOnly": true,
+    "gcsUploadAllowed": false,
+    "artifacts": [
+      {
+        "artifactName": "phase_39a_vlm_model_approval_plan.json",
+        "reportKey": "plan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Phase 39A metadata-only approval plan and blocked scopes."
+      },
+      {
+        "artifactName": "phase_39a_vlm_candidate_registry.json",
+        "reportKey": "candidateRegistry",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Qwen3-VL, vLLM, fallback runtime, and utility dependency candidate registry."
+      },
+      {
+        "artifactName": "phase_39a_vlm_source_evidence.json",
+        "reportKey": "sourceEvidence",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Official/public source evidence for candidate model and runtime planning."
+      },
+      {
+        "artifactName": "phase_39a_vlm_license_evidence.json",
+        "reportKey": "licenseEvidence",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "License evidence and human-review requirements."
+      },
+      {
+        "artifactName": "phase_39a_vlm_runtime_support_evidence.json",
+        "reportKey": "runtimeSupportEvidence",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "vLLM and local Transformers runtime support evidence."
+      },
+      {
+        "artifactName": "phase_39a_vlm_storage_plan.json",
+        "reportKey": "storagePlan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Future private GCS model-weight staging plan."
+      },
+      {
+        "artifactName": "phase_39a_vlm_download_handoff_plan.json",
+        "reportKey": "downloadHandoffPlan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Phase 39B exact revision/file/checksum handoff plan."
+      },
+      {
+        "artifactName": "phase_39a_vlm_runtime_handoff_plan.json",
+        "reportKey": "runtimeHandoffPlan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Phase 39C/39D runtime and controlled-frame handoff plan."
+      },
+      {
+        "artifactName": "phase_39a_vlm_generated_fixture_plan.json",
+        "reportKey": "generatedFixturePlan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Future generated-fixture VLM QA plan."
+      },
+      {
+        "artifactName": "phase_39a_vlm_controlled_real_frame_plan.json",
+        "reportKey": "controlledRealFramePlan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Future one-sample controlled real-frame VLM plan."
+      },
+      {
+        "artifactName": "phase_39a_vlm_tool_planning_integration_plan.json",
+        "reportKey": "toolPlanningIntegrationPlan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Future structured VLM hint integration plan."
+      },
+      {
+        "artifactName": "phase_39a_vlm_privacy_security_policy_report.json",
+        "reportKey": "privacySecurityPolicyReport",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Metadata-only privacy/security policy report."
+      },
+      {
+        "artifactName": "phase_39a_vlm_gpu_cost_risk_report.json",
+        "reportKey": "gpuCostRiskReport",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "GPU/runtime cost and risk report."
+      },
+      {
+        "artifactName": "phase_39a_vlm_approval_blocker_report.json",
+        "reportKey": "approvalBlockerReport",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Blocked-scope and human-review report."
+      },
+      {
+        "artifactName": "phase_39a_vlm_model_approval_report.json",
+        "reportKey": "plan",
+        "safeToCommit": true,
+        "containsModelBytes": false,
+        "containsMediaBytes": false,
+        "containsSecrets": false,
+        "containsSignedUrls": false,
+        "description": "Combined Phase 39A approval report."
+      }
+    ]
+  },
+  "blockers": [
+    "phase39a_no_model_download: Qwen3-VL model/tokenizer/processor downloads are blocked until Phase 39B.",
+    "phase39a_no_runtime_execution: vLLM, Transformers, SGLang, GPU, and inference execution are blocked until later approved phases.",
+    "phase39a_no_media_processing: images, videos, real media, arbitrary files, and controlled frames are blocked.",
+    "phase39a_no_gcp_mutation: GCS uploads, IAM changes, Cloud Run deploys, Docker build/push, and GPU jobs are blocked.",
+    "phase39a_no_track_a_or_launch_unlock: Track A, beta, production, providers, and public output remain blocked."
+  ],
+  "warnings": [
+    "Qwen3-VL/vLLM evidence supports planning only; Phase 39B must revalidate exact revision and file metadata before download.",
+    "The prompt-provided Qwen vLLM version note and current Qwen3-VL repo runtime note differ; Phase 39C must pin a compatible vLLM version after runtime review.",
+    "vLLM and Transformers can download from external model hubs by default unless future runtime code uses private local paths and a network/model-download guard.",
+    "Qwen3-VL practical runtime likely requires GPU memory/cost review before generated-fixture verification."
+  ],
+  "phase39BReadiness": {
+    "ready": true,
+    "nextPhase": "Phase 39B Qwen3-VL exact model revision/file selection and private staging",
+    "status": "ready_for_exact_revision_and_file_selection",
+    "blockers": [
+      "Model/tokenizer/processor download remains blocked until Phase 39B current-shell confirmations are set."
+    ],
+    "criteria": [
+      "Candidate model is selected: Qwen/Qwen3-VL-8B-Instruct.",
+      "Official/public source evidence is recorded.",
+      "Private storage prefix is documented.",
+      "Exact revision/file manifest and checksums are deferred to Phase 39B.",
+      "No model files were downloaded in Phase 39A."
+    ]
+  },
+  "phase39CReadiness": {
+    "ready": false,
+    "nextPhase": "Phase 39C generated-fixture VLM runtime verification",
+    "status": "blocked_until_phase39b_private_model_assets",
+    "blockers": [
+      "No exact Qwen3-VL revision/file manifest exists yet.",
+      "No private staged model/tokenizer/processor checksums exist yet.",
+      "No vLLM no-runtime-download guard has run yet."
+    ],
+    "criteria": [
+      "Phase 39B must stage private verified model assets.",
+      "Phase 39C must pin runtime dependencies and prove local-path/no-network behavior."
+    ]
+  },
+  "phase39DReadiness": {
+    "ready": false,
+    "nextPhase": "Phase 39D controlled real-frame VLM verification",
+    "status": "blocked_until_phase39c_generated_runtime",
+    "blockers": [
+      "Generated-fixture VLM runtime verification has not passed.",
+      "Controlled real-frame source/window has not been selected by a Phase 39D gate."
+    ],
+    "criteria": [
+      "Phase 39C generated-fixture runtime must pass.",
+      "Phase 39D must select exactly one approved private controlled frame/sample."
+    ]
+  },
+  "phase39EReadiness": {
+    "ready": false,
+    "nextPhase": "Phase 39E VLM tool-planning integration",
+    "status": "blocked_until_phase39d_controlled_real_frame",
+    "blockers": [
+      "Controlled real-frame VLM verification has not passed.",
+      "Structured planning-hint integration contract has not been validated."
+    ],
+    "criteria": [
+      "Phase 39D controlled evidence must pass with redacted/hash-only metadata.",
+      "Phase 39E must integrate hints only as structured planning data."
+    ]
+  },
+  "modelDownloadAllowed": false,
+  "tokenizerDownloadAllowed": false,
+  "processorDownloadAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "vllmExecutionAllowed": false,
+  "transformersExecutionAllowed": false,
+  "sglangExecutionAllowed": false,
+  "gpuJobAllowed": false,
+  "mediaProcessingAllowed": false,
+  "providerAllowed": false,
+  "publicOutputAllowed": false,
+  "gcpMutationAllowed": false,
+  "iamMutationAllowed": false,
+  "cloudRunDeployAllowed": false,
+  "dockerBuildPushAllowed": false,
+  "trackAExecutionAllowed": false,
+  "productionReadyAllowed": false,
+  "internalBetaAllowed": false,
+  "externalBetaAllowed": false,
+  "broadRealUserMediaAllowed": false
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "candidateId": "qwen3_vl_8b_instruct",
+    "packageOrModelName": "Qwen/Qwen3-VL-8B-Instruct",
+    "licenseIdentified": true,
+    "licenseName": "Apache-2.0",
+    "commercialUseClaim": true,
+    "redistributionClaim": "requires_human_review",
+    "modelAssetLicenseClear": "deferred_until_exact_revision_selected",
+    "humanLegalReviewRequiredBeforePhase39B": true,
+    "evidenceRequired": [
+      "Pin exact Hugging Face revision before Phase 39B.",
+      "Record all selected model/tokenizer/processor file names before download.",
+      "Recheck model-card license metadata and any gated/disclaimer terms at the selected revision.",
+      "Compute SHA-256 for every downloaded file and upload only to private generated-assets storage."
+    ],
+    "notes": [
+      "Phase 39A approves planning only; it does not approve model-file redistribution.",
+      "Human legal review is required before Phase 39B if exact source/license/model-card evidence differs from Phase 39A metadata."
+    ]
+  },
+  {
+    "candidateId": "qwen3_vl_family",
+    "packageOrModelName": "Qwen3-VL family",
+    "licenseIdentified": true,
+    "licenseName": "Apache-2.0",
+    "commercialUseClaim": true,
+    "redistributionClaim": "requires_human_review",
+    "modelAssetLicenseClear": "deferred_until_exact_revision_selected",
+    "humanLegalReviewRequiredBeforePhase39B": true,
+    "evidenceRequired": [
+      "Confirm selected family member, size, quantization status, and model-card terms.",
+      "Block any alternate Qwen3-VL checkpoint if model-card license/source metadata does not match the approved candidate."
+    ],
+    "notes": [
+      "Family evidence is planning context only; only Qwen/Qwen3-VL-8B-Instruct is the Phase 39A default candidate."
+    ]
+  },
+  {
+    "candidateId": "vllm",
+    "packageOrModelName": "vLLM",
+    "licenseIdentified": true,
+    "licenseName": "Apache-2.0",
+    "commercialUseClaim": true,
+    "redistributionClaim": true,
+    "modelAssetLicenseClear": "not_applicable",
+    "humanLegalReviewRequiredBeforePhase39B": false,
+    "evidenceRequired": [
+      "Pin vLLM runtime version in Phase 39C only after reconciling Qwen3-VL minimum-version requirements.",
+      "Record CUDA/Torch/image dependency compatibility before any GPU runtime."
+    ],
+    "notes": [
+      "vLLM is runtime planning only in Phase 39A and may not be installed or executed."
+    ]
+  },
+  {
+    "candidateId": "transformers",
+    "packageOrModelName": "Transformers",
+    "licenseIdentified": true,
+    "licenseName": "Apache-2.0",
+    "commercialUseClaim": true,
+    "redistributionClaim": true,
+    "modelAssetLicenseClear": "not_applicable",
+    "humanLegalReviewRequiredBeforePhase39B": false,
+    "evidenceRequired": [
+      "Pin Transformers version only in a future fallback runtime phase.",
+      "Record local-path and no-Hub-download behavior before execution."
+    ],
+    "notes": [
+      "Transformers remains fallback planning only."
+    ]
+  },
+  {
+    "candidateId": "qwen_vl_utils",
+    "packageOrModelName": "qwen-vl-utils",
+    "licenseIdentified": true,
+    "licenseName": "Apache-2.0",
+    "commercialUseClaim": true,
+    "redistributionClaim": true,
+    "modelAssetLicenseClear": "not_applicable",
+    "humanLegalReviewRequiredBeforePhase39B": false,
+    "evidenceRequired": [
+      "Pin qwen-vl-utils version and package hashes before any runtime install.",
+      "Review optional extras such as decord before enabling video-frame utilities."
+    ],
+    "notes": [
+      "qwen-vl-utils is not installed or executed in Phase 39A."
+    ]
+  }
+]

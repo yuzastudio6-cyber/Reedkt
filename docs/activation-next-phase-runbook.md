@@ -348,3 +348,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm Remotion render invocation and FFprobe preview decode gates passed on the bounded 5-second private preview.
 5. Confirm no arbitrary media, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
 6. Proceed to Phase 45C only as OpenTimelineIO timeline validation. Phase 45B does not approve final delivery, product beta, production, public delivery, or broad real media.
+
+## After Phase 45C
+
+1. Review `activation:opentimelineio-validation:report` and `docs/activation-phase-45c-opentimelineio-validation-results.md`.
+2. Confirm run `phase45c-20260531T20404` referenced only the approved Phase 32 private export, Phase 45A private preview/report, and Phase 45B private preview/report.
+3. Confirm the approved plan snapshot, source validation, OTIO-compatible timeline JSON, timeline validation JSON, QA JSON, and Phase 45C report artifacts exist only under private Phase 45C GCS prefixes.
+4. Confirm source integrity, Phase 45A/45B evidence, OTIO schema, timeline duration bounds, clip references, caption/render references, privacy, no-final-delivery, and blocked-feature gates passed.
+5. Confirm no media processing, arbitrary media, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
+6. Proceed to Phase 45D only as FFmpeg/FFprobe final render/export hardening. Phase 45C does not approve final delivery, product beta, production, public delivery, or broad real media.

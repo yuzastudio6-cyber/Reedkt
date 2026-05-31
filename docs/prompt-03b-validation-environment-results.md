@@ -2,6 +2,8 @@
 
 Prompt 3B diagnoses the validation environment for the limited auth/profile/workspace/project foundation. It does not expand production scope.
 
+PR: [#78](https://github.com/yuzastudio6-cyber/Reedkt/pull/78)
+
 ## Files Inspected
 
 - `PRODUCTION_FOUNDATION_STATUS.md`

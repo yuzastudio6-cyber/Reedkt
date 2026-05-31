@@ -105,3 +105,9 @@ No packages were installed.
 
 - Run the draft RLS smoke tests against a disposable local Supabase instance after schema conflict cleanup or explicit local validation approval.
 - Validate service-role auth/profile/workspace/project behavior against deployed RLS before production use.
+
+## Prompt 3A Follow-Up
+
+Prompt 3A is tracked in `docs/prompt-03a-auth-rls-fix-results.md` and [PR #76](https://github.com/yuzastudio6-cyber/Reedkt/pull/76). It hardens the Prompt 3 route/service implementation and attempts dependency-backed build/lint validation.
+
+Prompt 3A keeps the RLS SQL as draft-only. Lint and server typecheck pass; full `npm run build` remains blocked by a Vite/Rolldown native binding code-signature issue. PR details are recorded in the Prompt 3A result document and implementation tracker after PR creation.

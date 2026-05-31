@@ -2,12 +2,6 @@ import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import { getRequiredAuthUserId, mockWarning, sanitizeJson, throwOnSupabaseError } from './service-helpers'
 
-interface CreateProjectInput {
-  workspaceId: string
-  name: string
-  description?: string
-}
-
 interface ProjectRow {
   id?: string
   workspace_id?: string
@@ -57,8 +51,58 @@ function membershipSummary(member: WorkspaceMemberRow) {
 }
 
 export function createProjectService(context: ServiceContext) {
+  async function checkProjectAccess(projectId: string) {
+    const userId = getRequiredAuthUserId(context)
+
+    if (!context.clients.admin || context.env.mockOnly) {
+      return {
+        status: 'backend_required' as const,
+        hasAccess: false,
+        project: null,
+        membership: null,
+        warnings: [mockWarning('Project access check')],
+      }
+    }
+
+    // Server-only boundary: the service-role read is followed by explicit workspace membership verification.
+    const { data: projectData, error: projectError } = await context.clients.admin
+      .from('projects')
+      .select('id, workspace_id, owner_id, title, editing_category, status, metadata_json, created_at, updated_at')
+      .eq('id', projectId)
+      .maybeSingle()
+
+    throwOnSupabaseError(projectError, 'PROJECT_NOT_FOUND')
+    if (!projectData) throw new ApiError('PROJECT_NOT_FOUND', 'Project was not found or is not accessible.', 404)
+
+    const project = projectData as ProjectRow
+    const workspaceId = stringValue(project.workspace_id)
+    if (!workspaceId) {
+      throw new ApiError('INTERNAL_ERROR', 'Project is missing canonical workspace_id.', 500)
+    }
+
+    const { data: membershipData, error: membershipError } = await context.clients.admin
+      .from('workspace_members')
+      .select('id, workspace_id, user_id, role, created_at')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    throwOnSupabaseError(membershipError)
+    if (!membershipData) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Project was not found or is not accessible.', 403)
+    }
+
+    return {
+      status: 'ready' as const,
+      hasAccess: true,
+      project: projectSummary(project),
+      membership: membershipSummary(membershipData as WorkspaceMemberRow),
+      warnings: [],
+    }
+  }
+
   return {
-    async createProject(_input: CreateProjectInput): Promise<{ project: null; warnings: string[] }> {
+    async createProject(): Promise<never> {
       getRequiredAuthUserId(context)
       throw new ApiError(
         'VALIDATION_FAILED',
@@ -68,61 +112,9 @@ export function createProjectService(context: ServiceContext) {
     },
 
     async getProject(projectId: string) {
-      const result = await this.checkProjectAccess(projectId)
-      return {
-        project: result.project,
-        membership: result.membership,
-        warnings: result.warnings,
-      }
+      return checkProjectAccess(projectId)
     },
 
-    async checkProjectAccess(projectId: string) {
-      const userId = getRequiredAuthUserId(context)
-
-      if (!context.clients.admin || context.env.mockOnly) {
-        return {
-          status: 'backend_required' as const,
-          hasAccess: false,
-          project: null,
-          membership: null,
-          warnings: [mockWarning('Project access check')],
-        }
-      }
-
-      const { data: projectData, error: projectError } = await context.clients.admin
-        .from('projects')
-        .select('id, workspace_id, owner_id, title, editing_category, status, metadata_json, created_at, updated_at')
-        .eq('id', projectId)
-        .maybeSingle()
-
-      throwOnSupabaseError(projectError, 'PROJECT_NOT_FOUND')
-      if (!projectData) throw new ApiError('PROJECT_NOT_FOUND', 'Project was not found or is not accessible.', 404)
-
-      const project = projectData as ProjectRow
-      const workspaceId = stringValue(project.workspace_id)
-      if (!workspaceId) {
-        throw new ApiError('INTERNAL_ERROR', 'Project is missing canonical workspace_id.', 500)
-      }
-
-      const { data: membershipData, error: membershipError } = await context.clients.admin
-        .from('workspace_members')
-        .select('id, workspace_id, user_id, role, created_at')
-        .eq('workspace_id', workspaceId)
-        .eq('user_id', userId)
-        .maybeSingle()
-
-      throwOnSupabaseError(membershipError)
-      if (!membershipData) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Project was not found or is not accessible.', 403)
-      }
-
-      return {
-        status: 'ready' as const,
-        hasAccess: true,
-        project: projectSummary(project),
-        membership: membershipSummary(membershipData as WorkspaceMemberRow),
-        warnings: [],
-      }
-    },
+    checkProjectAccess,
   }
 }

@@ -38,7 +38,7 @@ export const PROJECT_API_ROUTES: ApiRouteDefinition[] = [
     domain: 'projects',
     method: 'POST',
     path: '/v1/projects',
-    description: 'Create a project in a workspace.',
+    description: 'Disabled broad project creation compatibility route.',
     securityLevel: 'workspace_editor',
     runtimeMode: 'backend_required',
     status: 'disabled',
@@ -47,7 +47,10 @@ export const PROJECT_API_ROUTES: ApiRouteDefinition[] = [
     requiresProviderSecret: false,
     requiresStripeSecret: false,
     futureHandlerName: 'createProject',
-    notes: ['Prompt 3 fails this broad create route closed; project creation needs a later scoped prompt.'],
+    notes: [
+      'Prompt 3A keeps this route fail-closed and performs no project-create body validation or database write.',
+      'Project creation needs a later scoped prompt.',
+    ],
   },
   {
     id: 'projects.access.check',
@@ -63,7 +66,7 @@ export const PROJECT_API_ROUTES: ApiRouteDefinition[] = [
     requiresProviderSecret: false,
     requiresStripeSecret: false,
     futureHandlerName: 'checkProjectAccess',
-    notes: ['Uses canonical projects.workspace_id and workspace_members; does not touch chat/media/execution tables.'],
+    notes: ['Uses canonical projects.workspace_id and workspace_members; IDs are UUID-validated and no chat/media/execution tables are touched.'],
   },
   {
     id: 'projects.update',

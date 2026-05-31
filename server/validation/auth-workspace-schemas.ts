@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { idSchema } from './common-schemas'
+
+export const canonicalUuidSchema = z.string().uuid()
 
 export const ensureProfileSchema = z.object({
   displayName: z.string().trim().min(1).max(120).optional(),
@@ -11,11 +12,11 @@ export const ensureWorkspaceSchema = z.object({
 }).strict()
 
 export const workspaceMembershipCheckSchema = z.object({
-  workspaceId: idSchema,
+  workspaceId: canonicalUuidSchema,
 }).strict()
 
 export const projectAccessCheckSchema = z.object({
-  projectId: idSchema,
+  projectId: canonicalUuidSchema,
 }).strict()
 
 export type EnsureProfileInput = z.infer<typeof ensureProfileSchema>

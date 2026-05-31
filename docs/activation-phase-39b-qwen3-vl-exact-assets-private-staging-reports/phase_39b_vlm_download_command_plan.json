@@ -1,0 +1,221 @@
+[
+  {
+    "commandId": "phase39b_preflight_static_validation",
+    "phase": "preflight",
+    "commandString": "npm run smoke:activation-vlm-model-download && npm run activation:vlm-model-download:plan",
+    "textOnlyByDefault": true,
+    "requiresConfirmation": false,
+    "doesNotDo": [
+      "no vLLM runtime execution",
+      "no Transformers inference",
+      "no SGLang runtime execution",
+      "no VLM inference",
+      "no runtime model auto-download",
+      "no image processing",
+      "no video processing",
+      "no real-media processing",
+      "no arbitrary media input",
+      "no GPU jobs",
+      "no Cloud Run deploy or execution",
+      "no Docker build or push",
+      "no provider calls",
+      "no public model storage",
+      "no signed URL source of truth",
+      "no source-media bucket storage",
+      "no model payloads committed to git",
+      "no production, internal beta, or external beta unlock",
+      "no Track A runtime or visual stack work"
+    ],
+    "warnings": [
+      "Safe validation does not download model files or mutate GCS."
+    ]
+  },
+  {
+    "commandId": "phase39b_hf_metadata_resolution",
+    "phase": "metadata",
+    "commandString": "Resolve Qwen/Qwen3-VL-8B-Instruct via Hugging Face model API and require revision 0c351dd01ed87e9c1b53cbc748cba10e6187ff3b.",
+    "textOnlyByDefault": true,
+    "requiresConfirmation": false,
+    "doesNotDo": [
+      "no vLLM runtime execution",
+      "no Transformers inference",
+      "no SGLang runtime execution",
+      "no VLM inference",
+      "no runtime model auto-download",
+      "no image processing",
+      "no video processing",
+      "no real-media processing",
+      "no arbitrary media input",
+      "no GPU jobs",
+      "no Cloud Run deploy or execution",
+      "no Docker build or push",
+      "no provider calls",
+      "no public model storage",
+      "no signed URL source of truth",
+      "no source-media bucket storage",
+      "no model payloads committed to git",
+      "no production, internal beta, or external beta unlock",
+      "no Track A runtime or visual stack work"
+    ],
+    "warnings": [
+      "Metadata refresh may use HF_TOKEN from the environment if the model ever becomes gated, but token values are never printed or persisted."
+    ]
+  },
+  {
+    "commandId": "phase39b_download_selected_assets",
+    "phase": "download",
+    "commandString": "Set the current-shell VLM model download confirmation, then run npm run activation:vlm-model-download -- --execute --keep-temp",
+    "textOnlyByDefault": true,
+    "requiresConfirmation": true,
+    "confirmationEnvVar": "REEDITPRO_CONFIRM_VLM_MODEL_DOWNLOAD",
+    "doesNotDo": [
+      "no vLLM runtime execution",
+      "no Transformers inference",
+      "no SGLang runtime execution",
+      "no VLM inference",
+      "no runtime model auto-download",
+      "no image processing",
+      "no video processing",
+      "no real-media processing",
+      "no arbitrary media input",
+      "no GPU jobs",
+      "no Cloud Run deploy or execution",
+      "no Docker build or push",
+      "no provider calls",
+      "no public model storage",
+      "no signed URL source of truth",
+      "no source-media bucket storage",
+      "no model payloads committed to git",
+      "no production, internal beta, or external beta unlock",
+      "no Track A runtime or visual stack work"
+    ],
+    "warnings": [
+      "Downloads only the pinned selected files into /tmp/reeditpro/activation/phase39b/qwen3-vl-8b-instruct/<run-id>/downloads/."
+    ]
+  },
+  {
+    "commandId": "phase39b_compute_sha256",
+    "phase": "checksum",
+    "commandString": "Compute SHA256 while streaming each selected Hugging Face file and build aggregate manifest.",
+    "textOnlyByDefault": true,
+    "requiresConfirmation": false,
+    "doesNotDo": [
+      "no vLLM runtime execution",
+      "no Transformers inference",
+      "no SGLang runtime execution",
+      "no VLM inference",
+      "no runtime model auto-download",
+      "no image processing",
+      "no video processing",
+      "no real-media processing",
+      "no arbitrary media input",
+      "no GPU jobs",
+      "no Cloud Run deploy or execution",
+      "no Docker build or push",
+      "no provider calls",
+      "no public model storage",
+      "no signed URL source of truth",
+      "no source-media bucket storage",
+      "no model payloads committed to git",
+      "no production, internal beta, or external beta unlock",
+      "no Track A runtime or visual stack work"
+    ],
+    "warnings": [
+      "Checksum manifests are safe metadata; model payloads are not committed."
+    ]
+  },
+  {
+    "commandId": "phase39b_private_gcs_upload",
+    "phase": "upload",
+    "commandString": "With the current-shell private GCS upload confirmation set, upload selected files and JSON manifests to gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+    "textOnlyByDefault": true,
+    "requiresConfirmation": true,
+    "confirmationEnvVar": "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_UPLOAD",
+    "doesNotDo": [
+      "no vLLM runtime execution",
+      "no Transformers inference",
+      "no SGLang runtime execution",
+      "no VLM inference",
+      "no runtime model auto-download",
+      "no image processing",
+      "no video processing",
+      "no real-media processing",
+      "no arbitrary media input",
+      "no GPU jobs",
+      "no Cloud Run deploy or execution",
+      "no Docker build or push",
+      "no provider calls",
+      "no public model storage",
+      "no signed URL source of truth",
+      "no source-media bucket storage",
+      "no model payloads committed to git",
+      "no production, internal beta, or external beta unlock",
+      "no Track A runtime or visual stack work"
+    ],
+    "warnings": [
+      "Uploads only verified selected assets and safe manifests to the approved private generated-assets prefix."
+    ]
+  },
+  {
+    "commandId": "phase39b_verify_private_gcs_objects",
+    "phase": "verify",
+    "commandString": "gcloud storage objects describe gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/<relative-path> --format=json",
+    "textOnlyByDefault": true,
+    "requiresConfirmation": false,
+    "doesNotDo": [
+      "no vLLM runtime execution",
+      "no Transformers inference",
+      "no SGLang runtime execution",
+      "no VLM inference",
+      "no runtime model auto-download",
+      "no image processing",
+      "no video processing",
+      "no real-media processing",
+      "no arbitrary media input",
+      "no GPU jobs",
+      "no Cloud Run deploy or execution",
+      "no Docker build or push",
+      "no provider calls",
+      "no public model storage",
+      "no signed URL source of truth",
+      "no source-media bucket storage",
+      "no model payloads committed to git",
+      "no production, internal beta, or external beta unlock",
+      "no Track A runtime or visual stack work"
+    ],
+    "warnings": [
+      "Verification records size, generation, metageneration, CRC32C, MD5 when available, and local SHA256 from the manifest."
+    ]
+  },
+  {
+    "commandId": "phase39b_cleanup_policy",
+    "phase": "cleanup",
+    "commandString": "Delete local temp staging unless --keep-temp is intentionally provided for review.",
+    "textOnlyByDefault": true,
+    "requiresConfirmation": false,
+    "doesNotDo": [
+      "no vLLM runtime execution",
+      "no Transformers inference",
+      "no SGLang runtime execution",
+      "no VLM inference",
+      "no runtime model auto-download",
+      "no image processing",
+      "no video processing",
+      "no real-media processing",
+      "no arbitrary media input",
+      "no GPU jobs",
+      "no Cloud Run deploy or execution",
+      "no Docker build or push",
+      "no provider calls",
+      "no public model storage",
+      "no signed URL source of truth",
+      "no source-media bucket storage",
+      "no model payloads committed to git",
+      "no production, internal beta, or external beta unlock",
+      "no Track A runtime or visual stack work"
+    ],
+    "warnings": [
+      "No temp payloads, HF cache, or model files may be committed."
+    ]
+  }
+]

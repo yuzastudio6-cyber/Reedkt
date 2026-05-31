@@ -1,0 +1,18 @@
+{
+  "phase": "39B",
+  "collectedAt": "2026-05-31T02:56:48.156Z",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+  "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "licenseName": "apache-2.0",
+  "licenseTagPresent": true,
+  "modelCardEvidenceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+  "qwenRepoEvidenceUrl": "https://github.com/QwenLM/Qwen3-VL",
+  "codexLicenseDecision": "staging_download_approved_by_codex",
+  "humanLegalReviewRequiredBeforePhase39C": false,
+  "productionLegalApprovalComplete": false,
+  "blockers": [],
+  "warnings": [
+    "Apache-2.0 metadata supports private staging evidence only; production legal approval remains incomplete.",
+    "Human legal/source review is required before broad production use, provider use, or any redistribution decision."
+  ]
+}

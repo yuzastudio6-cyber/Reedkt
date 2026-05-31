@@ -118,3 +118,7 @@ real media remain blocked.
 ## Phase 37A OCR Approval Update
 
 Phase 37A OCR approval update: PaddleOCR/PaddlePaddle are approved only for staging generated OCR safe-zone planning. Exact PP-OCRv5 assets are deferred to Phase 37B, OCR runtime is deferred to Phase 37C, controlled real-video OCR is deferred to Phase 37D, and production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.
+
+## Phase 39A/39B VLM Model Weight Update
+
+Phase 39A approves `Qwen/Qwen3-VL-8B-Instruct` only as Track B VLM planning evidence with vLLM as the future runtime candidate. Phase 39B pins revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, records SHA-256 checksums, and privately stages the 15 selected model/tokenizer/processor/config/source-evidence files under the approved generated-assets model-weight prefix. This is not production, beta, broad media, provider, GPU, or runtime approval. Phase 39C must verify generated VLM runtime from local private assets only and must block runtime auto-download before any controlled real-frame or planning-integration phase can proceed.

@@ -144,6 +144,11 @@ mapping process and mapped file (non-platform) have different Team IDs
 
 The Prompt 3C runner correctly classifies this as `environment_blocked`, not `code_failed`.
 
+Whitespace validation passed:
+
+- `git diff --check`
+- `git diff --check origin/codex/rp-foundation-03b-auth-rls-validation-environment-fix...HEAD`
+
 GitHub Actions CI status is pending until PR checks run.
 
 ## RLS Status

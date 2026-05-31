@@ -102,10 +102,17 @@ assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_C
 assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD'), true)
 assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD'), true)
 assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_STAGING_CLOUD_RUN_JOB'), true)
+assert.equal(commandPlan.some((plan) => plan.confirmationEnvVar === 'REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE'), true)
 assert.match(commandPlan.map((plan) => plan.commandString).join('\n'), /--cpu=8 --memory=32Gi/)
 assert.equal(commandPlan.every((plan) => plan.textOnlyByDefault), true)
 assert.doesNotMatch(commandPlan.map((plan) => plan.commandString).join('\n'), /Qwen\/Qwen3-VL-8B-Instruct\s*$|provider|dashscope|openai/i)
 assert.equal(buildVlmRuntimeIamPlan().iamMutationAllowed, false)
+const iamPlan = buildVlmRuntimeIamPlan()
+assert.equal(iamPlan.plans.some((plan) => plan.bindingId === 'phase39c-vlm-model-read' && plan.required), true)
+assert.equal(iamPlan.plans.some((plan) => plan.bindingId === 'phase39c-vlm-qa-create' && plan.required), true)
+assert.equal(iamPlan.plans.some((plan) => plan.bindingId === 'phase39c-vlm-qa-readback'), false)
+assert.match(JSON.stringify(iamPlan), /phase39c-vlm-model-read-qwen3vl-8b/)
+assert.match(JSON.stringify(iamPlan), /phase39c-vlm-qa-create/)
 
 assert.ok(vlmRuntimeBlockedScopes.some((scope) => scope.includes('Phase 39D')))
 assert.ok(vlmRuntimeBlockedScopes.some((scope) => scope.includes('Track A')))
@@ -142,6 +149,7 @@ const moduleSource = readdirSync(moduleDir)
   .join('\n')
 assert.equal(/from\s+['"].*masks|from\s+['"].*render|from\s+['"].*sam2|Track A runtime/i.test(moduleSource), false)
 assert.equal(/fetch\(|axios|dashscope\.|openai\.|InferenceClient/.test(moduleSource), false)
+assert.equal(/storage\s+objects\s+list|storage\s+ls|list_blobs|gsutil\s+ls/.test(moduleSource), false)
 
 console.log(JSON.stringify({
   ok: true,

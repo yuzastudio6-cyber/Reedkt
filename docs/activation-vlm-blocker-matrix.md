@@ -11,7 +11,7 @@
 | Images/video/media | Generated fixtures only | Real frames, real video, broad media, and arbitrary images/video remain blocked. |
 | Provider calls | Blocked | No Qwen, DashScope, HF Inference Providers, OpenAI-compatible VLM endpoints, or external inference. |
 | Public output | Blocked | All model assets, runtime reports, and QA artifacts remain private. |
-| IAM/GCP infrastructure mutation | Blocked | Phase 39C emits text-only IAM plans and does not change IAM. |
+| IAM/GCP infrastructure mutation | Guarded scoped IAM only | Phase 39C defaults to text-only IAM plans. Recorded evidence adds only conditional model-read and QA-create bindings for the staging GPU worker service account; future IAM mutation still requires explicit current-shell confirmation. |
 | Beta/production | Blocked | Phase 39C can only become phase-complete while the VLM tool family remains incomplete. |
 | Track A | Blocked | No SAM2/render/visual runtime or Track A code changes. |
 

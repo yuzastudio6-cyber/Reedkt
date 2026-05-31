@@ -1,6 +1,6 @@
 # Phase 39C Generated Qwen3-VL/vLLM Runtime Verification
 
-Status: `blocked_staging_gpu_worker_iam`
+Status: `blocked_pending_guarded_l4_rerun`
 
 Guarded run: `phase39c-20260531T114924`
 
@@ -52,16 +52,27 @@ REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD=true \
 npm run activation:vlm-runtime -- --execute --keep-temp
 ```
 
-The staging L4 path additionally requires Docker build, Docker push, staging Cloud Run Job, and L4 GPU confirmations. Phase 39C does not change IAM, create public endpoints, or deploy production services.
+The staging L4 path additionally requires Docker build, Docker push, staging Cloud Run Job, and L4 GPU confirmations. Scoped IAM updates are guarded separately by `REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE=true`, default to non-mutating plan/report mode, and must remain prefix-scoped. Phase 39C does not create public endpoints or deploy production services.
 
 ## Blocked Scope
 
 Phase 39C blocks real frames, real video, arbitrary images/video, raw prompts, provider calls, public output, beta, production, broad media, unapproved GPU types, Track A, Phase 39D controlled real-frame VLM, and Phase 39E planning integration.
 
+## Scoped IAM Evidence
+
+After the first guarded L4 failure, Phase 39C recorded a scoped IAM plan/apply evidence set:
+
+- `phase_39c_vlm_runtime_scoped_iam_plan.json`
+- `phase_39c_vlm_runtime_iam_before.json`
+- `phase_39c_vlm_runtime_iam_after.json`
+- `phase_39c_vlm_runtime_iam_delta_report.json`
+
+The delta report records two applied conditional bindings for `reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com`: `roles/storage.objectViewer` limited to the exact Phase 39B model prefix and `roles/storage.objectCreator` limited to the Phase 39C generated VLM runtime QA prefix. `missingRequiredBindings` is empty, `broadAccessGranted` is `false`, and `publicAccessGranted` is `false`, meaning this Phase 39C update did not grant broad or public access. The delta report also preserves warnings for a pre-existing unconditioned storage binding for the Phase 39C member that was detected and left unchanged. The plan still rejects `storage.objects.list`, public principals, project-wide storage roles, unconditioned bucket-wide Phase 39C roles, and broad admin/editor roles. QA artifact readback remains optional/deferred and skipped by default.
+
 ## Current Blocker
 
 The guarded L4 path built and pushed the staging image `us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:phase39c-20260531t114924` with digest `sha256:c7d01243dcc2b21db6709ab5e55b25122980836114db5bd4f3f04936be99c885`, deployed job `reeditpro-stg-vlm-runtime-phase39c` with one `nvidia-l4`, `8` CPU, `32Gi` memory, max retries `0`, and no public endpoint, then executed it. The Cloud Run task failed before checksum verification because `reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com` received `403` responses reading the Phase 39B model objects and writing the Phase 39C QA reports.
 
-No IAM was changed in Phase 39C. The local runner uploaded 12 safe JSON blocker reports from the developer account after the worker failed. vLLM did not start, the 15 model files were not copied by the worker, local SHA-256 verification did not run, and generated fixture QA did not execute.
+The scoped IAM evidence above addresses the original worker storage-access blocker, but the generated-fixture runtime has not been rerun in the current shell because the required execution confirmations are absent. The local runner uploaded 12 safe JSON blocker reports from the developer account after the worker failed. vLLM did not start, the 15 model files were not copied by the worker, local SHA-256 verification did not run, and generated fixture QA did not execute.
 
-VLM tool-family beta status is `blocked`. Phase 39D remains blocked until prefix-scoped worker read/write access is approved outside this phase, the staging image is rebuilt from the current source, the worker verifies all Phase 39B checksums, starts vLLM from the local model path, and passes generated-fixture QA.
+VLM tool-family beta status is `blocked`. Phase 39D remains blocked until the guarded L4 job is rerun from the current source, the worker verifies all Phase 39B checksums, starts vLLM from the local model path, and passes generated-fixture QA.

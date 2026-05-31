@@ -83,10 +83,11 @@ export interface VlmRuntimeValidationResult {
 
 export interface VlmRuntimeCommandPlan {
   commandId: string
-  phase: 'preflight' | 'model-copy' | 'checksum' | 'fixture' | 'execute' | 'upload' | 'docker' | 'cloud-run' | 'validate'
+  phase: 'preflight' | 'iam' | 'model-copy' | 'checksum' | 'fixture' | 'execute' | 'upload' | 'docker' | 'cloud-run' | 'validate'
   commandString: string
   requiresConfirmation: boolean
   confirmationEnvVar?:
+    | 'REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE'
     | 'REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ'
     | 'REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE'
     | 'REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD'
@@ -99,16 +100,98 @@ export interface VlmRuntimeCommandPlan {
   warnings: string[]
 }
 
+export type VlmRuntimeIamBindingStatus = 'already_present' | 'added' | 'missing' | 'skipped' | 'blocked'
+
 export interface VlmRuntimeIamPlan {
   bindingId: string
   resource: string
   role: 'roles/storage.objectViewer' | 'roles/storage.objectCreator' | 'roles/artifactregistry.reader' | 'roles/run.developer'
   member: string
   conditionTitle: string
+  conditionDescription?: string
   conditionExpression: string
   description: string
   commandString: string
-  required: false
+  required: boolean
+  optionalReason?: string
+  status?: VlmRuntimeIamBindingStatus
+  blockers?: string[]
+  warnings?: string[]
+}
+
+export interface VlmRuntimeIamPolicyBinding {
+  role: string
+  members: string[]
+  condition?: {
+    title?: string
+    description?: string
+    expression?: string
+  }
+}
+
+export interface VlmRuntimeIamPolicySnapshot {
+  phase: '39C'
+  reportId: 'phase_39c_vlm_runtime_iam_before' | 'phase_39c_vlm_runtime_iam_after'
+  createdAt: string
+  bucket: string
+  etag?: string
+  bindingCount: number
+  bindings: VlmRuntimeIamPolicyBinding[]
+  relevantBindings: VlmRuntimeIamPolicyBinding[]
+  publicPrincipalsDetected: boolean
+  broadBindingsForPhase39cMember: VlmRuntimeIamPolicyBinding[]
+  warnings: string[]
+}
+
+export interface VlmRuntimeScopedIamPlanReport {
+  phase: '39C'
+  reportId: 'phase_39c_vlm_runtime_scoped_iam_plan'
+  createdAt: string
+  iamMutationAllowed: boolean
+  defaultMode: 'non_mutating'
+  requiredConfirmation: 'REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE'
+  plans: VlmRuntimeIamPlan[]
+  broaderRolesRejected: string[]
+  publicPrincipalsRejected: string[]
+  blockers: string[]
+  warnings: string[]
+}
+
+export interface VlmRuntimeIamDeltaReport {
+  phase: '39C'
+  reportId: 'phase_39c_vlm_runtime_iam_delta_report'
+  createdAt: string
+  iamMutationAllowed: boolean
+  member: string
+  appliedBindings: VlmRuntimeIamPlan[]
+  alreadyPresentBindings: VlmRuntimeIamPlan[]
+  skippedBindings: VlmRuntimeIamPlan[]
+  missingRequiredBindings: VlmRuntimeIamPlan[]
+  before: {
+    generatedAssets: VlmRuntimeIamPolicySnapshot
+    qaArtifacts: VlmRuntimeIamPolicySnapshot
+  }
+  after: {
+    generatedAssets: VlmRuntimeIamPolicySnapshot
+    qaArtifacts: VlmRuntimeIamPolicySnapshot
+  }
+  broadAccessGranted: false
+  publicAccessGranted: false
+  blockers: string[]
+  warnings: string[]
+}
+
+export interface VlmRuntimeIamApplyResult {
+  plan: VlmRuntimeScopedIamPlanReport
+  before: {
+    generatedAssets: VlmRuntimeIamPolicySnapshot
+    qaArtifacts: VlmRuntimeIamPolicySnapshot
+  }
+  after: {
+    generatedAssets: VlmRuntimeIamPolicySnapshot
+    qaArtifacts: VlmRuntimeIamPolicySnapshot
+  }
+  delta: VlmRuntimeIamDeltaReport
 }
 
 export interface VlmExpectedRegion {

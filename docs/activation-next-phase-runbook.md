@@ -329,4 +329,13 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the approved Phase 40D plan snapshot, source validation, sample manifest, contact sheet, private review manifest, QA JSON, and report artifacts exist only under private Phase 40D GCS prefixes.
 4. Confirm OpenImageIO, OpenColorIO, and Kornia feature gates passed on the bounded three-frame 768x432 sample.
 5. Confirm no arbitrary media, full-video pro color/image, full 4K frames, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
-6. Proceed to Phase 45A only as libass caption burn-in validation. Phase 40D does not approve product beta, production, public delivery, or full-video pro color/image.
+6. Phase 45A is complete only for libass caption burn-in validation. Phase 40D does not approve product beta, production, public delivery, or full-video pro color/image.
+
+## After Phase 45A
+
+1. Review `activation:libass-burnin-validation:report` and `docs/activation-phase-45a-libass-burnin-validation-results.md`.
+2. Confirm run `phase45a-20260531T19033` used only the approved Phase 32 private export and Phase 28 ASS caption sidecar.
+3. Confirm the approved plan snapshot, source validation, caption validation, private burn-in preview MP4, FFprobe preview validation, QA JSON, and Phase 45A report artifacts exist only under private Phase 45A GCS prefixes.
+4. Confirm FFmpeg/libass burn-in and FFprobe preview decode gates passed on the bounded 5-second private preview.
+5. Confirm no arbitrary media, newly generated captions, final delivery export, providers, Revideo, Track B tools, public output, production, external beta, paid production, or broad real media occurred.
+6. Proceed to Phase 45B only as Remotion render validation. Phase 45A does not approve final delivery, product beta, production, public delivery, or broad real media.

@@ -36,3 +36,11 @@ only and approves Phase 40B generated-fixture runtime planning. Pro color/image
 real-video processing, final delivery color transforms, providers, Revideo,
 production, external beta, paid production, broad media, and public output remain
 blocked until later explicit phases.
+
+## Activation Phase 40B Dependency
+
+After Phase 40B, the full E2E workflow may reference only generated-fixture
+OpenColorIO/OpenImageIO/Kornia runtime evidence. It still must not consume
+real-video pro color/image output, final delivery transforms, public output,
+providers, Revideo, production, external beta, paid production, broad media, or
+Track B tools until later explicit phases approve those scopes.

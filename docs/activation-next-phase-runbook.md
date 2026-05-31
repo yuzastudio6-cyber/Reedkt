@@ -302,3 +302,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 5. Confirm all future command plans are text-only and blocked in Phase 40A.
 6. Confirm runtime install, generated-fixture execution, real-video pro color/image execution, final delivery, providers, Revideo, public output, production, external beta, paid production, and broad real media remain blocked.
 7. Proceed to Phase 40B only as generated-fixture pro color/image runtime verification; do not process real video or install runtime dependencies from Phase 40A.
+
+## After Phase 40B
+
+1. Review `activation:pro-color-image-runtime:report` and `docs/activation-phase-40b-pro-color-image-runtime-results.md`.
+2. Confirm the runtime used only generated `256x256` color bars, gradient, and alpha checker fixtures.
+3. Confirm OpenColorIO, OpenImageIO, and Kornia each have explicit pass/block evidence; do not treat a missing runtime import as a pass.
+4. Confirm artifacts exist only under private Phase 40B generated-assets and QA prefixes.
+5. Confirm no real video, user media, final delivery, public output, providers, Revideo, Track B tools, production, external beta, paid production, or broad real media were enabled.
+6. Proceed to Phase 40C only as one controlled real-video pro color/image sample if Phase 40B mandatory QA gates pass.

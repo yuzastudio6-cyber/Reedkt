@@ -202,10 +202,15 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 14. Worker Claim And Execution Contract Hardening
 
 - Purpose: harden the future worker claim/execution contract before any tool runtime can move beyond readiness reporting.
-- Implements: service-role worker claim constraints, approved snapshot requirements, idempotency, lease/heartbeat contract verification, worker execution blockers, audit event shape, and no-op/fail-closed execution paths.
+- Deliverables after Prompt 14: `docs/worker-claim-execution-contract-hardening.md`, `docs/worker-execution-envelope-contract.md`, `docs/worker-claim-route-contract.md`, `docs/worker-execution-gate-contract.md`, `docs/prompt-14-validation-results.md`, `database/test-sql/016_worker_claim_execution_contract_rls_smoke_tests.draft.sql`, `scripts/validation/worker-execution-contract-diagnostics.mjs`, worker execution route/service/schema updates, and worker route metadata.
+- Implementation status after Prompt 14: partially implemented / limited worker claim-execution contract foundation only. Real worker execution remains blocked.
+- Validation status after Prompt 14: local `git diff --check`, lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, credit diagnostics, backend API diagnostics, job/worker diagnostics, media readiness diagnostics, render/export diagnostics, QA/revision diagnostics, tool-call diagnostics, tool readiness diagnostics, worker execution diagnostics, default foundation validation, full build, server build, and with-build foundation validation passed. GitHub Foundation Validation passed on PR #103 run 26787232436.
+- Implements: service-role worker claim constraints, approved snapshot requirements, credit reservation references, media/storage readiness references, tool readiness integration, idempotency, lease/heartbeat contract verification, complete/fail/cancel/stale recovery blockers, audit event shape, and no-op/fail-closed execution paths.
 - Must not implement: real worker execution, tool runtime execution, provider calls, rendering/export, media processing, storage transfer, Cloud Run dispatch, deployment, SQL execution, or production/beta unlocks.
-- Main files/tables/services: `worker_job_claims`, `worker_leases`, `worker_runtime_status`, `tool_call_intents`, `tool_call_executions`, approved snapshots, credit reservations, and job/worker route contracts.
+- Main files/tables/services: `worker_job_claims`, `worker_leases`, `worker_runtime_status`, `tool_call_intents`, `tool_call_executions`, approved snapshots, credit reservations, jobs, job events, idempotency keys, worker execution contract service, and job/worker route contracts.
+- What remains blocked: transactional worker claims, leases, heartbeats, completion/failure/cancel writes, stale recovery mutation, worker execution, tool execution, providers, render/export, media processing, storage transfer, credit mutation, local/staging RLS validation, deployment, and production/beta unlock.
 - Acceptance criteria: worker claims remain backend-only, service-role-only, idempotent, approved-snapshot-bound, and fail-closed until a later runtime activation phase explicitly enables execution.
+- Next prompt recommendation: Prompt 15 - Provider Gateway Foundation.
 - GitHub deliverable: branch, commit, push, PR with worker execution contract hardening and explicit no-runtime-execution status.
 
 ## 15. Compliance/License/Dependency/Security Review Foundation

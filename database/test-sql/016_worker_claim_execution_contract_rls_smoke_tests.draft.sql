@@ -1,0 +1,29 @@
+-- Prompt 14 worker claim execution contract RLS smoke tests.
+-- Draft/local-staging validation only. Do not run against production.
+-- No credentials, remote Supabase links, provider calls, worker execution, media processing,
+-- render/export execution, tool execution, credit mutation, or storage transfer are allowed here.
+
+-- Planned cases:
+-- 1. Workspace member can read project-scoped worker claim summaries when policy allows.
+-- 2. Normal user cannot insert or update worker_job_claims.
+-- 3. Worker/backend-only role creates worker claims in a future approved transaction.
+-- 4. Duplicate active claim for the same job is blocked.
+-- 5. Heartbeat, renew, release, complete, fail, cancel, and stale recovery are backend-only.
+-- 6. Worker execution envelope JSON rejects secret-like, provider-key-like, and temporary URL-like keys.
+-- 7. Claim preflight must reference approved_plan_snapshots.
+-- 8. Claim preflight must reference credit_reservations when credits apply.
+-- 9. Tool readiness disabled state blocks execution.
+-- 10. Claim preflight creates no provider, render, tool, media, or generation execution records.
+-- 11. job_events and audit_events remain append-only when in scope.
+
+-- Example skeleton for future local validation:
+-- begin;
+-- select plan(11);
+-- select has_table('public', 'worker_job_claims');
+-- select has_table('public', 'worker_leases');
+-- select has_table('public', 'jobs');
+-- select has_table('public', 'api_idempotency_keys');
+-- select has_table('public', 'approved_plan_snapshots');
+-- select has_table('public', 'credit_reservations');
+-- select pass('Prompt 14 draft only: fixtures and local Supabase runtime are required before execution.');
+-- rollback;

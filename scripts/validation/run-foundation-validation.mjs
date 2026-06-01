@@ -54,6 +54,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'snapshot:scope:diagnostics'],
     required: true,
   },
+  {
+    id: 'credit_scope_diagnostics',
+    command: 'npm run --silent credit:scope:diagnostics',
+    npmArgs: ['run', '--silent', 'credit:scope:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

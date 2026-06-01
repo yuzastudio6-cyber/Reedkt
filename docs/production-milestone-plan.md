@@ -89,12 +89,17 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 
 ## 6. Credit Ledger And Approval Gate Production Runtime
 
-- Purpose: make credit estimates, reservations, spends, releases, and refunds transactional.
-- Implements: backend ledger mutations, reservation enforcement, refund/release logic, idempotent expensive-operation gates, weekly grant rules, and test coverage.
-- Must not implement: Stripe checkout/webhooks unless separately scoped, provider calls, rendering, or worker dispatch beyond gated no-op/mock tests.
-- Main files/tables/services: `credit_wallets`, `credit_ledger_entries`, `credit_estimates`, `credit_approvals`, `credit_reservations`, refund records, approval gate service.
-- Acceptance criteria: no expensive job can start without approved estimate and reservation, duplicate requests are rejected/idempotent, failed work can release/refund correctly.
-- GitHub deliverable: branch, commit, push, PR with transactional tests and no Stripe/provider/render execution unless explicitly scoped.
+- Purpose: harden the credit ledger and approval gate boundary before backend execution uses it.
+- Deliverables after Prompt 6: `docs/credit-ledger-approval-gate-runtime.md`, `docs/credit-ledger-route-contract.md`, `docs/credit-gate-contract.md`, `docs/prompt-06-validation-results.md`, `database/test-sql/009_credit_ledger_approval_gate_rls_smoke_tests.draft.sql`, `scripts/validation/credit-scope-diagnostics.mjs`, `server/services/credit-service.ts`, hardened credit routes/schemas, and backend-required credit route metadata.
+- Implementation status after Prompt 6: partially implemented / limited credit route-service foundation only. Real credit mutation remains blocked.
+- Validation status after Prompt 6: lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, credit diagnostics, and foundation validation should pass locally; full build may rely on the Prompt 3C Linux CI route if local Rolldown remains environment-blocked; SQL/RLS remains draft-only unless a working local Supabase environment is available.
+- Implements: canonical read-only credit readiness/gate checks, fail-closed estimate/approval/reservation/spend/release/refund mutation boundaries, idempotency enforcement for mutation routes, safe metadata checks, route contracts, and diagnostics.
+- Must not implement: Stripe checkout/webhooks/payment processing, real credit reserve/spend/release/refund/estimate/approval/wallet mutation, provider calls, rendering, worker dispatch, job creation, tool execution, storage upload/download execution, media analysis, planning generation, remote Supabase validation, deployment, production migrations, or broad service-role handlers.
+- Main files/tables/services: `credit_estimates`, `credit_estimate_items`, `approval_records`, `approved_plan_snapshots`, `credit_reservations`, `credit_ledger_entries`, `refund_records`, `projects`, `workspaces`, `workspace_members`, credit service, credit routes, and credit diagnostics.
+- What remains blocked: transactional credit RPC/service-role mutation, wallet/grant/purchase semantics, local/staging RLS execution, Stripe, execution-time spends/refunds, audit dashboarding, and schema cleanup for legacy credit-era tables.
+- Acceptance criteria: mutation routes fail closed instead of faking success, canonical Prompt 2A/5 credit tables are targeted, legacy credit approval/wallet/refund tables are not production-path targets, no expensive job can start from credit routes, diagnostics are honest, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 7 - Backend API Runtime And Route Hardening if Prompt 6 validation and CI pass; otherwise Prompt 6A - Credit Gate Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit statement that no Stripe/provider/render/job/worker/tool/storage/planning execution or real credit mutation was enabled.
 
 ## 7. Backend API Runtime And Route Hardening
 

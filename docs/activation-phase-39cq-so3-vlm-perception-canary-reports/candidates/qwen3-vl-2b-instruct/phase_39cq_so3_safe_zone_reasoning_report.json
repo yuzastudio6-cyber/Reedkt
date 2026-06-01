@@ -1,0 +1,54 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_safe_zone_reasoning_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-2b-instruct",
+  "results": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "decision": "unknown",
+      "schemaValid": false,
+      "manualReview": false
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "decision": "unknown",
+      "schemaValid": false,
+      "manualReview": false
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "decision": "unknown",
+      "schemaValid": false,
+      "manualReview": false
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "decision": "unknown",
+      "schemaValid": false,
+      "manualReview": false
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "decision": "unknown",
+      "schemaValid": false,
+      "manualReview": false
+    }
+  ],
+  "blockers": [
+    "safe_zone_output_missing",
+    "safe_zone_schema_invalid",
+    "safe_zone_unknown",
+    "safe_zone_output_missing",
+    "safe_zone_schema_invalid",
+    "safe_zone_unknown",
+    "safe_zone_output_missing",
+    "safe_zone_schema_invalid",
+    "safe_zone_unknown",
+    "safe_zone_output_missing",
+    "safe_zone_schema_invalid",
+    "safe_zone_unknown",
+    "safe_zone_output_missing",
+    "safe_zone_schema_invalid",
+    "safe_zone_unknown"
+  ]
+}

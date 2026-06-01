@@ -1,0 +1,210 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_freeform_trace_manifest",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "traceCount": 20,
+  "traces": [
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P1",
+      "rawOutputSha256": "cabb057783cbd3d2ae532958c3ba0973ade1dd70548fb2123aceff4dddddd7ee",
+      "rawOutputSizeBytes": 241,
+      "safeExcerpt": "There are no visible labels in the image. The image contains three basic shapes: - A red square on the left. - A green triangle in the middle. - A blue circle on the right. These shapes are arranged side by side against a white background.",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P2",
+      "rawOutputSha256": "566d5f8575649f224ef433ada718e4082a9863c997c8a3635921a82087377249",
+      "rawOutputSizeBytes": 599,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-basic-shapes\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [ { \"label\": \"red square\", \"confidence\": 0.98 }, { \"label\": \"green triangle\", \"confidence\": 0.",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P3",
+      "rawOutputSha256": "cf7187c4db9df428da4817cbda007995d6e5409c4dd36879e754c7872e04041d",
+      "rawOutputSizeBytes": 590,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-basic-shapes\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"red square\", \"zone\": \"left\", \"confidence\": 0.98 }, { \"label\": \"green triangle\",",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P4",
+      "rawOutputSha256": "94f1436d6434bd752df9092697e42d3cc759562683af451f7448d21dffa15ebc",
+      "rawOutputSizeBytes": 616,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-basic-shapes\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1.0, \"reason\"",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P1",
+      "rawOutputSha256": "ff14dcd6285c058fffabf0a916bd78274697004238c1c0e905f2ba25085fd537",
+      "rawOutputSizeBytes": 224,
+      "safeExcerpt": "There are no visible labels in the image. The image shows three colored rectangles: - Top: a blue rectangle. - Middle: a yellow rectangle. - Bottom: a gray rectangle. Each is in its own broad zone: top, middle, and bottom.",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P2",
+      "rawOutputSha256": "440ce62ecf7a2171c11bb8215624b266df69552567083ca24b7d4e1e4b710bb7",
+      "rawOutputSizeBytes": 337,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-colored-layout\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [], \"uncertainty\": { \"manual_review_required\": false, \"confidence\": 1, \"reason\": \"No labels ",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P3",
+      "rawOutputSha256": "685213c76433884ddae4b2ffbfec5994b35e2715afd7558ac8acbfff59dc619f",
+      "rawOutputSizeBytes": 615,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-colored-layout\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"top rectangle\", \"zone\": \"top\", \"confidence\": 1.0 }, { \"label\": \"middle rectan",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P4",
+      "rawOutputSha256": "061e11e4f6893c898a2119b81bdb2a5da0eb73346b4109c09922b6bd86218468",
+      "rawOutputSizeBytes": 795,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-colored-layout\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1.0, \"reaso",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P1",
+      "rawOutputSha256": "956e44c4b0475a95d1c2137c0fe0695f3adca63ff16682de1f68c1fde5b5b31e",
+      "rawOutputSizeBytes": 92,
+      "safeExcerpt": "Label: DEMO Zone: top-left Label: star Zone: center Label: square Zone: bottom-right",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P2",
+      "rawOutputSha256": "68f8a07a95a8e7df9f8daf05d8a47d96c5aa0382373eda496f86594da24df9e6",
+      "rawOutputSizeBytes": 574,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-text-and-shape\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [ { \"label\": \"orange star\", \"confidence\": 1.0 }, { \"label\": \"purple square\", \"confidence\": 1",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P3",
+      "rawOutputSha256": "4ea8cdb2b091e5208ed65204498a91102156ab9c125d6f22b0c515959212ec4d",
+      "rawOutputSizeBytes": 578,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-text-and-shape\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"text DEMO\", \"zone\": \"top\", \"confidence\": 0.98 }, { \"label\": \"orange star\", \"z",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P4",
+      "rawOutputSha256": "828ef9ff81c275a342387bffde1034fa94b0ede0e2b48e4ebc3bf4614a0fb5c0",
+      "rawOutputSizeBytes": 663,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-text-and-shape\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1.0, \"reaso",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P1",
+      "rawOutputSha256": "6fb315d7859a247a88f2e4ee4abc077964660f3506cb02e1b352c41ff2ae9405",
+      "rawOutputSizeBytes": 88,
+      "safeExcerpt": "- \"TOOLBAR\" \u2014 top zone - \"PREVIEW\" \u2014 center zone - (no other labels) \u2014 bottom zone",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P2",
+      "rawOutputSha256": "fa2996c5a76eead7881e7bd749e536686e4e214a7c75e78cd2035988fccd5375",
+      "rawOutputSizeBytes": 487,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-ui-simplified\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [ { \"label\": \"TOOLBAR\", \"confidence\": 1.0 }, { \"label\": \"PREVIEW\", \"confidence\": 1.0 } ], \"un",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P3",
+      "rawOutputSha256": "1c2a009f461d9d1b49af2b2fdd65ccec8717bfd214e077b302a2a8cc57e9129b",
+      "rawOutputSizeBytes": 603,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-ui-simplified\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"toolbar\", \"zone\": \"top\", \"confidence\": 1.0 }, { \"label\": \"preview area\", \"zone",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P4",
+      "rawOutputSha256": "b98aac0e3750167a194651bf814e4f8b8262b516f0a69692fbef78aaa4444f7e",
+      "rawOutputSizeBytes": 610,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-ui-simplified\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1.0, \"reason",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P1",
+      "rawOutputSha256": "87316507c8a0116973d94f748f92eb3720ed555c09b8f707c874a0d0eb943113",
+      "rawOutputSizeBytes": 90,
+      "safeExcerpt": "- SAFE UPPER ZONE: top area - CAPTION BLOCK: bottom area - (no label on the yellow circle)",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P2",
+      "rawOutputSha256": "033b354f996d8ad74f05735bc5fef6acea012546c282408908b46933d830178c",
+      "rawOutputSizeBytes": 512,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-caption-safe-zone-simple\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [ { \"label\": \"SAFE UPPER ZONE\", \"confidence\": 1.0 }, { \"label\": \"CAPTION BLOCK\", \"",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P3",
+      "rawOutputSha256": "4abe1ba5a33e4ab2348061dcb2de16eac1b9af3e592edd2343d1ff204c0cb6c8",
+      "rawOutputSizeBytes": 610,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-caption-safe-zone-simple\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"SAFE UPPER ZONE\", \"zone\": \"upper_third\", \"confidence\": 1.0 }, { \"la",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P4",
+      "rawOutputSha256": "814e98ff8568c4bcef1d52ae96c93a32b13fbee68f932657fd44f8780e23f79c",
+      "rawOutputSizeBytes": 697,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-caption-safe-zone-simple\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [\"top\", \"upper_thir",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    }
+  ],
+  "fullRawTracePrivateArtifact": "phase_39cq_so3_private_raw_output_traces.json",
+  "fullRawTraceCommitted": false
+}

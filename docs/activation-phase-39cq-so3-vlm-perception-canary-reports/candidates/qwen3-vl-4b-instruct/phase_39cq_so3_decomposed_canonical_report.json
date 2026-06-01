@@ -1,0 +1,308 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_decomposed_canonical_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-4b-instruct",
+  "status": "blocked",
+  "canaryResults": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 1.0,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "red square",
+        "blue circle",
+        "green triangle"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-basic-shapes",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2609,
+        "sha256": "e1efa1d99b8ee019af1a818590354a32349cbe0816a8c7e7823696def63eda64",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "2d4f2d08bb7c9002e23f7e92f48ef1dc19c0adf2e1938bf4fa3ac96895ce42c4"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 1.0
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.0,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "label_recall_below_threshold"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-colored-layout",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 1461,
+        "sha256": "5cb226e2ea9a74cb3bd1adc9b83d23786e33cea2bbc589a38f9609f9b72bd879",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "e807a1bdece78e4629851270e6c318cd78f8706d7765d6d8f487d4bed3bc866e"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.0
+        },
+        "P3": {
+          "status": "passed",
+          "schemaValid": true,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "demo text",
+        "orange star"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-text-and-shape",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2823,
+        "sha256": "070485ccbdc00258e43cf98e660284364e0f73110ff4aa6bb70ad9ebf222a0cd",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "5e396439a9a7de6a33c8c34594b57748a989640eea89a11bc77d606a761b1646"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "toolbar",
+        "preview canvas"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-ui-simplified",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2886,
+        "sha256": "393d1a8c5547083b1799967888fdc244e0f14f755ebc81d9dfefea5097ca2eef",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "2ea08be78bda6fba44dc031f3aa6fcd4597a7d6b15a62476423ca4d1d5b98290"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "caption block",
+        "safe upper zone"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-caption-safe-zone-simple",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 4228,
+        "sha256": "838099d6f6792d37b8d05ccb3c0cc49c0a5840a200ca8a60086c20af8efbdfdb",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "3eb2dd683c92efbbb98bb331f3735f7a7f46417b6cbddcc36f67b40bc1557c22"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    }
+  ],
+  "generatedFixtureResults": [],
+  "qa": {
+    "canaryLabelRecall": 0.6,
+    "canaryCoarseRegionAccuracy": 0.0,
+    "fixtureLabelRecall": 0.0,
+    "fixtureCoarseRegionAccuracy": 0.0,
+    "canariesPassed": false,
+    "generatedFixturesPassed": false
+  },
+  "blockers": [
+    "original_generated_fixtures_not_run_due_canary_failure",
+    "perception_canary_gate_failed"
+  ],
+  "warnings": [
+    "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+    "phase39cq_so3_worker_stderr: requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 101.88it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:05<00:00,  5.44s/it, est. speed input: 95.14 toks/s, output: 27.55 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:05<00:00,  5.44s/it, est. speed input: 95.14 toks/s, output: 27.55 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:05<00:00,  5.44s/it, est. speed input: 95.14 toks/s, output: 27.55 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 102.34it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:06<00:00,  6.97s/it, est. speed input: 79.37 toks/s, output: 27.56 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:06<00:00,  6.97s/it, est. speed input: 79.37 toks/s, output: 27.56 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:06<00:00,  6.97s/it, est. speed input: 79.37 toks/s, output: 27.56 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 78.48it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:07<00:00,  7.03s/it, est. speed input: 88.09 toks/s, output: 26.61 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:07<00:00,  7.03s/it, est. speed input: 88.09 toks/s, output: 26.61 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:07<00:00,  7.03s/it, est. speed input: 88.09 toks/s, output: 26.61 toks/s]\n[rank0]:[W601 08:59:32.304378703 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fe45cd8c798 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fe45cd70948 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"_debug_print_internal_state\"\n - leaked function \"deserialize_json\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"accept_string\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"rollback\"\n - leaked function \"accept_token\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"serialize_json\"\n - leaked function \"fill_next_token_bitmask\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+  ]
+}

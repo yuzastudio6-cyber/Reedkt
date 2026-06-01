@@ -1,0 +1,24 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_iam_delta_report",
+  "createdAt": "2026-06-01T16:12:46.933Z",
+  "status": "scoped_bindings_added",
+  "reason": "Initial SO3 runtime copied/verified models but private QA upload failed with 403 because the new SO3 QA prefix did not yet have scoped objectCreator/objectViewer bindings.",
+  "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+  "member": "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+  "addedBindings": [
+    {
+      "role": "roles/storage.objectCreator",
+      "conditionTitle": "phase39cq-so3-qa-create",
+      "conditionExpression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-perception-canary/\")"
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "conditionTitle": "phase39cq-so3-qa-readback",
+      "conditionExpression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-perception-canary/\")"
+    }
+  ],
+  "broadIamGranted": false,
+  "publicAccessGranted": false,
+  "modelReadIam": "unchanged_existing_pr87_scoped_bindings_used"
+}

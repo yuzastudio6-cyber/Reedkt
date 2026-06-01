@@ -1,0 +1,68 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_labels_only_qa_report",
+  "runId": "phase39cq-so3-20260601T154510",
+  "createdAt": "2026-06-01T16:12:46.933Z",
+  "status": "blocked",
+  "threshold": 0.8,
+  "candidates": [
+    {
+      "slug": "qwen3-vl-2b-instruct",
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "status": "blocked",
+      "qa": {
+        "canaryLabelRecall": 0,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "blockers": [
+        "label_recall_below_threshold",
+        "label_recall_below_threshold",
+        "label_recall_below_threshold",
+        "label_recall_below_threshold",
+        "label_recall_below_threshold"
+      ]
+    },
+    {
+      "slug": "qwen3-vl-4b-instruct",
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "status": "blocked",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "blockers": [
+        "label_recall_below_threshold",
+        "label_recall_below_threshold",
+        "label_recall_below_threshold",
+        "label_recall_below_threshold"
+      ]
+    },
+    {
+      "slug": "qwen3-vl-8b-instruct-fp8",
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "status": "blocked",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "blockers": [
+        "label_recall_below_threshold",
+        "label_recall_below_threshold",
+        "label_recall_below_threshold",
+        "label_recall_below_threshold"
+      ]
+    }
+  ]
+}

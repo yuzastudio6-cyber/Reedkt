@@ -1,0 +1,691 @@
+{
+  "ok": false,
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_perception_canary_recovery_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "createdAt": "2026-06-01T16:02:09.417316Z",
+  "sourcePhase39C": {
+    "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+    "status": "preserved_original_bf16_8b_l4_oom_evidence"
+  },
+  "sourcePhase39BQ39CQ": {
+    "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+    "status": "preserved_official_candidate_staging_runtime_evidence"
+  },
+  "sourcePhase39CQSO": {
+    "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+    "status": "preserved_structured_output_failure_evidence"
+  },
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+  "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+  "assetVerification": {
+    "phase": "39C-Q-SO3",
+    "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+    "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+    "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+    "modelGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+    "aggregateSha256": "40fbc222366b51e2e771e8558189ffd9c0f056569601007abf3e0702e2c3c98d",
+    "computedAggregateSha256": "40fbc222366b51e2e771e8558189ffd9c0f056569601007abf3e0702e2c3c98d",
+    "entries": [
+      {
+        "relativePath": "README.md",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/README.md",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "d2813c67aa5db818f160d9dd5fb23f4e1c93aedc48fa1a48e5d0dffb8a748b4c",
+        "expectedSizeBytes": 10439,
+        "verified": true,
+        "generation": "1780273105430610",
+        "crc32c": "X5JbLg==",
+        "md5Hash": "8fj3LjiqnCGnasVYr374iA==",
+        "actualSizeBytes": 10439,
+        "actualSha256": "d2813c67aa5db818f160d9dd5fb23f4e1c93aedc48fa1a48e5d0dffb8a748b4c"
+      },
+      {
+        "relativePath": "chat_template.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/chat_template.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "2c1437f11fc16ab501b984c000f6e291c599f0d28d2c9c6bf2c4533e65429b42",
+        "expectedSizeBytes": 5497,
+        "verified": true,
+        "generation": "1780273107354412",
+        "crc32c": "gAQSsA==",
+        "md5Hash": "cdkU7/Nr4Osla3IcMFDIvw==",
+        "actualSizeBytes": 5497,
+        "actualSha256": "2c1437f11fc16ab501b984c000f6e291c599f0d28d2c9c6bf2c4533e65429b42"
+      },
+      {
+        "relativePath": "config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "8bbb7d41e722c000d4079c2520fd7d8438a5c13cf084c89784c0a2770cc9bf88",
+        "expectedSizeBytes": 12005,
+        "verified": true,
+        "generation": "1780273109126199",
+        "crc32c": "t9yH+Q==",
+        "md5Hash": "41a9oiyKNEnT4YtoFrQ6tg==",
+        "actualSizeBytes": 12005,
+        "actualSha256": "8bbb7d41e722c000d4079c2520fd7d8438a5c13cf084c89784c0a2770cc9bf88"
+      },
+      {
+        "relativePath": "generation_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/generation_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "a8aeb4072b54a2b54755557cad7f2dddc9f99ea858a6eccd704731180b788592",
+        "expectedSizeBytes": 241,
+        "verified": true,
+        "generation": "1780273110807898",
+        "crc32c": "bVKAZA==",
+        "md5Hash": "FzJaR6v8NONPntwij7U0Cg==",
+        "actualSizeBytes": 241,
+        "actualSha256": "a8aeb4072b54a2b54755557cad7f2dddc9f99ea858a6eccd704731180b788592"
+      },
+      {
+        "relativePath": "model-00001-of-00002.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/model-00001-of-00002.safetensors",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "e2dea2e85e643ef7045c31a485a426631a1e0a84e463f8b2c7e9c6682a06eafd",
+        "expectedSizeBytes": 5363407552,
+        "verified": true,
+        "generation": "1780273842375164",
+        "crc32c": "x8MxWg==",
+        "md5Hash": "yjt9d0o/2i/NlwtLPA6b0A==",
+        "actualSizeBytes": 5363407552,
+        "actualSha256": "e2dea2e85e643ef7045c31a485a426631a1e0a84e463f8b2c7e9c6682a06eafd"
+      },
+      {
+        "relativePath": "model-00002-of-00002.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/model-00002-of-00002.safetensors",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "3dc64ec934af27a7007d265014e907aff9e16658d409e5cd4cf79869bf2bd8c1",
+        "expectedSizeBytes": 5226891960,
+        "verified": true,
+        "generation": "1780274723820065",
+        "crc32c": "mj2V1Q==",
+        "md5Hash": "3Qh6wuceT+uodZGyAKqs8w==",
+        "actualSizeBytes": 5226891960,
+        "actualSha256": "3dc64ec934af27a7007d265014e907aff9e16658d409e5cd4cf79869bf2bd8c1"
+      },
+      {
+        "relativePath": "model.safetensors.index.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/model.safetensors.index.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "751e4b7c17b148d5cc8fb1296b281fe98a711c0182d88b8516f459186990f49d",
+        "expectedSizeBytes": 94475,
+        "verified": true,
+        "generation": "1780274726916653",
+        "crc32c": "3M1rWw==",
+        "md5Hash": "20ZMe3kNpdnPdi1EnqDtbQ==",
+        "actualSizeBytes": 94475,
+        "actualSha256": "751e4b7c17b148d5cc8fb1296b281fe98a711c0182d88b8516f459186990f49d"
+      },
+      {
+        "relativePath": "preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/preprocessor_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "6a970fd06f30e6943b3e2c14d5d3b42d49b06cf99b99103d56689bef462d90f8",
+        "expectedSizeBytes": 336,
+        "verified": true,
+        "generation": "1780274729003698",
+        "crc32c": "MbZoPA==",
+        "md5Hash": "ALBvoYuSQhIi3jAU8EpMmA==",
+        "actualSizeBytes": 336,
+        "actualSha256": "6a970fd06f30e6943b3e2c14d5d3b42d49b06cf99b99103d56689bef462d90f8"
+      },
+      {
+        "relativePath": "tokenizer.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/tokenizer.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "ba85e4e5222d9f53d4bd00b303ef7e9743c8ac3d07e3c23f8498dbe17baa9a2d",
+        "expectedSizeBytes": 10179867,
+        "verified": true,
+        "generation": "1780274734379735",
+        "crc32c": "JfXvFg==",
+        "md5Hash": "DpZR4KRAIUlkMVTBYU4bUA==",
+        "actualSizeBytes": 10179867,
+        "actualSha256": "ba85e4e5222d9f53d4bd00b303ef7e9743c8ac3d07e3c23f8498dbe17baa9a2d"
+      },
+      {
+        "relativePath": "tokenizer_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/tokenizer_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+        "expectedSizeBytes": 10868,
+        "verified": true,
+        "generation": "1780274736711608",
+        "crc32c": "cGn/Jg==",
+        "md5Hash": "UMXTfZ05BODiQ+cJvbtsNw==",
+        "actualSizeBytes": 10868,
+        "actualSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399"
+      },
+      {
+        "relativePath": "video_preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/video_preprocessor_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "e203bc065dfcd75226838b8e937d624bec8f0eb6ef6630a397e9a675f2873ea6",
+        "expectedSizeBytes": 331,
+        "verified": true,
+        "generation": "1780274738924414",
+        "crc32c": "qCTZ9w==",
+        "md5Hash": "PlPACj4gPQjtUea6REkiQg==",
+        "actualSizeBytes": 331,
+        "actualSha256": "e203bc065dfcd75226838b8e937d624bec8f0eb6ef6630a397e9a675f2873ea6"
+      },
+      {
+        "relativePath": "vocab.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/vocab.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "7a0cfa95c65792d7510205839f80cfd8a3c8f6b1fdad5132d95cee481800374d",
+        "expectedSizeBytes": 4957462,
+        "verified": true,
+        "generation": "1780274741788767",
+        "crc32c": "Xk4Ccw==",
+        "md5Hash": "6CaExtKGRBJ1QqiArKB+CQ==",
+        "actualSizeBytes": 4957462,
+        "actualSha256": "7a0cfa95c65792d7510205839f80cfd8a3c8f6b1fdad5132d95cee481800374d"
+      }
+    ],
+    "status": "verified",
+    "blockers": [],
+    "warnings": [
+      "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+      "phase39cq_so3_worker_stderr:ng requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 94.44it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 95.17it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 93.65it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\n[rank0]:[W601 09:10:29.410354423 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fbacc9bae68 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fbacc93dcc8 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"serialize_json\"\n - leaked function \"rollback\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"accept_string\"\n - leaked function \"accept_token\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+    ]
+  },
+  "qa": {
+    "canaryLabelRecall": 0.6,
+    "canaryCoarseRegionAccuracy": 0.0,
+    "fixtureLabelRecall": 0.0,
+    "fixtureCoarseRegionAccuracy": 0.0,
+    "canariesPassed": false,
+    "generatedFixturesPassed": false
+  },
+  "canaryResults": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 1.0,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "red square",
+        "blue circle",
+        "green triangle"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-basic-shapes",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2609,
+        "sha256": "e1efa1d99b8ee019af1a818590354a32349cbe0816a8c7e7823696def63eda64",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "cabb057783cbd3d2ae532958c3ba0973ade1dd70548fb2123aceff4dddddd7ee"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 1.0
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.0,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "unknown",
+      "manualReview": false,
+      "matchedLabels": [],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid",
+        "safe_zone_output_missing",
+        "safe_zone_schema_invalid",
+        "safe_zone_unknown"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-colored-layout",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 1461,
+        "sha256": "5cb226e2ea9a74cb3bd1adc9b83d23786e33cea2bbc589a38f9609f9b72bd879",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "ff14dcd6285c058fffabf0a916bd78274697004238c1c0e905f2ba25085fd537"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.0
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "blocked",
+          "schemaValid": false,
+          "decision": "unknown"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "demo text",
+        "orange star"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-text-and-shape",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2823,
+        "sha256": "070485ccbdc00258e43cf98e660284364e0f73110ff4aa6bb70ad9ebf222a0cd",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "956e44c4b0475a95d1c2137c0fe0695f3adca63ff16682de1f68c1fde5b5b31e"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "toolbar",
+        "preview canvas"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-ui-simplified",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2886,
+        "sha256": "393d1a8c5547083b1799967888fdc244e0f14f755ebc81d9dfefea5097ca2eef",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "6fb315d7859a247a88f2e4ee4abc077964660f3506cb02e1b352c41ff2ae9405"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "unknown",
+      "manualReview": false,
+      "matchedLabels": [
+        "caption block",
+        "safe upper zone"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid",
+        "safe_zone_output_missing",
+        "safe_zone_schema_invalid",
+        "safe_zone_unknown"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-caption-safe-zone-simple",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 4228,
+        "sha256": "838099d6f6792d37b8d05ccb3c0cc49c0a5840a200ca8a60086c20af8efbdfdb",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "87316507c8a0116973d94f748f92eb3720ed555c09b8f707c874a0d0eb943113"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "blocked",
+          "schemaValid": false,
+          "decision": "unknown"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    }
+  ],
+  "generatedFixtureResults": [],
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/",
+  "artifacts": [
+    {
+      "id": "phase_39cq_so3_perception_canary_plan_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_plan.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_plan.json",
+      "sizeBytes": 829,
+      "sha256": "c6a4a1c41b79ca165bd5f06bb5b466dd9f40221999703ee30570acf7a35b0893",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_perception_failure_audit_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_failure_audit.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_failure_audit.json",
+      "sizeBytes": 523,
+      "sha256": "8186d88d3a7abea4a740c20d2477e5ffebfa22f3e7379c385b18fd89af2610f6",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_canary_fixture_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_canary_fixture_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_canary_fixture_manifest.json",
+      "sizeBytes": 2491,
+      "sha256": "c7b912c24fd9245e8af47003171aaab91a39879654e0d243449076c2bbb26f86",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_fixture_calibration_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_fixture_calibration_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_fixture_calibration_report.json",
+      "sizeBytes": 429,
+      "sha256": "8797bc1d5972d98a59e17756abb6e9edce4e634aefc4297108223999203c862c",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_label_alias_map_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_label_alias_map.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_label_alias_map.json",
+      "sizeBytes": 3240,
+      "sha256": "723b817efddb9b2f3bd9bd983ebc822bd9f8ab7359c3011eefe83748bf840bac",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_freeform_trace_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_freeform_trace_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_freeform_trace_manifest.json",
+      "sizeBytes": 12653,
+      "sha256": "9f3e6ad594729b88384c98296f457543f4c022c417058e2b07c23e79d1a69396",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_labels_only_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_labels_only_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_labels_only_qa_report.json",
+      "sizeBytes": 1713,
+      "sha256": "b92652b2405a0f03b3aee63ddbcba4059ff7549e6831264eef02db3a9fcedec6",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_coarse_region_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_coarse_region_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_coarse_region_qa_report.json",
+      "sizeBytes": 1643,
+      "sha256": "65ee0171fe3771804b75093f2524ded52facb0288f0b52d7a560933874e40713",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_safe_zone_reasoning_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_safe_zone_reasoning_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_safe_zone_reasoning_report.json",
+      "sizeBytes": 1077,
+      "sha256": "efdea7cd2521c51687ee85b1c288b58a761c67f6d3fdba8ae773b96cb09cb66b",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_decomposed_canonical_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_decomposed_canonical_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_decomposed_canonical_report.json",
+      "sizeBytes": 12355,
+      "sha256": "d027641f683788487fab0267996c354c1702a554608bd69e8aeffcf0d2c698e9",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_candidate_results_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_candidate_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_candidate_results.json",
+      "sizeBytes": 4413,
+      "sha256": "288ce54d08db643229451fcd5d95c2b4241183c0fbeeb7fafe29dd7e96ebd083",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_runtime_results_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_runtime_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_runtime_results.json",
+      "sizeBytes": 13863,
+      "sha256": "057e3f010e9f872f0745c8f1b07e86042474f2cee974e2744b3a4bd3e4904c1d",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_hallucination_safety_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_hallucination_safety_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_hallucination_safety_report.json",
+      "sizeBytes": 4097,
+      "sha256": "6a3853f0090361a9655e14ffecfa02be7f9f1980e7e4a741d80676f72c6a71d5",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_private_artifact_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_artifact_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_artifact_manifest.json",
+      "sizeBytes": 4491,
+      "sha256": "d29e5193adc054642b68b6ba814a242fa5920b2b627a29392bafaf2b3355edf9",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_perception_canary_recovery_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_recovery_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_recovery_report.json",
+      "sizeBytes": 26594,
+      "sha256": "159c40cf58315612758b9b27879db70a4f7eb1d54f411040648ddc9613285098",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_private_raw_output_traces_json",
+      "kind": "private_trace",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_raw_output_traces.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_raw_output_traces.json",
+      "sizeBytes": 12485,
+      "sha256": "c1d90be8a040164abf19dca1860b4e983c2794b6e2631709bb394654b856d1d2",
+      "committedToGit": false
+    }
+  ],
+  "vlmToolFamilyBetaStatus": "blocked",
+  "phase39DReadiness": {
+    "readyForControlledRealFrameVlm": false,
+    "reason": "Phase 39D remains blocked until a later bounded private controlled sample prompt."
+  },
+  "blockers": [
+    "original_generated_fixtures_not_run_due_canary_failure",
+    "perception_canary_gate_failed"
+  ],
+  "warnings": [
+    "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+    "phase39cq_so3_worker_stderr:ng requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 94.44it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 95.17it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 93.65it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\n[rank0]:[W601 09:10:29.410354423 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fbacc9bae68 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fbacc93dcc8 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"serialize_json\"\n - leaked function \"rollback\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"accept_string\"\n - leaked function \"accept_token\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_coarse_region_qa_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "results": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "regions": [],
+      "matchedRegions": [],
+      "coarseRegionAccuracy": 0.0,
+      "schemaValid": false
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "regions": [],
+      "matchedRegions": [],
+      "coarseRegionAccuracy": 0.0,
+      "schemaValid": false
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "regions": [],
+      "matchedRegions": [],
+      "coarseRegionAccuracy": 0.0,
+      "schemaValid": false
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "regions": [],
+      "matchedRegions": [],
+      "coarseRegionAccuracy": 0.0,
+      "schemaValid": false
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "regions": [],
+      "matchedRegions": [],
+      "coarseRegionAccuracy": 0.0,
+      "schemaValid": false
+    }
+  ],
+  "canaryCoarseRegionAccuracy": 0.0,
+  "fixtureCoarseRegionAccuracy": 0.0,
+  "blockers": [
+    "coarse_region_accuracy_below_threshold",
+    "regions_output_missing",
+    "regions_schema_invalid",
+    "coarse_region_accuracy_below_threshold",
+    "regions_output_missing",
+    "regions_schema_invalid",
+    "coarse_region_accuracy_below_threshold",
+    "regions_output_missing",
+    "regions_schema_invalid",
+    "coarse_region_accuracy_below_threshold",
+    "regions_output_missing",
+    "regions_schema_invalid",
+    "coarse_region_accuracy_below_threshold",
+    "regions_output_missing",
+    "regions_schema_invalid"
+  ]
+}

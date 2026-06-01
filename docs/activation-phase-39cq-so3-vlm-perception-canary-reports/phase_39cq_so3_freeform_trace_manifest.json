@@ -1,0 +1,31 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_freeform_trace_manifest",
+  "runId": "phase39cq-so3-20260601T154510",
+  "createdAt": "2026-06-01T16:12:46.933Z",
+  "status": "diagnostic_only",
+  "passCounting": false,
+  "candidates": [
+    {
+      "slug": "qwen3-vl-2b-instruct",
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-2b-instruct",
+      "traceManifestStatus": "recorded",
+      "rawTracesCommitted": false
+    },
+    {
+      "slug": "qwen3-vl-4b-instruct",
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-4b-instruct",
+      "traceManifestStatus": "recorded",
+      "rawTracesCommitted": false
+    },
+    {
+      "slug": "qwen3-vl-8b-instruct-fp8",
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+      "traceManifestStatus": "recorded",
+      "rawTracesCommitted": false
+    }
+  ]
+}

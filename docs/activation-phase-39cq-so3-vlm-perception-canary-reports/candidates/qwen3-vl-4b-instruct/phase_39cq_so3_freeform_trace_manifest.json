@@ -1,0 +1,210 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_freeform_trace_manifest",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-4b-instruct",
+  "traceCount": 20,
+  "traces": [
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P1",
+      "rawOutputSha256": "2d4f2d08bb7c9002e23f7e92f48ef1dc19c0adf2e1938bf4fa3ac96895ce42c4",
+      "rawOutputSizeBytes": 111,
+      "safeExcerpt": "/ no_think Visible labels: none. Broad zones: left (red square), center (green triangle), right (blue circle).",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P2",
+      "rawOutputSha256": "bf7317e5f4417f48ccf2a3762913e393056fcb78a5b5fabe8d9442ddaa655064",
+      "rawOutputSizeBytes": 455,
+      "safeExcerpt": "{\"fixture_id\":\"canary-basic-shapes\",\"candidate_id\":\"Qwen\\/Qwen3-VL-4B-Instruct\",\"stage_id\":\"P2\",\"schema_version\":\"phase39cq_so3_perception_v1\",\"labels\":[{\"label\":\"red square\",\"confidence\":0.98},{\"label\":\"green triangle\",\"confidence\":0.97},{\"label\":\"blue circle",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P3",
+      "rawOutputSha256": "94eccbf42af4b419b838b056f37f8ff1b0caebdb5354bc836c068dcb8d851378",
+      "rawOutputSizeBytes": 604,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-basic-shapes\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"red square\", \"zone\": \"left\", \"confidence\": 0.95 }, { \"label\": \"green triangle\", \"zo",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-basic-shapes",
+      "stageId": "P4",
+      "rawOutputSha256": "d940d1a941c4305e41a0bcb8dd9ff5cfc94c711026415fc5d76cec67f2cdb738",
+      "rawOutputSizeBytes": 534,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-basic-shapes\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1, \"reason\": \"No ",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P1",
+      "rawOutputSha256": "e807a1bdece78e4629851270e6c318cd78f8706d7765d6d8f487d4bed3bc866e",
+      "rawOutputSizeBytes": 100,
+      "safeExcerpt": "/ no_think - Top zone: blue rectangle - Middle zone: yellow rectangle - Bottom zone: gray rectangle",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P2",
+      "rawOutputSha256": "ceadfb612ba8bb1007c8ee19139de0837d3a541d6779e82ffad0873e939ae72e",
+      "rawOutputSizeBytes": 410,
+      "safeExcerpt": "{\"fixture_id\":\"canary-colored-layout\",\"candidate_id\":\"Qwen\\/Qwen3-VL-4B-Instruct\",\"stage_id\":\"P2\",\"schema_version\":\"phase39cq_so3_perception_v1\",\"labels\":[{\"label\":\"blue rectangle\",\"confidence\":1.0},{\"label\":\"yellow rectangle\",\"confidence\":1.0},{\"label\":\"gray ",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P3",
+      "rawOutputSha256": "7218bbe5afacacaa8b549d804165cc2802aaa613a54819740d45760be9e804b1",
+      "rawOutputSizeBytes": 584,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-colored-layout\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"top\", \"zone\": \"top\", \"confidence\": 1 }, { \"label\": \"center\", \"zone\": \"center\", \"c",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-colored-layout",
+      "stageId": "P4",
+      "rawOutputSha256": "1767406c7e1a9c45c34f1a144318f5859c086fac2e2eb7eeb43e834e0ff3bb48",
+      "rawOutputSizeBytes": 533,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-colored-layout\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1, \"reason\": \"N",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P1",
+      "rawOutputSha256": "5e396439a9a7de6a33c8c34594b57748a989640eea89a11bc77d606a761b1646",
+      "rawOutputSizeBytes": 114,
+      "safeExcerpt": "Label: DEMO Zone: top-left corner Label: orange star Zone: center Label: purple square Zone: bottom-right corner",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P2",
+      "rawOutputSha256": "df4be8c4abdd494b8ca2221a81ae001644d08affa02b70e6796723443c49c052",
+      "rawOutputSizeBytes": 542,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-text-and-shape\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [ { \"label\": \"DEMO\", \"confidence\": 1 }, { \"label\": \"orange star\", \"confidence\": 1 }, { \"label\": ",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P3",
+      "rawOutputSha256": "c4c5bde9e3a49cdc26a73239b13ed8af049881f33d7a088850d3a979a53b7a3e",
+      "rawOutputSizeBytes": 594,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-text-and-shape\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"DEMO\", \"zone\": \"top\", \"confidence\": 0.95 }, { \"label\": \"orange star\", \"zone\": \"ce",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-text-and-shape",
+      "stageId": "P4",
+      "rawOutputSha256": "8a7ee7ca17e1980358a200351b3f892484b664e604e125d6d56bbcd240670409",
+      "rawOutputSizeBytes": 595,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-text-and-shape\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1, \"reason\": \"N",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P1",
+      "rawOutputSha256": "2ea08be78bda6fba44dc031f3aa6fcd4597a7d6b15a62476423ca4d1d5b98290",
+      "rawOutputSizeBytes": 143,
+      "safeExcerpt": "/ no_think LABEL: TOOLBAR ZONE: top bar LABEL: PREVIEW ZONE: center area LABEL: (no visible label) ZONE: bottom bar (three horizontal lines)",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P2",
+      "rawOutputSha256": "124443e336c457c320004c51cd46985e28ddac8e72d54c0586237ff27d94cb01",
+      "rawOutputSizeBytes": 491,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-ui-simplified\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [ { \"label\": \"TOOLBAR\", \"confidence\": 0.95 }, { \"label\": \"PREVIEW\", \"confidence\": 0.98 } ], \"unce",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P3",
+      "rawOutputSha256": "e77f179c2a05166fe58ec656511402efa5c3865ffea18bef5a099cfff8c23672",
+      "rawOutputSizeBytes": 589,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-ui-simplified\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"TOOLBAR\", \"zone\": \"top\", \"confidence\": 0.95 }, { \"label\": \"PREVIEW\", \"zone\": \"cent",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-ui-simplified",
+      "stageId": "P4",
+      "rawOutputSha256": "38dba15f61a3b8e9e4f9b2fbb7f8feba76e0d451164a4a2e26c73dcb83ad889b",
+      "rawOutputSizeBytes": 542,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-ui-simplified\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [], \"confidence\": 1, \"reason\": \"No",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P1",
+      "rawOutputSha256": "3eb2dd683c92efbbb98bb331f3735f7a7f46417b6cbddcc36f67b40bc1557c22",
+      "rawOutputSizeBytes": 165,
+      "safeExcerpt": "- Top label: \"SAFE UPPER ZONE\" \u2014 in green box, upper part. - Center object: yellow circle \u2014 no label. - Bottom label: \"CAPTION BLOCK\" \u2014 in red box, lower part.",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P2",
+      "rawOutputSha256": "52ad647485965283478467fe45194ae624df2e67f82f1e1efe2402b9a02b1cdd",
+      "rawOutputSizeBytes": 481,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-caption-safe-zone-simple\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P2\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"labels\": [ { \"label\": \"SAFE UPPER ZONE\", \"confidence\": 1 }, { \"label\": \"CAPTION BLOCK\", \"confid",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P3",
+      "rawOutputSha256": "18bed55a61ff382d5784964e91e16e771a39456930c0634bc04da91b7f784558",
+      "rawOutputSizeBytes": 648,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-caption-safe-zone-simple\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P3\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"regions\": [ { \"label\": \"SAFE UPPER ZONE\", \"zone\": \"upper_third\", \"confidence\": 1 }, { \"label\": ",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "stageId": "P4",
+      "rawOutputSha256": "57da9cada7285f40e95feb793ebf81cb44d976ecc6c6110145a4600a56c0b142",
+      "rawOutputSizeBytes": 653,
+      "safeExcerpt": "{ \"fixture_id\": \"canary-caption-safe-zone-simple\", \"candidate_id\": \"Qwen\\/Qwen3-VL-4B-Instruct\", \"stage_id\": \"P4\", \"schema_version\": \"phase39cq_so3_perception_v1\", \"safe_zone\": { \"decision\": \"pass\", \"avoid_zones\": [], \"preferred_zones\": [\"top\", \"center\"], \"con",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    }
+  ],
+  "fullRawTracePrivateArtifact": "phase_39cq_so3_private_raw_output_traces.json",
+  "fullRawTraceCommitted": false
+}

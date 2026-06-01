@@ -11,6 +11,7 @@ import { MEDIA_UPLOAD_API_ROUTES } from './routes/media-upload-api-routes'
 import { MUSIC_API_ROUTES } from './routes/music-api-routes'
 import { PROJECT_API_ROUTES } from './routes/project-api-routes'
 import { PROVIDER_API_ROUTES } from './routes/provider-api-routes'
+import { QA_REVISION_API_ROUTES } from './routes/qa-revision-api-routes'
 import { RENDER_API_ROUTES } from './routes/render-api-routes'
 import { SFX_API_ROUTES } from './routes/sfx-api-routes'
 import { STORAGE_API_ROUTES } from './routes/storage-api-routes'
@@ -54,6 +55,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...CREDIT_API_ROUTES,
   ...JOB_API_ROUTES,
   ...WORKER_API_ROUTES,
+  ...QA_REVISION_API_ROUTES,
   ...GENERATION_API_ROUTES,
   ...RENDER_API_ROUTES,
   ...MUSIC_API_ROUTES,
@@ -73,6 +75,7 @@ const API_DOMAINS: ApiDomain[] = [
   'credits',
   'jobs',
   'workers',
+  'qa',
   'generation',
   'render',
   'music',
@@ -165,6 +168,7 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     credits: 0,
     jobs: 0,
     workers: 0,
+    qa: 0,
     generation: 0,
     render: 0,
     music: 0,

@@ -1,0 +1,21 @@
+-- Prompt 11 QA/revision/fallback RLS smoke tests.
+-- Draft-only: do not run against production or remote Supabase.
+-- Convert to executable local/staging SQL only after the local Supabase validation environment,
+-- fixture user/workspace/project setup, and schema target are validated.
+
+-- Planned assertions:
+-- 1. Workspace member can read project-scoped qa_reports.
+-- 2. Non-member cannot read qa_reports.
+-- 3. Normal user cannot mutate QA worker result fields on qa_reports or qa_check_results.
+-- 4. Backend/service-role creates QA reports and QA check results.
+-- 5. QA report references render, approved snapshot, and project consistently.
+-- 6. QA check results cannot cross workspace/project scope.
+-- 7. Blocking QA checks prevent final export readiness.
+-- 8. Preview reviews are project-scoped.
+-- 9. Review comments are project-scoped.
+-- 10. Revision requests are project-scoped.
+-- 11. Revisions requiring generation/render require new estimate and approval boundaries.
+-- 12. Fallback decisions cannot start provider, render, tool, job, worker, or repair execution.
+-- 13. No signed URLs are stored as source of truth in QA/revision/fallback JSONB.
+-- 14. No secrets, provider keys, service-role keys, Stripe keys, or raw credentials are stored.
+-- 15. Audit events are append-only if included in scope.

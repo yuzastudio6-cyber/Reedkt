@@ -1,0 +1,68 @@
+[
+  {
+    "planId": "phase39c_generated_fixture_vlm_runtime",
+    "futurePhase": "39C",
+    "description": "Run generated-fixture VLM runtime verification only after Phase 39B private model assets and checksums pass.",
+    "executionMode": "text_only",
+    "safeToRunNow": false,
+    "executableCommand": null,
+    "requiresFutureApproval": true,
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ=true",
+      "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE=true",
+      "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD=true"
+    ],
+    "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/<run-id>/",
+    "blockedReason": "Phase 39A cannot run vLLM/Transformers or generated fixture inference.",
+    "allowedOnlyAfter": [
+      "Phase 39B private model asset checksum verification passes.",
+      "Runtime dependency versions are pinned and reviewed.",
+      "Network/model-download guard is implemented and tested."
+    ],
+    "stillBlocked": [
+      "real media",
+      "controlled real frames",
+      "arbitrary media",
+      "provider calls",
+      "beta",
+      "production"
+    ],
+    "warnings": [
+      "Runtime must use local private paths only.",
+      "JSON-only outputs must avoid raw prompt dumps and unsafe media paths."
+    ]
+  },
+  {
+    "planId": "phase39d_controlled_real_frame_vlm",
+    "futurePhase": "39D",
+    "description": "Use exactly one approved private controlled real frame/sample after generated runtime passes.",
+    "executionMode": "text_only",
+    "safeToRunNow": false,
+    "executableCommand": null,
+    "requiresFutureApproval": true,
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_CONTROLLED_REAL_FRAME_VLM_EXECUTE=true",
+      "REEDITPRO_CONFIRM_CONTROLLED_REAL_FRAME_VLM_ARTIFACT_UPLOAD=true",
+      "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ=true",
+      "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE=true"
+    ],
+    "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39d/controlled-real-frame-vlm/<run-id>/",
+    "blockedReason": "Phase 39A cannot process real frames or media bytes.",
+    "allowedOnlyAfter": [
+      "Phase 39C generated-fixture runtime verification passes.",
+      "Phase 39D gate selects exactly one approved private sample/window.",
+      "Frame count and prompt scope are bounded by the Phase 39D gate."
+    ],
+    "stillBlocked": [
+      "broad real-video VLM",
+      "arbitrary media",
+      "public output",
+      "Track A execution code",
+      "beta",
+      "production"
+    ],
+    "warnings": [
+      "Phase 39D may compare to Phase 37 OCR safe-zone metadata but must not broaden OCR/VLM scope automatically."
+    ]
+  }
+]

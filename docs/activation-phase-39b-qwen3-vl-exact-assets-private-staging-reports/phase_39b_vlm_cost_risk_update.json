@@ -1,0 +1,16 @@
+{
+  "phase": "39B",
+  "reportId": "qwen3_vl_8b_instruct_cost_risk_update_v1",
+  "createdAt": "2026-05-31T03:08:33.221Z",
+  "selectedTotalSizeBytes": 17545914364,
+  "selectedFileCount": 15,
+  "gpuRuntimeApprovedNow": false,
+  "runtimeCostReviewed": false,
+  "warnings": [
+    "Phase 39B downloads/stages approximately 16.34 GiB of assets but does not run GPU jobs.",
+    "Phase 39C must separately size GPU memory, max tokens, batch size, image size, and timeout before runtime execution."
+  ],
+  "blockers": [
+    "GPU/runtime cost review remains blocked until Phase 39C runtime planning."
+  ]
+}

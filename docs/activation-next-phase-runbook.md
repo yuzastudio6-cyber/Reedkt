@@ -373,7 +373,6 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 2. Confirm run `phase45e-20260531T23580` used only the approved Phase 32 source and the approved Phase 45A, Phase 45B, Phase 45C, and Phase 45D private evidence chain.
 3. Confirm the approved plan snapshot, source validation, evidence validation, private E2E review manifest, FFprobe review export validation, QA JSON, and Phase 45E report artifacts exist only under private Phase 45E GCS prefixes.
 4. Confirm source integrity, Phase 45A/45B/45C/45D evidence, private review export integrity, FFprobe review validation, manifest creation, artifact privacy, no-public-access, no-final-delivery, and blocked-feature gates passed.
-5. Confirm no arbitrary media, user final delivery, public delivery, providers, Revideo, Track B tools, production, external beta, paid production, or broad real media occurred.
 6. Proceed to Phase 45F only as Track A visual-video readiness closure. Phase 45E does not approve product beta, production, public delivery, or user final delivery.
 
 ## After Phase 45F
@@ -383,3 +382,104 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm SAM2, Real-ESRGAN bounded/policy evidence, FILM, pro color/image, libass, Remotion, OTIO, FFmpeg/FFprobe, and full visual-video private E2E reports remain internally ready with no internal Track A blockers.
 4. Confirm expected broader-scope blockers remain blocked and were not converted into production, external beta, final delivery, public delivery, provider, Revideo, Track B, or broad-media approval.
 5. Treat Track A visual-video as ready only for internal private visual-video testing if Phase 45F passed.
+
+## After Phase 47A
+
+1. Review `activation:track-integration-audit:report` and `docs/activation-phase-47a-track-integration-audit-results.md`.
+2. Confirm Phase 47A uploaded only private JSON audit artifacts under `activation-track-integration/phase47a/<runId>/`.
+3. Confirm Track A remains ready from Phase 45F evidence only.
+4. Confirm Track B is recorded as partial, with audio/OCR internal evidence, Demucs blocked pending pretrained-model license/provenance, and VLM Phase 39C blocked on L4/vLLM CUDA OOM.
+5. Confirm integration readiness remains blocked for full system-level internal testing until Track B VLM is resolved or explicitly excluded by a later phase.
+6. Confirm no media processing, Docker build/push, Cloud Run deploy/execute, provider call, public output, final delivery, production, external beta, paid production, broad media, or Revideo execution occurred.
+## After Phase 36A
+
+1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.
+2. Confirm the planning recommendation is `deepfilternet_first`.
+3. Confirm this historical Phase 36A recommendation has been superseded by Phase 36G: RNNoise is removed from active product routing, and Demucs remains restricted/deferred for source-separation workflows only.
+4. Confirm Phase 36B selects only the exact DeepFilterNet v0.5.6 linux x86_64 CLI and DeepFilterNet3 ONNX archive, with official source/license evidence.
+5. Confirm command plans are text-only and no model download, audio AI runtime, audio/media processing, Docker/GCP mutation, provider call, public access, Revideo path, production unlock, external beta unlock, or broad real media unlock occurred.
+6. Proceed to Phase 36B only as an explicit DeepFilterNet artifact download/load phase with confirmation and private staging GCS upload verification.
+
+## After Phase 36B
+
+1. Review `activation:deepfilternet-download:report`, `activation:audio-ai-tool:summary`, and `docs/activation-phase-36b-download-approved-deepfilternet-artifacts-results.md`.
+2. Confirm only `deep-filter-0.5.6-x86_64-unknown-linux-musl` and `DeepFilterNet3_onnx.tar.gz` were downloaded.
+3. Confirm `file_checksums_sha256.txt`, `model_tree_manifest.json`, `source_evidence.json`, `license_evidence.json`, and `download_report.json` exist in the private DeepFilterNet v0.5.6 staging prefix.
+4. Confirm no DeepFilterNet runtime, RNNoise, Demucs, audio/media processing, Docker, Cloud Run, provider, Revideo, FILM, slow motion, production, external beta, paid production, or broad real media action occurred.
+5. Proceed to Phase 36C only as generated-audio DeepFilterNet runtime verification using private approved artifacts; do not use real video/audio or arbitrary user media.
+
+## After Phase 36C
+
+1. Review `activation:deepfilternet-runtime:report` and `docs/activation-phase-36c-deepfilternet-runtime-verification-results.md`.
+2. Confirm the successful run is `phase36c-20260530T133009` with private generated-audio fixture, enhanced WAV, metrics, QA, and report artifacts only.
+3. Confirm DeepFilterNet ran only after private model artifact copy and checksum verification passed.
+4. Confirm no real video/audio input, RNNoise, Demucs, providers, Revideo, FILM, slow motion, production, external beta, paid production, or broad real media occurred.
+5. Proceed to Phase 36D only as one controlled real-video audio AI cleanup sample on the approved controlled chain; do not process arbitrary media or unlock broader beta/production.
+
+## After Phase 36D
+
+1. Review `activation:real-video:deepfilternet-audio-cleanup:report` and `docs/activation-phase-36d-real-video-deepfilternet-audio-cleanup-results.md`.
+2. Confirm the completed run is `phase36d-20260530T141724`, the source was exactly the approved Phase 32 private export, and the reference was exactly the approved Phase 31 normalized-audio export.
+3. Confirm the approved plan snapshot exists, DeepFilterNet artifacts were copied from private GCS, checksums matched, and no external model/tool download occurred.
+4. Confirm the cleaned WAV, metrics, QA, and optional private review MP4 are private only and no final delivery export was created.
+5. Proceed to Phase 36E only as a private DeepFilterNet audio feature E2E/readiness gate; arbitrary media, production, external beta, RNNoise, Demucs, providers, Revideo, FILM, and slow motion remain blocked.
+
+## After Phase 36E
+
+1. Review `activation:deepfilternet-feature-e2e:report` and `docs/activation-phase-36e-deepfilternet-feature-e2e-results.md`.
+2. Confirm the source was exactly the approved Phase 32 private export; `/Users/macuser/Downloads/IMG_6024.MOV` must remain unprocessed in Phase 36E.
+3. Confirm the approved plan snapshot, Phase 36D evidence link, cleaned WAV, private review MP4, private review manifest, metrics, and QA report exist under private Phase 36E prefixes.
+4. Use the local backup review copy only for Finder viewing; private GCS artifacts remain the source of truth.
+5. Proceed to Phase 36F only as the audio system internal beta readiness gate. Production, external beta, paid production, broad real media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+
+## After Phase 36F
+
+1. Review `activation:audio-system-readiness:report` and `docs/activation-phase-36f-audio-system-internal-beta-readiness-results.md`.
+2. Confirm the evidence chain includes Phase 31 and Phase 36A-36E.
+3. Confirm the Phase 36E private cleaned WAV, review MP4, metrics, QA, model checksum metadata, and private review manifest were verified in private GCS.
+4. Confirm the audio beta-scope manifest includes FFmpeg loudness and DeepFilterNet only, and excludes RNNoise, Demucs, providers, Revideo, FILM, slow motion, arbitrary media, and production delivery.
+5. Proceed to Phase 37A only as an OCR approval workflow if Phase 36F passes. Production, external beta, paid production, broad real media, arbitrary media, RNNoise, Demucs, providers, Revideo, FILM, slow motion, and final delivery remain blocked.
+
+## After Phase 36G
+
+1. Review `activation:audio-stack-demucs:report` and confirm DeepFilterNet owns speech cleanup, RNNoise is removed from active product routing, and Demucs is only a blocked separation candidate.
+2. Confirm no Demucs model artifacts were downloaded, no Demucs runtime ran, and no media was processed.
+3. Confirm the Demucs blocker cites official pretrained-model license/provenance ambiguity and does not treat MIT code licensing as model approval.
+4. Proceed to Phase 37A OCR approval workflow only; do not approve Demucs, RNNoise, external beta, paid production, broad media, providers, Revideo, FILM, or slow motion.
+
+
+## After Phase 37A
+
+1. Review `activation:ocr-model-approval:plan`, `activation:ocr-model-approval:report`, and `activation:ocr-model-weight:summary`.
+2. Confirm PaddleOCR is approved only for generated UI/text OCR safe-zone planning.
+3. Confirm PaddlePaddle is runtime planning only and PP-OCRv5 exact assets must be selected by Phase 37B before any runtime work.
+4. Confirm the download command plan is text-only and no model files were downloaded or committed.
+5. Confirm no OCR inference, real media OCR, Docker/GCP mutation, GPU job, provider call, public output, Revideo, production, external beta, or broad real media occurred.
+6. Proceed to Phase 37B only as exact official OCR asset selection/download planning into private staging storage.
+
+## After Phase 37B
+
+1. Review `activation:ocr-model-download:plan`, `activation:ocr-model-download:report`, and `docs/activation-phase-37b-paddleocr-exact-assets-download.md`.
+2. Confirm the selected assets are exactly `PP-OCRv5_mobile_det_infer.tar`, `PP-OCRv5_mobile_rec_infer.tar`, and `ppocrv5_dict.txt` under the `paddle3.0.0-mobile-safe-zone-v1` private prefix.
+3. Confirm `PP-LCNet_x1_0_textline_ori` is optional/deferred and the safe-zone profile disables document orientation, document unwarping, and textline orientation.
+4. Confirm default plan/report/smoke modes did not download model files, mutate GCS, run OCR, process media, or create public artifacts.
+5. Confirm the approved Phase 37B evidence records 12 verified private GCS objects, aggregate SHA-256 `6c4fbb9986bc5fdc97a363ab41124feb835656388cb6d51f17986f70e14a5a7b`, and no downloaded textline-orientation classifier.
+6. Proceed to Phase 37C only as generated UI/text-frame OCR runtime verification planning against the verified private PP-OCRv5 assets. OCR runtime execution, real-media OCR, real-video OCR, caption/render integration, production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.
+
+## After Phase 37C
+
+1. Review `activation:ocr-runtime:report` and `docs/activation-phase-37c-generated-ocr-runtime-verification.md`.
+2. Confirm the verified run is `phase37c-20260530T230413` and artifacts are private under `gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37c/generated-ocr-runtime/phase37c-20260530T230413/`.
+3. Confirm Phase 37C copied only the three verified Phase 37B PP-OCRv5 assets, matched SHA-256, safely extracted tar archives, and used local detection/recognition model paths.
+4. Confirm generated fixtures only were processed and required OCR recall, confidence, broad-region, and lower caption conflict-zone checks passed.
+5. Confirm runtime model auto-download, textline orientation auto-download, real media OCR, providers, Cloud Run deploy, Docker push, GPU jobs, public output, Track A, beta, production, and broad media remained blocked.
+6. Proceed to Phase 37D only as one controlled real-video OCR/caption safe-zone planning and execution gate. Do not integrate caption/render QA until Phase 37E.
+
+## After Phase 37D
+
+1. Review `activation:controlled-real-video-ocr-safe-zone:report`, `activation:controlled-real-video-ocr-safe-zone:execution-report`, `docs/activation-phase-37d-controlled-real-video-ocr-safe-zone.md`, and `docs/activation-phase-37d-controlled-real-video-ocr-safe-zone-execution.md`.
+2. Confirm the selected source is only the private Phase 32 export `gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4`.
+3. Confirm the only executed sample is `phase37d-phase32-color-export-safe-zone-window-v1`, window `6.9s`-`8.9s`, with offsets `6.9, 7.3, 7.7, 8.1, 8.5, 8.9`.
+4. Confirm run `phase37d-20260531T002046` extracted exactly 6 local temp frames, ran OCR only on those frames, uploaded 10 private JSON QA artifacts, found 11 OCR text regions, and found zero lower-third collision frames.
+5. Confirm raw frames, overlays, model files, source video, venvs, credentials, signed URLs, and temp folders were not committed or uploaded.
+6. Proceed to Phase 37E only as controlled OCR safe-zone caption/render QA integration planning. Broad OCR, arbitrary media, Track A, beta, production, providers, public output, Cloud Run, Docker push, and GPU jobs remain blocked.

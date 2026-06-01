@@ -1,0 +1,60 @@
+import type { ApprovedVlmRuntimeEvidence } from './vlm-runtime-types'
+
+export const approvedVlmRuntimeEvidence: ApprovedVlmRuntimeEvidence = {
+  "phase": "39C",
+  "status": "blocked",
+  "runId": "phase39c-20260531T214216",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+  "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "modelGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+  "aggregateSha256": "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908",
+  "runtime": "vllm",
+  "fallbackRuntime": "transformers_fallback",
+  "fixtureIds": [
+    "generated-object-layout",
+    "generated-ui-safe-zone",
+    "generated-ocr-vlm-comparison",
+    "generated-ambiguous-scene",
+    "generated-spatial-reasoning"
+  ],
+  "artifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/",
+  "qaReportUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_generated_vlm_runtime_report.json",
+  "vlmToolFamilyBetaStatus": "blocked",
+  "phase39DReadiness": {
+    "readyForControlledRealFrameVlm": false,
+    "reason": "Phase 39D remains blocked because Phase 39C generated VLM runtime verification did not pass."
+  },
+  "blockers": [
+    "phase39c_staging_cloud_run_job_failed:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e … .......................................................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-xcz4t Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-xcz4t?project=390722338345",
+    "phase39c_cloud_run_execution_condition:Completed:NonZeroExitCode:Task reeditpro-stg-vlm-runtime-phase39c-xcz4t-task0 failed with exit code: 1 and message: The container exited with an error.",
+    "phase39c_cloud_run_log:Container called exit(1).",
+    "phase39c_cloud_run_worker_blocker:phase39c_l4_tuning_profiles_exhausted",
+    "phase39c_cloud_run_worker_blocker:vllm_runtime_failed:Engine core initialization failed. See root cause above. Failed core proc(s): {}",
+    "phase39c_l4_tuning_profiles_exhausted",
+    "vllm_runtime_failed:Engine core initialization failed. See root cause above. Failed core proc(s): {}"
+  ],
+  "warnings": [
+    "Phase 39C verifies generated synthetic VLM fixtures only.",
+    "Passing Phase 39C does not approve controlled real-frame VLM until Phase 39D or planning integration until Phase 39E.",
+    "staging_vlm_runtime_image_built_and_pushed:us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:phase39c-20260531t214216",
+    "staging_cloud_run_job_deployed:reeditpro-stg-vlm-runtime-phase39c",
+    "phase39c_cloud_run_execution_condition:ResourcesAvailable:Provisioned imported containers.",
+    "phase39c_cloud_run_execution_condition:Started:Started deployed execution in 1m22.22s.",
+    "phase39c_cloud_run_execution_condition:ContainerReady:Imported container image.",
+    "phase39c_cloud_run_worker_warning:phase39c_profile_stderr:minimal-smoke-one-fixture:OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.56 GiB is free. Process 3093 has 17.40 GiB memory in use. Of the allocated memory 17.11 GiB is allocated by PyTorch, and 39.77 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n[rank0]:[W531 14:51:10.222863514 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nTraceback (most",
+    "phase39c_cloud_run_worker_warning:phase39c_staging_l4_cloud_run_job_path_used",
+    "phase39c_profile_stderr:minimal-smoke-one-fixture:OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.56 GiB is free. Process 3093 has 17.40 GiB memory in use. Of the allocated memory 17.11 GiB is allocated by PyTorch, and 39.77 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n[rank0]:[W531 14:51:10.222863514 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nTraceback (most recent call last):\n  File \"/app/server/workers/vlm-runtime/run-generated-vlm-fixture.py\", line 328, in main\n    runtime_version, results, profile_result = run_vllm(Path(args.model_dir), fixtures, templates, fixture_dir, args.tuning_profile_id)\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/server/workers/vlm-runtime/run-generated-vlm-fixture.py\", line 216, in run_vllm\n    llm = LLM(**llm_kwargs)\n          ^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/llm.py\", line 297, in __init__\n    self.llm_engine = LLMEngine.from_engine_args(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 177, in from_engine_args\n    return cls(vllm_config=vllm_config,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 114, in __init__\n    self.engine_core = EngineCoreClient.make_client(\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 80, in make_client\n    return SyncMPClient(vllm_config, executor_class, log_stats)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 602, in __init__\n    super().__init__(\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 448, in __init__\n    with launch_core_engines(vllm_config, executor_class,\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/contextlib.py\", line 144, in __exit__\n    next(self.gen)\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py\", line 732, in launch_core_engines\n    wait_for_engine_startup(\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py\", line 785, in wait_for_engine_startup\n    raise RuntimeError(\"Engine core initialization failed. \"\nRuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}\n",
+    "phase39c_staging_l4_cloud_run_job_path_used",
+    "private_artifact_upload_verified_by_staging_cloud_run_job"
+  ]
+}
+
+export function getApprovedVlmRuntimeEvidence(): ApprovedVlmRuntimeEvidence {
+  return {
+    ...approvedVlmRuntimeEvidence,
+    fixtureIds: [...approvedVlmRuntimeEvidence.fixtureIds],
+    phase39DReadiness: { ...approvedVlmRuntimeEvidence.phase39DReadiness },
+    blockers: [...approvedVlmRuntimeEvidence.blockers],
+    warnings: [...approvedVlmRuntimeEvidence.warnings],
+  }
+}

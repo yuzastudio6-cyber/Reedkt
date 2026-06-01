@@ -1,0 +1,54 @@
+{
+  "phase": "39C",
+  "reportId": "phase_39c_vlm_runtime_scoped_iam_plan",
+  "createdAt": "2026-05-31T19:21:31.762Z",
+  "iamMutationAllowed": true,
+  "defaultMode": "non_mutating",
+  "requiredConfirmation": "REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE",
+  "plans": [
+    {
+      "bindingId": "phase39c-vlm-model-read",
+      "resource": "gs://reeditpro-staging-reeditpro-generated-assets",
+      "role": "roles/storage.objectViewer",
+      "member": "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+      "conditionTitle": "phase39c-vlm-model-read-qwen3vl-8b",
+      "conditionDescription": "Read exact Phase 39B Qwen3-VL private model objects only",
+      "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-generated-assets/objects/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/')",
+      "description": "Staging GPU worker read access to verified Phase 39B private Qwen3-VL model assets only.",
+      "commandString": "gcloud storage buckets add-iam-policy-binding gs://reeditpro-staging-reeditpro-generated-assets --member=serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com --role=roles/storage.objectViewer --condition=title=phase39c-vlm-model-read-qwen3vl-8b,expression=resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-generated-assets/objects/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/')",
+      "required": true,
+      "status": "missing"
+    },
+    {
+      "bindingId": "phase39c-vlm-qa-create",
+      "resource": "gs://reeditpro-staging-reeditpro-qa-artifacts",
+      "role": "roles/storage.objectCreator",
+      "member": "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+      "conditionTitle": "phase39c-vlm-qa-create",
+      "conditionDescription": "Create Phase 39C generated VLM runtime QA artifacts only",
+      "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-runtime/')",
+      "description": "Staging GPU worker create access to private Phase 39C generated VLM QA artifacts only.",
+      "commandString": "gcloud storage buckets add-iam-policy-binding gs://reeditpro-staging-reeditpro-qa-artifacts --member=serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com --role=roles/storage.objectCreator --condition=title=phase39c-vlm-qa-create,expression=resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-runtime/')",
+      "required": true,
+      "status": "missing"
+    }
+  ],
+  "broaderRolesRejected": [
+    "roles/storage.admin",
+    "roles/storage.objectAdmin",
+    "roles/owner",
+    "roles/editor",
+    "project-wide storage roles",
+    "unconditioned bucket-wide roles for Phase 39C"
+  ],
+  "publicPrincipalsRejected": [
+    "allUsers",
+    "allAuthenticatedUsers"
+  ],
+  "blockers": [],
+  "warnings": [
+    "Default IAM plan/report mode is non-mutating.",
+    "storage.objects.list is not requested; Phase 39C model copy must use exact Phase 39B object names.",
+    "QA readback IAM is intentionally skipped unless worker-side artifact readback is required."
+  ]
+}

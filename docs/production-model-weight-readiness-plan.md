@@ -114,3 +114,11 @@ Real-ESRGAN, deploy GPU, process media, or approve production use.
 FILM, alternate Real-ESRGAN weights, GFPGAN/facexlib weights, enhancement
 execution, slow motion, production, external beta, paid production, and broad
 real media remain blocked.
+
+## Phase 37A OCR Approval Update
+
+Phase 37A OCR approval update: PaddleOCR/PaddlePaddle are approved only for staging generated OCR safe-zone planning. Exact PP-OCRv5 assets are deferred to Phase 37B, OCR runtime is deferred to Phase 37C, controlled real-video OCR is deferred to Phase 37D, and production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.
+
+## Phase 39A/39B/39C VLM Model Weight Update
+
+Phase 39A approves `Qwen/Qwen3-VL-8B-Instruct` only as Track B VLM planning evidence with vLLM as the future runtime candidate. Phase 39B pins revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, records SHA-256 checksums, and privately stages the 15 selected model/tokenizer/processor/config/source-evidence files under the approved generated-assets model-weight prefix. Phase 39C adds the guarded generated-fixture runtime verification workflow and records scoped conditional IAM evidence for the staging GPU worker. L4 tuning runs `phase39c-20260531T212558` and `phase39c-20260531T214216` copied the exact Phase 39B private model objects, verified every per-file SHA-256, recomputed aggregate SHA-256 `3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908`, prepared the local model path, and uploaded private JSON QA artifacts, but all executed L4-safe vLLM profiles failed during engine initialization with CUDA OOM before generated fixture inference. The generated VLM runtime remains blocked until a later approved path changes the blocker, such as official quantized Qwen3-VL private staging, a smaller VLM candidate, a different GPU class, or a deeper vLLM configuration follow-up with a concrete new fix. This is not production, beta, broad media, provider, general GPU, controlled real-frame, planning-integration, quantized-variant, or smaller-model approval.

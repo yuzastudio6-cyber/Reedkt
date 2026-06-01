@@ -1,0 +1,66 @@
+{
+  "phase": "39C",
+  "runId": "phase39c-20260531T214216",
+  "createdAt": "2026-05-31T21:44:00.619428Z",
+  "schemaId": "phase39c_vlm_fixture_output_v1",
+  "rawPromptAllowed": false,
+  "providerCallsAllowed": false,
+  "toolCallsAllowed": false,
+  "templates": [
+    {
+      "promptTemplateId": "phase39c_generated_object_layout_json_v1",
+      "fixtureId": "generated-object-layout",
+      "schemaId": "phase39c_vlm_fixture_output_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+      "userInstruction": "Identify object regions and whether a lower-third caption would collide with the timeline panel. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "json_only"
+    },
+    {
+      "promptTemplateId": "phase39c_generated_ui_safe_zone_json_v1",
+      "fixtureId": "generated-ui-safe-zone",
+      "schemaId": "phase39c_vlm_fixture_output_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+      "userInstruction": "Decide if the lower third is risky and suggest an alternate caption zone. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "json_only"
+    },
+    {
+      "promptTemplateId": "phase39c_generated_ocr_vlm_comparison_json_v1",
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "schemaId": "phase39c_vlm_fixture_output_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+      "userInstruction": "Return text-like regions that a future OCR/VLM comparison gate could reconcile. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "json_only"
+    },
+    {
+      "promptTemplateId": "phase39c_generated_ambiguous_scene_json_v1",
+      "fixtureId": "generated-ambiguous-scene",
+      "schemaId": "phase39c_vlm_fixture_output_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+      "userInstruction": "Flag uncertainty if icon/object identity is ambiguous. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "json_only"
+    },
+    {
+      "promptTemplateId": "phase39c_generated_spatial_reasoning_json_v1",
+      "fixtureId": "generated-spatial-reasoning",
+      "schemaId": "phase39c_vlm_fixture_output_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+      "userInstruction": "Describe broad left/right/center relations without claiming exact pixel geometry. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "json_only"
+    }
+  ]
+}

@@ -41,7 +41,12 @@ export function validateAudioExecutionInput(input: AudioExecutionInput): AudioEx
   }
 
   const selectedTool = input.audioCleanupPlan?.selectedPrimaryTool
-  if (selectedTool === 'deepfilternet' || selectedTool === 'rnnoise') {
+  const rawSelectedTool = selectedTool as string | undefined
+  if (rawSelectedTool === 'rnnoise') {
+    issues.push(blocking('rnnoise_removed_from_active_flow', 'RNNoise is removed from active product routing after Phase 36G.'))
+  }
+
+  if (selectedTool === 'deepfilternet') {
     const speechPresent = input.audioAnalysis?.speechPresence === 'present'
     const noiseKnown = typeof input.audioAnalysis?.noiseLevel === 'number' && input.audioAnalysis.noiseLevel > 0.1
     if (!speechPresent && !noiseKnown) {
@@ -56,7 +61,7 @@ export function validateAudioExecutionInput(input: AudioExecutionInput): AudioEx
   }
 
   if (input.mode === 'production_ready') {
-    const modelToolSelected = selectedTool === 'deepfilternet' || selectedTool === 'rnnoise' || demucsRequested
+    const modelToolSelected = selectedTool === 'deepfilternet' || demucsRequested
     if (modelToolSelected && (input.modelWeightManifestIds?.length ?? 0) === 0) {
       issues.push(blocking('model_weight_manifest_required', 'Production model audio tools require modelWeightManifestId.'))
     }

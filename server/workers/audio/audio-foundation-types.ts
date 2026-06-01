@@ -80,7 +80,7 @@ export interface VoiceCleanupOperation {
 export interface AudioCleanupPlan {
   id: string
   cleanupStrength: CleanupStrength
-  selectedPrimaryTool: Extract<AudioToolId, 'ffmpeg' | 'deepfilternet' | 'rnnoise' | 'none'>
+  selectedPrimaryTool: Extract<AudioToolId, 'ffmpeg' | 'deepfilternet' | 'none'>
   fallbackTools: AudioToolId[]
   operations: VoiceCleanupOperation[]
   reasons: string[]

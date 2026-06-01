@@ -52,3 +52,7 @@ M17 does not run deployment, `gcloud`, Docker builds, provider calls, GPU jobs, 
 ## Activation Phase 21 Container Readiness Evidence
 
 Activation Phase 21 consumes human-run container readiness evidence using static/report-only helpers. It compares local readiness logs against expected API, tool-readiness, CPU, QA, render, and GPU image tools. Phase 22 staging foundation setup does not require GPU readiness, but Phase 23 image push requires required non-GPU build/readiness evidence and no forbidden findings.
+
+## Phase 37A OCR Approval Update
+
+Phase 37A OCR approval update: PaddleOCR/PaddlePaddle are approved only for staging generated OCR safe-zone planning. Exact PP-OCRv5 assets are deferred to Phase 37B, OCR runtime is deferred to Phase 37C, controlled real-video OCR is deferred to Phase 37D, and production, external beta, broad media, providers, public output, Revideo, FILM, and slow motion remain blocked.

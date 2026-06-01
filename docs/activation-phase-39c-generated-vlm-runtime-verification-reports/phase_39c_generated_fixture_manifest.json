@@ -1,0 +1,225 @@
+{
+  "phase": "39C",
+  "runId": "phase39c-20260531T214216",
+  "createdAt": "2026-05-31T21:44:00.619428Z",
+  "generatedOnly": true,
+  "fixtureImagesCommitted": false,
+  "specs": [
+    {
+      "fixtureId": "generated-object-layout",
+      "width": 1280,
+      "height": 720,
+      "generatedOnly": true,
+      "riskCategory": "required_pass",
+      "seed": "phase39c-object-layout-v1",
+      "expectedLabels": [
+        "laptop",
+        "coffee mug",
+        "plant",
+        "timeline panel"
+      ],
+      "expectedRegions": [
+        {
+          "regionId": "laptop_center",
+          "label": "laptop",
+          "x": 0.36,
+          "y": 0.28,
+          "width": 0.32,
+          "height": 0.34,
+          "required": true
+        },
+        {
+          "regionId": "mug_right",
+          "label": "coffee mug",
+          "x": 0.72,
+          "y": 0.42,
+          "width": 0.12,
+          "height": 0.18,
+          "required": true
+        },
+        {
+          "regionId": "timeline_bottom",
+          "label": "timeline panel",
+          "x": 0.12,
+          "y": 0.74,
+          "width": 0.76,
+          "height": 0.16,
+          "required": true
+        }
+      ],
+      "safeZoneQuestion": "Identify object regions and whether a lower-third caption would collide with the timeline panel.",
+      "passCriteria": [
+        "Required object labels recalled >= 0.70.",
+        "Required broad region centers are in the expected half of the image."
+      ],
+      "warningCriteria": [
+        "Low confidence object labels are manual-review warnings."
+      ]
+    },
+    {
+      "fixtureId": "generated-ui-safe-zone",
+      "width": 1280,
+      "height": 720,
+      "generatedOnly": true,
+      "riskCategory": "required_pass",
+      "seed": "phase39c-ui-safe-zone-v1",
+      "expectedLabels": [
+        "caption conflict",
+        "lower third alert",
+        "toolbar",
+        "preview"
+      ],
+      "expectedRegions": [
+        {
+          "regionId": "lower_caption_conflict",
+          "label": "caption conflict",
+          "x": 0.08,
+          "y": 0.68,
+          "width": 0.84,
+          "height": 0.22,
+          "required": true
+        },
+        {
+          "regionId": "toolbar_top",
+          "label": "toolbar",
+          "x": 0.04,
+          "y": 0.04,
+          "width": 0.92,
+          "height": 0.12,
+          "required": true
+        }
+      ],
+      "safeZoneQuestion": "Decide if the lower third is risky and suggest an alternate caption zone.",
+      "passCriteria": [
+        "Lower-third risk is detected.",
+        "Manual review or upper-third recommendation is allowed."
+      ],
+      "warningCriteria": [
+        "If all zones are risky, output manual_review instead of guessing."
+      ]
+    },
+    {
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "width": 1280,
+      "height": 720,
+      "generatedOnly": true,
+      "riskCategory": "required_pass",
+      "seed": "phase39c-ocr-vlm-comparison-v1",
+      "expectedLabels": [
+        "source label",
+        "export button",
+        "confidence badge",
+        "text-like region"
+      ],
+      "expectedRegions": [
+        {
+          "regionId": "source_label_left",
+          "label": "source label",
+          "x": 0.06,
+          "y": 0.18,
+          "width": 0.28,
+          "height": 0.16,
+          "required": true
+        },
+        {
+          "regionId": "export_button_right",
+          "label": "export button",
+          "x": 0.72,
+          "y": 0.18,
+          "width": 0.22,
+          "height": 0.16,
+          "required": true
+        }
+      ],
+      "safeZoneQuestion": "Return text-like regions that a future OCR/VLM comparison gate could reconcile.",
+      "passCriteria": [
+        "Text-like regions are returned as advisory metadata.",
+        "No OCR runtime is invoked by Phase 39C."
+      ],
+      "warningCriteria": [
+        "Uncertain text labels must be flagged."
+      ]
+    },
+    {
+      "fixtureId": "generated-ambiguous-scene",
+      "width": 1280,
+      "height": 720,
+      "generatedOnly": true,
+      "riskCategory": "manual_review_expected",
+      "seed": "phase39c-ambiguous-scene-v1",
+      "expectedLabels": [
+        "ambiguous icon cluster",
+        "manual review"
+      ],
+      "expectedRegions": [
+        {
+          "regionId": "ambiguous_center",
+          "label": "ambiguous icon cluster",
+          "x": 0.36,
+          "y": 0.32,
+          "width": 0.28,
+          "height": 0.28,
+          "required": true
+        }
+      ],
+      "safeZoneQuestion": "Flag uncertainty if icon/object identity is ambiguous.",
+      "passCriteria": [
+        "High uncertainty or manual_review is acceptable and preferred."
+      ],
+      "warningCriteria": [
+        "Overconfident invented labels are hallucination warnings."
+      ]
+    },
+    {
+      "fixtureId": "generated-spatial-reasoning",
+      "width": 1280,
+      "height": 720,
+      "generatedOnly": true,
+      "riskCategory": "required_pass",
+      "seed": "phase39c-spatial-reasoning-v1",
+      "expectedLabels": [
+        "left panel",
+        "right card",
+        "center arrow",
+        "top badge"
+      ],
+      "expectedRegions": [
+        {
+          "regionId": "left_panel",
+          "label": "left panel",
+          "x": 0.08,
+          "y": 0.22,
+          "width": 0.28,
+          "height": 0.38,
+          "required": true
+        },
+        {
+          "regionId": "right_card",
+          "label": "right card",
+          "x": 0.64,
+          "y": 0.22,
+          "width": 0.28,
+          "height": 0.38,
+          "required": true
+        },
+        {
+          "regionId": "center_arrow",
+          "label": "center arrow",
+          "x": 0.44,
+          "y": 0.36,
+          "width": 0.12,
+          "height": 0.16,
+          "required": true
+        }
+      ],
+      "safeZoneQuestion": "Describe broad left/right/center relations without claiming exact pixel geometry.",
+      "passCriteria": [
+        "Spatial relation labels are broadly correct.",
+        "Coordinates are normalized to 0..1."
+      ],
+      "warningCriteria": [
+        "Coordinate uncertainty must be noted."
+      ]
+    }
+  ]
+}

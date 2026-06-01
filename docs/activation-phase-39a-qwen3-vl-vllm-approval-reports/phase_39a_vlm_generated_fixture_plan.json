@@ -1,0 +1,31 @@
+{
+  "planId": "phase39c_generated_vlm_fixture_plan_v1",
+  "futurePhase": "39C",
+  "fixtureIds": [
+    "generated-frame-object-layout-basic",
+    "generated-caption-safe-zone-reasoning",
+    "generated-ui-text-and-object-grounding",
+    "generated-crowded-layout-warning",
+    "generated-low-confidence-manual-review"
+  ],
+  "requiredOutputFormat": "json_only",
+  "boundedPromptTemplatesRequired": true,
+  "realMediaAllowed": false,
+  "providerAllowed": false,
+  "publicOutputAllowed": false,
+  "qaMetrics": [
+    "schema validity",
+    "object/region recall against generated fixture metadata",
+    "safe-zone recommendation consistency",
+    "confidence/manual-review routing",
+    "no network/model download attempts"
+  ],
+  "blockers": [
+    "Missing Phase 39B private staged model checksum evidence.",
+    "Runtime auto-download attempt.",
+    "Output includes raw media bytes, public URLs, or unredacted unsafe paths."
+  ],
+  "warnings": [
+    "VLM safe-zone suggestions are advisory planning hints until later render QA validates them."
+  ]
+}

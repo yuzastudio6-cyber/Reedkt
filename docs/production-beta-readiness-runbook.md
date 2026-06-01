@@ -10,3 +10,16 @@ Phase 35F can produce private SAM2 feature E2E evidence for internal SAM2
 feature testing only. It does not approve external beta, paid production, broad
 real media, providers, public delivery, final export, Revideo, FILM, slow
 motion, or Real-ESRGAN.
+
+Phase 36E produced private DeepFilterNet audio feature E2E evidence for
+internal audio feature testing only. It does not approve external beta, paid
+production, broad real media, arbitrary media, public delivery, final export,
+RNNoise, Demucs, providers, Revideo, FILM, or slow motion.
+
+Phase 36F marked the audio system ready for controlled internal audio feature
+testing only after artifact verification and beta-scope QA passed. It still
+does not approve external beta, paid production, broad real media, arbitrary
+media, public delivery, final export, RNNoise, Demucs, providers, Revideo, FILM,
+or slow motion.
+
+Phase 36G closes the RNNoise/Demucs audio stack correction only. It removes RNNoise from active product flow and blocks Demucs download/runtime pending pretrained-model license/provenance clarity. It does not approve external beta, paid production, broad real media, arbitrary media, providers, Revideo, FILM, slow motion, public delivery, or final export.

@@ -1,0 +1,129 @@
+{
+  "phase": "39B",
+  "manifestId": "qwen3_vl_8b_instruct_exact_revision_manifest_v1",
+  "collectedAt": "2026-05-31T02:56:48.156Z",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+  "modelFamily": "Qwen3-VL",
+  "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "sourceApiUrl": "https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct?blobs=true",
+  "modelCardUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+  "lastModified": "2025-10-15T16:16:59.000Z",
+  "private": false,
+  "gated": false,
+  "disabled": false,
+  "pipelineTag": "image-text-to-text",
+  "libraryName": "transformers",
+  "tags": [
+    "transformers",
+    "safetensors",
+    "qwen3_vl",
+    "image-text-to-text",
+    "conversational",
+    "arxiv:2505.09388",
+    "arxiv:2502.13923",
+    "arxiv:2409.12191",
+    "arxiv:2308.12966",
+    "license:apache-2.0",
+    "eval-results",
+    "endpoints_compatible",
+    "deploy:azure",
+    "region:us"
+  ],
+  "authenticationRequired": false,
+  "authenticationAvailable": false,
+  "repoFileCount": 16,
+  "expectedRepoFileCount": 16,
+  "revisionPinned": true,
+  "licenseTagPresent": true,
+  "architectureTagPresent": true,
+  "siblings": [
+    {
+      "rfilename": ".gitattributes",
+      "size": 1519,
+      "blobId": "a6344aac8c09253b3b630fb776ae94478aa0275b"
+    },
+    {
+      "rfilename": "chat_template.json",
+      "size": 5499,
+      "blobId": "1081bacf1af7c7c6de4a585ce02cd0fd34e382da"
+    },
+    {
+      "rfilename": "config.json",
+      "size": 1474,
+      "blobId": "0e2df614c5fe1ad2b6b540c8625bebf2d7ec43ca"
+    },
+    {
+      "rfilename": "generation_config.json",
+      "size": 269,
+      "blobId": "e116347d7ef42621c7a5957f82c015c38d939c1f"
+    },
+    {
+      "rfilename": "merges.txt",
+      "size": 1671839,
+      "blobId": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0"
+    },
+    {
+      "rfilename": "model-00001-of-00004.safetensors",
+      "size": 4902275944,
+      "blobId": "392e405fa984ab082e4db6cf265567819f687bcb",
+      "lfsSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa"
+    },
+    {
+      "rfilename": "model-00002-of-00004.safetensors",
+      "size": 4915962496,
+      "blobId": "1540d5047c7a275d06c06c8e271c4974f310e87e",
+      "lfsSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5"
+    },
+    {
+      "rfilename": "model-00003-of-00004.safetensors",
+      "size": 4999831048,
+      "blobId": "8e8450c4763c2a7e026dd9e83211603eb3e06207",
+      "lfsSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192"
+    },
+    {
+      "rfilename": "model-00004-of-00004.safetensors",
+      "size": 2716270024,
+      "blobId": "10f83d82617301ff5adc5588b8b1b2f0552aa9e3",
+      "lfsSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5"
+    },
+    {
+      "rfilename": "model.safetensors.index.json",
+      "size": 67759,
+      "blobId": "5857ec62530eb589b1876034dd5386f1d98131a6"
+    },
+    {
+      "rfilename": "preprocessor_config.json",
+      "size": 390,
+      "blobId": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64"
+    },
+    {
+      "rfilename": "README.md",
+      "size": 7133,
+      "blobId": "06fb2c8220b4fb51ccca87dd694ef9d240c36745"
+    },
+    {
+      "rfilename": "tokenizer_config.json",
+      "size": 10868,
+      "blobId": "d3d3763207692c78780f4bf42d4dadf49a5c8012"
+    },
+    {
+      "rfilename": "tokenizer.json",
+      "size": 7032403,
+      "blobId": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421"
+    },
+    {
+      "rfilename": "video_preprocessor_config.json",
+      "size": 385,
+      "blobId": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe"
+    },
+    {
+      "rfilename": "vocab.json",
+      "size": 2776833,
+      "blobId": "4783fe10ac3adce15ac8f358ef5462739852c569"
+    }
+  ],
+  "blockers": [],
+  "warnings": [
+    "Phase 39B uses Hugging Face metadata for revision/file selection only; it does not call inference providers."
+  ]
+}

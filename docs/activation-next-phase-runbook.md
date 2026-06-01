@@ -391,6 +391,15 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm Track B is recorded as partial, with audio/OCR internal evidence, Demucs blocked pending pretrained-model license/provenance, and VLM Phase 39C blocked on L4/vLLM CUDA OOM.
 5. Confirm integration readiness remains blocked for full system-level internal testing until Track B VLM is resolved or explicitly excluded by a later phase.
 6. Confirm no media processing, Docker build/push, Cloud Run deploy/execute, provider call, public output, final delivery, production, external beta, paid production, broad media, or Revideo execution occurred.
+
+## After Phase 47B
+
+1. Review `activation:vlm-blocker-resolution:report` and `docs/activation-phase-47b-vlm-blocker-resolution-results.md`.
+2. Confirm Phase 47B uploaded only private JSON blocker/exclusion/readiness/QA artifacts under `activation-track-integration/phase47b/<runId>/`.
+3. Confirm the decision is exactly `vlm_excluded_from_initial_internal_testing`.
+4. Confirm no VLM runtime retry, model download, Docker build/push, Cloud Run deploy/execute, provider call, media processing, public output, final delivery, production, external beta, paid production, broad media, or Revideo execution occurred.
+5. Treat Phase 47C as ready only for system-level internal testing gate preparation without VLM.
+6. Keep VLM future-scoped until a later explicit phase approves and verifies a smaller/quantized model, different GPU class, or deeper vLLM runtime redesign.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

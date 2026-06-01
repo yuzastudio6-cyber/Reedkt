@@ -394,7 +394,7 @@ export function createQaRevisionService(context: ServiceContext) {
 
     const { data, error } = await query
     throwOnSupabaseError(error)
-    const rows = ((data ?? []) as Row[]).map((row) => summarizeRow(row, allowedKeys)).filter(isRecord)
+    const rows = ((data ?? []) as unknown as Row[]).map((row) => summarizeRow(row, allowedKeys)).filter(isRecord)
     if (table === 'qa_reports') result.qaReports = rows
     if (table === 'qa_check_results') {
       result.qaBlockers = rows.filter((row) => BLOCKING_QA_STATUSES.has(statusValue(row)))

@@ -763,6 +763,10 @@ def validate_env(blockers: List[str]) -> None:
 
 
 def main() -> int:
+    if os.environ.get("REEDITPRO_CONFIRM_VLM_STRUCTURED_OUTPUT_RERUN") == "true" or os.environ.get("REEDITPRO_VLM_STRUCTURED_OUTPUT_MATRIX"):
+        from run_phase39cq_structured_output_cloud_job import main as structured_output_main
+
+        return structured_output_main()
     run_id = os.environ.get("REEDITPRO_PHASE39C_RUN_ID", "")
     if not (run_id.startswith("phase39c-") or run_id.startswith("phase39cq-")):
         print("REEDITPRO_PHASE39C_RUN_ID must start with phase39c- or phase39cq-", file=sys.stderr)

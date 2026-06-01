@@ -1,0 +1,697 @@
+{
+  "phase": "39C-Q-SO",
+  "runId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+  "runtimeStatus": "blocked",
+  "runtimeVersion": "0.11.0",
+  "selectedStrategyId": null,
+  "fixtureResults": [],
+  "strategyResults": [
+    {
+      "strategyId": "S0",
+      "status": "blocked",
+      "passCounting": false,
+      "fixtureResults": [
+        {
+          "fixtureId": "generated-object-layout",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        }
+      ],
+      "traceRecords": [
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-object-layout",
+          "strategyId": "S0",
+          "rawOutputSha256": "b27eba8862719d677c9f7ec917ec0aa2b6fe209f5c5569707ac3d2351a16c0bd",
+          "rawOutputSizeBytes": 446,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"bo",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ui-safe-zone",
+          "strategyId": "S0",
+          "rawOutputSha256": "ce379a0b9a7a44ee96dddef9de70800d177adae5d2d58345081e0537649ffaf5",
+          "rawOutputSizeBytes": 479,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"b",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "strategyId": "S0",
+          "rawOutputSha256": "4825958b6b9972c3faa69fc03bcdea2fdc7a3e592306354a2d6be1ac05be5ed0",
+          "rawOutputSizeBytes": 440,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidence",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ambiguous-scene",
+          "strategyId": "S0",
+          "rawOutputSha256": "2b6a1b3c67104f4dae6bbd9ec29b9328326212f01f08f4dd405c95fdc40e229c",
+          "rawOutputSizeBytes": 456,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"b",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-spatial-reasoning",
+          "strategyId": "S0",
+          "rawOutputSha256": "937bd258b3367c247948a8d0310d5c13f7f5499edcb7956341d5be60b5e4d773",
+          "rawOutputSizeBytes": 414,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, \"",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        }
+      ],
+      "blockers": [
+        "structured_output_strategy_incomplete:S0"
+      ],
+      "warnings": []
+    },
+    {
+      "strategyId": "S1",
+      "status": "blocked",
+      "passCounting": true,
+      "fixtureResults": [
+        {
+          "fixtureId": "generated-object-layout",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        }
+      ],
+      "traceRecords": [
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-object-layout",
+          "strategyId": "S1",
+          "rawOutputSha256": "951f77af20ce37721b4f77f368c383f92232407fd0f6a5f671a0b6dc5c1ef95a",
+          "rawOutputSizeBytes": 675,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"bo",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ui-safe-zone",
+          "strategyId": "S1",
+          "rawOutputSha256": "1029686c61fc6de9db6fff45b1f4a27bea315dd123a4cc07a09212d7ae3cfc17",
+          "rawOutputSizeBytes": 747,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"b",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "strategyId": "S1",
+          "rawOutputSha256": "63aa99351ad2062206ca106cfb7f71733ebe2b91de53f0b717cb645dda8d4997",
+          "rawOutputSizeBytes": 658,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidence",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ambiguous-scene",
+          "strategyId": "S1",
+          "rawOutputSha256": "6c49d816516be5daae20f332ad06e0908929953561de9c4a42f97ce046b56d93",
+          "rawOutputSizeBytes": 671,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"b",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-spatial-reasoning",
+          "strategyId": "S1",
+          "rawOutputSha256": "5b8d5c7aa9ba57dcf919ea04949b2b335a60febc975c8bddaed846a03b376b09",
+          "rawOutputSizeBytes": 651,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, \"",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        }
+      ],
+      "blockers": [
+        "structured_output_strategy_incomplete:S1"
+      ],
+      "warnings": []
+    },
+    {
+      "strategyId": "S2",
+      "status": "skipped",
+      "passCounting": true,
+      "fixtureResults": [],
+      "traceRecords": [],
+      "blockers": [],
+      "warnings": [
+        "s2_unsupported_in_offline_llm_worker"
+      ]
+    },
+    {
+      "strategyId": "S3",
+      "status": "blocked",
+      "passCounting": true,
+      "fixtureResults": [
+        {
+          "fixtureId": "generated-object-layout",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "direct_json_object_required",
+            "object_region_qa_failed",
+            "output_json_parse_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        }
+      ],
+      "traceRecords": [
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-object-layout",
+          "strategyId": "S3",
+          "rawOutputSha256": "f3a9f1f86795281916b3a4cbae66acc1b5568ece2dd32244406616869bff7224",
+          "rawOutputSizeBytes": 661,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"b",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ui-safe-zone",
+          "strategyId": "S3",
+          "rawOutputSha256": "11e2013cc14419be85df050af1851136a843c4dca10e89c50f519d8acb8f0352",
+          "rawOutputSizeBytes": 730,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "strategyId": "S3",
+          "rawOutputSha256": "111b42213625e590af8e9fb9bd765e661666ef8a37856e221b42e691a1a305cc",
+          "rawOutputSizeBytes": 627,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidenc",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ambiguous-scene",
+          "strategyId": "S3",
+          "rawOutputSha256": "c4f92e6312207ef3342331268a61c760e09c615dad4999aa27fe1756802fc89c",
+          "rawOutputSizeBytes": 671,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-spatial-reasoning",
+          "strategyId": "S3",
+          "rawOutputSha256": "f095bfa95519537d1302289f7eedb6b90982a76fdb0245c148ac14152996a26c",
+          "rawOutputSizeBytes": 656,
+          "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, ",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        }
+      ],
+      "blockers": [
+        "structured_output_strategy_incomplete:S3"
+      ],
+      "warnings": []
+    },
+    {
+      "strategyId": "S4",
+      "status": "blocked",
+      "passCounting": true,
+      "fixtureResults": [
+        {
+          "fixtureId": "generated-object-layout",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": true,
+          "schemaValid": true,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "object_region_qa_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": true,
+          "schemaValid": true,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "object_region_qa_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": true,
+          "schemaValid": true,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "object_region_qa_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": true,
+          "schemaValid": true,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "object_region_qa_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": true,
+          "schemaValid": true,
+          "requiredLabelRecall": 0.0,
+          "broadRegionAccuracy": 0.0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": {},
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "object_region_qa_failed",
+            "safe_zone_unknown"
+          ],
+          "warnings": []
+        }
+      ],
+      "traceRecords": [
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-object-layout",
+          "strategyId": "S4",
+          "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+          "rawOutputSizeBytes": 5,
+          "safeExcerpt": "{ }",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ui-safe-zone",
+          "strategyId": "S4",
+          "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+          "rawOutputSizeBytes": 5,
+          "safeExcerpt": "{ }",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "strategyId": "S4",
+          "rawOutputSha256": "1f02aafb100677a0e110d608d680e129a64ba4af91b8331e8e5e55fc9f3b3268",
+          "rawOutputSizeBytes": 13,
+          "safeExcerpt": "{ }",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-ambiguous-scene",
+          "strategyId": "S4",
+          "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+          "rawOutputSizeBytes": 5,
+          "safeExcerpt": "{ }",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        },
+        {
+          "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+          "fixtureId": "generated-spatial-reasoning",
+          "strategyId": "S4",
+          "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+          "rawOutputSizeBytes": 5,
+          "safeExcerpt": "{ }",
+          "fullRawTraceCommitted": false,
+          "fullRawTracePrivateOnly": true
+        }
+      ],
+      "blockers": [
+        "structured_output_strategy_incomplete:S4"
+      ],
+      "warnings": []
+    },
+    {
+      "strategyId": "S5",
+      "status": "skipped",
+      "passCounting": true,
+      "fixtureResults": [],
+      "traceRecords": [],
+      "blockers": [],
+      "warnings": [
+        "s5_unsupported_in_offline_llm_worker"
+      ]
+    },
+    {
+      "strategyId": "S6",
+      "status": "diagnostic_only",
+      "passCounting": false,
+      "fixtureResults": [],
+      "traceRecords": [],
+      "blockers": [],
+      "warnings": [
+        "repair_diagnostic_trace_count:20",
+        "s6_never_counts_as_phase39cq_so_pass"
+      ]
+    }
+  ],
+  "blockers": [
+    "structured_output_strategy_matrix_exhausted"
+  ],
+  "warnings": [
+    "phase39cq_so_staging_l4_cloud_run_job_path_used",
+    "phase39cq_so_worker_stderr:5 [00:41<01:01, 20.51s/it, est. speed input: 48.68 toks/s, output: 12.22 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [01:07<00:45, 22.83s/it, est. speed input: 45.37 toks/s, output: 11.38 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [01:30<00:22, 22.89s/it, est. speed input: 45.15 toks/s, output: 11.32 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.33s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00, 116.88it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|\u2588\u2588        | 1/5 [00:00<00:00,  5.37it/s, est. speed input: 5501.05 toks/s, output: 37.56 toks/s]\nProcessed prompts:  40%|\u2588\u2588\u2588\u2588      | 2/5 [00:00<00:00,  6.50it/s, est. speed input: 6447.84 toks/s, output: 37.80 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [00:00<00:00,  6.95it/s, est. speed input: 6828.74 toks/s, output: 37.81 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [00:00<00:00,  7.20it/s, est. speed input: 7035.64 toks/s, output: 37.87 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.02it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\n[rank0]:[W531 21:20:59.990524965 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7f2a5eb36da8 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7f2a689d8138 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"__init__\"\n - leaked function \"accept_string\"\n - leaked function \"rollback\"\n - leaked function \"is_terminated\"\n - leaked function \"serialize_json\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"accept_token\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n",
+    "repair_diagnostic_trace_count:20",
+    "s2_unsupported_in_offline_llm_worker",
+    "s5_unsupported_in_offline_llm_worker",
+    "s6_never_counts_as_phase39cq_so_pass"
+  ]
+}

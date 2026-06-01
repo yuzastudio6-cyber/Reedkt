@@ -1,0 +1,383 @@
+{
+  "phase": "39C-Q-SO",
+  "reportId": "phase_39cq_structured_output_plan",
+  "createdAt": "2026-06-01T04:29:24.831Z",
+  "defaultMode": "non_mutating",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true,
+      "evidencePrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/"
+    },
+    "phase39bq39cqCandidateRecovery": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true,
+      "privateQaPrefixPattern": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-<candidate-slug>/"
+    }
+  },
+  "candidatePolicy": {
+    "allowedCandidates": [
+      {
+        "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+        "slug": "qwen3-vl-8b-instruct-fp8",
+        "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+        "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+        "selectedFileCount": 12,
+        "selectedTotalSizeBytes": 10605571033
+      },
+      {
+        "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+        "slug": "qwen3-vl-4b-instruct",
+        "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+        "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+        "selectedFileCount": 13,
+        "selectedTotalSizeBytes": 8887291213
+      },
+      {
+        "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+        "slug": "qwen3-vl-2b-instruct",
+        "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+        "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+        "selectedFileCount": 11,
+        "selectedTotalSizeBytes": 4266647442
+      }
+    ],
+    "executionOrder": [
+      "Qwen/Qwen3-VL-2B-Instruct",
+      "Qwen/Qwen3-VL-4B-Instruct",
+      "Qwen/Qwen3-VL-8B-Instruct-FP8"
+    ],
+    "selectionPriority": [
+      "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "Qwen/Qwen3-VL-4B-Instruct",
+      "Qwen/Qwen3-VL-2B-Instruct"
+    ],
+    "newModelDownloadsAllowed": false,
+    "modelUploadsAllowed": false,
+    "communityQuantizationsAllowed": false
+  },
+  "compactSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "phase39c_qwen_vlm_v1",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "fixture_id",
+      "candidate_id",
+      "prompt_template_id",
+      "schema_version",
+      "objects",
+      "text_like_regions",
+      "safe_zone_suggestions",
+      "spatial_relations",
+      "uncertainty",
+      "blocked_actions"
+    ],
+    "properties": {
+      "fixture_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "candidate_id": {
+        "type": "string",
+        "enum": [
+          "Qwen/Qwen3-VL-8B-Instruct-FP8",
+          "Qwen/Qwen3-VL-4B-Instruct",
+          "Qwen/Qwen3-VL-2B-Instruct"
+        ]
+      },
+      "prompt_template_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "schema_version": {
+        "const": "phase39c_qwen_vlm_v1"
+      },
+      "objects": {
+        "type": "array",
+        "maxItems": 12,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "label",
+            "confidence",
+            "box",
+            "evidence"
+          ],
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "box": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "evidence": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        }
+      },
+      "text_like_regions": {
+        "type": "array",
+        "maxItems": 12,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "label",
+            "confidence",
+            "box",
+            "evidence"
+          ],
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "box": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "evidence": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        }
+      },
+      "safe_zone_suggestions": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "zone_id",
+            "box",
+            "confidence",
+            "status",
+            "reason"
+          ],
+          "properties": {
+            "zone_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "box": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "status": {
+              "enum": [
+                "pass",
+                "warn",
+                "block"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        }
+      },
+      "spatial_relations": {
+        "type": "array",
+        "maxItems": 12,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "relation",
+            "confidence",
+            "evidence"
+          ],
+          "properties": {
+            "relation": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "evidence": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        }
+      },
+      "uncertainty": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "confidence",
+          "manual_review_required",
+          "reason"
+        ],
+        "properties": {
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "manual_review_required": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          }
+        }
+      },
+      "blocked_actions": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "string",
+          "maxLength": 120
+        }
+      }
+    }
+  },
+  "strategyMatrix": [
+    {
+      "id": "S0",
+      "name": "baseline trace only",
+      "passCounting": false,
+      "status": "diagnostic_only",
+      "description": "Replays the PR #87 prompt shape to capture safe failure traces. It cannot complete Phase 39C-Q-SO unless it unexpectedly validates and is promoted through another pass-counting strategy."
+    },
+    {
+      "id": "S1",
+      "name": "no-thinking strict prompt",
+      "passCounting": true,
+      "status": "allowed",
+      "description": "Uses compact schema instructions, JSON-only prompting, no tools, no prose, no markdown, and prompt-level no-thinking guidance."
+    },
+    {
+      "id": "S2",
+      "name": "OpenAI response_format JSON Schema",
+      "passCounting": true,
+      "status": "conditional",
+      "description": "Allowed only when a local loopback OpenAI-compatible vLLM server path is available. Otherwise it is recorded as skipped."
+    },
+    {
+      "id": "S3",
+      "name": "vLLM structured_outputs JSON",
+      "passCounting": true,
+      "status": "allowed",
+      "description": "Uses vLLM guided/structured JSON schema support through the installed runtime API."
+    },
+    {
+      "id": "S4",
+      "name": "vLLM grammar",
+      "passCounting": true,
+      "status": "conditional",
+      "description": "Uses vLLM grammar decoding only if the installed runtime exposes a supported grammar parameter."
+    },
+    {
+      "id": "S5",
+      "name": "structural tag",
+      "passCounting": true,
+      "status": "conditional",
+      "description": "Accepts JSON inside an approved structural tag only if the runtime supports structural tags."
+    },
+    {
+      "id": "S6",
+      "name": "deterministic repair diagnostic only",
+      "passCounting": false,
+      "status": "diagnostic_only",
+      "description": "Extracts or repairs simple wrappers for diagnosis only. It never counts as a Phase 39C-Q-SO pass."
+    }
+  ],
+  "execution": {
+    "privateModelBucket": "reeditpro-staging-reeditpro-generated-assets",
+    "privateQaBucket": "reeditpro-staging-reeditpro-qa-artifacts",
+    "qaPrefixPattern": "activation/phase39c/generated-vlm-structured-output/<run-id>/",
+    "imagePath": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-structured-output",
+    "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-structured-output",
+    "gpu": "1 x nvidia-l4",
+    "cpu": 8,
+    "memory": "32Gi",
+    "generatedFixturesOnly": true,
+    "requiredFixtures": [
+      "generated-object-layout",
+      "generated-ui-safe-zone",
+      "generated-ocr-vlm-comparison",
+      "generated-ambiguous-scene",
+      "generated-spatial-reasoning"
+    ],
+    "localVerifiedModelPathOnly": true,
+    "runtimeAutoDownloadBlocked": true,
+    "providerCallsBlocked": true,
+    "rawPromptsBlocked": true,
+    "realMediaBlocked": true,
+    "arbitraryMediaBlocked": true,
+    "publicOutputBlocked": true,
+    "phase39DBlocked": true,
+    "phase39EBlocked": true,
+    "betaProductionBlocked": true,
+    "trackABlocked": true
+  },
+  "confirmationsRequiredForExecution": [
+    "REEDITPRO_CONFIRM_VLM_STRUCTURED_OUTPUT_RERUN",
+    "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_BUILD",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_DOCKER_PUSH",
+    "REEDITPRO_CONFIRM_VLM_STAGING_CLOUD_RUN_JOB",
+    "REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE"
+  ]
+}

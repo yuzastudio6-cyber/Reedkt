@@ -1,0 +1,142 @@
+{
+  "phase": "39C-Q-SO",
+  "reportId": "phase_39cq_structured_output_failure_taxonomy",
+  "createdAt": "2026-06-01T04:29:24.832Z",
+  "sourcePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+  "privateQaPrefixPattern": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-<candidate-slug>/",
+  "committedRawOutputs": false,
+  "summary": "PR #87 reached generated vLLM output generation for all official Qwen L4-compatible candidates, but every required generated fixture failed direct JSON parsing and schema validation.",
+  "categories": [
+    "output_json_parse_failed",
+    "output_schema_invalid",
+    "direct_json_required_not_met"
+  ],
+  "candidates": [
+    {
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "status": "blocked_in_pr87",
+      "fixtureFailures": [
+        {
+          "fixtureId": "generated-object-layout",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        }
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+      "status": "blocked_in_pr87",
+      "fixtureFailures": [
+        {
+          "fixtureId": "generated-object-layout",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        }
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "status": "blocked_in_pr87",
+      "fixtureFailures": [
+        {
+          "fixtureId": "generated-object-layout",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "categories": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ]
+        }
+      ]
+    }
+  ]
+}

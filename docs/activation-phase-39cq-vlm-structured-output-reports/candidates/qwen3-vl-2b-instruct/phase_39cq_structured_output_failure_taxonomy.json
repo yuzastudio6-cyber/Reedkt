@@ -1,0 +1,18 @@
+{
+  "phase": "39C-Q-SO",
+  "reportId": "phase_39cq_structured_output_failure_taxonomy",
+  "runId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+  "sourcePr87": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+  "categories": [
+    "output_json_parse_failed",
+    "output_schema_invalid",
+    "direct_json_required_not_met"
+  ],
+  "runtimeCategories": [
+    "direct_json_object_required",
+    "object_region_qa_failed",
+    "output_json_parse_failed",
+    "safe_zone_unknown"
+  ],
+  "fullRawOutputCommitted": false
+}

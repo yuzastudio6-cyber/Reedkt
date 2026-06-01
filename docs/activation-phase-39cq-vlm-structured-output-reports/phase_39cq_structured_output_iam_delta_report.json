@@ -1,0 +1,30 @@
+{
+  "phase": "39C-Q-SO",
+  "reportId": "phase_39cq_structured_output_iam_delta_report",
+  "createdAt": "2026-06-01T04:29:24.831Z",
+  "defaultMode": "metadata_only_report",
+  "modelReadScopedBindings": "existing_pr87_scoped_bindings_reused",
+  "qaCreateScopedBinding": {
+    "status": "added",
+    "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+    "member": "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+    "role": "roles/storage.objectCreator",
+    "conditionTitle": "phase39cq-so-qa-create",
+    "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-structured-output/')"
+  },
+  "qaReadbackScopedBinding": {
+    "status": "added",
+    "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+    "member": "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+    "role": "roles/storage.objectViewer",
+    "conditionTitle": "phase39cq-so-qa-readback",
+    "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-structured-output/')"
+  },
+  "broadIamGranted": false,
+  "publicAccessGranted": false,
+  "preexistingUnconditionedStorageBindingExpanded": false,
+  "notes": [
+    "Only scoped QA prefix create/readback bindings were added for Phase 39C-Q-SO after the first upload attempt failed with prefix access denied.",
+    "No storage admin/object admin/project-wide role and no public principal was added."
+  ]
+}

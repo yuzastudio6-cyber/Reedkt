@@ -65,3 +65,14 @@ The Node-based commands must be rerun after the local Node validation path is re
 ## Prompt 11 Readiness
 
 Prompt 11 should proceed only after Prompt 10 code validation passes locally or in CI. Prompt 10 does not enable QA/revision/fallback execution.
+
+## Prompt 10A Follow-Up
+
+Prompt 10 GitHub Foundation Validation failed on PR #94 at the default foundation validation step. Lint, server typecheck, schema static audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, credit diagnostics, job/worker diagnostics, and media readiness diagnostics passed. The failed checks were `backend:api:diagnostics` and `render:export:diagnostics`.
+
+Prompt 10A fixes the diagnostics classification issues without changing render/export route capability:
+
+- `backend:api:diagnostics` now understands the Prompt 10 fail-closed render service boundary instead of treating every `createRenderService` import as an execution leak.
+- `render:export:diagnostics` now treats documented fail-closed blocker language separately from executable tool/provider/render calls.
+
+Prompt 10A GitHub Foundation Validation passed on PR #95. Prompt 11 can proceed with the same production execution blocks still in force.

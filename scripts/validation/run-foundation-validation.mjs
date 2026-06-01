@@ -78,6 +78,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'media:readiness:diagnostics'],
     required: true,
   },
+  {
+    id: 'render_export_diagnostics',
+    command: 'npm run --silent render:export:diagnostics',
+    npmArgs: ['run', '--silent', 'render:export:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

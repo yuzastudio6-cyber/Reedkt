@@ -75,4 +75,4 @@ Prompt 10A fixes the diagnostics classification issues without changing render/e
 - `backend:api:diagnostics` now understands the Prompt 10 fail-closed render service boundary instead of treating every `createRenderService` import as an execution leak.
 - `render:export:diagnostics` now treats documented fail-closed blocker language separately from executable tool/provider/render calls.
 
-Prompt 11 remains blocked until Prompt 10A GitHub Foundation Validation passes.
+Prompt 10A GitHub Foundation Validation passed on PR #95. Prompt 11 can proceed with the same production execution blocks still in force.

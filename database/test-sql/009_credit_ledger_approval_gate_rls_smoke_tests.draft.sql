@@ -1,0 +1,46 @@
+-- Prompt 6 draft-only credit ledger / approval gate RLS smoke tests.
+-- Local/staging validation only. Do not run against production data.
+-- Do not run remote Supabase migrations or connect to production/staging without explicit approval.
+-- This file is intentionally draft-only until the local Supabase CLI/runtime is repaired and schema-era cleanup is complete.
+--
+-- Allowed canonical tables for this draft:
+-- - projects
+-- - workspaces
+-- - workspace_members
+-- - credit_estimates
+-- - credit_estimate_items
+-- - approval_records
+-- - approved_plan_snapshots
+-- - credit_reservations
+-- - credit_ledger_entries
+-- - refund_records
+--
+-- Test cases to convert into executable local SQL later:
+--
+-- 1. Workspace/project scope
+--    - A workspace member can read credit estimates for projects in their workspace.
+--    - A non-member cannot read credit estimates, reservations, ledger entries, or refund records.
+--    - Project access for credit checks is derived from workspace_members membership.
+--
+-- 2. Credit estimates and approval records
+--    - Normal users cannot insert credit_estimates directly unless a future reviewed policy explicitly allows it.
+--    - Normal users cannot mark a credit_estimate approved by direct update.
+--    - Credit estimate approval must reference canonical approval_records, not legacy credit-specific approval tables.
+--
+-- 3. Credit reservations
+--    - Normal users cannot insert credit_reservations directly.
+--    - Reservation creation requires approved estimate, approved snapshot, project scope, workspace scope, and idempotency in backend logic.
+--    - Reservation status cannot be changed by a normal user.
+--
+-- 4. Ledger and refunds
+--    - credit_ledger_entries are append-only.
+--    - Normal users cannot insert, update, or delete ledger entries.
+--    - refund_records are backend-only and must reference canonical reservation/ledger records.
+--
+-- 5. Approved snapshot gate
+--    - Credit-bearing execution is blocked without approved_plan_snapshots.
+--    - Approved snapshots are immutable execution records and must not be mutated by credit routes.
+--
+-- 6. Credential and signed URL safety
+--    - Metadata JSON must not contain credential values, provider keys, service-role keys, Stripe private keys, or signed URL values.
+--    - Credit routes must not store payment processor payloads or raw provider payloads in canonical credit rows.

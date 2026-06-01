@@ -37,8 +37,9 @@ Prompt 7 hardens backend API runtime and route boundaries only. This file record
 - `npm run --silent backend:api:diagnostics`: passed with `criticalFindingCount: 0`.
 - `npm run foundation:validate`: passed. Required checks included lint, server typecheck, schema static audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, credit diagnostics, and backend API diagnostics.
 - `npm run foundation:validate:with-build`: default checks passed; full local build was classified as `environment_blocked`.
-- `git diff --check`: pending final run after validation report updates.
-- `git diff --check origin/codex/rp-foundation-06-credit-ledger-approval-gate-runtime...HEAD`: pending final run after commit.
+- GitHub Foundation Validation workflow: passed on PR #88.
+- `git diff --check`: passed.
+- `git diff --check origin/codex/rp-foundation-06-credit-ledger-approval-gate-runtime...HEAD`: passed.
 
 ## Full Build Result
 
@@ -59,6 +60,7 @@ The foundation validation runner classified this as `environment_blocked`, not a
 - Credit scope diagnostics: passed, zero critical findings.
 - Backend API route scope diagnostics: passed, zero critical findings.
 - Backend API diagnostics confirmed fail-closed blocked route groups and no blocked route imports for job, worker, provider, render, or chat persistence services.
+- GitHub Foundation Validation: passed for PR #88.
 
 ## SQL/RLS And Remote Runtime Status
 
@@ -79,4 +81,4 @@ Limited backend API route hardening only.
 
 ## Prompt 8 Decision
 
-Default local validation passed, and the only local build blocker is the known host-native Vite/Rolldown issue. Prompt 8 - Job Orchestration, Worker Claims, Leases, and Idempotency may proceed after GitHub Foundation Validation passes for the Prompt 7 PR. If CI exposes a code failure, use Prompt 7A - Backend API Route Hardening Fix.
+Default local validation passed, the only local build blocker is the known host-native Vite/Rolldown issue, and GitHub Foundation Validation passed on PR #88. Prompt 8 - Job Orchestration, Worker Claims, Leases, and Idempotency may proceed with Prompt 7 guardrails.

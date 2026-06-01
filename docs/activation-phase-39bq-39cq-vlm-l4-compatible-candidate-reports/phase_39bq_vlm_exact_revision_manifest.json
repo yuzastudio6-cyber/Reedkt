@@ -1,0 +1,10 @@
+{
+  "phase": "39B-Q",
+  "reportId": "phase_39bq_vlm_exact_revision_manifest",
+  "runId": "phase39cq-20260531T235421",
+  "createdAt": "2026-06-01T01:56:01.614Z",
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "floatingMainAllowed": false,
+  "status": "pinned"
+}

@@ -1,0 +1,9 @@
+{
+  "phase": "39C-Q",
+  "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+  "requiredLabelRecallThreshold": 0.7,
+  "requiredBroadRegionAccuracyThreshold": 0.7,
+  "fixtureResults": [],
+  "blockers": [],
+  "warnings": []
+}

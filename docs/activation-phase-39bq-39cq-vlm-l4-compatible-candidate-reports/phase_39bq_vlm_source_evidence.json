@@ -1,0 +1,39 @@
+{
+  "phase": "39B-Q",
+  "reportId": "phase_39bq_vlm_source_evidence",
+  "runId": "phase39cq-20260531T235421",
+  "createdAt": "2026-06-01T01:56:01.614Z",
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "officialOrgRequired": "Qwen",
+  "officialOrgSatisfied": true,
+  "sourceEvidenceUrls": [
+    "https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct",
+    "https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct/tree/89644892e4d85e24eaac8bacfd4f463576704203"
+  ],
+  "huggingFaceMetadataChecked": true,
+  "metadataSha": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "tags": [
+    "transformers",
+    "safetensors",
+    "qwen3_vl",
+    "image-text-to-text",
+    "conversational",
+    "arxiv:2505.09388",
+    "arxiv:2502.13923",
+    "arxiv:2409.12191",
+    "arxiv:2308.12966",
+    "license:apache-2.0",
+    "eval-results",
+    "endpoints_compatible",
+    "deploy:azure",
+    "region:us"
+  ],
+  "runtimeEvidence": [
+    "Official Qwen-owned Qwen3-VL image-text-to-text repository.",
+    "Hugging Face metadata tags include qwen3_vl, safetensors, image-text-to-text, and license:apache-2.0."
+  ],
+  "blockers": [],
+  "warnings": [
+    "Candidate source/license evidence is metadata-based and does not complete production legal approval."
+  ]
+}

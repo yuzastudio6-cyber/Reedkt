@@ -1,0 +1,540 @@
+{
+  "phase": "39C-Q",
+  "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+  "createdAt": "2026-06-01T02:20:09.153750Z",
+  "matrixId": "l4-oom-remediation-v1",
+  "status": "blocked",
+  "selectedProfileId": null,
+  "profilesDefined": [
+    {
+      "profileId": "conservative-eager-short-context",
+      "description": "Short context, eager execution, one image per prompt, and tiny multimodal cache to reduce startup/KV pressure on L4.",
+      "matrixId": "l4-oom-remediation-v1",
+      "launchArgs": {
+        "max_model_len": 2048,
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 1024,
+        "limit_mm_per_prompt": {
+          "image": 1
+        },
+        "enforce_eager": true,
+        "gpu_memory_utilization": 0.92,
+        "mm_processor_cache_gb": 0
+      },
+      "fixtureImageConstraints": {
+        "generatedOnly": true,
+        "maxSizePx": 384,
+        "imageCountPerPrompt": 1
+      },
+      "promptOutputTokenBudget": {
+        "temperature": 0,
+        "topP": 1,
+        "maxTokens": 128
+      },
+      "expectedMemoryEffect": "Reduces context/KV and multimodal processor cache while avoiding CUDA graph capture.",
+      "safetyStatus": "allowed",
+      "diagnosticOnly": false,
+      "fixtureIds": null,
+      "passCriteria": [
+        "Uses verified local Phase 39B model directory only.",
+        "Runs generated fixtures only with bounded prompt templates.",
+        "Returns structured JSON that passes Phase 39C QA gates."
+      ],
+      "blockCriteria": [
+        "Any runtime model auto-download attempt.",
+        "Any provider, raw prompt, real media, public output, or Track A behavior.",
+        "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+      ],
+      "unsupportedReason": null
+    },
+    {
+      "profileId": "conservative-cuda-graph-lower-reservation",
+      "description": "Lower GPU reservation and smaller generated fixtures while allowing CUDA graph behavior if vLLM selects it.",
+      "matrixId": "l4-oom-remediation-v1",
+      "launchArgs": {
+        "max_model_len": 2048,
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 1024,
+        "limit_mm_per_prompt": {
+          "image": 1
+        },
+        "enforce_eager": false,
+        "gpu_memory_utilization": 0.82,
+        "mm_processor_cache_gb": 0
+      },
+      "fixtureImageConstraints": {
+        "generatedOnly": true,
+        "maxSizePx": 256,
+        "imageCountPerPrompt": 1
+      },
+      "promptOutputTokenBudget": {
+        "temperature": 0,
+        "topP": 1,
+        "maxTokens": 128
+      },
+      "expectedMemoryEffect": "Leaves more unreserved L4 memory and reduces image token pressure.",
+      "safetyStatus": "allowed",
+      "diagnosticOnly": false,
+      "fixtureIds": null,
+      "passCriteria": [
+        "Uses verified local Phase 39B model directory only.",
+        "Runs generated fixtures only with bounded prompt templates.",
+        "Returns structured JSON that passes Phase 39C QA gates."
+      ],
+      "blockCriteria": [
+        "Any runtime model auto-download attempt.",
+        "Any provider, raw prompt, real media, public output, or Track A behavior.",
+        "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+      ],
+      "unsupportedReason": null
+    },
+    {
+      "profileId": "auto-fit-context",
+      "description": "Reserved for a vLLM-supported safe auto-fit context mode.",
+      "matrixId": "l4-oom-remediation-v1",
+      "launchArgs": {
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 1024,
+        "limit_mm_per_prompt": {
+          "image": 1
+        },
+        "enforce_eager": true,
+        "gpu_memory_utilization": 0.9,
+        "mm_processor_cache_gb": 0
+      },
+      "fixtureImageConstraints": {
+        "generatedOnly": true,
+        "maxSizePx": 256,
+        "imageCountPerPrompt": 1
+      },
+      "promptOutputTokenBudget": {
+        "temperature": 0,
+        "topP": 1,
+        "maxTokens": 128
+      },
+      "expectedMemoryEffect": "Would allow vLLM to choose a smaller safe context if a supported auto-fit API exists.",
+      "safetyStatus": "skipped_unsupported",
+      "diagnosticOnly": false,
+      "fixtureIds": null,
+      "passCriteria": [
+        "Uses verified local Phase 39B model directory only.",
+        "Runs generated fixtures only with bounded prompt templates.",
+        "Returns structured JSON that passes Phase 39C QA gates."
+      ],
+      "blockCriteria": [
+        "Any runtime model auto-download attempt.",
+        "Any provider, raw prompt, real media, public output, or Track A behavior.",
+        "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+      ],
+      "unsupportedReason": "vLLM 0.11.0 LLM API does not expose a safe max_model_len auto-fit value for this worker path."
+    },
+    {
+      "profileId": "cpu-offload-short-context",
+      "description": "Short context plus CPU offload for the same approved model assets; requires 64Gi Cloud Run memory.",
+      "matrixId": "l4-oom-remediation-v1",
+      "launchArgs": {
+        "max_model_len": 2048,
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 1024,
+        "limit_mm_per_prompt": {
+          "image": 1
+        },
+        "enforce_eager": true,
+        "gpu_memory_utilization": 0.9,
+        "mm_processor_cache_gb": 0,
+        "cpu_offload_gb": 8
+      },
+      "fixtureImageConstraints": {
+        "generatedOnly": true,
+        "maxSizePx": 256,
+        "imageCountPerPrompt": 1
+      },
+      "promptOutputTokenBudget": {
+        "temperature": 0,
+        "topP": 1,
+        "maxTokens": 128
+      },
+      "expectedMemoryEffect": "Moves up to 8Gi of model weights/activation pressure to CPU memory while keeping the L4 GPU class.",
+      "safetyStatus": "allowed",
+      "diagnosticOnly": false,
+      "fixtureIds": null,
+      "passCriteria": [
+        "Uses verified local Phase 39B model directory only.",
+        "Runs generated fixtures only with bounded prompt templates.",
+        "Returns structured JSON that passes Phase 39C QA gates."
+      ],
+      "blockCriteria": [
+        "Any runtime model auto-download attempt.",
+        "Any provider, raw prompt, real media, public output, or Track A behavior.",
+        "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+      ],
+      "unsupportedReason": null
+    },
+    {
+      "profileId": "minimal-smoke-one-fixture",
+      "description": "Diagnostic-only one-fixture smoke to determine whether any generated VLM inference can run on L4.",
+      "matrixId": "l4-oom-remediation-v1",
+      "launchArgs": {
+        "max_model_len": 1024,
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 512,
+        "limit_mm_per_prompt": {
+          "image": 1
+        },
+        "enforce_eager": true,
+        "gpu_memory_utilization": 0.9,
+        "mm_processor_cache_gb": 0
+      },
+      "fixtureImageConstraints": {
+        "generatedOnly": true,
+        "maxSizePx": 224,
+        "imageCountPerPrompt": 1
+      },
+      "promptOutputTokenBudget": {
+        "temperature": 0,
+        "topP": 1,
+        "maxTokens": 64
+      },
+      "expectedMemoryEffect": "Smallest approved L4 smoke envelope; cannot complete Phase 39C by itself.",
+      "safetyStatus": "allowed",
+      "diagnosticOnly": true,
+      "fixtureIds": [
+        "generated-object-layout"
+      ],
+      "passCriteria": [
+        "Uses verified local Phase 39B model directory only.",
+        "Runs generated fixtures only with bounded prompt templates.",
+        "Returns structured JSON that passes Phase 39C QA gates."
+      ],
+      "blockCriteria": [
+        "Any runtime model auto-download attempt.",
+        "Any provider, raw prompt, real media, public output, or Track A behavior.",
+        "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+      ],
+      "unsupportedReason": null
+    }
+  ],
+  "profilesAttempted": [
+    {
+      "profileId": "conservative-eager-short-context",
+      "status": "blocked",
+      "diagnosticOnly": false,
+      "profile": {
+        "profileId": "conservative-eager-short-context",
+        "description": "Short context, eager execution, one image per prompt, and tiny multimodal cache to reduce startup/KV pressure on L4.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 2048,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.92,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 384,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Reduces context/KV and multimodal processor cache while avoiding CUDA graph capture.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      "fixtureResults": [
+        {
+          "fixtureId": "generated-object-layout",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "manual_review",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        }
+      ],
+      "blockers": [
+        "tuning_profile_incomplete:conservative-eager-short-context"
+      ],
+      "warnings": [],
+      "oomClassification": {
+        "isCudaOom": false,
+        "stage": "not_oom",
+        "enforceEager": true,
+        "cudaGraphLikely": false,
+        "fixtureInferenceReached": false,
+        "memory": {},
+        "safeSummary": "No CUDA OOM signature detected."
+      },
+      "runtimeVersion": "0.11.0"
+    },
+    {
+      "profileId": "conservative-cuda-graph-lower-reservation",
+      "status": "blocked",
+      "diagnosticOnly": false,
+      "profile": {
+        "profileId": "conservative-cuda-graph-lower-reservation",
+        "description": "Lower GPU reservation and smaller generated fixtures while allowing CUDA graph behavior if vLLM selects it.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 2048,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.82,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 256,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Leaves more unreserved L4 memory and reduces image token pressure.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      "fixtureResults": [
+        {
+          "fixtureId": "generated-object-layout",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ui-safe-zone",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ocr-vlm-comparison",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-ambiguous-scene",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "manual_review",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        },
+        {
+          "fixtureId": "generated-spatial-reasoning",
+          "status": "blocked",
+          "runtime": "vllm",
+          "parsedJson": false,
+          "schemaValid": false,
+          "requiredLabelRecall": 0,
+          "broadRegionAccuracy": 0,
+          "safeZoneDecision": "unknown",
+          "uncertainty": "high",
+          "objectCount": 0,
+          "textLikeRegionCount": 0,
+          "blockers": [
+            "output_json_parse_failed",
+            "output_schema_invalid"
+          ],
+          "warnings": []
+        }
+      ],
+      "blockers": [
+        "tuning_profile_incomplete:conservative-cuda-graph-lower-reservation"
+      ],
+      "warnings": [],
+      "oomClassification": {
+        "isCudaOom": false,
+        "stage": "not_oom",
+        "enforceEager": false,
+        "cudaGraphLikely": false,
+        "fixtureInferenceReached": false,
+        "memory": {},
+        "safeSummary": "No CUDA OOM signature detected."
+      },
+      "runtimeVersion": "0.11.0"
+    }
+  ],
+  "allProfilesFailed": true,
+  "fullPhase39CPassRequiresAllGeneratedFixtures": true,
+  "minimalSmokeCompletesPhase39C": false,
+  "blockedScopesStillBlocked": [
+    "Phase 39D controlled real-frame VLM",
+    "Phase 39E planning integration",
+    "provider calls",
+    "production",
+    "beta",
+    "public output",
+    "broad media",
+    "arbitrary media",
+    "unapproved GPU types",
+    "quantized variants",
+    "smaller model candidates",
+    "Track A"
+  ]
+}

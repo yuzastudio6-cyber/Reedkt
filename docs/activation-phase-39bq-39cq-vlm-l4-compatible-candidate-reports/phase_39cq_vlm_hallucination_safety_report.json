@@ -1,0 +1,12 @@
+{
+  "phase": "39C-Q",
+  "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+  "noProviderCalls": true,
+  "noToolCalls": true,
+  "noRawPrompts": true,
+  "noRealMedia": true,
+  "noPublicOutput": true,
+  "fixtureResults": [],
+  "blockers": [],
+  "warnings": []
+}

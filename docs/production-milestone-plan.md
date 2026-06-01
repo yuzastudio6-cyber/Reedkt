@@ -146,11 +146,16 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 10. Render/Preview/Export Foundation
 
 - Purpose: create the controlled render path that can later assemble approved assets into previews and exports.
-- Implements: render manifest contracts, preview/export job records, artifact records, render readiness checks, private preview/export storage handoff, and QA blockers.
-- Must not implement: provider calls, unapproved media transforms, public exports, final render without required assets/QA, or bypasses around credit gates.
-- Main files/tables/services: `render_jobs`, `render_job_inputs`, `renders`, `render_events`, `exports`, `export_variants`, Remotion/FFmpeg worker contracts, storage artifact records.
-- Acceptance criteria: render jobs require approved snapshot, credit reservation when needed, required assets, timing plan, and QA gates; final export cannot use placeholders.
-- GitHub deliverable: branch, commit, push, PR with render-readiness tests and explicit render execution state.
+- Deliverables after Prompt 10: `docs/render-preview-export-foundation.md`, `docs/render-preview-export-route-contract.md`, `docs/render-readiness-gate-contract.md`, `docs/prompt-10-validation-results.md`, `database/test-sql/012_render_preview_export_rls_smoke_tests.draft.sql`, `scripts/validation/render-export-scope-diagnostics.mjs`, render service/routes/schemas, API route metadata, and foundation validation runner coverage.
+- Implementation status after Prompt 10: partially implemented / limited render/preview/export route/service foundation only. Real rendering/export and worker execution remain blocked.
+- Validation status after Prompt 10: render/export diagnostics and full foundation validation must pass locally or in CI. Local Node/npm validation may be environment-blocked on hosts with incompatible Node binaries; full build may rely on Linux CI if local Rolldown remains environment-blocked.
+- Implements: render readiness checks, render manifest DTO validation/build boundary, preview readiness/request boundary, render status/list/event reads, export readiness/request boundary, final export status/list reads, route contracts, gate contracts, diagnostics, and draft SQL/RLS validation plan.
+- Must not implement: real Remotion execution, real FFmpeg execution, render/export job creation, worker claims/execution, provider calls, media analysis, tool execution, Stripe checkout/webhooks/payment processing, remote Supabase validation, schema-changing migrations, credit mutation beyond Prompt 6 fail-closed boundaries, storage execution beyond Prompt 4 boundaries, approved snapshot mutation beyond Prompt 5 boundaries, planning generation, or deployment.
+- Main files/tables/services: `render_jobs`, `render_job_inputs`, `renders`, `render_events`, `final_exports`, `qa_reports`, `qa_check_results`, `approved_plan_snapshots`, `credit_reservations`, `media_assets`, `storage_object_records`, `server/services/render-service.ts`, `server/routes/render-routes.ts`, `server/validation/render-schemas.ts`, and route metadata. `exports` and `export_variants` remain future-cleanup/compatibility concepts.
+- What remains blocked: persisted render/export mutation runtime, Remotion workers, FFmpeg postprocess/export workers, preview/export artifact storage writes, signed delivery URLs, local/staging RLS validation, production QA execution, worker execution, providers, tools, and deployment.
+- Acceptance criteria: routes require auth, preview/export/manifest build requests require idempotency, service does not write render/export/job/worker/provider/tool/media/storage/credit records, missing runtime returns blockers, diagnostics pass, draft SQL/RLS test exists, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 11 - QA, Revision, and Fallback Execution Foundation if Prompt 10 validation and CI pass; otherwise Prompt 10A - Render Preview Export Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and no-render/export-execution statement.
 
 ## 11. QA, Revision, And Fallback Execution Foundation
 

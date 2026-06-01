@@ -51,9 +51,11 @@ Validation was run locally with the Codex-bundled arm64 Node path because the ho
 | `git diff --check` | Passed | No whitespace errors. |
 | `git diff --check origin/codex/rp-foundation-08-job-orchestration-worker-claims-idempotency...HEAD` | Passed | Base-range diff check passed. |
 
-Pending after PR creation:
+Additional CI validation:
 
-- GitHub Foundation Validation status.
+| Check | Result | Notes |
+| --- | --- | --- |
+| GitHub Foundation Validation | Passed | PR #93 Foundation Validation passed on GitHub Actions, including Linux full build. |
 
 ## SQL/RLS Status
 
@@ -80,4 +82,4 @@ Limited media readiness route/service foundation only.
 
 ## Prompt 10 Decision
 
-Local default validation passed. Prompt 10 - Render/Preview/Export Foundation may proceed if GitHub Foundation Validation passes after PR creation; otherwise use Prompt 9A - Media Readiness Validation Hardening.
+Local default validation passed, and GitHub Foundation Validation passed on PR #93. Prompt 10 - Render/Preview/Export Foundation may proceed, with Prompt 9 guardrails preserved.

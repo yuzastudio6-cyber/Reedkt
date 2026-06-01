@@ -1,0 +1,32 @@
+{
+  "phase": "39C-Q-SO2",
+  "reportId": "phase_39cq_so2_failure_taxonomy_update",
+  "createdAt": "2026-06-01T11:14:14.768Z",
+  "sourcePr90": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+  "privateTracePrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/",
+  "committedFullRawOutputs": false,
+  "summary": "PR #90 reached generated output for the 2B candidate but did not prove installed vLLM structured-output API compatibility across all required generated fixtures.",
+  "priorCategories": [
+    "direct_json_object_required",
+    "output_json_parse_failed",
+    "fixture_id_mismatch",
+    "candidate_id_mismatch",
+    "safe_zone_unknown",
+    "object_region_qa_failed",
+    "structured_output_strategy_matrix_exhausted",
+    "4b_8b_fp8_final_direct_constructor_retries_cancelled_no_safe_artifacts"
+  ],
+  "currentHypotheses": [
+    "OpenAI response_format json_schema support may differ from offline constructor support.",
+    "StructuredOutputsParams may be importable but not accepted for multimodal Qwen prompts.",
+    "Qwen no-thinking controls may not have been applied through the actual chat template path.",
+    "The compact fixture schema may still be too broad before text-only compatibility is proven."
+  ],
+  "localExecutionBlocker": {
+    "status": "blocked",
+    "activeAccount": "aiediting@reeditpro.com",
+    "reason": "gcloud resource calls failed with non-interactive reauthentication required",
+    "fallbackAccount": "yuzastudio6@gmail.com",
+    "fallbackReason": "permission denied for run.jobs.get on the staging Cloud Run Job"
+  }
+}

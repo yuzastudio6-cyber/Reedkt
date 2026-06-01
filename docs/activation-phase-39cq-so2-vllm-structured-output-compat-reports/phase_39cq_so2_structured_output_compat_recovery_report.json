@@ -1,0 +1,88 @@
+{
+  "ok": false,
+  "phase": "39C-Q-SO2",
+  "reportId": "phase_39cq_so2_structured_output_compat_recovery_report",
+  "createdAt": "2026-06-01T11:14:14.768Z",
+  "status": "blocked",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true,
+      "evidencePrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/"
+    },
+    "phase39bq39cqCandidateRecovery": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true,
+      "candidatesOnly": true
+    },
+    "phase39cqStructuredOutputAttempt": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "preserved": true,
+      "privateTracePrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/"
+    }
+  },
+  "failureTaxonomy": {
+    "phase": "39C-Q-SO2",
+    "reportId": "phase_39cq_so2_failure_taxonomy_update",
+    "createdAt": "2026-06-01T11:14:14.768Z",
+    "sourcePr90": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+    "privateTracePrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/",
+    "committedFullRawOutputs": false,
+    "summary": "PR #90 reached generated output for the 2B candidate but did not prove installed vLLM structured-output API compatibility across all required generated fixtures.",
+    "priorCategories": [
+      "direct_json_object_required",
+      "output_json_parse_failed",
+      "fixture_id_mismatch",
+      "candidate_id_mismatch",
+      "safe_zone_unknown",
+      "object_region_qa_failed",
+      "structured_output_strategy_matrix_exhausted",
+      "4b_8b_fp8_final_direct_constructor_retries_cancelled_no_safe_artifacts"
+    ],
+    "currentHypotheses": [
+      "OpenAI response_format json_schema support may differ from offline constructor support.",
+      "StructuredOutputsParams may be importable but not accepted for multimodal Qwen prompts.",
+      "Qwen no-thinking controls may not have been applied through the actual chat template path.",
+      "The compact fixture schema may still be too broad before text-only compatibility is proven."
+    ]
+  },
+  "capabilityIntrospection": {
+    "status": "blocked",
+    "reason": "gcloud_reauthentication_required_noninteractive"
+  },
+  "textOnlyHarness": {
+    "status": "blocked",
+    "reason": "not_run_because_gcloud_reauthentication_required"
+  },
+  "openAiLoopback": {
+    "status": "blocked",
+    "reason": "not_run_because_gcloud_reauthentication_required"
+  },
+  "offlineStructuredOutputs": {
+    "status": "blocked",
+    "reason": "not_run_because_gcloud_reauthentication_required"
+  },
+  "candidateResults": [],
+  "blockers": [
+    "gcloud_active_account_aiediting_reauthentication_failed_noninteractive",
+    "fallback_account_yuzastudio6_lacks_run_jobs_get_permission"
+  ],
+  "vlmToolFamilyBetaStatus": "blocked",
+  "blockedScopes": [
+    "Phase 39D controlled real-frame VLM",
+    "Phase 39E object-aware/safe-zone planning integration",
+    "provider calls",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "public output",
+    "broad user media",
+    "arbitrary media",
+    "unapproved GPU types",
+    "non-Qwen candidates",
+    "community quantizations",
+    "new model downloads",
+    "Track A"
+  ]
+}

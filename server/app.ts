@@ -14,6 +14,7 @@ import { createJobRoutes } from './routes/job-routes'
 import { createMediaReadinessRoutes } from './routes/media-readiness-routes'
 import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
+import { createQaRevisionRoutes } from './routes/qa-revision-routes'
 import { createRenderRoutes } from './routes/render-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
@@ -49,6 +50,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createMediaReadinessRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
+  app.use(createQaRevisionRoutes())
   app.use(createProviderGatewayRoutes())
 
   app.use(errorHandlerMiddleware)

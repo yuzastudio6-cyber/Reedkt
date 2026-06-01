@@ -42,6 +42,7 @@
     "job:worker:diagnostics": "node scripts/validation/job-worker-scope-diagnostics.mjs",
     "media:readiness:diagnostics": "node scripts/validation/media-readiness-scope-diagnostics.mjs",
     "render:export:diagnostics": "node scripts/validation/render-export-scope-diagnostics.mjs",
+    "qa:revision:diagnostics": "node scripts/validation/qa-revision-scope-diagnostics.mjs",
     "foundation:validate": "node scripts/validation/run-foundation-validation.mjs",
     "foundation:validate:with-build": "REEDITPRO_INCLUDE_FULL_BUILD=true node scripts/validation/run-foundation-validation.mjs"
   },

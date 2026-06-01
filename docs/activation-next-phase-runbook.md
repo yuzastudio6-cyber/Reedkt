@@ -400,6 +400,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm no VLM runtime retry, model download, Docker build/push, Cloud Run deploy/execute, provider call, media processing, public output, final delivery, production, external beta, paid production, broad media, or Revideo execution occurred.
 5. Treat Phase 47C as ready only for system-level internal testing gate preparation without VLM.
 6. Keep VLM future-scoped until a later explicit phase approves and verifies a smaller/quantized model, different GPU class, or deeper vLLM runtime redesign.
+
+## After Phase 49A
+
+1. Review `activation:web-search-capture-approval:report`, `activation:web-search-capture-approval:plan`, `activation:web-search-tool:summary`, and `docs/activation-phase-49a-web-search-capture-approval-results.md`.
+2. Confirm SearXNG, Playwright, Sharp, and Mozilla Readability are approved only for future private/generated fixture planning.
+3. Confirm Brave Search API, Tavily, Exa, Firecrawl, and Browserless/Browserbase remain optional, paid, disabled-by-default, and future-approval-required.
+4. Confirm command plans are text-only and no live search, public crawling/scraping, browser capture, screenshot capture, Readability extraction runtime, SearXNG runtime, provider call, API key, Docker/GCP mutation, public artifact, signed URL source-of-truth, production, external beta, paid production, broad media, or Revideo action occurred.
+5. Proceed to Phase 49B only as private SearXNG endpoint planning plus generated/static search fixtures. Public web search/capture remains blocked until later controlled phases.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

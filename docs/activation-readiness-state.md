@@ -31,7 +31,13 @@ remains blocked pending pretrained-model license/provenance, and VLM Phase 39C
 remains blocked on L4/vLLM CUDA OOM. Phase 47B completed for
 `phase47b-20260601T03032` and formally excludes VLM from initial internal
 system testing instead of retrying runtime in this scope. Phase 47C may prepare
-a system-level internal testing gate only without VLM.
+a system-level internal testing gate only without VLM. Phase 49A completes the
+web search/capture approval workflow as static planning only: SearXNG,
+Playwright, Sharp, and Mozilla Readability are the free/open-source default
+planning stack, optional paid providers are disabled, and live search, browser
+capture, screenshot processing, Readability runtime, public artifacts, provider
+calls, Docker/GCP mutation, production, external beta, paid production, and
+broad real media remain blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

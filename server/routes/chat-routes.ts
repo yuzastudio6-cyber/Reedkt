@@ -2,9 +2,8 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
-import { createChatService } from '../services/chat-service'
 import { idSchema, validateBody } from '../validation/common-schemas'
-import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
+import { asyncRoute, getRouteParam, sendBackendRequired } from './route-helpers'
 
 const createChatSessionSchema = z.object({
   workspaceId: idSchema,
@@ -26,30 +25,38 @@ export function createChatRoutes(): Router {
   const router = Router()
 
   router.post('/v1/projects/:projectId/chat-sessions', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
-    const body = validateBody(createChatSessionSchema, request.body)
-    const result = await createChatService(getServiceContext(request)).createChatSession({
-      ...body,
-      projectId: getRouteParam(request, 'projectId'),
+    validateBody(createChatSessionSchema, request.body)
+    sendBackendRequired(response, {
+      routeId: 'chat.sessions.create',
+      routeGroup: 'chat',
+      message: 'Chat persistence is outside Prompt 7 and remains backend-required.',
+      blockers: ['Prompt 7 does not create chat sessions or planning records.'],
+      nextAction: 'Use a future chat/planning persistence milestone before enabling this route.',
     })
-    sendOk(response, { chatSession: result.chatSession }, result.warnings, 201)
   }))
 
   router.post('/v1/chat-sessions/:chatSessionId/messages', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
-    const body = validateBody(sendMessageSchema, request.body)
-    const result = await createChatService(getServiceContext(request)).sendMessage({
-      ...body,
-      chatSessionId: getRouteParam(request, 'chatSessionId'),
+    validateBody(sendMessageSchema, request.body)
+    getRouteParam(request, 'chatSessionId')
+    sendBackendRequired(response, {
+      routeId: 'chat.messages.create',
+      routeGroup: 'chat',
+      message: 'Chat message persistence is outside Prompt 7 and remains backend-required.',
+      blockers: ['Prompt 7 does not store chat messages or start planning generation.'],
+      nextAction: 'Use a future chat/planning persistence milestone before enabling this route.',
     })
-    sendOk(response, { chatMessage: result.chatMessage }, result.warnings, 201)
   }))
 
   router.post('/v1/chat-sessions/:chatSessionId/attachments/clips', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
-    const body = validateBody(attachClipsSchema, request.body)
-    const result = await createChatService(getServiceContext(request)).attachFinalizedClips({
-      ...body,
-      chatSessionId: getRouteParam(request, 'chatSessionId'),
+    validateBody(attachClipsSchema, request.body)
+    getRouteParam(request, 'chatSessionId')
+    sendBackendRequired(response, {
+      routeId: 'chat.attachments.clips.create',
+      routeGroup: 'chat',
+      message: 'Chat attachment persistence is outside Prompt 7 and remains backend-required.',
+      blockers: ['Prompt 7 does not create chat attachments or media analysis records.'],
+      nextAction: 'Use a future chat/media persistence milestone before enabling this route.',
     })
-    sendOk(response, { attachmentBatch: result.attachmentBatch }, result.warnings, 201)
   }))
 
   return router

@@ -103,12 +103,17 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 
 ## 7. Backend API Runtime And Route Hardening
 
-- Purpose: turn route contracts into a hardened backend runtime.
-- Implements: authenticated API runtime, route middleware, service-role handler boundary, request validation, idempotency enforcement, rate-limit hooks, audit events, and disabled-route behavior.
-- Must not implement: provider transport, render execution, Stripe, worker dispatch, migrations, or broad admin mutation without dedicated milestones.
-- Main files/tables/services: Cloud Run API service or selected backend runtime, `docs/backend-api-route-map.md`, auth middleware, route registry, audit tables/events.
-- Acceptance criteria: backend-required routes are either implemented with gates or blocked; frontend cannot access service-role secrets; tests cover unauthorized and duplicate requests.
-- GitHub deliverable: branch, commit, push, PR with route matrix, tests, and deployment status.
+- Purpose: harden the backend API route surface before job/worker/provider/render/tool implementation begins.
+- Deliverables after Prompt 7: `docs/backend-api-runtime-hardening.md`, `docs/backend-api-route-hardening-contract.md`, `docs/backend-api-security-and-fail-closed-policy.md`, `docs/backend-api-route-hardening-test-plan.md`, `docs/prompt-07-validation-results.md`, `scripts/validation/backend-api-route-scope-diagnostics.mjs`, safe response helpers, route capability endpoints, derived route readiness, and fail-closed blocked route groups.
+- Implementation status after Prompt 7: partially implemented / limited backend API route hardening only. Production execution remains blocked.
+- Validation status after Prompt 7: lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, credit diagnostics, backend API diagnostics, and foundation validation should pass locally; full build may rely on Linux CI if local Rolldown remains environment-blocked.
+- Implements: request-ID-aware response envelopes, safe redacted error envelopes, backend-required/blocked response helpers, route capability reporting, mock-router fail-closed behavior, and fail-closed server routes for chat/jobs/workers/providers/render.
+- Must not implement: production deployment, provider transport, render/export execution, Stripe checkout/webhooks/payment processing, worker dispatch, job creation, media analysis, generation, tool execution, remote Supabase validation, migrations, storage execution beyond Prompt 4 boundaries, snapshot mutation beyond Prompt 5 boundaries, credit mutation beyond Prompt 6 fail-closed boundaries, or broad admin/service-role mutation.
+- Main files/tables/services: `server/app.ts`, `server/routes/route-helpers.ts`, `server/routes/health-routes.ts`, blocked server route groups, `src/backend/api/api-route-registry.ts`, `src/backend/api/mock-api-router.ts`, backend API docs, and diagnostics.
+- What remains blocked: deployed backend runtime, rate limits, production audit events, job orchestration, worker claims/leases, providers, render/export, tools, Stripe, media analysis, generation, remote Supabase validation, local RLS execution, and broad service-role mutation.
+- Acceptance criteria: backend-required routes are either limited Prompt 3-6 foundations or explicit blockers, execution-capable route groups fail closed, frontend cannot access privileged data, diagnostics pass, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 8 - Job Orchestration, Worker Claims, Leases, and Idempotency if Prompt 7 validation and CI pass; otherwise Prompt 7A - Backend API Route Hardening Fix.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit production capability scope.
 
 ## 8. Job Orchestration, Worker Claims, Leases, And Idempotency
 

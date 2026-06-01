@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { createSafeRuntimeSummary } from '../config/env'
-import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
+import { createApiRouteMapSummary, getRouteProductionReadiness, REEDITPRO_API_ROUTES } from '../../src/backend/api/api-route-registry'
 import { asyncRoute, getServiceContext, sendOk } from './route-helpers'
 
 export function createHealthRoutes(): Router {
@@ -36,48 +36,65 @@ export function createHealthRoutes(): Router {
         'provider_webhook_events',
       ],
       providerRealCallsEnabled: false,
+      executionRoutesEnabled: false,
+      routeCapabilityReportingEnabled: true,
     }, context.env.warnings)
   })
 
-  router.get('/health/tool-readiness', asyncRoute(async (request, response) => {
+  router.get('/health/runtime-status', (request, response) => {
     const context = getServiceContext(request)
-    const shouldRun = request.query.run === 'true'
-    if (shouldRun) {
-      const result = await runToolReadinessChecks(context, {
-        workspaceId: typeof request.query.workspaceId === 'string' ? request.query.workspaceId : undefined,
-        workerType: 'health_tool_readiness',
-        recordResults: Boolean(context.clients.admin && !context.env.mockOnly && request.query.record === 'true'),
-      })
-      sendOk(response, {
-        checks: result.checks,
-        missingTools: result.missingRequiredTools,
-        runtimeMode: result.runtimeMode,
-        mockOnly: context.env.mockOnly,
-      }, result.warnings)
-      return
-    }
-
-    if (!context.clients.admin || context.env.mockOnly) {
-      sendOk(response, {
-        missingTools: ['ffmpeg', 'ffprobe', 'remotion', 'sharp_libvips', 'audioflux', 'signalsmith_stretch', 'opencv', 'vapoursynth', 'playwright'],
-        checks: [],
-        mockOnly: true,
-      }, ['Tool readiness reads are mock-only without Supabase admin runtime.'])
-      return
-    }
-
-    const { data, error } = await context.clients.admin
-      .from('tool_runtime_checks')
-      .select('*')
-      .order('checked_at', { ascending: false })
-      .limit(50)
-
-    if (error) throw error
-
     sendOk(response, {
-      checks: data ?? [],
-      missingTools: [],
-    })
+      runtime: createSafeRuntimeSummary(context.env),
+      requestId: context.requestId,
+      productionExecutionEnabled: false,
+      blockedRouteGroups: ['jobs', 'workers', 'providers', 'generation', 'render', 'tools', 'stripe', 'media_analysis'],
+      limitedFoundationRouteGroups: ['auth', 'projects', 'storage', 'planning', 'credits'],
+      blockers: [
+        'No deployed production backend runtime is enabled by Prompt 7.',
+        'Provider, worker, render, tool, Stripe, job, media analysis, and generation routes remain blocked.',
+        'Remote Supabase validation and migrations are intentionally not run in Prompt 7.',
+      ],
+    }, context.env.warnings)
+  })
+
+  router.get('/health/routes', (request, response) => {
+    const context = getServiceContext(request)
+    const summary = createApiRouteMapSummary()
+    sendOk(response, {
+      summary,
+      routes: REEDITPRO_API_ROUTES.map((route) => ({
+        id: route.id,
+        domain: route.domain,
+        method: route.method,
+        path: route.path,
+        status: route.status,
+        runtimeMode: route.runtimeMode,
+        securityLevel: route.securityLevel,
+        requiresServiceRole: route.requiresServiceRole,
+        requiresProviderSecret: route.requiresProviderSecret,
+        requiresStripeSecret: route.requiresStripeSecret,
+        idempotencyRequired: route.idempotencyRequired ?? route.method !== 'GET',
+        failClosedBehavior: route.failClosedBehavior ?? (route.status === 'backend_required' || route.status === 'disabled'
+          ? 'Returns backend_required/blocked and performs no production side effects.'
+          : 'Must still use route-specific guards before side effects.'),
+        productionReadiness: getRouteProductionReadiness(route),
+      })),
+      executionRoutesEnabled: false,
+    }, context.env.warnings)
+  })
+
+  router.get('/health/tool-readiness', asyncRoute(async (_request, response) => {
+    sendOk(response, {
+      status: 'backend_required',
+      checks: [],
+      missingTools: ['ffmpeg', 'ffprobe', 'remotion', 'sharp_libvips', 'audioflux', 'signalsmith_stretch', 'opencv', 'vapoursynth', 'playwright'],
+      executionAttempted: false,
+      recordResults: false,
+      blockers: [
+        'Prompt 7 health routes report tool-readiness capability only.',
+        'API-triggered tool checks and tool_runtime_checks writes remain blocked until Prompt 13.',
+      ],
+    }, ['Tool readiness execution is intentionally disabled from health routes in Prompt 7.'])
   }))
 
   return router

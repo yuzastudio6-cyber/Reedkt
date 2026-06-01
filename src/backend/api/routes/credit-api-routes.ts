@@ -20,6 +20,17 @@ function creditRoute(
     requiresServiceRole: true,
     requiresProviderSecret: false,
     requiresStripeSecret: false,
+    routeGroup: 'credits',
+    authRequired: true,
+    workspaceRequired: true,
+    projectRequired: route.id !== 'credits.wallet.get',
+    idempotencyRequired: route.method !== 'GET' && !route.id.endsWith('.check') && route.id !== 'credits.blockers',
+    serviceRoleRequired: true,
+    allowedCaller: 'authenticated frontend or future backend runtime through server routes only',
+    failClosedBehavior: 'Returns backend_required blockers and performs no credit mutation until a reviewed transactional runtime exists.',
+    validationLevel: 'guarded',
+    productionReadiness: 'backend_required',
+    forbiddenSideEffects: ['Stripe', 'job creation', 'provider calls', 'rendering', 'tool execution', 'storage execution', 'credit mutation'],
     notes: [...creditBoundaryNotes, ...(route.notes ?? [])],
   }
 }

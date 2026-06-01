@@ -58,6 +58,21 @@ export interface ApiRouteDefinition {
   requiresStripeSecret: boolean
   mockHandlerName?: string
   futureHandlerName?: string
+  routeGroup?: string
+  authRequired?: boolean
+  workspaceRequired?: boolean
+  projectRequired?: boolean
+  idempotencyRequired?: boolean
+  serviceRoleRequired?: boolean
+  allowedCaller?: string
+  inputSchema?: string
+  outputSchema?: string
+  tablesTouched?: string[]
+  forbiddenSideEffects?: string[]
+  auditEvent?: string
+  failClosedBehavior?: string
+  validationLevel?: 'none' | 'schema' | 'guarded' | 'diagnostic_only' | 'future'
+  productionReadiness?: 'implemented' | 'mock_only' | 'backend_required' | 'blocked' | 'future'
   notes: string[]
 }
 
@@ -80,7 +95,9 @@ export interface ApiRequestEnvelope<TBody = unknown> {
 
 export interface ApiResponseEnvelope<TData = unknown> {
   ok: boolean
+  status?: string
   statusCode: number
+  requestId?: string
   data?: TData
   error?: {
     code: string

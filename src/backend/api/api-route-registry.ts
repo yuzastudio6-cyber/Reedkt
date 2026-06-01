@@ -16,15 +16,32 @@ import { STORAGE_API_ROUTES } from './routes/storage-api-routes'
 import { STORYTIMING_API_ROUTES } from './routes/storytiming-api-routes'
 import { STRIPE_API_ROUTES } from './routes/stripe-api-routes'
 
+export type ApiRouteProductionReadiness = 'implemented' | 'mock_only' | 'backend_required' | 'blocked' | 'future'
+
 export interface ApiRouteMapSummary {
   totalRoutes: number
   mockReadyRoutes: number
   frontendSafeRoutes: number
   backendRequiredRoutes: number
   disabledRoutes: number
+  implementedRoutes: number
+  blockedRoutes: number
+  futureRoutes: number
   domains: Record<ApiDomain, number>
   warnings: string[]
 }
+
+export const PROMPT7_BLOCKED_EXECUTION_DOMAINS = new Set<ApiDomain>([
+  'jobs',
+  'generation',
+  'render',
+  'music',
+  'sfx',
+  'storytiming',
+  'providers',
+  'stripe',
+  'admin',
+])
 
 export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...AUTH_BOOTSTRAP_API_ROUTES,
@@ -94,6 +111,23 @@ export function getMockReadyRoutes(): ApiRouteDefinition[] {
   return REEDITPRO_API_ROUTES.filter((route) => route.status === 'mock_ready')
 }
 
+export function getBlockedRoutes(): ApiRouteDefinition[] {
+  return REEDITPRO_API_ROUTES.filter((route) =>
+    getRouteProductionReadiness(route) === 'blocked' ||
+    getRouteProductionReadiness(route) === 'future',
+  )
+}
+
+export function getRouteProductionReadiness(route: ApiRouteDefinition): ApiRouteProductionReadiness {
+  if (route.productionReadiness) return route.productionReadiness
+  if (PROMPT7_BLOCKED_EXECUTION_DOMAINS.has(route.domain)) return route.status === 'disabled' ? 'future' : 'blocked'
+  if (route.status === 'disabled') return 'future'
+  if (route.status === 'backend_required' || route.runtimeMode === 'backend_required') return 'backend_required'
+  if (route.status === 'mock_ready' || route.runtimeMode === 'mock') return 'mock_only'
+  if (route.status === 'frontend_safe_ready' || route.runtimeMode === 'frontend_safe') return 'implemented'
+  return 'future'
+}
+
 export function createApiRouteMapSummary(): ApiRouteMapSummary {
   const domains = API_DOMAINS.reduce<Record<ApiDomain, number>>((summary, domain) => {
     summary[domain] = getApiRoutesByDomain(domain).length
@@ -106,10 +140,14 @@ export function createApiRouteMapSummary(): ApiRouteMapSummary {
     frontendSafeRoutes: getFrontendSafeRoutes().length,
     backendRequiredRoutes: getBackendRequiredRoutes().length,
     disabledRoutes: REEDITPRO_API_ROUTES.filter((route) => route.status === 'disabled').length,
+    implementedRoutes: REEDITPRO_API_ROUTES.filter((route) => getRouteProductionReadiness(route) === 'implemented').length,
+    blockedRoutes: getBlockedRoutes().length,
+    futureRoutes: REEDITPRO_API_ROUTES.filter((route) => getRouteProductionReadiness(route) === 'future').length,
     domains,
     warnings: [
       'Route registry is metadata and mock-handler wiring only; no HTTP server is deployed.',
       'Provider, payment, worker, render, admin, and sensitive database mutations remain backend-required.',
+      'Prompt 7 route capability reporting does not enable production execution.',
     ],
   }
 }

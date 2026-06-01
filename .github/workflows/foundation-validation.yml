@@ -6,6 +6,7 @@ on:
       - codex/rp-foundation-03c-validation-toolchain-repair
       - codex/rp-foundation-04-storage-upload-production-runtime
       - codex/rp-foundation-05-approved-plan-snapshot-service
+      - codex/rp-foundation-06-credit-ledger-approval-gate-runtime
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

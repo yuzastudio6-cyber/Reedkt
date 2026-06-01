@@ -75,7 +75,9 @@ Prompt 10A local validation remains blocked because `/usr/local/bin/node` is an 
 
 ## CI Status
 
-Pending after Prompt 10A PR creation.
+Prompt 10A PR created: https://github.com/yuzastudio6-cyber/Reedkt/pull/95.
+
+GitHub Foundation Validation status is pending at the time of this tracker update.
 
 ## Prompt 11 Decision
 

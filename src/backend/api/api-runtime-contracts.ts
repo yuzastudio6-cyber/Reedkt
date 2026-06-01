@@ -33,6 +33,7 @@ export type ApiDomain =
   | 'jobs'
   | 'workers'
   | 'qa'
+  | 'tools'
   | 'generation'
   | 'render'
   | 'music'

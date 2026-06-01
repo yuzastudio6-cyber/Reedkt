@@ -1,0 +1,19 @@
+-- Prompt 12 tool-call foundation RLS smoke tests.
+-- Draft-only: do not run against production or remote Supabase.
+-- Convert to executable local/staging SQL only after canonical tool-call tables,
+-- fixture user/workspace/project setup, and schema targets are validated.
+
+-- Planned assertions:
+-- 1. Workspace member can read project-scoped tool_call_intents.
+-- 2. Non-member cannot read tool_call_intents.
+-- 3. Normal user cannot insert/update/delete tool_call_intents directly.
+-- 4. Backend/service-role creates tool_call_intents through an idempotent transactional boundary only.
+-- 5. Tool-call intent references approved_plan_snapshots, credit_estimates, credit_reservations, and projects consistently.
+-- 6. Tool-call intent cannot cross workspace/project scope.
+-- 7. Tool-call executions are service-role/worker scoped and invisible to unrelated users.
+-- 8. Tool runtime checks are read-scoped by workspace/project where applicable.
+-- 9. Storage references use storage_object_records and never signed URLs as source of truth.
+-- 10. Tool outputs require QA report references before export/final delivery gates.
+-- 11. Execution routes remain blocked if approved snapshot, credit reservation, media readiness, private storage, job, runtime, or QA gates are missing.
+-- 12. No secrets, provider keys, service-role keys, Stripe keys, raw credentials, or private env values are stored in tool-call JSONB.
+-- 13. Audit/idempotency records are append-only if included in scope.

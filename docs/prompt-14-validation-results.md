@@ -38,7 +38,7 @@ Prompt 14 local validation passed on June 1, 2026 using the local arm64 Node pat
 - `npm run build:server`: passed.
 - `npm run foundation:validate:with-build`: passed, including full build.
 
-The Foundation Validation CI status is pending on PR #103 until GitHub reports a run result.
+GitHub Foundation Validation passed on PR #103 run `26787232436`, job `78965747670`, against head commit `68bdeea7f52f4020be81b5fa641cd290559e159e`. GitHub reported a nonblocking Node.js 20 action deprecation annotation for `actions/checkout@v4` and `actions/setup-node@v4`.
 
 ## Worker Execution Diagnostics
 
@@ -61,4 +61,4 @@ Remote and staging Supabase are intentionally not used in Prompt 14.
 
 ## Prompt 15 Decision
 
-Prompt 15 can proceed after Prompt 14 PR review and GitHub Foundation Validation pass. If CI fails, use Prompt 14A - Worker Execution Contract Validation Hardening.
+Prompt 15 - Provider Gateway Foundation can proceed after Prompt 14 PR review because local validation and GitHub Foundation Validation passed. If new worker execution contract regressions appear during review, use Prompt 14A - Worker Execution Contract Validation Hardening.

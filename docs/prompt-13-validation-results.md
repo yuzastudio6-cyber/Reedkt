@@ -45,3 +45,14 @@ Unchanged. Prompt 13 does not require package dependency changes.
 ## Explicit No-Scope
 
 No tool package installation, tool runtime execution, provider call, media processing, browser capture, rendering, export, job creation, worker claim/execution, credit mutation, storage transfer, signed URL creation, remote Supabase migration, SQL execution, deployment, Stripe flow, or production/beta unlock is enabled.
+
+## Prompt 13A Follow-Up
+
+Prompt 13A found that GitHub Foundation Validation did not attach to PR #99 because `.github/workflows/foundation-validation.yml` did not include the Prompt 13 PR base branch, `codex/rp-foundation-12-tool-call-foundation`, in `pull_request.branches`.
+
+Prompt 13A updates the workflow branch filters to include both:
+
+- `codex/rp-foundation-12-tool-call-foundation`
+- `codex/rp-foundation-13-tool-readiness-worker-runtime-checks`
+
+No validation checks were removed or weakened. Final Prompt 13A local and GitHub validation evidence is recorded in `docs/prompt-13a-ci-validation-record.md`.

@@ -12,6 +12,8 @@ on:
       - codex/rp-foundation-09-media-readiness-probe-transcript-timing
       - codex/rp-foundation-10-render-preview-export-foundation
       - codex/rp-foundation-10a-render-preview-export-validation-hardening
+      - codex/rp-foundation-12-tool-call-foundation
+      - codex/rp-foundation-13-tool-readiness-worker-runtime-checks
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

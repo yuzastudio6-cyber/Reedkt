@@ -90,6 +90,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'qa:revision:diagnostics'],
     required: true,
   },
+  {
+    id: 'tool_call_diagnostics',
+    command: 'npm run --silent tool:call:diagnostics',
+    npmArgs: ['run', '--silent', 'tool:call:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

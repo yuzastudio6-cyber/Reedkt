@@ -175,10 +175,14 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 12. Tool-Call Foundation
 
 - Purpose: define safe backend/worker calls for deterministic tools without installing or executing production tools by default.
-- Implements: tool request contracts, allowlists, sandbox policy, input/output artifact rules, approved snapshot gates, logging redaction, and disabled-by-default route behavior.
-- Must not implement: package installation, arbitrary shell execution, media processing, browser capture, map/chart capture, or GPU/model execution.
-- Main files/tables/services: `open-source-tool-registry.md`, `worker-tool-runtime-architecture.md`, `tool_runtime_checks`, tool request/attempt tables if added.
-- Acceptance criteria: no frontend tool execution, all tool calls require approved snapshot/job context, unsafe tools/routes stay blocked.
+- Deliverables after Prompt 12: `docs/tool-call-foundation.md`, `docs/tool-call-context-envelope-contract.md`, `docs/tool-call-route-contract.md`, `docs/tool-intelligence-catalog-contract.md`, `docs/tool-chain-decision-contract.md`, `docs/prompt-12-validation-results.md`, `database/test-sql/014_tool_call_foundation_rls_smoke_tests.draft.sql`, `scripts/validation/tool-call-scope-diagnostics.mjs`, `server/services/tool-call-service.ts`, `server/routes/tool-call-routes.ts`, `server/validation/tool-call-schemas.ts`, and tool-call route metadata.
+- Implementation status after Prompt 12: partially implemented / limited tool-call route-service foundation only. Real tool execution remains blocked.
+- Implements: static planning catalog and chain metadata, tool-call context-envelope schemas, decision preview summaries, call-intent readiness/create/read/list boundaries, explicit execution/runtime/license blockers, route metadata, diagnostics, and draft SQL/RLS validation plan.
+- Must not implement: package installation, arbitrary shell execution, media processing, browser capture, map/chart capture, GPU/model execution, provider calls, rendering/export, job creation, worker execution, storage transfer, credit mutation, remote Supabase, schema-changing migrations, Stripe, or deployment.
+- Main files/tables/services: `tool_catalog`, `tool_profiles`, `tool_capabilities`, `tool_chain_templates`, `tool_call_intents`, `tool_call_executions`, `tool_runtime_checks`, `approved_plan_snapshots`, `credit_estimates`, `credit_reservations`, `media_assets`, `storage_object_records`, `renders`, `qa_reports`, `projects`, `workspace_members`, and `server/services/tool-call-service.ts`.
+- What remains blocked: canonical tool-call table/RLS application, transactional intent writes, runtime checks, package/license/security approval, worker isolation, actual tool execution, media/tool artifact persistence, local/staging RLS validation, providers, rendering/export, jobs/workers, and deployment.
+- Acceptance criteria: routes require auth, future intent creation requires idempotency, service does not write tool-call or downstream execution records, missing runtime returns blockers, diagnostics pass, draft SQL/RLS test exists, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 13 - Tool Readiness And Worker Runtime Checks after Prompt 12 PR review.
 - GitHub deliverable: branch, commit, push, PR with contracts/tests and explicit no-tool-execution statement unless a later milestone enables a narrow check.
 
 ## 13. Tool Readiness And Worker Runtime Checks

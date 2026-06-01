@@ -1,0 +1,11 @@
+{
+  "evidenceUrl": "https://docs.sglang.ai/docs/advanced_features/structured_outputs",
+  "supportedModesToProbe": [
+    "json_schema",
+    "regex",
+    "ebnf",
+    "structural_tag"
+  ],
+  "defaultGrammarBackend": "xgrammar_per_current_docs",
+  "passStillRequiresSemanticQa": true
+}

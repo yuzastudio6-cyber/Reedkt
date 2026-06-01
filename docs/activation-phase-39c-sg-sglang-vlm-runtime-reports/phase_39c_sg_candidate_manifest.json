@@ -1,0 +1,43 @@
+{
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_candidate_manifest",
+  "createdAt": "2026-06-01T20:33:48.988Z",
+  "sourcePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+  "candidates": [
+    {
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "slug": "qwen3-vl-8b-instruct-fp8",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+      "selectedFileCount": 12,
+      "selectedTotalSizeBytes": 10605571033
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "slug": "qwen3-vl-4b-instruct",
+      "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+      "selectedFileCount": 13,
+      "selectedTotalSizeBytes": 8887291213
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "slug": "qwen3-vl-2b-instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+      "selectedFileCount": 11,
+      "selectedTotalSizeBytes": 4266647442
+    }
+  ],
+  "executionOrder": [
+    "Qwen/Qwen3-VL-2B-Instruct",
+    "Qwen/Qwen3-VL-4B-Instruct",
+    "Qwen/Qwen3-VL-8B-Instruct-FP8"
+  ],
+  "selectionPriority": [
+    "Qwen/Qwen3-VL-8B-Instruct-FP8",
+    "Qwen/Qwen3-VL-4B-Instruct",
+    "Qwen/Qwen3-VL-2B-Instruct"
+  ],
+  "noNewModelDownloads": true
+}

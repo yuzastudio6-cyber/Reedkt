@@ -1,0 +1,373 @@
+{
+  "ok": false,
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_generated_runtime_recovery_report",
+  "runId": "phase39c-sg-20260601t201814",
+  "createdAt": "2026-06-01T20:33:48.988Z",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true,
+      "summary": "Original unquantized BF16 8B evidence remains preserved as Cloud Run L4 OOM before inference."
+    },
+    "phase39bq39cqCandidates": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true,
+      "summary": "Official Qwen FP8 8B, BF16 4B, and BF16 2B candidates remain the only allowed staged private assets."
+    },
+    "phase39cqStructuredOutput": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "preserved": true,
+      "summary": "Structured-output enforcement reached syntax/debug paths but did not pass required generated fixture QA."
+    },
+    "phase39cqSo3Perception": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+      "preserved": true,
+      "summary": "SO3 proved the current blocker is semantic perception/localization on simple generated canaries under vLLM."
+    }
+  },
+  "sglangEvidence": {
+    "sourceEvidence": {
+      "sourceRepo": "https://github.com/sgl-project/sglang",
+      "packageName": "sglang",
+      "packageVersion": "0.4.10.post2",
+      "sourceStatus": "passed_for_evaluation_not_beta",
+      "notes": [
+        "SGLang is a public source project under sgl-project.",
+        "This phase evaluates SGLang only for deterministic generated fixture runtime, not production or beta."
+      ]
+    },
+    "licenseEvidence": {
+      "license": "Apache-2.0",
+      "evidenceUrl": "https://github.com/sgl-project/sglang/blob/main/LICENSE",
+      "status": "passed_for_evaluation_legal_review_still_required_before_production"
+    },
+    "runtimeSupportEvidence": {
+      "openAiCompatibleApi": true,
+      "vlmSupportEvidenceUrl": "https://docs.sglang.ai/docs/start/quick_start/openai_api_completions",
+      "qwenDeploymentEvidenceUrl": "https://www.mintlify.com/QwenLM/Qwen3-VL/deployment/sglang",
+      "localModelPathRequiredByPolicy": true,
+      "modelIdRuntimePathBlockedByPolicy": true,
+      "autoDownloadBlockedByPolicy": true,
+      "l4RuntimeRisk": "unknown_until_cloud_run_l4_generated_fixture_execution"
+    },
+    "structuredOutputEvidence": {
+      "evidenceUrl": "https://docs.sglang.ai/docs/advanced_features/structured_outputs",
+      "supportedModesToProbe": [
+        "json_schema",
+        "regex",
+        "ebnf",
+        "structural_tag"
+      ],
+      "defaultGrammarBackend": "xgrammar_per_current_docs",
+      "passStillRequiresSemanticQa": true
+    }
+  },
+  "strategyMatrix": {
+    "phase": "39C-SG",
+    "reportId": "phase_39c_sg_strategy_matrix_report",
+    "createdAt": "2026-06-01T20:33:48.988Z",
+    "matrixId": "phase39c-sglang-generated-vlm-v1",
+    "stages": [
+      {
+        "id": "SG0",
+        "name": "capability introspection",
+        "passCounting": false,
+        "description": "Captures SGLang, Python, Torch, CUDA, OpenAI-compatible, native/offline, and structured-output support. Diagnostic only."
+      },
+      {
+        "id": "SG1",
+        "name": "text-only json structured smoke",
+        "passCounting": false,
+        "description": "Runs T0 choice, T1 tiny JSON, and T2 compact VLM schema without image input before image tests."
+      },
+      {
+        "id": "SG2",
+        "name": "freeform image perception canary",
+        "passCounting": false,
+        "description": "Captures private freeform perception traces for generated canary images. It can stop the candidate early, but never completes Phase 39C-SG alone."
+      },
+      {
+        "id": "SG3",
+        "name": "labels-only structured output",
+        "passCounting": true,
+        "description": "Checks expected label/alias recall without boxes or safe-zone reasoning."
+      },
+      {
+        "id": "SG4",
+        "name": "coarse-region structured output",
+        "passCounting": true,
+        "description": "Checks broad zones only: top, bottom, left, right, center, lower_third, upper_third."
+      },
+      {
+        "id": "SG5",
+        "name": "safe-zone reasoning",
+        "passCounting": true,
+        "description": "Checks generated safe-zone recommendations and blocks unknown decisions."
+      },
+      {
+        "id": "SG6",
+        "name": "composed canonical report",
+        "passCounting": true,
+        "description": "Composes the Phase 39C-SG generated-runtime decision from SG3/SG4/SG5 outputs only."
+      },
+      {
+        "id": "SG7",
+        "name": "optional strict full json report",
+        "passCounting": false,
+        "description": "Optional future-facing strict JSON full report after decomposed QA passes. Not required for Phase 39C-SG pass."
+      }
+    ],
+    "passCountingStages": [
+      "SG3",
+      "SG4",
+      "SG5",
+      "SG6"
+    ],
+    "diagnosticOnlyStages": [
+      "SG0",
+      "SG1",
+      "SG2",
+      "SG7"
+    ]
+  },
+  "canaryFixtureManifest": {
+    "phase": "39C-SG",
+    "reportId": "phase_39c_sg_canary_fixture_manifest",
+    "createdAt": "2026-06-01T20:33:48.988Z",
+    "generatedOnly": true,
+    "fixtureImagesCommitted": false,
+    "fixtures": [
+      {
+        "fixtureId": "canary-basic-shapes",
+        "expectedLabels": [
+          "red square",
+          "blue circle",
+          "green triangle"
+        ],
+        "expectedZones": [
+          "left",
+          "right",
+          "center"
+        ]
+      },
+      {
+        "fixtureId": "canary-colored-layout",
+        "expectedLabels": [
+          "top banner",
+          "center panel",
+          "bottom strip"
+        ],
+        "expectedZones": [
+          "top",
+          "center",
+          "bottom"
+        ]
+      },
+      {
+        "fixtureId": "canary-text-and-shape",
+        "expectedLabels": [
+          "demo text",
+          "orange star",
+          "purple box"
+        ],
+        "expectedZones": [
+          "upper_third",
+          "center",
+          "right"
+        ]
+      },
+      {
+        "fixtureId": "canary-ui-simplified",
+        "expectedLabels": [
+          "toolbar",
+          "preview canvas",
+          "timeline panel"
+        ],
+        "expectedZones": [
+          "top",
+          "center",
+          "bottom"
+        ]
+      },
+      {
+        "fixtureId": "canary-caption-safe-zone-simple",
+        "expectedLabels": [
+          "caption block",
+          "face marker",
+          "safe upper zone"
+        ],
+        "expectedZones": [
+          "lower_third",
+          "center",
+          "upper_third"
+        ]
+      }
+    ]
+  },
+  "aliasMap": {
+    "phase": "39C-SG",
+    "reportId": "phase_39c_sg_label_alias_map",
+    "createdAt": "2026-06-01T20:33:48.988Z",
+    "aliases": {
+      "timeline panel": [
+        "timeline",
+        "timeline panel",
+        "bottom track",
+        "bottom tracks",
+        "track area",
+        "editing timeline"
+      ],
+      "toolbar": [
+        "toolbar",
+        "top bar",
+        "menu bar",
+        "control bar"
+      ],
+      "preview": [
+        "preview",
+        "preview canvas",
+        "canvas",
+        "viewer",
+        "video preview"
+      ],
+      "caption block": [
+        "caption",
+        "caption block",
+        "subtitle block",
+        "lower third text",
+        "lower-third caption"
+      ],
+      "safe upper zone": [
+        "safe upper zone",
+        "upper third",
+        "top safe zone",
+        "safe caption zone"
+      ],
+      "manual review": [
+        "manual review",
+        "uncertain",
+        "ambiguous",
+        "needs review",
+        "high uncertainty"
+      ]
+    }
+  },
+  "decomposedQaPolicy": {
+    "phase": "39C-SG",
+    "reportId": "phase_39c_sg_decomposed_qa_policy",
+    "passRequires": [
+      "SG0 capability introspection runs and records SGLang support details",
+      "SG1 text-only JSON/structured smoke proves the runtime can constrain output before image tests",
+      "SG2 freeform image traces are captured but do not count as pass evidence",
+      "SG3 labels-only structured output reaches canary recall >= 0.80",
+      "SG4 coarse-region structured output reaches canary accuracy >= 0.80",
+      "SG5 safe-zone decision is not unknown",
+      "SG6 composed canonical report from SG3/SG4/SG5 passes",
+      "After canary pass, all five required generated fixtures pass decomposed thresholds",
+      "Ambiguous generated fixture requires manual review or high uncertainty",
+      "No provider calls, real media, public output, beta, production, or Track A unlocks"
+    ]
+  },
+  "candidateResults": [
+    {
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "skipped",
+      "runtimeStatus": "skipped",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+      "qa": {},
+      "blockers": [
+        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+      ],
+      "warnings": [
+        "candidate_not_attempted_after_pre_runtime_blocker"
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "skipped",
+      "runtimeStatus": "skipped",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+      "qa": {},
+      "blockers": [
+        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+      ],
+      "warnings": [
+        "candidate_not_attempted_after_pre_runtime_blocker"
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "skipped",
+      "runtimeStatus": "skipped",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+      "qa": {},
+      "blockers": [
+        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+      ],
+      "warnings": [
+        "candidate_not_attempted_after_pre_runtime_blocker"
+      ]
+    }
+  ],
+  "generatedFixtures": [
+    {
+      "fixtureId": "generated-object-layout",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-ui-safe-zone",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-ambiguous-scene",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-spatial-reasoning",
+      "status": "blocked_or_not_run"
+    }
+  ],
+  "blockedScopes": [
+    "Phase 39D controlled real-frame VLM",
+    "Phase 39E planning integration",
+    "provider calls",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "public output",
+    "broad user media",
+    "broad real-media processing",
+    "arbitrary media paths",
+    "unapproved GPU types",
+    "non-Qwen candidates",
+    "new model downloads",
+    "community quantizations",
+    "Track A runtime/visual/render stack"
+  ],
+  "blockers": [
+    "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+  ],
+  "warnings": [
+    "private_model_copy_not_started",
+    "checksum_verification_not_started",
+    "cloud_run_l4_job_not_started",
+    "private_qa_artifact_upload_not_started"
+  ],
+  "vlmToolFamilyBetaStatus": "blocked",
+  "nextPhaseDecision": "Do not start Phase 39D; use an evidence-based non-Qwen candidate, alternate GPU/runtime, or fixture/QA threshold follow-up based on the recorded blocker."
+}

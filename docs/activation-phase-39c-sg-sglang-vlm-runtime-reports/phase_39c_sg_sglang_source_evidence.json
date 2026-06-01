@@ -1,0 +1,10 @@
+{
+  "sourceRepo": "https://github.com/sgl-project/sglang",
+  "packageName": "sglang",
+  "packageVersion": "0.4.10.post2",
+  "sourceStatus": "passed_for_evaluation_not_beta",
+  "notes": [
+    "SGLang is a public source project under sgl-project.",
+    "This phase evaluates SGLang only for deterministic generated fixture runtime, not production or beta."
+  ]
+}

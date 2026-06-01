@@ -1,0 +1,78 @@
+{
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_decomposed_canonical_report",
+  "runId": "phase39c-sg-20260601t201814",
+  "createdAt": "2026-06-01T20:33:48.988Z",
+  "status": "blocked",
+  "passRequires": [
+    "SG0 capability introspection runs and records SGLang support details",
+    "SG1 text-only JSON/structured smoke proves the runtime can constrain output before image tests",
+    "SG2 freeform image traces are captured but do not count as pass evidence",
+    "SG3 labels-only structured output reaches canary recall >= 0.80",
+    "SG4 coarse-region structured output reaches canary accuracy >= 0.80",
+    "SG5 safe-zone decision is not unknown",
+    "SG6 composed canonical report from SG3/SG4/SG5 passes",
+    "After canary pass, all five required generated fixtures pass decomposed thresholds",
+    "Ambiguous generated fixture requires manual review or high uncertainty",
+    "No provider calls, real media, public output, beta, production, or Track A unlocks"
+  ],
+  "candidateResults": [
+    {
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "skipped",
+      "runtimeStatus": "skipped",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+      "qa": {},
+      "blockers": [
+        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+      ],
+      "warnings": [
+        "candidate_not_attempted_after_pre_runtime_blocker"
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "skipped",
+      "runtimeStatus": "skipped",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+      "qa": {},
+      "blockers": [
+        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+      ],
+      "warnings": [
+        "candidate_not_attempted_after_pre_runtime_blocker"
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "skipped",
+      "runtimeStatus": "skipped",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+      "qa": {},
+      "blockers": [
+        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+      ],
+      "warnings": [
+        "candidate_not_attempted_after_pre_runtime_blocker"
+      ]
+    }
+  ],
+  "blockers": [
+    "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+  ],
+  "warnings": [
+    "private_model_copy_not_started",
+    "checksum_verification_not_started",
+    "cloud_run_l4_job_not_started",
+    "private_qa_artifact_upload_not_started"
+  ]
+}

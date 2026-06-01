@@ -1,0 +1,68 @@
+{
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_strategy_matrix_report",
+  "createdAt": "2026-06-01T20:33:48.988Z",
+  "matrixId": "phase39c-sglang-generated-vlm-v1",
+  "stages": [
+    {
+      "id": "SG0",
+      "name": "capability introspection",
+      "passCounting": false,
+      "description": "Captures SGLang, Python, Torch, CUDA, OpenAI-compatible, native/offline, and structured-output support. Diagnostic only."
+    },
+    {
+      "id": "SG1",
+      "name": "text-only json structured smoke",
+      "passCounting": false,
+      "description": "Runs T0 choice, T1 tiny JSON, and T2 compact VLM schema without image input before image tests."
+    },
+    {
+      "id": "SG2",
+      "name": "freeform image perception canary",
+      "passCounting": false,
+      "description": "Captures private freeform perception traces for generated canary images. It can stop the candidate early, but never completes Phase 39C-SG alone."
+    },
+    {
+      "id": "SG3",
+      "name": "labels-only structured output",
+      "passCounting": true,
+      "description": "Checks expected label/alias recall without boxes or safe-zone reasoning."
+    },
+    {
+      "id": "SG4",
+      "name": "coarse-region structured output",
+      "passCounting": true,
+      "description": "Checks broad zones only: top, bottom, left, right, center, lower_third, upper_third."
+    },
+    {
+      "id": "SG5",
+      "name": "safe-zone reasoning",
+      "passCounting": true,
+      "description": "Checks generated safe-zone recommendations and blocks unknown decisions."
+    },
+    {
+      "id": "SG6",
+      "name": "composed canonical report",
+      "passCounting": true,
+      "description": "Composes the Phase 39C-SG generated-runtime decision from SG3/SG4/SG5 outputs only."
+    },
+    {
+      "id": "SG7",
+      "name": "optional strict full json report",
+      "passCounting": false,
+      "description": "Optional future-facing strict JSON full report after decomposed QA passes. Not required for Phase 39C-SG pass."
+    }
+  ],
+  "passCountingStages": [
+    "SG3",
+    "SG4",
+    "SG5",
+    "SG6"
+  ],
+  "diagnosticOnlyStages": [
+    "SG0",
+    "SG1",
+    "SG2",
+    "SG7"
+  ]
+}

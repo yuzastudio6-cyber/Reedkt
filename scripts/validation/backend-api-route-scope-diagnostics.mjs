@@ -18,6 +18,7 @@ const registryFiles = [
   'src/backend/api/mock-api-router.ts',
   'src/backend/api/api-runtime-contracts.ts',
   'src/backend/api/routes/job-api-routes.ts',
+  'src/backend/api/routes/worker-api-routes.ts',
   'src/backend/api/routes/generation-api-routes.ts',
   'src/backend/api/routes/render-api-routes.ts',
   'src/backend/api/routes/music-api-routes.ts',
@@ -35,10 +36,8 @@ const registryFiles = [
 
 const blockedServiceImports = [
   /createChatService/,
-  /createJobService/,
   /createProviderGatewayService/,
   /createRenderService/,
-  /createWorkerClaimService/,
   /runWorkerClaimRunner/,
   /runToolReadinessChecks/,
   /checkBasicRenderSmokeTools/,
@@ -74,8 +73,6 @@ const secretPatterns = [
 
 const requiredFailClosedFiles = [
   'server/routes/chat-routes.ts',
-  'server/routes/job-routes.ts',
-  'server/routes/worker-routes.ts',
   'server/routes/provider-gateway-routes.ts',
   'server/routes/render-routes.ts',
 ]

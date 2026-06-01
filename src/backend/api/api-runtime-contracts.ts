@@ -31,6 +31,7 @@ export type ApiDomain =
   | 'planning'
   | 'credits'
   | 'jobs'
+  | 'workers'
   | 'generation'
   | 'render'
   | 'music'

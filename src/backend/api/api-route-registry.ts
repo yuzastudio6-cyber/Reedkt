@@ -15,6 +15,7 @@ import { SFX_API_ROUTES } from './routes/sfx-api-routes'
 import { STORAGE_API_ROUTES } from './routes/storage-api-routes'
 import { STORYTIMING_API_ROUTES } from './routes/storytiming-api-routes'
 import { STRIPE_API_ROUTES } from './routes/stripe-api-routes'
+import { WORKER_API_ROUTES } from './routes/worker-api-routes'
 
 export type ApiRouteProductionReadiness = 'implemented' | 'mock_only' | 'backend_required' | 'blocked' | 'future'
 
@@ -32,7 +33,6 @@ export interface ApiRouteMapSummary {
 }
 
 export const PROMPT7_BLOCKED_EXECUTION_DOMAINS = new Set<ApiDomain>([
-  'jobs',
   'generation',
   'render',
   'music',
@@ -51,6 +51,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...APPROVED_SNAPSHOT_API_ROUTES,
   ...CREDIT_API_ROUTES,
   ...JOB_API_ROUTES,
+  ...WORKER_API_ROUTES,
   ...GENERATION_API_ROUTES,
   ...RENDER_API_ROUTES,
   ...MUSIC_API_ROUTES,
@@ -69,6 +70,7 @@ const API_DOMAINS: ApiDomain[] = [
   'planning',
   'credits',
   'jobs',
+  'workers',
   'generation',
   'render',
   'music',
@@ -160,6 +162,7 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     planning: 0,
     credits: 0,
     jobs: 0,
+    workers: 0,
     generation: 0,
     render: 0,
     music: 0,

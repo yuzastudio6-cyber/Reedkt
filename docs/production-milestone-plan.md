@@ -118,11 +118,16 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 8. Job Orchestration, Worker Claims, Leases, And Idempotency
 
 - Purpose: make jobs claimable and recoverable without duplicate expensive work.
-- Implements: job batch creation, dependency checks, worker claims, leases, heartbeats, stale recovery, idempotent dispatch, sanitized job events, and local/global failure status.
-- Must not implement: real provider calls, real rendering, real media processing, Stripe, or Cloud deployment unless explicitly included as mock-safe/local-only.
-- Main files/tables/services: `jobs`, `job_batches`, `job_dependencies`, `job_events`, `worker_job_claims`, `worker_leases`, `job_claim_attempts`, `api_idempotency_keys`.
-- Acceptance criteria: one active worker claim per job, dependencies gate downstream work, local failure does not stop unrelated work, final export remains blocked on unresolved required failures.
-- GitHub deliverable: branch, commit, push, PR with concurrency/idempotency tests and no-expensive-execution statement.
+- Deliverables after Prompt 8: `docs/job-orchestration-worker-runtime.md`, `docs/job-orchestration-route-contract.md`, `docs/job-worker-gate-contract.md`, `docs/prompt-08-validation-results.md`, `database/test-sql/010_job_worker_lease_idempotency_rls_smoke_tests.draft.sql`, `scripts/validation/job-worker-scope-diagnostics.mjs`, hardened job/worker services, expanded validation schemas, split worker API route metadata, and foundation validation runner coverage.
+- Implementation status after Prompt 8: partially implemented / limited job/worker route/service foundation only. Production job and worker execution remain blocked.
+- Validation status after Prompt 8: lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, credit diagnostics, backend API diagnostics, job/worker diagnostics, and foundation validation should pass locally; full build may rely on Linux CI if local Rolldown remains environment-blocked.
+- Implements: job readiness checks, job batch/job creation boundaries, dependency/event/status/retry/cancel route boundaries, worker claim/lease/heartbeat/release/complete/fail/stale recovery boundaries, idempotency requirements for mutations, static worker runtime metadata, and diagnostics.
+- Must not implement: real worker execution, provider calls, rendering, media processing, tool execution, Stripe checkout/webhooks/payment processing, Cloud Run/Pub/Sub/Cloud Tasks dispatch, remote Supabase validation, schema-changing migrations, credit mutation beyond Prompt 6 fail-closed boundaries, storage execution beyond Prompt 4 boundaries, approved snapshot mutation beyond Prompt 5 boundaries, or deployment.
+- Main files/tables/services: `job_batches`, `jobs`, `job_dependencies`, `job_events`, `worker_leases`, `worker_job_claims`, `job_claim_attempts`, `backend_runtime_messages`, `api_idempotency_keys`, `server/services/job-service.ts`, `server/services/worker-claim-service.ts`, `server/routes/job-routes.ts`, `server/routes/worker-routes.ts`, and route metadata.
+- What remains blocked: transactional service-role job/worker mutation runtime, real worker claims, real leases/heartbeats, worker execution, provider/render/tool/media execution, local/staging RLS validation, stale recovery execution, retry execution, monitoring, and concurrency proof against a live database.
+- Acceptance criteria: mutation routes require idempotency, services do not write job/worker runtime tables, route/service responses fail closed with blockers, worker execution remains disabled, diagnostics pass, draft SQL/RLS test exists, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 9 - Media Readiness, Probe, Transcript, and Timing Foundation if Prompt 8 validation and CI pass; otherwise Prompt 8A - Job/Worker Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and no-expensive-execution statement.
 
 ## 9. Media Readiness, Probe, Transcript, And Timing Foundation
 

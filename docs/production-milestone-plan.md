@@ -132,11 +132,16 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 9. Media Readiness, Probe, Transcript, And Timing Foundation
 
 - Purpose: prepare trusted source media facts for planning and execution.
-- Implements: media probe records, duration/codec/resolution validation, transcript job scaffolding, timing base records, readiness gates, and safe failure states.
-- Must not implement: generative providers, final render/export, uncontrolled tool execution, source overwrite, or unsupported codec production use.
-- Main files/tables/services: `media_assets`, `storage_object_records`, transcript tables, timing tables, worker probe route, FFmpeg/FFprobe readiness.
-- Acceptance criteria: media readiness is persisted, failed probes block affected downstream work, timing base is frame-aware, source media remains immutable.
-- GitHub deliverable: branch, commit, push, PR with fixture tests or staged smoke evidence and legal/tool status.
+- Deliverables after Prompt 9: `docs/media-readiness-probe-timing-foundation.md`, `docs/media-readiness-route-contract.md`, `docs/media-readiness-gate-contract.md`, `docs/prompt-09-validation-results.md`, `database/test-sql/011_media_readiness_probe_timing_rls_smoke_tests.draft.sql`, `scripts/validation/media-readiness-scope-diagnostics.mjs`, media readiness service/routes/schemas, API route metadata, and foundation validation runner coverage.
+- Implementation status after Prompt 9: partially implemented / limited media readiness route/service foundation only. Real media analysis and worker/tool execution remain blocked.
+- Validation status after Prompt 9: lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, credit diagnostics, backend API diagnostics, job/worker diagnostics, media readiness diagnostics, and foundation validation should pass locally; full build may rely on Linux CI if local Rolldown remains environment-blocked.
+- Implements: media metadata readiness checks, storage object dependency checks, source sequence readiness summaries, probe readiness/request blockers, transcript placeholders, visual/audio observation placeholders, timing seed placeholders, gate contracts, route contracts, and diagnostics.
+- Must not implement: real user-media processing, FFmpeg/ffprobe production route execution, transcript/OCR/VLM/audio/visual analysis, job creation, worker claims/execution, provider calls, rendering, tool execution, Stripe checkout/webhooks/payment processing, remote Supabase validation, schema-changing migrations, credit mutation beyond Prompt 6 fail-closed boundaries, storage execution beyond Prompt 4 boundaries, approved snapshot mutation beyond Prompt 5 boundaries, planning generation, or deployment.
+- Main files/tables/services: `media_assets`, `uploaded_clips`, `source_sequence_items`, `storage_object_records`, `upload_intents`, `master_timing_maps` as readiness reference only, `server/services/media-readiness-service.ts`, `server/routes/media-readiness-routes.ts`, `server/validation/media-readiness-schemas.ts`, and route metadata.
+- What remains blocked: probe result persistence, transcript alignment, visual/audio observation, master timing persistence, frame-accurate timing validation, local/staging RLS validation, media worker execution, provider/render/tool/media execution, and production tool/legal review.
+- Acceptance criteria: routes require auth, probe request requires idempotency, service does not write media/probe/timing/job/worker/provider/render/tool records, missing runtime returns blockers, diagnostics pass, draft SQL/RLS test exists, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 10 - Render/Preview/Export Foundation if Prompt 9 validation and CI pass; otherwise Prompt 9A - Media Readiness Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and no-media-execution statement.
 
 ## 10. Render/Preview/Export Foundation
 

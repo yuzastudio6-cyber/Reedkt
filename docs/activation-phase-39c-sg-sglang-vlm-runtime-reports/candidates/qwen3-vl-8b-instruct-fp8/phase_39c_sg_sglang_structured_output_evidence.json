@@ -1,0 +1,13 @@
+{
+  "createdAt": "2026-06-01T23:40:07.682803Z",
+  "evidenceUrl": "https://docs.sglang.ai/docs/advanced_features/structured_outputs",
+  "modesToProbe": [
+    "json_schema",
+    "regex",
+    "ebnf",
+    "structural_tag"
+  ],
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_sglang_structured_output_evidence",
+  "semanticPerceptionStillRequired": true
+}

@@ -15,6 +15,10 @@ ENV PYTHONUNBUFFERED=1 \
     PUBLIC_OUTPUT_ENABLED=false \
     TRACK_A_EXECUTION_ENABLED=false
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libnuma1 && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY docker/prod/vlm-sglang-runtime/requirements.sglang.txt /tmp/requirements.sglang.txt
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip install --no-cache-dir -r /tmp/requirements.sglang.txt

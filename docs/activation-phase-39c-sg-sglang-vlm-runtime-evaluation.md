@@ -43,3 +43,9 @@ The SGLang strategy matrix is SG0-SG7:
 A full pass requires one candidate to pass the canary thresholds and then all five original generated fixtures with decomposed QA. Freeform output, regex repair, extract-first-JSON, and manually patched output cannot count as a pass.
 
 VLM tool-family beta status remains `blocked` until runtime execution proves generated fixture QA. If Phase 39C-SG passes, the status can become `phase-complete but tool-family incomplete`; controlled real-frame VLM and planning integration still remain separate later phases.
+
+## Build Unblock Follow-up
+
+PR #100 recorded that local `docker buildx build --platform linux/amd64 --push` hung before image digest creation and before Cloud Run execution. Phase 39C-SG-BUILD adds a guarded Cloud Build fallback using the same Dockerfile and same runtime policy. The Cloud Build path is allowed only for the staging SGLang generated-fixture image and still requires private PR #87 assets, local model path runtime, deterministic generated fixtures, and private QA artifacts.
+
+Run `phase39c-sg-build-20260601T232400-overlay` used the guarded overlay Cloud Build fallback after the full remote rebuild also stalled during publish/finalization. Cloud Build succeeded with image digest `sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9`, and Cloud Run L4 executed all three PR #87 candidates. No candidate reached generated fixture inference because SGLang failed during engine import with unresolved CUDA driver symbol `cuGreenCtxDestroy` from `sgl_kernel/common_ops.abi3.so`. The SGLang path remains blocked pending an approved compatible SGLang/CUDA runtime image, different approved runtime/GPU class, or different approved VLM path.

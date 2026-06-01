@@ -1,0 +1,104 @@
+{
+  "coarseZones": [
+    "top",
+    "bottom",
+    "left",
+    "right",
+    "center",
+    "lower_third",
+    "upper_third"
+  ],
+  "createdAt": "2026-06-01T23:33:38.704196Z",
+  "fixtureImagesCommitted": false,
+  "fixtures": [
+    {
+      "expectedLabels": [
+        "red square",
+        "blue circle",
+        "green triangle"
+      ],
+      "expectedZones": {
+        "blue circle": "right",
+        "green triangle": "center",
+        "red square": "left"
+      },
+      "fixtureId": "canary-basic-shapes",
+      "height": 512,
+      "riskCategory": "canary_required_pass",
+      "safeZoneExpected": "pass",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "top banner",
+        "center panel",
+        "bottom strip"
+      ],
+      "expectedZones": {
+        "bottom strip": "bottom",
+        "center panel": "center",
+        "top banner": "top"
+      },
+      "fixtureId": "canary-colored-layout",
+      "height": 512,
+      "riskCategory": "canary_required_pass",
+      "safeZoneExpected": "pass",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "demo text",
+        "orange star",
+        "purple box"
+      ],
+      "expectedZones": {
+        "demo text": "upper_third",
+        "orange star": "center",
+        "purple box": "right"
+      },
+      "fixtureId": "canary-text-and-shape",
+      "height": 512,
+      "riskCategory": "canary_required_pass",
+      "safeZoneExpected": "pass",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "toolbar",
+        "preview canvas",
+        "timeline panel"
+      ],
+      "expectedZones": {
+        "preview canvas": "center",
+        "timeline panel": "bottom",
+        "toolbar": "top"
+      },
+      "fixtureId": "canary-ui-simplified",
+      "height": 512,
+      "riskCategory": "canary_required_pass",
+      "safeZoneExpected": "warn",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "caption block",
+        "face marker",
+        "safe upper zone"
+      ],
+      "expectedZones": {
+        "caption block": "lower_third",
+        "face marker": "center",
+        "safe upper zone": "upper_third"
+      },
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "height": 512,
+      "riskCategory": "canary_required_pass",
+      "safeZoneExpected": "warn",
+      "width": 512
+    }
+  ],
+  "generatedOnly": true,
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_canary_fixture_manifest",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-4b-instruct"
+}

@@ -1,0 +1,93 @@
+{
+  "phase": "39C-SG-BUILD",
+  "reportId": "phase_39c_sg_cloud_build_plan",
+  "createdAt": "2026-06-01T23:28:16.985Z",
+  "defaultMode": "non_mutating",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true,
+      "summary": "Original unquantized BF16 8B evidence remains preserved as Cloud Run L4 OOM before inference."
+    },
+    "phase39bq39cqCandidates": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true,
+      "summary": "Official Qwen FP8 8B, BF16 4B, and BF16 2B candidates remain the only allowed staged private assets."
+    },
+    "phase39cqStructuredOutput": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "preserved": true,
+      "summary": "Structured-output enforcement reached syntax/debug paths but did not pass required generated fixture QA."
+    },
+    "phase39cqSo3Perception": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+      "preserved": true,
+      "summary": "SO3 proved the current blocker is semantic perception/localization on simple generated canaries under vLLM."
+    },
+    "phase39cSglangBuildxBlocker": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+      "preserved": true,
+      "summary": "SGLang source/license/runtime scaffolding exists, but local Docker buildx hung before producing an image digest or Cloud Run execution."
+    }
+  },
+  "buildFailureAudit": {
+    "phase": "39C-SG-BUILD",
+    "reportId": "phase_39c_sg_build_failure_audit",
+    "createdAt": "2026-06-01T23:28:16.985Z",
+    "sourcePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+    "localBuildxCommand": "docker buildx build --platform linux/amd64 --push --provenance=false --sbom=false -f docker/prod/vlm-sglang-runtime/Dockerfile -t us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-20260601t201814 .",
+    "observedHang": {
+      "approximateDurationMinutes": 14,
+      "producedImageDigest": false,
+      "cloudRunExecuted": false,
+      "privateModelCopyStarted": false,
+      "blocker": "local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+    },
+    "likelyRiskAreas": [
+      "large Python/CUDA dependency install during image build",
+      "local Docker Desktop amd64 emulation/buildx reliability",
+      "large existing Docker build cache"
+    ],
+    "cloudBuildFallbackRecommended": true,
+    "cloudBuildBuildUnblockFollowUp": {
+      "fullCloudBuildAttempt": {
+        "buildId": "7edfcbfd-a406-40c8-a421-d69e0f404b67",
+        "status": "cancelled_after_remote_publish_stall",
+        "summary": "Remote Cloud Build progressed through dependency installation and layer push output, but the Artifact Registry tag/digest never became visible and the build stayed WORKING."
+      },
+      "overlayCloudBuildFallback": {
+        "enabledByDefault": true,
+        "configPath": "cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml",
+        "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:299d8d5b3d463c50a156b436f5d463c00c3bea662b74b82ddee2ab6ecdff015d",
+        "purpose": "reuse the prior private SGLang image that already contains SGLang/libnuma and copy only patched worker runtime files"
+      }
+    }
+  },
+  "cloudBuild": {
+    "projectId": "reeditpro",
+    "region": "us-central1",
+    "configPath": "cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml",
+    "fullConfigPath": "cloudbuild/vlm-sglang-runtime-phase39c.yaml",
+    "overlayConfigPath": "cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml",
+    "mode": "overlay",
+    "dockerfile": "docker/prod/vlm-sglang-runtime/Dockerfile",
+    "overlayDockerfile": "docker/prod/vlm-sglang-runtime/Dockerfile.overlay",
+    "overlayBaseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:299d8d5b3d463c50a156b436f5d463c00c3bea662b74b82ddee2ab6ecdff015d",
+    "context": ".",
+    "platform": "linux/amd64",
+    "imagePath": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang",
+    "machineType": "E2_HIGHCPU_8",
+    "timeout": "1800s",
+    "noModelFilesBaked": true,
+    "noSecretsBaked": true,
+    "artifactRegistryOnly": true,
+    "overlayPurpose": "reuse the previous private SGLang image and copy only patched worker files after the full Cloud Build path stalled during publish/finalization"
+  },
+  "confirmationsRequiredForExecution": [
+    "REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK",
+    "REEDITPRO_CONFIRM_VLM_SGLANG_CLOUD_BUILD",
+    "REEDITPRO_CONFIRM_VLM_SGLANG_DOCKER_PUSH"
+  ],
+  "executionBlockedByDefault": true,
+  "betaProductionBlocked": true
+}

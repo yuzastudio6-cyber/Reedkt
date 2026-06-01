@@ -1,0 +1,14 @@
+{
+  "blockedScopes": [
+    "production",
+    "beta",
+    "real_media",
+    "provider_calls"
+  ],
+  "createdAt": "2026-06-01T23:29:52.692726Z",
+  "package": "sglang==0.4.10.post2",
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_sglang_source_evidence",
+  "sourceRepo": "https://github.com/sgl-project/sglang",
+  "status": "passed_for_generated_fixture_evaluation_only"
+}

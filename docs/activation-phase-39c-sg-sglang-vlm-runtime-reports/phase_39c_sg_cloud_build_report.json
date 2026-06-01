@@ -1,0 +1,61 @@
+{
+  "phase": "39C-SG-BUILD",
+  "reportId": "phase_39c_sg_cloud_build_report",
+  "runId": "phase39c-sg-build-20260601T232400-overlay",
+  "createdAt": "2026-06-01T23:23:37.173Z",
+  "status": "passed",
+  "buildId": "7d2bf5c2-491b-4a6f-bf75-6e59b3c94610",
+  "buildStatus": "SUCCESS",
+  "durationSeconds": 217,
+  "configPath": "cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml",
+  "fullConfigPath": "cloudbuild/vlm-sglang-runtime-phase39c.yaml",
+  "overlayConfigPath": "cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml",
+  "cloudBuildMode": "overlay",
+  "overlayBaseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:299d8d5b3d463c50a156b436f5d463c00c3bea662b74b82ddee2ab6ecdff015d",
+  "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-build-20260601t232400-overlay",
+  "imageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+  "artifactRegistryPath": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang",
+  "sourcePr100": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+  "rawBuildMetadata": {
+    "id": "7d2bf5c2-491b-4a6f-bf75-6e59b3c94610",
+    "name": "projects/390722338345/locations/global/builds/7d2bf5c2-491b-4a6f-bf75-6e59b3c94610",
+    "status": "SUCCESS",
+    "createTime": "2026-06-01T23:23:41.096564646Z",
+    "startTime": "2026-06-01T23:24:36.895617338Z",
+    "finishTime": "2026-06-01T23:28:13.625129Z",
+    "images": [
+      "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-build-20260601t232400-overlay"
+    ],
+    "logUrl": "https://console.cloud.google.com/cloud-build/builds/7d2bf5c2-491b-4a6f-bf75-6e59b3c94610?project=390722338345",
+    "serviceAccount": "projects/reeditpro/serviceAccounts/390722338345-compute@developer.gserviceaccount.com",
+    "options": {
+      "logging": "LEGACY",
+      "machineType": "E2_HIGHCPU_8",
+      "pool": {}
+    },
+    "results": {
+      "buildStepImages": [
+        "sha256:042c5c509f88ae18731ea3c122f4c62954f48a809b4fd93dd534a03fcbeb4bcb"
+      ],
+      "buildStepOutputs": [
+        ""
+      ],
+      "images": [
+        {
+          "artifactRegistryPackage": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers/packages/vlm-runtime-phase39c-sglang/versions/sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "digest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "name": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-build-20260601t232400-overlay",
+          "pushTiming": {
+            "endTime": "2026-06-01T23:28:12.579829240Z",
+            "startTime": "2026-06-01T23:28:08.769436395Z"
+          }
+        }
+      ]
+    }
+  },
+  "blockers": [],
+  "warnings": [
+    "existing_image_lookup_before_cloud_build_failed:Command failed: gcloud artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-build-20260601t232400-overlay --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible "
+  ],
+  "vlmToolFamilyBetaStatus": "blocked"
+}

@@ -1,0 +1,11 @@
+{
+  "phase": "39C-SG-BUILD",
+  "reportId": "phase_39c_sg_image_verification_report",
+  "runId": "phase39c-sg-build-20260601T232400-overlay",
+  "createdAt": "2026-06-01T23:23:37.173Z",
+  "status": "passed",
+  "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-build-20260601t232400-overlay",
+  "imageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+  "artifactRegistryPath": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang",
+  "blockers": []
+}

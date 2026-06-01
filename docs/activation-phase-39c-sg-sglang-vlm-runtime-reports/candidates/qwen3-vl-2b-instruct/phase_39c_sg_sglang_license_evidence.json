@@ -1,0 +1,8 @@
+{
+  "createdAt": "2026-06-01T23:29:52.692726Z",
+  "evidenceUrl": "https://github.com/sgl-project/sglang/blob/main/LICENSE",
+  "license": "Apache-2.0",
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_sglang_license_evidence",
+  "status": "passed_for_evaluation_legal_review_required_before_production"
+}

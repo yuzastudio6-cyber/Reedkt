@@ -1,0 +1,20 @@
+FROM us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:299d8d5b3d463c50a156b436f5d463c00c3bea662b74b82ddee2ab6ecdff015d
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1 \
+    HF_HUB_DISABLE_TELEMETRY=1 \
+    MODEL_DOWNLOADS_ENABLED=false \
+    RAW_VLM_PROMPT_ENABLED=false \
+    PROVIDER_EXECUTION_ENABLED=false \
+    MEDIA_PROCESSING_ENABLED=false \
+    REAL_MEDIA_INPUT_ENABLED=false \
+    ARBITRARY_MEDIA_INPUT_ENABLED=false \
+    PUBLIC_OUTPUT_ENABLED=false \
+    TRACK_A_EXECUTION_ENABLED=false
+
+COPY server/workers/vlm-sglang-runtime/ /app/server/workers/vlm-sglang-runtime/
+
+ENTRYPOINT ["python", "/app/server/workers/vlm-sglang-runtime/run-phase39c-sglang-cloud-job.py"]

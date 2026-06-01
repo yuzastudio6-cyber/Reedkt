@@ -1,0 +1,9 @@
+{
+  "createdAt": "2026-06-01T23:40:07.682803Z",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+  "phase": "39C-SG",
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+  "reportId": "phase_39c_sg_candidate_manifest",
+  "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-8b-instruct-fp8"
+}

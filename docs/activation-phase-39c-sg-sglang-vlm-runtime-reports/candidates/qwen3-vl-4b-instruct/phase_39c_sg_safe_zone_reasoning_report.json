@@ -1,0 +1,8 @@
+{
+  "fixtures": [],
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_safe_zone_reasoning_report",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-4b-instruct",
+  "safeZoneDecisionUnknownAllowed": false,
+  "status": "blocked"
+}

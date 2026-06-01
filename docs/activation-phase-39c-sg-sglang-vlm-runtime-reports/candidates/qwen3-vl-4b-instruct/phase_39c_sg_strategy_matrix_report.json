@@ -1,0 +1,28 @@
+{
+  "diagnosticOnlyStages": [
+    "SG0",
+    "SG1",
+    "SG2",
+    "SG7"
+  ],
+  "matrixId": "phase39c-sglang-generated-vlm-v1",
+  "passCountingStages": [
+    "SG3",
+    "SG4",
+    "SG5",
+    "SG6"
+  ],
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_strategy_matrix_report",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-4b-instruct",
+  "stages": [
+    "SG0",
+    "SG1",
+    "SG2",
+    "SG3",
+    "SG4",
+    "SG5",
+    "SG6",
+    "SG7"
+  ]
+}

@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import {
   VLM_SGLANG_RUNTIME_MATRIX_ID,
+  buildVlmSglangRuntimeBuildContextGuardReport,
   getVlmSglangRuntimeCostSummary,
+  getVlmSglangRuntimeCloudBuildPlan,
   getVlmSglangRuntimeIamPlan,
   getVlmSglangRuntimePlan,
   vlmSglangRuntimeCanaryFixtures,
@@ -52,7 +54,8 @@ assert.equal(plan.execution.phase39DBlocked, true)
 assert.equal(plan.execution.phase39EBlocked, true)
 assert.equal(plan.execution.betaProductionBlocked, true)
 assert.equal(plan.execution.trackABlocked, true)
-assert.equal(plan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_SGLANG_APPROVAL'), true)
+assert.equal(plan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK'), true)
+assert.equal(plan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_SGLANG_APPROVAL'), false)
 assert.equal(plan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_SGLANG_RUNTIME_EXECUTE'), true)
 assert.equal(plan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_L4_COMPAT_MODEL_DOWNLOAD'), false)
 assert.equal(plan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_L4_COMPAT_PRIVATE_GCS_UPLOAD'), false)
@@ -86,16 +89,41 @@ assert.equal(cost.beta, 'blocked')
 assert.equal(cost.broadMedia, 'blocked')
 assert.equal(cost.runtimePackage, 'sglang==0.4.10.post2')
 
+const cloudBuildPlan = getVlmSglangRuntimeCloudBuildPlan()
+assert.equal(cloudBuildPlan.defaultMode, 'non_mutating')
+assert.equal(cloudBuildPlan.cloudBuild.configPath, 'cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml')
+assert.equal(cloudBuildPlan.cloudBuild.fullConfigPath, 'cloudbuild/vlm-sglang-runtime-phase39c.yaml')
+assert.equal(cloudBuildPlan.cloudBuild.overlayConfigPath, 'cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml')
+assert.equal(cloudBuildPlan.cloudBuild.mode, 'overlay')
+assert.match(cloudBuildPlan.cloudBuild.overlayBaseImage, /^us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-staging-workers\/vlm-runtime-phase39c-sglang@sha256:[0-9a-f]{64}$/)
+assert.equal(cloudBuildPlan.cloudBuild.platform, 'linux/amd64')
+assert.equal(cloudBuildPlan.cloudBuild.noModelFilesBaked, true)
+assert.equal(cloudBuildPlan.cloudBuild.noSecretsBaked, true)
+assert.equal(cloudBuildPlan.cloudBuild.artifactRegistryOnly, true)
+assert.equal(cloudBuildPlan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK'), true)
+assert.equal(cloudBuildPlan.confirmationsRequiredForExecution.includes('REEDITPRO_CONFIRM_VLM_SGLANG_CLOUD_BUILD'), true)
+assert.equal(cloudBuildPlan.executionBlockedByDefault, true)
+
+const buildContextGuard = await buildVlmSglangRuntimeBuildContextGuardReport()
+assert.equal(buildContextGuard.status, 'passed', `SGLang build context guard failed: ${buildContextGuard.blockers.join(', ')}`)
+
 const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { scripts: Record<string, string> }
 assert.equal(packageJson.scripts['activation:vlm-sglang-runtime:plan'], 'tsx server/cli/activation-vlm-sglang-runtime-plan.ts')
 assert.equal(packageJson.scripts['activation:vlm-sglang-runtime'], 'tsx server/cli/activation-vlm-sglang-runtime.ts')
 assert.equal(packageJson.scripts['activation:vlm-sglang-runtime:report'], 'tsx server/cli/activation-vlm-sglang-runtime-report.ts')
 assert.equal(packageJson.scripts['activation:vlm-sglang-runtime:iam-plan'], 'tsx server/cli/activation-vlm-sglang-runtime-iam-plan.ts')
 assert.equal(packageJson.scripts['activation:vlm-sglang-runtime:cost-summary'], 'tsx server/cli/activation-vlm-sglang-runtime-cost-summary.ts')
+assert.equal(packageJson.scripts['activation:vlm-sglang-runtime:cloud-build:plan'], 'tsx server/cli/activation-vlm-sglang-runtime-cloud-build-plan.ts')
+assert.equal(packageJson.scripts['activation:vlm-sglang-runtime:cloud-build'], 'tsx server/cli/activation-vlm-sglang-runtime-cloud-build.ts')
+assert.equal(packageJson.scripts['activation:vlm-sglang-runtime:cloud-build:report'], 'tsx server/cli/activation-vlm-sglang-runtime-cloud-build-report.ts')
 assert.equal(packageJson.scripts['smoke:activation-vlm-sglang-runtime'], 'tsx server/smoke/activation-vlm-sglang-runtime-smoke.ts')
 
 assert.equal(existsSync(new URL('../activation/vlm-sglang-runtime/index.ts', import.meta.url)), true)
 assert.equal(existsSync(new URL('../../docker/prod/vlm-sglang-runtime/Dockerfile', import.meta.url)), true)
+assert.equal(existsSync(new URL('../../docker/prod/vlm-sglang-runtime/Dockerfile.overlay', import.meta.url)), true)
+assert.equal(existsSync(new URL('../../cloudbuild/vlm-sglang-runtime-phase39c.yaml', import.meta.url)), true)
+assert.equal(existsSync(new URL('../../cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml', import.meta.url)), true)
+assert.equal(existsSync(new URL('../../docker/prod/vlm-sglang-runtime/Dockerfile.dockerignore', import.meta.url)), true)
 const moduleDir = new URL('../activation/vlm-sglang-runtime/', import.meta.url)
 const moduleSource = readdirSync(moduleDir)
   .filter((fileName) => fileName.endsWith('.ts'))
@@ -129,6 +157,8 @@ console.log(JSON.stringify({
     'model_id_runtime_path_blocked',
     'sglang_runtime_auto_download_provider_raw_prompt_real_media_public_output_blocked',
     'sglang_source_license_strategy_matrix_present',
+    'cloud_build_plan_and_context_guard_present',
+    'local_buildx_hang_preserved_as_historical_blocker',
     'canary_and_original_generated_fixture_registries_present',
     'freeform_and_repair_not_pass_counting',
     'decomposed_sg3_sg4_sg5_sg6_qa_present',

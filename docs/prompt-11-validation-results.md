@@ -40,6 +40,16 @@
 
 Shell-level sanity scans found mutation-style Prompt 11 routes using `requireIdempotency`, route/app/API registration in place, and no direct QA/revision/downstream runtime write or execution call in Prompt 11 implementation files. The new Node diagnostics still need CI execution because local Node cannot start.
 
+## GitHub Foundation Validation
+
+Manual workflow dispatch passed for head commit `43f1fac5289dcd7e18733c9669419d9b2a2fbccf`.
+
+- Run: https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26765164271
+- Event: `workflow_dispatch`
+- Result: success
+- Default `npm run foundation:validate`: passed.
+- `npm run foundation:validate:with-build`: passed, including lint, server typecheck, static audit, all diagnostics, QA/revision diagnostics, and full build on Linux.
+
 ## Known Limitations
 
 - SQL/RLS remains draft-only until local/staging Supabase validation is repaired and approved.
@@ -48,4 +58,4 @@ Shell-level sanity scans found mutation-style Prompt 11 routes using `requireIde
 
 ## Prompt 12 Decision
 
-Prompt 12 - Tool-Call Foundation may proceed only after Prompt 11 diagnostics and GitHub Foundation Validation pass. If QA/revision diagnostics or CI fail, use Prompt 11A - QA Revision Fallback Validation Hardening.
+Prompt 12 - Tool-Call Foundation may proceed with Prompt 11 guardrails after the Prompt 11 PR is reviewed. If future PR checks diverge from the manual successful workflow, use Prompt 11A - QA Revision Fallback Validation Hardening.

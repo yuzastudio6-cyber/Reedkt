@@ -1,0 +1,289 @@
+{
+  "phase": "39C-Q-SO",
+  "reportId": "phase_39cq_structured_output_strategy_matrix",
+  "runId": "phase39cq-so-20260601T041325",
+  "createdAt": "2026-06-01T04:29:24.831Z",
+  "matrixId": "phase39c-qwen-structured-output-v1",
+  "strategies": [
+    {
+      "id": "S0",
+      "name": "baseline trace only",
+      "passCounting": false,
+      "status": "diagnostic_only",
+      "description": "Replays the PR #87 prompt shape to capture safe failure traces. It cannot complete Phase 39C-Q-SO unless it unexpectedly validates and is promoted through another pass-counting strategy."
+    },
+    {
+      "id": "S1",
+      "name": "no-thinking strict prompt",
+      "passCounting": true,
+      "status": "allowed",
+      "description": "Uses compact schema instructions, JSON-only prompting, no tools, no prose, no markdown, and prompt-level no-thinking guidance."
+    },
+    {
+      "id": "S2",
+      "name": "OpenAI response_format JSON Schema",
+      "passCounting": true,
+      "status": "conditional",
+      "description": "Allowed only when a local loopback OpenAI-compatible vLLM server path is available. Otherwise it is recorded as skipped."
+    },
+    {
+      "id": "S3",
+      "name": "vLLM structured_outputs JSON",
+      "passCounting": true,
+      "status": "allowed",
+      "description": "Uses vLLM guided/structured JSON schema support through the installed runtime API."
+    },
+    {
+      "id": "S4",
+      "name": "vLLM grammar",
+      "passCounting": true,
+      "status": "conditional",
+      "description": "Uses vLLM grammar decoding only if the installed runtime exposes a supported grammar parameter."
+    },
+    {
+      "id": "S5",
+      "name": "structural tag",
+      "passCounting": true,
+      "status": "conditional",
+      "description": "Accepts JSON inside an approved structural tag only if the runtime supports structural tags."
+    },
+    {
+      "id": "S6",
+      "name": "deterministic repair diagnostic only",
+      "passCounting": false,
+      "status": "diagnostic_only",
+      "description": "Extracts or repairs simple wrappers for diagnosis only. It never counts as a Phase 39C-Q-SO pass."
+    }
+  ],
+  "candidateResults": [
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "slug": "qwen3-vl-2b-instruct",
+      "priority": "C",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+      "aggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+      "selectedFileCount": 11,
+      "selectedTotalSizeBytes": 4266647442,
+      "latestStructuredOutputRunId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+      "latestCloudRunExecution": "reeditpro-stg-vlm-runtime-phase39c-structured-output-hjnwf",
+      "latestCloudRunStatus": "NonZeroExitCode",
+      "status": "blocked",
+      "selectedStrategyId": null,
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/",
+      "privateJsonObjectCount": 17,
+      "strategies": [
+        {
+          "strategyId": "S0",
+          "status": "blocked",
+          "passCounting": false,
+          "fixtureCount": 5,
+          "blockers": [
+            "structured_output_strategy_incomplete:S0"
+          ],
+          "warnings": []
+        },
+        {
+          "strategyId": "S1",
+          "status": "blocked",
+          "passCounting": true,
+          "fixtureCount": 5,
+          "blockers": [
+            "structured_output_strategy_incomplete:S1"
+          ],
+          "warnings": []
+        },
+        {
+          "strategyId": "S2",
+          "status": "skipped",
+          "passCounting": true,
+          "fixtureCount": 0,
+          "blockers": [],
+          "warnings": [
+            "s2_unsupported_in_offline_llm_worker"
+          ]
+        },
+        {
+          "strategyId": "S3",
+          "status": "blocked",
+          "passCounting": true,
+          "fixtureCount": 5,
+          "blockers": [
+            "structured_output_strategy_incomplete:S3"
+          ],
+          "warnings": []
+        },
+        {
+          "strategyId": "S4",
+          "status": "blocked",
+          "passCounting": true,
+          "fixtureCount": 5,
+          "blockers": [
+            "structured_output_strategy_incomplete:S4"
+          ],
+          "warnings": []
+        },
+        {
+          "strategyId": "S5",
+          "status": "skipped",
+          "passCounting": true,
+          "fixtureCount": 0,
+          "blockers": [],
+          "warnings": [
+            "s5_unsupported_in_offline_llm_worker"
+          ]
+        },
+        {
+          "strategyId": "S6",
+          "status": "diagnostic_only",
+          "passCounting": false,
+          "fixtureCount": 0,
+          "blockers": [],
+          "warnings": [
+            "repair_diagnostic_trace_count:20",
+            "s6_never_counts_as_phase39cq_so_pass"
+          ]
+        }
+      ],
+      "blockers": [
+        "structured_output_strategy_matrix_exhausted"
+      ],
+      "evidence": "S1/S3/S4 reached deterministic generated fixture execution but did not pass direct JSON/schema, object-region, and safe-zone QA. S6 remained diagnostic-only."
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-4B-Instruct",
+      "slug": "qwen3-vl-4b-instruct",
+      "priority": "B",
+      "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+      "aggregateSha256": "d57960f5f151c10aa2c7919c1bcce00e32b759ad8a0617a8cdd62f5b790b73b1",
+      "selectedFileCount": 13,
+      "selectedTotalSizeBytes": 8887291213,
+      "priorCompleteMatrixRunId": "phase39cq-so-20260601T035158-qwen3-vl-4b-instruct",
+      "priorCompleteMatrixPrivateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T035158-qwen3-vl-4b-instruct/",
+      "priorCompleteMatrixPrivateJsonObjectCount": 17,
+      "latestStructuredOutputRunId": "phase39cq-so-20260601T041325-qwen3-vl-4b-instruct",
+      "latestCloudRunExecution": "reeditpro-stg-vlm-runtime-phase39c-structured-output-dscnb",
+      "latestCloudRunStatus": "Cancelled after stalled direct-constructor retry produced no safe report objects",
+      "status": "blocked",
+      "selectedStrategyId": null,
+      "privateQaPrefix": null,
+      "privateJsonObjectCount": 0,
+      "strategies": [
+        {
+          "strategyId": "S0",
+          "status": "blocked",
+          "passCounting": false
+        },
+        {
+          "strategyId": "S1",
+          "status": "blocked",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S2",
+          "status": "skipped",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S3",
+          "status": "not_completed_in_latest_retry",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S4",
+          "status": "not_completed_in_latest_retry",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S5",
+          "status": "skipped",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S6",
+          "status": "diagnostic_only",
+          "passCounting": false
+        }
+      ],
+      "blockers": [
+        "structured_output_direct_constructor_retry_cancelled_no_safe_report_artifacts",
+        "prior_complete_matrix_failed_direct_json_schema_qa"
+      ],
+      "evidence": "Earlier completed matrix uploaded 17 private JSON artifacts and failed the direct JSON/schema QA gate. The final direct-constructor retry was cancelled after remaining in Cloud Run active state without safe report artifacts."
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "slug": "qwen3-vl-8b-instruct-fp8",
+      "priority": "A",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+      "aggregateSha256": "40fbc222366b51e2e771e8558189ffd9c0f056569601007abf3e0702e2c3c98d",
+      "selectedFileCount": 12,
+      "selectedTotalSizeBytes": 10605571033,
+      "priorCompleteMatrixRunId": "phase39cq-so-20260601T035158-qwen3-vl-8b-instruct-fp8",
+      "priorCompleteMatrixPrivateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T035158-qwen3-vl-8b-instruct-fp8/",
+      "priorCompleteMatrixPrivateJsonObjectCount": 17,
+      "latestStructuredOutputRunId": "phase39cq-so-20260601T041325-qwen3-vl-8b-instruct-fp8",
+      "latestCloudRunExecution": "reeditpro-stg-vlm-runtime-phase39c-structured-output-c98db",
+      "latestCloudRunStatus": "Cancelled after queued/direct-constructor retry produced no safe report objects",
+      "status": "blocked",
+      "selectedStrategyId": null,
+      "privateQaPrefix": null,
+      "privateJsonObjectCount": 0,
+      "strategies": [
+        {
+          "strategyId": "S0",
+          "status": "blocked",
+          "passCounting": false
+        },
+        {
+          "strategyId": "S1",
+          "status": "blocked",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S2",
+          "status": "skipped",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S3",
+          "status": "not_completed_in_latest_retry",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S4",
+          "status": "not_completed_in_latest_retry",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S5",
+          "status": "skipped",
+          "passCounting": true
+        },
+        {
+          "strategyId": "S6",
+          "status": "diagnostic_only",
+          "passCounting": false
+        }
+      ],
+      "blockers": [
+        "structured_output_direct_constructor_retry_cancelled_no_safe_report_artifacts",
+        "prior_complete_matrix_failed_direct_json_schema_qa"
+      ],
+      "evidence": "Earlier completed matrix uploaded 17 private JSON artifacts and failed the direct JSON/schema QA gate. The final direct-constructor retry was cancelled before any safe report object was produced."
+    }
+  ],
+  "selectedCandidate": null,
+  "selectedStrategyId": null,
+  "status": "blocked",
+  "blockers": [
+    "no_candidate_passed_direct_structured_output_s1_s5",
+    "qwen3_vl_2b_s1_s3_s4_failed_schema_object_region_safe_zone_gate",
+    "qwen3_vl_4b_direct_constructor_retry_cancelled_no_safe_report_artifacts",
+    "qwen3_vl_8b_fp8_direct_constructor_retry_cancelled_no_safe_report_artifacts",
+    "phase39d_remains_blocked",
+    "phase39e_remains_blocked"
+  ]
+}

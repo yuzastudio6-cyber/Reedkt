@@ -1,0 +1,209 @@
+{
+  "phase": "39C-Q-SO",
+  "runId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+  "traceCount": 20,
+  "traces": [
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-object-layout",
+      "strategyId": "S0",
+      "rawOutputSha256": "b27eba8862719d677c9f7ec917ec0aa2b6fe209f5c5569707ac3d2351a16c0bd",
+      "rawOutputSizeBytes": 446,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"bo",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ui-safe-zone",
+      "strategyId": "S0",
+      "rawOutputSha256": "ce379a0b9a7a44ee96dddef9de70800d177adae5d2d58345081e0537649ffaf5",
+      "rawOutputSizeBytes": 479,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"b",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "strategyId": "S0",
+      "rawOutputSha256": "4825958b6b9972c3faa69fc03bcdea2fdc7a3e592306354a2d6be1ac05be5ed0",
+      "rawOutputSizeBytes": 440,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidence",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ambiguous-scene",
+      "strategyId": "S0",
+      "rawOutputSha256": "2b6a1b3c67104f4dae6bbd9ec29b9328326212f01f08f4dd405c95fdc40e229c",
+      "rawOutputSizeBytes": 456,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"b",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-spatial-reasoning",
+      "strategyId": "S0",
+      "rawOutputSha256": "937bd258b3367c247948a8d0310d5c13f7f5499edcb7956341d5be60b5e4d773",
+      "rawOutputSizeBytes": 414,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, \"",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-object-layout",
+      "strategyId": "S1",
+      "rawOutputSha256": "951f77af20ce37721b4f77f368c383f92232407fd0f6a5f671a0b6dc5c1ef95a",
+      "rawOutputSizeBytes": 675,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"bo",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ui-safe-zone",
+      "strategyId": "S1",
+      "rawOutputSha256": "1029686c61fc6de9db6fff45b1f4a27bea315dd123a4cc07a09212d7ae3cfc17",
+      "rawOutputSizeBytes": 747,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"b",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "strategyId": "S1",
+      "rawOutputSha256": "63aa99351ad2062206ca106cfb7f71733ebe2b91de53f0b717cb645dda8d4997",
+      "rawOutputSizeBytes": 658,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidence",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ambiguous-scene",
+      "strategyId": "S1",
+      "rawOutputSha256": "6c49d816516be5daae20f332ad06e0908929953561de9c4a42f97ce046b56d93",
+      "rawOutputSizeBytes": 671,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"b",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-spatial-reasoning",
+      "strategyId": "S1",
+      "rawOutputSha256": "5b8d5c7aa9ba57dcf919ea04949b2b335a60febc975c8bddaed846a03b376b09",
+      "rawOutputSizeBytes": 651,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, \"",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-object-layout",
+      "strategyId": "S3",
+      "rawOutputSha256": "f3a9f1f86795281916b3a4cbae66acc1b5568ece2dd32244406616869bff7224",
+      "rawOutputSizeBytes": 661,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"b",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ui-safe-zone",
+      "strategyId": "S3",
+      "rawOutputSha256": "11e2013cc14419be85df050af1851136a843c4dca10e89c50f519d8acb8f0352",
+      "rawOutputSizeBytes": 730,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "strategyId": "S3",
+      "rawOutputSha256": "111b42213625e590af8e9fb9bd765e661666ef8a37856e221b42e691a1a305cc",
+      "rawOutputSizeBytes": 627,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidenc",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ambiguous-scene",
+      "strategyId": "S3",
+      "rawOutputSha256": "c4f92e6312207ef3342331268a61c760e09c615dad4999aa27fe1756802fc89c",
+      "rawOutputSizeBytes": 671,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-spatial-reasoning",
+      "strategyId": "S3",
+      "rawOutputSha256": "f095bfa95519537d1302289f7eedb6b90982a76fdb0245c148ac14152996a26c",
+      "rawOutputSizeBytes": 656,
+      "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, ",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-object-layout",
+      "strategyId": "S4",
+      "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+      "rawOutputSizeBytes": 5,
+      "safeExcerpt": "{ }",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ui-safe-zone",
+      "strategyId": "S4",
+      "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+      "rawOutputSizeBytes": 5,
+      "safeExcerpt": "{ }",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "strategyId": "S4",
+      "rawOutputSha256": "1f02aafb100677a0e110d608d680e129a64ba4af91b8331e8e5e55fc9f3b3268",
+      "rawOutputSizeBytes": 13,
+      "safeExcerpt": "{ }",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-ambiguous-scene",
+      "strategyId": "S4",
+      "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+      "rawOutputSizeBytes": 5,
+      "safeExcerpt": "{ }",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    },
+    {
+      "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+      "fixtureId": "generated-spatial-reasoning",
+      "strategyId": "S4",
+      "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+      "rawOutputSizeBytes": 5,
+      "safeExcerpt": "{ }",
+      "fullRawTraceCommitted": false,
+      "fullRawTracePrivateOnly": true
+    }
+  ],
+  "fullRawTracePrivateArtifact": "phase_39cq_private_raw_output_traces.json",
+  "fullRawTraceCommitted": false
+}

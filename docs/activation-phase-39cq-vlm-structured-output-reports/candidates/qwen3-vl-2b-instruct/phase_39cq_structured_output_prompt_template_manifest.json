@@ -1,0 +1,66 @@
+{
+  "phase": "39C-Q-SO",
+  "runId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+  "createdAt": "2026-06-01T04:15:03.552474Z",
+  "schemaId": "phase39c_qwen_vlm_v1",
+  "rawPromptAllowed": false,
+  "providerCallsAllowed": false,
+  "toolCallsAllowed": false,
+  "templates": [
+    {
+      "promptTemplateId": "phase39cq_so_generated_object_layout_json_v1",
+      "fixtureId": "generated-object-layout",
+      "schemaId": "phase39c_qwen_vlm_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C-Q-SO generated-fixture VLM QA worker. Use only the provided generated synthetic image and fixed prompt. Return only compact JSON matching the schema. No markdown, prose, code fences, tools, URLs, provider calls, or real-media claims. All boxes are approximate normalized [x1,y1,x2,y2] values in 0..1. Use manual_review_required when uncertain.",
+      "userInstruction": "Identify object regions and whether a lower-third caption would collide with the timeline panel. Describe visible generated objects, text-like regions, safe-zone suggestions, and spatial relations. Use empty arrays only when the image genuinely lacks that category. For ambiguous identity, set uncertainty.manual_review_required=true.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "compact_json_schema_only"
+    },
+    {
+      "promptTemplateId": "phase39cq_so_generated_ui_safe_zone_json_v1",
+      "fixtureId": "generated-ui-safe-zone",
+      "schemaId": "phase39c_qwen_vlm_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C-Q-SO generated-fixture VLM QA worker. Use only the provided generated synthetic image and fixed prompt. Return only compact JSON matching the schema. No markdown, prose, code fences, tools, URLs, provider calls, or real-media claims. All boxes are approximate normalized [x1,y1,x2,y2] values in 0..1. Use manual_review_required when uncertain.",
+      "userInstruction": "Decide if the lower third is risky and suggest an alternate caption zone. Describe visible generated objects, text-like regions, safe-zone suggestions, and spatial relations. Use empty arrays only when the image genuinely lacks that category. For ambiguous identity, set uncertainty.manual_review_required=true.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "compact_json_schema_only"
+    },
+    {
+      "promptTemplateId": "phase39cq_so_generated_ocr_vlm_comparison_json_v1",
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "schemaId": "phase39c_qwen_vlm_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C-Q-SO generated-fixture VLM QA worker. Use only the provided generated synthetic image and fixed prompt. Return only compact JSON matching the schema. No markdown, prose, code fences, tools, URLs, provider calls, or real-media claims. All boxes are approximate normalized [x1,y1,x2,y2] values in 0..1. Use manual_review_required when uncertain.",
+      "userInstruction": "Return text-like regions that a future OCR/VLM comparison gate could reconcile. Describe visible generated objects, text-like regions, safe-zone suggestions, and spatial relations. Use empty arrays only when the image genuinely lacks that category. For ambiguous identity, set uncertainty.manual_review_required=true.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "compact_json_schema_only"
+    },
+    {
+      "promptTemplateId": "phase39cq_so_generated_ambiguous_scene_json_v1",
+      "fixtureId": "generated-ambiguous-scene",
+      "schemaId": "phase39c_qwen_vlm_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C-Q-SO generated-fixture VLM QA worker. Use only the provided generated synthetic image and fixed prompt. Return only compact JSON matching the schema. No markdown, prose, code fences, tools, URLs, provider calls, or real-media claims. All boxes are approximate normalized [x1,y1,x2,y2] values in 0..1. Use manual_review_required when uncertain.",
+      "userInstruction": "Flag uncertainty if icon/object identity is ambiguous. Describe visible generated objects, text-like regions, safe-zone suggestions, and spatial relations. Use empty arrays only when the image genuinely lacks that category. For ambiguous identity, set uncertainty.manual_review_required=true.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "compact_json_schema_only"
+    },
+    {
+      "promptTemplateId": "phase39cq_so_generated_spatial_reasoning_json_v1",
+      "fixtureId": "generated-spatial-reasoning",
+      "schemaId": "phase39c_qwen_vlm_v1",
+      "systemInstruction": "You are a bounded ReeditPro Phase 39C-Q-SO generated-fixture VLM QA worker. Use only the provided generated synthetic image and fixed prompt. Return only compact JSON matching the schema. No markdown, prose, code fences, tools, URLs, provider calls, or real-media claims. All boxes are approximate normalized [x1,y1,x2,y2] values in 0..1. Use manual_review_required when uncertain.",
+      "userInstruction": "Describe broad left/right/center relations without claiming exact pixel geometry. Describe visible generated objects, text-like regions, safe-zone suggestions, and spatial relations. Use empty arrays only when the image genuinely lacks that category. For ambiguous identity, set uncertainty.manual_review_required=true.",
+      "rawPromptAllowed": false,
+      "providerCallAllowed": false,
+      "toolCallAllowed": false,
+      "outputFormat": "compact_json_schema_only"
+    }
+  ]
+}

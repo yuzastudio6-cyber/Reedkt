@@ -1,0 +1,1242 @@
+{
+  "ok": false,
+  "phase": "39C-Q-SO",
+  "runId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+  "createdAt": "2026-06-01T04:15:03.552474Z",
+  "sourcePhase39C": {
+    "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+    "status": "preserved_original_bf16_8b_l4_oom_evidence"
+  },
+  "sourcePhase39BQ39CQ": {
+    "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+    "status": "preserved_official_candidate_staging_runtime_json_schema_blocker_evidence"
+  },
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+  "assetVerification": {
+    "phase": "39C-Q-SO",
+    "runId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+    "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+    "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+    "modelGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+    "aggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+    "computedAggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+    "entries": [
+      {
+        "relativePath": "README.md",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/README.md",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "5fc5be1ca9a3910399bd6239ee5086ab5d82a2a59c5d2b00e887a8835cc110e4",
+        "expectedSizeBytes": 7136,
+        "verified": true,
+        "generation": "1780277555268326",
+        "crc32c": "xLZuOw==",
+        "md5Hash": "1CyjLJgscjAGByyGe8o8+Q==",
+        "actualSizeBytes": 7136,
+        "actualSha256": "5fc5be1ca9a3910399bd6239ee5086ab5d82a2a59c5d2b00e887a8835cc110e4"
+      },
+      {
+        "relativePath": "chat_template.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/chat_template.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "6f8a6a55027e3da5160105556cda5dd69f6423f1c32645f6730d32de7773d0c4",
+        "expectedSizeBytes": 5502,
+        "verified": true,
+        "generation": "1780277557387585",
+        "crc32c": "+i6+Vw==",
+        "md5Hash": "fzcKyEYnQGxd0LZADCKJ+A==",
+        "actualSizeBytes": 5502,
+        "actualSha256": "6f8a6a55027e3da5160105556cda5dd69f6423f1c32645f6730d32de7773d0c4"
+      },
+      {
+        "relativePath": "config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "bec4b3d446efa05807365c9e1cec03ac590836879d02f3a6da879971154bdd3b",
+        "expectedSizeBytes": 1505,
+        "verified": true,
+        "generation": "1780277559203541",
+        "crc32c": "J8M8Fg==",
+        "md5Hash": "f8/p32y376vT+B7gIWqaag==",
+        "actualSizeBytes": 1505,
+        "actualSha256": "bec4b3d446efa05807365c9e1cec03ac590836879d02f3a6da879971154bdd3b"
+      },
+      {
+        "relativePath": "generation_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/generation_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "1e241830b48b397cb0900101421df5450baddc7adf01e5fc86b5615865f3bae4",
+        "expectedSizeBytes": 269,
+        "verified": true,
+        "generation": "1780277560981341",
+        "crc32c": "e1gNQQ==",
+        "md5Hash": "nWDTqaDZk+umM9blByzdSQ==",
+        "actualSizeBytes": 269,
+        "actualSha256": "1e241830b48b397cb0900101421df5450baddc7adf01e5fc86b5615865f3bae4"
+      },
+      {
+        "relativePath": "merges.txt",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/merges.txt",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+        "expectedSizeBytes": 1671839,
+        "verified": true,
+        "generation": "1780277563626863",
+        "crc32c": "TsXDRw==",
+        "md5Hash": "54iCwuIkp1+oGA7GELriQw==",
+        "actualSizeBytes": 1671839,
+        "actualSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+      },
+      {
+        "relativePath": "model.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/model.safetensors",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "7de1838c87a5349b016c26a1c3f7d2bc400a3d485f95ef39a7059ffd734977a0",
+        "expectedSizeBytes": 4255140312,
+        "verified": true,
+        "generation": "1780278557679757",
+        "crc32c": "SMUzqg==",
+        "md5Hash": "NtWJ8R7ZQhhan/ILBtK0aw==",
+        "actualSizeBytes": 4255140312,
+        "actualSha256": "7de1838c87a5349b016c26a1c3f7d2bc400a3d485f95ef39a7059ffd734977a0"
+      },
+      {
+        "relativePath": "preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/preprocessor_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+        "expectedSizeBytes": 390,
+        "verified": true,
+        "generation": "1780278560603398",
+        "crc32c": "8VGvsA==",
+        "md5Hash": "e8rt9yagWSRZWwMC0N1Nxw==",
+        "actualSizeBytes": 390,
+        "actualSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+      },
+      {
+        "relativePath": "tokenizer.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/tokenizer.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+        "expectedSizeBytes": 7032403,
+        "verified": true,
+        "generation": "1780278564583412",
+        "crc32c": "kbuigA==",
+        "md5Hash": "8TGUaAiR5f1YF6VqNBvwFQ==",
+        "actualSizeBytes": 7032403,
+        "actualSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7"
+      },
+      {
+        "relativePath": "tokenizer_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/tokenizer_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+        "expectedSizeBytes": 10868,
+        "verified": true,
+        "generation": "1780278566651903",
+        "crc32c": "cGn/Jg==",
+        "md5Hash": "UMXTfZ05BODiQ+cJvbtsNw==",
+        "actualSizeBytes": 10868,
+        "actualSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399"
+      },
+      {
+        "relativePath": "video_preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/video_preprocessor_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+        "expectedSizeBytes": 385,
+        "verified": true,
+        "generation": "1780278569073572",
+        "crc32c": "cNRL4Q==",
+        "md5Hash": "QbyE16pwh5leC4/TwKKd+g==",
+        "actualSizeBytes": 385,
+        "actualSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"
+      },
+      {
+        "relativePath": "vocab.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/vocab.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+        "expectedSizeBytes": 2776833,
+        "verified": true,
+        "generation": "1780278571809338",
+        "crc32c": "DhkvIQ==",
+        "md5Hash": "YTuOSmIsSiyQ6eEkX8VA1g==",
+        "actualSizeBytes": 2776833,
+        "actualSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+      }
+    ],
+    "status": "verified",
+    "blockers": [],
+    "warnings": [
+      "phase39cq_so_staging_l4_cloud_run_job_path_used",
+      "phase39cq_so_worker_stderr:5 [00:41<01:01, 20.51s/it, est. speed input: 48.68 toks/s, output: 12.22 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [01:07<00:45, 22.83s/it, est. speed input: 45.37 toks/s, output: 11.38 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [01:30<00:22, 22.89s/it, est. speed input: 45.15 toks/s, output: 11.32 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.33s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00, 116.88it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|\u2588\u2588        | 1/5 [00:00<00:00,  5.37it/s, est. speed input: 5501.05 toks/s, output: 37.56 toks/s]\nProcessed prompts:  40%|\u2588\u2588\u2588\u2588      | 2/5 [00:00<00:00,  6.50it/s, est. speed input: 6447.84 toks/s, output: 37.80 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [00:00<00:00,  6.95it/s, est. speed input: 6828.74 toks/s, output: 37.81 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [00:00<00:00,  7.20it/s, est. speed input: 7035.64 toks/s, output: 37.87 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.02it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\n[rank0]:[W531 21:20:59.990524965 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7f2a5eb36da8 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7f2a689d8138 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"__init__\"\n - leaked function \"accept_string\"\n - leaked function \"rollback\"\n - leaked function \"is_terminated\"\n - leaked function \"serialize_json\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"accept_token\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n",
+      "s2_unsupported_in_offline_llm_worker",
+      "s5_unsupported_in_offline_llm_worker",
+      "repair_diagnostic_trace_count:20",
+      "s6_never_counts_as_phase39cq_so_pass"
+    ]
+  },
+  "strategyMatrix": {
+    "phase": "39C-Q-SO",
+    "reportId": "phase_39cq_structured_output_strategy_matrix",
+    "runId": "phase39cq-so-20260601T041325-qwen3-vl-2b-instruct",
+    "matrixId": "phase39c-qwen-structured-output-v1",
+    "strategiesDefined": [
+      {
+        "strategyId": "S0",
+        "name": "baseline trace only",
+        "description": "Current PR #87 prompt behavior; captures safe traces and does not count as a pass.",
+        "matrixId": "phase39c-qwen-structured-output-v1",
+        "passCounting": false,
+        "backend": "baseline",
+        "sampling": {
+          "temperature": 0.0,
+          "topP": 1.0,
+          "maxTokens": 160
+        },
+        "fixtureConstraints": {
+          "generatedOnly": true,
+          "imageCountPerPrompt": 1,
+          "maxSizePx": 256
+        }
+      },
+      {
+        "strategyId": "S1",
+        "name": "no-thinking strict prompt",
+        "description": "JSON-only compact-schema prompt with no prose, no markdown, no tools, and prompt-level no-thinking guidance.",
+        "matrixId": "phase39c-qwen-structured-output-v1",
+        "passCounting": true,
+        "backend": "strict_prompt",
+        "sampling": {
+          "temperature": 0.0,
+          "topP": 1.0,
+          "maxTokens": 256
+        },
+        "fixtureConstraints": {
+          "generatedOnly": true,
+          "imageCountPerPrompt": 1,
+          "maxSizePx": 256
+        }
+      },
+      {
+        "strategyId": "S2",
+        "name": "OpenAI response_format JSON Schema",
+        "description": "OpenAI-compatible response_format json_schema; skipped by the offline LLM worker when no loopback server path is enabled.",
+        "matrixId": "phase39c-qwen-structured-output-v1",
+        "passCounting": true,
+        "backend": "openai_response_format",
+        "sampling": {
+          "temperature": 0.0,
+          "topP": 1.0,
+          "maxTokens": 256
+        },
+        "fixtureConstraints": {
+          "generatedOnly": true,
+          "imageCountPerPrompt": 1,
+          "maxSizePx": 256
+        }
+      },
+      {
+        "strategyId": "S3",
+        "name": "vLLM structured_outputs JSON",
+        "description": "vLLM guided JSON schema via the installed runtime's SamplingParams support.",
+        "matrixId": "phase39c-qwen-structured-output-v1",
+        "passCounting": true,
+        "backend": "guided_json",
+        "sampling": {
+          "temperature": 0.0,
+          "topP": 1.0,
+          "maxTokens": 256
+        },
+        "fixtureConstraints": {
+          "generatedOnly": true,
+          "imageCountPerPrompt": 1,
+          "maxSizePx": 256
+        }
+      },
+      {
+        "strategyId": "S4",
+        "name": "vLLM grammar",
+        "description": "vLLM grammar-constrained JSON output if the installed runtime supports grammar guided decoding.",
+        "matrixId": "phase39c-qwen-structured-output-v1",
+        "passCounting": true,
+        "backend": "guided_grammar",
+        "sampling": {
+          "temperature": 0.0,
+          "topP": 1.0,
+          "maxTokens": 256
+        },
+        "fixtureConstraints": {
+          "generatedOnly": true,
+          "imageCountPerPrompt": 1,
+          "maxSizePx": 256
+        }
+      },
+      {
+        "strategyId": "S5",
+        "name": "structural tag",
+        "description": "Structural-tag JSON protocol; skipped by the offline LLM worker unless supported.",
+        "matrixId": "phase39c-qwen-structured-output-v1",
+        "passCounting": true,
+        "backend": "structural_tag",
+        "sampling": {
+          "temperature": 0.0,
+          "topP": 1.0,
+          "maxTokens": 256
+        },
+        "fixtureConstraints": {
+          "generatedOnly": true,
+          "imageCountPerPrompt": 1,
+          "maxSizePx": 256
+        }
+      },
+      {
+        "strategyId": "S6",
+        "name": "deterministic repair diagnostic only",
+        "description": "Deterministic wrapper/markdown extraction diagnostic; never counts as a Phase 39C-Q-SO pass.",
+        "matrixId": "phase39c-qwen-structured-output-v1",
+        "passCounting": false,
+        "backend": "repair_diagnostic",
+        "sampling": {
+          "temperature": 0.0,
+          "topP": 1.0,
+          "maxTokens": 256
+        },
+        "fixtureConstraints": {
+          "generatedOnly": true,
+          "imageCountPerPrompt": 1,
+          "maxSizePx": 256
+        }
+      }
+    ],
+    "strategyResults": [
+      {
+        "strategyId": "S0",
+        "status": "blocked",
+        "passCounting": false,
+        "fixtureResults": [
+          {
+            "fixtureId": "generated-object-layout",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ui-safe-zone",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ambiguous-scene",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-spatial-reasoning",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          }
+        ],
+        "traceRecords": [
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-object-layout",
+            "strategyId": "S0",
+            "rawOutputSha256": "b27eba8862719d677c9f7ec917ec0aa2b6fe209f5c5569707ac3d2351a16c0bd",
+            "rawOutputSizeBytes": 446,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"bo",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ui-safe-zone",
+            "strategyId": "S0",
+            "rawOutputSha256": "ce379a0b9a7a44ee96dddef9de70800d177adae5d2d58345081e0537649ffaf5",
+            "rawOutputSizeBytes": 479,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"b",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "strategyId": "S0",
+            "rawOutputSha256": "4825958b6b9972c3faa69fc03bcdea2fdc7a3e592306354a2d6be1ac05be5ed0",
+            "rawOutputSizeBytes": 440,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidence",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ambiguous-scene",
+            "strategyId": "S0",
+            "rawOutputSha256": "2b6a1b3c67104f4dae6bbd9ec29b9328326212f01f08f4dd405c95fdc40e229c",
+            "rawOutputSizeBytes": 456,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"b",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-spatial-reasoning",
+            "strategyId": "S0",
+            "rawOutputSha256": "937bd258b3367c247948a8d0310d5c13f7f5499edcb7956341d5be60b5e4d773",
+            "rawOutputSizeBytes": 414,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, \"",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          }
+        ],
+        "blockers": [
+          "structured_output_strategy_incomplete:S0"
+        ],
+        "warnings": []
+      },
+      {
+        "strategyId": "S1",
+        "status": "blocked",
+        "passCounting": true,
+        "fixtureResults": [
+          {
+            "fixtureId": "generated-object-layout",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ui-safe-zone",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ambiguous-scene",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-spatial-reasoning",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          }
+        ],
+        "traceRecords": [
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-object-layout",
+            "strategyId": "S1",
+            "rawOutputSha256": "951f77af20ce37721b4f77f368c383f92232407fd0f6a5f671a0b6dc5c1ef95a",
+            "rawOutputSizeBytes": 675,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"bo",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ui-safe-zone",
+            "strategyId": "S1",
+            "rawOutputSha256": "1029686c61fc6de9db6fff45b1f4a27bea315dd123a4cc07a09212d7ae3cfc17",
+            "rawOutputSizeBytes": 747,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"b",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "strategyId": "S1",
+            "rawOutputSha256": "63aa99351ad2062206ca106cfb7f71733ebe2b91de53f0b717cb645dda8d4997",
+            "rawOutputSizeBytes": 658,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidence",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ambiguous-scene",
+            "strategyId": "S1",
+            "rawOutputSha256": "6c49d816516be5daae20f332ad06e0908929953561de9c4a42f97ce046b56d93",
+            "rawOutputSizeBytes": 671,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"b",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-spatial-reasoning",
+            "strategyId": "S1",
+            "rawOutputSha256": "5b8d5c7aa9ba57dcf919ea04949b2b335a60febc975c8bddaed846a03b376b09",
+            "rawOutputSizeBytes": 651,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, \"",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          }
+        ],
+        "blockers": [
+          "structured_output_strategy_incomplete:S1"
+        ],
+        "warnings": []
+      },
+      {
+        "strategyId": "S2",
+        "status": "skipped",
+        "passCounting": true,
+        "fixtureResults": [],
+        "traceRecords": [],
+        "blockers": [],
+        "warnings": [
+          "s2_unsupported_in_offline_llm_worker"
+        ]
+      },
+      {
+        "strategyId": "S3",
+        "status": "blocked",
+        "passCounting": true,
+        "fixtureResults": [
+          {
+            "fixtureId": "generated-object-layout",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ui-safe-zone",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ambiguous-scene",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-spatial-reasoning",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "direct_json_object_required",
+              "object_region_qa_failed",
+              "output_json_parse_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          }
+        ],
+        "traceRecords": [
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-object-layout",
+            "strategyId": "S3",
+            "rawOutputSha256": "f3a9f1f86795281916b3a4cbae66acc1b5568ece2dd32244406616869bff7224",
+            "rawOutputSizeBytes": 661,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-object-layout.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"PLANT\", \"confidence\": 0.95, \"b",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ui-safe-zone",
+            "strategyId": "S3",
+            "rawOutputSha256": "11e2013cc14419be85df050af1851136a843c4dca10e89c50f519d8acb8f0352",
+            "rawOutputSizeBytes": 730,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ui-safe-zone.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"toolbar\", \"confidence\": 0.95, \"",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "strategyId": "S3",
+            "rawOutputSha256": "111b42213625e590af8e9fb9bd765e661666ef8a37856e221b42e691a1a305cc",
+            "rawOutputSizeBytes": 627,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ocr-vlm-comparison.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"SOURCE LABEL\", \"confidenc",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ambiguous-scene",
+            "strategyId": "S3",
+            "rawOutputSha256": "c4f92e6312207ef3342331268a61c760e09c615dad4999aa27fe1756802fc89c",
+            "rawOutputSizeBytes": 671,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-ambiguous-scene.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"icon\", \"confidence\": 0.95, \"",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-spatial-reasoning",
+            "strategyId": "S3",
+            "rawOutputSha256": "f095bfa95519537d1302289f7eedb6b90982a76fdb0245c148ac14152996a26c",
+            "rawOutputSizeBytes": 656,
+            "safeExcerpt": "{ \"fixture_id\": \"generated-spatial-reasoning.png\", \"candidate_id\": \"Qwen\\/Qwen3-VL-8B-Instruct-FP8\", \"prompt_template_id\": \"phase39c_qwen_vlm_v1\", \"schema_version\": \"phase39c_qwen_vlm_v1\", \"objects\": [ { \"label\": \"box\", \"confidence\": 0.95, ",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          }
+        ],
+        "blockers": [
+          "structured_output_strategy_incomplete:S3"
+        ],
+        "warnings": []
+      },
+      {
+        "strategyId": "S4",
+        "status": "blocked",
+        "passCounting": true,
+        "fixtureResults": [
+          {
+            "fixtureId": "generated-object-layout",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": true,
+            "schemaValid": true,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "object_region_qa_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ui-safe-zone",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": true,
+            "schemaValid": true,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "object_region_qa_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": true,
+            "schemaValid": true,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "object_region_qa_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ambiguous-scene",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": true,
+            "schemaValid": true,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "object_region_qa_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-spatial-reasoning",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": true,
+            "schemaValid": true,
+            "requiredLabelRecall": 0.0,
+            "broadRegionAccuracy": 0.0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": {},
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "object_region_qa_failed",
+              "safe_zone_unknown"
+            ],
+            "warnings": []
+          }
+        ],
+        "traceRecords": [
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-object-layout",
+            "strategyId": "S4",
+            "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+            "rawOutputSizeBytes": 5,
+            "safeExcerpt": "{ }",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ui-safe-zone",
+            "strategyId": "S4",
+            "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+            "rawOutputSizeBytes": 5,
+            "safeExcerpt": "{ }",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "strategyId": "S4",
+            "rawOutputSha256": "1f02aafb100677a0e110d608d680e129a64ba4af91b8331e8e5e55fc9f3b3268",
+            "rawOutputSizeBytes": 13,
+            "safeExcerpt": "{ }",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-ambiguous-scene",
+            "strategyId": "S4",
+            "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+            "rawOutputSizeBytes": 5,
+            "safeExcerpt": "{ }",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          },
+          {
+            "candidateId": "Qwen/Qwen3-VL-2B-Instruct",
+            "fixtureId": "generated-spatial-reasoning",
+            "strategyId": "S4",
+            "rawOutputSha256": "95dab6671126021611432a4133092a2363f599ba6ff3faa8389bd7431847f408",
+            "rawOutputSizeBytes": 5,
+            "safeExcerpt": "{ }",
+            "fullRawTraceCommitted": false,
+            "fullRawTracePrivateOnly": true
+          }
+        ],
+        "blockers": [
+          "structured_output_strategy_incomplete:S4"
+        ],
+        "warnings": []
+      },
+      {
+        "strategyId": "S5",
+        "status": "skipped",
+        "passCounting": true,
+        "fixtureResults": [],
+        "traceRecords": [],
+        "blockers": [],
+        "warnings": [
+          "s5_unsupported_in_offline_llm_worker"
+        ]
+      },
+      {
+        "strategyId": "S6",
+        "status": "diagnostic_only",
+        "passCounting": false,
+        "fixtureResults": [],
+        "traceRecords": [],
+        "blockers": [],
+        "warnings": [
+          "repair_diagnostic_trace_count:20",
+          "s6_never_counts_as_phase39cq_so_pass"
+        ]
+      }
+    ],
+    "selectedStrategyId": null,
+    "s6CountsAsPass": false,
+    "status": "blocked"
+  },
+  "fixtureResults": [],
+  "qa": {
+    "status": "blocked",
+    "schemaValidity": 0,
+    "averageRequiredLabelRecall": 0.0,
+    "averageBroadRegionAccuracy": 0.0,
+    "gates": [
+      {
+        "gateId": "private_model_assets",
+        "status": "passed"
+      },
+      {
+        "gateId": "local_model_path_only",
+        "status": "blocked"
+      },
+      {
+        "gateId": "structured_json_schema",
+        "status": "blocked"
+      },
+      {
+        "gateId": "generated_fixture_integrity",
+        "status": "blocked"
+      },
+      {
+        "gateId": "blocked_features",
+        "status": "passed"
+      }
+    ],
+    "blockers": [
+      "structured_output_strategy_matrix_exhausted"
+    ],
+    "warnings": [
+      "phase39cq_so_staging_l4_cloud_run_job_path_used",
+      "phase39cq_so_worker_stderr:5 [00:41<01:01, 20.51s/it, est. speed input: 48.68 toks/s, output: 12.22 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [01:07<00:45, 22.83s/it, est. speed input: 45.37 toks/s, output: 11.38 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [01:30<00:22, 22.89s/it, est. speed input: 45.15 toks/s, output: 11.32 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.33s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00, 116.88it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|\u2588\u2588        | 1/5 [00:00<00:00,  5.37it/s, est. speed input: 5501.05 toks/s, output: 37.56 toks/s]\nProcessed prompts:  40%|\u2588\u2588\u2588\u2588      | 2/5 [00:00<00:00,  6.50it/s, est. speed input: 6447.84 toks/s, output: 37.80 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [00:00<00:00,  6.95it/s, est. speed input: 6828.74 toks/s, output: 37.81 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [00:00<00:00,  7.20it/s, est. speed input: 7035.64 toks/s, output: 37.87 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.02it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\n[rank0]:[W531 21:20:59.990524965 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7f2a5eb36da8 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7f2a689d8138 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"__init__\"\n - leaked function \"accept_string\"\n - leaked function \"rollback\"\n - leaked function \"is_terminated\"\n - leaked function \"serialize_json\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"accept_token\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n",
+      "repair_diagnostic_trace_count:20",
+      "s2_unsupported_in_offline_llm_worker",
+      "s5_unsupported_in_offline_llm_worker",
+      "s6_never_counts_as_phase39cq_so_pass"
+    ]
+  },
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/",
+  "artifacts": [
+    {
+      "id": "phase_39cq_structured_output_plan_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_plan.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_plan.json",
+      "sizeBytes": 807,
+      "sha256": "56812830ce2faedc9a15e7d7990640eb5897ec2120cba31ad226788582842f97",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_structured_output_failure_taxonomy_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_failure_taxonomy.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_failure_taxonomy.json",
+      "sizeBytes": 530,
+      "sha256": "38cee499bd869a7e69de5bb5e51438b05776c87b5b8ebea36195728482d4aeac",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_structured_output_schema_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_schema.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_schema.json",
+      "sizeBytes": 5121,
+      "sha256": "df9b925c44eda0d2e6cd3abfbb49bb1d24572120f9fc6eee3d1ec194cdd5765b",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_structured_output_strategy_matrix_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_strategy_matrix.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_strategy_matrix.json",
+      "sizeBytes": 30096,
+      "sha256": "fb01fc9a4d12cdc2799d38c4c3be6978b8c1b9d15a0af670352f5c4d8ba63097",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_structured_output_prompt_template_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_prompt_template_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_prompt_template_manifest.json",
+      "sizeBytes": 5709,
+      "sha256": "1dbf0af0972addda24c3ed16b5be80d3e46e323850de237c9422ea405820c932",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_candidate_trace_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_candidate_trace_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_candidate_trace_manifest.json",
+      "sizeBytes": 11499,
+      "sha256": "0e457ce45a7cf29987d2e06a6a6e7bdd249fd5afc11e18020ae164be522899da",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_candidate_strategy_results_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_candidate_strategy_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_candidate_strategy_results.json",
+      "sizeBytes": 26024,
+      "sha256": "8929687092a336ec076ce25589a9a4c29257dceffc20c88eef976e168a9f869f",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_selected_candidate_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_selected_candidate_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_selected_candidate_report.json",
+      "sizeBytes": 220,
+      "sha256": "6e77a4b5f83217b1339b7886aa4cb94b22024b2f87c22aed4971088684c689a8",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_generated_fixture_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_generated_fixture_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_generated_fixture_manifest.json",
+      "sizeBytes": 6162,
+      "sha256": "9e560eda531a98d93670efb7ad82c259255ffb9bb3f5863ddf87e9635467765e",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_vlm_runtime_results_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_results.json",
+      "sizeBytes": 30094,
+      "sha256": "eba6f5dbd00620867be7c6d79f08040542da916f6caf58a2c27ebcc87cb5efc0",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_output_schema_validation_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_output_schema_validation_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_output_schema_validation_report.json",
+      "sizeBytes": 242,
+      "sha256": "799486c13f0fcc4c70a981c355a3ecac2bf2a0407431e12f7a74f12e23d15460",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_object_region_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_object_region_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_object_region_qa_report.json",
+      "sizeBytes": 236,
+      "sha256": "223e35dbbdd3879fb904332b5ef0c8b35bec93093797d12a0ba6c1c3392127d5",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_safe_zone_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_safe_zone_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_safe_zone_qa_report.json",
+      "sizeBytes": 150,
+      "sha256": "7b6d2fdd1564d615e655372f9ca6acda8de63a787ce07b40c15245eb919503c1",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_hallucination_safety_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_hallucination_safety_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_hallucination_safety_report.json",
+      "sizeBytes": 273,
+      "sha256": "1566d13d3d5b9c96427f32ea6ce47cde3a9697a930407f870e7e7ff97c1c8812",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_private_artifact_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_private_artifact_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_private_artifact_manifest.json",
+      "sizeBytes": 4459,
+      "sha256": "803d7b475413eb7f469721d25f51022d89c1242417694065f61616e038b7921a",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_structured_output_recovery_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_recovery_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_structured_output_recovery_report.json",
+      "sizeBytes": 53724,
+      "sha256": "5b83873eefa6bb2fa61fb26272e6bf4faa7c1cc9c503dcbdf0f6f31fcf2c88c5",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_private_raw_output_traces_json",
+      "kind": "private_trace",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_private_raw_output_traces.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/phase39cq-so-20260601T041325-qwen3-vl-2b-instruct/phase_39cq_private_raw_output_traces.json",
+      "sizeBytes": 11391,
+      "sha256": "9eb159a0738f6881c40a37e770376c29ae77538c6884e200815a531eec44b497",
+      "committedToGit": false
+    }
+  ],
+  "vlmToolFamilyBetaStatus": "blocked",
+  "phase39DReadiness": {
+    "readyForControlledRealFrameVlm": false,
+    "reason": "Phase 39D remains blocked until a later bounded private controlled sample prompt."
+  },
+  "blockers": [
+    "structured_output_strategy_matrix_exhausted"
+  ],
+  "warnings": [
+    "phase39cq_so_staging_l4_cloud_run_job_path_used",
+    "phase39cq_so_worker_stderr:5 [00:41<01:01, 20.51s/it, est. speed input: 48.68 toks/s, output: 12.22 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [01:07<00:45, 22.83s/it, est. speed input: 45.37 toks/s, output: 11.38 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [01:30<00:22, 22.89s/it, est. speed input: 45.15 toks/s, output: 11.32 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.28s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [01:51<00:00, 22.33s/it, est. speed input: 45.75 toks/s, output: 11.46 toks/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00, 116.88it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|\u2588\u2588        | 1/5 [00:00<00:00,  5.37it/s, est. speed input: 5501.05 toks/s, output: 37.56 toks/s]\nProcessed prompts:  40%|\u2588\u2588\u2588\u2588      | 2/5 [00:00<00:00,  6.50it/s, est. speed input: 6447.84 toks/s, output: 37.80 toks/s]\nProcessed prompts:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [00:00<00:00,  6.95it/s, est. speed input: 6828.74 toks/s, output: 37.81 toks/s]\nProcessed prompts:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [00:00<00:00,  7.20it/s, est. speed input: 7035.64 toks/s, output: 37.87 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.36it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 5/5 [00:00<00:00,  7.02it/s, est. speed input: 7180.96 toks/s, output: 37.95 toks/s]\n[rank0]:[W531 21:20:59.990524965 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7f2a5eb36da8 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7f2a689d8138 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"__init__\"\n - leaked function \"accept_string\"\n - leaked function \"rollback\"\n - leaked function \"is_terminated\"\n - leaked function \"serialize_json\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"accept_token\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n",
+    "repair_diagnostic_trace_count:20",
+    "s2_unsupported_in_offline_llm_worker",
+    "s5_unsupported_in_offline_llm_worker",
+    "s6_never_counts_as_phase39cq_so_pass"
+  ]
+}

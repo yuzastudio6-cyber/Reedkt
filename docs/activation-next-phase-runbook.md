@@ -374,4 +374,12 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm the approved plan snapshot, source validation, evidence validation, private E2E review manifest, FFprobe review export validation, QA JSON, and Phase 45E report artifacts exist only under private Phase 45E GCS prefixes.
 4. Confirm source integrity, Phase 45A/45B/45C/45D evidence, private review export integrity, FFprobe review validation, manifest creation, artifact privacy, no-public-access, no-final-delivery, and blocked-feature gates passed.
 5. Confirm no arbitrary media, user final delivery, public delivery, providers, Revideo, Track B tools, production, external beta, paid production, or broad real media occurred.
-6. Treat Track A visual-video as ready only for internal private visual-video testing. Phase 45E does not approve product beta, production, public delivery, or user final delivery.
+6. Proceed to Phase 45F only as Track A visual-video readiness closure. Phase 45E does not approve product beta, production, public delivery, or user final delivery.
+
+## After Phase 45F
+
+1. Review `activation:track-a-visual-readiness-closure:report` and `docs/activation-phase-45f-track-a-visual-video-readiness-closure-results.md`.
+2. Confirm the Phase 45F readiness manifest, evidence chain, private E2E artifact validation, QA JSON, and Phase 45F report exist only under private Phase 45F GCS prefixes.
+3. Confirm SAM2, Real-ESRGAN bounded/policy evidence, FILM, pro color/image, libass, Remotion, OTIO, FFmpeg/FFprobe, and full visual-video private E2E reports remain internally ready with no internal Track A blockers.
+4. Confirm expected broader-scope blockers remain blocked and were not converted into production, external beta, final delivery, public delivery, provider, Revideo, Track B, or broad-media approval.
+5. Treat Track A visual-video as ready only for internal private visual-video testing if Phase 45F passed.

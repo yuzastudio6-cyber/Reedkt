@@ -1,0 +1,96 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_candidate_results",
+  "runId": "phase39cq-so3-20260601T154510",
+  "createdAt": "2026-06-01T16:12:46.933Z",
+  "status": "blocked",
+  "selectionPriority": [
+    "Qwen/Qwen3-VL-8B-Instruct-FP8",
+    "Qwen/Qwen3-VL-4B-Instruct",
+    "Qwen/Qwen3-VL-2B-Instruct"
+  ],
+  "candidates": [
+    {
+      "slug": "qwen3-vl-2b-instruct",
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "status": "blocked",
+      "selected": false,
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-2b-instruct",
+      "qa": {
+        "canaryLabelRecall": 0,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "artifactCount": 16,
+      "blockers": [
+        "original_generated_fixtures_not_run_due_canary_failure",
+        "perception_canary_gate_failed"
+      ],
+      "warnings": [
+        "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+        "phase39cq_so3_worker_stderr:ts:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 86.19it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:02<00:00,  2.36s/it, est. speed input: 219.64 toks/s, output: 34.35 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:02<00:00,  2.36s/it, est. speed input: 219.64 toks/s, output: 34.35 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:02<00:00,  2.36s/it, est. speed input: 219.64 toks/s, output: 34.35 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 96.83it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:04<00:00,  4.99s/it, est. speed input: 110.76 toks/s, output: 38.46 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:04<00:00,  4.99s/it, est. speed input: 110.76 toks/s, output: 38.46 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:04<00:00,  4.99s/it, est. speed input: 110.76 toks/s, output: 38.46 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 90.12it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:05<00:00,  5.28s/it, est. speed input: 117.24 toks/s, output: 36.37 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:05<00:00,  5.28s/it, est. speed input: 117.24 toks/s, output: 36.37 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:05<00:00,  5.28s/it, est. speed input: 117.24 toks/s, output: 36.37 toks/s]\n[rank0]:[W601 08:51:15.650615010 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7f62cd719cc8 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7f62cffdd278 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"rollback\"\n - leaked function \"\"\n - leaked function \"serialize_json\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"deserialize_json\"\n - leaked function \"__init__\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"accept_string\"\n - leaked function \"accept_token\"\n - leaked function \"_debug_print_internal_state\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"reset\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+      ]
+    },
+    {
+      "slug": "qwen3-vl-4b-instruct",
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+      "status": "blocked",
+      "selected": false,
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-4b-instruct",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "artifactCount": 16,
+      "blockers": [
+        "original_generated_fixtures_not_run_due_canary_failure",
+        "perception_canary_gate_failed"
+      ],
+      "warnings": [
+        "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+        "phase39cq_so3_worker_stderr: requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 101.88it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:05<00:00,  5.44s/it, est. speed input: 95.14 toks/s, output: 27.55 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:05<00:00,  5.44s/it, est. speed input: 95.14 toks/s, output: 27.55 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:05<00:00,  5.44s/it, est. speed input: 95.14 toks/s, output: 27.55 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 102.34it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:06<00:00,  6.97s/it, est. speed input: 79.37 toks/s, output: 27.56 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:06<00:00,  6.97s/it, est. speed input: 79.37 toks/s, output: 27.56 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:06<00:00,  6.97s/it, est. speed input: 79.37 toks/s, output: 27.56 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 78.48it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:07<00:00,  7.03s/it, est. speed input: 88.09 toks/s, output: 26.61 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:07<00:00,  7.03s/it, est. speed input: 88.09 toks/s, output: 26.61 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:07<00:00,  7.03s/it, est. speed input: 88.09 toks/s, output: 26.61 toks/s]\n[rank0]:[W601 08:59:32.304378703 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fe45cd8c798 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fe45cd70948 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"_debug_print_internal_state\"\n - leaked function \"deserialize_json\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"accept_string\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"rollback\"\n - leaked function \"accept_token\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"serialize_json\"\n - leaked function \"fill_next_token_bitmask\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+      ]
+    },
+    {
+      "slug": "qwen3-vl-8b-instruct-fp8",
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "status": "blocked",
+      "selected": false,
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "artifactCount": 16,
+      "blockers": [
+        "original_generated_fixtures_not_run_due_canary_failure",
+        "perception_canary_gate_failed"
+      ],
+      "warnings": [
+        "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+        "phase39cq_so3_worker_stderr:ng requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 94.44it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 95.17it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|██████████| 1/1 [00:00<00:00, 93.65it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|██████████| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\n[rank0]:[W601 09:10:29.410354423 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fbacc9bae68 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fbacc93dcc8 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"serialize_json\"\n - leaked function \"rollback\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"accept_string\"\n - leaked function \"accept_token\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+      ]
+    }
+  ],
+  "selectedCandidate": null,
+  "blockers": [
+    "no_candidate_passed_perception_canary_decomposed_qa"
+  ]
+}

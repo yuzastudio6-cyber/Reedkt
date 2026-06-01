@@ -1,0 +1,403 @@
+{
+  "ok": false,
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_perception_canary_recovery_report",
+  "runId": "phase39cq-so3-20260601T154510",
+  "createdAt": "2026-06-01T15:45:10.369Z",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true,
+      "summary": "Original unquantized BF16 8B evidence remains preserved as Cloud Run L4 OOM before inference."
+    },
+    "phase39bq39cqCandidates": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true,
+      "summary": "Official Qwen FP8 8B, BF16 4B, and BF16 2B candidates remain the only allowed staged private assets."
+    },
+    "phase39cqStructuredOutput": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "preserved": true,
+      "summary": "Structured-output enforcement reached syntactic/debug paths but no candidate passed semantic image QA across required fixtures."
+    }
+  },
+  "perceptionFailureAudit": {
+    "phase": "39C-Q-SO3",
+    "reportId": "phase_39cq_so3_perception_failure_audit",
+    "createdAt": "2026-06-01T15:45:10.369Z",
+    "conclusion": "The known failures are layered: the original 8B BF16 failed at memory, PR #87 solved candidate staging/runtime reachability but failed JSON/schema QA, and PR #90/SO2 showed structured output can work text-only while image QA still fails semantic perception.",
+    "failureLayers": [
+      {
+        "layer": "memory",
+        "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+        "status": "preserved_original_bf16_8b_l4_oom"
+      },
+      {
+        "layer": "model_staging",
+        "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+        "status": "passed_private_candidate_staging"
+      },
+      {
+        "layer": "syntax",
+        "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+        "status": "partially_proven_text_only_structured_output"
+      },
+      {
+        "layer": "perception",
+        "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+        "status": "unproven_empty_or_mislocalized_image_objects_invalid_boxes_unknown_safe_zone"
+      }
+    ],
+    "nextMove": "Use simple perception canaries and decomposed QA before full object-region/safe-zone fixtures."
+  },
+  "canaryFixtureManifest": {
+    "phase": "39C-Q-SO3",
+    "reportId": "phase_39cq_so3_canary_fixture_manifest",
+    "createdAt": "2026-06-01T15:45:10.369Z",
+    "generatedOnly": true,
+    "fixtureImagesCommitted": false,
+    "fixtures": [
+      {
+        "fixtureId": "canary-basic-shapes",
+        "expectedLabels": [
+          "red square",
+          "blue circle",
+          "green triangle"
+        ],
+        "expectedZones": [
+          "left",
+          "right",
+          "center"
+        ]
+      },
+      {
+        "fixtureId": "canary-colored-layout",
+        "expectedLabels": [
+          "top banner",
+          "center panel",
+          "bottom strip"
+        ],
+        "expectedZones": [
+          "top",
+          "center",
+          "bottom"
+        ]
+      },
+      {
+        "fixtureId": "canary-text-and-shape",
+        "expectedLabels": [
+          "demo text",
+          "orange star",
+          "purple box"
+        ],
+        "expectedZones": [
+          "upper_third",
+          "center",
+          "right"
+        ]
+      },
+      {
+        "fixtureId": "canary-ui-simplified",
+        "expectedLabels": [
+          "toolbar",
+          "preview canvas",
+          "timeline panel"
+        ],
+        "expectedZones": [
+          "top",
+          "center",
+          "bottom"
+        ]
+      },
+      {
+        "fixtureId": "canary-caption-safe-zone-simple",
+        "expectedLabels": [
+          "caption block",
+          "face marker",
+          "safe upper zone"
+        ],
+        "expectedZones": [
+          "lower_third",
+          "center",
+          "upper_third"
+        ]
+      }
+    ]
+  },
+  "aliasMap": {
+    "phase": "39C-Q-SO3",
+    "reportId": "phase_39cq_so3_label_alias_map",
+    "createdAt": "2026-06-01T15:45:10.369Z",
+    "aliases": {
+      "timeline panel": [
+        "timeline",
+        "timeline panel",
+        "bottom track",
+        "bottom tracks",
+        "track area",
+        "editing timeline"
+      ],
+      "toolbar": [
+        "toolbar",
+        "top bar",
+        "menu bar",
+        "control bar"
+      ],
+      "preview": [
+        "preview",
+        "preview canvas",
+        "canvas",
+        "viewer",
+        "video preview"
+      ],
+      "caption block": [
+        "caption",
+        "caption block",
+        "subtitle block",
+        "lower third text",
+        "lower-third caption"
+      ],
+      "safe upper zone": [
+        "safe upper zone",
+        "upper third",
+        "top safe zone",
+        "safe caption zone"
+      ],
+      "manual review": [
+        "manual review",
+        "uncertain",
+        "ambiguous",
+        "needs review",
+        "high uncertainty"
+      ]
+    }
+  },
+  "decomposedQaPolicy": {
+    "phase": "39C-Q-SO3",
+    "reportId": "phase_39cq_so3_decomposed_qa_policy",
+    "passRequires": [
+      "P0 image transport sanity passes",
+      "P1 freeform traces are captured but do not count as pass evidence",
+      "P2 labels-only structured output reaches canary recall >= 0.80",
+      "P3 coarse-region structured output reaches canary accuracy >= 0.80",
+      "P4 safe-zone decision is not unknown",
+      "P5 composed canonical report from P2/P3/P4 passes",
+      "After canary pass, all five required generated fixtures pass decomposed thresholds",
+      "Ambiguous generated fixture requires manual review or high uncertainty",
+      "No provider calls, real media, public output, beta, production, or Track A unlocks"
+    ]
+  },
+  "candidateResults": [
+    {
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "passed",
+      "runtimeStatus": "blocked",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-2b-instruct/",
+      "imageDigest": "sha256:52b2ea85777a0b300d434cc9756d984a1f743b4f7caadeb198d3542109dad59a",
+      "qa": {
+        "canaryLabelRecall": 0,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0
+      },
+      "blockers": [
+        "cloud_run_job_nonzero:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e ... ...................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-perception-canary-jcvcs Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-perception-canary-jcvcs?project=390722338345",
+        "perception_canary_runtime_report_not_ok:qwen3-vl-2b-instruct"
+      ],
+      "warnings": [
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_perception_canary_plan.json:generation=1780329077723511",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_perception_failure_audit.json:generation=1780329077816558",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_canary_fixture_manifest.json:generation=1780329077913723",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_fixture_calibration_report.json:generation=1780329078029252",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_label_alias_map.json:generation=1780329078221930",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_freeform_trace_manifest.json:generation=1780329078324080",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_labels_only_qa_report.json:generation=1780329078522725",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_coarse_region_qa_report.json:generation=1780329078614784",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_safe_zone_reasoning_report.json:generation=1780329078817823",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_decomposed_canonical_report.json:generation=1780329078916317",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_candidate_results.json:generation=1780329079019100",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_runtime_results.json:generation=1780329079117853",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_hallucination_safety_report.json:generation=1780329079215551",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_private_artifact_manifest.json:generation=1780329079315256",
+        "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_perception_canary_recovery_report.json:generation=1780329079415000"
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "passed",
+      "runtimeStatus": "blocked",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-4b-instruct/",
+      "imageDigest": "sha256:52b2ea85777a0b300d434cc9756d984a1f743b4f7caadeb198d3542109dad59a",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0
+      },
+      "blockers": [
+        "cloud_run_job_nonzero:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e ... ...................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-perception-canary-vm548 Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-perception-canary-vm548?project=390722338345",
+        "perception_canary_runtime_report_not_ok:qwen3-vl-4b-instruct"
+      ],
+      "warnings": [
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_perception_canary_plan.json:generation=1780329575715073",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_perception_failure_audit.json:generation=1780329575831365",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_canary_fixture_manifest.json:generation=1780329576028008",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_fixture_calibration_report.json:generation=1780329576123574",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_label_alias_map.json:generation=1780329576221403",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_freeform_trace_manifest.json:generation=1780329576422290",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_labels_only_qa_report.json:generation=1780329576526679",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_coarse_region_qa_report.json:generation=1780329576615864",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_safe_zone_reasoning_report.json:generation=1780329576714537",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_decomposed_canonical_report.json:generation=1780329576816782",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_candidate_results.json:generation=1780329576920584",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_runtime_results.json:generation=1780329577024374",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_hallucination_safety_report.json:generation=1780329577219078",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_private_artifact_manifest.json:generation=1780329577321208",
+        "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_perception_canary_recovery_report.json:generation=1780329577416855"
+      ]
+    },
+    {
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "status": "blocked",
+      "selected": false,
+      "manifestStatus": "passed",
+      "runtimeStatus": "blocked",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/",
+      "imageDigest": "sha256:52b2ea85777a0b300d434cc9756d984a1f743b4f7caadeb198d3542109dad59a",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0
+      },
+      "blockers": [
+        "cloud_run_job_nonzero:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e ... ...................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-perception-canary-vpm9g Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-perception-canary-vpm9g?project=390722338345",
+        "perception_canary_runtime_report_not_ok:qwen3-vl-8b-instruct-fp8"
+      ],
+      "warnings": [
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_perception_canary_plan.json:generation=1780330232223694",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_perception_failure_audit.json:generation=1780330232327273",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_canary_fixture_manifest.json:generation=1780330232519820",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_fixture_calibration_report.json:generation=1780330232615820",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_label_alias_map.json:generation=1780330232747864",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_freeform_trace_manifest.json:generation=1780330232915142",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_labels_only_qa_report.json:generation=1780330233015781",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_coarse_region_qa_report.json:generation=1780330233118713",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_safe_zone_reasoning_report.json:generation=1780330233219769",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_decomposed_canonical_report.json:generation=1780330233320614",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_candidate_results.json:generation=1780330233421879",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_runtime_results.json:generation=1780330233517839",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_hallucination_safety_report.json:generation=1780330233624463",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_private_artifact_manifest.json:generation=1780330233715002",
+        "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_perception_canary_recovery_report.json:generation=1780330233815433"
+      ]
+    }
+  ],
+  "generatedFixtures": [
+    {
+      "fixtureId": "generated-object-layout",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-ui-safe-zone",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-ambiguous-scene",
+      "status": "blocked_or_not_run"
+    },
+    {
+      "fixtureId": "generated-spatial-reasoning",
+      "status": "blocked_or_not_run"
+    }
+  ],
+  "blockedScopes": [
+    "Phase 39D controlled real-frame VLM",
+    "Phase 39E object-aware/safe-zone planning integration",
+    "provider calls",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "public output",
+    "broad user media",
+    "arbitrary media",
+    "unapproved GPU types",
+    "new model downloads",
+    "non-Qwen candidates",
+    "community quantizations",
+    "Track A"
+  ],
+  "blockers": [
+    "cloud_run_job_nonzero:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e ... ...................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-perception-canary-jcvcs Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-perception-canary-jcvcs?project=390722338345",
+    "perception_canary_runtime_report_not_ok:qwen3-vl-2b-instruct",
+    "cloud_run_job_nonzero:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e ... ...................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-perception-canary-vm548 Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-perception-canary-vm548?project=390722338345",
+    "perception_canary_runtime_report_not_ok:qwen3-vl-4b-instruct",
+    "cloud_run_job_nonzero:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e ... ...................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-perception-canary-vpm9g Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-perception-canary-vpm9g?project=390722338345",
+    "perception_canary_runtime_report_not_ok:qwen3-vl-8b-instruct-fp8"
+  ],
+  "warnings": [
+    "runtime_image_built_and_pushed:us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-perception-canary:phase39cq-so3-20260601t154510",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_perception_canary_plan.json:generation=1780329077723511",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_perception_failure_audit.json:generation=1780329077816558",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_canary_fixture_manifest.json:generation=1780329077913723",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_fixture_calibration_report.json:generation=1780329078029252",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_label_alias_map.json:generation=1780329078221930",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_freeform_trace_manifest.json:generation=1780329078324080",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_labels_only_qa_report.json:generation=1780329078522725",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_coarse_region_qa_report.json:generation=1780329078614784",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_safe_zone_reasoning_report.json:generation=1780329078817823",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_decomposed_canonical_report.json:generation=1780329078916317",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_candidate_results.json:generation=1780329079019100",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_runtime_results.json:generation=1780329079117853",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_hallucination_safety_report.json:generation=1780329079215551",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_private_artifact_manifest.json:generation=1780329079315256",
+    "private_perception_canary_artifact_verified:qwen3-vl-2b-instruct:phase_39cq_so3_perception_canary_recovery_report.json:generation=1780329079415000",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_perception_canary_plan.json:generation=1780329575715073",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_perception_failure_audit.json:generation=1780329575831365",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_canary_fixture_manifest.json:generation=1780329576028008",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_fixture_calibration_report.json:generation=1780329576123574",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_label_alias_map.json:generation=1780329576221403",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_freeform_trace_manifest.json:generation=1780329576422290",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_labels_only_qa_report.json:generation=1780329576526679",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_coarse_region_qa_report.json:generation=1780329576615864",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_safe_zone_reasoning_report.json:generation=1780329576714537",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_decomposed_canonical_report.json:generation=1780329576816782",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_candidate_results.json:generation=1780329576920584",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_runtime_results.json:generation=1780329577024374",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_hallucination_safety_report.json:generation=1780329577219078",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_private_artifact_manifest.json:generation=1780329577321208",
+    "private_perception_canary_artifact_verified:qwen3-vl-4b-instruct:phase_39cq_so3_perception_canary_recovery_report.json:generation=1780329577416855",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_perception_canary_plan.json:generation=1780330232223694",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_perception_failure_audit.json:generation=1780330232327273",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_canary_fixture_manifest.json:generation=1780330232519820",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_fixture_calibration_report.json:generation=1780330232615820",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_label_alias_map.json:generation=1780330232747864",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_freeform_trace_manifest.json:generation=1780330232915142",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_labels_only_qa_report.json:generation=1780330233015781",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_coarse_region_qa_report.json:generation=1780330233118713",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_safe_zone_reasoning_report.json:generation=1780330233219769",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_decomposed_canonical_report.json:generation=1780330233320614",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_candidate_results.json:generation=1780330233421879",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_runtime_results.json:generation=1780330233517839",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_hallucination_safety_report.json:generation=1780330233624463",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_private_artifact_manifest.json:generation=1780330233715002",
+    "private_perception_canary_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39cq_so3_perception_canary_recovery_report.json:generation=1780330233815433"
+  ],
+  "vlmToolFamilyBetaStatus": "blocked",
+  "nextPhaseDecision": "Do not start Phase 39D; use an evidence-based alternate runtime/candidate path or the exact blocker recorded here."
+}

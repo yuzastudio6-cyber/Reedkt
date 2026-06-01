@@ -1,0 +1,71 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_runtime_results",
+  "runId": "phase39cq-so3-20260601T154510",
+  "createdAt": "2026-06-01T16:12:46.933Z",
+  "status": "blocked",
+  "imageDigest": "sha256:52b2ea85777a0b300d434cc9756d984a1f743b4f7caadeb198d3542109dad59a",
+  "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-perception-canary",
+  "region": "us-central1",
+  "gpu": "nvidia-l4",
+  "cpu": 8,
+  "memory": "32Gi",
+  "generatedSyntheticFixturesOnly": true,
+  "modelDownload": "blocked_no_new_downloads",
+  "providerCalls": "blocked",
+  "realMedia": "blocked",
+  "publicOutput": "blocked",
+  "candidates": [
+    {
+      "slug": "qwen3-vl-2b-instruct",
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "status": "blocked",
+      "qa": {
+        "canaryLabelRecall": 0,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "blockers": [
+        "original_generated_fixtures_not_run_due_canary_failure",
+        "perception_canary_gate_failed"
+      ]
+    },
+    {
+      "slug": "qwen3-vl-4b-instruct",
+      "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+      "status": "blocked",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "blockers": [
+        "original_generated_fixtures_not_run_due_canary_failure",
+        "perception_canary_gate_failed"
+      ]
+    },
+    {
+      "slug": "qwen3-vl-8b-instruct-fp8",
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "status": "blocked",
+      "qa": {
+        "canaryLabelRecall": 0.6,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0,
+        "canariesPassed": false,
+        "generatedFixturesPassed": false
+      },
+      "blockers": [
+        "original_generated_fixtures_not_run_due_canary_failure",
+        "perception_canary_gate_failed"
+      ]
+    }
+  ]
+}

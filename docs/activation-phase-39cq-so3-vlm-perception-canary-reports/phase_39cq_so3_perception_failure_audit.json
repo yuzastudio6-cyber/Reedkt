@@ -1,0 +1,29 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_perception_failure_audit",
+  "createdAt": "2026-06-01T15:45:10.369Z",
+  "conclusion": "The known failures are layered: the original 8B BF16 failed at memory, PR #87 solved candidate staging/runtime reachability but failed JSON/schema QA, and PR #90/SO2 showed structured output can work text-only while image QA still fails semantic perception.",
+  "failureLayers": [
+    {
+      "layer": "memory",
+      "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "status": "preserved_original_bf16_8b_l4_oom"
+    },
+    {
+      "layer": "model_staging",
+      "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "status": "passed_private_candidate_staging"
+    },
+    {
+      "layer": "syntax",
+      "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "status": "partially_proven_text_only_structured_output"
+    },
+    {
+      "layer": "perception",
+      "evidence": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "status": "unproven_empty_or_mislocalized_image_objects_invalid_boxes_unknown_safe_zone"
+    }
+  ],
+  "nextMove": "Use simple perception canaries and decomposed QA before full object-region/safe-zone fixtures."
+}

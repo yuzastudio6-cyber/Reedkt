@@ -1,0 +1,318 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_decomposed_canonical_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "status": "blocked",
+  "canaryResults": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 1.0,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "red square",
+        "blue circle",
+        "green triangle"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-basic-shapes",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2609,
+        "sha256": "e1efa1d99b8ee019af1a818590354a32349cbe0816a8c7e7823696def63eda64",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "cabb057783cbd3d2ae532958c3ba0973ade1dd70548fb2123aceff4dddddd7ee"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 1.0
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.0,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "unknown",
+      "manualReview": false,
+      "matchedLabels": [],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid",
+        "safe_zone_output_missing",
+        "safe_zone_schema_invalid",
+        "safe_zone_unknown"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-colored-layout",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 1461,
+        "sha256": "5cb226e2ea9a74cb3bd1adc9b83d23786e33cea2bbc589a38f9609f9b72bd879",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "ff14dcd6285c058fffabf0a916bd78274697004238c1c0e905f2ba25085fd537"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.0
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "blocked",
+          "schemaValid": false,
+          "decision": "unknown"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "demo text",
+        "orange star"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-text-and-shape",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2823,
+        "sha256": "070485ccbdc00258e43cf98e660284364e0f73110ff4aa6bb70ad9ebf222a0cd",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "956e44c4b0475a95d1c2137c0fe0695f3adca63ff16682de1f68c1fde5b5b31e"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "pass",
+      "manualReview": false,
+      "matchedLabels": [
+        "toolbar",
+        "preview canvas"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-ui-simplified",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 2886,
+        "sha256": "393d1a8c5547083b1799967888fdc244e0f14f755ebc81d9dfefea5097ca2eef",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "6fb315d7859a247a88f2e4ee4abc077964660f3506cb02e1b352c41ff2ae9405"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "passed",
+          "schemaValid": true,
+          "decision": "pass"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "status": "blocked",
+      "canary": true,
+      "labelRecall": 0.6666666666666666,
+      "coarseRegionAccuracy": 0.0,
+      "safeZoneDecision": "unknown",
+      "manualReview": false,
+      "matchedLabels": [
+        "caption block",
+        "safe upper zone"
+      ],
+      "matchedRegions": [],
+      "blockers": [
+        "coarse_region_accuracy_below_threshold",
+        "direct_json_object_required",
+        "label_recall_below_threshold",
+        "output_json_parse_failed",
+        "regions_output_missing",
+        "regions_schema_invalid",
+        "safe_zone_output_missing",
+        "safe_zone_schema_invalid",
+        "safe_zone_unknown"
+      ],
+      "warnings": [],
+      "transport": {
+        "fixtureId": "canary-caption-safe-zone-simple",
+        "stageId": "P0",
+        "status": "passed",
+        "sizeBytes": 4228,
+        "sha256": "838099d6f6792d37b8d05ccb3c0cc49c0a5840a200ca8a60086c20af8efbdfdb",
+        "dimensions": {
+          "width": 384,
+          "height": 384
+        }
+      },
+      "stages": {
+        "P1": {
+          "status": "diagnostic_only",
+          "traceHash": "87316507c8a0116973d94f748f92eb3720ed555c09b8f707c874a0d0eb943113"
+        },
+        "P2": {
+          "status": "passed",
+          "schemaValid": true,
+          "labelRecall": 0.6666666666666666
+        },
+        "P3": {
+          "status": "blocked",
+          "schemaValid": false,
+          "coarseRegionAccuracy": 0.0
+        },
+        "P4": {
+          "status": "blocked",
+          "schemaValid": false,
+          "decision": "unknown"
+        },
+        "P5": {
+          "status": "blocked"
+        }
+      }
+    }
+  ],
+  "generatedFixtureResults": [],
+  "qa": {
+    "canaryLabelRecall": 0.6,
+    "canaryCoarseRegionAccuracy": 0.0,
+    "fixtureLabelRecall": 0.0,
+    "fixtureCoarseRegionAccuracy": 0.0,
+    "canariesPassed": false,
+    "generatedFixturesPassed": false
+  },
+  "blockers": [
+    "original_generated_fixtures_not_run_due_canary_failure",
+    "perception_canary_gate_failed"
+  ],
+  "warnings": [
+    "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+    "phase39cq_so3_worker_stderr:ng requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 94.44it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 95.17it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 93.65it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\n[rank0]:[W601 09:10:29.410354423 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fbacc9bae68 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fbacc93dcc8 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"serialize_json\"\n - leaked function \"rollback\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"accept_string\"\n - leaked function \"accept_token\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+  ]
+}

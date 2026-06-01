@@ -1,0 +1,74 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_canary_fixture_manifest",
+  "createdAt": "2026-06-01T15:45:10.369Z",
+  "generatedOnly": true,
+  "fixtureImagesCommitted": false,
+  "fixtures": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "expectedLabels": [
+        "red square",
+        "blue circle",
+        "green triangle"
+      ],
+      "expectedZones": [
+        "left",
+        "right",
+        "center"
+      ]
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "expectedLabels": [
+        "top banner",
+        "center panel",
+        "bottom strip"
+      ],
+      "expectedZones": [
+        "top",
+        "center",
+        "bottom"
+      ]
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "expectedLabels": [
+        "demo text",
+        "orange star",
+        "purple box"
+      ],
+      "expectedZones": [
+        "upper_third",
+        "center",
+        "right"
+      ]
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "expectedLabels": [
+        "toolbar",
+        "preview canvas",
+        "timeline panel"
+      ],
+      "expectedZones": [
+        "top",
+        "center",
+        "bottom"
+      ]
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "expectedLabels": [
+        "caption block",
+        "face marker",
+        "safe upper zone"
+      ],
+      "expectedZones": [
+        "lower_third",
+        "center",
+        "upper_third"
+      ]
+    }
+  ]
+}

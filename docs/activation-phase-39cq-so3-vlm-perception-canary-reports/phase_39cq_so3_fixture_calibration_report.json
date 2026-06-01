@@ -1,0 +1,18 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_fixture_calibration_report",
+  "createdAt": "2026-06-01T15:45:10.369Z",
+  "canaryThresholds": {
+    "labelRecall": 0.8,
+    "coarseRegionAccuracy": 0.8,
+    "safeZoneDecisionCannotBeUnknown": true
+  },
+  "originalFixtureThresholds": {
+    "labelRecall": 0.6,
+    "coarseRegionAccuracy": 0.6,
+    "safeZoneDecisionCannotBeUnknown": true,
+    "ambiguousFixtureMustRequireManualReview": true
+  },
+  "normalizedBoxesRequiredForCanaryPass": false,
+  "diagnosticFreeformCanPassPhase": false
+}

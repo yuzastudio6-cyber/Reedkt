@@ -1,0 +1,15 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_fixture_calibration_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-4b-instruct",
+  "canaryThresholds": {
+    "labelRecall": 0.8,
+    "coarseRegionAccuracy": 0.8
+  },
+  "generatedFixtureThresholds": {
+    "labelRecall": 0.6,
+    "coarseRegionAccuracy": 0.6
+  },
+  "safeZoneDecisionUnknownAllowed": false,
+  "ambiguousFixtureMustRequireManualReview": true
+}

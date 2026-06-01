@@ -763,6 +763,10 @@ def validate_env(blockers: List[str]) -> None:
 
 
 def main() -> int:
+    if os.environ.get("REEDITPRO_CONFIRM_VLM_PERCEPTION_CANARY_RERUN") == "true" or os.environ.get("REEDITPRO_VLM_PERCEPTION_CANARY_MATRIX"):
+        from run_phase39cq_so3_perception_canary_cloud_job import main as perception_canary_main
+
+        return perception_canary_main()
     if os.environ.get("REEDITPRO_CONFIRM_VLM_STRUCTURED_OUTPUT_RERUN") == "true" or os.environ.get("REEDITPRO_VLM_STRUCTURED_OUTPUT_MATRIX"):
         from run_phase39cq_structured_output_cloud_job import main as structured_output_main
 

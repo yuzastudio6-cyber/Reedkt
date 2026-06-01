@@ -1,0 +1,48 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_label_alias_map",
+  "createdAt": "2026-06-01T15:45:10.369Z",
+  "aliases": {
+    "timeline panel": [
+      "timeline",
+      "timeline panel",
+      "bottom track",
+      "bottom tracks",
+      "track area",
+      "editing timeline"
+    ],
+    "toolbar": [
+      "toolbar",
+      "top bar",
+      "menu bar",
+      "control bar"
+    ],
+    "preview": [
+      "preview",
+      "preview canvas",
+      "canvas",
+      "viewer",
+      "video preview"
+    ],
+    "caption block": [
+      "caption",
+      "caption block",
+      "subtitle block",
+      "lower third text",
+      "lower-third caption"
+    ],
+    "safe upper zone": [
+      "safe upper zone",
+      "upper third",
+      "top safe zone",
+      "safe caption zone"
+    ],
+    "manual review": [
+      "manual review",
+      "uncertain",
+      "ambiguous",
+      "needs review",
+      "high uncertainty"
+    ]
+  }
+}

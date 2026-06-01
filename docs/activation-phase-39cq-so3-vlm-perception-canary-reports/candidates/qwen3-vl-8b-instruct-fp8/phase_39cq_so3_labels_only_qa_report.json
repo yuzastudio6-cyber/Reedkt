@@ -1,0 +1,77 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_labels_only_qa_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "results": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "labels": [
+        "red square",
+        "green triangle",
+        "blue circle"
+      ],
+      "matchedLabels": [
+        "red square",
+        "blue circle",
+        "green triangle"
+      ],
+      "labelRecall": 1.0,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "labels": [],
+      "matchedLabels": [],
+      "labelRecall": 0.0,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "labels": [
+        "orange star",
+        "purple square",
+        "text: DEMO"
+      ],
+      "matchedLabels": [
+        "demo text",
+        "orange star"
+      ],
+      "labelRecall": 0.6666666666666666,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "labels": [
+        "TOOLBAR",
+        "PREVIEW"
+      ],
+      "matchedLabels": [
+        "toolbar",
+        "preview canvas"
+      ],
+      "labelRecall": 0.6666666666666666,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "labels": [
+        "SAFE UPPER ZONE",
+        "CAPTION BLOCK"
+      ],
+      "matchedLabels": [
+        "caption block",
+        "safe upper zone"
+      ],
+      "labelRecall": 0.6666666666666666,
+      "schemaValid": true
+    }
+  ],
+  "canaryLabelRecall": 0.6,
+  "fixtureLabelRecall": 0.0,
+  "blockers": [
+    "label_recall_below_threshold",
+    "label_recall_below_threshold",
+    "label_recall_below_threshold",
+    "label_recall_below_threshold"
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_canary_fixture_manifest",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-2b-instruct",
+  "createdAt": "2026-06-01T15:47:27.035449Z",
+  "generatedOnly": true,
+  "fixtureImagesCommitted": false,
+  "coarseZones": [
+    "top",
+    "bottom",
+    "left",
+    "right",
+    "center",
+    "lower_third",
+    "upper_third"
+  ],
+  "fixtures": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "width": 512,
+      "height": 512,
+      "expectedLabels": [
+        "red square",
+        "blue circle",
+        "green triangle"
+      ],
+      "expectedZones": {
+        "red square": "left",
+        "blue circle": "right",
+        "green triangle": "center"
+      },
+      "safeZoneExpected": "pass",
+      "riskCategory": "canary_required_pass"
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "width": 512,
+      "height": 512,
+      "expectedLabels": [
+        "top banner",
+        "center panel",
+        "bottom strip"
+      ],
+      "expectedZones": {
+        "top banner": "top",
+        "center panel": "center",
+        "bottom strip": "bottom"
+      },
+      "safeZoneExpected": "pass",
+      "riskCategory": "canary_required_pass"
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "width": 512,
+      "height": 512,
+      "expectedLabels": [
+        "demo text",
+        "orange star",
+        "purple box"
+      ],
+      "expectedZones": {
+        "demo text": "upper_third",
+        "orange star": "center",
+        "purple box": "right"
+      },
+      "safeZoneExpected": "pass",
+      "riskCategory": "canary_required_pass"
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "width": 512,
+      "height": 512,
+      "expectedLabels": [
+        "toolbar",
+        "preview canvas",
+        "timeline panel"
+      ],
+      "expectedZones": {
+        "toolbar": "top",
+        "preview canvas": "center",
+        "timeline panel": "bottom"
+      },
+      "safeZoneExpected": "warn",
+      "riskCategory": "canary_required_pass"
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "width": 512,
+      "height": 512,
+      "expectedLabels": [
+        "caption block",
+        "face marker",
+        "safe upper zone"
+      ],
+      "expectedZones": {
+        "caption block": "lower_third",
+        "face marker": "center",
+        "safe upper zone": "upper_third"
+      },
+      "safeZoneExpected": "warn",
+      "riskCategory": "canary_required_pass"
+    }
+  ]
+}

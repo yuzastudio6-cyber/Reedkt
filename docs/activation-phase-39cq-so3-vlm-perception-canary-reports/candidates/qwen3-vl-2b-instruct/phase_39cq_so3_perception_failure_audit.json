@@ -1,0 +1,9 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_perception_failure_audit",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-2b-instruct",
+  "summary": "SO3 separates memory, syntax, and semantic perception failures. This run tests simple generated perception before full generated-fixture QA.",
+  "sourcePr66": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+  "sourcePr87": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+  "sourcePr90": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90"
+}

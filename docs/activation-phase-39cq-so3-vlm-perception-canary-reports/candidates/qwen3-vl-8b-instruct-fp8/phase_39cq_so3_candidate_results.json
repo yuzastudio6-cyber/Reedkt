@@ -1,0 +1,24 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_candidate_results",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+  "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+  "status": "blocked",
+  "qa": {
+    "canaryLabelRecall": 0.6,
+    "canaryCoarseRegionAccuracy": 0.0,
+    "fixtureLabelRecall": 0.0,
+    "fixtureCoarseRegionAccuracy": 0.0,
+    "canariesPassed": false,
+    "generatedFixturesPassed": false
+  },
+  "blockers": [
+    "original_generated_fixtures_not_run_due_canary_failure",
+    "perception_canary_gate_failed"
+  ],
+  "warnings": [
+    "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+    "phase39cq_so3_worker_stderr:ng requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 94.44it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 95.17it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 93.65it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\n[rank0]:[W601 09:10:29.410354423 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fbacc9bae68 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fbacc93dcc8 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"serialize_json\"\n - leaked function \"rollback\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"accept_string\"\n - leaked function \"accept_token\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+  ]
+}

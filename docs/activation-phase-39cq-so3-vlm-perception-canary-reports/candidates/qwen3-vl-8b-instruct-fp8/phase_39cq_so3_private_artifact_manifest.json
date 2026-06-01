@@ -1,0 +1,197 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_private_artifact_manifest",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "createdAt": "2026-06-01T16:10:31.968013Z",
+  "privateOnly": true,
+  "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+  "prefix": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8",
+  "artifactCount": 16,
+  "artifacts": [
+    {
+      "id": "phase_39cq_so3_perception_canary_plan_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_plan.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_plan.json",
+      "sizeBytes": 829,
+      "sha256": "c6a4a1c41b79ca165bd5f06bb5b466dd9f40221999703ee30570acf7a35b0893",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_perception_failure_audit_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_failure_audit.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_failure_audit.json",
+      "sizeBytes": 523,
+      "sha256": "8186d88d3a7abea4a740c20d2477e5ffebfa22f3e7379c385b18fd89af2610f6",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_canary_fixture_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_canary_fixture_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_canary_fixture_manifest.json",
+      "sizeBytes": 2491,
+      "sha256": "c7b912c24fd9245e8af47003171aaab91a39879654e0d243449076c2bbb26f86",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_fixture_calibration_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_fixture_calibration_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_fixture_calibration_report.json",
+      "sizeBytes": 429,
+      "sha256": "8797bc1d5972d98a59e17756abb6e9edce4e634aefc4297108223999203c862c",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_label_alias_map_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_label_alias_map.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_label_alias_map.json",
+      "sizeBytes": 3240,
+      "sha256": "723b817efddb9b2f3bd9bd983ebc822bd9f8ab7359c3011eefe83748bf840bac",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_freeform_trace_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_freeform_trace_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_freeform_trace_manifest.json",
+      "sizeBytes": 12653,
+      "sha256": "9f3e6ad594729b88384c98296f457543f4c022c417058e2b07c23e79d1a69396",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_labels_only_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_labels_only_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_labels_only_qa_report.json",
+      "sizeBytes": 1713,
+      "sha256": "b92652b2405a0f03b3aee63ddbcba4059ff7549e6831264eef02db3a9fcedec6",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_coarse_region_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_coarse_region_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_coarse_region_qa_report.json",
+      "sizeBytes": 1643,
+      "sha256": "65ee0171fe3771804b75093f2524ded52facb0288f0b52d7a560933874e40713",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_safe_zone_reasoning_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_safe_zone_reasoning_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_safe_zone_reasoning_report.json",
+      "sizeBytes": 1077,
+      "sha256": "efdea7cd2521c51687ee85b1c288b58a761c67f6d3fdba8ae773b96cb09cb66b",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_decomposed_canonical_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_decomposed_canonical_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_decomposed_canonical_report.json",
+      "sizeBytes": 12355,
+      "sha256": "d027641f683788487fab0267996c354c1702a554608bd69e8aeffcf0d2c698e9",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_candidate_results_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_candidate_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_candidate_results.json",
+      "sizeBytes": 4413,
+      "sha256": "288ce54d08db643229451fcd5d95c2b4241183c0fbeeb7fafe29dd7e96ebd083",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_runtime_results_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_runtime_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_runtime_results.json",
+      "sizeBytes": 13863,
+      "sha256": "057e3f010e9f872f0745c8f1b07e86042474f2cee974e2744b3a4bd3e4904c1d",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_hallucination_safety_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_hallucination_safety_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_hallucination_safety_report.json",
+      "sizeBytes": 4097,
+      "sha256": "6a3853f0090361a9655e14ffecfa02be7f9f1980e7e4a741d80676f72c6a71d5",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_private_artifact_manifest_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_artifact_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_artifact_manifest.json",
+      "sizeBytes": 4491,
+      "sha256": "d29e5193adc054642b68b6ba814a242fa5920b2b627a29392bafaf2b3355edf9",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_perception_canary_recovery_report_json",
+      "kind": "report",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_recovery_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_perception_canary_recovery_report.json",
+      "sizeBytes": 26594,
+      "sha256": "159c40cf58315612758b9b27879db70a4f7eb1d54f411040648ddc9613285098",
+      "committedToGit": null
+    },
+    {
+      "id": "phase_39cq_so3_private_raw_output_traces_json",
+      "kind": "private_trace",
+      "localPathStatus": "ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_raw_output_traces.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/phase39cq-so3-20260601T154510-qwen3-vl-8b-instruct-fp8/phase_39cq_so3_private_raw_output_traces.json",
+      "sizeBytes": 12485,
+      "sha256": "c1d90be8a040164abf19dca1860b4e983c2794b6e2631709bb394654b856d1d2",
+      "committedToGit": false
+    }
+  ],
+  "rawTracePolicy": "Full raw generated-fixture traces are private only; committed reports keep hashes and short safe excerpts.",
+  "blockers": [
+    "original_generated_fixtures_not_run_due_canary_failure",
+    "perception_canary_gate_failed"
+  ],
+  "warnings": [
+    "phase39cq_so3_staging_l4_cloud_run_job_path_used",
+    "phase39cq_so3_worker_stderr:ng requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 94.44it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:09<00:00,  9.46s/it, est. speed input: 55.08 toks/s, output: 17.34 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 95.17it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.83s/it, est. speed input: 51.32 toks/s, output: 17.72 toks/s]\n\nAdding requests:   0%|          | 0/1 [00:00<?, ?it/s]\nAdding requests: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 93.65it/s]\n\nProcessed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\nProcessed prompts: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:10<00:00, 10.88s/it, est. speed input: 57.16 toks/s, output: 17.64 toks/s]\n[rank0]:[W601 09:10:29.410354423 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nnanobind: leaked 2 instances!\n - leaked instance 0x7fbacc9bae68 of type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\n - leaked instance 0x7fbacc93dcc8 of type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\nnanobind: leaked 2 types!\n - leaked type \"xgrammar.xgrammar_bindings.GrammarMatcher\"\n - leaked type \"xgrammar.xgrammar_bindings.CompiledGrammar\"\nnanobind: leaked 16 functions!\n - leaked function \"serialize_json\"\n - leaked function \"rollback\"\n - leaked function \"deserialize_json\"\n - leaked function \"\"\n - leaked function \"fill_next_token_bitmask\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"reset\"\n - leaked function \"\"\n - leaked function \"is_terminated\"\n - leaked function \"accept_string\"\n - leaked function \"accept_token\"\n - leaked function \"find_jump_forward_string\"\n - leaked function \"\"\n - leaked function \"_debug_print_internal_state\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\n"
+  ]
+}

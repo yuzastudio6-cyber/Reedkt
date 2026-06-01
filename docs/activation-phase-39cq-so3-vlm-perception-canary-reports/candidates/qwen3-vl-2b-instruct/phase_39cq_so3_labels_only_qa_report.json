@@ -1,0 +1,51 @@
+{
+  "phase": "39C-Q-SO3",
+  "reportId": "phase_39cq_so3_labels_only_qa_report",
+  "runId": "phase39cq-so3-20260601T154510-qwen3-vl-2b-instruct",
+  "results": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "labels": [],
+      "matchedLabels": [],
+      "labelRecall": 0.0,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "labels": [],
+      "matchedLabels": [],
+      "labelRecall": 0.0,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "labels": [],
+      "matchedLabels": [],
+      "labelRecall": 0.0,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "labels": [],
+      "matchedLabels": [],
+      "labelRecall": 0.0,
+      "schemaValid": true
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "labels": [],
+      "matchedLabels": [],
+      "labelRecall": 0.0,
+      "schemaValid": true
+    }
+  ],
+  "canaryLabelRecall": 0.0,
+  "fixtureLabelRecall": 0.0,
+  "blockers": [
+    "label_recall_below_threshold",
+    "label_recall_below_threshold",
+    "label_recall_below_threshold",
+    "label_recall_below_threshold",
+    "label_recall_below_threshold"
+  ]
+}

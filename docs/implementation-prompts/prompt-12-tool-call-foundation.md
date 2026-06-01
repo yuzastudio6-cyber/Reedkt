@@ -3,6 +3,7 @@
 Branch: `codex/rp-foundation-12-tool-call-foundation`  
 Base: `origin/codex/rp-foundation-11-qa-revision-fallback-foundation`  
 PR title: `[foundation] Prompt 12 tool-call foundation`
+PR: [#98](https://github.com/yuzastudio6-cyber/Reedkt/pull/98)
 
 ## Objective
 

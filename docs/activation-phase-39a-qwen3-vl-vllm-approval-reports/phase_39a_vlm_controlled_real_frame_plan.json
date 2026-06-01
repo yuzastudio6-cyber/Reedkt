@@ -1,0 +1,21 @@
+{
+  "planId": "phase39d_controlled_real_frame_plan_v1",
+  "futurePhase": "39D",
+  "approvedSampleCount": 1,
+  "selectedSamplePolicy": "one_approved_private_controlled_frame_or_bounded_sample_only",
+  "frameCount": "decided_by_phase39d_gate",
+  "sourceMediaBytesAllowedInPhase39A": false,
+  "comparisonInputs": [
+    "Phase 39C generated-fixture VLM runtime report",
+    "Phase 37D OCR safe-zone metadata, if selected by the Phase 39D gate",
+    "Phase 37E caption/render QA metadata, if selected by the Phase 39D gate"
+  ],
+  "blockers": [
+    "No controlled real-frame source may be read in Phase 39A.",
+    "No frame extraction may occur in Phase 39A.",
+    "No raw VLM text for controlled media may be committed."
+  ],
+  "warnings": [
+    "Controlled real-frame VLM evidence should be redacted/hash-only where it derives from private media."
+  ]
+}

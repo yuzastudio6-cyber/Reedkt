@@ -1,0 +1,16 @@
+export const VLM_MODEL_DOWNLOAD_PHASE = '39B'
+export const VLM_MODEL_DOWNLOAD_PROJECT_ID = 'reeditpro'
+export const VLM_MODEL_DOWNLOAD_REGION = 'us-central1'
+export const VLM_MODEL_DOWNLOAD_ENV = 'staging'
+export const VLM_MODEL_DOWNLOAD_BUCKET = 'reeditpro-staging-reeditpro-generated-assets'
+export const VLM_MODEL_DOWNLOAD_MODEL_ID = 'Qwen/Qwen3-VL-8B-Instruct'
+export const VLM_MODEL_DOWNLOAD_MODEL_FAMILY = 'Qwen3-VL'
+export const VLM_MODEL_DOWNLOAD_EXPECTED_REVISION = '0c351dd01ed87e9c1b53cbc748cba10e6187ff3b'
+export const VLM_MODEL_DOWNLOAD_MODEL_SLUG = 'qwen3-vl-8b-instruct'
+export const VLM_MODEL_DOWNLOAD_TARGET_PREFIX = `model-weights/qwen3-vl/${VLM_MODEL_DOWNLOAD_MODEL_SLUG}/${VLM_MODEL_DOWNLOAD_EXPECTED_REVISION}/`
+export const VLM_MODEL_DOWNLOAD_GCS_PATH = `gs://${VLM_MODEL_DOWNLOAD_BUCKET}/${VLM_MODEL_DOWNLOAD_TARGET_PREFIX}`
+export const VLM_MODEL_DOWNLOAD_TEMP_ROOT = '/tmp/reeditpro/activation/phase39b/qwen3-vl-8b-instruct'
+export const VLM_MODEL_DOWNLOAD_REPORT_DIR = 'reports'
+export const VLM_MODEL_DOWNLOAD_PAYLOAD_DIR = 'downloads'
+export const VLM_MODEL_DOWNLOAD_HF_API_URL = 'https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct?blobs=true'
+export const VLM_MODEL_DOWNLOAD_HF_MODEL_URL = 'https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct'

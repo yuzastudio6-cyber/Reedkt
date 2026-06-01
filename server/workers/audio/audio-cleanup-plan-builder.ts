@@ -18,12 +18,10 @@ export function buildAudioCleanupPlan(input: {
   const selectedPrimaryTool = selectPrimaryTool(input.audioAnalysis, voice.cleanupStrength)
   const operations: VoiceCleanupOperation[] = buildOperations(input.audioAnalysis, selectedPrimaryTool, voice)
   const fallbackTools: AudioToolId[] = selectedPrimaryTool === 'deepfilternet'
-    ? ['rnnoise', 'ffmpeg']
-    : selectedPrimaryTool === 'rnnoise'
-      ? ['ffmpeg']
-      : selectedPrimaryTool === 'ffmpeg'
-        ? ['none']
-        : []
+    ? ['ffmpeg']
+    : selectedPrimaryTool === 'ffmpeg'
+      ? ['none']
+      : []
 
   return {
     id: `audio-cleanup-plan-${input.mediaAssetId}`,
@@ -46,17 +44,17 @@ export function buildAudioCleanupPlan(input: {
   }
 }
 
-function selectPrimaryTool(analysis: AudioAnalysisSummary, strength: AudioCleanupPlan['cleanupStrength']): Extract<AudioToolId, 'ffmpeg' | 'deepfilternet' | 'rnnoise' | 'none'> {
+function selectPrimaryTool(analysis: AudioAnalysisSummary, strength: AudioCleanupPlan['cleanupStrength']): Extract<AudioToolId, 'ffmpeg' | 'deepfilternet' | 'none'> {
   if (analysis.speechPresence === 'absent' || strength === 'none') return 'none'
   if (analysis.clippingDetected) return 'ffmpeg'
-  if (strength === 'light') return analysis.noiseLevel && analysis.noiseLevel > 0.45 ? 'rnnoise' : 'ffmpeg'
+  if (strength === 'light') return analysis.noiseLevel && analysis.noiseLevel > 0.45 ? 'deepfilternet' : 'ffmpeg'
   if (strength === 'medium' || strength === 'strong') return 'deepfilternet'
   return 'none'
 }
 
 function buildOperations(
   analysis: AudioAnalysisSummary,
-  toolId: Extract<AudioToolId, 'ffmpeg' | 'deepfilternet' | 'rnnoise' | 'none'>,
+  toolId: Extract<AudioToolId, 'ffmpeg' | 'deepfilternet' | 'none'>,
   voice: ReturnType<typeof chooseVoiceCleanupStrength>,
 ): VoiceCleanupOperation[] {
   if (toolId === 'none') {

@@ -1,0 +1,63 @@
+[
+  {
+    "planId": "phase39b_exact_revision_file_selection",
+    "futurePhase": "39B",
+    "description": "Select exact Qwen/Qwen3-VL-8B-Instruct revision and file manifest before any model/tokenizer/processor download.",
+    "executionMode": "text_only",
+    "safeToRunNow": false,
+    "executableCommand": null,
+    "requiresFutureApproval": true,
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_VLM_MODEL_DOWNLOAD=true",
+      "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_UPLOAD=true"
+    ],
+    "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/<revision>/",
+    "blockedReason": "Phase 39A is approval/planning only and cannot download model files.",
+    "allowedOnlyAfter": [
+      "Exact Hugging Face revision is selected.",
+      "Exact file manifest is selected.",
+      "Human legal review confirms model-card/source terms are unchanged or acceptable."
+    ],
+    "stillBlocked": [
+      "vLLM runtime execution",
+      "generated-fixture inference",
+      "controlled real-frame inference",
+      "beta",
+      "production"
+    ],
+    "warnings": [
+      "Do not use mutable main/latest model references.",
+      "Do not commit model, tokenizer, or processor payloads."
+    ]
+  },
+  {
+    "planId": "phase39b_private_gcs_checksum_manifest",
+    "futurePhase": "39B",
+    "description": "Compute SHA-256 for selected files and stage them only in private generated-assets GCS storage.",
+    "executionMode": "text_only",
+    "safeToRunNow": false,
+    "executableCommand": null,
+    "requiresFutureApproval": true,
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_VLM_MODEL_DOWNLOAD=true",
+      "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_UPLOAD=true"
+    ],
+    "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/<revision>/",
+    "blockedReason": "No private model object creation or GCS upload is allowed in Phase 39A.",
+    "allowedOnlyAfter": [
+      "Phase 39B current-shell confirmations are set.",
+      "Active project/bucket privacy preflight passes.",
+      "Temp download path is outside the repo."
+    ],
+    "stillBlocked": [
+      "runtime auto-download",
+      "media processing",
+      "public model artifacts",
+      "Docker push",
+      "Cloud Run deploy"
+    ],
+    "warnings": [
+      "GCS object metadata may not expose SHA-256; keep local checksum manifest as evidence."
+    ]
+  }
+]

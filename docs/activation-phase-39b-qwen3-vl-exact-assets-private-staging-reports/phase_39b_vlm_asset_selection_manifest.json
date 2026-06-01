@@ -1,0 +1,182 @@
+{
+  "phase": "39B",
+  "manifestId": "qwen3_vl_8b_instruct_exact_asset_selection_v1",
+  "selectedAt": "2026-05-31T03:28:37.392Z",
+  "selectedBy": "codex_phase39b_huggingface_revision_registry",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+  "modelFamily": "Qwen3-VL",
+  "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "targetGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+  "selectedAssets": [
+    {
+      "relativePath": "README.md",
+      "role": "model_card",
+      "requiredStatus": "required_for_source_license_evidence",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+      "expectedSizeBytes": 7133,
+      "blobId": "06fb2c8220b4fb51ccca87dd694ef9d240c36745",
+      "selectionReason": "Model card snapshot for source/license evidence."
+    },
+    {
+      "relativePath": "chat_template.json",
+      "role": "tokenizer",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+      "expectedSizeBytes": 5499,
+      "blobId": "1081bacf1af7c7c6de4a585ce02cd0fd34e382da",
+      "selectionReason": "Qwen chat template used by later bounded prompt formatting."
+    },
+    {
+      "relativePath": "config.json",
+      "role": "config",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+      "expectedSizeBytes": 1474,
+      "blobId": "0e2df614c5fe1ad2b6b540c8625bebf2d7ec43ca",
+      "selectionReason": "Model architecture/configuration for local runtime."
+    },
+    {
+      "relativePath": "generation_config.json",
+      "role": "config",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+      "expectedSizeBytes": 269,
+      "blobId": "e116347d7ef42621c7a5957f82c015c38d939c1f",
+      "selectionReason": "Generation defaults for future bounded runtime templates."
+    },
+    {
+      "relativePath": "merges.txt",
+      "role": "tokenizer",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+      "expectedSizeBytes": 1671839,
+      "blobId": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0",
+      "selectionReason": "Tokenizer merge rules."
+    },
+    {
+      "relativePath": "model-00001-of-00004.safetensors",
+      "role": "model_weight",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+      "expectedSizeBytes": 4902275944,
+      "blobId": "392e405fa984ab082e4db6cf265567819f687bcb",
+      "lfsSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+      "selectionReason": "Pinned model weight shard 1 of 4."
+    },
+    {
+      "relativePath": "model-00002-of-00004.safetensors",
+      "role": "model_weight",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+      "expectedSizeBytes": 4915962496,
+      "blobId": "1540d5047c7a275d06c06c8e271c4974f310e87e",
+      "lfsSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+      "selectionReason": "Pinned model weight shard 2 of 4."
+    },
+    {
+      "relativePath": "model-00003-of-00004.safetensors",
+      "role": "model_weight",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+      "expectedSizeBytes": 4999831048,
+      "blobId": "8e8450c4763c2a7e026dd9e83211603eb3e06207",
+      "lfsSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+      "selectionReason": "Pinned model weight shard 3 of 4."
+    },
+    {
+      "relativePath": "model-00004-of-00004.safetensors",
+      "role": "model_weight",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+      "expectedSizeBytes": 2716270024,
+      "blobId": "10f83d82617301ff5adc5588b8b1b2f0552aa9e3",
+      "lfsSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+      "selectionReason": "Pinned model weight shard 4 of 4."
+    },
+    {
+      "relativePath": "model.safetensors.index.json",
+      "role": "model_weight",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+      "expectedSizeBytes": 67759,
+      "blobId": "5857ec62530eb589b1876034dd5386f1d98131a6",
+      "selectionReason": "Safetensors shard index for local runtime."
+    },
+    {
+      "relativePath": "preprocessor_config.json",
+      "role": "processor",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+      "expectedSizeBytes": 390,
+      "blobId": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64",
+      "selectionReason": "Vision preprocessing configuration."
+    },
+    {
+      "relativePath": "tokenizer.json",
+      "role": "tokenizer",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+      "expectedSizeBytes": 7032403,
+      "blobId": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421",
+      "selectionReason": "Tokenizer model file."
+    },
+    {
+      "relativePath": "tokenizer_config.json",
+      "role": "tokenizer",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+      "expectedSizeBytes": 10868,
+      "blobId": "d3d3763207692c78780f4bf42d4dadf49a5c8012",
+      "selectionReason": "Tokenizer runtime configuration."
+    },
+    {
+      "relativePath": "video_preprocessor_config.json",
+      "role": "processor",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+      "expectedSizeBytes": 385,
+      "blobId": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe",
+      "selectionReason": "Video processor configuration, staged for future runtime parity but not executed in Phase 39B."
+    },
+    {
+      "relativePath": "vocab.json",
+      "role": "tokenizer",
+      "requiredStatus": "required_for_phase39c_runtime",
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+      "expectedSizeBytes": 2776833,
+      "blobId": "4783fe10ac3adce15ac8f358ef5462739852c569",
+      "selectionReason": "Tokenizer vocabulary."
+    }
+  ],
+  "excludedRepoFiles": [
+    ".gitattributes"
+  ],
+  "selectedFileCount": 15,
+  "selectedTotalSizeBytes": 17545914364,
+  "exactRevisionPinned": true,
+  "downloadExecuted": true,
+  "privateGcsUploadVerified": true,
+  "runtimeAutoDownloadAllowed": false,
+  "vlmRuntimeAllowed": false,
+  "inferenceAllowed": false,
+  "mediaProcessingAllowed": false,
+  "blockers": [],
+  "warnings": [
+    "Private GCS verification passed for selected assets and JSON/text manifests."
+  ]
+}

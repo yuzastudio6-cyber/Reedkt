@@ -1,0 +1,45 @@
+{
+  "phase": "39B",
+  "nextPhase": "39C",
+  "manifestId": "qwen3_vl_8b_instruct_phase39c_runtime_handoff_v1",
+  "createdAt": "2026-05-31T03:28:37.392Z",
+  "phase39CReadyForGeneratedRuntimeVerification": true,
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+  "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "privateGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+  "requiredRuntimeRules": [
+    "Phase 39C must copy only these private staged assets and verify SHA256 before runtime.",
+    "Phase 39C must start vLLM with a local model path, not the Hugging Face model id.",
+    "Phase 39C must disable and guard against vLLM/Hugging Face/ModelScope runtime auto-download.",
+    "Phase 39C may run generated fixtures only with bounded prompt templates and JSON-only output.",
+    "Phase 39C must block raw prompt execution, provider calls, arbitrary images/videos, real media, broad media, beta, and production.",
+    "Phase 39C must report hallucination, coordinate, grounding, and safety QA before Phase 39D."
+  ],
+  "blockedScopes": [
+    "VLM runtime execution",
+    "vLLM runtime execution",
+    "Transformers inference",
+    "SGLang runtime execution",
+    "runtime model auto-download",
+    "generated VLM inference before Phase 39C",
+    "controlled real-frame VLM before Phase 39D",
+    "VLM planning integration before Phase 39E",
+    "GPU jobs",
+    "image processing",
+    "video processing",
+    "real media processing",
+    "arbitrary media processing",
+    "provider calls",
+    "public output",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "broad real user media",
+    "Track A execution/runtime code"
+  ],
+  "blockers": [],
+  "warnings": [
+    "Qwen/vLLM docs require local-path discipline because runtimes may auto-download when given a model id or missing local path."
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "phase": "39B",
+  "reportId": "qwen3_vl_8b_instruct_private_gcs_upload_report_v1",
+  "createdAt": "2026-05-31T03:28:37.392Z",
+  "targetGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/",
+  "privateStorageRequired": true,
+  "publicAccessAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "sourceMediaBucketAllowed": false,
+  "uploadedObjects": [
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/README.md",
+      "relativePath": "README.md",
+      "sizeBytes": 7133,
+      "localSha256": "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7",
+      "generation": "1780196915114659",
+      "crc32c": "iQXKsw==",
+      "md5Hash": "7OWxYJllQ6QMeAY5kzVanQ=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json",
+      "relativePath": "chat_template.json",
+      "sizeBytes": 5499,
+      "localSha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+      "generation": "1780196916966250",
+      "crc32c": "euaTdg==",
+      "md5Hash": "NA1mlhNpVLg+i1Q0pZjMsQ=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/config.json",
+      "relativePath": "config.json",
+      "sizeBytes": 1474,
+      "localSha256": "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661",
+      "generation": "1780196918909530",
+      "crc32c": "Y+/hmA==",
+      "md5Hash": "FwaNcQnn33iuF6lS9jE4wA=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json",
+      "relativePath": "generation_config.json",
+      "sizeBytes": 269,
+      "localSha256": "8469742d1fce0de951c8909b26a2c0c0d8490837ce476efb114da9e0cefc4d44",
+      "generation": "1780196920805525",
+      "crc32c": "HofJtA==",
+      "md5Hash": "/4M0HLNhdO3ST2SsAzFSdA=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt",
+      "relativePath": "merges.txt",
+      "sizeBytes": 1671839,
+      "localSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "generation": "1780196923035319",
+      "crc32c": "TsXDRw==",
+      "md5Hash": "54iCwuIkp1+oGA7GELriQw=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00001-of-00004.safetensors",
+      "relativePath": "model-00001-of-00004.safetensors",
+      "sizeBytes": 4902275944,
+      "localSha256": "d5d0aef0eb170fc7453a296c43c0849a56f510555d3588e4fd662bb35490aefa",
+      "generation": "1780197312068182",
+      "crc32c": "rNua9Q=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00002-of-00004.safetensors",
+      "relativePath": "model-00002-of-00004.safetensors",
+      "sizeBytes": 4915962496,
+      "localSha256": "8be88fb5501e4d5719a6d4cc212e6a13480330e74f3e8c77daa1a68f199106b5",
+      "generation": "1780197625122751",
+      "crc32c": "anrvSA=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00003-of-00004.safetensors",
+      "relativePath": "model-00003-of-00004.safetensors",
+      "sizeBytes": 4999831048,
+      "localSha256": "83de00eafe6e0d57ccd009dbcf71c9974d74df2f016c27afb7e95aafd16b2192",
+      "generation": "1780197922867701",
+      "crc32c": "mTL3og=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model-00004-of-00004.safetensors",
+      "relativePath": "model-00004-of-00004.safetensors",
+      "sizeBytes": 2716270024,
+      "localSha256": "0a88b98e9f96270973f567e6a2c103ede6ccdf915ca3075e21c755604d0377a5",
+      "generation": "1780198066365852",
+      "crc32c": "xabQcg=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/model.safetensors.index.json",
+      "relativePath": "model.safetensors.index.json",
+      "sizeBytes": 67759,
+      "localSha256": "520b2e05079402e9468a8701d03d1154d14b2599593afb6effa7fb60c1bff070",
+      "generation": "1780198068603691",
+      "crc32c": "zGJWgA==",
+      "md5Hash": "FbsncbepYQtPEpgxn1jlNQ=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json",
+      "relativePath": "preprocessor_config.json",
+      "sizeBytes": 390,
+      "localSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "generation": "1780198070116804",
+      "crc32c": "8VGvsA==",
+      "md5Hash": "e8rt9yagWSRZWwMC0N1Nxw=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json",
+      "relativePath": "tokenizer.json",
+      "sizeBytes": 7032403,
+      "localSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "generation": "1780198072411670",
+      "crc32c": "kbuigA==",
+      "md5Hash": "8TGUaAiR5f1YF6VqNBvwFQ=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json",
+      "relativePath": "tokenizer_config.json",
+      "sizeBytes": 10868,
+      "localSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+      "generation": "1780198074196242",
+      "crc32c": "cGn/Jg==",
+      "md5Hash": "UMXTfZ05BODiQ+cJvbtsNw=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json",
+      "relativePath": "video_preprocessor_config.json",
+      "sizeBytes": 385,
+      "localSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "generation": "1780198075858186",
+      "crc32c": "cNRL4Q==",
+      "md5Hash": "QbyE16pwh5leC4/TwKKd+g=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json",
+      "relativePath": "vocab.json",
+      "sizeBytes": 2776833,
+      "localSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "generation": "1780198077910354",
+      "crc32c": "DhkvIQ==",
+      "md5Hash": "YTuOSmIsSiyQ6eEkX8VA1g=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_download_plan.json",
+      "relativePath": "phase_39b_vlm_model_download_plan.json",
+      "sizeBytes": 10138,
+      "generation": "1780198079509656",
+      "crc32c": "BuViZg==",
+      "md5Hash": "ZyhJjXLJh07KU1PUEsrGrg=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_exact_revision_manifest.json",
+      "relativePath": "phase_39b_vlm_exact_revision_manifest.json",
+      "sizeBytes": 3874,
+      "generation": "1780198081233365",
+      "crc32c": "r9C9gQ==",
+      "md5Hash": "TyXPZHJJg/m+SesMjXqxWA=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_source_evidence.json",
+      "relativePath": "phase_39b_vlm_source_evidence.json",
+      "sizeBytes": 1253,
+      "generation": "1780198082920008",
+      "crc32c": "hkaDpw==",
+      "md5Hash": "0o25kz5oSdDeSfGgmh1q6A=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_license_evidence.json",
+      "relativePath": "phase_39b_vlm_license_evidence.json",
+      "sizeBytes": 797,
+      "generation": "1780198084746083",
+      "crc32c": "UpDn5g==",
+      "md5Hash": "PzUnr3lWQxP0OCKwI7foqQ=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_asset_selection_manifest.json",
+      "relativePath": "phase_39b_vlm_asset_selection_manifest.json",
+      "sizeBytes": 10821,
+      "generation": "1780198086288152",
+      "crc32c": "DSR+ow==",
+      "md5Hash": "H/TRfGZAh/RKIB7LSFknZg=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_download_command_plan.json",
+      "relativePath": "phase_39b_vlm_download_command_plan.json",
+      "sizeBytes": 8192,
+      "generation": "1780198087930568",
+      "crc32c": "kxq9rg==",
+      "md5Hash": "ShEN17NHd7cNbTle3NTKcA=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_checksum_manifest.json",
+      "relativePath": "phase_39b_vlm_checksum_manifest.json",
+      "sizeBytes": 6755,
+      "generation": "1780198089659220",
+      "crc32c": "LYzxjQ==",
+      "md5Hash": "GXgXt8vmz+G1ZsxTRDD+1A=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_file_checksums_sha256.txt",
+      "relativePath": "phase_39b_vlm_file_checksums_sha256.txt",
+      "sizeBytes": 1330,
+      "generation": "1780198091290340",
+      "crc32c": "CGQurQ==",
+      "md5Hash": "JTkU0rHdvVeb6dqNAfFASA=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_tree_manifest.json",
+      "relativePath": "phase_39b_vlm_model_tree_manifest.json",
+      "sizeBytes": 12992,
+      "generation": "1780198092973855",
+      "crc32c": "Z0Umow==",
+      "md5Hash": "b58APP4Zgo1skSEb4St01w=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_private_gcs_upload_report.json",
+      "relativePath": "phase_39b_vlm_private_gcs_upload_report.json",
+      "sizeBytes": 740,
+      "generation": "1780198094655318",
+      "crc32c": "SNNrnw==",
+      "md5Hash": "vDP2FMVPIipw4v6E7y1mUA=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_runtime_handoff_manifest.json",
+      "relativePath": "phase_39b_vlm_runtime_handoff_manifest.json",
+      "sizeBytes": 2040,
+      "generation": "1780198096430078",
+      "crc32c": "duArmQ==",
+      "md5Hash": "bUjN2jUz0bCp3qbSWa6G1Q=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_cost_risk_update.json",
+      "relativePath": "phase_39b_vlm_cost_risk_update.json",
+      "sizeBytes": 596,
+      "generation": "1780198098340761",
+      "crc32c": "sXvnpQ==",
+      "md5Hash": "b32yq5WeXWwZWXz1+uu53w=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_blocker_report.json",
+      "relativePath": "phase_39b_vlm_blocker_report.json",
+      "sizeBytes": 2725,
+      "generation": "1780198100035490",
+      "crc32c": "e2Gb0Q==",
+      "md5Hash": "WINKIag5R9pOlIK80D9A7Q=="
+    },
+    {
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/phase_39b_vlm_model_download_report.json",
+      "relativePath": "phase_39b_vlm_model_download_report.json",
+      "sizeBytes": 68257,
+      "generation": "1780198101820447",
+      "crc32c": "0716dQ==",
+      "md5Hash": "oDYMjfdzJHOmOHiV1XBtFg=="
+    }
+  ],
+  "uploadVerified": true,
+  "blockers": [],
+  "warnings": [
+    "GCS object metadata is recorded with generation, CRC32C, and MD5 when available; SHA256 comes from the local checksum manifest."
+  ]
+}

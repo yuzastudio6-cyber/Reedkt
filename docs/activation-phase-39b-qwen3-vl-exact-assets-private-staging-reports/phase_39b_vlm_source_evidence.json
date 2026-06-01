@@ -1,0 +1,23 @@
+{
+  "phase": "39B",
+  "collectedAt": "2026-05-31T02:56:48.156Z",
+  "phase39APr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/62",
+  "phase39ACommit": "698410e",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct",
+  "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "modelCardUrl": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+  "qwenRepoUrl": "https://github.com/QwenLM/Qwen3-VL",
+  "vllmSupportedModelsUrl": "https://docs.vllm.ai/en/latest/models/supported_models/",
+  "qwenVllmDocsUrl": "https://qwen.readthedocs.io/en/latest/deployment/vllm.html",
+  "sourceVerificationMethod": "Hugging Face model API metadata with blobs enabled: https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct?blobs=true",
+  "exactRevisionResolved": true,
+  "fileListResolved": true,
+  "authenticationRequired": false,
+  "authenticationAvailable": false,
+  "blockers": [],
+  "warnings": [
+    "Qwen3-VL repo, Hugging Face model card, vLLM supported-models, and Qwen vLLM docs remain source references for planning and Phase 39C handoff.",
+    "Phase 39B does not call vLLM, Transformers, SGLang, provider APIs, or inference endpoints.",
+    "Phase 39B uses Hugging Face metadata for revision/file selection only; it does not call inference providers."
+  ]
+}

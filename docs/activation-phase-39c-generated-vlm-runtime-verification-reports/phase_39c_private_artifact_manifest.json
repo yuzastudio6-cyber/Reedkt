@@ -1,0 +1,177 @@
+{
+  "phase": "39C",
+  "runId": "phase39c-20260531T214216",
+  "createdAt": "2026-05-31T21:51:53.032Z",
+  "privateOnly": true,
+  "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+  "prefix": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216",
+  "artifactCount": 13,
+  "artifacts": [
+    {
+      "id": "phase_39c_vlm_runtime_plan_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_runtime_plan.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_runtime_plan.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_runtime_plan.json",
+      "sizeBytes": 1067,
+      "sha256": "955fc19a963f09dbefe859c6451246b23a62f8368907d8fe4e25b4efdad889f1",
+      "generation": "1780264273746395"
+    },
+    {
+      "id": "phase_39c_vlm_model_asset_verification_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_model_asset_verification.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_model_asset_verification.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_model_asset_verification.json",
+      "sizeBytes": 15021,
+      "sha256": "39a5c44411e1d7a4a706de6a3e5f128ade08cbee114cfac8ef4924e12e5716ef",
+      "generation": "1780264273821527"
+    },
+    {
+      "id": "phase_39c_generated_fixture_manifest_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_generated_fixture_manifest.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_generated_fixture_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_generated_fixture_manifest.json",
+      "sizeBytes": 6132,
+      "sha256": "195e1edbf3ecc41605b8c7417081dd1a9483053359ebf80b488a309314f4ca6a",
+      "generation": "1780264273883013"
+    },
+    {
+      "id": "phase_39c_prompt_template_manifest_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_prompt_template_manifest.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_prompt_template_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_prompt_template_manifest.json",
+      "sizeBytes": 5414,
+      "sha256": "d87f8e00cc3fbd22177b19de696b3ce0083d269958773a18e9b93b6fb4184942",
+      "generation": "1780264273962420"
+    },
+    {
+      "id": "phase_39c_vlm_runtime_results_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_runtime_results.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_runtime_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_runtime_results.json",
+      "sizeBytes": 14855,
+      "sha256": "19d6067b7c52953bc5a7a32fc40d45e75dea66eaab5e054eaa686365b0f79cf6",
+      "generation": "1780264274036514"
+    },
+    {
+      "id": "phase_39c_vlm_output_schema_validation_report_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_output_schema_validation_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_output_schema_validation_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_output_schema_validation_report.json",
+      "sizeBytes": 222,
+      "sha256": "84f72128b3b813a1d5b19d98580e039a58ee63a2f65d98c3882484ea0302254a",
+      "generation": "1780264274114014"
+    },
+    {
+      "id": "phase_39c_vlm_object_region_qa_report_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_object_region_qa_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_object_region_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_object_region_qa_report.json",
+      "sizeBytes": 206,
+      "sha256": "7162ec33d066c8f700e550ffabe01dda13a289de4b595a9df5030ba14bebc620",
+      "generation": "1780264274191571"
+    },
+    {
+      "id": "phase_39c_vlm_safe_zone_qa_report_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_safe_zone_qa_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_safe_zone_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_safe_zone_qa_report.json",
+      "sizeBytes": 120,
+      "sha256": "210b4f2c29d7da42e698b51e3948f2c07c45cba2f4b9699063295211b35c96b6",
+      "generation": "1780264274260430"
+    },
+    {
+      "id": "phase_39c_vlm_hallucination_safety_report_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_hallucination_safety_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_hallucination_safety_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_hallucination_safety_report.json",
+      "sizeBytes": 243,
+      "sha256": "ec0dfd3df9b6e15065a75de79cbe4b882e04cc74b714eff7fa3967939834abe2",
+      "generation": "1780264274317424"
+    },
+    {
+      "id": "phase_39c_vlm_runtime_cost_memory_report_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_runtime_cost_memory_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_runtime_cost_memory_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_runtime_cost_memory_report.json",
+      "sizeBytes": 3731,
+      "sha256": "feac2bdeaef779ae98f455f0aa0fd4e42343a566a1ea06e385230ee2674687fa",
+      "generation": "1780264274388075"
+    },
+    {
+      "id": "phase_39c_vlm_l4_tuning_matrix_report_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_vlm_l4_tuning_matrix_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_l4_tuning_matrix_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_vlm_l4_tuning_matrix_report.json",
+      "sizeBytes": 10714,
+      "sha256": "5f75a95bb11c65ae9216d5fff0ba5c586776638b1ee291aa3e0a5faf5db7d221",
+      "generation": "1780264274451800"
+    },
+    {
+      "id": "phase_39c_private_artifact_manifest_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_private_artifact_manifest.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_private_artifact_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_private_artifact_manifest.json",
+      "sizeBytes": 12735,
+      "sha256": "4b5c16049f6a0eab0ec2986ece288dc6366fd9faea220e5fa00be3943707d647",
+      "generation": "1780264274514669"
+    },
+    {
+      "id": "phase_39c_generated_vlm_runtime_report_json",
+      "kind": "report",
+      "localPath": "redacted_phase39c_report_dir/phase_39c_generated_vlm_runtime_report.json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_generated_vlm_runtime_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/phase39c-20260531T214216/phase_39c_generated_vlm_runtime_report.json",
+      "sizeBytes": 61571,
+      "sha256": "9c9d0a039a2a382b1fa4f6dd99845e1bda53fe5eb545b3aa66acd384d9e48a8f",
+      "generation": "1780264274594264"
+    }
+  ],
+  "blockers": [
+    "phase39c_staging_cloud_run_job_failed:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. Creating e … .......................................................................failed Executing job failed ERROR: (gcloud.run.jobs.execute) The execution failed. View details about this execution by running: gcloud run jobs executions describe reeditpro-stg-vlm-runtime-phase39c-xcz4t Or visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-vlm-runtime-phase39c-xcz4t?project=390722338345",
+    "phase39c_cloud_run_execution_condition:Completed:NonZeroExitCode:Task reeditpro-stg-vlm-runtime-phase39c-xcz4t-task0 failed with exit code: 1 and message: The container exited with an error.",
+    "phase39c_cloud_run_log:Container called exit(1).",
+    "phase39c_cloud_run_worker_blocker:phase39c_l4_tuning_profiles_exhausted",
+    "phase39c_cloud_run_worker_blocker:vllm_runtime_failed:Engine core initialization failed. See root cause above. Failed core proc(s): {}",
+    "phase39c_l4_tuning_profiles_exhausted",
+    "vllm_runtime_failed:Engine core initialization failed. See root cause above. Failed core proc(s): {}"
+  ],
+  "warnings": [
+    "Phase 39C verifies generated synthetic VLM fixtures only.",
+    "Passing Phase 39C does not approve controlled real-frame VLM until Phase 39D or planning integration until Phase 39E.",
+    "staging_vlm_runtime_image_built_and_pushed:us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c:phase39c-20260531t214216",
+    "staging_cloud_run_job_deployed:reeditpro-stg-vlm-runtime-phase39c",
+    "phase39c_cloud_run_execution_condition:ResourcesAvailable:Provisioned imported containers.",
+    "phase39c_cloud_run_execution_condition:Started:Started deployed execution in 1m22.22s.",
+    "phase39c_cloud_run_execution_condition:ContainerReady:Imported container image.",
+    "phase39c_cloud_run_worker_warning:phase39c_profile_stderr:minimal-smoke-one-fixture:OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.56 GiB is free. Process 3093 has 17.40 GiB memory in use. Of the allocated memory 17.11 GiB is allocated by PyTorch, and 39.77 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n[rank0]:[W531 14:51:10.222863514 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nTraceback (most",
+    "phase39c_cloud_run_worker_warning:phase39c_staging_l4_cloud_run_job_path_used",
+    "phase39c_profile_stderr:minimal-smoke-one-fixture:OutOfMemoryError: CUDA out of memory. Tried to allocate 4.62 GiB. GPU 0 has a total capacity of 21.96 GiB of which 4.56 GiB is free. Process 3093 has 17.40 GiB memory in use. Of the allocated memory 17.11 GiB is allocated by PyTorch, and 39.77 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n[rank0]:[W531 14:51:10.222863514 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\nTraceback (most recent call last):\n  File \"/app/server/workers/vlm-runtime/run-generated-vlm-fixture.py\", line 328, in main\n    runtime_version, results, profile_result = run_vllm(Path(args.model_dir), fixtures, templates, fixture_dir, args.tuning_profile_id)\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/server/workers/vlm-runtime/run-generated-vlm-fixture.py\", line 216, in run_vllm\n    llm = LLM(**llm_kwargs)\n          ^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/llm.py\", line 297, in __init__\n    self.llm_engine = LLMEngine.from_engine_args(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 177, in from_engine_args\n    return cls(vllm_config=vllm_config,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 114, in __init__\n    self.engine_core = EngineCoreClient.make_client(\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 80, in make_client\n    return SyncMPClient(vllm_config, executor_class, log_stats)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 602, in __init__\n    super().__init__(\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 448, in __init__\n    with launch_core_engines(vllm_config, executor_class,\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/contextlib.py\", line 144, in __exit__\n    next(self.gen)\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py\", line 732, in launch_core_engines\n    wait_for_engine_startup(\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/utils.py\", line 785, in wait_for_engine_startup\n    raise RuntimeError(\"Engine core initialization failed. \"\nRuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}\n",
+    "phase39c_staging_l4_cloud_run_job_path_used",
+    "private_artifact_upload_verified_by_staging_cloud_run_job"
+  ]
+}

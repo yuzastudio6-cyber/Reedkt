@@ -1,0 +1,25 @@
+{
+  "reportId": "phase_39a_vlm_privacy_security_policy_report",
+  "metadataOnly": true,
+  "privateArtifactsOnly": true,
+  "publicArtifactPathsAllowed": false,
+  "signedUrlsAllowed": false,
+  "credentialsOrSecretsAllowed": false,
+  "mediaBytesAllowed": false,
+  "modelBytesAllowed": false,
+  "generatedReportsSafeToCommit": true,
+  "blockedInputs": [
+    "public artifact paths",
+    "signed URLs",
+    "local media files",
+    "image/video bytes",
+    "model/tokenizer/processor payloads",
+    "credential files",
+    "secret logs"
+  ],
+  "retentionNotes": [
+    "Phase 39A reports are safe metadata only and may be committed.",
+    "Future private model assets must live in generated-assets private GCS and outside git.",
+    "Future VLM QA artifacts must be JSON-only and private unless a later explicit policy permits otherwise."
+  ]
+}

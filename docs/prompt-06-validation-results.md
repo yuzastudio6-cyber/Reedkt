@@ -40,6 +40,7 @@ Prompt 6 implements a limited credit route/service foundation only. This file re
 | `npm run --silent credit:scope:diagnostics` | Passed | No legacy credit table targeting, blocked table targeting, direct canonical credit mutation, or secret-like findings in Prompt 6 files. |
 | `npm run foundation:validate` | Passed | Required default checks passed; full build skipped by default. |
 | `npm run foundation:validate:with-build` | Environment-blocked | Required checks passed; optional full build failed at Rolldown native binding load and was classified as environment-blocked, not code-failed. |
+| GitHub Foundation Validation | Passed | PR #85 Foundation Validation passed in Linux CI. |
 
 ## SQL/RLS Status
 
@@ -57,4 +58,4 @@ Limited credit route/service foundation only. No real credit reserve, spend, rel
 
 ## Prompt 7 Decision
 
-Default local validation passed. Prompt 7 - Backend API Runtime And Route Hardening may proceed if GitHub Foundation Validation passes; otherwise use Prompt 6A - Credit Gate Validation Hardening.
+Default local validation passed and GitHub Foundation Validation passed on PR #85. Prompt 7 - Backend API Runtime And Route Hardening may proceed with Prompt 6 scope guardrails.

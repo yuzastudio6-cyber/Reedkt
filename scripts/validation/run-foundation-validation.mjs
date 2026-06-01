@@ -42,6 +42,18 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'auth:rls:diagnostics'],
     required: true,
   },
+  {
+    id: 'storage_scope_diagnostics',
+    command: 'npm run --silent storage:scope:diagnostics',
+    npmArgs: ['run', '--silent', 'storage:scope:diagnostics'],
+    required: true,
+  },
+  {
+    id: 'snapshot_scope_diagnostics',
+    command: 'npm run --silent snapshot:scope:diagnostics',
+    npmArgs: ['run', '--silent', 'snapshot:scope:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

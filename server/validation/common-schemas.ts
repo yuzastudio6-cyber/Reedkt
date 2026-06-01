@@ -11,3 +11,11 @@ export function validateBody<T>(schema: z.ZodType<T>, value: unknown): T {
   }
   return result.data
 }
+
+export function validateQuery<T>(schema: z.ZodType<T>, value: unknown): T {
+  const result = schema.safeParse(value)
+  if (!result.success) {
+    throw new ApiError('VALIDATION_FAILED', 'Request query validation failed.', 400, result.error.flatten())
+  }
+  return result.data
+}

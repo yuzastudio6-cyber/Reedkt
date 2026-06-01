@@ -38,7 +38,7 @@ Prompt 14 local validation passed on June 1, 2026 using the local arm64 Node pat
 - `npm run build:server`: passed.
 - `npm run foundation:validate:with-build`: passed, including full build.
 
-The Foundation Validation CI status is pending until the Prompt 14 PR is opened.
+The Foundation Validation CI status is pending on PR #103 until GitHub reports a run result.
 
 ## Worker Execution Diagnostics
 

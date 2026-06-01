@@ -60,6 +60,7 @@ Run:
 - Branch: `codex/rp-foundation-14-worker-claim-execution-contract-hardening`
 - PR base: `codex/rp-foundation-13a-tool-readiness-ci-validation-record`
 - PR title: `[foundation] Prompt 14 worker claim execution contract hardening`
+- PR: [#103](https://github.com/yuzastudio6-cyber/Reedkt/pull/103)
 - Do not merge the PR.
 
 ## Acceptance Criteria

@@ -63,6 +63,7 @@ Validation results:
 | `npm run --silent snapshot:scope:diagnostics` | Passed. No critical forbidden table, legacy helper, or secret findings. |
 | `npm run foundation:validate` | Passed. Includes lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, and snapshot diagnostics. |
 | `npm run foundation:validate:with-build` | Environment-blocked locally. Required checks passed; optional full build failed on the known Rolldown native binding issue: `Cannot find native binding`. |
+| GitHub Foundation Validation | Passed on PR #84 in Linux CI. |
 | `git diff --check` | Passed. |
 | `git diff --check origin/codex/rp-foundation-04-storage-upload-production-runtime...HEAD` | Passed. |
 
@@ -76,7 +77,7 @@ No credit mutation, job creation/execution, worker execution, provider call, ren
 
 - Production use requires a configured backend/service-role runtime.
 - Local/staging RLS validation is not executed.
-- Local full build remains blocked by the Vite/Rolldown native binding environment issue; Linux CI is the expected full-build validation route.
+- Local full build remains blocked by the Vite/Rolldown native binding environment issue; Linux CI is the full-build validation route and passed on PR #84.
 - Active migration cleanup for compatibility-era fields remains future work.
 - Credit mutation remains Prompt 6.
 - Jobs/workers/providers/render/tools remain future milestones.

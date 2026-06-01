@@ -5,7 +5,7 @@ import type {
   ApiRuntimeContext,
 } from './api-runtime-contracts'
 import { createApiBackendRequiredResponse, createApiErrorResponse, createApiMockResponse, createApiNotImplementedResponse } from './api-response'
-import { createApiRouteMapSummary, getApiRouteById, getMockReadyRoutes } from './api-route-registry'
+import { createApiRouteMapSummary, getApiRouteById, getMockReadyRoutes, getRouteProductionReadiness } from './api-route-registry'
 import type { ChatNativePlanningInput } from '../backend-types'
 import { runAuthBootstrapFlow } from '../auth/auth-bootstrap-orchestrator'
 import { getAuthClientStatus } from '../auth/auth-client-service'
@@ -97,6 +97,8 @@ export async function handleMockApiRequest<TBody = unknown, TData = unknown>(
   }
 
   if (
+    getRouteProductionReadiness(route) === 'blocked' ||
+    getRouteProductionReadiness(route) === 'future' ||
     route.status === 'disabled' ||
     route.status === 'backend_required' ||
     route.requiresServiceRole ||

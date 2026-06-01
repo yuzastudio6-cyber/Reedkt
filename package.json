@@ -38,6 +38,7 @@
     "storage:scope:diagnostics": "node scripts/validation/storage-upload-scope-diagnostics.mjs",
     "snapshot:scope:diagnostics": "node scripts/validation/approved-snapshot-scope-diagnostics.mjs",
     "credit:scope:diagnostics": "node scripts/validation/credit-scope-diagnostics.mjs",
+    "backend:api:diagnostics": "node scripts/validation/backend-api-route-scope-diagnostics.mjs",
     "foundation:validate": "node scripts/validation/run-foundation-validation.mjs",
     "foundation:validate:with-build": "REEDITPRO_INCLUDE_FULL_BUILD=true node scripts/validation/run-foundation-validation.mjs"
   },

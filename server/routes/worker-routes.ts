@@ -1,9 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
-import { createWorkerClaimService } from '../services/worker-claim-service'
-import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
-import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import {
   claimWorkerJobSchema,
   probeMediaJobSchema,
@@ -13,67 +10,90 @@ import {
   toolReadinessCheckSchema,
 } from '../validation/worker-schemas'
 import { validateBody } from '../validation/common-schemas'
-import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
+import { asyncRoute, getRouteParam, sendBackendRequired } from './route-helpers'
 
 export function createWorkerRoutes(): Router {
   const router = Router()
 
   router.post('/v1/jobs/:jobId/claim', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
-    const body = validateBody(claimWorkerJobSchema, request.body)
-    const result = await createWorkerClaimService(getServiceContext(request)).claimJob({
-      ...body,
-      jobId: getRouteParam(request, 'jobId'),
-      idempotencyKey: getIdempotencyKey(request),
+    validateBody(claimWorkerJobSchema, request.body)
+    getRouteParam(request, 'jobId')
+    sendBackendRequired(response, {
+      routeId: 'workers.jobs.claim',
+      routeGroup: 'workers',
+      message: 'Worker claims remain blocked until Prompt 8.',
+      blockers: ['Prompt 7 does not claim jobs, create leases, heartbeat workers, or mutate worker state.'],
+      nextAction: 'Use Prompt 8 for job orchestration, worker claims, leases, and idempotency.',
     })
-    sendOk(response, { claim: result.claim }, result.warnings, 201)
   }))
 
   router.post('/v1/jobs/:jobId/heartbeat', requireAuth, asyncRoute(async (request, response) => {
-    const result = await createWorkerClaimService(getServiceContext(request)).heartbeat({
-      jobId: getRouteParam(request, 'jobId'),
+    getRouteParam(request, 'jobId')
+    sendBackendRequired(response, {
+      routeId: 'workers.jobs.heartbeat',
+      routeGroup: 'workers',
+      message: 'Worker heartbeat remains blocked until Prompt 8.',
+      blockers: ['Prompt 7 does not update worker leases or heartbeats.'],
+      nextAction: 'Use Prompt 8 before enabling worker heartbeat routes.',
     })
-    sendOk(response, { heartbeat: result.heartbeat }, result.warnings)
   }))
 
   router.post('/v1/jobs/:jobId/release', requireAuth, asyncRoute(async (request, response) => {
-    const body = validateBody(releaseWorkerJobSchema, request.body)
-    const result = await createWorkerClaimService(getServiceContext(request)).release({
-      jobId: getRouteParam(request, 'jobId'),
-      claimStatus: body.claimStatus,
+    validateBody(releaseWorkerJobSchema, request.body)
+    getRouteParam(request, 'jobId')
+    sendBackendRequired(response, {
+      routeId: 'workers.jobs.release',
+      routeGroup: 'workers',
+      message: 'Worker release remains blocked until Prompt 8.',
+      blockers: ['Prompt 7 does not release worker claims or mutate worker state.'],
+      nextAction: 'Use Prompt 8 before enabling worker release routes.',
     })
-    sendOk(response, { claim: result.claim }, result.warnings)
   }))
 
   router.post('/v1/tool-runtime-checks', requireAuth, asyncRoute(async (request, response) => {
-    const body = validateBody(recordToolRuntimeCheckSchema, request.body)
-    const result = await createWorkerClaimService(getServiceContext(request)).recordToolRuntimeCheck(body)
-    sendOk(response, { toolRuntimeCheck: result.toolRuntimeCheck }, result.warnings, 201)
+    validateBody(recordToolRuntimeCheckSchema, request.body)
+    sendBackendRequired(response, {
+      routeId: 'tools.runtimeChecks.create',
+      routeGroup: 'tools',
+      message: 'Tool runtime check writes remain blocked until tool readiness/runtime milestones.',
+      blockers: ['Prompt 7 does not execute tools or write tool runtime check records.'],
+      nextAction: 'Use Prompt 13 for tool readiness and worker runtime checks.',
+    })
   }))
 
   router.post('/v1/workers/tool-readiness/check', requireAuth, asyncRoute(async (request, response) => {
-    const body = validateBody(toolReadinessCheckSchema, request.body)
-    const result = await runToolReadinessChecks(getServiceContext(request), body)
-    sendOk(response, result, result.warnings, 201)
+    validateBody(toolReadinessCheckSchema, request.body)
+    sendBackendRequired(response, {
+      routeId: 'workers.toolReadiness.check',
+      routeGroup: 'workers',
+      message: 'Tool readiness execution remains blocked from API routes in Prompt 7.',
+      blockers: ['Prompt 7 does not run tool checks, execute binaries, or write readiness records.'],
+      nextAction: 'Use Prompt 13 before enabling API-triggered tool readiness checks.',
+    })
   }))
 
   router.post('/v1/workers/jobs/:jobId/run', requireAuth, asyncRoute(async (request, response) => {
-    const body = validateBody(runWorkerJobSchema, request.body)
-    const result = await runWorkerClaimRunner(getServiceContext(request), {
-      ...body,
-      jobId: getRouteParam(request, 'jobId'),
+    validateBody(runWorkerJobSchema, request.body)
+    getRouteParam(request, 'jobId')
+    sendBackendRequired(response, {
+      routeId: 'workers.jobs.run',
+      routeGroup: 'workers',
+      message: 'Worker job execution remains blocked until worker execution milestones.',
+      blockers: ['Prompt 7 does not execute workers, providers, render, media analysis, or tools.'],
+      nextAction: 'Use Prompt 8 and later worker/runtime milestones before enabling job execution.',
     })
-    sendOk(response, { result }, result.warnings, result.status === 'blocked' ? 409 : 201)
   }))
 
   router.post('/v1/workers/jobs/:jobId/probe-media', requireAuth, asyncRoute(async (request, response) => {
-    const body = validateBody(probeMediaJobSchema, request.body)
-    const result = await runWorkerClaimRunner(getServiceContext(request), {
-      ...body,
-      workerType: body.workerType ?? 'media_probe_worker',
-      jobType: body.jobType ?? 'media_analysis',
-      jobId: getRouteParam(request, 'jobId'),
+    validateBody(probeMediaJobSchema, request.body)
+    getRouteParam(request, 'jobId')
+    sendBackendRequired(response, {
+      routeId: 'workers.jobs.probeMedia',
+      routeGroup: 'workers',
+      message: 'Media probe execution remains blocked until the media readiness milestone.',
+      blockers: ['Prompt 7 does not run FFprobe, analyze media, or persist media readiness.'],
+      nextAction: 'Use the media readiness/probe milestone before enabling this route.',
     })
-    sendOk(response, { result, mediaProbe: result.output }, result.warnings, result.status === 'blocked' ? 409 : 201)
   }))
 
   return router

@@ -1,34 +1,55 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
-import { createJobService } from '../services/job-service'
 import { createJobBatchSchema, createJobSchema } from '../validation/job-schemas'
 import { validateBody } from '../validation/common-schemas'
-import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
+import { asyncRoute, getRouteParam, sendBackendRequired } from './route-helpers'
 
 export function createJobRoutes(): Router {
   const router = Router()
 
   router.post('/v1/job-batches', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
-    const body = validateBody(createJobBatchSchema, request.body)
-    const result = await createJobService(getServiceContext(request)).createJobBatch(body)
-    sendOk(response, { jobBatch: result.jobBatch }, result.warnings, 201)
+    validateBody(createJobBatchSchema, request.body)
+    sendBackendRequired(response, {
+      routeId: 'jobs.batch.create',
+      routeGroup: 'jobs',
+      message: 'Job orchestration remains blocked until Prompt 8.',
+      blockers: ['Prompt 7 does not create job batches, dispatch workers, or mutate execution state.'],
+      nextAction: 'Use Prompt 8 for job orchestration, worker claims, leases, and idempotency.',
+    })
   }))
 
   router.post('/v1/jobs', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
-    const body = validateBody(createJobSchema, request.body)
-    const result = await createJobService(getServiceContext(request)).createJob(body)
-    sendOk(response, { job: result.job }, result.warnings, 201)
+    validateBody(createJobSchema, request.body)
+    sendBackendRequired(response, {
+      routeId: 'jobs.create',
+      routeGroup: 'jobs',
+      message: 'Job creation remains blocked until Prompt 8.',
+      blockers: ['Prompt 7 does not create jobs, queue work, call providers, render media, or execute tools.'],
+      nextAction: 'Use Prompt 8 for job orchestration, worker claims, leases, and idempotency.',
+    })
   }))
 
   router.get('/v1/jobs/:jobId', requireAuth, asyncRoute(async (request, response) => {
-    const result = await createJobService(getServiceContext(request)).getJob(getRouteParam(request, 'jobId'))
-    sendOk(response, { job: result.job }, result.warnings)
+    getRouteParam(request, 'jobId')
+    sendBackendRequired(response, {
+      routeId: 'jobs.get',
+      routeGroup: 'jobs',
+      message: 'Job reads remain backend-required because job runtime is not production-enabled.',
+      blockers: ['Prompt 7 does not expose production job state.'],
+      nextAction: 'Use Prompt 8 before relying on job runtime routes.',
+    })
   }))
 
   router.get('/v1/jobs/:jobId/events', requireAuth, asyncRoute(async (request, response) => {
-    const result = await createJobService(getServiceContext(request)).getJobEvents(getRouteParam(request, 'jobId'))
-    sendOk(response, { events: result.events }, result.warnings)
+    getRouteParam(request, 'jobId')
+    sendBackendRequired(response, {
+      routeId: 'jobs.events.list',
+      routeGroup: 'jobs',
+      message: 'Job event reads remain backend-required because job runtime is not production-enabled.',
+      blockers: ['Prompt 7 does not expose production job events.'],
+      nextAction: 'Use Prompt 8 before relying on job runtime routes.',
+    })
   }))
 
   return router

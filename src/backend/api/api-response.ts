@@ -4,13 +4,16 @@ export function createApiSuccessResponse<TData>(
   data: TData,
   options: {
     statusCode?: number
+    requestId?: string
     warnings?: string[]
     mockOnly?: boolean
   } = {},
 ): ApiResponseEnvelope<TData> {
   return {
     ok: true,
+    status: 'ok',
     statusCode: options.statusCode ?? 200,
+    requestId: options.requestId,
     data,
     warnings: options.warnings ?? [],
     mockOnly: options.mockOnly ?? false,
@@ -22,6 +25,8 @@ export function createApiErrorResponse(
   message: string,
   options: {
     statusCode?: number
+    status?: string
+    requestId?: string
     details?: unknown
     warnings?: string[]
     mockOnly?: boolean
@@ -29,7 +34,9 @@ export function createApiErrorResponse(
 ): ApiResponseEnvelope {
   return {
     ok: false,
+    status: options.status ?? normalizeStatus(code, options.statusCode ?? 500),
     statusCode: options.statusCode ?? 500,
+    requestId: options.requestId,
     error: {
       code,
       message,
@@ -49,6 +56,7 @@ export function createApiNotImplementedResponse(
     `${routeId} does not have a mock handler yet.`,
     {
       statusCode: 501,
+      status: 'not_implemented',
       warnings,
       mockOnly: true,
     },
@@ -64,6 +72,7 @@ export function createApiBackendRequiredResponse(
     `${routeId} requires a backend runtime before it can run outside mock mode.`,
     {
       statusCode: 424,
+      status: 'backend_required',
       warnings: [
         'This operation is intentionally blocked in the frontend-safe mock runtime.',
         ...warnings,
@@ -82,6 +91,7 @@ export function createApiNotConfiguredResponse(
     `${routeId} is not configured for live runtime.`,
     {
       statusCode: 503,
+      status: 'environment_blocked',
       warnings,
       mockOnly: true,
     },
@@ -97,10 +107,21 @@ export function createApiForbiddenResponse(
     `${routeId} is not allowed for the current runtime context.`,
     {
       statusCode: 403,
+      status: 'forbidden',
       warnings,
       mockOnly: true,
     },
   )
+}
+
+function normalizeStatus(code: string, statusCode: number): string {
+  if (code.includes('backend') || statusCode === 424) return 'backend_required'
+  if (code.includes('forbidden') || statusCode === 403) return 'forbidden'
+  if (code.includes('unauthorized') || statusCode === 401) return 'unauthorized'
+  if (code.includes('validation') || statusCode === 400) return 'validation_failed'
+  if (statusCode === 501) return 'not_implemented'
+  if (statusCode === 503) return 'environment_blocked'
+  return 'error'
 }
 
 export function createApiMockResponse<TData>(

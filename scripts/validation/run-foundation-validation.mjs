@@ -60,6 +60,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'credit:scope:diagnostics'],
     required: true,
   },
+  {
+    id: 'backend_api_diagnostics',
+    command: 'npm run --silent backend:api:diagnostics',
+    npmArgs: ['run', '--silent', 'backend:api:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

@@ -44,11 +44,13 @@ Validation was run locally with the Codex-bundled arm64 Node path because the ho
 | `npm run foundation:validate` | Passed | Required checks passed; full build is skipped by default. |
 | `npm run foundation:validate:with-build` | Environment-blocked | Required checks passed; optional `npm run build` reached Vite/Rolldown and failed to load the native binding on this host. |
 
-Pending at the time of this file update:
+Additional repository and CI validation:
 
-- `git diff --check`
-- `git diff --check origin/codex/rp-foundation-07-backend-api-runtime-route-hardening...HEAD`
-- GitHub Foundation Validation status after PR creation.
+| Command/check | Result | Notes |
+| --- | --- | --- |
+| `git diff --check` | Passed | No whitespace errors. |
+| `git diff --check origin/codex/rp-foundation-07-backend-api-runtime-route-hardening...HEAD` | Passed | Base-range diff check passed. |
+| GitHub Foundation Validation | Passed | PR #92 Foundation Validation passed on GitHub Actions. |
 
 ## SQL/RLS Status
 
@@ -75,4 +77,4 @@ Limited job/worker route/service foundation only.
 
 ## Prompt 9 Decision
 
-Local default validation passed. Prompt 9 - Media Readiness, Probe, Transcript, and Timing Foundation may proceed if GitHub Foundation Validation passes after PR creation; otherwise use Prompt 8A - Job/Worker Validation Hardening.
+Local default validation passed, and GitHub Foundation Validation passed on PR #92. Prompt 9 - Media Readiness, Probe, Transcript, and Timing Foundation may proceed, with Prompt 8 guardrails preserved.

@@ -1,0 +1,19 @@
+{
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_private_artifact_manifest",
+  "runId": "phase39c-sg-20260601t201814",
+  "createdAt": "2026-06-01T20:33:48.988Z",
+  "privateOnly": true,
+  "candidateCount": 3,
+  "privateQaPrefixes": [],
+  "rawTracePolicy": "private_only_hashes_and_short_safe_excerpts_committed",
+  "blockers": [
+    "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+  ],
+  "warnings": [
+    "private_model_copy_not_started",
+    "checksum_verification_not_started",
+    "cloud_run_l4_job_not_started",
+    "private_qa_artifact_upload_not_started"
+  ]
+}

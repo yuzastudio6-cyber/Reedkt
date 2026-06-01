@@ -1,0 +1,29 @@
+{
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_generated_fixture_manifest",
+  "createdAt": "2026-06-01T20:33:48.988Z",
+  "generatedOnly": true,
+  "fixtureImagesCommitted": false,
+  "fixtures": [
+    {
+      "fixtureId": "generated-object-layout",
+      "status": "required_after_sglang_canary_pass"
+    },
+    {
+      "fixtureId": "generated-ui-safe-zone",
+      "status": "required_after_sglang_canary_pass"
+    },
+    {
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "status": "required_after_sglang_canary_pass"
+    },
+    {
+      "fixtureId": "generated-ambiguous-scene",
+      "status": "required_after_sglang_canary_pass"
+    },
+    {
+      "fixtureId": "generated-spatial-reasoning",
+      "status": "required_after_sglang_canary_pass"
+    }
+  ]
+}

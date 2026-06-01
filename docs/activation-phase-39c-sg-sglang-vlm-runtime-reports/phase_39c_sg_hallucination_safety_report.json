@@ -1,0 +1,13 @@
+{
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_hallucination_safety_report",
+  "createdAt": "2026-06-01T20:13:32.692Z",
+  "noProviderCalls": true,
+  "noToolCalls": true,
+  "noRawPrompts": true,
+  "noRealMedia": true,
+  "noPublicOutput": true,
+  "blockers": [
+    "execution_not_run"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "openAiCompatibleApi": true,
+  "vlmSupportEvidenceUrl": "https://docs.sglang.ai/docs/start/quick_start/openai_api_completions",
+  "qwenDeploymentEvidenceUrl": "https://www.mintlify.com/QwenLM/Qwen3-VL/deployment/sglang",
+  "localModelPathRequiredByPolicy": true,
+  "modelIdRuntimePathBlockedByPolicy": true,
+  "autoDownloadBlockedByPolicy": true,
+  "l4RuntimeRisk": "unknown_until_cloud_run_l4_generated_fixture_execution"
+}

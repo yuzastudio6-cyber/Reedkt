@@ -1,0 +1,34 @@
+-- Prompt 8 draft-only SQL/RLS smoke tests for job orchestration, worker claims,
+-- leases, and idempotency.
+--
+-- Local/staging validation only.
+-- Do not run against production data.
+-- Do not run against remote Supabase without explicit approval.
+-- Do not add credentials to this file.
+-- Keep draft-only until schema-era conflicts and local Supabase CLI are validated.
+
+-- Intended coverage:
+-- 1. Workspace member can read project-scoped jobs.
+-- 2. Non-member cannot read project jobs.
+-- 3. Normal user cannot claim worker jobs.
+-- 4. Worker/backend-only claim writes are required.
+-- 5. Duplicate active claim is blocked by worker_job_claims or worker_leases constraints.
+-- 6. Heartbeat/renew/complete/fail are backend-only.
+-- 7. Job events are append-only from backend/worker paths.
+-- 8. Job dependencies enforce required upstream statuses.
+-- 9. Jobs require approved snapshot references before execution-capable work.
+-- 10. Jobs require credit reservation references when credits apply.
+-- 11. Mutation requires an idempotency key.
+-- 12. Idempotency prevents duplicate job creation.
+-- 13. Stale claim recovery is backend-only.
+-- 14. Readiness routes do not create provider, render, tool, or media execution records.
+-- 15. Job/worker JSONB must not store secrets, provider keys, service-role data, signed URLs, or raw credentials.
+
+-- Future executable test shape:
+-- begin;
+--   create isolated auth users, profiles, workspaces, workspace_members, projects;
+--   create approved_plan_snapshots, credit_estimates, credit_reservations fixtures;
+--   test authenticated role select visibility;
+--   test normal user insert/update denial for worker_job_claims, worker_leases, job_events;
+--   test service_role-only mutation paths with rollback;
+-- rollback;

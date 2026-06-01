@@ -320,7 +320,11 @@
     "activation:vlm-runtime:cost-summary": "tsx server/cli/activation-vlm-runtime-cost-summary.ts",
     "activation:vlm-runtime:cloud-run-job": "REEDITPRO_VLM_RUNTIME_MODE=staging_cloud_run_job tsx server/cli/activation-vlm-runtime.ts",
     "build:staging-vlm-runtime-worker": "tsx server/cli/build-staging-vlm-runtime-worker.ts",
-    "smoke:activation-vlm-runtime": "tsx server/smoke/activation-vlm-runtime-smoke.ts"
+    "smoke:activation-vlm-runtime": "tsx server/smoke/activation-vlm-runtime-smoke.ts",
+    "activation:web-search-capture-approval:plan": "tsx server/cli/activation-web-search-capture-approval-plan.ts",
+    "activation:web-search-capture-approval:report": "tsx server/cli/activation-web-search-capture-approval-report.ts",
+    "activation:web-search-tool:summary": "tsx server/cli/activation-web-search-tool-summary.ts",
+    "smoke:activation-web-search-capture-approval-workflow": "tsx server/smoke/activation-web-search-capture-approval-workflow-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

@@ -43,6 +43,7 @@ GitHub Foundation Validation failed:
 - Kept chat, provider, worker, job, Stripe, generation, tool, and unsafe runtime route checks fail-closed.
 - Updated `scripts/validation/render-export-scope-diagnostics.mjs` so executable tool/provider patterns require executable contexts, while documented blocker language is reported separately as notes.
 - No render route/service production capability was expanded.
+- Updated `.github/workflows/foundation-validation.yml` so PRs targeting `codex/rp-foundation-10-render-preview-export-foundation` run Foundation Validation.
 
 ## Validation Run
 

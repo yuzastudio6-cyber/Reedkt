@@ -8,6 +8,7 @@ on:
       - codex/rp-foundation-05-approved-plan-snapshot-service
       - codex/rp-foundation-06-credit-ledger-approval-gate-runtime
       - codex/rp-foundation-07-backend-api-runtime-route-hardening
+      - codex/rp-foundation-08-job-orchestration-worker-claims-idempotency
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

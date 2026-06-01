@@ -6,6 +6,7 @@ import { CREDIT_API_ROUTES } from './routes/credit-api-routes'
 import { EDIT_PLANNING_API_ROUTES } from './routes/edit-planning-api-routes'
 import { GENERATION_API_ROUTES } from './routes/generation-api-routes'
 import { JOB_API_ROUTES } from './routes/job-api-routes'
+import { MEDIA_READINESS_API_ROUTES } from './routes/media-readiness-api-routes'
 import { MEDIA_UPLOAD_API_ROUTES } from './routes/media-upload-api-routes'
 import { MUSIC_API_ROUTES } from './routes/music-api-routes'
 import { PROJECT_API_ROUTES } from './routes/project-api-routes'
@@ -47,6 +48,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...AUTH_BOOTSTRAP_API_ROUTES,
   ...PROJECT_API_ROUTES,
   ...MEDIA_UPLOAD_API_ROUTES,
+  ...MEDIA_READINESS_API_ROUTES,
   ...EDIT_PLANNING_API_ROUTES,
   ...APPROVED_SNAPSHOT_API_ROUTES,
   ...CREDIT_API_ROUTES,

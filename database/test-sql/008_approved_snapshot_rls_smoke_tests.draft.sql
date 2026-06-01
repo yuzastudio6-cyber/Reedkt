@@ -1,0 +1,76 @@
+-- Prompt 5 approved snapshot RLS smoke tests - draft only.
+--
+-- Status:
+-- - Local/staging validation plan only.
+-- - Do not run against production.
+-- - Do not run against remote Supabase without explicit human approval.
+-- - Do not run until the local Supabase CLI/toolchain is validated.
+-- - Do not use production data, credentials, provider keys, signed URLs, private media, or real customer records.
+--
+-- Allowed Prompt 5 scope:
+-- - public.workspaces
+-- - public.workspace_members
+-- - public.projects
+-- - public.edit_plan_versions
+-- - public.credit_estimates
+-- - public.approval_records
+-- - public.credit_reservations
+-- - public.approved_plan_snapshots
+--
+-- Blocked scope:
+-- - legacy public.credit_approvals as a canonical target
+-- - provider/generation tables
+-- - jobs/workers
+-- - render/export/QA execution tables
+-- - storage upload/download execution
+-- - credit ledger spend/refund mutation
+-- - tool runtime
+-- - Stripe/billing
+--
+-- Draft fixture outline:
+--
+-- 1. Create disposable auth test users:
+--    - owner_user
+--    - member_user
+--    - outsider_user
+--
+-- 2. Create disposable workspace/project records:
+--    - workspace_a owned by owner_user
+--    - project_a in workspace_a
+--    - member_user as workspace editor/member if roles exist
+--    - outsider_user with no membership
+--
+-- 3. Create disposable approved planning/credit records:
+--    - edit_session for project_a
+--    - edit_plan_versions row with status = 'approved', approved_at, approved_by
+--    - credit_estimates row with status in ('approved', 'accepted')
+--    - approval_records row referencing edit_plan_versions and credit_estimates
+--    - credit_reservations row with status in ('reserved', 'active', 'partially_spent') and non-expired expires_at
+--
+-- 4. Validate approved_plan_snapshots select scope:
+--    - owner_user can read approved_plan_snapshots for project_a.
+--    - member_user can read approved_plan_snapshots for project_a when workspace membership allows project reads.
+--    - outsider_user cannot read approved_plan_snapshots for project_a.
+--
+-- 5. Validate immutable/backend-only mutation expectations:
+--    - normal authenticated users cannot directly insert approved_plan_snapshots unless a reviewed backend-only policy explicitly permits it.
+--    - normal authenticated users cannot update snapshot_json after insert.
+--    - normal authenticated users cannot delete approved_plan_snapshots.
+--    - approved snapshot JSON must preserve immutable worker execution contract data.
+--
+-- 6. Validate canonical approval/credit chain:
+--    - approved_plan_snapshots must reference edit_plan_versions, approval_records, credit_estimates, and credit_reservations in the same project/workspace.
+--    - credit_approval_id remains null or compatibility-only and is not used as the canonical approval gate.
+--    - snapshot JSON does not store secrets, signed URLs, provider payloads, raw chat as execution source, or service-role data.
+--
+-- 7. Validate blocked execution:
+--    - creating or reading an approved snapshot must not create jobs.
+--    - creating or reading an approved snapshot must not mutate credit_ledger_entries.
+--    - creating or reading an approved snapshot must not call providers, render media, execute tools, or perform storage upload/download execution.
+--
+-- 8. Cleanup:
+--    - Delete disposable fixture records only.
+--    - Do not delete production or shared staging data.
+--
+-- This file intentionally remains non-executable draft SQL until the local Supabase CLI/toolchain,
+-- disposable auth fixtures, and schema-era conflicts are resolved.

@@ -76,11 +76,16 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 ## 5. Approved Plan Snapshot Service
 
 - Purpose: create the immutable execution contract future workers must use.
-- Implements: backend-only snapshot creation, snapshot validation, versioning, immutability enforcement, idempotency, revision invalidation, and approval-state transitions.
-- Must not implement: worker execution, provider calls, rendering, Stripe, or credit spending beyond approved mock/test gates unless Prompt 6 has landed.
-- Main files/tables/services: `approved_plan_snapshots`, `api_idempotency_keys`, `credit_estimates`, `credit_approvals`, `edit_plans`, snapshot policy docs.
-- Acceptance criteria: workers cannot use raw chat as execution input, approved snapshots are immutable except allowed audit/status fields, material changes require a new version.
-- GitHub deliverable: branch, commit, push, PR with SQL/API/service tests and explicit production capability scope.
+- Implements: approved snapshot readiness checks, backend-required creation boundary, canonical approval/estimate/reservation gate validation, deterministic snapshot hash, integrity verification, blockers route, metadata reads/lists, route contracts, diagnostics, and draft RLS validation tests.
+- Deliverables after Prompt 5: `docs/approved-plan-snapshot-service.md`, `docs/approved-plan-snapshot-contract.md`, `docs/approved-snapshot-route-contract.md`, `docs/prompt-05-validation-results.md`, `database/test-sql/008_approved_snapshot_rls_smoke_tests.draft.sql`, `scripts/validation/approved-snapshot-scope-diagnostics.mjs`, `server/services/approved-snapshot-service.ts`, `server/routes/approval-routes.ts`, `server/validation/approved-snapshot-schemas.ts`, and approved snapshot route metadata.
+- Implementation status after Prompt 5: partially implemented / limited approved snapshot route-service foundation only. Production execution remains blocked.
+- Validation status after Prompt 5: lint, server typecheck, static schema audit, auth/RLS diagnostics, storage diagnostics, snapshot diagnostics, and foundation validation should pass locally; full build may rely on the Prompt 3C Linux CI route if local Rolldown remains environment-blocked; SQL/RLS remains draft-only unless a working local Supabase environment is available.
+- Must not implement: worker execution, job creation, provider calls, rendering, Stripe, credit reserve/spend/refund mutation, storage upload/download execution, media analysis, planning generation, tool execution, production migrations, remote Supabase validation, deployment, or broad service-role handlers.
+- Main files/tables/services: `approved_plan_snapshots`, `approval_records`, `edit_plan_versions`, `credit_estimates`, `credit_reservations`, `projects`, `workspaces`, `workspace_members`, approved snapshot policy docs, route metadata, and the approved snapshot service.
+- What remains blocked: credit mutation, job/work graph creation, workers, providers, rendering/export, tools, media analysis, revision execution, local/staging RLS execution, and schema cleanup for compatibility-era fields.
+- Acceptance criteria: workers cannot use raw chat as execution input, approved snapshots are immutable execution records, creation fails closed without backend runtime, canonical Prompt 2A tables are targeted, `credit_approvals` is compatibility-only, diagnostics are honest, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 6 - Credit Ledger and Approval Gate Production Runtime if Prompt 5 validation and CI pass; otherwise Prompt 5A - Approved Snapshot Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit production capability scope.
 
 ## 6. Credit Ledger And Approval Gate Production Runtime
 

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
+import { createWorkerExecutionContractService } from '../services/worker-execution-contract-service'
 import { createWorkerClaimService } from '../services/worker-claim-service'
 import {
   claimWorkerJobSchema,
@@ -18,11 +19,96 @@ import {
   workerHeartbeatSchema,
   workerLeaseMutationSchema,
 } from '../validation/worker-schemas'
+import {
+  workerCancelBoundarySchema,
+  workerClaimPreflightSchema,
+  workerExecutionBlockedSchema,
+  workerExecutionEnvelopeReadinessSchema,
+  workerExecutionEnvelopeSchema,
+  workerRuntimeCapabilitiesQuerySchema,
+  workerRuntimeToolRequirementsSchema,
+  workerStaleRecoveryPreviewSchema,
+} from '../validation/worker-execution-schemas'
 import { validateBody, validateQuery } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendBackendRequired, sendOk } from './route-helpers'
 
 export function createWorkerRoutes(): Router {
   const router = Router()
+
+  router.post('/v1/workers/execution-envelope/readiness', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(workerExecutionEnvelopeReadinessSchema, request.body)
+    const result = await createWorkerExecutionContractService(getServiceContext(request)).checkExecutionEnvelopeReadiness(
+      body,
+      getIdempotencyKey(request),
+    )
+    sendOk(response, { workerExecutionContract: result }, result.warnings)
+  }))
+
+  router.post('/v1/workers/execution-envelope/preview', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(workerExecutionEnvelopeSchema, request.body)
+    const result = await createWorkerExecutionContractService(getServiceContext(request)).previewExecutionEnvelope(
+      body,
+      getIdempotencyKey(request),
+    )
+    sendOk(response, { workerExecutionContract: result }, result.warnings, 202)
+  }))
+
+  router.post('/v1/jobs/:jobId/claim/preflight', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(workerClaimPreflightSchema, request.body)
+    const result = await createWorkerExecutionContractService(getServiceContext(request)).preflightClaim(
+      {
+        ...body,
+        jobId: getRouteParam(request, 'jobId'),
+      },
+      getIdempotencyKey(request),
+    )
+    sendOk(response, { workerExecutionContract: result }, result.warnings, 202)
+  }))
+
+  router.post('/v1/workers/execution/blocked', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(workerExecutionBlockedSchema, request.body)
+    const result = await createWorkerExecutionContractService(getServiceContext(request)).executionBlocked(
+      body,
+      getIdempotencyKey(request),
+    )
+    sendOk(response, { workerExecutionContract: result }, result.warnings)
+  }))
+
+  router.get('/v1/workers/runtime/capabilities', requireAuth, asyncRoute(async (request, response) => {
+    const query = validateQuery(workerRuntimeCapabilitiesQuerySchema, request.query)
+    const result = createWorkerExecutionContractService(getServiceContext(request)).getRuntimeCapabilities(query)
+    sendOk(response, { workerExecutionContract: result }, result.warnings)
+  }))
+
+  router.post('/v1/workers/runtime/tool-requirements', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(workerRuntimeToolRequirementsSchema, request.body)
+    const result = createWorkerExecutionContractService(getServiceContext(request)).getRuntimeToolRequirements(
+      body,
+      getIdempotencyKey(request),
+    )
+    sendOk(response, { workerExecutionContract: result }, result.warnings)
+  }))
+
+  router.post('/v1/workers/claims/:workerClaimId/cancel', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(workerCancelBoundarySchema, request.body)
+    const result = await createWorkerExecutionContractService(getServiceContext(request)).cancelBoundary(
+      {
+        ...body,
+        workerClaimId: getRouteParam(request, 'workerClaimId'),
+      },
+      getIdempotencyKey(request),
+    )
+    sendOk(response, { workerExecutionContract: result }, result.warnings, 202)
+  }))
+
+  router.post('/v1/workers/claims/stale-recovery/preview', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(workerStaleRecoveryPreviewSchema, request.body)
+    const result = await createWorkerExecutionContractService(getServiceContext(request)).staleRecoveryPreview(
+      body,
+      getIdempotencyKey(request),
+    )
+    sendOk(response, { workerExecutionContract: result }, result.warnings)
+  }))
 
   router.post('/v1/jobs/:jobId/claim/readiness', requireAuth, asyncRoute(async (request, response) => {
     const body = validateBody(claimWorkerReadinessSchema, request.body)

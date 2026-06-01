@@ -91,3 +91,9 @@ Validation is recorded in `docs/prompt-10-validation-results.md`. The SQL/RLS pl
 - Signed URL generation
 - Local/staging/remote RLS validation
 - Production deployment
+
+## Prompt 10A Validation Hardening
+
+Prompt 10A fixes Prompt 10 validation failures from PR #94 without changing render/export behavior. The backend API diagnostic now recognizes the Prompt 10 render service as a limited fail-closed boundary when the service has backend-required blockers, no render job inserts, and idempotent request routes. The render/export diagnostic now distinguishes documented blocker prose from executable tool/provider/render calls.
+
+No additional render/export capability is enabled by Prompt 10A. Real rendering, export, worker execution, providers, tools, media analysis, storage writes, credit mutation, remote Supabase, migrations, deployment, and broad service-role handlers remain blocked.

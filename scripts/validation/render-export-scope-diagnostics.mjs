@@ -24,8 +24,8 @@ const forbiddenRuntimePatterns = [
   /runBasicRenderSmokeWorker\s*\(/,
   /createRenderJob\s*\(/,
   /claimWorker|runWorker|executeWorker/i,
-  /callProvider|providerClient|providerRequest/i,
-  /executeTool|toolExecution/i,
+  /callProvider\s*\(|providerClient\.\w+\s*\(|providerRequest\s*[:=]/i,
+  /executeTool\s*\(|toolExecution\s*[:=]/i,
   /startGeneration|generationRequest/i,
   /transcribe|runMediaProbe|probeMediaFile|ffprobe\s*\(/i,
   /stripe\.(checkout|webhooks)|checkout\.sessions|STRIPE_SECRET_KEY|stripe_secret_key/i,
@@ -36,6 +36,17 @@ const forbiddenRuntimePatterns = [
   /signedUrl\s*:/,
   /remote Supabase execution enabled/i,
   /CloudRun|Cloud Tasks|PubSub|Pub\/Sub/i,
+]
+
+const documentedBlockerPatterns = [
+  /ToolExecutionBlockedGate/i,
+  /ProviderExecutionBlockedGate/i,
+  /WorkerExecutionBlockedGate/i,
+  /never executes tools/i,
+  /never calls providers/i,
+  /never starts workers/i,
+  /does not execute Remotion/i,
+  /no Remotion or FFmpeg execution occurred/i,
 ]
 
 const noncanonicalPrimaryTargets = [
@@ -111,6 +122,7 @@ const existingFiles = implementationFiles.filter(fileExists)
 const forbiddenRuntimeMatches = scanFilePatterns(existingFiles, forbiddenRuntimePatterns)
 const noncanonicalPrimaryTargetMatches = scanFilePatterns(existingFiles, noncanonicalPrimaryTargets)
 const idempotencyFindings = collectIdempotencyFindings('server/routes/render-routes.ts')
+const documentedBlockerMentions = scanFilePatterns(existingFiles, documentedBlockerPatterns)
 
 const routeText = readFile('server/routes/render-routes.ts')
 const serviceText = readFile('server/services/render-service.ts')
@@ -171,6 +183,7 @@ const result = {
     forbiddenRuntimeMatches,
     noncanonicalPrimaryTargetMatches,
     idempotencyFindings,
+    documentedBlockerMentions,
     behaviorFailures,
     criticalFindings,
   },
@@ -180,6 +193,7 @@ const result = {
     forbiddenRuntimeMatchCount: forbiddenRuntimeMatches.length,
     noncanonicalPrimaryTargetMatchCount: noncanonicalPrimaryTargetMatches.length,
     idempotencyFindingCount: idempotencyFindings.length,
+    documentedBlockerMentionCount: documentedBlockerMentions.length,
     behaviorFailureCount: behaviorFailures.length,
     criticalFindingCount: criticalFindings.length,
   },

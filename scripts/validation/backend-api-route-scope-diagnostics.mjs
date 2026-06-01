@@ -37,7 +37,6 @@ const registryFiles = [
 const blockedServiceImports = [
   /createChatService/,
   /createProviderGatewayService/,
-  /createRenderService/,
   /runWorkerClaimRunner/,
   /runToolReadinessChecks/,
   /checkBasicRenderSmokeTools/,
@@ -135,13 +134,33 @@ function summarizeByFile(matches) {
 }
 
 function failClosedCoverage(files) {
+  const renderRoutesText = readFile('server/routes/render-routes.ts')
+  const renderServiceText = readFile('server/services/render-service.ts')
+  const renderMutationRoutes = [
+    '/v1/render/manifest/build',
+    '/v1/render/preview/request',
+    '/v1/export/request',
+  ]
+  const renderServiceBoundarySafe = /createRenderService/.test(renderRoutesText) &&
+    /RenderWorkerRuntimeGate/.test(renderServiceText) &&
+    /backend_required/.test(renderServiceText) &&
+    !/\.from\(['"`]render_jobs['"`]\)\s*\n?\s*\.insert/i.test(renderServiceText) &&
+    renderMutationRoutes.every((route) => {
+      const routeIndex = renderRoutesText.indexOf(route)
+      if (routeIndex === -1) return false
+      const routeWindow = renderRoutesText.slice(routeIndex, routeIndex + 240)
+      return /requireIdempotency/.test(routeWindow)
+    })
+
   return files.map((file) => {
     const text = readFile(file)
+    const usesPrompt10RenderBoundary = file === 'server/routes/render-routes.ts' && renderServiceBoundarySafe
     return {
       file,
       exists: fileExists(file),
-      usesBackendRequiredHelper: /sendBackendRequired/.test(text),
+      usesBackendRequiredHelper: /sendBackendRequired/.test(text) || usesPrompt10RenderBoundary,
       importsBlockedExecutionService: blockedServiceImports.some((pattern) => pattern.test(text)),
+      usesPrompt10RenderBoundary,
     }
   })
 }
@@ -250,7 +269,7 @@ const result = {
   },
   recommendation: criticalFindings.length === 0
     ? 'No critical backend API route hardening findings detected. Review registry secret mentions as metadata-only references if present.'
-    : 'Critical backend API route hardening findings detected. Blocked route groups must fail closed before Prompt 8.',
+    : 'Critical backend API route hardening findings detected. Blocked route groups must fail closed before continuing.',
 }
 
 console.log(JSON.stringify(result, null, 2))

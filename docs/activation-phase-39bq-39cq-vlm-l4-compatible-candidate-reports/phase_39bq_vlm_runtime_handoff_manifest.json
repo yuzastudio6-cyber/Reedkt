@@ -1,0 +1,14 @@
+{
+  "phase": "39B-Q",
+  "reportId": "phase_39bq_vlm_runtime_handoff_manifest",
+  "runId": "phase39cq-20260531T235421",
+  "createdAt": "2026-06-01T01:56:01.614Z",
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+  "aggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+  "expectedAssetsJsonReady": true,
+  "runtimePhase": "39C-Q",
+  "localVerifiedModelPathOnly": true,
+  "runtimeAutoDownloadBlocked": true
+}

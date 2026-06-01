@@ -1,0 +1,71 @@
+{
+  "phase": "39B-Q",
+  "reportId": "phase_39bq_vlm_checksum_manifest",
+  "runId": "phase39cq-20260531T235421",
+  "createdAt": "2026-06-01T01:56:01.614Z",
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "aggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+  "entries": [
+    {
+      "relativePath": "README.md",
+      "sizeBytes": 7136,
+      "sha256": "5fc5be1ca9a3910399bd6239ee5086ab5d82a2a59c5d2b00e887a8835cc110e4"
+    },
+    {
+      "relativePath": "chat_template.json",
+      "sizeBytes": 5502,
+      "sha256": "6f8a6a55027e3da5160105556cda5dd69f6423f1c32645f6730d32de7773d0c4"
+    },
+    {
+      "relativePath": "config.json",
+      "sizeBytes": 1505,
+      "sha256": "bec4b3d446efa05807365c9e1cec03ac590836879d02f3a6da879971154bdd3b"
+    },
+    {
+      "relativePath": "generation_config.json",
+      "sizeBytes": 269,
+      "sha256": "1e241830b48b397cb0900101421df5450baddc7adf01e5fc86b5615865f3bae4"
+    },
+    {
+      "relativePath": "merges.txt",
+      "sizeBytes": 1671839,
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+    },
+    {
+      "relativePath": "model.safetensors",
+      "sizeBytes": 4255140312,
+      "sha256": "7de1838c87a5349b016c26a1c3f7d2bc400a3d485f95ef39a7059ffd734977a0"
+    },
+    {
+      "relativePath": "preprocessor_config.json",
+      "sizeBytes": 390,
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+    },
+    {
+      "relativePath": "tokenizer.json",
+      "sizeBytes": 7032403,
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7"
+    },
+    {
+      "relativePath": "tokenizer_config.json",
+      "sizeBytes": 10868,
+      "sha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399"
+    },
+    {
+      "relativePath": "video_preprocessor_config.json",
+      "sizeBytes": 385,
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"
+    },
+    {
+      "relativePath": "vocab.json",
+      "sizeBytes": 2776833,
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    }
+  ],
+  "status": "verified",
+  "blockers": [],
+  "warnings": [
+    "Candidate source/license evidence is metadata-based and does not complete production legal approval."
+  ]
+}

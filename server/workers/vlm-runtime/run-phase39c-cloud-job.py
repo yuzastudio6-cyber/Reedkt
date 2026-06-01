@@ -14,30 +14,40 @@ from google.cloud import storage
 from l4_tuning_profiles import MATRIX_ID, all_profile_reports, get_profile, profile_ids_from_env
 
 
-PHASE = "39C"
-MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct"
-MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
-MODEL_GCS_PATH = "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/"
-AGGREGATE_SHA256 = "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908"
+PHASE = os.environ.get("REEDITPRO_VLM_RUNTIME_PHASE", "39C")
+REPORT_PREFIX = os.environ.get("REEDITPRO_VLM_REPORT_PREFIX", "phase_39c")
+DEFAULT_MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct"
+DEFAULT_MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+DEFAULT_MODEL_GCS_PATH = "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/"
+DEFAULT_AGGREGATE_SHA256 = "3574ebc03f40a6891db0bdb99e7f1802cd58aa7d15055c260eba196b167a7908"
+MODEL_ID = os.environ.get("REEDITPRO_VLM_MODEL_ID", DEFAULT_MODEL_ID)
+MODEL_REVISION = os.environ.get("REEDITPRO_VLM_MODEL_REVISION", DEFAULT_MODEL_REVISION)
+MODEL_GCS_PATH = os.environ.get("REEDITPRO_VLM_MODEL_GCS_PATH", DEFAULT_MODEL_GCS_PATH)
+AGGREGATE_SHA256 = os.environ.get("REEDITPRO_VLM_AGGREGATE_SHA256", DEFAULT_AGGREGATE_SHA256)
+MODEL_DIR_NAME = os.environ.get("REEDITPRO_VLM_MODEL_DIR_NAME", "qwen3-vl-8b-instruct")
 QA_BUCKET = "reeditpro-staging-reeditpro-qa-artifacts"
 
+def report_name(stem: str) -> str:
+    return f"{REPORT_PREFIX}_{stem}.json"
+
+
 EXPECTED_ARTIFACTS = [
-    "phase_39c_vlm_runtime_plan.json",
-    "phase_39c_vlm_model_asset_verification.json",
-    "phase_39c_generated_fixture_manifest.json",
-    "phase_39c_prompt_template_manifest.json",
-    "phase_39c_vlm_runtime_results.json",
-    "phase_39c_vlm_output_schema_validation_report.json",
-    "phase_39c_vlm_object_region_qa_report.json",
-    "phase_39c_vlm_safe_zone_qa_report.json",
-    "phase_39c_vlm_hallucination_safety_report.json",
-    "phase_39c_vlm_runtime_cost_memory_report.json",
-    "phase_39c_vlm_l4_tuning_matrix_report.json",
-    "phase_39c_private_artifact_manifest.json",
-    "phase_39c_generated_vlm_runtime_report.json",
+    report_name("vlm_runtime_plan"),
+    report_name("vlm_model_asset_verification"),
+    report_name("generated_fixture_manifest"),
+    report_name("prompt_template_manifest"),
+    report_name("vlm_runtime_results"),
+    report_name("vlm_output_schema_validation_report"),
+    report_name("vlm_object_region_qa_report"),
+    report_name("vlm_safe_zone_qa_report"),
+    report_name("vlm_hallucination_safety_report"),
+    report_name("vlm_runtime_cost_memory_report"),
+    report_name("vlm_l4_tuning_matrix_report"),
+    report_name("private_artifact_manifest"),
+    report_name("generated_vlm_runtime_report"),
 ]
 
-EXPECTED_ASSETS = [
+DEFAULT_EXPECTED_ASSETS = [
     ("README.md", 7133, "6d5d06e0c3f069097002445d30dce9ee107db3afaf15563f09e6df49b8dcb4d7"),
     ("chat_template.json", 5499, "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce"),
     ("config.json", 1474, "5cd452860dc1e9c29dd71cc3cef7f39b338b7a40793f7a260655c2d3568f3661"),
@@ -54,6 +64,30 @@ EXPECTED_ASSETS = [
     ("video_preprocessor_config.json", 385, "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"),
     ("vocab.json", 2776833, "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"),
 ]
+
+
+def expected_assets_from_env() -> List[tuple[str, int, str]]:
+    raw = os.environ.get("REEDITPRO_VLM_EXPECTED_ASSETS_JSON")
+    if not raw:
+        return DEFAULT_EXPECTED_ASSETS
+    try:
+        parsed = json.loads(raw)
+        assets: List[tuple[str, int, str]] = []
+        for item in parsed:
+            relative_path = str(item["relativePath"])
+            size_bytes = int(item["sizeBytes"])
+            sha256 = str(item["sha256"])
+            if relative_path.startswith("/") or ".." in Path(relative_path).parts:
+                raise ValueError(f"unsafe relativePath: {relative_path}")
+            assets.append((relative_path, size_bytes, sha256))
+        if not assets:
+            raise ValueError("candidate asset manifest is empty")
+        return assets
+    except Exception as exc:
+        raise RuntimeError(f"REEDITPRO_VLM_EXPECTED_ASSETS_JSON is invalid: {exc}") from exc
+
+
+EXPECTED_ASSETS = expected_assets_from_env()
 
 PHASE39B_AGGREGATE_ORDER = {
     "chat_template.json": 0,
@@ -218,7 +252,12 @@ def sha256_file(path: Path) -> str:
 
 def aggregate_sha(entries: List[Dict[str, Any]]) -> str:
     lines = []
-    for entry in sorted(entries, key=lambda item: (PHASE39B_AGGREGATE_ORDER[item["relativePath"]], item["relativePath"])):
+    def sort_key(item: Dict[str, Any]) -> tuple[int, str]:
+        if MODEL_ID == DEFAULT_MODEL_ID:
+            return (PHASE39B_AGGREGATE_ORDER[item["relativePath"]], item["relativePath"])
+        return (0, item["relativePath"])
+
+    for entry in sorted(entries, key=sort_key):
         actual_sha = entry.get("actualSha256")
         actual_size = entry.get("actualSizeBytes")
         if not actual_sha or actual_size is None:
@@ -237,7 +276,7 @@ def download_and_verify_assets(client: storage.Client, model_root: Path, blocker
         entry: Dict[str, Any] = {
             "relativePath": relative_path,
             "gcsUri": gcs_uri,
-            "localPath": str(local_path),
+            "localPathStatus": "prepared_in_ephemeral_runtime_temp",
             "expectedSha256": expected_sha,
             "expectedSizeBytes": expected_size,
             "verified": False,
@@ -333,6 +372,8 @@ def run_worker(run_id: str, created_at: str, report_dir: Path, fixture_dir: Path
         "PROVIDER_EXECUTION_ENABLED": "false",
         "RAW_VLM_PROMPT_ENABLED": "false",
         "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+        "REEDITPRO_VLM_MODEL_ID": MODEL_ID,
+        "REEDITPRO_VLM_MODEL_REVISION": MODEL_REVISION,
     })
     profile_results: List[Dict[str, Any]] = []
     selected_profile_id: Optional[str] = None
@@ -354,9 +395,9 @@ def run_worker(run_id: str, created_at: str, report_dir: Path, fixture_dir: Path
             "--model-dir",
             str(model_root),
             "--fixture-manifest-path",
-            str(report_dir / "phase_39c_generated_fixture_manifest.json"),
+            str(report_dir / report_name("generated_fixture_manifest")),
             "--prompt-manifest-path",
-            str(report_dir / "phase_39c_prompt_template_manifest.json"),
+            str(report_dir / report_name("prompt_template_manifest")),
             "--tuning-profile-id",
             profile_id,
         ]
@@ -433,8 +474,8 @@ def average(values: List[float]) -> float:
 
 
 def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verification: Dict[str, Any], runtime_summary: Dict[str, Any], blockers: List[str], warnings: List[str], artifacts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-    fixtures = json.loads((report_dir / "phase_39c_generated_fixture_manifest.json").read_text())
-    prompts = json.loads((report_dir / "phase_39c_prompt_template_manifest.json").read_text())
+    fixtures = json.loads((report_dir / report_name("generated_fixture_manifest")).read_text())
+    prompts = json.loads((report_dir / report_name("prompt_template_manifest")).read_text())
     fixture_results = runtime_summary.get("fixtureResults", [])
     schema_validity = sum(1 for item in fixture_results if item.get("schemaValid")) / len(fixture_results) if fixture_results else 0
     average_recall = average([float(item.get("requiredLabelRecall", 0)) for item in fixture_results])
@@ -454,7 +495,7 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
     report_artifacts = artifacts or []
     plan = {
         "phase": PHASE,
-        "reportId": "phase_39c_vlm_runtime_plan",
+        "reportId": report_name("vlm_runtime_plan").removesuffix(".json"),
         "createdAt": created_at,
         "runId": run_id,
         "modelId": MODEL_ID,
@@ -473,7 +514,7 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
         "productionReadyAllowed": False,
         "betaReadyAllowed": False,
         "trackAAllowed": False,
-        "stagingCloudRunJob": "reeditpro-stg-vlm-runtime-phase39c",
+        "stagingCloudRunJob": os.environ.get("REEDITPRO_VLM_STAGING_CLOUD_RUN_JOB_NAME", "reeditpro-stg-vlm-runtime-phase39c"),
         "gpuType": "nvidia-l4",
         "tuningProfileMatrix": os.environ.get("REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX", MATRIX_ID),
         "selectedTuningProfileIds": selected_tuning_profile_ids(),
@@ -534,11 +575,11 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
         "gpuRuntimeApprovedNow": False,
         "localGpuAvailable": False,
         "stagingCloudRunRequested": True,
-        "estimatedModelBytes": 17545914364,
-        "memoryRisk": "high",
+        "estimatedModelBytes": sum(size for _, size, _ in EXPECTED_ASSETS),
+        "memoryRisk": "reduced" if MODEL_ID != DEFAULT_MODEL_ID else "high",
         "costRisk": "high",
         "notes": [
-            "Qwen3-VL 8B runtime requires GPU/memory validation before controlled real-frame or planning integration phases.",
+            "Qwen3-VL runtime requires generated-fixture GPU/memory validation before controlled real-frame or planning integration phases.",
             "Official Qwen3-VL docs require vllm>=0.11.0; this staging image uses vllm/vllm-openai:v0.11.0.",
             *combined_warnings,
         ],
@@ -563,7 +604,7 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
         "runId": run_id,
         "createdAt": created_at,
         "sourcePhase39A": {"pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/62", "commit": "698410e", "status": "approval_planning_passed"},
-        "sourcePhase39B": {"modelId": MODEL_ID, "revision": MODEL_REVISION, "status": "verified", "targetGcsPath": MODEL_GCS_PATH, "aggregateSha256": AGGREGATE_SHA256, "fileCount": 15, "selectedTotalSizeBytes": 17545914364},
+        "sourcePhase39B": {"modelId": MODEL_ID, "revision": MODEL_REVISION, "status": "verified", "targetGcsPath": MODEL_GCS_PATH, "aggregateSha256": AGGREGATE_SHA256, "fileCount": len(EXPECTED_ASSETS), "selectedTotalSizeBytes": sum(size for _, size, _ in EXPECTED_ASSETS)},
         "modelId": MODEL_ID,
         "revision": MODEL_REVISION,
         "privateModelPrefix": MODEL_GCS_PATH,
@@ -615,19 +656,19 @@ def build_reports(run_id: str, created_at: str, report_dir: Path, asset_verifica
         "warnings": combined_warnings,
     }
     return {
-        "phase_39c_vlm_runtime_plan.json": plan,
-        "phase_39c_vlm_model_asset_verification.json": asset_verification,
-        "phase_39c_generated_fixture_manifest.json": fixtures,
-        "phase_39c_prompt_template_manifest.json": prompts,
-        "phase_39c_vlm_runtime_results.json": runtime_results,
-        "phase_39c_vlm_output_schema_validation_report.json": schema_report,
-        "phase_39c_vlm_object_region_qa_report.json": object_report,
-        "phase_39c_vlm_safe_zone_qa_report.json": safe_zone_report,
-        "phase_39c_vlm_hallucination_safety_report.json": hallucination_report,
-        "phase_39c_vlm_runtime_cost_memory_report.json": cost_report,
-        "phase_39c_vlm_l4_tuning_matrix_report.json": tuning_matrix,
-        "phase_39c_private_artifact_manifest.json": private_manifest,
-        "phase_39c_generated_vlm_runtime_report.json": full_report,
+        report_name("vlm_runtime_plan"): plan,
+        report_name("vlm_model_asset_verification"): asset_verification,
+        report_name("generated_fixture_manifest"): fixtures,
+        report_name("prompt_template_manifest"): prompts,
+        report_name("vlm_runtime_results"): runtime_results,
+        report_name("vlm_output_schema_validation_report"): schema_report,
+        report_name("vlm_object_region_qa_report"): object_report,
+        report_name("vlm_safe_zone_qa_report"): safe_zone_report,
+        report_name("vlm_hallucination_safety_report"): hallucination_report,
+        report_name("vlm_runtime_cost_memory_report"): cost_report,
+        report_name("vlm_l4_tuning_matrix_report"): tuning_matrix,
+        report_name("private_artifact_manifest"): private_manifest,
+        report_name("generated_vlm_runtime_report"): full_report,
     }
 
 
@@ -668,8 +709,10 @@ def upload_reports(client: storage.Client, report_dir: Path, bucket_name: str, p
                 content_type="application/json",
                 if_generation_match=0,
             )
+            safe_artifact = {key: value for key, value in artifact.items() if key != "localPath"}
             uploaded.append({
-                **artifact,
+                **safe_artifact,
+                "localPathStatus": "prepared_in_ephemeral_runtime_temp",
                 "generation": str(blob.generation) if blob.generation is not None else None,
                 "metageneration": str(blob.metageneration) if blob.metageneration is not None else None,
             })
@@ -689,7 +732,6 @@ def validate_env(blockers: List[str]) -> None:
         "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE": "true",
         "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD": "true",
         "REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE": "true",
-        "REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN": "true",
         "REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX": MATRIX_ID,
         "GENERATED_VLM_FIXTURES_ONLY": "true",
         "HF_HUB_OFFLINE": "1",
@@ -710,6 +752,8 @@ def validate_env(blockers: List[str]) -> None:
     for key, expected in required.items():
         if os.environ.get(key) != expected:
             blockers.append(f"env_guard_mismatch:{key}")
+    if os.environ.get("REEDITPRO_VLM_L4_TUNING_PROFILE_MATRIX") == MATRIX_ID and PHASE == "39C" and os.environ.get("REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN") != "true":
+        blockers.append("env_guard_mismatch:REEDITPRO_CONFIRM_VLM_L4_TUNING_RERUN")
     if os.environ.get("REEDITPRO_VLM_MODEL_GCS_PATH", MODEL_GCS_PATH) != MODEL_GCS_PATH:
         blockers.append("phase39c_model_gcs_path_mismatch")
     if os.environ.get("REEDITPRO_VLM_MODEL_REVISION", MODEL_REVISION) != MODEL_REVISION:
@@ -720,24 +764,24 @@ def validate_env(blockers: List[str]) -> None:
 
 def main() -> int:
     run_id = os.environ.get("REEDITPRO_PHASE39C_RUN_ID", "")
-    if not run_id.startswith("phase39c-"):
-        print("REEDITPRO_PHASE39C_RUN_ID must start with phase39c-", file=sys.stderr)
+    if not (run_id.startswith("phase39c-") or run_id.startswith("phase39cq-")):
+        print("REEDITPRO_PHASE39C_RUN_ID must start with phase39c- or phase39cq-", file=sys.stderr)
         return 2
     created_at = now_iso()
     bucket_name = os.environ.get("REEDITPRO_PHASE39C_QA_BUCKET", QA_BUCKET)
     prefix = os.environ.get("REEDITPRO_PHASE39C_QA_PREFIX", f"activation/phase39c/generated-vlm-runtime/{run_id}")
-    run_root = Path("/tmp/reeditpro-vlm-runtime/phase39c") / run_id
+    run_root = Path(os.environ.get("REEDITPRO_VLM_LOCAL_TEMP_ROOT", "/tmp/reeditpro-vlm-runtime/phase39c")) / run_id
     report_dir = run_root / "reports"
     fixture_dir = run_root / "fixtures"
-    model_root = run_root / "models" / "qwen3-vl-8b-instruct"
+    model_root = run_root / "models" / MODEL_DIR_NAME
     report_dir.mkdir(parents=True, exist_ok=True)
     blockers: List[str] = []
     warnings: List[str] = ["phase39c_staging_l4_cloud_run_job_path_used"]
     validate_env(blockers)
     fixtures = fixture_manifest(run_id, created_at)
     prompts = prompt_manifest(run_id, created_at, fixtures)
-    (report_dir / "phase_39c_generated_fixture_manifest.json").write_text(json.dumps(fixtures, indent=2) + "\n", encoding="utf-8")
-    (report_dir / "phase_39c_prompt_template_manifest.json").write_text(json.dumps(prompts, indent=2) + "\n", encoding="utf-8")
+    (report_dir / report_name("generated_fixture_manifest")).write_text(json.dumps(fixtures, indent=2) + "\n", encoding="utf-8")
+    (report_dir / report_name("prompt_template_manifest")).write_text(json.dumps(prompts, indent=2) + "\n", encoding="utf-8")
     client = storage.Client(project="reeditpro")
     asset_verification = {
         "phase": PHASE,
@@ -769,7 +813,7 @@ def main() -> int:
     print(json.dumps({
         "phase": PHASE,
         "runId": run_id,
-        "ok": reports["phase_39c_generated_vlm_runtime_report.json"]["ok"],
+        "ok": reports[report_name("generated_vlm_runtime_report")]["ok"],
         "runtimeStatus": runtime_summary.get("runtimeStatus"),
         "uploadedArtifacts": len(uploaded),
         "blockers": sorted(set(blockers)),

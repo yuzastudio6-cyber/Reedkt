@@ -17,8 +17,8 @@ from classify_oom import classify_oom
 from l4_tuning_profiles import get_profile
 
 
-MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct"
-MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+MODEL_ID = os.environ.get("REEDITPRO_VLM_MODEL_ID", "Qwen/Qwen3-VL-8B-Instruct")
+MODEL_REVISION = os.environ.get("REEDITPRO_VLM_MODEL_REVISION", "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b")
 
 
 class NetworkGuard(AbstractContextManager):

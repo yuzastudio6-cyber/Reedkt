@@ -1,0 +1,1247 @@
+{
+  "ok": false,
+  "phase": "39C-Q",
+  "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+  "createdAt": "2026-06-01T02:20:09.153750Z",
+  "sourcePhase39A": {
+    "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/62",
+    "commit": "698410e",
+    "status": "approval_planning_passed"
+  },
+  "sourcePhase39B": {
+    "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+    "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+    "status": "verified",
+    "targetGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+    "aggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+    "fileCount": 11,
+    "selectedTotalSizeBytes": 4266647442
+  },
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+  "runtime": {
+    "requestedRuntime": "vllm",
+    "fallbackRuntime": "transformers_fallback",
+    "runtimeStatus": "blocked",
+    "runtimeVersion": null,
+    "selectedProfileId": null,
+    "transformersFallbackStatus": "skipped",
+    "localModelPathUsed": false,
+    "modelIdRuntimePathBlocked": true,
+    "runtimeAutoDownloadBlocked": true,
+    "providerCallsBlocked": true,
+    "rawPromptsBlocked": true,
+    "realMediaBlocked": true,
+    "arbitraryMediaBlocked": true
+  },
+  "assetVerification": {
+    "phase": "39C-Q",
+    "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+    "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+    "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+    "modelGcsPath": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+    "aggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+    "computedAggregateSha256": "4e542b2f95dab53d6fa08931e0ba6501d03441832406ea0cbd233b3de1e699b7",
+    "entries": [
+      {
+        "relativePath": "README.md",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/README.md",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "5fc5be1ca9a3910399bd6239ee5086ab5d82a2a59c5d2b00e887a8835cc110e4",
+        "expectedSizeBytes": 7136,
+        "verified": true,
+        "generation": "1780277555268326",
+        "crc32c": "xLZuOw==",
+        "md5Hash": "1CyjLJgscjAGByyGe8o8+Q==",
+        "actualSizeBytes": 7136,
+        "actualSha256": "5fc5be1ca9a3910399bd6239ee5086ab5d82a2a59c5d2b00e887a8835cc110e4"
+      },
+      {
+        "relativePath": "chat_template.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/chat_template.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "6f8a6a55027e3da5160105556cda5dd69f6423f1c32645f6730d32de7773d0c4",
+        "expectedSizeBytes": 5502,
+        "verified": true,
+        "generation": "1780277557387585",
+        "crc32c": "+i6+Vw==",
+        "md5Hash": "fzcKyEYnQGxd0LZADCKJ+A==",
+        "actualSizeBytes": 5502,
+        "actualSha256": "6f8a6a55027e3da5160105556cda5dd69f6423f1c32645f6730d32de7773d0c4"
+      },
+      {
+        "relativePath": "config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "bec4b3d446efa05807365c9e1cec03ac590836879d02f3a6da879971154bdd3b",
+        "expectedSizeBytes": 1505,
+        "verified": true,
+        "generation": "1780277559203541",
+        "crc32c": "J8M8Fg==",
+        "md5Hash": "f8/p32y376vT+B7gIWqaag==",
+        "actualSizeBytes": 1505,
+        "actualSha256": "bec4b3d446efa05807365c9e1cec03ac590836879d02f3a6da879971154bdd3b"
+      },
+      {
+        "relativePath": "generation_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/generation_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "1e241830b48b397cb0900101421df5450baddc7adf01e5fc86b5615865f3bae4",
+        "expectedSizeBytes": 269,
+        "verified": true,
+        "generation": "1780277560981341",
+        "crc32c": "e1gNQQ==",
+        "md5Hash": "nWDTqaDZk+umM9blByzdSQ==",
+        "actualSizeBytes": 269,
+        "actualSha256": "1e241830b48b397cb0900101421df5450baddc7adf01e5fc86b5615865f3bae4"
+      },
+      {
+        "relativePath": "merges.txt",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/merges.txt",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+        "expectedSizeBytes": 1671839,
+        "verified": true,
+        "generation": "1780277563626863",
+        "crc32c": "TsXDRw==",
+        "md5Hash": "54iCwuIkp1+oGA7GELriQw==",
+        "actualSizeBytes": 1671839,
+        "actualSha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+      },
+      {
+        "relativePath": "model.safetensors",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/model.safetensors",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "7de1838c87a5349b016c26a1c3f7d2bc400a3d485f95ef39a7059ffd734977a0",
+        "expectedSizeBytes": 4255140312,
+        "verified": true,
+        "generation": "1780278557679757",
+        "crc32c": "SMUzqg==",
+        "md5Hash": "NtWJ8R7ZQhhan/ILBtK0aw==",
+        "actualSizeBytes": 4255140312,
+        "actualSha256": "7de1838c87a5349b016c26a1c3f7d2bc400a3d485f95ef39a7059ffd734977a0"
+      },
+      {
+        "relativePath": "preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/preprocessor_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+        "expectedSizeBytes": 390,
+        "verified": true,
+        "generation": "1780278560603398",
+        "crc32c": "8VGvsA==",
+        "md5Hash": "e8rt9yagWSRZWwMC0N1Nxw==",
+        "actualSizeBytes": 390,
+        "actualSha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+      },
+      {
+        "relativePath": "tokenizer.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/tokenizer.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+        "expectedSizeBytes": 7032403,
+        "verified": true,
+        "generation": "1780278564583412",
+        "crc32c": "kbuigA==",
+        "md5Hash": "8TGUaAiR5f1YF6VqNBvwFQ==",
+        "actualSizeBytes": 7032403,
+        "actualSha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7"
+      },
+      {
+        "relativePath": "tokenizer_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/tokenizer_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399",
+        "expectedSizeBytes": 10868,
+        "verified": true,
+        "generation": "1780278566651903",
+        "crc32c": "cGn/Jg==",
+        "md5Hash": "UMXTfZ05BODiQ+cJvbtsNw==",
+        "actualSizeBytes": 10868,
+        "actualSha256": "c2da771801886ad9ae98181793ffd3dfb7f1af30f6f7c6a4e15d7dbba52e2399"
+      },
+      {
+        "relativePath": "video_preprocessor_config.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/video_preprocessor_config.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+        "expectedSizeBytes": 385,
+        "verified": true,
+        "generation": "1780278569073572",
+        "crc32c": "cNRL4Q==",
+        "md5Hash": "QbyE16pwh5leC4/TwKKd+g==",
+        "actualSizeBytes": 385,
+        "actualSha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"
+      },
+      {
+        "relativePath": "vocab.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/vocab.json",
+        "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+        "expectedSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+        "expectedSizeBytes": 2776833,
+        "verified": true,
+        "generation": "1780278571809338",
+        "crc32c": "DhkvIQ==",
+        "md5Hash": "YTuOSmIsSiyQ6eEkX8VA1g==",
+        "actualSizeBytes": 2776833,
+        "actualSha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+      }
+    ],
+    "status": "verified",
+    "blockers": [],
+    "warnings": [
+      "phase39c_staging_l4_cloud_run_job_path_used",
+      "phase39c_profile_stderr:conservative-eager-short-context:/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\nThe argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.\n`torch_dtype` is deprecated! Use `dtype` instead!\n/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:22:37.099735370 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:22:37.101657758 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:11,  2.77s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:03<00:15,  3.99s/it, est. speed input: 61.83 toks/s, output: 32.04 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:07<00:10,  3.66s/it, est. speed input: 66.40 toks/s, output: 34.48 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:10<00:07,  3.59s/it, est. speed input: 67.95 toks/s, output: 35.16 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:14<00:03,  3.55s/it, est. speed input: 68.18 toks/s, output: 35.51 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.56s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\n[rank0]:[W531 19:23:23.614130108 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n",
+      "phase39c_profile_stderr:conservative-cuda-graph-lower-reservation:CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m W0531 19:23:53.778000 238 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:23:54.422370302 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:23:54.424586833 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m [rank0]:W0531 19:24:21.563000 238 torch/_inductor/utils.py:1436] [0/0] Not enough SMs to use max_autotune_gemm mode\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/3 [00:00<?, ?it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):  67%|██████▋   | 2/3 [00:00<00:00, 15.18it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 3/3 [00:00<00:00, 16.76it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (decode, FULL):   0%|          | 0/1 [00:00<?, ?it/s]\nCapturing CUDA graphs (decode, FULL): 100%|██████████| 1/1 [00:00<00:00, 17.30it/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:09,  2.49s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.99it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:02<00:09,  2.29s/it, est. speed input: 100.03 toks/s, output: 55.91 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:04<00:06,  2.17s/it, est. speed input: 104.30 toks/s, output: 58.42 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:06<00:04,  2.14s/it, est. speed input: 106.16 toks/s, output: 59.25 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:08<00:02,  2.12s/it, est. speed input: 106.33 toks/s, output: 59.76 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.13s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\n[rank0]:[W531 19:25:38.899396920 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n"
+    ]
+  },
+  "generatedFixtureManifest": {
+    "phase": "39C-Q",
+    "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+    "createdAt": "2026-06-01T02:20:09.153750Z",
+    "generatedOnly": true,
+    "fixtureImagesCommitted": false,
+    "specs": [
+      {
+        "fixtureId": "generated-object-layout",
+        "width": 1280,
+        "height": 720,
+        "generatedOnly": true,
+        "riskCategory": "required_pass",
+        "seed": "phase39c-object-layout-v1",
+        "expectedLabels": [
+          "laptop",
+          "coffee mug",
+          "plant",
+          "timeline panel"
+        ],
+        "expectedRegions": [
+          {
+            "regionId": "laptop_center",
+            "label": "laptop",
+            "x": 0.36,
+            "y": 0.28,
+            "width": 0.32,
+            "height": 0.34,
+            "required": true
+          },
+          {
+            "regionId": "mug_right",
+            "label": "coffee mug",
+            "x": 0.72,
+            "y": 0.42,
+            "width": 0.12,
+            "height": 0.18,
+            "required": true
+          },
+          {
+            "regionId": "timeline_bottom",
+            "label": "timeline panel",
+            "x": 0.12,
+            "y": 0.74,
+            "width": 0.76,
+            "height": 0.16,
+            "required": true
+          }
+        ],
+        "safeZoneQuestion": "Identify object regions and whether a lower-third caption would collide with the timeline panel.",
+        "passCriteria": [
+          "Required object labels recalled >= 0.70.",
+          "Required broad region centers are in the expected half of the image."
+        ],
+        "warningCriteria": [
+          "Low confidence object labels are manual-review warnings."
+        ]
+      },
+      {
+        "fixtureId": "generated-ui-safe-zone",
+        "width": 1280,
+        "height": 720,
+        "generatedOnly": true,
+        "riskCategory": "required_pass",
+        "seed": "phase39c-ui-safe-zone-v1",
+        "expectedLabels": [
+          "caption conflict",
+          "lower third alert",
+          "toolbar",
+          "preview"
+        ],
+        "expectedRegions": [
+          {
+            "regionId": "lower_caption_conflict",
+            "label": "caption conflict",
+            "x": 0.08,
+            "y": 0.68,
+            "width": 0.84,
+            "height": 0.22,
+            "required": true
+          },
+          {
+            "regionId": "toolbar_top",
+            "label": "toolbar",
+            "x": 0.04,
+            "y": 0.04,
+            "width": 0.92,
+            "height": 0.12,
+            "required": true
+          }
+        ],
+        "safeZoneQuestion": "Decide if the lower third is risky and suggest an alternate caption zone.",
+        "passCriteria": [
+          "Lower-third risk is detected.",
+          "Manual review or upper-third recommendation is allowed."
+        ],
+        "warningCriteria": [
+          "If all zones are risky, output manual_review instead of guessing."
+        ]
+      },
+      {
+        "fixtureId": "generated-ocr-vlm-comparison",
+        "width": 1280,
+        "height": 720,
+        "generatedOnly": true,
+        "riskCategory": "required_pass",
+        "seed": "phase39c-ocr-vlm-comparison-v1",
+        "expectedLabels": [
+          "source label",
+          "export button",
+          "confidence badge",
+          "text-like region"
+        ],
+        "expectedRegions": [
+          {
+            "regionId": "source_label_left",
+            "label": "source label",
+            "x": 0.06,
+            "y": 0.18,
+            "width": 0.28,
+            "height": 0.16,
+            "required": true
+          },
+          {
+            "regionId": "export_button_right",
+            "label": "export button",
+            "x": 0.72,
+            "y": 0.18,
+            "width": 0.22,
+            "height": 0.16,
+            "required": true
+          }
+        ],
+        "safeZoneQuestion": "Return text-like regions that a future OCR/VLM comparison gate could reconcile.",
+        "passCriteria": [
+          "Text-like regions are returned as advisory metadata.",
+          "No OCR runtime is invoked by Phase 39C."
+        ],
+        "warningCriteria": [
+          "Uncertain text labels must be flagged."
+        ]
+      },
+      {
+        "fixtureId": "generated-ambiguous-scene",
+        "width": 1280,
+        "height": 720,
+        "generatedOnly": true,
+        "riskCategory": "manual_review_expected",
+        "seed": "phase39c-ambiguous-scene-v1",
+        "expectedLabels": [
+          "ambiguous icon cluster",
+          "manual review"
+        ],
+        "expectedRegions": [
+          {
+            "regionId": "ambiguous_center",
+            "label": "ambiguous icon cluster",
+            "x": 0.36,
+            "y": 0.32,
+            "width": 0.28,
+            "height": 0.28,
+            "required": true
+          }
+        ],
+        "safeZoneQuestion": "Flag uncertainty if icon/object identity is ambiguous.",
+        "passCriteria": [
+          "High uncertainty or manual_review is acceptable and preferred."
+        ],
+        "warningCriteria": [
+          "Overconfident invented labels are hallucination warnings."
+        ]
+      },
+      {
+        "fixtureId": "generated-spatial-reasoning",
+        "width": 1280,
+        "height": 720,
+        "generatedOnly": true,
+        "riskCategory": "required_pass",
+        "seed": "phase39c-spatial-reasoning-v1",
+        "expectedLabels": [
+          "left panel",
+          "right card",
+          "center arrow",
+          "top badge"
+        ],
+        "expectedRegions": [
+          {
+            "regionId": "left_panel",
+            "label": "left panel",
+            "x": 0.08,
+            "y": 0.22,
+            "width": 0.28,
+            "height": 0.38,
+            "required": true
+          },
+          {
+            "regionId": "right_card",
+            "label": "right card",
+            "x": 0.64,
+            "y": 0.22,
+            "width": 0.28,
+            "height": 0.38,
+            "required": true
+          },
+          {
+            "regionId": "center_arrow",
+            "label": "center arrow",
+            "x": 0.44,
+            "y": 0.36,
+            "width": 0.12,
+            "height": 0.16,
+            "required": true
+          }
+        ],
+        "safeZoneQuestion": "Describe broad left/right/center relations without claiming exact pixel geometry.",
+        "passCriteria": [
+          "Spatial relation labels are broadly correct.",
+          "Coordinates are normalized to 0..1."
+        ],
+        "warningCriteria": [
+          "Coordinate uncertainty must be noted."
+        ]
+      }
+    ]
+  },
+  "promptTemplateManifest": {
+    "phase": "39C-Q",
+    "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+    "createdAt": "2026-06-01T02:20:09.153750Z",
+    "schemaId": "phase39c_vlm_fixture_output_v1",
+    "rawPromptAllowed": false,
+    "providerCallsAllowed": false,
+    "toolCallsAllowed": false,
+    "templates": [
+      {
+        "promptTemplateId": "phase39c_generated_object_layout_json_v1",
+        "fixtureId": "generated-object-layout",
+        "schemaId": "phase39c_vlm_fixture_output_v1",
+        "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+        "userInstruction": "Identify object regions and whether a lower-third caption would collide with the timeline panel. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+        "rawPromptAllowed": false,
+        "providerCallAllowed": false,
+        "toolCallAllowed": false,
+        "outputFormat": "json_only"
+      },
+      {
+        "promptTemplateId": "phase39c_generated_ui_safe_zone_json_v1",
+        "fixtureId": "generated-ui-safe-zone",
+        "schemaId": "phase39c_vlm_fixture_output_v1",
+        "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+        "userInstruction": "Decide if the lower third is risky and suggest an alternate caption zone. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+        "rawPromptAllowed": false,
+        "providerCallAllowed": false,
+        "toolCallAllowed": false,
+        "outputFormat": "json_only"
+      },
+      {
+        "promptTemplateId": "phase39c_generated_ocr_vlm_comparison_json_v1",
+        "fixtureId": "generated-ocr-vlm-comparison",
+        "schemaId": "phase39c_vlm_fixture_output_v1",
+        "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+        "userInstruction": "Return text-like regions that a future OCR/VLM comparison gate could reconcile. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+        "rawPromptAllowed": false,
+        "providerCallAllowed": false,
+        "toolCallAllowed": false,
+        "outputFormat": "json_only"
+      },
+      {
+        "promptTemplateId": "phase39c_generated_ambiguous_scene_json_v1",
+        "fixtureId": "generated-ambiguous-scene",
+        "schemaId": "phase39c_vlm_fixture_output_v1",
+        "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+        "userInstruction": "Flag uncertainty if icon/object identity is ambiguous. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+        "rawPromptAllowed": false,
+        "providerCallAllowed": false,
+        "toolCallAllowed": false,
+        "outputFormat": "json_only"
+      },
+      {
+        "promptTemplateId": "phase39c_generated_spatial_reasoning_json_v1",
+        "fixtureId": "generated-spatial-reasoning",
+        "schemaId": "phase39c_vlm_fixture_output_v1",
+        "systemInstruction": "You are a bounded ReeditPro Phase 39C generated-fixture VLM QA worker. Use only the provided generated synthetic image and this fixed prompt. Return valid JSON only. Do not call tools, browse, request files, infer secrets, or claim real media processing. All boxes must be normalized 0..1 and approximate. Mark uncertainty instead of guessing.",
+        "userInstruction": "Describe broad left/right/center relations without claiming exact pixel geometry. Return JSON with fixture_id, prompt_template_id, model_id, model_revision, runtime, objects, text_like_regions, safe_zone_suggestions, spatial_relations, uncertainty, blocked_actions, and qa_flags. Do not include markdown fences.",
+        "rawPromptAllowed": false,
+        "providerCallAllowed": false,
+        "toolCallAllowed": false,
+        "outputFormat": "json_only"
+      }
+    ]
+  },
+  "fixtureResults": [],
+  "qa": {
+    "status": "blocked",
+    "schemaValidity": 0,
+    "averageRequiredLabelRecall": 0,
+    "averageBroadRegionAccuracy": 0,
+    "gates": [
+      {
+        "gateId": "phase39a_approval_evidence",
+        "status": "passed",
+        "summary": "Phase 39A approval evidence is referenced."
+      },
+      {
+        "gateId": "phase39b_private_model_assets",
+        "status": "passed",
+        "summary": "Phase 39B asset verification gate."
+      },
+      {
+        "gateId": "local_model_path_only",
+        "status": "blocked",
+        "summary": "Runtime used local model path only when runtime passed."
+      },
+      {
+        "gateId": "generated_fixture_integrity",
+        "status": "blocked",
+        "summary": "0 generated fixture results recorded."
+      },
+      {
+        "gateId": "structured_json_schema",
+        "status": "blocked",
+        "summary": "JSON schema validation gate."
+      },
+      {
+        "gateId": "blocked_features",
+        "status": "passed",
+        "summary": "Provider/raw prompt/real media/public output/Track A remain blocked."
+      }
+    ],
+    "blockers": [
+      "phase39c_l4_tuning_profiles_exhausted",
+      "tuning_profile_incomplete:conservative-cuda-graph-lower-reservation",
+      "tuning_profile_incomplete:conservative-eager-short-context"
+    ],
+    "warnings": [
+      "phase39c_profile_stderr:conservative-cuda-graph-lower-reservation:CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m W0531 19:23:53.778000 238 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:23:54.422370302 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:23:54.424586833 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m [rank0]:W0531 19:24:21.563000 238 torch/_inductor/utils.py:1436] [0/0] Not enough SMs to use max_autotune_gemm mode\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/3 [00:00<?, ?it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):  67%|██████▋   | 2/3 [00:00<00:00, 15.18it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 3/3 [00:00<00:00, 16.76it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (decode, FULL):   0%|          | 0/1 [00:00<?, ?it/s]\nCapturing CUDA graphs (decode, FULL): 100%|██████████| 1/1 [00:00<00:00, 17.30it/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:09,  2.49s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.99it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:02<00:09,  2.29s/it, est. speed input: 100.03 toks/s, output: 55.91 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:04<00:06,  2.17s/it, est. speed input: 104.30 toks/s, output: 58.42 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:06<00:04,  2.14s/it, est. speed input: 106.16 toks/s, output: 59.25 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:08<00:02,  2.12s/it, est. speed input: 106.33 toks/s, output: 59.76 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.13s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\n[rank0]:[W531 19:25:38.899396920 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n",
+      "phase39c_profile_stderr:conservative-eager-short-context:/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\nThe argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.\n`torch_dtype` is deprecated! Use `dtype` instead!\n/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:22:37.099735370 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:22:37.101657758 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:11,  2.77s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:03<00:15,  3.99s/it, est. speed input: 61.83 toks/s, output: 32.04 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:07<00:10,  3.66s/it, est. speed input: 66.40 toks/s, output: 34.48 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:10<00:07,  3.59s/it, est. speed input: 67.95 toks/s, output: 35.16 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:14<00:03,  3.55s/it, est. speed input: 68.18 toks/s, output: 35.51 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.56s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\n[rank0]:[W531 19:23:23.614130108 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n",
+      "phase39c_staging_l4_cloud_run_job_path_used"
+    ]
+  },
+  "costMemory": {
+    "phase": "39C-Q",
+    "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+    "gpuType": "L4",
+    "gpuRuntimeApprovedNow": false,
+    "localGpuAvailable": false,
+    "stagingCloudRunRequested": true,
+    "estimatedModelBytes": 4266647442,
+    "memoryRisk": "reduced",
+    "costRisk": "high",
+    "notes": [
+      "Qwen3-VL runtime requires generated-fixture GPU/memory validation before controlled real-frame or planning integration phases.",
+      "Official Qwen3-VL docs require vllm>=0.11.0; this staging image uses vllm/vllm-openai:v0.11.0.",
+      "phase39c_profile_stderr:conservative-cuda-graph-lower-reservation:CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m W0531 19:23:53.778000 238 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:23:54.422370302 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:23:54.424586833 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m [rank0]:W0531 19:24:21.563000 238 torch/_inductor/utils.py:1436] [0/0] Not enough SMs to use max_autotune_gemm mode\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/3 [00:00<?, ?it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):  67%|██████▋   | 2/3 [00:00<00:00, 15.18it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 3/3 [00:00<00:00, 16.76it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (decode, FULL):   0%|          | 0/1 [00:00<?, ?it/s]\nCapturing CUDA graphs (decode, FULL): 100%|██████████| 1/1 [00:00<00:00, 17.30it/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:09,  2.49s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.99it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:02<00:09,  2.29s/it, est. speed input: 100.03 toks/s, output: 55.91 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:04<00:06,  2.17s/it, est. speed input: 104.30 toks/s, output: 58.42 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:06<00:04,  2.14s/it, est. speed input: 106.16 toks/s, output: 59.25 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:08<00:02,  2.12s/it, est. speed input: 106.33 toks/s, output: 59.76 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.13s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\n[rank0]:[W531 19:25:38.899396920 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n",
+      "phase39c_profile_stderr:conservative-eager-short-context:/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\nThe argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.\n`torch_dtype` is deprecated! Use `dtype` instead!\n/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:22:37.099735370 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:22:37.101657758 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:11,  2.77s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:03<00:15,  3.99s/it, est. speed input: 61.83 toks/s, output: 32.04 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:07<00:10,  3.66s/it, est. speed input: 66.40 toks/s, output: 34.48 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:10<00:07,  3.59s/it, est. speed input: 67.95 toks/s, output: 35.16 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:14<00:03,  3.55s/it, est. speed input: 68.18 toks/s, output: 35.51 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.56s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\n[rank0]:[W531 19:23:23.614130108 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n",
+      "phase39c_staging_l4_cloud_run_job_path_used"
+    ],
+    "selectedProfileId": null,
+    "tuningMatrixStatus": "blocked"
+  },
+  "l4TuningMatrix": {
+    "phase": "39C-Q",
+    "runId": "phase39cq-20260531T235421-qwen3-vl-2b-instruct",
+    "createdAt": "2026-06-01T02:20:09.153750Z",
+    "matrixId": "l4-oom-remediation-v1",
+    "status": "blocked",
+    "selectedProfileId": null,
+    "profilesDefined": [
+      {
+        "profileId": "conservative-eager-short-context",
+        "description": "Short context, eager execution, one image per prompt, and tiny multimodal cache to reduce startup/KV pressure on L4.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 2048,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.92,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 384,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Reduces context/KV and multimodal processor cache while avoiding CUDA graph capture.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      {
+        "profileId": "conservative-cuda-graph-lower-reservation",
+        "description": "Lower GPU reservation and smaller generated fixtures while allowing CUDA graph behavior if vLLM selects it.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 2048,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.82,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 256,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Leaves more unreserved L4 memory and reduces image token pressure.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      {
+        "profileId": "auto-fit-context",
+        "description": "Reserved for a vLLM-supported safe auto-fit context mode.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.9,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 256,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Would allow vLLM to choose a smaller safe context if a supported auto-fit API exists.",
+        "safetyStatus": "skipped_unsupported",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": "vLLM 0.11.0 LLM API does not expose a safe max_model_len auto-fit value for this worker path."
+      },
+      {
+        "profileId": "cpu-offload-short-context",
+        "description": "Short context plus CPU offload for the same approved model assets; requires 64Gi Cloud Run memory.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 2048,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 1024,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.9,
+          "mm_processor_cache_gb": 0,
+          "cpu_offload_gb": 8
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 256,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 128
+        },
+        "expectedMemoryEffect": "Moves up to 8Gi of model weights/activation pressure to CPU memory while keeping the L4 GPU class.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": false,
+        "fixtureIds": null,
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      },
+      {
+        "profileId": "minimal-smoke-one-fixture",
+        "description": "Diagnostic-only one-fixture smoke to determine whether any generated VLM inference can run on L4.",
+        "matrixId": "l4-oom-remediation-v1",
+        "launchArgs": {
+          "max_model_len": 1024,
+          "max_num_seqs": 1,
+          "max_num_batched_tokens": 512,
+          "limit_mm_per_prompt": {
+            "image": 1
+          },
+          "enforce_eager": true,
+          "gpu_memory_utilization": 0.9,
+          "mm_processor_cache_gb": 0
+        },
+        "fixtureImageConstraints": {
+          "generatedOnly": true,
+          "maxSizePx": 224,
+          "imageCountPerPrompt": 1
+        },
+        "promptOutputTokenBudget": {
+          "temperature": 0,
+          "topP": 1,
+          "maxTokens": 64
+        },
+        "expectedMemoryEffect": "Smallest approved L4 smoke envelope; cannot complete Phase 39C by itself.",
+        "safetyStatus": "allowed",
+        "diagnosticOnly": true,
+        "fixtureIds": [
+          "generated-object-layout"
+        ],
+        "passCriteria": [
+          "Uses verified local Phase 39B model directory only.",
+          "Runs generated fixtures only with bounded prompt templates.",
+          "Returns structured JSON that passes Phase 39C QA gates."
+        ],
+        "blockCriteria": [
+          "Any runtime model auto-download attempt.",
+          "Any provider, raw prompt, real media, public output, or Track A behavior.",
+          "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+        ],
+        "unsupportedReason": null
+      }
+    ],
+    "profilesAttempted": [
+      {
+        "profileId": "conservative-eager-short-context",
+        "status": "blocked",
+        "diagnosticOnly": false,
+        "profile": {
+          "profileId": "conservative-eager-short-context",
+          "description": "Short context, eager execution, one image per prompt, and tiny multimodal cache to reduce startup/KV pressure on L4.",
+          "matrixId": "l4-oom-remediation-v1",
+          "launchArgs": {
+            "max_model_len": 2048,
+            "max_num_seqs": 1,
+            "max_num_batched_tokens": 1024,
+            "limit_mm_per_prompt": {
+              "image": 1
+            },
+            "enforce_eager": true,
+            "gpu_memory_utilization": 0.92,
+            "mm_processor_cache_gb": 0
+          },
+          "fixtureImageConstraints": {
+            "generatedOnly": true,
+            "maxSizePx": 384,
+            "imageCountPerPrompt": 1
+          },
+          "promptOutputTokenBudget": {
+            "temperature": 0,
+            "topP": 1,
+            "maxTokens": 128
+          },
+          "expectedMemoryEffect": "Reduces context/KV and multimodal processor cache while avoiding CUDA graph capture.",
+          "safetyStatus": "allowed",
+          "diagnosticOnly": false,
+          "fixtureIds": null,
+          "passCriteria": [
+            "Uses verified local Phase 39B model directory only.",
+            "Runs generated fixtures only with bounded prompt templates.",
+            "Returns structured JSON that passes Phase 39C QA gates."
+          ],
+          "blockCriteria": [
+            "Any runtime model auto-download attempt.",
+            "Any provider, raw prompt, real media, public output, or Track A behavior.",
+            "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+          ],
+          "unsupportedReason": null
+        },
+        "fixtureResults": [
+          {
+            "fixtureId": "generated-object-layout",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ui-safe-zone",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ambiguous-scene",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "manual_review",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-spatial-reasoning",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          }
+        ],
+        "blockers": [
+          "tuning_profile_incomplete:conservative-eager-short-context"
+        ],
+        "warnings": [],
+        "oomClassification": {
+          "isCudaOom": false,
+          "stage": "not_oom",
+          "enforceEager": true,
+          "cudaGraphLikely": false,
+          "fixtureInferenceReached": false,
+          "memory": {},
+          "safeSummary": "No CUDA OOM signature detected."
+        },
+        "runtimeVersion": "0.11.0"
+      },
+      {
+        "profileId": "conservative-cuda-graph-lower-reservation",
+        "status": "blocked",
+        "diagnosticOnly": false,
+        "profile": {
+          "profileId": "conservative-cuda-graph-lower-reservation",
+          "description": "Lower GPU reservation and smaller generated fixtures while allowing CUDA graph behavior if vLLM selects it.",
+          "matrixId": "l4-oom-remediation-v1",
+          "launchArgs": {
+            "max_model_len": 2048,
+            "max_num_seqs": 1,
+            "max_num_batched_tokens": 1024,
+            "limit_mm_per_prompt": {
+              "image": 1
+            },
+            "enforce_eager": false,
+            "gpu_memory_utilization": 0.82,
+            "mm_processor_cache_gb": 0
+          },
+          "fixtureImageConstraints": {
+            "generatedOnly": true,
+            "maxSizePx": 256,
+            "imageCountPerPrompt": 1
+          },
+          "promptOutputTokenBudget": {
+            "temperature": 0,
+            "topP": 1,
+            "maxTokens": 128
+          },
+          "expectedMemoryEffect": "Leaves more unreserved L4 memory and reduces image token pressure.",
+          "safetyStatus": "allowed",
+          "diagnosticOnly": false,
+          "fixtureIds": null,
+          "passCriteria": [
+            "Uses verified local Phase 39B model directory only.",
+            "Runs generated fixtures only with bounded prompt templates.",
+            "Returns structured JSON that passes Phase 39C QA gates."
+          ],
+          "blockCriteria": [
+            "Any runtime model auto-download attempt.",
+            "Any provider, raw prompt, real media, public output, or Track A behavior.",
+            "vLLM initialization, inference, schema, object-region, safe-zone, hallucination, or upload failure."
+          ],
+          "unsupportedReason": null
+        },
+        "fixtureResults": [
+          {
+            "fixtureId": "generated-object-layout",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ui-safe-zone",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ocr-vlm-comparison",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-ambiguous-scene",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "manual_review",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          },
+          {
+            "fixtureId": "generated-spatial-reasoning",
+            "status": "blocked",
+            "runtime": "vllm",
+            "parsedJson": false,
+            "schemaValid": false,
+            "requiredLabelRecall": 0,
+            "broadRegionAccuracy": 0,
+            "safeZoneDecision": "unknown",
+            "uncertainty": "high",
+            "objectCount": 0,
+            "textLikeRegionCount": 0,
+            "blockers": [
+              "output_json_parse_failed",
+              "output_schema_invalid"
+            ],
+            "warnings": []
+          }
+        ],
+        "blockers": [
+          "tuning_profile_incomplete:conservative-cuda-graph-lower-reservation"
+        ],
+        "warnings": [],
+        "oomClassification": {
+          "isCudaOom": false,
+          "stage": "not_oom",
+          "enforceEager": false,
+          "cudaGraphLikely": false,
+          "fixtureInferenceReached": false,
+          "memory": {},
+          "safeSummary": "No CUDA OOM signature detected."
+        },
+        "runtimeVersion": "0.11.0"
+      }
+    ],
+    "allProfilesFailed": true,
+    "fullPhase39CPassRequiresAllGeneratedFixtures": true,
+    "minimalSmokeCompletesPhase39C": false,
+    "blockedScopesStillBlocked": [
+      "Phase 39D controlled real-frame VLM",
+      "Phase 39E planning integration",
+      "provider calls",
+      "production",
+      "beta",
+      "public output",
+      "broad media",
+      "arbitrary media",
+      "unapproved GPU types",
+      "quantized variants",
+      "smaller model candidates",
+      "Track A"
+    ]
+  },
+  "artifacts": [
+    {
+      "id": "phase_39cq_vlm_runtime_plan_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_plan.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_plan.json",
+      "sizeBytes": 1162,
+      "sha256": "c9a7d9ff66542c65acb1673786bb3af5bf7751ca9ff12e62d9086ff3c70aa12e"
+    },
+    {
+      "id": "phase_39cq_vlm_model_asset_verification_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_model_asset_verification.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_model_asset_verification.json",
+      "sizeBytes": 16133,
+      "sha256": "fda7c58b1c3da6eadb74e2ea8f5a3b74fd3a3de61d102e8b363236a7db057ec7"
+    },
+    {
+      "id": "phase_39cq_generated_fixture_manifest_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_generated_fixture_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_generated_fixture_manifest.json",
+      "sizeBytes": 6156,
+      "sha256": "8a588db6188e31a97f63a2b4a4fc2931291cb11a113f90636dc3fbc16adc1915"
+    },
+    {
+      "id": "phase_39cq_prompt_template_manifest_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_prompt_template_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_prompt_template_manifest.json",
+      "sizeBytes": 5438,
+      "sha256": "fa5588745296fe5066bfa72c934a104cece7451656a878d6e87ec91757d91a0c"
+    },
+    {
+      "id": "phase_39cq_vlm_runtime_results_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_results.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_results.json",
+      "sizeBytes": 27111,
+      "sha256": "a6fac79a66506483b17645fcef84d1881617c1cca0d9a5db16ef9e9d2c06b10a"
+    },
+    {
+      "id": "phase_39cq_vlm_output_schema_validation_report_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_output_schema_validation_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_output_schema_validation_report.json",
+      "sizeBytes": 246,
+      "sha256": "05d1657cbb308bda3d65aa10a4a2b717b7ec61a31697f43414f484e1d7e4cd68"
+    },
+    {
+      "id": "phase_39cq_vlm_object_region_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_object_region_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_object_region_qa_report.json",
+      "sizeBytes": 230,
+      "sha256": "ac65b814795426898ebbd8f1c181a8dcbd27473092199875e16d82e98a1d3ec7"
+    },
+    {
+      "id": "phase_39cq_vlm_safe_zone_qa_report_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_safe_zone_qa_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_safe_zone_qa_report.json",
+      "sizeBytes": 144,
+      "sha256": "2894995bc7df7f322b502fa6a2a1d694f0585e99237b540259df187f097cd4c6"
+    },
+    {
+      "id": "phase_39cq_vlm_hallucination_safety_report_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_hallucination_safety_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_hallucination_safety_report.json",
+      "sizeBytes": 267,
+      "sha256": "b89a2b864390c77df976df3a9761483e4191d3d8084af0b7bcc289aa13d9ff5f"
+    },
+    {
+      "id": "phase_39cq_vlm_runtime_cost_memory_report_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_cost_memory_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_runtime_cost_memory_report.json",
+      "sizeBytes": 7726,
+      "sha256": "9b53919d9fb8ca7d0bb666ae0c613512fc8fa1d5324137c5052a4956c5a90ab1"
+    },
+    {
+      "id": "phase_39cq_vlm_l4_tuning_matrix_report_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_l4_tuning_matrix_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_vlm_l4_tuning_matrix_report.json",
+      "sizeBytes": 18475,
+      "sha256": "3d0e92db221d02b287e07ca13fbe49fa67e842511654734874687068fab80c16"
+    },
+    {
+      "id": "phase_39cq_private_artifact_manifest_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_private_artifact_manifest.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_private_artifact_manifest.json",
+      "sizeBytes": 7714,
+      "sha256": "ee1bc75aec2d492003fa3369dc4444762c4a7a5feca26ef6f9768219967e28be"
+    },
+    {
+      "id": "phase_39cq_generated_vlm_runtime_report_json",
+      "kind": "report",
+      "localPathStatus": "prepared_in_ephemeral_runtime_temp",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_generated_vlm_runtime_report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/phase_39cq_generated_vlm_runtime_report.json",
+      "sizeBytes": 73841,
+      "sha256": "b6e536588fd68f761b7bd26133631e788b04d0035ba6c07e541b3b453e11e9dc"
+    }
+  ],
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime-l4-compatible/phase39cq-20260531T235421-qwen3-vl-2b-instruct/",
+  "vlmToolFamilyBetaStatus": "blocked",
+  "phase39DReadiness": {
+    "readyForControlledRealFrameVlm": false,
+    "reason": "Phase 39D remains blocked because Phase 39C generated VLM runtime verification did not pass."
+  },
+  "blockers": [
+    "phase39c_l4_tuning_profiles_exhausted",
+    "tuning_profile_incomplete:conservative-cuda-graph-lower-reservation",
+    "tuning_profile_incomplete:conservative-eager-short-context"
+  ],
+  "warnings": [
+    "phase39c_profile_stderr:conservative-cuda-graph-lower-reservation:CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m W0531 19:23:53.778000 238 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:23:54.422370302 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:23:54.424586833 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.19s/it]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m [rank0]:W0531 19:24:21.563000 238 torch/_inductor/utils.py:1436] [0/0] Not enough SMs to use max_autotune_gemm mode\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/3 [00:00<?, ?it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE):  67%|██████▋   | 2/3 [00:00<00:00, 15.18it/s]\nCapturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 3/3 [00:00<00:00, 16.76it/s]\n\u001b[1;36m(EngineCore_DP0 pid=238)\u001b[0;0m \nCapturing CUDA graphs (decode, FULL):   0%|          | 0/1 [00:00<?, ?it/s]\nCapturing CUDA graphs (decode, FULL): 100%|██████████| 1/1 [00:00<00:00, 17.30it/s]\n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:09,  2.49s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.99it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:02<00:09,  2.29s/it, est. speed input: 100.03 toks/s, output: 55.91 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:04<00:06,  2.17s/it, est. speed input: 104.30 toks/s, output: 58.42 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:06<00:04,  2.14s/it, est. speed input: 106.16 toks/s, output: 59.25 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:08<00:02,  2.12s/it, est. speed input: 106.33 toks/s, output: 59.76 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.11s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:10<00:00,  2.13s/it, est. speed input: 106.88 toks/s, output: 60.06 toks/s]\n[rank0]:[W531 19:25:38.899396920 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n",
+    "phase39c_profile_stderr:conservative-eager-short-context:/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\nThe argument `trust_remote_code` is to be used with Auto classes. It has no effect here and is ignored.\n`torch_dtype` is deprecated! Use `dtype` instead!\n/usr/local/lib/python3.12/dist-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. \n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m W0531 19:22:34.707000 51 torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.\n[W531 19:22:37.099735370 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n[W531 19:22:37.101657758 socket.cpp:200] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \nLoading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.25s/it]\n\u001b[1;36m(EngineCore_DP0 pid=51)\u001b[0;0m \n\nAdding requests:   0%|          | 0/5 [00:00<?, ?it/s]\nAdding requests:  20%|██        | 1/5 [00:02<00:11,  2.77s/it]\nAdding requests: 100%|██████████| 5/5 [00:02<00:00,  1.79it/s]\n\nProcessed prompts:   0%|          | 0/5 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]\nProcessed prompts:  20%|██        | 1/5 [00:03<00:15,  3.99s/it, est. speed input: 61.83 toks/s, output: 32.04 toks/s]\nProcessed prompts:  40%|████      | 2/5 [00:07<00:10,  3.66s/it, est. speed input: 66.40 toks/s, output: 34.48 toks/s]\nProcessed prompts:  60%|██████    | 3/5 [00:10<00:07,  3.59s/it, est. speed input: 67.95 toks/s, output: 35.16 toks/s]\nProcessed prompts:  80%|████████  | 4/5 [00:14<00:03,  3.55s/it, est. speed input: 68.18 toks/s, output: 35.51 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.50s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\nProcessed prompts: 100%|██████████| 5/5 [00:17<00:00,  3.56s/it, est. speed input: 68.95 toks/s, output: 35.91 toks/s]\n[rank0]:[W531 19:23:23.614130108 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())\n",
+    "phase39c_staging_l4_cloud_run_job_path_used"
+  ]
+}

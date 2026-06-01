@@ -1,0 +1,65 @@
+{
+  "phase": "39B-Q",
+  "reportId": "phase_39bq_vlm_asset_selection_manifest",
+  "runId": "phase39cq-20260531T235421",
+  "createdAt": "2026-06-01T01:56:01.614Z",
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "selectedFiles": [
+    {
+      "relativePath": "README.md",
+      "sizeBytes": 7136
+    },
+    {
+      "relativePath": "chat_template.json",
+      "sizeBytes": 5502
+    },
+    {
+      "relativePath": "config.json",
+      "sizeBytes": 1505
+    },
+    {
+      "relativePath": "generation_config.json",
+      "sizeBytes": 269
+    },
+    {
+      "relativePath": "merges.txt",
+      "sizeBytes": 1671839
+    },
+    {
+      "relativePath": "model.safetensors",
+      "sizeBytes": 4255140312
+    },
+    {
+      "relativePath": "preprocessor_config.json",
+      "sizeBytes": 390
+    },
+    {
+      "relativePath": "tokenizer.json",
+      "sizeBytes": 7032403
+    },
+    {
+      "relativePath": "tokenizer_config.json",
+      "sizeBytes": 10868
+    },
+    {
+      "relativePath": "video_preprocessor_config.json",
+      "sizeBytes": 385
+    },
+    {
+      "relativePath": "vocab.json",
+      "sizeBytes": 2776833
+    }
+  ],
+  "selectedFileCount": 11,
+  "selectedTotalSizeBytes": 4266647442,
+  "excludedFilePatterns": [
+    ".gitattributes",
+    "demos/",
+    "images/",
+    "notebooks/",
+    "examples/"
+  ],
+  "modelPayloadCommittedToGit": false,
+  "blockers": []
+}

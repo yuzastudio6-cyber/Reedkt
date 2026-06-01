@@ -1,0 +1,94 @@
+{
+  "createdAt": "2026-06-01T23:29:52.692726Z",
+  "fixtures": [
+    {
+      "expectedLabels": [
+        "laptop",
+        "coffee mug",
+        "plant",
+        "timeline panel"
+      ],
+      "expectedZones": {
+        "coffee mug": "right",
+        "laptop": "center",
+        "plant": "left",
+        "timeline panel": "bottom"
+      },
+      "fixtureId": "generated-object-layout",
+      "height": 512,
+      "riskCategory": "required_pass",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "caption conflict",
+        "lower third alert",
+        "toolbar",
+        "preview canvas"
+      ],
+      "expectedZones": {
+        "caption conflict": "lower_third",
+        "lower third alert": "lower_third",
+        "preview canvas": "center",
+        "toolbar": "top"
+      },
+      "fixtureId": "generated-ui-safe-zone",
+      "height": 512,
+      "riskCategory": "required_pass",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "source label",
+        "export button",
+        "confidence badge",
+        "text-like region"
+      ],
+      "expectedZones": {
+        "confidence badge": "upper_third",
+        "export button": "right",
+        "source label": "left",
+        "text-like region": "center"
+      },
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "height": 512,
+      "riskCategory": "required_pass",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "ambiguous icon cluster",
+        "manual review"
+      ],
+      "expectedZones": {
+        "ambiguous icon cluster": "center"
+      },
+      "fixtureId": "generated-ambiguous-scene",
+      "height": 512,
+      "riskCategory": "manual_review_expected",
+      "width": 512
+    },
+    {
+      "expectedLabels": [
+        "left panel",
+        "right card",
+        "center arrow",
+        "top badge"
+      ],
+      "expectedZones": {
+        "center arrow": "center",
+        "left panel": "left",
+        "right card": "right",
+        "top badge": "top"
+      },
+      "fixtureId": "generated-spatial-reasoning",
+      "height": 512,
+      "riskCategory": "required_pass",
+      "width": 512
+    }
+  ],
+  "generatedOnly": true,
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_generated_fixture_manifest",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct"
+}

@@ -49,6 +49,10 @@ REPORT_FILES = [
     "phase_39c_sg_private_artifact_manifest.json",
     "phase_39c_sg_generated_runtime_recovery_report.json",
 ]
+FINAL_REPORT_FILES = {
+    "phase_39c_sg_private_artifact_manifest.json",
+    "phase_39c_sg_generated_runtime_recovery_report.json",
+}
 
 
 def now_iso() -> str:
@@ -103,7 +107,7 @@ def validate_env(blockers: List[str]) -> None:
         "GCP_PROJECT_ID": "reeditpro",
         "GCP_REGION": "us-central1",
         "REEDITPRO_ENV": "staging",
-        "REEDITPRO_CONFIRM_VLM_SGLANG_APPROVAL": "true",
+        "REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK": "true",
         "REEDITPRO_CONFIRM_VLM_SGLANG_RUNTIME_EXECUTE": "true",
         "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ": "true",
         "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD": "true",
@@ -507,20 +511,20 @@ def build_reports(
     return full_report
 
 
-def upload_artifacts(client: storage.Client, report_dir: Path, run_id: str) -> List[Dict[str, Any]]:
+def upload_artifacts(client: storage.Client, report_dir: Path, run_id: str, file_names: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     if os.environ.get("REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD") != "true":
         raise RuntimeError("artifact_upload_confirmation_missing")
     bucket_name = os.environ.get("REEDITPRO_PHASE39C_QA_BUCKET", QA_BUCKET)
     prefix = os.environ.get("REEDITPRO_PHASE39C_QA_PREFIX", f"activation/phase39c/generated-vlm-sglang-runtime/{run_id}")
     bucket = client.bucket(bucket_name)
     artifacts: List[Dict[str, Any]] = []
-    for file_name in REPORT_FILES:
+    for file_name in file_names or REPORT_FILES:
         local_path = report_dir / file_name
         if not local_path.exists():
             continue
         object_name = f"{prefix.rstrip('/')}/{file_name}"
         blob = bucket.blob(object_name)
-        blob.upload_from_filename(str(local_path), content_type="application/json")
+        blob.upload_from_filename(str(local_path), content_type="application/json", if_generation_match=0)
         blob.reload()
         artifacts.append({
             "name": file_name,
@@ -577,10 +581,11 @@ def main() -> int:
     (report_dir / "phase_39c_sg_generated_fixture_manifest.json").write_text(json.dumps(generated_fixture_manifest(run_id, created_at), indent=2, sort_keys=True) + "\n")
     (report_dir / "phase_39c_sg_label_alias_map.json").write_text(json.dumps(alias_report(), indent=2, sort_keys=True) + "\n")
 
-    full_report = build_reports(run_id, created_at, report_dir, asset_verification, runtime_summary, blockers, warnings)
-    artifacts = upload_artifacts(client, report_dir, run_id)
+    build_reports(run_id, created_at, report_dir, asset_verification, runtime_summary, blockers, warnings)
+    report_files = [file_name for file_name in REPORT_FILES if file_name not in FINAL_REPORT_FILES]
+    artifacts = upload_artifacts(client, report_dir, run_id, report_files)
     full_report = build_reports(run_id, created_at, report_dir, asset_verification, runtime_summary, blockers, warnings, artifacts)
-    upload_artifacts(client, report_dir, run_id)
+    upload_artifacts(client, report_dir, run_id, sorted(FINAL_REPORT_FILES))
     print(json.dumps(full_report, separators=(",", ":")))
     return 0 if full_report.get("ok") else 1
 

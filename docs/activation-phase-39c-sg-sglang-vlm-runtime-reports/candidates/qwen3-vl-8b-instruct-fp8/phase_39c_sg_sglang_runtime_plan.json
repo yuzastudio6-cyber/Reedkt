@@ -1,0 +1,21 @@
+{
+  "betaProductionBlocked": true,
+  "createdAt": "2026-06-01T23:40:07.682803Z",
+  "localModelPathOnly": true,
+  "matrixId": "phase39c-sglang-generated-vlm-v1",
+  "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+  "phase": "39C-SG",
+  "phase39DBlocked": true,
+  "phase39EBlocked": true,
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+  "providerCallsAllowed": false,
+  "publicOutputAllowed": false,
+  "rawPromptsAllowed": false,
+  "realMediaAllowed": false,
+  "reportId": "phase_39c_sg_sglang_runtime_plan",
+  "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-8b-instruct-fp8",
+  "runtime": "sglang",
+  "runtimeAutoDownloadAllowed": false,
+  "trackABlocked": true
+}

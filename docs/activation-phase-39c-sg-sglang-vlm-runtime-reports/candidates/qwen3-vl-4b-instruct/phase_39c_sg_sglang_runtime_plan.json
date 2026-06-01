@@ -1,0 +1,21 @@
+{
+  "betaProductionBlocked": true,
+  "createdAt": "2026-06-01T23:33:38.704196Z",
+  "localModelPathOnly": true,
+  "matrixId": "phase39c-sglang-generated-vlm-v1",
+  "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+  "phase": "39C-SG",
+  "phase39DBlocked": true,
+  "phase39EBlocked": true,
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+  "providerCallsAllowed": false,
+  "publicOutputAllowed": false,
+  "rawPromptsAllowed": false,
+  "realMediaAllowed": false,
+  "reportId": "phase_39c_sg_sglang_runtime_plan",
+  "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-4b-instruct",
+  "runtime": "sglang",
+  "runtimeAutoDownloadAllowed": false,
+  "trackABlocked": true
+}

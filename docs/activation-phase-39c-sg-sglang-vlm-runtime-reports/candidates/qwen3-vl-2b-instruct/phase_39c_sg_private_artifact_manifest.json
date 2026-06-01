@@ -1,0 +1,185 @@
+{
+  "artifactCount": 21,
+  "artifacts": [
+    {
+      "crc32c": "2eZAJA==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_sglang_runtime_plan.json",
+      "generation": "1780356707222681",
+      "md5Hash": "042fIq2epRJz47QlTyszIA==",
+      "name": "phase_39c_sg_sglang_runtime_plan.json",
+      "sizeBytes": 838
+    },
+    {
+      "crc32c": "/Afglg==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_sglang_source_evidence.json",
+      "generation": "1780356707418106",
+      "md5Hash": "OhyiSLGF2VrDidTfLhH2+w==",
+      "name": "phase_39c_sg_sglang_source_evidence.json",
+      "sizeBytes": 372
+    },
+    {
+      "crc32c": "+Vcl1g==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_sglang_license_evidence.json",
+      "generation": "1780356707616188",
+      "md5Hash": "K3V+43WjXmhIbRQUaMS5+g==",
+      "name": "phase_39c_sg_sglang_license_evidence.json",
+      "sizeBytes": 304
+    },
+    {
+      "crc32c": "UfXogw==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_sglang_runtime_support_evidence.json",
+      "generation": "1780356707820124",
+      "md5Hash": "xMoNicBawdGf39MdrgpLnw==",
+      "name": "phase_39c_sg_sglang_runtime_support_evidence.json",
+      "sizeBytes": 473
+    },
+    {
+      "crc32c": "EnYFQg==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_sglang_structured_output_evidence.json",
+      "generation": "1780356708023825",
+      "md5Hash": "GbNvXq9i+5+mayORYf1cBg==",
+      "name": "phase_39c_sg_sglang_structured_output_evidence.json",
+      "sizeBytes": 352
+    },
+    {
+      "crc32c": "gDUNDw==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_candidate_manifest.json",
+      "generation": "1780356708219299",
+      "md5Hash": "dMB4R3B0SRRpWb1h+xbLfA==",
+      "name": "phase_39c_sg_candidate_manifest.json",
+      "sizeBytes": 459
+    },
+    {
+      "crc32c": "d7tXrg==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_canary_fixture_manifest.json",
+      "generation": "1780356708418583",
+      "md5Hash": "7KWYcLKqI+bBeaDMndfVPA==",
+      "name": "phase_39c_sg_canary_fixture_manifest.json",
+      "sizeBytes": 2494
+    },
+    {
+      "crc32c": "0q8aXg==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_generated_fixture_manifest.json",
+      "generation": "1780356708614641",
+      "md5Hash": "gbOlBdQJSOyj81fbVw4i9w==",
+      "name": "phase_39c_sg_generated_fixture_manifest.json",
+      "sizeBytes": 2314
+    },
+    {
+      "crc32c": "o3hagA==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_label_alias_map.json",
+      "generation": "1780356708822229",
+      "md5Hash": "HL1ZctkUlrC/scniOzNN+Q==",
+      "name": "phase_39c_sg_label_alias_map.json",
+      "sizeBytes": 3235
+    },
+    {
+      "crc32c": "YxpGLQ==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_model_asset_verification.json",
+      "generation": "1780356709021476",
+      "md5Hash": "vmx7cxX0RPPFNJJ//xZ6Ig==",
+      "name": "phase_39c_sg_model_asset_verification.json",
+      "sizeBytes": 11095
+    },
+    {
+      "crc32c": "8B+dJw==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_runtime_capability_report.json",
+      "generation": "1780356709217880",
+      "md5Hash": "ioBVTJHZ/KisuC8CPeAvEQ==",
+      "name": "phase_39c_sg_runtime_capability_report.json",
+      "sizeBytes": 3
+    },
+    {
+      "crc32c": "Ld7l0g==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_strategy_matrix_report.json",
+      "generation": "1780356709318051",
+      "md5Hash": "67tTjJjQsODJIdPM4EubAQ==",
+      "name": "phase_39c_sg_strategy_matrix_report.json",
+      "sizeBytes": 460
+    },
+    {
+      "crc32c": "8B+dJw==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_text_only_smoke_report.json",
+      "generation": "1780356709512964",
+      "md5Hash": "ioBVTJHZ/KisuC8CPeAvEQ==",
+      "name": "phase_39c_sg_text_only_smoke_report.json",
+      "sizeBytes": 3
+    },
+    {
+      "crc32c": "Sjrvfg==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_freeform_perception_report.json",
+      "generation": "1780356709718055",
+      "md5Hash": "JCI5AHsAuj9SgK2beo/guA==",
+      "name": "phase_39c_sg_freeform_perception_report.json",
+      "sizeBytes": 254
+    },
+    {
+      "crc32c": "1mAwBw==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_labels_only_qa_report.json",
+      "generation": "1780356709914670",
+      "md5Hash": "84UuO1+SANA/PkkxvG2oZQ==",
+      "name": "phase_39c_sg_labels_only_qa_report.json",
+      "sizeBytes": 247
+    },
+    {
+      "crc32c": "CxDmqg==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_coarse_region_qa_report.json",
+      "generation": "1780356710016904",
+      "md5Hash": "pYyiY2/T1xQahGIDu6J1mw==",
+      "name": "phase_39c_sg_coarse_region_qa_report.json",
+      "sizeBytes": 267
+    },
+    {
+      "crc32c": "BvOukQ==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_safe_zone_reasoning_report.json",
+      "generation": "1780356710219214",
+      "md5Hash": "Y47jzHCbPsmx2U4g2nSrEQ==",
+      "name": "phase_39c_sg_safe_zone_reasoning_report.json",
+      "sizeBytes": 242
+    },
+    {
+      "crc32c": "talK3Q==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_decomposed_canonical_report.json",
+      "generation": "1780356710435249",
+      "md5Hash": "/tC3XzfmO/2qQULd1iFMpQ==",
+      "name": "phase_39c_sg_decomposed_canonical_report.json",
+      "sizeBytes": 3627
+    },
+    {
+      "crc32c": "FcikZw==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_candidate_results.json",
+      "generation": "1780356710618163",
+      "md5Hash": "g3wCvko3fxYJ5oLw+jojuA==",
+      "name": "phase_39c_sg_candidate_results.json",
+      "sizeBytes": 3661
+    },
+    {
+      "crc32c": "X9xTyw==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_runtime_results.json",
+      "generation": "1780356710834817",
+      "md5Hash": "c6299JbDT9gU6UMMr96tWw==",
+      "name": "phase_39c_sg_runtime_results.json",
+      "sizeBytes": 3458
+    },
+    {
+      "crc32c": "hvECzQ==",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/phase_39c_sg_hallucination_safety_report.json",
+      "generation": "1780356711020453",
+      "md5Hash": "DbZ2M7CLyVv2twAI+hsLBQ==",
+      "name": "phase_39c_sg_hallucination_safety_report.json",
+      "sizeBytes": 3330
+    }
+  ],
+  "blockers": [
+    "sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy"
+  ],
+  "createdAt": "2026-06-01T23:31:51.055503Z",
+  "phase": "39C-SG",
+  "privateOnly": true,
+  "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/",
+  "reportId": "phase_39c_sg_private_artifact_manifest",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct",
+  "warnings": [
+    "phase39c_sg_worker_stderr:/opt/conda/lib/python3.11/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.\n  import pynvml  # type: ignore[import]\n/opt/conda/lib/python3.11/site-packages/transformers/utils/hub.py:111: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\nTraceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/run_sglang_generated_fixture.py\", line 570, in main\n    summary = run_matrix(Path(args.model_dir), output_dir, fixture_dir)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/server/workers/vlm-sglang-runtime/run_sglang_generated_fixture.py\", line 447, in run_matrix\n    engine, processor, engine_warnings = create_engine(model_dir)\n                                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/server/workers/vlm-sglang-runtime/run_sglang_generated_fixture.py\", line 244, in create_engine\n    return Engine(**engine_kwargs), processor, warnings\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/api.py\", line 44, in Engine\n    from sglang.srt.entrypoints.engine import Engine\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/entrypoints/engine.py\", line 41, in <module>\n    from sglang.srt.managers.data_parallel_controller import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/data_parallel_controller.py\", line 32, in <module>\n    from sglang.srt.managers.io_struct import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/io_struct.py\", line 26, in <module>\n    from sglang.srt.managers.schedule_batch import BaseFinishReason\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/schedule_batch.py\", line 50, in <module>\n    from sglang.srt.disaggregation.decode_schedule_batch_mixin import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/disaggregation/decode_schedule_batch_mixin.py\", line 10, in <module>\n    from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode, ForwardMode\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/model_executor/forward_batch_info.py\", line 47, in <module>\n    from sglang.srt.layers.rotary_embedding import MRotaryEmbedding\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 13, in <module>\n    from sgl_kernel import common_ops\nImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy\n"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "canPassPhaseAlone": false,
+  "phase": "39C-SG",
+  "reportId": "phase_39c_sg_freeform_perception_report",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct",
+  "status": "diagnostic_only",
+  "traceCount": 0,
+  "traces": []
+}

@@ -2,8 +2,8 @@
   "ok": false,
   "phase": "39C-SG",
   "reportId": "phase_39c_sg_generated_runtime_recovery_report",
-  "runId": "phase39c-sg-20260601t201814",
-  "createdAt": "2026-06-01T20:33:48.988Z",
+  "runId": "phase39c-sg-build-20260601T232400-overlay",
+  "createdAt": "2026-06-01T23:23:37.164Z",
   "sourceEvidence": {
     "phase39cOriginalOom": {
       "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
@@ -24,6 +24,11 @@
       "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
       "preserved": true,
       "summary": "SO3 proved the current blocker is semantic perception/localization on simple generated canaries under vLLM."
+    },
+    "phase39cSglangBuildxBlocker": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+      "preserved": true,
+      "summary": "SGLang source/license/runtime scaffolding exists, but local Docker buildx hung before producing an image digest or Cloud Run execution."
     }
   },
   "sglangEvidence": {
@@ -66,7 +71,7 @@
   "strategyMatrix": {
     "phase": "39C-SG",
     "reportId": "phase_39c_sg_strategy_matrix_report",
-    "createdAt": "2026-06-01T20:33:48.988Z",
+    "createdAt": "2026-06-01T23:23:37.164Z",
     "matrixId": "phase39c-sglang-generated-vlm-v1",
     "stages": [
       {
@@ -134,7 +139,7 @@
   "canaryFixtureManifest": {
     "phase": "39C-SG",
     "reportId": "phase_39c_sg_canary_fixture_manifest",
-    "createdAt": "2026-06-01T20:33:48.988Z",
+    "createdAt": "2026-06-01T23:23:37.164Z",
     "generatedOnly": true,
     "fixtureImagesCommitted": false,
     "fixtures": [
@@ -208,7 +213,7 @@
   "aliasMap": {
     "phase": "39C-SG",
     "reportId": "phase_39c_sg_label_alias_map",
-    "createdAt": "2026-06-01T20:33:48.988Z",
+    "createdAt": "2026-06-01T23:23:37.164Z",
     "aliases": {
       "timeline panel": [
         "timeline",
@@ -271,19 +276,50 @@
   },
   "candidateResults": [
     {
-      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
-      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
       "status": "blocked",
       "selected": false,
-      "manifestStatus": "skipped",
-      "runtimeStatus": "skipped",
-      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
-      "qa": {},
+      "manifestStatus": "passed",
+      "runtimeStatus": "blocked",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/",
+      "imageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "qa": {
+        "canaryLabelRecall": 0,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0
+      },
       "blockers": [
-        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+        "cloud_run_job_nonzero:Command failed: gcloud run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTH",
+        "sglang_runtime_report_not_ok:qwen3-vl-2b-instruct",
+        "qwen3-vl-2b-instruct:sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy"
       ],
       "warnings": [
-        "candidate_not_attempted_after_pre_runtime_blocker"
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_runtime_plan.json:generation=1780356707222681",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_source_evidence.json:generation=1780356707418106",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_license_evidence.json:generation=1780356707616188",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_runtime_support_evidence.json:generation=1780356707820124",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_structured_output_evidence.json:generation=1780356708023825",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_candidate_manifest.json:generation=1780356708219299",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_canary_fixture_manifest.json:generation=1780356708418583",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_generated_fixture_manifest.json:generation=1780356708614641",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_label_alias_map.json:generation=1780356708822229",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_model_asset_verification.json:generation=1780356709021476",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_runtime_capability_report.json:generation=1780356709217880",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_strategy_matrix_report.json:generation=1780356709318051",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_text_only_smoke_report.json:generation=1780356709512964",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_freeform_perception_report.json:generation=1780356709718055",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_labels_only_qa_report.json:generation=1780356709914670",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_coarse_region_qa_report.json:generation=1780356710016904",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_safe_zone_reasoning_report.json:generation=1780356710219214",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_decomposed_canonical_report.json:generation=1780356710435249",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_candidate_results.json:generation=1780356710618163",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_runtime_results.json:generation=1780356710834817",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_hallucination_safety_report.json:generation=1780356711020453",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_private_artifact_manifest.json:generation=1780356711411632",
+        "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_generated_runtime_recovery_report.json:generation=1780356711215016"
       ]
     },
     {
@@ -291,31 +327,93 @@
       "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
       "status": "blocked",
       "selected": false,
-      "manifestStatus": "skipped",
-      "runtimeStatus": "skipped",
+      "manifestStatus": "passed",
+      "runtimeStatus": "blocked",
       "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
-      "qa": {},
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-4b-instruct/",
+      "imageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "qa": {
+        "canaryLabelRecall": 0,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0
+      },
       "blockers": [
-        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+        "cloud_run_job_nonzero:Command failed: gcloud run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTH",
+        "sglang_runtime_report_not_ok:qwen3-vl-4b-instruct",
+        "qwen3-vl-4b-instruct:sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy"
       ],
       "warnings": [
-        "candidate_not_attempted_after_pre_runtime_blocker"
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_runtime_plan.json:generation=1780357015815238",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_source_evidence.json:generation=1780357016017218",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_license_evidence.json:generation=1780357016217776",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_runtime_support_evidence.json:generation=1780357016420419",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_structured_output_evidence.json:generation=1780357016618210",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_candidate_manifest.json:generation=1780357016815047",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_canary_fixture_manifest.json:generation=1780357017014384",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_generated_fixture_manifest.json:generation=1780357017116303",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_label_alias_map.json:generation=1780357017315636",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_model_asset_verification.json:generation=1780357017516659",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_runtime_capability_report.json:generation=1780357017718514",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_strategy_matrix_report.json:generation=1780357017919054",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_text_only_smoke_report.json:generation=1780357018125528",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_freeform_perception_report.json:generation=1780357018320244",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_labels_only_qa_report.json:generation=1780357018514142",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_coarse_region_qa_report.json:generation=1780357018721804",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_safe_zone_reasoning_report.json:generation=1780357018912151",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_decomposed_canonical_report.json:generation=1780357019019982",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_candidate_results.json:generation=1780357019214651",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_runtime_results.json:generation=1780357019318696",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_hallucination_safety_report.json:generation=1780357019514051",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_private_artifact_manifest.json:generation=1780357019716396",
+        "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_generated_runtime_recovery_report.json:generation=1780357019613904"
       ]
     },
     {
-      "modelId": "Qwen/Qwen3-VL-2B-Instruct",
-      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
       "status": "blocked",
       "selected": false,
-      "manifestStatus": "skipped",
-      "runtimeStatus": "skipped",
-      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
-      "qa": {},
+      "manifestStatus": "passed",
+      "runtimeStatus": "blocked",
+      "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-8b-instruct-fp8/",
+      "imageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "qa": {
+        "canaryLabelRecall": 0,
+        "canaryCoarseRegionAccuracy": 0,
+        "fixtureLabelRecall": 0,
+        "fixtureCoarseRegionAccuracy": 0
+      },
       "blockers": [
-        "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+        "cloud_run_job_nonzero:Command failed: gcloud run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTH",
+        "sglang_runtime_report_not_ok:qwen3-vl-8b-instruct-fp8",
+        "qwen3-vl-8b-instruct-fp8:sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy"
       ],
       "warnings": [
-        "candidate_not_attempted_after_pre_runtime_blocker"
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_runtime_plan.json:generation=1780357427316386",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_source_evidence.json:generation=1780357427513430",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_license_evidence.json:generation=1780357427717487",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_runtime_support_evidence.json:generation=1780357427914291",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_structured_output_evidence.json:generation=1780357428033628",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_candidate_manifest.json:generation=1780357428216035",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_canary_fixture_manifest.json:generation=1780357428418618",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_generated_fixture_manifest.json:generation=1780357428519057",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_label_alias_map.json:generation=1780357428715794",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_model_asset_verification.json:generation=1780357428916682",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_runtime_capability_report.json:generation=1780357429116649",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_strategy_matrix_report.json:generation=1780357429340190",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_text_only_smoke_report.json:generation=1780357429515843",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_freeform_perception_report.json:generation=1780357429717555",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_labels_only_qa_report.json:generation=1780357429812736",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_coarse_region_qa_report.json:generation=1780357430018875",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_safe_zone_reasoning_report.json:generation=1780357430221199",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_decomposed_canonical_report.json:generation=1780357430414973",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_candidate_results.json:generation=1780357430614464",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_runtime_results.json:generation=1780357430817307",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_hallucination_safety_report.json:generation=1780357430913819",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_private_artifact_manifest.json:generation=1780357431218373",
+        "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_generated_runtime_recovery_report.json:generation=1780357431024914"
       ]
     }
   ],
@@ -360,14 +458,89 @@
     "Track A runtime/visual/render stack"
   ],
   "blockers": [
-    "sglang_runtime_image_build_push_blocked:local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+    "cloud_run_job_nonzero:Command failed: gcloud run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTH",
+    "sglang_runtime_report_not_ok:qwen3-vl-2b-instruct",
+    "sglang_runtime_report_not_ok:qwen3-vl-4b-instruct",
+    "sglang_runtime_report_not_ok:qwen3-vl-8b-instruct-fp8",
+    "qwen3-vl-2b-instruct:sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy",
+    "qwen3-vl-4b-instruct:sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy",
+    "qwen3-vl-8b-instruct-fp8:sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy"
   ],
   "warnings": [
-    "private_model_copy_not_started",
-    "checksum_verification_not_started",
-    "cloud_run_l4_job_not_started",
-    "private_qa_artifact_upload_not_started"
+    "sglang_runtime_image_built_by_cloud_build:us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-build-20260601t232400-overlay",
+    "existing_image_lookup_before_cloud_build_failed:Command failed: gcloud artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-build-20260601t232400-overlay --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible ",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_runtime_plan.json:generation=1780356707222681",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_source_evidence.json:generation=1780356707418106",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_license_evidence.json:generation=1780356707616188",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_runtime_support_evidence.json:generation=1780356707820124",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_sglang_structured_output_evidence.json:generation=1780356708023825",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_candidate_manifest.json:generation=1780356708219299",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_canary_fixture_manifest.json:generation=1780356708418583",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_generated_fixture_manifest.json:generation=1780356708614641",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_label_alias_map.json:generation=1780356708822229",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_model_asset_verification.json:generation=1780356709021476",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_runtime_capability_report.json:generation=1780356709217880",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_strategy_matrix_report.json:generation=1780356709318051",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_text_only_smoke_report.json:generation=1780356709512964",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_freeform_perception_report.json:generation=1780356709718055",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_labels_only_qa_report.json:generation=1780356709914670",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_coarse_region_qa_report.json:generation=1780356710016904",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_safe_zone_reasoning_report.json:generation=1780356710219214",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_decomposed_canonical_report.json:generation=1780356710435249",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_candidate_results.json:generation=1780356710618163",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_runtime_results.json:generation=1780356710834817",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_hallucination_safety_report.json:generation=1780356711020453",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_private_artifact_manifest.json:generation=1780356711411632",
+    "private_sglang_artifact_verified:qwen3-vl-2b-instruct:phase_39c_sg_generated_runtime_recovery_report.json:generation=1780356711215016",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_runtime_plan.json:generation=1780357015815238",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_source_evidence.json:generation=1780357016017218",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_license_evidence.json:generation=1780357016217776",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_runtime_support_evidence.json:generation=1780357016420419",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_sglang_structured_output_evidence.json:generation=1780357016618210",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_candidate_manifest.json:generation=1780357016815047",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_canary_fixture_manifest.json:generation=1780357017014384",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_generated_fixture_manifest.json:generation=1780357017116303",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_label_alias_map.json:generation=1780357017315636",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_model_asset_verification.json:generation=1780357017516659",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_runtime_capability_report.json:generation=1780357017718514",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_strategy_matrix_report.json:generation=1780357017919054",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_text_only_smoke_report.json:generation=1780357018125528",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_freeform_perception_report.json:generation=1780357018320244",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_labels_only_qa_report.json:generation=1780357018514142",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_coarse_region_qa_report.json:generation=1780357018721804",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_safe_zone_reasoning_report.json:generation=1780357018912151",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_decomposed_canonical_report.json:generation=1780357019019982",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_candidate_results.json:generation=1780357019214651",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_runtime_results.json:generation=1780357019318696",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_hallucination_safety_report.json:generation=1780357019514051",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_private_artifact_manifest.json:generation=1780357019716396",
+    "private_sglang_artifact_verified:qwen3-vl-4b-instruct:phase_39c_sg_generated_runtime_recovery_report.json:generation=1780357019613904",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_runtime_plan.json:generation=1780357427316386",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_source_evidence.json:generation=1780357427513430",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_license_evidence.json:generation=1780357427717487",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_runtime_support_evidence.json:generation=1780357427914291",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_sglang_structured_output_evidence.json:generation=1780357428033628",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_candidate_manifest.json:generation=1780357428216035",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_canary_fixture_manifest.json:generation=1780357428418618",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_generated_fixture_manifest.json:generation=1780357428519057",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_label_alias_map.json:generation=1780357428715794",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_model_asset_verification.json:generation=1780357428916682",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_runtime_capability_report.json:generation=1780357429116649",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_strategy_matrix_report.json:generation=1780357429340190",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_text_only_smoke_report.json:generation=1780357429515843",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_freeform_perception_report.json:generation=1780357429717555",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_labels_only_qa_report.json:generation=1780357429812736",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_coarse_region_qa_report.json:generation=1780357430018875",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_safe_zone_reasoning_report.json:generation=1780357430221199",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_decomposed_canonical_report.json:generation=1780357430414973",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_candidate_results.json:generation=1780357430614464",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_runtime_results.json:generation=1780357430817307",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_hallucination_safety_report.json:generation=1780357430913819",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_private_artifact_manifest.json:generation=1780357431218373",
+    "private_sglang_artifact_verified:qwen3-vl-8b-instruct-fp8:phase_39c_sg_generated_runtime_recovery_report.json:generation=1780357431024914"
   ],
   "vlmToolFamilyBetaStatus": "blocked",
-  "nextPhaseDecision": "Do not start Phase 39D; use an evidence-based non-Qwen candidate, alternate GPU/runtime, or fixture/QA threshold follow-up based on the recorded blocker."
+  "nextPhaseDecision": "Do not start Phase 39D; use an evidence-based non-Qwen candidate, alternate GPU/runtime, or fixture/QA threshold follow-up based on the recorded blocker.",
+  "status": "blocked",
+  "imageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9"
 }

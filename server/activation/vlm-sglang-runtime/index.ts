@@ -58,6 +58,20 @@ export interface VlmSglangRuntimeResult {
   readonly vlmToolFamilyBetaStatus: 'blocked' | 'phase-complete but tool-family incomplete'
 }
 
+export interface VlmSglangCloudBuildResult {
+  readonly phase: '39C-SG-BUILD'
+  readonly runId: string
+  readonly status: VlmSglangRuntimeStatus
+  readonly imageRef: string
+  readonly imageDigest?: string
+  readonly buildId?: string
+  readonly buildStatus?: string
+  readonly durationSeconds?: number
+  readonly artifactDir: string
+  readonly blockers: readonly string[]
+  readonly warnings: readonly string[]
+}
+
 const PROJECT_ID = 'reeditpro'
 const REGION = 'us-central1'
 const ENV = 'staging'
@@ -70,6 +84,10 @@ const LOCAL_ROOT = '/tmp/reeditpro-vlm-sglang-runtime'
 const REPORT_DIR = 'docs/activation-phase-39c-sg-sglang-vlm-runtime-reports'
 const MATRIX_ID = 'phase39c-sglang-generated-vlm-v1'
 const SGLANG_PACKAGE_VERSION = '0.4.10.post2'
+const CLOUD_BUILD_FULL_CONFIG = 'cloudbuild/vlm-sglang-runtime-phase39c.yaml'
+const CLOUD_BUILD_OVERLAY_CONFIG = 'cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml'
+const CLOUD_BUILD_OVERLAY_BASE_IMAGE = `${IMAGE_PATH}@sha256:299d8d5b3d463c50a156b436f5d463c00c3bea662b74b82ddee2ab6ecdff015d`
+const PR100_URL = 'https://github.com/yuzastudio6-cyber/Reedkt/pull/100'
 
 const PR66_URL = 'https://github.com/yuzastudio6-cyber/Reedkt/pull/66'
 const PR87_URL = 'https://github.com/yuzastudio6-cyber/Reedkt/pull/87'
@@ -200,7 +218,7 @@ export function getVlmSglangRuntimePlan() {
     },
     execution: executionPolicy(),
     confirmationsRequiredForExecution: [
-      'REEDITPRO_CONFIRM_VLM_SGLANG_APPROVAL',
+      'REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK',
       'REEDITPRO_CONFIRM_VLM_SGLANG_RUNTIME_EXECUTE',
       'REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ',
       'REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD',
@@ -277,6 +295,157 @@ export function getVlmSglangRuntimeCostSummary() {
     beta: 'blocked',
     broadMedia: 'blocked',
   }
+}
+
+export function getVlmSglangRuntimeCloudBuildPlan() {
+  const createdAt = new Date().toISOString()
+  return {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_cloud_build_plan',
+    createdAt,
+    defaultMode: 'non_mutating',
+    sourceEvidence: sourceEvidence(),
+    buildFailureAudit: buildFailureAudit(createdAt),
+    cloudBuild: {
+      projectId: PROJECT_ID,
+      region: REGION,
+      configPath: selectedCloudBuildConfig(),
+      fullConfigPath: CLOUD_BUILD_FULL_CONFIG,
+      overlayConfigPath: CLOUD_BUILD_OVERLAY_CONFIG,
+      mode: selectedCloudBuildMode(),
+      dockerfile: 'docker/prod/vlm-sglang-runtime/Dockerfile',
+      overlayDockerfile: 'docker/prod/vlm-sglang-runtime/Dockerfile.overlay',
+      overlayBaseImage: CLOUD_BUILD_OVERLAY_BASE_IMAGE,
+      context: '.',
+      platform: 'linux/amd64',
+      imagePath: IMAGE_PATH,
+      machineType: 'E2_HIGHCPU_8',
+      timeout: selectedCloudBuildMode() === 'overlay' ? '1800s' : '7200s',
+      noModelFilesBaked: true,
+      noSecretsBaked: true,
+      artifactRegistryOnly: true,
+      overlayPurpose: 'reuse the previous private SGLang image and copy only patched worker files after the full Cloud Build path stalled during publish/finalization',
+    },
+    confirmationsRequiredForExecution: [
+      'REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK',
+      'REEDITPRO_CONFIRM_VLM_SGLANG_CLOUD_BUILD',
+      'REEDITPRO_CONFIRM_VLM_SGLANG_DOCKER_PUSH',
+    ],
+    executionBlockedByDefault: true,
+    betaProductionBlocked: true,
+  }
+}
+
+export async function buildVlmSglangRuntimeBuildContextGuardReport(createdAt = new Date().toISOString()) {
+  const requiredDockerignorePatterns = [
+    '**/node_modules',
+    '**/.git',
+    '**/.venv',
+    '**/__pycache__',
+    '**/.cache',
+    '**/hf-cache',
+    '**/huggingface',
+    '**/*.safetensors',
+    '**/*.bin',
+    '**/*.pt',
+    '**/*.pth',
+    '**/*.onnx',
+    '**/model-weights',
+    '**/generated-vlm-*',
+    '**/activation/phase39*',
+    '**/*.log',
+    '**/.env',
+    '**/.env.*',
+    '**/*secret*',
+    '**/*credential*',
+  ]
+  const dockerignore = await readTextFileOrEmpty('.dockerignore')
+  const dockerfileIgnore = await readTextFileOrEmpty('docker/prod/vlm-sglang-runtime/Dockerfile.dockerignore')
+  const missingRootPatterns = requiredDockerignorePatterns.filter((pattern) => !dockerignore.includes(pattern))
+  const missingDockerfilePatterns = requiredDockerignorePatterns.filter((pattern) => !dockerfileIgnore.includes(pattern))
+  const forbiddenTrackedFiles = await findForbiddenTrackedBuildFiles()
+  const requiredSources = [
+    'docker/prod/vlm-sglang-runtime/Dockerfile',
+    'docker/prod/vlm-sglang-runtime/Dockerfile.overlay',
+    'docker/prod/vlm-sglang-runtime/requirements.sglang.txt',
+    'cloudbuild/vlm-sglang-runtime-phase39c.yaml',
+    'cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml',
+    'server/workers/vlm-sglang-runtime/run-phase39c-sglang-cloud-job.py',
+    'server/workers/vlm-sglang-runtime/run_sglang_generated_fixture.py',
+  ]
+  const requiredSourcePresence = await Promise.all(requiredSources.map(async (filePath) => [filePath, await fileExists(filePath)] as const))
+  const missingRequiredSources = requiredSourcePresence.filter(([, exists]) => !exists).map(([filePath]) => filePath)
+  const blockers = [
+    ...missingRootPatterns.map((pattern) => `root_dockerignore_missing:${pattern}`),
+    ...missingDockerfilePatterns.map((pattern) => `dockerfile_dockerignore_missing:${pattern}`),
+    ...forbiddenTrackedFiles.violations.map((filePath) => `forbidden_tracked_build_context_file:${filePath}`),
+    ...missingRequiredSources.map((filePath) => `required_sglang_build_source_missing:${filePath}`),
+  ]
+  return {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_build_context_guard_report',
+    createdAt,
+    status: blockers.length ? 'blocked' : 'passed',
+    context: '.',
+    dockerfile: 'docker/prod/vlm-sglang-runtime/Dockerfile',
+    overlayDockerfile: 'docker/prod/vlm-sglang-runtime/Dockerfile.overlay',
+    cloudBuildMode: selectedCloudBuildMode(),
+    overlayBaseImage: CLOUD_BUILD_OVERLAY_BASE_IMAGE,
+    rootDockerignorePresent: Boolean(dockerignore),
+    dockerfileDockerignorePresent: Boolean(dockerfileIgnore),
+    requiredDockerignorePatterns,
+    missingRootPatterns,
+    missingDockerfilePatterns,
+    forbiddenTrackedFiles: forbiddenTrackedFiles.violations,
+    requiredSources,
+    missingRequiredSources,
+    blockers,
+  }
+}
+
+export function buildVlmSglangRuntimeCloudBuildStaticReport() {
+  const createdAt = new Date().toISOString()
+  return {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_cloud_build_report',
+    createdAt,
+    status: 'blocked',
+    cloudBuildConfig: selectedCloudBuildConfig(),
+    fullCloudBuildConfig: CLOUD_BUILD_FULL_CONFIG,
+    overlayCloudBuildConfig: CLOUD_BUILD_OVERLAY_CONFIG,
+    cloudBuildMode: selectedCloudBuildMode(),
+    overlayBaseImage: CLOUD_BUILD_OVERLAY_BASE_IMAGE,
+    imagePath: IMAGE_PATH,
+    blockers: ['cloud_build_execution_not_run'],
+    warnings: [],
+    vlmToolFamilyBetaStatus: 'blocked',
+  }
+}
+
+export async function writeVlmSglangRuntimeCloudBuildStaticArtifacts(artifactDir = REPORT_DIR): Promise<void> {
+  const createdAt = new Date().toISOString()
+  await mkdir(artifactDir, { recursive: true })
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_sg_build_unblock_plan.json'), getVlmSglangRuntimeCloudBuildPlan())
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_sg_build_failure_audit.json'), buildFailureAudit(createdAt))
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_sg_build_context_guard_report.json'), await buildVlmSglangRuntimeBuildContextGuardReport(createdAt))
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_sg_cloud_build_plan.json'), getVlmSglangRuntimeCloudBuildPlan())
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_sg_cloud_build_report.json'), buildVlmSglangRuntimeCloudBuildStaticReport())
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_sg_image_verification_report.json'), {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_image_verification_report',
+    createdAt,
+    status: 'blocked',
+    imagePath: IMAGE_PATH,
+    blockers: ['image_digest_unavailable_execution_not_run'],
+  })
+  await writeVlmRuntimeJsonArtifact(path.join(artifactDir, 'phase_39c_sg_cloud_run_job_report.json'), {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_cloud_run_job_report',
+    createdAt,
+    status: 'blocked',
+    cloudRunJob: JOB_NAME,
+    blockers: ['cloud_run_job_not_run'],
+  })
 }
 
 export function buildVlmSglangRuntimeStaticReport() {
@@ -369,6 +538,115 @@ export async function writeVlmSglangRuntimeBlockedExecutionArtifacts(input: {
   })
 }
 
+export async function runVlmSglangRuntimeCloudBuild(input: {
+  execute: boolean
+  keepTemp?: boolean
+  runId?: string
+  artifactDir?: string
+}): Promise<VlmSglangCloudBuildResult> {
+  if (!input.execute) throw new Error('Pass --execute to run guarded Phase 39C-SG-BUILD Cloud Build.')
+  const createdAt = new Date().toISOString()
+  const runId = input.runId ?? `phase39c-sg-build-${createdAt.replace(/[^0-9A-Za-z]/g, '').slice(0, 15)}`
+  const artifactDir = input.artifactDir ?? REPORT_DIR
+  await mkdir(artifactDir, { recursive: true })
+  const imageRef = `${IMAGE_PATH}:${runId.toLowerCase()}`
+  const cloudBuildConfig = selectedCloudBuildConfig()
+  const warnings: string[] = []
+  const guardReport = await buildVlmSglangRuntimeBuildContextGuardReport(createdAt)
+  const envBlockers = validateCloudBuildEnv()
+  const blockers = [...envBlockers, ...guardReport.blockers]
+  if (blockers.length) {
+    return writeCloudBuildResult({
+      runId,
+      createdAt,
+      status: 'blocked',
+      imageRef,
+      artifactDir,
+      blockers,
+      warnings,
+      guardReport,
+    })
+  }
+
+  try {
+    const existingImageDigest = await describeArtifactRegistryImageDigest(imageRef)
+    if (existingImageDigest) {
+      return writeCloudBuildResult({
+        runId,
+        createdAt,
+        status: 'passed',
+        imageRef,
+        imageDigest: existingImageDigest,
+        buildStatus: 'REUSED_EXISTING_IMAGE_AFTER_PREVIOUS_CLOUD_BUILD',
+        artifactDir,
+        blockers: [],
+        warnings: ['cloud_build_reused_existing_artifact_registry_image_for_same_run_id'],
+        guardReport,
+      })
+    }
+  } catch (error) {
+    warnings.push(`existing_image_lookup_before_cloud_build_failed:${summarizeCommandError(error)}`)
+  }
+
+  let buildOutput: string
+  let build: Record<string, unknown>
+  try {
+    buildOutput = await runGcloud([
+      'builds',
+      'submit',
+      '.',
+      '--project',
+      PROJECT_ID,
+      '--config',
+      cloudBuildConfig,
+      '--substitutions',
+      `_IMAGE=${imageRef}`,
+      '--format=json',
+    ], 2 * 60 * 60 * 1000)
+    build = parseGcloudJsonObjectOutput(buildOutput)
+  } catch (error) {
+    return writeCloudBuildResult({
+      runId,
+      createdAt,
+      status: 'blocked',
+      imageRef,
+      artifactDir,
+      blockers: [`cloud_build_failed:${summarizeCommandError(error)}`],
+      warnings,
+      guardReport,
+    })
+  }
+
+  const buildStatus = String(build.status ?? 'UNKNOWN')
+  const buildId = String(build.id ?? '')
+  const durationSeconds = computeBuildDurationSeconds(build)
+  if (buildStatus !== 'SUCCESS') blockers.push(`cloud_build_status_${buildStatus.toLowerCase()}`)
+  let imageDigest = extractCloudBuildImageDigest(build)
+  if (!imageDigest && buildStatus === 'SUCCESS') {
+    try {
+      imageDigest = await describeArtifactRegistryImageDigest(imageRef)
+    } catch (error) {
+      blockers.push(`image_digest_lookup_failed:${summarizeCommandError(error)}`)
+    }
+  }
+  if (!imageDigest && buildStatus === 'SUCCESS') blockers.push('image_digest_unavailable')
+  return writeCloudBuildResult({
+    runId,
+    createdAt,
+    status: blockers.length ? 'blocked' : 'passed',
+    imageRef,
+    imageDigest,
+    buildId: buildId || undefined,
+    buildStatus,
+    durationSeconds,
+    artifactDir,
+    blockers,
+    warnings,
+    guardReport,
+    rawBuildMetadata: safeCloudBuildMetadata(build),
+  })
+}
+
 export async function runVlmSglangRuntimeRecovery(input: {
   execute: boolean
   keepTemp?: boolean
@@ -394,7 +672,7 @@ export async function runVlmSglangRuntimeRecovery(input: {
   let imageRef: string
   let imageDigest: string | undefined
   try {
-    const image = await buildAndPushRuntimeImage(runId)
+    const image = await buildAndPushRuntimeImage(runId, safeArtifactDir)
     imageRef = image.imageRef
     imageDigest = image.imageDigest
     warnings.push(...image.warnings)
@@ -467,10 +745,15 @@ async function attemptSglangRuntimeCandidate(input: {
   const privateQaPrefix = `gs://${QA_BUCKET}/${sglangQaObjectPrefix(runtimeRunId)}/`
   let runtimeReport: Record<string, unknown> | undefined
   try {
-    const runtime = await runSglangRuntimeCloudRunJob({ candidate, runId: runtimeRunId, imageRef, manifest, candidateReportDir })
+    const deployImageRef = imageDigest ? `${IMAGE_PATH}@${imageDigest}` : imageRef
+    const runtime = await runSglangRuntimeCloudRunJob({ candidate, runId: runtimeRunId, imageRef: deployImageRef, manifest, candidateReportDir })
     runtimeReport = runtime.runtimeReport
     warnings.push(...runtime.warnings)
     blockers.push(...runtime.blockers)
+    const reportBlockers = Array.isArray(runtimeReport?.blockers) ? runtimeReport.blockers : []
+    for (const reportBlocker of reportBlockers) {
+      if (typeof reportBlocker === 'string') blockers.push(`${candidate.slug}:${reportBlocker}`)
+    }
   } catch (error) {
     blockers.push(`sglang_l4_runtime_failed:${summarizeCommandError(error)}`)
   }
@@ -525,7 +808,7 @@ async function runSglangRuntimeCloudRunJob(input: {
     REEDITPRO_PHASE39C_QA_PREFIX: artifactPrefix,
     REEDITPRO_VLM_STAGING_CLOUD_RUN_JOB_NAME: JOB_NAME,
     REEDITPRO_VLM_LOCAL_TEMP_ROOT: '/tmp/reeditpro-vlm-sglang-runtime',
-    REEDITPRO_CONFIRM_VLM_SGLANG_APPROVAL: 'true',
+    REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK: 'true',
     REEDITPRO_CONFIRM_VLM_SGLANG_RUNTIME_EXECUTE: 'true',
     REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ: 'true',
     REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD: 'true',
@@ -627,6 +910,8 @@ async function writeCombinedSglangRuntimeReport(input: {
     reportId: 'phase_39c_sg_generated_runtime_recovery_report',
     runId: input.runId,
     createdAt: input.createdAt,
+    status: input.status,
+    imageDigest: input.imageDigest,
     sourceEvidence: sourceEvidence(),
     sglangEvidence: sglangEvidence(),
     strategyMatrix: strategyMatrixReport(input.createdAt),
@@ -726,6 +1011,33 @@ async function writeCombinedSglangRuntimeReport(input: {
       qa: candidate.qa,
       blockers: candidate.blockers,
     })),
+  })
+  await writeVlmRuntimeJsonArtifact(path.join(input.localArtifactDir, 'phase_39c_sg_cloud_run_job_report.json'), {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_cloud_run_job_report',
+    runId: input.runId,
+    createdAt: input.createdAt,
+    status: input.status,
+    cloudRunJob: JOB_NAME,
+    region: REGION,
+    serviceAccount: GPU_WORKER_SA,
+    imagePath: IMAGE_PATH,
+    imageDigest: input.imageDigest,
+    gpu: 'nvidia-l4',
+    gpuCount: 1,
+    cpu: 8,
+    memory: '32Gi',
+    taskCount: 1,
+    parallelism: 1,
+    generatedSyntheticFixturesOnly: true,
+    productionTraffic: false,
+    publicServiceEndpoint: false,
+    realMedia: 'blocked',
+    providerCalls: 'blocked',
+    candidateCount: input.attempts.length,
+    selectedCandidate: fullReport.selectedCandidate ?? null,
+    blockers: fullReport.blockers,
+    warnings: fullReport.warnings,
   })
   await writeVlmRuntimeJsonArtifact(path.join(input.localArtifactDir, 'phase_39c_sg_private_artifact_manifest.json'), {
     phase: '39C-SG',
@@ -827,9 +1139,18 @@ function validateChecksumManifest(candidate: VlmL4Candidate, manifest: ChecksumM
   return blockers
 }
 
-async function buildAndPushRuntimeImage(runId: string): Promise<{ imageRef: string; imageDigest?: string; warnings: string[] }> {
+async function buildAndPushRuntimeImage(runId: string, artifactDir: string): Promise<{ imageRef: string; imageDigest?: string; warnings: string[] }> {
   if (process.env.REEDITPRO_CONFIRM_VLM_SGLANG_DOCKER_BUILD !== 'true') throw new Error('sglang_docker_build_confirmation_missing')
   if (process.env.REEDITPRO_CONFIRM_VLM_SGLANG_DOCKER_PUSH !== 'true') throw new Error('sglang_docker_push_confirmation_missing')
+  if (process.env.REEDITPRO_CONFIRM_VLM_SGLANG_CLOUD_BUILD === 'true') {
+    const cloudBuild = await runVlmSglangRuntimeCloudBuild({ execute: true, runId, artifactDir })
+    if (cloudBuild.status !== 'passed') throw new Error(`sglang_cloud_build_failed:${cloudBuild.blockers.join(';')}`)
+    return {
+      imageRef: cloudBuild.imageRef,
+      imageDigest: cloudBuild.imageDigest,
+      warnings: [`sglang_runtime_image_built_by_cloud_build:${cloudBuild.imageRef}`, ...cloudBuild.warnings],
+    }
+  }
   const imageRef = `${IMAGE_PATH}:${runId.toLowerCase()}`
   await runCommand('docker', [
     'buildx',
@@ -858,12 +1179,107 @@ async function buildAndPushRuntimeImage(runId: string): Promise<{ imageRef: stri
   return { imageRef, imageDigest, warnings }
 }
 
+async function writeCloudBuildResult(input: {
+  runId: string
+  createdAt: string
+  status: VlmSglangRuntimeStatus
+  imageRef: string
+  imageDigest?: string
+  buildId?: string
+  buildStatus?: string
+  durationSeconds?: number
+  artifactDir: string
+  blockers: readonly string[]
+  warnings: readonly string[]
+  guardReport: Record<string, unknown>
+  rawBuildMetadata?: Record<string, unknown>
+}): Promise<VlmSglangCloudBuildResult> {
+  const cloudBuildReport = {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_cloud_build_report',
+    runId: input.runId,
+    createdAt: input.createdAt,
+    status: input.status,
+    buildId: input.buildId,
+    buildStatus: input.buildStatus,
+    durationSeconds: input.durationSeconds,
+    configPath: selectedCloudBuildConfig(),
+    fullConfigPath: CLOUD_BUILD_FULL_CONFIG,
+    overlayConfigPath: CLOUD_BUILD_OVERLAY_CONFIG,
+    cloudBuildMode: selectedCloudBuildMode(),
+    overlayBaseImage: CLOUD_BUILD_OVERLAY_BASE_IMAGE,
+    imageRef: input.imageRef,
+    imageDigest: input.imageDigest,
+    artifactRegistryPath: IMAGE_PATH,
+    sourcePr100: PR100_URL,
+    rawBuildMetadata: input.rawBuildMetadata,
+    blockers: Array.from(new Set(input.blockers)),
+    warnings: Array.from(new Set(input.warnings)),
+    vlmToolFamilyBetaStatus: 'blocked',
+  }
+  await mkdir(input.artifactDir, { recursive: true })
+  await writeVlmRuntimeJsonArtifact(path.join(input.artifactDir, 'phase_39c_sg_build_unblock_plan.json'), getVlmSglangRuntimeCloudBuildPlan())
+  await writeVlmRuntimeJsonArtifact(path.join(input.artifactDir, 'phase_39c_sg_build_failure_audit.json'), buildFailureAudit(input.createdAt))
+  await writeVlmRuntimeJsonArtifact(path.join(input.artifactDir, 'phase_39c_sg_build_context_guard_report.json'), input.guardReport)
+  await writeVlmRuntimeJsonArtifact(path.join(input.artifactDir, 'phase_39c_sg_cloud_build_plan.json'), getVlmSglangRuntimeCloudBuildPlan())
+  await writeVlmRuntimeJsonArtifact(path.join(input.artifactDir, 'phase_39c_sg_cloud_build_report.json'), cloudBuildReport)
+  await writeVlmRuntimeJsonArtifact(path.join(input.artifactDir, 'phase_39c_sg_image_verification_report.json'), {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_image_verification_report',
+    runId: input.runId,
+    createdAt: input.createdAt,
+    status: input.imageDigest ? 'passed' : 'blocked',
+    imageRef: input.imageRef,
+    imageDigest: input.imageDigest,
+    artifactRegistryPath: IMAGE_PATH,
+    blockers: input.imageDigest ? [] : ['image_digest_unavailable'],
+  })
+  await writeVlmRuntimeJsonArtifact(path.join(input.artifactDir, 'phase_39c_sg_cloud_run_job_report.json'), {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_cloud_run_job_report',
+    runId: input.runId,
+    createdAt: input.createdAt,
+    status: 'not_run_by_cloud_build_step',
+    cloudRunJob: JOB_NAME,
+    imageRef: input.imageRef,
+    imageDigest: input.imageDigest,
+    note: 'Cloud Run execution is recorded by phase_39c_sg_runtime_results.json after the runtime command runs.',
+  })
+  return {
+    phase: '39C-SG-BUILD',
+    runId: input.runId,
+    status: input.status,
+    imageRef: input.imageRef,
+    imageDigest: input.imageDigest,
+    buildId: input.buildId,
+    buildStatus: input.buildStatus,
+    durationSeconds: input.durationSeconds,
+    artifactDir: input.artifactDir,
+    blockers: Array.from(new Set(input.blockers)),
+    warnings: Array.from(new Set(input.warnings)),
+  }
+}
+
+function validateCloudBuildEnv(): string[] {
+  const required: Record<string, string> = {
+    GCP_PROJECT_ID: PROJECT_ID,
+    GCP_REGION: REGION,
+    REEDITPRO_ENV: ENV,
+    REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK: 'true',
+    REEDITPRO_CONFIRM_VLM_SGLANG_CLOUD_BUILD: 'true',
+    REEDITPRO_CONFIRM_VLM_SGLANG_DOCKER_PUSH: 'true',
+  }
+  return Object.entries(required)
+    .filter(([key, value]) => process.env[key] !== value)
+    .map(([key]) => `env_guard_mismatch:${key}`)
+}
+
 function validateExecutionEnv(): string[] {
   const required: Record<string, string> = {
     GCP_PROJECT_ID: PROJECT_ID,
     GCP_REGION: REGION,
     REEDITPRO_ENV: ENV,
-    REEDITPRO_CONFIRM_VLM_SGLANG_APPROVAL: 'true',
+    REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK: 'true',
     REEDITPRO_CONFIRM_VLM_SGLANG_RUNTIME_EXECUTE: 'true',
     REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ: 'true',
     REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD: 'true',
@@ -871,6 +1287,9 @@ function validateExecutionEnv(): string[] {
     REEDITPRO_CONFIRM_VLM_SGLANG_DOCKER_PUSH: 'true',
     REEDITPRO_CONFIRM_VLM_SGLANG_STAGING_CLOUD_RUN_JOB: 'true',
     REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE: 'true',
+  }
+  if (process.env.REEDITPRO_CONFIRM_VLM_SGLANG_CLOUD_BUILD === 'true') {
+    required.REEDITPRO_CONFIRM_VLM_SGLANG_BUILD_UNBLOCK = 'true'
   }
   const blockers = Object.entries(required)
     .filter(([key, value]) => process.env[key] !== value)
@@ -899,6 +1318,7 @@ function sourceEvidence() {
     phase39bq39cqCandidates: { pr: PR87_URL, preserved: true, summary: 'Official Qwen FP8 8B, BF16 4B, and BF16 2B candidates remain the only allowed staged private assets.' },
     phase39cqStructuredOutput: { pr: PR90_URL, preserved: true, summary: 'Structured-output enforcement reached syntax/debug paths but did not pass required generated fixture QA.' },
     phase39cqSo3Perception: { pr: PR97_URL, preserved: true, summary: 'SO3 proved the current blocker is semantic perception/localization on simple generated canaries under vLLM.' },
+    phase39cSglangBuildxBlocker: { pr: PR100_URL, preserved: true, summary: 'SGLang source/license/runtime scaffolding exists, but local Docker buildx hung before producing an image digest or Cloud Run execution.' },
   }
 }
 
@@ -1168,6 +1588,144 @@ function blockedScopes(): string[] {
   ]
 }
 
+function buildFailureAudit(createdAt = new Date().toISOString()) {
+  return {
+    phase: '39C-SG-BUILD',
+    reportId: 'phase_39c_sg_build_failure_audit',
+    createdAt,
+    sourcePr: PR100_URL,
+    localBuildxCommand: 'docker buildx build --platform linux/amd64 --push --provenance=false --sbom=false -f docker/prod/vlm-sglang-runtime/Dockerfile -t us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-20260601t201814 .',
+    observedHang: {
+      approximateDurationMinutes: 14,
+      producedImageDigest: false,
+      cloudRunExecuted: false,
+      privateModelCopyStarted: false,
+      blocker: 'local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution',
+    },
+    likelyRiskAreas: [
+      'large Python/CUDA dependency install during image build',
+      'local Docker Desktop amd64 emulation/buildx reliability',
+      'large existing Docker build cache',
+    ],
+    cloudBuildFallbackRecommended: true,
+    cloudBuildBuildUnblockFollowUp: {
+      fullCloudBuildAttempt: {
+        buildId: '7edfcbfd-a406-40c8-a421-d69e0f404b67',
+        status: 'cancelled_after_remote_publish_stall',
+        summary: 'Remote Cloud Build progressed through dependency installation and layer push output, but the Artifact Registry tag/digest never became visible and the build stayed WORKING.',
+      },
+      overlayCloudBuildFallback: {
+        enabledByDefault: true,
+        configPath: CLOUD_BUILD_OVERLAY_CONFIG,
+        baseImage: CLOUD_BUILD_OVERLAY_BASE_IMAGE,
+        purpose: 'reuse the prior private SGLang image that already contains SGLang/libnuma and copy only patched worker runtime files',
+      },
+    },
+  }
+}
+
+async function readTextFileOrEmpty(filePath: string): Promise<string> {
+  try {
+    return await readFile(filePath, 'utf8')
+  } catch {
+    return ''
+  }
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await readFile(filePath)
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function findForbiddenTrackedBuildFiles(): Promise<{ allTrackedFiles: string[]; violations: string[] }> {
+  const output = await runCommand('git', ['ls-files'], 60 * 1000)
+  const allTrackedFiles = output.split('\n').map((line) => line.trim()).filter(Boolean)
+  const forbiddenPayloadPatterns = [
+    /\.safetensors$/i,
+    /\.bin$/i,
+    /\.pt$/i,
+    /\.pth$/i,
+    /\.onnx$/i,
+    /(^|\/)hf-cache(\/|$)/i,
+    /(^|\/)huggingface(\/|$)/i,
+    /\.mp4$/i,
+    /\.mov$/i,
+    /\.mkv$/i,
+    /\.wav$/i,
+    /\.mp3$/i,
+  ]
+  const forbiddenEnvPayload = /(^|\/)\.env($|\.)/i
+  const allowedEnvExamples = new Set([
+    '.env.example',
+    '.env.gcp.production.example',
+    '.env.gcp.staging.example',
+  ])
+  return {
+    allTrackedFiles,
+    violations: allTrackedFiles.filter((filePath) => {
+      if (allowedEnvExamples.has(filePath)) return false
+      if (forbiddenEnvPayload.test(filePath)) return true
+      return forbiddenPayloadPatterns.some((pattern) => pattern.test(filePath))
+    }),
+  }
+}
+
+function computeBuildDurationSeconds(build: Record<string, unknown>): number | undefined {
+  const start = typeof build.startTime === 'string' ? Date.parse(build.startTime) : NaN
+  const finish = typeof build.finishTime === 'string' ? Date.parse(build.finishTime) : NaN
+  if (Number.isFinite(start) && Number.isFinite(finish) && finish >= start) return Math.round((finish - start) / 1000)
+  return undefined
+}
+
+function selectedCloudBuildMode(): 'overlay' | 'full' {
+  return process.env.REEDITPRO_VLM_SGLANG_CLOUD_BUILD_MODE === 'full' ? 'full' : 'overlay'
+}
+
+function selectedCloudBuildConfig(): string {
+  return selectedCloudBuildMode() === 'full' ? CLOUD_BUILD_FULL_CONFIG : CLOUD_BUILD_OVERLAY_CONFIG
+}
+
+function parseGcloudJsonObjectOutput(output: string): Record<string, unknown> {
+  const jsonStart = output.indexOf('{')
+  const jsonEnd = output.lastIndexOf('}')
+  if (jsonStart < 0 || jsonEnd < jsonStart) throw new Error(`gcloud did not return a JSON object: ${output.slice(0, 160)}`)
+  return JSON.parse(output.slice(jsonStart, jsonEnd + 1)) as Record<string, unknown>
+}
+
+function extractCloudBuildImageDigest(build: Record<string, unknown>): string | undefined {
+  const results = build.results as { images?: Array<{ digest?: unknown; name?: unknown }> } | undefined
+  const digest = results?.images?.find((image) => String(image.name ?? '').startsWith(IMAGE_PATH))?.digest
+  return typeof digest === 'string' && digest.startsWith('sha256:') ? digest : undefined
+}
+
+async function describeArtifactRegistryImageDigest(imageRef: string): Promise<string | undefined> {
+  const metadata = parseGcloudJson(await runGcloud(['artifacts', 'docker', 'images', 'describe', imageRef, '--format=json'])) as Record<string, unknown>
+  const digest = typeof metadata.image_summary === 'object' && metadata.image_summary
+    ? (metadata.image_summary as { digest?: unknown }).digest
+    : metadata.digest
+  return typeof digest === 'string' && digest.startsWith('sha256:') ? digest : undefined
+}
+
+function safeCloudBuildMetadata(build: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: build.id,
+    name: build.name,
+    status: build.status,
+    createTime: build.createTime,
+    startTime: build.startTime,
+    finishTime: build.finishTime,
+    images: build.images,
+    logUrl: build.logUrl,
+    serviceAccount: build.serviceAccount,
+    options: build.options,
+    results: build.results,
+  }
+}
+
 async function runCommand(command: string, args: string[], timeout: number): Promise<string> {
   const { stdout } = await execFileAsync(command, args, { timeout, maxBuffer: 1024 * 1024 * 100 })
   return stdout
@@ -1183,7 +1741,9 @@ function sanitizeBlocker(value: string): string {
 }
 
 function serializeEnvVars(values: Record<string, string>): string {
+  const delimiter = '|'
   return Object.entries(values)
-    .map(([key, value]) => `${key}=${value.replace(/,/g, '\\,')}`)
-    .join(',')
+    .map(([key, value]) => `${key}=${value.replaceAll(delimiter, `\\${delimiter}`)}`)
+    .join(delimiter)
+    .replace(/^/, `^${delimiter}^`)
 }

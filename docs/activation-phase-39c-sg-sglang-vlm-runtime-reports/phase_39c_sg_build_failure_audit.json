@@ -1,0 +1,33 @@
+{
+  "phase": "39C-SG-BUILD",
+  "reportId": "phase_39c_sg_build_failure_audit",
+  "createdAt": "2026-06-01T23:23:37.173Z",
+  "sourcePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+  "localBuildxCommand": "docker buildx build --platform linux/amd64 --push --provenance=false --sbom=false -f docker/prod/vlm-sglang-runtime/Dockerfile -t us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang:phase39c-sg-20260601t201814 .",
+  "observedHang": {
+    "approximateDurationMinutes": 14,
+    "producedImageDigest": false,
+    "cloudRunExecuted": false,
+    "privateModelCopyStarted": false,
+    "blocker": "local_docker_buildx_hung_after_14m_idle_no_image_digest_no_cloud_run_execution"
+  },
+  "likelyRiskAreas": [
+    "large Python/CUDA dependency install during image build",
+    "local Docker Desktop amd64 emulation/buildx reliability",
+    "large existing Docker build cache"
+  ],
+  "cloudBuildFallbackRecommended": true,
+  "cloudBuildBuildUnblockFollowUp": {
+    "fullCloudBuildAttempt": {
+      "buildId": "7edfcbfd-a406-40c8-a421-d69e0f404b67",
+      "status": "cancelled_after_remote_publish_stall",
+      "summary": "Remote Cloud Build progressed through dependency installation and layer push output, but the Artifact Registry tag/digest never became visible and the build stayed WORKING."
+    },
+    "overlayCloudBuildFallback": {
+      "enabledByDefault": true,
+      "configPath": "cloudbuild/vlm-sglang-runtime-phase39c-overlay.yaml",
+      "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:299d8d5b3d463c50a156b436f5d463c00c3bea662b74b82ddee2ab6ecdff015d",
+      "purpose": "reuse the prior private SGLang image that already contains SGLang/libnuma and copy only patched worker runtime files"
+    }
+  }
+}

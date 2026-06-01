@@ -1,0 +1,39 @@
+{
+  "blockers": [
+    "sglang_runtime_failed:ImportError:/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy"
+  ],
+  "createdAt": "2026-06-01T23:29:52.692726Z",
+  "localModelPathUsed": true,
+  "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+  "modelIdRuntimePathBlocked": true,
+  "nextPhaseDecision": "Phase 39D remains blocked; use evidence-based non-Qwen/runtime/GPU/fixture follow-up.",
+  "ok": false,
+  "phase": "39C-SG",
+  "privateArtifactStatus": "uploaded",
+  "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+  "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct/",
+  "qa": {
+    "canariesPassed": false,
+    "canaryCoarseRegionAccuracy": 0,
+    "canaryLabelRecall": 0,
+    "fixtureCoarseRegionAccuracy": 0,
+    "fixtureLabelRecall": 0,
+    "generatedFixturesPassed": false
+  },
+  "reportId": "phase_39c_sg_generated_runtime_recovery_report",
+  "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+  "runId": "phase39c-sg-build-20260601T232400-overlay-qwen3-vl-2b-instruct",
+  "runtime": "sglang",
+  "runtimeAutoDownloadBlocked": true,
+  "runtimeStatus": "blocked",
+  "runtimeVersion": null,
+  "selectedCandidate": null,
+  "sourcePr66": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+  "sourcePr87": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+  "sourcePr90": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+  "sourcePr97": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+  "vlmToolFamilyBetaStatus": "blocked",
+  "warnings": [
+    "phase39c_sg_worker_stderr:/opt/conda/lib/python3.11/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.\n  import pynvml  # type: ignore[import]\n/opt/conda/lib/python3.11/site-packages/transformers/utils/hub.py:111: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.\n  warnings.warn(\nTraceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/run_sglang_generated_fixture.py\", line 570, in main\n    summary = run_matrix(Path(args.model_dir), output_dir, fixture_dir)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/server/workers/vlm-sglang-runtime/run_sglang_generated_fixture.py\", line 447, in run_matrix\n    engine, processor, engine_warnings = create_engine(model_dir)\n                                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/server/workers/vlm-sglang-runtime/run_sglang_generated_fixture.py\", line 244, in create_engine\n    return Engine(**engine_kwargs), processor, warnings\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/api.py\", line 44, in Engine\n    from sglang.srt.entrypoints.engine import Engine\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/entrypoints/engine.py\", line 41, in <module>\n    from sglang.srt.managers.data_parallel_controller import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/data_parallel_controller.py\", line 32, in <module>\n    from sglang.srt.managers.io_struct import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/io_struct.py\", line 26, in <module>\n    from sglang.srt.managers.schedule_batch import BaseFinishReason\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/schedule_batch.py\", line 50, in <module>\n    from sglang.srt.disaggregation.decode_schedule_batch_mixin import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/disaggregation/decode_schedule_batch_mixin.py\", line 10, in <module>\n    from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode, ForwardMode\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/model_executor/forward_batch_info.py\", line 47, in <module>\n    from sglang.srt.layers.rotary_embedding import MRotaryEmbedding\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 13, in <module>\n    from sgl_kernel import common_ops\nImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: cuGreenCtxDestroy\n"
+  ]
+}

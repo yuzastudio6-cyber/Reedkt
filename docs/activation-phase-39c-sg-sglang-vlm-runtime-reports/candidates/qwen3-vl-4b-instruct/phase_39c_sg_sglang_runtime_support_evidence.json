@@ -1,0 +1,10 @@
+{
+  "createdAt": "2026-06-01T23:33:38.704196Z",
+  "l4RuntimeRisk": "requires_this_phase_runtime_evidence",
+  "localModelPathOnly": true,
+  "phase": "39C-SG",
+  "qwenSglangDeploymentEvidenceUrl": "https://www.mintlify.com/QwenLM/Qwen3-VL/deployment/sglang",
+  "reportId": "phase_39c_sg_sglang_runtime_support_evidence",
+  "runtimeAutoDownloadAllowed": false,
+  "sglangOpenAiCompatibleApiEvidenceUrl": "https://docs.sglang.ai/docs/start/quick_start/openai_api_completions"
+}

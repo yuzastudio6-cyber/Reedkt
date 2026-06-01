@@ -187,21 +187,25 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 
 ## 13. Tool Readiness And Worker Runtime Checks
 
-- Purpose: verify approved worker environments can report tool availability honestly.
-- Implements: readiness checks for required tools, optional tool reporting, Docker/local worker readiness summaries, and production blocker output.
-- Must not implement: media transforms, browser automation against user targets, model downloads, optional tool installs, provider calls, or rendering.
-- Main files/tables/services: `tool_runtime_checks`, worker readiness routes, `docs/e2e-readiness/RP-E2E-READY-01-worker-tool-readiness.md`, Docker worker readiness image.
-- Acceptance criteria: required and optional tools are clearly marked available/unavailable, strict mode blocks when required tools are absent, checks run safe version/import commands only.
+- Purpose: classify tool readiness and worker runtime requirements before any future tool activation.
+- Deliverables after Prompt 13: `docs/tool-readiness-worker-runtime-foundation.md`, `docs/tool-readiness-policy.md`, `docs/tool-readiness-api.md`, `docs/tool-readiness-diagnostics.md`, `docs/prompt-13-tool-readiness-worker-runtime-checks.md`, `docs/prompt-13-validation-results.md`, `database/test-sql/015_tool_readiness_worker_runtime_rls_smoke_tests.draft.sql`, `scripts/validation/tool-readiness-worker-runtime-diagnostics.mjs`, `server/foundation/tool-readiness/`, read-only tool readiness routes, API metadata, CLIs, and smoke coverage.
+- Implementation status after Prompt 13: partially implemented / read-only readiness-planning diagnostics only. Real tool execution remains blocked.
+- Implements: static readiness states, worker runtime requirement metadata, Track A/Track B tool registry coverage, VLM/Demucs blockers, provider-disabled checks, frontend/worker boundary diagnostics, read-only `/v1/tool-readiness` routes, and draft RLS expectations.
+- Must not implement: tool package installation, real readiness probes, media transforms, browser automation, model downloads, tool runtime execution, job creation, worker claim/execution, provider calls, rendering/export, storage transfer, signed URL creation, SQL execution, deployment, Stripe, or production/beta unlocks.
+- Main files/tables/services: future `tool_readiness_records`, `tool_runtime_requirements`, `worker_runtime_status`, `tool_call_intents`, `tool_call_executions`, `server/foundation/tool-readiness/`, and `server/routes/tool-readiness-routes.ts`.
+- What remains blocked: canonical readiness table/RLS application, worker runtime status persistence, tool package/license/security approval, worker isolation, actual tool execution, local/staging RLS validation, providers, rendering/export, jobs/workers, and deployment.
+- Acceptance criteria: routes are read-only, every tool has an explicit state and blocked reason when blocked, all production/beta/broad-media flags are false, no tool is runtime-enabled, diagnostics pass, draft SQL/RLS test exists, and no blocked domain capability is enabled.
+- Next prompt recommendation: Prompt 14 - Worker Claim And Execution Contract Hardening.
 - GitHub deliverable: branch, commit, push, PR with readiness logs and tool execution boundary statement.
 
-## 14. Provider Gateway Foundation
+## 14. Worker Claim And Execution Contract Hardening
 
-- Purpose: create a backend-only gateway for future provider attempts without exposing secrets or bypassing gates.
-- Implements: provider request attempts, sanitized webhook/checkback records, Secret Manager reference handling, disabled real clients, provider mode flags, retry/refund hooks, and policy validation.
-- Must not implement: live provider calls unless a later prompt explicitly enables one provider behind all gates; no frontend provider calls ever.
-- Main files/tables/services: `provider_request_attempts`, `provider_webhook_events`, generation request tables, Secret Manager references, provider gateway service.
-- Acceptance criteria: provider secrets never enter frontend/database/logs, all attempts require approved snapshot and credit reservation, Basic/Pro no-Veo and Premium fallback-only Veo are enforced.
-- GitHub deliverable: branch, commit, push, PR with provider-disabled tests and exact real-call status.
+- Purpose: harden the future worker claim/execution contract before any tool runtime can move beyond readiness reporting.
+- Implements: service-role worker claim constraints, approved snapshot requirements, idempotency, lease/heartbeat contract verification, worker execution blockers, audit event shape, and no-op/fail-closed execution paths.
+- Must not implement: real worker execution, tool runtime execution, provider calls, rendering/export, media processing, storage transfer, Cloud Run dispatch, deployment, SQL execution, or production/beta unlocks.
+- Main files/tables/services: `worker_job_claims`, `worker_leases`, `worker_runtime_status`, `tool_call_intents`, `tool_call_executions`, approved snapshots, credit reservations, and job/worker route contracts.
+- Acceptance criteria: worker claims remain backend-only, service-role-only, idempotent, approved-snapshot-bound, and fail-closed until a later runtime activation phase explicitly enables execution.
+- GitHub deliverable: branch, commit, push, PR with worker execution contract hardening and explicit no-runtime-execution status.
 
 ## 15. Compliance/License/Dependency/Security Review Foundation
 

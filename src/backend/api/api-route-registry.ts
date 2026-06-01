@@ -18,6 +18,7 @@ import { STORAGE_API_ROUTES } from './routes/storage-api-routes'
 import { STORYTIMING_API_ROUTES } from './routes/storytiming-api-routes'
 import { STRIPE_API_ROUTES } from './routes/stripe-api-routes'
 import { TOOL_CALL_API_ROUTES } from './routes/tool-call-api-routes'
+import { TOOL_READINESS_API_ROUTES } from './routes/tool-readiness-api-routes'
 import { WORKER_API_ROUTES } from './routes/worker-api-routes'
 
 export type ApiRouteProductionReadiness = 'implemented' | 'mock_only' | 'backend_required' | 'blocked' | 'future'
@@ -58,6 +59,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...JOB_API_ROUTES,
   ...WORKER_API_ROUTES,
   ...TOOL_CALL_API_ROUTES,
+  ...TOOL_READINESS_API_ROUTES,
   ...QA_REVISION_API_ROUTES,
   ...GENERATION_API_ROUTES,
   ...RENDER_API_ROUTES,

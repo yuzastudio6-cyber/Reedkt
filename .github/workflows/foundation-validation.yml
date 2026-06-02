@@ -48,3 +48,6 @@ jobs:
 
       - name: Run foundation validation with full build
         run: npm run foundation:validate:with-build
+
+      - name: Run server build
+        run: npm run build:server

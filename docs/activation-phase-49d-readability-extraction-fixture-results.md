@@ -1,6 +1,6 @@
 # Phase 49D Readability Generated Extraction Fixture Results
 
-Status: blocked.
+Status: completed.
 
 Branch: `codex/rp-activation-49d-readability-generated-extraction-fixture`
 
@@ -16,43 +16,50 @@ Phase 49D validates Mozilla Readability only against a generated local/static ar
 
 ## Execution
 
-Run ID: `phase49d-20260602T132955`.
+Run ID: `phase49d-20260602T150908`.
 
-Local article fixture: generated in a temp non-repo directory, but not uploaded because GCP preflight failed before runtime extraction/upload.
+Local article fixture: generated in a temp non-repo directory and uploaded privately under the Phase 49D generated-assets prefix.
 
-Readability extraction: not run. The runner failed closed before Readability extraction because GCP project/bucket preflight could not authenticate non-interactively.
+Readability extraction: completed with Mozilla Readability running through jsdom against the generated local article fixture only.
 
-Sanitization and normalization: not run because extraction did not start.
+Sanitization and normalization: completed with the bounded jsdom DOM sanitizer and normalized display-safe extraction record.
 
 ## Artifacts
 
-No private Phase 49D GCS artifacts were uploaded in this blocked run.
+Private Phase 49D artifacts were uploaded:
 
-Expected artifacts remain blocked until GCP authentication is restored:
+- Approved extraction plan snapshot: `gs://reeditpro-staging-reeditpro-generated-assets/activation-web-search/phase49d/phase49d-20260602T150908/plan/approved-extraction-plan-snapshot.json`
+- Generated local article HTML: `gs://reeditpro-staging-reeditpro-generated-assets/activation-web-search/phase49d/phase49d-20260602T150908/fixture/generated-local-article.html`
+- Raw Readability extraction JSON: `gs://reeditpro-staging-reeditpro-generated-assets/activation-web-search/phase49d/phase49d-20260602T150908/extraction/extracted-article-raw.json`
+- Sanitized extraction JSON: `gs://reeditpro-staging-reeditpro-generated-assets/activation-web-search/phase49d/phase49d-20260602T150908/extraction/extracted-article-sanitized.json`
+- Extracted article text: `gs://reeditpro-staging-reeditpro-generated-assets/activation-web-search/phase49d/phase49d-20260602T150908/extraction/extracted-article-text.txt`
+- Extraction metadata JSON: `gs://reeditpro-staging-reeditpro-generated-assets/activation-web-search/phase49d/phase49d-20260602T150908/extraction/extraction-metadata.json`
+- Extraction artifact manifest: `gs://reeditpro-staging-reeditpro-generated-assets/activation-web-search/phase49d/phase49d-20260602T150908/manifest/extraction-artifact-manifest.json`
+- QA JSON: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-web-search/phase49d/phase49d-20260602T150908/qa/readability-extraction-qa.json`
+- Phase 49D report: `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-web-search/phase49d/phase49d-20260602T150908/reports/phase49d-report.json`
 
-- Approved extraction plan snapshot.
-- Generated local article HTML.
-- Raw Readability extraction JSON.
-- Sanitized extraction JSON.
-- Extracted article text.
-- Extraction metadata JSON.
-- Extraction artifact manifest.
-- QA JSON.
-- Phase 49D report.
+IAM changes: not required. The active account uploaded generated/local Readability fixture artifacts using existing private GCS permissions.
 
 ## QA
 
-Blocked before extraction. The smoke path proves the local generated fixture, Readability extraction, sanitizer, normalizer, command plan, and package scripts locally, but execution QA cannot pass until private GCS preflight and upload are available.
+Passed for the generated/local fixture scope.
 
-Blockers:
+Mandatory gates passed:
 
-- Active gcloud account `aiediting@reeditpro.com` requires non-interactive reauthentication for `gcloud projects describe reeditpro`.
-- Alternate account `yuzastudio6@gmail.com` is authenticated but lacks project/storage permissions for `reeditpro`.
-- No Readability extraction, sanitization, normalization, artifact manifest, QA upload, or report upload occurred.
+- `phase49c_evidence`
+- `local_article_fixture_integrity`
+- `readability_extraction`
+- `sanitization_integrity`
+- `normalization_integrity`
+- `artifact_manifest`
+- `artifact_privacy`
+- `blocked_features`
+
+Blockers: none.
 
 ## Phase49E Readiness
 
-Blocked. Phase 49E remains unavailable until Phase 49D completes local Readability extraction, sanitization, normalization, private artifact upload, and QA.
+Ready only for controlled private web search/capture E2E planning with explicit private endpoint policy. This is not approval for live broad search, public scraping, paid providers, production, external beta, or broad media.
 
 ## Blocked
 

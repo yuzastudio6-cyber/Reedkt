@@ -2,6 +2,8 @@
 
 Prompt 20C creates a manual local Supabase environment setup package and improves local preflight/runner blocker messaging. It does not run SQL, start Supabase, reset Supabase, apply migrations, touch staging/remote/production Supabase, deploy, create records, or unlock beta.
 
+PR: [PR #121](https://github.com/yuzastudio6-cyber/Reedkt/pull/121)
+
 ## Files Inspected
 
 - Prompt 20 and Prompt 20A local Supabase/RLS validation docs.
@@ -122,7 +124,7 @@ This is the same local Rolldown native-binding/code-signature blocker recorded i
 
 ## CI Status
 
-Pending until PR creation.
+Pending for PR #121 after the tracker follow-up push.
 
 ## Beta Readiness Score Update
 

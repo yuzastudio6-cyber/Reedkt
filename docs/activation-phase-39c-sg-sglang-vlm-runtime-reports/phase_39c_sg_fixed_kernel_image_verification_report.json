@@ -1,9 +1,44 @@
 {
   "phase": "39C-SG-FIXED",
   "reportId": "phase_39c_sg_fixed_kernel_image_verification_report",
-  "runId": "phase39c-sg-fixed-20260602T132030",
-  "createdAt": "2026-06-02T13:23:33.690Z",
-  "status": "blocked",
-  "images": [],
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:16:12.309Z",
+  "status": "passed",
+  "images": [
+    {
+      "profileId": "f0-pr107-baseline",
+      "status": "blocked"
+    },
+    {
+      "profileId": "f1-minimal-fixed-sgl-kernel",
+      "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556",
+      "imageDigest": "sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+      "status": "passed"
+    },
+    {
+      "profileId": "f2-current-stable-sglang",
+      "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556",
+      "imageDigest": "sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+      "status": "passed"
+    },
+    {
+      "profileId": "f3-latest-kernel-overlay",
+      "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556",
+      "imageDigest": "sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+      "status": "passed"
+    },
+    {
+      "profileId": "f4-forward-compat-base",
+      "status": "blocked"
+    },
+    {
+      "profileId": "f5-official-sglang-image-overlay",
+      "status": "blocked"
+    },
+    {
+      "profileId": "f6-source-build-after-9021-9231",
+      "status": "blocked"
+    }
+  ],
   "blockers": []
 }

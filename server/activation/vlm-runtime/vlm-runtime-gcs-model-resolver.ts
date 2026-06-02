@@ -71,7 +71,7 @@ export async function verifyVlmRuntimeBuckets(): Promise<{
 }
 
 export async function runGcloud(args: string[], timeout = 5 * 60 * 1000): Promise<string> {
-  const { stdout } = await execFileAsync('gcloud', args, {
+  const { stdout } = await execFileAsync('gcloud', buildGcloudArgs(args), {
     timeout,
     maxBuffer: 120 * 1024 * 1024,
     env: {
@@ -80,6 +80,20 @@ export async function runGcloud(args: string[], timeout = 5 * 60 * 1000): Promis
     },
   })
   return stdout
+}
+
+function buildGcloudArgs(args: string[]): string[] {
+  const authArgs: string[] = ['--quiet']
+  const impersonateServiceAccount = process.env.REEDITPRO_GCP_IMPERSONATE_SERVICE_ACCOUNT?.trim()
+  if (impersonateServiceAccount) {
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.gserviceaccount\.com$/.test(impersonateServiceAccount)) {
+      throw new Error('invalid_REEDITPRO_GCP_IMPERSONATE_SERVICE_ACCOUNT_email')
+    }
+    authArgs.push('--impersonate-service-account', impersonateServiceAccount)
+  }
+  const accessTokenFile = process.env.REEDITPRO_GCP_ACCESS_TOKEN_FILE?.trim()
+  if (accessTokenFile) authArgs.push('--access-token-file', accessTokenFile)
+  return [...authArgs, ...args]
 }
 
 async function copyPrivateGcsObject(gcsUri: string, localPath: string): Promise<void> {

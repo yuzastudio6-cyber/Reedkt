@@ -1,12 +1,12 @@
 {
   "phase": "39C-SG-FIXED",
   "reportId": "phase_39c_sg_fixed_kernel_iam_delta_report",
-  "runId": "phase39c-sg-fixed-20260602T132030",
-  "createdAt": "2026-06-02T13:23:33.690Z",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:16:12.309Z",
   "plan": {
     "phase": "39C-SG-FIXED",
     "reportId": "phase_39c_sg_fixed_kernel_iam_plan",
-    "createdAt": "2026-06-02T13:23:33.693Z",
+    "createdAt": "2026-06-02T15:16:12.310Z",
     "defaultMode": "non_mutating",
     "requiredConfirmationForApply": "REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE",
     "bucket": "gs://reeditpro-staging-reeditpro-qa-artifacts",
@@ -31,18 +31,28 @@
       }
     ]
   },
-  "status": "blocked",
-  "qaCreateBinding": "skipped",
+  "status": "passed",
+  "qaCreateBinding": "added",
   "qaReadbackBinding": "skipped_not_needed",
   "broadIamGranted": false,
   "publicAccessChanged": false,
-  "beforeSummary": null,
-  "afterSummary": null,
-  "blockers": [
-    "fixed_kernel_iam_policy_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. ",
-    "fixed_kernel_qa_create_scoped_binding_not_present_after_check"
-  ],
-  "warnings": [
-    "fixed_kernel_iam_policy_after_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. "
-  ]
+  "beforeSummary": {
+    "bindingCount": 50,
+    "matchingFixedKernelBindings": [],
+    "publicPrincipalDetected": false
+  },
+  "afterSummary": {
+    "bindingCount": 51,
+    "matchingFixedKernelBindings": [
+      {
+        "role": "roles/storage.objectCreator",
+        "conditionTitle": "phase39c-vlm-sglang-fixed-qa-create",
+        "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-sglang-fixed-kernel/')",
+        "memberCount": 1
+      }
+    ],
+    "publicPrincipalDetected": false
+  },
+  "blockers": [],
+  "warnings": []
 }

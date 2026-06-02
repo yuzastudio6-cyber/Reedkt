@@ -1,10 +1,10 @@
 {
-  "phase": "39C-SG-FIXED",
-  "reportId": "phase_39c_sg_fixed_kernel_cloud_build_reports",
+  "phase": "39C-SG-AUTH-RERUN",
+  "reportId": "phase_39c_sg_auth_rerun_cloud_build_report",
   "runId": "phase39c-sg-auth-rerun-20260602T151556",
-  "createdAt": "2026-06-02T15:16:12.309Z",
+  "createdAt": "2026-06-02T15:15:56.043Z",
   "status": "passed",
-  "builds": [
+  "buildAttempts": [
     {
       "profile": {
         "id": "f0-pr107-baseline",

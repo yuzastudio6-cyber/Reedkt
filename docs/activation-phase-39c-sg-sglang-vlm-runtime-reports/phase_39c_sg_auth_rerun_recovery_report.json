@@ -1,0 +1,1231 @@
+{
+  "phase": "39C-SG-AUTH-RERUN",
+  "reportId": "phase_39c_sg_auth_rerun_recovery_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:15:56.043Z",
+  "status": "blocked",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true
+    },
+    "phase39bq39cqCandidates": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true
+    },
+    "phase39cqStructuredOutput": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "preserved": true
+    },
+    "phase39cqSo3Perception": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+      "preserved": true
+    },
+    "phase39cSglangBuildx": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+      "preserved": true
+    },
+    "phase39cSgBuildCloudBuild": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+      "preserved": true
+    },
+    "phase39cSgKernelCompat": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/107",
+      "preserved": true
+    },
+    "phase39cSgFixedKernel": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/110",
+      "preserved": true
+    },
+    "googleCloudAuthDocs": "https://docs.cloud.google.com/docs/authentication/gcloud",
+    "googleCloudServiceAccountImpersonationDocs": "https://docs.cloud.google.com/docs/authentication/use-service-account-impersonation",
+    "googleCloudIamServiceAccountImpersonationDocs": "https://docs.cloud.google.com/iam/docs/service-account-impersonation",
+    "googleCloudServiceAccountKeyBestPractices": "https://docs.cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys",
+    "googleCloudGcloudReference": "https://docs.cloud.google.com/sdk/gcloud/reference"
+  },
+  "auth": {
+    "status": "passed",
+    "authPathUsed": "active_account",
+    "activePrincipal": "aiediting@reeditpro.com",
+    "tokenOutput": "not_printed",
+    "serviceAccountKey": "not_used_not_created",
+    "permissionPreflight": {
+      "status": "passed",
+      "requiredProject": "reeditpro",
+      "probes": [
+        {
+          "id": "services_list",
+          "status": "passed"
+        },
+        {
+          "id": "cloud_builds_list",
+          "status": "passed"
+        },
+        {
+          "id": "artifact_registry_describe",
+          "status": "passed"
+        },
+        {
+          "id": "cloud_run_jobs_list",
+          "status": "passed"
+        },
+        {
+          "id": "generated_assets_bucket_describe",
+          "status": "passed"
+        },
+        {
+          "id": "qa_artifacts_bucket_describe",
+          "status": "passed"
+        },
+        {
+          "id": "qa_artifacts_iam_policy_read",
+          "status": "passed"
+        }
+      ],
+      "blockers": []
+    }
+  },
+  "fixedKernel": {
+    "status": "blocked",
+    "selectedProfile": null,
+    "selectedCandidate": null,
+    "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/",
+    "buildAttempts": [
+      {
+        "profile": {
+          "id": "f0-pr107-baseline",
+          "label": "Profile F0 PR #107 carry-forward baseline",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "blocked",
+          "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+          "sglKernelPackageSpec": "sgl-kernel==0.2.8",
+          "sglangKernelPackageSpec": "none",
+          "torchCudaExpectation": "torch 2.7.1 / CUDA 12.6 packages inherited from PR #104 image",
+          "rationale": "Carry forward PR #107 K0/K2 Cloud Run L4 import-smoke evidence without rebuilding; expected failure is cuGreenCtxDestroy.",
+          "sourceEvidence": [
+            "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+            "https://github.com/yuzastudio6-cyber/Reedkt/pull/107",
+            "https://github.com/sgl-project/sglang/issues/8566"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure"
+          ],
+          "riskNotes": [
+            "no new build needed for F0 because PR #107 already captured the baseline failure"
+          ]
+        },
+        "status": "blocked",
+        "blockers": [
+          "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure"
+        ],
+        "warnings": [
+          "no new build needed for F0 because PR #107 already captured the baseline failure"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f1-minimal-fixed-sgl-kernel",
+          "label": "Profile F1 minimal fixed sgl-kernel 0.3.6.post1",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "pip-force-reinstall-no-deps",
+          "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+          "sglKernelPackageSpec": "sgl-kernel==0.3.6.post1",
+          "sglangKernelPackageSpec": "none",
+          "torchCudaExpectation": "keeps PR #104 torch/CUDA package base and replaces only sgl-kernel with the post-#9021 issue-linked fixed wheel",
+          "rationale": "Use the smallest upstream-evidence-driven change: sgl-kernel 0.3.6.post1 was published after PR #9021/#9231 and is referenced by issue discussion as the fixed path.",
+          "sourceEvidence": [
+            "https://github.com/sgl-project/sglang/pull/9021",
+            "https://github.com/sgl-project/sglang/pull/9231",
+            "https://pypi.org/project/sgl-kernel/0.3.6.post1/"
+          ],
+          "buildAllowed": true,
+          "blockers": [],
+          "riskNotes": [
+            "no-deps reinstall is intentional to avoid broad dependency churn",
+            "import smoke must prove compatibility before model-copy or generated runtime"
+          ]
+        },
+        "status": "passed",
+        "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556",
+        "imageDigest": "sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+        "buildId": "ec36e22c-0e21-4eaf-ae91-540a881da630",
+        "buildStatus": "SUCCESS",
+        "durationSeconds": 304,
+        "blockers": [],
+        "warnings": [
+          "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible versi"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f2-current-stable-sglang",
+          "label": "Profile F2 current stable SGLang release dependency set",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "pip-force-reinstall-with-deps",
+          "sglangPackageSpec": "sglang[all]==0.5.12.post1",
+          "sglKernelPackageSpec": "none",
+          "sglangKernelPackageSpec": "none",
+          "torchCudaExpectation": "current SGLang dependency set includes torch 2.11.0, CUDA-oriented packages, and sglang-kernel 0.4.2.post2; Cloud Run L4 import smoke must prove driver compatibility",
+          "rationale": "Use the latest stable SGLang package metadata rather than manually pairing old packages.",
+          "sourceEvidence": [
+            "https://pypi.org/project/sglang/0.5.12.post1/",
+            "https://github.com/sgl-project/sglang/releases"
+          ],
+          "buildAllowed": true,
+          "blockers": [],
+          "riskNotes": [
+            "large dependency churn and CUDA >12.2 packages may require Cloud Run forward compatibility",
+            "import smoke must pass before runtime; generated fixtures are not attempted on package-install evidence alone"
+          ]
+        },
+        "status": "passed",
+        "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556",
+        "imageDigest": "sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+        "buildId": "2e6ef43e-2bd9-4eae-9811-4c57a7ddc82c",
+        "buildStatus": "SUCCESS",
+        "durationSeconds": 1221,
+        "blockers": [],
+        "warnings": [
+          "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version "
+        ]
+      },
+      {
+        "profile": {
+          "id": "f3-latest-kernel-overlay",
+          "label": "Profile F3 latest kernel overlay on PR #104 base",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "pip-force-reinstall-no-deps",
+          "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+          "sglKernelPackageSpec": "sgl-kernel==0.3.21",
+          "sglangKernelPackageSpec": "sglang-kernel==0.4.3",
+          "torchCudaExpectation": "keeps PR #104 runtime package base but overlays current kernel wheels; import smoke decides compatibility",
+          "rationale": "Test the current kernel packages independently from the full latest SGLang dependency set.",
+          "sourceEvidence": [
+            "https://pypi.org/project/sgl-kernel/0.3.21/",
+            "https://pypi.org/project/sglang-kernel/0.4.3/"
+          ],
+          "buildAllowed": true,
+          "blockers": [],
+          "riskNotes": [
+            "API mismatch with SGLang 0.4.10 is possible; import smoke classifies this before runtime"
+          ]
+        },
+        "status": "passed",
+        "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556",
+        "imageDigest": "sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+        "buildId": "e42544da-10f9-4564-b71c-ad8a1b78daa0",
+        "buildStatus": "SUCCESS",
+        "durationSeconds": 335,
+        "blockers": [],
+        "warnings": [
+          "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version "
+        ]
+      },
+      {
+        "profile": {
+          "id": "f4-forward-compat-base",
+          "label": "Profile F4 CUDA forward-compatible image path",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "blocked",
+          "sglangPackageSpec": "sglang[all]==0.5.12.post1",
+          "sglKernelPackageSpec": "none",
+          "sglangKernelPackageSpec": "sglang-kernel==0.4.2.post2",
+          "torchCudaExpectation": "not attempted",
+          "rationale": "Cloud Run docs allow CUDA >12.2 only with forward compatibility packages or a suitable NVIDIA base image; exact LD_LIBRARY_PATH/base-image decision remains blocked until F1-F3 evidence requires it.",
+          "sourceEvidence": [
+            "https://docs.cloud.google.com/run/docs/configuring/jobs/gpu",
+            "https://docs.nvidia.com/deploy/cuda-compatibility/"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence"
+          ],
+          "riskNotes": [
+            "do not override Cloud Run driver libraries without exact evidence and import-smoke validation"
+          ]
+        },
+        "status": "blocked",
+        "blockers": [
+          "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence"
+        ],
+        "warnings": [
+          "do not override Cloud Run driver libraries without exact evidence and import-smoke validation"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f5-official-sglang-image-overlay",
+          "label": "Profile F5 official SGLang image overlay",
+          "baseImage": "lmsysorg/sglang:tag-not-selected",
+          "installMode": "blocked",
+          "sglangPackageSpec": "official-image",
+          "sglKernelPackageSpec": "official-image",
+          "sglangKernelPackageSpec": "official-image",
+          "torchCudaExpectation": "not attempted",
+          "rationale": "Official Docker Hub images exist, but this phase requires an exact verified tag before use.",
+          "sourceEvidence": [
+            "https://docs.sglang.io/get_started/install.html"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4"
+          ],
+          "riskNotes": [
+            "do not pull floating latest or dev images into a beta-readiness chain"
+          ]
+        },
+        "status": "blocked",
+        "blockers": [
+          "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4"
+        ],
+        "warnings": [
+          "do not pull floating latest or dev images into a beta-readiness chain"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f6-source-build-after-9021-9231",
+          "label": "Profile F6 source-build after PR #9021/#9231",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "blocked",
+          "sglangPackageSpec": "source-build-after-9021-9231",
+          "sglKernelPackageSpec": "source-build-after-9021-9231",
+          "sglangKernelPackageSpec": "source-build-after-9021-9231",
+          "torchCudaExpectation": "not attempted",
+          "rationale": "Reserved for a human-approved source-build investigation if all wheel/image paths fail.",
+          "sourceEvidence": [
+            "https://github.com/sgl-project/sglang/pull/9021",
+            "https://github.com/sgl-project/sglang/pull/9231"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "source_build_after_9021_9231_not_human_approved_for_this_bounded_rerun"
+          ],
+          "riskNotes": [
+            "large CUDA source build may exceed bounded Cloud Build budget and requires explicit approval"
+          ]
+        },
+        "status": "blocked",
+        "blockers": [
+          "source_build_after_9021_9231_not_human_approved_for_this_bounded_rerun"
+        ],
+        "warnings": [
+          "large CUDA source build may exceed bounded Cloud Build budget and requires explicit approval"
+        ]
+      }
+    ],
+    "importSmokeAttempts": [
+      {
+        "profile": {
+          "id": "f0-pr107-baseline",
+          "label": "Profile F0 PR #107 carry-forward baseline",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "blocked",
+          "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+          "sglKernelPackageSpec": "sgl-kernel==0.2.8",
+          "sglangKernelPackageSpec": "none",
+          "torchCudaExpectation": "torch 2.7.1 / CUDA 12.6 packages inherited from PR #104 image",
+          "rationale": "Carry forward PR #107 K0/K2 Cloud Run L4 import-smoke evidence without rebuilding; expected failure is cuGreenCtxDestroy.",
+          "sourceEvidence": [
+            "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+            "https://github.com/yuzastudio6-cyber/Reedkt/pull/107",
+            "https://github.com/sgl-project/sglang/issues/8566"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure"
+          ],
+          "riskNotes": [
+            "no new build needed for F0 because PR #107 already captured the baseline failure"
+          ]
+        },
+        "status": "skipped",
+        "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke",
+        "blockers": [
+          "profile_build_not_allowed:f0-pr107-baseline"
+        ],
+        "warnings": [
+          "no new build needed for F0 because PR #107 already captured the baseline failure"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f1-minimal-fixed-sgl-kernel",
+          "label": "Profile F1 minimal fixed sgl-kernel 0.3.6.post1",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "pip-force-reinstall-no-deps",
+          "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+          "sglKernelPackageSpec": "sgl-kernel==0.3.6.post1",
+          "sglangKernelPackageSpec": "none",
+          "torchCudaExpectation": "keeps PR #104 torch/CUDA package base and replaces only sgl-kernel with the post-#9021 issue-linked fixed wheel",
+          "rationale": "Use the smallest upstream-evidence-driven change: sgl-kernel 0.3.6.post1 was published after PR #9021/#9231 and is referenced by issue discussion as the fixed path.",
+          "sourceEvidence": [
+            "https://github.com/sgl-project/sglang/pull/9021",
+            "https://github.com/sgl-project/sglang/pull/9231",
+            "https://pypi.org/project/sgl-kernel/0.3.6.post1/"
+          ],
+          "buildAllowed": true,
+          "blockers": [],
+          "riskNotes": [
+            "no-deps reinstall is intentional to avoid broad dependency churn",
+            "import smoke must prove compatibility before model-copy or generated runtime"
+          ]
+        },
+        "status": "blocked",
+        "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke",
+        "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed@sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+        "imageDigest": "sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+        "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/profiles/f1-minimal-fixed-sgl-kernel/",
+        "report": {
+          "blockers": [
+            "required_import_failed:sglang.srt.layers.rotary_embedding"
+          ],
+          "createdAt": "2026-06-02T15:24:11.883762Z",
+          "cudaSymbolProbe": {
+            "status": "loaded",
+            "symbols": {
+              "cuDriverGetVersion": "present",
+              "cuGreenCtxDestroy": "missing",
+              "cuGreenCtxStreamCreate": "missing",
+              "cuInit": "present"
+            }
+          },
+          "importResults": [
+            {
+              "module": "torch",
+              "path": "/opt/conda/lib/python3.11/site-packages/torch/__init__.py",
+              "status": "passed"
+            },
+            {
+              "module": "sglang",
+              "path": "/opt/conda/lib/python3.11/site-packages/sglang/__init__.py",
+              "status": "passed"
+            },
+            {
+              "module": "sglang.srt",
+              "path": "None",
+              "status": "passed"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab",
+              "module": "sglang.srt.layers.rotary_embedding",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 13, in <module>\n    from sgl_kernel import common_ops\nImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab",
+              "module": "sgl_kernel",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 13, in <module>\n    from sgl_kernel import common_ops\nImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab",
+              "module": "sgl_kernel.common_ops",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1126, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 13, in <module>\n    from sgl_kernel import common_ops\nImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n"
+            },
+            {
+              "module": "xgrammar",
+              "path": "/opt/conda/lib/python3.11/site-packages/xgrammar/__init__.py",
+              "status": "passed"
+            },
+            {
+              "exceptionClass": "ModuleNotFoundError",
+              "message": "No module named 'guidance'",
+              "module": "guidance",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1140, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'guidance'\n"
+            }
+          ],
+          "inferenceRan": false,
+          "launchServerHelp": {
+            "command": [
+              "/opt/conda/bin/python",
+              "-m",
+              "sglang.launch_server",
+              "--help"
+            ],
+            "returncode": 1,
+            "stderrExcerpt": "ceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/launch_server.py\", line 6, in <module>\n    from sglang.srt.entrypoints.http_server import launch_server\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/entrypoints/http_server.py\", line 51, in <module>\n    from sglang.srt.entrypoints.engine import _launch_subprocesses\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/entrypoints/engine.py\", line 41, in <module>\n    from sglang.srt.managers.data_parallel_controller import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/data_parallel_controller.py\", line 32, in <module>\n    from sglang.srt.managers.io_struct import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/io_struct.py\", line 26, in <module>\n    from sglang.srt.managers.schedule_batch import BaseFinishReason\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/schedule_batch.py\", line 50, in <module>\n    from sglang.srt.disaggregation.decode_schedule_batch_mixin import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/disaggregation/decode_schedule_batch_mixin.py\", line 10, in <module>\n    from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode, ForwardMode\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/model_executor/forward_batch_info.py\", line 47, in <module>\n    from sglang.srt.layers.rotary_embedding import MRotaryEmbedding\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 13, in <module>\n    from sgl_kernel import common_ops\nImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n",
+            "stdoutExcerpt": ""
+          },
+          "ldLibraryPath": {
+            "containsCloudRunDriverPath": true,
+            "present": true,
+            "sanitizedEntries": [
+              "/usr/local/nvidia/lib",
+              "/usr/local/nvidia/lib64",
+              "/usr/local/nvidia/lib64"
+            ]
+          },
+          "modelPayloadCopied": false,
+          "nvidiaSmi": {
+            "command": [
+              "nvidia-smi",
+              "--query-gpu=name,driver_version,memory.total,compute_cap",
+              "--format=csv,noheader"
+            ],
+            "returncode": 0,
+            "stderrExcerpt": "",
+            "stdoutExcerpt": "NVIDIA L4, 535.274.02, 23034 MiB, 8.9\n"
+          },
+          "packages": [
+            {
+              "package": "sglang",
+              "status": "present",
+              "version": "0.4.10.post2"
+            },
+            {
+              "package": "sgl-kernel",
+              "status": "present",
+              "version": "0.3.6.post1"
+            },
+            {
+              "error": "No package metadata was found for sglang-kernel",
+              "package": "sglang-kernel",
+              "status": "missing",
+              "version": null
+            },
+            {
+              "package": "torch",
+              "status": "present",
+              "version": "2.7.1"
+            },
+            {
+              "package": "xgrammar",
+              "status": "present",
+              "version": "0.1.22"
+            },
+            {
+              "error": "No package metadata was found for guidance",
+              "package": "guidance",
+              "status": "missing",
+              "version": null
+            },
+            {
+              "package": "transformers",
+              "status": "present",
+              "version": "4.54.1"
+            }
+          ],
+          "phase": "39C-SG-FIXED",
+          "privateArtifact": null,
+          "processedImages": false,
+          "profileId": "f1-minimal-fixed-sgl-kernel",
+          "providerCalls": false,
+          "publicOutput": false,
+          "python": {
+            "executable": "/opt/conda/bin/python",
+            "platform": "Linux-6.9.12-x86_64-with-glibc2.35",
+            "version": "3.11.11 | packaged by conda-forge | (main, Dec  5 2024, 14:17:24) [GCC 13.3.0]"
+          },
+          "realMedia": false,
+          "reportId": "phase_39c_sg_fixed_kernel_import_smoke_report",
+          "runId": "phase39c-sg-auth-rerun-20260602T151556-f1-minimal-fixed-sgl-kernel",
+          "status": "blocked",
+          "torch": {
+            "cudaAvailable": true,
+            "cudaVersion": "12.6",
+            "deviceCount": 1,
+            "devices": [
+              {
+                "index": 0,
+                "major": 8,
+                "minor": 9,
+                "name": "NVIDIA L4",
+                "totalMemoryBytes": 23583784960
+              }
+            ],
+            "status": "passed",
+            "version": "2.7.1+cu126"
+          },
+          "vlmToolFamilyBetaStatus": "blocked",
+          "warnings": [
+            "sglang_launch_server_help_nonzero:  from sglang.srt.layers.rotary_embedding import MRotaryEmbedding\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 13, in <module>\n    from sgl_kernel import common_ops\nImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n"
+          ]
+        },
+        "blockers": [
+          "import_smoke_job_nonzero:f1-minimal-fixed-sgl-kernel:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+          "f1-minimal-fixed-sgl-kernel:required_import_failed:sglang.srt.layers.rotary_embedding"
+        ],
+        "warnings": [
+          "private_import_smoke_artifact_verified:f1-minimal-fixed-sgl-kernel:generation=1780413895214215"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f2-current-stable-sglang",
+          "label": "Profile F2 current stable SGLang release dependency set",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "pip-force-reinstall-with-deps",
+          "sglangPackageSpec": "sglang[all]==0.5.12.post1",
+          "sglKernelPackageSpec": "none",
+          "sglangKernelPackageSpec": "none",
+          "torchCudaExpectation": "current SGLang dependency set includes torch 2.11.0, CUDA-oriented packages, and sglang-kernel 0.4.2.post2; Cloud Run L4 import smoke must prove driver compatibility",
+          "rationale": "Use the latest stable SGLang package metadata rather than manually pairing old packages.",
+          "sourceEvidence": [
+            "https://pypi.org/project/sglang/0.5.12.post1/",
+            "https://github.com/sgl-project/sglang/releases"
+          ],
+          "buildAllowed": true,
+          "blockers": [],
+          "riskNotes": [
+            "large dependency churn and CUDA >12.2 packages may require Cloud Run forward compatibility",
+            "import smoke must pass before runtime; generated fixtures are not attempted on package-install evidence alone"
+          ]
+        },
+        "status": "blocked",
+        "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke",
+        "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed@sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+        "imageDigest": "sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+        "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/profiles/f2-current-stable-sglang/",
+        "report": {
+          "blockers": [
+            "required_import_failed:sglang",
+            "required_import_failed:sglang.srt.layers.rotary_embedding",
+            "torch_cuda_not_available_on_l4_job"
+          ],
+          "createdAt": "2026-06-02T15:51:43.495619Z",
+          "cudaSymbolProbe": {
+            "status": "loaded",
+            "symbols": {
+              "cuDriverGetVersion": "present",
+              "cuGreenCtxDestroy": "missing",
+              "cuGreenCtxStreamCreate": "missing",
+              "cuInit": "present"
+            }
+          },
+          "importResults": [
+            {
+              "module": "torch",
+              "path": "/opt/conda/lib/python3.11/site-packages/torch/__init__.py",
+              "status": "passed"
+            },
+            {
+              "exceptionClass": "ValueError",
+              "message": "Either a revision or a version must be specified.",
+              "module": "sglang",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/__init__.py\", line 31, in <module>\n    _apply_hf_patches()\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/utils/hf_transformers_patches.py\", line 59, in apply_all\n    _patch_removed_symbols()\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/utils/hf_transformers_patches.py\", line 235, in _patch_removed_symbols\n    from transformers.models.llama import modeling_llama\n  File \"<frozen importlib._bootstrap>\", line 1229, in _handle_fromlist\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/utils/import_utils.py\", line 2306, in __getattr__\n    value = self._get_module(name)\n            ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/utils/import_utils.py\", line 2446, in _get_module\n    raise e\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/utils/import_utils.py\", line 2444, in _get_module\n    return importlib.import_module(\".\" + module_name, self.__name__)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/models/llama/modeling_llama.py\", line 25, in <module>\n    from ...activations import ACT2FN\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/activations.py\", line 22, in <module>\n    from .integrations.hub_kernels import use_kernel_forward_from_hub\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/integrations/hub_kernels.py\", line 89, in <module>\n    \"cuda\": LayerRepository(\n            ^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/kernels/layer/layer.py\", line 76, in __init__\n    raise ValueError(\"Either a revision or a version must be specified.\")\nValueError: Either a revision or a version must be specified.\n"
+            },
+            {
+              "module": "sglang.srt",
+              "path": "None",
+              "status": "passed"
+            },
+            {
+              "exceptionClass": "KeyError",
+              "message": "'sglang'",
+              "module": "sglang.srt.layers.rotary_embedding",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1126, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1138, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 1078, in _find_spec\n  File \"<frozen importlib._bootstrap_external>\", line 1507, in find_spec\n  File \"<frozen importlib._bootstrap_external>\", line 1473, in _get_spec\n  File \"<frozen importlib._bootstrap_external>\", line 1312, in __iter__\n  File \"<frozen importlib._bootstrap_external>\", line 1299, in _recalculate\n  File \"<frozen importlib._bootstrap_external>\", line 1295, in _get_parent_path\nKeyError: 'sglang'\n"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so']\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: None\n- Expected variant: CPU/No GPU detected (using precise math)\n- CUDA version: 13.0\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sglang-kernel\n\nError details from previous import attempts:\n- ImportError: libnvrtc.so.13: cannot open shared object file: No such file or directory\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda29c10_cuda_check_implementationEiP",
+              "module": "sgl_kernel",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 19, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 197, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so']\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: None\n- Expected variant: CPU/No GPU detected (using precise math)\n- CUDA version: 13.0\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sglang-kernel\n\nError details from previous import attempts:\n- ImportError: libnvrtc.so.13: cannot open shared object file: No such file or directory\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda29c10_cuda_check_implementationEiPKcS2_ib\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so']\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: None\n- Expected variant: CPU/No GPU detected (using precise math)\n- CUDA version: 13.0\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sglang-kernel\n\nError details from previous import attempts:\n- ImportError: libnvrtc.so.13: cannot open shared object file: No such file or directory\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda29c10_cuda_check_implementationEiP",
+              "module": "sgl_kernel.common_ops",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1126, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 19, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 197, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so']\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: None\n- Expected variant: CPU/No GPU detected (using precise math)\n- CUDA version: 13.0\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sglang-kernel\n\nError details from previous import attempts:\n- ImportError: libnvrtc.so.13: cannot open shared object file: No such file or directory\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so: undefined symbol: _ZN3c104cuda29c10_cuda_check_implementationEiPKcS2_ib\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+            },
+            {
+              "module": "xgrammar",
+              "path": "/opt/conda/lib/python3.11/site-packages/xgrammar/__init__.py",
+              "status": "passed"
+            },
+            {
+              "exceptionClass": "ModuleNotFoundError",
+              "message": "No module named 'guidance'",
+              "module": "guidance",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1140, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'guidance'\n"
+            }
+          ],
+          "inferenceRan": false,
+          "launchServerHelp": {
+            "command": [
+              "/opt/conda/bin/python",
+              "-m",
+              "sglang.launch_server",
+              "--help"
+            ],
+            "returncode": 1,
+            "stderrExcerpt": "e \"/opt/conda/lib/python3.11/site-packages/sglang/__init__.py\", line 31, in <module>\n    _apply_hf_patches()\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/utils/hf_transformers_patches.py\", line 59, in apply_all\n    _patch_removed_symbols()\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/utils/hf_transformers_patches.py\", line 235, in _patch_removed_symbols\n    from transformers.models.llama import modeling_llama\n  File \"<frozen importlib._bootstrap>\", line 1229, in _handle_fromlist\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/utils/import_utils.py\", line 2306, in __getattr__\n    value = self._get_module(name)\n            ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/utils/import_utils.py\", line 2446, in _get_module\n    raise e\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/utils/import_utils.py\", line 2444, in _get_module\n    return importlib.import_module(\".\" + module_name, self.__name__)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/models/llama/modeling_llama.py\", line 25, in <module>\n    from ...activations import ACT2FN\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/activations.py\", line 22, in <module>\n    from .integrations.hub_kernels import use_kernel_forward_from_hub\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/integrations/hub_kernels.py\", line 89, in <module>\n    \"cuda\": LayerRepository(\n            ^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/kernels/layer/layer.py\", line 76, in __init__\n    raise ValueError(\"Either a revision or a version must be specified.\")\nValueError: Either a revision or a version must be specified.\n",
+            "stdoutExcerpt": ""
+          },
+          "ldLibraryPath": {
+            "containsCloudRunDriverPath": true,
+            "present": true,
+            "sanitizedEntries": [
+              "/usr/local/nvidia/lib",
+              "/usr/local/nvidia/lib64",
+              "/usr/local/nvidia/lib64"
+            ]
+          },
+          "modelPayloadCopied": false,
+          "nvidiaSmi": {
+            "command": [
+              "nvidia-smi",
+              "--query-gpu=name,driver_version,memory.total,compute_cap",
+              "--format=csv,noheader"
+            ],
+            "returncode": 0,
+            "stderrExcerpt": "",
+            "stdoutExcerpt": "NVIDIA L4, 535.274.02, 23034 MiB, 8.9\n"
+          },
+          "packages": [
+            {
+              "package": "sglang",
+              "status": "present",
+              "version": "0.5.12.post1"
+            },
+            {
+              "package": "sgl-kernel",
+              "status": "present",
+              "version": "0.2.8"
+            },
+            {
+              "package": "sglang-kernel",
+              "status": "present",
+              "version": "0.4.2.post2"
+            },
+            {
+              "package": "torch",
+              "status": "present",
+              "version": "2.11.0"
+            },
+            {
+              "package": "xgrammar",
+              "status": "present",
+              "version": "0.2.0"
+            },
+            {
+              "error": "No package metadata was found for guidance",
+              "package": "guidance",
+              "status": "missing",
+              "version": null
+            },
+            {
+              "package": "transformers",
+              "status": "present",
+              "version": "5.6.0"
+            }
+          ],
+          "phase": "39C-SG-FIXED",
+          "privateArtifact": null,
+          "processedImages": false,
+          "profileId": "f2-current-stable-sglang",
+          "providerCalls": false,
+          "publicOutput": false,
+          "python": {
+            "executable": "/opt/conda/bin/python",
+            "platform": "Linux-6.9.12-x86_64-with-glibc2.35",
+            "version": "3.11.11 | packaged by conda-forge | (main, Dec  5 2024, 14:17:24) [GCC 13.3.0]"
+          },
+          "realMedia": false,
+          "reportId": "phase_39c_sg_fixed_kernel_import_smoke_report",
+          "runId": "phase39c-sg-auth-rerun-20260602T151556-f2-current-stable-sglang",
+          "status": "blocked",
+          "torch": {
+            "cudaAvailable": false,
+            "cudaVersion": "13.0",
+            "deviceCount": 0,
+            "devices": [],
+            "status": "passed",
+            "version": "2.11.0+cu130"
+          },
+          "vlmToolFamilyBetaStatus": "blocked",
+          "warnings": [
+            "sglang_launch_server_help_nonzero:ons.py\", line 22, in <module>\n    from .integrations.hub_kernels import use_kernel_forward_from_hub\n  File \"/opt/conda/lib/python3.11/site-packages/transformers/integrations/hub_kernels.py\", line 89, in <module>\n    \"cuda\": LayerRepository(\n            ^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/kernels/layer/layer.py\", line 76, in __init__\n    raise ValueError(\"Either a revision or a version must be specified.\")\nValueError: Either a revision or a version must be specified.\n"
+          ]
+        },
+        "blockers": [
+          "import_smoke_job_nonzero:f2-current-stable-sglang:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+          "f2-current-stable-sglang:required_import_failed:sglang",
+          "f2-current-stable-sglang:required_import_failed:sglang.srt.layers.rotary_embedding",
+          "f2-current-stable-sglang:torch_cuda_not_available_on_l4_job"
+        ],
+        "warnings": [
+          "private_import_smoke_artifact_verified:f2-current-stable-sglang:generation=1780415531822638"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f3-latest-kernel-overlay",
+          "label": "Profile F3 latest kernel overlay on PR #104 base",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "pip-force-reinstall-no-deps",
+          "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+          "sglKernelPackageSpec": "sgl-kernel==0.3.21",
+          "sglangKernelPackageSpec": "sglang-kernel==0.4.3",
+          "torchCudaExpectation": "keeps PR #104 runtime package base but overlays current kernel wheels; import smoke decides compatibility",
+          "rationale": "Test the current kernel packages independently from the full latest SGLang dependency set.",
+          "sourceEvidence": [
+            "https://pypi.org/project/sgl-kernel/0.3.21/",
+            "https://pypi.org/project/sglang-kernel/0.4.3/"
+          ],
+          "buildAllowed": true,
+          "blockers": [],
+          "riskNotes": [
+            "API mismatch with SGLang 0.4.10 is possible; import smoke classifies this before runtime"
+          ]
+        },
+        "status": "blocked",
+        "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke",
+        "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed@sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+        "imageDigest": "sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+        "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/profiles/f3-latest-kernel-overlay/",
+        "report": {
+          "blockers": [
+            "required_import_failed:sglang.srt.layers.rotary_embedding"
+          ],
+          "createdAt": "2026-06-02T16:01:56.418640Z",
+          "cudaSymbolProbe": {
+            "status": "loaded",
+            "symbols": {
+              "cuDriverGetVersion": "present",
+              "cuGreenCtxDestroy": "missing",
+              "cuGreenCtxStreamCreate": "missing",
+              "cuInit": "present"
+            }
+          },
+          "importResults": [
+            {
+              "module": "torch",
+              "path": "/opt/conda/lib/python3.11/site-packages/torch/__init__.py",
+              "status": "passed"
+            },
+            {
+              "module": "sglang",
+              "path": "/opt/conda/lib/python3.11/site-packages/sglang/__init__.py",
+              "status": "passed"
+            },
+            {
+              "module": "sglang.srt",
+              "path": "None",
+              "status": "passed"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n",
+              "module": "sglang.srt.layers.rotary_embedding",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n",
+              "module": "sgl_kernel",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+            },
+            {
+              "exceptionClass": "ImportError",
+              "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n",
+              "module": "sgl_kernel.common_ops",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1126, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+            },
+            {
+              "module": "xgrammar",
+              "path": "/opt/conda/lib/python3.11/site-packages/xgrammar/__init__.py",
+              "status": "passed"
+            },
+            {
+              "exceptionClass": "ModuleNotFoundError",
+              "message": "No module named 'guidance'",
+              "module": "guidance",
+              "status": "blocked",
+              "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1140, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'guidance'\n"
+            }
+          ],
+          "inferenceRan": false,
+          "launchServerHelp": {
+            "command": [
+              "/opt/conda/bin/python",
+              "-m",
+              "sglang.launch_server",
+              "--help"
+            ],
+            "returncode": 1,
+            "stderrExcerpt": "ch import BaseFinishReason\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/schedule_batch.py\", line 50, in <module>\n    from sglang.srt.disaggregation.decode_schedule_batch_mixin import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/disaggregation/decode_schedule_batch_mixin.py\", line 10, in <module>\n    from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode, ForwardMode\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/model_executor/forward_batch_info.py\", line 47, in <module>\n    from sglang.srt.layers.rotary_embedding import MRotaryEmbedding\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n",
+            "stdoutExcerpt": ""
+          },
+          "ldLibraryPath": {
+            "containsCloudRunDriverPath": true,
+            "present": true,
+            "sanitizedEntries": [
+              "/usr/local/nvidia/lib",
+              "/usr/local/nvidia/lib64",
+              "/usr/local/nvidia/lib64"
+            ]
+          },
+          "modelPayloadCopied": false,
+          "nvidiaSmi": {
+            "command": [
+              "nvidia-smi",
+              "--query-gpu=name,driver_version,memory.total,compute_cap",
+              "--format=csv,noheader"
+            ],
+            "returncode": 0,
+            "stderrExcerpt": "",
+            "stdoutExcerpt": "NVIDIA L4, 535.274.02, 23034 MiB, 8.9\n"
+          },
+          "packages": [
+            {
+              "package": "sglang",
+              "status": "present",
+              "version": "0.4.10.post2"
+            },
+            {
+              "package": "sgl-kernel",
+              "status": "present",
+              "version": "0.3.21"
+            },
+            {
+              "error": "No package metadata was found for sglang-kernel",
+              "package": "sglang-kernel",
+              "status": "missing",
+              "version": null
+            },
+            {
+              "package": "torch",
+              "status": "present",
+              "version": "2.7.1"
+            },
+            {
+              "package": "xgrammar",
+              "status": "present",
+              "version": "0.1.22"
+            },
+            {
+              "error": "No package metadata was found for guidance",
+              "package": "guidance",
+              "status": "missing",
+              "version": null
+            },
+            {
+              "package": "transformers",
+              "status": "present",
+              "version": "4.54.1"
+            }
+          ],
+          "phase": "39C-SG-FIXED",
+          "privateArtifact": null,
+          "processedImages": false,
+          "profileId": "f3-latest-kernel-overlay",
+          "providerCalls": false,
+          "publicOutput": false,
+          "python": {
+            "executable": "/opt/conda/bin/python",
+            "platform": "Linux-6.9.12-x86_64-with-glibc2.35",
+            "version": "3.11.11 | packaged by conda-forge | (main, Dec  5 2024, 14:17:24) [GCC 13.3.0]"
+          },
+          "realMedia": false,
+          "reportId": "phase_39c_sg_fixed_kernel_import_smoke_report",
+          "runId": "phase39c-sg-auth-rerun-20260602T151556-f3-latest-kernel-overlay",
+          "status": "blocked",
+          "torch": {
+            "cudaAvailable": true,
+            "cudaVersion": "12.6",
+            "deviceCount": 1,
+            "devices": [
+              {
+                "index": 0,
+                "major": 8,
+                "minor": 9,
+                "name": "NVIDIA L4",
+                "totalMemoryBytes": 23583784960
+              }
+            ],
+            "status": "passed",
+            "version": "2.7.1+cu126"
+          },
+          "vlmToolFamilyBetaStatus": "blocked",
+          "warnings": [
+            "sglang_launch_server_help_nonzero:ernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+          ]
+        },
+        "blockers": [
+          "import_smoke_job_nonzero:f3-latest-kernel-overlay:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+          "f3-latest-kernel-overlay:required_import_failed:sglang.srt.layers.rotary_embedding"
+        ],
+        "warnings": [
+          "private_import_smoke_artifact_verified:f3-latest-kernel-overlay:generation=1780416161026749"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f4-forward-compat-base",
+          "label": "Profile F4 CUDA forward-compatible image path",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "blocked",
+          "sglangPackageSpec": "sglang[all]==0.5.12.post1",
+          "sglKernelPackageSpec": "none",
+          "sglangKernelPackageSpec": "sglang-kernel==0.4.2.post2",
+          "torchCudaExpectation": "not attempted",
+          "rationale": "Cloud Run docs allow CUDA >12.2 only with forward compatibility packages or a suitable NVIDIA base image; exact LD_LIBRARY_PATH/base-image decision remains blocked until F1-F3 evidence requires it.",
+          "sourceEvidence": [
+            "https://docs.cloud.google.com/run/docs/configuring/jobs/gpu",
+            "https://docs.nvidia.com/deploy/cuda-compatibility/"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence"
+          ],
+          "riskNotes": [
+            "do not override Cloud Run driver libraries without exact evidence and import-smoke validation"
+          ]
+        },
+        "status": "skipped",
+        "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke",
+        "blockers": [
+          "profile_build_not_allowed:f4-forward-compat-base"
+        ],
+        "warnings": [
+          "do not override Cloud Run driver libraries without exact evidence and import-smoke validation"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f5-official-sglang-image-overlay",
+          "label": "Profile F5 official SGLang image overlay",
+          "baseImage": "lmsysorg/sglang:tag-not-selected",
+          "installMode": "blocked",
+          "sglangPackageSpec": "official-image",
+          "sglKernelPackageSpec": "official-image",
+          "sglangKernelPackageSpec": "official-image",
+          "torchCudaExpectation": "not attempted",
+          "rationale": "Official Docker Hub images exist, but this phase requires an exact verified tag before use.",
+          "sourceEvidence": [
+            "https://docs.sglang.io/get_started/install.html"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4"
+          ],
+          "riskNotes": [
+            "do not pull floating latest or dev images into a beta-readiness chain"
+          ]
+        },
+        "status": "skipped",
+        "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke",
+        "blockers": [
+          "profile_build_not_allowed:f5-official-sglang-image-overlay"
+        ],
+        "warnings": [
+          "do not pull floating latest or dev images into a beta-readiness chain"
+        ]
+      },
+      {
+        "profile": {
+          "id": "f6-source-build-after-9021-9231",
+          "label": "Profile F6 source-build after PR #9021/#9231",
+          "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+          "installMode": "blocked",
+          "sglangPackageSpec": "source-build-after-9021-9231",
+          "sglKernelPackageSpec": "source-build-after-9021-9231",
+          "sglangKernelPackageSpec": "source-build-after-9021-9231",
+          "torchCudaExpectation": "not attempted",
+          "rationale": "Reserved for a human-approved source-build investigation if all wheel/image paths fail.",
+          "sourceEvidence": [
+            "https://github.com/sgl-project/sglang/pull/9021",
+            "https://github.com/sgl-project/sglang/pull/9231"
+          ],
+          "buildAllowed": false,
+          "blockers": [
+            "source_build_after_9021_9231_not_human_approved_for_this_bounded_rerun"
+          ],
+          "riskNotes": [
+            "large CUDA source build may exceed bounded Cloud Build budget and requires explicit approval"
+          ]
+        },
+        "status": "skipped",
+        "cloudRunJob": "reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke",
+        "blockers": [
+          "profile_build_not_allowed:f6-source-build-after-9021-9231"
+        ],
+        "warnings": [
+          "large CUDA source build may exceed bounded Cloud Build budget and requires explicit approval"
+        ]
+      }
+    ],
+    "candidateAttempts": []
+  },
+  "scopedIamStatus": "delegated_to_fixed_kernel_runner",
+  "cloudBuild": [
+    {
+      "profileId": "f0-pr107-baseline",
+      "status": "blocked",
+      "blockers": [
+        "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure"
+      ]
+    },
+    {
+      "profileId": "f1-minimal-fixed-sgl-kernel",
+      "status": "passed",
+      "buildId": "ec36e22c-0e21-4eaf-ae91-540a881da630",
+      "buildStatus": "SUCCESS",
+      "imageDigest": "sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+      "blockers": []
+    },
+    {
+      "profileId": "f2-current-stable-sglang",
+      "status": "passed",
+      "buildId": "2e6ef43e-2bd9-4eae-9811-4c57a7ddc82c",
+      "buildStatus": "SUCCESS",
+      "imageDigest": "sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+      "blockers": []
+    },
+    {
+      "profileId": "f3-latest-kernel-overlay",
+      "status": "passed",
+      "buildId": "e42544da-10f9-4564-b71c-ad8a1b78daa0",
+      "buildStatus": "SUCCESS",
+      "imageDigest": "sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+      "blockers": []
+    },
+    {
+      "profileId": "f4-forward-compat-base",
+      "status": "blocked",
+      "blockers": [
+        "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence"
+      ]
+    },
+    {
+      "profileId": "f5-official-sglang-image-overlay",
+      "status": "blocked",
+      "blockers": [
+        "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4"
+      ]
+    },
+    {
+      "profileId": "f6-source-build-after-9021-9231",
+      "status": "blocked",
+      "blockers": [
+        "source_build_after_9021_9231_not_human_approved_for_this_bounded_rerun"
+      ]
+    }
+  ],
+  "importSmoke": [
+    {
+      "profileId": "f0-pr107-baseline",
+      "status": "skipped",
+      "blockers": [
+        "profile_build_not_allowed:f0-pr107-baseline"
+      ]
+    },
+    {
+      "profileId": "f1-minimal-fixed-sgl-kernel",
+      "status": "blocked",
+      "imageDigest": "sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/profiles/f1-minimal-fixed-sgl-kernel/",
+      "blockers": [
+        "import_smoke_job_nonzero:f1-minimal-fixed-sgl-kernel:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+        "f1-minimal-fixed-sgl-kernel:required_import_failed:sglang.srt.layers.rotary_embedding"
+      ]
+    },
+    {
+      "profileId": "f2-current-stable-sglang",
+      "status": "blocked",
+      "imageDigest": "sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/profiles/f2-current-stable-sglang/",
+      "blockers": [
+        "import_smoke_job_nonzero:f2-current-stable-sglang:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+        "f2-current-stable-sglang:required_import_failed:sglang",
+        "f2-current-stable-sglang:required_import_failed:sglang.srt.layers.rotary_embedding",
+        "f2-current-stable-sglang:torch_cuda_not_available_on_l4_job"
+      ]
+    },
+    {
+      "profileId": "f3-latest-kernel-overlay",
+      "status": "blocked",
+      "imageDigest": "sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/profiles/f3-latest-kernel-overlay/",
+      "blockers": [
+        "import_smoke_job_nonzero:f3-latest-kernel-overlay:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+        "f3-latest-kernel-overlay:required_import_failed:sglang.srt.layers.rotary_embedding"
+      ]
+    },
+    {
+      "profileId": "f4-forward-compat-base",
+      "status": "skipped",
+      "blockers": [
+        "profile_build_not_allowed:f4-forward-compat-base"
+      ]
+    },
+    {
+      "profileId": "f5-official-sglang-image-overlay",
+      "status": "skipped",
+      "blockers": [
+        "profile_build_not_allowed:f5-official-sglang-image-overlay"
+      ]
+    },
+    {
+      "profileId": "f6-source-build-after-9021-9231",
+      "status": "skipped",
+      "blockers": [
+        "profile_build_not_allowed:f6-source-build-after-9021-9231"
+      ]
+    }
+  ],
+  "generatedRuntime": [],
+  "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/",
+  "blockedScopes": [
+    "Phase 39D controlled real-frame VLM",
+    "Phase 39E planning integration",
+    "provider calls",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "public output",
+    "broad user media",
+    "broad real-media processing",
+    "arbitrary media paths",
+    "unapproved GPU types",
+    "non-Qwen candidates",
+    "new Qwen model downloads",
+    "service-account keys",
+    "Track A runtime/visual/render stack"
+  ],
+  "blockers": [
+    "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure",
+    "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence",
+    "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4",
+    "source_build_after_9021_9231_not_human_approved_for_this_bounded_rerun",
+    "profile_build_not_allowed:f0-pr107-baseline",
+    "import_smoke_job_nonzero:f1-minimal-fixed-sgl-kernel:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+    "f1-minimal-fixed-sgl-kernel:required_import_failed:sglang.srt.layers.rotary_embedding",
+    "import_smoke_job_nonzero:f2-current-stable-sglang:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+    "f2-current-stable-sglang:required_import_failed:sglang",
+    "f2-current-stable-sglang:required_import_failed:sglang.srt.layers.rotary_embedding",
+    "f2-current-stable-sglang:torch_cuda_not_available_on_l4_job",
+    "import_smoke_job_nonzero:f3-latest-kernel-overlay:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+    "f3-latest-kernel-overlay:required_import_failed:sglang.srt.layers.rotary_embedding",
+    "profile_build_not_allowed:f4-forward-compat-base",
+    "profile_build_not_allowed:f5-official-sglang-image-overlay",
+    "profile_build_not_allowed:f6-source-build-after-9021-9231",
+    "no_sglang_kernel_profile_passed_import_smoke"
+  ],
+  "warnings": [
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible versi",
+    "private_import_smoke_artifact_verified:f1-minimal-fixed-sgl-kernel:generation=1780413895214215",
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version ",
+    "private_import_smoke_artifact_verified:f2-current-stable-sglang:generation=1780415531822638",
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version ",
+    "private_import_smoke_artifact_verified:f3-latest-kernel-overlay:generation=1780416161026749"
+  ],
+  "vlmToolFamilyBetaStatus": "blocked",
+  "nextPhaseDecision": "Import smoke remains blocked; use a different approved GPU/runtime CUDA environment or human-approved SGLang source-build investigation."
+}

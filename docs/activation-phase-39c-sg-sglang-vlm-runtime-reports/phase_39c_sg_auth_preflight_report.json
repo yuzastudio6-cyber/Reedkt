@@ -1,0 +1,161 @@
+{
+  "phase": "39C-SG-AUTH-RERUN",
+  "reportId": "phase_39c_sg_auth_preflight_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:15:56.043Z",
+  "status": "passed",
+  "authPathUsed": "active_account",
+  "activePrincipal": "aiediting@reeditpro.com",
+  "tokenOutput": "not_printed",
+  "serviceAccountKey": "not_used_not_created",
+  "sanitizedConfig": {
+    "core": {
+      "account": "aiediting@reeditpro.com",
+      "disable_prompts": "True",
+      "disable_usage_reporting": "True",
+      "project": "reeditpro"
+    }
+  },
+  "environmentPresence": {
+    "REEDITPRO_GCP_IMPERSONATE_SERVICE_ACCOUNT": false,
+    "REEDITPRO_GCP_ACCESS_TOKEN_FILE": false,
+    "CLOUDSDK_AUTH_ACCESS_TOKEN": false,
+    "REEDITPRO_GCP_WIF_CREDENTIAL_FILE": false,
+    "GOOGLE_APPLICATION_CREDENTIALS": false,
+    "K_SERVICE": false,
+    "GCE_METADATA_HOST": false,
+    "GOOGLE_CLOUD_PROJECT": false
+  },
+  "probes": [
+    {
+      "id": "gcloud_version",
+      "status": "passed",
+      "command": "gcloud --version",
+      "durationMs": 266,
+      "outputSummary": "Google Cloud SDK 558.0.0\nbq 2.1.28\ncore 2026.02.20\ngcloud-crc32c 1.0.0\ngsutil 5.35"
+    },
+    {
+      "id": "active_account",
+      "status": "passed",
+      "command": "gcloud --quiet auth list --filter=status:ACTIVE --format=value(account)",
+      "durationMs": 257,
+      "outputSummary": "aiediting@reeditpro.com"
+    },
+    {
+      "id": "active_project",
+      "status": "passed",
+      "command": "gcloud --quiet config get-value project",
+      "durationMs": 245,
+      "outputSummary": "reeditpro"
+    },
+    {
+      "id": "sanitized_config",
+      "status": "passed",
+      "command": "gcloud --quiet config list --format=json",
+      "durationMs": 622,
+      "outputSummary": "{\n  \"core\": {\n    \"account\": \"aiediting@reeditpro.com\",\n    \"disable_prompts\": \"True\",\n    \"disable_usage_reporting\": \"True\",\n    \"project\": \"reeditpro\"\n  }\n}"
+    },
+    {
+      "id": "print_access_token_redacted",
+      "status": "passed",
+      "command": "gcloud --quiet auth print-access-token",
+      "durationMs": 264,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "adc_print_access_token_redacted",
+      "status": "failed",
+      "command": "gcloud --quiet auth application-default print-access-token",
+      "durationMs": 9475,
+      "errorSummary": "WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. WARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out WARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out WARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down ERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set u"
+    },
+    {
+      "id": "services_list",
+      "status": "passed",
+      "command": "gcloud --quiet services list --project reeditpro --limit=1 --format=json",
+      "durationMs": 912,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "cloud_builds_list",
+      "status": "passed",
+      "command": "gcloud --quiet builds list --project reeditpro --limit=1 --format=json",
+      "durationMs": 747,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "artifact_registry_describe",
+      "status": "passed",
+      "command": "gcloud --quiet artifacts repositories describe reeditpro-staging-workers --project reeditpro --location us-central1 --format=json",
+      "durationMs": 803,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "cloud_run_jobs_list",
+      "status": "passed",
+      "command": "gcloud --quiet run jobs list --project reeditpro --region us-central1 --format=json",
+      "durationMs": 994,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "generated_assets_bucket_describe",
+      "status": "passed",
+      "command": "gcloud --quiet storage buckets describe gs://reeditpro-staging-reeditpro-generated-assets --format=json",
+      "durationMs": 557,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "qa_artifacts_bucket_describe",
+      "status": "passed",
+      "command": "gcloud --quiet storage buckets describe gs://reeditpro-staging-reeditpro-qa-artifacts --format=json",
+      "durationMs": 522,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "qa_artifacts_iam_policy_read",
+      "status": "passed",
+      "command": "gcloud --quiet storage buckets get-iam-policy gs://reeditpro-staging-reeditpro-qa-artifacts --format=json",
+      "durationMs": 596,
+      "outputSummary": "not_printed"
+    }
+  ],
+  "permissionPreflight": {
+    "status": "passed",
+    "requiredProject": "reeditpro",
+    "probes": [
+      {
+        "id": "services_list",
+        "status": "passed"
+      },
+      {
+        "id": "cloud_builds_list",
+        "status": "passed"
+      },
+      {
+        "id": "artifact_registry_describe",
+        "status": "passed"
+      },
+      {
+        "id": "cloud_run_jobs_list",
+        "status": "passed"
+      },
+      {
+        "id": "generated_assets_bucket_describe",
+        "status": "passed"
+      },
+      {
+        "id": "qa_artifacts_bucket_describe",
+        "status": "passed"
+      },
+      {
+        "id": "qa_artifacts_iam_policy_read",
+        "status": "passed"
+      }
+    ],
+    "blockers": []
+  },
+  "blockers": [],
+  "warnings": [
+    "application_default_credentials_token_unavailable:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. WARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out WARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out WARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down ERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set u"
+  ]
+}

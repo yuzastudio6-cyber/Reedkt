@@ -1,0 +1,171 @@
+{
+  "blockers": [
+    "required_import_failed:sglang.srt.layers.rotary_embedding"
+  ],
+  "createdAt": "2026-06-02T16:01:56.418640Z",
+  "cudaSymbolProbe": {
+    "status": "loaded",
+    "symbols": {
+      "cuDriverGetVersion": "present",
+      "cuGreenCtxDestroy": "missing",
+      "cuGreenCtxStreamCreate": "missing",
+      "cuInit": "present"
+    }
+  },
+  "importResults": [
+    {
+      "module": "torch",
+      "path": "/opt/conda/lib/python3.11/site-packages/torch/__init__.py",
+      "status": "passed"
+    },
+    {
+      "module": "sglang",
+      "path": "/opt/conda/lib/python3.11/site-packages/sglang/__init__.py",
+      "status": "passed"
+    },
+    {
+      "module": "sglang.srt",
+      "path": "None",
+      "status": "passed"
+    },
+    {
+      "exceptionClass": "ImportError",
+      "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n",
+      "module": "sglang.srt.layers.rotary_embedding",
+      "status": "blocked",
+      "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+    },
+    {
+      "exceptionClass": "ImportError",
+      "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n",
+      "module": "sgl_kernel",
+      "status": "blocked",
+      "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+    },
+    {
+      "exceptionClass": "ImportError",
+      "message": "\n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n",
+      "module": "sgl_kernel.common_ops",
+      "status": "blocked",
+      "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1126, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1147, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 690, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 940, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 241, in _call_with_frames_removed\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+    },
+    {
+      "module": "xgrammar",
+      "path": "/opt/conda/lib/python3.11/site-packages/xgrammar/__init__.py",
+      "status": "passed"
+    },
+    {
+      "exceptionClass": "ModuleNotFoundError",
+      "message": "No module named 'guidance'",
+      "module": "guidance",
+      "status": "blocked",
+      "tracebackExcerpt": "Traceback (most recent call last):\n  File \"/app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py\", line 61, in attempt_import\n    module = importlib.import_module(module_name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/importlib/__init__.py\", line 126, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1204, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1176, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1140, in _find_and_load_unlocked\nModuleNotFoundError: No module named 'guidance'\n"
+    }
+  ],
+  "inferenceRan": false,
+  "launchServerHelp": {
+    "command": [
+      "/opt/conda/bin/python",
+      "-m",
+      "sglang.launch_server",
+      "--help"
+    ],
+    "returncode": 1,
+    "stderrExcerpt": "ch import BaseFinishReason\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/managers/schedule_batch.py\", line 50, in <module>\n    from sglang.srt.disaggregation.decode_schedule_batch_mixin import (\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/disaggregation/decode_schedule_batch_mixin.py\", line 10, in <module>\n    from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode, ForwardMode\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/model_executor/forward_batch_info.py\", line 47, in <module>\n    from sglang.srt.layers.rotary_embedding import MRotaryEmbedding\n  File \"/opt/conda/lib/python3.11/site-packages/sglang/srt/layers/rotary_embedding.py\", line 28, in <module>\n    from sgl_kernel import apply_rope_with_cos_sin_cache_inplace\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/__init__.py\", line 5, in <module>\n    common_ops = _load_architecture_specific_ops()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/conda/lib/python3.11/site-packages/sgl_kernel/load_utils.py\", line 188, in _load_architecture_specific_ops\n    raise ImportError(error_msg)\nImportError: \n[sgl_kernel] CRITICAL: Could not load any common_ops library!\n\nAttempted locations:\n1. Architecture-specific pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.* - found files: ['/opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so']\n2. Fallback pattern: /opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n",
+    "stdoutExcerpt": ""
+  },
+  "ldLibraryPath": {
+    "containsCloudRunDriverPath": true,
+    "present": true,
+    "sanitizedEntries": [
+      "/usr/local/nvidia/lib",
+      "/usr/local/nvidia/lib64",
+      "/usr/local/nvidia/lib64"
+    ]
+  },
+  "modelPayloadCopied": false,
+  "nvidiaSmi": {
+    "command": [
+      "nvidia-smi",
+      "--query-gpu=name,driver_version,memory.total,compute_cap",
+      "--format=csv,noheader"
+    ],
+    "returncode": 0,
+    "stderrExcerpt": "",
+    "stdoutExcerpt": "NVIDIA L4, 535.274.02, 23034 MiB, 8.9\n"
+  },
+  "packages": [
+    {
+      "package": "sglang",
+      "status": "present",
+      "version": "0.4.10.post2"
+    },
+    {
+      "package": "sgl-kernel",
+      "status": "present",
+      "version": "0.3.21"
+    },
+    {
+      "error": "No package metadata was found for sglang-kernel",
+      "package": "sglang-kernel",
+      "status": "missing",
+      "version": null
+    },
+    {
+      "package": "torch",
+      "status": "present",
+      "version": "2.7.1"
+    },
+    {
+      "package": "xgrammar",
+      "status": "present",
+      "version": "0.1.22"
+    },
+    {
+      "error": "No package metadata was found for guidance",
+      "package": "guidance",
+      "status": "missing",
+      "version": null
+    },
+    {
+      "package": "transformers",
+      "status": "present",
+      "version": "4.54.1"
+    }
+  ],
+  "phase": "39C-SG-FIXED",
+  "privateArtifact": null,
+  "processedImages": false,
+  "profileId": "f3-latest-kernel-overlay",
+  "providerCalls": false,
+  "publicOutput": false,
+  "python": {
+    "executable": "/opt/conda/bin/python",
+    "platform": "Linux-6.9.12-x86_64-with-glibc2.35",
+    "version": "3.11.11 | packaged by conda-forge | (main, Dec  5 2024, 14:17:24) [GCC 13.3.0]"
+  },
+  "realMedia": false,
+  "reportId": "phase_39c_sg_fixed_kernel_import_smoke_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556-f3-latest-kernel-overlay",
+  "status": "blocked",
+  "torch": {
+    "cudaAvailable": true,
+    "cudaVersion": "12.6",
+    "deviceCount": 1,
+    "devices": [
+      {
+        "index": 0,
+        "major": 8,
+        "minor": 9,
+        "name": "NVIDIA L4",
+        "totalMemoryBytes": 23583784960
+      }
+    ],
+    "status": "passed",
+    "version": "2.7.1+cu126"
+  },
+  "vlmToolFamilyBetaStatus": "blocked",
+  "warnings": [
+    "sglang_launch_server_help_nonzero:ernel/common_ops.* - found files: []\n3. Standard Python import: common_ops - failed\n\nGPU Info:\n- Compute capability: 89\n- Expected variant: SM89 (precise math for compatibility)\n\nPlease ensure sgl_kernel is properly installed with:\npip install --upgrade sgl_kernel\n\nError details from previous import attempts:\n- ImportError: /opt/conda/lib/python3.11/site-packages/sgl_kernel/sm100/common_ops.abi3.so: undefined symbol: _ZN3c104cuda9SetDeviceEab\n- ModuleNotFoundError: No module named 'common_ops'\n\n"
+  ]
+}

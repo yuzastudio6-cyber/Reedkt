@@ -1,16 +1,36 @@
 {
   "phase": "39C-SG-FIXED",
-  "runId": "phase39c-sg-fixed-20260602T132030",
-  "createdAt": "2026-06-02T13:23:33.690Z",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:16:12.309Z",
   "selectedProfile": null,
   "selectedCandidate": null,
   "status": "not_run_import_smoke_blocked",
   "blockers": [
-    "fixed_kernel_iam_policy_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. ",
-    "fixed_kernel_qa_create_scoped_binding_not_present_after_check"
+    "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure",
+    "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence",
+    "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4",
+    "source_build_after_9021_9231_not_human_approved_for_this_bounded_rerun",
+    "profile_build_not_allowed:f0-pr107-baseline",
+    "import_smoke_job_nonzero:f1-minimal-fixed-sgl-kernel:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+    "f1-minimal-fixed-sgl-kernel:required_import_failed:sglang.srt.layers.rotary_embedding",
+    "import_smoke_job_nonzero:f2-current-stable-sglang:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+    "f2-current-stable-sglang:required_import_failed:sglang",
+    "f2-current-stable-sglang:required_import_failed:sglang.srt.layers.rotary_embedding",
+    "f2-current-stable-sglang:torch_cuda_not_available_on_l4_job",
+    "import_smoke_job_nonzero:f3-latest-kernel-overlay:Command failed: gcloud --quiet run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-fixed-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setti",
+    "f3-latest-kernel-overlay:required_import_failed:sglang.srt.layers.rotary_embedding",
+    "profile_build_not_allowed:f4-forward-compat-base",
+    "profile_build_not_allowed:f5-official-sglang-image-overlay",
+    "profile_build_not_allowed:f6-source-build-after-9021-9231",
+    "no_sglang_kernel_profile_passed_import_smoke"
   ],
   "warnings": [
-    "fixed_kernel_iam_policy_after_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. "
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible versi",
+    "private_import_smoke_artifact_verified:f1-minimal-fixed-sgl-kernel:generation=1780413895214215",
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version ",
+    "private_import_smoke_artifact_verified:f2-current-stable-sglang:generation=1780415531822638",
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version ",
+    "private_import_smoke_artifact_verified:f3-latest-kernel-overlay:generation=1780416161026749"
   ],
   "reportId": "phase_39c_sg_fixed_kernel_freeform_perception_report",
   "generatedFixtures": [

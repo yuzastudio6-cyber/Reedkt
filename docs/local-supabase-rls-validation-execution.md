@@ -160,3 +160,21 @@ Updated readiness:
 Prompt 20A - Local Supabase Toolchain Repair.
 
 Prompt 21 should wait until a compatible local Supabase CLI or approved container path, local config, Docker daemon or equivalent local runtime, and `psql` or approved local SQL executor are available and validated.
+
+## Prompt 20A Follow-Up
+
+Prompt 20A repaired the repo-owned local toolchain scaffolding:
+
+- added local-only `supabase/config.toml`;
+- hardened safety preflight result shape and blocker IDs;
+- hardened the local RLS runner to require `--confirm-local-only` for run mode;
+- added ignored generated-evidence paths.
+
+Current status after Prompt 20A:
+
+- Docker is reachable on this host.
+- Supabase config is present and local-only.
+- Supabase CLI remains blocked because `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`.
+- `psql` remains missing.
+- no local executable SQL candidate exists.
+- no SQL ran and no Supabase target was touched.

@@ -63,3 +63,29 @@ If any of the following are true, do not run SQL:
 ## Prompt 20 Decision
 
 Prompt 20 preflight reports blocked. No SQL execution is allowed until Prompt 20A repairs the local toolchain or provides an approved local-only container path.
+
+## Prompt 20A Update
+
+Prompt 20A adds a local-only `supabase/config.toml` and hardens the preflight output. The preflight now reports:
+
+- `status`: `ready`, `blocked`, or `warning`;
+- blocker IDs and warning IDs;
+- `canRunLocalSql`;
+- `canStartLocalSupabase`;
+- `canResetLocalSupabase`;
+- `canUseDocker`;
+- `canUsePsql`;
+- `remoteRiskDetected`.
+
+Prompt 20A preflight result on this host:
+
+| Check | Prompt 20A result | Status |
+| --- | --- | --- |
+| Local config exists | `supabase/config.toml` exists and contains no remote remotes block. | Passed |
+| Docker daemon reachable | Docker reports server version `29.5.2`. | Passed |
+| Supabase CLI compatible | `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`. | Blocked |
+| `psql` available | `psql` is not on PATH. | Blocked |
+| Local executable SQL exists | none under `database/test-sql/local/`. | Blocked |
+| Remote risk detected | no remote link indicator or risky env var name was detected. | Passed |
+
+Prompt 20A still does not permit SQL execution. Run mode must include `--confirm-local-only` and preflight must report `canRunLocalSql=true`.

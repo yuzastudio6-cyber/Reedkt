@@ -102,3 +102,24 @@ Prompt 20 did not touch:
 ## Evidence Decision
 
 Prompt 20 records local validation as `validation_blocked`. Prompt 20A should repair the local Supabase toolchain before SQL/RLS execution is attempted again.
+
+## Prompt 20A Evidence Update
+
+Prompt 20A records local validation as still blocked, with narrower blockers:
+
+- `supabase/config.toml` was added and is local-only.
+- Docker daemon is reachable on this host.
+- Supabase CLI remains blocked by architecture mismatch: x86_64 binary on arm64 host, error `-86`.
+- `psql` remains missing.
+- no local DB URL is verified.
+- no executable local SQL candidate exists.
+
+Commands:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports config present, Docker usable, CLI/psql/candidate blockers. |
+| `npm run supabase:rls:list-tests` | Completed, status `listed`, exit code `0` | Lists all SQL files and executes no SQL. |
+| `npm run supabase:rls:local:dry-run` | Completed, status `blocked`, exit code `0` | Confirms SQL run remains refused. |
+
+No local, staging, remote, or production Supabase target was touched.

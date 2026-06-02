@@ -1,0 +1,40 @@
+use_default_settings: true
+
+general:
+  debug: false
+  instance_name: "ReeditPro Private SearXNG"
+  enable_metrics: false
+
+search:
+  formats:
+    - html
+    - json
+  autocomplete: ""
+  default_lang: "en"
+
+server:
+  bind_address: "0.0.0.0"
+  port: 8080
+  base_url: false
+  # SearXNG overwrites this placeholder with the runtime SEARXNG_SECRET value.
+  secret_key: "ultrasecretkey"
+  limiter: false
+  public_instance: false
+  image_proxy: false
+  method: "GET"
+  default_http_headers:
+    X-Content-Type-Options: nosniff
+    X-Download-Options: noopen
+    X-Robots-Tag: noindex, nofollow
+    Referrer-Policy: no-referrer
+
+ui:
+  static_use_hash: true
+  query_in_title: false
+
+outgoing:
+  request_timeout: 3.0
+  max_request_timeout: 5.0
+  pool_connections: 10
+  pool_maxsize: 10
+  useragent_suffix: "ReeditPro Phase49F private validation"

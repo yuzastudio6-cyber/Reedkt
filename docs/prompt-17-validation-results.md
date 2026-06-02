@@ -1,6 +1,6 @@
 # Prompt 17 Validation Results
 
-PR: pending.
+PR: [PR #111](https://github.com/yuzastudio6-cyber/Reedkt/pull/111)
 
 ## Files Inspected
 
@@ -51,7 +51,7 @@ Commands and results:
 - `npm run build:server` - blocked locally by npm/host Node; direct server Vite probe also blocked by Rolldown native binding.
 - `npm run foundation:validate:with-build` - blocked locally by npm/host Node.
 
-GitHub Foundation Validation is pending PR creation and is required for exact npm-script validation.
+GitHub Foundation Validation is pending on PR #111 and is required for exact npm-script validation.
 
 ## SQL/RLS Status
 

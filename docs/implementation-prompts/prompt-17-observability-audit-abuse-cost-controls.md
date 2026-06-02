@@ -53,7 +53,7 @@ Run:
 - Branch: `codex/rp-foundation-17-observability-audit-abuse-cost-controls`
 - PR base: `codex/rp-foundation-16-compliance-license-security-review`
 - PR title: `[foundation] Prompt 17 observability audit abuse cost controls`
-- PR: pending
+- PR: [PR #111](https://github.com/yuzastudio6-cyber/Reedkt/pull/111)
 - Do not merge the PR.
 
 ## Acceptance Criteria

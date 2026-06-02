@@ -213,16 +213,30 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Next prompt recommendation: Prompt 15 - Provider Gateway Foundation.
 - GitHub deliverable: branch, commit, push, PR with worker execution contract hardening and explicit no-runtime-execution status.
 
-## 15. Compliance/License/Dependency/Security Review Foundation
+## 15. Provider Gateway Foundation
 
-- Purpose: clear production blockers for dependencies, tools, media processing, and data/security practices.
-- Implements: dependency inventory, license review status, FFmpeg/LGPL configuration review, security scan plan, model/tool approval policy, privacy retention checks, and risk register.
+- Purpose: harden backend-safe provider gateway boundaries before any provider execution, webhook processing, or generated asset persistence.
+- Deliverables after Prompt 15: `docs/provider-gateway-foundation.md`, `docs/provider-request-envelope-contract.md`, `docs/provider-gateway-route-contract.md`, `docs/provider-gateway-gate-contract.md`, `docs/provider-secret-boundary-policy.md`, `docs/prompt-15-validation-results.md`, `database/test-sql/017_provider_gateway_rls_smoke_tests.draft.sql`, `scripts/validation/provider-gateway-scope-diagnostics.mjs`, provider route/service/schema updates, and provider route metadata.
+- Implementation status after Prompt 15: partially implemented / limited provider gateway route-service foundation only. Real provider execution remains blocked.
+- Validation status after Prompt 15: pending final local validation and GitHub Foundation Validation.
+- Implements: provider readiness, static catalog/model summaries, secret-reference checks without secret reads, route previews, request-envelope validation, request-attempt create boundaries, webhook receive boundaries, output-readiness blockers, fail-closed execution blockers, diagnostics, and draft SQL/RLS validation plan.
+- Must not implement: real provider calls, provider SDK installation, Secret Manager access, provider secret reads, provider webhook processing, generated asset creation, worker execution, production job claims, Cloud Run/Pub/Sub/Cloud Tasks dispatch, render/export, tool execution, media processing, storage transfer, credit mutation, Stripe, migrations, remote Supabase, deployment, or production/beta unlocks.
+- Main files/tables/services: `generation_providers`, `generation_provider_models`, `provider_request_attempts`, `provider_webhook_events`, approved snapshots, credit reservations, jobs/worker records as readiness references, tool-call intents, storage object records, QA blockers, provider gateway route/service/contracts, and idempotency keys.
+- What remains blocked: provider transport, provider secrets, webhook verification, attempt persistence, generated asset persistence, provider output storage, local/staging RLS validation, workers, tools, render/export, credit mutation, and deployment.
+- Acceptance criteria: routes require auth, request boundaries require idempotency, service does not write provider records or call providers, missing runtime returns blockers, diagnostics pass, draft SQL/RLS test exists, and no blocked downstream capability is enabled.
+- Next prompt recommendation: Prompt 16 - Compliance, License, Dependency, and Security Review Foundation if Prompt 15 validation and CI pass; otherwise Prompt 15A - Provider Gateway Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with provider gateway foundation and explicit no-provider-execution status.
+
+## 16. Compliance, License, Dependency, And Security Review Foundation
+
+- Purpose: clear production blockers for dependencies, tools, media processing, provider integrations, and data/security practices.
+- Implements: dependency inventory, license review status, FFmpeg/LGPL configuration review, provider SDK approval policy, security scan plan, model/tool approval policy, privacy retention checks, and risk register.
 - Must not implement: package installs, model downloads, provider calls, tool execution, deployment, or production media processing.
-- Main files/tables/services: `open-source-tool-registry.md`, `tool-license-risk-policy.md`, `launch-tool-stack-update.md`, dependency audit docs, privacy/retention docs.
-- Acceptance criteria: each launch-core tool/dependency has approved, blocked, or evaluation-only status; blockers are explicit before execution milestones.
+- Main files/tables/services: `open-source-tool-registry.md`, `tool-license-risk-policy.md`, `launch-tool-stack-update.md`, dependency audit docs, privacy/retention docs, provider readiness docs.
+- Acceptance criteria: each launch-core provider/tool/dependency has approved, blocked, or evaluation-only status; blockers are explicit before execution milestones.
 - GitHub deliverable: branch, commit, push, PR with review matrix and no-execution statement.
 
-## 16. Observability, Audit, Abuse Prevention, And Cost Controls
+## 17. Observability, Audit, Abuse Prevention, And Cost Controls
 
 - Purpose: make production behavior traceable, rate-limited, and cost-safe.
 - Implements: sanitized audit events, request tracing, rate-limit policy, cost counters, anomaly flags, admin review boundaries, alerting plan, and incident rollback hooks.
@@ -231,7 +245,7 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: privileged actions are auditable, secrets/signed URLs are redacted, abuse controls exist for upload/provider/render/Stripe paths, cost overrun blocks or asks for approval.
 - GitHub deliverable: branch, commit, push, PR with observability tests or dry-run evidence and production-control status.
 
-## 17. End-To-End Staging Smoke Test
+## 18. End-To-End Staging Smoke Test
 
 - Purpose: verify the staged production path from upload through approved mock or limited real execution under explicit flags.
 - Implements: staging-only smoke plan, seeded project, upload, intent/plan, approval, credit reservation, job claim, readiness checks, allowed worker path, QA, preview/export readiness report, and cleanup.

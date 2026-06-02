@@ -46,6 +46,7 @@
     "tool:call:diagnostics": "node scripts/validation/tool-call-scope-diagnostics.mjs",
     "tool:readiness:diagnostics": "node scripts/validation/tool-readiness-worker-runtime-diagnostics.mjs",
     "worker:execution:diagnostics": "node scripts/validation/worker-execution-contract-diagnostics.mjs",
+    "provider:gateway:diagnostics": "node scripts/validation/provider-gateway-scope-diagnostics.mjs",
     "foundation:tool-readiness": "tsx server/cli/foundation-tool-readiness.ts",
     "foundation:tool-readiness:report": "tsx server/cli/foundation-tool-readiness-report.ts",
     "smoke:tool-readiness-worker-runtime-foundation": "tsx server/smoke/tool-readiness-worker-runtime-foundation-smoke.ts",

@@ -2,6 +2,7 @@ import type { ApiDomain, ApiRouteDefinition } from './api-runtime-contracts'
 import { ADMIN_API_ROUTES } from './routes/admin-api-routes'
 import { APPROVED_SNAPSHOT_API_ROUTES } from './routes/approved-snapshot-api-routes'
 import { AUTH_BOOTSTRAP_API_ROUTES } from './routes/auth-bootstrap-api-routes'
+import { COMPLIANCE_API_ROUTES } from './routes/compliance-api-routes'
 import { CREDIT_API_ROUTES } from './routes/credit-api-routes'
 import { EDIT_PLANNING_API_ROUTES } from './routes/edit-planning-api-routes'
 import { GENERATION_API_ROUTES } from './routes/generation-api-routes'
@@ -60,6 +61,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...WORKER_API_ROUTES,
   ...TOOL_CALL_API_ROUTES,
   ...TOOL_READINESS_API_ROUTES,
+  ...COMPLIANCE_API_ROUTES,
   ...QA_REVISION_API_ROUTES,
   ...GENERATION_API_ROUTES,
   ...RENDER_API_ROUTES,
@@ -82,6 +84,7 @@ const API_DOMAINS: ApiDomain[] = [
   'workers',
   'qa',
   'tools',
+  'compliance',
   'generation',
   'render',
   'music',
@@ -176,6 +179,7 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     workers: 0,
     qa: 0,
     tools: 0,
+    compliance: 0,
     generation: 0,
     render: 0,
     music: 0,

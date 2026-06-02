@@ -34,6 +34,7 @@ export type ApiDomain =
   | 'workers'
   | 'qa'
   | 'tools'
+  | 'compliance'
   | 'generation'
   | 'render'
   | 'music'

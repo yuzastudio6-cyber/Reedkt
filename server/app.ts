@@ -8,6 +8,7 @@ import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createAuthRoutes } from './routes/auth-routes'
 import { createChatRoutes } from './routes/chat-routes'
+import { createComplianceRoutes } from './routes/compliance-routes'
 import { createCreditRoutes } from './routes/credit-routes'
 import { createHealthRoutes } from './routes/health-routes'
 import { createJobRoutes } from './routes/job-routes'
@@ -45,6 +46,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createAuthRoutes())
   app.use(createProjectRoutes())
   app.use(createChatRoutes())
+  app.use(createComplianceRoutes())
   app.use(createUploadRoutes())
   app.use(createApprovalRoutes())
   app.use(createCreditRoutes())

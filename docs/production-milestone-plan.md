@@ -229,12 +229,16 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 
 ## 16. Compliance, License, Dependency, And Security Review Foundation
 
-- Purpose: clear production blockers for dependencies, tools, media processing, provider integrations, and data/security practices.
-- Implements: dependency inventory, license review status, FFmpeg/LGPL configuration review, provider SDK approval policy, security scan plan, model/tool approval policy, privacy retention checks, and risk register.
-- Must not implement: package installs, model downloads, provider calls, tool execution, deployment, or production media processing.
-- Main files/tables/services: `open-source-tool-registry.md`, `tool-license-risk-policy.md`, `launch-tool-stack-update.md`, dependency audit docs, privacy/retention docs, provider readiness docs.
-- Acceptance criteria: each launch-core provider/tool/dependency has approved, blocked, or evaluation-only status; blockers are explicit before execution milestones.
-- GitHub deliverable: branch, commit, push, PR with review matrix and no-execution statement.
+- Purpose: add backend-safe compliance/license/dependency/security review boundaries before any future tool, provider, worker, render, or production-enablement milestone can execute.
+- Deliverables after Prompt 16: `docs/compliance-license-security-review-foundation.md`, `docs/compliance-review-contract.md`, `docs/compliance-route-contract.md`, `docs/compliance-gate-contract.md`, `docs/dependency-security-review-runbook.md`, `docs/tool-provider-compliance-matrix.md`, `docs/prompt-16-validation-results.md`, `database/test-sql/018_compliance_license_security_review_rls_smoke_tests.draft.sql`, `scripts/validation/compliance-scope-diagnostics.mjs`, compliance route/service/schema updates, and compliance route metadata.
+- Implementation status after Prompt 16: partially implemented / limited compliance route-service foundation only. Legal approval, production approval, dependency approval, and runtime approval remain blocked.
+- Implements: static compliance subject inventory from tool readiness/provider/dependency metadata, review preview/create boundaries, license/security/dependency/runtime readiness blockers, production-unlock blocked response, audit summary boundary, route metadata, diagnostics, and draft SQL/RLS validation plan.
+- Must not implement: legal advice, production approval, dependency mutation, audit fix, package installs beyond `npm ci`, tool package installs, provider SDK installs, Secret Manager access, provider secret reads, provider calls, tool execution, worker execution, render/export, media processing, storage transfer, credit mutation, Stripe, migrations, remote Supabase, deployment, or production/beta unlocks.
+- Main files/tables/services: future `compliance_review_records`, `tool_license_compliance`, `dependency_review_records`, `package_review_records`, `license_review_records`, `security_review_records`, `runtime_approval_records`, `model_provenance_review_records`, `compliance_audit_events`, `audit_events`, and `server/services/compliance-service.ts`.
+- What remains blocked: compliance table/RLS application, human review workflow, dependency remediation, runtime approval persistence, production unlocks, local/staging RLS validation, and all runtime execution domains.
+- Acceptance criteria: routes require auth, request boundaries require idempotency, service does not write compliance or runtime records, missing review runtime returns blockers, diagnostics pass, draft SQL/RLS test exists, and no legal/production/runtime approval is granted.
+- Next prompt recommendation: Prompt 17 - Observability, Audit, Abuse Prevention, and Cost Controls if Prompt 16 validation and CI pass; otherwise Prompt 16A - Compliance Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with compliance foundation and explicit no-approval/no-execution status.
 
 ## 17. Observability, Audit, Abuse Prevention, And Cost Controls
 

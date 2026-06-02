@@ -132,6 +132,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'e2e:staging:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_rls_prep_diagnostics',
+    command: 'npm run --silent supabase:rls:prep:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:rls:prep:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

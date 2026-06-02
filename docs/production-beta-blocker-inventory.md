@@ -5,8 +5,8 @@ This inventory records blockers before production-level beta. Prompt 18 does not
 | Severity | Blocker | Why it matters | Risk | Required fix | Owner/milestone | Can beta proceed without it? | Must be done before production beta? |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Critical | E2E staging smoke not run | No integrated evidence exists. | Unknown cross-domain failures. | Run approved staging smoke with synthetic fixtures. | Prompt 19/31 | No for production beta. | Yes |
-| Critical | Local/staging Supabase/RLS not executed | Access policies are not proven. | Cross-workspace data exposure. | Repair validation environment and run scoped SQL. | Prompt 19 | No. | Yes |
-| Critical | Remote/staging migration not validated | Schema chain may not apply cleanly. | Runtime data corruption or missing tables. | Validate migration chain in approved environment. | Prompt 19 | No. | Yes |
+| Critical | Local/staging Supabase/RLS not executed | Access policies are not proven. | Cross-workspace data exposure. | Run scoped local SQL after Prompt 19 preparation, then staging SQL only with approval. | Prompt 20 | No. | Yes |
+| Critical | Remote/staging migration not validated | Schema chain may not apply cleanly. | Runtime data corruption or missing tables. | Validate migration chain in approved local/staging environment. | Prompt 20, then staging validation | No. | Yes |
 | Critical | Service-role backend persistence not enabled | Writes remain backend-required. | Fake readiness could be mistaken for production. | Add reviewed transactional services. | Future backend milestones | No. | Yes |
 | Critical | Real signed upload/download not validated | Private media boundary is unproven. | Data exposure or broken upload flow. | Validate private storage and signed URL policy. | Storage validation milestone | No. | Yes |
 | Critical | Credit transactional mutation not enabled | Spend/reserve/refund cannot be trusted. | Unbounded cost or billing mismatch. | Implement transactional credit ledger. | Credit runtime milestone | No. | Yes |
@@ -28,4 +28,4 @@ This inventory records blockers before production-level beta. Prompt 18 does not
 
 ## Decision
 
-Production beta cannot proceed. The next safe milestone is staging Supabase/RLS validation preparation after Prompt 18 static diagnostics and GitHub Foundation Validation pass.
+Prompt 19 marks the Supabase/RLS validation path prepared when its manifest, conversion plan, fixture contract, environment contract, runbook, evidence checklist, and static diagnostics pass. Production beta still cannot proceed because local/staging Supabase/RLS has not executed. The next safe milestone is Prompt 20 - Local Supabase/RLS Validation Execution.

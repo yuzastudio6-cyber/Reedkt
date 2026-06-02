@@ -336,7 +336,11 @@
     "activation:readability-extraction-fixture": "tsx server/cli/activation-readability-extraction-fixture.ts",
     "activation:readability-extraction-fixture:report": "tsx server/cli/activation-readability-extraction-fixture-report.ts",
     "activation:readability-extraction-fixture:iam-plan": "tsx server/cli/activation-readability-extraction-fixture-iam-plan.ts",
-    "smoke:activation-readability-extraction-fixture": "tsx server/smoke/activation-readability-extraction-fixture-smoke.ts"
+    "smoke:activation-readability-extraction-fixture": "tsx server/smoke/activation-readability-extraction-fixture-smoke.ts",
+    "activation:private-web-search-capture-e2e": "tsx server/cli/activation-private-web-search-capture-e2e.ts",
+    "activation:private-web-search-capture-e2e:report": "tsx server/cli/activation-private-web-search-capture-e2e-report.ts",
+    "activation:private-web-search-capture-e2e:iam-plan": "tsx server/cli/activation-private-web-search-capture-e2e-iam-plan.ts",
+    "smoke:activation-private-web-search-capture-e2e": "tsx server/smoke/activation-private-web-search-capture-e2e-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

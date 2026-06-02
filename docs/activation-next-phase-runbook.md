@@ -416,6 +416,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm normalized sources include source IDs, provider, title, URL, domain, snippet, rank, attribution policy, generated flags, and `captureAllowed=false` / `extractionAllowed=false`.
 4. Confirm private artifacts exist only under the Phase 49B generated-assets and QA prefixes.
 5. Proceed to Phase 49C only as a Playwright + Sharp generated/local capture fixture. Live search, public web requests, public capture, Readability runtime, paid providers, public artifacts, production, external beta, paid production, broad media, and Revideo remain blocked.
+
+## After Phase 49C
+
+1. Review `activation:playwright-sharp-capture-fixture:report`, `activation:playwright-sharp-capture-fixture:iam-plan`, and `docs/activation-phase-49c-playwright-sharp-capture-fixture-results.md`.
+2. Confirm Playwright opened only the generated local fixture and recorded `publicWebCaptureUsed=false`.
+3. Confirm Sharp processed only the local Playwright screenshot into preview and thumbnail PNGs.
+4. Confirm private artifacts exist only under the Phase 49C generated-assets and QA prefixes.
+5. Proceed to Phase 49D only as a generated/local Readability extraction fixture. Live search, public web capture, paid providers, public artifacts, production, external beta, paid production, broad media, and Revideo remain blocked.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

@@ -12,7 +12,8 @@ const mode = args.includes('--run')
     : 'dry-run'
 
 const selectedFiles = valuesFor('--file')
-const evidencePath = valueFor('--evidence')
+const explicitEvidencePath = valueFor('--evidence')
+const confirmLocalOnly = args.includes('--confirm-local-only')
 
 const allowedDirectories = [
   path.resolve(root, 'database/test-sql/local'),
@@ -32,18 +33,10 @@ function valuesFor(flag) {
   return values
 }
 
-function findExecutable(name) {
-  const entries = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean)
-  for (const entry of entries) {
-    const candidate = path.join(entry, name)
-    try {
-      fs.accessSync(candidate, fs.constants.X_OK)
-      return candidate
-    } catch {
-      // Keep scanning PATH.
-    }
-  }
-  return null
+function defaultEvidencePath() {
+  if (mode !== 'run') return null
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+  return `.reeditpro-local-validation/supabase-rls-evidence/${stamp}.json`
 }
 
 function redact(value) {
@@ -178,6 +171,16 @@ function parseLocalDbUrl(statusJson) {
 }
 
 function localSupabaseStatus(preflight) {
+  if (mode === 'list-tests') {
+    return {
+      attempted: false,
+      reason: 'List mode does not inspect Supabase status.',
+      command: 'supabase status --output json',
+      result: null,
+      localDbUrlAvailable: false,
+    }
+  }
+
   const supabasePath = preflight?.tools?.supabaseCli?.path
   const supabaseExecutable = Boolean(preflight?.tools?.supabaseCli?.executable)
   if (!supabasePath || !supabaseExecutable) {
@@ -206,11 +209,20 @@ function localSupabaseStatus(preflight) {
 }
 
 function writeEvidence(result) {
+  const evidencePath = explicitEvidencePath ?? defaultEvidencePath()
   if (!evidencePath) return null
   const resolved = path.resolve(root, evidencePath)
   fs.mkdirSync(path.dirname(resolved), { recursive: true })
   fs.writeFileSync(resolved, `${JSON.stringify(result, null, 2)}\n`)
   return path.relative(root, resolved)
+}
+
+function preflightBlockers(preflight) {
+  if (!preflight) return ['Safety preflight did not return parseable JSON.']
+  return [
+    ...(preflight.decision?.criticalFindings ?? []),
+    ...(preflight.decision?.blockers ?? []),
+  ]
 }
 
 const preflightCommand = runNodeScript('scripts/validation/local-supabase-safety-preflight.mjs')
@@ -221,14 +233,23 @@ const status = localSupabaseStatus(preflight)
 
 const blockers = []
 
-if (!preflight) {
-  blockers.push('Safety preflight did not return parseable JSON.')
-} else {
-  blockers.push(...(preflight.decision?.criticalFindings ?? []))
-  blockers.push(...(preflight.decision?.blockers ?? []))
+if (mode !== 'list-tests') {
+  blockers.push(...preflightBlockers(preflight))
 }
 
-if (!status.localDbUrlAvailable) {
+if (mode === 'run' && !confirmLocalOnly) {
+  blockers.push('Run mode requires --confirm-local-only.')
+}
+
+if (mode === 'run' && preflight?.decision?.remoteRiskDetected) {
+  blockers.push('Run mode refused execution because remote risk was detected.')
+}
+
+if (mode === 'run' && !preflight?.decision?.canRunLocalSql) {
+  blockers.push('Run mode refused execution because safety preflight did not allow local SQL.')
+}
+
+if (mode !== 'list-tests' && !status.localDbUrlAvailable) {
   blockers.push('No verified local Supabase database URL is available from `supabase status --output json`.')
 }
 
@@ -290,6 +311,8 @@ const result = {
   nodeVersion: process.version,
   safety: {
     defaultDryRun: mode !== 'run',
+    requiresConfirmLocalOnlyForRun: true,
+    confirmLocalOnly,
     refusesRemoteLinks: true,
     refusesRiskyEnvNames: true,
     allowedSqlDirectories: allowedDirectories.map((directory) => path.relative(root, directory)),
@@ -338,12 +361,13 @@ const result = {
     sqlExecuted: commandsRun.length > 0,
     testCount: testResults.length,
     failedTestCount: failedTests.length,
+    evidenceRequiredForRun: mode === 'run',
     recommendation:
       summaryStatus === 'passed'
         ? 'Record evidence and proceed only to the next approved validation milestone.'
         : summaryStatus === 'listed'
           ? 'Use dry-run next; do not execute SQL until preflight proves a local isolated target.'
-          : 'Do not execute SQL. Repair the listed local-only blockers or use Prompt 20A.',
+          : 'Do not execute SQL. Repair the listed local-only blockers before running SQL.',
   },
 }
 

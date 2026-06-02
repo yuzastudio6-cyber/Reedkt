@@ -164,6 +164,25 @@ Foundation readiness improves slightly because safe local preflight and runner t
 
 Prompt 21 should not proceed yet. Recommended next prompt: Prompt 20A - Local Supabase Toolchain Repair.
 
+## Prompt 20A Follow-Up
+
+Prompt 20A repaired the repo-owned local validation toolchain pieces:
+
+- added local-only `supabase/config.toml`;
+- hardened local Supabase safety preflight result fields and blocker IDs;
+- hardened the local RLS runner with a required `--confirm-local-only` run-mode flag;
+- added ignored generated-evidence paths;
+- recorded that Docker is reachable on the current host.
+
+Local SQL/RLS still did not run. Remaining blockers after Prompt 20A:
+
+- Supabase CLI architecture mismatch: `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`;
+- `psql` is missing;
+- no verified local DB URL exists;
+- no local executable SQL candidate exists.
+
+Recommended next prompt after Prompt 20A: Prompt 20C - Local Supabase Environment Manual Setup.
+
 ## No-Scope Statement
 
 No staging deployment, production deployment, staging/remote Supabase execution, production Supabase execution, remote SQL execution, migration deployment, provider call, real rendering/export, tool execution, real worker execution, production job claim, media processing, browser capture, storage transfer, signed URL creation, credit mutation, Stripe checkout/webhook/payment processing, external telemetry, production/beta unlock, schema-changing production migration, dependency mutation, or broad service-role handler was enabled.

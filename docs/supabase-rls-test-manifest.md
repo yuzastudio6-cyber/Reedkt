@@ -66,3 +66,23 @@ Current local blockers:
 | `020_e2e_staging_smoke_readiness_rls_smoke_tests.draft.sql` | draft_only | not_run | Broad E2E RLS waits for narrower domain tests to pass first. |
 
 Prompt 20 recommendation: use Prompt 20A to repair the local Supabase toolchain before converting `006_auth_workspace_rls_smoke_tests.draft.sql`.
+
+## Prompt 20A Toolchain Repair Update
+
+Prompt 20A adds local-only `supabase/config.toml` and hardens the local preflight/runner, but still does not execute SQL and does not convert draft SQL.
+
+Resolved or improved:
+
+- `supabase/config.toml` now exists and is local-only.
+- Docker daemon is reachable on this host.
+- runner run mode requires `--confirm-local-only`.
+- generated evidence is written only to ignored local paths.
+
+Remaining blockers:
+
+- `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`.
+- `psql` is not on PATH.
+- no verified local DB URL exists.
+- no executable local-only SQL candidate exists.
+
+Conversion decision after Prompt 20A: keep all files draft-only or manual-review-only. `006_auth_workspace_rls_smoke_tests.draft.sql` remains the first candidate for Prompt 20B only after preflight reports `canRunLocalSql=true`.

@@ -14,6 +14,12 @@ dist-server
 dist-remotion-worker
 *.local
 
+# Local Supabase / validation artifacts
+.supabase/
+supabase/.temp/
+supabase/.branches/
+.reeditpro-local-validation/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

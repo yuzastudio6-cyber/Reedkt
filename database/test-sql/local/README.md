@@ -4,6 +4,8 @@ This directory is the only SQL directory that `scripts/validation/local-supabase
 
 Prompt 20 does not add executable SQL files here because the local Supabase toolchain is blocked.
 
+Prompt 20A keeps this directory list/dry-run only. It adds local Supabase config and hardens the runner, but does not add executable SQL because the Supabase CLI is still the wrong architecture, `psql` is still missing, and no verified local DB URL exists.
+
 ## No Remote Rule
 
 Never run files in this directory against:
@@ -32,7 +34,7 @@ npm run supabase:rls:local:dry-run
 Run selected local-only executable tests only after preflight passes:
 
 ```sh
-npm run supabase:rls:local:run -- --file database/test-sql/local/<test-file>.sql
+npm run supabase:rls:local:run -- --confirm-local-only --file database/test-sql/local/<test-file>.sql
 ```
 
 ## Fixture Strategy
@@ -93,9 +95,9 @@ None.
 
 ## Known Blockers
 
-- `supabase/config.toml` is missing.
 - Local Supabase CLI is x86_64 and fails on this arm64 host with error `-86`.
-- Docker daemon is unavailable to this process.
+- `supabase/config.toml` exists and is local-only after Prompt 20A.
+- Docker daemon is reachable on this host after Prompt 20A.
 - `psql` is not on PATH.
 - No local Supabase database URL is verified.
 - No executable local-only SQL file exists yet.

@@ -124,7 +124,10 @@ This is the same local Rolldown native-binding/code-signature blocker recorded i
 
 ## CI Status
 
-Pending for PR #121 after the tracker follow-up push.
+GitHub Foundation Validation passed for PR #121:
+
+- Run: `https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26851103459`
+- Job: `https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26851103459/job/79183145786`
 
 ## Beta Readiness Score Update
 

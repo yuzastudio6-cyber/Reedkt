@@ -50,10 +50,14 @@ with private fixture provider mode only for run `phase49e-20260602T155154`.
 Phase 49F completed private authenticated SearXNG service validation for run
 `phase49f-20260602T204445`. It validated one bounded controlled query through
 `reeditpro-staging-private-searxng` and normalized five source records.
-Phase 49G readiness is limited to controlled private live-search/capture E2E
-using the private service and explicit allowlisted capture policy. Public
-SearXNG instances, paid providers, public web capture/extraction, arbitrary URL
-capture, screenshots against public pages, and broad crawling remain blocked.
+Phase 49G completed controlled private live-search/capture E2E for
+`phase49g-20260602T222646` using the private service, three bounded
+documentation queries, fifteen normalized source records, two allowlisted
+captures, two Sharp screenshot-processing records, and two sanitized
+Readability extractions. Phase 49H readiness is limited to a web search/capture
+internal readiness gate. Public SearXNG instances, paid providers, arbitrary
+URL capture, broad crawling, and non-allowlisted public web capture/extraction
+remain blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

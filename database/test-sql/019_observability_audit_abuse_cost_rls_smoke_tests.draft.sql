@@ -1,0 +1,21 @@
+-- Prompt 17 draft-only RLS smoke test plan.
+-- Local/staging validation only. Do not run against production.
+-- Do not run remote Supabase SQL from Prompt 17.
+-- This file is intentionally draft-only until observability/audit/rate-limit/abuse/cost-control schema and local Supabase validation are approved.
+
+-- Planned assertions:
+-- 1. Workspace members can read project-scoped audit summaries only where policy allows.
+-- 2. Non-members cannot read audit summaries or route-risk records for another workspace.
+-- 3. Normal users cannot write privileged audit events.
+-- 4. Backend/service-role writes audit events only through reviewed append-only paths.
+-- 5. Audit events are append-only; updates/deletes are blocked.
+-- 6. Audit metadata cannot contain secret-like keys, provider keys, service-role keys, signed URL values, raw payloads, raw media, or credentials.
+-- 7. Rate-limit records are backend-owned.
+-- 8. Abuse-prevention records are backend-owned.
+-- 9. Usage metering and cost-control records are backend-owned.
+-- 10. Usage summaries cannot cross workspace/project boundaries.
+-- 11. Admin override records are admin/backend-only.
+-- 12. Production unlock cannot be triggered by a normal user, audit event, alert event, or cost-control preview.
+-- 13. Audit retention classes are constrained by future policy.
+-- 14. Readiness routes create no execution records.
+-- 15. No Stripe/payment mutation occurs from observability, audit, rate-limit, abuse, or cost-control checks.

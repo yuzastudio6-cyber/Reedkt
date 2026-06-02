@@ -278,6 +278,20 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: preparation docs, manifest, conversion plan, environment contract, fixture contract, runbook, evidence checklist, diagnostics, test SQL README, scorecard, blocker inventory, and tracker updates exist; diagnostics pass; no Supabase/SQL execution occurs.
 - Next prompt recommendation: Prompt 20 - Local Supabase/RLS Validation Execution if Prompt 19 validation and CI pass; otherwise Prompt 19A - Supabase/RLS Preparation Hardening.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-Supabase/no-SQL-execution statement.
+
+## 20. Local Supabase/RLS Validation Execution
+
+- Purpose: attempt the first safe local-only Supabase/RLS validation path after Prompt 19 preparation.
+- Deliverables after Prompt 20: `docs/local-supabase-rls-validation-execution.md`, `docs/local-supabase-safety-preflight.md`, `docs/local-supabase-rls-evidence.md`, `docs/prompt-20-validation-results.md`, `database/test-sql/local/README.md`, `scripts/validation/local-supabase-safety-preflight.mjs`, `scripts/validation/local-supabase-rls-runner.mjs`, package scripts for local preflight/list/dry-run/run, manifest updates, scorecard updates, blocker inventory updates, and implementation prompt tracking.
+- Implementation status after Prompt 20: validation blocked / local Supabase-RLS tooling only. No SQL, Supabase, migration, staging, production, or runtime execution is enabled.
+- Implements: local-only safety preflight, local toolchain detection, remote-link/env-name risk detection, guarded RLS list/dry-run runner, strict allowed SQL directory rules, JSON evidence summaries, CI trigger coverage for Prompt 20 PRs, and updated beta readiness evidence.
+- Must not implement: staging/remote/production Supabase execution, remote SQL, migration deployment, production/staging data creation, deployment, providers, tools, workers, render/export, media processing, storage transfer, signed URL creation, credit mutation, Stripe, external telemetry, dependency mutation, or production/beta unlock.
+- Main files/tables/services: docs and validation scripts only; SQL/RLS files remain manual or draft validation artifacts. No tables are migrated or mutated.
+- What remains blocked: local Supabase/RLS execution, staging Supabase/RLS execution, remote production Supabase, migration application evidence, storage policy execution evidence, runtime execution domains, deployment, billing, external telemetry, and beta approval.
+- Validation result: local preflight and runner list/dry-run completed without SQL execution. Local validation remains blocked by missing `supabase/config.toml`, wrong-architecture Supabase CLI error `-86`, unavailable Docker daemon, missing `psql`, no verified local DB URL, and no executable local SQL candidates.
+- Acceptance criteria: local safety preflight exists and reports blockers; runner exists in list/dry-run mode; SQL manifest and local README are updated; no SQL executes unless target is proven local and isolated; beta readiness is updated honestly; no remote/staging/production Supabase is touched.
+- Next prompt recommendation: Prompt 20A - Local Supabase Toolchain Repair. Prompt 21 should wait until local SQL/RLS execution evidence exists or a human-approved staging packet is explicitly scoped.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

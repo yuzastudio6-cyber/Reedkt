@@ -28,3 +28,41 @@ Prompt 19 inventories the current SQL/RLS files and records how each file should
 ## Conversion Decision
 
 The first executable candidate should be `006_auth_workspace_rls_smoke_tests.draft.sql` after Prompt 20 verifies the local Supabase environment and fixture strategy. Broad E2E RLS smoke remains draft-only until local domain tests pass.
+
+## Prompt 20 Execution Update
+
+Prompt 20 added a local-only safety preflight and guarded RLS runner, but did not execute SQL or convert draft SQL files because the local target is blocked.
+
+Current local blockers:
+
+- `supabase/config.toml` is missing.
+- `/usr/local/bin/supabase` is x86_64 and fails on this arm64 host with error `-86`.
+- Docker daemon is unavailable to this process.
+- `psql` is not on PATH.
+- No verified local Supabase database URL is available.
+- No local executable SQL candidates exist under `database/test-sql/local/`.
+
+| File | Prompt 20 status | Prompt 20 execution result | Prompt 20 blocker |
+| --- | --- | --- | --- |
+| `001_rls_smoke_tests.sql` | manual_legacy_or_review_needed | not_run | Needs schema review and local toolchain repair. |
+| `002_approved_snapshot_immutability_tests.sql` | manual_legacy_or_review_needed | not_run | Needs schema review and local toolchain repair. |
+| `003_storage_policy_smoke_tests.sql` | manual_legacy_or_review_needed | not_run | Needs fixture design, local storage policy path, and local toolchain repair. |
+| `004_credit_audit_append_only_tests.sql` | manual_legacy_or_review_needed | not_run | Needs schema review, append-only cleanup/reset strategy, and local toolchain repair. |
+| `005_e2e_runtime_readiness_smoke_tests.sql` | manual_legacy_or_review_needed | not_run | Needs canonical table review and local toolchain repair. |
+| `006_auth_workspace_rls_smoke_tests.draft.sql` | draft_only | not_run | Safest first candidate, but local target, role simulation, migration reset, and cleanup are not proven. |
+| `007_storage_upload_rls_smoke_tests.draft.sql` | draft_only | not_run | Convert only after auth/workspace RLS passes and storage fixture policy is safe. |
+| `008_approved_snapshot_rls_smoke_tests.draft.sql` | draft_only | not_run | Immutable snapshot cleanup strategy not proven. |
+| `009_credit_ledger_approval_gate_rls_smoke_tests.draft.sql` | draft_only | not_run | Append-only credit/audit cleanup and transactional fixture strategy not proven. |
+| `010_job_worker_lease_idempotency_rls_smoke_tests.draft.sql` | draft_only | not_run | Backend-only claim/lease mutation checks require local transactional fixture safety. |
+| `011_media_readiness_probe_timing_rls_smoke_tests.draft.sql` | draft_only | not_run | Metadata-only fixture path is future-only. |
+| `012_render_preview_export_rls_smoke_tests.draft.sql` | draft_only | not_run | Render/export schema and no-execution fixture path remain future-only. |
+| `013_qa_revision_fallback_rls_smoke_tests.draft.sql` | draft_only | not_run | QA/revision fixture path remains future-only. |
+| `014_tool_call_foundation_rls_smoke_tests.draft.sql` | draft_only | not_run | Tool-call table application and runtime-disabled fixtures remain unvalidated. |
+| `015_tool_readiness_worker_runtime_rls_smoke_tests.draft.sql` | draft_only | not_run | Expected readiness tables need schema review. |
+| `016_worker_claim_execution_contract_rls_smoke_tests.draft.sql` | draft_only | not_run | Worker execution contract fixtures require backend-only mutation safety. |
+| `017_provider_gateway_rls_smoke_tests.draft.sql` | draft_only | not_run | Provider attempt/webhook fixtures must stay sanitized and backend-only. |
+| `018_compliance_license_security_review_rls_smoke_tests.draft.sql` | draft_only | not_run | Compliance tables remain future/schema-review targets. |
+| `019_observability_audit_abuse_cost_rls_smoke_tests.draft.sql` | draft_only | not_run | Audit/observability append-only and future cost/rate tables need review. |
+| `020_e2e_staging_smoke_readiness_rls_smoke_tests.draft.sql` | draft_only | not_run | Broad E2E RLS waits for narrower domain tests to pass first. |
+
+Prompt 20 recommendation: use Prompt 20A to repair the local Supabase toolchain before converting `006_auth_workspace_rls_smoke_tests.draft.sql`.

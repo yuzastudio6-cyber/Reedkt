@@ -1,12 +1,12 @@
 # Beta Readiness Scorecard
 
-Scores are honest readiness estimates after Prompt 19 Supabase/RLS validation preparation. They are not production approval.
+Scores are honest readiness estimates after Prompt 20 local Supabase/RLS validation execution tooling. They are not production approval.
 
 | Area | Foundation readiness | Executable beta readiness | Production beta readiness | Status | Evidence | Blockers | Next action |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- |
 | Source of truth | 90% | 20% | 10% | Partial | Prompt 0-18 docs and trackers. | Needs staging evidence and ongoing tracker hygiene. | Keep trackers current. |
 | Architecture boundaries | 90% | 25% | 10% | Partial | Architecture freeze and diagnostics. | Runtime validation missing. | Preserve fail-closed boundaries. |
-| Schema/RLS | 62% | 8% | 1% | Blocked | Static audit, draft SQL, Prompt 19 manifest, conversion plan, fixture contract, environment contract, runbook, and evidence checklist. | Local/staging SQL unexecuted. | Prompt 20. |
+| Schema/RLS | 64% | 8% | 1% | Blocked | Static audit, draft SQL, Prompt 19 manifest, conversion plan, fixture contract, environment contract, runbook, evidence checklist, Prompt 20 preflight, and guarded local runner. | Local/staging SQL unexecuted; local Supabase CLI/config/psql/Docker path blocked. | Prompt 20A. |
 | Auth/workspace/project | 70% | 20% | 5% | Partial | Prompt 3 route/service foundation. | RLS/staging validation missing. | Validate local/staging access. |
 | Storage/upload | 65% | 10% | 0% | Partial | Prompt 4 route/service foundation. | Real storage policies and signed URL runtime unvalidated. | Staging storage validation. |
 | Approved snapshots | 65% | 10% | 0% | Partial | Prompt 5 contracts. | Persistence/runtime backend-required. | Transactional validation. |
@@ -22,17 +22,17 @@ Scores are honest readiness estimates after Prompt 19 Supabase/RLS validation pr
 | Provider gateway | 65% | 5% | 0% | Blocked | Prompt 15 gateway foundation. | No secrets, calls, or webhook processing. | Provider runtime review. |
 | Compliance/security | 65% | 10% | 0% | Blocked | Prompt 16 foundation. | No human legal/security approval. | Human review workflow. |
 | Observability/audit/cost controls | 65% | 10% | 0% | Blocked | Prompt 17 foundation and CI. | No persistence or external telemetry. | Staging operational validation. |
-| E2E staging smoke | 38% | 0% | 0% | Planning only | Prompt 18 plan/diagnostics plus Prompt 19 RLS preparation path. | Staging smoke not run; local/staging Supabase/RLS not executed. | Prompt 20, then staging smoke. |
+| E2E staging smoke | 39% | 0% | 0% | Planning only | Prompt 18 plan/diagnostics plus Prompt 19 RLS preparation path and Prompt 20 local-only runner tooling. | Staging smoke not run; local/staging Supabase/RLS not executed. | Prompt 20A, then local validation. |
 | Production deployment | 10% | 0% | 0% | Blocked | Architecture docs only. | No deployment, rollback, monitoring. | Deployment readiness milestone. |
 | Stripe/billing | 30% | 0% | 0% | Blocked | Pricing docs and credit contract. | No Stripe or transactional credits. | Billing milestone after ledger. |
 | Actual execution path | 20% | 0% | 0% | Blocked | Fail-closed contracts. | Workers/providers/tools/render/media all blocked. | Runtime activation milestones. |
 
 ## Decision
 
-Prompt 19 prepares validation but does not run Supabase/RLS. Aggregate readiness after Prompt 19:
+Prompt 20 adds local-only preflight and runner tooling but does not run Supabase/RLS because the local toolchain is blocked. Aggregate readiness after Prompt 20:
 
-- Foundation readiness: about 62%.
+- Foundation readiness: about 63%.
 - Executable beta readiness: about 8%.
 - Production beta readiness: about 1%.
 
-Foundation readiness is slightly improved because the validation path is clearer. Executable beta readiness and production beta readiness remain blocked until Prompt 20 or later executes local/staging validation with evidence.
+Foundation readiness is slightly improved because local-only safety and dry-run tooling now exist. Executable beta readiness and production beta readiness remain blocked until local/staging validation executes with evidence.

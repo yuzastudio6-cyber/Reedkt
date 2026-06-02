@@ -138,6 +138,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:rls:prep:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_local_preflight',
+    command: 'npm run --silent supabase:local:preflight',
+    npmArgs: ['run', '--silent', 'supabase:local:preflight'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

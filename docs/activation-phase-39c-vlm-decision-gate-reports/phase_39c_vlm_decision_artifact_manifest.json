@@ -1,0 +1,32 @@
+{
+  "phase": "39C-DECISION",
+  "runId": "phase39c-decision-20260602",
+  "reportDirectory": "docs/activation-phase-39c-vlm-decision-gate-reports",
+  "committedArtifacts": [
+    "phase_39c_vlm_decision_evidence_inventory.json",
+    "phase_39c_vlm_decision_evidence_inventory.md",
+    "phase_39c_vlm_decision_web_research.json",
+    "phase_39c_vlm_decision_web_research.md",
+    "phase_39c_vlm_decision_root_cause_report.json",
+    "phase_39c_vlm_decision_root_cause_report.md",
+    "phase_39c_vlm_decision_recovery_matrix.json",
+    "phase_39c_vlm_decision_recovery_matrix.md",
+    "phase_39c_vlm_decision_record.json",
+    "phase_39c_vlm_decision_record.md",
+    "phase_39c_vlm_decision_artifact_manifest.json"
+  ],
+  "privateArtifactsUploaded": false,
+  "forbiddenArtifactClasses": [
+    "credentials",
+    "tokens",
+    "model files",
+    "safetensors",
+    "tokenizer or processor payloads",
+    "generated image payloads",
+    "real media",
+    "runtime caches",
+    "Cloud Build logs",
+    "Cloud Run logs",
+    "provider logs"
+  ]
+}

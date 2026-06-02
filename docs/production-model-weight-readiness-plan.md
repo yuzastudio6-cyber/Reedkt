@@ -32,6 +32,10 @@ Milestone 11 adds explicit manifest templates for faster-whisper, BiRefNet, SAM2
 
 Any non-commercial model weight is blocked for paid ReeditPro production. Any unknown model-weight license is blocked until reviewed.
 
+## Phase 39C-DECISION VLM Note
+
+Phase 39C-DECISION does not download, stage, approve, or execute any model weights. It preserves the PR #87 official Qwen candidate evidence and records that the current Qwen/vLLM/SGLang/Cloud Run L4 path remains blocked: vLLM is blocked by OOM and semantic generated-image QA failures, while SGLang is blocked before inference by kernel/CUDA import compatibility. No non-Qwen candidate, new Qwen download, community quantization, provider path, different GPU/runtime class, production, internal beta, external beta, broad media, public output, or Track A scope is approved. The recommended next implementation path is Phase 46A media/data tool readiness audit unless a human explicitly approves a VLM recovery path.
+
 ## Phase 39C-SG-KERNEL VLM Note
 
 Phase 39C-SG-KERNEL does not download, stage, or approve any new VLM model weights. It reuses the already staged PR #87 official Qwen candidate objects and tests only SGLang/CUDA kernel compatibility on Cloud Run L4 before generated synthetic fixture runtime. Production, paid production, internal beta, external beta, broad media, real media, provider calls, public output, non-Qwen candidates, and new model downloads remain blocked.

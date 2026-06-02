@@ -60,7 +60,7 @@ Blockers: none.
 
 ## Phase49F Readiness
 
-Ready only for a web search/capture internal readiness gate. This is not production, external beta, paid production, broad media, live public search, public capture, or paid provider approval.
+Ready only for Phase 49F private authenticated SearXNG service validation. This is not production, external beta, paid production, broad media, public SearXNG, public capture, or paid provider approval.
 
 ## Blocked
 

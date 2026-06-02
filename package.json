@@ -340,7 +340,11 @@
     "activation:private-web-search-capture-e2e": "tsx server/cli/activation-private-web-search-capture-e2e.ts",
     "activation:private-web-search-capture-e2e:report": "tsx server/cli/activation-private-web-search-capture-e2e-report.ts",
     "activation:private-web-search-capture-e2e:iam-plan": "tsx server/cli/activation-private-web-search-capture-e2e-iam-plan.ts",
-    "smoke:activation-private-web-search-capture-e2e": "tsx server/smoke/activation-private-web-search-capture-e2e-smoke.ts"
+    "smoke:activation-private-web-search-capture-e2e": "tsx server/smoke/activation-private-web-search-capture-e2e-smoke.ts",
+    "activation:private-searxng-service": "tsx server/cli/activation-private-searxng-service.ts",
+    "activation:private-searxng-service:report": "tsx server/cli/activation-private-searxng-service-report.ts",
+    "activation:private-searxng-service:iam-plan": "tsx server/cli/activation-private-searxng-service-iam-plan.ts",
+    "smoke:activation-private-searxng-service": "tsx server/smoke/activation-private-searxng-service-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

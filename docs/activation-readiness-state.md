@@ -47,10 +47,13 @@ capture and screenshot post-processing with Playwright + Sharp. Phase 49D
 completed generated/local Mozilla Readability extraction and bounded
 sanitization. Phase 49E completed controlled private web search/capture E2E
 with private fixture provider mode only for run `phase49e-20260602T155154`.
-Phase 49F readiness is limited to a web search/capture internal readiness gate;
-live public search, public web
-capture/extraction, arbitrary URL capture, screenshots against public pages,
-and paid providers remain blocked.
+Phase 49F completed private authenticated SearXNG service validation for run
+`phase49f-20260602T204445`. It validated one bounded controlled query through
+`reeditpro-staging-private-searxng` and normalized five source records.
+Phase 49G readiness is limited to controlled private live-search/capture E2E
+using the private service and explicit allowlisted capture policy. Public
+SearXNG instances, paid providers, public web capture/extraction, arbitrary URL
+capture, screenshots against public pages, and broad crawling remain blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

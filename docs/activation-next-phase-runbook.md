@@ -440,6 +440,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm exactly 3 normalized sources, 3 private fixture captures, 3 Sharp processed screenshot sets, 3 sanitized Readability extractions, and one combined manifest exist privately.
 4. Confirm no live public search, public web capture, arbitrary URL capture, paid provider, public artifact, signed URL source-of-truth, production, external beta, paid production, broad media, or Revideo action occurred.
 5. Proceed to Phase 49F only as a web search/capture internal readiness gate.
+
+## After Phase 49F
+
+1. Review `activation:private-searxng-service:report`, `activation:private-searxng-service:iam-plan`, and `docs/activation-phase-49f-private-searxng-service-results.md`.
+2. Confirm `reeditpro-staging-private-searxng` is authenticated and has no `allUsers` or `allAuthenticatedUsers` invoker binding.
+3. Confirm the controlled query `ReeditPro open source video editing planning` returned normalized source records with capture and extraction disabled.
+4. Confirm private JSON artifacts exist only under the Phase 49F generated-assets and QA prefixes.
+5. Proceed to Phase 49G only as controlled private live-search/capture E2E using the private SearXNG service and explicit allowlisted capture policy.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

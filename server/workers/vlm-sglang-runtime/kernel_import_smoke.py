@@ -25,6 +25,17 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def report_name() -> str:
+    return os.environ.get("REEDITPRO_PHASE39C_IMPORT_SMOKE_REPORT_NAME", REPORT_NAME)
+
+
+def runtime_phase() -> str:
+    return os.environ.get(
+        "REEDITPRO_VLM_RUNTIME_PHASE",
+        "39C-SG-FIXED" if os.environ.get("REEDITPRO_CONFIRM_VLM_SGLANG_FIXED_KERNEL") == "true" else "39C-SG-KERNEL",
+    )
+
+
 def safe_version(package: str) -> Dict[str, Any]:
     try:
         return {"package": package, "version": importlib.metadata.version(package), "status": "present"}
@@ -68,7 +79,7 @@ def cuda_symbol_probe() -> Dict[str, Any]:
     try:
         libcuda = ctypes.CDLL("libcuda.so.1")
         result["status"] = "loaded"
-        for symbol in ["cuInit", "cuDriverGetVersion", "cuGreenCtxDestroy"]:
+        for symbol in ["cuInit", "cuDriverGetVersion", "cuGreenCtxDestroy", "cuGreenCtxStreamCreate"]:
             try:
                 getattr(libcuda, symbol)
                 result["symbols"][symbol] = "present"
@@ -117,7 +128,6 @@ def validate_env(blockers: List[str]) -> None:
         "GCP_PROJECT_ID": "reeditpro",
         "GCP_REGION": "us-central1",
         "REEDITPRO_ENV": "staging",
-        "REEDITPRO_CONFIRM_VLM_SGLANG_KERNEL_COMPAT": "true",
         "REEDITPRO_CONFIRM_VLM_SGLANG_IMPORT_SMOKE_JOB": "true",
         "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD": "true",
         "REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE": "true",
@@ -140,6 +150,11 @@ def validate_env(blockers: List[str]) -> None:
     for key, expected in required.items():
         if os.environ.get(key) != expected:
             blockers.append(f"env_guard_mismatch:{key}")
+    if (
+        os.environ.get("REEDITPRO_CONFIRM_VLM_SGLANG_KERNEL_COMPAT") != "true"
+        and os.environ.get("REEDITPRO_CONFIRM_VLM_SGLANG_FIXED_KERNEL") != "true"
+    ):
+        blockers.append("env_guard_mismatch:sglang_kernel_or_fixed_kernel_confirmation")
     if os.environ.get("REEDITPRO_VLM_MODEL_GCS_PATH"):
         blockers.append("import_smoke_must_not_receive_model_gcs_path")
     if os.environ.get("REEDITPRO_VLM_EXPECTED_ASSETS_JSON"):
@@ -155,7 +170,7 @@ def upload_report(report: Dict[str, Any], local_path: Path) -> Dict[str, Any]:
     prefix = os.environ.get("REEDITPRO_PHASE39C_QA_PREFIX")
     if not prefix:
         raise RuntimeError("REEDITPRO_PHASE39C_QA_PREFIX missing")
-    object_name = f"{prefix.rstrip('/')}/{REPORT_NAME}"
+    object_name = f"{prefix.rstrip('/')}/{report_name()}"
     client = storage.Client(project=os.environ.get("GCP_PROJECT_ID", "reeditpro"))
     blob = client.bucket(bucket_name).blob(object_name)
     blob.upload_from_filename(str(local_path), content_type="application/json", if_generation_match=0)
@@ -211,8 +226,8 @@ def main() -> int:
             blockers.append("cuGreenCtxDestroy_launch_server_help_error")
 
     report: Dict[str, Any] = {
-        "phase": "39C-SG-KERNEL",
-        "reportId": "phase_39c_sg_kernel_import_smoke_report",
+        "phase": runtime_phase(),
+        "reportId": report_name().removesuffix(".json"),
         "runId": run_id,
         "profileId": profile_id,
         "createdAt": created_at,
@@ -233,6 +248,11 @@ def main() -> int:
         ],
         "torch": torch_info,
         "nvidiaSmi": safe_run(["nvidia-smi", "--query-gpu=name,driver_version,memory.total,compute_cap", "--format=csv,noheader"], timeout=30),
+        "ldLibraryPath": {
+            "present": bool(os.environ.get("LD_LIBRARY_PATH")),
+            "containsCloudRunDriverPath": "/usr/local/nvidia/lib64" in os.environ.get("LD_LIBRARY_PATH", ""),
+            "sanitizedEntries": [entry for entry in os.environ.get("LD_LIBRARY_PATH", "").split(":") if entry][:12],
+        },
         "cudaSymbolProbe": cuda_symbol_probe(),
         "importResults": import_results,
         "launchServerHelp": launch_help,
@@ -247,7 +267,7 @@ def main() -> int:
         "privateArtifact": None,
         "vlmToolFamilyBetaStatus": "blocked",
     }
-    local_path = Path("/tmp/reeditpro-vlm-sglang-kernel-import-smoke") / run_id / REPORT_NAME
+    local_path = Path("/tmp/reeditpro-vlm-sglang-kernel-import-smoke") / run_id / report_name()
     try:
         private_artifact = upload_report(report, local_path)
         report["privateArtifact"] = private_artifact

@@ -1,0 +1,64 @@
+{
+  "phase": "39C-SG-FIXED",
+  "reportId": "phase_39c_sg_fixed_kernel_web_research",
+  "createdAt": "2026-06-02T13:23:34.732Z",
+  "status": "passed",
+  "sources": [
+    {
+      "id": "sglang-8432",
+      "url": "https://github.com/sgl-project/sglang/issues/8432",
+      "status": "passed",
+      "summary": "Issue reports undefined symbol cuGreenCtxDestroy with SGLang 0.4.9.post4, sgl-kernel 0.2.7, CUDA_HOME 12.2, driver 535.86.10, and PyTorch 2.7.1+cu126."
+    },
+    {
+      "id": "sglang-8566",
+      "url": "https://github.com/sgl-project/sglang/issues/8566",
+      "status": "passed",
+      "summary": "Issue reports the same sgl_kernel/common_ops.abi3.so cuGreenCtxDestroy import failure."
+    },
+    {
+      "id": "sglang-9021",
+      "url": "https://github.com/sgl-project/sglang/pull/9021",
+      "status": "passed",
+      "summary": "Merged PR titled Runtime check CUDA driver version to avoid unresolved green context symbols; it says it fixes #8432."
+    },
+    {
+      "id": "sglang-9231",
+      "url": "https://github.com/sgl-project/sglang/pull/9231",
+      "status": "passed",
+      "summary": "Merged PR titled Optional extension for green context; file changes move green-context spatial ops behind a lazy/optional extension path."
+    },
+    {
+      "id": "cloud-run-gpu",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/jobs/gpu",
+      "status": "passed",
+      "summary": "Cloud Run mounts driver libraries under /usr/local/nvidia/lib64; CUDA >12.2 requires a forward-compat image/package path and LD_LIBRARY_PATH care."
+    },
+    {
+      "id": "qwen-sglang",
+      "url": "https://qwen.readthedocs.io/en/latest/deployment/sglang.html",
+      "status": "passed",
+      "summary": "Qwen documents SGLang as a deployment path, structured/JSON output guidance, enable_thinking controls, FP8 serving, and warns that invalid local model paths download from Hugging Face."
+    },
+    {
+      "id": "sglang-structured-output",
+      "url": "https://docs.sglang.io/docs/advanced_features/structured_outputs",
+      "status": "passed",
+      "summary": "SGLang supports structured outputs including JSON schema, regex, EBNF, structural tag, OpenAI-compatible and native/offline paths; this phase tests only after import smoke passes."
+    }
+  ],
+  "packageAvailability": {
+    "sglangCurrentStable": "0.5.12.post1",
+    "sglKernelIssueLinkedFixed": "0.3.6.post1",
+    "sglKernelCurrent": "0.3.21",
+    "sglangKernelCurrent": "0.4.3",
+    "sglangCurrentDependencyKernel": "sglang-kernel==0.4.2.post2"
+  },
+  "conclusions": {
+    "rootCause": "The PR #104/#107 import failure is consistent with an sgl-kernel wheel importing a CUDA Driver API green-context symbol unavailable in Cloud Run L4 driver libraries.",
+    "fixedPath": "Try upstream fixed wheels before runtime: minimal sgl-kernel 0.3.6.post1, current SGLang 0.5.12.post1 dependency set, then current kernel overlays.",
+    "forwardCompatRequired": "blocked_until_needed",
+    "forwardCompatReason": "Cloud Run docs require forward compatibility only when the selected SGLang/CUDA package set needs CUDA >12.2 and wheel-only profiles fail or expose a forward-compat blocker."
+  },
+  "noOverclaim": true
+}

@@ -1,0 +1,20 @@
+{
+  "phase": "46B",
+  "status": "next_if_phase46a_passes",
+  "fixtures": [
+    "generated-image-opencv-basic",
+    "generated-container-pyav-probe",
+    "generated-scene-cut-pyscenedetect",
+    "generated-thumbnail-sharp-libvips",
+    "generated-report-duckdb",
+    "generated-report-polars",
+    "generated-cross-tool-manifest"
+  ],
+  "constraints": [
+    "generated synthetic fixtures only",
+    "no real media",
+    "no arbitrary media input",
+    "private artifacts only",
+    "package installation/runtime image only if explicitly approved in Phase 46B"
+  ]
+}

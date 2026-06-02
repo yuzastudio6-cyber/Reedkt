@@ -1,0 +1,41 @@
+{
+  "phase": "46A",
+  "locations": [
+    {
+      "toolId": "opencv",
+      "location": "Python CPU/QA worker only",
+      "browserFrontend": "forbidden",
+      "notes": "No browser bundle import; Phase 46B generated fixtures before controlled media."
+    },
+    {
+      "toolId": "pyav",
+      "location": "Python CPU worker only",
+      "browserFrontend": "forbidden",
+      "notes": "Container/probe access only after generated fixture approval."
+    },
+    {
+      "toolId": "pyscenedetect",
+      "location": "Python CPU worker only",
+      "browserFrontend": "forbidden",
+      "notes": "Scene manifests are advisory and QA-gated."
+    },
+    {
+      "toolId": "sharp_libvips",
+      "location": "Node server/worker image only",
+      "browserFrontend": "forbidden",
+      "notes": "No frontend import; native dependency isolated from browser."
+    },
+    {
+      "toolId": "duckdb",
+      "location": "QA/reporting worker or local safe CLI only",
+      "browserFrontend": "forbidden",
+      "notes": "Network/extensions blocked unless approved."
+    },
+    {
+      "toolId": "polars",
+      "location": "QA/reporting worker or local safe CLI only",
+      "browserFrontend": "forbidden",
+      "notes": "Use deterministic redacted summaries."
+    }
+  ]
+}

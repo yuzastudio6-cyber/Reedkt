@@ -1,0 +1,218 @@
+{
+  "phase": "46A",
+  "runId": "phase46a-media-data-readiness-20260602",
+  "tools": [
+    {
+      "toolId": "opencv",
+      "displayName": "OpenCV",
+      "packageOrLibraryNames": [
+        "opencv-python-headless",
+        "opencv-python",
+        "cv2"
+      ],
+      "languageRuntime": "Python native worker",
+      "primaryPurpose": "Deterministic visual geometry, shape, safe-zone, frame QA, and future image/frame metadata support.",
+      "futurePhaseUse": [
+        "Phase 46B generated image/frame checks",
+        "Phase 46C controlled frame metadata analysis",
+        "Phase 46D QA aggregation input"
+      ],
+      "requiredStatus": "required_candidate",
+      "expectedRuntimeLocation": [
+        "cpu_analysis_worker",
+        "qa_worker",
+        "tool_readiness_worker"
+      ],
+      "expectedInstallLocation": [
+        "Python worker image; headless package preferred"
+      ],
+      "licenseEvidenceStatus": "present",
+      "sourceEvidenceStatus": "present",
+      "dependencyCaveats": [
+        "opencv-python wheel/native dependency review",
+        "headless package preferred to avoid GUI dependency footprint"
+      ],
+      "securityPrivacyCaveats": [
+        "face/object geometry can expose private metadata; real-media outputs must stay private/redacted"
+      ],
+      "safeForGeneratedFixtures": true,
+      "safeForControlledRealMedia": true,
+      "safeForBroadUserMedia": false,
+      "blockerStatus": "partial"
+    },
+    {
+      "toolId": "pyav",
+      "displayName": "PyAV",
+      "packageOrLibraryNames": [
+        "av",
+        "pyav"
+      ],
+      "languageRuntime": "Python native worker",
+      "primaryPurpose": "Media container probing and frame/audio access policy for future generated and controlled metadata suites.",
+      "futurePhaseUse": [
+        "Phase 46B generated container probe",
+        "Phase 46C controlled video metadata/frame suite",
+        "Phase 46D manifest input"
+      ],
+      "requiredStatus": "required_candidate",
+      "expectedRuntimeLocation": [
+        "cpu_analysis_worker",
+        "tool_readiness_worker"
+      ],
+      "expectedInstallLocation": [
+        "Python worker image only"
+      ],
+      "licenseEvidenceStatus": "present",
+      "sourceEvidenceStatus": "present",
+      "dependencyCaveats": [
+        "FFmpeg libraries/codecs remain a separate legal/runtime dependency caveat"
+      ],
+      "securityPrivacyCaveats": [
+        "decode/probe can expose private media metadata; no arbitrary media paths"
+      ],
+      "safeForGeneratedFixtures": true,
+      "safeForControlledRealMedia": true,
+      "safeForBroadUserMedia": false,
+      "blockerStatus": "partial"
+    },
+    {
+      "toolId": "pyscenedetect",
+      "displayName": "PySceneDetect",
+      "packageOrLibraryNames": [
+        "scenedetect",
+        "pyscenedetect"
+      ],
+      "languageRuntime": "Python native worker",
+      "primaryPurpose": "Deterministic scene-change candidates and shot-boundary metadata.",
+      "futurePhaseUse": [
+        "Phase 46B generated scene-cut fixture",
+        "Phase 46C controlled scene manifest",
+        "Phase 46D cut/QA table input"
+      ],
+      "requiredStatus": "required_candidate",
+      "expectedRuntimeLocation": [
+        "cpu_analysis_worker",
+        "tool_readiness_worker"
+      ],
+      "expectedInstallLocation": [
+        "Python worker image only"
+      ],
+      "licenseEvidenceStatus": "present",
+      "sourceEvidenceStatus": "present",
+      "dependencyCaveats": [
+        "OpenCV dependency and false-positive scene boundary risk"
+      ],
+      "securityPrivacyCaveats": [
+        "scene manifests from real media must remain private/redacted"
+      ],
+      "safeForGeneratedFixtures": true,
+      "safeForControlledRealMedia": true,
+      "safeForBroadUserMedia": false,
+      "blockerStatus": "partial"
+    },
+    {
+      "toolId": "sharp_libvips",
+      "displayName": "Sharp / libvips",
+      "packageOrLibraryNames": [
+        "sharp",
+        "libvips",
+        "vips"
+      ],
+      "languageRuntime": "Node server/worker native module",
+      "primaryPurpose": "Image metadata, thumbnails, resize/format transforms, and private preview asset preparation.",
+      "futurePhaseUse": [
+        "Phase 46B generated thumbnail/metadata fixture",
+        "Phase 46C private preview/metadata only",
+        "Phase 46D artifact QA support"
+      ],
+      "requiredStatus": "required_candidate",
+      "expectedRuntimeLocation": [
+        "cpu_analysis_worker",
+        "render_worker",
+        "qa_worker",
+        "tool_readiness_worker"
+      ],
+      "expectedInstallLocation": [
+        "Node worker/server image only; frontend forbidden"
+      ],
+      "licenseEvidenceStatus": "present",
+      "sourceEvidenceStatus": "present",
+      "dependencyCaveats": [
+        "Sharp package Apache-2.0; libvips LGPL-2.1-or-later compliance and native binary review required"
+      ],
+      "securityPrivacyCaveats": [
+        "untrusted image handling and native binary dependency review required"
+      ],
+      "safeForGeneratedFixtures": true,
+      "safeForControlledRealMedia": true,
+      "safeForBroadUserMedia": false,
+      "blockerStatus": "partial"
+    },
+    {
+      "toolId": "duckdb",
+      "displayName": "DuckDB",
+      "packageOrLibraryNames": [
+        "duckdb"
+      ],
+      "languageRuntime": "Python or Node QA/reporting worker",
+      "primaryPurpose": "Private QA report aggregation, structured artifact queries, and metrics tables.",
+      "futurePhaseUse": [
+        "Phase 46B generated report tables",
+        "Phase 46D reporting/QA integration"
+      ],
+      "requiredStatus": "reporting_candidate",
+      "expectedRuntimeLocation": [
+        "qa_worker",
+        "tool_readiness_worker"
+      ],
+      "expectedInstallLocation": [
+        "QA/reporting worker only"
+      ],
+      "licenseEvidenceStatus": "present",
+      "sourceEvidenceStatus": "present",
+      "dependencyCaveats": [
+        "extension loading, network, and local file IO policy must be locked down before runtime"
+      ],
+      "securityPrivacyCaveats": [
+        "private text/media metadata must not leak into committed reports"
+      ],
+      "safeForGeneratedFixtures": true,
+      "safeForControlledRealMedia": true,
+      "safeForBroadUserMedia": false,
+      "blockerStatus": "partial"
+    },
+    {
+      "toolId": "polars",
+      "displayName": "Polars",
+      "packageOrLibraryNames": [
+        "polars"
+      ],
+      "languageRuntime": "Python QA/reporting worker",
+      "primaryPurpose": "Fast tabular QA transforms, metrics, and generated/control report summaries.",
+      "futurePhaseUse": [
+        "Phase 46B generated metrics transforms",
+        "Phase 46D reporting/QA integration"
+      ],
+      "requiredStatus": "reporting_candidate",
+      "expectedRuntimeLocation": [
+        "qa_worker",
+        "tool_readiness_worker"
+      ],
+      "expectedInstallLocation": [
+        "QA/reporting worker only"
+      ],
+      "licenseEvidenceStatus": "present",
+      "sourceEvidenceStatus": "present",
+      "dependencyCaveats": [
+        "CPU feature compatibility, rtcompat/bigidx variants, memory/streaming behavior"
+      ],
+      "securityPrivacyCaveats": [
+        "private QA data transforms must emit redacted committed summaries only"
+      ],
+      "safeForGeneratedFixtures": true,
+      "safeForControlledRealMedia": true,
+      "safeForBroadUserMedia": false,
+      "blockerStatus": "partial"
+    }
+  ]
+}

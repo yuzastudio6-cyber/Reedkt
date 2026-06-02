@@ -1,0 +1,32 @@
+{
+  "phase": "46A",
+  "blockers": [
+    "FFmpeg dependency/legal review unresolved for PyAV runtime",
+    "libvips LGPL/native dependency review unresolved for Sharp/libvips runtime",
+    "runtime availability not verified by execution in Phase 46A",
+    "Phase 46B generated fixture suite not implemented yet",
+    "Phase 46C controlled real-media suite blocked until Phase 46B",
+    "Phase 46D reporting integration blocked until Phase 46B/46C evidence"
+  ],
+  "blockedScopes": [
+    "Phase 46B generated media/data analysis suite until implemented",
+    "Phase 46C controlled real-video media/data suite until Phase 46B passes",
+    "Phase 46D reporting/QA integration until Phase 46B/46C evidence exists",
+    "VLM runtime retries",
+    "provider calls",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "public output",
+    "broad user media",
+    "broad real-media processing",
+    "arbitrary media paths",
+    "real media processing",
+    "Docker execution",
+    "GCP mutation",
+    "Cloud Run execution",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ]
+}

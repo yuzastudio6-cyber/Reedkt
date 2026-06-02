@@ -1,0 +1,26 @@
+{
+  "phase": "46A",
+  "runId": "phase46a-media-data-readiness-20260602",
+  "repoInventoryStatus": "complete_static_inventory",
+  "packageLockStatus": "unchanged",
+  "rootPythonLockfiles": "not_present_on_pr120_base",
+  "safeVersionChecks": "skipped_not_required_for_phase46a",
+  "directDependencyFindings": {
+    "opencv": "opencv-python-headless==4.10.0.84 appears in OCR and VLM worker requirements; broader media/data runtime not verified.",
+    "pyav": "referenced by production readiness specs and docs; not a root package dependency.",
+    "pyscenedetect": "referenced by production readiness specs and docs; not a root package dependency.",
+    "sharp_libvips": "referenced by production readiness specs and docs; not present in current package.json deps on PR #120 base.",
+    "duckdb": "referenced by production readiness specs and docs; not a root package dependency.",
+    "polars": "referenced by production readiness specs and docs; not a root package dependency."
+  },
+  "existingRepoReferences": [
+    "server/workers/production-readiness/production-tool-readiness-specs.ts",
+    "server/workers/production-readiness/core-tool-python-import-checks.ts",
+    "server/workers/production-readiness/core-tool-node-import-checks.ts",
+    "server/activation/container-readiness/container-readiness-expected-tools.ts",
+    "server/workers/ocr-runtime/requirements.ocr.txt",
+    "server/workers/vlm-runtime/requirements.vlm.txt",
+    "docs/production-container-image-plan.md",
+    "docs/production-tool-install-matrix.md"
+  ]
+}

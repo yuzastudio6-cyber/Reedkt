@@ -328,7 +328,11 @@
     "activation:searxng-search-fixture": "tsx server/cli/activation-searxng-search-fixture.ts",
     "activation:searxng-search-fixture:report": "tsx server/cli/activation-searxng-search-fixture-report.ts",
     "activation:searxng-search-fixture:iam-plan": "tsx server/cli/activation-searxng-search-fixture-iam-plan.ts",
-    "smoke:activation-searxng-search-fixture": "tsx server/smoke/activation-searxng-search-fixture-smoke.ts"
+    "smoke:activation-searxng-search-fixture": "tsx server/smoke/activation-searxng-search-fixture-smoke.ts",
+    "activation:playwright-sharp-capture-fixture": "tsx server/cli/activation-playwright-sharp-capture-fixture.ts",
+    "activation:playwright-sharp-capture-fixture:report": "tsx server/cli/activation-playwright-sharp-capture-fixture-report.ts",
+    "activation:playwright-sharp-capture-fixture:iam-plan": "tsx server/cli/activation-playwright-sharp-capture-fixture-iam-plan.ts",
+    "smoke:activation-playwright-sharp-capture-fixture": "tsx server/smoke/activation-playwright-sharp-capture-fixture-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
@@ -337,9 +341,11 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "lucide-react": "^1.14.0",
+    "playwright": "^1.60.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.0",
+    "sharp": "^0.34.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {

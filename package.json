@@ -49,6 +49,7 @@
     "provider:gateway:diagnostics": "node scripts/validation/provider-gateway-scope-diagnostics.mjs",
     "compliance:diagnostics": "node scripts/validation/compliance-scope-diagnostics.mjs",
     "observability:diagnostics": "node scripts/validation/observability-scope-diagnostics.mjs",
+    "e2e:staging:diagnostics": "node scripts/validation/e2e-staging-smoke-plan-diagnostics.mjs",
     "foundation:tool-readiness": "tsx server/cli/foundation-tool-readiness.ts",
     "foundation:tool-readiness:report": "tsx server/cli/foundation-tool-readiness-report.ts",
     "smoke:tool-readiness-worker-runtime-foundation": "tsx server/smoke/tool-readiness-worker-runtime-foundation-smoke.ts",

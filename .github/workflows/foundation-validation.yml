@@ -18,6 +18,7 @@ on:
       - codex/rp-foundation-14-worker-claim-execution-contract-hardening
       - codex/rp-foundation-15-provider-gateway-foundation
       - codex/rp-foundation-16-compliance-license-security-review
+      - codex/rp-foundation-17-observability-audit-abuse-cost-controls
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

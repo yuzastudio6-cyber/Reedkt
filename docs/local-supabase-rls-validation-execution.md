@@ -178,3 +178,36 @@ Current status after Prompt 20A:
 - `psql` remains missing.
 - no local executable SQL candidate exists.
 - no SQL ran and no Supabase target was touched.
+
+## Prompt 20C Follow-Up
+
+Prompt 20C adds the manual setup package needed to repair the remaining host-level blockers before Prompt 20B:
+
+- `docs/local-supabase-environment-manual-setup.md`
+- `docs/local-supabase-manual-checklist.md`
+- `docs/local-supabase-cli-install-options.md`
+- `docs/local-postgres-psql-setup.md`
+
+Prompt 20C also hardens local preflight and runner messaging so the JSON output names:
+
+- whether manual setup is required;
+- the next recommended prompt;
+- whether Prompt 20B can proceed;
+- which blockers remain before Prompt 20B;
+- safe remediation options for Supabase CLI, Docker, `psql`, local config, local DB URL, and executable SQL candidates.
+
+Prompt 20C does not run SQL, start Supabase, call Supabase status, reset Supabase, apply migrations, call `psql`, create executable SQL, or touch local/staging/remote/production Supabase.
+
+Current status after Prompt 20C:
+
+- Docker is reachable on this host.
+- Supabase config is present and local-only.
+- Supabase CLI remains blocked because `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`.
+- `psql` remains missing.
+- no verified local DB URL exists.
+- no local executable SQL candidate exists.
+- `canRunLocalSql=false`.
+
+Recommended next prompt: Prompt 20D - Manual Environment Setup Verification.
+
+Prompt 20B should wait until preflight reports `canRunLocalSql=true`.

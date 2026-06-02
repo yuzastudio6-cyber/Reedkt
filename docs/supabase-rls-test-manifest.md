@@ -86,3 +86,22 @@ Remaining blockers:
 - no executable local-only SQL candidate exists.
 
 Conversion decision after Prompt 20A: keep all files draft-only or manual-review-only. `006_auth_workspace_rls_smoke_tests.draft.sql` remains the first candidate for Prompt 20B only after preflight reports `canRunLocalSql=true`.
+
+## Prompt 20C Manual Setup Update
+
+Prompt 20C does not convert or execute any SQL file. It adds manual environment setup docs and improves preflight/runner blocker output.
+
+Manifest state after Prompt 20C:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- no file under `database/test-sql/local/` is executable;
+- no local, staging, remote, or production SQL was run;
+- `006_auth_workspace_rls_smoke_tests.draft.sql` remains the first candidate for Prompt 20B only after preflight reports `canRunLocalSql=true`.
+
+Remaining local blockers after Prompt 20C:
+
+- arm64-compatible Supabase CLI required;
+- `psql` or an approved local SQL executor required;
+- verified local Supabase DB URL required;
+- first local-only executable SQL candidate required.

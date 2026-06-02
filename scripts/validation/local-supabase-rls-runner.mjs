@@ -170,6 +170,47 @@ function parseLocalDbUrl(statusJson) {
   return null
 }
 
+function guidanceFromPreflight(preflight, statusResult, executableCandidates) {
+  const blockerIds = new Set(preflight?.decision?.blockerIds ?? [])
+  const guidance = []
+
+  if (blockerIds.has('supabase_cli_arch_mismatch')) {
+    guidance.push('Supabase CLI is present but wrong-architecture for this host. Replace or shadow it with an arm64 CLI outside the repo before Prompt 20B.')
+  } else if (blockerIds.has('supabase_cli_missing')) {
+    guidance.push('Supabase CLI is missing. Install or select a local CLI outside the repo before Prompt 20B.')
+  } else if (blockerIds.has('supabase_cli_not_executable')) {
+    guidance.push('Supabase CLI was found but cannot execute. Repair PATH or permissions outside the repo before Prompt 20B.')
+  }
+
+  if (blockerIds.has('psql_missing')) {
+    guidance.push('psql is missing. Install Postgres.app, Homebrew postgresql/libpq, or a future approved local SQL executor before running SQL.')
+  } else if (blockerIds.has('psql_arch_mismatch') || blockerIds.has('psql_not_executable')) {
+    guidance.push('psql is present but unusable. Repair the local psql path before running SQL.')
+  }
+
+  if (blockerIds.has('local_sql_candidate_missing') || executableCandidates.length === 0) {
+    guidance.push('No executable SQL candidates exist under database/test-sql/local/. Prompt 20B should create the first minimal local-only auth/workspace candidate after the environment is verified.')
+  }
+
+  if (!statusResult.localDbUrlAvailable && mode !== 'list-tests') {
+    guidance.push('No verified local Supabase DB URL is available. Capture it only from a local Supabase status command after the CLI and Docker local target are repaired.')
+  }
+
+  if (preflight?.decision?.canUseDocker && !preflight?.decision?.canStartLocalSupabase) {
+    guidance.push('Docker is reachable, but the Supabase CLI/config/remote-risk gates still control whether local Supabase can start.')
+  }
+
+  if (preflight?.decision?.remoteRiskDetected) {
+    guidance.push('Remote risk was detected. Remove remote link/env indicators before any local SQL attempt.')
+  }
+
+  if (guidance.length === 0 && preflight?.decision?.canRunLocalSql) {
+    guidance.push('Preflight says local SQL can run. Use run mode only with --confirm-local-only and explicit local SQL files.')
+  }
+
+  return guidance
+}
+
 function localSupabaseStatus(preflight) {
   if (mode === 'list-tests') {
     return {
@@ -356,6 +397,13 @@ const result = {
   commandsRun,
   testResults,
   blockers,
+  manualSetup: {
+    required: Boolean(preflight?.decision?.manualSetupRequired ?? summaryStatus !== 'ready'),
+    nextRecommendedPrompt: preflight?.decision?.nextRecommendedPrompt ?? 'Prompt 20D - Manual Environment Setup Verification',
+    prompt20BCanProceed: Boolean(preflight?.decision?.prompt20BReadiness?.canProceed),
+    prompt20BRequiredBeforeProceeding: preflight?.decision?.prompt20BReadiness?.requiredBeforePrompt20B ?? [],
+    guidance: guidanceFromPreflight(preflight, status, executableTests),
+  },
   summary: {
     status: summaryStatus,
     sqlExecuted: commandsRun.length > 0,

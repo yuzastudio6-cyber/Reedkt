@@ -236,6 +236,114 @@ function warning(id, message) {
   return { id, severity: 'warning', message }
 }
 
+function blockerIds(entries) {
+  return entries.map((entry) => entry.id)
+}
+
+function supabaseCliRemediation(tool) {
+  if (!tool.found) {
+    return [
+      'Install a Supabase CLI outside the repo before local SQL validation.',
+      'Preferred macOS arm64 path: install through Homebrew so PATH can prefer /opt/homebrew/bin/supabase.',
+      'Alternative: place a standalone arm64 Supabase binary outside the repo and make PATH prefer it.',
+      'Alternative: use npx supabase only with Node.js 20 or later.',
+      'Do not use global npm install -g supabase.',
+    ]
+  }
+
+  if (tool.architectureMismatch || tool.badCpuType) {
+    return [
+      `Replace or shadow ${tool.path} with an arm64-compatible Supabase CLI before Prompt 20B.`,
+      'Check architecture with: file $(which supabase).',
+      'Preferred macOS arm64 path: /opt/homebrew/bin/supabase from Homebrew.',
+      'Alternative: standalone arm64 Supabase binary outside the repo.',
+      'Alternative: npx supabase with Node.js 20 or later after confirming the command is local-only.',
+      'Do not commit binaries and do not use global npm install -g supabase.',
+    ]
+  }
+
+  if (!tool.executable) {
+    return [
+      'Supabase CLI was found but did not execute. Repair PATH/permissions outside the repo.',
+      'Confirm with: supabase --version.',
+      'Do not run supabase start, reset, or SQL until preflight is ready.',
+    ]
+  }
+
+  return ['Supabase CLI appears executable. Keep using local-only commands and avoid supabase link.']
+}
+
+function dockerRemediation(status) {
+  if (!status.found) {
+    return [
+      'Install Docker Desktop, OrbStack, Colima, Rancher Desktop, Podman, or another Docker-compatible local runtime.',
+      'Do not use a remote Docker host for local Supabase validation.',
+    ]
+  }
+
+  if (!status.executable) {
+    return [
+      'Docker exists but docker --version failed. Repair the local Docker client path.',
+      'Do not start Supabase until Docker is executable and local.',
+    ]
+  }
+
+  if (!status.daemonAvailable) {
+    return [
+      'Start the local Docker daemon/runtime before Prompt 20B.',
+      'Confirm with: docker info --format {{.ServerVersion}}.',
+      'Do not route through a remote Docker host.',
+    ]
+  }
+
+  return ['Docker is reachable. Supabase CLI and psql still must be repaired before local SQL can run.']
+}
+
+function psqlRemediation(tool) {
+  if (!tool.found) {
+    return [
+      'Install psql outside the repo before running local SQL.',
+      'Options: Postgres.app, Homebrew postgresql, Homebrew libpq with PATH updated, or a future approved Docker psql path.',
+      'Confirm with: psql --version.',
+      'Do not connect psql to staging, remote, or production databases.',
+    ]
+  }
+
+  if (tool.architectureMismatch || tool.badCpuType) {
+    return [
+      'Replace psql with a host-compatible binary outside the repo.',
+      'Confirm with: file $(which psql) and psql --version.',
+    ]
+  }
+
+  if (!tool.executable) {
+    return [
+      'psql was found but did not execute. Repair PATH/permissions outside the repo.',
+      'Confirm with: psql --version.',
+    ]
+  }
+
+  return ['psql appears executable. It may only be used by the guarded local runner after preflight is ready.']
+}
+
+function configRemediation(status) {
+  if (!status.exists) {
+    return [
+      'Create a local-only supabase/config.toml before local Supabase validation.',
+      'The config must contain no remote project ref, no [remotes.*] block, no secrets, and local ports only.',
+    ]
+  }
+
+  if (status.remoteBlockPresent || status.supabaseUrlPresent || status.projectIdLooksRemote) {
+    return [
+      'Remove remote Supabase references from supabase/config.toml before local SQL validation.',
+      'Do not use supabase link in this repo for local validation prompts.',
+    ]
+  }
+
+  return ['supabase/config.toml exists and appears local-only by static inspection.']
+}
+
 const missingRequiredFiles = requiredFiles.filter((file) => !exists(file))
 const envNames = Object.keys(process.env)
 const localDbUrlEnvNames = envNames.filter((name) => localDbEnvPatterns.some((pattern) => pattern.test(name))).sort()
@@ -345,6 +453,22 @@ const status =
       ? 'warning'
       : 'ready'
 
+const manualSetupRequired = Boolean(!canRunLocalSql || blockers.length > 0 || criticalFindings.length > 0)
+const nextRecommendedPrompt = canRunLocalSql
+  ? 'Prompt 20B - Local RLS First Executable Smoke Test'
+  : 'Prompt 20D - Manual Environment Setup Verification'
+const prompt20BReadiness = {
+  canProceed: canRunLocalSql,
+  requiredBeforePrompt20B: [
+    ...(supabaseCli.executable ? [] : ['arm64-compatible Supabase CLI']),
+    ...(canUseDocker ? [] : ['local Docker-compatible runtime']),
+    ...(canUsePsql ? [] : ['psql or approved local SQL executor']),
+    ...(localExecutableCandidates.length > 0 ? [] : ['at least one executable local-only SQL candidate under database/test-sql/local/']),
+    ...(remoteRiskDetected ? ['remove remote Supabase link/env risk indicators'] : []),
+    ...(criticalFindings.length > 0 ? ['resolve critical safety findings'] : []),
+  ],
+}
+
 const result = {
   generatedAt: new Date().toISOString(),
   platform: process.platform,
@@ -396,12 +520,35 @@ const result = {
     canUseDocker,
     canUsePsql,
     remoteRiskDetected,
+    manualSetupRequired,
+    nextRecommendedPrompt,
+    prompt20BReadiness,
     blockers: blockers.map((entry) => entry.message),
+    blockerIds: blockerIds(blockers),
     blockerDetails: blockers,
     warnings: warnings.map((entry) => entry.message),
+    warningIds: blockerIds(warnings),
     warningDetails: warnings,
     criticalFindings: criticalFindings.map((entry) => entry.message),
+    criticalFindingIds: blockerIds(criticalFindings),
     criticalFindingDetails: criticalFindings,
+    remediation: {
+      supabaseCli: supabaseCliRemediation(supabaseCli),
+      docker: dockerRemediation(docker),
+      psql: psqlRemediation(psql),
+      supabaseConfig: configRemediation(supabaseConfig),
+      localSqlCandidate:
+        localExecutableCandidates.length > 0
+          ? ['Local executable SQL candidates exist. Run only through the guarded runner after all other preflight gates pass.']
+          : [
+              'Do not create or run executable SQL in Prompt 20C.',
+              'Prompt 20B should create the first minimal local-only auth/workspace SQL candidate after local tools are repaired.',
+            ],
+      localDbUrl:
+        canStartLocalSupabase || canRunLocalSql
+          ? ['Use supabase status --output json only after the CLI and Docker local target are verified.']
+          : ['No local DB URL is verified. Repair CLI/Docker first, then capture a localhost-only DB URL in Prompt 20B or a setup verification prompt.'],
+    },
     nextActions:
       status === 'ready'
         ? ['Use the guarded runner with --confirm-local-only and selected local SQL files only.']
@@ -410,14 +557,17 @@ const result = {
             'Install or select an arm64 Supabase CLI outside the repo.',
             'Install psql or provide an approved local SQL executor outside the repo.',
             'Keep supabase/config.toml local-only and avoid supabase link.',
+            `Recommended next prompt: ${nextRecommendedPrompt}.`,
           ],
     recommendation:
       status === 'ready'
         ? 'Local-only SQL execution may proceed only through the guarded runner and selected local executable SQL files.'
-        : 'Do not execute SQL. Repair the listed local-only toolchain/config blockers first.',
+        : 'Do not execute SQL. Complete the manual local environment setup and verification before Prompt 20B.',
   },
   summary: {
     status,
+    manualSetupRequired,
+    nextRecommendedPrompt,
     criticalFindingCount: criticalFindings.length,
     blockerCount: blockers.length,
     warningCount: warnings.length,

@@ -6,6 +6,8 @@ Prompt 20 does not add executable SQL files here because the local Supabase tool
 
 Prompt 20A keeps this directory list/dry-run only. It adds local Supabase config and hardens the runner, but does not add executable SQL because the Supabase CLI is still the wrong architecture, `psql` is still missing, and no verified local DB URL exists.
 
+Prompt 20C keeps this directory list/dry-run only. It adds manual setup docs and clearer runner/preflight guidance, but does not add executable SQL because the local environment still lacks an arm64-compatible Supabase CLI, `psql`, a verified local DB URL, and a reviewed first local SQL candidate.
+
 ## No Remote Rule
 
 Never run files in this directory against:
@@ -101,3 +103,4 @@ None.
 - `psql` is not on PATH.
 - No local Supabase database URL is verified.
 - No executable local-only SQL file exists yet.
+- Prompt 20C recommends Prompt 20D - Manual Environment Setup Verification before Prompt 20B unless preflight reports `canRunLocalSql=true`.

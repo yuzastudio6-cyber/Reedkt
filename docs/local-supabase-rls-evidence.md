@@ -123,3 +123,24 @@ Commands:
 | `npm run supabase:rls:local:dry-run` | Completed, status `blocked`, exit code `0` | Confirms SQL run remains refused. |
 
 No local, staging, remote, or production Supabase target was touched.
+
+## Prompt 20C Evidence Update
+
+Prompt 20C adds manual setup docs and clearer blocked-output guidance. It does not run SQL, start Supabase, call `supabase status`, reset Supabase, apply migrations, call `psql`, touch staging/remote/production Supabase, or create executable SQL.
+
+Prompt 20C preflight/list/dry-run evidence should show:
+
+| Command | Expected result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `manualSetupRequired=true`, `nextRecommendedPrompt=Prompt 20D - Manual Environment Setup Verification`, Docker usable, CLI/psql/candidate blockers. |
+| `npm run supabase:rls:list-tests` | Completed, status `listed`, exit code `0` | Lists all SQL files and executes no SQL. |
+| `npm run supabase:rls:local:dry-run` | Completed, status `blocked`, exit code `0` | Reports manual setup guidance and confirms SQL run remains refused. |
+
+Remaining blockers after Prompt 20C:
+
+- `/usr/local/bin/supabase` remains x86_64 and fails on arm64 with error `-86`.
+- `psql` remains missing.
+- no verified local DB URL exists.
+- no executable local SQL candidate exists.
+
+No local, staging, remote, or production Supabase target was touched.

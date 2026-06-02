@@ -89,3 +89,33 @@ Prompt 20A preflight result on this host:
 | Remote risk detected | no remote link indicator or risky env var name was detected. | Passed |
 
 Prompt 20A still does not permit SQL execution. Run mode must include `--confirm-local-only` and preflight must report `canRunLocalSql=true`.
+
+## Prompt 20C Manual Setup Update
+
+Prompt 20C keeps preflight local-file/tool inspection only. It does not execute SQL, start Supabase, reset Supabase, run migrations, call `psql`, touch staging/remote/production Supabase, or unlock beta.
+
+Prompt 20C adds clearer result fields:
+
+- `manualSetupRequired`
+- `nextRecommendedPrompt`
+- `prompt20BReadiness.canProceed`
+- `prompt20BReadiness.requiredBeforePrompt20B`
+- `blockerIds`
+- `warningIds`
+- `criticalFindingIds`
+- `remediation`
+
+Prompt 20C expected result on this host:
+
+| Check | Prompt 20C result | Status |
+| --- | --- | --- |
+| Local config exists | `supabase/config.toml` exists and appears local-only. | Passed |
+| Docker daemon reachable | Docker reports server version `29.5.2`. | Passed |
+| Supabase CLI compatible | `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`. | Blocked |
+| `psql` available | `psql` is not on PATH. | Blocked |
+| Local executable SQL exists | none under `database/test-sql/local/`. | Blocked |
+| Local DB URL verified | not verified because the Supabase CLI cannot execute. | Blocked |
+| Remote risk detected | no remote link indicator or risky env var name was detected. | Passed |
+| Prompt 20B can proceed | `canRunLocalSql=false`. | Blocked |
+
+Prompt 20C recommends Prompt 20D - Manual Environment Setup Verification until preflight reports `canRunLocalSql=true`.

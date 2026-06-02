@@ -8,7 +8,7 @@ Prompt 18 created the E2E staging smoke-test plan and beta readiness gates, but 
 
 - Branch: `codex/rp-foundation-19-staging-supabase-rls-validation-preparation`
 - Base: `codex/rp-foundation-18-e2e-staging-smoke-test-plan`
-- PR: pending
+- PR: [PR #116](https://github.com/yuzastudio6-cyber/Reedkt/pull/116)
 
 ## Allowed Scope
 

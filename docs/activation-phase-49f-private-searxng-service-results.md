@@ -59,6 +59,8 @@ Warnings:
 
 Ready only for controlled private live-search/capture E2E using the private SearXNG service and explicit allowlisted capture policy.
 
+Phase 49G implements that bounded E2E path with private SearXNG queries, at most two allowlisted documentation-page captures, Sharp screenshot derivatives, Readability extraction/sanitization, private artifacts, and no paid providers or arbitrary URL capture.
+
 ## Blocked
 
 Public SearXNG instances, paid providers, browser capture, Readability extraction, screenshots, broad crawling, public artifacts, signed URLs as source of truth, production, external beta, paid production, broad media, providers, and Revideo remain blocked.

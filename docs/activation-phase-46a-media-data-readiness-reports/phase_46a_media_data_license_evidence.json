@@ -1,0 +1,115 @@
+{
+  "phase": "46A",
+  "accessedOn": "2026-06-02",
+  "evidence": [
+    {
+      "toolId": "opencv",
+      "sourceUrl": "https://github.com/opencv/opencv",
+      "licenseUrl": "https://opencv.org/license/",
+      "evidenceType": [
+        "official_site_license",
+        "official_repository"
+      ],
+      "license": "Apache-2.0 for OpenCV 4.5.0 and higher; older versions used BSD-3-Clause",
+      "currentKnownReleaseOrVersion": "not_pinned_by_phase46a; repo references opencv-python-headless==4.10.0.84 in OCR/VLM worker requirements",
+      "dependencyCaveats": [
+        "opencv-python wheel and native runtime dependencies require worker image review"
+      ],
+      "unresolvedLegalReviewStatus": "package_variant_and_native_dependency_review_required_before_broad_runtime",
+      "accessedOn": "2026-06-02",
+      "confidence": "high",
+      "blocker": null
+    },
+    {
+      "toolId": "pyav",
+      "sourceUrl": "https://github.com/PyAV-Org/PyAV",
+      "licenseUrl": "https://github.com/PyAV-Org/PyAV/blob/main/LICENSE.txt",
+      "evidenceType": [
+        "official_repository",
+        "license_file"
+      ],
+      "license": "BSD-3-Clause",
+      "currentKnownReleaseOrVersion": "not_pinned_by_phase46a",
+      "dependencyCaveats": [
+        "FFmpeg library, codec, patent, and build configuration caveats remain separate"
+      ],
+      "unresolvedLegalReviewStatus": "ffmpeg_dependency_review_required",
+      "accessedOn": "2026-06-02",
+      "confidence": "high",
+      "blocker": null
+    },
+    {
+      "toolId": "pyscenedetect",
+      "sourceUrl": "https://github.com/Breakthrough/PySceneDetect",
+      "licenseUrl": "https://github.com/Breakthrough/PySceneDetect/blob/main/LICENSE",
+      "evidenceType": [
+        "official_repository",
+        "license_file"
+      ],
+      "license": "BSD-3-Clause",
+      "currentKnownReleaseOrVersion": "not_pinned_by_phase46a",
+      "dependencyCaveats": [
+        "OpenCV dependency and scene-boundary false positives must be QA-gated"
+      ],
+      "unresolvedLegalReviewStatus": "dependency_review_required_before_runtime",
+      "accessedOn": "2026-06-02",
+      "confidence": "high",
+      "blocker": null
+    },
+    {
+      "toolId": "sharp_libvips",
+      "sourceUrl": "https://github.com/lovell/sharp and https://www.libvips.org/",
+      "licenseUrl": "https://github.com/lovell/sharp/blob/main/LICENSE and https://www.libvips.org/",
+      "evidenceType": [
+        "official_repository",
+        "license_file",
+        "dependency_site"
+      ],
+      "license": "Sharp Apache-2.0; libvips LGPL-2.1-or-later",
+      "currentKnownReleaseOrVersion": "not_pinned_by_phase46a",
+      "dependencyCaveats": [
+        "libvips LGPL compliance, native binary/platform, optional dependency, and untrusted image review required"
+      ],
+      "unresolvedLegalReviewStatus": "libvips_lgpl_and_native_dependency_review_required",
+      "accessedOn": "2026-06-02",
+      "confidence": "high",
+      "blocker": null
+    },
+    {
+      "toolId": "duckdb",
+      "sourceUrl": "https://github.com/duckdb/duckdb",
+      "licenseUrl": "https://github.com/duckdb/duckdb/blob/main/LICENSE",
+      "evidenceType": [
+        "official_repository",
+        "license_file"
+      ],
+      "license": "MIT",
+      "currentKnownReleaseOrVersion": "not_pinned_by_phase46a",
+      "dependencyCaveats": [
+        "extension loading, network access, and local file IO policy required before runtime"
+      ],
+      "unresolvedLegalReviewStatus": "runtime_policy_review_required_before_private_report_execution",
+      "accessedOn": "2026-06-02",
+      "confidence": "high",
+      "blocker": null
+    },
+    {
+      "toolId": "polars",
+      "sourceUrl": "https://github.com/pola-rs/polars",
+      "licenseUrl": "https://github.com/pola-rs/polars/blob/main/LICENSE",
+      "evidenceType": [
+        "official_repository",
+        "license_file"
+      ],
+      "license": "MIT",
+      "currentKnownReleaseOrVersion": "not_pinned_by_phase46a",
+      "dependencyCaveats": [
+        "CPU feature compatibility, rtcompat/bigidx variants, and memory/streaming policy required before runtime"
+      ],
+      "unresolvedLegalReviewStatus": "runtime_policy_review_required_before_private_report_execution",
+      "accessedOn": "2026-06-02",
+      "confidence": "high",
+      "blocker": null
+    }
+  ]
+}

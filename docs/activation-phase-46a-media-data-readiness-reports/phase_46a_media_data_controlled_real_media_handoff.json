@@ -1,0 +1,18 @@
+{
+  "phase": "46C",
+  "status": "blocked_until_phase46b_passes",
+  "plan": [
+    "use only previously approved private controlled real-video chain",
+    "start with metadata/probe only",
+    "bounded scene/frame sampling only after Phase 46B",
+    "private artifacts only",
+    "privacy/redaction policy required"
+  ],
+  "constraints": [
+    "no arbitrary media",
+    "no broad user media",
+    "no final export",
+    "no public previews",
+    "no committed frames or thumbnails from real media"
+  ]
+}

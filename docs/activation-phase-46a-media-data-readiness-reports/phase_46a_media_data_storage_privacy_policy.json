@@ -1,0 +1,20 @@
+{
+  "phase": "46A",
+  "publicArtifacts": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked",
+  "rawFrameCommits": "blocked",
+  "realMediaDerivedImageCommits": "blocked",
+  "futurePrivatePrefixes": {
+    "phase46b": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/<run-id>/",
+    "phase46c": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/<run-id>/",
+    "phase46d": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/<run-id>/"
+  },
+  "policy": [
+    "Generated fixture outputs in Phase 46B go only to private QA artifacts.",
+    "Controlled real-video outputs in Phase 46C go only to private QA artifacts.",
+    "Artifact manifests may be committed only when safe and redacted.",
+    "Raw metadata from controlled media remains private unless explicitly redacted.",
+    "DuckDB/Polars outputs must not leak private text or media metadata into committed reports.",
+    "Cleanup and retention policy is required before broader media."
+  ]
+}

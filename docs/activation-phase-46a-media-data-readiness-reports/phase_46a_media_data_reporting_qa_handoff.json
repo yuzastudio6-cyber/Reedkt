@@ -1,0 +1,17 @@
+{
+  "phase": "46D",
+  "status": "blocked_until_phase46b_46c_evidence_exists",
+  "plan": [
+    "DuckDB/Polars aggregate OCR/VLM/audio/media QA outputs",
+    "generated QA tables",
+    "private report manifests",
+    "deterministic output schemas",
+    "redacted committed summaries only"
+  ],
+  "constraints": [
+    "no user-facing analytics leak",
+    "no public artifacts",
+    "no production unlock",
+    "no beta unlock"
+  ]
+}

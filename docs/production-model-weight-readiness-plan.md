@@ -32,6 +32,10 @@ Milestone 11 adds explicit manifest templates for faster-whisper, BiRefNet, SAM2
 
 Any non-commercial model weight is blocked for paid ReeditPro production. Any unknown model-weight license is blocked until reviewed.
 
+## Phase 46A Media/Data Tool Readiness Note
+
+Phase 46A is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records source/license and dependency evidence for deterministic media/data tools only: OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. VLM runtime retries, new model downloads, production, beta, broad media, public output, provider calls, Docker/GCP mutation, and Track A remain blocked.
+
 ## Phase 39C-DECISION VLM Note
 
 Phase 39C-DECISION does not download, stage, approve, or execute any model weights. It preserves the PR #87 official Qwen candidate evidence and records that the current Qwen/vLLM/SGLang/Cloud Run L4 path remains blocked: vLLM is blocked by OOM and semantic generated-image QA failures, while SGLang is blocked before inference by kernel/CUDA import compatibility. No non-Qwen candidate, new Qwen download, community quantization, provider path, different GPU/runtime class, production, internal beta, external beta, broad media, public output, or Track A scope is approved. The recommended next implementation path is Phase 46A media/data tool readiness audit unless a human explicitly approves a VLM recovery path.

@@ -265,6 +265,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: E2E staging smoke plan exists, beta readiness gate contract exists, scenario matrix exists, fixture contract exists, staging runbook exists, scorecard and blocker inventory exist, diagnostics pass, draft SQL/RLS file remains draft-only, and validation results honestly record what did and did not run.
 - Next prompt recommendation: Prompt 19 - Staging Supabase/RLS Validation Preparation if Prompt 18 validation and CI pass; otherwise Prompt 18A - E2E Smoke Plan Hardening.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-production-execution statement.
+
+## 19. Staging Supabase/RLS Validation Preparation
+
+- Purpose: prepare the Supabase/RLS validation path before any local or staging SQL execution.
+- Deliverables after Prompt 19: `docs/staging-supabase-rls-validation-preparation.md`, `docs/supabase-rls-test-manifest.md`, `docs/rls-draft-to-executable-conversion-plan.md`, `docs/staging-supabase-environment-contract.md`, `docs/supabase-rls-fixture-contract.md`, `docs/staging-supabase-validation-runbook.md`, `docs/supabase-validation-evidence-checklist.md`, `docs/prompt-19-validation-results.md`, `database/test-sql/README.md`, `scripts/validation/supabase-rls-preparation-diagnostics.mjs`, and implementation prompt tracking.
+- Implementation status after Prompt 19: validation prepared / Supabase-RLS preparation only. No SQL, Supabase, migration, staging, production, or runtime execution is enabled.
+- Implements: SQL/RLS file manifest for `001`-`020`, draft-to-executable conversion rules, local Supabase preflight plan, staging environment contract, synthetic fixture contract, validation evidence checklist, beta blocker updates, and static preparation diagnostics.
+- Must not implement: local/staging/remote Supabase execution, SQL execution, migration deployment, production/staging data creation, deployment, providers, tools, workers, render/export, media processing, storage transfer, signed URL creation, credit mutation, Stripe, external telemetry, dependency mutation, or production/beta unlock.
+- Main files/tables/services: docs and diagnostics only; SQL/RLS files remain manual or draft validation artifacts. Referenced table concepts come from the manifest and canonical schema docs.
+- What remains blocked: local Supabase/RLS execution, staging Supabase/RLS execution, remote production Supabase, migration application evidence, storage policy execution evidence, runtime execution domains, deployment, billing, external telemetry, and beta approval.
+- Acceptance criteria: preparation docs, manifest, conversion plan, environment contract, fixture contract, runbook, evidence checklist, diagnostics, test SQL README, scorecard, blocker inventory, and tracker updates exist; diagnostics pass; no Supabase/SQL execution occurs.
+- Next prompt recommendation: Prompt 20 - Local Supabase/RLS Validation Execution if Prompt 19 validation and CI pass; otherwise Prompt 19A - Supabase/RLS Preparation Hardening.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-Supabase/no-SQL-execution statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

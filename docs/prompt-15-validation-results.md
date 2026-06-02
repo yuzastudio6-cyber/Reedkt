@@ -48,7 +48,9 @@ Commands run:
 
 `npm run build` completed successfully on this host. It emitted the existing Vite large-chunk warning for the client bundle, but no build error.
 
-GitHub Foundation Validation is pending until the Prompt 15 pull request is opened.
+Prompt 15 pull request: [PR #106](https://github.com/yuzastudio6-cyber/Reedkt/pull/106).
+
+GitHub Foundation Validation is pending for the latest PR branch commit.
 
 ## SQL/RLS Status
 

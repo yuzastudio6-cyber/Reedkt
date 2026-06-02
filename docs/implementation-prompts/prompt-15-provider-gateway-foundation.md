@@ -59,7 +59,7 @@ Run:
 - Branch: `codex/rp-foundation-15-provider-gateway-foundation`
 - PR base: `codex/rp-foundation-14-worker-claim-execution-contract-hardening`
 - PR title: `[foundation] Prompt 15 provider gateway foundation`
-- PR: pending
+- PR: [#106](https://github.com/yuzastudio6-cyber/Reedkt/pull/106)
 - Do not merge the PR.
 
 ## Acceptance Criteria

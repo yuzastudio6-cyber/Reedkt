@@ -46,7 +46,7 @@ Commands run:
 - `npm run build:server` - passed.
 - `npm run foundation:validate:with-build` - passed.
 
-GitHub Foundation Validation is pending on PR #109.
+GitHub Foundation Validation passed on PR #109: https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26794790973/job/78988693058.
 
 ## SQL/RLS Status
 
@@ -78,4 +78,4 @@ Remote and staging Supabase are intentionally not used.
 
 ## Prompt 17 Decision
 
-Local validation supports moving to Prompt 17 after GitHub Foundation Validation passes on the Prompt 16 PR. If GitHub validation fails, use Prompt 16A - Compliance Validation Hardening.
+Local validation and GitHub Foundation Validation support moving to Prompt 17. If Prompt 17 validation fails, use Prompt 17A - Observability Validation Hardening.

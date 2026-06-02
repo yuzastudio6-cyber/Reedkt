@@ -10,6 +10,7 @@ import { JOB_API_ROUTES } from './routes/job-api-routes'
 import { MEDIA_READINESS_API_ROUTES } from './routes/media-readiness-api-routes'
 import { MEDIA_UPLOAD_API_ROUTES } from './routes/media-upload-api-routes'
 import { MUSIC_API_ROUTES } from './routes/music-api-routes'
+import { OBSERVABILITY_API_ROUTES } from './routes/observability-api-routes'
 import { PROJECT_API_ROUTES } from './routes/project-api-routes'
 import { PROVIDER_API_ROUTES } from './routes/provider-api-routes'
 import { QA_REVISION_API_ROUTES } from './routes/qa-revision-api-routes'
@@ -62,6 +63,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...TOOL_CALL_API_ROUTES,
   ...TOOL_READINESS_API_ROUTES,
   ...COMPLIANCE_API_ROUTES,
+  ...OBSERVABILITY_API_ROUTES,
   ...QA_REVISION_API_ROUTES,
   ...GENERATION_API_ROUTES,
   ...RENDER_API_ROUTES,
@@ -85,6 +87,7 @@ const API_DOMAINS: ApiDomain[] = [
   'qa',
   'tools',
   'compliance',
+  'observability',
   'generation',
   'render',
   'music',
@@ -180,6 +183,7 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     qa: 0,
     tools: 0,
     compliance: 0,
+    observability: 0,
     generation: 0,
     render: 0,
     music: 0,

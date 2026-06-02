@@ -120,6 +120,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'compliance:diagnostics'],
     required: true,
   },
+  {
+    id: 'observability_diagnostics',
+    command: 'npm run --silent observability:diagnostics',
+    npmArgs: ['run', '--silent', 'observability:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

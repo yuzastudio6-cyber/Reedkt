@@ -242,12 +242,16 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 
 ## 17. Observability, Audit, Abuse Prevention, And Cost Controls
 
-- Purpose: make production behavior traceable, rate-limited, and cost-safe.
-- Implements: sanitized audit events, request tracing, rate-limit policy, cost counters, anomaly flags, admin review boundaries, alerting plan, and incident rollback hooks.
-- Must not implement: broad admin powers, secret logging, raw provider payload logging, public media access, or cost spending without gates.
-- Main files/tables/services: audit/event tables, backend middleware, job/provider/render events, credit ledger records, monitoring service configuration.
-- Acceptance criteria: privileged actions are auditable, secrets/signed URLs are redacted, abuse controls exist for upload/provider/render/Stripe paths, cost overrun blocks or asks for approval.
-- GitHub deliverable: branch, commit, push, PR with observability tests or dry-run evidence and production-control status.
+- Purpose: add backend-safe operational safety boundaries for request tracing, audit previews, rate-limit readiness, abuse-prevention readiness, cost-control readiness, usage previews, route-risk summaries, and operational runbooks.
+- Deliverables after Prompt 17: `docs/observability-audit-abuse-cost-foundation.md`, `docs/audit-event-contract.md`, `docs/rate-limit-abuse-cost-control-contract.md`, `docs/observability-route-contract.md`, `docs/observability-gate-contract.md`, `docs/operational-runbook-foundation.md`, `docs/prompt-17-validation-results.md`, `database/test-sql/019_observability_audit_abuse_cost_rls_smoke_tests.draft.sql`, `scripts/validation/observability-scope-diagnostics.mjs`, observability route/service/schema updates, and observability route metadata.
+- Implementation status after Prompt 17: partially implemented / limited observability, audit, abuse-prevention, and cost-control route-service foundation only. Production persistence and enforcement remain blocked.
+- Implements: safe runtime status, current request trace summary, static route-risk summary, sanitized audit event preview, audit create boundary, audit list/summary boundaries, rate-limit/abuse/cost-control readiness and policy previews, usage summary preview, explicit cost-control execution block, operational alert readiness, operational alert preview, diagnostics, and draft SQL/RLS validation plan.
+- Must not implement: external telemetry integration, production audit persistence, production rate-limit enforcement, paid billing, Stripe, provider calls, provider secret reads, Secret Manager access, tool execution, worker execution, production job claims, Cloud Run/Pub/Sub/Cloud Tasks dispatch, render/export, media processing, storage transfer, credit mutation, migrations, remote Supabase, deployment, production/beta unlocks, or broad service-role handlers.
+- Main files/tables/services: `audit_events`, `backend_runtime_messages`, `api_idempotency_keys`, `job_events`, `provider_request_attempts`, `worker_job_claims`, `worker_leases`, `signed_url_events`, future `rate_limit_events`, future `abuse_prevention_events`, future `usage_metering_records`, future `cost_control_records`, future `operational_alert_records`, future `runtime_health_snapshots`, future `audit_event_summaries`, and `server/services/observability-service.ts`.
+- What remains blocked: audit/rate-limit/abuse/cost-control table/RLS application, external monitoring/alert transport, production enforcement, billing/payment controls, local/staging RLS validation, deployment, and all runtime execution domains.
+- Acceptance criteria: routes require auth, request boundaries require idempotency, service does not write operational records or send telemetry, missing persistence returns blockers, diagnostics pass, draft SQL/RLS test exists, and no billing/execution/production unlock capability is granted.
+- Next prompt recommendation: Prompt 18 - End-to-End Staging Smoke Test Plan if Prompt 17 validation and CI pass; otherwise Prompt 17A - Observability Validation Hardening.
+- GitHub deliverable: branch, commit, push, PR with observability foundation and explicit no-telemetry/no-billing/no-execution status.
 
 ## 18. End-To-End Staging Smoke Test
 

@@ -17,6 +17,7 @@ on:
       - codex/rp-foundation-13a-tool-readiness-ci-validation-record
       - codex/rp-foundation-14-worker-claim-execution-contract-hardening
       - codex/rp-foundation-15-provider-gateway-foundation
+      - codex/rp-foundation-16-compliance-license-security-review
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:
@@ -47,3 +48,6 @@ jobs:
 
       - name: Run foundation validation with full build
         run: npm run foundation:validate:with-build
+
+      - name: Run server build
+        run: npm run build:server

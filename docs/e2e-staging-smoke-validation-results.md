@@ -1,6 +1,6 @@
 # Prompt 18 Validation Results
 
-PR: pending creation.
+PR: [PR #113](https://github.com/yuzastudio6-cyber/Reedkt/pull/113)
 
 ## Files Inspected
 
@@ -69,7 +69,7 @@ Npm-script diagnostics passed for:
 - `observability:diagnostics`
 - `e2e:staging:diagnostics`
 
-GitHub Foundation Validation is required for Linux full-build evidence after PR creation.
+GitHub Foundation Validation is pending on PR #113 and is required for Linux full-build evidence.
 
 ## SQL/RLS Status
 

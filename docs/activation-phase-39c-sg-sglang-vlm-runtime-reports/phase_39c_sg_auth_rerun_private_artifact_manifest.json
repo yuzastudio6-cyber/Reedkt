@@ -1,10 +1,17 @@
 {
-  "phase": "39C-SG-FIXED",
+  "phase": "39C-SG-AUTH-RERUN",
+  "reportId": "phase_39c_sg_auth_rerun_private_artifact_manifest",
   "runId": "phase39c-sg-auth-rerun-20260602T151556",
-  "createdAt": "2026-06-02T15:16:12.309Z",
-  "selectedProfile": null,
-  "selectedCandidate": null,
-  "status": "blocked",
+  "createdAt": "2026-06-02T15:15:56.043Z",
+  "privateOnly": true,
+  "authRerunMetadataPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-auth-rerun/phase39c-sg-auth-rerun-20260602T151556/",
+  "fixedKernelPrivateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-auth-rerun-20260602T151556/",
+  "artifactCount": 3,
+  "credentialsUploaded": false,
+  "tokensUploaded": false,
+  "modelFilesUploaded": false,
+  "realMediaUploaded": false,
+  "publicArtifactsCreated": false,
   "blockers": [
     "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure",
     "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence",
@@ -31,48 +38,5 @@
     "private_import_smoke_artifact_verified:f2-current-stable-sglang:generation=1780415531822638",
     "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version ",
     "private_import_smoke_artifact_verified:f3-latest-kernel-overlay:generation=1780416161026749"
-  ],
-  "reportId": "phase_39c_sg_fixed_kernel_safe_zone_reasoning_report",
-  "generatedFixtures": [
-    {
-      "fixtureId": "canary-basic-shapes",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "canary-colored-layout",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "canary-text-and-shape",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "canary-ui-simplified",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "canary-caption-safe-zone-simple",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "generated-object-layout",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "generated-ui-safe-zone",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "generated-ocr-vlm-comparison",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "generated-ambiguous-scene",
-      "status": "not-run"
-    },
-    {
-      "fixtureId": "generated-spatial-reasoning",
-      "status": "not-run"
-    }
   ]
 }

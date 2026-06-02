@@ -12,6 +12,7 @@ import { writeVlmRuntimeJsonArtifact } from '../vlm-runtime/vlm-runtime-artifact
 
 export * from './kernel-compat'
 export * from './fixed-kernel'
+export * from './auth-preflight'
 
 const execFileAsync = promisify(execFile)
 

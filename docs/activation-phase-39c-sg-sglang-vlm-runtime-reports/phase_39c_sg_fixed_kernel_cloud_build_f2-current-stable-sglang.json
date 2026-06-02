@@ -1,0 +1,74 @@
+{
+  "phase": "39C-SG-FIXED",
+  "reportId": "phase_39c_sg_fixed_kernel_cloud_build_profile_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:16:12.309Z",
+  "profile": {
+    "id": "f2-current-stable-sglang",
+    "label": "Profile F2 current stable SGLang release dependency set",
+    "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+    "installMode": "pip-force-reinstall-with-deps",
+    "sglangPackageSpec": "sglang[all]==0.5.12.post1",
+    "sglKernelPackageSpec": "none",
+    "sglangKernelPackageSpec": "none",
+    "torchCudaExpectation": "current SGLang dependency set includes torch 2.11.0, CUDA-oriented packages, and sglang-kernel 0.4.2.post2; Cloud Run L4 import smoke must prove driver compatibility",
+    "rationale": "Use the latest stable SGLang package metadata rather than manually pairing old packages.",
+    "sourceEvidence": [
+      "https://pypi.org/project/sglang/0.5.12.post1/",
+      "https://github.com/sgl-project/sglang/releases"
+    ],
+    "buildAllowed": true,
+    "blockers": [],
+    "riskNotes": [
+      "large dependency churn and CUDA >12.2 packages may require Cloud Run forward compatibility",
+      "import smoke must pass before runtime; generated fixtures are not attempted on package-install evidence alone"
+    ]
+  },
+  "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556",
+  "imageDigest": "sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+  "buildId": "2e6ef43e-2bd9-4eae-9811-4c57a7ddc82c",
+  "buildStatus": "SUCCESS",
+  "durationSeconds": 1221,
+  "rawBuildMetadata": {
+    "id": "2e6ef43e-2bd9-4eae-9811-4c57a7ddc82c",
+    "name": "projects/390722338345/locations/us-central1/builds/2e6ef43e-2bd9-4eae-9811-4c57a7ddc82c",
+    "status": "SUCCESS",
+    "createTime": "2026-06-02T15:25:10.157500314Z",
+    "startTime": "2026-06-02T15:26:04.161386256Z",
+    "finishTime": "2026-06-02T15:46:24.726419Z",
+    "images": [
+      "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556"
+    ],
+    "logUrl": "https://console.cloud.google.com/cloud-build/builds;region=us-central1/2e6ef43e-2bd9-4eae-9811-4c57a7ddc82c?project=390722338345",
+    "serviceAccount": "projects/reeditpro/serviceAccounts/390722338345-compute@developer.gserviceaccount.com",
+    "options": {
+      "logging": "LEGACY",
+      "machineType": "E2_HIGHCPU_8",
+      "pool": {}
+    },
+    "results": {
+      "buildStepImages": [
+        "sha256:042c5c509f88ae18731ea3c122f4c62954f48a809b4fd93dd534a03fcbeb4bcb"
+      ],
+      "buildStepOutputs": [
+        ""
+      ],
+      "images": [
+        {
+          "artifactRegistryPackage": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers/packages/vlm-runtime-phase39c-sglang-fixed/versions/sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+          "digest": "sha256:f39e6fac1763eecc13149a940cdf6c9377aaf4b460ddb6e2befd872da97bc380",
+          "name": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556",
+          "pushTiming": {
+            "endTime": "2026-06-02T15:46:23.899016849Z",
+            "startTime": "2026-06-02T15:36:58.798807512Z"
+          }
+        }
+      ]
+    }
+  },
+  "status": "passed",
+  "blockers": [],
+  "warnings": [
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f2-current-stable-sglang-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version "
+  ]
+}

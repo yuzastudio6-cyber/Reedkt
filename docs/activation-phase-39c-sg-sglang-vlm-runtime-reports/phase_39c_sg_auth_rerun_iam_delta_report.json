@@ -1,0 +1,13 @@
+{
+  "phase": "39C-SG-AUTH-RERUN",
+  "reportId": "phase_39c_sg_auth_rerun_iam_delta_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:15:56.043Z",
+  "status": "delegated",
+  "fixedKernelIamDeltaReport": "phase_39c_sg_fixed_kernel_iam_delta_report.json",
+  "qaCreateBinding": "see_fixed_kernel_iam_delta_report",
+  "qaReadbackBinding": "skipped_not_needed",
+  "broadIamGranted": false,
+  "publicAccessChanged": false,
+  "blockers": []
+}

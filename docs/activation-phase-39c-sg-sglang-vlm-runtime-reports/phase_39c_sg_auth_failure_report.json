@@ -1,0 +1,16 @@
+{
+  "phase": "39C-SG-AUTH-RERUN",
+  "reportId": "phase_39c_sg_auth_failure_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:15:56.043Z",
+  "status": "passed",
+  "authPathUsed": "active_account",
+  "activePrincipal": "aiediting@reeditpro.com",
+  "tokenOutput": "not_printed",
+  "serviceAccountKey": "not_used_not_created",
+  "blockers": [],
+  "warnings": [
+    "application_default_credentials_token_unavailable:WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the CLOUDSDK_PYTHON environment variable to point to it. WARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out WARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out WARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down ERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set u"
+  ],
+  "operatorActions": []
+}

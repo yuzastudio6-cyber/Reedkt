@@ -1,0 +1,73 @@
+{
+  "phase": "39C-SG-FIXED",
+  "reportId": "phase_39c_sg_fixed_kernel_cloud_build_profile_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:16:12.309Z",
+  "profile": {
+    "id": "f3-latest-kernel-overlay",
+    "label": "Profile F3 latest kernel overlay on PR #104 base",
+    "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+    "installMode": "pip-force-reinstall-no-deps",
+    "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+    "sglKernelPackageSpec": "sgl-kernel==0.3.21",
+    "sglangKernelPackageSpec": "sglang-kernel==0.4.3",
+    "torchCudaExpectation": "keeps PR #104 runtime package base but overlays current kernel wheels; import smoke decides compatibility",
+    "rationale": "Test the current kernel packages independently from the full latest SGLang dependency set.",
+    "sourceEvidence": [
+      "https://pypi.org/project/sgl-kernel/0.3.21/",
+      "https://pypi.org/project/sglang-kernel/0.4.3/"
+    ],
+    "buildAllowed": true,
+    "blockers": [],
+    "riskNotes": [
+      "API mismatch with SGLang 0.4.10 is possible; import smoke classifies this before runtime"
+    ]
+  },
+  "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556",
+  "imageDigest": "sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+  "buildId": "e42544da-10f9-4564-b71c-ad8a1b78daa0",
+  "buildStatus": "SUCCESS",
+  "durationSeconds": 335,
+  "rawBuildMetadata": {
+    "id": "e42544da-10f9-4564-b71c-ad8a1b78daa0",
+    "name": "projects/390722338345/locations/us-central1/builds/e42544da-10f9-4564-b71c-ad8a1b78daa0",
+    "status": "SUCCESS",
+    "createTime": "2026-06-02T15:52:28.595586839Z",
+    "startTime": "2026-06-02T15:53:46.099123192Z",
+    "finishTime": "2026-06-02T15:59:21.381373Z",
+    "images": [
+      "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556"
+    ],
+    "logUrl": "https://console.cloud.google.com/cloud-build/builds;region=us-central1/e42544da-10f9-4564-b71c-ad8a1b78daa0?project=390722338345",
+    "serviceAccount": "projects/reeditpro/serviceAccounts/390722338345-compute@developer.gserviceaccount.com",
+    "options": {
+      "logging": "LEGACY",
+      "machineType": "E2_HIGHCPU_8",
+      "pool": {}
+    },
+    "results": {
+      "buildStepImages": [
+        "sha256:042c5c509f88ae18731ea3c122f4c62954f48a809b4fd93dd534a03fcbeb4bcb"
+      ],
+      "buildStepOutputs": [
+        ""
+      ],
+      "images": [
+        {
+          "artifactRegistryPackage": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers/packages/vlm-runtime-phase39c-sglang-fixed/versions/sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+          "digest": "sha256:da802500850790838347993aaeced030dfb01b982451022cc4591152b20f6da5",
+          "name": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556",
+          "pushTiming": {
+            "endTime": "2026-06-02T15:59:20.749979346Z",
+            "startTime": "2026-06-02T15:57:50.959045676Z"
+          }
+        }
+      ]
+    }
+  },
+  "status": "passed",
+  "blockers": [],
+  "warnings": [
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f3-latest-kernel-overlay-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version "
+  ]
+}

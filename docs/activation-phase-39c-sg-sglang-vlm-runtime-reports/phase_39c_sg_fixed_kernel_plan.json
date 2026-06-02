@@ -1,7 +1,7 @@
 {
   "phase": "39C-SG-FIXED",
   "reportId": "phase_39c_sg_fixed_kernel_plan",
-  "createdAt": "2026-06-02T13:23:34.732Z",
+  "createdAt": "2026-06-02T16:02:54.126Z",
   "defaultMode": "non_mutating",
   "matrixId": "phase39c-sglang-fixed-kernel-l4-v1",
   "sourceEvidence": {
@@ -49,7 +49,7 @@
   "upstreamWebResearch": {
     "phase": "39C-SG-FIXED",
     "reportId": "phase_39c_sg_fixed_kernel_web_research",
-    "createdAt": "2026-06-02T13:23:34.732Z",
+    "createdAt": "2026-06-02T16:02:54.126Z",
     "status": "passed",
     "sources": [
       {
@@ -113,7 +113,7 @@
   "iamPlan": {
     "phase": "39C-SG-FIXED",
     "reportId": "phase_39c_sg_fixed_kernel_iam_plan",
-    "createdAt": "2026-06-02T13:23:34.732Z",
+    "createdAt": "2026-06-02T16:02:54.126Z",
     "defaultMode": "non_mutating",
     "requiredConfirmationForApply": "REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE",
     "bucket": "gs://reeditpro-staging-reeditpro-qa-artifacts",
@@ -141,7 +141,7 @@
   "importFailureAudit": {
     "phase": "39C-SG-FIXED",
     "reportId": "phase_39c_sg_fixed_kernel_import_failure_audit",
-    "createdAt": "2026-06-02T13:23:34.732Z",
+    "createdAt": "2026-06-02T16:02:54.126Z",
     "sourcePr104": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
     "pr104ImageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
     "failedSharedObject": "/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so",
@@ -180,7 +180,7 @@
   "profileMatrix": {
     "phase": "39C-SG-FIXED",
     "reportId": "phase_39c_sg_fixed_kernel_profile_matrix",
-    "createdAt": "2026-06-02T13:23:34.732Z",
+    "createdAt": "2026-06-02T16:02:54.126Z",
     "matrixId": "phase39c-sglang-fixed-kernel-l4-v1",
     "stopAfterFirstImportSmokePass": true,
     "profiles": [

@@ -1,0 +1,75 @@
+{
+  "phase": "39C-SG-FIXED",
+  "reportId": "phase_39c_sg_fixed_kernel_cloud_build_profile_report",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:16:12.309Z",
+  "profile": {
+    "id": "f1-minimal-fixed-sgl-kernel",
+    "label": "Profile F1 minimal fixed sgl-kernel 0.3.6.post1",
+    "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+    "installMode": "pip-force-reinstall-no-deps",
+    "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+    "sglKernelPackageSpec": "sgl-kernel==0.3.6.post1",
+    "sglangKernelPackageSpec": "none",
+    "torchCudaExpectation": "keeps PR #104 torch/CUDA package base and replaces only sgl-kernel with the post-#9021 issue-linked fixed wheel",
+    "rationale": "Use the smallest upstream-evidence-driven change: sgl-kernel 0.3.6.post1 was published after PR #9021/#9231 and is referenced by issue discussion as the fixed path.",
+    "sourceEvidence": [
+      "https://github.com/sgl-project/sglang/pull/9021",
+      "https://github.com/sgl-project/sglang/pull/9231",
+      "https://pypi.org/project/sgl-kernel/0.3.6.post1/"
+    ],
+    "buildAllowed": true,
+    "blockers": [],
+    "riskNotes": [
+      "no-deps reinstall is intentional to avoid broad dependency churn",
+      "import smoke must prove compatibility before model-copy or generated runtime"
+    ]
+  },
+  "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556",
+  "imageDigest": "sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+  "buildId": "ec36e22c-0e21-4eaf-ae91-540a881da630",
+  "buildStatus": "SUCCESS",
+  "durationSeconds": 304,
+  "rawBuildMetadata": {
+    "id": "ec36e22c-0e21-4eaf-ae91-540a881da630",
+    "name": "projects/390722338345/locations/us-central1/builds/ec36e22c-0e21-4eaf-ae91-540a881da630",
+    "status": "SUCCESS",
+    "createTime": "2026-06-02T15:16:18.248273879Z",
+    "startTime": "2026-06-02T15:17:10.341916806Z",
+    "finishTime": "2026-06-02T15:22:14.640313Z",
+    "images": [
+      "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556"
+    ],
+    "logUrl": "https://console.cloud.google.com/cloud-build/builds;region=us-central1/ec36e22c-0e21-4eaf-ae91-540a881da630?project=390722338345",
+    "serviceAccount": "projects/reeditpro/serviceAccounts/390722338345-compute@developer.gserviceaccount.com",
+    "options": {
+      "logging": "LEGACY",
+      "machineType": "E2_HIGHCPU_8",
+      "pool": {}
+    },
+    "results": {
+      "buildStepImages": [
+        "sha256:042c5c509f88ae18731ea3c122f4c62954f48a809b4fd93dd534a03fcbeb4bcb"
+      ],
+      "buildStepOutputs": [
+        ""
+      ],
+      "images": [
+        {
+          "artifactRegistryPackage": "projects/reeditpro/locations/us-central1/repositories/reeditpro-staging-workers/packages/vlm-runtime-phase39c-sglang-fixed/versions/sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+          "digest": "sha256:33acdb9e074c76bdbafa4b47f4443a9f832e2d80bdfad1f2629ef19e3f55de5b",
+          "name": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556",
+          "pushTiming": {
+            "endTime": "2026-06-02T15:22:13.615369930Z",
+            "startTime": "2026-06-02T15:20:46.043447566Z"
+          }
+        }
+      ]
+    }
+  },
+  "status": "passed",
+  "blockers": [],
+  "warnings": [
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud --quiet artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-fixed:f1-minimal-fixed-sgl-kernel-phase39c-sg-auth-rerun-20260602t151556 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible versi"
+  ]
+}

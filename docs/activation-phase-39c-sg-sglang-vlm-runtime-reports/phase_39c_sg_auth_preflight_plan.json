@@ -1,0 +1,94 @@
+{
+  "phase": "39C-SG-AUTH-RERUN",
+  "reportId": "phase_39c_sg_auth_preflight_plan",
+  "createdAt": "2026-06-02T15:16:12.308Z",
+  "defaultMode": "non_mutating",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true
+    },
+    "phase39bq39cqCandidates": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true
+    },
+    "phase39cqStructuredOutput": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "preserved": true
+    },
+    "phase39cqSo3Perception": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+      "preserved": true
+    },
+    "phase39cSglangBuildx": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+      "preserved": true
+    },
+    "phase39cSgBuildCloudBuild": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+      "preserved": true
+    },
+    "phase39cSgKernelCompat": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/107",
+      "preserved": true
+    },
+    "phase39cSgFixedKernel": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/110",
+      "preserved": true
+    },
+    "googleCloudAuthDocs": "https://docs.cloud.google.com/docs/authentication/gcloud",
+    "googleCloudServiceAccountImpersonationDocs": "https://docs.cloud.google.com/docs/authentication/use-service-account-impersonation",
+    "googleCloudIamServiceAccountImpersonationDocs": "https://docs.cloud.google.com/iam/docs/service-account-impersonation",
+    "googleCloudServiceAccountKeyBestPractices": "https://docs.cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys",
+    "googleCloudGcloudReference": "https://docs.cloud.google.com/sdk/gcloud/reference"
+  },
+  "authResolutionOrder": [
+    "existing_active_noninteractive_gcloud_account",
+    "configured_auth_impersonate_service_account",
+    "REEDITPRO_GCP_IMPERSONATE_SERVICE_ACCOUNT_explicit_flag",
+    "REEDITPRO_GCP_ACCESS_TOKEN_FILE_or_auth_access_token_file",
+    "CLOUDSDK_AUTH_ACCESS_TOKEN",
+    "REEDITPRO_GCP_WIF_CREDENTIAL_FILE_or_GOOGLE_APPLICATION_CREDENTIALS",
+    "attached_service_account_environment",
+    "blocked_operator_action_required"
+  ],
+  "requiredConfirmationForAuthPreflightExecute": "REEDITPRO_CONFIRM_VLM_SG_AUTH_PREFLIGHT",
+  "requiredConfirmationForRerun": "REEDITPRO_CONFIRM_VLM_SG_NONINTERACTIVE_AUTH_RERUN",
+  "preferredImpersonationServiceAccount": "reeditpro-stg-tool-ready-sa@reeditpro.iam.gserviceaccount.com",
+  "tokenOutput": "not_printed",
+  "serviceAccountKeys": "blocked_not_created_not_committed",
+  "browserLoginInsideCodex": "blocked",
+  "permissionChecks": [
+    "services_list",
+    "cloud_builds_list",
+    "artifact_registry_describe",
+    "cloud_run_jobs_list",
+    "generated_assets_bucket_describe",
+    "qa_artifacts_bucket_describe",
+    "qa_artifacts_iam_policy_read"
+  ],
+  "fixedKernelDelegation": {
+    "sourcePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/110",
+    "cloudBuildImportSmokeRuntime": "delegated_to_existing_fixed_kernel_runner_after_auth_and_permission_preflight_pass",
+    "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/<run-id>/",
+    "authRerunMetadataPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-auth-rerun/<run-id>/"
+  },
+  "blockedScopes": [
+    "Phase 39D controlled real-frame VLM",
+    "Phase 39E planning integration",
+    "provider calls",
+    "production",
+    "internal beta",
+    "external beta",
+    "paid production",
+    "public output",
+    "broad user media",
+    "broad real-media processing",
+    "arbitrary media paths",
+    "unapproved GPU types",
+    "non-Qwen candidates",
+    "new Qwen model downloads",
+    "service-account keys",
+    "Track A runtime/visual/render stack"
+  ]
+}

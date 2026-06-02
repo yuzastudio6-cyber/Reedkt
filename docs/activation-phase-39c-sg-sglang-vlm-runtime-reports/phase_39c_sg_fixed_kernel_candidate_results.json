@@ -1,8 +1,8 @@
 {
   "phase": "39C-SG-FIXED",
   "reportId": "phase_39c_sg_fixed_kernel_candidate_results",
-  "runId": "phase39c-sg-fixed-20260602T132030",
-  "createdAt": "2026-06-02T13:23:33.690Z",
+  "runId": "phase39c-sg-auth-rerun-20260602T151556",
+  "createdAt": "2026-06-02T15:16:12.309Z",
   "status": "blocked",
   "selectedCandidate": null,
   "candidates": [

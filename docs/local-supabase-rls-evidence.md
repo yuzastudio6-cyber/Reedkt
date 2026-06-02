@@ -6,7 +6,9 @@ Prompt 20 evidence was collected on June 2, 2026 from the local-only safety tool
 
 - Branch: `codex/rp-foundation-20-local-supabase-rls-validation-execution`
 - Base: `origin/codex/rp-foundation-19-staging-supabase-rls-validation-preparation`
-- Head commit: pending until Prompt 20 commit is created.
+- Initial implementation commit: `2131703`
+- PR: [PR #117](https://github.com/yuzastudio6-cyber/Reedkt/pull/117)
+- Final PR head may include the tracker follow-up commit.
 
 ## Commands Run
 

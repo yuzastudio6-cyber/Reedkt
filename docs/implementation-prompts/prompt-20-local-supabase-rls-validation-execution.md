@@ -95,6 +95,7 @@ Run `npm run supabase:rls:local:run` only if the preflight proves the local targ
 - Branch: `codex/rp-foundation-20-local-supabase-rls-validation-execution`
 - PR base: `codex/rp-foundation-19-staging-supabase-rls-validation-preparation`
 - PR title: `[foundation] Prompt 20 local Supabase RLS validation execution`
+- PR: [PR #117](https://github.com/yuzastudio6-cyber/Reedkt/pull/117)
 - Do not merge the PR.
 
 ## Acceptance Criteria

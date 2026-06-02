@@ -2,6 +2,8 @@
 
 Prompt 20 adds a local-only Supabase/RLS safety preflight and guarded RLS runner. It does not run staging, remote, or production Supabase.
 
+PR: [PR #117](https://github.com/yuzastudio6-cyber/Reedkt/pull/117)
+
 ## Files Inspected
 
 - Prompt 19 Supabase/RLS preparation docs, manifest, conversion plan, staging environment contract, fixture contract, runbook, evidence checklist, and validation results.
@@ -130,7 +132,12 @@ Remote Supabase, staging Supabase, production Supabase, remote SQL, staging SQL,
 
 ## CI Status
 
-Pending PR creation and GitHub Foundation Validation.
+GitHub Foundation Validation triggered for PR #117 and was queued after PR creation:
+
+- Run: `https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26843585586`
+- Job: `https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26843585586/job/79157001689`
+
+Final CI conclusion is pending.
 
 ## Beta Readiness Score Update
 

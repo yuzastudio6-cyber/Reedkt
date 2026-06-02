@@ -1,0 +1,18 @@
+-- Prompt 15 provider gateway RLS smoke tests - draft only.
+-- Local/staging validation only. Do not run against production data.
+-- Do not run until the canonical provider gateway schema and Supabase CLI environment are validated.
+-- This file intentionally contains no executable fixture IDs.
+
+-- Planned cases:
+-- 1. Workspace member can read project-scoped provider attempt summaries where policy allows.
+-- 2. Non-member cannot read provider attempt summaries.
+-- 3. Normal user cannot create provider attempts directly.
+-- 4. Backend/service-role creates provider attempt records only after approved snapshot, credit reservation, and job gates.
+-- 5. Provider attempts cannot store raw secrets, provider keys, service-role keys, or raw credentials.
+-- 6. Provider attempts cannot store signed URLs as source-of-truth.
+-- 7. Provider webhook summaries are sanitized and do not store raw provider payloads.
+-- 8. Webhook verification status is recorded without storing raw secret values.
+-- 9. Provider output records cannot cross workspace/project scope.
+-- 10. Provider execution remains blocked unless all provider readiness gates pass.
+-- 11. Provider readiness routes do not create generation, render, tool, job, worker, storage, or credit mutation records.
+-- 12. Audit events are append-only if provider audit events are in scope.

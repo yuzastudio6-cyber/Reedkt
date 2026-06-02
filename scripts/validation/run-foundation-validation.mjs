@@ -108,6 +108,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'worker:execution:diagnostics'],
     required: true,
   },
+  {
+    id: 'provider_gateway_diagnostics',
+    command: 'npm run --silent provider:gateway:diagnostics',
+    npmArgs: ['run', '--silent', 'provider:gateway:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

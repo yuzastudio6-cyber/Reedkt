@@ -36,7 +36,6 @@ const registryFiles = [
 
 const blockedServiceImports = [
   /createChatService/,
-  /createProviderGatewayService/,
   /runWorkerClaimRunner/,
   /runToolReadinessChecks/,
   /checkBasicRenderSmokeTools/,
@@ -136,10 +135,18 @@ function summarizeByFile(matches) {
 function failClosedCoverage(files) {
   const renderRoutesText = readFile('server/routes/render-routes.ts')
   const renderServiceText = readFile('server/services/render-service.ts')
+  const providerRoutesText = readFile('server/routes/provider-gateway-routes.ts')
+  const providerServiceText = readFile('server/services/provider-gateway-service.ts')
   const renderMutationRoutes = [
     '/v1/render/manifest/build',
     '/v1/render/preview/request',
     '/v1/export/request',
+  ]
+  const providerBoundaryRoutes = [
+    '/v1/providers/request-attempt/create-boundary',
+    '/v1/providers/webhooks/:provider/receive-boundary',
+    '/v1/providers/request-envelope/validate',
+    '/v1/providers/route/preview',
   ]
   const renderServiceBoundarySafe = /createRenderService/.test(renderRoutesText) &&
     /RenderWorkerRuntimeGate/.test(renderServiceText) &&
@@ -151,16 +158,29 @@ function failClosedCoverage(files) {
       const routeWindow = renderRoutesText.slice(routeIndex, routeIndex + 240)
       return /requireIdempotency/.test(routeWindow)
     })
+  const providerServiceBoundarySafe = /createProviderGatewayService/.test(providerRoutesText) &&
+    /ProviderTransportGate/.test(providerServiceText) &&
+    /ProviderExecutionBlockedGate/.test(providerServiceText) &&
+    /canCallProvider:\s*false/.test(providerServiceText) &&
+    !/\.from\(['"`](provider_request_attempts|provider_webhook_events)['"`]\)\s*\n?\s*\.(insert|update|upsert|delete)/i.test(providerServiceText) &&
+    providerBoundaryRoutes.every((route) => {
+      const routeIndex = providerRoutesText.indexOf(route)
+      if (routeIndex === -1) return false
+      const routeWindow = providerRoutesText.slice(routeIndex, routeIndex + 260)
+      return /requireIdempotency/.test(routeWindow)
+    })
 
   return files.map((file) => {
     const text = readFile(file)
     const usesPrompt10RenderBoundary = file === 'server/routes/render-routes.ts' && renderServiceBoundarySafe
+    const usesPrompt15ProviderBoundary = file === 'server/routes/provider-gateway-routes.ts' && providerServiceBoundarySafe
     return {
       file,
       exists: fileExists(file),
-      usesBackendRequiredHelper: /sendBackendRequired/.test(text) || usesPrompt10RenderBoundary,
+      usesBackendRequiredHelper: /sendBackendRequired/.test(text) || usesPrompt10RenderBoundary || usesPrompt15ProviderBoundary,
       importsBlockedExecutionService: blockedServiceImports.some((pattern) => pattern.test(text)),
       usesPrompt10RenderBoundary,
+      usesPrompt15ProviderBoundary,
     }
   })
 }

@@ -15,6 +15,7 @@ on:
       - codex/rp-foundation-12-tool-call-foundation
       - codex/rp-foundation-13-tool-readiness-worker-runtime-checks
       - codex/rp-foundation-13a-tool-readiness-ci-validation-record
+      - codex/rp-foundation-14-worker-claim-execution-contract-hardening
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

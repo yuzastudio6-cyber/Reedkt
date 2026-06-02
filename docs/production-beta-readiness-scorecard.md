@@ -4,6 +4,8 @@ M17 scorecards classify readiness, worker security, tool security, model-weight 
 
 The default scorecard is blocked. Internal dry-run testing can be allowed only when E2E dry-run passed and security/cost docs exist. External beta, real user media beta, and paid production remain blocked.
 
+Phase 39C-DECISION evidence confirms VLM is not a beta-ready tool family. Phase 39C generated runtime verification remains blocked after Qwen/vLLM OOM and semantic generated-image QA failures, and after Qwen/SGLang Cloud Run L4 kernel import-smoke failures. Phase 39D controlled real-frame VLM, Phase 39E planning integration, runtime retries without new approval, provider calls, production, internal beta, external beta, public output, broad media, arbitrary media, non-Qwen candidates, new model downloads, unapproved GPU/runtime classes, and Track A remain blocked. The recommended next implementation path is Phase 46A media/data tool readiness audit, not beta unlock.
+
 Phase 35F SAM2 feature E2E evidence, when present, counts only toward internal
 SAM2 feature testing. It is not external beta, paid production, broad real
 media, provider, Revideo, FILM, slow-motion, Real-ESRGAN, public delivery, or

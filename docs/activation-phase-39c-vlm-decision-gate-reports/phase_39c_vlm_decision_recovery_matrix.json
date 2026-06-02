@@ -1,0 +1,134 @@
+{
+  "phase": "39C-DECISION",
+  "options": [
+    {
+      "id": "A",
+      "name": "Controlled L4 GCE/Vertex runtime for SGLang",
+      "description": "Move SGLang import-smoke/generated-runtime to a controlled GCE, Vertex, or custom job environment with a reviewed NVIDIA driver/CUDA stack while keeping the L4 GPU class.",
+      "pros": [
+        "isolates Cloud Run driver/ABI limitation",
+        "keeps the L4-only constraint",
+        "tests SGLang fairly"
+      ],
+      "cons": [
+        "new runtime environment approval required",
+        "additional cost/security/runbook work",
+        "not immediate beta readiness"
+      ],
+      "requiredApprovals": [
+        "controlled GCE/Vertex runtime phase",
+        "IAM/storage/networking review",
+        "private artifact policy",
+        "cost cap"
+      ],
+      "recommendation": "Possible fallback only with explicit human approval.",
+      "confidence": "medium"
+    },
+    {
+      "id": "B",
+      "name": "Human-approved VLM QA redesign",
+      "description": "Keep Qwen/vLLM as advisory label/uncertainty signal only; use OCR, OpenCV, and media-data outputs as authoritative geometry and safe-zone sources.",
+      "pros": [
+        "fastest product-forward path",
+        "aligns with completed OCR chain",
+        "reduces dependence on brittle VLM localization",
+        "can move beta readiness through deterministic tools"
+      ],
+      "cons": [
+        "lowers VLM role",
+        "requires QA contract update",
+        "may not satisfy a requirement that VLM owns localization"
+      ],
+      "requiredApprovals": [
+        "human QA contract approval",
+        "Phase 46A/46B/46C media-data hardening",
+        "later Phase 39E integration redesign"
+      ],
+      "recommendation": "Default product-forward VLM recovery posture unless VLM-owned localization is mandatory.",
+      "confidence": "high"
+    },
+    {
+      "id": "C",
+      "name": "Non-Qwen VLM candidate approval",
+      "description": "Start a new approval chain for a non-Qwen VLM candidate optimized for generated-image grounding and L4/runtime fit.",
+      "pros": [
+        "may solve semantic perception issue",
+        "cleaner than forcing current Qwen candidates"
+      ],
+      "cons": [
+        "new license/model/runtime review",
+        "new download/staging/runtime chain",
+        "time/cost risk"
+      ],
+      "requiredApprovals": [
+        "new model approval path",
+        "legal/license review",
+        "private storage/runtime/generated fixture phases"
+      ],
+      "recommendation": "Valid only if product explicitly requires VLM-owned perception/localization.",
+      "confidence": "medium"
+    },
+    {
+      "id": "D",
+      "name": "Different approved GPU/runtime CUDA class",
+      "description": "Approve a GPU/runtime environment with newer driver/CUDA support, such as RTX PRO 6000 on Cloud Run if available or another approved GPU platform.",
+      "pros": [
+        "may unblock SGLang/kernel compatibility",
+        "may run larger or more capable models"
+      ],
+      "cons": [
+        "violates current L4-only default",
+        "requires explicit approval",
+        "higher cost",
+        "still may not solve semantic QA"
+      ],
+      "requiredApprovals": [
+        "GPU class approval",
+        "cost review",
+        "runtime/security review",
+        "updated rollback/runbook"
+      ],
+      "recommendation": "Not default; use only if budget/runtime approval exists.",
+      "confidence": "low"
+    },
+    {
+      "id": "E",
+      "name": "Continue current Cloud Run L4 SGLang kernel work",
+      "description": "Keep trying package/source-build combinations on Cloud Run L4.",
+      "pros": [
+        "stays within current platform"
+      ],
+      "cons": [
+        "repeated failures",
+        "upstream ABI instability",
+        "low confidence",
+        "burns time without product movement"
+      ],
+      "requiredApprovals": [
+        "specific new upstream fix/version evidence",
+        "bounded source-build approval if applicable"
+      ],
+      "recommendation": "Stop unless there is a specific new upstream fix/version with strong evidence.",
+      "confidence": "low"
+    },
+    {
+      "id": "F",
+      "name": "Pause VLM and continue Phase 46A media/data hardening",
+      "description": "Keep VLM blocked and continue with deterministic media/data tool audit and fixture suite.",
+      "pros": [
+        "high value for beta readiness",
+        "supports OCR/VLM/QA later",
+        "lower risk",
+        "no blocked GPU runtime dependence"
+      ],
+      "cons": [
+        "VLM remains blocked"
+      ],
+      "requiredApprovals": [
+        "Phase 46A implementation approval"
+      ],
+      "recommendation": "Immediate next implementation phase unless a human explicitly approves Option A, C, D, or E.",
+      "confidence": "high"
+    }
+  ]
+}

@@ -1,0 +1,350 @@
+{
+  "phase": "39C-DECISION",
+  "runId": "phase39c-decision-20260602",
+  "generatedAt": "2026-06-02T00:00:00-04:00",
+  "sourcePrs": [
+    {
+      "phase": "39A Qwen3-VL/vLLM approval workflow",
+      "pr": 62,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/62",
+      "status": "open",
+      "outcome": "Qwen3-VL/vLLM planning evidence passed as metadata-only approval planning.",
+      "worked": [
+        "source/license/runtime planning evidence",
+        "private storage handoff plan",
+        "blocked-scope policy"
+      ],
+      "failed": [],
+      "proven": [
+        "approval workflow can produce safe metadata and Phase 39B handoff"
+      ],
+      "notProven": [
+        "model download",
+        "runtime inference",
+        "generated fixture QA",
+        "real-frame QA"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39a-qwen3-vl-vllm-approval-reports"
+      ],
+      "privateArtifactPrefixes": [],
+      "validation": "reported passing in source evidence",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39B exact Qwen3-VL asset private staging",
+      "pr": 64,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/64",
+      "status": "open",
+      "outcome": "Unquantized Qwen/Qwen3-VL-8B-Instruct assets were pinned, checksummed, uploaded privately, and verified.",
+      "worked": [
+        "exact revision pin",
+        "per-file SHA-256",
+        "aggregate SHA-256",
+        "private GCS object verification"
+      ],
+      "failed": [],
+      "proven": [
+        "private model storage/download/checksum chain for original 8B BF16 candidate"
+      ],
+      "notProven": [
+        "runtime support",
+        "L4 memory fit",
+        "generated fixture QA"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39b-qwen3-vl-exact-assets-private-staging-reports"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct/"
+      ],
+      "validation": "reported passing in source evidence",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C generated VLM runtime verification",
+      "pr": 66,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "status": "open",
+      "outcome": "Original unquantized 8B BF16 candidate failed on Cloud Run L4 with CUDA OOM before generated fixture inference.",
+      "worked": [
+        "private model copy",
+        "checksum verification",
+        "local model path preparation",
+        "private QA artifact upload"
+      ],
+      "failed": [
+        "vLLM engine initialization on Cloud Run L4 for BF16 8B"
+      ],
+      "proven": [
+        "L4 OOM blocker is real for the original unquantized BF16 8B path"
+      ],
+      "notProven": [
+        "generated image inference",
+        "schema validation",
+        "object-region QA",
+        "safe-zone QA"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39c-generated-vlm-runtime-verification-reports"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-runtime/"
+      ],
+      "validation": "reported passing for code/reporting; runtime blocked by OOM",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39B-Q/39C-Q official L4-compatible Qwen candidate recovery",
+      "pr": 87,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "status": "open",
+      "outcome": "Official Qwen FP8 8B, BF16 4B, and BF16 2B candidates were privately staged and reached output generation, but failed JSON/schema QA.",
+      "worked": [
+        "official candidate staging",
+        "private checksums",
+        "local model path runtime",
+        "L4 output generation attempts"
+      ],
+      "failed": [
+        "required structured JSON/schema QA"
+      ],
+      "proven": [
+        "smaller/FP8 official candidates improve L4 runtime reachability"
+      ],
+      "notProven": [
+        "valid generated fixture report",
+        "semantic object/safe-zone QA"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39bq-39cq-vlm-l4-compatible-candidate-reports"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/"
+      ],
+      "validation": "reported passing for build/smoke/reporting; runtime QA blocked",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C-Q-SO structured-output enforcement",
+      "pr": 90,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "status": "open",
+      "outcome": "Structured-output strategies S1-S5 did not pass all generated fixtures.",
+      "worked": [
+        "compact schema",
+        "strategy matrix",
+        "safe trace policy",
+        "some 2B generated-fixture execution"
+      ],
+      "failed": [
+        "compact schema QA",
+        "object-region QA",
+        "safe-zone QA"
+      ],
+      "proven": [
+        "format enforcement alone is insufficient for image QA"
+      ],
+      "notProven": [
+        "full generated runtime verification",
+        "Phase 39D readiness"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39cq-vlm-structured-output-reports"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-structured-output/"
+      ],
+      "validation": "reported passing for code/build/reporting; runtime QA blocked",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C-Q-SO3 perception canary/decomposed QA",
+      "pr": 97,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+      "status": "open",
+      "outcome": "vLLM/Qwen candidates failed simple generated perception canaries; semantic perception/localization is the blocker.",
+      "worked": [
+        "candidate copy/checksum",
+        "private artifact upload",
+        "labels-only and coarse-region canary measurement"
+      ],
+      "failed": [
+        "canary label recall threshold",
+        "coarse-region accuracy threshold"
+      ],
+      "proven": [
+        "current vLLM/Qwen path does not provide reliable generated-image perception/localization under the required gates"
+      ],
+      "notProven": [
+        "original generated fixtures after canary pass",
+        "controlled real-frame VLM"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39cq-so3-vlm-perception-canary-reports"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-perception-canary/"
+      ],
+      "validation": "reported passing for code/build/reporting; canary QA blocked",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C-SG SGLang alternate runtime evaluation",
+      "pr": 100,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+      "status": "open",
+      "outcome": "SGLang source/license/runtime scaffolding passed, but local Docker buildx hung before image digest or Cloud Run execution.",
+      "worked": [
+        "SGLang source/license/runtime evidence",
+        "dedicated worker path",
+        "QA policy reuse"
+      ],
+      "failed": [
+        "local Docker buildx image build/push"
+      ],
+      "proven": [
+        "SGLang evaluation scaffolding exists"
+      ],
+      "notProven": [
+        "SGLang import",
+        "SGLang generated inference",
+        "candidate QA"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39c-sg-sglang-vlm-runtime-reports"
+      ],
+      "privateArtifactPrefixes": [],
+      "validation": "reported passing for local code/build/reporting; runtime not reached",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C-SG-BUILD Cloud Build runtime rerun",
+      "pr": 104,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+      "status": "open",
+      "outcome": "Cloud Build/image push and Cloud Run L4 job execution worked, but SGLang failed before inference with unresolved cuGreenCtxDestroy.",
+      "worked": [
+        "Cloud Build overlay image",
+        "Artifact Registry image digest",
+        "Cloud Run L4 job wiring",
+        "private model copy/checksum",
+        "private QA upload"
+      ],
+      "failed": [
+        "SGLang engine import due sgl_kernel/common_ops.abi3.so undefined symbol cuGreenCtxDestroy"
+      ],
+      "proven": [
+        "image/build/cloud/job/platform wiring is not the blocker"
+      ],
+      "notProven": [
+        "SGLang inference",
+        "generated fixture QA"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39c-sg-sglang-vlm-runtime-reports"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-runtime/"
+      ],
+      "validation": "reported passing for code/build/reporting; SGLang import blocked",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C-SG-KERNEL compatibility matrix",
+      "pr": 107,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/107",
+      "status": "open",
+      "outcome": "K0-K5 kernel compatibility matrix added; import smoke still failed or was blocked.",
+      "worked": [
+        "import-smoke gating",
+        "kernel profile matrix",
+        "baseline failure preservation"
+      ],
+      "failed": [
+        "tested profiles still hit Cloud Run L4 CUDA/driver symbol blocker or related build/runtime blockers"
+      ],
+      "proven": [
+        "cuGreenCtxDestroy blocker is before model copy/inference"
+      ],
+      "notProven": [
+        "SGLang launch-server import on L4",
+        "generated fixture runtime"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39c-sg-sglang-vlm-runtime-reports/kernel-profiles"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-kernel/"
+      ],
+      "validation": "reported passing for code/build/reporting; import smoke blocked",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C-SG-FIXED fixed SGLang kernel runtime",
+      "pr": 110,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/110",
+      "status": "open",
+      "outcome": "Fixed-kernel evidence and profiles were added, but execution was blocked by noninteractive gcloud reauthentication.",
+      "worked": [
+        "upstream evidence capture",
+        "fixed profile matrix",
+        "Cloud Build config",
+        "auth blocker evidence"
+      ],
+      "failed": [
+        "noninteractive gcloud token refresh"
+      ],
+      "proven": [
+        "fixed-kernel path requires noninteractive auth before it can be evaluated"
+      ],
+      "notProven": [
+        "Cloud Build execution in that phase",
+        "import-smoke pass",
+        "runtime QA"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39c-sg-sglang-vlm-runtime-reports/kernel-profiles"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/"
+      ],
+      "validation": "reported passing for code/build/reporting; auth blocked execution",
+      "packageLock": "unchanged"
+    },
+    {
+      "phase": "39C-SG-AUTH-RERUN noninteractive auth fixed-kernel rerun",
+      "pr": 115,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/115",
+      "status": "open",
+      "outcome": "Noninteractive auth was unblocked and F1/F2/F3 builds/pushes passed, but no fixed-kernel import-smoke profile passed; generated runtime did not run.",
+      "worked": [
+        "noninteractive auth",
+        "Cloud Build for F1/F2/F3",
+        "Artifact Registry push"
+      ],
+      "failed": [
+        "fixed-kernel Cloud Run L4 import smoke"
+      ],
+      "proven": [
+        "auth was not the final blocker; SGLang kernel/runtime compatibility remains before inference"
+      ],
+      "notProven": [
+        "SGLang generated-image inference",
+        "candidate QA",
+        "Phase 39D readiness"
+      ],
+      "safeReportDirs": [
+        "docs/activation-phase-39c-sg-sglang-vlm-runtime-reports/kernel-profiles"
+      ],
+      "privateArtifactPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-auth-rerun/"
+      ],
+      "validation": "reported passing for code/build/reporting; import smoke blocked runtime",
+      "packageLock": "unchanged"
+    }
+  ],
+  "packageLockSummary": "unchanged_across_recent_vlm_phases",
+  "trackAStatus": "untouched",
+  "modelMediaPayloadStatus": "not_committed"
+}

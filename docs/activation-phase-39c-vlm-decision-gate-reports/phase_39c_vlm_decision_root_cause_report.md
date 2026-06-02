@@ -1,0 +1,35 @@
+# Phase 39C VLM Root Cause Report
+
+## Platform Pieces Proven Working
+
+- private GCS model staging
+- SHA-256 manifests and aggregate hash verification
+- scoped IAM for approved private artifact prefixes
+- Cloud Build remote image build
+- Artifact Registry push and digest recording
+- Cloud Run Job wiring
+- noninteractive GCP auth preflight
+- private artifact reporting
+
+## vLLM Blockers
+
+- Qwen/Qwen3-VL-8B-Instruct BF16 failed Cloud Run L4 runtime with CUDA OOM before generated fixture inference.
+- Official smaller/FP8 Qwen candidates under vLLM copied, checksummed, loaded, and generated outputs, but failed JSON/schema and semantic generated-image QA.
+- Text-only structured output can pass, but structured output guarantees shape rather than visual correctness.
+- Perception canary/decomposed QA failed object/label recall and coarse localization gates for every approved Qwen candidate.
+
+## SGLang Blockers
+
+- Local Docker buildx hang was bypassed by Cloud Build.
+- Cloud Build and Artifact Registry push are proven for the SGLang path.
+- SGLang failed before inference on Cloud Run L4 because sgl_kernel/common_ops.abi3.so required unresolved CUDA green-context symbols such as cuGreenCtxDestroy.
+- Fixed-kernel profiles F1/F2/F3 built and pushed after auth was fixed, but import-smoke still did not pass.
+- SGLang generated runtime never reached generated fixture inference, so there is no SGLang semantic QA conclusion yet.
+
+## Product Implication
+
+- The current Qwen/vLLM/SGLang/Cloud Run L4 route is not ready for generated VLM runtime verification.
+- Phase 39D controlled real-frame VLM remains blocked.
+- Phase 39E planning integration remains blocked.
+- VLM should not block deterministic media/data hardening work.
+- The default product-forward next phase is Phase 46A media/data tool readiness audit.

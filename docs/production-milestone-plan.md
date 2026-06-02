@@ -255,9 +255,16 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 
 ## 18. End-To-End Staging Smoke Test
 
-- Purpose: verify the staged production path from upload through approved mock or limited real execution under explicit flags.
-- Implements: staging-only smoke plan, seeded project, upload, intent/plan, approval, credit reservation, job claim, readiness checks, allowed worker path, QA, preview/export readiness report, and cleanup.
-- Must not implement: unapproved provider calls, production customer data processing, public artifacts, unlimited credit spend, or merged production rollout.
+- Purpose: create the first comprehensive E2E staging smoke-test plan and beta readiness gate after Prompt 0-17 foundations.
+- Deliverables after Prompt 18: `docs/e2e-staging-smoke-test-plan.md`, `docs/beta-readiness-gate-contract.md`, `docs/e2e-smoke-scenario-matrix.md`, `docs/staging-smoke-fixture-contract.md`, `docs/staging-smoke-runbook.md`, `docs/beta-readiness-scorecard.md`, `docs/production-beta-blocker-inventory.md`, `docs/e2e-staging-smoke-validation-results.md`, `database/test-sql/020_e2e_staging_smoke_readiness_rls_smoke_tests.draft.sql`, `scripts/validation/e2e-staging-smoke-plan-diagnostics.mjs`, and implementation prompt tracking.
+- Implementation status after Prompt 18: validation infrastructure / E2E staging smoke plan and diagnostics only. No staging execution, production execution, or beta unlock is enabled.
+- Implements: static E2E smoke scenario matrix, future local Supabase path, future staging path, future production beta go/no-go path, synthetic fixture contract, beta readiness gates, beta readiness scorecard, production beta blocker inventory, draft SQL/RLS test plan, workflow trigger coverage, and default foundation validation coverage.
+- Must not implement: staging deployment, production deployment, local/staging/remote Supabase execution, SQL execution, provider calls, render/export, tool execution, real worker execution, production job claims, media processing, browser capture, storage transfer, signed URL creation, credit mutation, Stripe, external telemetry, schema-changing migrations, or broad service-role handlers.
+- Main files/tables/services: docs and diagnostics only; draft RLS references synthetic fixtures across auth/workspace/project, storage, snapshots, credits, jobs/workers, media, render/export, QA, tools, providers, compliance, observability, and audit boundaries.
+- What remains blocked: E2E staging smoke not run, local/staging/remote Supabase not executed, no production deployment, no real execution path, no real persistence for blocked runtime domains, no billing, no external telemetry, no production beta approval.
+- Acceptance criteria: E2E staging smoke plan exists, beta readiness gate contract exists, scenario matrix exists, fixture contract exists, staging runbook exists, scorecard and blocker inventory exist, diagnostics pass, draft SQL/RLS file remains draft-only, and validation results honestly record what did and did not run.
+- Next prompt recommendation: Prompt 19 - Staging Supabase/RLS Validation Preparation if Prompt 18 validation and CI pass; otherwise Prompt 18A - E2E Smoke Plan Hardening.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-production-execution statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

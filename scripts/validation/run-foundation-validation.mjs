@@ -126,6 +126,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'observability:diagnostics'],
     required: true,
   },
+  {
+    id: 'e2e_staging_diagnostics',
+    command: 'npm run --silent e2e:staging:diagnostics',
+    npmArgs: ['run', '--silent', 'e2e:staging:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

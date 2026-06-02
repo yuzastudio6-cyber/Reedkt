@@ -51,7 +51,8 @@ Commands and results:
 - `npm run build:server` - blocked locally by npm/host Node; direct server Vite probe also blocked by Rolldown native binding.
 - `npm run foundation:validate:with-build` - blocked locally by npm/host Node.
 
-GitHub Foundation Validation is pending on PR #111 and is required for exact npm-script validation, including the added `npm run build:server` workflow step.
+GitHub Foundation Validation passed on PR #111 for exact npm-script validation, including the added `npm run build:server` workflow step:
+`https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26823387808/job/79083906523`
 
 ## SQL/RLS Status
 
@@ -70,4 +71,4 @@ Remote and staging Supabase are intentionally not used.
 
 ## Prompt 18 Decision
 
-Direct local static validation supports proceeding only after GitHub Foundation Validation passes exact npm-script validation. If GitHub validation fails, use Prompt 17A - Observability Validation Hardening.
+Direct local static validation plus passing GitHub Foundation Validation supports proceeding to Prompt 18. If Prompt 18 validation fails, use Prompt 18A - E2E Smoke Plan Hardening.

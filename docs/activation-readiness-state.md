@@ -37,7 +37,12 @@ Playwright, Sharp, and Mozilla Readability are the free/open-source default
 planning stack, optional paid providers are disabled, and live search, browser
 capture, screenshot processing, Readability runtime, public artifacts, provider
 calls, Docker/GCP mutation, production, external beta, paid production, and
-broad real media remain blocked.
+broad real media remain blocked. Phase 49B completed for
+`phase49b-20260602T01332` as a generated/private SearXNG search fixture gate
+only: it normalized deterministic fixture results into source records and a
+source manifest, then stored private JSON evidence. Phase 49C readiness is
+limited to Playwright + Sharp generated/local capture fixtures; live search and
+public web capture remain blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

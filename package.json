@@ -324,7 +324,11 @@
     "activation:web-search-capture-approval:plan": "tsx server/cli/activation-web-search-capture-approval-plan.ts",
     "activation:web-search-capture-approval:report": "tsx server/cli/activation-web-search-capture-approval-report.ts",
     "activation:web-search-tool:summary": "tsx server/cli/activation-web-search-tool-summary.ts",
-    "smoke:activation-web-search-capture-approval-workflow": "tsx server/smoke/activation-web-search-capture-approval-workflow-smoke.ts"
+    "smoke:activation-web-search-capture-approval-workflow": "tsx server/smoke/activation-web-search-capture-approval-workflow-smoke.ts",
+    "activation:searxng-search-fixture": "tsx server/cli/activation-searxng-search-fixture.ts",
+    "activation:searxng-search-fixture:report": "tsx server/cli/activation-searxng-search-fixture-report.ts",
+    "activation:searxng-search-fixture:iam-plan": "tsx server/cli/activation-searxng-search-fixture-iam-plan.ts",
+    "smoke:activation-searxng-search-fixture": "tsx server/smoke/activation-searxng-search-fixture-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

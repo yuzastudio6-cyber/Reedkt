@@ -432,6 +432,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm sanitized extraction is display-safe, bounded, and separate from raw private QA evidence.
 4. Confirm private artifacts exist only under the Phase 49D generated-assets and QA prefixes.
 5. Proceed to Phase 49E only as controlled private web search/capture E2E planning with explicit private endpoint policy. Live search, public extraction, browser capture, paid providers, public artifacts, production, external beta, paid production, broad media, and Revideo remain blocked.
+
+## After Phase 49E
+
+1. Review `activation:private-web-search-capture-e2e:report`, `activation:private-web-search-capture-e2e:iam-plan`, and `docs/activation-phase-49e-private-web-search-capture-e2e-results.md`.
+2. Confirm provider mode is `private_fixture_provider` unless a private endpoint was explicitly validated by policy.
+3. Confirm exactly 3 normalized sources, 3 private fixture captures, 3 Sharp processed screenshot sets, 3 sanitized Readability extractions, and one combined manifest exist privately.
+4. Confirm no live public search, public web capture, arbitrary URL capture, paid provider, public artifact, signed URL source-of-truth, production, external beta, paid production, broad media, or Revideo action occurred.
+5. Proceed to Phase 49F only as a web search/capture internal readiness gate.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

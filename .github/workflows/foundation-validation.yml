@@ -20,6 +20,7 @@ on:
       - codex/rp-foundation-16-compliance-license-security-review
       - codex/rp-foundation-17-observability-audit-abuse-cost-controls
       - codex/rp-foundation-18-e2e-staging-smoke-test-plan
+      - codex/rp-foundation-19-staging-supabase-rls-validation-preparation
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

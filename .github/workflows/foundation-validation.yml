@@ -22,6 +22,7 @@ on:
       - codex/rp-foundation-18-e2e-staging-smoke-test-plan
       - codex/rp-foundation-19-staging-supabase-rls-validation-preparation
       - codex/rp-foundation-20-local-supabase-rls-validation-execution
+      - codex/rp-foundation-20a-local-supabase-toolchain-repair
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

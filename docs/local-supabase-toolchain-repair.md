@@ -94,3 +94,23 @@ Prompt 20B should wait until an arm64 Supabase CLI and `psql` are available and 
 ## CI Status
 
 GitHub Foundation Validation passed on PR #119 run `26847503443`.
+
+## Prompt 20C Follow-Up
+
+Prompt 20C adds the manual setup package for the remaining host-level blockers:
+
+- `docs/local-supabase-environment-manual-setup.md`
+- `docs/local-supabase-manual-checklist.md`
+- `docs/local-supabase-cli-install-options.md`
+- `docs/local-postgres-psql-setup.md`
+
+Prompt 20C also improves preflight/runner output with:
+
+- `manualSetupRequired`
+- `nextRecommendedPrompt`
+- Prompt 20B readiness requirements
+- remediation guidance for Supabase CLI, Docker, `psql`, local config, local DB URL, and missing executable SQL candidates
+
+No SQL or Supabase command is run in Prompt 20C. The remaining blocker state is unchanged: wrong-architecture Supabase CLI error `-86`, missing `psql`, no verified local DB URL, and no executable local SQL candidate.
+
+Prompt 20D - Manual Environment Setup Verification is recommended until preflight reports `canRunLocalSql=true`.

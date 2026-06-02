@@ -306,6 +306,20 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: local config is safe, preflight is hardened, runner run mode fails closed without `--confirm-local-only`, list/dry-run works, no SQL executes, no remote/staging/production Supabase is touched, and next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 20C - Local Supabase Environment Manual Setup. Prompt 20B should wait until preflight reports `canRunLocalSql=true`.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 20C. Local Supabase Environment Manual Setup
+
+- Purpose: document and verify the manual local environment setup needed before the first executable local RLS smoke test.
+- Deliverables after Prompt 20C: `docs/local-supabase-environment-manual-setup.md`, `docs/local-supabase-manual-checklist.md`, `docs/local-supabase-cli-install-options.md`, `docs/local-postgres-psql-setup.md`, `docs/prompt-20c-validation-results.md`, `docs/implementation-prompts/prompt-20c-local-supabase-environment-manual-setup.md`, preflight remediation output, runner dry-run guidance, workflow trigger update, and tracker updates.
+- Implementation status after Prompt 20C: setup documented / local Supabase environment manual setup only. No SQL, Supabase start/status/reset, migration, staging, production, or runtime execution is enabled.
+- Implements: official-doc-backed manual CLI repair guidance, arm64 CLI selection rules, `psql` setup choices, Docker/local daemon requirements, local DB URL verification rules, no-remote checklist, Prompt 20B readiness gates, and clearer JSON guidance from preflight/list/dry-run.
+- Must not implement: staging/remote/production Supabase execution, local or remote SQL, migration deployment, Supabase start/reset, production/staging data creation, deployment, providers, tools, workers, render/export, media processing, storage transfer, signed URL creation, credit mutation, Stripe, external telemetry, dependency mutation, or production/beta unlock.
+- Main files/tables/services: docs and validation scripts only; SQL/RLS files remain manual or draft validation artifacts. No tables are migrated or mutated.
+- What remains blocked: local SQL/RLS execution, wrong-architecture Supabase CLI error `-86`, missing `psql`, no verified local DB URL, no executable local SQL candidate, staging Supabase/RLS execution, remote production Supabase, and beta approval.
+- Validation result: preflight is expected to remain `blocked` with `manualSetupRequired=true`; runner list/dry-run must complete without SQL execution. Docker is reachable and config exists, but `canRunLocalSql=false`.
+- Acceptance criteria: manual setup guide/checklist/CLI options/psql setup docs exist; preflight and runner explain blockers clearly; no SQL executes; no local/staging/remote/production Supabase is touched; next prompt recommendation is clear.
+- Next prompt recommendation: Prompt 20D - Manual Environment Setup Verification. Prompt 20B should wait until preflight reports `canRunLocalSql=true`.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-local/no-staging/no-remote/no-production-Supabase-execution statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

@@ -408,6 +408,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm Brave Search API, Tavily, Exa, Firecrawl, and Browserless/Browserbase remain optional, paid, disabled-by-default, and future-approval-required.
 4. Confirm command plans are text-only and no live search, public crawling/scraping, browser capture, screenshot capture, Readability extraction runtime, SearXNG runtime, provider call, API key, Docker/GCP mutation, public artifact, signed URL source-of-truth, production, external beta, paid production, broad media, or Revideo action occurred.
 5. Proceed to Phase 49B only as private SearXNG endpoint planning plus generated/static search fixtures. Public web search/capture remains blocked until later controlled phases.
+
+## After Phase 49B
+
+1. Review `activation:searxng-search-fixture:report`, `activation:searxng-search-fixture:iam-plan`, and `docs/activation-phase-49b-searxng-search-fixture-results.md`.
+2. Confirm the fixture used only generated SearXNG-style data and fixture-safe example domains.
+3. Confirm normalized sources include source IDs, provider, title, URL, domain, snippet, rank, attribution policy, generated flags, and `captureAllowed=false` / `extractionAllowed=false`.
+4. Confirm private artifacts exist only under the Phase 49B generated-assets and QA prefixes.
+5. Proceed to Phase 49C only as a Playwright + Sharp generated/local capture fixture. Live search, public web requests, public capture, Readability runtime, paid providers, public artifacts, production, external beta, paid production, broad media, and Revideo remain blocked.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

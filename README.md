@@ -10,7 +10,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 
 This rule applies to all future AI, rendering, backend, billing, and UI work.
 
-Phase 49A adds a non-mutating web search/capture approval workflow. SearXNG, Playwright, Sharp, and Mozilla Readability are recorded as the free/open-source default planning stack only; live search, browser capture, screenshots, provider calls, public artifacts, production, external beta, paid production, and broad real media remain blocked.
+Phase 49A adds a non-mutating web search/capture approval workflow. SearXNG, Playwright, Sharp, and Mozilla Readability are recorded as the free/open-source default planning stack only. Phase 49B validates only a deterministic generated SearXNG-style fixture with private JSON source-manifest artifacts; live search, browser capture, screenshots, provider calls, public artifacts, production, external beta, paid production, and broad real media remain blocked.
 
 ## Visual Signature Systems
 

@@ -1,0 +1,15 @@
+-- Prompt 16 draft-only compliance/license/security RLS smoke tests.
+-- Local/staging validation only. Do not run against production. Do not run remote Supabase.
+-- This file is a future test plan until compliance review tables and local Supabase validation are approved.
+
+-- Planned assertions:
+-- 1. Workspace members can read project-scoped compliance summaries where policy allows.
+-- 2. Non-members cannot read project-scoped compliance summaries.
+-- 3. Normal users cannot approve production readiness.
+-- 4. Backend/service-role creates compliance review records only through reviewed append-only paths.
+-- 5. Review records are append-only/versioned and approvals are revocable/expirable.
+-- 6. production_ready requires human reviewer fields, evidence, and non-expired approval status.
+-- 7. Review evidence cannot contain secrets, signed URLs, provider keys, raw payloads, credentials, or private env values.
+-- 8. Expired or blocked compliance status blocks tool/provider/worker/render execution.
+-- 9. Dependency vulnerability review can be recorded without changing package.json or package-lock.json.
+-- 10. Sanitized audit events are append-only if audit_events or compliance_audit_events are in scope.

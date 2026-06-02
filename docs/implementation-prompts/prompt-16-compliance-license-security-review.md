@@ -57,7 +57,7 @@ Run:
 - Branch: `codex/rp-foundation-16-compliance-license-security-review`
 - PR base: `codex/rp-foundation-15-provider-gateway-foundation`
 - PR title: `[foundation] Prompt 16 compliance license security review`
-- PR: pending
+- PR: [PR #109](https://github.com/yuzastudio6-cyber/Reedkt/pull/109)
 - Do not merge the PR.
 
 ## Acceptance Criteria

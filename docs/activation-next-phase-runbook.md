@@ -424,6 +424,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm Sharp processed only the local Playwright screenshot into preview and thumbnail PNGs.
 4. Confirm private artifacts exist only under the Phase 49C generated-assets and QA prefixes.
 5. Proceed to Phase 49D only as a generated/local Readability extraction fixture. Live search, public web capture, paid providers, public artifacts, production, external beta, paid production, broad media, and Revideo remain blocked.
+
+## After Phase 49D
+
+1. Review `activation:readability-extraction-fixture:report`, `activation:readability-extraction-fixture:iam-plan`, and `docs/activation-phase-49d-readability-extraction-fixture-results.md`.
+2. Confirm Mozilla Readability parsed only the generated local article fixture through jsdom.
+3. Confirm sanitized extraction is display-safe, bounded, and separate from raw private QA evidence.
+4. Confirm private artifacts exist only under the Phase 49D generated-assets and QA prefixes.
+5. Proceed to Phase 49E only as controlled private web search/capture E2E planning with explicit private endpoint policy. Live search, public extraction, browser capture, paid providers, public artifacts, production, external beta, paid production, broad media, and Revideo remain blocked.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

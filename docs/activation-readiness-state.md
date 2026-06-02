@@ -44,8 +44,11 @@ source manifest, then stored private JSON evidence. Phase 49C readiness is
 limited to Playwright + Sharp generated/local capture fixtures; live search and
 public web capture remain blocked. Phase 49C now adds only local generated HTML
 capture and screenshot post-processing with Playwright + Sharp. Phase 49D
-readiness is limited to generated/local Readability extraction fixtures; live
-search, public web capture, and paid providers remain blocked.
+adds generated/local Mozilla Readability extraction and bounded sanitization
+only. Phase 49E readiness is limited to controlled private web search/capture
+E2E planning with explicit private endpoint policy; live search, public web
+capture/extraction, browser capture, screenshots, and paid providers remain
+blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

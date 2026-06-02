@@ -1,0 +1,34 @@
+{
+  "phase": "39C-SG-KERNEL",
+  "reportId": "phase_39c_sg_kernel_cloud_build_profile_report",
+  "runId": "phase39c-sg-kernel-20260602T0132",
+  "createdAt": "2026-06-02T01:56:37.785Z",
+  "profile": {
+    "id": "k1-latest-compatible-sglang-stable",
+    "label": "Profile K1 latest compatible SGLang stable kernel-pair reinstall",
+    "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+    "installMode": "pip-force-reinstall-no-deps",
+    "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+    "sglKernelPackageSpec": "sgl-kernel==0.2.8",
+    "torchCudaExpectation": "current stable SGLang/sgl-kernel wheel pair over the PR #104 runtime dependency base; import smoke must prove Cloud Run L4 compatibility",
+    "rationale": "Refresh only the current stable SGLang and sgl-kernel wheels to keep the kernel-symbol test bounded and avoid broad dependency churn.",
+    "sourceEvidence": [
+      "https://docs.sglang.io/get_started/install.html",
+      "https://pypi.org/project/sglang/0.4.10.post2/"
+    ],
+    "buildAllowed": true,
+    "blockers": [],
+    "riskNotes": [
+      "may reproduce K0 if the current stable wheel still links against unavailable CUDA driver symbols",
+      "full dependency reinstall was cancelled after slow Cloud Build package download and is not required for the bounded kernel-pair compatibility question"
+    ]
+  },
+  "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k1-latest-compatible-sglang-stable-phase39c-sg-kernel-20260602t0132",
+  "status": "blocked",
+  "blockers": [
+    "cloud_build_failed:k1-latest-compatible-sglang-stable:Command failed: gcloud builds submit . --project reeditpro --region us-central1 --config cloudbuild/vlm-sglang-runtime-phase39c-kernel.yaml --ignore-file cloudbuild/vlm-sglang-runtime-phase39c-kernel.gcloudignore --substitutions _IMAGE=us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k1-latest-compatible-sglang-stable-phase39c-sg-kernel-20260602t0132,_BASE_IMAGE=us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sg"
+  ],
+  "warnings": [
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k1-latest-compatible-sglang-stable-phase39c-sg-kernel-20260602t0132 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of "
+  ]
+}

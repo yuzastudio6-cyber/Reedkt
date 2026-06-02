@@ -1,0 +1,33 @@
+{
+  "phase": "39C-SG-KERNEL",
+  "reportId": "phase_39c_sg_kernel_cloud_build_profile_report",
+  "runId": "phase39c-sg-kernel-20260602T0132",
+  "createdAt": "2026-06-02T01:31:57.296Z",
+  "profile": {
+    "id": "k0-current-pr104-baseline",
+    "label": "Profile K0 current PR #104 baseline",
+    "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+    "installMode": "baseline",
+    "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+    "sglKernelPackageSpec": "sgl-kernel==0.2.8",
+    "torchCudaExpectation": "torch 2.7.1 / CUDA 12.6 packages inherited from PR #104 image",
+    "rationale": "Reproduce the PR #104 cuGreenCtxDestroy import failure in an import-only job before changing package pins.",
+    "sourceEvidence": [
+      "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+      "https://github.com/sgl-project/sglang/issues/8566"
+    ],
+    "buildAllowed": true,
+    "blockers": [],
+    "riskNotes": [
+      "expected_to_fail_import_smoke_until_kernel_symbol_mismatch_is_resolved"
+    ]
+  },
+  "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k0-current-pr104-baseline-phase39c-sg-kernel-20260602t0132",
+  "status": "blocked",
+  "blockers": [
+    "cloud_build_failed:k0-current-pr104-baseline:Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+  ],
+  "warnings": [
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k0-current-pr104-baseline-phase39c-sg-kernel-20260602t0132 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. I"
+  ]
+}

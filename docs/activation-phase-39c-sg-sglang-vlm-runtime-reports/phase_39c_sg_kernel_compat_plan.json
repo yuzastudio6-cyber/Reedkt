@@ -1,0 +1,335 @@
+{
+  "phase": "39C-SG-KERNEL",
+  "reportId": "phase_39c_sg_kernel_compat_plan",
+  "createdAt": "2026-06-02T02:11:47.653Z",
+  "defaultMode": "non_mutating",
+  "matrixId": "phase39c-sglang-kernel-compat-l4-v1",
+  "sourceEvidence": {
+    "phase39cOriginalOom": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+      "preserved": true
+    },
+    "phase39bq39cqCandidates": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+      "preserved": true
+    },
+    "phase39cqStructuredOutput": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+      "preserved": true
+    },
+    "phase39cqSo3Perception": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+      "preserved": true
+    },
+    "phase39cSglangBuildx": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+      "preserved": true
+    },
+    "phase39cSgBuildCloudBuild": {
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+      "preserved": true
+    },
+    "sglangIssues": [
+      "https://github.com/sgl-project/sglang/issues/8432",
+      "https://github.com/sgl-project/sglang/issues/8566"
+    ],
+    "sglangInstallDocs": "https://docs.sglang.io/get_started/install.html",
+    "sglangStructuredOutputDocs": "https://docs.sglang.io/advanced_features/structured_outputs.html"
+  },
+  "importFailureAudit": {
+    "phase": "39C-SG-KERNEL",
+    "reportId": "phase_39c_sg_kernel_import_failure_audit",
+    "createdAt": "2026-06-02T02:11:47.653Z",
+    "sourcePr104": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+    "pr104ImageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+    "failedSharedObject": "/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so",
+    "failedSymbol": "cuGreenCtxDestroy",
+    "failureStage": "SGLang import path before model payload copy/inference",
+    "tracebackPath": [
+      "sglang.srt.layers.rotary_embedding",
+      "from sgl_kernel import apply_rope_with_cos_sin_cache_inplace",
+      "sgl_kernel.common_ops"
+    ],
+    "publicIssueEvidence": [
+      {
+        "issue": "#8432",
+        "url": "https://github.com/sgl-project/sglang/issues/8432",
+        "status": "closed",
+        "summary": "Reports undefined symbol cuGreenCtxDestroy with sglang 0.4.9.post4 and sgl-kernel 0.2.7."
+      },
+      {
+        "issue": "#8566",
+        "url": "https://github.com/sgl-project/sglang/issues/8566",
+        "status": "closed_as_duplicate",
+        "summary": "Reports the same common_ops.abi3.so cuGreenCtxDestroy import failure in launch_server import path."
+      }
+    ],
+    "packageEvidenceFromPr104": {
+      "sglang": "0.4.10.post2",
+      "sglKernel": "0.2.8",
+      "torch": "2.7.1",
+      "cudaPipLibraries": "cu126",
+      "baseImageBeforeOverlay": "pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime"
+    },
+    "hypothesis": "The sgl-kernel wheel links against a CUDA Driver API symbol not available in the Cloud Run L4 runtime driver/libcuda combination.",
+    "nextAction": "Use bounded package/profile import smoke on Cloud Run L4 before any model-copy or generated fixture runtime.",
+    "fullRawLogsCommitted": false
+  },
+  "profileMatrix": {
+    "phase": "39C-SG-KERNEL",
+    "reportId": "phase_39c_sg_kernel_profile_matrix",
+    "createdAt": "2026-06-02T02:11:47.653Z",
+    "matrixId": "phase39c-sglang-kernel-compat-l4-v1",
+    "stopAfterFirstImportSmokePass": true,
+    "profiles": [
+      {
+        "id": "k0-current-pr104-baseline",
+        "label": "Profile K0 current PR #104 baseline",
+        "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+        "installMode": "baseline",
+        "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+        "sglKernelPackageSpec": "sgl-kernel==0.2.8",
+        "torchCudaExpectation": "torch 2.7.1 / CUDA 12.6 packages inherited from PR #104 image",
+        "rationale": "Reproduce the PR #104 cuGreenCtxDestroy import failure in an import-only job before changing package pins.",
+        "sourceEvidence": [
+          "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+          "https://github.com/sgl-project/sglang/issues/8566"
+        ],
+        "buildAllowed": true,
+        "blockers": [],
+        "riskNotes": [
+          "expected_to_fail_import_smoke_until_kernel_symbol_mismatch_is_resolved"
+        ]
+      },
+      {
+        "id": "k1-latest-compatible-sglang-stable",
+        "label": "Profile K1 latest compatible SGLang stable kernel-pair reinstall",
+        "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+        "installMode": "pip-force-reinstall-no-deps",
+        "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+        "sglKernelPackageSpec": "sgl-kernel==0.2.8",
+        "torchCudaExpectation": "current stable SGLang/sgl-kernel wheel pair over the PR #104 runtime dependency base; import smoke must prove Cloud Run L4 compatibility",
+        "rationale": "Refresh only the current stable SGLang and sgl-kernel wheels to keep the kernel-symbol test bounded and avoid broad dependency churn.",
+        "sourceEvidence": [
+          "https://docs.sglang.io/get_started/install.html",
+          "https://pypi.org/project/sglang/0.4.10.post2/"
+        ],
+        "buildAllowed": true,
+        "blockers": [],
+        "riskNotes": [
+          "may reproduce K0 if the current stable wheel still links against unavailable CUDA driver symbols",
+          "full dependency reinstall was cancelled after slow Cloud Build package download and is not required for the bounded kernel-pair compatibility question"
+        ]
+      },
+      {
+        "id": "k2-issue-compatible-pinned-pair",
+        "label": "Profile K2 issue-compatible pinned SGLang/sgl-kernel pair",
+        "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+        "installMode": "pip-force-reinstall-no-deps",
+        "sglangPackageSpec": "sglang[all]==0.4.9.post3",
+        "sglKernelPackageSpec": "sgl-kernel==0.2.6.post1",
+        "torchCudaExpectation": "keeps PR #104 runtime dependencies but pins SGLang and sgl-kernel to the issue-adjacent pre-cuGreenCtxDestroy package pair",
+        "rationale": "Public SGLang issue #8432 reports cuGreenCtxDestroy with sglang 0.4.9.post4 and sgl-kernel 0.2.7; this bounded profile tests the immediately prior pair recorded in SGLang issue metadata.",
+        "sourceEvidence": [
+          "https://github.com/sgl-project/sglang/issues/8432",
+          "https://pypi.org/project/sgl-kernel/0.2.6.post1/"
+        ],
+        "buildAllowed": true,
+        "blockers": [],
+        "riskNotes": [
+          "no-deps reinstall is deliberate to avoid broad dependency churn; import smoke must prove safety before generated runtime"
+        ]
+      },
+      {
+        "id": "k3-no-sgl-kernel-or-disable-kernel-path",
+        "label": "Profile K3 no sgl-kernel / disabled kernel path",
+        "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+        "installMode": "blocked",
+        "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+        "sglKernelPackageSpec": "none",
+        "torchCudaExpectation": "not attempted",
+        "rationale": "Only allowed if official SGLang supports importing/runtime without sgl-kernel or a documented disable flag.",
+        "sourceEvidence": [
+          "https://docs.sglang.io/get_started/install.html"
+        ],
+        "buildAllowed": false,
+        "blockers": [
+          "official_disable_sgl_kernel_path_not_verified"
+        ],
+        "riskNotes": [
+          "SGLang rotary embedding import path imports sgl_kernel in the known failing traceback"
+        ]
+      },
+      {
+        "id": "k4-source-build-sgl-kernel",
+        "label": "Profile K4 source-build sgl-kernel",
+        "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+        "installMode": "blocked",
+        "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+        "sglKernelPackageSpec": "source-build",
+        "torchCudaExpectation": "not attempted",
+        "rationale": "Only allowed if a human approves the longer source-build investigation and Cloud Build compiler/toolchain risk.",
+        "sourceEvidence": [
+          "https://pypi.org/project/sgl-kernel/0.2.6.post1/"
+        ],
+        "buildAllowed": false,
+        "blockers": [
+          "source_build_sgl_kernel_not_human_approved_for_this_bounded_rerun"
+        ],
+        "riskNotes": [
+          "large CUDA build may exceed bounded Cloud Build/time budget and does not guarantee driver symbol compatibility"
+        ]
+      },
+      {
+        "id": "k5-official-sglang-runtime-image-overlay",
+        "label": "Profile K5 official SGLang runtime image overlay",
+        "baseImage": "lmsysorg/sglang:tag-not-selected",
+        "installMode": "blocked",
+        "sglangPackageSpec": "official-image",
+        "sglKernelPackageSpec": "official-image",
+        "torchCudaExpectation": "not attempted",
+        "rationale": "Official Docker Hub images exist, but this phase requires an exact verified tag before use.",
+        "sourceEvidence": [
+          "https://docs.sglang.io/get_started/install.html"
+        ],
+        "buildAllowed": false,
+        "blockers": [
+          "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4"
+        ],
+        "riskNotes": [
+          "do not pull floating latest or dev images into a beta-readiness chain"
+        ]
+      }
+    ],
+    "profileOrder": [
+      "k0-current-pr104-baseline",
+      "k1-latest-compatible-sglang-stable",
+      "k2-issue-compatible-pinned-pair",
+      "k3-no-sgl-kernel-or-disable-kernel-path",
+      "k4-source-build-sgl-kernel",
+      "k5-official-sglang-runtime-image-overlay"
+    ],
+    "generatedRuntimeBlockedUntilImportSmokePasses": true
+  },
+  "cloudBuild": {
+    "configPath": "cloudbuild/vlm-sglang-runtime-phase39c-kernel.yaml",
+    "ignoreFile": "cloudbuild/vlm-sglang-runtime-phase39c-kernel.gcloudignore",
+    "dockerfile": "docker/prod/vlm-sglang-runtime/Dockerfile.kernel",
+    "imagePath": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel",
+    "platform": "linux/amd64",
+    "artifactRegistryOnly": true,
+    "noModelFilesBaked": true,
+    "noSecretsBaked": true,
+    "context": "."
+  },
+  "importSmokeJob": {
+    "job": "reeditpro-stg-vlm-runtime-phase39c-sglang-kernel-smoke",
+    "region": "us-central1",
+    "serviceAccount": "reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+    "gpu": "1 x nvidia-l4",
+    "cpu": 8,
+    "memory": "32Gi",
+    "command": "python /app/server/workers/vlm-sglang-runtime/kernel_import_smoke.py",
+    "copiesModelPayload": false,
+    "runsInference": false,
+    "processesImages": false,
+    "providerCalls": false,
+    "privateQaPrefixPattern": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-kernel-compat/<run-id>/profiles/<profile-id>/"
+  },
+  "generatedRuntimeJob": {
+    "job": "reeditpro-stg-vlm-runtime-phase39c-sglang-kernel-runtime",
+    "region": "us-central1",
+    "serviceAccount": "reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+    "gpu": "1 x nvidia-l4",
+    "cpu": 8,
+    "memory": "32Gi",
+    "command": "image entrypoint run-phase39c-sglang-cloud-job.py",
+    "modelPayload": "copy_exact_pr87_private_objects_after_import_smoke_only",
+    "fixtures": [
+      "generated-object-layout",
+      "generated-ui-safe-zone",
+      "generated-ocr-vlm-comparison",
+      "generated-ambiguous-scene",
+      "generated-spatial-reasoning"
+    ],
+    "providerCalls": false,
+    "realMedia": false,
+    "privateQaPrefixPattern": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-kernel-compat/<run-id>/runtime/<candidate-slug>/"
+  },
+  "candidatePolicy": {
+    "sourcePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+    "allowedCandidates": [
+      {
+        "modelId": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+        "slug": "qwen3-vl-8b-instruct-fp8",
+        "revision": "9cdc6310a8cb770ce18efaf4e9935334512aee45",
+        "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-8b-instruct-fp8/9cdc6310a8cb770ce18efaf4e9935334512aee45/",
+        "selectedFileCount": 12,
+        "selectedTotalSizeBytes": 10605571033
+      },
+      {
+        "modelId": "Qwen/Qwen3-VL-4B-Instruct",
+        "slug": "qwen3-vl-4b-instruct",
+        "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+        "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-4b-instruct/ebb281ec70b05090aa6165b016eac8ec08e71b17/",
+        "selectedFileCount": 13,
+        "selectedTotalSizeBytes": 8887291213
+      },
+      {
+        "modelId": "Qwen/Qwen3-VL-2B-Instruct",
+        "slug": "qwen3-vl-2b-instruct",
+        "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+        "privateModelPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/qwen3-vl/qwen3-vl-2b-instruct/89644892e4d85e24eaac8bacfd4f463576704203/",
+        "selectedFileCount": 11,
+        "selectedTotalSizeBytes": 4266647442
+      }
+    ],
+    "executionOrder": [
+      "Qwen/Qwen3-VL-2B-Instruct",
+      "Qwen/Qwen3-VL-4B-Instruct",
+      "Qwen/Qwen3-VL-8B-Instruct-FP8"
+    ],
+    "selectionPriority": [
+      "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "Qwen/Qwen3-VL-4B-Instruct",
+      "Qwen/Qwen3-VL-2B-Instruct"
+    ],
+    "newModelDownloadsAllowed": false,
+    "modelUploadsAllowed": false,
+    "modelIdRuntimePathAllowed": false,
+    "nonQwenCandidatesAllowed": false
+  },
+  "safety": {
+    "generatedSyntheticFixturesOnly": true,
+    "realMediaBlocked": true,
+    "arbitraryMediaBlocked": true,
+    "providerCallsBlocked": true,
+    "publicOutputBlocked": true,
+    "modelDownloadsBlocked": true,
+    "newModelStagingBlocked": true,
+    "localVerifiedModelPathOnly": true,
+    "modelIdRuntimePathBlocked": true,
+    "cloudRunGpuType": "nvidia-l4_only",
+    "phase39DBlocked": true,
+    "phase39EBlocked": true,
+    "betaProductionBlocked": true,
+    "trackABlocked": true
+  },
+  "confirmationsRequiredForCloudBuild": [
+    "REEDITPRO_CONFIRM_VLM_SGLANG_KERNEL_COMPAT",
+    "REEDITPRO_CONFIRM_VLM_SGLANG_CLOUD_BUILD",
+    "REEDITPRO_CONFIRM_VLM_SGLANG_DOCKER_PUSH"
+  ],
+  "confirmationsRequiredForImportSmoke": [
+    "REEDITPRO_CONFIRM_VLM_SGLANG_IMPORT_SMOKE_JOB",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD",
+    "REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE"
+  ],
+  "confirmationsRequiredForGeneratedRuntime": [
+    "REEDITPRO_CONFIRM_VLM_SGLANG_STAGING_CLOUD_RUN_JOB",
+    "REEDITPRO_CONFIRM_VLM_SGLANG_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_VLM_PRIVATE_GCS_READ",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_ARTIFACT_UPLOAD",
+    "REEDITPRO_CONFIRM_VLM_L4_GPU_EXECUTE"
+  ]
+}

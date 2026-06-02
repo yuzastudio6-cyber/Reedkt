@@ -32,6 +32,12 @@ Milestone 11 adds explicit manifest templates for faster-whisper, BiRefNet, SAM2
 
 Any non-commercial model weight is blocked for paid ReeditPro production. Any unknown model-weight license is blocked until reviewed.
 
+## Phase 39C-SG-KERNEL VLM Note
+
+Phase 39C-SG-KERNEL does not download, stage, or approve any new VLM model weights. It reuses the already staged PR #87 official Qwen candidate objects and tests only SGLang/CUDA kernel compatibility on Cloud Run L4 before generated synthetic fixture runtime. Production, paid production, internal beta, external beta, broad media, real media, provider calls, public output, non-Qwen candidates, and new model downloads remain blocked.
+
+Run `phase39c-sg-kernel-20260602T0132` did not reach model copy/checksum because import smoke failed for the tested SGLang kernel profiles. PR #87 model-weight readiness is unchanged, and generated-runtime VLM remains blocked.
+
 ## Activation Phase 26 First Speech Model Approval
 
 Activation Phase 26 records evidence for `Systran/faster-whisper-tiny` and

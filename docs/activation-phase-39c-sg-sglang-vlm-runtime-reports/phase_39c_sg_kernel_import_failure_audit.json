@@ -1,0 +1,39 @@
+{
+  "phase": "39C-SG-KERNEL",
+  "reportId": "phase_39c_sg_kernel_import_failure_audit",
+  "createdAt": "2026-06-02T01:56:37.785Z",
+  "sourcePr104": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+  "pr104ImageDigest": "sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+  "failedSharedObject": "/opt/conda/lib/python3.11/site-packages/sgl_kernel/common_ops.abi3.so",
+  "failedSymbol": "cuGreenCtxDestroy",
+  "failureStage": "SGLang import path before model payload copy/inference",
+  "tracebackPath": [
+    "sglang.srt.layers.rotary_embedding",
+    "from sgl_kernel import apply_rope_with_cos_sin_cache_inplace",
+    "sgl_kernel.common_ops"
+  ],
+  "publicIssueEvidence": [
+    {
+      "issue": "#8432",
+      "url": "https://github.com/sgl-project/sglang/issues/8432",
+      "status": "closed",
+      "summary": "Reports undefined symbol cuGreenCtxDestroy with sglang 0.4.9.post4 and sgl-kernel 0.2.7."
+    },
+    {
+      "issue": "#8566",
+      "url": "https://github.com/sgl-project/sglang/issues/8566",
+      "status": "closed_as_duplicate",
+      "summary": "Reports the same common_ops.abi3.so cuGreenCtxDestroy import failure in launch_server import path."
+    }
+  ],
+  "packageEvidenceFromPr104": {
+    "sglang": "0.4.10.post2",
+    "sglKernel": "0.2.8",
+    "torch": "2.7.1",
+    "cudaPipLibraries": "cu126",
+    "baseImageBeforeOverlay": "pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime"
+  },
+  "hypothesis": "The sgl-kernel wheel links against a CUDA Driver API symbol not available in the Cloud Run L4 runtime driver/libcuda combination.",
+  "nextAction": "Use bounded package/profile import smoke on Cloud Run L4 before any model-copy or generated fixture runtime.",
+  "fullRawLogsCommitted": false
+}

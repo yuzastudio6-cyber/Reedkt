@@ -1,0 +1,26 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform
+      - linux/amd64
+      - -f
+      - docker/prod/vlm-sglang-runtime/Dockerfile.kernel
+      - --build-arg
+      - BASE_IMAGE=${_BASE_IMAGE}
+      - --build-arg
+      - SGLANG_KERNEL_PROFILE=${_SGLANG_KERNEL_PROFILE}
+      - --build-arg
+      - SGLANG_PACKAGE_SPEC=${_SGLANG_PACKAGE_SPEC}
+      - --build-arg
+      - SGL_KERNEL_PACKAGE_SPEC=${_SGL_KERNEL_PACKAGE_SPEC}
+      - --build-arg
+      - INSTALL_MODE=${_INSTALL_MODE}
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}
+options:
+  machineType: E2_HIGHCPU_8
+timeout: 7200s

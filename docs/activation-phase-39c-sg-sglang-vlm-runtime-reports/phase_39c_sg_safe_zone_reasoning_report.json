@@ -1,10 +1,70 @@
 {
-  "phase": "39C-SG",
-  "reportId": "phase_39c_sg_safe_zone_reasoning_report",
-  "createdAt": "2026-06-01T20:13:32.692Z",
+  "phase": "39C-SG-KERNEL",
+  "runId": "phase39c-sg-kernel-20260602T0132",
+  "createdAt": "2026-06-02T01:56:37.785Z",
+  "selectedProfile": null,
+  "selectedCandidate": null,
   "status": "blocked",
   "blockers": [
-    "execution_not_run"
+    "cloud_build_failed:k1-latest-compatible-sglang-stable:Command failed: gcloud builds submit . --project reeditpro --region us-central1 --config cloudbuild/vlm-sglang-runtime-phase39c-kernel.yaml --ignore-file cloudbuild/vlm-sglang-runtime-phase39c-kernel.gcloudignore --substitutions _IMAGE=us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k1-latest-compatible-sglang-stable-phase39c-sg-kernel-20260602t0132,_BASE_IMAGE=us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sg",
+    "official_disable_sgl_kernel_path_not_verified",
+    "source_build_sgl_kernel_not_human_approved_for_this_bounded_rerun",
+    "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4",
+    "import_smoke_job_nonzero:k0-current-pr104-baseline:Command failed: gcloud run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-kernel-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the ",
+    "import_smoke_report_fetch_failed:k0-current-pr104-baseline:Command failed: gcloud storage cp gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-kernel-compat/phase39c-sg-kernel-20260602T0132/profiles/k0-current-pr104-baseline/phase_39c_sg_kernel_import_smoke_report.json docs/activation-phase-39c-sg-sglang-vlm-runtime-reports/kernel-profiles/k0-current-pr104-baseline/phase_39c_sg_kernel_import_smoke_report.json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctl",
+    "profile_image_build_not_passed:k1-latest-compatible-sglang-stable",
+    "import_smoke_job_nonzero:k2-issue-compatible-pinned-pair:Command failed: gcloud run jobs execute reeditpro-stg-vlm-runtime-phase39c-sglang-kernel-smoke --project reeditpro --region us-central1 --wait WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of Python. If you have a compatible Python interpreter installed, you can use it by setting the ",
+    "import_smoke_report_fetch_failed:k2-issue-compatible-pinned-pair:Command failed: gcloud storage cp gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-kernel-compat/phase39c-sg-kernel-20260602T0132/profiles/k2-issue-compatible-pinned-pair/phase_39c_sg_kernel_import_smoke_report.json docs/activation-phase-39c-sg-sglang-vlm-runtime-reports/kernel-profiles/k2-issue-compatible-pinned-pair/phase_39c_sg_kernel_import_smoke_report.json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not funct",
+    "profile_build_not_allowed:k3-no-sgl-kernel-or-disable-kernel-path",
+    "profile_build_not_allowed:k4-source-build-sgl-kernel",
+    "profile_build_not_allowed:k5-official-sglang-runtime-image-overlay",
+    "no_sglang_kernel_profile_passed_import_smoke"
   ],
-  "warnings": []
+  "warnings": [
+    "reused_existing_kernel_profile_image",
+    "existing_kernel_profile_image_lookup_failed:Command failed: gcloud artifacts docker images describe us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k1-latest-compatible-sglang-stable-phase39c-sg-kernel-20260602t0132 --format=json WARNING: Python 3.9.x is no longer officially supported by the Google Cloud CLI and may not function correctly. Please use Python version 3.10 and up. To reinstall gcloud, run: $ gcloud components reinstall This will also prompt to install a compatible version of "
+  ],
+  "reportId": "phase_39c_sg_safe_zone_reasoning_report",
+  "generatedFixtures": [
+    {
+      "fixtureId": "canary-basic-shapes",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "canary-colored-layout",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "canary-text-and-shape",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "canary-ui-simplified",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "canary-caption-safe-zone-simple",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "generated-object-layout",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "generated-ui-safe-zone",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "generated-ocr-vlm-comparison",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "generated-ambiguous-scene",
+      "status": "not-run"
+    },
+    {
+      "fixtureId": "generated-spatial-reasoning",
+      "status": "not-run"
+    }
+  ]
 }

@@ -1,0 +1,48 @@
+{
+  "phase": "39C-SG-FIXED",
+  "reportId": "phase_39c_sg_fixed_kernel_iam_delta_report",
+  "runId": "phase39c-sg-fixed-20260602T132030",
+  "createdAt": "2026-06-02T13:23:33.690Z",
+  "plan": {
+    "phase": "39C-SG-FIXED",
+    "reportId": "phase_39c_sg_fixed_kernel_iam_plan",
+    "createdAt": "2026-06-02T13:23:33.693Z",
+    "defaultMode": "non_mutating",
+    "requiredConfirmationForApply": "REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE",
+    "bucket": "gs://reeditpro-staging-reeditpro-qa-artifacts",
+    "member": "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+    "broadIamRejected": true,
+    "publicPrincipalsRejected": true,
+    "requiredBindings": [
+      {
+        "role": "roles/storage.objectCreator",
+        "conditionTitle": "phase39c-vlm-sglang-fixed-qa-create",
+        "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-sglang-fixed-kernel/')",
+        "required": true
+      }
+    ],
+    "optionalBindings": [
+      {
+        "role": "roles/storage.objectViewer",
+        "conditionTitle": "phase39c-vlm-sglang-fixed-qa-readback",
+        "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-sglang-fixed-kernel/')",
+        "required": false,
+        "reason": "GPU worker writes import-smoke/runtime artifacts; local runner performs readback with active operator credentials."
+      }
+    ]
+  },
+  "status": "blocked",
+  "qaCreateBinding": "skipped",
+  "qaReadbackBinding": "skipped_not_needed",
+  "broadIamGranted": false,
+  "publicAccessChanged": false,
+  "beforeSummary": null,
+  "afterSummary": null,
+  "blockers": [
+    "fixed_kernel_iam_policy_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. ",
+    "fixed_kernel_qa_create_scoped_binding_not_present_after_check"
+  ],
+  "warnings": [
+    "fixed_kernel_iam_policy_after_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. "
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "phase": "39C-SG-FIXED",
+  "reportId": "phase_39c_sg_fixed_kernel_profile_matrix",
+  "createdAt": "2026-06-02T13:23:33.690Z",
+  "matrixId": "phase39c-sglang-fixed-kernel-l4-v1",
+  "stopAfterFirstImportSmokePass": true,
+  "profiles": [
+    {
+      "id": "f0-pr107-baseline",
+      "label": "Profile F0 PR #107 carry-forward baseline",
+      "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "installMode": "blocked",
+      "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+      "sglKernelPackageSpec": "sgl-kernel==0.2.8",
+      "sglangKernelPackageSpec": "none",
+      "torchCudaExpectation": "torch 2.7.1 / CUDA 12.6 packages inherited from PR #104 image",
+      "rationale": "Carry forward PR #107 K0/K2 Cloud Run L4 import-smoke evidence without rebuilding; expected failure is cuGreenCtxDestroy.",
+      "sourceEvidence": [
+        "https://github.com/yuzastudio6-cyber/Reedkt/pull/104",
+        "https://github.com/yuzastudio6-cyber/Reedkt/pull/107",
+        "https://github.com/sgl-project/sglang/issues/8566"
+      ],
+      "buildAllowed": false,
+      "blockers": [
+        "baseline_pr107_evidence_carried_forward_expected_cuGreenCtxDestroy_failure"
+      ],
+      "riskNotes": [
+        "no new build needed for F0 because PR #107 already captured the baseline failure"
+      ]
+    },
+    {
+      "id": "f1-minimal-fixed-sgl-kernel",
+      "label": "Profile F1 minimal fixed sgl-kernel 0.3.6.post1",
+      "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "installMode": "pip-force-reinstall-no-deps",
+      "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+      "sglKernelPackageSpec": "sgl-kernel==0.3.6.post1",
+      "sglangKernelPackageSpec": "none",
+      "torchCudaExpectation": "keeps PR #104 torch/CUDA package base and replaces only sgl-kernel with the post-#9021 issue-linked fixed wheel",
+      "rationale": "Use the smallest upstream-evidence-driven change: sgl-kernel 0.3.6.post1 was published after PR #9021/#9231 and is referenced by issue discussion as the fixed path.",
+      "sourceEvidence": [
+        "https://github.com/sgl-project/sglang/pull/9021",
+        "https://github.com/sgl-project/sglang/pull/9231",
+        "https://pypi.org/project/sgl-kernel/0.3.6.post1/"
+      ],
+      "buildAllowed": true,
+      "blockers": [],
+      "riskNotes": [
+        "no-deps reinstall is intentional to avoid broad dependency churn",
+        "import smoke must prove compatibility before model-copy or generated runtime"
+      ]
+    },
+    {
+      "id": "f2-current-stable-sglang",
+      "label": "Profile F2 current stable SGLang release dependency set",
+      "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "installMode": "pip-force-reinstall-with-deps",
+      "sglangPackageSpec": "sglang[all]==0.5.12.post1",
+      "sglKernelPackageSpec": "none",
+      "sglangKernelPackageSpec": "none",
+      "torchCudaExpectation": "current SGLang dependency set includes torch 2.11.0, CUDA-oriented packages, and sglang-kernel 0.4.2.post2; Cloud Run L4 import smoke must prove driver compatibility",
+      "rationale": "Use the latest stable SGLang package metadata rather than manually pairing old packages.",
+      "sourceEvidence": [
+        "https://pypi.org/project/sglang/0.5.12.post1/",
+        "https://github.com/sgl-project/sglang/releases"
+      ],
+      "buildAllowed": true,
+      "blockers": [],
+      "riskNotes": [
+        "large dependency churn and CUDA >12.2 packages may require Cloud Run forward compatibility",
+        "import smoke must pass before runtime; generated fixtures are not attempted on package-install evidence alone"
+      ]
+    },
+    {
+      "id": "f3-latest-kernel-overlay",
+      "label": "Profile F3 latest kernel overlay on PR #104 base",
+      "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "installMode": "pip-force-reinstall-no-deps",
+      "sglangPackageSpec": "sglang[all]==0.4.10.post2",
+      "sglKernelPackageSpec": "sgl-kernel==0.3.21",
+      "sglangKernelPackageSpec": "sglang-kernel==0.4.3",
+      "torchCudaExpectation": "keeps PR #104 runtime package base but overlays current kernel wheels; import smoke decides compatibility",
+      "rationale": "Test the current kernel packages independently from the full latest SGLang dependency set.",
+      "sourceEvidence": [
+        "https://pypi.org/project/sgl-kernel/0.3.21/",
+        "https://pypi.org/project/sglang-kernel/0.4.3/"
+      ],
+      "buildAllowed": true,
+      "blockers": [],
+      "riskNotes": [
+        "API mismatch with SGLang 0.4.10 is possible; import smoke classifies this before runtime"
+      ]
+    },
+    {
+      "id": "f4-forward-compat-base",
+      "label": "Profile F4 CUDA forward-compatible image path",
+      "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "installMode": "blocked",
+      "sglangPackageSpec": "sglang[all]==0.5.12.post1",
+      "sglKernelPackageSpec": "none",
+      "sglangKernelPackageSpec": "sglang-kernel==0.4.2.post2",
+      "torchCudaExpectation": "not attempted",
+      "rationale": "Cloud Run docs allow CUDA >12.2 only with forward compatibility packages or a suitable NVIDIA base image; exact LD_LIBRARY_PATH/base-image decision remains blocked until F1-F3 evidence requires it.",
+      "sourceEvidence": [
+        "https://docs.cloud.google.com/run/docs/configuring/jobs/gpu",
+        "https://docs.nvidia.com/deploy/cuda-compatibility/"
+      ],
+      "buildAllowed": false,
+      "blockers": [
+        "forward_compat_base_not_selected_until_wheel_profiles_fail_with_cuda_forward_compat_evidence"
+      ],
+      "riskNotes": [
+        "do not override Cloud Run driver libraries without exact evidence and import-smoke validation"
+      ]
+    },
+    {
+      "id": "f5-official-sglang-image-overlay",
+      "label": "Profile F5 official SGLang image overlay",
+      "baseImage": "lmsysorg/sglang:tag-not-selected",
+      "installMode": "blocked",
+      "sglangPackageSpec": "official-image",
+      "sglKernelPackageSpec": "official-image",
+      "sglangKernelPackageSpec": "official-image",
+      "torchCudaExpectation": "not attempted",
+      "rationale": "Official Docker Hub images exist, but this phase requires an exact verified tag before use.",
+      "sourceEvidence": [
+        "https://docs.sglang.io/get_started/install.html"
+      ],
+      "buildAllowed": false,
+      "blockers": [
+        "official_sglang_image_exact_tag_not_verified_for_cloud_run_l4"
+      ],
+      "riskNotes": [
+        "do not pull floating latest or dev images into a beta-readiness chain"
+      ]
+    },
+    {
+      "id": "f6-source-build-after-9021-9231",
+      "label": "Profile F6 source-build after PR #9021/#9231",
+      "baseImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9",
+      "installMode": "blocked",
+      "sglangPackageSpec": "source-build-after-9021-9231",
+      "sglKernelPackageSpec": "source-build-after-9021-9231",
+      "sglangKernelPackageSpec": "source-build-after-9021-9231",
+      "torchCudaExpectation": "not attempted",
+      "rationale": "Reserved for a human-approved source-build investigation if all wheel/image paths fail.",
+      "sourceEvidence": [
+        "https://github.com/sgl-project/sglang/pull/9021",
+        "https://github.com/sgl-project/sglang/pull/9231"
+      ],
+      "buildAllowed": false,
+      "blockers": [
+        "source_build_after_9021_9231_not_human_approved_for_this_bounded_rerun"
+      ],
+      "riskNotes": [
+        "large CUDA source build may exceed bounded Cloud Build budget and requires explicit approval"
+      ]
+    }
+  ],
+  "profileOrder": [
+    "f0-pr107-baseline",
+    "f1-minimal-fixed-sgl-kernel",
+    "f2-current-stable-sglang",
+    "f3-latest-kernel-overlay",
+    "f4-forward-compat-base",
+    "f5-official-sglang-image-overlay",
+    "f6-source-build-after-9021-9231"
+  ],
+  "generatedRuntimeBlockedUntilImportSmokePasses": true
+}

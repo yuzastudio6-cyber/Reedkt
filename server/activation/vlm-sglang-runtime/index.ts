@@ -11,6 +11,7 @@ import { parseGcloudJson, runGcloud } from '../vlm-runtime/vlm-runtime-gcs-model
 import { writeVlmRuntimeJsonArtifact } from '../vlm-runtime/vlm-runtime-artifact-manifest-writer'
 
 export * from './kernel-compat'
+export * from './fixed-kernel'
 
 const execFileAsync = promisify(execFile)
 

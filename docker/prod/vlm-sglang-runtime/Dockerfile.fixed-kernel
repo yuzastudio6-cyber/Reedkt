@@ -1,0 +1,47 @@
+ARG BASE_IMAGE=us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang@sha256:39cdb9bf6123c4d9568a9bfd55041b138ed0c03adad9f02a9c51482fec5adfa9
+FROM ${BASE_IMAGE}
+
+ARG SGLANG_KERNEL_PROFILE=k0-current-pr104-baseline
+ARG SGLANG_PACKAGE_SPEC=sglang[all]==0.4.10.post2
+ARG SGL_KERNEL_PACKAGE_SPEC=sgl-kernel==0.2.8
+ARG SGLANG_KERNEL_PACKAGE_SPEC=none
+ARG INSTALL_MODE=baseline
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1 \
+    HF_HUB_DISABLE_TELEMETRY=1 \
+    MODEL_DOWNLOADS_ENABLED=false \
+    RAW_VLM_PROMPT_ENABLED=false \
+    PROVIDER_EXECUTION_ENABLED=false \
+    MEDIA_PROCESSING_ENABLED=false \
+    REAL_MEDIA_INPUT_ENABLED=false \
+    ARBITRARY_MEDIA_INPUT_ENABLED=false \
+    PUBLIC_OUTPUT_ENABLED=false \
+    TRACK_A_EXECUTION_ENABLED=false \
+    REEDITPRO_VLM_SGLANG_KERNEL_PROFILE=${SGLANG_KERNEL_PROFILE}
+
+RUN set -eux; \
+    if [ "${INSTALL_MODE}" = "baseline" ]; then \
+      python -m pip show sglang sgl-kernel || true; \
+    elif [ "${INSTALL_MODE}" = "pip-force-reinstall-with-deps" ]; then \
+      python -m pip install --no-cache-dir --force-reinstall "${SGLANG_PACKAGE_SPEC}"; \
+      if [ "${SGL_KERNEL_PACKAGE_SPEC}" != "none" ]; then python -m pip install --no-cache-dir --force-reinstall "${SGL_KERNEL_PACKAGE_SPEC}"; fi; \
+      if [ "${SGLANG_KERNEL_PACKAGE_SPEC}" != "none" ]; then python -m pip install --no-cache-dir --force-reinstall "${SGLANG_KERNEL_PACKAGE_SPEC}"; fi; \
+    elif [ "${INSTALL_MODE}" = "pip-force-reinstall-no-deps" ]; then \
+      if [ "${SGL_KERNEL_PACKAGE_SPEC}" != "none" ]; then python -m pip install --no-cache-dir --force-reinstall --no-deps "${SGL_KERNEL_PACKAGE_SPEC}"; fi; \
+      if [ "${SGLANG_KERNEL_PACKAGE_SPEC}" != "none" ]; then python -m pip install --no-cache-dir --force-reinstall --no-deps "${SGLANG_KERNEL_PACKAGE_SPEC}"; fi; \
+      if [ "${SGLANG_PACKAGE_SPEC}" != "none" ]; then python -m pip install --no-cache-dir --force-reinstall --no-deps "${SGLANG_PACKAGE_SPEC}"; fi; \
+    else \
+      echo "Unsupported or blocked SGLang kernel install mode: ${INSTALL_MODE}" >&2; \
+      exit 12; \
+    fi; \
+    python -m pip show sglang || true; \
+    python -m pip show sgl-kernel || true; \
+    python -m pip show sglang-kernel || true
+
+COPY server/workers/vlm-sglang-runtime/ /app/server/workers/vlm-sglang-runtime/
+
+ENTRYPOINT ["python", "/app/server/workers/vlm-sglang-runtime/run-phase39c-sglang-cloud-job.py"]

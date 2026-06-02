@@ -1,0 +1,19 @@
+{
+  "phase": "39C-SG-FIXED",
+  "reportId": "phase_39c_sg_fixed_kernel_private_artifact_manifest",
+  "runId": "phase39c-sg-fixed-20260602T132030",
+  "createdAt": "2026-06-02T13:23:33.690Z",
+  "privateOnly": true,
+  "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-fixed-kernel/phase39c-sg-fixed-20260602T132030/",
+  "importSmokePrefixes": [],
+  "runtimePrefixes": [],
+  "committedTracePolicy": "hashes_short_safe_excerpts_and_metadata_only",
+  "artifactCount": 0,
+  "blockers": [
+    "fixed_kernel_iam_policy_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. ",
+    "fixed_kernel_qa_create_scoped_binding_not_present_after_check"
+  ],
+  "warnings": [
+    "fixed_kernel_iam_policy_after_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. "
+  ]
+}

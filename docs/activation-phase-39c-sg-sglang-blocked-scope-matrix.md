@@ -20,3 +20,9 @@
 - SGLang kernel import remains blocked on Cloud Run L4 because `cuGreenCtxDestroy` is missing from the driver/libcuda symbol set.
 - Private QA artifact upload for `generated-vlm-sglang-kernel-compat` is blocked until a scoped object-create/readback permission is added for the GPU worker service account.
 - Generated fixture runtime, candidate selection, Phase 39D, Phase 39E, beta, production, public output, broad media, non-Qwen candidates, new model downloads, and Track A remain blocked.
+
+## Phase 39C-SG-FIXED Current Gate
+
+- Fixed-kernel profiles must pass an import-only Cloud Run L4 smoke job before any PR #87 model payload is copied or any generated fixture inference runs.
+- Scoped object-create IAM for `generated-vlm-sglang-fixed-kernel` may be added only if missing and only with `REEDITPRO_CONFIRM_VLM_PHASE39C_SCOPED_IAM_UPDATE=true`.
+- Generated fixture runtime, candidate selection, Phase 39D, Phase 39E, beta, production, public output, broad media, non-Qwen candidates, new model downloads, source-build profiles without human approval, and Track A remain blocked until the import smoke and generated fixture gates pass.

@@ -1,0 +1,16 @@
+{
+  "phase": "39C-SG-FIXED",
+  "runId": "phase39c-sg-fixed-20260602T132030",
+  "createdAt": "2026-06-02T13:23:33.690Z",
+  "selectedProfile": null,
+  "selectedCandidate": null,
+  "status": "not_run_import_smoke_blocked",
+  "blockers": [
+    "fixed_kernel_iam_policy_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. ",
+    "fixed_kernel_qa_create_scoped_binding_not_present_after_check"
+  ],
+  "warnings": [
+    "fixed_kernel_iam_policy_after_read_failed:Reauthentication failed. cannot prompt during non-interactive execution. Please run: $ gcloud auth login to obtain new credentials. If you have already logged in with a different account, run: $ gcloud config set account ACCOUNT to select an already authenticated account to use. "
+  ],
+  "reportId": "phase_39c_sg_fixed_kernel_text_only_smoke_report"
+}

@@ -1,0 +1,79 @@
+{
+  "phase": "39C-SG-KERNEL",
+  "reportId": "phase_39c_sg_kernel_cloudrun_log_summary_report",
+  "runId": "phase39c-sg-kernel-20260602T0132",
+  "createdAt": "2026-06-02T02:14:00.000Z",
+  "sourceEvidence": {
+    "phase39cOriginalOomPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/66",
+    "phase39bq39cqCandidatePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/87",
+    "phase39cqStructuredOutputPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/90",
+    "phase39cqSo3PerceptionPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/97",
+    "phase39cSglangRuntimePr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/100",
+    "phase39cSgBuildPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/104"
+  },
+  "rawLogsCommitted": false,
+  "profiles": [
+    {
+      "profileId": "k0-current-pr104-baseline",
+      "imageDigest": "sha256:d099d3b3ccb51ce8f2c1c4dac054c3e35aaad8fbd8bfe154c5fcc12916d1a5cb",
+      "cloudRunExecution": "reeditpro-stg-vlm-runtime-phase39c-sglang-kernel-smoke-kbn2r",
+      "status": "blocked",
+      "classification": "sgl_kernel_cuda_driver_symbol_missing",
+      "cudaSymbolProbe": {
+        "cuInit": "present",
+        "cuDriverGetVersion": "present",
+        "cuGreenCtxDestroy": "missing"
+      },
+      "importBlockers": [
+        "cuGreenCtxDestroy_import_error_persisting",
+        "cuGreenCtxDestroy_launch_server_help_error",
+        "required_import_failed:sglang.srt.layers.rotary_embedding"
+      ],
+      "artifactUploadStatus": "blocked",
+      "artifactUploadBlocker": "gpu worker service account lacks scoped object create permission for generated-vlm-sglang-kernel-compat prefix"
+    },
+    {
+      "profileId": "k2-issue-compatible-pinned-pair",
+      "imageDigest": "sha256:c18f32f96096f4828ed47c1e6b8f29fa0da57745969b5a106987e2f1eaa51af7",
+      "cloudRunExecution": "reeditpro-stg-vlm-runtime-phase39c-sglang-kernel-smoke-zw5p7",
+      "status": "blocked",
+      "classification": "sgl_kernel_cuda_driver_symbol_missing",
+      "cudaSymbolProbe": {
+        "cuInit": "present",
+        "cuDriverGetVersion": "present",
+        "cuGreenCtxDestroy": "missing"
+      },
+      "importBlockers": [
+        "cuGreenCtxDestroy_import_error_persisting",
+        "cuGreenCtxDestroy_launch_server_help_error",
+        "required_import_failed:sglang.srt.layers.rotary_embedding"
+      ],
+      "artifactUploadStatus": "blocked",
+      "artifactUploadBlocker": "gpu worker service account lacks scoped object create permission for generated-vlm-sglang-kernel-compat prefix"
+    }
+  ],
+  "k1": {
+    "profileId": "k1-latest-compatible-sglang-stable",
+    "status": "blocked",
+    "classification": "cloud_build_cancelled_after_slow_kernel_wheel_download",
+    "notes": [
+      "The first K1 full dependency reinstall attempt was cancelled after slow package download.",
+      "The bounded no-deps K1 retry was also cancelled after remaining on the same 279.7 MB sgl-kernel 0.2.8 wheel path.",
+      "K1 uses the same sgl-kernel version as K0, so K0 already proves the current stable 0.2.8 kernel wheel remains incompatible with the Cloud Run L4 driver symbol set."
+    ]
+  },
+  "generatedRuntime": {
+    "attempted": false,
+    "reason": "no SGLang kernel profile passed import smoke"
+  },
+  "privateArtifactStatus": "blocked",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase39c/generated-vlm-sglang-kernel-compat/phase39c-sg-kernel-20260602T0132/",
+  "blockers": [
+    "cuGreenCtxDestroy missing from Cloud Run L4 libcuda/driver symbol set",
+    "K0 and K2 required SGLang rotary embedding import path failed before model copy or inference",
+    "K1 current stable wheel refresh did not complete within bounded Cloud Build retry after slow sgl-kernel wheel download",
+    "GPU worker service account lacks scoped private QA artifact create permission for generated-vlm-sglang-kernel-compat prefix",
+    "generated fixture runtime did not run because import smoke did not pass"
+  ],
+  "vlmToolFamilyBetaStatus": "blocked"
+}

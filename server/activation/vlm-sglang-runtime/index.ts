@@ -10,6 +10,8 @@ import {
 import { parseGcloudJson, runGcloud } from '../vlm-runtime/vlm-runtime-gcs-model-resolver'
 import { writeVlmRuntimeJsonArtifact } from '../vlm-runtime/vlm-runtime-artifact-manifest-writer'
 
+export * from './kernel-compat'
+
 const execFileAsync = promisify(execFile)
 
 export type VlmSglangRuntimeStatus = 'passed' | 'blocked' | 'skipped'

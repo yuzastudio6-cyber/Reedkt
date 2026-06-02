@@ -1,0 +1,39 @@
+{
+  "phase": "39C-SG-KERNEL",
+  "reportId": "phase_39c_sg_kernel_image_verification_report",
+  "runId": "phase39c-sg-kernel-20260602T0132",
+  "createdAt": "2026-06-02T01:56:37.785Z",
+  "status": "passed",
+  "images": [
+    {
+      "profileId": "k0-current-pr104-baseline",
+      "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k0-current-pr104-baseline-phase39c-sg-kernel-20260602t0132",
+      "imageDigest": "sha256:d099d3b3ccb51ce8f2c1c4dac054c3e35aaad8fbd8bfe154c5fcc12916d1a5cb",
+      "status": "passed"
+    },
+    {
+      "profileId": "k1-latest-compatible-sglang-stable",
+      "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k1-latest-compatible-sglang-stable-phase39c-sg-kernel-20260602t0132",
+      "status": "blocked"
+    },
+    {
+      "profileId": "k2-issue-compatible-pinned-pair",
+      "imageRef": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/vlm-runtime-phase39c-sglang-kernel:k2-issue-compatible-pinned-pair-phase39c-sg-kernel-20260602t0132",
+      "imageDigest": "sha256:c18f32f96096f4828ed47c1e6b8f29fa0da57745969b5a106987e2f1eaa51af7",
+      "status": "passed"
+    },
+    {
+      "profileId": "k3-no-sgl-kernel-or-disable-kernel-path",
+      "status": "blocked"
+    },
+    {
+      "profileId": "k4-source-build-sgl-kernel",
+      "status": "blocked"
+    },
+    {
+      "profileId": "k5-official-sglang-runtime-image-overlay",
+      "status": "blocked"
+    }
+  ],
+  "blockers": []
+}

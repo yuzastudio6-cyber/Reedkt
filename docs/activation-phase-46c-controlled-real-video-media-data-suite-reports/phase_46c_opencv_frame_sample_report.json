@@ -1,0 +1,134 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "toolId": "opencv",
+  "status": "passed",
+  "controlledRealVideo": true,
+  "versions": {
+    "opencv": "4.13.0",
+    "numpy": "2.4.6"
+  },
+  "window": {
+    "startSeconds": 6.9,
+    "endSeconds": 8.9
+  },
+  "requestedOffsetsSeconds": [
+    6.9,
+    7.3,
+    7.7,
+    8.1,
+    8.5,
+    8.9
+  ],
+  "sampledFrameCount": 6.0,
+  "metrics": [
+    {
+      "targetOffsetSeconds": 6.9,
+      "actualSeconds": 6.916666666666667,
+      "width": 2160.0,
+      "height": 3840.0,
+      "meanBrightness": 59.71299442997685,
+      "contrastStdDev": 36.94072626288754,
+      "edgeDensity": 0.0005396412037037037,
+      "blurVariance": 6.417389377223849,
+      "artifact": {
+        "relativePath": "controlled-private-frame-samples/sample_00_6_9s.png",
+        "kind": "controlled_real_video_private_frame_sample",
+        "sizeBytes": 6726877.0,
+        "sha256": "1542cc7071cb7661ff9c142303a9b6c2aa0c7afacdcfa35568e2dcedc7150dfc"
+      }
+    },
+    {
+      "targetOffsetSeconds": 7.3,
+      "actualSeconds": 7.291666666666667,
+      "width": 2160.0,
+      "height": 3840.0,
+      "meanBrightness": 58.90660457658179,
+      "contrastStdDev": 37.058243169238985,
+      "edgeDensity": 0.0007865547839506173,
+      "blurVariance": 6.532557230017472,
+      "artifact": {
+        "relativePath": "controlled-private-frame-samples/sample_01_7_3s.png",
+        "kind": "controlled_real_video_private_frame_sample",
+        "sizeBytes": 6723558.0,
+        "sha256": "d0d90ae1d1820e156d9590e00dad6c33a4d0c2188857af52854ded2c08033b09"
+      }
+    },
+    {
+      "targetOffsetSeconds": 7.7,
+      "actualSeconds": 7.708333333333333,
+      "width": 2160.0,
+      "height": 3840.0,
+      "meanBrightness": 56.99510754243827,
+      "contrastStdDev": 37.069201032710694,
+      "edgeDensity": 0.0006703317901234568,
+      "blurVariance": 6.151175043740685,
+      "artifact": {
+        "relativePath": "controlled-private-frame-samples/sample_02_7_7s.png",
+        "kind": "controlled_real_video_private_frame_sample",
+        "sizeBytes": 6414184.0,
+        "sha256": "b05475c2cb304ccf88be909a4308be010a550a23700861fd0f578f3d15a65d29"
+      }
+    },
+    {
+      "targetOffsetSeconds": 8.1,
+      "actualSeconds": 8.083333333333334,
+      "width": 2160.0,
+      "height": 3840.0,
+      "meanBrightness": 60.183437379436725,
+      "contrastStdDev": 36.20270559261702,
+      "edgeDensity": 0.0006944444444444445,
+      "blurVariance": 6.41456473517974,
+      "artifact": {
+        "relativePath": "controlled-private-frame-samples/sample_03_8_1s.png",
+        "kind": "controlled_real_video_private_frame_sample",
+        "sizeBytes": 6661501.0,
+        "sha256": "acf1937674fb95096e912f71eb2b794ca527ee54b12dcc228a7ceb9ffee04a85"
+      }
+    },
+    {
+      "targetOffsetSeconds": 8.5,
+      "actualSeconds": 8.5,
+      "width": 2160.0,
+      "height": 3840.0,
+      "meanBrightness": 62.20114547164352,
+      "contrastStdDev": 35.9428971821399,
+      "edgeDensity": 0.0010009162808641975,
+      "blurVariance": 7.275240594003098,
+      "artifact": {
+        "relativePath": "controlled-private-frame-samples/sample_04_8_5s.png",
+        "kind": "controlled_real_video_private_frame_sample",
+        "sizeBytes": 6992667.0,
+        "sha256": "71bad5a102ee5383d440156d71c6c3dc9988f177de77cc1547d7de7ebea35610"
+      }
+    },
+    {
+      "targetOffsetSeconds": 8.9,
+      "actualSeconds": 8.916666666666666,
+      "width": 2160.0,
+      "height": 3840.0,
+      "meanBrightness": 58.762926552854935,
+      "contrastStdDev": 37.354118880881146,
+      "edgeDensity": 0.0009449749228395062,
+      "blurVariance": 7.374258293984158,
+      "artifact": {
+        "relativePath": "controlled-private-frame-samples/sample_05_8_9s.png",
+        "kind": "controlled_real_video_private_frame_sample",
+        "sizeBytes": 6975125.0,
+        "sha256": "f137d612ced3ea15290c5fd268c44e68c8cc7657159f37d36f3d9e7a0df04048"
+      }
+    }
+  ],
+  "checks": {
+    "approvedOffsetsOnly": true,
+    "maxFrameCountRespected": true,
+    "windowBounded": true,
+    "noFullVideoFrameExtraction": true
+  },
+  "privacy": {
+    "privateFrameArtifactsOnly": true,
+    "committedFrames": "blocked",
+    "publicOutput": "blocked"
+  }
+}

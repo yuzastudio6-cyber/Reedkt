@@ -1,0 +1,25 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "toolId": "polars",
+  "status": "passed",
+  "controlledRealVideo": true,
+  "versions": {
+    "polars": "1.36.1"
+  },
+  "metrics": {
+    "rowCount": 5.0,
+    "statusCounts": [
+      {
+        "status": "passed",
+        "count": 5.0
+      }
+    ]
+  },
+  "checks": {
+    "metricsLoaded": true,
+    "groupByStatusRecorded": true,
+    "rowCountRecorded": true
+  }
+}

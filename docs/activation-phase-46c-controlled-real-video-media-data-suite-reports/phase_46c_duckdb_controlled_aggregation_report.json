@@ -1,0 +1,25 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "toolId": "duckdb",
+  "status": "passed",
+  "controlledRealVideo": true,
+  "versions": {
+    "duckdb": "1.4.4"
+  },
+  "metrics": {
+    "rowCount": 4.0,
+    "statusCounts": [
+      {
+        "status": "passed",
+        "count": 4.0
+      }
+    ]
+  },
+  "checks": {
+    "metricsLoaded": true,
+    "aggregateCountsRecorded": true,
+    "networkExtensionsNotUsed": true
+  }
+}

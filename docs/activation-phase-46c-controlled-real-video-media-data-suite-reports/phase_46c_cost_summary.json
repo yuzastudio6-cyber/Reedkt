@@ -1,0 +1,11 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "status": "local_temp_runtime_private_gcs_only",
+  "estimatedCloudCostUsd": 0,
+  "localCostDrivers": [
+    "temporary Python wheel downloads",
+    "temporary Sharp native package install",
+    "private GCS read/upload if auth is available"
+  ]
+}

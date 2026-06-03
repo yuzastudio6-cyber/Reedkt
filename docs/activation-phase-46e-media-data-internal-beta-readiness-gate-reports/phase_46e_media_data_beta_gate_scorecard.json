@@ -1,0 +1,15 @@
+{
+  "phase": "46E",
+  "runId": "phase46e-media-data-internal-beta-readiness-gate-20260603",
+  "status": "passed",
+  "score": {
+    "passedCriteria": 15,
+    "totalCriteria": 15,
+    "requiredBlockers": 0,
+    "internalWarnings": 6
+  },
+  "mediaDataToolFamilyBetaStatus": "internally beta-ready candidate",
+  "productWideBetaStatus": "blocked",
+  "externalBetaStatus": "blocked",
+  "productionStatus": "blocked"
+}

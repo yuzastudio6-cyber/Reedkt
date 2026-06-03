@@ -187,4 +187,6 @@ Prompt 20B may proceed only when preflight reports `canProceedToPrompt20B=true`,
 
 `canRunLocalSql=true` remains stricter because it also requires at least one local-only executable SQL candidate scoped to `database/test-sql/local/`. Prompt 20B is allowed to create that first candidate only after the environment is verified.
 
-After Prompt 20D, the recommended next prompt is Prompt 20E - Manual Environment Setup Follow-Up until `canProceedToPrompt20B=true`.
+After Prompt 20E, the recommended next prompt is Prompt 20F - Manual Host Tool Repair Verification until `canProceedToPrompt20B=true`.
+
+Prompt 20E confirms Homebrew is currently `/usr/local`-prefixed, `/opt/homebrew` is not present, `/usr/local/bin/supabase` is still x86_64, `psql` is still missing, and no localhost-only local DB URL is verified.

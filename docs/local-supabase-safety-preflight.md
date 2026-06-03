@@ -145,3 +145,27 @@ Prompt 20D result on this host:
 | SQL can run now | `canRunLocalSql=false`. | Blocked |
 
 Prompt 20D recommends Prompt 20E - Manual Environment Setup Follow-Up until preflight reports `canProceedToPrompt20B=true`.
+
+## Prompt 20E Manual Follow-Up Update
+
+Prompt 20E adds a separate host toolchain probe:
+
+```sh
+npm run --silent supabase:local:toolchain:probe
+```
+
+The probe is manual-only and does not install tools, run `npx`, execute SQL, call `supabase status`, start Supabase, connect with `psql`, touch staging/remote/production Supabase, or mutate files.
+
+Prompt 20E result on this host:
+
+| Check | Prompt 20E result | Status |
+| --- | --- | --- |
+| Docker daemon reachable | Docker reports server version `29.5.2`. | Passed |
+| Supabase CLI compatible | `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`. | Blocked |
+| `psql` available | `psql` is not on PATH. | Blocked |
+| Homebrew path | `/usr/local`; `/opt/homebrew` not present. | Blocked for arm64 Homebrew repair |
+| Local DB URL verified | no localhost-only local DB URL environment variable is verified. | Blocked |
+| Local executable SQL exists | none under `database/test-sql/local/`. | Blocked |
+| Prompt 20B can proceed | `canProceedToPrompt20B=false`. | Blocked |
+
+Prompt 20E recommends Prompt 20F - Manual Host Tool Repair Verification until host tools are repaired outside the repo.

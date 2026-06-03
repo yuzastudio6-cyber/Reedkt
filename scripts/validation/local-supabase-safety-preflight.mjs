@@ -524,7 +524,7 @@ const nextRecommendedPrompt = canRunLocalSql
   ? 'Prompt 20B - Local RLS First Executable Smoke Test'
   : localEnvironmentReadyForPrompt20B
     ? 'Prompt 20B - Local RLS First Executable Smoke Test'
-    : 'Prompt 20E - Manual Environment Setup Follow-Up'
+    : 'Prompt 20F - Manual Host Tool Repair Verification'
 const prompt20BReadiness = {
   canProceed: localEnvironmentReadyForPrompt20B,
   canRunLocalSql,
@@ -619,7 +619,7 @@ const result = {
         localExecutableCandidates.length > 0
           ? ['Local executable SQL candidates exist. Run only through the guarded runner after all other preflight gates pass.']
           : [
-              'Do not create or run executable SQL in Prompt 20D.',
+              'Do not create or run executable SQL in Prompt 20E.',
               'Prompt 20B should create the first minimal local-only auth/workspace SQL candidate after local tools are repaired.',
             ],
       localDbUrl:

@@ -83,3 +83,19 @@ Required before Prompt 20B:
 ## No-Scope Confirmation
 
 No SQL, local Supabase lifecycle command, Supabase status command, migration, remote Supabase command, staging Supabase command, production Supabase command, provider call, media processing, tool execution, worker execution, storage transfer, signed URL creation, Stripe flow, deployment, or beta/production unlock was performed.
+
+## Prompt 20E Follow-Up
+
+Prompt 20E adds `npm run --silent supabase:local:toolchain:probe` as a manual-only host probe. It does not install tools, download tools, run `npx`, run SQL, call `supabase status`, start Supabase, connect with `psql`, or touch local/staging/remote/production data.
+
+Prompt 20E result on this host:
+
+- `/usr/local/bin/supabase` remains x86_64 and fails on arm64 with error `-86`.
+- Docker remains reachable at version `29.5.2`.
+- `psql` remains missing from PATH.
+- Homebrew is `/usr/local`-prefixed; `/opt/homebrew` is not present.
+- No localhost-only local DB URL is verified.
+- No executable local SQL candidate exists.
+- `canProceedToPrompt20B=false`.
+
+Prompt 20E recommends Prompt 20F - Manual Host Tool Repair Verification until the host toolchain is repaired outside the repo.

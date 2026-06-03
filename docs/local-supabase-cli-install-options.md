@@ -10,6 +10,7 @@ Current host:
 - current CLI path: `/usr/local/bin/supabase`
 - current CLI architecture: `x86_64`
 - current failure: error `-86`
+- Prompt 20E Homebrew state: `/usr/local/bin/brew`, prefix `/usr/local`, no `/opt/homebrew` path detected
 
 This path must be replaced or shadowed by an arm64-compatible CLI before local Supabase validation can proceed.
 
@@ -30,6 +31,8 @@ supabase --version
 ```
 
 PATH should prefer the arm64 Homebrew path over `/usr/local/bin`.
+
+Prompt 20E does not run Homebrew repair because the current Homebrew prefix is `/usr/local`, not `/opt/homebrew`. If Homebrew is repaired manually, verify the new path before Prompt 20B.
 
 ## Standalone arm64 Binary
 

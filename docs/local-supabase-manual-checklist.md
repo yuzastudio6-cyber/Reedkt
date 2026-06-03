@@ -1,6 +1,6 @@
 # Local Supabase Manual Checklist
 
-This checklist is for manual setup before the first executable local RLS smoke test. It is evidence-only and does not authorize SQL execution in Prompt 20C or Prompt 20D.
+This checklist is for manual setup before the first executable local RLS smoke test. It is evidence-only and does not authorize SQL execution in Prompt 20C, Prompt 20D, or Prompt 20E.
 
 ## Required Local Tools
 
@@ -26,28 +26,30 @@ This checklist is for manual setup before the first executable local RLS smoke t
 - [ ] No staging or production project ref is linked.
 - [ ] No `supabase link` command is run.
 - [ ] No remote SQL command is run.
-- [ ] No migration command is run in Prompt 20C or Prompt 20D.
-- [ ] No local SQL is run in Prompt 20C or Prompt 20D.
+- [ ] No migration command is run in Prompt 20C, Prompt 20D, or Prompt 20E.
+- [ ] No local SQL is run in Prompt 20C, Prompt 20D, or Prompt 20E.
 - [ ] No `supabase status` command is run in Prompt 20D.
+- [ ] No host tool install, download, global npm install, or `npx` command is run in Prompt 20E.
 
 ## Readiness Checks
 
-Run only these Prompt 20D commands:
+Run only these Prompt 20E commands:
 
 ```sh
+npm run --silent supabase:local:toolchain:probe
 npm run --silent supabase:local:preflight
 npm run supabase:rls:list-tests
 npm run supabase:rls:local:dry-run
 ```
 
-Expected Prompt 20D result:
+Expected Prompt 20E result:
 
-- preflight may remain `blocked`;
+- host probe and preflight may remain `blocked`;
 - list mode succeeds without inspecting Supabase status;
 - dry-run executes no SQL and reports `callsSupabaseStatus=false`;
 - `manualSetupRequired` is accurate;
 - `canProceedToPrompt20B` distinguishes environment readiness from the first SQL candidate work item;
-- `nextRecommendedPrompt` is Prompt 20B only when non-SQL environment blockers are cleared, otherwise Prompt 20E/manual follow-up.
+- `nextRecommendedPrompt` is Prompt 20B only when non-SQL environment blockers are cleared, otherwise Prompt 20F/manual host repair verification.
 
 Future `supabase start` and local SQL are allowed only in Prompt 20B or a setup verification prompt after local-only safety is proven.
 

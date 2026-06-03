@@ -104,6 +104,7 @@ function listTests() {
 
   if (fs.existsSync(localTestDir)) {
     for (const file of fs.readdirSync(localTestDir).sort()) {
+      if (file.startsWith('.') || file.startsWith('._')) continue
       if (!file.endsWith('.sql')) continue
       tests.push({
         path: `database/test-sql/local/${file}`,
@@ -118,7 +119,10 @@ function listTests() {
 
 function isAllowedSqlPath(relativePath) {
   const resolved = path.resolve(root, relativePath)
+  const basename = path.basename(resolved)
   return (
+    !basename.startsWith('.') &&
+    !basename.startsWith('._') &&
     resolved.endsWith('.sql') &&
     !resolved.endsWith('.draft.sql') &&
     allowedDirectories.some((directory) => resolved.startsWith(`${directory}${path.sep}`))

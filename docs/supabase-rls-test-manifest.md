@@ -158,3 +158,22 @@ Remaining local blockers after Prompt 20F:
 - `psql` or an approved local SQL executor required;
 - verified localhost-only local Supabase DB URL required;
 - first local-only executable SQL candidate required.
+
+## Prompt 20B First Local Candidate Update
+
+Prompt 20B creates the first local-only executable SQL candidate:
+
+| File | Prompt 20B status | Prompt 20B execution result | Prompt 20B blocker |
+| --- | --- | --- | --- |
+| `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` | local_executable_candidate | not_run | Local `supabase start` failed at `202605180001_reeditpro_core_workspace_projects.sql` before a localhost-only DB URL could be captured. |
+
+Manifest state after Prompt 20B:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` is the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- the local migration chain is blocked by `public.projects.current_edit_session_id` missing when `projects_current_edit_session_id_fkey` is added in `202605180001_reeditpro_core_workspace_projects.sql`.
+
+Prompt 20H is required before the Prompt 20B SQL candidate can be run.

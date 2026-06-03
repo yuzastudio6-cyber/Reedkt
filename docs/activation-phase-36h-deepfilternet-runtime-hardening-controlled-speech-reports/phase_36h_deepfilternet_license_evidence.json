@@ -1,0 +1,21 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
+  "status": "passed",
+  "licenseDecision": "source_license_evidence_refreshed_not_production_legal_approval",
+  "repositoryLicenses": [
+    "MIT",
+    "Apache-2.0"
+  ],
+  "pypiLicense": "MIT",
+  "sourceUrls": [
+    "https://github.com/Rikorose/DeepFilterNet",
+    "https://github.com/Rikorose/DeepFilterNet/blob/main/LICENSE-MIT",
+    "https://github.com/Rikorose/DeepFilterNet/blob/main/LICENSE-APACHE",
+    "https://pypi.org/project/deepfilternet/"
+  ],
+  "blockers": [],
+  "warnings": [
+    "Production legal review remains separate from Phase 36H bounded internal evidence."
+  ]
+}

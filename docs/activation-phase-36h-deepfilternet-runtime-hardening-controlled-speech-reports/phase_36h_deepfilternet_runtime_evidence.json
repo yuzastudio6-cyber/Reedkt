@@ -1,0 +1,25 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
+  "status": "blocked",
+  "packageVersionEvidence": "deepfilternet 0.5.6 on PyPI; runtime uses approved Phase 36B private binary/model artifacts.",
+  "approvedArtifacts": {
+    "prefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/",
+    "cliFile": "deep-filter-0.5.6-x86_64-unknown-linux-musl",
+    "modelArchive": "DeepFilterNet3_onnx.tar.gz",
+    "cliSha256": "70775e251eee44c0f2451a1e833326cf8bcbbe304d3e7cd12851e6fce72ef7da",
+    "modelArchiveSha256": "c94d91f70911001c946e0fabb4aa9adc37045f45a03b56008cb0c8244cb63616",
+    "aggregateSha256": "eab42c424fc818938f1b8591f4110318f86284b520e5244e571c2f3f56f5126b"
+  },
+  "localRuntimePlatform": "darwin",
+  "localRuntimeArch": "arm64",
+  "binaryCompatibility": "blocked_linux_x64_required",
+  "noRuntimeAutoDownload": true,
+  "blockers": [
+    "approved_deepfilternet_binary_platform_incompatible:darwin_arm64",
+    "ffmpeg_unavailable_for_bounded_audio_extraction"
+  ],
+  "warnings": [
+    "The approved private CLI artifact is Linux x86_64 musl; non-Linux hosts block execution unless a separate approved runtime is used."
+  ]
+}

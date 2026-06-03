@@ -2,6 +2,8 @@
 
 Phase 46E is not a model-weight phase. It does not download, stage, approve, or execute model weights. It reads committed safe media/data metadata evidence and exact private JSON metadata only when confirmed, then decides whether the deterministic media/data tool family is an internally beta-ready candidate for restricted internal QA/planning scope. VLM runtime retries, OCR runtime outside approved phases, provider calls, new model downloads, production, product-wide beta, external beta, broad media, arbitrary media, public output, Docker/Cloud Run/Cloud Build/GPU jobs, IAM mutation, and Track A remain blocked.
 
+Phase 36H does not approve new model weights. It preserves the Phase 36B/36C DeepFilterNet v0.5.6 private CLI/model archive and records source/license/runtime metadata only. The Phase 36H runtime attempt is blocked on the local environment because the approved CLI is Linux x86_64 musl and the current host is darwin arm64; no PyPI runtime fallback, model auto-download, new DeepFilterNet model, Demucs model, or Signalsmith runtime is approved.
+
 Phase 46D media/data reporting QA integration does not add, download, stage, approve, or execute model weights. It aggregates safe metadata from Phase 46A/46B/46C using DuckDB and Polars only. VLM runtime retries, OCR runtime execution, new model downloads, production, beta, broad media, arbitrary media, public output, provider calls, Docker/Cloud Run/Cloud Build, IAM mutation, and Track A remain blocked.
 
 Phase 46B media/data generated fixtures do not add, download, stage, or execute model weights. VLM remains blocked by Phase 39C decision-gate evidence, and no model-runtime retry is part of Phase 46B.

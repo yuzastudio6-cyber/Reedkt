@@ -1,0 +1,13 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
+  "status": "not_run",
+  "metrics": null,
+  "gates": [],
+  "blockers": [
+    "approved_deepfilternet_binary_platform_incompatible:darwin_arm64",
+    "ffmpeg_unavailable_for_bounded_audio_extraction"
+  ],
+  "noRawAudioCommitted": true,
+  "noTranscriptCommitted": true
+}

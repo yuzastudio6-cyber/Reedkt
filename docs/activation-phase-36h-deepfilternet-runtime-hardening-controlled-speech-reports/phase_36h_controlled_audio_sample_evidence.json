@@ -1,0 +1,22 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
+  "status": "passed",
+  "selectedSample": {
+    "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+    "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
+    "sourceGcsUri": "gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4",
+    "sourceSha256": "78bd798602d221b894a60dfa34ed1528602c9ece7f657e3f9bbea7fd071cc7fa",
+    "windowStartSeconds": 6.9,
+    "windowEndSeconds": 8.9,
+    "maxDurationSeconds": 2
+  },
+  "sourceEvidence": [
+    "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_controlled_sample_evidence.json",
+    "docs/activation-phase-36d-real-video-deepfilternet-audio-cleanup-results.md"
+  ],
+  "privacyStatus": "private_gcs_only",
+  "publicUrlStatus": "blocked",
+  "signedUrlAsSourceOfTruth": "blocked",
+  "blockers": []
+}

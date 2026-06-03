@@ -1,0 +1,17 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
+  "status": "warning",
+  "risks": [
+    "Approved DeepFilterNet CLI artifact is Linux x86_64 musl; local host compatibility must be verified before execution.",
+    "FFmpeg is required only for bounded controlled audio extraction.",
+    "No Demucs source-separation dependency is allowed.",
+    "No Signalsmith Stretch dependency is allowed.",
+    "No PyPI DeepFilterNet runtime fallback is used in Phase 36H unless a later approved follow-up changes policy."
+  ],
+  "preflightSummary": {
+    "ffmpeg": "blocked",
+    "python": "passed",
+    "gcloud": "passed"
+  }
+}

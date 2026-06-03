@@ -1,0 +1,13 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
+  "fixtureId": "phase36h-generated-noisy-speechlike-48khz-v1",
+  "generatedOnly": true,
+  "sampleRate": 48000,
+  "channels": 1,
+  "durationSeconds": 3,
+  "status": "not_run",
+  "artifacts": [],
+  "noRealVoice": true,
+  "noProviderCalls": true
+}

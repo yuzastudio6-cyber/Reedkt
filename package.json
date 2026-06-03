@@ -356,7 +356,11 @@
     "activation:web-search-ui-api-gating": "tsx server/cli/activation-web-search-ui-api-gating.ts",
     "activation:web-search-ui-api-gating:report": "tsx server/cli/activation-web-search-ui-api-gating-report.ts",
     "activation:web-search-ui-api-gating:iam-plan": "tsx server/cli/activation-web-search-ui-api-gating-iam-plan.ts",
-    "smoke:activation-web-search-ui-api-gating": "tsx server/smoke/activation-web-search-ui-api-gating-smoke.ts"
+    "smoke:activation-web-search-ui-api-gating": "tsx server/smoke/activation-web-search-ui-api-gating-smoke.ts",
+    "activation:brave-search-fallback-policy": "tsx server/cli/activation-brave-search-fallback-policy.ts",
+    "activation:brave-search-fallback-policy:report": "tsx server/cli/activation-brave-search-fallback-policy-report.ts",
+    "activation:brave-search-provider:summary": "tsx server/cli/activation-brave-search-provider-summary.ts",
+    "smoke:activation-brave-search-fallback-policy": "tsx server/smoke/activation-brave-search-fallback-policy-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

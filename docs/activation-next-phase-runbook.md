@@ -2,6 +2,14 @@
 
 This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is available. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
 
+## After Phase 49J
+
+1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.
+2. Confirm SearXNG remains the default provider and Brave remains optional, paid, disabled by default, and future-scoped.
+3. Confirm `BRAVE_SEARCH_API_KEY` appears only as a secret name, with no value in code, docs, logs, frontend, or git.
+4. Proceed to Phase 49K only as Brave-shaped fixture and normalizer work.
+5. Do not call Brave Search API, run live search, use paid providers, store raw Brave responses, launch browser capture, run Readability extraction, deploy services, or unlock production/external beta/broad media.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

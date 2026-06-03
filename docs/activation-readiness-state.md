@@ -64,7 +64,11 @@ adding internal authenticated API gates, strict request validation,
 frontend-safe route metadata/mock handlers, and a chat-native developer UX gate
 only. Public SearXNG instances, paid providers, arbitrary URL capture, broad
 crawling, and non-allowlisted public web capture/extraction remain blocked.
-Phase 49J readiness is limited to optional Brave Search fallback policy review.
+Phase 49J completed optional Brave Search fallback policy review: SearXNG
+remains the default free/open-source provider, Brave is optional paid fallback
+only, disabled by default, and blocked from live API execution until a future
+secret-backed phase. Phase 49K is ready only for Brave-shaped fixture and
+normalizer work.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

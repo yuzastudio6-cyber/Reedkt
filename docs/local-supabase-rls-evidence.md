@@ -373,3 +373,38 @@ create index if not exists idx_edit_plan_segments_plan_order on public.edit_plan
 No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20I.
 
 Prompt 20J/local migration-chain follow-up focused on `202605180003_reeditpro_intent_plan_versions.sql` is recommended before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20J Evidence Update
+
+Prompt 20J repairs the Prompt 20I migration-chain blocker in `supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql`. It adds missing `public.edit_plan_segments.edit_plan_version_id` as a nullable compatibility column, ensures `segment_order` exists when missing, guards `edit_plan_segments_edit_plan_version_id_fkey`, and guards `idx_edit_plan_segments_plan_order` creation behind table/column/index checks.
+
+Prompt 20J evidence:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Cleared failed local-only Supabase state before retry and again after failed start; no backup or remote target involved. |
+| `supabase start` | Failed | Passed `202605180003_reeditpro_intent_plan_versions.sql`, then failed in `202605180004_reeditpro_credits_approval_snapshots.sql` while adding `credit_reservations_approved_plan_snapshot_id_fkey` because `public.credit_reservations.approved_plan_snapshot_id` does not exist. |
+| `supabase status` | Not run | Start failed before local status could be safely captured. |
+| SQL/RLS smoke test runner | Not run | Prompt 20J stops before SQL/RLS execution. |
+
+Local start failure after Prompt 20J:
+
+```text
+ERROR: column "approved_plan_snapshot_id" referenced in foreign key constraint does not exist (SQLSTATE 42703)
+At statement: 12
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'credit_reservations_approved_plan_snapshot_id_fkey') then
+    alter table public.credit_reservations
+      add constraint credit_reservations_approved_plan_snapshot_id_fkey
+      foreign key (approved_plan_snapshot_id) references public.approved_plan_snapshots(id) on delete set null;
+  end if;
+...
+end $$
+```
+
+No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20J.
+
+Prompt 20K/local migration-chain follow-up focused on `202605180004_reeditpro_credits_approval_snapshots.sql` is recommended before the Prompt 20B SQL candidate can be run.

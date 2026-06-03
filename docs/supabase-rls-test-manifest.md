@@ -206,6 +206,22 @@ Manifest state after Prompt 20I:
 - no local, staging, remote, or production SQL was run;
 - no localhost-only DB URL was captured;
 - local `supabase start` passed `202605180002_reeditpro_media_source_sequence.sql`;
-- local `supabase start` now fails in `202605180003_reeditpro_intent_plan_versions.sql` because `public.edit_plan_segments.edit_plan_version_id` does not exist in the earlier schema-era table before `idx_edit_plan_segments_plan_order` is created.
+- local `supabase start` then failed in `202605180003_reeditpro_intent_plan_versions.sql` because `public.edit_plan_segments.edit_plan_version_id` did not exist in the earlier schema-era table before `idx_edit_plan_segments_plan_order` was created.
 
-Prompt 20J is required before the Prompt 20B SQL candidate can be run.
+Prompt 20J repaired this blocker.
+
+## Prompt 20J Migration Chain Repair Update
+
+Prompt 20J repairs the missing `public.edit_plan_segments.edit_plan_version_id` blocker in `supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql`. The repair also ensures `segment_order` exists when missing, guards `edit_plan_segments_edit_plan_version_id_fkey`, and guards `idx_edit_plan_segments_plan_order` creation.
+
+Manifest state after Prompt 20J:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` passed `202605180003_reeditpro_intent_plan_versions.sql`;
+- local `supabase start` now fails in `202605180004_reeditpro_credits_approval_snapshots.sql` because `public.credit_reservations.approved_plan_snapshot_id` does not exist in the earlier schema-era table before `credit_reservations_approved_plan_snapshot_id_fkey` is added.
+
+Prompt 20K is required before the Prompt 20B SQL candidate can be run.

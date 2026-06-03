@@ -75,6 +75,45 @@ create table if not exists public.edit_plan_segments (
   created_at timestamptz not null default now()
 );
 
+alter table public.edit_plan_segments
+  add column if not exists edit_plan_version_id uuid;
+
+alter table public.edit_plan_segments
+  add column if not exists segment_order integer not null default 0;
+
+do $$
+begin
+  if to_regclass('public.edit_plan_segments') is not null
+    and to_regclass('public.edit_plan_versions') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'edit_plan_segments'
+        and column_name = 'edit_plan_version_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'edit_plan_versions'
+        and column_name = 'id'
+    )
+    and not exists (
+      select 1
+      from pg_constraint
+      where conname = 'edit_plan_segments_edit_plan_version_id_fkey'
+        and conrelid = 'public.edit_plan_segments'::regclass
+    )
+  then
+    alter table public.edit_plan_segments
+      add constraint edit_plan_segments_edit_plan_version_id_fkey
+      foreign key (edit_plan_version_id)
+      references public.edit_plan_versions(id)
+      on delete cascade;
+  end if;
+end $$;
+
 create table if not exists public.edit_operations (
   id uuid primary key default gen_random_uuid(),
   edit_plan_segment_id uuid not null references public.edit_plan_segments(id) on delete cascade,
@@ -98,7 +137,29 @@ create index if not exists idx_edit_intent_snapshots_project_version on public.e
 create index if not exists idx_edit_plan_versions_project_version on public.edit_plan_versions(project_id, version);
 create index if not exists idx_edit_plan_versions_session_status on public.edit_plan_versions(edit_session_id, status);
 create index if not exists idx_plan_component_snapshots_plan_type on public.plan_component_snapshots(edit_plan_version_id, component_type);
-create index if not exists idx_edit_plan_segments_plan_order on public.edit_plan_segments(edit_plan_version_id, segment_order);
+do $$
+begin
+  if to_regclass('public.edit_plan_segments') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'edit_plan_segments'
+        and column_name = 'edit_plan_version_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'edit_plan_segments'
+        and column_name = 'segment_order'
+    )
+    and to_regclass('public.idx_edit_plan_segments_plan_order') is null
+  then
+    create index idx_edit_plan_segments_plan_order
+      on public.edit_plan_segments(edit_plan_version_id, segment_order);
+  end if;
+end $$;
 create index if not exists idx_edit_operations_segment_order on public.edit_operations(edit_plan_segment_id, operation_order);
 
 drop trigger if exists set_edit_plan_versions_updated_at on public.edit_plan_versions;

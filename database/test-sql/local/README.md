@@ -20,6 +20,8 @@ Prompt 20H repairs the core workspace/project migration blocker and advances loc
 
 Prompt 20I repairs the media/source-sequence migration blocker and advances local `supabase start` to `202605180003_reeditpro_intent_plan_versions.sql`, where it fails on missing `public.edit_plan_segments.edit_plan_version_id`.
 
+Prompt 20J repairs the intent-plan migration blocker and advances local `supabase start` to `202605180004_reeditpro_credits_approval_snapshots.sql`, where it fails on missing `public.credit_reservations.approved_plan_snapshot_id`.
+
 ## No Remote Rule
 
 Never run files in this directory against:
@@ -87,7 +89,7 @@ A draft SQL file may become executable only when:
 
 ## Current Executable Test List
 
-- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B auth/profile/workspace/project candidate. Status: executable candidate, not run; blocked by local migration-chain failure in `202605180003_reeditpro_intent_plan_versions.sql`.
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B auth/profile/workspace/project candidate. Status: executable candidate, not run; blocked by local migration-chain failure in `202605180004_reeditpro_credits_approval_snapshots.sql`.
 
 ## Current Draft-Only Test List
 
@@ -114,6 +116,6 @@ A draft SQL file may become executable only when:
 - Docker daemon is reachable, server version `29.5.2`.
 - `psql` is available through `/Applications/Postgres.app/Contents/Versions/latest/bin/psql`, version `18.4`.
 - No local Supabase database URL is verified.
-- Local `supabase start` now passes the Prompt 20H and Prompt 20I repaired migrations.
-- Local `supabase start` failed at `202605180003_reeditpro_intent_plan_versions.sql` because `public.edit_plan_segments.edit_plan_version_id` is missing before `idx_edit_plan_segments_plan_order` is created.
-- Prompt 20I recommends Prompt 20J - Local Supabase Migration Chain Repair Follow-Up 3 before SQL/RLS execution.
+- Local `supabase start` now passes the Prompt 20H, Prompt 20I, and Prompt 20J repaired migrations.
+- Local `supabase start` failed at `202605180004_reeditpro_credits_approval_snapshots.sql` because `public.credit_reservations.approved_plan_snapshot_id` is missing before `credit_reservations_approved_plan_snapshot_id_fkey` is added.
+- Prompt 20J recommends Prompt 20K - Local Supabase Migration Chain Repair Follow-Up 4 before SQL/RLS execution.

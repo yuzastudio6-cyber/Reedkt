@@ -119,3 +119,19 @@ The first local executable SQL candidate remains unexecuted:
 ## Next Prompt Recommendation
 
 Recommended next prompt: Prompt 20J - Local Supabase Migration Chain Repair Follow-Up 3, focused on the next exact schema-era conflict in `202605180003_reeditpro_intent_plan_versions.sql`.
+
+## Prompt 20J Follow-Up
+
+Prompt 20J repaired the `public.edit_plan_segments.edit_plan_version_id` compatibility blocker and guarded `idx_edit_plan_segments_plan_order`.
+
+After Prompt 20J, local `supabase start` passes `202605180003_reeditpro_intent_plan_versions.sql` and advances to the next migration-chain blocker in:
+
+- `supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql`
+
+New failure:
+
+```text
+ERROR: column "approved_plan_snapshot_id" referenced in foreign key constraint does not exist (SQLSTATE 42703)
+```
+
+No SQL/RLS smoke test ran. The next recommended prompt is Prompt 20K - Local Supabase Migration Chain Repair Follow-Up 4.

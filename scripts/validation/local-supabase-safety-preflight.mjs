@@ -114,6 +114,64 @@ function redactOutput(value) {
     .slice(0, 1200)
 }
 
+function localHostname(hostname) {
+  return ['localhost', '127.0.0.1', '::1', '[::1]'].includes(String(hostname ?? '').toLowerCase())
+}
+
+function localDbUrlStatus(envNames) {
+  const checked = []
+
+  for (const name of envNames) {
+    const rawValue = process.env[name]
+    if (!rawValue) {
+      checked.push({
+        name,
+        present: true,
+        valuePrinted: false,
+        parseable: false,
+        localHostOnly: false,
+        reason: 'empty_value',
+      })
+      continue
+    }
+
+    try {
+      const parsed = new URL(rawValue)
+      const localHostOnly = localHostname(parsed.hostname)
+      checked.push({
+        name,
+        present: true,
+        valuePrinted: false,
+        parseable: true,
+        protocol: parsed.protocol === 'postgresql:' ? 'postgres:' : parsed.protocol,
+        localHostOnly,
+        redactedUrl: localHostOnly ? 'postgres://[redacted-local-db-url]' : null,
+      })
+    } catch {
+      checked.push({
+        name,
+        present: true,
+        valuePrinted: false,
+        parseable: false,
+        localHostOnly: false,
+        reason: 'invalid_url',
+      })
+    }
+  }
+
+  const local = checked.find((entry) => entry.parseable && entry.localHostOnly)
+  const invalid = checked.filter((entry) => !entry.parseable || !entry.localHostOnly)
+
+  return {
+    envNames,
+    checked,
+    valuesPrinted: false,
+    available: Boolean(local),
+    source: local ? 'local_db_url_env' : null,
+    invalidOrNonLocalCount: invalid.length,
+  }
+}
+
 function fileArchitecture(executablePath) {
   const fileCommand = findExecutable('file')
   if (!executablePath || !fileCommand) return null
@@ -349,6 +407,7 @@ const envNames = Object.keys(process.env)
 const localDbUrlEnvNames = envNames.filter((name) => localDbEnvPatterns.some((pattern) => pattern.test(name))).sort()
 const remoteRiskEnvNames = envNames.filter((name) => remoteRiskEnvPatterns.some((pattern) => pattern.test(name))).sort()
 const criticalSecretEnvNames = envNames.filter((name) => criticalSecretEnvPatterns.some((pattern) => pattern.test(name))).sort()
+const localDbUrl = localDbUrlStatus(localDbUrlEnvNames)
 
 const linkIndicators = linkIndicatorFiles
   .filter(exists)
@@ -417,6 +476,12 @@ if (criticalSecretEnvNames.length > 0) {
   criticalFindings.push(critical('secret_env_names_present', 'Secret-like environment variable names are present; values were not read or printed.'))
 }
 
+if (!localDbUrl.available) {
+  blockers.push(blocker('local_db_url_missing', 'No localhost-only local Supabase database URL environment variable is verified.'))
+} else if (localDbUrl.invalidOrNonLocalCount > 0) {
+  warnings.push(warning('local_db_url_env_extra_unusable', 'One or more local DB URL environment names were present but not usable; values were not printed.'))
+}
+
 if (linkIndicators.length > 0) {
   criticalFindings.push(critical('supabase_link_indicator_present', 'Local Supabase link/project-ref indicators are present.'))
 }
@@ -444,7 +509,8 @@ const canUsePsql = Boolean(psql.executable)
 const configSafe = Boolean(supabaseConfig.exists && !supabaseConfig.remoteBlockPresent && !supabaseConfig.supabaseUrlPresent && !supabaseConfig.projectIdLooksRemote)
 const canStartLocalSupabase = Boolean(configSafe && supabaseCli.executable && canUseDocker && !remoteRiskDetected && criticalFindings.length === 0)
 const canResetLocalSupabase = Boolean(canStartLocalSupabase && exists('supabase/migrations'))
-const canRunLocalSql = Boolean(configSafe && supabaseCli.executable && canUsePsql && localExecutableCandidates.length > 0 && !remoteRiskDetected && criticalFindings.length === 0)
+const localEnvironmentReadyForPrompt20B = Boolean(configSafe && supabaseCli.executable && canUseDocker && canUsePsql && localDbUrl.available && !remoteRiskDetected && criticalFindings.length === 0)
+const canRunLocalSql = Boolean(localEnvironmentReadyForPrompt20B && localExecutableCandidates.length > 0)
 
 const status =
   criticalFindings.length > 0 || blockers.length > 0
@@ -456,16 +522,23 @@ const status =
 const manualSetupRequired = Boolean(!canRunLocalSql || blockers.length > 0 || criticalFindings.length > 0)
 const nextRecommendedPrompt = canRunLocalSql
   ? 'Prompt 20B - Local RLS First Executable Smoke Test'
-  : 'Prompt 20D - Manual Environment Setup Verification'
+  : localEnvironmentReadyForPrompt20B
+    ? 'Prompt 20B - Local RLS First Executable Smoke Test'
+    : 'Prompt 20E - Manual Environment Setup Follow-Up'
 const prompt20BReadiness = {
-  canProceed: canRunLocalSql,
+  canProceed: localEnvironmentReadyForPrompt20B,
+  canRunLocalSql,
+  canProceedToCreateFirstLocalSqlCandidate: Boolean(localEnvironmentReadyForPrompt20B && localExecutableCandidates.length === 0),
   requiredBeforePrompt20B: [
     ...(supabaseCli.executable ? [] : ['arm64-compatible Supabase CLI']),
     ...(canUseDocker ? [] : ['local Docker-compatible runtime']),
     ...(canUsePsql ? [] : ['psql or approved local SQL executor']),
-    ...(localExecutableCandidates.length > 0 ? [] : ['at least one executable local-only SQL candidate under database/test-sql/local/']),
+    ...(localDbUrl.available ? [] : ['localhost-only local Supabase database URL']),
     ...(remoteRiskDetected ? ['remove remote Supabase link/env risk indicators'] : []),
     ...(criticalFindings.length > 0 ? ['resolve critical safety findings'] : []),
+  ],
+  prompt20BWorkItems: [
+    ...(localExecutableCandidates.length > 0 ? [] : ['Prompt 20B should create the first executable local-only SQL candidate under database/test-sql/local/.']),
   ],
 }
 
@@ -476,7 +549,9 @@ const result = {
   hostArch: os.arch(),
   nodeVersion: process.version,
   safety: {
-    readsEnvValues: false,
+    readsEnvValues: localDbUrlEnvNames.length > 0,
+    readsEnvValuesScope: localDbUrlEnvNames.length > 0 ? 'approved local DB URL names only for localhost verification' : 'none',
+    readsLocalDbUrlEnvValuesForSafety: localDbUrlEnvNames.length > 0,
     printsSecrets: false,
     connectsToRemoteSupabase: false,
     executesSql: false,
@@ -498,6 +573,7 @@ const result = {
   },
   environment: {
     localDbUrlEnvNames,
+    localDbUrl,
     remoteRiskEnvNames,
     criticalSecretEnvNames,
     valuesPrinted: false,
@@ -515,6 +591,8 @@ const result = {
   decision: {
     status,
     canRunLocalSql,
+    canProceedToPrompt20B: prompt20BReadiness.canProceed,
+    localDbUrlAvailable: localDbUrl.available,
     canStartLocalSupabase,
     canResetLocalSupabase,
     canUseDocker,
@@ -541,27 +619,32 @@ const result = {
         localExecutableCandidates.length > 0
           ? ['Local executable SQL candidates exist. Run only through the guarded runner after all other preflight gates pass.']
           : [
-              'Do not create or run executable SQL in Prompt 20C.',
+              'Do not create or run executable SQL in Prompt 20D.',
               'Prompt 20B should create the first minimal local-only auth/workspace SQL candidate after local tools are repaired.',
             ],
       localDbUrl:
-        canStartLocalSupabase || canRunLocalSql
-          ? ['Use supabase status --output json only after the CLI and Docker local target are verified.']
-          : ['No local DB URL is verified. Repair CLI/Docker first, then capture a localhost-only DB URL in Prompt 20B or a setup verification prompt.'],
+        localDbUrl.available
+          ? ['A localhost-only local DB URL was detected from an approved local DB URL environment variable; value was redacted and not printed.']
+          : ['No local DB URL is verified. Provide a localhost-only local Supabase DB URL through REEDITPRO_LOCAL_SUPABASE_DB_URL, LOCAL_SUPABASE_DB_URL, or SUPABASE_LOCAL_DB_URL before Prompt 20B.'],
     },
     nextActions:
-      status === 'ready'
+      canRunLocalSql
         ? ['Use the guarded runner with --confirm-local-only and selected local SQL files only.']
+        : localEnvironmentReadyForPrompt20B
+          ? ['Prompt 20B may create the first executable local-only SQL candidate, then run it only through the guarded runner with --confirm-local-only.']
         : [
             'Do not execute SQL.',
             'Install or select an arm64 Supabase CLI outside the repo.',
             'Install psql or provide an approved local SQL executor outside the repo.',
+            'Provide a localhost-only local Supabase DB URL through an approved local DB URL environment variable.',
             'Keep supabase/config.toml local-only and avoid supabase link.',
             `Recommended next prompt: ${nextRecommendedPrompt}.`,
           ],
     recommendation:
-      status === 'ready'
+      canRunLocalSql
         ? 'Local-only SQL execution may proceed only through the guarded runner and selected local executable SQL files.'
+        : localEnvironmentReadyForPrompt20B
+          ? 'Prompt 20B may proceed to create the first local-only executable SQL candidate; SQL execution remains blocked until that prompt explicitly runs the guarded runner.'
         : 'Do not execute SQL. Complete the manual local environment setup and verification before Prompt 20B.',
   },
   summary: {

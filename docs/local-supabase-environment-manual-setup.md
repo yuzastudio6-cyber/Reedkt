@@ -176,14 +176,15 @@ Prompt 20C should record:
 
 ## Before Prompt 20B
 
-Prompt 20B may proceed only when preflight reports `canRunLocalSql=true`, or a setup verification prompt first proves:
+Prompt 20B may proceed only when preflight reports `canProceedToPrompt20B=true`, which means setup verification has proven:
 
 - arm64-compatible Supabase CLI;
 - Docker daemon reachable and local;
 - `psql` available;
 - local-only config safe;
 - no remote link or risky env names;
-- verified local DB URL;
-- at least one local-only executable SQL candidate scoped to `database/test-sql/local/`.
+- verified localhost-only local DB URL.
 
-Until then, the recommended next prompt is Prompt 20D - Manual Environment Setup Verification.
+`canRunLocalSql=true` remains stricter because it also requires at least one local-only executable SQL candidate scoped to `database/test-sql/local/`. Prompt 20B is allowed to create that first candidate only after the environment is verified.
+
+After Prompt 20D, the recommended next prompt is Prompt 20E - Manual Environment Setup Follow-Up until `canProceedToPrompt20B=true`.

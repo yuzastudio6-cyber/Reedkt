@@ -150,6 +150,12 @@ Prompt 20D - Manual Environment Setup Verification.
 
 Prompt 20B - Local RLS First Executable Smoke Test should wait until preflight reports `canRunLocalSql=true`.
 
+## Prompt 20D Follow-Up
+
+Prompt 20D verified the manual setup state after Prompt 20C and kept SQL execution blocked. Docker is reachable, but the Supabase CLI remains wrong-architecture, `psql` is missing, no localhost-only local DB URL is verified, and no local executable SQL candidate exists. Prompt 20D also made runner dry-run status-free by default, so `npm run supabase:rls:local:dry-run` no longer calls `supabase status`.
+
+Prompt 20B should now wait until preflight reports `canProceedToPrompt20B=true`; `canRunLocalSql=true` remains stricter and also requires the first local executable SQL candidate.
+
 ## No-Scope Statement
 
 No staging deployment, production deployment, local/staging/remote Supabase execution, SQL execution, migration deployment, provider call, real rendering/export, tool execution, real worker execution, production job claim, media processing, browser capture, storage transfer, signed URL creation, credit mutation, Stripe checkout/webhook/payment processing, external telemetry, production/beta unlock, schema-changing production migration, dependency mutation, or broad service-role handler was enabled.

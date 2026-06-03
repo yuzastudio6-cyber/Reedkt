@@ -8,6 +8,8 @@ Prompt 20A keeps this directory list/dry-run only. It adds local Supabase config
 
 Prompt 20C keeps this directory list/dry-run only. It adds manual setup docs and clearer runner/preflight guidance, but does not add executable SQL because the local environment still lacks an arm64-compatible Supabase CLI, `psql`, a verified local DB URL, and a reviewed first local SQL candidate.
 
+Prompt 20D keeps this directory list/dry-run only. It verifies Docker is reachable, makes dry-run status-free by default, and records `canProceedToPrompt20B=false` because the Supabase CLI is still wrong-architecture, `psql` is missing, no localhost-only local DB URL is verified, and the first local SQL candidate is still absent.
+
 ## No Remote Rule
 
 Never run files in this directory against:
@@ -103,4 +105,4 @@ None.
 - `psql` is not on PATH.
 - No local Supabase database URL is verified.
 - No executable local-only SQL file exists yet.
-- Prompt 20C recommends Prompt 20D - Manual Environment Setup Verification before Prompt 20B unless preflight reports `canRunLocalSql=true`.
+- Prompt 20D recommends Prompt 20E - Manual Environment Setup Follow-Up before Prompt 20B unless preflight reports `canProceedToPrompt20B=true`.

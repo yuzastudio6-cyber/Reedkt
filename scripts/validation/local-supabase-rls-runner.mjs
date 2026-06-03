@@ -14,6 +14,7 @@ const mode = args.includes('--run')
 const selectedFiles = valuesFor('--file')
 const explicitEvidencePath = valueFor('--evidence')
 const confirmLocalOnly = args.includes('--confirm-local-only')
+const inspectLocalStatus = args.includes('--inspect-local-status') || mode === 'run'
 
 const allowedDirectories = [
   path.resolve(root, 'database/test-sql/local'),
@@ -193,7 +194,7 @@ function guidanceFromPreflight(preflight, statusResult, executableCandidates) {
   }
 
   if (!statusResult.localDbUrlAvailable && mode !== 'list-tests') {
-    guidance.push('No verified local Supabase DB URL is available. Capture it only from a local Supabase status command after the CLI and Docker local target are repaired.')
+    guidance.push('No verified local Supabase DB URL is available from an approved local DB URL environment variable or explicit local status inspection.')
   }
 
   if (preflight?.decision?.canUseDocker && !preflight?.decision?.canStartLocalSupabase) {
@@ -219,6 +220,18 @@ function localSupabaseStatus(preflight) {
       command: 'supabase status --output json',
       result: null,
       localDbUrlAvailable: false,
+    }
+  }
+
+  if (!inspectLocalStatus) {
+    return {
+      attempted: false,
+      reason: 'Dry-run mode does not run `supabase status`; use --inspect-local-status only in a later approved local setup verification path.',
+      command: 'supabase status --output json',
+      result: null,
+      localDbUrlAvailable: Boolean(preflight?.decision?.localDbUrlAvailable),
+      localDbUrlRedacted: preflight?.decision?.localDbUrlAvailable ? 'postgres://[redacted-local-db-url]' : null,
+      source: preflight?.decision?.localDbUrlAvailable ? 'preflight_local_db_url_env' : null,
     }
   }
 
@@ -271,6 +284,7 @@ const preflight = parseJsonCommandResult(preflightCommand)
 const tests = listTests()
 const executableTests = selectedExecutableTests()
 const status = localSupabaseStatus(preflight)
+const localDbUrlAvailable = Boolean(status.localDbUrlAvailable || preflight?.decision?.localDbUrlAvailable)
 
 const blockers = []
 
@@ -290,8 +304,8 @@ if (mode === 'run' && !preflight?.decision?.canRunLocalSql) {
   blockers.push('Run mode refused execution because safety preflight did not allow local SQL.')
 }
 
-if (mode !== 'list-tests' && !status.localDbUrlAvailable) {
-  blockers.push('No verified local Supabase database URL is available from `supabase status --output json`.')
+if (mode !== 'list-tests' && !localDbUrlAvailable) {
+  blockers.push('No verified local Supabase database URL is available from an approved local DB URL environment variable or explicit local status inspection.')
 }
 
 if (executableTests.length === 0) {
@@ -366,6 +380,7 @@ const result = {
     executesWorkers: false,
     transfersStorage: false,
     mutatesCredits: false,
+    callsSupabaseStatus: inspectLocalStatus,
   },
   preflight: {
     command: preflightCommand.command,
@@ -389,6 +404,7 @@ const result = {
     parsedJson: status.parsedJson ?? false,
     localDbUrlAvailable: status.localDbUrlAvailable,
     localDbUrlRedacted: status.localDbUrlRedacted,
+    localDbUrlSource: status.source ?? null,
   },
   tests: {
     all: tests,

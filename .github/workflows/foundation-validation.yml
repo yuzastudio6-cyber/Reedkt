@@ -23,6 +23,8 @@ on:
       - codex/rp-foundation-19-staging-supabase-rls-validation-preparation
       - codex/rp-foundation-20-local-supabase-rls-validation-execution
       - codex/rp-foundation-20a-local-supabase-toolchain-repair
+      - codex/rp-foundation-20c-local-supabase-environment-manual-setup
+      - codex/rp-foundation-20d-manual-environment-setup-verification
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

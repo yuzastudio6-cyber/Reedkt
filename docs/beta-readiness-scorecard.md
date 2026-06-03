@@ -1,12 +1,12 @@
 # Beta Readiness Scorecard
 
-Scores are honest readiness estimates after Prompt 20C local Supabase manual environment setup documentation. They are not production approval.
+Scores are honest readiness estimates after Prompt 20D manual local Supabase environment verification. They are not production approval.
 
 | Area | Foundation readiness | Executable beta readiness | Production beta readiness | Status | Evidence | Blockers | Next action |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- |
 | Source of truth | 90% | 20% | 10% | Partial | Prompt 0-18 docs and trackers. | Needs staging evidence and ongoing tracker hygiene. | Keep trackers current. |
 | Architecture boundaries | 90% | 25% | 10% | Partial | Architecture freeze and diagnostics. | Runtime validation missing. | Preserve fail-closed boundaries. |
-| Schema/RLS | 65% | 8% | 1% | Blocked | Static audit, draft SQL, Prompt 19 manifest, conversion plan, fixture contract, environment contract, runbook, evidence checklist, Prompt 20 preflight/runner, Prompt 20A local config/toolchain hardening, and Prompt 20C manual setup docs. | Local/staging SQL unexecuted; Supabase CLI is wrong architecture, `psql` is missing, no local DB URL or executable SQL candidate exists. | Prompt 20D, then Prompt 20B when `canRunLocalSql=true`. |
+| Schema/RLS | 65% | 8% | 1% | Blocked | Static audit, draft SQL, Prompt 19 manifest, conversion plan, fixture contract, environment contract, runbook, evidence checklist, Prompt 20 preflight/runner, Prompt 20A local config/toolchain hardening, Prompt 20C manual setup docs, and Prompt 20D verification evidence. | Local/staging SQL unexecuted; Supabase CLI is wrong architecture, `psql` is missing, no localhost-only local DB URL is verified, and no executable SQL candidate exists. | Prompt 20E/manual setup follow-up, then Prompt 20B when `canProceedToPrompt20B=true`. |
 | Auth/workspace/project | 70% | 20% | 5% | Partial | Prompt 3 route/service foundation. | RLS/staging validation missing. | Validate local/staging access. |
 | Storage/upload | 65% | 10% | 0% | Partial | Prompt 4 route/service foundation. | Real storage policies and signed URL runtime unvalidated. | Staging storage validation. |
 | Approved snapshots | 65% | 10% | 0% | Partial | Prompt 5 contracts. | Persistence/runtime backend-required. | Transactional validation. |
@@ -22,17 +22,17 @@ Scores are honest readiness estimates after Prompt 20C local Supabase manual env
 | Provider gateway | 65% | 5% | 0% | Blocked | Prompt 15 gateway foundation. | No secrets, calls, or webhook processing. | Provider runtime review. |
 | Compliance/security | 65% | 10% | 0% | Blocked | Prompt 16 foundation. | No human legal/security approval. | Human review workflow. |
 | Observability/audit/cost controls | 65% | 10% | 0% | Blocked | Prompt 17 foundation and CI. | No persistence or external telemetry. | Staging operational validation. |
-| E2E staging smoke | 40% | 0% | 0% | Planning only | Prompt 18 plan/diagnostics plus Prompt 19 RLS preparation path, Prompt 20 local-only runner tooling, Prompt 20A local config/toolchain hardening, and Prompt 20C manual setup docs. | Staging smoke not run; local/staging Supabase/RLS not executed. | Prompt 20D, then Prompt 20B when `canRunLocalSql=true`. |
+| E2E staging smoke | 40% | 0% | 0% | Planning only | Prompt 18 plan/diagnostics plus Prompt 19 RLS preparation path, Prompt 20 local-only runner tooling, Prompt 20A local config/toolchain hardening, Prompt 20C manual setup docs, and Prompt 20D verification evidence. | Staging smoke not run; local/staging Supabase/RLS not executed. | Prompt 20E/manual setup follow-up, then Prompt 20B when `canProceedToPrompt20B=true`. |
 | Production deployment | 10% | 0% | 0% | Blocked | Architecture docs only. | No deployment, rollback, monitoring. | Deployment readiness milestone. |
 | Stripe/billing | 30% | 0% | 0% | Blocked | Pricing docs and credit contract. | No Stripe or transactional credits. | Billing milestone after ledger. |
 | Actual execution path | 20% | 0% | 0% | Blocked | Fail-closed contracts. | Workers/providers/tools/render/media all blocked. | Runtime activation milestones. |
 
 ## Decision
 
-Prompt 20C adds manual setup docs and clearer preflight/runner guidance but does not run Supabase/RLS because the local toolchain is still blocked. Aggregate readiness after Prompt 20C:
+Prompt 20D verifies the manual setup state and keeps Supabase/RLS execution blocked because the local toolchain is still incomplete. Aggregate readiness after Prompt 20D:
 
 - Foundation readiness: about 64%.
 - Executable beta readiness: about 8%.
 - Production beta readiness: about 1%.
 
-Foundation readiness is unchanged from Prompt 20A except for better setup evidence. Executable beta readiness and production beta readiness remain blocked until local/staging validation executes with evidence.
+Foundation readiness is unchanged from Prompt 20C except for better verification evidence and a status-free dry-run path. Executable beta readiness and production beta readiness remain blocked until local/staging validation executes with evidence.

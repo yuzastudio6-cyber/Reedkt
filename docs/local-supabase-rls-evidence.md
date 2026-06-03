@@ -256,6 +256,47 @@ Prompt 20G does not run SQL/RLS smoke tests, staging Supabase, remote Supabase, 
 
 Prompt 20B remains blocked until local migration-chain validation passes and a first executable local SQL candidate is created. Prompt 20H/local migration-chain follow-up is recommended to retry the local migration chain after the Supabase CLI start gate is repaired.
 
+## Prompt 20B Evidence Update
+
+Prompt 20B adds the first local-only executable SQL candidate and attempts local `supabase start` after the safety gates report no remote risk and allow local start. It does not run SQL/RLS tests because the migration chain fails before a localhost-only DB URL is available.
+
+Prompt 20B evidence:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `which supabase` | Passed | `/tmp/reeditpro-local-bin/supabase` |
+| `supabase --version` | Passed | `2.104.0` |
+| `which psql` | Passed | `/Applications/Postgres.app/Contents/Versions/latest/bin/psql` |
+| `psql --version` | Passed | `psql (PostgreSQL) 18.4 (Postgres.app)` |
+| `docker info --format '{{.ServerVersion}}'` | Passed | Docker daemon server `29.5.2`. |
+| `npm run --silent supabase:local:toolchain:probe` | Passed | Reports `remoteRiskDetected=false`; local DB URL and SQL candidate were missing before candidate creation. |
+| `npm run --silent supabase:local:preflight` | Passed, status `blocked` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`; after candidate creation the only pre-start blocker was `local_db_url_missing`. |
+| `npm run supabase:rls:list-tests` | Passed | Lists `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` as a local executable candidate; executes no SQL. |
+| `supabase start` | Failed | Applies migrations through `202605130008_render_preview_export_revision_qa.sql`, then fails in `202605180001_reeditpro_core_workspace_projects.sql`. |
+| `supabase status --output json` | Not run | Start failed before local status could be safely captured. |
+| `npm run supabase:rls:local:run -- --confirm-local-only --file database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` | Not run | SQL execution stopped because local start failed. |
+
+Local start failure:
+
+```text
+ERROR: column "current_edit_session_id" referenced in foreign key constraint does not exist (SQLSTATE 42703)
+At statement:
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'projects_current_edit_session_id_fkey'
+  ) then
+    alter table public.projects
+      add constraint projects_current_edit_session_id_fkey
+      foreign key (current_edit_session_id) references public.edit_sessions(id) on delete set null;
+  end if;
+end $$
+```
+
+Prompt 20B does not run staging Supabase, remote Supabase, production Supabase, SQL/RLS smoke tests, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock.
+
+Prompt 20H/local migration-chain repair follow-up is recommended to resolve the `202605180001_reeditpro_core_workspace_projects.sql` schema-era conflict before Prompt 20B can retry SQL execution.
+
 ## Prompt 20C Evidence Update
 
 Prompt 20C adds manual setup docs and clearer blocked-output guidance. It does not run SQL, start Supabase, call `supabase status`, reset Supabase, apply migrations, call `psql`, touch staging/remote/production Supabase, or create executable SQL.

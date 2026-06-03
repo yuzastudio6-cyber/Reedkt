@@ -359,6 +359,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: host toolchain status is recorded honestly, no host install/download occurs, no SQL executes, no local/staging/remote/production Supabase target is touched, and next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 20F1 - Manual Host Tool Repair Follow-Up. Prompt 20B should wait until preflight or host probe reports `canProceedToPrompt20B=true`.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-SQL/no-install/no-Supabase-execution statement.
+
+## 20B. Local RLS First Executable Smoke Test
+
+- Purpose: create and run the first minimal local-only auth/workspace/project RLS smoke test after Prompt 20G migration repair, stopping if local migration start fails.
+- Deliverables after Prompt 20B: `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql`, `docs/prompt-20b-validation-results.md`, `docs/implementation-prompts/prompt-20b-local-rls-first-executable-smoke-test.md`, local runner dotfile hardening, local evidence updates, manifest updates, scorecard/blocker updates, workflow trigger coverage for the Prompt 20G base branch, and tracker updates.
+- Implementation status after Prompt 20B: validation blocked / first local RLS candidate only. No SQL/RLS smoke test, staging, remote, production, provider, worker, tool, render, media, storage, credit, Stripe, telemetry, or beta unlock is enabled.
+- Implements: a rollback-scoped synthetic auth/profile/workspace/member/project SQL candidate, local-only start gate verification, and precise migration-chain blocker evidence.
+- Must not implement: staging/remote/production Supabase execution, remote SQL, production migration deployment, provider calls, rendering/export, tool execution, worker execution, production job claims, media processing, storage transfer, signed URL creation, credit mutation, Stripe/payment processing, external telemetry, dependency mutation, or production/beta unlock.
+- What remains blocked: local SQL/RLS execution, localhost-only DB URL capture, staging Supabase/RLS execution, remote production Supabase, and beta approval.
+- Validation result: local tools pass (`supabase` 2.104.0, Docker 29.5.2, `psql` 18.4), preflight reports `remoteRiskDetected=false` and `canStartLocalSupabase=true`, `supabase start` fails at `202605180001_reeditpro_core_workspace_projects.sql` because `public.projects.current_edit_session_id` is missing before `projects_current_edit_session_id_fkey` is added, and SQL execution is not attempted.
+- Acceptance criteria: first local SQL candidate exists, local start is attempted only after safety gates pass, migration failure stops SQL execution, no remote/staging/production target is touched, and next prompt recommendation is clear.
+- Next prompt recommendation: Prompt 20H - Local Supabase Migration Chain Repair Follow-Up.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

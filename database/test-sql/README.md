@@ -9,6 +9,7 @@ This directory contains manual SQL/RLS smoke-test plans for ReeditPro. These fil
 - None of these files is proof that RLS passed.
 - Prompt 19 does not run SQL, Supabase CLI, local Supabase, staging Supabase, or remote Supabase.
 - Prompt 20 adds local-only safety preflight and a guarded RLS list/dry-run runner, but does not run SQL because the local Supabase toolchain is blocked.
+- Prompt 20B adds the first local executable SQL candidate under `database/test-sql/local/`, but does not run it because local `supabase start` fails in the migration chain before a localhost-only DB URL is available.
 - Do not run in production.
 
 ## No Production Execution Rule
@@ -51,3 +52,5 @@ Use `docs/supabase-rls-test-manifest.md` as the Prompt 19 inventory for domain c
 Prompt 20 should run local Supabase/RLS validation only after Prompt 19 preparation diagnostics pass and the local Supabase environment is confirmed safe. Staging validation requires separate human approval.
 
 Prompt 20 result: local SQL/RLS execution remains blocked by missing `supabase/config.toml`, wrong-architecture Supabase CLI error `-86`, unavailable Docker daemon, missing `psql`, no verified local database URL, and no executable local-only SQL candidates. Use `database/test-sql/local/README.md` for the future local-only runner path.
+
+Prompt 20B result: the host toolchain is repaired enough to attempt local start and the first local SQL candidate exists, but local SQL/RLS execution remains blocked by `202605180001_reeditpro_core_workspace_projects.sql`, where `public.projects.current_edit_session_id` is missing before the migration adds `projects_current_edit_session_id_fkey`.

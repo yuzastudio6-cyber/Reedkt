@@ -1,0 +1,18 @@
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
+
+ENV CLOUDSDK_CORE_DISABLE_PROMPTS=1 \
+    PYTHONUNBUFFERED=1 \
+    REEDITPRO_ENV=staging
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    ffmpeg \
+    python3 \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY server/workers/deepfilternet-runtime/ /app/server/workers/deepfilternet-runtime/
+
+ENTRYPOINT ["python3", "/app/server/workers/deepfilternet-runtime/linux_runtime_entrypoint.py"]

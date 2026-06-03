@@ -1,12 +1,9 @@
 {
-  "phase": "36H",
-  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
-  "status": "blocked",
-  "audioTimingToolFamilyBetaStatus": "blocked",
-  "internalBetaReady": false,
+  "audioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
   "externalBetaReady": false,
+  "internalBetaReady": false,
+  "phase": "36H",
   "productionReady": false,
-  "phase36IStatus": "blocked_until_later_prompt",
-  "phase36JStatus": "blocked_until_signalsmith_generated_evidence",
-  "demucsStatus": "blocked_pending_provenance_legal_approval"
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "status": "passed"
 }

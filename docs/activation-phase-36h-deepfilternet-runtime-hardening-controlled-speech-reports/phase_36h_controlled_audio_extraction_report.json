@@ -1,19 +1,53 @@
 {
-  "phase": "36H",
-  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
-  "status": "not_run",
-  "selectedSample": {
-    "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
-    "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
-    "sourceGcsUri": "gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4",
-    "sourceSha256": "78bd798602d221b894a60dfa34ed1528602c9ece7f657e3f9bbea7fd071cc7fa",
-    "windowStartSeconds": 6.9,
-    "windowEndSeconds": 8.9,
-    "maxDurationSeconds": 2
+  "blockers": [],
+  "command": {
+    "args": [
+      "ffmpeg",
+      "-y",
+      "-ss",
+      "6.9",
+      "-i",
+      "/tmp/reeditpro-phase36h-linux/runtime/controlled-source.mp4",
+      "-t",
+      "2.0",
+      "-vn",
+      "-ac",
+      "1",
+      "-ar",
+      "48000",
+      "/tmp/reeditpro-phase36h-linux/private-audio-artifacts/controlled-window-input.wav"
+    ],
+    "durationMs": 280,
+    "returncode": 0,
+    "status": "passed",
+    "stderrSummary": "ffmpeg version 7.1.4-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers\n  built with gcc 14 (Debian 14.2.0-19)\n  configuration: --prefix=/usr --extra-version=0+deb13u1 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-libmfx --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared\n  libavutil      59. 39.100 / 59. 39.100\n  libavcodec     61. 19.101 / 61. 19.101\n  libavformat    61.  7.102 / 61.  7.102\n  libavdevice    61.  3.100 / 61.  3.100\n  libavfilter    10.  5.100 / 10.  5.100",
+    "stdoutSummary": ""
   },
-  "extractionMetrics": null,
-  "blockers": [
-    "approved_deepfilternet_binary_platform_incompatible:darwin_arm64",
-    "ffmpeg_unavailable_for_bounded_audio_extraction"
-  ]
+  "gates": [
+    {
+      "blockers": [],
+      "status": "passed"
+    }
+  ],
+  "metrics": {
+    "channels": 1,
+    "clippingCount": 0,
+    "durationSeconds": 2.0,
+    "noiseProxy": 0.00755840751075936,
+    "pathBasename": "controlled-window-input.wav",
+    "peak": 0.568572998046875,
+    "rms": 0.10163346901574682,
+    "sampleRate": 48000,
+    "sha256": "cbd717a0cee956a2a75775261b7ff0924c0f96bd1a4a6d2029afae19731d8c0c",
+    "silenceRatio": 0.0288125,
+    "sizeBytes": 192078
+  },
+  "phase": "36H",
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "status": "passed",
+  "window": {
+    "endSeconds": 8.9,
+    "startSeconds": 6.9
+  }
 }

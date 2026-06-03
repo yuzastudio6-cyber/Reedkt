@@ -1,0 +1,11 @@
+{
+  "blockers": [],
+  "cliPath": "/tmp/reeditpro-phase36h-linux/runtime/deep-filter-0.5.6-x86_64-unknown-linux-musl",
+  "cliSha256": "70775e251eee44c0f2451a1e833326cf8bcbbe304d3e7cd12851e6fce72ef7da",
+  "expectedAggregateSha256": "eab42c424fc818938f1b8591f4110318f86284b520e5244e571c2f3f56f5126b",
+  "manifestAggregateSha256": "eab42c424fc818938f1b8591f4110318f86284b520e5244e571c2f3f56f5126b",
+  "manifestPath": "/tmp/reeditpro-phase36h-linux/runtime/model_tree_manifest.json",
+  "modelArchiveSha256": "c94d91f70911001c946e0fabb4aa9adc37045f45a03b56008cb0c8244cb63616",
+  "modelPath": "/tmp/reeditpro-phase36h-linux/runtime/DeepFilterNet3_onnx.tar.gz",
+  "status": "passed"
+}

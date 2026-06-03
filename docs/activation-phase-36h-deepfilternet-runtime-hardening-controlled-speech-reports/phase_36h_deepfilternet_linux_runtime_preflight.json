@@ -1,0 +1,13 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "status": "not_run",
+  "localHostBlockerPreserved": "approved_deepfilternet_binary_platform_incompatible:darwin_arm64",
+  "cloudRuntimePath": "planned_linux_amd64_cloud_run_cpu_job",
+  "blockers": [
+    "linux_runtime_preflight_not_run"
+  ],
+  "warnings": [
+    "Static mode does not build images, deploy jobs, execute DeepFilterNet, or process audio."
+  ]
+}

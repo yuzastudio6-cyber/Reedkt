@@ -1,120 +1,212 @@
 {
+  "blockers": [],
+  "committedAudioPayloads": false,
   "phase": "36H",
-  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
-  "status": "passed",
-  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/",
-  "objectCount": 22,
-  "committedSafeReportArtifacts": [
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/",
+  "privateReportArtifactCount": 10,
+  "privateRuntimeArtifactCount": 4,
+  "reportArtifacts": [
     {
       "relativePath": "phase_36h_audio_metrics_report.json",
-      "sizeBytes": 233,
-      "sha256": "829967085735ac296273d728c3d16606acc368c963bef803789e1c1369105ebc",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_audio_metrics_report.json"
-    },
-    {
-      "relativePath": "phase_36h_audio_timing_beta_status_report.json",
-      "sizeBytes": 443,
-      "sha256": "d74cb144cca84923db45a938ded43ec61d5929b9e3996a2928e0fb050f409a77",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_audio_timing_beta_status_report.json"
-    },
-    {
-      "relativePath": "phase_36h_blocker_report.json",
-      "sizeBytes": 1009,
-      "sha256": "9b6050907055ef03faed908c2ac94ce0558cad7824e34f90418d22cd11c6ad94",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_blocker_report.json"
+      "sha256": "951f233107a150a02fc251df380823a48668da269622541fb96ff6bfad1bc731",
+      "sizeBytes": 2461
     },
     {
       "relativePath": "phase_36h_controlled_audio_extraction_report.json",
-      "sizeBytes": 797,
-      "sha256": "b2844703462dffa16de9e07f87451f0c2c3b911de726f1b689878e6cbd9aff83",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_controlled_audio_extraction_report.json"
+      "sha256": "0aa874916ed210d7a833ce809147881f90dd17cc3fda8499334def11395f89f0",
+      "sizeBytes": 2999
     },
     {
       "relativePath": "phase_36h_controlled_audio_plan.json",
-      "sizeBytes": 783,
-      "sha256": "cd553b8fac8ff5ef5393b74ca7b63d1980e72a948ddc202307bb24a239b50596",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_controlled_audio_plan.json"
+      "sha256": "d87399985d016a874fa2e89ee6300ce8e06e975c9c9a7e2f3f5d22a2d915d6ef",
+      "sizeBytes": 431
     },
     {
       "relativePath": "phase_36h_controlled_audio_sample_evidence.json",
-      "sizeBytes": 981,
-      "sha256": "65a5d30446984552abc2b6961d59a38eef4ab9e000712064079062e99bb015b7",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_controlled_audio_sample_evidence.json"
+      "sha256": "26f7b3785365152bc446d957e953016079ac3c815843b693a992a857c2d5a187",
+      "sizeBytes": 763
     },
     {
       "relativePath": "phase_36h_controlled_deepfilternet_qa_report.json",
-      "sizeBytes": 371,
-      "sha256": "f689b3de641f367fa393027b8dbc8bd016624023b0ece2a4698b82d31881301b",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_controlled_deepfilternet_qa_report.json"
+      "sha256": "93e5b07dcc9a5123d9b43154ac6edc2da5bf08449132524a6a1205c896868cf6",
+      "sizeBytes": 1806
     },
     {
-      "relativePath": "phase_36h_deepfilternet_dependency_risk_report.json",
-      "sizeBytes": 669,
-      "sha256": "4b03139cfc8436cc190e6cd351ab66b5a792e1a5d677b7c3758fbc3dc80f3483",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_dependency_risk_report.json"
+      "relativePath": "phase_36h_deepfilternet_binary_verification_report.json",
+      "sha256": "267e03d4d7e1656ac53221020171fe6c5975964343643643371721cd2fcc7ab0",
+      "sizeBytes": 677
     },
     {
       "relativePath": "phase_36h_deepfilternet_generated_audio_fixture_manifest.json",
-      "sizeBytes": 347,
-      "sha256": "deb6a7f712c48b604f2691c57480f996df047d1ae8aed1963000049911b24f78",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_generated_audio_fixture_manifest.json"
+      "sha256": "7c38bd2d548b8a2f1a32e1debd6ccfc96abfd94955544d0765ad7a7ade0a1f07",
+      "sizeBytes": 1196
     },
     {
       "relativePath": "phase_36h_deepfilternet_generated_audio_qa_report.json",
-      "sizeBytes": 307,
-      "sha256": "fc0c45d329c8f4393fad1eed037eb8a3a0e1672741a228d6f6fc6e6f0db79538",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_generated_audio_qa_report.json"
+      "sha256": "fa24344885e43e7ea793223cb95392ae1b26d85dc2f2a8adb269b6283906f70e",
+      "sizeBytes": 1774
     },
     {
-      "relativePath": "phase_36h_deepfilternet_license_evidence.json",
-      "sizeBytes": 687,
-      "sha256": "ff2c9748caa319fb3d9241c1e054c4d864ee908e69816061a379280b6e798fab",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_license_evidence.json"
+      "relativePath": "phase_36h_deepfilternet_linux_runtime_smoke_report.json",
+      "sha256": "13024b00e1938cbbd013e8cfd96a93cb9e6c17a2439e935f4332e57e76585345",
+      "sizeBytes": 5592
     },
     {
-      "relativePath": "phase_36h_deepfilternet_runtime_evidence.json",
-      "sizeBytes": 1234,
-      "sha256": "894cece6644357a818aacb3e4b9acd4d04282be2a2dab84b2d28341a9a6a0148",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_runtime_evidence.json"
-    },
-    {
-      "relativePath": "phase_36h_deepfilternet_runtime_hardening_report.json",
-      "sizeBytes": 1959,
-      "sha256": "f8b3a4c7f8fb6bd34e5ff9f584cc0a76b4b20d797bd902ed8547108cbf1bc1e8",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_runtime_hardening_report.json"
-    },
-    {
-      "relativePath": "phase_36h_deepfilternet_runtime_hardening_report.md",
-      "sizeBytes": 418,
-      "sha256": "889ace372ca6a65cc79e74f0895b292d6830e530fbfc41277e4586f33a931c67",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_runtime_hardening_report.md"
-    },
-    {
-      "relativePath": "phase_36h_deepfilternet_runtime_plan.json",
-      "sizeBytes": 3452,
-      "sha256": "e236afab2c3e9b190f86c8c3a93c127c7bd6913a6797a4c34672a252e40ad944",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_runtime_plan.json"
-    },
-    {
-      "relativePath": "phase_36h_deepfilternet_runtime_preflight.json",
-      "sizeBytes": 624,
-      "sha256": "bd594dadaaae834985303c5696b15ae60eab6a96f338d6a46e05c2544c0dffb4",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_runtime_preflight.json"
-    },
-    {
-      "relativePath": "phase_36h_deepfilternet_source_evidence.json",
-      "sizeBytes": 882,
-      "sha256": "dfc7b8a833f63f9211a8aaddb2137044df6e0ad20ce971c97231b298eaad2cc2",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_deepfilternet_source_evidence.json"
-    },
-    {
-      "relativePath": "phase_36h_private_artifact_manifest.json",
-      "sizeBytes": 8283,
-      "sha256": "3b3697d71a8295d057e4e4fb6fd2b0cb2c030346c7621562205831dd404e9820",
-      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603/reports/phase_36h_private_artifact_manifest.json"
+      "relativePath": "phase_36h_ffmpeg_availability_report.json",
+      "sha256": "80823f6c043d53099f71f7c6d2bfec735dbbf30d3ff660bc8b89e0b9184ee008",
+      "sizeBytes": 4040
     }
   ],
-  "rawAudioCommitted": false,
-  "controlledVideoCommitted": false,
-  "blockers": []
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "runtimeArtifacts": [
+    {
+      "relativePath": "controlled-enhanced/controlled-window-input.wav",
+      "sha256": "704c670ba80e2648c00c7c13e61683d8897ba2cd771eda3c3509b626d2cf79eb",
+      "sizeBytes": 192044
+    },
+    {
+      "relativePath": "controlled-window-input.wav",
+      "sha256": "cbd717a0cee956a2a75775261b7ff0924c0f96bd1a4a6d2029afae19731d8c0c",
+      "sizeBytes": 192078
+    },
+    {
+      "relativePath": "generated-enhanced/generated-noisy-input.wav",
+      "sha256": "91d8d1f7270ba787f9bc0271361c5f1e840eb2157b60a86575207c0ba51f9f61",
+      "sizeBytes": 288044
+    },
+    {
+      "relativePath": "generated-noisy-input.wav",
+      "sha256": "4a1cad8ded2642bc5d0271d415d6e5a9e027feb54099fd5376b10047f13aee67",
+      "sizeBytes": 288044
+    }
+  ],
+  "status": "passed",
+  "uploadReports": {
+    "args": [
+      "cloud-storage-json-api",
+      "objects.insert",
+      "<each-file>",
+      "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/"
+    ],
+    "durationMs": 1658,
+    "returncode": 0,
+    "status": "passed",
+    "stderrSummary": "",
+    "stdoutSummary": "uploaded 10 object(s)",
+    "uploads": [
+      {
+        "durationMs": 160,
+        "relativePath": "phase_36h_audio_metrics_report.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_audio_metrics_report.json"
+      },
+      {
+        "durationMs": 216,
+        "relativePath": "phase_36h_controlled_audio_extraction_report.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_controlled_audio_extraction_report.json"
+      },
+      {
+        "durationMs": 185,
+        "relativePath": "phase_36h_controlled_audio_plan.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_controlled_audio_plan.json"
+      },
+      {
+        "durationMs": 105,
+        "relativePath": "phase_36h_controlled_audio_sample_evidence.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_controlled_audio_sample_evidence.json"
+      },
+      {
+        "durationMs": 200,
+        "relativePath": "phase_36h_controlled_deepfilternet_qa_report.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_controlled_deepfilternet_qa_report.json"
+      },
+      {
+        "durationMs": 197,
+        "relativePath": "phase_36h_deepfilternet_binary_verification_report.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_deepfilternet_binary_verification_report.json"
+      },
+      {
+        "durationMs": 99,
+        "relativePath": "phase_36h_deepfilternet_generated_audio_fixture_manifest.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_deepfilternet_generated_audio_fixture_manifest.json"
+      },
+      {
+        "durationMs": 208,
+        "relativePath": "phase_36h_deepfilternet_generated_audio_qa_report.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_deepfilternet_generated_audio_qa_report.json"
+      },
+      {
+        "durationMs": 192,
+        "relativePath": "phase_36h_deepfilternet_linux_runtime_smoke_report.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_deepfilternet_linux_runtime_smoke_report.json"
+      },
+      {
+        "durationMs": 96,
+        "relativePath": "phase_36h_ffmpeg_availability_report.json",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_ffmpeg_availability_report.json"
+      }
+    ]
+  },
+  "uploadRuntimeArtifacts": {
+    "args": [
+      "cloud-storage-json-api",
+      "objects.insert",
+      "<each-file>",
+      "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/runtime-artifacts/"
+    ],
+    "durationMs": 603,
+    "returncode": 0,
+    "status": "passed",
+    "stderrSummary": "",
+    "stdoutSummary": "uploaded 4 object(s)",
+    "uploads": [
+      {
+        "durationMs": 120,
+        "relativePath": "controlled-enhanced/controlled-window-input.wav",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/runtime-artifacts/controlled-enhanced/controlled-window-input.wav"
+      },
+      {
+        "durationMs": 195,
+        "relativePath": "controlled-window-input.wav",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/runtime-artifacts/controlled-window-input.wav"
+      },
+      {
+        "durationMs": 186,
+        "relativePath": "generated-enhanced/generated-noisy-input.wav",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/runtime-artifacts/generated-enhanced/generated-noisy-input.wav"
+      },
+      {
+        "durationMs": 102,
+        "relativePath": "generated-noisy-input.wav",
+        "status": "passed",
+        "stderrSummary": "",
+        "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/runtime-artifacts/generated-noisy-input.wav"
+      }
+    ]
+  }
 }

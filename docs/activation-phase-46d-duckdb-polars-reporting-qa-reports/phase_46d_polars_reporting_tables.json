@@ -1,0 +1,773 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "passed",
+  "tables": {
+    "phase_runs": [
+      {
+        "phase_id": "46A",
+        "run_id": "phase46a-media-data-tool-readiness-audit-20260602",
+        "pr_number": 123,
+        "branch": "codex/rp-activation-46a-media-data-tool-readiness-audit",
+        "status": "passed_as_evidence_planning_only",
+        "started_at": "",
+        "completed_at": "",
+        "artifact_prefix": "not_recorded",
+        "beta_status": "phase-complete but tool-family incomplete"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "pr_number": 125,
+        "branch": "codex/rp-activation-46b-generated-media-data-analysis-suite",
+        "status": "passed",
+        "started_at": "",
+        "completed_at": "",
+        "artifact_prefix": "7f6b533fc4447f3dfd15cd0a4ed18683e736edea1a5775c2abafddd2169f3fd1",
+        "beta_status": "phase-complete but tool-family incomplete"
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "pr_number": 128,
+        "branch": "codex/rp-activation-46c-controlled-real-video-media-data-suite",
+        "status": "passed",
+        "started_at": "",
+        "completed_at": "",
+        "artifact_prefix": "f57b9c56342bf23d9e5b13bbcdc26adbe5c472c0cd9aadaa7aaf2a9f1e2bd33d",
+        "beta_status": "phase-complete but tool-family incomplete"
+      },
+      {
+        "phase_id": "46D",
+        "run_id": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+        "pr_number": 0,
+        "branch": "codex/rp-activation-46d-duckdb-polars-reporting-qa-integration",
+        "status": "reporting_integration_executing",
+        "started_at": "",
+        "completed_at": "",
+        "artifact_prefix": "428c5a808973687a6ce01060fc77329f211ffc4c9abc15068995f28220c3425a",
+        "beta_status": "phase-complete but tool-family incomplete"
+      }
+    ],
+    "tool_results": [
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "tool_id": "opencv",
+        "tool_version": "4.13.0",
+        "fixture_or_sample_id": "phase46b-opencv",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "tool_id": "pyav",
+        "tool_version": "15.1.0",
+        "fixture_or_sample_id": "phase46b-pyav",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "tool_id": "pyscenedetect",
+        "tool_version": "0.6.7.1",
+        "fixture_or_sample_id": "phase46b-pyscenedetect",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "tool_id": "sharp_libvips",
+        "tool_version": "sharp=0.34.5;vips=8.17.3",
+        "fixture_or_sample_id": "phase46b-sharp_libvips",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "tool_id": "duckdb",
+        "tool_version": "1.4.4",
+        "fixture_or_sample_id": "phase46b-duckdb",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "tool_id": "polars",
+        "tool_version": "1.36.1",
+        "fixture_or_sample_id": "phase46b-polars",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "tool_id": "opencv",
+        "tool_version": "4.13.0",
+        "fixture_or_sample_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "tool_id": "pyav",
+        "tool_version": "15.1.0",
+        "fixture_or_sample_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "tool_id": "pyscenedetect",
+        "tool_version": "0.6.7.1",
+        "fixture_or_sample_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "tool_id": "sharp_libvips",
+        "tool_version": "sharp=0.34.5;vips=8.17.3",
+        "fixture_or_sample_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "tool_id": "duckdb",
+        "tool_version": "1.4.4",
+        "fixture_or_sample_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "tool_id": "polars",
+        "tool_version": "1.36.1",
+        "fixture_or_sample_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46D",
+        "run_id": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+        "tool_id": "duckdb",
+        "tool_version": "1.4.4",
+        "fixture_or_sample_id": "metadata-reporting-qa",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      },
+      {
+        "phase_id": "46D",
+        "run_id": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+        "tool_id": "polars",
+        "tool_version": "1.36.1",
+        "fixture_or_sample_id": "metadata-reporting-qa",
+        "result_status": "passed",
+        "required_or_optional": "required",
+        "qa_score": 1,
+        "warnings_count": 0,
+        "blockers_count": 0
+      }
+    ],
+    "fixture_results": [
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "fixture_id": "generated-image-opencv-basic",
+        "fixture_type": "generated fixture",
+        "generated_or_controlled": "generated",
+        "status": "passed",
+        "metrics_json": "{\"expectedChecks\":[]}",
+        "privacy_class": "generated_synthetic_metadata_only"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "fixture_id": "generated-container-pyav-probe",
+        "fixture_type": "generated fixture",
+        "generated_or_controlled": "generated",
+        "status": "passed",
+        "metrics_json": "{\"expectedChecks\":[]}",
+        "privacy_class": "generated_synthetic_metadata_only"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "fixture_id": "generated-scene-cut-pyscenedetect",
+        "fixture_type": "generated fixture",
+        "generated_or_controlled": "generated",
+        "status": "passed",
+        "metrics_json": "{\"expectedChecks\":[]}",
+        "privacy_class": "generated_synthetic_metadata_only"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "fixture_id": "generated-thumbnail-sharp-libvips",
+        "fixture_type": "generated fixture",
+        "generated_or_controlled": "generated",
+        "status": "passed",
+        "metrics_json": "{\"expectedChecks\":[]}",
+        "privacy_class": "generated_synthetic_metadata_only"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "fixture_id": "generated-report-duckdb",
+        "fixture_type": "generated fixture",
+        "generated_or_controlled": "generated",
+        "status": "passed",
+        "metrics_json": "{\"expectedChecks\":[]}",
+        "privacy_class": "generated_synthetic_metadata_only"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "fixture_id": "generated-report-polars",
+        "fixture_type": "generated fixture",
+        "generated_or_controlled": "generated",
+        "status": "passed",
+        "metrics_json": "{\"expectedChecks\":[]}",
+        "privacy_class": "generated_synthetic_metadata_only"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "fixture_id": "generated-cross-tool-manifest",
+        "fixture_type": "generated fixture",
+        "generated_or_controlled": "generated",
+        "status": "passed",
+        "metrics_json": "{\"expectedChecks\":[]}",
+        "privacy_class": "generated_synthetic_metadata_only"
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "fixture_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "fixture_type": "controlled_real_video_metadata_scene_frame_window",
+        "generated_or_controlled": "controlled",
+        "status": "passed",
+        "metrics_json": "{\"frameCount\":6,\"windowStartSeconds\":6.9,\"windowEndSeconds\":8.9}",
+        "privacy_class": "private_controlled_metadata_redacted"
+      }
+    ],
+    "controlled_sample_results": [
+      {
+        "sample_id": "phase37d-phase32-color-export-safe-zone-window-v1",
+        "chain_id": "controlled-real-video-chain-phase28-through-phase32-v1",
+        "time_window": "6.9s-8.9s",
+        "frame_count": 6,
+        "approved_offsets_hash": "1a20cb507f01d6ebdf3b7658828ace61c6329b61eb176e1a5cd747a9ff1e5a5b",
+        "status": "passed",
+        "privacy_status": "private_controlled_redacted_metadata_only"
+      }
+    ],
+    "dependency_risks": [
+      {
+        "tool_id": "pyav",
+        "dependency": "ffmpeg",
+        "risk_type": "FFmpeg dependency, codec exposure, patent/build configuration, and dynamic library compatibility.",
+        "severity": "warn",
+        "production_blocker": true,
+        "beta_blocker": false,
+        "mitigation": "Keep FFmpeg review separate; no broad codec/runtime use until later approval."
+      },
+      {
+        "tool_id": "sharp_libvips",
+        "dependency": "libvips",
+        "risk_type": "libvips LGPL-2.1-or-later, native binary, optional dependency, and untrusted image handling.",
+        "severity": "warn",
+        "production_blocker": true,
+        "beta_blocker": false,
+        "mitigation": "Worker-only isolation, LGPL compliance review, and image safety QA before runtime."
+      },
+      {
+        "tool_id": "opencv",
+        "dependency": "opencv",
+        "risk_type": "Native wheel/platform footprint and GUI dependency risk.",
+        "severity": "warn",
+        "production_blocker": true,
+        "beta_blocker": false,
+        "mitigation": "Prefer opencv-python-headless in worker images and keep frontend imports forbidden."
+      },
+      {
+        "tool_id": "pyscenedetect",
+        "dependency": "pyscenedetect",
+        "risk_type": "OpenCV dependency and false scene-boundary candidates.",
+        "severity": "warn",
+        "production_blocker": true,
+        "beta_blocker": false,
+        "mitigation": "Use generated fixtures first and require manual/QA thresholds before controlled media."
+      },
+      {
+        "tool_id": "duckdb",
+        "dependency": "duckdb_extensions_network_file_io",
+        "risk_type": "Extension loading, network access, local file IO, and private metadata leakage.",
+        "severity": "warn",
+        "production_blocker": true,
+        "beta_blocker": false,
+        "mitigation": "Disable unapproved extensions/network paths and commit only redacted summaries."
+      },
+      {
+        "tool_id": "polars",
+        "dependency": "polars_cpu_memory_runtime",
+        "risk_type": "CPU feature compatibility, memory pressure, and schema drift.",
+        "severity": "warn",
+        "production_blocker": true,
+        "beta_blocker": false,
+        "mitigation": "Use compatibility-aware worker images and deterministic schema tests in Phase 46D."
+      }
+    ],
+    "blockers": [
+      {
+        "blocker_id": "phase46d-production-caveat-pyav",
+        "phase_id": "46D",
+        "tool_id": "pyav",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "FFmpeg dependency, codec exposure, patent/build configuration, and dynamic library compatibility.",
+        "next_action": "Keep FFmpeg review separate; no broad codec/runtime use until later approval."
+      },
+      {
+        "blocker_id": "phase46d-production-caveat-sharp_libvips",
+        "phase_id": "46D",
+        "tool_id": "sharp_libvips",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "libvips LGPL-2.1-or-later, native binary, optional dependency, and untrusted image handling.",
+        "next_action": "Worker-only isolation, LGPL compliance review, and image safety QA before runtime."
+      },
+      {
+        "blocker_id": "phase46d-production-caveat-opencv",
+        "phase_id": "46D",
+        "tool_id": "opencv",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "Native wheel/platform footprint and GUI dependency risk.",
+        "next_action": "Prefer opencv-python-headless in worker images and keep frontend imports forbidden."
+      },
+      {
+        "blocker_id": "phase46d-production-caveat-pyscenedetect",
+        "phase_id": "46D",
+        "tool_id": "pyscenedetect",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "OpenCV dependency and false scene-boundary candidates.",
+        "next_action": "Use generated fixtures first and require manual/QA thresholds before controlled media."
+      },
+      {
+        "blocker_id": "phase46d-production-caveat-duckdb",
+        "phase_id": "46D",
+        "tool_id": "duckdb",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "Extension loading, network access, local file IO, and private metadata leakage.",
+        "next_action": "Disable unapproved extensions/network paths and commit only redacted summaries."
+      },
+      {
+        "blocker_id": "phase46d-production-caveat-polars",
+        "phase_id": "46D",
+        "tool_id": "polars",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "CPU feature compatibility, memory pressure, and schema drift.",
+        "next_action": "Use compatibility-aware worker images and deterministic schema tests in Phase 46D."
+      },
+      {
+        "blocker_id": "46a-historical-blocker-1",
+        "phase_id": "46A",
+        "tool_id": "media_data",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "FFmpeg dependency/legal review unresolved for PyAV runtime",
+        "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+      },
+      {
+        "blocker_id": "46a-historical-blocker-2",
+        "phase_id": "46A",
+        "tool_id": "media_data",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "libvips LGPL/native dependency review unresolved for Sharp/libvips runtime",
+        "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+      },
+      {
+        "blocker_id": "46a-historical-blocker-3",
+        "phase_id": "46A",
+        "tool_id": "media_data",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "runtime availability not verified by execution in Phase 46A",
+        "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+      },
+      {
+        "blocker_id": "46a-historical-blocker-4",
+        "phase_id": "46A",
+        "tool_id": "media_data",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "Phase 46B generated fixture suite not implemented yet",
+        "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+      },
+      {
+        "blocker_id": "46a-historical-blocker-5",
+        "phase_id": "46A",
+        "tool_id": "media_data",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "Phase 46C controlled real-media suite blocked until Phase 46B",
+        "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+      },
+      {
+        "blocker_id": "46a-historical-blocker-6",
+        "phase_id": "46A",
+        "tool_id": "media_data",
+        "severity": "warn",
+        "status": "tracked",
+        "reason": "Phase 46D reporting integration blocked until Phase 46B/46C evidence",
+        "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+      },
+      {
+        "blocker_id": "phase46d-private-json-metadata-read",
+        "phase_id": "46D",
+        "tool_id": "private_artifacts",
+        "severity": "block",
+        "status": "open",
+        "reason": "Private artifact read status is blocked.",
+        "next_action": "Use exact Phase 46B/46C private JSON metadata prefixes with existing auth access."
+      }
+    ],
+    "artifact_objects": [
+      {
+        "phase_id": "46A",
+        "run_id": "phase46a-media-data-tool-readiness-audit-20260602",
+        "artifact_type": "private_qa_metadata_manifest",
+        "object_count": 0,
+        "total_size_bytes": 0,
+        "private_prefix_hash_or_safe_path": "not_recorded",
+        "privacy_status": "private_or_committed_safe_metadata_only"
+      },
+      {
+        "phase_id": "46B",
+        "run_id": "phase46b-generated-media-data-suite-20260603",
+        "artifact_type": "private_qa_metadata_manifest",
+        "object_count": 43,
+        "total_size_bytes": 31794,
+        "private_prefix_hash_or_safe_path": "7f6b533fc4447f3dfd15cd0a4ed18683e736edea1a5775c2abafddd2169f3fd1",
+        "privacy_status": "private_or_committed_safe_metadata_only"
+      },
+      {
+        "phase_id": "46C",
+        "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
+        "artifact_type": "private_qa_metadata_manifest",
+        "object_count": 51,
+        "total_size_bytes": 42807462,
+        "private_prefix_hash_or_safe_path": "f57b9c56342bf23d9e5b13bbcdc26adbe5c472c0cd9aadaa7aaf2a9f1e2bd33d",
+        "privacy_status": "private_or_committed_safe_metadata_only"
+      }
+    ],
+    "readiness_scorecard": [
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46A source/license evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_license_evidence.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46A storage/privacy policy passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_storage_privacy_policy.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46B generated opencv evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_opencv_generated_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46B generated pyav evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_pyav_generated_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46B generated pyscenedetect evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_pyscenedetect_generated_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46B generated sharp_libvips evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_sharp_libvips_generated_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46B generated duckdb evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_duckdb_generated_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46B generated polars evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_polars_generated_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46C controlled opencv evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_opencv_frame_sample_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46C controlled pyav evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_pyav_controlled_probe_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46C controlled pyscenedetect evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_pyscenedetect_scene_manifest_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46C controlled sharp_libvips evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_sharp_libvips_controlled_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46C controlled duckdb evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_duckdb_controlled_aggregation_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46C controlled polars evidence passed",
+        "status": "pass",
+        "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_polars_controlled_transform_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "private artifacts recorded",
+        "status": "block",
+        "evidence_ref": "Phase 46B/46C private JSON metadata prefixes",
+        "next_action": "Resolve before media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "no public output",
+        "status": "pass",
+        "evidence_ref": "Phase 46A/46B/46C storage privacy reports",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "no broad media",
+        "status": "pass",
+        "evidence_ref": "Phase 46D blocked scope policy",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "no arbitrary media",
+        "status": "pass",
+        "evidence_ref": "Phase 46D blocked scope policy",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "production caveats tracked",
+        "status": "warn",
+        "evidence_ref": "phase_46d_duckdb_blocker_summary.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "beta blockers tracked",
+        "status": "warn",
+        "evidence_ref": "phase_46d_beta_gate_input_manifest.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      },
+      {
+        "family": "media_data",
+        "phase": "46D",
+        "criterion": "Phase 46D reporting integration passed",
+        "status": "pass",
+        "evidence_ref": "phase_46d_reporting_qa_integration_report.json",
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+      }
+    ],
+    "beta_gate_inputs": [
+      {
+        "criterion": "approval/license evidence",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46A source/license reports",
+        "blocker": ""
+      },
+      {
+        "criterion": "runtime/tool availability audit",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46A readiness inventory plus Phase 46B/46C executions",
+        "blocker": ""
+      },
+      {
+        "criterion": "generated fixture verification",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46B generated suite",
+        "blocker": ""
+      },
+      {
+        "criterion": "controlled real-media metadata/scene/frame verification",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46C controlled suite",
+        "blocker": ""
+      },
+      {
+        "criterion": "reporting/QA integration",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46D DuckDB/Polars reporting integration",
+        "blocker": ""
+      },
+      {
+        "criterion": "private artifacts",
+        "required": true,
+        "status": "block",
+        "evidence": "Phase 46B/46C private artifact manifests and Phase 46D upload",
+        "blocker": "Private artifact read is incomplete."
+      },
+      {
+        "criterion": "smoke/report CLIs",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46A-46D CLI scripts",
+        "blocker": ""
+      },
+      {
+        "criterion": "docs/runbook",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46A-46D docs and Phase 46E prompt",
+        "blocker": ""
+      },
+      {
+        "criterion": "rollback/blocker policy",
+        "required": true,
+        "status": "pass",
+        "evidence": "Phase 46D blocked scope matrix and blocker report",
+        "blocker": ""
+      },
+      {
+        "criterion": "final beta-readiness decision",
+        "required": true,
+        "status": "block",
+        "evidence": "Phase 46E required",
+        "blocker": "Dedicated media/data internal beta-readiness gate not implemented yet."
+      }
+    ]
+  },
+  "rowCounts": {
+    "phase_runs": 4,
+    "tool_results": 14,
+    "fixture_results": 8,
+    "controlled_sample_results": 1,
+    "dependency_risks": 6,
+    "blockers": 13,
+    "artifact_objects": 3,
+    "readiness_scorecard": 21,
+    "beta_gate_inputs": 10
+  }
+}

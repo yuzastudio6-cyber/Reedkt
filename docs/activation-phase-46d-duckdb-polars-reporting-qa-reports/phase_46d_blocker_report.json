@@ -1,0 +1,166 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "blocked",
+  "blockers": [
+    {
+      "blocker_id": "phase46d-production-caveat-pyav",
+      "phase_id": "46D",
+      "tool_id": "pyav",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "FFmpeg dependency, codec exposure, patent/build configuration, and dynamic library compatibility.",
+      "next_action": "Keep FFmpeg review separate; no broad codec/runtime use until later approval."
+    },
+    {
+      "blocker_id": "phase46d-production-caveat-sharp_libvips",
+      "phase_id": "46D",
+      "tool_id": "sharp_libvips",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "libvips LGPL-2.1-or-later, native binary, optional dependency, and untrusted image handling.",
+      "next_action": "Worker-only isolation, LGPL compliance review, and image safety QA before runtime."
+    },
+    {
+      "blocker_id": "phase46d-production-caveat-opencv",
+      "phase_id": "46D",
+      "tool_id": "opencv",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "Native wheel/platform footprint and GUI dependency risk.",
+      "next_action": "Prefer opencv-python-headless in worker images and keep frontend imports forbidden."
+    },
+    {
+      "blocker_id": "phase46d-production-caveat-pyscenedetect",
+      "phase_id": "46D",
+      "tool_id": "pyscenedetect",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "OpenCV dependency and false scene-boundary candidates.",
+      "next_action": "Use generated fixtures first and require manual/QA thresholds before controlled media."
+    },
+    {
+      "blocker_id": "phase46d-production-caveat-duckdb",
+      "phase_id": "46D",
+      "tool_id": "duckdb",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "Extension loading, network access, local file IO, and private metadata leakage.",
+      "next_action": "Disable unapproved extensions/network paths and commit only redacted summaries."
+    },
+    {
+      "blocker_id": "phase46d-production-caveat-polars",
+      "phase_id": "46D",
+      "tool_id": "polars",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "CPU feature compatibility, memory pressure, and schema drift.",
+      "next_action": "Use compatibility-aware worker images and deterministic schema tests in Phase 46D."
+    },
+    {
+      "blocker_id": "46a-historical-blocker-1",
+      "phase_id": "46A",
+      "tool_id": "media_data",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "FFmpeg dependency/legal review unresolved for PyAV runtime",
+      "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+    },
+    {
+      "blocker_id": "46a-historical-blocker-2",
+      "phase_id": "46A",
+      "tool_id": "media_data",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "libvips LGPL/native dependency review unresolved for Sharp/libvips runtime",
+      "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+    },
+    {
+      "blocker_id": "46a-historical-blocker-3",
+      "phase_id": "46A",
+      "tool_id": "media_data",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "runtime availability not verified by execution in Phase 46A",
+      "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+    },
+    {
+      "blocker_id": "46a-historical-blocker-4",
+      "phase_id": "46A",
+      "tool_id": "media_data",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "Phase 46B generated fixture suite not implemented yet",
+      "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+    },
+    {
+      "blocker_id": "46a-historical-blocker-5",
+      "phase_id": "46A",
+      "tool_id": "media_data",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "Phase 46C controlled real-media suite blocked until Phase 46B",
+      "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+    },
+    {
+      "blocker_id": "46a-historical-blocker-6",
+      "phase_id": "46A",
+      "tool_id": "media_data",
+      "severity": "warn",
+      "status": "tracked",
+      "reason": "Phase 46D reporting integration blocked until Phase 46B/46C evidence",
+      "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
+    },
+    {
+      "blocker_id": "phase46d-private-json-metadata-read",
+      "phase_id": "46D",
+      "tool_id": "private_artifacts",
+      "severity": "block",
+      "status": "open",
+      "reason": "Private artifact read status is blocked.",
+      "next_action": "Use exact Phase 46B/46C private JSON metadata prefixes with existing auth access."
+    },
+    {
+      "blocker_id": "phase46d-private-artifact-read",
+      "phase_id": "46D",
+      "tool_id": "private_artifacts",
+      "severity": "block",
+      "status": "open",
+      "reason": "Private artifact read status is blocked.",
+      "next_action": "Restore exact Phase 46B/46C private JSON metadata read access."
+    },
+    {
+      "blocker_id": "phase46d-private-artifact-upload",
+      "phase_id": "46D",
+      "tool_id": "private_artifacts",
+      "severity": "block",
+      "status": "open",
+      "reason": "Private artifact upload blocked.",
+      "next_action": "Restore private QA artifact upload access before beta-readiness gate."
+    }
+  ],
+  "blockedScopes": [
+    "media/data internal beta-readiness gate until Phase 46E",
+    "broad user media",
+    "arbitrary media paths",
+    "unapproved real media",
+    "generated media processing",
+    "controlled real-video resampling",
+    "frame extraction",
+    "thumbnail generation",
+    "OCR runtime",
+    "VLM runtime retries",
+    "provider calls",
+    "production",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "public output",
+    "Docker execution",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ]
+}

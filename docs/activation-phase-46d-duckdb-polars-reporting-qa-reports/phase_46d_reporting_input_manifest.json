@@ -1,0 +1,233 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "committed_loaded_private_read_incomplete",
+  "inputs": [
+    {
+      "sourcePhase": "46A",
+      "sourcePr": 123,
+      "sourcePath": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_readiness_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "source/license/runtime readiness report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46A",
+      "sourcePr": 123,
+      "sourcePath": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_tool_registry.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "tool registry",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46A",
+      "sourcePr": 123,
+      "sourcePath": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_dependency_risk_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "dependency risk report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46A",
+      "sourcePr": 123,
+      "sourcePath": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_blocker_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "blocker report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46A",
+      "sourcePr": 123,
+      "sourcePath": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_private_artifact_manifest.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "private artifact manifest",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46A",
+      "sourcePr": 123,
+      "sourcePath": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_storage_privacy_policy.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "storage privacy policy",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46B",
+      "sourcePr": 125,
+      "sourcePath": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_generated_media_data_suite_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "generated fixture suite report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46B",
+      "sourcePr": 125,
+      "sourcePath": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_generated_fixture_manifest.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "generated fixture manifest",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46B",
+      "sourcePr": 125,
+      "sourcePath": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_generated_media_data_qa_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "generated QA report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46B",
+      "sourcePr": 125,
+      "sourcePath": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_blocker_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "blocker report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46B",
+      "sourcePr": 125,
+      "sourcePath": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_private_artifact_manifest.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "private artifact manifest",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46B",
+      "sourcePr": 125,
+      "sourcePath": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_tool_version_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "tool versions",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46C",
+      "sourcePr": 128,
+      "sourcePath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_controlled_real_video_media_data_suite_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "controlled sample suite report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46C",
+      "sourcePr": 128,
+      "sourcePath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_controlled_sample_evidence.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "controlled sample evidence",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46C",
+      "sourcePr": 128,
+      "sourcePath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_controlled_media_data_qa_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "controlled QA report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46C",
+      "sourcePr": 128,
+      "sourcePath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_blocker_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "blocker report",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46C",
+      "sourcePr": 128,
+      "sourcePath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_private_artifact_manifest.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "private artifact manifest",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    },
+    {
+      "sourcePhase": "46C",
+      "sourcePr": 128,
+      "sourcePath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_tool_version_report.json",
+      "safeOrPrivate": "committed_safe",
+      "artifactType": "tool versions",
+      "privacyClass": "safe_redacted_metadata",
+      "read": true,
+      "skipped": false,
+      "reason": "committed safe report used as source of truth"
+    }
+  ],
+  "privateArtifactRead": {
+    "status": "blocked",
+    "reason": "private_artifact_list_gsutil_7f6b533fc4447f3dfd15cd0a4ed18683e736edea1a5775c2abafddd2169f3fd1 failed: Command failed: gsutil ls -r gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\n/usr/local/share/google-cloud-sdk/platform/gsutil/third_party/urllib3/src/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\nReauthentication required.\nTraceback (most recent call last):\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gsutil\", line 21, in <module>\n    gsutil.RunMain()\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gsutil.py\", line 158, in RunMain\n    sys.exit(gslib.__main__.main())\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gslib/__main__.py\", line 436, in main\n    return _RunNamedCommandAndHandleExceptions(\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gslib/__main__.py\", line 786, in _RunNamedCommandAndHandleExceptions\n    _HandleUnknownFailure(e)\n  File \"/usr/local/share/...<truncated>",
+    "allowedPrefixes": [
+      "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+      "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/"
+    ],
+    "copiedJsonObjectCount": 0,
+    "skippedMediaObjectCount": 0
+  },
+  "optionalTrackBSignals": [
+    {
+      "id": "vlm-phase39c-decision",
+      "status": "blocked",
+      "sourcePr": 120,
+      "privacyClass": "high_level_status_only",
+      "rawPayloadRead": false
+    },
+    {
+      "id": "ocr-phase37e",
+      "status": "internal_qa_planning_signal_only",
+      "privacyClass": "high_level_status_only",
+      "rawPayloadRead": false
+    }
+  ],
+  "mediaPayloadReads": "blocked",
+  "publicUrls": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked"
+}

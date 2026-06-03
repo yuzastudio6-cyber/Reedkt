@@ -1,0 +1,90 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "tables": {
+    "phase_runs": [
+      "phase_id",
+      "run_id",
+      "pr_number",
+      "branch",
+      "status",
+      "started_at",
+      "completed_at",
+      "artifact_prefix",
+      "beta_status"
+    ],
+    "tool_results": [
+      "phase_id",
+      "run_id",
+      "tool_id",
+      "tool_version",
+      "fixture_or_sample_id",
+      "result_status",
+      "required_or_optional",
+      "qa_score",
+      "warnings_count",
+      "blockers_count"
+    ],
+    "fixture_results": [
+      "phase_id",
+      "run_id",
+      "fixture_id",
+      "fixture_type",
+      "generated_or_controlled",
+      "status",
+      "metrics_json",
+      "privacy_class"
+    ],
+    "controlled_sample_results": [
+      "sample_id",
+      "chain_id",
+      "time_window",
+      "frame_count",
+      "approved_offsets_hash",
+      "status",
+      "privacy_status"
+    ],
+    "dependency_risks": [
+      "tool_id",
+      "dependency",
+      "risk_type",
+      "severity",
+      "production_blocker",
+      "beta_blocker",
+      "mitigation"
+    ],
+    "blockers": [
+      "blocker_id",
+      "phase_id",
+      "tool_id",
+      "severity",
+      "status",
+      "reason",
+      "next_action"
+    ],
+    "artifact_objects": [
+      "phase_id",
+      "run_id",
+      "artifact_type",
+      "object_count",
+      "total_size_bytes",
+      "private_prefix_hash_or_safe_path",
+      "privacy_status"
+    ],
+    "readiness_scorecard": [
+      "family",
+      "phase",
+      "criterion",
+      "status",
+      "evidence_ref",
+      "next_action"
+    ],
+    "beta_gate_inputs": [
+      "criterion",
+      "required",
+      "status",
+      "evidence",
+      "blocker"
+    ]
+  }
+}

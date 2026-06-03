@@ -1,0 +1,207 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "blocked",
+  "criteria": [
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46A source/license evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_license_evidence.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46A storage/privacy policy passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46a-media-data-readiness-reports/phase_46a_media_data_storage_privacy_policy.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46B generated opencv evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_opencv_generated_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46B generated pyav evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_pyav_generated_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46B generated pyscenedetect evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_pyscenedetect_generated_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46B generated sharp_libvips evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_sharp_libvips_generated_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46B generated duckdb evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_duckdb_generated_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46B generated polars evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46b-generated-media-data-suite-reports/phase_46b_polars_generated_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46C controlled opencv evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_opencv_frame_sample_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46C controlled pyav evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_pyav_controlled_probe_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46C controlled pyscenedetect evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_pyscenedetect_scene_manifest_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46C controlled sharp_libvips evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_sharp_libvips_controlled_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46C controlled duckdb evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_duckdb_controlled_aggregation_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46C controlled polars evidence passed",
+      "status": "pass",
+      "evidence_ref": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports/phase_46c_polars_controlled_transform_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "private artifacts recorded",
+      "status": "block",
+      "evidence_ref": "Phase 46B/46C private JSON metadata prefixes",
+      "next_action": "Resolve before media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "no public output",
+      "status": "pass",
+      "evidence_ref": "Phase 46A/46B/46C storage privacy reports",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "no broad media",
+      "status": "pass",
+      "evidence_ref": "Phase 46D blocked scope policy",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "no arbitrary media",
+      "status": "pass",
+      "evidence_ref": "Phase 46D blocked scope policy",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "production caveats tracked",
+      "status": "warn",
+      "evidence_ref": "phase_46d_duckdb_blocker_summary.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "beta blockers tracked",
+      "status": "warn",
+      "evidence_ref": "phase_46d_beta_gate_input_manifest.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "Phase 46D reporting integration passed",
+      "status": "pass",
+      "evidence_ref": "phase_46d_reporting_qa_integration_report.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    }
+  ],
+  "blockedCriteria": [
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "private artifacts recorded",
+      "status": "block",
+      "evidence_ref": "Phase 46B/46C private JSON metadata prefixes",
+      "next_action": "Resolve before media/data beta-readiness gate."
+    }
+  ],
+  "warningCriteria": [
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "production caveats tracked",
+      "status": "warn",
+      "evidence_ref": "phase_46d_duckdb_blocker_summary.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    },
+    {
+      "family": "media_data",
+      "phase": "46D",
+      "criterion": "beta blockers tracked",
+      "status": "warn",
+      "evidence_ref": "phase_46d_beta_gate_input_manifest.json",
+      "next_action": "Carry into Phase 46E media/data beta-readiness gate."
+    }
+  ],
+  "privateArtifactReadStatus": "blocked",
+  "consistencyStatus": "passed",
+  "mediaDataToolFamilyBetaStatus": "blocked",
+  "nextPhaseDecision": "Resolve Phase 46D reporting blockers before beta-readiness gate."
+}

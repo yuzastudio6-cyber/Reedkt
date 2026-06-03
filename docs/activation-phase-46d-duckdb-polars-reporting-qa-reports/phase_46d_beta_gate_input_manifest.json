@@ -1,0 +1,79 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "blocked",
+  "inputs": [
+    {
+      "criterion": "approval/license evidence",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46A source/license reports",
+      "blocker": ""
+    },
+    {
+      "criterion": "runtime/tool availability audit",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46A readiness inventory plus Phase 46B/46C executions",
+      "blocker": ""
+    },
+    {
+      "criterion": "generated fixture verification",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46B generated suite",
+      "blocker": ""
+    },
+    {
+      "criterion": "controlled real-media metadata/scene/frame verification",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46C controlled suite",
+      "blocker": ""
+    },
+    {
+      "criterion": "reporting/QA integration",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46D DuckDB/Polars reporting integration",
+      "blocker": ""
+    },
+    {
+      "criterion": "private artifacts",
+      "required": true,
+      "status": "block",
+      "evidence": "Phase 46B/46C private artifact manifests and Phase 46D upload",
+      "blocker": "Private artifact read is incomplete."
+    },
+    {
+      "criterion": "smoke/report CLIs",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46A-46D CLI scripts",
+      "blocker": ""
+    },
+    {
+      "criterion": "docs/runbook",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46A-46D docs and Phase 46E prompt",
+      "blocker": ""
+    },
+    {
+      "criterion": "rollback/blocker policy",
+      "required": true,
+      "status": "pass",
+      "evidence": "Phase 46D blocked scope matrix and blocker report",
+      "blocker": ""
+    },
+    {
+      "criterion": "final beta-readiness decision",
+      "required": true,
+      "status": "block",
+      "evidence": "Phase 46E required",
+      "blocker": "Dedicated media/data internal beta-readiness gate not implemented yet."
+    }
+  ],
+  "mediaDataToolFamilyBetaStatus": "blocked",
+  "nextPhase": "Phase 46D blocker follow-up"
+}

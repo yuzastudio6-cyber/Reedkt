@@ -1,0 +1,59 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "branch": "codex/rp-activation-46d-duckdb-polars-reporting-qa-integration",
+  "baseIfPr128Open": "codex/rp-activation-46c-controlled-real-video-media-data-suite",
+  "sourcePhase46aPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/123",
+  "sourcePhase46bPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/125",
+  "sourcePhase46cPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/128",
+  "defaultMode": "report_only_until_execute_confirmation",
+  "executionConfirmations": [
+    "REEDITPRO_CONFIRM_MEDIA_DATA_REPORTING_QA",
+    "REEDITPRO_CONFIRM_MEDIA_DATA_PRIVATE_ARTIFACT_READ",
+    "REEDITPRO_CONFIRM_MEDIA_DATA_PRIVATE_ARTIFACT_UPLOAD"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_MEDIA_DATA_CONTROLLED_REAL_VIDEO",
+    "REEDITPRO_CONFIRM_MEDIA_DATA_CONTROLLED_MEDIA_READ",
+    "REEDITPRO_CONFIRM_MEDIA_DATA_CONTROLLED_FRAME_SAMPLING",
+    "REEDITPRO_CONFIRM_MEDIA_DATA_GENERATED_FIXTURES",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_OCR_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME",
+    "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING",
+    "REEDITPRO_CONFIRM_ARBITRARY_MEDIA_INPUT"
+  ],
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+  "allowedPrivateReadPrefixes": [
+    "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+    "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/"
+  ],
+  "packageLockPolicy": "unchanged_temp_runtime_only",
+  "mediaProcessing": "blocked",
+  "betaUnlock": "blocked",
+  "mediaDataToolFamilyBetaStatus": "blocked",
+  "blockedScopes": [
+    "media/data internal beta-readiness gate until Phase 46E",
+    "broad user media",
+    "arbitrary media paths",
+    "unapproved real media",
+    "generated media processing",
+    "controlled real-video resampling",
+    "frame extraction",
+    "thumbnail generation",
+    "OCR runtime",
+    "VLM runtime retries",
+    "provider calls",
+    "production",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "public output",
+    "Docker execution",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "checks": {
+    "rowCountsMatch": true,
+    "toolStatusCountsMatch": true,
+    "blockerCountsMatch": true,
+    "phaseReadinessStatusesMatch": true,
+    "artifactObjectCountsMatch": true,
+    "betaGateInputStatusesMatch": true
+  },
+  "differences": []
+}

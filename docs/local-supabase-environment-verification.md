@@ -99,3 +99,20 @@ Prompt 20E result on this host:
 - `canProceedToPrompt20B=false`.
 
 Prompt 20E recommends Prompt 20F - Manual Host Tool Repair Verification until the host toolchain is repaired outside the repo.
+
+## Prompt 20F Verification Update
+
+Prompt 20F reruns only safe host probes and confirms manual repair has not happened. It does not install tools, download tools, run `npx`, run SQL, call `supabase status`, start Supabase, connect with `psql`, or touch local/staging/remote/production data.
+
+Prompt 20F result on this host:
+
+- `/usr/local/bin/supabase` remains x86_64 and fails on arm64 with bad CPU / error `-86`.
+- Docker CLI exists at version `29.5.2`, but the daemon is unavailable to this process.
+- `psql` remains missing from PATH.
+- Homebrew remains `/usr/local`-prefixed.
+- No localhost-only local DB URL is verified.
+- No executable local SQL candidate exists.
+- `canProceedToPrompt20B=false`.
+- `canRunLocalSql=false`.
+
+Prompt 20F recommends Prompt 20F1 - Manual Host Tool Repair Follow-Up until the host toolchain is repaired outside the repo.

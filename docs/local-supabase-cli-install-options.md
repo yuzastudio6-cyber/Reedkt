@@ -34,6 +34,8 @@ PATH should prefer the arm64 Homebrew path over `/usr/local/bin`.
 
 Prompt 20E does not run Homebrew repair because the current Homebrew prefix is `/usr/local`, not `/opt/homebrew`. If Homebrew is repaired manually, verify the new path before Prompt 20B.
 
+Prompt 20F verifies the same Homebrew/Supabase CLI blocker remains. `/usr/local/bin/supabase` is still x86_64 on this arm64 host and fails with bad CPU / error `-86`. Prompt 20F does not repair Homebrew, install a CLI, download a binary, or run `npx`.
+
 ## Standalone arm64 Binary
 
 A standalone arm64 CLI binary may be placed outside the repository.

@@ -16,6 +16,8 @@ Until `psql` or a future approved local-only SQL executor exists, run mode must 
 
 Prompt 20E confirms `psql` remains missing. No `psql` database connection was attempted.
 
+Prompt 20F confirms `psql` remains missing. No `psql` database connection was attempted.
+
 ## Manual Install Options
 
 Allowed manual options outside repo commits:

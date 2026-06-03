@@ -12,6 +12,8 @@ Prompt 20D keeps this directory list/dry-run only. It verifies Docker is reachab
 
 Prompt 20E keeps this directory list/dry-run only. It adds a manual-only host toolchain probe and records the same SQL blockers: wrong-architecture Supabase CLI, missing `psql`, no localhost-only local DB URL, and no local SQL candidate.
 
+Prompt 20F keeps this directory list/dry-run only. It verifies manual host repair has not happened and records the current blockers: wrong-architecture Supabase CLI, Docker daemon unavailable to this process, missing `psql`, no localhost-only local DB URL, and no local SQL candidate.
+
 ## No Remote Rule
 
 Never run files in this directory against:
@@ -103,8 +105,8 @@ None.
 
 - Local Supabase CLI is x86_64 and fails on this arm64 host with error `-86`.
 - `supabase/config.toml` exists and is local-only after Prompt 20A.
-- Docker daemon is reachable on this host after Prompt 20A.
+- Docker daemon was reachable in earlier prompts but is unavailable to this process during Prompt 20F verification.
 - `psql` is not on PATH.
 - No local Supabase database URL is verified.
 - No executable local-only SQL file exists yet.
-- Prompt 20E recommends Prompt 20F - Manual Host Tool Repair Verification before Prompt 20B unless preflight or host probe reports `canProceedToPrompt20B=true`.
+- Prompt 20F recommends Prompt 20F1 - Manual Host Tool Repair Follow-Up before Prompt 20B unless preflight or host probe reports `canProceedToPrompt20B=true`.

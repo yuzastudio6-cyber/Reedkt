@@ -336,7 +336,7 @@ const result = {
     blockerIds: blockers,
     nextRecommendedPrompt: canProceedToPrompt20B
       ? 'Prompt 20B - Local RLS First Executable Smoke Test'
-      : 'Prompt 20F - Manual Host Tool Repair Verification',
+      : 'Prompt 20F1 - Manual Host Tool Repair Follow-Up',
     prompt20BReadiness: {
       canProceed: canProceedToPrompt20B,
       canRunLocalSql,

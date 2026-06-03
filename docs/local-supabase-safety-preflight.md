@@ -169,3 +169,21 @@ Prompt 20E result on this host:
 | Prompt 20B can proceed | `canProceedToPrompt20B=false`. | Blocked |
 
 Prompt 20E recommends Prompt 20F - Manual Host Tool Repair Verification until host tools are repaired outside the repo.
+
+## Prompt 20F Host Repair Verification Update
+
+Prompt 20F reuses the same manual-only host probe and local preflight. It does not install tools, download tools, run `npx`, execute SQL, call `supabase status`, start Supabase, connect with `psql`, touch staging/remote/production Supabase, or mutate files.
+
+Prompt 20F result on this host:
+
+| Check | Prompt 20F result | Status |
+| --- | --- | --- |
+| Supabase CLI compatible | `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`. | Blocked |
+| Docker daemon reachable | Docker CLI exists, but the daemon is unavailable to this process. | Blocked |
+| `psql` available | `psql` is not on PATH. | Blocked |
+| Local DB URL verified | no localhost-only local DB URL environment variable is verified. | Blocked |
+| Local executable SQL exists | none under `database/test-sql/local/`. | Blocked |
+| Remote risk detected | no remote link indicator or risky env var name was detected. | Passed |
+| Prompt 20B can proceed | `canProceedToPrompt20B=false`. | Blocked |
+
+Prompt 20F recommends Prompt 20F1 - Manual Host Tool Repair Follow-Up until host tools are repaired outside the repo.

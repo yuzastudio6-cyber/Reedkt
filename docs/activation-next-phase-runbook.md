@@ -46,6 +46,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 49O only as a web search regression/failure-mode suite or system reconciliation.
 6. Do not treat Phase 49N as production, external beta, broad media, public crawling, public artifact, or paid provider expansion approval.
 
+## After Phase 49O
+
+1. Review `activation:web-search-regression-suite:report`, `activation:web-search-regression-suite:iam-plan`, and the canonical Phase 49N artifacts for `phase49n-20260603T18331`.
+2. Confirm paid provider, public SearXNG, Brave secret/budget/storage, arbitrary capture, browser/Sharp/Readability failure, artifact privacy, API/UI, and production/beta scenarios all fail closed.
+3. Confirm Phase 49O did not run live search, Brave API calls, public browser capture, Sharp processing, Readability extraction against live pages, Docker builds, Cloud Run deploys, or public artifacts.
+4. Proceed to Phase 49P only as a controlled internal beta candidate gate or system reconciliation.
+5. Do not treat Phase 49O as production, external beta, broad media, public crawling, public artifact, or paid provider expansion approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

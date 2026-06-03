@@ -85,7 +85,13 @@ search provider readiness gate for `phase49n-20260603T18331`: it audited Phase
 metadata without reading the value, provider registry state, secret/cost/storage
 policy, artifact privacy, and fail-closed behavior. The search provider stack is
 ready only for controlled internal testing. Phase 49O is ready only as a web
-search regression/failure-mode suite or system reconciliation.
+search regression/failure-mode suite or system reconciliation. Phase 49O
+completed with run `phase49o-20260603T20311`: 26/26 deterministic
+local/generated regression scenarios passed across provider blocking, Brave
+secret/budget/storage policy failures, capture failures, browser/Sharp/
+Readability failures, artifact privacy failures, API/UI gating failures, and
+production/beta flag rejection. Phase 49P can proceed only as a controlled
+internal beta candidate gate or system reconciliation.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

@@ -102,6 +102,10 @@ The local full build and server build remain environment-blocked on this macOS h
 
 This is not a Prompt 20D implementation failure. Linux GitHub Foundation Validation is required for full-build evidence.
 
+## GitHub CI Status
+
+GitHub Foundation Validation passed for PR #124. The latest final-head run is recorded in the PR body.
+
 ## Supabase Touch Status
 
 Prompt 20D did not run `supabase start`, `supabase status`, `supabase db reset`, `supabase migration up`, `supabase db push`, SQL, `psql`, remote Supabase, staging Supabase, or production Supabase commands.

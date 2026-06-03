@@ -1,4 +1,4 @@
-import { buildPrivateWebE2EReport, summarizePrivateWebE2EReport } from '../activation/private-web-search-capture-e2e'
+import { buildPrivateWebE2EReport, summarizePrivateWebE2EReport } from '../activation/private-web-search-capture-e2e/private-web-e2e-report-builder'
 
 const json = process.argv.includes('--json')
 const report = buildPrivateWebE2EReport()

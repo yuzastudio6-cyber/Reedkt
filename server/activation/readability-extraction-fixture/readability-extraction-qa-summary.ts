@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { buildPlaywrightSharpCaptureReport } from '../playwright-sharp-capture-fixture'
+import { buildPlaywrightSharpCaptureReport } from '../playwright-sharp-capture-fixture/playwright-sharp-capture-report-builder'
 import {
   readabilityExtractionConfig,
   readabilityExtractionQaGateIds,

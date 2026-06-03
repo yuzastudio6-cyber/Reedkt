@@ -456,6 +456,14 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 3. Confirm captures came only from private search results on the approved allowlisted domains.
 4. Confirm Sharp derivatives, Readability sanitized extraction, the combined manifest, QA, and report artifacts exist only under the Phase 49G private prefixes.
 5. Proceed to Phase 49H only as a web search/capture internal readiness gate. Production, external beta, broad crawling, arbitrary URL capture, paid providers, public artifacts, and Revideo remain blocked.
+
+## After Phase 49H
+
+1. Review `activation:web-search-capture-readiness:report`, `activation:web-search-capture-readiness:iam-plan`, and `docs/activation-phase-49h-web-search-capture-readiness-results.md`.
+2. Confirm Phase 49H audited existing Phase 49A-49G evidence only and did not run a new SearXNG query, Playwright capture, Sharp processing, Readability extraction, Docker build/push, or Cloud Run deploy.
+3. Confirm `reeditpro-staging-private-searxng` remains private/authenticated with no `allUsers` or `allAuthenticatedUsers` invoker binding.
+4. Confirm artifacts are private JSON under the Phase 49H generated-assets and QA prefixes, with no public or signed URLs as source of truth.
+5. Proceed to Phase 49I only as UI/API integration and internal UX gating for controlled web search/capture. Production, external beta, broad crawling, arbitrary URL capture, paid providers, public artifacts, and Revideo remain blocked.
 ## After Phase 36A
 
 1. Review `activation:audio-ai-approval:plan`, `activation:audio-ai-approval:report`, and `activation:audio-ai-tool:summary`.

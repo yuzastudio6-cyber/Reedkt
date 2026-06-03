@@ -1,6 +1,6 @@
-import { getApprovedPlaywrightSharpCaptureEvidence } from '../playwright-sharp-capture-fixture'
-import { getApprovedReadabilityExtractionEvidence } from '../readability-extraction-fixture'
-import { getApprovedSearxngSearchFixtureEvidence } from '../searxng-search-fixture'
+import { getApprovedPlaywrightSharpCaptureEvidence } from '../playwright-sharp-capture-fixture/approved-playwright-sharp-capture-evidence'
+import { getApprovedReadabilityExtractionEvidence } from '../readability-extraction-fixture/approved-readability-extraction-evidence'
+import { getApprovedSearxngSearchFixtureEvidence } from '../searxng-search-fixture/approved-searxng-search-fixture-evidence'
 import { privateWebE2EConfig } from './private-web-search-capture-e2e-policy'
 import type {
   PrivateFixturePage,

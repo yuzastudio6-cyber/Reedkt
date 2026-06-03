@@ -54,10 +54,15 @@ Phase 49G completed controlled private live-search/capture E2E for
 `phase49g-20260602T222646` using the private service, three bounded
 documentation queries, fifteen normalized source records, two allowlisted
 captures, two Sharp screenshot-processing records, and two sanitized
-Readability extractions. Phase 49H readiness is limited to a web search/capture
-internal readiness gate. Public SearXNG instances, paid providers, arbitrary
-URL capture, broad crawling, and non-allowlisted public web capture/extraction
-remain blocked.
+Readability extractions. Phase 49H completed the web search/capture internal
+readiness gate for `phase49h-20260603T020009`: it audited existing Phase 49A-49G evidence, private SearXNG
+Cloud Run metadata/IAM, provider gates, private artifact paths, docs/scripts
+consistency, and fail-closed policy only. It did not run a new search query,
+browser capture, Sharp processing, Readability extraction, Docker build/push,
+or Cloud Run deploy. Phase 49I readiness is limited to UI/API integration and
+internal UX gating. Public SearXNG instances, paid
+providers, arbitrary URL capture, broad crawling, and non-allowlisted public
+web capture/extraction remain blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

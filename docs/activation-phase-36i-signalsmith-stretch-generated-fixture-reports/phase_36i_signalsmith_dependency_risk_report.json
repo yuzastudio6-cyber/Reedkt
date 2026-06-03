@@ -1,0 +1,18 @@
+{
+  "phase": "36I",
+  "runId": "phase36i-signalsmith-stretch-generated-fixture-20260603",
+  "status": "warning",
+  "risks": [
+    "time-stretch best for modest 0.75x-1.5x ratios",
+    "latency/pre-roll and flushing must be handled by future production worker design",
+    "compiler caveats include AppleClang 16 and fast-math warning from upstream README",
+    "Signalsmith Linear support files are required for FFT/speedups",
+    "Phase 36I does not select web/npm/Python/Rust wrappers"
+  ],
+  "wrappersNotSelected": [
+    "web_audio_wasm_npm",
+    "python_binding",
+    "rust_wrapper"
+  ],
+  "productionApproval": "blocked"
+}

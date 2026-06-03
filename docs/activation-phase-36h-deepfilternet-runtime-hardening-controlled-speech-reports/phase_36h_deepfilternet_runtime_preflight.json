@@ -1,0 +1,21 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-deepfilternet-runtime-hardening-controlled-speech-20260603",
+  "status": "blocked",
+  "platform": "darwin",
+  "arch": "arm64",
+  "binaryCompatibility": "blocked_linux_x64_required",
+  "pythonStatus": "passed",
+  "ffmpegStatus": "blocked",
+  "gcloudStatus": "passed",
+  "artifactObjectStatus": "passed",
+  "controlledObjectStatus": "passed",
+  "noRuntimeAutoDownload": true,
+  "blockers": [
+    "approved_deepfilternet_binary_platform_incompatible:darwin_arm64",
+    "ffmpeg_unavailable_for_bounded_audio_extraction"
+  ],
+  "warnings": [
+    "Preflight does not process media."
+  ]
+}

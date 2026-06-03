@@ -1,0 +1,15 @@
+{
+  "arbitraryMedia": "blocked",
+  "blockers": [],
+  "boundedAudioOnly": true,
+  "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
+  "fullVideoCleanup": "blocked",
+  "phase": "36H",
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "status": "passed",
+  "window": {
+    "endSeconds": 8.9,
+    "startSeconds": 6.9
+  }
+}

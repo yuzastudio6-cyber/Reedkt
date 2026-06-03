@@ -1,0 +1,19 @@
+{
+  "blockedScopes": [
+    "Phase 36I Signalsmith Stretch until implemented",
+    "Demucs until provenance/legal approval",
+    "broad media",
+    "arbitrary media",
+    "VLM runtime",
+    "OCR runtime",
+    "provider calls",
+    "production",
+    "internal/external beta unlock",
+    "public output",
+    "Track A runtime/visual/render stack"
+  ],
+  "blockers": [],
+  "phase": "36H",
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "status": "passed_no_required_blockers"
+}

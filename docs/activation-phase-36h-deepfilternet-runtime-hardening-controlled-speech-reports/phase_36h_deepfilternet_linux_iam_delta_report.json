@@ -1,0 +1,45 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "status": "passed",
+  "changeType": "scoped_iam_update",
+  "reason": "Phase 36H Linux Cloud Run Job passed generated and controlled DeepFilterNet execution but private QA artifact upload was blocked until the CPU worker service account received prefix-scoped create/readback access.",
+  "bucket": "gs://reeditpro-staging-reeditpro-qa-artifacts",
+  "member": "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+  "bindingsAdded": [
+    {
+      "role": "roles/storage.objectCreator",
+      "condition": {
+        "title": "phase36h_deepfilternet_qa_create",
+        "description": "Create Phase 36H DeepFilterNet QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase36h/deepfilternet-controlled-speech/\")"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "condition": {
+        "title": "phase36h_deepfilternet_qa_readback",
+        "description": "Read back Phase 36H DeepFilterNet QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase36h/deepfilternet-controlled-speech/\")"
+      }
+    }
+  ],
+  "broadIamGranted": false,
+  "publicPrincipalsAdded": false,
+  "ownerEditorStorageAdminGranted": false,
+  "allowedPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/",
+  "blockedScopesRemain": [
+    "broad media",
+    "arbitrary media",
+    "unapproved real media",
+    "public artifacts",
+    "production",
+    "internal/external beta unlock",
+    "provider calls",
+    "VLM runtime",
+    "OCR runtime",
+    "Demucs",
+    "Signalsmith",
+    "Track A"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "audioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "externalBetaReady": false,
+  "internalBetaReady": false,
+  "phase": "36H",
+  "productionReady": false,
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "status": "passed"
+}

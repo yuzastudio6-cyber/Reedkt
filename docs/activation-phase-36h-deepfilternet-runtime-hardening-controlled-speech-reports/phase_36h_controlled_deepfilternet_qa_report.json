@@ -1,0 +1,59 @@
+{
+  "blockers": [],
+  "command": {
+    "args": [
+      "/tmp/reeditpro-phase36h-linux/runtime/deep-filter-0.5.6-x86_64-unknown-linux-musl",
+      "--model",
+      "/tmp/reeditpro-phase36h-linux/runtime/DeepFilterNet3_onnx.tar.gz",
+      "--output-dir",
+      "/tmp/reeditpro-phase36h-linux/private-audio-artifacts/controlled-enhanced",
+      "/tmp/reeditpro-phase36h-linux/private-audio-artifacts/controlled-window-input.wav"
+    ],
+    "durationMs": 697,
+    "returncode": 0,
+    "status": "passed",
+    "stderrSummary": "",
+    "stdoutSummary": ""
+  },
+  "gates": [
+    {
+      "blockers": [],
+      "status": "passed"
+    }
+  ],
+  "metrics": {
+    "after": {
+      "channels": 1,
+      "clippingCount": 0,
+      "durationSeconds": 2.0,
+      "noiseProxy": 0.006910989444028739,
+      "pathBasename": "controlled-window-input.wav",
+      "peak": 0.52783203125,
+      "rms": 0.09293291530691251,
+      "sampleRate": 48000,
+      "sha256": "704c670ba80e2648c00c7c13e61683d8897ba2cd771eda3c3509b626d2cf79eb",
+      "silenceRatio": 0.08289583333333334,
+      "sizeBytes": 192044
+    },
+    "before": {
+      "channels": 1,
+      "clippingCount": 0,
+      "durationSeconds": 2.0,
+      "noiseProxy": 0.00755840751075936,
+      "pathBasename": "controlled-window-input.wav",
+      "peak": 0.568572998046875,
+      "rms": 0.10163346901574682,
+      "sampleRate": 48000,
+      "sha256": "cbd717a0cee956a2a75775261b7ff0924c0f96bd1a4a6d2029afae19731d8c0c",
+      "silenceRatio": 0.0288125,
+      "sizeBytes": 192078
+    },
+    "runtimeSeconds": 0.6969549655914307
+  },
+  "noRawAudioCommitted": true,
+  "phase": "36H",
+  "privateArtifactsOnly": true,
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "status": "passed"
+}

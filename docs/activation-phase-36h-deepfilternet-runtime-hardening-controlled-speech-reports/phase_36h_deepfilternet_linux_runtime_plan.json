@@ -1,0 +1,168 @@
+{
+  "phase": "36H",
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "sourcePr140": "https://github.com/yuzastudio6-cyber/Reedkt/pull/140",
+  "branch": "codex/rp-activation-36h-deepfilternet-runtime-hardening-controlled-speech",
+  "status": "planned",
+  "priorBlockersPreserved": [
+    "approved_deepfilternet_binary_platform_incompatible:darwin_arm64",
+    "ffmpeg_unavailable_for_bounded_audio_extraction"
+  ],
+  "linuxRuntime": {
+    "image": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/deepfilternet-runtime-phase36h:phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+    "jobName": "reeditpro-stg-deepfilternet-runtime-phase36h",
+    "projectId": "reeditpro",
+    "region": "us-central1",
+    "serviceAccount": "reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com",
+    "cpu": 4,
+    "memory": "8Gi",
+    "gpu": "blocked",
+    "publicService": false,
+    "productionTraffic": false,
+    "dockerfile": "docker/prod/deepfilternet-runtime/Dockerfile.phase36h",
+    "cloudBuildConfig": "cloudbuild/deepfilternet-runtime-phase36h.yaml",
+    "gcloudIgnore": "cloudbuild/deepfilternet-runtime-phase36h.gcloudignore",
+    "workerEntrypoint": "server/workers/deepfilternet-runtime/linux_runtime_entrypoint.py"
+  },
+  "sourceEvidence": {
+    "github": "https://github.com/Rikorose/DeepFilterNet",
+    "pypi": "https://pypi.org/project/deepfilternet/",
+    "officialEvidenceSummary": "DeepFilterNet documents a pre-compiled deep-filter binary, 48 kHz WAV-only binary support, and PyPI deepfilternet 0.5.6 evidence. Phase 36H Linux uses only the approved private binary/model artifacts."
+  },
+  "approvedRuntimeArtifacts": {
+    "prefix": "gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/",
+    "cliFile": "deep-filter-0.5.6-x86_64-unknown-linux-musl",
+    "modelArchive": "DeepFilterNet3_onnx.tar.gz",
+    "cliSha256": "70775e251eee44c0f2451a1e833326cf8bcbbe304d3e7cd12851e6fce72ef7da",
+    "modelArchiveSha256": "c94d91f70911001c946e0fabb4aa9adc37045f45a03b56008cb0c8244cb63616",
+    "aggregateSha256": "eab42c424fc818938f1b8591f4110318f86284b520e5244e571c2f3f56f5126b",
+    "runtimePathPolicy": "approved_private_binary_and_model_only"
+  },
+  "controlledSample": {
+    "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+    "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
+    "sourceGcsUri": "gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4",
+    "sourceSha256": "78bd798602d221b894a60dfa34ed1528602c9ece7f657e3f9bbea7fd071cc7fa",
+    "windowStartSeconds": 6.9,
+    "windowEndSeconds": 8.9
+  },
+  "executionConfirmations": [
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_LINUX_AMD64_RUNTIME",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_GENERATED_AUDIO",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_CONTROLLED_REAL_AUDIO",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_CONTROLLED_MEDIA_READ",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_PRIVATE_ARTIFACT_UPLOAD",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_CLOUD_BUILD",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_DOCKER_PUSH",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_STAGING_CLOUD_RUN_JOB",
+    "REEDITPRO_CONFIRM_DEEPFILTERNET_CPU_WORKER_EXECUTE"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING",
+    "REEDITPRO_CONFIRM_ARBITRARY_MEDIA_INPUT",
+    "REEDITPRO_CONFIRM_VLM_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_OCR_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_DEMUCS_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_SIGNALSMITH_RUNTIME_EXECUTE",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "commandPlan": [
+    {
+      "commandId": "linux-runtime-preflight",
+      "phase": "preflight",
+      "commandString": "gcloud config get-value project && gcloud storage objects describe gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/deep-filter-0.5.6-x86_64-unknown-linux-musl && gcloud storage objects describe gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/DeepFilterNet3_onnx.tar.gz && gcloud storage objects describe gs://reeditpro-staging-reeditpro-generated-assets/model-weights/audio-ai/deepfilternet/v0.5.6/model_tree_manifest.json && gcloud storage objects describe gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4 && gcloud builds list --limit=1 && gcloud run jobs list --region=us-central1",
+      "requiresConfirmation": false,
+      "textOnlyByDefault": true,
+      "warnings": [
+        "Preflight does not process media or build/deploy."
+      ]
+    },
+    {
+      "commandId": "cloud-build-linux-image",
+      "phase": "build",
+      "commandString": "gcloud builds submit --project reeditpro --config cloudbuild/deepfilternet-runtime-phase36h.yaml --ignore-file cloudbuild/deepfilternet-runtime-phase36h.gcloudignore --substitutions _IMAGE=us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/deepfilternet-runtime-phase36h:phase36h-linux-deepfilternet-runtime-completion-20260603-r5 .",
+      "requiresConfirmation": true,
+      "requiredConfirmations": [
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_CLOUD_BUILD",
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_DOCKER_PUSH"
+      ],
+      "textOnlyByDefault": true,
+      "warnings": [
+        "Builds only the Phase 36H linux/amd64 CPU image; no model/media payloads are included in build context."
+      ]
+    },
+    {
+      "commandId": "deploy-cloud-run-job",
+      "phase": "deploy",
+      "commandString": "gcloud run jobs deploy reeditpro-stg-deepfilternet-runtime-phase36h --project reeditpro --region us-central1 --image us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/deepfilternet-runtime-phase36h:phase36h-linux-deepfilternet-runtime-completion-20260603-r5 --service-account reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com --cpu=4 --memory=8Gi --tasks=1 --parallelism=1 --max-retries=0 --task-timeout=1800s --set-env-vars <phase36h-safe-env>",
+      "requiresConfirmation": true,
+      "requiredConfirmations": [
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_STAGING_CLOUD_RUN_JOB",
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_CPU_WORKER_EXECUTE"
+      ],
+      "textOnlyByDefault": true,
+      "warnings": [
+        "Cloud Run Job is CPU-only, private, finite, and processes generated audio plus one bounded controlled audio window only."
+      ]
+    },
+    {
+      "commandId": "execute-cloud-run-job",
+      "phase": "execute",
+      "commandString": "gcloud run jobs execute reeditpro-stg-deepfilternet-runtime-phase36h --project reeditpro --region us-central1 --wait",
+      "requiresConfirmation": true,
+      "requiredConfirmations": [
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_LINUX_AMD64_RUNTIME",
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_RUNTIME_EXECUTE",
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_GENERATED_AUDIO",
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_CONTROLLED_REAL_AUDIO",
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_CONTROLLED_MEDIA_READ",
+        "REEDITPRO_CONFIRM_DEEPFILTERNET_PRIVATE_ARTIFACT_UPLOAD"
+      ],
+      "textOnlyByDefault": true,
+      "warnings": [
+        "Generated fixture runs before controlled media. If generated fixture fails, controlled audio is not processed."
+      ]
+    },
+    {
+      "commandId": "fetch-safe-json-reports",
+      "phase": "fetch-report",
+      "commandString": "gcloud storage cp gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/reports/phase_36h_*.json docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports/",
+      "requiresConfirmation": false,
+      "textOnlyByDefault": true,
+      "warnings": [
+        "Fetch only JSON report metadata. Do not copy audio/video payloads into the repo."
+      ]
+    }
+  ],
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36h/deepfilternet-controlled-speech/phase36h-linux-deepfilternet-runtime-completion-20260603-r5/",
+  "noArbitraryMedia": true,
+  "noBroadMedia": true,
+  "noDemucs": true,
+  "noSignalsmith": true,
+  "noVlm": true,
+  "noOcr": true,
+  "noTrackA": true,
+  "audioTimingToolFamilyBetaStatus": "blocked",
+  "blockedScopes": [
+    "Phase 36I Signalsmith Stretch until implemented",
+    "Phase 36J controlled timing/stretch until Signalsmith generated evidence exists",
+    "Demucs until provenance/legal approval",
+    "Demucs download/runtime/source separation",
+    "broad media",
+    "arbitrary media paths",
+    "unapproved real media",
+    "full-video audio cleanup",
+    "VLM runtime retries",
+    "OCR runtime",
+    "provider calls",
+    "production",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "public output",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ]
+}

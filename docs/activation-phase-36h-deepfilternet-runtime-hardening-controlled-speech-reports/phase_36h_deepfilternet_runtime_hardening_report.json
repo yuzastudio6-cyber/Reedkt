@@ -1,0 +1,36 @@
+{
+  "audioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "binaryVerificationStatus": "passed",
+  "blockedScopes": [
+    "Phase 36I Signalsmith Stretch until implemented",
+    "Demucs until provenance/legal approval",
+    "broad media",
+    "arbitrary media",
+    "VLM runtime",
+    "OCR runtime",
+    "provider calls",
+    "production",
+    "internal/external beta unlock",
+    "public output",
+    "Track A runtime/visual/render stack"
+  ],
+  "blockers": [],
+  "cloudBuildStatus": "passed",
+  "cloudRunJobStatus": "passed",
+  "controlledAudioWindow": {
+    "endSeconds": 8.9,
+    "startSeconds": 6.9
+  },
+  "controlledEnhancementStatus": "passed",
+  "controlledExtractionStatus": "passed",
+  "controlledSampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "ffmpegStatus": "passed",
+  "generatedFixtureStatus": "passed",
+  "linuxRuntimeStatus": "passed",
+  "nextPhaseDecision": "Proceed to Phase 36I Signalsmith Stretch approval/runtime/generated fixture.",
+  "phase": "36H",
+  "privateArtifactStatus": "passed",
+  "runId": "phase36h-linux-deepfilternet-runtime-completion-20260603-r5",
+  "runtimePreflightStatus": "passed",
+  "status": "passed"
+}

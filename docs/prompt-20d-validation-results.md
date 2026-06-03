@@ -7,7 +7,7 @@ Prompt 20D verifies the manual local Supabase environment setup after Prompt 20C
 - Branch: `codex/rp-foundation-20d-manual-environment-setup-verification`
 - Base: `origin/codex/rp-foundation-20c-local-supabase-environment-manual-setup`
 - Prompt 20C PR: [PR #121](https://github.com/yuzastudio6-cyber/Reedkt/pull/121)
-- Prompt 20D PR: pending
+- Prompt 20D PR: [PR #124](https://github.com/yuzastudio6-cyber/Reedkt/pull/124)
 
 ## Files Created
 

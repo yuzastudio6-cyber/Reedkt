@@ -154,3 +154,19 @@ credit_reservations_approved_plan_snapshot_id_fkey
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20K - Local Supabase Migration Chain Repair Follow-Up 4, focused on `202605180004_reeditpro_credits_approval_snapshots.sql`.
+
+## Prompt 20K Follow-Up
+
+Prompt 20K repaired the `public.credit_reservations.approved_plan_snapshot_id` migration-chain blocker in `supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql` by adding nullable compatibility snapshot reference columns, guarding approved snapshot foreign keys, and guarding `idx_credit_estimates_project_plan`.
+
+After the repair, local `supabase start` passed `202605180004_reeditpro_credits_approval_snapshots.sql` and advanced to the next migration-chain blocker:
+
+```text
+ERROR: column "approved_plan_snapshot_id" does not exist (SQLSTATE 42703)
+At statement: 11
+create index if not exists idx_generation_requests_project_snapshot on public.generation_requests(project_id, approved_plan_snapshot_id)
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20L - Local Supabase Migration Chain Repair Follow-Up 5, focused on `202605180005_reeditpro_generation_assets_jobs.sql`.

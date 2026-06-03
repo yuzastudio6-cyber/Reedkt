@@ -18,6 +18,9 @@ create table if not exists public.credit_estimates (
   created_at timestamptz not null default now()
 );
 
+alter table public.credit_estimates
+  add column if not exists edit_plan_version_id uuid;
+
 create table if not exists public.credit_estimate_items (
   id uuid primary key default gen_random_uuid(),
   credit_estimate_id uuid not null references public.credit_estimates(id) on delete cascade,
@@ -43,6 +46,9 @@ create table if not exists public.credit_reservations (
   updated_at timestamptz not null default now()
 );
 
+alter table public.credit_reservations
+  add column if not exists approved_plan_snapshot_id uuid;
+
 create table if not exists public.credit_ledger_entries (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
@@ -56,6 +62,9 @@ create table if not exists public.credit_ledger_entries (
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+alter table public.credit_ledger_entries
+  add column if not exists approved_plan_snapshot_id uuid;
 
 create table if not exists public.refund_records (
   id uuid primary key default gen_random_uuid(),
@@ -106,19 +115,85 @@ comment on column public.approved_plan_snapshots.snapshot_json is 'Frozen approv
 
 do $$
 begin
-  if not exists (select 1 from pg_constraint where conname = 'credit_reservations_approved_plan_snapshot_id_fkey') then
+  if to_regclass('public.credit_reservations') is not null
+    and to_regclass('public.approved_plan_snapshots') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'credit_reservations'
+        and column_name = 'approved_plan_snapshot_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'approved_plan_snapshots'
+        and column_name = 'id'
+    )
+    and not exists (
+      select 1
+      from pg_constraint
+      where conname = 'credit_reservations_approved_plan_snapshot_id_fkey'
+        and conrelid = 'public.credit_reservations'::regclass
+    )
+  then
     alter table public.credit_reservations
       add constraint credit_reservations_approved_plan_snapshot_id_fkey
       foreign key (approved_plan_snapshot_id) references public.approved_plan_snapshots(id) on delete set null;
   end if;
 
-  if not exists (select 1 from pg_constraint where conname = 'credit_ledger_entries_approved_plan_snapshot_id_fkey') then
+  if to_regclass('public.credit_ledger_entries') is not null
+    and to_regclass('public.approved_plan_snapshots') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'credit_ledger_entries'
+        and column_name = 'approved_plan_snapshot_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'approved_plan_snapshots'
+        and column_name = 'id'
+    )
+    and not exists (
+      select 1
+      from pg_constraint
+      where conname = 'credit_ledger_entries_approved_plan_snapshot_id_fkey'
+        and conrelid = 'public.credit_ledger_entries'::regclass
+    )
+  then
     alter table public.credit_ledger_entries
       add constraint credit_ledger_entries_approved_plan_snapshot_id_fkey
       foreign key (approved_plan_snapshot_id) references public.approved_plan_snapshots(id) on delete set null;
   end if;
 
-  if not exists (select 1 from pg_constraint where conname = 'approval_records_approved_snapshot_id_fkey') then
+  if to_regclass('public.approval_records') is not null
+    and to_regclass('public.approved_plan_snapshots') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'approval_records'
+        and column_name = 'approved_snapshot_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'approved_plan_snapshots'
+        and column_name = 'id'
+    )
+    and not exists (
+      select 1
+      from pg_constraint
+      where conname = 'approval_records_approved_snapshot_id_fkey'
+        and conrelid = 'public.approval_records'::regclass
+    )
+  then
     alter table public.approval_records
       add constraint approval_records_approved_snapshot_id_fkey
       foreign key (approved_snapshot_id) references public.approved_plan_snapshots(id) on delete set null;
@@ -175,7 +250,29 @@ drop trigger if exists set_credit_reservations_updated_at on public.credit_reser
 create trigger set_credit_reservations_updated_at before update on public.credit_reservations
 for each row execute function public.set_updated_at();
 
-create index if not exists idx_credit_estimates_project_plan on public.credit_estimates(project_id, edit_plan_version_id);
+do $$
+begin
+  if to_regclass('public.credit_estimates') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'credit_estimates'
+        and column_name = 'project_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'credit_estimates'
+        and column_name = 'edit_plan_version_id'
+    )
+    and to_regclass('public.idx_credit_estimates_project_plan') is null
+  then
+    create index idx_credit_estimates_project_plan
+      on public.credit_estimates(project_id, edit_plan_version_id);
+  end if;
+end $$;
 create index if not exists idx_credit_estimate_items_estimate on public.credit_estimate_items(credit_estimate_id);
 create index if not exists idx_credit_reservations_workspace_project_status on public.credit_reservations(workspace_id, project_id, status);
 create index if not exists idx_credit_ledger_workspace_created on public.credit_ledger_entries(workspace_id, created_at);

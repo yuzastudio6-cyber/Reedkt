@@ -125,3 +125,17 @@ The first local executable SQL candidate remains unexecuted:
 ## Next Prompt Recommendation
 
 Recommended next prompt: Prompt 20K - Local Supabase Migration Chain Repair Follow-Up 4, focused on the next exact schema-era conflict in `202605180004_reeditpro_credits_approval_snapshots.sql`.
+
+## Prompt 20K Follow-Up Status
+
+Prompt 20K repaired the `public.credit_reservations.approved_plan_snapshot_id` blocker in `supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql` by adding nullable compatibility snapshot reference columns, guarding approved snapshot FKs, and guarding `idx_credit_estimates_project_plan`.
+
+Local `supabase start` now passes `202605180004_reeditpro_credits_approval_snapshots.sql` and fails at the next migration:
+
+```text
+ERROR: column "approved_plan_snapshot_id" does not exist (SQLSTATE 42703)
+At statement: 11
+create index if not exists idx_generation_requests_project_snapshot on public.generation_requests(project_id, approved_plan_snapshot_id)
+```
+
+Prompt 20L - Local Supabase Migration Chain Repair Follow-Up 5 is now recommended for `supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql`.

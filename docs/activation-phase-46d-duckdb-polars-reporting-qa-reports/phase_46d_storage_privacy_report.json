@@ -1,0 +1,12 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "passed",
+  "noMediaProcessing": true,
+  "noFrameReads": true,
+  "noThumbnailReads": true,
+  "noSignedUrls": true,
+  "noPublicOutput": true,
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+  "allowedInputs": "committed safe metadata and exact Phase 46B/46C private JSON reports only"
+}

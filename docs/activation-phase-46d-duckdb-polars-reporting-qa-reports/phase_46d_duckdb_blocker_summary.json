@@ -1,0 +1,17 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "passed",
+  "blockersBySeverity": [
+    {
+      "severity": "block",
+      "status": "open",
+      "count": 1
+    },
+    {
+      "severity": "warn",
+      "status": "tracked",
+      "count": 12
+    }
+  ]
+}

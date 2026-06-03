@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "polarsVersion": "1.36.1",
+  "cloudObjectStoreReadsUsed": false,
+  "rowCounts": {
+    "phase_runs": 4,
+    "tool_results": 14,
+    "fixture_results": 8,
+    "controlled_sample_results": 1,
+    "dependency_risks": 6,
+    "blockers": 13,
+    "artifact_objects": 3,
+    "readiness_scorecard": 21,
+    "beta_gate_inputs": 10
+  },
+  "toolStatusCounts": {
+    "passed": 14
+  },
+  "phaseStatusCounts": {
+    "passed_as_evidence_planning_only": 1,
+    "passed": 2,
+    "reporting_integration_executing": 1
+  },
+  "blockerCounts": [
+    {
+      "severity": "block",
+      "status": "open",
+      "count": 1
+    },
+    {
+      "severity": "warn",
+      "status": "tracked",
+      "count": 12
+    }
+  ],
+  "artifactObjectCounts": [
+    {
+      "phaseId": "46A",
+      "objectCount": 0,
+      "totalSizeBytes": 0
+    },
+    {
+      "phaseId": "46B",
+      "objectCount": 43,
+      "totalSizeBytes": 31794
+    },
+    {
+      "phaseId": "46C",
+      "objectCount": 51,
+      "totalSizeBytes": 42807462
+    }
+  ],
+  "betaGateStatusCounts": {
+    "pass": 8,
+    "block": 2
+  }
+}

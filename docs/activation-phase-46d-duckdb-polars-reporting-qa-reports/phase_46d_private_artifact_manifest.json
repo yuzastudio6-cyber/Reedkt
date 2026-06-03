@@ -1,0 +1,116 @@
+{
+  "phase": "46D",
+  "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
+  "status": "blocked",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+  "localArtifactCount": 17,
+  "privateUpload": {
+    "status": "blocked",
+    "prefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+    "reason": "private_artifact_upload_gsutil_fallback failed: Command failed: gsutil -m cp -r <redacted-local-temp-path> gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\n/usr/local/share/google-cloud-sdk/platform/gsutil/third_party/urllib3/src/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\nIf you experience problems with multiprocessing on MacOS, they might be related to https://bugs.python.org/issue33725. You can disable multiprocessing by editing your .boto config or by adding the following flag to your command: `-o \"GSUtil:parallel_process_count=1\"`. Note that multithreading is still available even if you disable multiprocessing.\n\nCopying file://<redacted-local-temp-path> [Content-Type=application/json]...\n/ [0/17 files][    0.0 B/ 96.3 KiB]   0% Done                                   \rCopying file://<redacted-local-temp-path> [Content-Type=application/json]...\n/ [0/17 files][    0.0 B/ 96.3 KiB]   0% Done      ...<truncated>"
+  },
+  "artifacts": [
+    {
+      "relativePath": "phase_46d_beta_gate_input_manifest.json",
+      "kind": "metadata_report",
+      "sizeBytes": 2235,
+      "sha256": "385cc7a72ffc822e5ce5221cc4b6ba5516a3680491fd9339f9dd4bf428f59bc7"
+    },
+    {
+      "relativePath": "phase_46d_blocker_report.json",
+      "kind": "metadata_report",
+      "sizeBytes": 5782,
+      "sha256": "d755d46b94e500acb60fba7a2e150d5a07db4e3ef9298c96e8de427cb37df955"
+    },
+    {
+      "relativePath": "phase_46d_duckdb_blocker_summary.json",
+      "kind": "metadata_report",
+      "sizeBytes": 309,
+      "sha256": "dbadc4491e77672392eba954fa93081da3478b4d29daafabd2c636d5fdf17199"
+    },
+    {
+      "relativePath": "phase_46d_duckdb_polars_consistency_report.json",
+      "kind": "metadata_report",
+      "sizeBytes": 279,
+      "sha256": "3830c2efb44833006bd43c2c47c177ffe60ac70c5f37ec7ee6dcce2995d2d708"
+    },
+    {
+      "relativePath": "phase_46d_duckdb_qa_summary.json",
+      "kind": "metadata_report",
+      "sizeBytes": 1198,
+      "sha256": "1537b4c5f17aa30b36b379fc70f3a5957ccc38fea964b0eafe4ea9afd08bd027"
+    },
+    {
+      "relativePath": "phase_46d_duckdb_reporting_tables.json",
+      "kind": "metadata_report",
+      "sizeBytes": 30079,
+      "sha256": "d86fc0c4d4afd6bdd1405bdf6b9435369e9342cc2a18f7598626a5a29054de66"
+    },
+    {
+      "relativePath": "phase_46d_media_data_readiness_scorecard.json",
+      "kind": "metadata_report",
+      "sizeBytes": 8283,
+      "sha256": "232576ac87e2083670516782d73ed22bfc7b06e015a6b5b09e4292d4a5b45b67"
+    },
+    {
+      "relativePath": "phase_46d_polars_blocker_summary.json",
+      "kind": "metadata_report",
+      "sizeBytes": 309,
+      "sha256": "dbadc4491e77672392eba954fa93081da3478b4d29daafabd2c636d5fdf17199"
+    },
+    {
+      "relativePath": "phase_46d_polars_qa_summary.json",
+      "kind": "metadata_report",
+      "sizeBytes": 1089,
+      "sha256": "a844796c71fdcd282efb9555b72ac2f39b4afd8e4a069908b8e778c4325e8bbb"
+    },
+    {
+      "relativePath": "phase_46d_polars_reporting_tables.json",
+      "kind": "metadata_report",
+      "sizeBytes": 30019,
+      "sha256": "71b1ea9c755353a92b414b36f0cf4f6af75df3c78c0b404a44931b48e3c60376"
+    },
+    {
+      "relativePath": "phase_46d_private_artifact_manifest.json",
+      "kind": "metadata_report",
+      "sizeBytes": 378,
+      "sha256": "4c52fc27157f90b8b49bb41c9435649bef84c27603d5306d26693f1c279614ad"
+    },
+    {
+      "relativePath": "phase_46d_private_artifact_read_report.json",
+      "kind": "metadata_report",
+      "sizeBytes": 2087,
+      "sha256": "a679d67185bf69228a1cdc27be1fc01735d1ba49f2b7df37b8675e902673f37c"
+    },
+    {
+      "relativePath": "phase_46d_reporting_input_manifest.json",
+      "kind": "metadata_report",
+      "sizeBytes": 10659,
+      "sha256": "a427bb51ef097ceab94bd34662ce339fdf9c56ab7403380d0008614610ebeb15"
+    },
+    {
+      "relativePath": "phase_46d_reporting_qa_integration_report.json",
+      "kind": "metadata_report",
+      "sizeBytes": 1052,
+      "sha256": "a41ca98e1f1a47728990f649ffb249171a5f8d25cc8b7daeb5d054222a4dcad5"
+    },
+    {
+      "relativePath": "phase_46d_reporting_qa_plan.json",
+      "kind": "metadata_report",
+      "sizeBytes": 2544,
+      "sha256": "bf4b7ada44090cea21f88972d027f3b41e2b71bc2619a87bba626b94793eac96"
+    },
+    {
+      "relativePath": "phase_46d_reporting_schema.json",
+      "kind": "metadata_report",
+      "sizeBytes": 1744,
+      "sha256": "3a58b42384a61ff8c8c5108207af9f8ef2542ba3249a95c2477a43f1ec073855"
+    },
+    {
+      "relativePath": "phase_46d_storage_privacy_report.json",
+      "kind": "metadata_report",
+      "sizeBytes": 520,
+      "sha256": "bb457a8bd5bce0e95f950c4df688c4fc51839c6edb46d174c6c1626226ebe290"
+    }
+  ]
+}

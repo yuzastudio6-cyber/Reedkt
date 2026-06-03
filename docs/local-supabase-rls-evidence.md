@@ -408,3 +408,30 @@ end $$
 No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20J.
 
 Prompt 20K/local migration-chain follow-up focused on `202605180004_reeditpro_credits_approval_snapshots.sql` is recommended before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20K Evidence Update
+
+Prompt 20K repairs the Prompt 20J migration-chain blocker in `supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql`. It adds nullable compatibility columns for `credit_reservations.approved_plan_snapshot_id`, `credit_ledger_entries.approved_plan_snapshot_id`, and `credit_estimates.edit_plan_version_id`; guards approved snapshot foreign keys; and guards `idx_credit_estimates_project_plan` creation behind table/column/index checks.
+
+Prompt 20K evidence:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Cleared local-only Supabase state before retry and again after failed start; no backup or remote target involved. |
+| `supabase start` | Failed | Passed `202605180004_reeditpro_credits_approval_snapshots.sql`, then failed in `202605180005_reeditpro_generation_assets_jobs.sql` at `idx_generation_requests_project_snapshot` because `public.generation_requests.approved_plan_snapshot_id` does not exist. |
+| `supabase status` | Not run | Start failed before local status could be safely captured. |
+| SQL/RLS smoke test runner | Not run | Prompt 20K stops before SQL/RLS execution. |
+
+Local start failure after Prompt 20K:
+
+```text
+ERROR: column "approved_plan_snapshot_id" does not exist (SQLSTATE 42703)
+At statement: 11
+create index if not exists idx_generation_requests_project_snapshot on public.generation_requests(project_id, approved_plan_snapshot_id)
+```
+
+No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20K.
+
+Prompt 20L/local migration-chain follow-up focused on `202605180005_reeditpro_generation_assets_jobs.sql` is recommended before the Prompt 20B SQL candidate can be run.

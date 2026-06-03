@@ -225,3 +225,19 @@ Manifest state after Prompt 20J:
 - local `supabase start` now fails in `202605180004_reeditpro_credits_approval_snapshots.sql` because `public.credit_reservations.approved_plan_snapshot_id` does not exist in the earlier schema-era table before `credit_reservations_approved_plan_snapshot_id_fkey` is added.
 
 Prompt 20K is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20K Migration Chain Repair Update
+
+Prompt 20K repairs the missing `public.credit_reservations.approved_plan_snapshot_id` blocker in `supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql`. The repair also adds nullable compatibility columns for `credit_ledger_entries.approved_plan_snapshot_id` and `credit_estimates.edit_plan_version_id`, guards approved snapshot FK creation, and guards `idx_credit_estimates_project_plan`.
+
+Manifest state after Prompt 20K:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` passed `202605180004_reeditpro_credits_approval_snapshots.sql`;
+- local `supabase start` now fails in `202605180005_reeditpro_generation_assets_jobs.sql` because `public.generation_requests.approved_plan_snapshot_id` does not exist before `idx_generation_requests_project_snapshot` is created.
+
+Prompt 20L is required before the Prompt 20B SQL candidate can be run.

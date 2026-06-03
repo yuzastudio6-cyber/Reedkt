@@ -67,8 +67,12 @@ crawling, and non-allowlisted public web capture/extraction remain blocked.
 Phase 49J completed optional Brave Search fallback policy review: SearXNG
 remains the default free/open-source provider, Brave is optional paid fallback
 only, disabled by default, and blocked from live API execution until a future
-secret-backed phase. Phase 49K is ready only for Brave-shaped fixture and
-normalizer work.
+secret-backed phase. Phase 49K adds Brave-shaped generated fixture and
+normalizer proof only: Brave remains disabled by default, no API key is added,
+no live Brave API call occurs, no real Brave response/snippet persistence is
+allowed, and provider execution remains blocked. Phase 49L is ready only for
+secret-backed, budgeted, storage-rights-approved Brave controlled live API
+validation.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

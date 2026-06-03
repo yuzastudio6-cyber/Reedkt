@@ -39,3 +39,11 @@ freshness/currentness needs a confidence boost, and all of these are true:
 - A future provider execution phase explicitly confirms Brave use.
 
 No frontend code may receive or log a Brave API key.
+
+## Phase 49K Handoff
+
+Phase 49K may use generated Brave-shaped fixture data to validate source-record
+normalization, SearXNG confidence fallback planning, provider-router decisions,
+and SearXNG/Brave dedupe behavior. Phase 49K still must not call Brave Search
+API, add a key, store real Brave responses, run live search, execute paid
+providers, or unlock production/beta/broad media.

@@ -1,0 +1,10 @@
+{
+  "phase": "46B",
+  "runId": "phase46b-generated-media-data-suite-20260603",
+  "status": "passed",
+  "tempRuntimeOnly": true,
+  "pythonRequirementsPinned": true,
+  "sharpPinned": "0.34.5",
+  "ffmpegCaveat": "PyAV FFmpeg dependency remains tracked; generated-only decode/encode evidence does not approve broad codec use.",
+  "libvipsCaveat": "Sharp/libvips remains worker-only with LGPL/native binary review tracked."
+}

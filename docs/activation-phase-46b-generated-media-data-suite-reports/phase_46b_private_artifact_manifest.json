@@ -1,0 +1,147 @@
+{
+  "phase": "46B",
+  "runId": "phase46b-generated-media-data-suite-20260603",
+  "status": "passed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+  "localArtifactCount": 22,
+  "artifacts": [
+    {
+      "relativePath": "generated-fixtures/generated-container-pyav-probe.mp4",
+      "kind": "generated_private_artifact",
+      "sizeBytes": 1644,
+      "sha256": "a65f39d5376eda934c6a018c6eedac8c646ddef93ee98be09a042cd172002250"
+    },
+    {
+      "relativePath": "generated-fixtures/generated-image-opencv-basic.png",
+      "kind": "generated_private_artifact",
+      "sizeBytes": 1795,
+      "sha256": "1b6d04a3bccd2993c8abf3e87ac1a8cb1e0a92517aec6aaa3c6dbd248189a64e"
+    },
+    {
+      "relativePath": "generated-fixtures/generated-scene-cut-pyscenedetect.mp4",
+      "kind": "generated_private_artifact",
+      "sizeBytes": 4818,
+      "sha256": "9e92278def2201f665c137cff52962596557246837d81539a91fa90c90726a92"
+    },
+    {
+      "relativePath": "generated-fixtures/generated-thumbnail-sharp-libvips.png",
+      "kind": "generated_private_artifact",
+      "sizeBytes": 895,
+      "sha256": "60470a955d2dab282d7960b3c255ef41ed6ff3d4cb74cdffa8584df233691c91"
+    },
+    {
+      "relativePath": "generated-metrics/generated-media-data-metrics.csv",
+      "kind": "generated_private_artifact",
+      "sizeBytes": 277,
+      "sha256": "6ddc77ae3651b68eda74e1cb89d9ac8bef20941e838768891fffb384882348f4"
+    },
+    {
+      "relativePath": "phase_46b_blocker_report.json",
+      "kind": "report",
+      "sizeBytes": 433,
+      "sha256": "ca3aa16decd407b2d5aa69819d505cd49e9c48085bc1bea4da3048795d6d0a1a"
+    },
+    {
+      "relativePath": "phase_46b_cross_tool_manifest.json",
+      "kind": "report",
+      "sizeBytes": 5226,
+      "sha256": "ee314fc4114568d64ec98dbfc281d9311523d35d41dc052f051db6ed68b4a99a"
+    },
+    {
+      "relativePath": "phase_46b_dependency_runtime_report.json",
+      "kind": "report",
+      "sizeBytes": 421,
+      "sha256": "0a02dfbc15f76c629a02dd6924b367fe6e3b9f665769396fdb1a091f51a445d3"
+    },
+    {
+      "relativePath": "phase_46b_duckdb_generated_report.json",
+      "kind": "report",
+      "sizeBytes": 449,
+      "sha256": "ae41969c6dfdc1c87de923d79efbce2d899aa47de838c2076d0ef4e6fe157855"
+    },
+    {
+      "relativePath": "phase_46b_generated_fixture_manifest.json",
+      "kind": "report",
+      "sizeBytes": 810,
+      "sha256": "ff6a5c5c86f0d94952f76722bbf08f8e73d866e7e74fda1180ff01c6648fd4cd"
+    },
+    {
+      "relativePath": "phase_46b_generated_media_data_plan.json",
+      "kind": "report",
+      "sizeBytes": 813,
+      "sha256": "f4e29f422af4f5b9620df72ff9f2b2f72ea525f3f5a0788513c908a6e2b489b2"
+    },
+    {
+      "relativePath": "phase_46b_generated_media_data_qa_report.json",
+      "kind": "report",
+      "sizeBytes": 641,
+      "sha256": "7f09fc67e37c07cab98bed781dbb0e36f4db0115dc6d0cb9722bcd36fe74df98"
+    },
+    {
+      "relativePath": "phase_46b_generated_media_data_suite_report.json",
+      "kind": "report",
+      "sizeBytes": 830,
+      "sha256": "d2012e5decc3af4c0f8add32fdee460a0cb6e982c771d1ea8869411955e0e9a2"
+    },
+    {
+      "relativePath": "phase_46b_opencv_generated_report.json",
+      "kind": "report",
+      "sizeBytes": 754,
+      "sha256": "d65bd03312269d9504f3eee214d7b79aae72f06d8d74bf201439b82dceb81e12"
+    },
+    {
+      "relativePath": "phase_46b_polars_generated_report.json",
+      "kind": "report",
+      "sizeBytes": 442,
+      "sha256": "3d977cdb9f64f55501375cc742d65363001c11b70be117925ba7f639b5719255"
+    },
+    {
+      "relativePath": "phase_46b_private_artifact_manifest.json",
+      "kind": "report",
+      "sizeBytes": 5323,
+      "sha256": "3cf98b706e0bcb64fcaa9af53159decdeb0aa4fd3b03bac10df55de6d68aa84a"
+    },
+    {
+      "relativePath": "phase_46b_pyav_generated_report.json",
+      "kind": "report",
+      "sizeBytes": 1223,
+      "sha256": "c73b7bf9abd6a806d94f9fd1ba1129061ed07e11b2b16c51d8b8707852380727"
+    },
+    {
+      "relativePath": "phase_46b_pyscenedetect_generated_report.json",
+      "kind": "report",
+      "sizeBytes": 805,
+      "sha256": "2725651c2d9234fd9ac6736f0ba57be8c9491b6cc7854a68227b5d2eb3b20b83"
+    },
+    {
+      "relativePath": "phase_46b_runtime_preflight.json",
+      "kind": "report",
+      "sizeBytes": 1352,
+      "sha256": "1e397880ff8790945da0ff5cc9019dd6e86831be50a03d095c0f24c32d33d087"
+    },
+    {
+      "relativePath": "phase_46b_sharp_libvips_generated_report.json",
+      "kind": "report",
+      "sizeBytes": 1398,
+      "sha256": "927183874b8e3df2ce65cd0471d6ec996e56143ea6ddfd6eb91151ef3fbdc124"
+    },
+    {
+      "relativePath": "phase_46b_storage_privacy_report.json",
+      "kind": "report",
+      "sizeBytes": 437,
+      "sha256": "49c69656bf1d11890a1bdeb4522617e3853118417a93d7f6ba62a04641fd38ac"
+    },
+    {
+      "relativePath": "phase_46b_tool_version_report.json",
+      "kind": "report",
+      "sizeBytes": 1008,
+      "sha256": "62e7f8e43ae297cd8d604c9142e80186c2ca00f3de925286f999459bff79f4a2"
+    }
+  ],
+  "privateUpload": {
+    "status": "passed",
+    "prefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+    "objectCount": 43,
+    "refreshedReportObjects": 17
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "phase": "46B",
+  "fixtureId": "generated-container-pyav-probe",
+  "toolId": "pyav",
+  "status": "passed",
+  "generatedOnly": true,
+  "realMedia": "not_used",
+  "versions": {
+    "pyav": "15.1.0",
+    "ffmpegLibrary": {
+      "libavutil": [
+        59,
+        39,
+        100
+      ],
+      "libavcodec": [
+        61,
+        19,
+        101
+      ],
+      "libavformat": [
+        61,
+        7,
+        100
+      ],
+      "libavdevice": [
+        61,
+        3,
+        100
+      ],
+      "libavfilter": [
+        10,
+        4,
+        100
+      ],
+      "libswscale": [
+        8,
+        3,
+        100
+      ],
+      "libswresample": [
+        5,
+        3,
+        100
+      ]
+    }
+  },
+  "metrics": {
+    "streamCount": 1,
+    "decodedFrameCount": 10,
+    "expectedFrameCount": 10,
+    "averageRate": 5.0,
+    "durationSeconds": 2.0
+  },
+  "checks": {
+    "videoStreamPresent": true,
+    "fpsWithinTolerance": true,
+    "decodedFrameCountWithinTolerance": true
+  },
+  "artifact": {
+    "relativePath": "generated-fixtures/generated-container-pyav-probe.mp4",
+    "kind": "generated_fixture_video",
+    "sizeBytes": 1644,
+    "sha256": "a65f39d5376eda934c6a018c6eedac8c646ddef93ee98be09a042cd172002250"
+  }
+}

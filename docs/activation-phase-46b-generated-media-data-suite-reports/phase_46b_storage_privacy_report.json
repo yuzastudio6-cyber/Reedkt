@@ -1,0 +1,11 @@
+{
+  "phase": "46B",
+  "runId": "phase46b-generated-media-data-suite-20260603",
+  "status": "passed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+  "generatedOnly": true,
+  "realMedia": "not_used",
+  "publicArtifacts": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked",
+  "committedBinaryFixtures": "blocked"
+}

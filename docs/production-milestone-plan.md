@@ -398,6 +398,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: media/source-sequence migration-chain blocker is repaired, local start is attempted only after safety gates pass, new migration failure stops SQL execution, no remote/staging/production target is touched, and next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 20J - Local Supabase Migration Chain Repair Follow-Up 3 for `202605180003_reeditpro_intent_plan_versions.sql`.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 20J. Local Supabase Migration Chain Repair Follow-Up 3
+
+- Purpose: repair the Prompt 20I local migration-chain blocker in `202605180003_reeditpro_intent_plan_versions.sql` and retry local start without running SQL/RLS tests.
+- Deliverables after Prompt 20J: `docs/prompt-20j-local-supabase-migration-chain-repair-follow-up-3.md`, `docs/implementation-prompts/prompt-20j-local-supabase-migration-chain-repair-follow-up-3.md`, additive compatibility updates to `supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql`, local evidence updates, manifest updates, scorecard/blocker updates, workflow trigger coverage for the Prompt 20I base branch, and tracker updates.
+- Implementation status after Prompt 20J: validation blocked / local migration-chain repair only. No SQL/RLS smoke test, staging, remote, production, provider, worker, tool, render, media, storage, credit, Stripe, telemetry, or beta unlock is enabled.
+- Implements: missing `edit_plan_segments.edit_plan_version_id`, guarded `edit_plan_segments_edit_plan_version_id_fkey`, and guarded `idx_edit_plan_segments_plan_order` creation, allowing local `supabase start` to pass `202605180003_reeditpro_intent_plan_versions.sql`.
+- Must not implement: staging/remote/production Supabase execution, remote SQL, SQL/RLS smoke tests, production migration deployment, provider calls, rendering/export, tool execution, worker execution, production job claims, media processing, storage transfer, signed URL creation, credit mutation, Stripe/payment processing, external telemetry, dependency mutation, or production/beta unlock.
+- What remains blocked: local SQL/RLS execution, localhost-only DB URL capture, staging Supabase/RLS execution, remote production Supabase, and beta approval.
+- Validation result: local tools pass (`supabase` 2.104.0, Docker 29.5.2, `psql` 18.4), preflight reports `remoteRiskDetected=false` and `canStartLocalSupabase=true`, `supabase start` passes `202605180003_reeditpro_intent_plan_versions.sql` and then fails at `202605180004_reeditpro_credits_approval_snapshots.sql` because `public.credit_reservations.approved_plan_snapshot_id` is missing before `credit_reservations_approved_plan_snapshot_id_fkey` is added.
+- Acceptance criteria: intent-plan migration-chain blocker is repaired, local start is attempted only after safety gates pass, new migration failure stops SQL execution, no remote/staging/production target is touched, and next prompt recommendation is clear.
+- Next prompt recommendation: Prompt 20K - Local Supabase Migration Chain Repair Follow-Up 4 for `202605180004_reeditpro_credits_approval_snapshots.sql`.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

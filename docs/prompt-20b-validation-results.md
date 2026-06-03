@@ -138,3 +138,19 @@ create index if not exists idx_edit_plan_segments_plan_order on public.edit_plan
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20J - Local Supabase Migration Chain Repair Follow-Up 3, focused on `202605180003_reeditpro_intent_plan_versions.sql`.
+
+## Prompt 20J Follow-Up
+
+Prompt 20J repaired the `public.edit_plan_segments.edit_plan_version_id` migration-chain blocker in `supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql` by adding the nullable compatibility column, guarding the plan-version FK, and guarding `idx_edit_plan_segments_plan_order`.
+
+After the repair, local `supabase start` passed `202605180003_reeditpro_intent_plan_versions.sql` and advanced to the next migration-chain blocker:
+
+```text
+ERROR: column "approved_plan_snapshot_id" referenced in foreign key constraint does not exist (SQLSTATE 42703)
+At statement: 12
+credit_reservations_approved_plan_snapshot_id_fkey
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20K - Local Supabase Migration Chain Repair Follow-Up 4, focused on `202605180004_reeditpro_credits_approval_snapshots.sql`.

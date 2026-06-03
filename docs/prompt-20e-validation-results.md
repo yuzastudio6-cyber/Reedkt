@@ -7,7 +7,7 @@ Prompt 20E verifies the host local Supabase manual setup state after Prompt 20D.
 - Branch: `codex/rp-foundation-20e-local-supabase-manual-setup-follow-up`
 - Base: `origin/codex/rp-foundation-20d-manual-environment-setup-verification`
 - Prompt 20D PR: [PR #124](https://github.com/yuzastudio6-cyber/Reedkt/pull/124)
-- Prompt 20E PR: pending
+- Prompt 20E PR: [PR #127](https://github.com/yuzastudio6-cyber/Reedkt/pull/127)
 
 ## Files Created
 

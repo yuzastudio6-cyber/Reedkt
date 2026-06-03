@@ -1,0 +1,170 @@
+{
+  "phase": "36I",
+  "runId": "phase36i-signalsmith-stretch-generated-fixture-20260603",
+  "status": "passed",
+  "generatedAudioOnly": true,
+  "fixtures": [
+    {
+      "fixtureId": "generated-stretch-sine-noise-125",
+      "kind": "sine_noise",
+      "stretchRatio": 1.25,
+      "durationSeconds": 2,
+      "expectedDurationSeconds": 2.5,
+      "durationTolerancePercent": 2,
+      "status": "passed",
+      "runtimeResult": {
+        "args": [
+          "<signalsmith-generated-fixture-binary>",
+          "<input.raw>",
+          "<output.raw>",
+          "48000",
+          "96000",
+          "120000"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "durationMs": 290,
+        "stdoutSummary": "{\"status\":\"passed\",\"sampleRate\":48000,\"inputSamples\":96000,\"outputSamples\":120000,\"inputLatency\":2880,\"outputLatency\":2880}",
+        "stderrSummary": ""
+      },
+      "latencyMs": 290,
+      "inputMetrics": {
+        "durationSeconds": 2,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.24371079,
+        "peak": 0.37497747,
+        "clippingCount": 0,
+        "silenceRatio": 0.00221875,
+        "dominantFrequencyHz": 1060,
+        "transientCountProxy": 0
+      },
+      "outputMetrics": {
+        "durationSeconds": 2.5,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.23887865,
+        "peak": 0.39789391,
+        "clippingCount": 0,
+        "silenceRatio": 0.05198333,
+        "dominantFrequencyHz": 780,
+        "transientCountProxy": 0
+      },
+      "durationRatio": 1.25,
+      "durationErrorSeconds": 0,
+      "toleranceSeconds": 0.05,
+      "inputSha256": "85e93e864842aaf0b5a25500284521794cedd8b32f3a7eddf34d50a12e60480e",
+      "outputSha256": "bbd4facd464d5a088c04872684d4af3de50ef3d705c11936c3993e8bdcbaeb14",
+      "privacy": "private_temp_only"
+    },
+    {
+      "fixtureId": "generated-stretch-chirp-075",
+      "kind": "chirp",
+      "stretchRatio": 0.75,
+      "durationSeconds": 2,
+      "expectedDurationSeconds": 1.5,
+      "durationTolerancePercent": 2,
+      "status": "passed",
+      "runtimeResult": {
+        "args": [
+          "<signalsmith-generated-fixture-binary>",
+          "<input.raw>",
+          "<output.raw>",
+          "48000",
+          "96000",
+          "72000"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "durationMs": 8,
+        "stdoutSummary": "{\"status\":\"passed\",\"sampleRate\":48000,\"inputSamples\":96000,\"outputSamples\":72000,\"inputLatency\":2880,\"outputLatency\":2880}",
+        "stderrSummary": ""
+      },
+      "latencyMs": 8,
+      "inputMetrics": {
+        "durationSeconds": 2,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.22247111,
+        "peak": 0.32,
+        "clippingCount": 0,
+        "silenceRatio": 0.00240625,
+        "dominantFrequencyHz": 1060,
+        "transientCountProxy": 0
+      },
+      "outputMetrics": {
+        "durationSeconds": 1.5,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.2104418,
+        "peak": 0.31657413,
+        "clippingCount": 0,
+        "silenceRatio": 0.06327778,
+        "dominantFrequencyHz": 1080,
+        "transientCountProxy": 0
+      },
+      "durationRatio": 0.75,
+      "durationErrorSeconds": 0,
+      "toleranceSeconds": 0.03,
+      "inputSha256": "a2731196c521610a0219077ca42ee3e6159612375bd9dd6e4c3dc74cda66992f",
+      "outputSha256": "6ed0c1f60a8dc3eb41ce715051f99a9abab1c992d7b2e659d3fc592b0ea4cd7b",
+      "privacy": "private_temp_only"
+    },
+    {
+      "fixtureId": "generated-stretch-click-track-150",
+      "kind": "click_track",
+      "stretchRatio": 1.5,
+      "durationSeconds": 2,
+      "expectedDurationSeconds": 3,
+      "durationTolerancePercent": 5,
+      "stressFixture": true,
+      "status": "passed",
+      "runtimeResult": {
+        "args": [
+          "<signalsmith-generated-fixture-binary>",
+          "<input.raw>",
+          "<output.raw>",
+          "48000",
+          "96000",
+          "144000"
+        ],
+        "returncode": 0,
+        "status": "passed",
+        "durationMs": 13,
+        "stdoutSummary": "{\"status\":\"passed\",\"sampleRate\":48000,\"inputSamples\":96000,\"outputSamples\":144000,\"inputLatency\":2880,\"outputLatency\":2880}",
+        "stderrSummary": ""
+      },
+      "latencyMs": 13,
+      "inputMetrics": {
+        "durationSeconds": 2,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.06275026,
+        "peak": 0.75,
+        "clippingCount": 0,
+        "silenceRatio": 0.97907292,
+        "dominantFrequencyHz": 160,
+        "transientCountProxy": 0
+      },
+      "outputMetrics": {
+        "durationSeconds": 3,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.05973621,
+        "peak": 0.59350801,
+        "clippingCount": 0,
+        "silenceRatio": 0.6104375,
+        "dominantFrequencyHz": 140,
+        "transientCountProxy": 0
+      },
+      "durationRatio": 1.5,
+      "durationErrorSeconds": 0,
+      "toleranceSeconds": 0.15,
+      "inputSha256": "ad9c5f423d205d0fc6a1e7935d4127acfd3ed8a91f501034b428f0f7e9e75442",
+      "outputSha256": "d82fa75affbe058c81a8e09634223abec99fad97485d206e0bc9d1c82100d0c7",
+      "privacy": "private_temp_only"
+    }
+  ],
+  "realMedia": "blocked",
+  "controlledMedia": "blocked"
+}

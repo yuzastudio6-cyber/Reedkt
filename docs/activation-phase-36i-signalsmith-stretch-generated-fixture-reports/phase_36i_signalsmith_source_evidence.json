@@ -1,0 +1,19 @@
+{
+  "phase": "36I",
+  "runId": "phase36i-signalsmith-stretch-generated-fixture-20260603",
+  "status": "passed",
+  "evidence": [
+    {
+      "url": "https://signalsmith-audio.co.uk/code/stretch/",
+      "evidenceType": "official_project_page",
+      "summary": "Official Signalsmith Stretch page documents a C++11 header-only pitch/time-stretch class, process API, latency/pre-roll caveats, compiler notes, and MIT licensing.",
+      "dateAccessed": "2026-06-03"
+    },
+    {
+      "url": "https://github.com/Signalsmith-Audio/signalsmith-stretch",
+      "evidenceType": "official_github_mirror",
+      "summary": "GitHub mirror contains signalsmith-stretch.h, include/signalsmith-stretch, dsp support files, README, tags, and MIT license evidence.",
+      "dateAccessed": "2026-06-03"
+    }
+  ]
+}

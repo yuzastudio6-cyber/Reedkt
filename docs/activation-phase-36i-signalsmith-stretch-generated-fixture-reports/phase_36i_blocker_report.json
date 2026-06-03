@@ -1,0 +1,30 @@
+{
+  "phase": "36I",
+  "runId": "phase36i-signalsmith-stretch-generated-fixture-20260603",
+  "status": "passed",
+  "blockers": [],
+  "blockedScopes": [
+    "Phase 36J controlled real-media timing/stretch until Phase 36I passes",
+    "Demucs until provenance/legal approval",
+    "Demucs download/runtime/source separation",
+    "DeepFilterNet runtime execution in Phase 36I",
+    "controlled real media",
+    "real media",
+    "broad media",
+    "arbitrary media paths",
+    "public media URLs",
+    "signed URLs as source of truth",
+    "VLM runtime retries",
+    "OCR runtime",
+    "provider calls",
+    "production",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "public output",
+    "Docker/Cloud Build/Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ]
+}

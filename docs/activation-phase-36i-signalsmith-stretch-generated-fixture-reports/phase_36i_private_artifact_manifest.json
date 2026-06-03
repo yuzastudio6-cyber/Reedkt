@@ -1,0 +1,146 @@
+{
+  "status": "passed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/",
+  "objectCount": 17,
+  "uploads": [
+    {
+      "relativePath": "generated-fixtures/generated-stretch-chirp-075.input.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-chirp-075.input.raw",
+      "status": "passed",
+      "durationMs": 3784,
+      "sha256": "a9c8ccd35a45f6a80db791665a5d9d1239861c62485e9b39976afb9725901241",
+      "sizeBytes": 384000
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-chirp-075.input.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-chirp-075.input.wav",
+      "status": "passed",
+      "durationMs": 2829,
+      "sha256": "a2731196c521610a0219077ca42ee3e6159612375bd9dd6e4c3dc74cda66992f",
+      "sizeBytes": 192044
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-chirp-075.output.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-chirp-075.output.raw",
+      "status": "passed",
+      "durationMs": 2998,
+      "sha256": "ab8406f3d27b69939e5d0f2c27a1bbe38c00081adbb81bed6f6603afc82b3e9a",
+      "sizeBytes": 288000
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-chirp-075.output.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-chirp-075.output.wav",
+      "status": "passed",
+      "durationMs": 2986,
+      "sha256": "6ed0c1f60a8dc3eb41ce715051f99a9abab1c992d7b2e659d3fc592b0ea4cd7b",
+      "sizeBytes": 144044
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-click-track-150.input.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-click-track-150.input.raw",
+      "status": "passed",
+      "durationMs": 2982,
+      "sha256": "fa55e5ddcca2c7aab437d5ea553c524c33c18d298b3763626459bc7b86614d5c",
+      "sizeBytes": 384000
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-click-track-150.input.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-click-track-150.input.wav",
+      "status": "passed",
+      "durationMs": 2815,
+      "sha256": "ad9c5f423d205d0fc6a1e7935d4127acfd3ed8a91f501034b428f0f7e9e75442",
+      "sizeBytes": 192044
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-click-track-150.output.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-click-track-150.output.raw",
+      "status": "passed",
+      "durationMs": 3590,
+      "sha256": "7966825f9fb5d563c40754128aab4624eb74199a6717f7de6bfc9d5a33de5ffa",
+      "sizeBytes": 576000
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-click-track-150.output.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-click-track-150.output.wav",
+      "status": "passed",
+      "durationMs": 2626,
+      "sha256": "d82fa75affbe058c81a8e09634223abec99fad97485d206e0bc9d1c82100d0c7",
+      "sizeBytes": 288044
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-sine-noise-125.input.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-sine-noise-125.input.raw",
+      "status": "passed",
+      "durationMs": 3226,
+      "sha256": "f762974209f754788ff455d8654ef26c9c576dbfb19a12472b1924c0d8f63ba9",
+      "sizeBytes": 384000
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-sine-noise-125.input.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-sine-noise-125.input.wav",
+      "status": "passed",
+      "durationMs": 2768,
+      "sha256": "85e93e864842aaf0b5a25500284521794cedd8b32f3a7eddf34d50a12e60480e",
+      "sizeBytes": 192044
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-sine-noise-125.output.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-sine-noise-125.output.raw",
+      "status": "passed",
+      "durationMs": 2894,
+      "sha256": "d38cee58a16a5988a48e7ba16f42e6a7a80fc6448de8cfa54e3c76f4339df9a3",
+      "sizeBytes": 480000
+    },
+    {
+      "relativePath": "generated-fixtures/generated-stretch-sine-noise-125.output.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/generated-fixtures/generated-stretch-sine-noise-125.output.wav",
+      "status": "passed",
+      "durationMs": 2965,
+      "sha256": "bbd4facd464d5a088c04872684d4af3de50ef3d705c11936c3993e8bdcbaeb14",
+      "sizeBytes": 240044
+    },
+    {
+      "relativePath": "reports/phase_36i_worker_audio_metrics.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/reports/phase_36i_worker_audio_metrics.json",
+      "status": "passed",
+      "durationMs": 2431,
+      "sha256": "95e2bcf6f51c25d22240a1ac5e075264fbedc63c2517cf94f3a128bb7a04d99e",
+      "sizeBytes": 3022
+    },
+    {
+      "relativePath": "reports/phase_36i_worker_binary.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/reports/phase_36i_worker_binary.json",
+      "status": "passed",
+      "durationMs": 2404,
+      "sha256": "7a70aaf0ed9408d0b32f8700f67dcff6a9b407be4ec8279d2a24214f6ec9cab6",
+      "sizeBytes": 182
+    },
+    {
+      "relativePath": "reports/phase_36i_worker_build.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/reports/phase_36i_worker_build.json",
+      "status": "passed",
+      "durationMs": 2652,
+      "sha256": "6026e120fd5a758785c17ed05f3fd526c54294a89038ce5934b0feae0b6e2947",
+      "sizeBytes": 474
+    },
+    {
+      "relativePath": "reports/phase_36i_worker_generated_audio_qa.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/reports/phase_36i_worker_generated_audio_qa.json",
+      "status": "passed",
+      "durationMs": 2234,
+      "sha256": "dc5f5b11ec5db1663d65fa31dd8b4b082a0e8ba6b2fe21c914e94dfba43d9698",
+      "sizeBytes": 5236
+    },
+    {
+      "relativePath": "reports/phase_36i_worker_source_fetch.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/reports/phase_36i_worker_source_fetch.json",
+      "status": "passed",
+      "durationMs": 2466,
+      "sha256": "9323b7670cff3cefcf9fa9aebeda1284c97c8b0ed6d08232983804e4fffdbcc6",
+      "sizeBytes": 3731
+    }
+  ],
+  "blockers": [],
+  "publicOutput": "blocked",
+  "signedUrls": "blocked"
+}

@@ -1,0 +1,24 @@
+{
+  "phase": "36I",
+  "runId": "phase36i-signalsmith-stretch-generated-fixture-20260603",
+  "status": "passed",
+  "selectedSource": {
+    "repository": "https://github.com/Signalsmith-Audio/signalsmith-stretch.git",
+    "tag": "1.1.0",
+    "commit": "44c8f865af9da8c29cc4a70a2d5a3ec83639c711",
+    "upstreamMainHeadForReferenceOnly": "57b93f4e9206a089a45387eaa39bdc9f310d3308"
+  },
+  "apiEvidence": [
+    "signalsmith::stretch::SignalsmithStretch<float>",
+    ".presetDefault(channels, sampleRate)",
+    ".process(inputBuffers, inputSamples, outputBuffers, outputSamples)",
+    ".setTransposeSemitones(...) available but pitch fixture deferred unless explicitly safe"
+  ],
+  "caveats": [
+    "time-stretch best for modest 0.75x-1.5x ratios",
+    "latency/pre-roll and flushing must be handled by future production worker design",
+    "compiler caveats include AppleClang 16 and fast-math warning from upstream README",
+    "Signalsmith Linear support files are required for FFT/speedups",
+    "Phase 36I does not select web/npm/Python/Rust wrappers"
+  ]
+}

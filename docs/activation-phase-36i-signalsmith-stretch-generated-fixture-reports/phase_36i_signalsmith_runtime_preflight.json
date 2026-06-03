@@ -1,0 +1,70 @@
+{
+  "phase": "36I",
+  "runId": "phase36i-signalsmith-stretch-generated-fixture-20260603",
+  "status": "passed",
+  "checks": [
+    {
+      "command": "python3",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 19,
+      "stdoutSummary": "Python 3.9.6"
+    },
+    {
+      "command": "c++",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 20,
+      "stdoutSummary": "Apple clang version 16.0.0 (clang-1600.0.26.3)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    {
+      "command": "clang++",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 20,
+      "stdoutSummary": "Apple clang version 16.0.0 (clang-1600.0.26.3)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    {
+      "command": "g++",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 22,
+      "stdoutSummary": "Apple clang version 16.0.0 (clang-1600.0.26.3)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    {
+      "command": "git",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 13,
+      "stdoutSummary": "git version 2.39.5 (Apple Git-154)"
+    },
+    {
+      "command": "curl",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 8,
+      "stdoutSummary": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.1\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets"
+    }
+  ],
+  "compilerAvailable": true,
+  "platform": {
+    "os": "darwin",
+    "arch": "arm64",
+    "node": "v24.14.0"
+  },
+  "tempWorkspacePolicy": "temp_only_no_repo_binaries_or_source_archives",
+  "privateArtifactUploadPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36i/signalsmith-stretch-generated-audio/phase36i-signalsmith-stretch-generated-fixture-20260603/",
+  "blockers": []
+}

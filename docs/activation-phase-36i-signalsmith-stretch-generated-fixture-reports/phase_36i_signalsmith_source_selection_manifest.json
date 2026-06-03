@@ -1,0 +1,11 @@
+{
+  "phase": "36I",
+  "runId": "phase36i-signalsmith-stretch-generated-fixture-20260603",
+  "status": "passed",
+  "repository": "https://github.com/Signalsmith-Audio/signalsmith-stretch.git",
+  "selectedTag": "1.1.0",
+  "selectedCommit": "44c8f865af9da8c29cc4a70a2d5a3ec83639c711",
+  "upstreamMainHeadForReferenceOnly": "57b93f4e9206a089a45387eaa39bdc9f310d3308",
+  "actualCommit": "44c8f865af9da8c29cc4a70a2d5a3ec83639c711",
+  "selectionPolicy": "exact_tag_commit_no_floating_main"
+}

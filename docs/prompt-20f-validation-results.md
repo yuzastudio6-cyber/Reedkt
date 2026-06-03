@@ -7,7 +7,7 @@ Prompt 20F verifies whether manual host tool repair happened after Prompt 20E. I
 - Branch: `codex/rp-foundation-20f-manual-host-tool-repair-verification`
 - Base: `origin/codex/rp-foundation-20e-local-supabase-manual-setup-follow-up`
 - Prompt 20E PR: [PR #127](https://github.com/yuzastudio6-cyber/Reedkt/pull/127)
-- Prompt 20F PR: pending creation
+- Prompt 20F PR: [PR #131](https://github.com/yuzastudio6-cyber/Reedkt/pull/131)
 
 ## Files Created
 
@@ -118,7 +118,7 @@ Commands use `PATH=/Applications/Codex.app/Contents/Resources:/usr/local/bin:/op
 
 ## CI Status
 
-Pending PR creation.
+Pending GitHub Foundation Validation for [PR #131](https://github.com/yuzastudio6-cyber/Reedkt/pull/131).
 
 ## Supabase Touch Status
 

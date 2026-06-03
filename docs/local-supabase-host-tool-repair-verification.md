@@ -11,6 +11,7 @@ Prompt 20F checks the local host state before Prompt 20B. Prompt 20B may proceed
 - Branch: `codex/rp-foundation-20f-manual-host-tool-repair-verification`
 - Base: `origin/codex/rp-foundation-20e-local-supabase-manual-setup-follow-up`
 - PR base: `codex/rp-foundation-20e-local-supabase-manual-setup-follow-up`
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/131
 - Exact production capability enabled: `none; local host tool repair verification only`
 
 ## Prompt 20E CI Baseline

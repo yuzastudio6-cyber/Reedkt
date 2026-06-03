@@ -380,7 +380,11 @@
     "activation:web-search-regression-suite": "tsx server/cli/activation-web-search-regression-suite.ts",
     "activation:web-search-regression-suite:report": "tsx server/cli/activation-web-search-regression-suite-report.ts",
     "activation:web-search-regression-suite:iam-plan": "tsx server/cli/activation-web-search-regression-suite-iam-plan.ts",
-    "smoke:activation-web-search-regression-suite": "tsx server/smoke/activation-web-search-regression-suite-smoke.ts"
+    "smoke:activation-web-search-regression-suite": "tsx server/smoke/activation-web-search-regression-suite-smoke.ts",
+    "activation:web-search-internal-beta-candidate": "tsx server/cli/activation-web-search-internal-beta-candidate.ts",
+    "activation:web-search-internal-beta-candidate:report": "tsx server/cli/activation-web-search-internal-beta-candidate-report.ts",
+    "activation:web-search-internal-beta-candidate:iam-plan": "tsx server/cli/activation-web-search-internal-beta-candidate-iam-plan.ts",
+    "smoke:activation-web-search-internal-beta-candidate": "tsx server/smoke/activation-web-search-internal-beta-candidate-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

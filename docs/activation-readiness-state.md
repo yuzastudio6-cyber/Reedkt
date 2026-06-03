@@ -91,7 +91,13 @@ local/generated regression scenarios passed across provider blocking, Brave
 secret/budget/storage policy failures, capture failures, browser/Sharp/
 Readability failures, artifact privacy failures, API/UI gating failures, and
 production/beta flag rejection. Phase 49P can proceed only as a controlled
-internal beta candidate gate or system reconciliation.
+internal beta candidate gate or system reconciliation. Phase 49P completed the final
+web search/capture internal beta candidate closure: it consolidates Phase
+49A-49O evidence, audits private SearXNG and Brave secret metadata without
+reading secret values, verifies UI/API gating and regression state, and keeps
+the result limited to controlled internal beta candidate scope. The completed
+run is `phase49p-20260603T21361`, with `webSearchInternalBetaCandidateReady=true`.
+Phase 50A may start only as map/geospatial stack approval and architecture.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

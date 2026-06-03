@@ -21,6 +21,60 @@ create table if not exists public.media_assets (
   updated_at timestamptz not null default now()
 );
 
+alter table public.media_assets
+  add column if not exists status text not null default 'uploaded';
+
+alter table public.media_assets
+  add column if not exists size_bytes bigint;
+
+alter table public.media_assets
+  add column if not exists metadata_json jsonb not null default '{}'::jsonb;
+
+do $$
+begin
+  if to_regclass('public.media_assets') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'media_assets'
+         and column_name = 'file_size_bytes'
+     )
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'media_assets'
+         and column_name = 'size_bytes'
+     ) then
+    update public.media_assets
+    set size_bytes = file_size_bytes
+    where size_bytes is null
+      and file_size_bytes is not null;
+  end if;
+
+  if to_regclass('public.media_assets') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'media_assets'
+         and column_name = 'metadata'
+     )
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'media_assets'
+         and column_name = 'metadata_json'
+     ) then
+    update public.media_assets
+    set metadata_json = metadata
+    where metadata_json = '{}'::jsonb
+      and metadata is not null;
+  end if;
+end $$;
+
 create table if not exists public.uploaded_clips (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,
@@ -61,7 +115,28 @@ comment on table public.uploaded_clips is 'Uploaded clips preserve source/story 
 comment on table public.source_sequence_items is 'Source sequence confirmations must happen before approval when multiple clips are involved.';
 comment on table public.clip_analysis_snapshots is 'Future analysis snapshots are worker/service generated; no real analysis is run by this migration.';
 
-create index if not exists idx_media_assets_project_status on public.media_assets(project_id, status);
+do $$
+begin
+  if to_regclass('public.media_assets') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'media_assets'
+         and column_name = 'project_id'
+     )
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'media_assets'
+         and column_name = 'status'
+     )
+     and to_regclass('public.idx_media_assets_project_status') is null then
+    create index idx_media_assets_project_status on public.media_assets(project_id, status);
+  end if;
+end $$;
+
 create index if not exists idx_uploaded_clips_project_order on public.uploaded_clips(project_id, uploaded_order);
 create index if not exists idx_source_sequence_session_confirmed on public.source_sequence_items(edit_session_id, confirmed_order);
 create index if not exists idx_source_sequence_project_order on public.source_sequence_items(project_id, source_order);

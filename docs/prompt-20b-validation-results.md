@@ -122,3 +122,19 @@ create index if not exists idx_media_assets_project_status on public.media_asset
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20I - Local Supabase Migration Chain Repair Follow-Up, focused on `202605180002_reeditpro_media_source_sequence.sql`.
+
+## Prompt 20I Follow-Up
+
+Prompt 20I repaired the `public.media_assets.status` migration-chain blocker in `supabase/migrations/202605180002_reeditpro_media_source_sequence.sql` by adding additive Prompt 4-era compatibility columns for `status`, `size_bytes`, and `metadata_json`, guarded backfills from legacy columns, and guarded `idx_media_assets_project_status` creation.
+
+After the repair, local `supabase start` passed `202605180002_reeditpro_media_source_sequence.sql` and advanced to the next migration-chain blocker:
+
+```text
+ERROR: column "edit_plan_version_id" does not exist (SQLSTATE 42703)
+At statement: 14
+create index if not exists idx_edit_plan_segments_plan_order on public.edit_plan_segments(edit_plan_version_id, segment_order)
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20J - Local Supabase Migration Chain Repair Follow-Up 3, focused on `202605180003_reeditpro_intent_plan_versions.sql`.

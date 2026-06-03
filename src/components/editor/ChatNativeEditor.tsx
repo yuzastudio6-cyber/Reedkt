@@ -80,6 +80,7 @@ import { InlineTrimReviewCard } from './InlineTrimReviewCard'
 import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
 import { InlineVisualAssetPlanCard } from './InlineVisualAssetPlanCard'
 import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
+import { InlineWebSearchCaptureGateCard } from './InlineWebSearchCaptureGateCard'
 import { MinimalProjectHeader } from './MinimalProjectHeader'
 import { MusicPlanChatFlow } from './music/MusicPlanChatFlow'
 import { PreviewReadyCard } from './PreviewReadyCard'
@@ -761,6 +762,12 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
           {setupReady && showCard('tool_registry') && (
             <ChatMessage role="ai">
               <InlineToolRegistryCard descriptor={cardById.tool_registry} plan={plan} />
+            </ChatMessage>
+          )}
+
+          {setupReady && showCard('web_search_capture_gate') && (
+            <ChatMessage role="ai">
+              <InlineWebSearchCaptureGateCard descriptor={cardById.web_search_capture_gate} />
             </ChatMessage>
           )}
 

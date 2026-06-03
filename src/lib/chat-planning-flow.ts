@@ -703,6 +703,17 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       hiddenInCompactMode: true,
     }),
     descriptor({
+      id: 'web_search_capture_gate',
+      label: 'Web search/capture gate',
+      phase: 'plan',
+      priority: 'developer_detail',
+      status: 'ready',
+      defaultExpanded: false,
+      requiredBeforeApproval: false,
+      summary: 'Internal UI/API gate is ready for private-fixture provider requests only; live search, browser capture, extraction, paid providers, and production/beta remain blocked.',
+      hiddenInCompactMode: true,
+    }),
+    descriptor({
       id: 'render_strategy',
       label: 'Render strategy',
       phase: 'plan',

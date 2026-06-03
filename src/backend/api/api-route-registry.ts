@@ -14,6 +14,7 @@ import { SFX_API_ROUTES } from './routes/sfx-api-routes'
 import { STORAGE_API_ROUTES } from './routes/storage-api-routes'
 import { STORYTIMING_API_ROUTES } from './routes/storytiming-api-routes'
 import { STRIPE_API_ROUTES } from './routes/stripe-api-routes'
+import { WEB_SEARCH_API_ROUTES } from './routes/web-search-api-routes'
 
 export interface ApiRouteMapSummary {
   totalRoutes: number
@@ -39,6 +40,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...STORYTIMING_API_ROUTES,
   ...STORAGE_API_ROUTES,
   ...PROVIDER_API_ROUTES,
+  ...WEB_SEARCH_API_ROUTES,
   ...ADMIN_API_ROUTES,
   ...STRIPE_API_ROUTES,
 ]
@@ -57,6 +59,7 @@ const API_DOMAINS: ApiDomain[] = [
   'storytiming',
   'storage',
   'providers',
+  'web_search',
   'admin',
   'stripe',
 ]
@@ -127,6 +130,7 @@ function createEmptyDomainSummary(): Record<ApiDomain, number> {
     storytiming: 0,
     storage: 0,
     providers: 0,
+    web_search: 0,
     admin: 0,
     stripe: 0,
   }

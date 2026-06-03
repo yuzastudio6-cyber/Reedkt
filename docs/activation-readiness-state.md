@@ -59,10 +59,12 @@ readiness gate for `phase49h-20260603T020009`: it audited existing Phase 49A-49G
 Cloud Run metadata/IAM, provider gates, private artifact paths, docs/scripts
 consistency, and fail-closed policy only. It did not run a new search query,
 browser capture, Sharp processing, Readability extraction, Docker build/push,
-or Cloud Run deploy. Phase 49I readiness is limited to UI/API integration and
-internal UX gating. Public SearXNG instances, paid
-providers, arbitrary URL capture, broad crawling, and non-allowlisted public
-web capture/extraction remain blocked.
+or Cloud Run deploy. Phase 49I completed for `phase49i-20260603T031706`,
+adding internal authenticated API gates, strict request validation,
+frontend-safe route metadata/mock handlers, and a chat-native developer UX gate
+only. Public SearXNG instances, paid providers, arbitrary URL capture, broad
+crawling, and non-allowlisted public web capture/extraction remain blocked.
+Phase 49J readiness is limited to optional Brave Search fallback policy review.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

@@ -435,3 +435,36 @@ create index if not exists idx_generation_requests_project_snapshot on public.ge
 No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20K.
 
 Prompt 20L/local migration-chain follow-up focused on `202605180005_reeditpro_generation_assets_jobs.sql` is recommended before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20L Evidence Update
+
+Prompt 20L repairs the Prompt 20K migration-chain blocker in `supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql`. It adds `public.generation_requests.approved_plan_snapshot_id` as a nullable compatibility column, guards the approved snapshot FK, guards `idx_generation_requests_project_snapshot`, adds `public.generated_asset_versions.version`, backfills it from `version_number` where that legacy column exists, and guards `idx_generated_asset_versions_asset_version`.
+
+Prompt 20L evidence:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Cleared local-only Supabase state before retry; no backup or remote target involved. |
+| `supabase start` | Failed | Passed `202605180005_reeditpro_generation_assets_jobs.sql`, then failed in `202605180006_reeditpro_qa_exports_audit.sql` while creating `qa_check_results` because `check text` is a syntax error. |
+| `supabase status` | Not run | Start failed before local status could be safely captured. |
+| SQL/RLS smoke test runner | Not run | Prompt 20L stops before SQL/RLS execution. |
+
+Local start failure after Prompt 20L:
+
+```text
+ERROR: syntax error at or near "text" (SQLSTATE 42601)
+At statement: 1
+create table if not exists public.qa_check_results (
+  id uuid primary key default gen_random_uuid(),
+  qa_report_id uuid not null references public.qa_reports(id) on delete cascade,
+  category text,
+  label text,
+  check text,
+        ^
+```
+
+No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20L.
+
+Prompt 20M/local migration-chain follow-up focused on `202605180006_reeditpro_qa_exports_audit.sql` is recommended before the Prompt 20B SQL candidate can be run.

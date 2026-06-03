@@ -18,6 +18,9 @@ create table if not exists public.generation_requests (
   updated_at timestamptz not null default now()
 );
 
+alter table public.generation_requests
+  add column if not exists approved_plan_snapshot_id uuid;
+
 create table if not exists public.generation_events (
   id uuid primary key default gen_random_uuid(),
   generation_request_id uuid not null references public.generation_requests(id) on delete cascade,
@@ -53,6 +56,33 @@ create table if not exists public.generated_asset_versions (
   status text not null default 'ready',
   created_at timestamptz not null default now()
 );
+
+alter table public.generated_asset_versions
+  add column if not exists version integer;
+
+do $$
+begin
+  if to_regclass('public.generated_asset_versions') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'generated_asset_versions'
+        and column_name = 'version'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'generated_asset_versions'
+        and column_name = 'version_number'
+    )
+  then
+    update public.generated_asset_versions
+      set version = version_number
+      where version is null;
+  end if;
+end $$;
 
 create table if not exists public.editing_jobs (
   id uuid primary key default gen_random_uuid(),
@@ -95,11 +125,88 @@ comment on table public.editing_jobs is 'Editing jobs execute approved snapshots
 comment on table public.job_steps is 'Worker-controlled job steps. Normal users must not directly insert or update job_steps in production.';
 comment on table public.worker_events is 'Worker and fallback events should be audited through backend/service-role paths.';
 
-create index if not exists idx_generation_requests_project_snapshot on public.generation_requests(project_id, approved_plan_snapshot_id);
+do $$
+begin
+  if to_regclass('public.generation_requests') is not null
+    and to_regclass('public.approved_plan_snapshots') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'generation_requests'
+        and column_name = 'approved_plan_snapshot_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'approved_plan_snapshots'
+        and column_name = 'id'
+    )
+    and not exists (
+      select 1
+      from pg_constraint
+      where conname = 'generation_requests_approved_plan_snapshot_id_fkey'
+        and conrelid = 'public.generation_requests'::regclass
+    )
+  then
+    alter table public.generation_requests
+      add constraint generation_requests_approved_plan_snapshot_id_fkey
+      foreign key (approved_plan_snapshot_id)
+      references public.approved_plan_snapshots(id)
+      on delete set null;
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.generation_requests') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'generation_requests'
+        and column_name = 'project_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'generation_requests'
+        and column_name = 'approved_plan_snapshot_id'
+    )
+    and to_regclass('public.idx_generation_requests_project_snapshot') is null
+  then
+    create index idx_generation_requests_project_snapshot
+      on public.generation_requests(project_id, approved_plan_snapshot_id);
+  end if;
+end $$;
 create index if not exists idx_generation_requests_status on public.generation_requests(status);
 create index if not exists idx_generation_events_request_created on public.generation_events(generation_request_id, created_at);
 create index if not exists idx_generated_assets_project_request on public.generated_assets(project_id, generation_request_id);
-create index if not exists idx_generated_asset_versions_asset_version on public.generated_asset_versions(generated_asset_id, version);
+do $$
+begin
+  if to_regclass('public.generated_asset_versions') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'generated_asset_versions'
+        and column_name = 'generated_asset_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'generated_asset_versions'
+        and column_name = 'version'
+    )
+    and to_regclass('public.idx_generated_asset_versions_asset_version') is null
+  then
+    create index idx_generated_asset_versions_asset_version
+      on public.generated_asset_versions(generated_asset_id, version);
+  end if;
+end $$;
 create index if not exists idx_editing_jobs_project_snapshot on public.editing_jobs(project_id, approved_plan_snapshot_id);
 create index if not exists idx_editing_jobs_status on public.editing_jobs(status);
 create index if not exists idx_job_steps_job_order on public.job_steps(editing_job_id, step_order);

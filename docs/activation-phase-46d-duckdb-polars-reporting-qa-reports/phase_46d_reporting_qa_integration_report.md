@@ -2,11 +2,11 @@
 
 Run ID: `phase46d-duckdb-polars-reporting-qa-integration-20260603`
 
-Status: `blocked`
+Status: `passed`
 
-Media/data tool-family beta status: `blocked`
+Media/data tool-family beta status: `phase-complete but tool-family incomplete`
 
-Private artifact read: `blocked`
+Private artifact read: `passed`
 
 DuckDB: `passed`
 
@@ -14,8 +14,8 @@ Polars: `passed`
 
 Consistency: `passed`
 
-Readiness scorecard: `blocked`
+Readiness scorecard: `passed`
 
-Private artifact upload: `blocked`
+Private artifact upload: `passed`
 
-Next phase decision: Resolve Phase 46D blockers before beta-readiness gate.
+Next phase decision: Media/data internal beta-readiness gate is next.

@@ -1,0 +1,131 @@
+{
+  "phase": "46D-AUTH-RERUN",
+  "reportId": "phase_46d_auth_rerun_recovery_report",
+  "runId": "phase46d-auth-rerun-duckdb-polars-reporting-qa-20260603",
+  "createdAt": "2026-06-03T13:58:19.164Z",
+  "status": "passed",
+  "auth": {
+    "status": "passed",
+    "authPathUsed": "active_account",
+    "activePrincipal": "aiediting@reeditpro.com",
+    "tokenOutput": "not_printed",
+    "serviceAccountKey": "not_used_not_created",
+    "permissionPreflight": {
+      "status": "passed",
+      "project": "reeditpro",
+      "probes": [
+        {
+          "id": "qa_artifacts_bucket_describe",
+          "status": "passed"
+        },
+        {
+          "id": "phase46b_exact_metadata_prefix_list",
+          "status": "passed"
+        },
+        {
+          "id": "phase46c_exact_metadata_prefix_list",
+          "status": "passed"
+        }
+      ],
+      "blockers": []
+    }
+  },
+  "privateMetadataAccess": {
+    "phase": "46D-AUTH-RERUN",
+    "reportId": "phase_46d_private_metadata_access_report",
+    "runId": "phase46d-auth-rerun-duckdb-polars-reporting-qa-20260603",
+    "createdAt": "2026-06-03T13:58:19.164Z",
+    "status": "passed",
+    "allowedPrivateReadPrefixes": [
+      "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+      "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/"
+    ],
+    "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+    "privateReads": "json_metadata_only",
+    "mediaFileReads": "blocked",
+    "frameReads": "blocked",
+    "thumbnailReads": "blocked",
+    "broadBucketReads": "blocked",
+    "signedUrlsAsSourceOfTruth": "blocked",
+    "probes": [
+      {
+        "id": "46b_json_metadata_list",
+        "status": "passed",
+        "command": "gcloud --quiet storage ls --recursive gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+        "durationMs": 1576,
+        "outputSummary": "listed=11;json=9;mediaSkipped=0"
+      },
+      {
+        "id": "46c_json_metadata_list",
+        "status": "passed",
+        "command": "gcloud --quiet storage ls --recursive gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/",
+        "durationMs": 1886,
+        "outputSummary": "listed=10;json=8;mediaSkipped=0"
+      },
+      {
+        "id": "phase46d_metadata_upload_probe",
+        "status": "passed",
+        "command": "gcloud --quiet storage cp <redacted-local-temp-path> gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_auth_rerun_upload_probe.json",
+        "durationMs": 2157,
+        "outputSummary": "not_printed"
+      }
+    ],
+    "blockers": [],
+    "warnings": []
+  },
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+  "privateArtifactReadStatus": "passed",
+  "privateArtifactStatus": "passed",
+  "duckdbStatus": "passed",
+  "polarsStatus": "passed",
+  "consistencyStatus": "passed",
+  "readinessScorecardStatus": "passed",
+  "mediaDataToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "noMediaProcessing": true,
+  "noProviderCalls": true,
+  "noVlmRuntimeRetry": true,
+  "noOcrRuntime": true,
+  "trackA": "not_touched",
+  "blockers": [],
+  "warnings": [
+    "application_default_credentials_token_unavailable:Command failed: gcloud --quiet auth application-default print-access-token\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n",
+    "phase46d-production-caveat-pyav:FFmpeg dependency, codec exposure, patent/build configuration, and dynamic library compatibility.",
+    "phase46d-production-caveat-sharp_libvips:libvips LGPL-2.1-or-later, native binary, optional dependency, and untrusted image handling.",
+    "phase46d-production-caveat-opencv:Native wheel/platform footprint and GUI dependency risk.",
+    "phase46d-production-caveat-pyscenedetect:OpenCV dependency and false scene-boundary candidates.",
+    "phase46d-production-caveat-duckdb:Extension loading, network access, local file IO, and private metadata leakage.",
+    "phase46d-production-caveat-polars:CPU feature compatibility, memory pressure, and schema drift.",
+    "46a-historical-blocker-1:FFmpeg dependency/legal review unresolved for PyAV runtime",
+    "46a-historical-blocker-2:libvips LGPL/native dependency review unresolved for Sharp/libvips runtime",
+    "46a-historical-blocker-3:runtime availability not verified by execution in Phase 46A",
+    "46a-historical-blocker-4:Phase 46B generated fixture suite not implemented yet",
+    "46a-historical-blocker-5:Phase 46C controlled real-media suite blocked until Phase 46B",
+    "46a-historical-blocker-6:Phase 46D reporting integration blocked until Phase 46B/46C evidence"
+  ],
+  "nextPhaseDecision": "Proceed to media/data internal beta-readiness gate, Phase 46E.",
+  "blockedScopes": [
+    "media/data beta-readiness gate until Phase 46E",
+    "broad media",
+    "arbitrary media paths",
+    "unapproved real media",
+    "media processing",
+    "generated media execution",
+    "controlled real-video execution",
+    "frame reads",
+    "thumbnail reads",
+    "OCR runtime",
+    "VLM runtime retries",
+    "provider calls",
+    "production",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "public output",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "broad IAM",
+    "Track A runtime/visual/render stack"
+  ]
+}

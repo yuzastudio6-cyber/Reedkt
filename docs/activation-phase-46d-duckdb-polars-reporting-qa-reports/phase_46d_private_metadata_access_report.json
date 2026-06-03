@@ -1,0 +1,43 @@
+{
+  "phase": "46D-AUTH-RERUN",
+  "reportId": "phase_46d_private_metadata_access_report",
+  "runId": "phase46d-auth-rerun-duckdb-polars-reporting-qa-20260603",
+  "createdAt": "2026-06-03T13:58:19.164Z",
+  "status": "passed",
+  "allowedPrivateReadPrefixes": [
+    "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+    "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/"
+  ],
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+  "privateReads": "json_metadata_only",
+  "mediaFileReads": "blocked",
+  "frameReads": "blocked",
+  "thumbnailReads": "blocked",
+  "broadBucketReads": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked",
+  "probes": [
+    {
+      "id": "46b_json_metadata_list",
+      "status": "passed",
+      "command": "gcloud --quiet storage ls --recursive gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+      "durationMs": 1576,
+      "outputSummary": "listed=11;json=9;mediaSkipped=0"
+    },
+    {
+      "id": "46c_json_metadata_list",
+      "status": "passed",
+      "command": "gcloud --quiet storage ls --recursive gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/",
+      "durationMs": 1886,
+      "outputSummary": "listed=10;json=8;mediaSkipped=0"
+    },
+    {
+      "id": "phase46d_metadata_upload_probe",
+      "status": "passed",
+      "command": "gcloud --quiet storage cp <redacted-local-temp-path> gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_auth_rerun_upload_probe.json",
+      "durationMs": 2157,
+      "outputSummary": "not_printed"
+    }
+  ],
+  "blockers": [],
+  "warnings": []
+}

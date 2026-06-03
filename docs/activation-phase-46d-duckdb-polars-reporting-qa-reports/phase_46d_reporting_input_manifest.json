@@ -1,7 +1,7 @@
 {
   "phase": "46D",
   "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
-  "status": "committed_loaded_private_read_incomplete",
+  "status": "loaded",
   "inputs": [
     {
       "sourcePhase": "46A",
@@ -203,14 +203,454 @@
     }
   ],
   "privateArtifactRead": {
-    "status": "blocked",
-    "reason": "private_artifact_list_gsutil_7f6b533fc4447f3dfd15cd0a4ed18683e736edea1a5775c2abafddd2169f3fd1 failed: Command failed: gsutil ls -r gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\n/usr/local/share/google-cloud-sdk/platform/gsutil/third_party/urllib3/src/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\nReauthentication required.\nTraceback (most recent call last):\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gsutil\", line 21, in <module>\n    gsutil.RunMain()\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gsutil.py\", line 158, in RunMain\n    sys.exit(gslib.__main__.main())\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gslib/__main__.py\", line 436, in main\n    return _RunNamedCommandAndHandleExceptions(\n  File \"/usr/local/share/google-cloud-sdk/platform/gsutil/gslib/__main__.py\", line 786, in _RunNamedCommandAndHandleExceptions\n    _HandleUnknownFailure(e)\n  File \"/usr/local/share/...<truncated>",
+    "status": "passed",
     "allowedPrefixes": [
       "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
       "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/"
     ],
-    "copiedJsonObjectCount": 0,
-    "skippedMediaObjectCount": 0
+    "copiedJsonObjectCount": 70,
+    "skippedMediaObjectCount": 12,
+    "mediaPayloadReads": "blocked",
+    "phases": [
+      {
+        "phase": "46B",
+        "prefixHash": "7f6b533fc4447f3dfd15cd0a4ed18683e736edea1a5775c2abafddd2169f3fd1",
+        "listedObjectCount": 43,
+        "copiedJsonObjectCount": 34,
+        "skippedMediaObjectCount": 4,
+        "copiedObjects": [
+          {
+            "source": "01a02685fb53c3fd1860d52f4d97f750f1c10faf7e70cc580007fd90acffbf2d",
+            "fileName": "phase_46b_blocker_report.json",
+            "sha256": "ca3aa16decd407b2d5aa69819d505cd49e9c48085bc1bea4da3048795d6d0a1a",
+            "sizeBytes": 433
+          },
+          {
+            "source": "508a7909267686466da741651db1450efcb969f4fef1ed9cf15e5acd11444f9f",
+            "fileName": "phase_46b_cross_tool_manifest.json",
+            "sha256": "ee314fc4114568d64ec98dbfc281d9311523d35d41dc052f051db6ed68b4a99a",
+            "sizeBytes": 5226
+          },
+          {
+            "source": "2ff0390c06a7915a04b6895b7586d9575c51b8e3e8718df0117a6cd8e0944f17",
+            "fileName": "phase_46b_dependency_runtime_report.json",
+            "sha256": "0a02dfbc15f76c629a02dd6924b367fe6e3b9f665769396fdb1a091f51a445d3",
+            "sizeBytes": 421
+          },
+          {
+            "source": "d9c7e90365e0c8044563557317c7e125c6a9d0b43ae52e5bbdc5c51846af16ff",
+            "fileName": "phase_46b_duckdb_generated_report.json",
+            "sha256": "ae41969c6dfdc1c87de923d79efbce2d899aa47de838c2076d0ef4e6fe157855",
+            "sizeBytes": 449
+          },
+          {
+            "source": "a5a5e68de555a03e1b23b2ee2c47b11585ee4b79ec123d2d0e4755acbf2b404b",
+            "fileName": "phase_46b_generated_fixture_manifest.json",
+            "sha256": "ff6a5c5c86f0d94952f76722bbf08f8e73d866e7e74fda1180ff01c6648fd4cd",
+            "sizeBytes": 810
+          },
+          {
+            "source": "6f12c8a6934542c79213b5f3d5b504bd61d15058fd41a286f52d70a79eb1bb0e",
+            "fileName": "phase_46b_generated_media_data_plan.json",
+            "sha256": "f4e29f422af4f5b9620df72ff9f2b2f72ea525f3f5a0788513c908a6e2b489b2",
+            "sizeBytes": 813
+          },
+          {
+            "source": "1e3b1fd01be712a03cdba815ee07a00299d7230536f3d89a8ff36e46c48e438b",
+            "fileName": "phase_46b_generated_media_data_qa_report.json",
+            "sha256": "7f09fc67e37c07cab98bed781dbb0e36f4db0115dc6d0cb9722bcd36fe74df98",
+            "sizeBytes": 641
+          },
+          {
+            "source": "43a2f8a14338c0afa5ee40984bb0a8b69347df72342ab33c9130697c0dda5d72",
+            "fileName": "phase_46b_generated_media_data_suite_report.json",
+            "sha256": "d2012e5decc3af4c0f8add32fdee460a0cb6e982c771d1ea8869411955e0e9a2",
+            "sizeBytes": 830
+          },
+          {
+            "source": "72a29c4d70c88d2c9f0800ec7c131bf19fb84e81ec3ac6de6da948010eb384b7",
+            "fileName": "phase_46b_opencv_generated_report.json",
+            "sha256": "d65bd03312269d9504f3eee214d7b79aae72f06d8d74bf201439b82dceb81e12",
+            "sizeBytes": 754
+          },
+          {
+            "source": "9cc8bc248ed273bfd10069dc65bc942fda7c71bd6abeb6ccefaf38405c546631",
+            "fileName": "phase_46b_polars_generated_report.json",
+            "sha256": "3d977cdb9f64f55501375cc742d65363001c11b70be117925ba7f639b5719255",
+            "sizeBytes": 442
+          },
+          {
+            "source": "d331d3ba5c5f4b885c720bc05f246fc670e9492bf97c10e48dcaa6b0ffa7a162",
+            "fileName": "phase_46b_private_artifact_manifest.json",
+            "sha256": "3cf98b706e0bcb64fcaa9af53159decdeb0aa4fd3b03bac10df55de6d68aa84a",
+            "sizeBytes": 5323
+          },
+          {
+            "source": "959f9c6ab784ef683dee429b2117ae54ab4cb07fee808cfa0e0d33addd4dcb90",
+            "fileName": "phase_46b_pyav_generated_report.json",
+            "sha256": "c73b7bf9abd6a806d94f9fd1ba1129061ed07e11b2b16c51d8b8707852380727",
+            "sizeBytes": 1223
+          },
+          {
+            "source": "7b562d95599af1c32af05d143007ab3583b5e37fadbf3e091db313c3682475cd",
+            "fileName": "phase_46b_pyscenedetect_generated_report.json",
+            "sha256": "2725651c2d9234fd9ac6736f0ba57be8c9491b6cc7854a68227b5d2eb3b20b83",
+            "sizeBytes": 805
+          },
+          {
+            "source": "e91b81c148ce7d60219aa9bdfed340c0eb6fde12dac3e62cfab47496151d32a5",
+            "fileName": "phase_46b_runtime_preflight.json",
+            "sha256": "1e397880ff8790945da0ff5cc9019dd6e86831be50a03d095c0f24c32d33d087",
+            "sizeBytes": 1352
+          },
+          {
+            "source": "574e6b4411c7507425e7b1742ce96988e660856a04083cc244ce634049175432",
+            "fileName": "phase_46b_sharp_libvips_generated_report.json",
+            "sha256": "927183874b8e3df2ce65cd0471d6ec996e56143ea6ddfd6eb91151ef3fbdc124",
+            "sizeBytes": 1398
+          },
+          {
+            "source": "3625614102a458d8a38d82aa4f83490fb1255b91465091293327fbac658978db",
+            "fileName": "phase_46b_storage_privacy_report.json",
+            "sha256": "49c69656bf1d11890a1bdeb4522617e3853118417a93d7f6ba62a04641fd38ac",
+            "sizeBytes": 437
+          },
+          {
+            "source": "1c22287c67aa3759ba57d4cf094e911e473ba0ef4baac695d90c179ee17d6437",
+            "fileName": "phase_46b_tool_version_report.json",
+            "sha256": "62e7f8e43ae297cd8d604c9142e80186c2ca00f3de925286f999459bff79f4a2",
+            "sizeBytes": 1008
+          },
+          {
+            "source": "1456595c81f1693e8643fbefc037ba8615be57344e53f859c0f27e79734700a7",
+            "fileName": "phase_46b_blocker_report.json",
+            "sha256": "ca3aa16decd407b2d5aa69819d505cd49e9c48085bc1bea4da3048795d6d0a1a",
+            "sizeBytes": 433
+          },
+          {
+            "source": "3ac54d204aebd1b23ae48096092ae7912c25eaff90349954acf9cf2509d2f913",
+            "fileName": "phase_46b_cross_tool_manifest.json",
+            "sha256": "ee314fc4114568d64ec98dbfc281d9311523d35d41dc052f051db6ed68b4a99a",
+            "sizeBytes": 5226
+          },
+          {
+            "source": "21994e076f2b5ded5b4f9aca84df04c32a3c4c1e12d268d02db4e38d5a4cb38d",
+            "fileName": "phase_46b_dependency_runtime_report.json",
+            "sha256": "0a02dfbc15f76c629a02dd6924b367fe6e3b9f665769396fdb1a091f51a445d3",
+            "sizeBytes": 421
+          },
+          {
+            "source": "69b3ad8c3e75c3ab403fcc5a1f1ce26092b3f07587836dbb25bd44dbd85d7775",
+            "fileName": "phase_46b_duckdb_generated_report.json",
+            "sha256": "ae41969c6dfdc1c87de923d79efbce2d899aa47de838c2076d0ef4e6fe157855",
+            "sizeBytes": 449
+          },
+          {
+            "source": "3a2c670790ea4261cd41522d3d3cd8365db25b27ce634b6be55b117e60b9393f",
+            "fileName": "phase_46b_generated_fixture_manifest.json",
+            "sha256": "ff6a5c5c86f0d94952f76722bbf08f8e73d866e7e74fda1180ff01c6648fd4cd",
+            "sizeBytes": 810
+          },
+          {
+            "source": "936c085af3eca0fc74a9a90070c928856eb3459c928f6feafa54a6cf12866ccf",
+            "fileName": "phase_46b_generated_media_data_plan.json",
+            "sha256": "f4e29f422af4f5b9620df72ff9f2b2f72ea525f3f5a0788513c908a6e2b489b2",
+            "sizeBytes": 813
+          },
+          {
+            "source": "736ce746a169bee2055227928220b1985d7ffd825fd134cfb572d7638ca7d222",
+            "fileName": "phase_46b_generated_media_data_qa_report.json",
+            "sha256": "5939ed144c8b395d52f8f0fc7110532b3a911042f02d0129a8d98ae3cc30f709",
+            "sizeBytes": 656
+          },
+          {
+            "source": "20ec61a28432039fb426761e2a3c98680a9b4abf882ca221c2124bef4747798a",
+            "fileName": "phase_46b_generated_media_data_suite_report.json",
+            "sha256": "e5fe1392aa4396321d8761bdbf4974bf047af2a39c4161941b880550d57ce36d",
+            "sizeBytes": 917
+          },
+          {
+            "source": "190d299c377f45e7b9fe1dc6eb1753f42dce2352a2203ac56ba94fe2765ae5a5",
+            "fileName": "phase_46b_opencv_generated_report.json",
+            "sha256": "d65bd03312269d9504f3eee214d7b79aae72f06d8d74bf201439b82dceb81e12",
+            "sizeBytes": 754
+          },
+          {
+            "source": "7715236a6903a53e271fc6a2997a792c9b767b26694b1407d839de4a8201aca1",
+            "fileName": "phase_46b_polars_generated_report.json",
+            "sha256": "3d977cdb9f64f55501375cc742d65363001c11b70be117925ba7f639b5719255",
+            "sizeBytes": 442
+          },
+          {
+            "source": "4acb88652e4d891b9b38075d668ab92f82b215cbeb53c4081bd7b40ea657837e",
+            "fileName": "phase_46b_private_artifact_manifest.json",
+            "sha256": "d7dea2bd3eaad54442e1e4e35d0b029c677a80e1ca09fb60b978b1a4c2ff821a",
+            "sizeBytes": 5174
+          },
+          {
+            "source": "e783dd5ef21ba9c3dacced4bacea76afa071be6278168848dbd6777b257044ab",
+            "fileName": "phase_46b_pyav_generated_report.json",
+            "sha256": "c73b7bf9abd6a806d94f9fd1ba1129061ed07e11b2b16c51d8b8707852380727",
+            "sizeBytes": 1223
+          },
+          {
+            "source": "cc0a71adf692c4c3ee5db94191d5fdce80eaf6427b71ff55644443714279b525",
+            "fileName": "phase_46b_pyscenedetect_generated_report.json",
+            "sha256": "2725651c2d9234fd9ac6736f0ba57be8c9491b6cc7854a68227b5d2eb3b20b83",
+            "sizeBytes": 805
+          },
+          {
+            "source": "60466ee087bee2079282a1eee6f64efabef56d464baf9c4bf17565ec956c4f84",
+            "fileName": "phase_46b_runtime_preflight.json",
+            "sha256": "1e397880ff8790945da0ff5cc9019dd6e86831be50a03d095c0f24c32d33d087",
+            "sizeBytes": 1352
+          },
+          {
+            "source": "e355b70ea2d75683d27e0744480ad0d56ee61f2bf0379d39d3110596a0067d90",
+            "fileName": "phase_46b_sharp_libvips_generated_report.json",
+            "sha256": "927183874b8e3df2ce65cd0471d6ec996e56143ea6ddfd6eb91151ef3fbdc124",
+            "sizeBytes": 1398
+          },
+          {
+            "source": "b60c842a4c7ad342956bb9fb3e38409484227dccb00568fae521138fcd703294",
+            "fileName": "phase_46b_storage_privacy_report.json",
+            "sha256": "49c69656bf1d11890a1bdeb4522617e3853118417a93d7f6ba62a04641fd38ac",
+            "sizeBytes": 437
+          },
+          {
+            "source": "1ad26c0db6fb99302b1f67419a660a9e21a71e15e35c2431a8f70767ce84ad05",
+            "fileName": "phase_46b_tool_version_report.json",
+            "sha256": "62e7f8e43ae297cd8d604c9142e80186c2ca00f3de925286f999459bff79f4a2",
+            "sizeBytes": 1008
+          }
+        ]
+      },
+      {
+        "phase": "46C",
+        "prefixHash": "f57b9c56342bf23d9e5b13bbcdc26adbe5c472c0cd9aadaa7aaf2a9f1e2bd33d",
+        "listedObjectCount": 51,
+        "copiedJsonObjectCount": 36,
+        "skippedMediaObjectCount": 8,
+        "copiedObjects": [
+          {
+            "source": "73fc4f13a135042c402952c509f211f01eabf3eb901dd095fc779bf911f932c7",
+            "fileName": "phase_46c_blocker_report.json",
+            "sha256": "3c371c68ef1fc6383414e27b1cd08f70c810327f21424cad1efaeb857b07544c",
+            "sizeBytes": 412
+          },
+          {
+            "source": "d4377c75c895d860469c5fd9c5901f9fabf818e29feddbe2fec89e7d93da401d",
+            "fileName": "phase_46c_controlled_media_data_qa_report.json",
+            "sha256": "dc85fd2b5ef5fa623aea54b49b61bcd5aa6bd73c1a8f44e180feb1c5ba86ae32",
+            "sizeBytes": 833
+          },
+          {
+            "source": "8d80a0be1730fb4717a9e8bd732cd63d523fed8d9d775dbfe088bdc2d35b60a6",
+            "fileName": "phase_46c_controlled_media_resolver_report.json",
+            "sha256": "672ab372d6be221605cab513f6a0c33385be5faa0035652ce8c87a032cfc2c2d",
+            "sizeBytes": 1841
+          },
+          {
+            "source": "2e1eb55e072aac9e753f39baa86db285bf369340943acdbaa1020714330f70a8",
+            "fileName": "phase_46c_controlled_real_video_media_data_suite_report.json",
+            "sha256": "70fb18d80402759714ed358c1b89a9f74d21eff07ee6c6e067b1b4bfbdfdad1e",
+            "sizeBytes": 1067
+          },
+          {
+            "source": "2701ed66c2eb77c97249c12c397f660024956192cb467f3c7e32d5032706ea02",
+            "fileName": "phase_46c_controlled_real_video_plan.json",
+            "sha256": "fd26277fff5a554693b9a10d202fef6f392e3083081a33c8aa819765769287c6",
+            "sizeBytes": 1247
+          },
+          {
+            "source": "faa7d579069cac662e0d699467f7e3c379fa23721aa28bb3b04fe52bfd037f49",
+            "fileName": "phase_46c_controlled_runtime_preflight.json",
+            "sha256": "3a6687e4270298e27baa5a111cff9f868615f45678470f2761ac46ea50084e8e",
+            "sizeBytes": 1172
+          },
+          {
+            "source": "8c35ac1ae19c5244eee3fdc5a04cffc555055286c4ebcd99baaa82498266ff38",
+            "fileName": "phase_46c_controlled_sample_evidence.json",
+            "sha256": "1b79a2d4bfa011c65e505c683fcd72807de2f56114e99a7da39e618bf0d550b9",
+            "sizeBytes": 1096
+          },
+          {
+            "source": "d0949a0b105af8fa0c2289c169eb7ce14d2ad3ccaebdf9ac8dfa9b6d7e0f13d9",
+            "fileName": "phase_46c_cross_tool_manifest.json",
+            "sha256": "8d96046778c97857a86b984a63e9490d00b7337d1d2e4d05b74cc557e4cd8bb1",
+            "sizeBytes": 6777
+          },
+          {
+            "source": "1afbfcd6f02a2aac633d1d0e1db42ee87c12435dcb7760986190e19447f0c1d8",
+            "fileName": "phase_46c_dependency_runtime_report.json",
+            "sha256": "e78ad89c983a128f147bade6462a4f38ab9780c2cbfeb0e1eca8d4e0b334b898",
+            "sizeBytes": 420
+          },
+          {
+            "source": "2bb474f2e3cccece614ec2721faa1e7bd8de899ef064d347e00acca58981c2c7",
+            "fileName": "phase_46c_duckdb_controlled_aggregation_report.json",
+            "sha256": "ea6a5cce6a6cf12e355cf13b37f1551de575fab1c4fbc8a6168ebf108e5c0921",
+            "sizeBytes": 531
+          },
+          {
+            "source": "208249e69d614e43834141786f990f12c0b8c62f68ad29029d754f3f93e0a1fe",
+            "fileName": "phase_46c_opencv_frame_sample_report.json",
+            "sha256": "897b260eae6bda6b446aceb87335aa559bad1567f138ef615968a0b7505169ad",
+            "sizeBytes": 4326
+          },
+          {
+            "source": "f3d0ed4fc0da98e7c44c2833931a78859faf4bf220d714f95fe8daa0ca37d289",
+            "fileName": "phase_46c_polars_controlled_transform_report.json",
+            "sha256": "b8002ddc97d8f21ba524df6b84b9f9433198992d475c54fe56447a6be652c386",
+            "sizeBytes": 522
+          },
+          {
+            "source": "94d02ac57e6a84ef42537c2acf99c9ce5b7d26f613b4af96bf609e437c4ef1ea",
+            "fileName": "phase_46c_private_artifact_manifest.json",
+            "sha256": "51eb9caf4f120376f25600fffc42ea60412f99f6a731f03c0d563c3655ce0b1b",
+            "sizeBytes": 6851
+          },
+          {
+            "source": "a2f871e7f03e419959a60b7acc4ce4032ecdc4a58425a65bb5d760d5735c1e78",
+            "fileName": "phase_46c_pyav_controlled_probe_report.json",
+            "sha256": "e056a5681de51c16cb76ed1b06ce8c23460c300deeaa0fc63b7366c3fc54aa3c",
+            "sizeBytes": 1205
+          },
+          {
+            "source": "e785883b1020ae73c1dedfb9393efad4403de9834a39f473b378f36524a5330a",
+            "fileName": "phase_46c_pyscenedetect_scene_manifest.json",
+            "sha256": "8d8b4f8c28dc5e7acfde5f362dd7dca98b6046772c874ffb2b59440d01722719",
+            "sizeBytes": 870
+          },
+          {
+            "source": "d39a41eaefddfe52be388a5289f1ab4556d9a4ef9e3a44d43455e31e36beac26",
+            "fileName": "phase_46c_sharp_libvips_controlled_report.json",
+            "sha256": "c2d2c0c473bd74de547bc5b63ea53d95758e057137dd3c3b617480706205c946",
+            "sizeBytes": 1650
+          },
+          {
+            "source": "e3c52c5af26ad6999d41df8346388c2f77cf3b60bb00fc0c92d19daddde4c0a7",
+            "fileName": "phase_46c_storage_privacy_report.json",
+            "sha256": "95ca3673e2e6c8d1032bb65e83e8c28484f18c16588d716bc4b500a4530acbdb",
+            "sizeBytes": 563
+          },
+          {
+            "source": "a1b7af5b1ce52a599634f04d522887c09154b06dc9738d039d3070aed820a702",
+            "fileName": "phase_46c_tool_version_report.json",
+            "sha256": "3ad331da933f71c490641c859491493b79f8d4f386f5624bcbbf4a4f6b4a8472",
+            "sizeBytes": 1020
+          },
+          {
+            "source": "0bdf36ebfd77cd4d9d393f4fd219418529e40c2c0dd8711eb4b9fa3d623bbc65",
+            "fileName": "phase_46c_blocker_report.json",
+            "sha256": "3c371c68ef1fc6383414e27b1cd08f70c810327f21424cad1efaeb857b07544c",
+            "sizeBytes": 412
+          },
+          {
+            "source": "689b0041df49c9094f264d0ac9c5f82b72a2fbdf5be977ffd5545c40640e75ee",
+            "fileName": "phase_46c_controlled_media_data_qa_report.json",
+            "sha256": "3fadae37321a158f1bbba914a53546fda981bb27fc107f6df7e8aead6f04a254",
+            "sizeBytes": 848
+          },
+          {
+            "source": "691dea829c11dc7d0ae4d7ee9949b28e2d2383df0c33c8469dfd71a592a3f092",
+            "fileName": "phase_46c_controlled_media_resolver_report.json",
+            "sha256": "672ab372d6be221605cab513f6a0c33385be5faa0035652ce8c87a032cfc2c2d",
+            "sizeBytes": 1841
+          },
+          {
+            "source": "9efe0ae9fa02888d6f715b72b9702ab7c06a1a4ceb4a8cc94274fa5b5553c085",
+            "fileName": "phase_46c_controlled_real_video_media_data_suite_report.json",
+            "sha256": "f9901627a8a11a22be7e7d3bf283f422abd17fab4bc611d86edd83b46c47d068",
+            "sizeBytes": 1154
+          },
+          {
+            "source": "d593cee9df93dd7762919d8b59f602062583f500ffb7724e170049655d4e3cb9",
+            "fileName": "phase_46c_controlled_real_video_plan.json",
+            "sha256": "fd26277fff5a554693b9a10d202fef6f392e3083081a33c8aa819765769287c6",
+            "sizeBytes": 1247
+          },
+          {
+            "source": "a016ea072e9084e8ebe07a7b6b2eb34181afbf98dad78f42ba256ee6fe639503",
+            "fileName": "phase_46c_controlled_runtime_preflight.json",
+            "sha256": "3a6687e4270298e27baa5a111cff9f868615f45678470f2761ac46ea50084e8e",
+            "sizeBytes": 1172
+          },
+          {
+            "source": "fa9a1cf72ac603e83a0e35802342c5132295260081cb96b96606d83863bf2116",
+            "fileName": "phase_46c_controlled_sample_evidence.json",
+            "sha256": "1b79a2d4bfa011c65e505c683fcd72807de2f56114e99a7da39e618bf0d550b9",
+            "sizeBytes": 1096
+          },
+          {
+            "source": "04ce8f2125809b3521e82ec56411f411cf085113401af27a7bc42ac11dbdfdab",
+            "fileName": "phase_46c_cross_tool_manifest.json",
+            "sha256": "8d96046778c97857a86b984a63e9490d00b7337d1d2e4d05b74cc557e4cd8bb1",
+            "sizeBytes": 6777
+          },
+          {
+            "source": "0a9be4d9a816254ba336748a34743d8bfa264b9773c1ed7eb65b2baf69a63fc4",
+            "fileName": "phase_46c_dependency_runtime_report.json",
+            "sha256": "e78ad89c983a128f147bade6462a4f38ab9780c2cbfeb0e1eca8d4e0b334b898",
+            "sizeBytes": 420
+          },
+          {
+            "source": "687bbf49299c7d7fef0a4bd698a8cf0feab3a5b0d15720618cc4efc7e46912cb",
+            "fileName": "phase_46c_duckdb_controlled_aggregation_report.json",
+            "sha256": "ea6a5cce6a6cf12e355cf13b37f1551de575fab1c4fbc8a6168ebf108e5c0921",
+            "sizeBytes": 531
+          },
+          {
+            "source": "67d7b86650480a67fd2b57edd64f9e5886a24b87391df4db26514fcbdc75b848",
+            "fileName": "phase_46c_opencv_frame_sample_report.json",
+            "sha256": "897b260eae6bda6b446aceb87335aa559bad1567f138ef615968a0b7505169ad",
+            "sizeBytes": 4326
+          },
+          {
+            "source": "eff389d50a4b6bed169ad68f6edfe5ce2222b24f4bc654d87343b69719401ddb",
+            "fileName": "phase_46c_polars_controlled_transform_report.json",
+            "sha256": "b8002ddc97d8f21ba524df6b84b9f9433198992d475c54fe56447a6be652c386",
+            "sizeBytes": 522
+          },
+          {
+            "source": "fb54ad1be2ddd8d10df036a96e5b78c9b4f554e95c82557ecfa93286199e16a4",
+            "fileName": "phase_46c_private_artifact_manifest.json",
+            "sha256": "e72d4b715173b9538b86743387265a017ae60d649cdb07bb9f7f2b237a4ae91e",
+            "sizeBytes": 6670
+          },
+          {
+            "source": "8a8e8591d154fe88c37bbabdc9318f727fb75ce16f55e89ab123afa71cc44379",
+            "fileName": "phase_46c_pyav_controlled_probe_report.json",
+            "sha256": "e056a5681de51c16cb76ed1b06ce8c23460c300deeaa0fc63b7366c3fc54aa3c",
+            "sizeBytes": 1205
+          },
+          {
+            "source": "b42df2096e566cbb0199d4c02ce858a12b90333c686c296f469580820fae5aa5",
+            "fileName": "phase_46c_pyscenedetect_scene_manifest.json",
+            "sha256": "8d8b4f8c28dc5e7acfde5f362dd7dca98b6046772c874ffb2b59440d01722719",
+            "sizeBytes": 870
+          },
+          {
+            "source": "fc72c9ade4a062128808261eb517aa1273f1c936bd4b7e22dcfeb9c0bbb22f3d",
+            "fileName": "phase_46c_sharp_libvips_controlled_report.json",
+            "sha256": "c2d2c0c473bd74de547bc5b63ea53d95758e057137dd3c3b617480706205c946",
+            "sizeBytes": 1650
+          },
+          {
+            "source": "d5dce844cc9489cac9a98855433733d0106b688be93e5105cf4e35c2d92f8d99",
+            "fileName": "phase_46c_storage_privacy_report.json",
+            "sha256": "95ca3673e2e6c8d1032bb65e83e8c28484f18c16588d716bc4b500a4530acbdb",
+            "sizeBytes": 563
+          },
+          {
+            "source": "4d35e64e25e9ec7d28eeb424109c0f0b18e4ea440729f292e3a74a2dc5f3ad0b",
+            "fileName": "phase_46c_tool_version_report.json",
+            "sha256": "3ad331da933f71c490641c859491493b79f8d4f386f5624bcbbf4a4f6b4a8472",
+            "sizeBytes": 1020
+          }
+        ]
+      }
+    ]
   },
   "optionalTrackBSignals": [
     {

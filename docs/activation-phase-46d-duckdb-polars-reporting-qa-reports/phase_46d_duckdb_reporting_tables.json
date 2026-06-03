@@ -476,15 +476,6 @@
         "status": "tracked",
         "reason": "Phase 46D reporting integration blocked until Phase 46B/46C evidence",
         "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
-      },
-      {
-        "blocker_id": "phase46d-private-json-metadata-read",
-        "phase_id": "46D",
-        "tool_id": "private_artifacts",
-        "severity": "block",
-        "status": "open",
-        "reason": "Private artifact read status is blocked.",
-        "next_action": "Use exact Phase 46B/46C private JSON metadata prefixes with existing auth access."
       }
     ],
     "artifact_objects": [
@@ -633,9 +624,9 @@
         "family": "media_data",
         "phase": "46D",
         "criterion": "private artifacts recorded",
-        "status": "block",
+        "status": "pass",
         "evidence_ref": "Phase 46B/46C private JSON metadata prefixes",
-        "next_action": "Resolve before media/data beta-readiness gate."
+        "next_action": "Carry into Phase 46E media/data beta-readiness gate."
       },
       {
         "family": "media_data",
@@ -725,9 +716,9 @@
       {
         "criterion": "private artifacts",
         "required": true,
-        "status": "block",
+        "status": "pass",
         "evidence": "Phase 46B/46C private artifact manifests and Phase 46D upload",
-        "blocker": "Private artifact read is incomplete."
+        "blocker": ""
       },
       {
         "criterion": "smoke/report CLIs",
@@ -765,7 +756,7 @@
     "fixture_results": 8,
     "controlled_sample_results": 1,
     "dependency_risks": 6,
-    "blockers": 13,
+    "blockers": 12,
     "artifact_objects": 3,
     "readiness_scorecard": 21,
     "beta_gate_inputs": 10

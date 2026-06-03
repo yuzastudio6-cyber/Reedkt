@@ -1,7 +1,7 @@
 {
   "phase": "46D",
   "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
-  "status": "blocked",
+  "status": "passed",
   "blockers": [
     {
       "blocker_id": "phase46d-production-caveat-pyav",
@@ -110,33 +110,6 @@
       "status": "tracked",
       "reason": "Phase 46D reporting integration blocked until Phase 46B/46C evidence",
       "next_action": "Tracked as historical context; Phase 46D does not broaden runtime scope."
-    },
-    {
-      "blocker_id": "phase46d-private-json-metadata-read",
-      "phase_id": "46D",
-      "tool_id": "private_artifacts",
-      "severity": "block",
-      "status": "open",
-      "reason": "Private artifact read status is blocked.",
-      "next_action": "Use exact Phase 46B/46C private JSON metadata prefixes with existing auth access."
-    },
-    {
-      "blocker_id": "phase46d-private-artifact-read",
-      "phase_id": "46D",
-      "tool_id": "private_artifacts",
-      "severity": "block",
-      "status": "open",
-      "reason": "Private artifact read status is blocked.",
-      "next_action": "Restore exact Phase 46B/46C private JSON metadata read access."
-    },
-    {
-      "blocker_id": "phase46d-private-artifact-upload",
-      "phase_id": "46D",
-      "tool_id": "private_artifacts",
-      "severity": "block",
-      "status": "open",
-      "reason": "Private artifact upload blocked.",
-      "next_action": "Restore private QA artifact upload access before beta-readiness gate."
     }
   ],
   "blockedScopes": [

@@ -8,7 +8,7 @@
     "fixture_results": 8,
     "controlled_sample_results": 1,
     "dependency_risks": 6,
-    "blockers": 13,
+    "blockers": 12,
     "artifact_objects": 3,
     "readiness_scorecard": 21,
     "beta_gate_inputs": 10
@@ -22,11 +22,6 @@
     "reporting_integration_executing": 1
   },
   "blockerCounts": [
-    {
-      "severity": "block",
-      "status": "open",
-      "count": 1
-    },
     {
       "severity": "warn",
       "status": "tracked",
@@ -51,7 +46,7 @@
     }
   ],
   "betaGateStatusCounts": {
-    "pass": 8,
-    "block": 2
+    "pass": 9,
+    "block": 1
   }
 }

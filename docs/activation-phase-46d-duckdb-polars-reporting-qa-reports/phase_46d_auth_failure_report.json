@@ -1,0 +1,16 @@
+{
+  "phase": "46D-AUTH-RERUN",
+  "reportId": "phase_46d_auth_failure_report",
+  "runId": "phase46d-auth-rerun-duckdb-polars-reporting-qa-20260603",
+  "createdAt": "2026-06-03T13:58:19.164Z",
+  "status": "passed",
+  "authPathUsed": "active_account",
+  "activePrincipal": "aiediting@reeditpro.com",
+  "tokenOutput": "not_printed",
+  "serviceAccountKey": "not_used_not_created",
+  "blockers": [],
+  "warnings": [
+    "application_default_credentials_token_unavailable:Command failed: gcloud --quiet auth application-default print-access-token\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n"
+  ],
+  "operatorActions": []
+}

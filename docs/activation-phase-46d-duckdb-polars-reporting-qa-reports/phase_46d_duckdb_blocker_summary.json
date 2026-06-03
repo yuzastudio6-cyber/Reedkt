@@ -4,11 +4,6 @@
   "status": "passed",
   "blockersBySeverity": [
     {
-      "severity": "block",
-      "status": "open",
-      "count": 1
-    },
-    {
       "severity": "warn",
       "status": "tracked",
       "count": 12

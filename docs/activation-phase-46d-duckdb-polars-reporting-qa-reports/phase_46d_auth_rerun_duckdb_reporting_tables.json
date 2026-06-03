@@ -7,7 +7,7 @@
       {
         "phase_id": "46A",
         "run_id": "phase46a-media-data-tool-readiness-audit-20260602",
-        "pr_number": 123,
+        "pr_number": "123",
         "branch": "codex/rp-activation-46a-media-data-tool-readiness-audit",
         "status": "passed_as_evidence_planning_only",
         "started_at": "",
@@ -18,7 +18,7 @@
       {
         "phase_id": "46B",
         "run_id": "phase46b-generated-media-data-suite-20260603",
-        "pr_number": 125,
+        "pr_number": "125",
         "branch": "codex/rp-activation-46b-generated-media-data-analysis-suite",
         "status": "passed",
         "started_at": "",
@@ -29,7 +29,7 @@
       {
         "phase_id": "46C",
         "run_id": "phase46c-controlled-real-video-media-data-suite-20260603",
-        "pr_number": 128,
+        "pr_number": "128",
         "branch": "codex/rp-activation-46c-controlled-real-video-media-data-suite",
         "status": "passed",
         "started_at": "",
@@ -40,7 +40,7 @@
       {
         "phase_id": "46D",
         "run_id": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
-        "pr_number": 0,
+        "pr_number": "0",
         "branch": "codex/rp-activation-46d-duckdb-polars-reporting-qa-integration",
         "status": "reporting_integration_executing",
         "started_at": "",
@@ -318,8 +318,8 @@
         "dependency": "ffmpeg",
         "risk_type": "FFmpeg dependency, codec exposure, patent/build configuration, and dynamic library compatibility.",
         "severity": "warn",
-        "production_blocker": true,
-        "beta_blocker": false,
+        "production_blocker": "True",
+        "beta_blocker": "False",
         "mitigation": "Keep FFmpeg review separate; no broad codec/runtime use until later approval."
       },
       {
@@ -327,8 +327,8 @@
         "dependency": "libvips",
         "risk_type": "libvips LGPL-2.1-or-later, native binary, optional dependency, and untrusted image handling.",
         "severity": "warn",
-        "production_blocker": true,
-        "beta_blocker": false,
+        "production_blocker": "True",
+        "beta_blocker": "False",
         "mitigation": "Worker-only isolation, LGPL compliance review, and image safety QA before runtime."
       },
       {
@@ -336,8 +336,8 @@
         "dependency": "opencv",
         "risk_type": "Native wheel/platform footprint and GUI dependency risk.",
         "severity": "warn",
-        "production_blocker": true,
-        "beta_blocker": false,
+        "production_blocker": "True",
+        "beta_blocker": "False",
         "mitigation": "Prefer opencv-python-headless in worker images and keep frontend imports forbidden."
       },
       {
@@ -345,8 +345,8 @@
         "dependency": "pyscenedetect",
         "risk_type": "OpenCV dependency and false scene-boundary candidates.",
         "severity": "warn",
-        "production_blocker": true,
-        "beta_blocker": false,
+        "production_blocker": "True",
+        "beta_blocker": "False",
         "mitigation": "Use generated fixtures first and require manual/QA thresholds before controlled media."
       },
       {
@@ -354,8 +354,8 @@
         "dependency": "duckdb_extensions_network_file_io",
         "risk_type": "Extension loading, network access, local file IO, and private metadata leakage.",
         "severity": "warn",
-        "production_blocker": true,
-        "beta_blocker": false,
+        "production_blocker": "True",
+        "beta_blocker": "False",
         "mitigation": "Disable unapproved extensions/network paths and commit only redacted summaries."
       },
       {
@@ -363,8 +363,8 @@
         "dependency": "polars_cpu_memory_runtime",
         "risk_type": "CPU feature compatibility, memory pressure, and schema drift.",
         "severity": "warn",
-        "production_blocker": true,
-        "beta_blocker": false,
+        "production_blocker": "True",
+        "beta_blocker": "False",
         "mitigation": "Use compatibility-aware worker images and deterministic schema tests in Phase 46D."
       }
     ],

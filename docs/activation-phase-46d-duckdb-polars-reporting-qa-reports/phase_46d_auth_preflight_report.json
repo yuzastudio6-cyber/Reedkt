@@ -1,0 +1,118 @@
+{
+  "phase": "46D-AUTH-RERUN",
+  "reportId": "phase_46d_auth_preflight_report",
+  "runId": "phase46d-auth-rerun-duckdb-polars-reporting-qa-20260603",
+  "createdAt": "2026-06-03T13:58:19.164Z",
+  "status": "passed",
+  "authPathUsed": "active_account",
+  "activePrincipal": "aiediting@reeditpro.com",
+  "tokenOutput": "not_printed",
+  "serviceAccountKey": "not_used_not_created",
+  "sanitizedConfig": {
+    "core": {
+      "account": "aiediting@reeditpro.com",
+      "disable_prompts": "True",
+      "disable_usage_reporting": "True",
+      "project": "reeditpro"
+    }
+  },
+  "environmentPresence": {
+    "REEDITPRO_GCP_IMPERSONATE_SERVICE_ACCOUNT": false,
+    "REEDITPRO_GCP_ACCESS_TOKEN_FILE": false,
+    "CLOUDSDK_AUTH_ACCESS_TOKEN": false,
+    "REEDITPRO_GCP_WIF_CREDENTIAL_FILE": false,
+    "GOOGLE_APPLICATION_CREDENTIALS": false,
+    "CLOUD_SHELL": false,
+    "K_SERVICE": false,
+    "GCE_METADATA_HOST": false,
+    "GOOGLE_CLOUD_PROJECT": false
+  },
+  "probes": [
+    {
+      "id": "gcloud_version",
+      "status": "passed",
+      "command": "gcloud --version",
+      "durationMs": 268,
+      "outputSummary": "Google Cloud SDK 558.0.0\nbq 2.1.28\ncloud-run-proxy 0.5.1\ncore 2026.02.20\ngcloud-crc32c 1.0.0\ngsutil 5.35"
+    },
+    {
+      "id": "active_account",
+      "status": "passed",
+      "command": "gcloud --quiet auth list --filter=status:ACTIVE --format=value(account)",
+      "durationMs": 253,
+      "outputSummary": "aiediting@reeditpro.com"
+    },
+    {
+      "id": "active_project",
+      "status": "passed",
+      "command": "gcloud --quiet config get-value project",
+      "durationMs": 247,
+      "outputSummary": "reeditpro"
+    },
+    {
+      "id": "sanitized_config",
+      "status": "passed",
+      "command": "gcloud --quiet config list --format=json",
+      "durationMs": 875,
+      "outputSummary": "{\n  \"core\": {\n    \"account\": \"aiediting@reeditpro.com\",\n    \"disable_prompts\": \"True\",\n    \"disable_usage_reporting\": \"True\",\n    \"project\": \"reeditpro\"\n  }\n}"
+    },
+    {
+      "id": "print_access_token_redacted",
+      "status": "passed",
+      "command": "gcloud --quiet auth print-access-token",
+      "durationMs": 255,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "adc_print_access_token_redacted",
+      "status": "failed",
+      "command": "gcloud --quiet auth application-default print-access-token",
+      "durationMs": 9198,
+      "errorSummary": "Command failed: gcloud --quiet auth application-default print-access-token\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n"
+    },
+    {
+      "id": "qa_artifacts_bucket_describe",
+      "status": "passed",
+      "command": "gcloud --quiet storage buckets describe gs://reeditpro-staging-reeditpro-qa-artifacts --format=json",
+      "durationMs": 740,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "phase46b_exact_metadata_prefix_list",
+      "status": "passed",
+      "command": "gcloud --quiet storage ls --recursive gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+      "durationMs": 1438,
+      "outputSummary": "not_printed"
+    },
+    {
+      "id": "phase46c_exact_metadata_prefix_list",
+      "status": "passed",
+      "command": "gcloud --quiet storage ls --recursive gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/",
+      "durationMs": 1813,
+      "outputSummary": "not_printed"
+    }
+  ],
+  "permissionPreflight": {
+    "status": "passed",
+    "project": "reeditpro",
+    "probes": [
+      {
+        "id": "qa_artifacts_bucket_describe",
+        "status": "passed"
+      },
+      {
+        "id": "phase46b_exact_metadata_prefix_list",
+        "status": "passed"
+      },
+      {
+        "id": "phase46c_exact_metadata_prefix_list",
+        "status": "passed"
+      }
+    ],
+    "blockers": []
+  },
+  "blockers": [],
+  "warnings": [
+    "application_default_credentials_token_unavailable:Command failed: gcloud --quiet auth application-default print-access-token\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n\nWARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\n\nThis will also prompt to install a compatible version of Python.\n\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n\nWARNING: Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out\nWARNING: Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down\nERROR: (gcloud.auth.application-default.print-access-token) Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.\n"
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "phase": "46D",
   "runId": "phase46d-duckdb-polars-reporting-qa-integration-20260603",
-  "status": "blocked",
+  "status": "ready_for_gate",
   "inputs": [
     {
       "criterion": "approval/license evidence",
@@ -41,9 +41,9 @@
     {
       "criterion": "private artifacts",
       "required": true,
-      "status": "block",
+      "status": "pass",
       "evidence": "Phase 46B/46C private artifact manifests and Phase 46D upload",
-      "blocker": "Private artifact read is incomplete."
+      "blocker": ""
     },
     {
       "criterion": "smoke/report CLIs",
@@ -74,6 +74,6 @@
       "blocker": "Dedicated media/data internal beta-readiness gate not implemented yet."
     }
   ],
-  "mediaDataToolFamilyBetaStatus": "blocked",
-  "nextPhase": "Phase 46D blocker follow-up"
+  "mediaDataToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "nextPhase": "Phase 46E media/data internal beta-readiness gate"
 }

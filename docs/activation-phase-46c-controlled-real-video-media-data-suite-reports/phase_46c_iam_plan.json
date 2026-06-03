@@ -1,0 +1,10 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "status": "no_iam_mutation_allowed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/",
+  "notes": [
+    "Phase 46C may upload private QA artifacts only if existing auth/IAM allows it.",
+    "No IAM mutation is performed in this phase."
+  ]
+}

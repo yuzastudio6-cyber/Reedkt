@@ -1,0 +1,29 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "status": "passed",
+  "mediaDataToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "toolStatus": {
+    "pyav": "passed",
+    "opencv": "passed",
+    "pyscenedetect": "passed",
+    "sharp_libvips": "passed",
+    "duckdb": "passed",
+    "polars": "passed"
+  },
+  "warnings": [],
+  "privateArtifactStatus": "passed",
+  "qaGates": {
+    "approvedSingleSampleOnly": true,
+    "sourceChecksumVerified": true,
+    "boundedFrameSampling": true,
+    "maxFrameCountRespected": true,
+    "noArbitraryMedia": true,
+    "noProviderCalls": true,
+    "noVlmRuntime": true,
+    "noOcrRuntime": true,
+    "noPublicOutput": true,
+    "coreRequiredToolsPassed": true
+  }
+}

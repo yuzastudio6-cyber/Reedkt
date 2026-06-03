@@ -1,0 +1,13 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "status": "passed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/",
+  "controlledRealVideo": "approved_single_sample_only",
+  "windowBounded": true,
+  "publicArtifacts": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked",
+  "committedFramesOrThumbnails": "blocked",
+  "broadMedia": "blocked",
+  "arbitraryMediaInput": "blocked"
+}

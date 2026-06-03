@@ -1,0 +1,184 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "status": "passed",
+  "toolStatus": {
+    "pyav": "passed",
+    "opencv": "passed",
+    "pyscenedetect": "passed",
+    "sharp_libvips": "passed",
+    "duckdb": "passed",
+    "polars": "passed"
+  },
+  "warnings": [],
+  "artifactCount": 27.0,
+  "artifacts": [
+    {
+      "relativePath": "controlled-metrics/controlled-media-data-metrics.csv",
+      "kind": "controlled_real_video_private_artifact",
+      "sizeBytes": 348.0,
+      "sha256": "95d1b17131834a80d181f865179a51b937bdc9dcdfac6dfa75143b245fef0d19"
+    },
+    {
+      "relativePath": "controlled-private-bounded-window/phase46c-window-6_9-8_9.mp4",
+      "kind": "controlled_real_video_private_bounded_clip",
+      "sizeBytes": 2269035.0,
+      "sha256": "5b3f9ea626202cc6f8f32e1baa987d34245597f3aaae46ad5ccb0176eaf3b15b"
+    },
+    {
+      "relativePath": "controlled-private-frame-samples/sample_00_6_9s.png",
+      "kind": "controlled_real_video_private_frame_sample",
+      "sizeBytes": 6726877.0,
+      "sha256": "1542cc7071cb7661ff9c142303a9b6c2aa0c7afacdcfa35568e2dcedc7150dfc"
+    },
+    {
+      "relativePath": "controlled-private-frame-samples/sample_01_7_3s.png",
+      "kind": "controlled_real_video_private_frame_sample",
+      "sizeBytes": 6723558.0,
+      "sha256": "d0d90ae1d1820e156d9590e00dad6c33a4d0c2188857af52854ded2c08033b09"
+    },
+    {
+      "relativePath": "controlled-private-frame-samples/sample_02_7_7s.png",
+      "kind": "controlled_real_video_private_frame_sample",
+      "sizeBytes": 6414184.0,
+      "sha256": "b05475c2cb304ccf88be909a4308be010a550a23700861fd0f578f3d15a65d29"
+    },
+    {
+      "relativePath": "controlled-private-frame-samples/sample_03_8_1s.png",
+      "kind": "controlled_real_video_private_frame_sample",
+      "sizeBytes": 6661501.0,
+      "sha256": "acf1937674fb95096e912f71eb2b794ca527ee54b12dcc228a7ceb9ffee04a85"
+    },
+    {
+      "relativePath": "controlled-private-frame-samples/sample_04_8_5s.png",
+      "kind": "controlled_real_video_private_frame_sample",
+      "sizeBytes": 6992667.0,
+      "sha256": "71bad5a102ee5383d440156d71c6c3dc9988f177de77cc1547d7de7ebea35610"
+    },
+    {
+      "relativePath": "controlled-private-frame-samples/sample_05_8_9s.png",
+      "kind": "controlled_real_video_private_frame_sample",
+      "sizeBytes": 6975125.0,
+      "sha256": "f137d612ced3ea15290c5fd268c44e68c8cc7657159f37d36f3d9e7a0df04048"
+    },
+    {
+      "relativePath": "controlled-private-thumbnails/sample_00_thumbnail.png",
+      "kind": "controlled_real_video_private_thumbnail",
+      "sizeBytes": 11764.0,
+      "sha256": "40fa72d6fffa7281c31f92b0293403652b05a177cf7bcb502ac9995e50cbd1ef"
+    },
+    {
+      "relativePath": "phase_46c_blocker_report.json",
+      "kind": "report",
+      "sizeBytes": 412.0,
+      "sha256": "3c371c68ef1fc6383414e27b1cd08f70c810327f21424cad1efaeb857b07544c"
+    },
+    {
+      "relativePath": "phase_46c_controlled_media_data_qa_report.json",
+      "kind": "report",
+      "sizeBytes": 803.0,
+      "sha256": "e18bf18bd44949af3414e6d317ba9de4bcd834146bd58f64c1e439b45614ed98"
+    },
+    {
+      "relativePath": "phase_46c_controlled_media_resolver_report.json",
+      "kind": "report",
+      "sizeBytes": 1841.0,
+      "sha256": "672ab372d6be221605cab513f6a0c33385be5faa0035652ce8c87a032cfc2c2d"
+    },
+    {
+      "relativePath": "phase_46c_controlled_real_video_media_data_suite_report.json",
+      "kind": "report",
+      "sizeBytes": 1067.0,
+      "sha256": "70fb18d80402759714ed358c1b89a9f74d21eff07ee6c6e067b1b4bfbdfdad1e"
+    },
+    {
+      "relativePath": "phase_46c_controlled_real_video_plan.json",
+      "kind": "report",
+      "sizeBytes": 1247.0,
+      "sha256": "fd26277fff5a554693b9a10d202fef6f392e3083081a33c8aa819765769287c6"
+    },
+    {
+      "relativePath": "phase_46c_controlled_runtime_preflight.json",
+      "kind": "report",
+      "sizeBytes": 1166.0,
+      "sha256": "bb09d8bd8d5e96cc5d322de5c8fb077f5e6a0cef62c20173100195142239e141"
+    },
+    {
+      "relativePath": "phase_46c_controlled_sample_evidence.json",
+      "kind": "report",
+      "sizeBytes": 1095.0,
+      "sha256": "b457575375b5d41e924ccb34f8b2903d9547633915c2c1070ed6076477754d13"
+    },
+    {
+      "relativePath": "phase_46c_cross_tool_manifest.json",
+      "kind": "report",
+      "sizeBytes": 6776.0,
+      "sha256": "f9fbbea0a9cdc10d38f77c20a8a05423269e0d4ee3c1bed6978a65fc0c7b74db"
+    },
+    {
+      "relativePath": "phase_46c_dependency_runtime_report.json",
+      "kind": "report",
+      "sizeBytes": 418.0,
+      "sha256": "89b6c80ade152dca625acadec1c1247deb9ef35d9cc279ff4eb2a11893961d5e"
+    },
+    {
+      "relativePath": "phase_46c_duckdb_controlled_aggregation_report.json",
+      "kind": "report",
+      "sizeBytes": 531.0,
+      "sha256": "ea6a5cce6a6cf12e355cf13b37f1551de575fab1c4fbc8a6168ebf108e5c0921"
+    },
+    {
+      "relativePath": "phase_46c_opencv_frame_sample_report.json",
+      "kind": "report",
+      "sizeBytes": 4326.0,
+      "sha256": "897b260eae6bda6b446aceb87335aa559bad1567f138ef615968a0b7505169ad"
+    },
+    {
+      "relativePath": "phase_46c_polars_controlled_transform_report.json",
+      "kind": "report",
+      "sizeBytes": 522.0,
+      "sha256": "b8002ddc97d8f21ba524df6b84b9f9433198992d475c54fe56447a6be652c386"
+    },
+    {
+      "relativePath": "phase_46c_private_artifact_manifest.json",
+      "kind": "report",
+      "sizeBytes": 6885.0,
+      "sha256": "ff491f13ca77ab230f3a8213bfd3c3ac379a79a77e9a9bb3445fc4bebc98714c"
+    },
+    {
+      "relativePath": "phase_46c_pyav_controlled_probe_report.json",
+      "kind": "report",
+      "sizeBytes": 1205.0,
+      "sha256": "e056a5681de51c16cb76ed1b06ce8c23460c300deeaa0fc63b7366c3fc54aa3c"
+    },
+    {
+      "relativePath": "phase_46c_pyscenedetect_scene_manifest.json",
+      "kind": "report",
+      "sizeBytes": 870.0,
+      "sha256": "8d8b4f8c28dc5e7acfde5f362dd7dca98b6046772c874ffb2b59440d01722719"
+    },
+    {
+      "relativePath": "phase_46c_sharp_libvips_controlled_report.json",
+      "kind": "report",
+      "sizeBytes": 1650.0,
+      "sha256": "c2d2c0c473bd74de547bc5b63ea53d95758e057137dd3c3b617480706205c946"
+    },
+    {
+      "relativePath": "phase_46c_storage_privacy_report.json",
+      "kind": "report",
+      "sizeBytes": 562.0,
+      "sha256": "1460fadc6bcd7035c41bb1d47ecd36d843390f90a6c149866656d0a5ba29dbff"
+    },
+    {
+      "relativePath": "phase_46c_tool_version_report.json",
+      "kind": "report",
+      "sizeBytes": 1020.0,
+      "sha256": "3ad331da933f71c490641c859491493b79f8d4f386f5624bcbbf4a4f6b4a8472"
+    }
+  ],
+  "privateOnly": true,
+  "publicOutput": "blocked",
+  "broadMedia": "blocked",
+  "arbitraryMediaInput": "blocked"
+}

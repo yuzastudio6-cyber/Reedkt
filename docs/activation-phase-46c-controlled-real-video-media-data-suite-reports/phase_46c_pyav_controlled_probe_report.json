@@ -1,0 +1,39 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "toolId": "pyav",
+  "status": "passed",
+  "controlledRealVideo": true,
+  "sourceGcsUri": "gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4",
+  "sourceSha256": "78bd798602d221b894a60dfa34ed1528602c9ece7f657e3f9bbea7fd071cc7fa",
+  "versions": {
+    "pyav": "15.1.0",
+    "ffmpegLibrary": {
+      "libavutil": "(59, 39, 100)",
+      "libavcodec": "(61, 19, 101)",
+      "libavformat": "(61, 7, 100)",
+      "libavdevice": "(61, 3, 100)",
+      "libavfilter": "(10, 4, 100)",
+      "libswscale": "(8, 3, 100)",
+      "libswresample": "(5, 3, 100)"
+    }
+  },
+  "metrics": {
+    "durationSeconds": 15.467,
+    "streamCount": 2.0,
+    "videoStreamCount": 1.0,
+    "audioStreamCount": 1.0,
+    "videoCodec": "h264",
+    "width": 2160.0,
+    "height": 3840.0,
+    "averageRate": 24.0,
+    "framesReported": 371.0
+  },
+  "checks": {
+    "videoStreamPresent": true,
+    "sourceChecksumMatches": true,
+    "metadataOnlyProbe": true,
+    "arbitraryMediaInputBlocked": true
+  }
+}

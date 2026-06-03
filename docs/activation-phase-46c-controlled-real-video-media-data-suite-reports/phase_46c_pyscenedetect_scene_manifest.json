@@ -1,0 +1,32 @@
+{
+  "phase": "46C",
+  "runId": "phase46c-controlled-real-video-media-data-suite-20260603",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "toolId": "pyscenedetect",
+  "status": "passed",
+  "controlledRealVideo": true,
+  "versions": {
+    "pyscenedetect": "0.6.7.1"
+  },
+  "window": {
+    "startSeconds": 6.9,
+    "endSeconds": 8.9
+  },
+  "boundedClip": {
+    "relativePath": "controlled-private-bounded-window/phase46c-window-6_9-8_9.mp4",
+    "kind": "controlled_real_video_private_bounded_clip",
+    "sizeBytes": 2269035.0,
+    "sha256": "5b3f9ea626202cc6f8f32e1baa987d34245597f3aaae46ad5ccb0176eaf3b15b"
+  },
+  "metrics": {
+    "encodedWindowFrames": 55.0,
+    "detectedScenes": 0.0,
+    "scenes": []
+  },
+  "checks": {
+    "boundedWindowOnly": true,
+    "noFullVideoSweep": true,
+    "sceneManifestCreated": true
+  },
+  "warningReason": null
+}

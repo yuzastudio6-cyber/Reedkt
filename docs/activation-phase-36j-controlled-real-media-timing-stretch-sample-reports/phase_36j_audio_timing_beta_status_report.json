@@ -1,0 +1,10 @@
+{
+  "phase": "36J",
+  "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
+  "status": "blocked",
+  "audioTimingToolFamilyBetaStatus": "blocked",
+  "internalBeta": "blocked",
+  "externalBeta": "blocked",
+  "production": "blocked",
+  "nextPhaseDecision": "Resolve exact Phase 36J blocker before audio/timing beta-readiness or Demucs follow-up."
+}

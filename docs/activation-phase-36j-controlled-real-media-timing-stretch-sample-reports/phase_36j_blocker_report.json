@@ -1,0 +1,34 @@
+{
+  "phase": "36J",
+  "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
+  "status": "blocked",
+  "blockers": [
+    "ffmpeg_unavailable_for_bounded_audio_extraction",
+    "ffprobe_unavailable_for_bounded_audio_validation",
+    "signalsmith_controlled_runtime_preflight_incomplete"
+  ],
+  "blockedScopes": [
+    "Demucs until provenance/legal approval",
+    "Demucs download/runtime/source separation",
+    "DeepFilterNet runtime execution in Phase 36J",
+    "Signalsmith generated fixture rerun except evidence read",
+    "OCR runtime",
+    "VLM runtime retries",
+    "provider calls",
+    "arbitrary media paths",
+    "broad media",
+    "unapproved real media",
+    "public media URLs",
+    "signed URLs as source of truth",
+    "full-video processing",
+    "final export",
+    "public output",
+    "production",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "Docker/Cloud Build/Cloud Run unless separately approved",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ]
+}

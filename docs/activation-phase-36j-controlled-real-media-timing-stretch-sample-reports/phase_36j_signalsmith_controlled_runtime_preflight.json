@@ -1,0 +1,100 @@
+{
+  "phase": "36J",
+  "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
+  "status": "blocked",
+  "checks": [
+    {
+      "command": "python3",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 20,
+      "stdoutSummary": "Python 3.9.6"
+    },
+    {
+      "command": "c++",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 16,
+      "stdoutSummary": "Apple clang version 16.0.0 (clang-1600.0.26.3)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    {
+      "command": "clang++",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 15,
+      "stdoutSummary": "Apple clang version 16.0.0 (clang-1600.0.26.3)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    {
+      "command": "g++",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 23,
+      "stdoutSummary": "Apple clang version 16.0.0 (clang-1600.0.26.3)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    {
+      "command": "git",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 14,
+      "stdoutSummary": "git version 2.39.5 (Apple Git-154)"
+    },
+    {
+      "command": "ffmpeg",
+      "args": [
+        "-version"
+      ],
+      "status": "blocked",
+      "error": "spawn ffmpeg ENOENT"
+    },
+    {
+      "command": "ffprobe",
+      "args": [
+        "-version"
+      ],
+      "status": "blocked",
+      "error": "spawn ffprobe ENOENT"
+    },
+    {
+      "command": "gcloud",
+      "args": [
+        "--version"
+      ],
+      "status": "passed",
+      "durationMs": 267,
+      "stdoutSummary": "Google Cloud SDK 558.0.0\nbq 2.1.28\ncloud-run-proxy 0.5.1\ncore 2026.02.20\ngcloud-crc32c 1.0.0"
+    }
+  ],
+  "compilerAvailable": true,
+  "phase36IReport": "docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports/phase_36i_signalsmith_runtime_generated_fixture_report.json",
+  "phase36HReport": "docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports/phase_36h_deepfilternet_runtime_hardening_report.json",
+  "selectedSample": {
+    "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+    "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
+    "sourceGcsUri": "gs://reeditpro-staging-reeditpro-final-exports/activation-real-video/phase32/phase32-20260528T13330/color-corrected-export.mp4",
+    "sourceSha256": "78bd798602d221b894a60dfa34ed1528602c9ece7f657e3f9bbea7fd071cc7fa",
+    "windowStartSeconds": 6.9,
+    "windowEndSeconds": 8.9,
+    "maxDurationSeconds": 5,
+    "privateOnly": true
+  },
+  "platform": {
+    "os": "darwin",
+    "arch": "arm64",
+    "node": "v24.14.0"
+  },
+  "privateArtifactUploadPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/",
+  "blockers": [
+    "ffmpeg_unavailable_for_bounded_audio_extraction",
+    "ffprobe_unavailable_for_bounded_audio_validation"
+  ]
+}

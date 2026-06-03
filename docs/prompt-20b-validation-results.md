@@ -101,3 +101,24 @@ The first local SQL candidate exists but remains unexecuted:
 ## Decision
 
 Prompt 20B is `validation_blocked`. The next milestone should be Prompt 20H - Local Supabase Migration Chain Repair Follow-Up, focused on the `current_edit_session_id` / canonical project table schema-era conflict.
+
+## Prompt 20H Follow-Up
+
+Prompt 20H repaired the `current_edit_session_id` migration-chain blocker in `supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql` by adding the nullable compatibility column before the FK and guarding the FK creation with table, column, and scoped constraint checks.
+
+Local retries exposed and repaired two additional same-migration compatibility blockers:
+
+- missing `workspaces.owner_id` / `projects.owner_id` before owner indexes and Prompt 3-era policies;
+- missing `chat_messages.edit_session_id` before `idx_chat_messages_session_created`.
+
+After those repairs, local `supabase start` passed `202605180001_reeditpro_core_workspace_projects.sql` and advanced to the next migration-chain blocker:
+
+```text
+ERROR: column "status" does not exist (SQLSTATE 42703)
+At statement: 8
+create index if not exists idx_media_assets_project_status on public.media_assets(project_id, status)
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20I - Local Supabase Migration Chain Repair Follow-Up, focused on `202605180002_reeditpro_media_source_sequence.sql`.

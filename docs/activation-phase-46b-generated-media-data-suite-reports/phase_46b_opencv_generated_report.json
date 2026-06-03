@@ -1,0 +1,31 @@
+{
+  "phase": "46B",
+  "fixtureId": "generated-image-opencv-basic",
+  "toolId": "opencv",
+  "status": "passed",
+  "generatedOnly": true,
+  "realMedia": "not_used",
+  "versions": {
+    "opencv": "4.13.0",
+    "numpy": "2.4.6"
+  },
+  "metrics": {
+    "width": 320,
+    "height": 240,
+    "redPixelCount": 10201,
+    "bluePixelCount": 4053,
+    "greenPixelCount": 2164
+  },
+  "checks": {
+    "dimensionsMatch": true,
+    "redRectangleDetected": true,
+    "blueCircleDetected": true,
+    "greenLineDetected": true
+  },
+  "artifact": {
+    "relativePath": "generated-fixtures/generated-image-opencv-basic.png",
+    "kind": "generated_fixture_image",
+    "sizeBytes": 1795,
+    "sha256": "1b6d04a3bccd2993c8abf3e87ac1a8cb1e0a92517aec6aaa3c6dbd248189a64e"
+  }
+}

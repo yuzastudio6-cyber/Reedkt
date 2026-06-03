@@ -1,0 +1,18 @@
+{
+  "phase": "46B",
+  "runId": "phase46b-generated-media-data-suite-20260603",
+  "sourcePhase46aPr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/123",
+  "branch": "codex/rp-activation-46b-generated-media-data-analysis-suite",
+  "baseIfPr123Open": "codex/rp-activation-46a-media-data-tool-readiness-audit",
+  "packageLockPolicy": "unchanged_temp_runtime_only",
+  "fixtureIds": [
+    "generated-image-opencv-basic",
+    "generated-container-pyav-probe",
+    "generated-scene-cut-pyscenedetect",
+    "generated-thumbnail-sharp-libvips",
+    "generated-report-duckdb",
+    "generated-report-polars",
+    "generated-cross-tool-manifest"
+  ],
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/"
+}

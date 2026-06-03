@@ -1,0 +1,40 @@
+{
+  "phase": "46B",
+  "fixtureId": "generated-scene-cut-pyscenedetect",
+  "toolId": "pyscenedetect",
+  "status": "passed",
+  "generatedOnly": true,
+  "realMedia": "not_used",
+  "versions": {
+    "pyscenedetect": "0.6.7.1"
+  },
+  "metrics": {
+    "expectedScenes": 3,
+    "detectedScenes": 3,
+    "boundaries": [
+      [
+        0,
+        15
+      ],
+      [
+        15,
+        30
+      ],
+      [
+        30,
+        45
+      ]
+    ],
+    "expectedFrameCount": 45
+  },
+  "checks": {
+    "expectedSceneCount": true,
+    "boundariesWithinTolerance": true
+  },
+  "artifact": {
+    "relativePath": "generated-fixtures/generated-scene-cut-pyscenedetect.mp4",
+    "kind": "generated_fixture_video",
+    "sizeBytes": 4818,
+    "sha256": "9e92278def2201f665c137cff52962596557246837d81539a91fa90c90726a92"
+  }
+}

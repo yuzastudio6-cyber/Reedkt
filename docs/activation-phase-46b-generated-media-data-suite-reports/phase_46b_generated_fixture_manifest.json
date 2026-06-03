@@ -1,0 +1,36 @@
+{
+  "phase": "46B",
+  "runId": "phase46b-generated-media-data-suite-20260603",
+  "fixtures": [
+    {
+      "fixtureId": "generated-image-opencv-basic",
+      "generatedOnly": true
+    },
+    {
+      "fixtureId": "generated-container-pyav-probe",
+      "generatedOnly": true
+    },
+    {
+      "fixtureId": "generated-scene-cut-pyscenedetect",
+      "generatedOnly": true
+    },
+    {
+      "fixtureId": "generated-thumbnail-sharp-libvips",
+      "generatedOnly": true
+    },
+    {
+      "fixtureId": "generated-report-duckdb",
+      "generatedOnly": true
+    },
+    {
+      "fixtureId": "generated-report-polars",
+      "generatedOnly": true
+    },
+    {
+      "fixtureId": "generated-cross-tool-manifest",
+      "generatedOnly": true
+    }
+  ],
+  "realMedia": "not_used",
+  "arbitraryMediaInput": "blocked"
+}

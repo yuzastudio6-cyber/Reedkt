@@ -1,0 +1,25 @@
+{
+  "phase": "46B",
+  "runId": "phase46b-generated-media-data-suite-20260603",
+  "status": "passed",
+  "mediaDataToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "generatedOnly": true,
+  "toolStatus": {
+    "opencv": "passed",
+    "pyav": "passed",
+    "pyscenedetect": "passed",
+    "sharp_libvips": "passed",
+    "duckdb": "passed",
+    "polars": "passed"
+  },
+  "privateArtifactStatus": "passed",
+  "qaGates": {
+    "noRealMedia": true,
+    "noArbitraryMedia": true,
+    "noProviderCalls": true,
+    "noVlmRuntime": true,
+    "noOcrRuntime": true,
+    "noPublicOutput": true,
+    "allRequiredToolsPassed": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "phase": "46B",
+  "fixtureId": "generated-report-polars",
+  "toolId": "polars",
+  "status": "passed",
+  "generatedOnly": true,
+  "realMedia": "not_used",
+  "versions": {
+    "polars": "1.36.1"
+  },
+  "metrics": {
+    "rowCount": 5,
+    "statusCounts": [
+      {
+        "status": "passed",
+        "count": 5
+      }
+    ]
+  },
+  "checks": {
+    "metricsLoaded": true,
+    "groupByStatusMatches": true,
+    "rowCountRecorded": true
+  }
+}

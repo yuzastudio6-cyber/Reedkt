@@ -1,5 +1,7 @@
 # Production Model Weight Readiness Plan
 
+Phase 46B media/data generated fixtures do not add, download, stage, or execute model weights. VLM remains blocked by Phase 39C decision-gate evidence, and no model-runtime retry is part of Phase 46B.
+
 Milestone 5 does not download, bundle, cache, or execute model weights. Model-weight readiness is represented as metadata and dry-run checks only.
 
 ## Separate Review Required

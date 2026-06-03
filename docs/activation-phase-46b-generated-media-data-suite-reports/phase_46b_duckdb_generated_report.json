@@ -1,0 +1,25 @@
+{
+  "phase": "46B",
+  "fixtureId": "generated-report-duckdb",
+  "toolId": "duckdb",
+  "status": "passed",
+  "generatedOnly": true,
+  "realMedia": "not_used",
+  "versions": {
+    "duckdb": "1.4.4"
+  },
+  "metrics": {
+    "rowCount": 4,
+    "statusCounts": [
+      {
+        "status": "passed",
+        "count": 4
+      }
+    ]
+  },
+  "checks": {
+    "metricsLoaded": true,
+    "aggregateCountsMatch": true,
+    "networkExtensionsNotUsed": true
+  }
+}

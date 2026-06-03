@@ -1,4 +1,4 @@
-import { buildPrivateSearxngServiceReport, summarizePrivateSearxngServiceReport } from '../activation/private-searxng-service'
+import { buildPrivateSearxngServiceReport, summarizePrivateSearxngServiceReport } from '../activation/private-searxng-service/private-searxng-report-builder'
 
 const json = process.argv.includes('--json')
 const report = buildPrivateSearxngServiceReport()

@@ -1,4 +1,4 @@
-import { buildReadabilityExtractionReport, summarizeReadabilityExtractionReport } from '../activation/readability-extraction-fixture'
+import { buildReadabilityExtractionReport, summarizeReadabilityExtractionReport } from '../activation/readability-extraction-fixture/readability-extraction-report-builder'
 
 const json = process.argv.includes('--json')
 const report = buildReadabilityExtractionReport()

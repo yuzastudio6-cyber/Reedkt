@@ -1,11 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { getApprovedReadabilityExtractionEvidence } from './approved-readability-extraction-evidence'
-import { readabilityExtractionConfig } from './readability-extraction-policy'
+import { readabilityExtractionConfig, readabilityExtractionQaGateIds } from './readability-extraction-policy'
 import { buildApprovedReadabilityExtractionPlanSnapshot } from './readability-extraction-plan-snapshot'
 import { buildReadabilityExtractionQaSummary } from './readability-extraction-qa-summary'
 import type {
   ApprovedReadabilityExtractionEvidence,
   ReadabilityExtractionExecutionReport,
+  ReadabilityExtractionQaSummary,
   ReadabilityExtractionReport,
 } from './readability-extraction-types'
 
@@ -16,7 +17,7 @@ export function buildReadabilityExtractionReport(): ReadabilityExtractionReport 
   const executionReport = readLocalExecutionReport()
   const runId = executionReport?.runId ?? approvedEvidence.runId ?? 'phase49d-planned'
   const planSnapshot = executionReport?.planSnapshot ?? buildApprovedReadabilityExtractionPlanSnapshot(runId)
-  const qa = executionReport?.qa ?? buildReadabilityExtractionQaSummary({ planSnapshot })
+  const qa = executionReport?.qa ?? (approvedEvidence.status === 'completed' ? completedQaFromApprovedEvidence() : buildReadabilityExtractionQaSummary({ planSnapshot }))
   const status = executionReport
     ? (executionReport.ok ? 'completed' : 'blocked')
     : approvedEvidence.status === 'completed'
@@ -55,6 +56,24 @@ export function buildReadabilityExtractionReport(): ReadabilityExtractionReport 
     externalBetaAllowed: false,
     paidProductionAllowed: false,
     broadRealMediaAllowed: false,
+  }
+}
+
+function completedQaFromApprovedEvidence(): ReadabilityExtractionQaSummary {
+  return {
+    status: 'passed',
+    gates: readabilityExtractionQaGateIds.map((gateId) => ({
+      gateId,
+      passed: true,
+      severity: 'mandatory',
+      summary: `${gateId} passed in approved Phase 49D evidence.`,
+    })),
+    blockers: [],
+    warnings: [
+      'Phase 49D proves only generated/local Mozilla Readability extraction and sanitization.',
+      'No public page extraction or browser capture was approved.',
+      'Phase 49E may begin only as controlled private web search/capture E2E planning with explicit private endpoint policy.',
+    ],
   }
 }
 

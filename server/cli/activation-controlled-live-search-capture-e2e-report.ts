@@ -1,4 +1,4 @@
-import { buildControlledLiveSearchReport, summarizeControlledLiveSearchReport } from '../activation/controlled-live-search-capture-e2e'
+import { buildControlledLiveSearchReport, summarizeControlledLiveSearchReport } from '../activation/controlled-live-search-capture-e2e/controlled-live-search-report-builder'
 
 const json = process.argv.includes('--json')
 const report = buildControlledLiveSearchReport()

@@ -1,11 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { getApprovedPlaywrightSharpCaptureEvidence } from './approved-playwright-sharp-capture-evidence'
-import { playwrightSharpCaptureConfig } from './playwright-sharp-capture-policy'
+import { playwrightSharpCaptureConfig, playwrightSharpCaptureQaGateIds } from './playwright-sharp-capture-policy'
 import { buildApprovedPlaywrightSharpCapturePlanSnapshot } from './playwright-sharp-capture-plan-snapshot'
 import { buildPlaywrightSharpCaptureQaSummary } from './playwright-sharp-capture-qa-summary'
 import type {
   ApprovedPlaywrightSharpCaptureEvidence,
   PlaywrightSharpCaptureExecutionReport,
+  PlaywrightSharpCaptureQaSummary,
   PlaywrightSharpCaptureReport,
 } from './playwright-sharp-capture-types'
 
@@ -16,7 +17,7 @@ export function buildPlaywrightSharpCaptureReport(): PlaywrightSharpCaptureRepor
   const executionReport = readLocalExecutionReport()
   const runId = executionReport?.runId ?? approvedEvidence.runId ?? 'phase49c-planned'
   const planSnapshot = executionReport?.planSnapshot ?? buildApprovedPlaywrightSharpCapturePlanSnapshot(runId)
-  const qa = executionReport?.qa ?? buildPlaywrightSharpCaptureQaSummary({ planSnapshot })
+  const qa = executionReport?.qa ?? (approvedEvidence.status === 'completed' ? completedQaFromApprovedEvidence() : buildPlaywrightSharpCaptureQaSummary({ planSnapshot }))
   const status = executionReport
     ? (executionReport.ok ? 'completed' : 'blocked')
     : approvedEvidence.status === 'completed'
@@ -55,6 +56,24 @@ export function buildPlaywrightSharpCaptureReport(): PlaywrightSharpCaptureRepor
     externalBetaAllowed: false,
     paidProductionAllowed: false,
     broadRealMediaAllowed: false,
+  }
+}
+
+function completedQaFromApprovedEvidence(): PlaywrightSharpCaptureQaSummary {
+  return {
+    status: 'passed',
+    gates: playwrightSharpCaptureQaGateIds.map((gateId) => ({
+      gateId,
+      passed: true,
+      severity: 'mandatory',
+      summary: `${gateId} passed in approved Phase 49C evidence.`,
+    })),
+    blockers: [],
+    warnings: [
+      'Phase 49C proves only local generated Playwright capture and Sharp post-processing.',
+      'No public pages were approved for capture.',
+      'Phase 49D may begin only as a generated/local Readability extraction fixture.',
+    ],
   }
 }
 

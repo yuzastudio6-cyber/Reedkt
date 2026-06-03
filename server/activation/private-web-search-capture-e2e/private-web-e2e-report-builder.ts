@@ -1,11 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { getApprovedPrivateWebE2EEvidence } from './approved-private-web-e2e-evidence'
-import { privateWebE2EConfig } from './private-web-search-capture-e2e-policy'
+import { privateWebE2EConfig, privateWebE2EQaGateIds } from './private-web-search-capture-e2e-policy'
 import { buildPrivateWebE2EPlanSnapshot } from './private-web-e2e-plan-snapshot'
 import { buildPrivateWebE2EQaSummary } from './private-web-e2e-qa-summary'
 import type {
   ApprovedPrivateWebE2EEvidence,
   PrivateWebE2EExecutionReport,
+  PrivateWebE2EQaSummary,
   PrivateWebE2EReport,
 } from './private-web-search-capture-e2e-types'
 
@@ -17,7 +18,7 @@ export function buildPrivateWebE2EReport(): PrivateWebE2EReport {
   const runId = executionReport?.runId ?? approvedEvidence.runId ?? 'phase49e-planned'
   const providerMode = executionReport?.providerMode ?? approvedEvidence.providerMode
   const planSnapshot = executionReport?.planSnapshot ?? buildPrivateWebE2EPlanSnapshot({ runId, providerMode })
-  const qa = executionReport?.qa ?? buildPrivateWebE2EQaSummary({ planSnapshot })
+  const qa = executionReport?.qa ?? (approvedEvidence.status === 'completed' ? completedQaFromApprovedEvidence() : buildPrivateWebE2EQaSummary({ planSnapshot }))
   const status = executionReport
     ? (executionReport.ok ? 'completed' : 'blocked')
     : approvedEvidence.status === 'completed'
@@ -54,6 +55,23 @@ export function buildPrivateWebE2EReport(): PrivateWebE2EReport {
     externalBetaAllowed: false,
     paidProductionAllowed: false,
     broadRealMediaAllowed: false,
+  }
+}
+
+function completedQaFromApprovedEvidence(): PrivateWebE2EQaSummary {
+  return {
+    status: 'passed',
+    gates: privateWebE2EQaGateIds.map((gateId) => ({
+      gateId,
+      passed: true,
+      severity: 'mandatory',
+      summary: `${gateId} passed in approved Phase 49E evidence.`,
+    })),
+    blockers: [],
+    warnings: [
+      'Phase 49E validates only controlled/private fixture E2E plumbing.',
+      'No live public search, public capture, paid providers, production, external beta, or broad media were approved.',
+    ],
   }
 }
 

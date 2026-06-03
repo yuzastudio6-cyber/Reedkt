@@ -333,6 +333,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: manual environment status is recorded honestly, runner dry-run does not call `supabase status`, no SQL executes, no local/staging/remote/production Supabase is touched, and next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 20E - Manual Environment Setup Follow-Up. Prompt 20B should wait until preflight reports `canProceedToPrompt20B=true`.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-SQL/no-Supabase-execution statement.
+
+## 20E. Local Supabase Manual Setup Follow-Up
+
+- Purpose: verify the host local Supabase toolchain after Prompt 20D and record whether manual setup is complete enough for Prompt 20B, without installing tools or running SQL.
+- Deliverables after Prompt 20E: `docs/local-supabase-manual-setup-follow-up.md`, `docs/prompt-20e-validation-results.md`, `docs/implementation-prompts/prompt-20e-local-supabase-manual-setup-follow-up.md`, `scripts/validation/local-supabase-host-toolchain-probe.mjs`, package script `supabase:local:toolchain:probe`, and tracker updates.
+- Implementation status after Prompt 20E: validation blocked / manual setup follow-up only. No SQL, Supabase start/status/reset, migration, staging, production, tool install/download, or runtime execution is enabled.
+- Implements: manual-only host toolchain probe for Supabase CLI, Docker, `psql`, Homebrew prefix, local config, local DB URL env readiness, remote-risk env names, and Prompt 20B readiness.
+- Must not implement: tool install/download, `npx`, staging/remote/production Supabase execution, local or remote SQL, migration deployment, Supabase start/status/reset, production/staging data creation, deployment, providers, tools, workers, render/export, media processing, storage transfer, signed URL creation, credit mutation, Stripe, external telemetry, dependency mutation, or production/beta unlock.
+- What remains blocked: local SQL/RLS execution, wrong-architecture Supabase CLI error `-86`, missing `psql`, no localhost-only local DB URL, no executable local SQL candidate, staging Supabase/RLS execution, remote production Supabase, and beta approval.
+- Validation result: host toolchain probe remains `blocked`, Docker is reachable, Homebrew is `/usr/local`-prefixed with no `/opt/homebrew`, `canProceedToPrompt20B=false`, and `canRunLocalSql=false`.
+- Acceptance criteria: host toolchain status is recorded honestly, no host install/download occurs, no SQL executes, no local/staging/remote/production Supabase is touched, and next prompt recommendation is clear.
+- Next prompt recommendation: Prompt 20F - Manual Host Tool Repair Verification. Prompt 20B should wait until preflight or host probe reports `canProceedToPrompt20B=true`.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-SQL/no-install/no-Supabase-execution statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

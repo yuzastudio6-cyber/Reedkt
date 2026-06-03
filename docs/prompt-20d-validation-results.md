@@ -106,6 +106,12 @@ This is not a Prompt 20D implementation failure. Linux GitHub Foundation Validat
 
 GitHub Foundation Validation passed for PR #124. The latest final-head run is recorded in the PR body.
 
+## Prompt 20E Follow-Up
+
+Prompt 20E adds a manual-only host toolchain probe and keeps SQL execution blocked. The probe confirms Docker remains reachable, but the Supabase CLI is still `/usr/local/bin/supabase` x86_64 on this arm64 host, `psql` is missing, no localhost-only local DB URL is verified, and no executable local SQL candidate exists.
+
+Prompt 20B should still wait until preflight or host probe reports `canProceedToPrompt20B=true`.
+
 ## Supabase Touch Status
 
 Prompt 20D did not run `supabase start`, `supabase status`, `supabase db reset`, `supabase migration up`, `supabase db push`, SQL, `psql`, remote Supabase, staging Supabase, or production Supabase commands.

@@ -163,6 +163,38 @@ Remaining blockers after Prompt 20D:
 
 Prompt 20E/manual follow-up is recommended before Prompt 20B.
 
+## Prompt 20E Evidence Update
+
+Prompt 20E adds a manual-only host toolchain probe. It does not install tools, download tools, run `npx`, run SQL, run `supabase start`, call `supabase status`, reset Supabase, apply migrations, connect with `psql`, touch staging/remote/production Supabase, or create executable SQL.
+
+Prompt 20E evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports Docker usable, CLI/psql/local DB URL/candidate blockers, and Homebrew `/usr/local` prefix. |
+| `npm run --silent supabase:local:preflight` | Expected blocked | Same host blockers as Prompt 20D unless tools are repaired manually. |
+| `npm run supabase:rls:list-tests` | Expected listed | No SQL execution. |
+| `npm run supabase:rls:local:dry-run` | Expected blocked | No SQL execution and no `supabase status`. |
+
+Prompt 20E readiness:
+
+- `canProceedToPrompt20B=false`
+- `canRunLocalSql=false`
+- `canUseDocker=true`
+- `canUsePsql=false`
+- `localDbUrlAvailable=false`
+- `remoteRiskDetected=false`
+- `manualSetupRequired=true`
+
+Remaining blockers after Prompt 20E:
+
+- `/usr/local/bin/supabase` remains x86_64 and fails on arm64 with error `-86`.
+- `psql` remains missing.
+- no localhost-only local DB URL is verified.
+- no executable local SQL candidate exists.
+
+Prompt 20F/manual host tool repair verification is recommended before Prompt 20B.
+
 ## Prompt 20C Evidence Update
 
 Prompt 20C adds manual setup docs and clearer blocked-output guidance. It does not run SQL, start Supabase, call `supabase status`, reset Supabase, apply migrations, call `psql`, touch staging/remote/production Supabase, or create executable SQL.

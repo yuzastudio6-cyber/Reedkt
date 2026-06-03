@@ -37,6 +37,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 49N only as a search provider readiness gate.
 6. Do not use public SearXNG, other paid providers, arbitrary URL capture, broad crawling, public artifacts, signed URLs as source of truth, production, external beta, paid production, or broad media.
 
+## After Phase 49N
+
+1. Review `activation:search-provider-readiness:report`, `activation:search-provider-readiness:iam-plan`, and the private Phase 49N artifacts for `phase49n-20260603T18331`.
+2. Confirm Phase 49A-49M evidence passed, private SearXNG remains default, Brave remains optional/paid/disabled-by-default, and hybrid consensus evidence is complete.
+3. Confirm Brave secret metadata was inspected without reading or printing the secret value.
+4. Confirm raw Brave response storage, Brave snippet storage, public SearXNG, other paid providers, arbitrary URL capture, broad crawling, public artifacts, production, external beta, paid production, and broad media remain blocked.
+5. Proceed to Phase 49O only as a web search regression/failure-mode suite or system reconciliation.
+6. Do not treat Phase 49N as production, external beta, broad media, public crawling, public artifact, or paid provider expansion approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

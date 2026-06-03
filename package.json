@@ -372,7 +372,11 @@
     "activation:hybrid-search-consensus-e2e": "tsx server/cli/activation-hybrid-search-consensus-e2e.ts",
     "activation:hybrid-search-consensus-e2e:report": "tsx server/cli/activation-hybrid-search-consensus-e2e-report.ts",
     "activation:hybrid-search-consensus-e2e:iam-plan": "tsx server/cli/activation-hybrid-search-consensus-e2e-iam-plan.ts",
-    "smoke:activation-hybrid-search-consensus-e2e": "tsx server/smoke/activation-hybrid-search-consensus-e2e-smoke.ts"
+    "smoke:activation-hybrid-search-consensus-e2e": "tsx server/smoke/activation-hybrid-search-consensus-e2e-smoke.ts",
+    "activation:search-provider-readiness": "tsx server/cli/activation-search-provider-readiness.ts",
+    "activation:search-provider-readiness:report": "tsx server/cli/activation-search-provider-readiness-report.ts",
+    "activation:search-provider-readiness:iam-plan": "tsx server/cli/activation-search-provider-readiness-iam-plan.ts",
+    "smoke:activation-search-provider-readiness": "tsx server/smoke/activation-search-provider-readiness-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

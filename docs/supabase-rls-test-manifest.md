@@ -137,3 +137,24 @@ Remaining local blockers after Prompt 20E:
 - `psql` or an approved local SQL executor required;
 - verified localhost-only local Supabase DB URL required;
 - first local-only executable SQL candidate required.
+
+## Prompt 20F Manual Host Repair Verification Update
+
+Prompt 20F does not convert or execute any SQL file. It verifies manual host repair has not happened and records that host setup is still blocked.
+
+Manifest state after Prompt 20F:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- no file under `database/test-sql/local/` is executable;
+- no local, staging, remote, or production SQL was run;
+- no host tools were installed or downloaded;
+- `006_auth_workspace_rls_smoke_tests.draft.sql` remains the first candidate for Prompt 20B only after preflight or host probe reports `canProceedToPrompt20B=true`.
+
+Remaining local blockers after Prompt 20F:
+
+- arm64-compatible Supabase CLI required;
+- local Docker daemon required;
+- `psql` or an approved local SQL executor required;
+- verified localhost-only local Supabase DB URL required;
+- first local-only executable SQL candidate required.

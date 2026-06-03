@@ -195,6 +195,48 @@ Remaining blockers after Prompt 20E:
 
 Prompt 20F/manual host tool repair verification is recommended before Prompt 20B.
 
+## Prompt 20F Evidence Update
+
+Prompt 20F verifies whether manual host repair happened after Prompt 20E. It does not install tools, download tools, run `npx`, run SQL, run `supabase start`, call `supabase status`, reset Supabase, apply migrations, connect with `psql`, touch staging/remote/production Supabase, or create executable SQL.
+
+Prompt 20F evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `uname -m` | `arm64` | Host architecture recorded. |
+| `node --version` with Codex PATH | `v24.14.0` | Node path is `/Applications/Codex.app/Contents/Resources/node`. |
+| `npm --version` with Codex PATH | `11.6.2` | npm path is `/usr/local/bin/npm`. |
+| `brew --prefix` | `/usr/local` | Homebrew remains Intel-prefix on this arm64 host. |
+| `file /usr/local/bin/supabase` | Completed | Supabase CLI is x86_64. |
+| `supabase --version` | Blocked | Bad CPU type / error `-86`; no Supabase lifecycle/status command was run. |
+| `docker --version` | Passed | Docker `29.5.2`, build `79eb04c`. |
+| `docker info --format '{{.ServerVersion}}'` | Blocked | Docker daemon unavailable to this process. |
+| `which psql` | Blocked | `psql` missing. |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports CLI/Docker daemon/psql/local DB URL/candidate blockers. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `nextRecommendedPrompt=Prompt 20F1 - Manual Host Tool Repair Follow-Up`. |
+| `npm run supabase:rls:list-tests` | Completed, status `listed`, exit code `0` | Lists tests and executes no SQL; `callsSupabaseStatus=false`. |
+| `npm run supabase:rls:local:dry-run` | Completed, status `blocked`, exit code `0` | Executes no SQL and reports `callsSupabaseStatus=false`. |
+
+Prompt 20F readiness:
+
+- `canProceedToPrompt20B=false`
+- `canRunLocalSql=false`
+- `canUseDocker=false`
+- `canUsePsql=false`
+- `localDbUrlAvailable=false`
+- `remoteRiskDetected=false`
+- `manualSetupRequired=true`
+
+Remaining blockers after Prompt 20F:
+
+- `/usr/local/bin/supabase` remains x86_64 and fails on arm64 with error `-86`.
+- Docker daemon is unavailable to this process.
+- `psql` remains missing.
+- no localhost-only local DB URL is verified.
+- no executable local SQL candidate exists.
+
+Prompt 20F1/manual host tool repair follow-up is recommended before Prompt 20B.
+
 ## Prompt 20C Evidence Update
 
 Prompt 20C adds manual setup docs and clearer blocked-output guidance. It does not run SQL, start Supabase, call `supabase status`, reset Supabase, apply migrations, call `psql`, touch staging/remote/production Supabase, or create executable SQL.

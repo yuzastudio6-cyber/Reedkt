@@ -75,4 +75,17 @@ Prompt 20E does not run:
 
 Prompt 20B may proceed only when `canProceedToPrompt20B=true`. `canRunLocalSql=true` remains stricter and also requires a local executable SQL candidate under `database/test-sql/local/`.
 
+## Prompt 20F Follow-Up
+
+Prompt 20F verifies that manual host repair has not yet happened:
+
+- `/usr/local/bin/supabase` remains x86_64 on arm64 and cannot execute.
+- Docker CLI exists, but the daemon is unavailable to this process.
+- `psql` remains missing.
+- no localhost-only local DB URL is verified.
+- no executable local SQL candidate exists.
+- `canProceedToPrompt20B=false`.
+
+Prompt 20B remains blocked until the non-SQL host gates pass. Prompt 20F recommends Prompt 20F1 - Manual Host Tool Repair Follow-Up.
+
 If only the SQL candidate is missing after host repair, Prompt 20B may create the first local-only executable SQL candidate and run it through the guarded runner with `--confirm-local-only`.

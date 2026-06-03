@@ -177,3 +177,19 @@ Manifest state after Prompt 20B:
 - the local migration chain is blocked by `public.projects.current_edit_session_id` missing when `projects_current_edit_session_id_fkey` is added in `202605180001_reeditpro_core_workspace_projects.sql`.
 
 Prompt 20H is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20H Migration Chain Repair Update
+
+Prompt 20H repairs the missing `public.projects.current_edit_session_id` blocker in `supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql`. Local retries also repair same-migration compatibility blockers for `workspaces.owner_id`, `projects.owner_id`, and `chat_messages.edit_session_id`.
+
+Manifest state after Prompt 20H:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` passed `202605180001_reeditpro_core_workspace_projects.sql`;
+- local `supabase start` now fails in `202605180002_reeditpro_media_source_sequence.sql` because `public.media_assets.status` does not exist in the earlier schema-era table before `idx_media_assets_project_status` is created.
+
+Prompt 20I is required before the Prompt 20B SQL candidate can be run.

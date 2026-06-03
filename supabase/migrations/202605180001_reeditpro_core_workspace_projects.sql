@@ -71,14 +71,134 @@ create table if not exists public.edit_sessions (
   updated_at timestamptz not null default now()
 );
 
+alter table public.workspaces
+  add column if not exists owner_id uuid;
+
+alter table public.projects
+  add column if not exists owner_id uuid;
+
+alter table public.projects
+  add column if not exists current_edit_session_id uuid;
+
 do $$
 begin
-  if not exists (
-    select 1 from pg_constraint where conname = 'projects_current_edit_session_id_fkey'
-  ) then
+  if to_regclass('public.workspaces') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'workspaces'
+         and column_name = 'owner_user_id'
+     )
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'workspaces'
+         and column_name = 'owner_id'
+     ) then
+    update public.workspaces
+    set owner_id = owner_user_id
+    where owner_id is null
+      and owner_user_id is not null;
+  end if;
+
+  if to_regclass('public.projects') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'projects'
+         and column_name = 'created_by'
+     )
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'projects'
+         and column_name = 'owner_id'
+     ) then
+    update public.projects
+    set owner_id = created_by
+    where owner_id is null
+      and created_by is not null;
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.workspaces') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'workspaces'
+         and column_name = 'owner_id'
+     )
+     and not exists (
+       select 1
+       from pg_constraint
+       where conname = 'workspaces_owner_id_fkey'
+         and conrelid = to_regclass('public.workspaces')
+     ) then
+    alter table public.workspaces
+      add constraint workspaces_owner_id_fkey
+      foreign key (owner_id)
+      references auth.users(id)
+      on delete cascade;
+  end if;
+
+  if to_regclass('public.projects') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'projects'
+         and column_name = 'owner_id'
+     )
+     and not exists (
+       select 1
+       from pg_constraint
+       where conname = 'projects_owner_id_fkey'
+         and conrelid = to_regclass('public.projects')
+     ) then
+    alter table public.projects
+      add constraint projects_owner_id_fkey
+      foreign key (owner_id)
+      references auth.users(id)
+      on delete cascade;
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.projects') is not null
+     and to_regclass('public.edit_sessions') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'projects'
+         and column_name = 'current_edit_session_id'
+     )
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'edit_sessions'
+         and column_name = 'id'
+     )
+     and not exists (
+       select 1
+       from pg_constraint
+       where conname = 'projects_current_edit_session_id_fkey'
+         and conrelid = to_regclass('public.projects')
+     ) then
     alter table public.projects
       add constraint projects_current_edit_session_id_fkey
-      foreign key (current_edit_session_id) references public.edit_sessions(id) on delete set null;
+      foreign key (current_edit_session_id)
+      references public.edit_sessions(id)
+      on delete set null;
   end if;
 end $$;
 
@@ -101,6 +221,41 @@ create table if not exists public.user_confirmations (
   confirmed_at timestamptz not null default now(),
   superseded_at timestamptz
 );
+
+alter table public.chat_messages
+  add column if not exists edit_session_id uuid;
+
+do $$
+begin
+  if to_regclass('public.chat_messages') is not null
+     and to_regclass('public.edit_sessions') is not null
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'chat_messages'
+         and column_name = 'edit_session_id'
+     )
+     and exists (
+       select 1
+       from information_schema.columns
+       where table_schema = 'public'
+         and table_name = 'edit_sessions'
+         and column_name = 'id'
+     )
+     and not exists (
+       select 1
+       from pg_constraint
+       where conname = 'chat_messages_edit_session_id_fkey'
+         and conrelid = to_regclass('public.chat_messages')
+     ) then
+    alter table public.chat_messages
+      add constraint chat_messages_edit_session_id_fkey
+      foreign key (edit_session_id)
+      references public.edit_sessions(id)
+      on delete cascade;
+  end if;
+end $$;
 
 comment on table public.projects is 'ReeditPro project shell scoped to a workspace. Chat remains the editor; timeline is secondary.';
 comment on table public.edit_sessions is 'Chat-native editing sessions. User approval and source sequence confirmation happen before execution.';

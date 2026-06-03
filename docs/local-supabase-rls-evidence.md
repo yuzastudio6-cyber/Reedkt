@@ -317,3 +317,32 @@ Remaining blockers after Prompt 20C:
 - no executable local SQL candidate exists.
 
 No local, staging, remote, or production Supabase target was touched.
+
+## Prompt 20H Evidence Update
+
+Prompt 20H repairs the Prompt 20B migration-chain blocker in `supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql`. It adds `public.projects.current_edit_session_id` as a nullable compatibility column before `projects_current_edit_session_id_fkey` is created, and guards the FK with table, column, and scoped constraint checks.
+
+Local retries then exposed two additional same-migration compatibility blockers. Prompt 20H adds nullable `workspaces.owner_id`, `projects.owner_id`, and `chat_messages.edit_session_id` compatibility columns with guarded backfill/FK handling where applicable. It does not rename tables, drop data, or broaden into product runtime changes.
+
+Prompt 20H evidence:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Cleared failed local-only Supabase state before retry; no backup or remote target involved. |
+| `supabase start` | Failed | Passed `202605180001_reeditpro_core_workspace_projects.sql`, then failed in `202605180002_reeditpro_media_source_sequence.sql` at `idx_media_assets_project_status` because `public.media_assets.status` does not exist. |
+| `supabase status --output json` | Not run | Start failed before local status could be safely captured. |
+| SQL/RLS smoke test runner | Not run | Prompt 20H stops before SQL/RLS execution. |
+
+Local start failure after Prompt 20H:
+
+```text
+ERROR: column "status" does not exist (SQLSTATE 42703)
+At statement: 8
+create index if not exists idx_media_assets_project_status on public.media_assets(project_id, status)
+```
+
+No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20H.
+
+Prompt 20I/local migration-chain follow-up focused on `202605180002_reeditpro_media_source_sequence.sql` is recommended before the Prompt 20B SQL candidate can be run.

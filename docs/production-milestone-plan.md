@@ -372,6 +372,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: first local SQL candidate exists, local start is attempted only after safety gates pass, migration failure stops SQL execution, no remote/staging/production target is touched, and next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 20H - Local Supabase Migration Chain Repair Follow-Up.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 20H. Local Supabase Migration Chain Repair Follow-Up
+
+- Purpose: repair the Prompt 20B local migration-chain blocker in `202605180001_reeditpro_core_workspace_projects.sql` and retry local start without running SQL/RLS tests.
+- Deliverables after Prompt 20H: `docs/prompt-20h-local-supabase-migration-chain-repair-follow-up.md`, `docs/implementation-prompts/prompt-20h-local-supabase-migration-chain-repair-follow-up.md`, additive compatibility updates to `supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql`, local evidence updates, manifest updates, scorecard/blocker updates, workflow trigger coverage for the Prompt 20B base branch, and tracker updates.
+- Implementation status after Prompt 20H: validation blocked / local migration-chain repair only. No SQL/RLS smoke test, staging, remote, production, provider, worker, tool, render, media, storage, credit, Stripe, telemetry, or beta unlock is enabled.
+- Implements: nullable compatibility columns and guarded constraints/backfill for `projects.current_edit_session_id`, `workspaces.owner_id`, `projects.owner_id`, and `chat_messages.edit_session_id`, allowing local `supabase start` to pass `202605180001_reeditpro_core_workspace_projects.sql`.
+- Must not implement: staging/remote/production Supabase execution, remote SQL, SQL/RLS smoke tests, production migration deployment, provider calls, rendering/export, tool execution, worker execution, production job claims, media processing, storage transfer, signed URL creation, credit mutation, Stripe/payment processing, external telemetry, dependency mutation, or production/beta unlock.
+- What remains blocked: local SQL/RLS execution, localhost-only DB URL capture, staging Supabase/RLS execution, remote production Supabase, and beta approval.
+- Validation result: local tools pass (`supabase` 2.104.0, Docker 29.5.2, `psql` 18.4), preflight reports `remoteRiskDetected=false` and `canStartLocalSupabase=true`, `supabase start` passes `202605180001_reeditpro_core_workspace_projects.sql` and then fails at `202605180002_reeditpro_media_source_sequence.sql` because `public.media_assets.status` is missing before `idx_media_assets_project_status` is created.
+- Acceptance criteria: core workspace/project migration-chain blocker is repaired, local start is attempted only after safety gates pass, new migration failure stops SQL execution, no remote/staging/production target is touched, and next prompt recommendation is clear.
+- Next prompt recommendation: Prompt 20I - Local Supabase Migration Chain Repair Follow-Up for `202605180002_reeditpro_media_source_sequence.sql`.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

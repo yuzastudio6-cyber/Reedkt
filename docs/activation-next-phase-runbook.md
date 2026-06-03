@@ -54,6 +54,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Proceed to Phase 49P only as a controlled internal beta candidate gate or system reconciliation.
 5. Do not treat Phase 49O as production, external beta, broad media, public crawling, public artifact, or paid provider expansion approval.
 
+## After Phase 49P
+
+1. Review `activation:web-search-internal-beta-candidate:report`, `activation:web-search-internal-beta-candidate:iam-plan`, and the private Phase 49P artifacts for `phase49p-20260603T21361`.
+2. Confirm Phase 49A-49O evidence passed, private SearXNG remains default, Brave remains optional/paid/disabled by default, UI/API gates are internal only, and the Phase 49O regression suite remains fully passing.
+3. Confirm Secret Manager was inspected without reading or printing the Brave key value.
+4. Confirm raw Brave response storage, Brave snippet storage, public SearXNG, broad crawling, arbitrary URL capture, public artifacts, production, external beta, paid production, and broad media remain blocked.
+5. Proceed to Phase 50A only as map/geospatial stack approval and architecture if Phase 49P passes.
+6. Do not treat Phase 49P as production, external beta, broad media, unrestricted provider execution, public crawling, or public artifact approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

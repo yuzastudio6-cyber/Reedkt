@@ -19,4 +19,6 @@ Phase 49J blocks raw Brave Search API response persistence by default.
 - Search result records must not overclaim rights to third-party webpages.
 
 Phase 49K may use Brave-shaped fixture data only and must not include a real
-Brave API response.
+Brave API response. Phase 49L cannot persist raw Brave responses or real Brave
+snippets unless the selected plan/terms and ReeditPro policy explicitly approve
+that storage mode.

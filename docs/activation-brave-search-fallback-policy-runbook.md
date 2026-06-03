@@ -10,6 +10,8 @@ free/open-source provider.
 - Review provider evidence, cost limits, secret policy, storage-rights policy,
   SearXNG confidence scoring, and provider-router modes.
 - Proceed to Phase 49K only as a Brave-shaped fixture and normalizer phase.
+- Proceed to Phase 49L only after Phase 49K passes and a later prompt approves
+  secret-backed, budgeted, storage-rights-controlled live Brave validation.
 
 ## Blocked
 

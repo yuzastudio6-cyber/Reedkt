@@ -10,6 +10,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Proceed to Phase 49K only as Brave-shaped fixture and normalizer work.
 5. Do not call Brave Search API, run live search, use paid providers, store raw Brave responses, launch browser capture, run Readability extraction, deploy services, or unlock production/external beta/broad media.
 
+## After Phase 49K
+
+1. Review `activation:brave-search-fixture-normalizer:report`, `activation:brave-search-fixture-normalizer:iam-plan`, and the private Phase 49K artifacts.
+2. Confirm Brave fixture data is generated-only, `liveProviderCallUsed=false`, and no real Brave API payload is stored.
+3. Confirm normalized Brave source records preserve attribution, fixture flags, and `captureAllowed=false` / `extractionAllowed=false`.
+4. Confirm SearXNG confidence fallback, provider-router, and dedupe decisions are planning-only and keep `providerExecutionAllowed=false`.
+5. Proceed to Phase 49L only as secret-backed, budgeted, storage-rights-approved Brave controlled live API validation.
+6. Do not run Brave live API, use paid providers, expose a key, run browser capture, run Readability extraction, store raw real Brave responses, deploy services, or unlock production/external beta/broad media.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

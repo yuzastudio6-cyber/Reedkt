@@ -376,7 +376,11 @@
     "activation:search-provider-readiness": "tsx server/cli/activation-search-provider-readiness.ts",
     "activation:search-provider-readiness:report": "tsx server/cli/activation-search-provider-readiness-report.ts",
     "activation:search-provider-readiness:iam-plan": "tsx server/cli/activation-search-provider-readiness-iam-plan.ts",
-    "smoke:activation-search-provider-readiness": "tsx server/smoke/activation-search-provider-readiness-smoke.ts"
+    "smoke:activation-search-provider-readiness": "tsx server/smoke/activation-search-provider-readiness-smoke.ts",
+    "activation:web-search-regression-suite": "tsx server/cli/activation-web-search-regression-suite.ts",
+    "activation:web-search-regression-suite:report": "tsx server/cli/activation-web-search-regression-suite-report.ts",
+    "activation:web-search-regression-suite:iam-plan": "tsx server/cli/activation-web-search-regression-suite-iam-plan.ts",
+    "smoke:activation-web-search-regression-suite": "tsx server/smoke/activation-web-search-regression-suite-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

@@ -237,6 +237,25 @@ Remaining blockers after Prompt 20F:
 
 Prompt 20F1/manual host tool repair follow-up is recommended before Prompt 20B.
 
+## Prompt 20G Evidence Update
+
+Prompt 20G fixes the first local migration-chain SQL ambiguity found during local `supabase start`: `ERROR: column reference "description" is ambiguous` in `supabase/migrations/202605130007_generation_providers_generated_assets.sql`.
+
+The repair qualifies seed columns in the `generation_provider_capabilities` and `generation_provider_models` seeded `INSERT ... SELECT` statements. The direct blocker was bare `description` in the model seed insert, where both `public.generation_providers gp` and the lateral `seed` values table expose a `description` column.
+
+Prompt 20G evidence:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports Docker usable, no remote risk, Supabase CLI architecture mismatch, missing `psql`, missing local DB URL, and no executable local SQL candidate. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canUseDocker=true`, `canStartLocalSupabase=false`, `canRunLocalSql=false`, and `canProceedToPrompt20B=false`. |
+| `supabase start` | Not run | Preflight did not allow local start because `/usr/local/bin/supabase` is x86_64 on arm64 and not executable. |
+| `supabase status` | Not run | `supabase start` did not run; no localhost DB URL was verified. |
+
+Prompt 20G does not run SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock.
+
+Prompt 20B remains blocked until local migration-chain validation passes and a first executable local SQL candidate is created. Prompt 20H/local migration-chain follow-up is recommended to retry the local migration chain after the Supabase CLI start gate is repaired.
+
 ## Prompt 20C Evidence Update
 
 Prompt 20C adds manual setup docs and clearer blocked-output guidance. It does not run SQL, start Supabase, call `supabase status`, reset Supabase, apply migrations, call `psql`, touch staging/remote/production Supabase, or create executable SQL.

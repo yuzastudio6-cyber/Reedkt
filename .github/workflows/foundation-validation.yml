@@ -26,6 +26,7 @@ on:
       - codex/rp-foundation-20c-local-supabase-environment-manual-setup
       - codex/rp-foundation-20d-manual-environment-setup-verification
       - codex/rp-foundation-20e-local-supabase-manual-setup-follow-up
+      - codex/rp-foundation-20f-manual-host-tool-repair-verification
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

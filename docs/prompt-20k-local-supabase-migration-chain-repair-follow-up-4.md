@@ -119,3 +119,23 @@ The first local executable SQL candidate remains unexecuted:
 ## Next Prompt Recommendation
 
 Recommended next prompt: Prompt 20L - Local Supabase Migration Chain Repair Follow-Up 5, focused on the next exact schema-era conflict in `202605180005_reeditpro_generation_assets_jobs.sql`.
+
+## Prompt 20L Follow-Up
+
+Prompt 20L repaired the `202605180005_reeditpro_generation_assets_jobs.sql` blocker by adding the missing `generation_requests.approved_plan_snapshot_id` compatibility column, guarding the approved snapshot FK and project/snapshot index, adding `generated_asset_versions.version`, backfilling it from `version_number` where available, and guarding the generated asset version index.
+
+After Prompt 20L, local `supabase start` passed `202605180005_reeditpro_generation_assets_jobs.sql` and advanced to the next blocker:
+
+```text
+ERROR: syntax error at or near "text" (SQLSTATE 42601)
+At statement: 1
+create table if not exists public.qa_check_results (
+  id uuid primary key default gen_random_uuid(),
+  qa_report_id uuid not null references public.qa_reports(id) on delete cascade,
+  category text,
+  label text,
+  check text,
+        ^
+```
+
+Prompt 20M is recommended for `supabase/migrations/202605180006_reeditpro_qa_exports_audit.sql`. No SQL/RLS smoke tests ran and no staging/remote/production Supabase target was touched.

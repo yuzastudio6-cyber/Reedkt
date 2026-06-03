@@ -170,3 +170,25 @@ create index if not exists idx_generation_requests_project_snapshot on public.ge
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20L - Local Supabase Migration Chain Repair Follow-Up 5, focused on `202605180005_reeditpro_generation_assets_jobs.sql`.
+
+## Prompt 20L Follow-Up
+
+Prompt 20L repaired the `public.generation_requests.approved_plan_snapshot_id` migration-chain blocker in `supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql` by adding the nullable compatibility column, guarding the approved snapshot FK, and guarding `idx_generation_requests_project_snapshot`. It also added `public.generated_asset_versions.version`, backfilled it from `version_number` where present, and guarded `idx_generated_asset_versions_asset_version`.
+
+After the repair, local `supabase start` passed `202605180005_reeditpro_generation_assets_jobs.sql` and advanced to the next migration-chain blocker:
+
+```text
+ERROR: syntax error at or near "text" (SQLSTATE 42601)
+At statement: 1
+create table if not exists public.qa_check_results (
+  id uuid primary key default gen_random_uuid(),
+  qa_report_id uuid not null references public.qa_reports(id) on delete cascade,
+  category text,
+  label text,
+  check text,
+        ^
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20M - Local Supabase Migration Chain Repair Follow-Up 6, focused on `202605180006_reeditpro_qa_exports_audit.sql`.

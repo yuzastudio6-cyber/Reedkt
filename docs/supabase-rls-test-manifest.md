@@ -241,3 +241,19 @@ Manifest state after Prompt 20K:
 - local `supabase start` now fails in `202605180005_reeditpro_generation_assets_jobs.sql` because `public.generation_requests.approved_plan_snapshot_id` does not exist before `idx_generation_requests_project_snapshot` is created.
 
 Prompt 20L is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20L Migration Chain Repair Update
+
+Prompt 20L repairs the missing `public.generation_requests.approved_plan_snapshot_id` blocker in `supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql`. The repair also adds nullable compatibility column `generated_asset_versions.version`, backfills it from `version_number` where available, guards the approved snapshot FK, and guards the generation request and generated asset version indexes.
+
+Manifest state after Prompt 20L:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` passed `202605180005_reeditpro_generation_assets_jobs.sql`;
+- local `supabase start` now fails in `202605180006_reeditpro_qa_exports_audit.sql` because `qa_check_results.check text` is parsed as invalid SQL syntax.
+
+Prompt 20M is required before the Prompt 20B SQL candidate can be run.

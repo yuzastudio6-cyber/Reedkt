@@ -124,6 +124,45 @@ Commands:
 
 No local, staging, remote, or production Supabase target was touched.
 
+## Prompt 20D Evidence Update
+
+Prompt 20D verifies manual setup status after Prompt 20C. It does not run SQL, start Supabase, call `supabase status`, reset Supabase, apply migrations, call `psql`, touch staging/remote/production Supabase, or create executable SQL.
+
+Prompt 20D evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `uname -m` | `arm64` | Host architecture recorded. |
+| `npm --version` on default PATH | Blocked | Default npm uses a bad-CPU Node shim. |
+| `PATH=/Applications/Codex.app/Contents/Resources:$PATH npm --version` | Passed | npm `11.6.2`; validation commands use this path. |
+| `file "$(which supabase)"` | Completed | `/usr/local/bin/supabase` is x86_64. |
+| `supabase --version` | Blocked | Bad CPU type / error `-86`; no Supabase lifecycle command was run. |
+| `docker --version` | Passed | Docker `29.5.2`, build `79eb04c`. |
+| `docker info --format '{{.ServerVersion}}'` | Passed | Docker daemon reachable, server version `29.5.2`. |
+| `which psql` | Blocked | `psql` missing. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports Docker usable, CLI/psql/local DB URL/candidate blockers. |
+| `npm run supabase:rls:list-tests` | Completed, status `listed`, exit code `0` | Lists tests and executes no SQL. |
+| `npm run supabase:rls:local:dry-run` | Completed, status `blocked`, exit code `0` | Executes no SQL and reports `callsSupabaseStatus=false`. |
+
+Prompt 20D readiness:
+
+- `canRunLocalSql=false`
+- `canProceedToPrompt20B=false`
+- `canUseDocker=true`
+- `canUsePsql=false`
+- `localDbUrlAvailable=false`
+- `remoteRiskDetected=false`
+- `manualSetupRequired=true`
+
+Remaining blockers after Prompt 20D:
+
+- `/usr/local/bin/supabase` remains x86_64 and fails on arm64 with error `-86`.
+- `psql` remains missing.
+- no localhost-only local DB URL is verified.
+- no executable local SQL candidate exists.
+
+Prompt 20E/manual follow-up is recommended before Prompt 20B.
+
 ## Prompt 20C Evidence Update
 
 Prompt 20C adds manual setup docs and clearer blocked-output guidance. It does not run SQL, start Supabase, call `supabase status`, reset Supabase, apply migrations, call `psql`, touch staging/remote/production Supabase, or create executable SQL.

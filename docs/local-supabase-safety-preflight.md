@@ -119,3 +119,29 @@ Prompt 20C expected result on this host:
 | Prompt 20B can proceed | `canRunLocalSql=false`. | Blocked |
 
 Prompt 20C recommends Prompt 20D - Manual Environment Setup Verification until preflight reports `canRunLocalSql=true`.
+
+## Prompt 20D Verification Update
+
+Prompt 20D keeps preflight and runner checks local-only and non-mutating. It does not execute SQL, start Supabase, reset Supabase, run migrations, call `psql`, call `supabase status`, touch staging/remote/production Supabase, or unlock beta.
+
+Prompt 20D adds:
+
+- redacted localhost-only local DB URL environment verification;
+- `canProceedToPrompt20B`, separate from `canRunLocalSql`;
+- dry-run output that reports `callsSupabaseStatus=false`.
+
+Prompt 20D result on this host:
+
+| Check | Prompt 20D result | Status |
+| --- | --- | --- |
+| Local config exists | `supabase/config.toml` exists and appears local-only. | Passed |
+| Docker daemon reachable | Docker reports server version `29.5.2`. | Passed |
+| Supabase CLI compatible | `/usr/local/bin/supabase` is x86_64 and fails on arm64 with error `-86`. | Blocked |
+| `psql` available | `psql` is not on PATH. | Blocked |
+| Local DB URL verified | no localhost-only local DB URL environment variable is verified. | Blocked |
+| Local executable SQL exists | none under `database/test-sql/local/`. | Blocked |
+| Remote risk detected | no remote link indicator or risky env var name was detected. | Passed |
+| Prompt 20B can proceed | `canProceedToPrompt20B=false`. | Blocked |
+| SQL can run now | `canRunLocalSql=false`. | Blocked |
+
+Prompt 20D recommends Prompt 20E - Manual Environment Setup Follow-Up until preflight reports `canProceedToPrompt20B=true`.

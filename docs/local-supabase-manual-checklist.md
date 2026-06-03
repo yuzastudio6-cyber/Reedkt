@@ -1,6 +1,6 @@
 # Local Supabase Manual Checklist
 
-This checklist is for manual setup before the first executable local RLS smoke test. It is evidence-only and does not authorize SQL execution in Prompt 20C.
+This checklist is for manual setup before the first executable local RLS smoke test. It is evidence-only and does not authorize SQL execution in Prompt 20C or Prompt 20D.
 
 ## Required Local Tools
 
@@ -26,12 +26,13 @@ This checklist is for manual setup before the first executable local RLS smoke t
 - [ ] No staging or production project ref is linked.
 - [ ] No `supabase link` command is run.
 - [ ] No remote SQL command is run.
-- [ ] No migration command is run in Prompt 20C.
-- [ ] No local SQL is run in Prompt 20C.
+- [ ] No migration command is run in Prompt 20C or Prompt 20D.
+- [ ] No local SQL is run in Prompt 20C or Prompt 20D.
+- [ ] No `supabase status` command is run in Prompt 20D.
 
 ## Readiness Checks
 
-Run only these Prompt 20C commands:
+Run only these Prompt 20D commands:
 
 ```sh
 npm run --silent supabase:local:preflight
@@ -39,13 +40,14 @@ npm run supabase:rls:list-tests
 npm run supabase:rls:local:dry-run
 ```
 
-Expected Prompt 20C result:
+Expected Prompt 20D result:
 
 - preflight may remain `blocked`;
 - list mode succeeds without inspecting Supabase status;
-- dry-run executes no SQL;
+- dry-run executes no SQL and reports `callsSupabaseStatus=false`;
 - `manualSetupRequired` is accurate;
-- `nextRecommendedPrompt` is Prompt 20D unless `canRunLocalSql=true`.
+- `canProceedToPrompt20B` distinguishes environment readiness from the first SQL candidate work item;
+- `nextRecommendedPrompt` is Prompt 20B only when non-SQL environment blockers are cleared, otherwise Prompt 20E/manual follow-up.
 
 Future `supabase start` and local SQL are allowed only in Prompt 20B or a setup verification prompt after local-only safety is proven.
 
@@ -62,10 +64,11 @@ Future `supabase start` and local SQL are allowed only in Prompt 20B or a setup 
 
 ## Prompt 20B Gate
 
-Prompt 20B should wait until all are true:
+Prompt 20B should wait until all non-SQL environment gates are true:
 
-- [ ] `canRunLocalSql=true`
+- [ ] `canProceedToPrompt20B=true`
 - [ ] `remoteRiskDetected=false`
 - [ ] local DB URL is localhost-only and redacted in evidence
-- [ ] executable SQL candidate exists under `database/test-sql/local/`
 - [ ] run mode remains guarded by `--confirm-local-only`
+
+`canRunLocalSql=true` remains stricter: it also requires an executable SQL candidate under `database/test-sql/local/`. If the environment is ready but no executable candidate exists, Prompt 20B may create the first candidate and then run it through the guarded runner.

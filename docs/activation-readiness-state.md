@@ -70,9 +70,11 @@ only, disabled by default, and blocked from live API execution until a future
 secret-backed phase. Phase 49K adds Brave-shaped generated fixture and
 normalizer proof only: Brave remains disabled by default, no API key is added,
 no live Brave API call occurs, no real Brave response/snippet persistence is
-allowed, and provider execution remains blocked. Phase 49L is ready only for
-secret-backed, budgeted, storage-rights-approved Brave controlled live API
-validation.
+allowed, and provider execution remains blocked. Phase 49L adds only
+secret-backed, budgeted Brave controlled live API validation with one web
+search call, minimal normalized metadata, and raw/snippet persistence blocked.
+Phase 49M is ready only for SearXNG + Brave hybrid consensus E2E if Phase 49L
+passes all mandatory gates.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

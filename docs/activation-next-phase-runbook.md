@@ -28,6 +28,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 49M only as SearXNG + Brave hybrid consensus E2E.
 6. Do not run browser capture, Readability extraction, broad crawling, public SearXNG, other paid providers, Docker, Cloud Run deploy, production, external beta, paid production, or broad media.
 
+## After Phase 49M
+
+1. Review `activation:hybrid-search-consensus-e2e:report`, `activation:hybrid-search-consensus-e2e:iam-plan`, and the private Phase 49M artifacts for `phase49m-20260603T17105`.
+2. Confirm SearXNG remained the default provider and Brave was used only once as a budgeted optional confidence booster.
+3. Confirm raw Brave response storage, Brave snippet storage, request-header storage, and API-key exposure all remain false.
+4. Confirm merged sources, dedupe groups, provider agreement/diversity metrics, allowlisted captures, Sharp derivatives, sanitized Readability extraction, QA, and report artifacts are private.
+5. Proceed to Phase 49N only as a search provider readiness gate.
+6. Do not use public SearXNG, other paid providers, arbitrary URL capture, broad crawling, public artifacts, signed URLs as source of truth, production, external beta, paid production, or broad media.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

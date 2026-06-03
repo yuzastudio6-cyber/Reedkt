@@ -73,8 +73,14 @@ no live Brave API call occurs, no real Brave response/snippet persistence is
 allowed, and provider execution remains blocked. Phase 49L adds only
 secret-backed, budgeted Brave controlled live API validation with one web
 search call, minimal normalized metadata, and raw/snippet persistence blocked.
-Phase 49M is ready only for SearXNG + Brave hybrid consensus E2E if Phase 49L
-passes all mandatory gates.
+Phase 49M completed only SearXNG + Brave hybrid consensus E2E for
+`phase49m-20260603T17105`: SearXNG remains default, Brave was one budgeted
+optional confidence-booster call, raw Brave response/snippet storage remained
+blocked, and capture/extraction was limited to allowlisted merged sources. The
+run normalized 5 private SearXNG sources and 5 minimal Brave sources, merged 7
+consensus sources, captured 2 allowlisted pages, produced 2 Sharp derivative
+sets, and produced 2 sanitized Readability extractions. Phase 49N is ready only
+as a search provider readiness gate.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

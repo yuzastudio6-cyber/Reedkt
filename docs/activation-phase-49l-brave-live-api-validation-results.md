@@ -60,4 +60,6 @@ blocked.
 ## Phase49M Readiness
 
 Ready only for SearXNG + Brave hybrid consensus E2E, not production or external
-beta.
+beta. Phase 49M must keep raw Brave response storage, snippet storage, public
+SearXNG, other paid providers, arbitrary URL capture, broad crawling, public
+artifacts, production, external beta, paid production, and broad media blocked.

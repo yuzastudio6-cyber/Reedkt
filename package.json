@@ -368,7 +368,11 @@
     "activation:brave-live-api-validation": "tsx server/cli/activation-brave-live-api-validation.ts",
     "activation:brave-live-api-validation:report": "tsx server/cli/activation-brave-live-api-validation-report.ts",
     "activation:brave-live-api-validation:iam-plan": "tsx server/cli/activation-brave-live-api-validation-iam-plan.ts",
-    "smoke:activation-brave-live-api-validation": "tsx server/smoke/activation-brave-live-api-validation-smoke.ts"
+    "smoke:activation-brave-live-api-validation": "tsx server/smoke/activation-brave-live-api-validation-smoke.ts",
+    "activation:hybrid-search-consensus-e2e": "tsx server/cli/activation-hybrid-search-consensus-e2e.ts",
+    "activation:hybrid-search-consensus-e2e:report": "tsx server/cli/activation-hybrid-search-consensus-e2e-report.ts",
+    "activation:hybrid-search-consensus-e2e:iam-plan": "tsx server/cli/activation-hybrid-search-consensus-e2e-iam-plan.ts",
+    "smoke:activation-hybrid-search-consensus-e2e": "tsx server/smoke/activation-hybrid-search-consensus-e2e-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

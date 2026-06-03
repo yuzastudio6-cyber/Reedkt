@@ -19,6 +19,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 49L only as secret-backed, budgeted, storage-rights-approved Brave controlled live API validation.
 6. Do not run Brave live API, use paid providers, expose a key, run browser capture, run Readability extraction, store raw real Brave responses, deploy services, or unlock production/external beta/broad media.
 
+## After Phase 49L
+
+1. Review `activation:brave-live-api-validation:report`, `activation:brave-live-api-validation:iam-plan`, and the private Phase 49L artifacts.
+2. Confirm the Brave key was resolved backend-side only, with no value printed, logged, committed, written to artifacts, or exposed to frontend code.
+3. Confirm exactly one Brave Search web endpoint call ran, max results stayed at 5, and no other paid provider was called.
+4. Confirm raw Brave response storage and snippet storage remain false.
+5. Proceed to Phase 49M only as SearXNG + Brave hybrid consensus E2E.
+6. Do not run browser capture, Readability extraction, broad crawling, public SearXNG, other paid providers, Docker, Cloud Run deploy, production, external beta, paid production, or broad media.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

@@ -71,6 +71,15 @@ Mandatory gates:
 
 All mandatory gates passed for `phase49k-20260603T13270`.
 
+## Phase49L Handoff
+
+Phase 49L may run only as a secret-backed, budgeted Brave controlled live API
+validation. It must keep SearXNG as the default provider, call only the Brave
+web search endpoint, persist only minimal normalized metadata, and keep raw
+Brave response storage, snippet storage, browser capture, Readability
+extraction, other paid providers, production, external beta, paid production,
+and broad media blocked.
+
 ## Private Artifacts
 
 Generated assets:

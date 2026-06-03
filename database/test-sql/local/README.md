@@ -16,6 +16,10 @@ Prompt 20F keeps this directory list/dry-run only. It verifies manual host repai
 
 Prompt 20B adds the first local executable SQL candidate, `001_auth_workspace_minimal_local_rls.sql`, for auth/profile/workspace/project RLS only. It remains unexecuted because local `supabase start` failed at `202605180001_reeditpro_core_workspace_projects.sql` before a localhost-only DB URL could be captured.
 
+Prompt 20H repairs the core workspace/project migration blocker and advances local `supabase start` to `202605180002_reeditpro_media_source_sequence.sql`, where it fails on missing `public.media_assets.status`.
+
+Prompt 20I repairs the media/source-sequence migration blocker and advances local `supabase start` to `202605180003_reeditpro_intent_plan_versions.sql`, where it fails on missing `public.edit_plan_segments.edit_plan_version_id`.
+
 ## No Remote Rule
 
 Never run files in this directory against:
@@ -83,7 +87,7 @@ A draft SQL file may become executable only when:
 
 ## Current Executable Test List
 
-- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B auth/profile/workspace/project candidate. Status: executable candidate, not run; blocked by local migration-chain failure in `202605180001_reeditpro_core_workspace_projects.sql`.
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B auth/profile/workspace/project candidate. Status: executable candidate, not run; blocked by local migration-chain failure in `202605180003_reeditpro_intent_plan_versions.sql`.
 
 ## Current Draft-Only Test List
 
@@ -110,5 +114,6 @@ A draft SQL file may become executable only when:
 - Docker daemon is reachable, server version `29.5.2`.
 - `psql` is available through `/Applications/Postgres.app/Contents/Versions/latest/bin/psql`, version `18.4`.
 - No local Supabase database URL is verified.
-- Local `supabase start` failed at `202605180001_reeditpro_core_workspace_projects.sql` because `public.projects.current_edit_session_id` is missing before `projects_current_edit_session_id_fkey` is added.
-- Prompt 20B recommends Prompt 20H - Local Supabase Migration Chain Repair Follow-Up before SQL/RLS execution.
+- Local `supabase start` now passes the Prompt 20H and Prompt 20I repaired migrations.
+- Local `supabase start` failed at `202605180003_reeditpro_intent_plan_versions.sql` because `public.edit_plan_segments.edit_plan_version_id` is missing before `idx_edit_plan_segments_plan_order` is created.
+- Prompt 20I recommends Prompt 20J - Local Supabase Migration Chain Repair Follow-Up 3 before SQL/RLS execution.

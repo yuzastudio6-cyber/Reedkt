@@ -193,3 +193,19 @@ Manifest state after Prompt 20H:
 - local `supabase start` now fails in `202605180002_reeditpro_media_source_sequence.sql` because `public.media_assets.status` does not exist in the earlier schema-era table before `idx_media_assets_project_status` is created.
 
 Prompt 20I is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20I Migration Chain Repair Update
+
+Prompt 20I repairs the missing `public.media_assets.status` blocker in `supabase/migrations/202605180002_reeditpro_media_source_sequence.sql`. The repair also adds Prompt 4-era compatibility columns for `media_assets.size_bytes` and `media_assets.metadata_json`, guarded legacy-column backfills, and guarded `idx_media_assets_project_status` creation.
+
+Manifest state after Prompt 20I:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` passed `202605180002_reeditpro_media_source_sequence.sql`;
+- local `supabase start` now fails in `202605180003_reeditpro_intent_plan_versions.sql` because `public.edit_plan_segments.edit_plan_version_id` does not exist in the earlier schema-era table before `idx_edit_plan_segments_plan_order` is created.
+
+Prompt 20J is required before the Prompt 20B SQL candidate can be run.

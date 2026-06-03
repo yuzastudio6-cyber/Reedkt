@@ -1,12 +1,12 @@
 # Beta Readiness Scorecard
 
-Scores are honest readiness estimates after Prompt 20H local migration-chain repair follow-up. They are not production approval.
+Scores are honest readiness estimates after Prompt 20I local migration-chain repair follow-up 2. They are not production approval.
 
 | Area | Foundation readiness | Executable beta readiness | Production beta readiness | Status | Evidence | Blockers | Next action |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- |
 | Source of truth | 90% | 20% | 10% | Partial | Prompt 0-18 docs and trackers. | Needs staging evidence and ongoing tracker hygiene. | Keep trackers current. |
 | Architecture boundaries | 90% | 25% | 10% | Partial | Architecture freeze and diagnostics. | Runtime validation missing. | Preserve fail-closed boundaries. |
-| Schema/RLS | 67% | 8% | 1% | Blocked | Static audit, draft SQL, Prompt 19 manifest, conversion plan, fixture contract, environment contract, runbook, evidence checklist, Prompt 20 preflight/runner, Prompt 20A local config/toolchain hardening, Prompt 20C manual setup docs, Prompt 20D verification evidence, Prompt 20E host probe evidence, Prompt 20F host repair verification, Prompt 20G migration-chain repair, Prompt 20B first local SQL candidate plus local start attempt, and Prompt 20H migration-chain repair evidence. | Local/staging SQL unexecuted; Prompt 20H repaired the Prompt 3-era core workspace/project compatibility blockers, but local `supabase start` now fails in `202605180002_reeditpro_media_source_sequence.sql` because `public.media_assets.status` is missing before `idx_media_assets_project_status` is created. | Prompt 20I to repair the next local migration-chain blocker, then rerun Prompt 20B SQL execution. |
+| Schema/RLS | 68% | 8% | 1% | Blocked | Static audit, draft SQL, Prompt 19 manifest, conversion plan, fixture contract, environment contract, runbook, evidence checklist, Prompt 20 preflight/runner, Prompt 20A local config/toolchain hardening, Prompt 20C manual setup docs, Prompt 20D verification evidence, Prompt 20E host probe evidence, Prompt 20F host repair verification, Prompt 20G migration-chain repair, Prompt 20B first local SQL candidate plus local start attempt, Prompt 20H migration-chain repair evidence, and Prompt 20I media/source-sequence migration-chain repair evidence. | Local/staging SQL unexecuted; Prompt 20I repaired the Prompt 4-era media/source-sequence compatibility blockers, but local `supabase start` now fails in `202605180003_reeditpro_intent_plan_versions.sql` because `public.edit_plan_segments.edit_plan_version_id` is missing before `idx_edit_plan_segments_plan_order` is created. | Prompt 20J to repair the next local migration-chain blocker, then rerun Prompt 20B SQL execution. |
 | Auth/workspace/project | 70% | 20% | 5% | Partial | Prompt 3 route/service foundation. | RLS/staging validation missing. | Validate local/staging access. |
 | Storage/upload | 65% | 10% | 0% | Partial | Prompt 4 route/service foundation. | Real storage policies and signed URL runtime unvalidated. | Staging storage validation. |
 | Approved snapshots | 65% | 10% | 0% | Partial | Prompt 5 contracts. | Persistence/runtime backend-required. | Transactional validation. |
@@ -22,16 +22,16 @@ Scores are honest readiness estimates after Prompt 20H local migration-chain rep
 | Provider gateway | 65% | 5% | 0% | Blocked | Prompt 15 gateway foundation. | No secrets, calls, or webhook processing. | Provider runtime review. |
 | Compliance/security | 65% | 10% | 0% | Blocked | Prompt 16 foundation. | No human legal/security approval. | Human review workflow. |
 | Observability/audit/cost controls | 65% | 10% | 0% | Blocked | Prompt 17 foundation and CI. | No persistence or external telemetry. | Staging operational validation. |
-| E2E staging smoke | 40% | 0% | 0% | Planning only | Prompt 18 plan/diagnostics plus Prompt 19 RLS preparation path, Prompt 20 local-only runner tooling, Prompt 20A local config/toolchain hardening, Prompt 20C manual setup docs, Prompt 20D verification evidence, Prompt 20E host probe evidence, Prompt 20F host repair verification, Prompt 20G migration-chain repair, Prompt 20B first local candidate/start evidence, and Prompt 20H migration-chain repair evidence. | Staging smoke not run; local/staging Supabase/RLS not executed. | Prompt 20I to repair local migration-chain validation, then rerun Prompt 20B. |
+| E2E staging smoke | 41% | 0% | 0% | Planning only | Prompt 18 plan/diagnostics plus Prompt 19 RLS preparation path, Prompt 20 local-only runner tooling, Prompt 20A local config/toolchain hardening, Prompt 20C manual setup docs, Prompt 20D verification evidence, Prompt 20E host probe evidence, Prompt 20F host repair verification, Prompt 20G migration-chain repair, Prompt 20B first local candidate/start evidence, Prompt 20H migration-chain repair evidence, and Prompt 20I migration-chain repair evidence. | Staging smoke not run; local/staging Supabase/RLS not executed. | Prompt 20J to repair local migration-chain validation, then rerun Prompt 20B. |
 | Production deployment | 10% | 0% | 0% | Blocked | Architecture docs only. | No deployment, rollback, monitoring. | Deployment readiness milestone. |
 | Stripe/billing | 30% | 0% | 0% | Blocked | Pricing docs and credit contract. | No Stripe or transactional credits. | Billing milestone after ledger. |
 | Actual execution path | 20% | 0% | 0% | Blocked | Fail-closed contracts. | Workers/providers/tools/render/media all blocked. | Runtime activation milestones. |
 
 ## Decision
 
-Prompt 20H repairs the Prompt 3-era core workspace/project compatibility blockers in `202605180001_reeditpro_core_workspace_projects.sql` and confirms local `supabase start` advances to the next schema-era conflict, `idx_media_assets_project_status` on missing `public.media_assets.status` in `202605180002_reeditpro_media_source_sequence.sql`. SQL/RLS smoke tests and staging validation remain unexecuted. Aggregate readiness after Prompt 20H:
+Prompt 20I repairs the Prompt 4-era media/source-sequence compatibility blockers in `202605180002_reeditpro_media_source_sequence.sql` and confirms local `supabase start` advances to the next schema-era conflict, `idx_edit_plan_segments_plan_order` on missing `public.edit_plan_segments.edit_plan_version_id` in `202605180003_reeditpro_intent_plan_versions.sql`. SQL/RLS smoke tests and staging validation remain unexecuted. Aggregate readiness after Prompt 20I:
 
-- Foundation readiness: about 66%.
+- Foundation readiness: about 67%.
 - Executable beta readiness: about 8%.
 - Production beta readiness: about 1%.
 

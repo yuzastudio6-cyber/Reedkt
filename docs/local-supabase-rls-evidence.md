@@ -346,3 +346,30 @@ create index if not exists idx_media_assets_project_status on public.media_asset
 No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20H.
 
 Prompt 20I/local migration-chain follow-up focused on `202605180002_reeditpro_media_source_sequence.sql` is recommended before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20I Evidence Update
+
+Prompt 20I repairs the Prompt 20H migration-chain blocker in `supabase/migrations/202605180002_reeditpro_media_source_sequence.sql`. It adds missing `public.media_assets.status`, `public.media_assets.size_bytes`, and `public.media_assets.metadata_json` compatibility columns, backfills from legacy `file_size_bytes` and `metadata` only when those columns exist, and guards `idx_media_assets_project_status` creation behind table/column/index checks.
+
+Prompt 20I evidence:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Cleared failed local-only Supabase state before retry and again after failed start; no backup or remote target involved. |
+| `supabase start` | Failed | Passed `202605180002_reeditpro_media_source_sequence.sql`, then failed in `202605180003_reeditpro_intent_plan_versions.sql` at `idx_edit_plan_segments_plan_order` because `public.edit_plan_segments.edit_plan_version_id` does not exist. |
+| `supabase status --output json` | Not run | Start failed before local status could be safely captured. |
+| SQL/RLS smoke test runner | Not run | Prompt 20I stops before SQL/RLS execution. |
+
+Local start failure after Prompt 20I:
+
+```text
+ERROR: column "edit_plan_version_id" does not exist (SQLSTATE 42703)
+At statement: 14
+create index if not exists idx_edit_plan_segments_plan_order on public.edit_plan_segments(edit_plan_version_id, segment_order)
+```
+
+No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20I.
+
+Prompt 20J/local migration-chain follow-up focused on `202605180003_reeditpro_intent_plan_versions.sql` is recommended before the Prompt 20B SQL candidate can be run.

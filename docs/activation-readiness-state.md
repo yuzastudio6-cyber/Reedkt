@@ -79,8 +79,13 @@ optional confidence-booster call, raw Brave response/snippet storage remained
 blocked, and capture/extraction was limited to allowlisted merged sources. The
 run normalized 5 private SearXNG sources and 5 minimal Brave sources, merged 7
 consensus sources, captured 2 allowlisted pages, produced 2 Sharp derivative
-sets, and produced 2 sanitized Readability extractions. Phase 49N is ready only
-as a search provider readiness gate.
+sets, and produced 2 sanitized Readability extractions. Phase 49N completed the
+search provider readiness gate for `phase49n-20260603T18331`: it audited Phase
+49A-49M evidence, private SearXNG service metadata/IAM, Brave Secret Manager
+metadata without reading the value, provider registry state, secret/cost/storage
+policy, artifact privacy, and fail-closed behavior. The search provider stack is
+ready only for controlled internal testing. Phase 49O is ready only as a web
+search regression/failure-mode suite or system reconciliation.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

@@ -1,0 +1,16 @@
+{
+  "phase": "46E",
+  "runId": "phase46e-media-data-internal-beta-readiness-gate-20260603",
+  "status": "passed",
+  "rollbackTriggers": [
+    "private artifact verification mismatch",
+    "metadata report schema drift",
+    "DuckDB/Polars consistency disagreement",
+    "private metadata leakage into committed reports",
+    "media/frame/thumbnail artifact committed or uploaded to public location",
+    "provider/OCR/VLM/Track A execution attempted through this gate",
+    "production or external beta unlock attempted"
+  ],
+  "rollbackAction": "revoke internally beta-ready candidate status for media/data tool family and return to blocked until corrected evidence is committed.",
+  "blockerPolicy": "fail_closed_on_missing_evidence_or_privacy_storage_gate_failure"
+}

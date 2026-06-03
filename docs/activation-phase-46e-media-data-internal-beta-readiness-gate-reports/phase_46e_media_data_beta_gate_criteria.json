@@ -1,0 +1,69 @@
+{
+  "phase": "46E",
+  "runId": "phase46e-media-data-internal-beta-readiness-gate-20260603",
+  "status": "passed",
+  "evidenceStatus": "complete",
+  "criteria": [
+    {
+      "id": "phase46a_source_license_runtime_readiness",
+      "status": "passed"
+    },
+    {
+      "id": "phase46b_generated_fixture_suite",
+      "status": "passed"
+    },
+    {
+      "id": "phase46c_controlled_real_video_suite",
+      "status": "passed"
+    },
+    {
+      "id": "phase46d_duckdb_polars_reporting_qa",
+      "status": "passed"
+    },
+    {
+      "id": "phase46d_auth_rerun_private_metadata",
+      "status": "passed"
+    },
+    {
+      "id": "phase46b_all_required_tools_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase46c_all_required_tools_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase46d_consistency_scorecard_passed",
+      "status": "passed"
+    },
+    {
+      "id": "exact_private_json_artifact_verification",
+      "status": "passed"
+    },
+    {
+      "id": "phase46e_private_metadata_upload",
+      "status": "passed"
+    },
+    {
+      "id": "storage_privacy_gates",
+      "status": "passed"
+    },
+    {
+      "id": "rollback_blocker_policy_present",
+      "status": "passed"
+    },
+    {
+      "id": "support_runbook_present",
+      "status": "passed"
+    },
+    {
+      "id": "no_forbidden_execution_scope",
+      "status": "passed"
+    },
+    {
+      "id": "track_a_untouched",
+      "status": "passed"
+    }
+  ],
+  "blockers": []
+}

@@ -1,0 +1,116 @@
+{
+  "phase": "46E",
+  "runId": "phase46e-media-data-internal-beta-readiness-gate-20260603",
+  "status": "passed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/",
+  "metadataOnly": true,
+  "committedReportArtifacts": [
+    {
+      "id": "phase_46e_blocker_report_json",
+      "relativePath": "phase_46e_blocker_report.json",
+      "sizeBytes": 2321,
+      "sha256": "86ed328043c3616f5b8a35f8c5ce1f1b7461a5c9a12c1fe3fa68c229e8fa5073",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_blocker_report.json"
+    },
+    {
+      "id": "phase_46e_media_data_allowed_internal_scope_json",
+      "relativePath": "phase_46e_media_data_allowed_internal_scope.json",
+      "sizeBytes": 1154,
+      "sha256": "353d4d4dd57e607e4a6330b31ae90d77f0a5ed9299bda5298f1bc496e88f00e7",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_allowed_internal_scope.json"
+    },
+    {
+      "id": "phase_46e_media_data_beta_gate_criteria_json",
+      "relativePath": "phase_46e_media_data_beta_gate_criteria.json",
+      "sizeBytes": 1565,
+      "sha256": "8479950ee3c8fa934bb5da82c37f7d71460f143a1c0dc411559a55bec37fac62",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_beta_gate_criteria.json"
+    },
+    {
+      "id": "phase_46e_media_data_beta_gate_decision_json",
+      "relativePath": "phase_46e_media_data_beta_gate_decision.json",
+      "sizeBytes": 1279,
+      "sha256": "380d25f900dfff9697c651768d50b5fe256606b4caa2cba44357ecb97b7cd87a",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_beta_gate_decision.json"
+    },
+    {
+      "id": "phase_46e_media_data_beta_gate_input_manifest_json",
+      "relativePath": "phase_46e_media_data_beta_gate_input_manifest.json",
+      "sizeBytes": 2391,
+      "sha256": "94ed59034abf789057ae902aeb2562f9bfc06326cfed4e25bffb849ffbcf3253",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_beta_gate_input_manifest.json"
+    },
+    {
+      "id": "phase_46e_media_data_beta_gate_plan_json",
+      "relativePath": "phase_46e_media_data_beta_gate_plan.json",
+      "sizeBytes": 3220,
+      "sha256": "6a5a51b431df278746ed2154212700c6b8480d4417cc53f18f25ca7c46a1e312",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_beta_gate_plan.json"
+    },
+    {
+      "id": "phase_46e_media_data_beta_gate_scorecard_json",
+      "relativePath": "phase_46e_media_data_beta_gate_scorecard.json",
+      "sizeBytes": 390,
+      "sha256": "bab633d9679c8b2c1cbc118555c9a5cd7d586083128d6105411c3ee8ccb84690",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_beta_gate_scorecard.json"
+    },
+    {
+      "id": "phase_46e_media_data_blocked_scope_matrix_json",
+      "relativePath": "phase_46e_media_data_blocked_scope_matrix.json",
+      "sizeBytes": 931,
+      "sha256": "3ccf4434154205d66d816a280db7ce0e1d3b39f401d9879592b29cb9aad2b756",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_blocked_scope_matrix.json"
+    },
+    {
+      "id": "phase_46e_media_data_caveat_classification_json",
+      "relativePath": "phase_46e_media_data_caveat_classification.json",
+      "sizeBytes": 1593,
+      "sha256": "a8c9dfd3af76380a59d7c223bdf5bc155e5e742208acd8db1083a8a828f87c08",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_caveat_classification.json"
+    },
+    {
+      "id": "phase_46e_media_data_internal_beta_readiness_report_json",
+      "relativePath": "phase_46e_media_data_internal_beta_readiness_report.json",
+      "sizeBytes": 2953,
+      "sha256": "747ba918950a211501ff37e0fef99cb2c1a632faca90d90854e7b7d53161912a",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_internal_beta_readiness_report.json"
+    },
+    {
+      "id": "phase_46e_media_data_internal_beta_readiness_report_md",
+      "relativePath": "phase_46e_media_data_internal_beta_readiness_report.md",
+      "sizeBytes": 580,
+      "sha256": "1d972b742eafc7cac639a3a1ddbc4636664582a3e0666c9266a864081d3a0dc5",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_internal_beta_readiness_report.md"
+    },
+    {
+      "id": "phase_46e_media_data_rollback_blocker_policy_json",
+      "relativePath": "phase_46e_media_data_rollback_blocker_policy.json",
+      "sizeBytes": 770,
+      "sha256": "55c134aab00d841923941a08c54d60b4a4daedc0f312ef84b5d811fa5bd6deb7",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_rollback_blocker_policy.json"
+    },
+    {
+      "id": "phase_46e_media_data_support_runbook_checklist_json",
+      "relativePath": "phase_46e_media_data_support_runbook_checklist.json",
+      "sizeBytes": 718,
+      "sha256": "5fb5304aa86b24f0107e835030d3e853d8f8370bca08590d0b7f4738bec012d2",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_media_data_support_runbook_checklist.json"
+    },
+    {
+      "id": "phase_46e_private_artifact_manifest_json",
+      "relativePath": "phase_46e_private_artifact_manifest.json",
+      "sizeBytes": 7746,
+      "sha256": "b5a2e6f86092daaccd89f750b0e85cc1d0fc0cf5395faef9112d61d449ef9814",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_private_artifact_manifest.json"
+    },
+    {
+      "id": "phase_46e_private_artifact_verification_report_json",
+      "relativePath": "phase_46e_private_artifact_verification_report.json",
+      "sizeBytes": 46374,
+      "sha256": "5ac89384fc1cf4c14f392d4d0a327cfed11c6d13964f594099490a84e374711f",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46e/media-data-internal-beta-readiness-gate/phase46e-media-data-internal-beta-readiness-gate-20260603/phase_46e_private_artifact_verification_report.json"
+    }
+  ],
+  "uploadedObjectCount": 18,
+  "blockers": []
+}

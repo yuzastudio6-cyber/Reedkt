@@ -1,0 +1,69 @@
+{
+  "phase": "46E",
+  "runId": "phase46e-media-data-internal-beta-readiness-gate-20260603",
+  "status": "passed_no_required_blockers",
+  "blockers": [],
+  "warnings": [
+    {
+      "id": "ffmpeg_pyav_dependency",
+      "summary": "FFmpeg/PyAV codec, patent/build, and dynamic library review remains required.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "blocker"
+    },
+    {
+      "id": "sharp_libvips_lgpl_native_dependency",
+      "summary": "libvips LGPL-2.1-or-later and native binary/platform review remains required.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "blocker"
+    },
+    {
+      "id": "duckdb_extension_network_file_io",
+      "summary": "DuckDB extension/network/object-store access remains blocked; confirmed metadata-only in Phase 46D.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "blocker"
+    },
+    {
+      "id": "polars_memory_runtime",
+      "summary": "Polars memory/CPU/runtime behavior is acceptable for bounded internal metadata, not broad media analytics.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "blocker"
+    },
+    {
+      "id": "one_controlled_sample_only",
+      "summary": "Phase 46C used one approved private controlled sample only.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "blocker"
+    },
+    {
+      "id": "vlm_ocr_product_caveat",
+      "summary": "VLM remains blocked and OCR remains internal QA/planning only; neither blocks media/data internal-scope evidence.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "product_beta_blocker"
+    }
+  ],
+  "blockedScopes": [
+    "product-wide internal beta",
+    "external beta",
+    "paid production",
+    "production",
+    "broad media",
+    "arbitrary media paths",
+    "unapproved real media",
+    "public output",
+    "provider calls",
+    "VLM runtime retries",
+    "OCR runtime outside approved phases",
+    "generated media reprocessing",
+    "controlled real-video reprocessing",
+    "frame reads",
+    "thumbnail reads",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "broad IAM",
+    "public buckets or public artifacts",
+    "Track A runtime/visual/render stack"
+  ]
+}

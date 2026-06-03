@@ -1,0 +1,690 @@
+{
+  "phase": "46E",
+  "runId": "phase46e-media-data-internal-beta-readiness-gate-20260603",
+  "status": "passed",
+  "privateReads": "json_metadata_only",
+  "allowedPrefixes": [
+    "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+    "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/",
+    "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/"
+  ],
+  "mediaFileReads": "blocked",
+  "broadBucketReads": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked",
+  "items": [
+    {
+      "phase": "46B",
+      "prefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/",
+      "status": "passed",
+      "listedObjects": 44,
+      "jsonObjects": 34,
+      "copiedJsonObjects": 34,
+      "blockedMediaObjects": 4,
+      "copiedArtifacts": [
+        {
+          "basename": "phase_46b_blocker_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_blocker_report.json",
+          "sizeBytes": 433,
+          "sha256": "ca3aa16decd407b2d5aa69819d505cd49e9c48085bc1bea4da3048795d6d0a1a"
+        },
+        {
+          "basename": "phase_46b_cross_tool_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_cross_tool_manifest.json",
+          "sizeBytes": 5226,
+          "sha256": "ee314fc4114568d64ec98dbfc281d9311523d35d41dc052f051db6ed68b4a99a"
+        },
+        {
+          "basename": "phase_46b_dependency_runtime_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_dependency_runtime_report.json",
+          "sizeBytes": 421,
+          "sha256": "0a02dfbc15f76c629a02dd6924b367fe6e3b9f665769396fdb1a091f51a445d3"
+        },
+        {
+          "basename": "phase_46b_duckdb_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_duckdb_generated_report.json",
+          "sizeBytes": 449,
+          "sha256": "ae41969c6dfdc1c87de923d79efbce2d899aa47de838c2076d0ef4e6fe157855"
+        },
+        {
+          "basename": "phase_46b_generated_fixture_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_generated_fixture_manifest.json",
+          "sizeBytes": 810,
+          "sha256": "ff6a5c5c86f0d94952f76722bbf08f8e73d866e7e74fda1180ff01c6648fd4cd"
+        },
+        {
+          "basename": "phase_46b_generated_media_data_plan.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_generated_media_data_plan.json",
+          "sizeBytes": 813,
+          "sha256": "f4e29f422af4f5b9620df72ff9f2b2f72ea525f3f5a0788513c908a6e2b489b2"
+        },
+        {
+          "basename": "phase_46b_generated_media_data_qa_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_generated_media_data_qa_report.json",
+          "sizeBytes": 641,
+          "sha256": "7f09fc67e37c07cab98bed781dbb0e36f4db0115dc6d0cb9722bcd36fe74df98"
+        },
+        {
+          "basename": "phase_46b_generated_media_data_suite_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_generated_media_data_suite_report.json",
+          "sizeBytes": 830,
+          "sha256": "d2012e5decc3af4c0f8add32fdee460a0cb6e982c771d1ea8869411955e0e9a2"
+        },
+        {
+          "basename": "phase_46b_opencv_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_opencv_generated_report.json",
+          "sizeBytes": 754,
+          "sha256": "d65bd03312269d9504f3eee214d7b79aae72f06d8d74bf201439b82dceb81e12"
+        },
+        {
+          "basename": "phase_46b_polars_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_polars_generated_report.json",
+          "sizeBytes": 442,
+          "sha256": "3d977cdb9f64f55501375cc742d65363001c11b70be117925ba7f639b5719255"
+        },
+        {
+          "basename": "phase_46b_private_artifact_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_private_artifact_manifest.json",
+          "sizeBytes": 5323,
+          "sha256": "3cf98b706e0bcb64fcaa9af53159decdeb0aa4fd3b03bac10df55de6d68aa84a"
+        },
+        {
+          "basename": "phase_46b_pyav_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_pyav_generated_report.json",
+          "sizeBytes": 1223,
+          "sha256": "c73b7bf9abd6a806d94f9fd1ba1129061ed07e11b2b16c51d8b8707852380727"
+        },
+        {
+          "basename": "phase_46b_pyscenedetect_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_pyscenedetect_generated_report.json",
+          "sizeBytes": 805,
+          "sha256": "2725651c2d9234fd9ac6736f0ba57be8c9491b6cc7854a68227b5d2eb3b20b83"
+        },
+        {
+          "basename": "phase_46b_runtime_preflight.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_runtime_preflight.json",
+          "sizeBytes": 1352,
+          "sha256": "1e397880ff8790945da0ff5cc9019dd6e86831be50a03d095c0f24c32d33d087"
+        },
+        {
+          "basename": "phase_46b_sharp_libvips_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_sharp_libvips_generated_report.json",
+          "sizeBytes": 1398,
+          "sha256": "927183874b8e3df2ce65cd0471d6ec996e56143ea6ddfd6eb91151ef3fbdc124"
+        },
+        {
+          "basename": "phase_46b_storage_privacy_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_storage_privacy_report.json",
+          "sizeBytes": 437,
+          "sha256": "49c69656bf1d11890a1bdeb4522617e3853118417a93d7f6ba62a04641fd38ac"
+        },
+        {
+          "basename": "phase_46b_tool_version_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/phase_46b_tool_version_report.json",
+          "sizeBytes": 1008,
+          "sha256": "62e7f8e43ae297cd8d604c9142e80186c2ca00f3de925286f999459bff79f4a2"
+        },
+        {
+          "basename": "phase_46b_blocker_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_blocker_report.json",
+          "sizeBytes": 433,
+          "sha256": "ca3aa16decd407b2d5aa69819d505cd49e9c48085bc1bea4da3048795d6d0a1a"
+        },
+        {
+          "basename": "phase_46b_cross_tool_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_cross_tool_manifest.json",
+          "sizeBytes": 5226,
+          "sha256": "ee314fc4114568d64ec98dbfc281d9311523d35d41dc052f051db6ed68b4a99a"
+        },
+        {
+          "basename": "phase_46b_dependency_runtime_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_dependency_runtime_report.json",
+          "sizeBytes": 421,
+          "sha256": "0a02dfbc15f76c629a02dd6924b367fe6e3b9f665769396fdb1a091f51a445d3"
+        },
+        {
+          "basename": "phase_46b_duckdb_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_duckdb_generated_report.json",
+          "sizeBytes": 449,
+          "sha256": "ae41969c6dfdc1c87de923d79efbce2d899aa47de838c2076d0ef4e6fe157855"
+        },
+        {
+          "basename": "phase_46b_generated_fixture_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_generated_fixture_manifest.json",
+          "sizeBytes": 810,
+          "sha256": "ff6a5c5c86f0d94952f76722bbf08f8e73d866e7e74fda1180ff01c6648fd4cd"
+        },
+        {
+          "basename": "phase_46b_generated_media_data_plan.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_generated_media_data_plan.json",
+          "sizeBytes": 813,
+          "sha256": "f4e29f422af4f5b9620df72ff9f2b2f72ea525f3f5a0788513c908a6e2b489b2"
+        },
+        {
+          "basename": "phase_46b_generated_media_data_qa_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_generated_media_data_qa_report.json",
+          "sizeBytes": 656,
+          "sha256": "5939ed144c8b395d52f8f0fc7110532b3a911042f02d0129a8d98ae3cc30f709"
+        },
+        {
+          "basename": "phase_46b_generated_media_data_suite_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_generated_media_data_suite_report.json",
+          "sizeBytes": 917,
+          "sha256": "e5fe1392aa4396321d8761bdbf4974bf047af2a39c4161941b880550d57ce36d"
+        },
+        {
+          "basename": "phase_46b_opencv_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_opencv_generated_report.json",
+          "sizeBytes": 754,
+          "sha256": "d65bd03312269d9504f3eee214d7b79aae72f06d8d74bf201439b82dceb81e12"
+        },
+        {
+          "basename": "phase_46b_polars_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_polars_generated_report.json",
+          "sizeBytes": 442,
+          "sha256": "3d977cdb9f64f55501375cc742d65363001c11b70be117925ba7f639b5719255"
+        },
+        {
+          "basename": "phase_46b_private_artifact_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_private_artifact_manifest.json",
+          "sizeBytes": 5174,
+          "sha256": "d7dea2bd3eaad54442e1e4e35d0b029c677a80e1ca09fb60b978b1a4c2ff821a"
+        },
+        {
+          "basename": "phase_46b_pyav_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_pyav_generated_report.json",
+          "sizeBytes": 1223,
+          "sha256": "c73b7bf9abd6a806d94f9fd1ba1129061ed07e11b2b16c51d8b8707852380727"
+        },
+        {
+          "basename": "phase_46b_pyscenedetect_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_pyscenedetect_generated_report.json",
+          "sizeBytes": 805,
+          "sha256": "2725651c2d9234fd9ac6736f0ba57be8c9491b6cc7854a68227b5d2eb3b20b83"
+        },
+        {
+          "basename": "phase_46b_runtime_preflight.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_runtime_preflight.json",
+          "sizeBytes": 1352,
+          "sha256": "1e397880ff8790945da0ff5cc9019dd6e86831be50a03d095c0f24c32d33d087"
+        },
+        {
+          "basename": "phase_46b_sharp_libvips_generated_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_sharp_libvips_generated_report.json",
+          "sizeBytes": 1398,
+          "sha256": "927183874b8e3df2ce65cd0471d6ec996e56143ea6ddfd6eb91151ef3fbdc124"
+        },
+        {
+          "basename": "phase_46b_storage_privacy_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_storage_privacy_report.json",
+          "sizeBytes": 437,
+          "sha256": "49c69656bf1d11890a1bdeb4522617e3853118417a93d7f6ba62a04641fd38ac"
+        },
+        {
+          "basename": "phase_46b_tool_version_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46b/generated-media-data-suite/phase46b-generated-media-data-suite-20260603/suite-output/phase_46b_tool_version_report.json",
+          "sizeBytes": 1008,
+          "sha256": "62e7f8e43ae297cd8d604c9142e80186c2ca00f3de925286f999459bff79f4a2"
+        }
+      ],
+      "blockers": [],
+      "warnings": [
+        "46B:media_payload_objects_present_but_not_read_or_copied"
+      ]
+    },
+    {
+      "phase": "46C",
+      "prefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/",
+      "status": "passed",
+      "listedObjects": 52,
+      "jsonObjects": 36,
+      "copiedJsonObjects": 36,
+      "blockedMediaObjects": 8,
+      "copiedArtifacts": [
+        {
+          "basename": "phase_46c_blocker_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_blocker_report.json",
+          "sizeBytes": 412,
+          "sha256": "3c371c68ef1fc6383414e27b1cd08f70c810327f21424cad1efaeb857b07544c"
+        },
+        {
+          "basename": "phase_46c_controlled_media_data_qa_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_controlled_media_data_qa_report.json",
+          "sizeBytes": 833,
+          "sha256": "dc85fd2b5ef5fa623aea54b49b61bcd5aa6bd73c1a8f44e180feb1c5ba86ae32"
+        },
+        {
+          "basename": "phase_46c_controlled_media_resolver_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_controlled_media_resolver_report.json",
+          "sizeBytes": 1841,
+          "sha256": "672ab372d6be221605cab513f6a0c33385be5faa0035652ce8c87a032cfc2c2d"
+        },
+        {
+          "basename": "phase_46c_controlled_real_video_media_data_suite_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_controlled_real_video_media_data_suite_report.json",
+          "sizeBytes": 1067,
+          "sha256": "70fb18d80402759714ed358c1b89a9f74d21eff07ee6c6e067b1b4bfbdfdad1e"
+        },
+        {
+          "basename": "phase_46c_controlled_real_video_plan.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_controlled_real_video_plan.json",
+          "sizeBytes": 1247,
+          "sha256": "fd26277fff5a554693b9a10d202fef6f392e3083081a33c8aa819765769287c6"
+        },
+        {
+          "basename": "phase_46c_controlled_runtime_preflight.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_controlled_runtime_preflight.json",
+          "sizeBytes": 1172,
+          "sha256": "3a6687e4270298e27baa5a111cff9f868615f45678470f2761ac46ea50084e8e"
+        },
+        {
+          "basename": "phase_46c_controlled_sample_evidence.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_controlled_sample_evidence.json",
+          "sizeBytes": 1096,
+          "sha256": "1b79a2d4bfa011c65e505c683fcd72807de2f56114e99a7da39e618bf0d550b9"
+        },
+        {
+          "basename": "phase_46c_cross_tool_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_cross_tool_manifest.json",
+          "sizeBytes": 6777,
+          "sha256": "8d96046778c97857a86b984a63e9490d00b7337d1d2e4d05b74cc557e4cd8bb1"
+        },
+        {
+          "basename": "phase_46c_dependency_runtime_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_dependency_runtime_report.json",
+          "sizeBytes": 420,
+          "sha256": "e78ad89c983a128f147bade6462a4f38ab9780c2cbfeb0e1eca8d4e0b334b898"
+        },
+        {
+          "basename": "phase_46c_duckdb_controlled_aggregation_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_duckdb_controlled_aggregation_report.json",
+          "sizeBytes": 531,
+          "sha256": "ea6a5cce6a6cf12e355cf13b37f1551de575fab1c4fbc8a6168ebf108e5c0921"
+        },
+        {
+          "basename": "phase_46c_opencv_frame_sample_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_opencv_frame_sample_report.json",
+          "sizeBytes": 4326,
+          "sha256": "897b260eae6bda6b446aceb87335aa559bad1567f138ef615968a0b7505169ad"
+        },
+        {
+          "basename": "phase_46c_polars_controlled_transform_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_polars_controlled_transform_report.json",
+          "sizeBytes": 522,
+          "sha256": "b8002ddc97d8f21ba524df6b84b9f9433198992d475c54fe56447a6be652c386"
+        },
+        {
+          "basename": "phase_46c_private_artifact_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_private_artifact_manifest.json",
+          "sizeBytes": 6851,
+          "sha256": "51eb9caf4f120376f25600fffc42ea60412f99f6a731f03c0d563c3655ce0b1b"
+        },
+        {
+          "basename": "phase_46c_pyav_controlled_probe_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_pyav_controlled_probe_report.json",
+          "sizeBytes": 1205,
+          "sha256": "e056a5681de51c16cb76ed1b06ce8c23460c300deeaa0fc63b7366c3fc54aa3c"
+        },
+        {
+          "basename": "phase_46c_pyscenedetect_scene_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_pyscenedetect_scene_manifest.json",
+          "sizeBytes": 870,
+          "sha256": "8d8b4f8c28dc5e7acfde5f362dd7dca98b6046772c874ffb2b59440d01722719"
+        },
+        {
+          "basename": "phase_46c_sharp_libvips_controlled_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_sharp_libvips_controlled_report.json",
+          "sizeBytes": 1650,
+          "sha256": "c2d2c0c473bd74de547bc5b63ea53d95758e057137dd3c3b617480706205c946"
+        },
+        {
+          "basename": "phase_46c_storage_privacy_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_storage_privacy_report.json",
+          "sizeBytes": 563,
+          "sha256": "95ca3673e2e6c8d1032bb65e83e8c28484f18c16588d716bc4b500a4530acbdb"
+        },
+        {
+          "basename": "phase_46c_tool_version_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/phase_46c_tool_version_report.json",
+          "sizeBytes": 1020,
+          "sha256": "3ad331da933f71c490641c859491493b79f8d4f386f5624bcbbf4a4f6b4a8472"
+        },
+        {
+          "basename": "phase_46c_blocker_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_blocker_report.json",
+          "sizeBytes": 412,
+          "sha256": "3c371c68ef1fc6383414e27b1cd08f70c810327f21424cad1efaeb857b07544c"
+        },
+        {
+          "basename": "phase_46c_controlled_media_data_qa_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_controlled_media_data_qa_report.json",
+          "sizeBytes": 848,
+          "sha256": "3fadae37321a158f1bbba914a53546fda981bb27fc107f6df7e8aead6f04a254"
+        },
+        {
+          "basename": "phase_46c_controlled_media_resolver_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_controlled_media_resolver_report.json",
+          "sizeBytes": 1841,
+          "sha256": "672ab372d6be221605cab513f6a0c33385be5faa0035652ce8c87a032cfc2c2d"
+        },
+        {
+          "basename": "phase_46c_controlled_real_video_media_data_suite_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_controlled_real_video_media_data_suite_report.json",
+          "sizeBytes": 1154,
+          "sha256": "f9901627a8a11a22be7e7d3bf283f422abd17fab4bc611d86edd83b46c47d068"
+        },
+        {
+          "basename": "phase_46c_controlled_real_video_plan.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_controlled_real_video_plan.json",
+          "sizeBytes": 1247,
+          "sha256": "fd26277fff5a554693b9a10d202fef6f392e3083081a33c8aa819765769287c6"
+        },
+        {
+          "basename": "phase_46c_controlled_runtime_preflight.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_controlled_runtime_preflight.json",
+          "sizeBytes": 1172,
+          "sha256": "3a6687e4270298e27baa5a111cff9f868615f45678470f2761ac46ea50084e8e"
+        },
+        {
+          "basename": "phase_46c_controlled_sample_evidence.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_controlled_sample_evidence.json",
+          "sizeBytes": 1096,
+          "sha256": "1b79a2d4bfa011c65e505c683fcd72807de2f56114e99a7da39e618bf0d550b9"
+        },
+        {
+          "basename": "phase_46c_cross_tool_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_cross_tool_manifest.json",
+          "sizeBytes": 6777,
+          "sha256": "8d96046778c97857a86b984a63e9490d00b7337d1d2e4d05b74cc557e4cd8bb1"
+        },
+        {
+          "basename": "phase_46c_dependency_runtime_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_dependency_runtime_report.json",
+          "sizeBytes": 420,
+          "sha256": "e78ad89c983a128f147bade6462a4f38ab9780c2cbfeb0e1eca8d4e0b334b898"
+        },
+        {
+          "basename": "phase_46c_duckdb_controlled_aggregation_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_duckdb_controlled_aggregation_report.json",
+          "sizeBytes": 531,
+          "sha256": "ea6a5cce6a6cf12e355cf13b37f1551de575fab1c4fbc8a6168ebf108e5c0921"
+        },
+        {
+          "basename": "phase_46c_opencv_frame_sample_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_opencv_frame_sample_report.json",
+          "sizeBytes": 4326,
+          "sha256": "897b260eae6bda6b446aceb87335aa559bad1567f138ef615968a0b7505169ad"
+        },
+        {
+          "basename": "phase_46c_polars_controlled_transform_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_polars_controlled_transform_report.json",
+          "sizeBytes": 522,
+          "sha256": "b8002ddc97d8f21ba524df6b84b9f9433198992d475c54fe56447a6be652c386"
+        },
+        {
+          "basename": "phase_46c_private_artifact_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_private_artifact_manifest.json",
+          "sizeBytes": 6670,
+          "sha256": "e72d4b715173b9538b86743387265a017ae60d649cdb07bb9f7f2b237a4ae91e"
+        },
+        {
+          "basename": "phase_46c_pyav_controlled_probe_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_pyav_controlled_probe_report.json",
+          "sizeBytes": 1205,
+          "sha256": "e056a5681de51c16cb76ed1b06ce8c23460c300deeaa0fc63b7366c3fc54aa3c"
+        },
+        {
+          "basename": "phase_46c_pyscenedetect_scene_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_pyscenedetect_scene_manifest.json",
+          "sizeBytes": 870,
+          "sha256": "8d8b4f8c28dc5e7acfde5f362dd7dca98b6046772c874ffb2b59440d01722719"
+        },
+        {
+          "basename": "phase_46c_sharp_libvips_controlled_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_sharp_libvips_controlled_report.json",
+          "sizeBytes": 1650,
+          "sha256": "c2d2c0c473bd74de547bc5b63ea53d95758e057137dd3c3b617480706205c946"
+        },
+        {
+          "basename": "phase_46c_storage_privacy_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_storage_privacy_report.json",
+          "sizeBytes": 563,
+          "sha256": "95ca3673e2e6c8d1032bb65e83e8c28484f18c16588d716bc4b500a4530acbdb"
+        },
+        {
+          "basename": "phase_46c_tool_version_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46c/controlled-real-video-media-data/phase46c-controlled-real-video-media-data-suite-20260603/suite-output/phase_46c_tool_version_report.json",
+          "sizeBytes": 1020,
+          "sha256": "3ad331da933f71c490641c859491493b79f8d4f386f5624bcbbf4a4f6b4a8472"
+        }
+      ],
+      "blockers": [],
+      "warnings": [
+        "46C:media_payload_objects_present_but_not_read_or_copied"
+      ]
+    },
+    {
+      "phase": "46D",
+      "prefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/",
+      "status": "passed",
+      "listedObjects": 38,
+      "jsonObjects": 35,
+      "copiedJsonObjects": 35,
+      "blockedMediaObjects": 0,
+      "copiedArtifacts": [
+        {
+          "basename": "phase_46d_auth_rerun_upload_probe.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_auth_rerun_upload_probe.json",
+          "sizeBytes": 243,
+          "sha256": "be4c46260e1c025bc76109163273af90ce47c4cf107d227e77090c519b3d487d"
+        },
+        {
+          "basename": "phase_46d_beta_gate_input_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_beta_gate_input_manifest.json",
+          "sizeBytes": 2261,
+          "sha256": "a1986adb4df0a3b9049c767e56f70f8c44fd50183132298f03e0b17cb5125446"
+        },
+        {
+          "basename": "phase_46d_blocker_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_blocker_report.json",
+          "sizeBytes": 5103,
+          "sha256": "7cfea76ada794f92797c92181fddcfed9fb6aada1ac39daab4ab31f900b53fb9"
+        },
+        {
+          "basename": "phase_46d_duckdb_blocker_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_duckdb_blocker_summary.json",
+          "sizeBytes": 228,
+          "sha256": "4e5b7246c9d623c828fe74ca5db5f78ff1fe15cbd78237fc13abfd205191e3ce"
+        },
+        {
+          "basename": "phase_46d_duckdb_polars_consistency_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_duckdb_polars_consistency_report.json",
+          "sizeBytes": 279,
+          "sha256": "3830c2efb44833006bd43c2c47c177ffe60ac70c5f37ec7ee6dcce2995d2d708"
+        },
+        {
+          "basename": "phase_46d_duckdb_qa_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_duckdb_qa_summary.json",
+          "sizeBytes": 1117,
+          "sha256": "41624c85e1c6cbb2d5890d8d944e62a1a7dfc74e66cf73d76c9224fc3ed157a3"
+        },
+        {
+          "basename": "phase_46d_duckdb_reporting_tables.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_duckdb_reporting_tables.json",
+          "sizeBytes": 29678,
+          "sha256": "43037a1cece80abea9dbceb94aada017338a7531ea83557b489eedd8513d6b0f"
+        },
+        {
+          "basename": "phase_46d_media_data_readiness_scorecard.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_media_data_readiness_scorecard.json",
+          "sizeBytes": 8023,
+          "sha256": "91657f45f092ff839469c07aee4cc3f596f112a0920da5a0e7a24e713f04b661"
+        },
+        {
+          "basename": "phase_46d_polars_blocker_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_polars_blocker_summary.json",
+          "sizeBytes": 228,
+          "sha256": "4e5b7246c9d623c828fe74ca5db5f78ff1fe15cbd78237fc13abfd205191e3ce"
+        },
+        {
+          "basename": "phase_46d_polars_qa_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_polars_qa_summary.json",
+          "sizeBytes": 1008,
+          "sha256": "8eecfa19b54197e9e3b63c757556f131c1c6b022e189b34dae212aaee4e770bc"
+        },
+        {
+          "basename": "phase_46d_polars_reporting_tables.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_polars_reporting_tables.json",
+          "sizeBytes": 29618,
+          "sha256": "aaca08f974e60e23e2347510129fe2f309ae582cd215a4edf3baf855dacd1432"
+        },
+        {
+          "basename": "phase_46d_private_artifact_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_private_artifact_manifest.json",
+          "sizeBytes": 4380,
+          "sha256": "82a120a971a4873b8cdf5ce2a5ffbea46eeb40813891865627dfee934a68d67c"
+        },
+        {
+          "basename": "phase_46d_private_artifact_read_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_private_artifact_read_report.json",
+          "sizeBytes": 21376,
+          "sha256": "51551754909bd1fec7518b867934b0137117d903f53ae64722a44f27583260be"
+        },
+        {
+          "basename": "phase_46d_reporting_input_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_reporting_input_manifest.json",
+          "sizeBytes": 30794,
+          "sha256": "52e9ae2b98760d7eaa2bd145417eadada2d41969088a940ff6a6bdbc0f78e5a6"
+        },
+        {
+          "basename": "phase_46d_reporting_qa_integration_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_reporting_qa_integration_report.json",
+          "sizeBytes": 1069,
+          "sha256": "1e8a2151e1cd318c9f81d09016a67754a58d98047049710ede17a86aafb09b1e"
+        },
+        {
+          "basename": "phase_46d_reporting_qa_plan.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_reporting_qa_plan.json",
+          "sizeBytes": 2544,
+          "sha256": "bf4b7ada44090cea21f88972d027f3b41e2b71bc2619a87bba626b94793eac96"
+        },
+        {
+          "basename": "phase_46d_reporting_schema.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_reporting_schema.json",
+          "sizeBytes": 1744,
+          "sha256": "3a58b42384a61ff8c8c5108207af9f8ef2542ba3249a95c2477a43f1ec073855"
+        },
+        {
+          "basename": "phase_46d_storage_privacy_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/phase_46d_storage_privacy_report.json",
+          "sizeBytes": 520,
+          "sha256": "bb457a8bd5bce0e95f950c4df688c4fc51839c6edb46d174c6c1626226ebe290"
+        },
+        {
+          "basename": "phase_46d_beta_gate_input_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_beta_gate_input_manifest.json",
+          "sizeBytes": 2261,
+          "sha256": "a1986adb4df0a3b9049c767e56f70f8c44fd50183132298f03e0b17cb5125446"
+        },
+        {
+          "basename": "phase_46d_blocker_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_blocker_report.json",
+          "sizeBytes": 5103,
+          "sha256": "7cfea76ada794f92797c92181fddcfed9fb6aada1ac39daab4ab31f900b53fb9"
+        },
+        {
+          "basename": "phase_46d_duckdb_blocker_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_duckdb_blocker_summary.json",
+          "sizeBytes": 228,
+          "sha256": "4e5b7246c9d623c828fe74ca5db5f78ff1fe15cbd78237fc13abfd205191e3ce"
+        },
+        {
+          "basename": "phase_46d_duckdb_polars_consistency_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_duckdb_polars_consistency_report.json",
+          "sizeBytes": 279,
+          "sha256": "3830c2efb44833006bd43c2c47c177ffe60ac70c5f37ec7ee6dcce2995d2d708"
+        },
+        {
+          "basename": "phase_46d_duckdb_qa_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_duckdb_qa_summary.json",
+          "sizeBytes": 1117,
+          "sha256": "41624c85e1c6cbb2d5890d8d944e62a1a7dfc74e66cf73d76c9224fc3ed157a3"
+        },
+        {
+          "basename": "phase_46d_duckdb_reporting_tables.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_duckdb_reporting_tables.json",
+          "sizeBytes": 29678,
+          "sha256": "43037a1cece80abea9dbceb94aada017338a7531ea83557b489eedd8513d6b0f"
+        },
+        {
+          "basename": "phase_46d_media_data_readiness_scorecard.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_media_data_readiness_scorecard.json",
+          "sizeBytes": 8023,
+          "sha256": "91657f45f092ff839469c07aee4cc3f596f112a0920da5a0e7a24e713f04b661"
+        },
+        {
+          "basename": "phase_46d_polars_blocker_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_polars_blocker_summary.json",
+          "sizeBytes": 228,
+          "sha256": "4e5b7246c9d623c828fe74ca5db5f78ff1fe15cbd78237fc13abfd205191e3ce"
+        },
+        {
+          "basename": "phase_46d_polars_qa_summary.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_polars_qa_summary.json",
+          "sizeBytes": 1008,
+          "sha256": "8eecfa19b54197e9e3b63c757556f131c1c6b022e189b34dae212aaee4e770bc"
+        },
+        {
+          "basename": "phase_46d_polars_reporting_tables.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_polars_reporting_tables.json",
+          "sizeBytes": 29618,
+          "sha256": "aaca08f974e60e23e2347510129fe2f309ae582cd215a4edf3baf855dacd1432"
+        },
+        {
+          "basename": "phase_46d_private_artifact_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_private_artifact_manifest.json",
+          "sizeBytes": 378,
+          "sha256": "4c52fc27157f90b8b49bb41c9435649bef84c27603d5306d26693f1c279614ad"
+        },
+        {
+          "basename": "phase_46d_private_artifact_read_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_private_artifact_read_report.json",
+          "sizeBytes": 21376,
+          "sha256": "51551754909bd1fec7518b867934b0137117d903f53ae64722a44f27583260be"
+        },
+        {
+          "basename": "phase_46d_reporting_input_manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_reporting_input_manifest.json",
+          "sizeBytes": 30794,
+          "sha256": "52e9ae2b98760d7eaa2bd145417eadada2d41969088a940ff6a6bdbc0f78e5a6"
+        },
+        {
+          "basename": "phase_46d_reporting_qa_integration_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_reporting_qa_integration_report.json",
+          "sizeBytes": 1077,
+          "sha256": "05bcad83cc04ab37c4cbc0123940f2b307081c2c8031dd6ccae85acfb9e9a239"
+        },
+        {
+          "basename": "phase_46d_reporting_qa_plan.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_reporting_qa_plan.json",
+          "sizeBytes": 2544,
+          "sha256": "bf4b7ada44090cea21f88972d027f3b41e2b71bc2619a87bba626b94793eac96"
+        },
+        {
+          "basename": "phase_46d_reporting_schema.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_reporting_schema.json",
+          "sizeBytes": 1744,
+          "sha256": "3a58b42384a61ff8c8c5108207af9f8ef2542ba3249a95c2477a43f1ec073855"
+        },
+        {
+          "basename": "phase_46d_storage_privacy_report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46d/reporting-qa-integration/phase46d-duckdb-polars-reporting-qa-integration-20260603/reporting-output/phase_46d_storage_privacy_report.json",
+          "sizeBytes": 520,
+          "sha256": "bb457a8bd5bce0e95f950c4df688c4fc51839c6edb46d174c6c1626226ebe290"
+        }
+      ],
+      "blockers": [],
+      "warnings": []
+    }
+  ],
+  "blockers": []
+}

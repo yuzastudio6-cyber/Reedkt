@@ -65,6 +65,13 @@ import { createUploadPlan } from '../storage/upload-plan-service'
 import { validateUploadFile } from '../storage/upload-validation-service'
 import type { CreateUploadPlanInput, UploadPlan, UploadPurpose } from '../../types/upload'
 import { createWorkerRuntimeRegistrySummary, WORKER_RUNTIME_REGISTRY } from '../runtime/worker-runtime-registry'
+import {
+  createMockWebSearchUiApiGateState,
+  createMockWebSearchUiApiPlan,
+  createMockWebSearchUiApiRun,
+  validateMockWebSearchUiApiRequest,
+  type WebSearchUiApiMockRequest,
+} from '../contracts/web-search-capture-contracts'
 
 const registeredHandlers = new Map<string, ApiRouteHandler>()
 
@@ -189,6 +196,10 @@ const DEFAULT_MOCK_HANDLERS: Record<string, ApiRouteHandler> = {
   'worker.lease.fail': handleMockWorkerLeaseFail,
   'worker.lease.recoverStale': handleMockWorkerLeaseRecoverStale,
   'worker.runtime.registry': handleMockWorkerRuntimeRegistry,
+  'webSearch.internal.status': handleMockWebSearchUiApiStatus,
+  'webSearch.internal.plan': handleMockWebSearchUiApiPlan,
+  'webSearch.internal.runControlled': handleMockWebSearchUiApiRunControlled,
+  'webSearch.internal.runStatus': handleMockWebSearchUiApiRunStatus,
   'generation.creditGate.check': handleMockGenerationCreditGate,
   'generation.jobRuntime.queueMock': handleMockJobQueue,
   'generation.runtime.transportMock': handleMockRuntimeTransportSend,
@@ -476,6 +487,58 @@ function handleMockWorkerRuntimeRegistry(): ApiResponseEnvelope {
     workerRuntimes: WORKER_RUNTIME_REGISTRY,
     summary: createWorkerRuntimeRegistrySummary(),
   }, ['Registry is metadata only; no worker was started.'])
+}
+
+function handleMockWebSearchUiApiStatus(): ApiResponseEnvelope {
+  return createApiMockResponse({
+    status: createMockWebSearchUiApiGateState(),
+  }, ['Phase 49I web search/capture API status is mock-safe and gate-only.'])
+}
+
+function handleMockWebSearchUiApiPlan(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const input = request.body as WebSearchUiApiMockRequest | undefined
+  const validation = validateMockWebSearchUiApiRequest(input ?? {})
+  if (!validation.ok) {
+    return createApiErrorResponse('web_search_gate_blocked', 'Web search/capture request is blocked by Phase 49I policy.', {
+      statusCode: 400,
+      details: validation,
+      warnings: validation.warnings,
+      mockOnly: true,
+    })
+  }
+  return createApiMockResponse({
+    validation,
+    plan: createMockWebSearchUiApiPlan(input ?? {}),
+  }, validation.warnings)
+}
+
+function handleMockWebSearchUiApiRunControlled(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  const input = request.body as WebSearchUiApiMockRequest | undefined
+  const validation = validateMockWebSearchUiApiRequest(input ?? {})
+  if (!validation.ok) {
+    return createApiErrorResponse('web_search_gate_blocked', 'Web search/capture controlled run is blocked by Phase 49I policy.', {
+      statusCode: 400,
+      details: validation,
+      warnings: validation.warnings,
+      mockOnly: true,
+    })
+  }
+  return createApiMockResponse({
+    validation,
+    run: createMockWebSearchUiApiRun(input ?? {}),
+  }, ['Gate-only controlled run envelope; no SearXNG query, browser capture, extraction, provider call, or storage upload occurred.'])
+}
+
+function handleMockWebSearchUiApiRunStatus(request: ApiRequestEnvelope): ApiResponseEnvelope {
+  return createApiMockResponse({
+    runId: request.params?.runId ?? 'phase49i-mock-gate-only-run',
+    status: 'gate_only_status_available',
+    liveSearchExecuted: false,
+    browserCaptureExecuted: false,
+    readabilityExtractionExecuted: false,
+    paidProviderUsed: false,
+    publicSearxngUsed: false,
+  }, ['Mock run status only; no live backend transport or runtime artifact was queried.'])
 }
 
 function handleMockMusicJobRuntime(): ApiResponseEnvelope {

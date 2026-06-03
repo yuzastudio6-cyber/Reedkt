@@ -38,6 +38,7 @@ export type ApiDomain =
   | 'storytiming'
   | 'storage'
   | 'providers'
+  | 'web_search'
   | 'admin'
   | 'stripe'
 

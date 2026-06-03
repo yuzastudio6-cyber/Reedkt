@@ -21,7 +21,7 @@ export function buildWebSearchCaptureReadinessReport(): WebSearchReadinessReport
   const executionReport = readLocalExecutionReport()
   const evidenceChain = executionReport?.evidenceChain ?? resolveWebSearchCaptureEvidenceChain()
   const artifactVerification = executionReport?.artifactVerification ?? buildPlannedWebSearchArtifactVerification(evidenceChain)
-  const serviceAccessAudit = executionReport?.serviceAccessAudit ?? plannedServiceAccessAudit()
+  const serviceAccessAudit = executionReport?.serviceAccessAudit ?? approvedServiceAccessAudit(approvedEvidence)
   const providerGateAudit = executionReport?.providerGateAudit ?? buildWebSearchProviderGateAudit()
   const phase49IReadiness = executionReport?.phase49IReadiness ?? approvedEvidence.phase49IReadiness
   const internalTestingReady = executionReport?.ok ?? approvedEvidence.webSearchCaptureInternalTestingReady
@@ -128,7 +128,26 @@ function readLocalExecutionReport(): WebSearchReadinessExecutionReport | undefin
   }
 }
 
-function plannedServiceAccessAudit(): WebSearchServiceAccessAudit {
+function approvedServiceAccessAudit(approvedEvidence: ApprovedWebSearchCaptureReadinessEvidence): WebSearchServiceAccessAudit {
+  if (approvedEvidence.status === 'completed' && approvedEvidence.serviceAccessAuditUri) {
+    return {
+      serviceName: webSearchCaptureReadinessConfig.serviceName,
+      exists: true,
+      projectId: webSearchCaptureReadinessConfig.projectId,
+      region: webSearchCaptureReadinessConfig.region,
+      serviceUrlRedacted: 'private_authenticated_service',
+      allUsersPresent: false,
+      allAuthenticatedUsersPresent: false,
+      invokerMembers: [],
+      publicUnauthenticatedAccess: false,
+      metadataSource: 'cloud_run_metadata_only',
+      blockers: [],
+      warnings: [
+        'Using committed Phase 49H approved evidence because the local execution report is not present in this worktree.',
+      ],
+    }
+  }
+
   return {
     serviceName: webSearchCaptureReadinessConfig.serviceName,
     exists: false,

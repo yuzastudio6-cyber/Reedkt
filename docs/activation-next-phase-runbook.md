@@ -2,6 +2,14 @@
 
 This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is available. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
 
+## After Phase 49I
+
+1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.
+2. Confirm internal routes are authenticated, gate-only, and reject paid providers, public SearXNG, arbitrary URL capture, raw prompt execution, broad crawling, public artifacts, signed URL source-of-truth, and production/beta flags.
+3. Confirm the chat-native developer card is display/gate-only and exposes no provider secrets or browser execution controls.
+4. Proceed to Phase 49J only as optional Brave Search fallback policy review.
+5. Do not run live Brave Search, public SearXNG, broad crawling, arbitrary URL capture, browser capture, Readability extraction, providers, production, external beta, paid production, broad media, or public artifact flows.
+
 ## After Phase 18
 
 1. Review the Phase 18 audit, readiness state, and activation roadmap.

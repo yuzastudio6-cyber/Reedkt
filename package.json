@@ -352,7 +352,11 @@
     "activation:web-search-capture-readiness": "tsx server/cli/activation-web-search-capture-readiness.ts",
     "activation:web-search-capture-readiness:report": "tsx server/cli/activation-web-search-capture-readiness-report.ts",
     "activation:web-search-capture-readiness:iam-plan": "tsx server/cli/activation-web-search-capture-readiness-iam-plan.ts",
-    "smoke:activation-web-search-capture-readiness": "tsx server/smoke/activation-web-search-capture-readiness-smoke.ts"
+    "smoke:activation-web-search-capture-readiness": "tsx server/smoke/activation-web-search-capture-readiness-smoke.ts",
+    "activation:web-search-ui-api-gating": "tsx server/cli/activation-web-search-ui-api-gating.ts",
+    "activation:web-search-ui-api-gating:report": "tsx server/cli/activation-web-search-ui-api-gating-report.ts",
+    "activation:web-search-ui-api-gating:iam-plan": "tsx server/cli/activation-web-search-ui-api-gating-iam-plan.ts",
+    "smoke:activation-web-search-ui-api-gating": "tsx server/smoke/activation-web-search-ui-api-gating-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

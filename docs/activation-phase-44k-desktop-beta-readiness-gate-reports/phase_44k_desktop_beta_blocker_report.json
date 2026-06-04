@@ -1,0 +1,38 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "no_phase44k_blockers_for_restricted_metadata_scope",
+  "missingOrFailedCriteria": [],
+  "stillBlocked": [
+    "live_route_execution",
+    "worker_execution",
+    "local_sidecar_execution",
+    "tool_execution",
+    "media_audio_ocr_vlm_model_runtime",
+    "providers",
+    "public_output",
+    "broad_media",
+    "arbitrary_media",
+    "product_wide_internal_beta",
+    "external_beta",
+    "paid_production",
+    "production",
+    "vlm_runtime",
+    "demucs_runtime",
+    "track_a"
+  ],
+  "explicitBlocksVerified": [
+    "route_execution_blocked",
+    "worker_execution_blocked",
+    "sidecar_execution_blocked",
+    "tool_execution_blocked",
+    "public_artifacts_blocked",
+    "broad_media_blocked",
+    "provider_calls_blocked",
+    "raw_chat_execution_blocked",
+    "frontend_secrets_blocked",
+    "vlm_blocked",
+    "demucs_blocked",
+    "track_a_not_touched"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "passed",
+  "desktopHybridComputeBetaStatus": "internally beta-ready candidate",
+  "restrictedScope": "metadata_planning_simulation_only",
+  "scorecard": "20/20",
+  "inputEvidence": "PRs #161, #164, #167, #176, #177, #180, #181, and #184",
+  "routeExecution": "blocked",
+  "workerExecution": "blocked",
+  "actualLocalSidecarRuntime": "blocked",
+  "liveRouteExecutionApproval": "required_before_any_live_execution",
+  "productWideBeta": "blocked",
+  "externalBeta": "blocked",
+  "paidProduction": "blocked",
+  "production": "blocked",
+  "publicArtifacts": "blocked",
+  "providers": "blocked",
+  "vlm": "blocked",
+  "demucs": "blocked",
+  "trackA": "not_touched"
+}

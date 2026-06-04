@@ -1,0 +1,115 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "passed",
+  "totalCriteria": 20,
+  "passedCriteria": 20,
+  "requiredCriteria": [
+    {
+      "criterionId": "capability_manifests_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "route_manifest_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "web_capability_profiler_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "desktop_capability_profiler_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "desktop_benchmark_runner_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "cost_estimator_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "local_worker_sidecar_foundation_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "hybrid_e2e_simulation_loaded_and_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "vlm_excluded_from_initial_internal_desktop_scope",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "demucs_blocked_pending_training_data_provenance",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "route_execution_disabled",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "worker_and_sidecar_execution_disabled",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "public_artifacts_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "broad_media_and_arbitrary_media_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "provider_calls_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "raw_chat_execution_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "frontend_secrets_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "track_a_untouched",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "docs_runbooks_and_support_policy_present",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "smoke_report_scripts_present",
+      "passed": true,
+      "status": "passed"
+    }
+  ],
+  "allEvidenceAccepted": true,
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "sidecarExecutionAllowed": false,
+  "toolExecutionAllowed": false
+}

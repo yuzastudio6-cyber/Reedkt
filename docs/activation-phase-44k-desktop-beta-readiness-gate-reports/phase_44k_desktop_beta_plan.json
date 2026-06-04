@@ -1,0 +1,97 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "branch": "codex/rp-activation-44k-desktop-beta-readiness-gate",
+  "baseBranch": "codex/rp-activation-44j-hybrid-compute-e2e-simulation",
+  "mode": "server_only_metadata_reporting_readiness_gate",
+  "decisionTarget": "internally_beta_ready_candidate_restricted_metadata_planning_simulation_only",
+  "sourcePrs": [
+    {
+      "inputId": "pr161_capability_manifests",
+      "pr": 161,
+      "phase": "44I-A",
+      "title": "Track B capability manifest baseline",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/161"
+    },
+    {
+      "inputId": "pr164_route_manifest",
+      "pr": 164,
+      "phase": "44I",
+      "title": "Phase 44I Track B tool route manifest integration",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/164"
+    },
+    {
+      "inputId": "pr167_web_capability_profiler",
+      "pr": 167,
+      "phase": "44D",
+      "title": "Phase 44D web capability profiler",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/167"
+    },
+    {
+      "inputId": "pr176_desktop_capability_profiler",
+      "pr": 176,
+      "phase": "44E",
+      "title": "Phase 44E desktop capability profiler",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/176"
+    },
+    {
+      "inputId": "pr177_desktop_benchmark_runner",
+      "pr": 177,
+      "phase": "44F",
+      "title": "Phase 44F desktop benchmark runner",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/177"
+    },
+    {
+      "inputId": "pr180_cost_estimator",
+      "pr": 180,
+      "phase": "44H",
+      "title": "Phase 44H Track B cost estimator",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/180"
+    },
+    {
+      "inputId": "pr181_local_worker_sidecar_foundation",
+      "pr": 181,
+      "phase": "44G",
+      "title": "Phase 44G local worker sidecar foundation",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/181"
+    },
+    {
+      "inputId": "pr184_hybrid_compute_e2e_simulation",
+      "pr": 184,
+      "phase": "44J",
+      "title": "Phase 44J hybrid compute E2E simulation",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/184"
+    }
+  ],
+  "reportDir": "docs/activation-phase-44k-desktop-beta-readiness-gate-reports",
+  "expectedReports": [
+    "phase_44k_desktop_beta_plan.json",
+    "phase_44k_desktop_beta_prior_evidence_inventory.json",
+    "phase_44k_desktop_beta_prior_evidence_inventory.md",
+    "phase_44k_desktop_beta_input_manifest.json",
+    "phase_44k_desktop_beta_readiness_criteria.json",
+    "phase_44k_desktop_beta_allowed_internal_scope.json",
+    "phase_44k_desktop_beta_blocked_scope_matrix.json",
+    "phase_44k_desktop_beta_caveat_classification.json",
+    "phase_44k_desktop_beta_rollback_blocker_policy.json",
+    "phase_44k_desktop_beta_support_runbook_checklist.json",
+    "phase_44k_desktop_beta_scorecard.json",
+    "phase_44k_desktop_beta_readiness_decision.json",
+    "phase_44k_desktop_beta_blocker_report.json",
+    "phase_44k_desktop_beta_readiness_report.json",
+    "phase_44k_private_artifact_manifest.json"
+  ],
+  "confirmationForReportGenerationOnly": "REEDITPRO_CONFIRM_DESKTOP_BETA_READINESS_GATE",
+  "privateUpload": "not_required_committed_safe_metadata_only",
+  "noRouteExecution": true,
+  "noRuntimeExecution": true,
+  "noWorkerExecution": true,
+  "noSidecarExecution": true,
+  "noToolExecution": true,
+  "noMediaAudioOcrVlmModelRuntime": true,
+  "noProviders": true,
+  "noDockerCloudGpuIamMutation": true,
+  "noProductWideBetaProductionUnlock": true,
+  "noTrackA": true,
+  "nextRecommendedPhase": "Live route execution approval handoff, or a narrower route dry-run approval phase before any live execution."
+}

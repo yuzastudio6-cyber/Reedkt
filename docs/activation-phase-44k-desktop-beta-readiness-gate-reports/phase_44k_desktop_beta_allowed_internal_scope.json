@@ -1,0 +1,22 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "restricted_internal_metadata_planning_simulation_only",
+  "desktopHybridComputeBetaStatusAllowed": "internally_beta_ready_candidate",
+  "allowedForInternalQaPlanning": [
+    "viewing Track B capability metadata",
+    "viewing Track B route eligibility metadata",
+    "using web capability profile hints as planning inputs only",
+    "using desktop capability profile hints as planning inputs only",
+    "using desktop benchmark fixture metadata as planning inputs only",
+    "using static cost estimator scenarios as planning inputs only",
+    "using local sidecar protocol validators as metadata only",
+    "using hybrid E2E simulation scorecards as readiness evidence only"
+  ],
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "sidecarExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "publicOutputAllowed": false
+}

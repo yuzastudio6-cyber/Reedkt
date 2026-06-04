@@ -1,0 +1,29 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "committed_metadata_only_no_private_upload",
+  "privateUpload": "not_required",
+  "privateRead": "not_run",
+  "objectCount": 0,
+  "privateArtifactPrefix": null,
+  "committedArtifacts": [
+    "phase_44k_desktop_beta_plan.json",
+    "phase_44k_desktop_beta_prior_evidence_inventory.json",
+    "phase_44k_desktop_beta_prior_evidence_inventory.md",
+    "phase_44k_desktop_beta_input_manifest.json",
+    "phase_44k_desktop_beta_readiness_criteria.json",
+    "phase_44k_desktop_beta_allowed_internal_scope.json",
+    "phase_44k_desktop_beta_blocked_scope_matrix.json",
+    "phase_44k_desktop_beta_caveat_classification.json",
+    "phase_44k_desktop_beta_rollback_blocker_policy.json",
+    "phase_44k_desktop_beta_support_runbook_checklist.json",
+    "phase_44k_desktop_beta_scorecard.json",
+    "phase_44k_desktop_beta_readiness_decision.json",
+    "phase_44k_desktop_beta_blocker_report.json",
+    "phase_44k_desktop_beta_readiness_report.json",
+    "phase_44k_private_artifact_manifest.json"
+  ],
+  "noMediaAudioModelPayloads": true,
+  "noPrivatePayloadsCommitted": true,
+  "noSecrets": true
+}

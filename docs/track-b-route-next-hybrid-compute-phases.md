@@ -10,9 +10,10 @@ Completed metadata phases:
 - Phase 44H: cost estimator.
 - Phase 44G: local worker sidecar planning.
 - Phase 44J: hybrid compute E2E simulation.
+- Phase 44K: desktop beta readiness gate for restricted metadata/planning/simulation.
 
-Next candidate phase: Phase 44K desktop beta readiness gate, unless a narrower route dry-run/live-execution approval phase is inserted first.
+Next candidate phase: live route execution approval handoff, or a narrower route dry-run approval phase before any live execution.
 
 Cost/capacity labels in the route manifest remain metadata only: `cpu_low`, `cpu_medium`, `cpu_heavy`, `gpu_required`, `blocked_unknown`, and `pending_estimator`.
 
-Workers must execute approved plan snapshots and approved artifact scopes only. Raw chat execution, direct tool execution from model output, public artifacts, provider calls, broad media, production, beta, and Track A remain blocked.
+Workers must execute approved plan snapshots and approved artifact scopes only. Raw chat execution, direct tool execution from model output, public artifacts, provider calls, broad media, production, product-wide beta, external beta, live route execution, worker execution, sidecar execution, and Track A remain blocked.

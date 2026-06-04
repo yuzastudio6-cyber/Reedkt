@@ -1,0 +1,52 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "caveats_classified",
+  "caveats": [
+    {
+      "caveatId": "metadata_only_status",
+      "classification": "internal_warning",
+      "detail": "Phase 44K approves readiness metadata only; no live execution is approved."
+    },
+    {
+      "caveatId": "no_live_route_execution",
+      "classification": "internal_warning",
+      "detail": "Live route execution requires a later explicit approval phase."
+    },
+    {
+      "caveatId": "static_cost_snapshot",
+      "classification": "internal_warning",
+      "detail": "Phase 44H cost evidence is static planning metadata and not authoritative billing."
+    },
+    {
+      "caveatId": "no_live_upload",
+      "classification": "internal_warning",
+      "detail": "Web/desktop profile upload is not implemented or approved."
+    },
+    {
+      "caveatId": "no_sidecar_execution",
+      "classification": "internal_warning",
+      "detail": "Phase 44G validates protocol only; no local sidecar process is approved."
+    },
+    {
+      "caveatId": "vlm_exclusion",
+      "classification": "internal_scope_blocker_for_vlm",
+      "detail": "Qwen3-VL and vLLM remain excluded from initial internal desktop/hybrid scope."
+    },
+    {
+      "caveatId": "demucs_block",
+      "classification": "internal_scope_blocker_for_demucs",
+      "detail": "Demucs remains blocked pending provenance/legal review and is not required for this desktop/hybrid readiness gate."
+    },
+    {
+      "caveatId": "no_broad_media_testing",
+      "classification": "production_and_external_beta_blocker",
+      "detail": "No broad media, arbitrary media, public artifacts, or production testing is approved."
+    },
+    {
+      "caveatId": "track_a_boundary",
+      "classification": "ownership_boundary",
+      "detail": "Track A visual/render/runtime stack remains outside this Track B desktop/hybrid gate."
+    }
+  ]
+}

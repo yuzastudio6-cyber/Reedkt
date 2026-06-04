@@ -1,0 +1,16 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "fail_closed_policy_defined",
+  "rollbackPolicy": [
+    "Remove or ignore Phase 44K readiness metadata if any required evidence report is later invalidated.",
+    "Revert to blocked if route execution, worker execution, sidecar execution, public output, provider calls, broad media, or Track A changes appear.",
+    "Require a fresh human-reviewed handoff before any live route execution, worker execution, or local sidecar process is enabled."
+  ],
+  "blockerPolicy": [
+    "Missing evidence blocks Phase 44K.",
+    "Any execution unlock blocks Phase 44K.",
+    "Any public artifact, provider, broad-media, frontend secret, raw-chat execution, VLM, Demucs, or Track A unlock blocks Phase 44K.",
+    "Product-wide beta, external beta, paid production, and production remain blocked."
+  ]
+}

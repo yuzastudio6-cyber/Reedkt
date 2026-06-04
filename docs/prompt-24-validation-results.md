@@ -2,7 +2,7 @@
 
 Prompt 24 adds the Supabase project read-only audit package. Exact capability enabled: `none; Supabase project read-only audit packet only`.
 
-PR: pending creation.
+PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/179
 
 ## Files Inspected
 

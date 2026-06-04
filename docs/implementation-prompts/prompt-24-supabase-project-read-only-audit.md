@@ -6,7 +6,7 @@ Prompt 24 creates a read-only Supabase project inventory and audit package from 
 
 - Branch: `codex/rp-foundation-24-supabase-project-read-only-audit`
 - PR base: `codex/rp-foundation-23s-supabase-milestone-sync-policy-v2`
-- PR: pending creation.
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/179
 - Exact capability enabled: `none; Supabase project read-only audit packet only`.
 
 ## Scope

@@ -666,3 +666,27 @@ The passing local SQL run covered auth/profile/workspace/project RLS only:
 The SQL fixture uses deterministic synthetic rows and ends with `rollback`.
 
 This is partial local RLS evidence only. No staging, remote, or production Supabase target was touched.
+
+## Prompt 21 Staging Approval Packet Update
+
+Prompt 21 prepares the staging Supabase/RLS approval packet after the Prompt 20B-Retry local smoke pass.
+
+Prompt 21 evidence state:
+
+- local Prompt 20B-Retry auth/profile/workspace/project RLS evidence remains the only executed SQL evidence;
+- no additional local SQL ran in Prompt 21;
+- staging evidence is not yet collected;
+- staging Supabase/RLS execution is not approved by Prompt 21;
+- production readiness remains not approved;
+- broader local domain tests remain draft-only, manual-review-only, or fixture-design-needed.
+
+Prompt 21 adds approval materials only:
+
+- `docs/staging-supabase-rls-approval-packet.md`;
+- `docs/staging-supabase-rls-runbook.md`;
+- `docs/staging-rls-test-selection-matrix.md`;
+- `docs/staging-synthetic-fixture-plan.md`;
+- `docs/staging-supabase-rollback-cleanup-plan.md`;
+- `docs/staging-supabase-risk-register.md`.
+
+No staging, remote, or production Supabase target was touched.

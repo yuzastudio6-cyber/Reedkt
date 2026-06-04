@@ -280,3 +280,26 @@ comment on policy "reeditpro_project_members_read_workspace_project_objects" on 
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until local `supabase start` succeeds and captures a localhost-only DB URL. The next milestone should be Prompt 20P2 - Storage Ownership/Privilege Follow-Up.
+
+## Prompt 20P2 Follow-Up
+
+Prompt 20P2 repaired the later storage ownership/privilege blocker in `supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql` by converting both remaining `COMMENT ON POLICY ... ON storage.objects` statements into plain SQL comments while preserving policy intent.
+
+Local safety gates passed:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+
+`supabase stop --no-backup` completed. `supabase start` completed successfully after applying the local migration chain.
+
+`supabase status --output json` was used only to capture sanitized localhost-safe DB evidence:
+
+- Host: `127.0.0.1`
+- Port: `54330`
+- Database: `postgres`
+- Local-only: yes
+
+No SQL/RLS smoke test ran. `npm run supabase:rls:list-tests` and `npm run supabase:rls:local:dry-run` ran in non-SQL mode only.
+
+Prompt 20B can now be retried for the first executable local RLS smoke test, with the DB URL supplied through an approved localhost-only local env variable or explicit local status inspection in that prompt.

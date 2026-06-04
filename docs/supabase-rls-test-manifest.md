@@ -321,3 +321,19 @@ Manifest state after Prompt 20P:
 - local `supabase start` now fails in `202605200001_storage_upload_pipeline_readiness.sql` with `SQLSTATE 42501` because a later migration attempts to `COMMENT ON POLICY ... ON storage.objects` without relation ownership.
 
 Prompt 20P2 is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20P2 Storage Ownership/Privilege Follow-Up Update
+
+Prompt 20P2 repairs the remaining storage policy comment ownership blocker in `supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql` by replacing direct `COMMENT ON POLICY ... ON storage.objects` statements with plain SQL comments.
+
+Manifest state after Prompt 20P2:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- local `supabase start` now passes the migration chain;
+- localhost DB evidence was captured safely as host `127.0.0.1`, port `54330`, database `postgres`, local-only yes;
+- `npm run supabase:rls:list-tests` and `npm run supabase:rls:local:dry-run` ran without SQL execution.
+
+Prompt 20B-Retry can run the first local executable SQL candidate once its guarded runner receives or inspects the approved localhost-only local DB target.

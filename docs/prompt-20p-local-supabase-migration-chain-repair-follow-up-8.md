@@ -100,3 +100,11 @@ The first local executable SQL candidate remains unexecuted:
 ## Next Prompt Recommendation
 
 Recommended next prompt: Prompt 20P2 - Storage Ownership/Privilege Follow-Up, focused on storage-schema comment ownership/privilege handling in later migrations before Prompt 20B SQL execution is retried.
+
+## Prompt 20P2 Follow-Up
+
+Prompt 20P2 repaired the later storage ownership/privilege blocker in `supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql` by converting the two remaining `COMMENT ON POLICY ... ON storage.objects` statements into plain SQL comments. Bucket seed/upsert logic and storage `DROP POLICY` / `CREATE POLICY` semantics were unchanged.
+
+After Prompt 20P2, local `supabase start` completed successfully. Sanitized localhost DB evidence was captured as host `127.0.0.1`, port `54330`, database `postgres`, local-only yes. No keys, tokens, full connection strings, or storage credentials were recorded.
+
+No SQL/RLS smoke test ran in Prompt 20P2. The next safe milestone is Prompt 20B-Retry - Local RLS First Executable Smoke Test Run.

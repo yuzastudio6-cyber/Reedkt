@@ -489,6 +489,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: the `storage.buckets` ownership blocker is repaired, local start is attempted only after safety gates pass, the later storage ownership blocker stops SQL execution, no remote/staging/production target is touched, and next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 20P2 - Storage Ownership/Privilege Follow-Up for `202605200001_storage_upload_pipeline_readiness.sql`.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 20P2. Storage Ownership/Privilege Follow-Up
+
+- Purpose: repair the Prompt 20P later storage ownership blocker in `202605200001_storage_upload_pipeline_readiness.sql` and retry local start without running SQL/RLS tests.
+- Deliverables after Prompt 20P2: `docs/prompt-20p2-storage-ownership-privilege-follow-up.md`, `docs/implementation-prompts/prompt-20p2-storage-ownership-privilege-follow-up.md`, storage comment updates to `supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql`, local evidence updates, manifest updates, scorecard/blocker updates, workflow trigger coverage for the Prompt 20P base branch, and tracker updates.
+- Implementation status after Prompt 20P2: validation prepared / local-only storage ownership/privilege repair. No SQL/RLS smoke test, staging, remote, production, provider, worker, tool, render, media, storage transfer, credit, Stripe, telemetry, deployment, or beta unlock is enabled.
+- Implements: conversion of documentation-only `COMMENT ON POLICY ... ON storage.objects` statements into plain SQL comments while preserving project member read policy intent and project editor upload policy intent.
+- Must not implement: staging/remote/production Supabase execution, remote SQL, SQL/RLS smoke tests, production migration deployment, provider calls, rendering/export, tool execution, worker execution, production job claims, media processing, storage transfer, signed URL creation, credit mutation, Stripe/payment processing, external telemetry, dependency mutation, non-Supabase process termination, or production/beta unlock.
+- What remains blocked: local SQL/RLS execution, staging Supabase/RLS execution, remote production Supabase, runtime execution domains, deployment, billing, external telemetry, and beta approval.
+- Validation result: local tools pass (`supabase` 2.104.0, Docker 29.5.2, `psql` 18.4), preflight reports `remoteRiskDetected=false` and `canStartLocalSupabase=true`, `supabase start` completes, and sanitized localhost DB evidence is host `127.0.0.1`, port `54330`, database `postgres`.
+- Acceptance criteria: later storage policy comment ownership blocker is repaired, local `supabase start` passes, localhost DB evidence is captured without secrets, no SQL/RLS test runs, no remote/staging/production target is touched, and next prompt recommendation is clear.
+- Next prompt recommendation: Prompt 20B-Retry - Local RLS First Executable Smoke Test Run.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

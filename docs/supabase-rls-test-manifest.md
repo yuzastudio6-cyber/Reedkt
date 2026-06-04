@@ -337,3 +337,27 @@ Manifest state after Prompt 20P2:
 - `npm run supabase:rls:list-tests` and `npm run supabase:rls:local:dry-run` ran without SQL execution.
 
 Prompt 20B-Retry can run the first local executable SQL candidate once its guarded runner receives or inspects the approved localhost-only local DB target.
+
+## Prompt 20B-Retry Local SQL Execution Update
+
+Prompt 20B-Retry runs the first local executable SQL candidate through the guarded runner.
+
+Manifest state after Prompt 20B-Retry:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` is the first local executable candidate and has now passed locally through the guarded runner;
+- local `supabase start` passes;
+- localhost DB evidence was captured safely as host `127.0.0.1`, port `54330`, database `postgres`, local-only yes;
+- the guarded runner executed exactly one SQL file;
+- no staging, remote, or production SQL was run.
+
+The first guarded run failed on a SQL fixture/schema mismatch:
+
+```text
+ERROR: column "metadata_json" of relation "workspaces" does not exist
+```
+
+The SQL candidate was minimally adjusted to support the migrated local schema-era bridge by seeding `public.user_profiles`, using `workspaces.owner_user_id`, and using `projects.created_by`. The final guarded run passed and rolled back the synthetic transaction.
+
+Prompt 21 can prepare the staging Supabase/RLS validation approval packet. Broader local domain tests remain draft-only until explicitly converted in later milestones.

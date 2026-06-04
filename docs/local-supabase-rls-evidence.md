@@ -637,3 +637,32 @@ Prompt 20P2 readiness:
 - no SQL/RLS smoke test executed
 
 Prompt 20B-Retry is recommended for the first executable local RLS smoke test run.
+
+## Prompt 20B-Retry Evidence Update
+
+Prompt 20B-Retry runs the first guarded local-only RLS smoke test after Prompt 20P2 proved the local migration chain can start.
+
+Prompt 20B-Retry evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, exit code `0` | Reports Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, `remoteRiskDetected=false`, and the local SQL candidate present. |
+| `supabase start` | Passed | Local Supabase stack starts successfully. |
+| `supabase status --output json` | Completed | Sanitized DB evidence only: host `127.0.0.1`, port `54330`, database `postgres`, local-only yes. |
+| `npm run --silent supabase:local:preflight` with `REEDITPRO_LOCAL_SUPABASE_DB_URL` | Completed, status `ready`, exit code `0` | Reports `remoteRiskDetected=false`, `localDbUrlAvailable=true`, and `canRunLocalSql=true`. |
+| `npm run supabase:rls:list-tests` | Completed | Listed tests and executed no SQL. |
+| `npm run supabase:rls:local:dry-run` | Completed, status `ready`, exit code `0` | Executed no SQL. |
+| `npm run supabase:rls:local:run -- --confirm-local-only --file database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` | First run failed, final run passed | First run found a SQL fixture/schema mismatch on `workspaces.metadata_json`; after a fixture-only compatibility fix, the guarded runner executed one local SQL file and passed. |
+
+The passing local SQL run covered auth/profile/workspace/project RLS only:
+
+- owner can select own profile;
+- owner cannot select another user profile;
+- owner can select own workspace;
+- member can select assigned workspace and project;
+- normal member cannot create privileged owner membership for another user;
+- non-member cannot select the assigned workspace or project.
+
+The SQL fixture uses deterministic synthetic rows and ends with `rollback`.
+
+This is partial local RLS evidence only. No staging, remote, or production Supabase target was touched.

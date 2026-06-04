@@ -502,6 +502,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: later storage policy comment ownership blocker is repaired, local `supabase start` passes, localhost DB evidence is captured without secrets, no SQL/RLS test runs, no remote/staging/production target is touched, and next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 20B-Retry - Local RLS First Executable Smoke Test Run.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 20B-Retry. Local RLS First Executable Smoke Test Run
+
+- Purpose: run the first guarded local-only auth/workspace/project RLS smoke test after the Prompt 20G through Prompt 20P2 local migration-chain repairs.
+- Deliverables after Prompt 20B-Retry: fixture-only compatibility update to `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql`, `docs/prompt-20b-retry-local-rls-first-executable-smoke-test-run.md`, `docs/implementation-prompts/prompt-20b-retry-local-rls-first-executable-smoke-test-run.md`, local evidence updates, manifest updates, scorecard/blocker updates, workflow trigger coverage for the Prompt 20P2 base branch, and tracker updates.
+- Implementation status after Prompt 20B-Retry: validated limited foundation / first local-only RLS smoke validation. No staging, remote, production, provider, worker, tool, render, media, storage transfer, credit, Stripe, telemetry, deployment, or beta unlock is enabled.
+- Implements: local `supabase start`, sanitized localhost DB evidence capture, local DB URL export for the current shell only, preflight confirmation of `remoteRiskDetected=false` and `canRunLocalSql=true`, and exactly one guarded local SQL smoke test run through the RLS runner.
+- Must not implement: staging/remote/production Supabase execution, remote SQL, production migration deployment, provider calls, rendering/export, tool execution, worker execution, production job claims, media processing, storage transfer, signed URL creation, credit mutation, Stripe/payment processing, external telemetry, dependency mutation, or production/beta unlock.
+- What remains blocked: broader local RLS coverage, staging Supabase/RLS execution, remote production Supabase, runtime execution domains, deployment, billing, external telemetry, and beta approval.
+- Validation result: local tools pass (`supabase` 2.104.0, Docker 29.5.2, `psql` 18.4), `supabase start` completes, sanitized localhost DB evidence is host `127.0.0.1`, port `54330`, database `postgres`, preflight reports `localDbUrlAvailable=true` and `canRunLocalSql=true`, and the guarded auth/workspace/project SQL smoke test passes after a fixture-only schema-compatibility update.
+- Acceptance criteria: the first local-only SQL candidate runs through the guarded runner, evidence records the first schema mismatch and final pass honestly, no raw `psql` command is run manually, no remote/staging/production target is touched, and the next prompt recommendation is clear.
+- Next prompt recommendation: Prompt 21 - Staging Supabase/RLS Validation Runbook and Approval Packet.
+- GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

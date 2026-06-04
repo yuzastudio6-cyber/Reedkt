@@ -21,6 +21,7 @@ begin
     values
       ('auth.users', to_regclass('auth.users') is not null),
       ('public.profiles', to_regclass('public.profiles') is not null),
+      ('public.user_profiles', to_regclass('public.user_profiles') is not null),
       ('public.workspaces', to_regclass('public.workspaces') is not null),
       ('public.workspace_members', to_regclass('public.workspace_members') is not null),
       ('public.projects', to_regclass('public.projects') is not null),
@@ -31,6 +32,10 @@ begin
       ('public.workspaces.owner_id', exists (
         select 1 from information_schema.columns
         where table_schema = 'public' and table_name = 'workspaces' and column_name = 'owner_id'
+      )),
+      ('public.workspaces.owner_user_id', exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'workspaces' and column_name = 'owner_user_id'
       )),
       ('public.workspace_members.user_id', exists (
         select 1 from information_schema.columns
@@ -47,6 +52,10 @@ begin
       ('public.projects.owner_id', exists (
         select 1 from information_schema.columns
         where table_schema = 'public' and table_name = 'projects' and column_name = 'owner_id'
+      )),
+      ('public.projects.created_by', exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'projects' and column_name = 'created_by'
       )),
       ('policy profiles_select_own', exists (
         select 1 from pg_policies
@@ -129,6 +138,27 @@ insert into auth.users (
     now()
   );
 
+insert into public.user_profiles (id, display_name, email, metadata)
+values
+  (
+    '00000000-0020-000b-0000-000000000001',
+    'Prompt 20B Owner',
+    'prompt20b-owner.local@example.invalid',
+    '{"fixture":"prompt20b"}'::jsonb
+  ),
+  (
+    '00000000-0020-000b-0000-000000000002',
+    'Prompt 20B Member',
+    'prompt20b-member.local@example.invalid',
+    '{"fixture":"prompt20b"}'::jsonb
+  ),
+  (
+    '00000000-0020-000b-0000-000000000003',
+    'Prompt 20B Non Member',
+    'prompt20b-non-member.local@example.invalid',
+    '{"fixture":"prompt20b"}'::jsonb
+  );
+
 insert into public.profiles (id, user_id, display_name, metadata_json)
 values
   (
@@ -150,19 +180,19 @@ values
     '{"fixture":"prompt20b"}'::jsonb
   );
 
-insert into public.workspaces (id, owner_id, name, metadata_json)
+insert into public.workspaces (id, owner_user_id, owner_id, name)
 values
   (
     '00000000-0020-000b-0000-000000000101',
     '00000000-0020-000b-0000-000000000001',
-    'Prompt 20B Workspace',
-    '{"fixture":"prompt20b"}'::jsonb
+    '00000000-0020-000b-0000-000000000001',
+    'Prompt 20B Workspace'
   ),
   (
     '00000000-0020-000b-0000-000000000102',
     '00000000-0020-000b-0000-000000000003',
-    'Prompt 20B Other Workspace',
-    '{"fixture":"prompt20b"}'::jsonb
+    '00000000-0020-000b-0000-000000000003',
+    'Prompt 20B Other Workspace'
   );
 
 insert into public.workspace_members (id, workspace_id, user_id, role)
@@ -186,25 +216,23 @@ values
     'owner'
   );
 
-insert into public.projects (id, workspace_id, owner_id, title, editing_category, status, metadata_json)
+insert into public.projects (id, workspace_id, created_by, owner_id, title, status)
 values
   (
     '00000000-0020-000b-0000-000000000201',
     '00000000-0020-000b-0000-000000000101',
     '00000000-0020-000b-0000-000000000001',
+    '00000000-0020-000b-0000-000000000001',
     'Prompt 20B Project',
-    'local_rls_smoke',
-    'draft',
-    '{"fixture":"prompt20b"}'::jsonb
+    'draft'
   ),
   (
     '00000000-0020-000b-0000-000000000202',
     '00000000-0020-000b-0000-000000000102',
     '00000000-0020-000b-0000-000000000003',
+    '00000000-0020-000b-0000-000000000003',
     'Prompt 20B Other Project',
-    'local_rls_smoke',
-    'draft',
-    '{"fixture":"prompt20b"}'::jsonb
+    'draft'
   );
 
 set local role authenticated;

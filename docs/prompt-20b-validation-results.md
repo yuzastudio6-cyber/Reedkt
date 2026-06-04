@@ -139,6 +139,34 @@ No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging
 
 Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20J - Local Supabase Migration Chain Repair Follow-Up 3, focused on `202605180003_reeditpro_intent_plan_versions.sql`.
 
+## Prompt 20B-Retry Result
+
+Prompt 20B-Retry was run after Prompts 20G through 20P2 repaired the local migration chain and storage ownership blockers.
+
+Updated status: `validated_limited_foundation`.
+
+Local Supabase status:
+
+- `supabase start` passed.
+- `supabase status --output json` verified host `127.0.0.1`, port `54330`, database `postgres`, local-only yes.
+- `REEDITPRO_LOCAL_SUPABASE_DB_URL` was exported only for the current shell after the localhost target was verified.
+- preflight reported `remoteRiskDetected=false`, `localDbUrlAvailable=true`, and `canRunLocalSql=true`.
+
+SQL/RLS execution:
+
+- inspected `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql`;
+- first guarded run failed on a fixture/schema mismatch: `column "metadata_json" of relation "workspaces" does not exist`;
+- updated the SQL candidate only for local schema compatibility by seeding `public.user_profiles` bridge rows, using `workspaces.owner_user_id`, using `projects.created_by`, and removing unavailable workspace/project fixture columns;
+- final guarded run passed:
+
+```sh
+npm run supabase:rls:local:run -- --confirm-local-only --file database/test-sql/local/001_auth_workspace_minimal_local_rls.sql
+```
+
+The passing test covers only auth/profile/workspace/project RLS. Staging, remote, and production Supabase remain unrun and prohibited.
+
+Recommended next milestone: Prompt 21 - Staging Supabase/RLS Validation Runbook and Approval Packet.
+
 ## Prompt 20J Follow-Up
 
 Prompt 20J repaired the `public.edit_plan_segments.edit_plan_version_id` migration-chain blocker in `supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql` by adding the nullable compatibility column, guarding the plan-version FK, and guarding `idx_edit_plan_segments_plan_order`.
@@ -303,3 +331,37 @@ Local safety gates passed:
 No SQL/RLS smoke test ran. `npm run supabase:rls:list-tests` and `npm run supabase:rls:local:dry-run` ran in non-SQL mode only.
 
 Prompt 20B can now be retried for the first executable local RLS smoke test, with the DB URL supplied through an approved localhost-only local env variable or explicit local status inspection in that prompt.
+
+## Prompt 20B-Retry Follow-Up
+
+Prompt 20B-Retry started local Supabase after no-remote safety gates passed and captured sanitized localhost-only DB evidence:
+
+- Host: `127.0.0.1`
+- Port: `54330`
+- Database: `postgres`
+- Local-only: yes
+
+The current shell exported a localhost-only DB URL through `REEDITPRO_LOCAL_SUPABASE_DB_URL`; no full connection string, anon key, service-role key, JWT secret, token, or API key was recorded.
+
+Validation result:
+
+- `git diff --check`: passed.
+- `git diff --check origin/codex/rp-foundation-20p2-storage-ownership-privilege-follow-up...HEAD`: passed.
+- `npm ci`: passed with existing 5 moderate audit findings; no audit fix or dependency mutation ran.
+- `npm run lint`: passed.
+- `npm run typecheck:server`: passed.
+- `npm run foundation:validate`: passed.
+- `npm run --silent supabase:local:toolchain:probe`: passed; local DB URL missing before status/env export.
+- `supabase start`: passed.
+- `supabase status --output json`: passed with sanitized localhost evidence only.
+- `npm run --silent supabase:local:preflight`: passed after local DB URL env export with `remoteRiskDetected=false`, `localDbUrlAvailable=true`, and `canRunLocalSql=true`.
+- `npm run supabase:rls:list-tests`: passed and executed no SQL.
+- `npm run supabase:rls:local:dry-run`: passed and executed no SQL.
+- `npm run supabase:rls:local:run -- --confirm-local-only --file database/test-sql/local/001_auth_workspace_minimal_local_rls.sql`: first run failed on a fixture/schema mismatch; final run passed after a fixture-only compatibility update.
+- `npm run build`: local environment-blocked by Darwin Rolldown native binding code-signature / optional dependency loading failure.
+- `npm run build:server`: local environment-blocked by the same Darwin Rolldown native binding failure after server typecheck passed.
+- `npm run foundation:validate:with-build`: exited `0` with `overallStatus=environment_blocked`; required checks passed and full build remained locally blocked.
+
+This is partial local RLS evidence only. It proves one guarded auth/workspace/project smoke path locally, not storage, snapshot, credit, job/worker, media, render/export, QA/revision, tool, provider, compliance, observability, staging, remote, or production RLS behavior.
+
+Next recommendation: Prompt 21 - Staging Supabase/RLS Validation Runbook and Approval Packet.

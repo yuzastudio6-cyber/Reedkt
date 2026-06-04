@@ -89,7 +89,7 @@ A draft SQL file may become executable only when:
 
 ## Current Executable Test List
 
-- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B auth/profile/workspace/project candidate. Status: executable candidate, not run; blocked by local migration-chain failure in `202605180004_reeditpro_credits_approval_snapshots.sql`.
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B/20B-Retry auth/profile/workspace/project candidate. Status: passed locally through the guarded runner in Prompt 20B-Retry after a fixture-only compatibility update for the local schema-era bridge.
 
 ## Current Draft-Only Test List
 
@@ -115,7 +115,19 @@ A draft SQL file may become executable only when:
 - `supabase/config.toml` exists and is local-only after Prompt 20A.
 - Docker daemon is reachable, server version `29.5.2`.
 - `psql` is available through `/Applications/Postgres.app/Contents/Versions/latest/bin/psql`, version `18.4`.
-- No local Supabase database URL is verified.
-- Local `supabase start` now passes the Prompt 20H, Prompt 20I, and Prompt 20J repaired migrations.
-- Local `supabase start` failed at `202605180004_reeditpro_credits_approval_snapshots.sql` because `public.credit_reservations.approved_plan_snapshot_id` is missing before `credit_reservations_approved_plan_snapshot_id_fkey` is added.
-- Prompt 20J recommends Prompt 20K - Local Supabase Migration Chain Repair Follow-Up 4 before SQL/RLS execution.
+- Local `supabase start` passes after Prompt 20P2.
+- Prompt 20B-Retry verified localhost DB evidence as host `127.0.0.1`, port `54330`, database `postgres`, local-only yes.
+- Prompt 20B-Retry exported a localhost-only DB URL for the current shell and preflight reported `canRunLocalSql=true`.
+- Prompt 20B-Retry ran `001_auth_workspace_minimal_local_rls.sql` through the guarded runner and passed.
+- Broader domain RLS files remain draft-only or manual-review-only.
+- Staging, remote, and production Supabase SQL remain unrun and prohibited until a later approved milestone.
+
+## Prompt 20B-Retry Result
+
+Prompt 20B-Retry executed exactly one local SQL file through the guarded runner:
+
+```sh
+npm run supabase:rls:local:run -- --confirm-local-only --file database/test-sql/local/001_auth_workspace_minimal_local_rls.sql
+```
+
+The first run exposed a local schema compatibility issue in the fixture (`workspaces.metadata_json` did not exist). The SQL candidate was minimally adjusted to seed `public.user_profiles` bridge records and use the legacy-compatible `workspaces.owner_user_id` and `projects.created_by` columns while still testing Prompt 3 auth/profile/workspace/project policies. The final guarded run passed and rolled back the synthetic fixture transaction.

@@ -38,6 +38,7 @@ on:
       - codex/rp-foundation-20n-local-supabase-migration-chain-repair-follow-up-7
       - codex/rp-foundation-20o-local-supabase-start-port-conflict-retry
       - codex/rp-foundation-20p-local-supabase-migration-chain-repair-follow-up-8
+      - codex/rp-foundation-20p2-storage-ownership-privilege-follow-up
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

@@ -17,7 +17,11 @@ on conflict (id) do update
 set public = false,
     name = excluded.name;
 
-comment on table storage.buckets is 'ReeditPro buckets are private by default. Object paths should start with <project_id>/... for project-scoped access.';
+-- ReeditPro buckets are private by default. Object paths should start with
+-- <project_id>/... for project-scoped access.
+-- Do not use COMMENT ON storage.* objects here: Supabase owns storage schema
+-- tables in local validation and table/policy comments can fail before policy
+-- validation continues.
 
 drop policy if exists "reeditpro_project_members_read_project_objects" on storage.objects;
 create policy "reeditpro_project_members_read_project_objects" on storage.objects
@@ -55,10 +59,11 @@ with check (
   and public.is_project_editor(public.safe_uuid((storage.foldername(name))[1]))
 );
 
-comment on policy "reeditpro_project_members_read_project_objects" on storage.objects is
-  'Reads are project-scoped by first path segment. Previews and exports still use private buckets and should prefer signed URLs in the app.';
-comment on policy "reeditpro_project_editors_upload_source_and_thumbnails" on storage.objects is
-  'Initial testing allows authenticated project editors to upload source media and thumbnails only.';
+-- Policy intent:
+-- - Reads are project-scoped by first path segment. Previews and exports still
+--   use private buckets and should prefer signed URLs in the app.
+-- - Initial testing allows authenticated project editors to upload source media
+--   and thumbnails only.
 
 -- No normal user policy is created for worker-temp. Backend workers should use service role only.
 -- No anonymous policy is created. Source media, browser capture artifacts, generated assets, QA artifacts, previews, and exports remain private.

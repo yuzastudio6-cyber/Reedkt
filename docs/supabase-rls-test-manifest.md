@@ -305,3 +305,19 @@ Manifest state after Prompt 20O:
 - local `supabase start` now fails in `202605180008_reeditpro_storage_buckets_policies.sql` with `SQLSTATE 42501` because the migration attempts to comment on `storage.buckets` without table ownership.
 
 Prompt 20P is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20P Storage Migration Chain Repair Update
+
+Prompt 20P repairs the storage comment ownership blocker in `supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql` by replacing direct `COMMENT ON` statements for Supabase-owned storage objects with plain SQL comments.
+
+Manifest state after Prompt 20P:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` now passes `202605180008_reeditpro_storage_buckets_policies.sql`;
+- local `supabase start` now fails in `202605200001_storage_upload_pipeline_readiness.sql` with `SQLSTATE 42501` because a later migration attempts to `COMMENT ON POLICY ... ON storage.objects` without relation ownership.
+
+Prompt 20P2 is required before the Prompt 20B SQL candidate can be run.

@@ -131,3 +131,21 @@ The first local executable SQL candidate remains unexecuted:
 ## Next Prompt Recommendation
 
 Recommended next prompt: Prompt 20P - Local Supabase Migration Chain Repair Follow-Up 8, focused on the storage bucket policy migration ownership blocker in `202605180008_reeditpro_storage_buckets_policies.sql`.
+
+## Prompt 20P Follow-Up
+
+Prompt 20P removed the documentation-only `COMMENT ON TABLE storage.buckets` and `COMMENT ON POLICY ... ON storage.objects` statements from `supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql`, preserving the private-bucket and project-path policy intent as plain SQL comments.
+
+Local `supabase start` now passes `202605180008_reeditpro_storage_buckets_policies.sql` and advances to a later storage ownership blocker:
+
+```text
+supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql
+ERROR: must be owner of relation objects (SQLSTATE 42501)
+At statement: 7
+comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects is
+  'RP-FIX-07 read policy for workspace/{workspace_id}/project/{project_id}/... paths. Reads require project membership.'
+```
+
+No `supabase status` command was run after the failed start, no localhost-only DB URL was captured, and no SQL/RLS smoke test ran.
+
+Prompt 20P2 is recommended before Prompt 20B SQL execution is retried.

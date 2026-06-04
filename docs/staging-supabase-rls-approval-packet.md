@@ -84,3 +84,7 @@ Prompt 21 decision:
 - Production readiness: not approved.
 - Beta unlock: not approved.
 - Recommended next prompt: Prompt 22 - Staging Supabase/RLS Human Approval Packet Review if validation and CI pass.
+
+## Prompt 22 Human Review
+
+Prompt 22 human review records this packet as `ready_for_human_review`. That status means the packet is ready for a human owner to evaluate; it is not approval. Staging evidence is still not collected, human approval is still not granted, and production readiness is still not approved.

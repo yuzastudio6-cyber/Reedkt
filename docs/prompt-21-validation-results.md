@@ -58,7 +58,7 @@ Prompt 21 creates a staging Supabase/RLS approval packet. It does not run stagin
 
 - Prompt 20B-Retry base PR: PR #166 is the base and its local evidence is referenced.
 - Prompt 21 PR: [PR #168](https://github.com/yuzastudio6-cyber/Reedkt/pull/168).
-- GitHub Foundation Validation: pending.
+- GitHub Foundation Validation: passed on PR #168 before Prompt 22 implementation.
 
 ## Readiness Effect
 

@@ -59,3 +59,6 @@ The final staging validation record must state:
 - whether production readiness remains blocked;
 - the next prompt recommendation.
 
+## Prompt 22 Human Review
+
+Prompt 22 human review verifies this runbook is ready for human review, not execution. A future human decision record must still approve the staging target, approved test set, fixture namespace, cleanup plan, rollback plan, and evidence redaction rules before any staging runbook step may execute.

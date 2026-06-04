@@ -37,3 +37,6 @@ Blocked from first staging run:
 - every draft-only domain test until converted through a dedicated staging fixture design step;
 - every legacy/manual SQL file until schema review confirms it targets the canonical migration chain.
 
+## Prompt 22 Human Review
+
+Prompt 22 human review confirms this matrix is decision-ready but does not approve any staging test. Only `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains marked local-passed, and every staging candidate still needs human approval before execution.

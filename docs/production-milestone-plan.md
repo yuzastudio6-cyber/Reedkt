@@ -528,6 +528,20 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: packet clearly distinguishes local evidence, missing staging evidence, and blocked production readiness; only the Prompt 20B-Retry local SQL file is marked local-passed; diagnostics pass; no SQL or Supabase execution occurs.
 - Next prompt recommendation: Prompt 22 - Staging Supabase/RLS Human Approval Packet Review if validation and CI pass; otherwise Prompt 21A - Staging Approval Packet Hardening.
 - GitHub deliverable: branch, commit, push, PR with approval packet summary and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 22. Staging Supabase/RLS Human Approval Review
+
+Prompt 22 - Staging Supabase/RLS Human Approval Review.
+
+- Purpose: review the Prompt 21 staging Supabase/RLS approval packet for human decision readiness without granting approval.
+- Deliverables after Prompt 22: `docs/staging-supabase-human-approval-review.md`, `docs/staging-supabase-human-approval-checklist.md`, `docs/staging-supabase-approval-decision-template.md`, `docs/staging-supabase-validation-evidence-template.md`, `docs/staging-supabase-go-no-go-rubric.md`, `docs/prompt-22-validation-results.md`, `docs/implementation-prompts/prompt-22-staging-supabase-rls-human-approval-review.md`, `scripts/validation/staging-supabase-human-approval-review-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow trigger coverage for the Prompt 21 base branch, and tracker updates.
+- Implementation status after Prompt 22: validation prepared / human approval review packet only. The packet state is `ready_for_human_review`, not approved.
+- Implements: human review overview, checklist, future decision template, future evidence template, go/no-go rubric, diagnostics, and explicit separation between Prompt 20B-Retry local evidence, Prompt 21 approval preparation, missing staging evidence, and blocked production readiness.
+- Must not implement: human approval grant, staging execution, remote Supabase execution, production Supabase execution, local SQL execution, staging SQL execution, migrations, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, external telemetry, beta unlock, or production readiness.
+- What remains blocked: actual human approval, staging Supabase/RLS execution, staging migration validation, production Supabase, broader local domain SQL, runtime execution domains, and beta unlock.
+- Acceptance criteria: Prompt 22 docs exist, diagnostics pass, the result is `ready_for_human_review`, no approval is granted, no staging execution is claimed, no secrets or executable staging commands are added, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 23 - Staging Supabase/RLS Human Approval Decision Record if validation and CI pass; otherwise Prompt 22A - Staging Approval Packet Hardening.
+- GitHub deliverable: branch, commit, push, PR with human review packet summary and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

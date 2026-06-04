@@ -416,7 +416,11 @@
     "activation:supabase-data-plane-audit": "tsx server/cli/activation-supabase-data-plane-audit.ts",
     "activation:supabase-data-plane-audit:report": "tsx server/cli/activation-supabase-data-plane-audit-report.ts",
     "activation:supabase-data-plane-audit:iam-plan": "tsx server/cli/activation-supabase-data-plane-audit-iam-plan.ts",
-    "smoke:activation-supabase-data-plane-audit": "tsx server/smoke/activation-supabase-data-plane-audit-smoke.ts"
+    "smoke:activation-supabase-data-plane-audit": "tsx server/smoke/activation-supabase-data-plane-audit-smoke.ts",
+    "activation:supabase-milestone-registry": "tsx server/cli/activation-supabase-milestone-registry.ts",
+    "activation:supabase-milestone-registry:report": "tsx server/cli/activation-supabase-milestone-registry-report.ts",
+    "activation:supabase-milestone-registry:iam-plan": "tsx server/cli/activation-supabase-milestone-registry-iam-plan.ts",
+    "smoke:activation-supabase-milestone-registry": "tsx server/smoke/activation-supabase-milestone-registry-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

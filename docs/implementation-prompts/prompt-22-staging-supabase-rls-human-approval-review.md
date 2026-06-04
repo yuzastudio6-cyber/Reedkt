@@ -6,8 +6,8 @@ Prompt 22 adds a human approval review packet for the Prompt 21 staging Supabase
 
 - Branch: `codex/rp-foundation-22-staging-supabase-rls-human-approval-review`
 - PR base: `codex/rp-foundation-21-staging-supabase-rls-approval-packet`
-- PR: pending
-- Status: open / pending validation
+- PR: [PR #170](https://github.com/yuzastudio6-cyber/Reedkt/pull/170)
+- Status: open / local validation passed / CI pending
 - Exact capability enabled: `none; human approval review packet only`
 
 ## Small Context

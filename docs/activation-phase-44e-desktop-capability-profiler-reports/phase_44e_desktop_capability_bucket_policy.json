@@ -1,0 +1,48 @@
+{
+  "phase": "44E",
+  "runId": "phase44e-desktop-capability-profiler-20260604",
+  "status": "coarse_buckets_only",
+  "buckets": {
+    "environment": [
+      "runtimeKind",
+      "osPlatformBucket",
+      "osArchBucket",
+      "packagedAppStatus",
+      "sandboxedRenderer",
+      "contextIsolation"
+    ],
+    "compute": [
+      "availableParallelismBucket",
+      "totalMemoryBucket",
+      "freeMemoryBucket",
+      "cpuArchitecture",
+      "cpuModelClass"
+    ],
+    "graphics": [
+      "gpuInfoAvailable",
+      "gpuClass",
+      "webgpuDesktopAvailable"
+    ],
+    "mediaRuntime": [
+      "ffmpegAvailable",
+      "ffprobeAvailable",
+      "sharpAvailable",
+      "pythonAvailable",
+      "nodeVersionBucket",
+      "electronVersionBucket"
+    ],
+    "storage": [
+      "tempDirWritable",
+      "estimatedFreeDiskBucket"
+    ],
+    "policy": [
+      "privacyRiskLevel",
+      "fingerprintingRiskLevel",
+      "allowedForRoutePlanning",
+      "allowedForWorkerExecution",
+      "allowedForCostEstimator"
+    ]
+  },
+  "rawIdentifiers": "blocked",
+  "exactValues": "redacted_or_bucketed"
+}

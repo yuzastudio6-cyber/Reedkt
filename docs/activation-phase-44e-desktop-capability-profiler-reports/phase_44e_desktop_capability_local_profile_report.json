@@ -1,0 +1,9 @@
+{
+  "phase": "44E",
+  "runId": "phase44e-desktop-capability-profiler-20260604",
+  "status": "skipped_by_policy",
+  "reason": "optional_local_profile_collection_not_confirmed",
+  "requiredConfirmation": "REEDITPRO_CONFIRM_DESKTOP_CAPABILITY_LOCAL_PROFILE=true",
+  "liveProfileUpload": "blocked",
+  "localPersistence": "blocked"
+}

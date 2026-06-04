@@ -1,0 +1,68 @@
+{
+  "phase": "44E",
+  "runId": "phase44e-desktop-capability-profiler-20260604",
+  "status": "generated_mock_fixtures_only",
+  "fixtures": [
+    {
+      "fixtureId": "fixture-desktop-high-local",
+      "description": "High-capability Node desktop runtime with coarse CPU/memory/storage buckets and media helper commands present.",
+      "expectedHints": [
+        "local_processing_candidate_but_execution_blocked",
+        "desktop_route_possible_future"
+      ],
+      "expectedWarnings": [],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-desktop-mid-no-ffmpeg",
+      "description": "Mid-capability desktop where ffmpeg/ffprobe are unavailable, so media extraction remains server-worker preferred.",
+      "expectedHints": [
+        "media_extraction_blocked_ffmpeg_unavailable"
+      ],
+      "expectedWarnings": [
+        "media_extraction_tools_unavailable"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-desktop-low-resource",
+      "description": "Low-resource desktop profile that should avoid local heavy processing and prefer server worker planning.",
+      "expectedHints": [
+        "low_resource_avoid_local_heavy_processing",
+        "server_worker_preferred"
+      ],
+      "expectedWarnings": [
+        "low_parallelism_capacity",
+        "low_memory_capacity",
+        "low_free_memory"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-electron-sandboxed-renderer",
+      "description": "Future Electron renderer profile where sandboxing requires a main-process bridge for any local capability expansion.",
+      "expectedHints": [
+        "renderer_sandbox_requires_main_process_bridge"
+      ],
+      "expectedWarnings": [
+        "renderer_sandbox_requires_main_process_bridge"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-unknown-desktop",
+      "description": "Unknown runtime/platform profile that must fail closed for route planning.",
+      "expectedHints": [
+        "unknown_capability_fail_closed"
+      ],
+      "expectedWarnings": [],
+      "expectedBlockedReasons": [
+        "unknown_desktop_runtime",
+        "unknown_os_platform",
+        "unknown_os_architecture",
+        "unknown_parallelism",
+        "unknown_memory"
+      ]
+    }
+  ]
+}

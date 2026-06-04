@@ -1,0 +1,408 @@
+{
+  "phase": "44E",
+  "runId": "phase44e-desktop-capability-profiler-20260604",
+  "status": "passed",
+  "fixtures": [
+    {
+      "fixtureId": "fixture-desktop-high-local",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "runtimeKind": "node_only",
+            "osPlatformBucket": "macos",
+            "osArchBucket": "arm64",
+            "packagedAppStatus": "dev",
+            "sandboxedRenderer": "unknown",
+            "contextIsolation": "unknown"
+          },
+          "compute": {
+            "availableParallelismBucket": "9_16",
+            "totalMemoryBucket": "32gb_plus",
+            "freeMemoryBucket": "8gb_plus",
+            "cpuArchitecture": "arm64",
+            "cpuModelClass": "apple_silicon",
+            "processCpuUsageAvailable": true
+          },
+          "graphics": {
+            "gpuInfoAvailable": false,
+            "gpuClass": "unavailable",
+            "webgpuDesktopAvailable": "unknown",
+            "exactGpuIdentityPersisted": false
+          },
+          "mediaRuntime": {
+            "ffmpegAvailable": true,
+            "ffprobeAvailable": true,
+            "sharpAvailable": true,
+            "pythonAvailable": true,
+            "nodeVersionBucket": "major_only",
+            "electronVersionBucket": "unknown",
+            "desktopRuntimeVersionRedacted": true
+          },
+          "storage": {
+            "tempDirWritable": true,
+            "estimatedFreeDiskBucket": "50gb_plus",
+            "directoryScanning": false,
+            "pathListCollection": false
+          },
+          "policy": {
+            "privacyRiskLevel": "low",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "desktop-capability-profile-v1",
+            "liveProfileUploadAllowed": false
+          }
+        },
+        "routePlanningHints": [
+          "desktop_route_possible_future",
+          "local_processing_candidate_but_execution_blocked"
+        ],
+        "blockedReasons": [],
+        "warnings": [],
+        "sourcePolicyRefs": [
+          "phase_44e_desktop_capability_privacy_policy",
+          "phase_44e_desktop_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-desktop-mid-no-ffmpeg",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "runtimeKind": "node_only",
+            "osPlatformBucket": "linux",
+            "osArchBucket": "x64",
+            "packagedAppStatus": "dev",
+            "sandboxedRenderer": "unknown",
+            "contextIsolation": "unknown"
+          },
+          "compute": {
+            "availableParallelismBucket": "5_8",
+            "totalMemoryBucket": "16_32gb",
+            "freeMemoryBucket": "4_8gb",
+            "cpuArchitecture": "x64",
+            "cpuModelClass": "redacted",
+            "processCpuUsageAvailable": true
+          },
+          "graphics": {
+            "gpuInfoAvailable": false,
+            "gpuClass": "unavailable",
+            "webgpuDesktopAvailable": "unknown",
+            "exactGpuIdentityPersisted": false
+          },
+          "mediaRuntime": {
+            "ffmpegAvailable": false,
+            "ffprobeAvailable": false,
+            "sharpAvailable": "unknown",
+            "pythonAvailable": true,
+            "nodeVersionBucket": "major_only",
+            "electronVersionBucket": "unknown",
+            "desktopRuntimeVersionRedacted": true
+          },
+          "storage": {
+            "tempDirWritable": true,
+            "estimatedFreeDiskBucket": "10_50gb",
+            "directoryScanning": false,
+            "pathListCollection": false
+          },
+          "policy": {
+            "privacyRiskLevel": "low",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "desktop-capability-profile-v1",
+            "liveProfileUploadAllowed": false
+          }
+        },
+        "routePlanningHints": [
+          "media_extraction_blocked_ffmpeg_unavailable"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "media_extraction_tools_unavailable"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44e_desktop_capability_privacy_policy",
+          "phase_44e_desktop_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-desktop-low-resource",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "runtimeKind": "node_only",
+            "osPlatformBucket": "windows",
+            "osArchBucket": "x64",
+            "packagedAppStatus": "dev",
+            "sandboxedRenderer": "unknown",
+            "contextIsolation": "unknown"
+          },
+          "compute": {
+            "availableParallelismBucket": "1_2",
+            "totalMemoryBucket": "4_8gb",
+            "freeMemoryBucket": "lt_1gb",
+            "cpuArchitecture": "x64",
+            "cpuModelClass": "redacted",
+            "processCpuUsageAvailable": true
+          },
+          "graphics": {
+            "gpuInfoAvailable": false,
+            "gpuClass": "unavailable",
+            "webgpuDesktopAvailable": "unknown",
+            "exactGpuIdentityPersisted": false
+          },
+          "mediaRuntime": {
+            "ffmpegAvailable": "unknown",
+            "ffprobeAvailable": "unknown",
+            "sharpAvailable": "unknown",
+            "pythonAvailable": "unknown",
+            "nodeVersionBucket": "major_only",
+            "electronVersionBucket": "unknown",
+            "desktopRuntimeVersionRedacted": true
+          },
+          "storage": {
+            "tempDirWritable": true,
+            "estimatedFreeDiskBucket": "1_10gb",
+            "directoryScanning": false,
+            "pathListCollection": false
+          },
+          "policy": {
+            "privacyRiskLevel": "medium",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "desktop-capability-profile-v1",
+            "liveProfileUploadAllowed": false
+          }
+        },
+        "routePlanningHints": [
+          "low_resource_avoid_local_heavy_processing",
+          "server_worker_preferred"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "low_free_memory",
+          "low_memory_capacity",
+          "low_parallelism_capacity"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44e_desktop_capability_privacy_policy",
+          "phase_44e_desktop_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-electron-sandboxed-renderer",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "runtimeKind": "electron_renderer",
+            "osPlatformBucket": "macos",
+            "osArchBucket": "arm64",
+            "packagedAppStatus": "packaged",
+            "sandboxedRenderer": true,
+            "contextIsolation": true
+          },
+          "compute": {
+            "availableParallelismBucket": "5_8",
+            "totalMemoryBucket": "16_32gb",
+            "freeMemoryBucket": "4_8gb",
+            "cpuArchitecture": "arm64",
+            "cpuModelClass": "apple_silicon",
+            "processCpuUsageAvailable": "unknown"
+          },
+          "graphics": {
+            "gpuInfoAvailable": false,
+            "gpuClass": "unavailable",
+            "webgpuDesktopAvailable": "unknown",
+            "exactGpuIdentityPersisted": false
+          },
+          "mediaRuntime": {
+            "ffmpegAvailable": "unknown",
+            "ffprobeAvailable": "unknown",
+            "sharpAvailable": "unknown",
+            "pythonAvailable": "unknown",
+            "nodeVersionBucket": "major_only",
+            "electronVersionBucket": "major_only",
+            "desktopRuntimeVersionRedacted": true
+          },
+          "storage": {
+            "tempDirWritable": true,
+            "estimatedFreeDiskBucket": "10_50gb",
+            "directoryScanning": false,
+            "pathListCollection": false
+          },
+          "policy": {
+            "privacyRiskLevel": "low",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "desktop-capability-profile-v1",
+            "liveProfileUploadAllowed": false
+          }
+        },
+        "routePlanningHints": [
+          "renderer_sandbox_requires_main_process_bridge"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "renderer_sandbox_requires_main_process_bridge"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44e_desktop_capability_privacy_policy",
+          "phase_44e_desktop_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-unknown-desktop",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "runtimeKind": "unknown",
+            "osPlatformBucket": "unknown",
+            "osArchBucket": "unknown",
+            "packagedAppStatus": "unknown",
+            "sandboxedRenderer": "unknown",
+            "contextIsolation": "unknown"
+          },
+          "compute": {
+            "availableParallelismBucket": "unknown",
+            "totalMemoryBucket": "unknown",
+            "freeMemoryBucket": "unknown",
+            "cpuArchitecture": "unknown",
+            "cpuModelClass": "unknown",
+            "processCpuUsageAvailable": "unknown"
+          },
+          "graphics": {
+            "gpuInfoAvailable": false,
+            "gpuClass": "unavailable",
+            "webgpuDesktopAvailable": "unknown",
+            "exactGpuIdentityPersisted": false
+          },
+          "mediaRuntime": {
+            "ffmpegAvailable": "unknown",
+            "ffprobeAvailable": "unknown",
+            "sharpAvailable": "unknown",
+            "pythonAvailable": "unknown",
+            "nodeVersionBucket": "unknown",
+            "electronVersionBucket": "unknown",
+            "desktopRuntimeVersionRedacted": true
+          },
+          "storage": {
+            "tempDirWritable": "unknown",
+            "estimatedFreeDiskBucket": "unknown",
+            "directoryScanning": false,
+            "pathListCollection": false
+          },
+          "policy": {
+            "privacyRiskLevel": "low",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": false,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "desktop-capability-profile-v1",
+            "liveProfileUploadAllowed": false
+          }
+        },
+        "routePlanningHints": [
+          "unknown_capability_fail_closed"
+        ],
+        "blockedReasons": [
+          "unknown_desktop_runtime",
+          "unknown_os_platform",
+          "unknown_os_architecture",
+          "unknown_parallelism",
+          "unknown_memory"
+        ],
+        "warnings": [],
+        "sourcePolicyRefs": [
+          "phase_44e_desktop_capability_privacy_policy",
+          "phase_44e_desktop_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    }
+  ]
+}

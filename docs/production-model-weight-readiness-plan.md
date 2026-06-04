@@ -188,3 +188,9 @@ Demucs remains `route_disabled_blocked` with model download and source separatio
 Phase 44D is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records coarse browser capability metadata and generated/mock fixture evidence only.
 
 Demucs model download/source separation remains blocked. Qwen3-VL and vLLM remain excluded. WebGPU/WebCodecs availability hints do not approve VLM, model execution, GPU jobs, providers, production, beta, public output, broad media, arbitrary media, IAM/GCP mutation, or Track A.
+
+## Phase 44E Desktop Capability Profiler
+
+Phase 44E is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records coarse desktop capability metadata and generated/mock fixture evidence only.
+
+Demucs model download/source separation remains blocked. Qwen3-VL and vLLM remain excluded. Desktop ffmpeg/python/sharp availability hints do not approve media processing, model execution, GPU jobs, providers, production, beta, public output, broad media, arbitrary media, IAM/GCP mutation, route execution, worker execution, or Track A.

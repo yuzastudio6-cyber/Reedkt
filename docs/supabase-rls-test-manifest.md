@@ -289,3 +289,19 @@ Manifest state after Prompt 20N:
 - the Prompt 20N migration repair has not yet been proven by a successful local start.
 
 Prompt 20O is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20O Local Start Retry Update
+
+Prompt 20O changes local Supabase DB/Studio ports to `54330`/`54331`, resolving the local `54322`/`54323` conflict with `rapportd` without killing any non-Supabase process.
+
+Manifest state after Prompt 20O:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` now passes `202605180007_reeditpro_rls_policies.sql`;
+- local `supabase start` now fails in `202605180008_reeditpro_storage_buckets_policies.sql` with `SQLSTATE 42501` because the migration attempts to comment on `storage.buckets` without table ownership.
+
+Prompt 20P is required before the Prompt 20B SQL candidate can be run.

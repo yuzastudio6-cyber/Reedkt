@@ -133,3 +133,25 @@ The first local executable SQL candidate remains unexecuted:
 ## Next Prompt Recommendation
 
 Recommended next prompt: Prompt 20O - Local Supabase Start Port Conflict And Migration Chain Retry, focused on clearing or routing around the local-only `54322` bind conflict and retrying `supabase start` without running SQL/RLS smoke tests.
+
+## Prompt 20O Follow-Up
+
+Prompt 20O resolved the local port conflict without killing `rapportd` by changing local Supabase config:
+
+- `[db].port`: `54322` -> `54330`
+- `[studio].port`: `54323` -> `54331`
+
+Local `supabase start` then passed `202605180007_reeditpro_rls_policies.sql`, proving the Prompt 20N RLS helper parameter-name repair no longer blocks that migration.
+
+The next local migration-chain blocker is:
+
+```text
+supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql
+ERROR: must be owner of table buckets (SQLSTATE 42501)
+At statement: 1
+comment on table storage.buckets is 'ReeditPro buckets are private by default. Object paths should start with <project_id>/... for project-scoped access.'
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Recommended next prompt: Prompt 20P - Local Supabase Migration Chain Repair Follow-Up 8.

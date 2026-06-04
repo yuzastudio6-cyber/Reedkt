@@ -54,7 +54,13 @@ export function buildSupabaseDataPlaneQaSummary(input: {
     gate('runtime_integration_audit', input.runtimeIntegrationAudit.blockers.length === 0, 'Runtime Supabase client boundaries and table references were audited.'),
     gate('remote_activity_audit', input.remoteActivityAudit.status === 'completed', 'Remote Supabase activity was count-checked through backend credentials, or is blocked with exact reason.'),
     gate('data_model_gap_analysis', input.dataModelGapAnalysis.gaps.length > 0, 'P0/P1/P2 data-model gaps were classified for Phase 51B planning.'),
-    gate('beta_readiness_impact', input.betaReadinessImpact.controlledInternalBetaBlocked && input.betaReadinessImpact.p0Blockers.length > 0, 'Internal beta impact records the remaining Supabase P0 blockers instead of unlocking beta.'),
+    gate(
+      'beta_readiness_impact',
+      input.betaReadinessImpact.phase51BReadiness === 'ready_for_supabase_activation_milestone_registry'
+        ? input.betaReadinessImpact.p0Blockers.length === 0
+        : input.betaReadinessImpact.controlledInternalBetaBlocked && input.betaReadinessImpact.p0Blockers.length > 0,
+      'Internal beta impact records either remaining Supabase P0 blockers or Phase51B milestone-registry readiness without unlocking production or beta.',
+    ),
     gate('storytiming_rls_triage', input.storyTimingRlsTriage?.status === 'completed', 'StoryTiming RLS gaps were triaged table-by-table without mutating RLS.'),
     gate('artifact_privacy', !input.secretManagerAudit?.secretValuesPrinted && !input.secretManagerAudit?.secretValuesStored, 'Phase 51A artifacts are private JSON metadata only and contain no secret values.'),
     gate('blocked_features', blockedFeatures && input.docsPresent && input.scriptsPresent, 'Migrations, writes, providers, media processing, deployment, production, beta, and broad media remain blocked.'),

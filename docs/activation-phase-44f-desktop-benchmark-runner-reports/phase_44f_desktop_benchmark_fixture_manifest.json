@@ -1,0 +1,67 @@
+{
+  "phase": "44F",
+  "runId": "phase44f-desktop-benchmark-runner-20260604",
+  "status": "generated_mock_fixtures_only",
+  "fixtures": [
+    {
+      "fixtureId": "fixture-benchmark-high-desktop",
+      "description": "Fast generated benchmark profile with local light-task hints and cost-estimator input.",
+      "expectedRouteHints": [
+        "local_light_cpu_tasks_possible_future",
+        "local_temp_storage_ok"
+      ],
+      "expectedCostHints": [
+        "benchmark_supports_cost_estimator"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-mid-desktop",
+      "description": "Mid generated benchmark profile with ffmpeg unavailable and metadata-only local hints.",
+      "expectedRouteHints": [
+        "local_metadata_tasks_possible",
+        "local_media_runtime_missing"
+      ],
+      "expectedCostHints": [
+        "benchmark_supports_cost_estimator"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-low-desktop",
+      "description": "Low generated benchmark profile that should prefer server workers and avoid local heavy tasks.",
+      "expectedRouteHints": [
+        "server_worker_preferred",
+        "avoid_local_heavy_tasks"
+      ],
+      "expectedCostHints": [
+        "local_cost_penalty_expected"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-parallel-unavailable",
+      "description": "Generated profile where worker_threads are unavailable, so parallel benchmark is skipped.",
+      "expectedRouteHints": [
+        "single_thread_only"
+      ],
+      "expectedCostHints": [
+        "parallel_workers_limited"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-policy-blocked",
+      "description": "Generated policy-blocked profile proving local benchmark cannot run without explicit confirmation.",
+      "expectedRouteHints": [
+        "benchmark_unavailable_fail_closed"
+      ],
+      "expectedCostHints": [
+        "benchmark_unavailable_fail_closed"
+      ],
+      "expectedBlockedReasons": [
+        "local_benchmark_blocked_without_confirmation"
+      ]
+    }
+  ]
+}

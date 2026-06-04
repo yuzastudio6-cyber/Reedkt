@@ -25,4 +25,6 @@ Phase 44D web capability profiler status: phase-complete restricted scope for br
 
 Phase 44E desktop capability profiler status: phase-complete restricted scope for desktop/local route planning hints only.
 
-Next recommended phase: Phase 44F desktop benchmark runner or Phase 44H cost estimator, with route execution, production, beta, broad-media, public-artifact, provider, local sidecar, and Track A scopes still blocked.
+Phase 44F desktop benchmark runner status: phase-complete restricted scope for route/cost planning hints only.
+
+Next recommended phase: Phase 44H cost estimator if cost gating should come first, or Phase 44G local worker sidecar foundation if local execution plumbing is the priority. Route execution, production, beta, broad-media, public-artifact, provider, local sidecar execution, and Track A scopes remain blocked.

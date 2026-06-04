@@ -1,0 +1,68 @@
+{
+  "phase": "44F",
+  "runId": "phase44f-desktop-benchmark-runner-20260604",
+  "schemaVersion": "desktop-benchmark-schema-v1",
+  "requiredFields": [
+    "schemaVersion",
+    "generatedAt",
+    "collectionMode",
+    "privacyMode",
+    "benchmarkCaps",
+    "benchmarkResults",
+    "normalizedBuckets",
+    "routePlanningHints",
+    "costEstimatorHints",
+    "blockedReasons",
+    "warnings",
+    "sourcePolicyRefs"
+  ],
+  "allowedCollectionModes": [
+    "fixture_mock",
+    "local_bounded",
+    "local_skipped_by_policy",
+    "uploaded_private_future"
+  ],
+  "allowedPrivacyModes": [
+    "coarse",
+    "redacted",
+    "no_persistence",
+    "no_identifiers"
+  ],
+  "categories": [
+    "baseline",
+    "cpuSingleThread",
+    "cpuParallelOptional",
+    "memory",
+    "storageTemp",
+    "runtimeTools",
+    "policy"
+  ],
+  "caps": {
+    "singleThreadTargetMs": 250,
+    "singleThreadHardCapMs": 1000,
+    "parallelHardCapMs": 1500,
+    "maxParallelWorkers": 2,
+    "memoryDefaultBytes": 33554432,
+    "memoryHardCapBytes": 67108864,
+    "tempFileDefaultBytes": 1048576,
+    "tempFileHardCapBytes": 4194304,
+    "runtimeToolTimeoutMs": 2000,
+    "networkBenchmarkAllowed": false,
+    "gpuBenchmarkAllowed": false,
+    "sustainedStressAllowed": false
+  },
+  "blockedRawFields": [
+    "persistentDeviceId",
+    "hostname",
+    "username",
+    "macAddress",
+    "serialNumber",
+    "exactCpuModelString",
+    "exactGpuAdapterId",
+    "environmentVariables",
+    "processList",
+    "installedApps",
+    "userDirectoryPaths",
+    "mediaFilePaths"
+  ]
+}

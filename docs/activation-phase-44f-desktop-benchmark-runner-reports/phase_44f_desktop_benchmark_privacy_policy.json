@@ -1,0 +1,28 @@
+{
+  "phase": "44F",
+  "runId": "phase44f-desktop-benchmark-runner-20260604",
+  "status": "privacy_preserving_bounded_generated_benchmark_only",
+  "policy": {
+    "persistentDeviceIdentifier": "blocked",
+    "hostname": "blocked",
+    "username": "blocked",
+    "macAddresses": "blocked",
+    "serialNumbers": "blocked",
+    "exactCpuGpuIdentifiers": "blocked",
+    "environmentVariableDump": "blocked",
+    "processList": "blocked",
+    "installedAppScan": "blocked",
+    "userDirectoryScan": "blocked",
+    "arbitraryFilePaths": "blocked",
+    "mediaFiles": "blocked",
+    "networkBenchmark": "blocked",
+    "gpuBenchmark": "blocked",
+    "sustainedStressTest": "blocked",
+    "localPersistenceByDefault": "blocked",
+    "liveBenchmarkUpload": "blocked_until_future_explicit_phase",
+    "operatorConfirmationRequiredForLocalRun": true,
+    "strictTimeMemoryCapsRequired": true,
+    "coarseBucketsAndRedactedMetricsOnly": true
+  },
+  "liveBenchmarkUploadConsent": "future_explicit_phase_required"
+}

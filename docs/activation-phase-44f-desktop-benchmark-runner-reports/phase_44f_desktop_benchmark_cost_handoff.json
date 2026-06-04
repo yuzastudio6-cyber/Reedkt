@@ -1,0 +1,32 @@
+{
+  "phase": "44F",
+  "runId": "phase44f-desktop-benchmark-runner-20260604",
+  "status": "cost_hints_only_cost_estimator_pending",
+  "handoffExample": {
+    "status": "cost_hints_only_cost_estimator_pending",
+    "costEstimatorHints": [
+      "benchmark_supports_cost_estimator"
+    ],
+    "normalizedBuckets": {
+      "cpuSingleThread": "fast",
+      "cpuParallelOptional": "fast",
+      "memory": "fast",
+      "storageTemp": "ok",
+      "runtimeTools": "available"
+    },
+    "costEstimatorRequired": "Phase 44H",
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "liveBenchmarkUploadAllowed": false,
+    "costEstimatorInputReady": true
+  },
+  "costEstimatorHints": [
+    "benchmark_supports_cost_estimator",
+    "local_cost_penalty_expected",
+    "parallel_workers_limited",
+    "benchmark_unavailable_fail_closed"
+  ],
+  "actualCostEstimator": "Phase 44H pending",
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false
+}

@@ -1,0 +1,9 @@
+{
+  "phase": "44F",
+  "runId": "phase44f-desktop-benchmark-runner-20260604",
+  "status": "skipped_by_policy",
+  "reason": "optional_local_benchmark_not_confirmed",
+  "requiredConfirmation": "REEDITPRO_CONFIRM_DESKTOP_BENCHMARK_LOCAL_RUN=true",
+  "liveBenchmarkUpload": "blocked",
+  "localPersistence": "blocked"
+}

@@ -1,0 +1,11 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "committed_metadata_only_no_private_upload",
+  "privateUpload": "not_required",
+  "privateRead": "not_run",
+  "objectCount": 0,
+  "noMediaAudioModelPayloads": true,
+  "noPrivatePayloadsCommitted": true,
+  "noBillingCredentials": true
+}

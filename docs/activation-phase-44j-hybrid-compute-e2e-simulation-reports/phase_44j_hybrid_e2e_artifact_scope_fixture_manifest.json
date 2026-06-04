@@ -1,0 +1,117 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "synthetic_artifact_scope_fixtures_only",
+  "fixtureCount": 7,
+  "fixtures": [
+    {
+      "fixtureId": "artifact-private-generated-scope",
+      "description": "Private generated fixture metadata scope.",
+      "expectedAccepted": true,
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-private-controlled-scope",
+      "description": "Private controlled sample metadata scope.",
+      "expectedAccepted": true,
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-private-reporting-scope",
+      "description": "Private reporting metadata scope.",
+      "expectedAccepted": true,
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-block-public-output",
+      "description": "Public artifact request must fail closed.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "public_artifact_blocked"
+      ]
+    },
+    {
+      "fixtureId": "artifact-block-arbitrary-path",
+      "description": "Arbitrary local paths must fail closed.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "arbitrary_path_blocked"
+      ]
+    },
+    {
+      "fixtureId": "artifact-block-signed-url-source",
+      "description": "Signed URLs cannot be source of truth.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "signed_url_source_of_truth_blocked"
+      ]
+    },
+    {
+      "fixtureId": "artifact-block-missing-output-scope",
+      "description": "Missing output artifact scope must fail closed.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "missing_output_artifact_scope"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "fixtureId": "artifact-private-generated-scope",
+      "status": "passed",
+      "accepted": true,
+      "blockedReasons": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-private-controlled-scope",
+      "status": "passed",
+      "accepted": true,
+      "blockedReasons": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-private-reporting-scope",
+      "status": "passed",
+      "accepted": true,
+      "blockedReasons": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-block-public-output",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "public_artifact_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-block-arbitrary-path",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "arbitrary_path_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-block-signed-url-source",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "signed_url_source_of_truth_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "artifact-block-missing-output-scope",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "missing_output_artifact_scope"
+      ],
+      "missingExpectedBlockedReasons": []
+    }
+  ]
+}

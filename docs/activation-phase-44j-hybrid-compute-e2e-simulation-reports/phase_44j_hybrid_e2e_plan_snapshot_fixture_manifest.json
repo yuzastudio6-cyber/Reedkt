@@ -1,0 +1,129 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "synthetic_plan_snapshot_fixtures_only",
+  "fixtureCount": 15,
+  "fixtures": [
+    {
+      "fixtureId": "plan-audio-deepfilternet-internal",
+      "toolId": "deepfilternet",
+      "capabilityId": "bounded_speech_cleanup",
+      "expectedRouteRecommendation": "eligible_metadata_only",
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "plan-audio-signalsmith-internal",
+      "toolId": "signalsmith_stretch",
+      "capabilityId": "bounded_timing_stretch",
+      "expectedRouteRecommendation": "eligible_metadata_only",
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "plan-media-data-sharp-thumbnail",
+      "toolId": "sharp_libvips",
+      "capabilityId": "thumbnail_generation",
+      "expectedRouteRecommendation": "eligible_metadata_only",
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "plan-media-data-duckdb-reporting",
+      "toolId": "duckdb",
+      "capabilityId": "metadata_reporting",
+      "expectedRouteRecommendation": "eligible_metadata_only",
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "plan-ocr-safe-zone",
+      "toolId": "paddleocr",
+      "capabilityId": "safe_zone_ocr_signal",
+      "expectedRouteRecommendation": "eligible_metadata_only",
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "plan-vlm-blocked",
+      "toolId": "qwen3_vl",
+      "capabilityId": "vlm_runtime_candidate",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "vlm_route_blocked"
+      ]
+    },
+    {
+      "fixtureId": "plan-demucs-blocked",
+      "toolId": "demucs",
+      "capabilityId": "source_separation",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "demucs_route_blocked"
+      ]
+    },
+    {
+      "fixtureId": "plan-broad-media-blocked",
+      "toolId": "opencv",
+      "capabilityId": "bounded_frame_metrics",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "broad_media_blocked"
+      ]
+    },
+    {
+      "fixtureId": "plan-public-output-blocked",
+      "toolId": "sharp_libvips",
+      "capabilityId": "image_resize",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "public_output_blocked"
+      ]
+    },
+    {
+      "fixtureId": "plan-provider-call-blocked",
+      "toolId": "paddleocr",
+      "capabilityId": "safe_zone_ocr_signal",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "provider_calls_blocked"
+      ]
+    },
+    {
+      "fixtureId": "plan-raw-chat-execution-blocked",
+      "toolId": "duckdb",
+      "capabilityId": "metadata_reporting",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "raw_chat_execution_blocked"
+      ]
+    },
+    {
+      "fixtureId": "plan-missing-artifact-scope-blocked",
+      "toolId": "polars",
+      "capabilityId": "metadata_reporting",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "missing_outputArtifactScopeId"
+      ]
+    },
+    {
+      "fixtureId": "plan-cost-hard-block",
+      "toolId": "pyscenedetect",
+      "capabilityId": "bounded_scene_manifest",
+      "expectedRouteRecommendation": "blocked",
+      "expectedBlockedReasons": [
+        "cost_hard_block_requested"
+      ]
+    },
+    {
+      "fixtureId": "plan-low-resource-server-preferred",
+      "toolId": "pyav",
+      "capabilityId": "bounded_metadata_decode",
+      "expectedRouteRecommendation": "future_server_candidate",
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "plan-high-desktop-future-local-candidate",
+      "toolId": "duckdb",
+      "capabilityId": "metadata_reporting",
+      "expectedRouteRecommendation": "future_local_candidate",
+      "expectedBlockedReasons": []
+    }
+  ]
+}

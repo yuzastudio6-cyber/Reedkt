@@ -1,0 +1,79 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "branch": "codex/rp-activation-44j-hybrid-compute-e2e-simulation",
+  "baseBranch": "codex/rp-activation-44g-local-worker-sidecar-foundation",
+  "sourcePrs": [
+    {
+      "pr": 161,
+      "title": "Track B capability manifest baseline",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/161"
+    },
+    {
+      "pr": 164,
+      "title": "Phase 44I Track B tool route manifest integration",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/164"
+    },
+    {
+      "pr": 167,
+      "title": "Phase 44D web capability profiler",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/167"
+    },
+    {
+      "pr": 176,
+      "title": "Phase 44E desktop capability profiler",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/176"
+    },
+    {
+      "pr": 177,
+      "title": "Phase 44F desktop benchmark runner",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/177"
+    },
+    {
+      "pr": 180,
+      "title": "Phase 44H Track B cost estimator",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/180"
+    },
+    {
+      "pr": 181,
+      "title": "Phase 44G local worker sidecar foundation",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/181"
+    }
+  ],
+  "mode": "metadata_only_synthetic_e2e_simulation",
+  "schemaVersion": "track-b-hybrid-compute-e2e-simulation-v1",
+  "routeManifestVersion": "track-b-route-manifest-v1",
+  "sharedSimulationLibrary": "src/lib/track-b/hybrid-compute-e2e-simulation",
+  "serverActivationModule": "server/activation/hybrid-compute-e2e-simulation",
+  "reportDir": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+  "expectedReports": [
+    "phase_44j_hybrid_e2e_plan.json",
+    "phase_44j_hybrid_e2e_input_manifest.json",
+    "phase_44j_hybrid_e2e_simulation_schema.json",
+    "phase_44j_hybrid_e2e_plan_snapshot_fixture_manifest.json",
+    "phase_44j_hybrid_e2e_artifact_scope_fixture_manifest.json",
+    "phase_44j_hybrid_e2e_route_simulation_report.json",
+    "phase_44j_hybrid_e2e_cost_simulation_report.json",
+    "phase_44j_hybrid_e2e_sidecar_simulation_report.json",
+    "phase_44j_hybrid_e2e_failure_simulation_report.json",
+    "phase_44j_hybrid_e2e_scorecard.json",
+    "phase_44j_hybrid_e2e_readiness_decision.json",
+    "phase_44j_hybrid_e2e_blocker_report.json",
+    "phase_44j_hybrid_e2e_readiness_report.json",
+    "phase_44j_private_artifact_manifest.json"
+  ],
+  "confirmationForReportGenerationOnly": "REEDITPRO_CONFIRM_HYBRID_COMPUTE_E2E_SIMULATION",
+  "noRouteExecution": true,
+  "noRuntimeExecution": true,
+  "noWorkerExecution": true,
+  "noSidecarExecution": true,
+  "noToolExecution": true,
+  "noMediaAudioOcrVlmModelRuntime": true,
+  "noProviders": true,
+  "noDockerCloudGpuIamMutation": true,
+  "noBillingApiCalls": true,
+  "noBetaProductionUnlock": true,
+  "noTrackA": true,
+  "hybridComputeE2eSimulation": "phase_complete_restricted_scope_after_validation",
+  "nextRecommendedPhase": "Phase 44K desktop beta readiness gate, unless a narrower route dry-run/live-execution approval phase is inserted first."
+}

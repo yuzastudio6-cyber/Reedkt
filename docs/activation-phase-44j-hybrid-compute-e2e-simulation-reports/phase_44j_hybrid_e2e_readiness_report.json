@@ -1,0 +1,23 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "hybridComputeE2eSimulation": "phase_complete_restricted_scope",
+  "validationStatus": "passed",
+  "planFixtureCount": 15,
+  "artifactScopeFixtureCount": 7,
+  "routeSimulationCount": 15,
+  "costSimulationCount": 15,
+  "sidecarSimulationCount": 15,
+  "failureSimulationCount": 13,
+  "routeExecution": "blocked",
+  "workerExecution": "blocked",
+  "actualLocalSidecarRuntime": "blocked",
+  "desktopBetaGate": "next_phase_not_unlocked",
+  "productBeta": "blocked",
+  "production": "blocked",
+  "publicArtifacts": "blocked",
+  "providers": "blocked",
+  "vlm": "blocked",
+  "demucs": "blocked",
+  "trackA": "not_touched"
+}

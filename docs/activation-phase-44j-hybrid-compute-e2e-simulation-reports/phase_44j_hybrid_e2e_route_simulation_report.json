@@ -1,0 +1,245 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "passed",
+  "routeManifestVersion": "track-b-route-manifest-v1",
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "noExecutionPerformed": true,
+  "recommendationVocabulary": [
+    "eligible_metadata_only",
+    "blocked",
+    "handoff_only",
+    "future_local_candidate",
+    "future_server_candidate"
+  ],
+  "results": [
+    {
+      "fixtureId": "plan-audio-deepfilternet-internal",
+      "toolId": "deepfilternet",
+      "status": "passed",
+      "recommendation": "eligible_metadata_only",
+      "routeId": "track_b_deepfilternet",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-audio-signalsmith-internal",
+      "toolId": "signalsmith_stretch",
+      "status": "passed",
+      "recommendation": "eligible_metadata_only",
+      "routeId": "track_b_signalsmith_stretch",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-media-data-sharp-thumbnail",
+      "toolId": "sharp_libvips",
+      "status": "passed",
+      "recommendation": "eligible_metadata_only",
+      "routeId": "track_b_sharp_libvips",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-media-data-duckdb-reporting",
+      "toolId": "duckdb",
+      "status": "passed",
+      "recommendation": "eligible_metadata_only",
+      "routeId": "track_b_duckdb",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-ocr-safe-zone",
+      "toolId": "paddleocr",
+      "status": "passed",
+      "recommendation": "eligible_metadata_only",
+      "routeId": "track_b_paddleocr",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-vlm-blocked",
+      "toolId": "qwen3_vl",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_qwen3_vl",
+      "routeStatus": "route_disabled_excluded",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "vlm_route_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-demucs-blocked",
+      "toolId": "demucs",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_demucs",
+      "routeStatus": "route_disabled_blocked",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "demucs_route_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-broad-media-blocked",
+      "toolId": "opencv",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_opencv",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "broad_media_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-public-output-blocked",
+      "toolId": "sharp_libvips",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_sharp_libvips",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "public_output_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-provider-call-blocked",
+      "toolId": "paddleocr",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_paddleocr",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "provider_calls_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-raw-chat-execution-blocked",
+      "toolId": "duckdb",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_duckdb",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "raw_chat_execution_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-missing-artifact-scope-blocked",
+      "toolId": "polars",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_polars",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "missing_outputArtifactScopeId"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-cost-hard-block",
+      "toolId": "pyscenedetect",
+      "status": "passed",
+      "recommendation": "blocked",
+      "routeId": "track_b_pyscenedetect",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "cost_hard_block_requested"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-low-resource-server-preferred",
+      "toolId": "pyav",
+      "status": "passed",
+      "recommendation": "future_server_candidate",
+      "routeId": "track_b_pyav",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-high-desktop-future-local-candidate",
+      "toolId": "duckdb",
+      "status": "passed",
+      "recommendation": "future_local_candidate",
+      "routeId": "track_b_duckdb",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    }
+  ]
+}

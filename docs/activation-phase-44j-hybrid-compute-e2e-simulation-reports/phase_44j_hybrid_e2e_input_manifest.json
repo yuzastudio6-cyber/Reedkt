@@ -1,0 +1,108 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "all_required_committed_safe_inputs_loaded",
+  "requiredInputs": [
+    {
+      "inputId": "pr161_capability_manifests",
+      "sourcePr": {
+        "pr": 161,
+        "title": "Track B capability manifest baseline",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/161"
+      },
+      "reportDir": "docs/activation-track-b-capability-manifests-reports",
+      "expectedReportCount": 15,
+      "sourceStatus": "passed",
+      "required": true,
+      "loaded": true,
+      "privatePayloadsRead": false
+    },
+    {
+      "inputId": "pr164_route_manifest",
+      "sourcePr": {
+        "pr": 164,
+        "title": "Phase 44I Track B tool route manifest integration",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/164"
+      },
+      "reportDir": "docs/activation-track-b-tool-route-manifest-reports",
+      "expectedReportCount": 14,
+      "sourceStatus": "passed",
+      "required": true,
+      "loaded": true,
+      "privatePayloadsRead": false
+    },
+    {
+      "inputId": "pr167_web_capability_profiler",
+      "sourcePr": {
+        "pr": 167,
+        "title": "Phase 44D web capability profiler",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/167"
+      },
+      "reportDir": "docs/activation-phase-44d-web-capability-profiler-reports",
+      "expectedReportCount": 13,
+      "sourceStatus": "passed",
+      "required": true,
+      "loaded": true,
+      "privatePayloadsRead": false
+    },
+    {
+      "inputId": "pr176_desktop_capability_profiler",
+      "sourcePr": {
+        "pr": 176,
+        "title": "Phase 44E desktop capability profiler",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/176"
+      },
+      "reportDir": "docs/activation-phase-44e-desktop-capability-profiler-reports",
+      "expectedReportCount": 14,
+      "sourceStatus": "passed",
+      "required": true,
+      "loaded": true,
+      "privatePayloadsRead": false
+    },
+    {
+      "inputId": "pr177_desktop_benchmark_runner",
+      "sourcePr": {
+        "pr": 177,
+        "title": "Phase 44F desktop benchmark runner",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/177"
+      },
+      "reportDir": "docs/activation-phase-44f-desktop-benchmark-runner-reports",
+      "expectedReportCount": 14,
+      "sourceStatus": "passed",
+      "required": true,
+      "loaded": true,
+      "privatePayloadsRead": false
+    },
+    {
+      "inputId": "pr180_cost_estimator",
+      "sourcePr": {
+        "pr": 180,
+        "title": "Phase 44H Track B cost estimator",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/180"
+      },
+      "reportDir": "docs/activation-phase-44h-track-b-cost-estimator-reports",
+      "expectedReportCount": 14,
+      "sourceStatus": "phase_complete_restricted_scope",
+      "required": true,
+      "loaded": true,
+      "privatePayloadsRead": false
+    },
+    {
+      "inputId": "pr181_local_worker_sidecar",
+      "sourcePr": {
+        "pr": 181,
+        "title": "Phase 44G local worker sidecar foundation",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/181"
+      },
+      "reportDir": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+      "expectedReportCount": 17,
+      "sourceStatus": "passed",
+      "required": true,
+      "loaded": true,
+      "privatePayloadsRead": false
+    }
+  ],
+  "missingInputsBlockPhase44J": true,
+  "sourceEvidenceMode": "committed_safe_metadata_only",
+  "noPrivateArtifactRead": true
+}

@@ -2,14 +2,15 @@
 
 ## Status
 
-Phase 51A adds a read-only Supabase/PostgreSQL data-plane audit. Static report mode is available, and confirmed execution was attempted for `phase51a-20260604T185604`.
+Phase 51A adds a read-only Supabase/PostgreSQL data-plane audit. Static report mode is available, and confirmed completion execution was attempted for `phase51a-20260604T193805`.
 
 Execution status: partial/blocked.
 
 - Static repo audit completed.
-- Remote Supabase activity audit was blocked because backend `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` were not both available to the execution environment.
-- Private GCS artifact upload was blocked because `gcloud` could not refresh auth tokens in non-interactive execution.
-- No migrations, SQL mutations, Supabase lifecycle commands, row writes, secret reads, signed URLs, provider calls, media processing, Docker, deployment, production unlock, external beta unlock, paid production unlock, or broad-media unlock occurred.
+- StoryTiming RLS triage completed and classified the 11 previously flagged tables as parser false positives: committed dynamic SQL enables RLS and workspace-scoped policies for those tables.
+- Remote Supabase activity audit was blocked because `gcloud` could not refresh auth tokens in non-interactive execution, so Secret Manager values could not be resolved.
+- Private GCS artifact upload was blocked for the same gcloud reauthentication reason.
+- No migrations, SQL mutations, Supabase lifecycle commands, row writes, secret values, signed URLs, provider calls, media processing, Docker, deployment, production unlock, external beta unlock, paid production unlock, or broad-media unlock occurred.
 
 ## Repo Supabase Structure
 
@@ -27,7 +28,7 @@ The repository has substantial local/review-ready Supabase schema and RLS eviden
 
 ## Remote Activity
 
-Remote activity audit is count-only and optional. It requires backend `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the confirmed execution environment. Those values were unavailable during `phase51a-20260604T185604`, so no remote Supabase rows, row payloads, DB URLs, service-role values, tokens, or signed URLs were read or stored.
+Remote activity audit is count-only and optional. It resolves backend `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from process env or Google Secret Manager. During `phase51a-20260604T193805`, gcloud reauthentication failed before metadata/value access, so no remote Supabase rows, row payloads, DB URLs, service-role values, tokens, or signed URLs were read or stored.
 
 The audit also records that current runtime env is likely mock-only without service-role Supabase configuration.
 
@@ -35,11 +36,42 @@ The audit also records that current runtime env is likely mock-only without serv
 
 - Migration files parsed: 21.
 - Parsed public tables: 161.
-- RLS-enabled tables parsed: 135.
-- Static P0 blockers:
-  - 11 parsed StoryTiming tables do not have explicit RLS enablement in committed migrations.
-  - Runtime configuration is likely mock-only without backend Supabase admin env.
-  - Remote Supabase activity is unverified.
+- RLS-enabled tables parsed after dynamic SQL parsing: 146.
+- StoryTiming RLS triage:
+  - Tables triaged: 11.
+  - False positives: 11.
+  - Real StoryTiming P0 RLS blockers: 0.
+  - Evidence: `202605190002_storytiming_master_tables.sql` uses a dynamic `DO $$` block to enable RLS, revoke public/anon access, grant authenticated/service-role access, and create workspace-member/editor policies for the StoryTiming table list.
+- Remaining P0 blockers:
+  - Remote Supabase activity is unverified because Secret Manager access was blocked by gcloud reauthentication.
+  - Runtime database writes remain unproven for normal app flows; activation phases mostly write docs/GCS artifacts and do not persist milestone registry rows yet.
+
+## StoryTiming RLS Triage
+
+The initial `phase51a-20260604T185604` run flagged the StoryTiming tables because the parser only recognized literal `alter table public.<table> enable row level security` statements. The migration uses a dynamic loop over:
+
+- `master_timing_maps`
+- `story_timing_segments`
+- `timing_anchors`
+- `timing_events`
+- `timing_dependencies`
+- `timing_conflicts`
+- `timing_conflict_resolutions`
+- `story_timing_qa_checks`
+- `render_timing_manifests`
+- `render_timing_manifest_tracks`
+- `render_timing_manifest_events`
+
+All 11 tables are in `public` schema and store private workspace/project timing data, but the committed migration evidence clears the static flag. Phase 51A does not alter RLS. Phase 51C should still add a local/staging remote RLS smoke for StoryTiming if runtime RLS verification remains unproven.
+
+## Why Supabase May Show Low/No Recent Activity
+
+- Most activation phases intentionally write private GCS artifacts and sanitized docs instead of Supabase rows.
+- No Supabase activation milestone registry table exists yet.
+- Current worker/provider/runtime phases are mostly contract, fixture, readiness, or audit layers, not persistent app workflows.
+- App routes and workers do not yet persist activation runs, readiness evidence, provider events, or artifact manifests into Supabase.
+- Backend service-role access was previously unavailable to the Phase 51A execution path and remains unverified because gcloud reauthentication is blocked.
+- Remote migration application and recent table activity are still unverified.
 
 ## Blocked Scope
 
@@ -51,6 +83,6 @@ Phase51B readiness: blocked.
 
 Required human action before a full remote activity rerun:
 
-- Provide backend-only read-only audit credentials through the approved execution environment: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
-- Refresh/select gcloud auth for the `reeditpro` project so private Phase 51A JSON artifacts can upload to the staging GCS prefixes.
-- Review the 11 StoryTiming RLS gaps before any schema/migration hardening phase.
+- Refresh `gcloud` auth for `aiediting@reeditpro.com` or another approved account with `reeditpro` access so Codex can inspect Secret Manager metadata, resolve backend-only Supabase audit credentials, and upload private Phase 51A JSON artifacts.
+- Rerun Phase 51A confirmed execution. If remote count-only audit and private GCS upload succeed, Phase51B can proceed as a Supabase activation milestone registry planning phase while controlled internal beta remains blocked.
+- Keep StoryTiming RLS mutation out of Phase 51A. Treat StoryTiming as a Phase 51C remote RLS smoke/hardening candidate only if later local/staging evidence finds a real policy issue.

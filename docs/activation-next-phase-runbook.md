@@ -126,9 +126,10 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 1. Review `activation:supabase-data-plane-audit:report`, `activation:supabase-data-plane-audit:iam-plan`, and any private Phase 51A JSON audit artifacts.
 2. Confirm the audit did not run migrations, SQL mutations, Supabase lifecycle commands, row writes, provider calls, signed URL creation, media processing, Docker, or deployments.
 3. Confirm remote activity is either count-only and sanitized or blocked with the exact missing credential/access reason.
-4. Confirm P0 data-plane blockers for user/project/job/artifact/approved-plan/provider/tool/RLS/runtime/activity coverage are recorded.
-5. Proceed to Phase 51B only as schema/migration hardening planning when evidence is sufficient.
-6. Do not treat Phase 51A as production, external beta, paid production, broad media, Supabase write-path, migration, or signed URL approval.
+4. Confirm StoryTiming RLS triage remains false-positive-only unless a later local/staging RLS smoke proves otherwise.
+5. Confirm P0 data-plane blockers for user/project/job/artifact/approved-plan/provider/tool/runtime/activity coverage are recorded.
+6. Proceed to Phase 51B only as Supabase activation milestone registry planning after remote count-only activity and private artifact upload evidence are available.
+7. Do not treat Phase 51A as production, external beta, paid production, broad media, Supabase write-path, migration, or signed URL approval.
 
 ## After Phase 49I
 

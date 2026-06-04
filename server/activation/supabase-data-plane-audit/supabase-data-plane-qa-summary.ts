@@ -11,13 +11,17 @@ import type {
   SupabaseRepoSchemaDiscovery,
   SupabaseRlsPolicyAudit,
   SupabaseRuntimeIntegrationAudit,
+  SupabaseSecretManagerAudit,
+  SupabaseStoryTimingRlsTriage,
 } from './supabase-data-plane-audit-types'
 
 export function buildSupabaseDataPlaneQaSummary(input: {
   repoDiscovery: SupabaseRepoSchemaDiscovery
   envSecretAudit: SupabaseEnvSecretAudit
+  secretManagerAudit?: SupabaseSecretManagerAudit
   migrationAudit: SupabaseMigrationAudit
   rlsPolicyAudit: SupabaseRlsPolicyAudit
+  storyTimingRlsTriage?: SupabaseStoryTimingRlsTriage
   runtimeIntegrationAudit: SupabaseRuntimeIntegrationAudit
   remoteActivityAudit: SupabaseActivityAudit
   dataModelGapAnalysis: SupabaseDataModelGapAnalysis
@@ -51,6 +55,8 @@ export function buildSupabaseDataPlaneQaSummary(input: {
     gate('remote_activity_audit', input.remoteActivityAudit.status === 'completed', 'Remote Supabase activity was count-checked through backend credentials, or is blocked with exact reason.'),
     gate('data_model_gap_analysis', input.dataModelGapAnalysis.gaps.length > 0, 'P0/P1/P2 data-model gaps were classified for Phase 51B planning.'),
     gate('beta_readiness_impact', input.betaReadinessImpact.controlledInternalBetaBlocked && input.betaReadinessImpact.p0Blockers.length > 0, 'Internal beta impact records the remaining Supabase P0 blockers instead of unlocking beta.'),
+    gate('storytiming_rls_triage', input.storyTimingRlsTriage?.status === 'completed', 'StoryTiming RLS gaps were triaged table-by-table without mutating RLS.'),
+    gate('artifact_privacy', !input.secretManagerAudit?.secretValuesPrinted && !input.secretManagerAudit?.secretValuesStored, 'Phase 51A artifacts are private JSON metadata only and contain no secret values.'),
     gate('blocked_features', blockedFeatures && input.docsPresent && input.scriptsPresent, 'Migrations, writes, providers, media processing, deployment, production, beta, and broad media remain blocked.'),
   ]
   for (const gateId of supabaseDataPlaneQaGateIds) {
@@ -60,19 +66,21 @@ export function buildSupabaseDataPlaneQaSummary(input: {
     ...gates.filter((entry) => !entry.passed && entry.gateId !== 'remote_activity_audit').map((entry) => `${entry.gateId} failed.`),
     ...input.repoDiscovery.blockers,
     ...input.envSecretAudit.blockers,
+    ...(input.secretManagerAudit?.blockers ?? []),
     ...input.migrationAudit.blockers,
     ...input.rlsPolicyAudit.blockers,
     ...input.runtimeIntegrationAudit.blockers,
-    ...input.dataModelGapAnalysis.blockers,
-    ...input.betaReadinessImpact.blockers,
+    ...(input.storyTimingRlsTriage?.blockers ?? []),
     ...(input.executionBlockers ?? []),
   ]
   const warnings = [
     ...(input.remoteActivityAudit.status === 'completed' ? [] : ['remote_activity_audit blocked: remote counts were not completed.']),
     ...input.repoDiscovery.warnings,
     ...input.envSecretAudit.warnings,
+    ...(input.secretManagerAudit?.warnings ?? []),
     ...input.migrationAudit.warnings,
     ...input.rlsPolicyAudit.warnings,
+    ...(input.storyTimingRlsTriage?.warnings ?? []),
     ...input.runtimeIntegrationAudit.warnings,
     ...input.remoteActivityAudit.blockers,
     ...input.remoteActivityAudit.warnings,

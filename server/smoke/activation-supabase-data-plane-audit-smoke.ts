@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import {
   buildPlannedSupabaseRemoteActivityAudit,
+  buildPlannedSupabaseSecretManagerAudit,
   buildSupabaseBetaReadinessImpact,
   buildSupabaseDataModelGapAnalysis,
   buildSupabaseDataPlaneAuditReport,
@@ -12,6 +13,7 @@ import {
   buildSupabaseMigrationAudit,
   buildSupabaseRlsPolicyAudit,
   buildSupabaseRuntimeIntegrationAudit,
+  buildSupabaseStoryTimingRlsTriage,
   resolveSupabaseRepoSchema,
   supabaseDataPlaneAuditConfig,
   supabaseDataPlaneRequiredDocs,
@@ -22,8 +24,10 @@ import {
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as { scripts: Record<string, string>; dependencies: Record<string, string> }
 const repoDiscovery = resolveSupabaseRepoSchema()
 const envSecretAudit = buildSupabaseEnvSecretAudit()
+const secretManagerAudit = buildPlannedSupabaseSecretManagerAudit()
 const migrationAudit = buildSupabaseMigrationAudit(repoDiscovery.migrationFiles)
 const rlsPolicyAudit = buildSupabaseRlsPolicyAudit(migrationAudit)
+const storyTimingRlsTriage = buildSupabaseStoryTimingRlsTriage(migrationAudit)
 const runtimeIntegrationAudit = buildSupabaseRuntimeIntegrationAudit()
 const remoteActivityAudit = buildPlannedSupabaseRemoteActivityAudit()
 const dataModelGapAnalysis = buildSupabaseDataModelGapAnalysis({
@@ -32,12 +36,13 @@ const dataModelGapAnalysis = buildSupabaseDataModelGapAnalysis({
   runtimeIntegrationAudit,
   remoteActivityAudit,
 })
-const betaReadinessImpact = buildSupabaseBetaReadinessImpact(dataModelGapAnalysis)
+const betaReadinessImpact = buildSupabaseBetaReadinessImpact(dataModelGapAnalysis, storyTimingRlsTriage)
 const qa = buildSupabaseDataPlaneQaSummary({
   repoDiscovery,
   envSecretAudit,
   migrationAudit,
   rlsPolicyAudit,
+  storyTimingRlsTriage,
   runtimeIntegrationAudit,
   remoteActivityAudit,
   dataModelGapAnalysis,
@@ -75,10 +80,16 @@ assert.equal(repoDiscovery.blockers.length, 0)
 assert.equal(repoDiscovery.migrationFiles.length > 0, true)
 assert.equal(repoDiscovery.packageHasSupabaseJs, true)
 assert.equal(envSecretAudit.secretValueExposureDetected, false)
+assert.equal(secretManagerAudit.secretValuesPrinted, false)
+assert.equal(secretManagerAudit.secretValuesStored, false)
 assert.equal(migrationAudit.createdTables.length > 0, true)
 assert.equal(migrationAudit.remoteMigrationExecutionRecorded, false)
 assert.equal(migrationAudit.categoriesCovered.every((entry) => entry.covered), true)
 assert.equal(rlsPolicyAudit.signedUrlValueStorageBlocked, true)
+assert.equal(storyTimingRlsTriage.status, 'completed')
+assert.equal(storyTimingRlsTriage.flaggedTableCount, 11)
+assert.equal(storyTimingRlsTriage.p0BetaBlockerCount, 0)
+assert.equal(storyTimingRlsTriage.falsePositiveCount, 11)
 assert.equal(runtimeIntegrationAudit.serverAdminClient, 'service_role_guarded')
 assert.equal(runtimeIntegrationAudit.frontendPublicClient, 'configured_by_vite_env')
 assert.equal(remoteActivityAudit.status, 'not_attempted')
@@ -88,7 +99,7 @@ assert.equal(betaReadinessImpact.controlledInternalBetaBlocked, true)
 assert.equal(commandPlan.defaultMode, 'static_report_only')
 assert.equal(commandPlan.blockedAlways.includes('supabase start/status/db reset/db push/migration execution'), true)
 assert.equal(iamPlan.defaultMutationAllowed, false)
-for (const gateId of ['repo_supabase_discovery', 'env_secret_audit', 'migration_schema_audit', 'rls_security_audit', 'runtime_integration_audit', 'remote_activity_audit', 'data_model_gap_analysis', 'beta_readiness_impact', 'blocked_features']) {
+for (const gateId of ['repo_supabase_discovery', 'env_secret_audit', 'migration_schema_audit', 'rls_security_audit', 'runtime_integration_audit', 'remote_activity_audit', 'data_model_gap_analysis', 'beta_readiness_impact', 'storytiming_rls_triage', 'artifact_privacy', 'blocked_features']) {
   assert.equal(qa.gates.some((gate) => gate.gateId === gateId), true, `Missing QA gate ${gateId}`)
 }
 assert.equal(report.reportId, 'activation-phase-51a-supabase-data-plane-audit')

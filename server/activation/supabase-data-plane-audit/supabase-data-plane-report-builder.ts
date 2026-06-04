@@ -10,6 +10,8 @@ import { buildSupabaseMigrationAudit } from './supabase-migration-audit'
 import { resolveSupabaseRepoSchema } from './supabase-repo-schema-resolver'
 import { buildSupabaseRlsPolicyAudit } from './supabase-rls-policy-audit'
 import { buildSupabaseRuntimeIntegrationAudit } from './supabase-runtime-integration-audit'
+import { buildPlannedSupabaseSecretManagerAudit } from './supabase-secret-manager-audit'
+import { buildSupabaseStoryTimingRlsTriage } from './supabase-storytiming-rls-triage'
 import type { SupabaseDataPlaneAuditReport, SupabaseDataPlaneExecutionReport } from './supabase-data-plane-audit-types'
 
 export const SUPABASE_DATA_PLANE_LOCAL_REPORT_PATH = 'activation-logs/supabase-data-plane-audit/phase51a/job-execution/phase51a-report.json'
@@ -19,9 +21,11 @@ export function buildSupabaseDataPlaneAuditReport(): SupabaseDataPlaneAuditRepor
   if (executionReport) return executionToReport(executionReport)
 
   const repoDiscovery = resolveSupabaseRepoSchema()
+  const secretManagerAudit = buildPlannedSupabaseSecretManagerAudit()
   const envSecretAudit = buildSupabaseEnvSecretAudit()
   const migrationAudit = buildSupabaseMigrationAudit(repoDiscovery.migrationFiles)
   const rlsPolicyAudit = buildSupabaseRlsPolicyAudit(migrationAudit)
+  const storyTimingRlsTriage = buildSupabaseStoryTimingRlsTriage(migrationAudit)
   const runtimeIntegrationAudit = buildSupabaseRuntimeIntegrationAudit()
   const remoteActivityAudit = buildPlannedSupabaseRemoteActivityAudit()
   const dataModelGapAnalysis = buildSupabaseDataModelGapAnalysis({
@@ -30,13 +34,14 @@ export function buildSupabaseDataPlaneAuditReport(): SupabaseDataPlaneAuditRepor
     runtimeIntegrationAudit,
     remoteActivityAudit,
   })
-  const betaReadinessImpact = buildSupabaseBetaReadinessImpact(dataModelGapAnalysis)
+  const betaReadinessImpact = buildSupabaseBetaReadinessImpact(dataModelGapAnalysis, storyTimingRlsTriage)
   const commandPlan = buildSupabaseDataPlaneCommandPlan()
   const qa = buildSupabaseDataPlaneQaSummary({
     repoDiscovery,
     envSecretAudit,
     migrationAudit,
     rlsPolicyAudit,
+    storyTimingRlsTriage,
     runtimeIntegrationAudit,
     remoteActivityAudit,
     dataModelGapAnalysis,
@@ -52,8 +57,10 @@ export function buildSupabaseDataPlaneAuditReport(): SupabaseDataPlaneAuditRepor
     config: supabaseDataPlaneAuditConfig,
     repoDiscovery,
     envSecretAudit,
+    secretManagerAudit,
     migrationAudit,
     rlsPolicyAudit,
+    storyTimingRlsTriage,
     runtimeIntegrationAudit,
     remoteActivityAudit,
     dataModelGapAnalysis,
@@ -77,6 +84,7 @@ export function summarizeSupabaseDataPlaneAuditReport(report: SupabaseDataPlaneA
     `Migration files: ${report.migrationAudit.migrationFileCount}`,
     `Parsed tables: ${report.migrationAudit.createdTables.length}`,
     `RLS-enabled tables: ${report.rlsPolicyAudit.rlsEnabledTableCount}`,
+    `StoryTiming RLS triage: ${report.storyTimingRlsTriage.status} (${report.storyTimingRlsTriage.falsePositiveCount}/${report.storyTimingRlsTriage.flaggedTableCount} parser false positives)`,
     `Runtime table references: ${report.runtimeIntegrationAudit.tableReferences.length}`,
     `Remote activity audit: ${report.remoteActivityAudit.status}`,
     `P0 data-plane gaps: ${report.dataModelGapAnalysis.p0Count}`,
@@ -100,29 +108,48 @@ export function summarizeSupabaseDataPlaneAuditReport(report: SupabaseDataPlaneA
 }
 
 function executionToReport(executionReport: SupabaseDataPlaneExecutionReport): SupabaseDataPlaneAuditReport {
+  const hydrated = hydrateExecutionReport(executionReport)
   return {
     reportId: 'activation-phase-51a-supabase-data-plane-audit',
     createdAt: new Date().toISOString(),
     phase: '51A',
-    status: executionReport.ok ? 'completed' : executionReport.remoteActivityAudit.status === 'completed' ? 'blocked' : 'partial',
+    status: hydrated.ok ? 'completed' : hydrated.remoteActivityAudit.status === 'completed' ? 'blocked' : 'partial',
     config: supabaseDataPlaneAuditConfig,
-    executionReport,
-    repoDiscovery: executionReport.repoDiscovery,
-    envSecretAudit: executionReport.envSecretAudit,
-    migrationAudit: executionReport.migrationAudit,
-    rlsPolicyAudit: executionReport.rlsPolicyAudit,
-    runtimeIntegrationAudit: executionReport.runtimeIntegrationAudit,
-    remoteActivityAudit: executionReport.remoteActivityAudit,
-    dataModelGapAnalysis: executionReport.dataModelGapAnalysis,
-    betaReadinessImpact: executionReport.betaReadinessImpact,
-    commandPlan: executionReport.commandPlan,
-    qa: executionReport.qa,
-    safetyFlags: executionReport.safetyFlags,
-    canRunLocalSql: executionReport.canRunLocalSql,
-    canProceedToPrompt20B: executionReport.canProceedToPrompt20B,
-    phase51BReadiness: executionReport.phase51BReadiness,
-    blockers: executionReport.blockers,
-    warnings: executionReport.warnings,
+    executionReport: hydrated,
+    repoDiscovery: hydrated.repoDiscovery,
+    envSecretAudit: hydrated.envSecretAudit,
+    secretManagerAudit: hydrated.secretManagerAudit,
+    migrationAudit: hydrated.migrationAudit,
+    rlsPolicyAudit: hydrated.rlsPolicyAudit,
+    storyTimingRlsTriage: hydrated.storyTimingRlsTriage,
+    runtimeIntegrationAudit: hydrated.runtimeIntegrationAudit,
+    remoteActivityAudit: hydrated.remoteActivityAudit,
+    dataModelGapAnalysis: hydrated.dataModelGapAnalysis,
+    betaReadinessImpact: hydrated.betaReadinessImpact,
+    commandPlan: hydrated.commandPlan,
+    qa: hydrated.qa,
+    safetyFlags: hydrated.safetyFlags,
+    canRunLocalSql: hydrated.canRunLocalSql,
+    canProceedToPrompt20B: hydrated.canProceedToPrompt20B,
+    phase51BReadiness: hydrated.phase51BReadiness,
+    blockers: hydrated.blockers,
+    warnings: hydrated.warnings,
+  }
+}
+
+function hydrateExecutionReport(executionReport: SupabaseDataPlaneExecutionReport): SupabaseDataPlaneExecutionReport {
+  const storyTimingRlsTriage = executionReport.storyTimingRlsTriage ?? buildSupabaseStoryTimingRlsTriage(executionReport.migrationAudit)
+  const secretManagerAudit = executionReport.secretManagerAudit ?? buildPlannedSupabaseSecretManagerAudit()
+  const phase51BReadiness = executionReport.betaReadinessImpact.phase51BReadiness as string
+  const betaReadinessImpact = phase51BReadiness === 'ready_for_schema_migration_hardening_plan'
+    ? buildSupabaseBetaReadinessImpact(executionReport.dataModelGapAnalysis, storyTimingRlsTriage)
+    : executionReport.betaReadinessImpact
+  return {
+    ...executionReport,
+    secretManagerAudit,
+    storyTimingRlsTriage,
+    betaReadinessImpact,
+    phase51BReadiness: betaReadinessImpact.phase51BReadiness,
   }
 }
 

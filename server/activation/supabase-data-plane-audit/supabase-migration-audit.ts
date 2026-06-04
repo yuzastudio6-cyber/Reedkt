@@ -41,6 +41,17 @@ export function buildSupabaseMigrationAudit(migrationFiles: string[]): SupabaseM
       policyTables.add(match[2])
       policyCount += 1
     }
+    for (const block of text.matchAll(/foreach\s+table_name\s+in\s+array\s+array\[(?<tables>[\s\S]*?)\]\s+loop(?<body>[\s\S]*?)end\s+loop/gi)) {
+      const tables = Array.from((block.groups?.tables ?? '').matchAll(/'([a-z0-9_]+)'/gi)).map((match) => match[1])
+      const body = block.groups?.body ?? ''
+      if (/enable\s+row\s+level\s+security/i.test(body)) {
+        for (const table of tables) enabledRlsTables.add(table)
+      }
+      if (/create\s+policy/i.test(body)) {
+        for (const table of tables) policyTables.add(table)
+        policyCount += tables.length
+      }
+    }
     for (const match of text.matchAll(/grant\s+[\s\S]*?\s+on\s+(?:table\s+)?public\.([a-z0-9_]+)\s+to\s+service_role/gi)) serviceRoleGrantTables.add(match[1])
     for (const match of text.matchAll(/create\s+(?:or\s+replace\s+)?function\s+public\.([a-z0-9_]+)/gi)) functionNames.add(match[1])
     if (/storage\.objects|storage\.buckets|bucket_id|signed url|signed_url/i.test(text)) storagePolicyMentions.add(migrationFile)

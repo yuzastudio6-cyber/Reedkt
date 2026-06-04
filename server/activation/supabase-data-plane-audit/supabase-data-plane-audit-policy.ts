@@ -58,6 +58,8 @@ export const supabaseDataPlaneQaGateIds: SupabaseDataPlaneQaGateId[] = [
   'remote_activity_audit',
   'data_model_gap_analysis',
   'beta_readiness_impact',
+  'storytiming_rls_triage',
+  'artifact_privacy',
   'blocked_features',
 ]
 

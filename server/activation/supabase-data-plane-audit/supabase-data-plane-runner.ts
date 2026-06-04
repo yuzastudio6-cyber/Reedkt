@@ -22,6 +22,8 @@ import { buildSupabaseMigrationAudit } from './supabase-migration-audit'
 import { resolveSupabaseRepoSchema } from './supabase-repo-schema-resolver'
 import { buildSupabaseRlsPolicyAudit } from './supabase-rls-policy-audit'
 import { buildSupabaseRuntimeIntegrationAudit } from './supabase-runtime-integration-audit'
+import { inspectSupabaseSecretManagerAudit, resolveSupabaseAuditCredentials } from './supabase-secret-manager-audit'
+import { buildSupabaseStoryTimingRlsTriage } from './supabase-storytiming-rls-triage'
 import type { SupabaseDataPlaneArtifact, SupabaseDataPlaneExecutionReport } from './supabase-data-plane-audit-types'
 
 const execFile = promisify(execFileCallback)
@@ -43,25 +45,39 @@ export async function runSupabaseDataPlaneAudit(input: { execute: boolean; runId
   await verifyGcloudPreflight(executionBlockers, executionWarnings)
   await verifyBuckets(executionBlockers, executionWarnings)
 
+  const secretManagerAudit = await inspectSupabaseSecretManagerAudit({ attemptMissingIamGrant: true })
+  executionWarnings.push(...secretManagerAudit.iamChanges.map((change) => `Secret Manager IAM change applied: ${change}`))
+  const credentialResolution = await resolveSupabaseAuditCredentials()
   const repoDiscovery = resolveSupabaseRepoSchema()
-  const envSecretAudit = buildSupabaseEnvSecretAudit()
+  const envSecretAudit = buildSupabaseEnvSecretAudit(process.env, { secretManagerCredentialReady: credentialResolution.configured })
   const migrationAudit = buildSupabaseMigrationAudit(repoDiscovery.migrationFiles)
   const rlsPolicyAudit = buildSupabaseRlsPolicyAudit(migrationAudit)
-  const runtimeIntegrationAudit = buildSupabaseRuntimeIntegrationAudit()
-  const remoteActivityAudit = await runSupabaseRemoteActivityAudit()
+  const storyTimingRlsTriage = buildSupabaseStoryTimingRlsTriage(migrationAudit)
+  const runtimeIntegrationAudit = buildSupabaseRuntimeIntegrationAudit(process.env, { secretManagerCredentialReady: credentialResolution.configured })
+  const remoteActivityAudit = credentialResolution.configured
+    ? await runSupabaseRemoteActivityAudit({
+        supabaseUrl: credentialResolution.supabaseUrl,
+        serviceRoleKey: credentialResolution.serviceRoleKey,
+        credentialSource: credentialResolution.source === 'google_secret_manager' ? 'google_secret_manager' : 'backend_env',
+      })
+    : await runSupabaseRemoteActivityAudit()
+  if (credentialResolution.blockers.length) executionWarnings.push(...credentialResolution.blockers)
+  executionWarnings.push(...credentialResolution.warnings)
   const dataModelGapAnalysis = buildSupabaseDataModelGapAnalysis({
     migrationAudit,
     rlsPolicyAudit,
     runtimeIntegrationAudit,
     remoteActivityAudit,
   })
-  const betaReadinessImpact = buildSupabaseBetaReadinessImpact(dataModelGapAnalysis)
+  const betaReadinessImpact = buildSupabaseBetaReadinessImpact(dataModelGapAnalysis, storyTimingRlsTriage)
   const commandPlan = buildSupabaseDataPlaneCommandPlan()
   const qa = buildSupabaseDataPlaneQaSummary({
     repoDiscovery,
     envSecretAudit,
+    secretManagerAudit,
     migrationAudit,
     rlsPolicyAudit,
+    storyTimingRlsTriage,
     runtimeIntegrationAudit,
     remoteActivityAudit,
     dataModelGapAnalysis,
@@ -81,8 +97,10 @@ export async function runSupabaseDataPlaneAudit(input: { execute: boolean; runId
     mode: supabaseDataPlaneAuditConfig.mode,
     repoDiscovery,
     envSecretAudit,
+    secretManagerAudit,
     migrationAudit,
     rlsPolicyAudit,
+    storyTimingRlsTriage,
     runtimeIntegrationAudit,
     remoteActivityAudit,
     dataModelGapAnalysis,
@@ -143,13 +161,15 @@ async function uploadExecutionArtifacts(localRoot: string, artifactPrefix: strin
     }
   }
 
-  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/repo/repo-supabase-structure.json`, report.repoDiscovery, 'repo_supabase_structure')
-  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/env/env-secret-audit.json`, report.envSecretAudit, 'env_secret_audit')
-  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/migrations/migration-schema-audit.json`, report.migrationAudit, 'migration_schema_audit')
-  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/rls/rls-security-audit.json`, report.rlsPolicyAudit, 'rls_security_audit')
-  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/runtime/runtime-integration-audit.json`, report.runtimeIntegrationAudit, 'runtime_integration_audit')
-  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/activity/remote-activity-audit.json`, report.remoteActivityAudit, 'remote_activity_audit')
-  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/gaps/data-model-gap-analysis.json`, report.dataModelGapAnalysis, 'data_model_gap_analysis')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/repo-supabase-file-audit.json`, report.repoDiscovery, 'repo_supabase_file_audit')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/env-secret-audit.json`, report.envSecretAudit, 'env_secret_audit')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/secret-manager-audit.json`, report.secretManagerAudit, 'secret_manager_audit')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/migration-schema-audit.json`, report.migrationAudit, 'migration_schema_audit')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/rls-security-audit.json`, report.rlsPolicyAudit, 'rls_security_audit')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/storytiming-rls-triage.json`, report.storyTimingRlsTriage, 'storytiming_rls_triage')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/runtime-integration-audit.json`, report.runtimeIntegrationAudit, 'runtime_integration_audit')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/audit/remote-activity-audit.json`, report.remoteActivityAudit, 'remote_activity_audit')
+  await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/gap-analysis/supabase-data-model-gap-analysis.json`, report.dataModelGapAnalysis, 'data_model_gap_analysis')
   await upload(supabaseDataPlaneAuditConfig.generatedAssetsBucket, `${artifactPrefix}/readiness/beta-readiness-impact.json`, report.betaReadinessImpact, 'beta_readiness_impact')
   await upload(supabaseDataPlaneAuditConfig.qaBucket, `${artifactPrefix}/qa/supabase-data-plane-audit-qa.json`, report.qa, 'supabase_data_plane_qa')
   report.artifacts = artifacts

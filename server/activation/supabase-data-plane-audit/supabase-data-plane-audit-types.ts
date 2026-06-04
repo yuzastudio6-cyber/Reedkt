@@ -2,7 +2,7 @@ export type SupabaseDataPlaneAuditStatus = 'planned' | 'completed' | 'partial' |
 export type SupabaseDataPlaneAuditMode = 'supabase_data_plane_readonly_audit'
 export type RemoteActivityAuditStatus = 'not_attempted' | 'completed' | 'blocked'
 export type GapSeverity = 'P0' | 'P1' | 'P2'
-export type Phase51BReadiness = 'ready_for_schema_migration_hardening_plan' | 'blocked'
+export type Phase51BReadiness = 'ready_for_supabase_activation_milestone_registry' | 'blocked'
 
 export type SupabaseDataPlaneQaGateId =
   | 'repo_supabase_discovery'
@@ -13,6 +13,8 @@ export type SupabaseDataPlaneQaGateId =
   | 'remote_activity_audit'
   | 'data_model_gap_analysis'
   | 'beta_readiness_impact'
+  | 'storytiming_rls_triage'
+  | 'artifact_privacy'
   | 'blocked_features'
 
 export interface SupabaseDataPlaneAuditConfig {
@@ -73,6 +75,38 @@ export interface SupabaseEnvSecretAudit {
   warnings: string[]
 }
 
+export interface SupabaseSecretManagerSecretAudit {
+  secretName: 'SUPABASE_URL' | 'SUPABASE_SERVICE_ROLE_KEY'
+  projectId: 'reeditpro'
+  exists: boolean
+  enabledVersionPresent: boolean
+  approvedServiceAccountsHaveAccess: boolean
+  approvedServiceAccounts: string[]
+  missingServiceAccounts: string[]
+  publicAccessDetected: boolean
+  broadAccessDetected: boolean
+  valueAccessedForAudit: false
+  secretValuePrinted: false
+  secretValueStored: false
+  iamChanges: string[]
+  blockers: string[]
+  warnings: string[]
+}
+
+export interface SupabaseSecretManagerAudit {
+  status: 'not_attempted' | 'completed' | 'blocked'
+  projectId: 'reeditpro'
+  secrets: SupabaseSecretManagerSecretAudit[]
+  credentialPairReady: boolean
+  publicAccessDetected: boolean
+  broadAccessDetected: boolean
+  secretValuesPrinted: false
+  secretValuesStored: false
+  iamChanges: string[]
+  blockers: string[]
+  warnings: string[]
+}
+
 export interface SupabaseMigrationTableRecord {
   tableName: string
   migrationFile: string
@@ -111,6 +145,41 @@ export interface SupabaseRlsPolicyAudit {
   warnings: string[]
 }
 
+export interface SupabaseStoryTimingRlsTriageRecord {
+  tableName: string
+  migrationFile: string
+  flaggedReason: string
+  schemaExposure: 'public_schema_private_project_data'
+  storesUserProjectData: boolean
+  ownershipColumns: {
+    workspaceId: boolean
+    projectId: boolean
+    userId: boolean
+    orgId: boolean
+  }
+  rlsEvidence: {
+    literalEnableStatement: boolean
+    dynamicDoBlockEnable: boolean
+    dynamicPolicyBlock: boolean
+    policyDirectionFound: boolean
+  }
+  classification: 'P0_beta_blocker' | 'P1_hardening' | 'false_positive' | 'requires_human_admin_review'
+  phase51BMigrationNeeded: boolean
+  phase51CMigrationNeeded: boolean
+  suggestedPolicyDirection: string
+}
+
+export interface SupabaseStoryTimingRlsTriage {
+  status: 'completed' | 'blocked'
+  migrationFile: string
+  flaggedTableCount: number
+  falsePositiveCount: number
+  p0BetaBlockerCount: number
+  records: SupabaseStoryTimingRlsTriageRecord[]
+  blockers: string[]
+  warnings: string[]
+}
+
 export interface SupabaseRuntimeIntegrationAudit {
   frontendPublicClient: 'configured_by_vite_env' | 'not_found'
   serverAdminClient: 'service_role_guarded' | 'not_found'
@@ -138,7 +207,7 @@ export interface SupabaseRemoteTableActivity {
 export interface SupabaseActivityAudit {
   status: RemoteActivityAuditStatus
   attemptedAt?: string
-  credentialSource: 'env_service_role' | 'unavailable'
+  credentialSource: 'backend_env' | 'google_secret_manager' | 'unavailable'
   tablesChecked: SupabaseRemoteTableActivity[]
   rowPayloadStored: false
   dbUrlPrinted: false
@@ -244,8 +313,10 @@ export interface SupabaseDataPlaneExecutionReport {
   mode: SupabaseDataPlaneAuditMode
   repoDiscovery: SupabaseRepoSchemaDiscovery
   envSecretAudit: SupabaseEnvSecretAudit
+  secretManagerAudit: SupabaseSecretManagerAudit
   migrationAudit: SupabaseMigrationAudit
   rlsPolicyAudit: SupabaseRlsPolicyAudit
+  storyTimingRlsTriage: SupabaseStoryTimingRlsTriage
   runtimeIntegrationAudit: SupabaseRuntimeIntegrationAudit
   remoteActivityAudit: SupabaseActivityAudit
   dataModelGapAnalysis: SupabaseDataModelGapAnalysis
@@ -270,8 +341,10 @@ export interface SupabaseDataPlaneAuditReport {
   executionReport?: SupabaseDataPlaneExecutionReport
   repoDiscovery: SupabaseRepoSchemaDiscovery
   envSecretAudit: SupabaseEnvSecretAudit
+  secretManagerAudit: SupabaseSecretManagerAudit
   migrationAudit: SupabaseMigrationAudit
   rlsPolicyAudit: SupabaseRlsPolicyAudit
+  storyTimingRlsTriage: SupabaseStoryTimingRlsTriage
   runtimeIntegrationAudit: SupabaseRuntimeIntegrationAudit
   remoteActivityAudit: SupabaseActivityAudit
   dataModelGapAnalysis: SupabaseDataModelGapAnalysis

@@ -10,6 +10,8 @@ Mandatory QA gates:
 - `remote_activity_audit`: remote count-only checks either complete or are blocked with a precise credential/access reason.
 - `data_model_gap_analysis`: P0/P1/P2 gaps are classified.
 - `beta_readiness_impact`: Supabase blockers are reflected in internal beta readiness.
+- `storytiming_rls_triage`: the 11 StoryTiming RLS findings are classified from committed SQL evidence without mutating RLS.
+- `artifact_privacy`: reports and uploaded JSON contain metadata/counts only, no secret values, DB URLs, row payloads, signed URLs, or service-role values.
 - `blocked_features`: writes, migrations, provider calls, media processing, deployment, production, and beta remain blocked.
 
 Static QA can pass the implementation smoke even when remote activity is blocked; the report itself must preserve the blocked remote gate so the readiness decision stays honest.

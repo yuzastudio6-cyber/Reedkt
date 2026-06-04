@@ -2,9 +2,13 @@ import { createClient } from '@supabase/supabase-js'
 import { supabaseDataPlaneAuditTables } from './supabase-data-plane-audit-policy'
 import type { SupabaseActivityAudit } from './supabase-data-plane-audit-types'
 
-export async function runSupabaseRemoteActivityAudit(source: NodeJS.ProcessEnv = process.env): Promise<SupabaseActivityAudit> {
-  const supabaseUrl = source.SUPABASE_URL?.trim() || source.VITE_SUPABASE_URL?.trim()
-  const serviceRole = source.SUPABASE_SERVICE_ROLE_KEY?.trim()
+export async function runSupabaseRemoteActivityAudit(input: {
+  supabaseUrl?: string
+  serviceRoleKey?: string
+  credentialSource?: SupabaseActivityAudit['credentialSource']
+} = {}): Promise<SupabaseActivityAudit> {
+  const supabaseUrl = input.supabaseUrl?.trim() || process.env.SUPABASE_URL?.trim() || process.env.VITE_SUPABASE_URL?.trim()
+  const serviceRole = input.serviceRoleKey?.trim() || process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   if (!supabaseUrl || !serviceRole) {
     return {
       status: 'blocked',
@@ -38,7 +42,7 @@ export async function runSupabaseRemoteActivityAudit(source: NodeJS.ProcessEnv =
   return {
     status: blocked.length === tablesChecked.length ? 'blocked' : 'completed',
     attemptedAt: new Date().toISOString(),
-    credentialSource: 'env_service_role',
+    credentialSource: input.credentialSource === 'google_secret_manager' ? 'google_secret_manager' : 'backend_env',
     tablesChecked,
     rowPayloadStored: false,
     dbUrlPrinted: false,

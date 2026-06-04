@@ -22,9 +22,15 @@ REEDITPRO_CONFIRM_SUPABASE_READONLY_AUDIT=true \
 npm run activation:supabase-data-plane-audit -- --execute
 ```
 
-If `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are available to the backend execution environment, the runner performs count-only Supabase REST checks for selected tables. It stores only sanitized counts and status. It never stores row payloads, DB URLs, service-role values, tokens, or signed URLs.
+If `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are available to the backend execution environment or through Google Secret Manager in project `reeditpro`, the runner performs count-only Supabase REST checks for selected tables. It stores only sanitized counts and status. It never stores row payloads, DB URLs, service-role values, tokens, or signed URLs.
 
-If credentials are missing, the static audit still completes and remote activity is marked blocked with the exact reason.
+The runner also inspects Secret Manager metadata/IAM for both Supabase secrets without printing values. If the approved staging API/CPU worker service accounts lack secret-level accessor and Codex has permission, the only allowed IAM repair is narrowly scoped `roles/secretmanager.secretAccessor` on the specific Supabase secret resources.
+
+If credentials or gcloud auth are missing, the static audit still completes and remote activity is marked blocked with the exact reason.
+
+## StoryTiming RLS triage
+
+Phase 51A triages the 11 StoryTiming tables that were initially flagged by literal-only RLS parsing. The committed StoryTiming migration uses dynamic SQL inside a `DO $$` loop to enable RLS, revoke public/anon access, grant authenticated/service-role access, and create workspace-scoped policies. Phase 51A records that evidence but does not alter RLS.
 
 ## Forbidden in Phase 51A
 

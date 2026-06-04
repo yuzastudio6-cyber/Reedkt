@@ -132,11 +132,15 @@ and Phase 52A can proceed only as shared agent/tool ownership architecture.
 Phase 51A adds a read-only Supabase data-plane audit after Phase 50G. It
 inspects committed Supabase clients, env/secret boundaries, migration SQL,
 RLS/storage/signed URL policy evidence, runtime integration references, optional
-count-only remote activity, and P0 beta blockers. It does not run migrations,
-Supabase lifecycle commands, SQL mutations, row writes, signed URL creation,
-provider calls, media processing, Docker, deployment, production, external beta,
-paid production, or broad media. Phase 51B can proceed only as schema/migration
-hardening planning when Phase 51A evidence is sufficient.
+count-only remote activity, Secret Manager metadata, and P0 beta blockers. The
+latest completion attempt `phase51a-20260604T193805` cleared the StoryTiming
+RLS finding as a parser false positive from dynamic SQL evidence, but remote
+Supabase activity and private GCS artifact upload remain blocked by gcloud
+reauthentication. It does not run migrations, Supabase lifecycle commands, SQL
+mutations, row writes, signed URL creation, provider calls, media processing,
+Docker, deployment, production, external beta, paid production, or broad media.
+Phase 51B can proceed only as Supabase activation milestone registry planning
+after remote count-only activity and private artifact upload complete.
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

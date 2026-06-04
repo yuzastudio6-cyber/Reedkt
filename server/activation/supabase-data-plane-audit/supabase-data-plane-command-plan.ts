@@ -39,6 +39,7 @@ export function buildSupabaseDataPlaneCommandPlan(): SupabaseDataPlaneCommandPla
       'media processing',
       'Docker or Cloud Run deployment',
       'production/external beta/broad media unlock',
+      'project-level or public Secret Manager grants',
     ],
   }
 }
@@ -65,6 +66,15 @@ export function buildSupabaseDataPlaneIamPlan(runId = 'phase51a-planned'): Supab
         principal: 'current_authenticated_executor',
       },
     ],
-    forbiddenBindings: ['roles/storage.admin', 'roles/storage.objectAdmin', 'roles/owner', 'roles/editor', 'allUsers', 'allAuthenticatedUsers', 'secretmanager.secretAccessor mutation'],
+    forbiddenBindings: [
+      'roles/storage.admin',
+      'roles/storage.objectAdmin',
+      'roles/owner',
+      'roles/editor',
+      'allUsers',
+      'allAuthenticatedUsers',
+      'project-level secretmanager.secretAccessor',
+      'Secret Manager grants outside SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY approved staging service accounts',
+    ],
   }
 }

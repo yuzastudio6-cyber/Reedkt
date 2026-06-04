@@ -75,7 +75,11 @@ Local validation ran on June 4, 2026 with the Codex-bundled Node/npm path becaus
 
 ## CI Status
 
-GitHub Foundation Validation is pending until the Prompt 24 PR is opened.
+GitHub Foundation Validation passed for PR #179 on run `26979478618`, job `79614797621`: https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/26979478618/job/79614797621.
+
+## Prompt 24A Note
+
+Prompt 24A adds read-only audit evidence intake, redaction rules, evidence request material, and static diagnostics. No redacted Supabase dashboard/project evidence has been supplied yet, so Prompt 24A keeps audit status `evidence_required`.
 
 ## Blockers
 

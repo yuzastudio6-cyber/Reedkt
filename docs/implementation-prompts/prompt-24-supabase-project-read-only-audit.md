@@ -7,6 +7,7 @@ Prompt 24 creates a read-only Supabase project inventory and audit package from 
 - Branch: `codex/rp-foundation-24-supabase-project-read-only-audit`
 - PR base: `codex/rp-foundation-23s-supabase-milestone-sync-policy-v2`
 - PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/179
+- GitHub Foundation Validation: passed on run `26979478618`, job `79614797621`.
 - Exact capability enabled: `none; Supabase project read-only audit packet only`.
 
 ## Scope
@@ -85,3 +86,7 @@ Forbidden:
 - No SQL runs.
 - No staging or production audit completion is claimed without redacted evidence.
 - Next prompt recommendation is clear.
+
+## Prompt 24A Follow-Up
+
+Prompt 24A adds evidence intake, redaction rules, an evidence matrix, and diagnostics. Actual redacted evidence is still required; Prompt 24A does not change audit status from `evidence_required`.

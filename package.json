@@ -56,6 +56,7 @@
     "staging:supabase:approval-decision:diagnostics": "node scripts/validation/staging-supabase-human-decision-record-diagnostics.mjs",
     "supabase:milestone:sync:diagnostics": "node scripts/validation/supabase-milestone-sync-diagnostics.mjs",
     "supabase:project:readonly-audit:diagnostics": "node scripts/validation/supabase-project-readonly-audit-diagnostics.mjs",
+    "supabase:project:evidence-intake:diagnostics": "node scripts/validation/supabase-project-readonly-evidence-intake-diagnostics.mjs",
     "supabase:local:toolchain:probe": "node scripts/validation/local-supabase-host-toolchain-probe.mjs",
     "supabase:local:preflight": "node scripts/validation/local-supabase-safety-preflight.mjs",
     "supabase:rls:list-tests": "node scripts/validation/local-supabase-rls-runner.mjs --list-tests",

@@ -531,3 +531,44 @@ failed to start docker container "supabase_db_reeditpro-local": Error response f
 ```
 
 Prompt 20O is recommended to clear or route around the local-only `54322` port conflict and retry `supabase start` before Prompt 20B SQL execution.
+
+## Prompt 20O Evidence Update
+
+Prompt 20O resolves the local-only Supabase DB/Studio port conflict by changing `supabase/config.toml`:
+
+- `[db].port`: `54322` -> `54330`
+- `[studio].port`: `54323` -> `54331`
+
+Implementation-time port inspection showed `54322` and `54323` were bound by `rapportd`, while `54330` and `54331` were available. No `rapportd` or other non-Supabase process was killed.
+
+Prompt 20O evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, `remoteRiskDetected=false`, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Local-only cleanup before start; no backup. |
+| `supabase start` | Failed after migration retry advanced | Local start now passes `202605180007_reeditpro_rls_policies.sql` and fails in `202605180008_reeditpro_storage_buckets_policies.sql`. |
+| `supabase status` | Not run | Start failed before a completed local service state. |
+| `npm run supabase:rls:list-tests` | Not run | Start failed; no DB URL was available. |
+| `npm run supabase:rls:local:dry-run` | Not run | Start failed; no DB URL was available. |
+
+Current blocker:
+
+```text
+ERROR: must be owner of table buckets (SQLSTATE 42501)
+At statement: 1
+comment on table storage.buckets is 'ReeditPro buckets are private by default. Object paths should start with <project_id>/... for project-scoped access.'
+```
+
+Prompt 20O readiness:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+- `canRunLocalSql=false`
+- local DB/Studio port conflict resolved
+- no localhost-only DB URL captured
+- no SQL/RLS smoke test executed
+
+Prompt 20P is recommended to repair the local-only storage bucket policy migration ownership blocker before Prompt 20B SQL execution.

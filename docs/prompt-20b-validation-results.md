@@ -230,3 +230,29 @@ Non-mutating inspection showed `rapportd` listening on `*:54322`.
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until local `supabase start` succeeds and captures a localhost-only DB URL. The next milestone should be Prompt 20O - Local Supabase Start Port Conflict And Migration Chain Retry.
+
+## Prompt 20O Follow-Up
+
+Prompt 20O resolved the local DB/Studio port conflict by changing local Supabase ports in `supabase/config.toml`:
+
+- `[db].port`: `54322` -> `54330`
+- `[studio].port`: `54323` -> `54331`
+
+Local safety gates passed for start eligibility:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+
+`supabase stop --no-backup` completed. `supabase start` advanced through the Prompt 20N repaired RLS migration and then failed at:
+
+```text
+supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql
+ERROR: must be owner of table buckets (SQLSTATE 42501)
+At statement: 1
+comment on table storage.buckets is 'ReeditPro buckets are private by default. Object paths should start with <project_id>/... for project-scoped access.'
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until local `supabase start` succeeds and captures a localhost-only DB URL. The next milestone should be Prompt 20P - Local Supabase Migration Chain Repair Follow-Up 8.

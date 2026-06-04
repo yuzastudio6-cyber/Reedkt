@@ -29,10 +29,10 @@ Scores are honest readiness estimates after Prompt 25 staging Supabase/RLS dry-r
 
 ## Decision
 
-Prompt 25 adds a blocked staging Supabase/RLS dry-run command packet after Prompt 24A created read-only audit evidence intake, Prompt 24 created the audit packet, Prompt 23S created milestone sync policy, and Prompt 23 recorded `pending_human_approval`. Prompt 20B-Retry remains the only local RLS smoke pass. Staging validation remains unexecuted. Human approval is not granted. Aggregate readiness after Prompt 25:
+Prompt 25 adds a blocked staging Supabase/RLS dry-run command packet after Prompt 24A created read-only audit evidence intake, Prompt 24 created the audit packet, Prompt 23S created milestone sync policy, and Prompt 23 recorded `pending_human_approval`. Prompt 25A adds the GCP Secret Manager reference contract for future Supabase values but does not verify access or fetch values. Prompt 20B-Retry remains the only local RLS smoke pass. Staging validation remains unexecuted. Human approval is not granted. Aggregate readiness after Prompt 25A:
 
 - Foundation readiness: about 78%.
 - Executable beta readiness: about 12%.
 - Production beta readiness: about 1%.
 
-Foundation readiness is unchanged because Prompt 25 adds a blocked command packet rather than supplied Supabase project evidence or execution. Executable beta readiness remains low until human approval, broader local/staging RLS, redacted evidence review, and runtime capabilities are validated; production beta readiness remains blocked until staging validation and runtime capabilities are approved.
+Foundation readiness is unchanged because Prompt 25A adds reference policy rather than supplied Supabase project evidence, Secret Manager access evidence, or execution. Executable beta readiness remains low until human approval, broader local/staging RLS, redacted evidence review, verified secret-reference handling, and runtime capabilities are validated; production beta readiness remains blocked until staging validation and runtime capabilities are approved.

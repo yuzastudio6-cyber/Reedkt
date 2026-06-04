@@ -1,5 +1,7 @@
 # Supabase Read-Only Audit Redaction Rules
 
+Prompt 25A note: Supabase values should be represented by GCP Secret Manager reference placeholders only. Redacted evidence may show a reference name such as `<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>`, but must not show a Secret Manager payload, raw database URL, key, JWT secret, signed URL, or password.
+
 Prompt 24A accepts only redacted, read-only Supabase project evidence. It does not request secrets and must never expose values that could grant access to a Supabase project, provider account, payment system, storage object, or private user data.
 
 ## Must Be Removed

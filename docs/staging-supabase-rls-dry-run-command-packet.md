@@ -19,6 +19,8 @@ Prompt 25 does not run Supabase lifecycle commands, SQL, migrations, `psql`, sta
 
 Prompt 23 remains `pending_human_approval`. Prompt 24A records `evidence_required` and `not_applicable_no_evidence` because no tracked redacted Supabase project evidence has been supplied.
 
+Prompt 25A requires future staging command packets to use GCP Secret Manager reference placeholders for Supabase values. Future packet text must refer to placeholders such as `<GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF>` and `<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>` instead of raw Supabase project refs, database URLs, keys, JWT secrets, or storage endpoints.
+
 ## Purpose
 
 The packet turns the future staging validation path into reviewable command templates and go/no-go gates before anyone runs a staging command. It is meant to make the next human decision concrete without granting that decision.
@@ -80,6 +82,8 @@ This packet does not approve:
 DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.
 echo "Future approved staging command packet uses <REDACTED_STAGING_PROJECT_REF> <APPROVED_BRANCH> <APPROVED_COMMIT> <APPROVED_SQL_FILE> <REDACTED_LOCAL_OR_STAGING_DB_URL>"
 ```
+
+Prompt 25A-compatible command packets must also map the redacted staging placeholders to GCP Secret Manager reference placeholders, for example `<GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF>` and `<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>`. The reference placeholder is not a value and does not grant access.
 
 The full future command template set lives in `docs/staging-supabase-future-command-templates.md`.
 

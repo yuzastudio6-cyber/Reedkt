@@ -6,6 +6,8 @@ Every command block includes this exact warning:
 
 `DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.`
 
+Prompt 25A requires future Supabase command packets to use GCP Secret Manager reference placeholders, not raw Supabase values. The examples below remain blocked templates and do not fetch Secret Manager values.
+
 ## Static Validation Packet
 
 ```sh
@@ -39,6 +41,11 @@ echo "Review approved SQL file <APPROVED_SQL_FILE> for a future staging RLS pack
 ```sh
 DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.
 echo "Future approved dry-run target is <REDACTED_STAGING_PROJECT_REF> with DB placeholder <REDACTED_LOCAL_OR_STAGING_DB_URL>."
+```
+
+```sh
+DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.
+echo "Future approved dry-run target must resolve through <GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF> and <GCP_SECRET_REF_SUPABASE_STAGING_DB_URL> after approval and evidence review."
 ```
 
 ## Cleanup Command Packet

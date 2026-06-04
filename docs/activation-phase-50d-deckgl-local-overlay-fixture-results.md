@@ -71,3 +71,8 @@ Private artifacts:
 Phase50E readiness:
 
 - `ready_for_cesiumjs_3d_planning_fixture`
+
+Phase50E handoff:
+
+- Phase 50E is limited to generated/local/offline CesiumJS 3D planning fixture validation.
+- Cesium ion, ion tokens, live terrain, live imagery, 3D Tiles, live tiles, public OSM tiles, Mapbox, Google Maps, geocoding/routing, paid providers, deck.gl runtime in Phase 50E, D3, Three.js, production, external beta, paid production, and broad media remain blocked.

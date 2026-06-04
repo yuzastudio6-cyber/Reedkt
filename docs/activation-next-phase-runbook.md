@@ -97,6 +97,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Proceed to Phase 50E only as a CesiumJS 3D planning fixture.
 5. Do not use live tiles, public OSM tiles, geocoding/routing APIs, paid map providers, public artifacts, production/external beta/broad media, or treat Phase 50D as broad map runtime approval.
 
+## After Phase 50E
+
+1. Review `activation:cesiumjs-local-3d-fixture:report`, `activation:cesiumjs-local-3d-fixture:iam-plan`, and the private Phase 50E artifacts.
+2. Confirm CesiumJS used generated local 3D planning entities only, local `cesium/Build/Cesium` assets, no ion token, no live terrain, no live imagery, no 3D Tiles, no geocoder, no live tiles, and no remote provider URLs.
+3. Confirm the network guard observed no external requests and the 1280x720 screenshot plus Sharp preview/thumbnail/metadata were uploaded privately.
+4. Proceed to Phase 50F only as web search + map planning private E2E.
+5. Do not use Cesium ion, live terrain/imagery, 3D Tiles, live tiles, public OSM tiles, geocoding/routing APIs, paid map providers, public artifacts, production/external beta/broad media, or treat Phase 50E as broad 3D map runtime approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

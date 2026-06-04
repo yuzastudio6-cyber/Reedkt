@@ -1,0 +1,494 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "status": "passed",
+  "fixtures": [
+    {
+      "fixtureId": "fixture-modern-web-high",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "web-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "secureContext": true,
+            "crossOriginIsolated": true,
+            "workerAvailable": true,
+            "dedicatedWorkerAvailable": true,
+            "serviceWorkerAvailable": true,
+            "offscreenCanvasAvailable": true,
+            "platformCoarse": "desktop"
+          },
+          "compute": {
+            "hardwareConcurrencyBucket": "9_16",
+            "deviceMemoryBucket": "16_plus",
+            "wasmAvailable": true,
+            "wasmSimdLikely": true,
+            "sharedArrayBufferAvailable": true,
+            "wasmThreadsLikely": true,
+            "highResolutionTimerAllowed": true
+          },
+          "graphics": {
+            "webglAvailable": true,
+            "webgl2Available": true,
+            "webgpuAvailable": true,
+            "webgpuSecureContextRequired": true,
+            "webgpuAdapterClass": "available_redacted",
+            "offscreenCanvas2dAvailable": true,
+            "offscreenCanvasWebglAvailable": true
+          },
+          "media": {
+            "webCodecsAvailable": true,
+            "videoEncoderAvailable": true,
+            "videoDecoderAvailable": true,
+            "audioEncoderAvailable": true,
+            "audioDecoderAvailable": true,
+            "mediaCapabilitiesAvailable": true,
+            "codecSupportProbePolicy": "disabled_by_default"
+          },
+          "storage": {
+            "storageEstimateAvailable": true,
+            "storageQuotaBucket": "20gb_plus",
+            "storageUsageBucket": "lt_100mb",
+            "persistentStorageAvailable": true
+          },
+          "network": {
+            "networkInformationAvailable": true,
+            "effectiveType": "4g",
+            "saveData": false,
+            "noSpeedTest": true,
+            "noEndpointPing": true
+          },
+          "policy": {
+            "privacyRiskLevel": "medium",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "web-capability-profile-v1"
+          }
+        },
+        "routePlanningHints": [
+          "browser_can_assist_preview_metadata",
+          "browser_preview_metadata_possible",
+          "web_media_preview_possible",
+          "webcodecs_present_but_media_processing_blocked",
+          "webgpu_present_but_unapproved"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "webgpu_present_but_unapproved_for_execution",
+          "webcodecs_present_but_media_processing_blocked"
+        ],
+        "unsupportedApis": [],
+        "sourcePolicyRefs": [
+          "phase_44d_web_capability_privacy_policy",
+          "phase_44d_web_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-mid-web-no-webgpu",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "web-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "secureContext": true,
+            "crossOriginIsolated": true,
+            "workerAvailable": true,
+            "dedicatedWorkerAvailable": true,
+            "serviceWorkerAvailable": true,
+            "offscreenCanvasAvailable": true,
+            "platformCoarse": "desktop"
+          },
+          "compute": {
+            "hardwareConcurrencyBucket": "5_8",
+            "deviceMemoryBucket": "8_16gb",
+            "wasmAvailable": true,
+            "wasmSimdLikely": true,
+            "sharedArrayBufferAvailable": true,
+            "wasmThreadsLikely": true,
+            "highResolutionTimerAllowed": true
+          },
+          "graphics": {
+            "webglAvailable": true,
+            "webgl2Available": true,
+            "webgpuAvailable": false,
+            "webgpuSecureContextRequired": true,
+            "webgpuAdapterClass": "unavailable",
+            "offscreenCanvas2dAvailable": true,
+            "offscreenCanvasWebglAvailable": true
+          },
+          "media": {
+            "webCodecsAvailable": true,
+            "videoEncoderAvailable": true,
+            "videoDecoderAvailable": true,
+            "audioEncoderAvailable": true,
+            "audioDecoderAvailable": true,
+            "mediaCapabilitiesAvailable": true,
+            "codecSupportProbePolicy": "disabled_by_default"
+          },
+          "storage": {
+            "storageEstimateAvailable": true,
+            "storageQuotaBucket": "5_20gb",
+            "storageUsageBucket": "100mb_1gb",
+            "persistentStorageAvailable": true
+          },
+          "network": {
+            "networkInformationAvailable": true,
+            "effectiveType": "4g",
+            "saveData": false,
+            "noSpeedTest": true,
+            "noEndpointPing": true
+          },
+          "policy": {
+            "privacyRiskLevel": "medium",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "web-capability-profile-v1"
+          }
+        },
+        "routePlanningHints": [
+          "browser_preview_metadata_possible",
+          "gpu_compute_unavailable",
+          "web_media_preview_possible",
+          "webcodecs_present_but_media_processing_blocked"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "webcodecs_present_but_media_processing_blocked"
+        ],
+        "unsupportedApis": [
+          "webgpu"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44d_web_capability_privacy_policy",
+          "phase_44d_web_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-low-capability-mobile",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "web-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "secureContext": true,
+            "crossOriginIsolated": false,
+            "workerAvailable": true,
+            "dedicatedWorkerAvailable": true,
+            "serviceWorkerAvailable": false,
+            "offscreenCanvasAvailable": false,
+            "platformCoarse": "mobile"
+          },
+          "compute": {
+            "hardwareConcurrencyBucket": "1_2",
+            "deviceMemoryBucket": "lt_4gb",
+            "wasmAvailable": true,
+            "wasmSimdLikely": false,
+            "sharedArrayBufferAvailable": false,
+            "wasmThreadsLikely": false,
+            "highResolutionTimerAllowed": false
+          },
+          "graphics": {
+            "webglAvailable": true,
+            "webgl2Available": false,
+            "webgpuAvailable": false,
+            "webgpuSecureContextRequired": true,
+            "webgpuAdapterClass": "unavailable",
+            "offscreenCanvas2dAvailable": false,
+            "offscreenCanvasWebglAvailable": false
+          },
+          "media": {
+            "webCodecsAvailable": false,
+            "videoEncoderAvailable": false,
+            "videoDecoderAvailable": false,
+            "audioEncoderAvailable": false,
+            "audioDecoderAvailable": false,
+            "mediaCapabilitiesAvailable": false,
+            "codecSupportProbePolicy": "unavailable"
+          },
+          "storage": {
+            "storageEstimateAvailable": true,
+            "storageQuotaBucket": "lt_1gb",
+            "storageUsageBucket": "100mb_1gb",
+            "persistentStorageAvailable": false
+          },
+          "network": {
+            "networkInformationAvailable": true,
+            "effectiveType": "3g",
+            "saveData": true,
+            "noSpeedTest": true,
+            "noEndpointPing": true
+          },
+          "policy": {
+            "privacyRiskLevel": "medium",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "web-capability-profile-v1"
+          }
+        },
+        "routePlanningHints": [
+          "avoid_browser_heavy_processing",
+          "cross_origin_isolation_required_for_threads",
+          "gpu_compute_unavailable",
+          "low_storage_avoid_browser_processing",
+          "server_worker_preferred"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "shared_memory_unavailable_cross_origin_isolation",
+          "low_storage_capacity",
+          "low_compute_capacity"
+        ],
+        "unsupportedApis": [
+          "offscreen_canvas",
+          "webcodecs",
+          "webgpu"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44d_web_capability_privacy_policy",
+          "phase_44d_web_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-cross-origin-not-isolated",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "web-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "secureContext": true,
+            "crossOriginIsolated": false,
+            "workerAvailable": true,
+            "dedicatedWorkerAvailable": true,
+            "serviceWorkerAvailable": true,
+            "offscreenCanvasAvailable": true,
+            "platformCoarse": "desktop"
+          },
+          "compute": {
+            "hardwareConcurrencyBucket": "5_8",
+            "deviceMemoryBucket": "8_16gb",
+            "wasmAvailable": true,
+            "wasmSimdLikely": true,
+            "sharedArrayBufferAvailable": false,
+            "wasmThreadsLikely": false,
+            "highResolutionTimerAllowed": false
+          },
+          "graphics": {
+            "webglAvailable": true,
+            "webgl2Available": true,
+            "webgpuAvailable": false,
+            "webgpuSecureContextRequired": true,
+            "webgpuAdapterClass": "unavailable",
+            "offscreenCanvas2dAvailable": true,
+            "offscreenCanvasWebglAvailable": true
+          },
+          "media": {
+            "webCodecsAvailable": true,
+            "videoEncoderAvailable": true,
+            "videoDecoderAvailable": true,
+            "audioEncoderAvailable": true,
+            "audioDecoderAvailable": true,
+            "mediaCapabilitiesAvailable": true,
+            "codecSupportProbePolicy": "disabled_by_default"
+          },
+          "storage": {
+            "storageEstimateAvailable": true,
+            "storageQuotaBucket": "5_20gb",
+            "storageUsageBucket": "lt_100mb",
+            "persistentStorageAvailable": true
+          },
+          "network": {
+            "networkInformationAvailable": true,
+            "effectiveType": "4g",
+            "saveData": false,
+            "noSpeedTest": true,
+            "noEndpointPing": true
+          },
+          "policy": {
+            "privacyRiskLevel": "medium",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": true,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "web-capability-profile-v1"
+          }
+        },
+        "routePlanningHints": [
+          "browser_preview_metadata_possible",
+          "cross_origin_isolation_required_for_threads",
+          "gpu_compute_unavailable",
+          "web_media_preview_possible",
+          "webcodecs_present_but_media_processing_blocked"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "shared_memory_unavailable_cross_origin_isolation",
+          "webcodecs_present_but_media_processing_blocked"
+        ],
+        "unsupportedApis": [
+          "webgpu"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44d_web_capability_privacy_policy",
+          "phase_44d_web_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-insecure-context",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "web-capability-profile-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "capabilityBuckets": {
+          "environment": {
+            "secureContext": false,
+            "crossOriginIsolated": false,
+            "workerAvailable": true,
+            "dedicatedWorkerAvailable": true,
+            "serviceWorkerAvailable": false,
+            "offscreenCanvasAvailable": false,
+            "platformCoarse": "unknown"
+          },
+          "compute": {
+            "hardwareConcurrencyBucket": "unknown",
+            "deviceMemoryBucket": "unknown",
+            "wasmAvailable": true,
+            "wasmSimdLikely": "unknown",
+            "sharedArrayBufferAvailable": false,
+            "wasmThreadsLikely": false,
+            "highResolutionTimerAllowed": false
+          },
+          "graphics": {
+            "webglAvailable": false,
+            "webgl2Available": false,
+            "webgpuAvailable": false,
+            "webgpuSecureContextRequired": true,
+            "webgpuAdapterClass": "blocked_by_policy",
+            "offscreenCanvas2dAvailable": false,
+            "offscreenCanvasWebglAvailable": false
+          },
+          "media": {
+            "webCodecsAvailable": false,
+            "videoEncoderAvailable": false,
+            "videoDecoderAvailable": false,
+            "audioEncoderAvailable": false,
+            "audioDecoderAvailable": false,
+            "mediaCapabilitiesAvailable": false,
+            "codecSupportProbePolicy": "unavailable"
+          },
+          "storage": {
+            "storageEstimateAvailable": false,
+            "storageQuotaBucket": "unknown",
+            "storageUsageBucket": "unknown",
+            "persistentStorageAvailable": false
+          },
+          "network": {
+            "networkInformationAvailable": false,
+            "effectiveType": "unknown",
+            "saveData": "unknown",
+            "noSpeedTest": true,
+            "noEndpointPing": true
+          },
+          "policy": {
+            "privacyRiskLevel": "medium",
+            "fingerprintingRiskLevel": "low",
+            "allowedForRoutePlanning": false,
+            "allowedForWorkerExecution": false,
+            "allowedForCostEstimator": false,
+            "routeManifestVersion": "track-b-route-manifest-v1",
+            "profileSchemaVersion": "web-capability-profile-v1"
+          }
+        },
+        "routePlanningHints": [
+          "cross_origin_isolation_required_for_threads",
+          "gpu_compute_unavailable",
+          "unknown_capability_fail_closed"
+        ],
+        "blockedReasons": [
+          "insecure_context"
+        ],
+        "warnings": [
+          "shared_memory_unavailable_cross_origin_isolation"
+        ],
+        "unsupportedApis": [
+          "network_information",
+          "offscreen_canvas",
+          "storage_estimate",
+          "webcodecs",
+          "webgpu"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44d_web_capability_privacy_policy",
+          "phase_44d_web_capability_bucket_policy",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedHints": [],
+      "missingExpectedWarnings": [],
+      "missingExpectedBlockedReasons": []
+    }
+  ]
+}

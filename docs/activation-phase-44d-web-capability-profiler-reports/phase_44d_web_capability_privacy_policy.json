@@ -1,0 +1,28 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "status": "privacy_preserving_coarse_session_profile_only",
+  "policy": {
+    "privacyMode": [
+      "coarse",
+      "no_persistence",
+      "no_identifiers"
+    ],
+    "persistentDeviceIdentifier": "blocked",
+    "rawFullUserAgent": "blocked",
+    "exactScreenResolution": "blocked",
+    "detailedGpuAdapterVendorDevice": "blocked",
+    "ipAddressCapture": "blocked",
+    "networkSpeedTest": "blocked",
+    "endpointPing": "blocked",
+    "mediaFileProbing": "blocked",
+    "clipboardAccess": "blocked",
+    "filesystemAccess": "blocked",
+    "localStoragePersistenceByDefault": "blocked",
+    "sessionStoragePersistenceByDefault": "blocked",
+    "crossSiteTracking": "blocked",
+    "liveProfileUpload": "blocked_until_future_explicit_phase_with_consent",
+    "browserModuleReturnShape": "local_object_only"
+  },
+  "liveProfileUploadConsent": "future_explicit_phase_required"
+}

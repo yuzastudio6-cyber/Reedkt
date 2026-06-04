@@ -1,0 +1,50 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "status": "coarse_buckets_only",
+  "policy": {
+    "hardwareConcurrency": [
+      "1_2",
+      "3_4",
+      "5_8",
+      "9_16",
+      "17_plus",
+      "unknown"
+    ],
+    "deviceMemory": [
+      "lt_4gb",
+      "4_8gb",
+      "8_16gb",
+      "16_plus",
+      "unknown"
+    ],
+    "storageQuota": [
+      "lt_1gb",
+      "1_5gb",
+      "5_20gb",
+      "20gb_plus",
+      "unknown"
+    ],
+    "storageUsage": [
+      "lt_100mb",
+      "100mb_1gb",
+      "1gb_plus",
+      "unknown"
+    ],
+    "gpuAdapter": [
+      "available_redacted",
+      "unavailable",
+      "blocked_by_policy",
+      "unknown"
+    ],
+    "networkEffectiveType": [
+      "slow-2g",
+      "2g",
+      "3g",
+      "4g",
+      "unknown"
+    ],
+    "screenResolution": "not_collected",
+    "userAgent": "not_collected"
+  }
+}

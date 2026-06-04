@@ -1,0 +1,10 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "status": "cost_guardrail_handoff_only",
+  "costEstimatorSource": "Phase 44H static cost estimator",
+  "routeExecutionCostNotEstimatedFromRuntime": true,
+  "cannotOverrideCostGuardrails": true,
+  "gpuProviderBroadMediaCostsBlocked": true,
+  "futureExecutionMustPassCostPolicy": true
+}

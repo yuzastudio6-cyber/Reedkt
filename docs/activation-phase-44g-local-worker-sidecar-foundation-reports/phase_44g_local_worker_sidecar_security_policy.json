@@ -1,0 +1,33 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "policyVersion": "track-b-sidecar-security-policy-v1",
+  "rawChatExecutionAllowed": false,
+  "arbitrarySubprocessAllowed": false,
+  "shellStringExecutionAllowed": false,
+  "futureCommandPolicy": {
+    "allowlistedAdaptersOnly": true,
+    "explicitExecutablePath": true,
+    "explicitArgvArray": true,
+    "shellByDefault": false,
+    "boundedTimeoutRequired": true,
+    "boundedStdoutStderrRequired": true,
+    "controlledCwdRequired": true,
+    "scrubbedEnvironmentRequired": true,
+    "inheritedSensitiveEnvAllowed": false
+  },
+  "ipcSecretPolicy": {
+    "serviceRoleSecretsInFrontendAllowed": false,
+    "secretsOverIpcAllowed": false,
+    "environmentVariableDumpAllowed": false
+  },
+  "futureDesktopBridgePolicy": {
+    "electronContextIsolationRequired": true,
+    "preloadApiMustBeNarrow": true,
+    "directNodeAccessFromRendererAllowed": false,
+    "tauriShellNotAddedInPhase44G": true,
+    "sidecarCommandsMustBeAllowlisted": true
+  },
+  "failClosed": true,
+  "auditLoggingRequired": true
+}

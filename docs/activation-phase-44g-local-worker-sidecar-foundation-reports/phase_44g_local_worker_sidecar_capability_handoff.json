@@ -1,0 +1,20 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "status": "capability_manifest_handoff_only",
+  "trackBToolCount": 18,
+  "localWorkerSidecarPlanning": "phase_complete_restricted_scope",
+  "capabilitiesConsumed": [
+    "PR #161 capability manifests",
+    "PR #164 route manifests",
+    "PR #167 web profiler",
+    "PR #176 desktop profiler",
+    "PR #177 desktop benchmark",
+    "PR #180 cost estimator"
+  ],
+  "disabledCapabilitiesRemainDisabled": [
+    "demucs",
+    "qwen3_vl",
+    "vllm"
+  ]
+}

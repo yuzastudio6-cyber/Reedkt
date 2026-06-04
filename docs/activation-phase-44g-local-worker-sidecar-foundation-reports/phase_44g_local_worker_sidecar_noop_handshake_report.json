@@ -1,0 +1,14 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "status": "skipped_by_policy",
+  "requiredConfirmation": "REEDITPRO_CONFIRM_LOCAL_WORKER_SIDECAR_NOOP_HANDSHAKE=true",
+  "doesNotBlockPhase44G": true,
+  "subprocessStarted": false,
+  "shellUsed": false,
+  "routeExecution": "not_run",
+  "workerExecution": "not_run",
+  "toolExecution": "not_run",
+  "mediaProcessing": "not_run",
+  "providerCalls": "not_run"
+}

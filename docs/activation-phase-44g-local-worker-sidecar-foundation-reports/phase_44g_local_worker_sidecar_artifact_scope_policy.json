@@ -1,0 +1,35 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "policyVersion": "track-b-artifact-scope-policy-v1",
+  "approvedPrivateInputScope": "private_activation_or_worker_temp_scoped_prefix_only",
+  "approvedPrivateOutputScope": "private_activation_qa_or_worker_temp_scoped_prefix_only",
+  "approvedLocalTempScope": "ephemeral_phase_scoped_temp_dir_only",
+  "redactionRules": [
+    "bucket_prefix_only",
+    "hashes_allowed",
+    "object_counts_allowed",
+    "no_payload_bytes_committed"
+  ],
+  "cleanupRules": [
+    "delete_local_temp_after_future_execution",
+    "write_cleanup_report",
+    "fail_closed_on_cleanup_failure"
+  ],
+  "blocked": [
+    "public_artifact_paths",
+    "public_urls",
+    "signed_urls_as_source_of_truth",
+    "arbitrary_user_paths",
+    "arbitrary_gcs_prefixes",
+    "broad_media_buckets",
+    "committed_media_payloads",
+    "committed_audio_payloads",
+    "committed_model_payloads",
+    "committed_private_payloads"
+  ],
+  "requiredReports": [
+    "private_artifact_manifest",
+    "audit_report"
+  ]
+}

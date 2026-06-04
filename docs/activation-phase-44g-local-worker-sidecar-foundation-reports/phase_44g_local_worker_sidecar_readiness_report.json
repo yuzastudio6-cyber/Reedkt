@@ -1,0 +1,22 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "localWorkerSidecarPlanning": "phase_complete_restricted_scope",
+  "routeExecution": "blocked",
+  "workerExecution": "blocked",
+  "toolExecution": "blocked",
+  "hybridE2eSimulation": "pending_phase44j",
+  "webCapabilityProfiler": "phase_complete_restricted_scope",
+  "desktopCapabilityProfiler": "phase_complete_restricted_scope",
+  "desktopBenchmarkRunner": "phase_complete_restricted_scope",
+  "costEstimator": "phase_complete_restricted_scope",
+  "production": "blocked",
+  "externalBeta": "blocked",
+  "paidProduction": "blocked",
+  "broadMedia": "blocked",
+  "publicArtifacts": "blocked",
+  "providers": "blocked",
+  "vlm": "excluded",
+  "demucs": "blocked",
+  "trackA": "not_touched"
+}

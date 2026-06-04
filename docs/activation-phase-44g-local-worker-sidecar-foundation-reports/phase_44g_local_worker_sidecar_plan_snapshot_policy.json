@@ -1,0 +1,44 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "policyVersion": "track-b-plan-snapshot-policy-v1",
+  "requiredFields": [
+    "planSnapshotId",
+    "routeManifestVersion",
+    "toolRouteEntryId",
+    "toolId",
+    "approvedCapabilityId",
+    "inputArtifactScopeId",
+    "outputArtifactScopeId",
+    "requesterContext",
+    "sourcePhase",
+    "allowedExecutionPhase",
+    "confirmationPhase",
+    "maxDurationSeconds",
+    "maxInputCount",
+    "maxOutputSizeBytes",
+    "auditReportPath"
+  ],
+  "requiredBooleans": {
+    "publicOutputAllowed": false,
+    "broadMediaAllowed": false,
+    "arbitraryMediaAllowed": false,
+    "providerCallsAllowed": false,
+    "noRawChatExecution": true,
+    "failClosed": true
+  },
+  "blockedSources": [
+    "raw_prompt_text",
+    "arbitrary_commands",
+    "arbitrary_file_paths",
+    "arbitrary_gcs_prefixes",
+    "public_urls",
+    "signed_urls_as_source_of_truth",
+    "tools_not_enabled_by_route_manifest",
+    "demucs",
+    "qwen3_vl",
+    "vllm",
+    "routeExecutionAllowed_false_entries_for_execution",
+    "runtimeExecutionAllowed_false_entries_for_execution"
+  ]
+}

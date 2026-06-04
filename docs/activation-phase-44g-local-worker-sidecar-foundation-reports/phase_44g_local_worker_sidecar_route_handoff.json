@@ -1,0 +1,17 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "status": "protocol_validation_handoff_only",
+  "sourceRouteManifestVersion": "track-b-route-manifest-v1",
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "cannotChooseToolsByItself": true,
+  "cannotOverrideRouteManifest": true,
+  "cannotOverrideCapabilityManifest": true,
+  "cannotApproveVlm": true,
+  "cannotApproveDemucs": true,
+  "cannotApproveBroadMedia": true,
+  "phase44jRequiredBeforeHybridE2e": true,
+  "futureExecutionRequiresApprovedPlanSnapshotAndArtifactScope": true
+}

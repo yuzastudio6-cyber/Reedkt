@@ -1,0 +1,66 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "schemaVersion": "track-b-local-worker-sidecar-schema-report-v1",
+  "protocolVersion": "track-b-sidecar-protocol-v1",
+  "messageTypes": [
+    "sidecar_hello",
+    "controller_hello",
+    "plan_snapshot_validate_request",
+    "plan_snapshot_validate_response",
+    "artifact_scope_validate_request",
+    "artifact_scope_validate_response",
+    "execution_request",
+    "execution_blocked_response",
+    "sidecar_shutdown_request",
+    "sidecar_shutdown_ack"
+  ],
+  "executionRequestPolicy": "schema_defined_but_always_blocked_in_phase44g",
+  "rawChatPromptAllowed": false,
+  "arbitraryMediaPathAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "secretValuesAllowed": false,
+  "requiredPolicyVersions": {
+    "routeManifestVersion": "track-b-route-manifest-v1",
+    "planSnapshotPolicyVersion": "track-b-plan-snapshot-policy-v1",
+    "artifactScopePolicyVersion": "track-b-artifact-scope-policy-v1"
+  },
+  "fixtureMessages": {
+    "sidecarHello": {
+      "type": "sidecar_hello",
+      "protocolVersion": "track-b-sidecar-protocol-v1",
+      "sidecarIdEphemeral": "fixture-ephemeral-sidecar-id",
+      "supportedCapabilities": [
+        "metadata_validation_only",
+        "policy_fixture_validation"
+      ],
+      "runtimeKind": "metadata_only",
+      "platformBucket": "desktop_local",
+      "privacyMode": "no_persistent_identity",
+      "noPersistentIdentity": true
+    },
+    "controllerHello": {
+      "type": "controller_hello",
+      "protocolVersion": "track-b-sidecar-protocol-v1",
+      "routeManifestVersion": "track-b-route-manifest-v1",
+      "allowedToolIds": [
+        "deepfilternet",
+        "signalsmith_stretch",
+        "paddleocr",
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "blockedToolIds": [
+        "demucs",
+        "qwen3_vl",
+        "vllm"
+      ],
+      "planSnapshotPolicyVersion": "track-b-plan-snapshot-policy-v1",
+      "artifactScopePolicyVersion": "track-b-artifact-scope-policy-v1"
+    }
+  }
+}

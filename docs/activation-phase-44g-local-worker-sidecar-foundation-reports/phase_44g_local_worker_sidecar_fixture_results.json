@@ -1,0 +1,86 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "status": "passed",
+  "fixtures": [
+    {
+      "fixtureId": "fixture-sidecar-handshake-valid",
+      "status": "passed",
+      "accepted": true,
+      "blockedReasons": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-plan-snapshot-valid-but-execution-blocked",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "phase44g_execution_blocked",
+        "route_execution_not_allowed",
+        "runtime_execution_not_allowed"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-artifact-scope-valid-private",
+      "status": "passed",
+      "accepted": true,
+      "blockedReasons": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-deny-raw-chat-execution",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "raw_chat_execution_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-deny-arbitrary-path",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "arbitrary_path_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-deny-public-artifact",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "public_artifact_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-deny-demucs-route",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "demucs_route_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-deny-vlm-route",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "vlm_route_blocked"
+      ],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-protocol-version-mismatch",
+      "status": "passed",
+      "accepted": false,
+      "blockedReasons": [
+        "protocol_version_mismatch"
+      ],
+      "missingExpectedBlockedReasons": []
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "status": "committed_metadata_only",
+  "privateUploadRequired": false,
+  "privatePayloadsCommitted": false,
+  "reportDir": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+  "reportCount": 17
+}

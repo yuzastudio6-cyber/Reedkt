@@ -1,0 +1,78 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "status": "generated_mock_fixtures_only",
+  "fixtureCount": 9,
+  "fixtures": [
+    {
+      "fixtureId": "fixture-sidecar-handshake-valid",
+      "description": "Valid metadata-only hello exchange with no execution.",
+      "expectedAccepted": true,
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-plan-snapshot-valid-but-execution-blocked",
+      "description": "Plan snapshot fields validate, but execution request remains blocked in Phase 44G.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "phase44g_execution_blocked",
+        "route_execution_not_allowed",
+        "runtime_execution_not_allowed"
+      ]
+    },
+    {
+      "fixtureId": "fixture-artifact-scope-valid-private",
+      "description": "Private scoped artifact input/output policy validates.",
+      "expectedAccepted": true,
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-deny-raw-chat-execution",
+      "description": "Raw chat text cannot be used as an execution source.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "raw_chat_execution_blocked"
+      ]
+    },
+    {
+      "fixtureId": "fixture-deny-arbitrary-path",
+      "description": "Arbitrary local paths are blocked.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "arbitrary_path_blocked"
+      ]
+    },
+    {
+      "fixtureId": "fixture-deny-public-artifact",
+      "description": "Public output artifacts are blocked.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "public_artifact_blocked"
+      ]
+    },
+    {
+      "fixtureId": "fixture-deny-demucs-route",
+      "description": "Demucs remains blocked pending provenance/legal review.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "demucs_route_blocked"
+      ]
+    },
+    {
+      "fixtureId": "fixture-deny-vlm-route",
+      "description": "Qwen/vLLM routes remain excluded while VLM runtime is blocked.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "vlm_route_blocked"
+      ]
+    },
+    {
+      "fixtureId": "fixture-protocol-version-mismatch",
+      "description": "Mismatched protocol versions fail closed.",
+      "expectedAccepted": false,
+      "expectedBlockedReasons": [
+        "protocol_version_mismatch"
+      ]
+    }
+  ]
+}

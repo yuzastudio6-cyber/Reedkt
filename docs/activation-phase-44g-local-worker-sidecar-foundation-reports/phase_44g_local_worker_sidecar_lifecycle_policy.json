@@ -1,0 +1,23 @@
+{
+  "phase": "44G",
+  "runId": "phase44g-local-worker-sidecar-foundation-20260604",
+  "policyVersion": "track-b-sidecar-lifecycle-policy-v1",
+  "states": [
+    "uninitialized",
+    "handshake_pending",
+    "ready_metadata_only",
+    "validation_only",
+    "execution_blocked",
+    "shutting_down",
+    "terminated",
+    "error"
+  ],
+  "startupTimeoutMs": 5000,
+  "heartbeatPolicy": "future_execution_phase_required",
+  "shutdownTimeoutMs": 5000,
+  "crashPolicy": "fail_closed_write_blocker_report",
+  "retryPolicy": "no_automatic_retry_in_phase44g",
+  "maxRuntimePolicy": "no_long_running_process_in_phase44g",
+  "tempCleanupPolicy": "ephemeral_temp_only_future_execution_cleanup_required",
+  "artifactCleanupPolicy": "private_manifest_required_future_execution_only"
+}

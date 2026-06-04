@@ -1,8 +1,8 @@
 # Phase 44G Local Worker Sidecar Handoff
 
-Phase 44G may be considered after Phase 44F/44H if the roadmap prioritizes local execution plumbing.
+Phase 44G is now represented by the local worker sidecar foundation reports after Phase 44F/44H.
 
-Phase 44G must remain separate from Phase 44F and requires explicit approval before any sidecar process is started. It should define:
+Phase 44G remains separate from Phase 44F/44H and still requires a later explicit execution phase before any sidecar process is started. It defines:
 
 - sidecar lifecycle and shutdown policy
 - approved plan snapshot and artifact-scope requirements
@@ -11,4 +11,4 @@ Phase 44G must remain separate from Phase 44F and requires explicit approval bef
 - no provider calls or route execution outside approved gates
 - rollback/blocker policy
 
-Phase 44F benchmark metadata and Phase 44H cost estimates are not sidecar execution evidence.
+Phase 44F benchmark metadata, Phase 44H cost estimates, and Phase 44G sidecar protocol metadata are not sidecar execution evidence. They are prerequisites for future Phase 44J simulation only.

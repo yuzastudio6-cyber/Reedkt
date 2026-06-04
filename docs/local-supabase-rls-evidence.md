@@ -572,3 +572,40 @@ Prompt 20O readiness:
 - no SQL/RLS smoke test executed
 
 Prompt 20P is recommended to repair the local-only storage bucket policy migration ownership blocker before Prompt 20B SQL execution.
+
+## Prompt 20P Evidence Update
+
+Prompt 20P repairs the local-only storage migration-chain blocker in `supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql`. It removes documentation-only `COMMENT ON` statements targeting Supabase-owned storage objects and preserves the same private-bucket/project-path policy intent as plain SQL comments.
+
+Prompt 20P evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, `remoteRiskDetected=false`, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Local-only cleanup before start; no backup. |
+| `supabase start` | Failed after migration retry advanced | Local start now passes `202605180008_reeditpro_storage_buckets_policies.sql` and fails in `202605200001_storage_upload_pipeline_readiness.sql`. |
+| `supabase status` | Not run | Start failed before a completed local service state. |
+| `npm run supabase:rls:list-tests` | Not run | Start failed; no DB URL was available. |
+| `npm run supabase:rls:local:dry-run` | Not run | Start failed; no DB URL was available. |
+
+Current blocker:
+
+```text
+ERROR: must be owner of relation objects (SQLSTATE 42501)
+At statement: 7
+comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects is
+  'RP-FIX-07 read policy for workspace/{workspace_id}/project/{project_id}/... paths. Reads require project membership.'
+```
+
+Prompt 20P readiness:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+- `canRunLocalSql=false`
+- `202605180008_reeditpro_storage_buckets_policies.sql` now passes local start
+- no localhost-only DB URL captured
+- no SQL/RLS smoke test executed
+
+Prompt 20P2 is recommended to repair the later storage ownership/privilege blocker before Prompt 20B SQL execution.

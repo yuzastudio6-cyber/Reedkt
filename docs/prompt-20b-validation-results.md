@@ -256,3 +256,27 @@ comment on table storage.buckets is 'ReeditPro buckets are private by default. O
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until local `supabase start` succeeds and captures a localhost-only DB URL. The next milestone should be Prompt 20P - Local Supabase Migration Chain Repair Follow-Up 8.
+
+## Prompt 20P Follow-Up
+
+Prompt 20P repaired the storage ownership blocker in `supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql` by replacing storage-schema `COMMENT ON` statements with plain SQL comments.
+
+Local safety gates passed:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+
+`supabase stop --no-backup` completed. `supabase start` advanced through `202605180008_reeditpro_storage_buckets_policies.sql` and then failed at:
+
+```text
+supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql
+ERROR: must be owner of relation objects (SQLSTATE 42501)
+At statement: 7
+comment on policy "reeditpro_project_members_read_workspace_project_objects" on storage.objects is
+  'RP-FIX-07 read policy for workspace/{workspace_id}/project/{project_id}/... paths. Reads require project membership.'
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until local `supabase start` succeeds and captures a localhost-only DB URL. The next milestone should be Prompt 20P2 - Storage Ownership/Privilege Follow-Up.

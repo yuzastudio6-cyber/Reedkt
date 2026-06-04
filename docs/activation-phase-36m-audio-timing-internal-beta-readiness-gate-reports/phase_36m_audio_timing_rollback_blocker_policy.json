@@ -1,0 +1,16 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "rollbackTriggers": [
+    "Phase 36H, 36I, 36J, or 36K evidence is missing or contradicted",
+    "private artifact verification or upload records non-JSON/audio/video/model payload reads",
+    "private metadata report leaks raw audio, transcript, signed URL, secret, or sensitive media content",
+    "Demucs install/download/runtime/source separation is enabled before approval",
+    "DeepFilterNet or Signalsmith runtime rerun is attempted through Phase 36M",
+    "provider/OCR/VLM/Track A execution is attempted through this gate",
+    "production, external beta, broad media, or public output unlock is attempted"
+  ],
+  "rollbackAction": "revoke audio/timing internally beta-ready candidate status and return the tool family to blocked until corrected evidence is committed.",
+  "blockerPolicy": "fail_closed_on_missing_evidence_or_privacy_storage_gate_failure"
+}

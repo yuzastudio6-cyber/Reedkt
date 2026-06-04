@@ -1,5 +1,7 @@
 # Production Tool Runtime Roadmap
 
+Phase 36M is a metadata-only beta gate, not a production runtime milestone. It may record restricted internal audio/timing QA/planning readiness for bounded DeepFilterNet and Signalsmith evidence only. Demucs runtime routing remains blocked and unavailable; no provider, OCR/VLM, broad media, production, or Track A runtime path is unlocked.
+
 ## Purpose
 
 This roadmap connects the Milestone 0 architecture lock to later production implementation. It describes how ReeditPro moves from mock planning into professional backend AI editing without weakening approval, credit, worker, or frontend boundaries.

@@ -1,5 +1,7 @@
 # Production Tool Readiness Plan
 
+Phase 36M does not change production tool readiness. DeepFilterNet and Signalsmith bounded evidence may support restricted internal audio/timing QA/planning only after the gate passes. Demucs remains unavailable for runtime routing, model download, source separation, broad media, production, and beta until a later approved provenance/runtime phase.
+
 Milestone 5 adds a server-only readiness specification layer under `server/workers/production-readiness/`. It validates production metadata and expected checks without installing or executing tools.
 
 ## Readiness Spec Model

@@ -1,0 +1,17 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "score": {
+    "passedCriteria": 21,
+    "warningCriteria": 0,
+    "totalCriteria": 21,
+    "requiredBlockers": 0,
+    "internalCaveats": 7
+  },
+  "audioTimingToolFamilyBetaStatus": "internally beta-ready candidate",
+  "productWideBetaStatus": "blocked",
+  "externalBetaStatus": "blocked",
+  "productionStatus": "blocked",
+  "demucsStatus": "excluded_and_blocked"
+}

@@ -1,0 +1,28 @@
+{
+  "phase": "44E",
+  "runId": "phase44e-desktop-capability-profiler-20260604",
+  "status": "privacy_preserving_coarse_session_profile_only",
+  "policy": {
+    "persistentDeviceIdentifier": "blocked",
+    "hostname": "blocked",
+    "username": "blocked",
+    "macAddresses": "blocked",
+    "rawNetworkInterfaces": "blocked",
+    "exactCpuModelString": "blocked_or_redacted",
+    "exactGpuAdapterIds": "blocked",
+    "exactDiskPathList": "blocked",
+    "directoryScanning": "blocked",
+    "environmentVariableDump": "blocked",
+    "processList": "blocked",
+    "installedAppScan": "blocked",
+    "localFileInventory": "blocked",
+    "networkSpeedTest": "blocked",
+    "heavyBenchmarks": "blocked",
+    "telemetryUpload": "blocked",
+    "localPersistenceByDefault": "blocked",
+    "liveProfileUpload": "blocked_until_future_explicit_phase",
+    "sessionTempOnly": true,
+    "routePlanningHintsOnly": true
+  },
+  "liveProfileUploadConsent": "future_explicit_phase_required"
+}

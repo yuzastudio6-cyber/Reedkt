@@ -1,0 +1,49 @@
+{
+  "phase": "44E",
+  "runId": "phase44e-desktop-capability-profiler-20260604",
+  "schemaVersion": "desktop-capability-profile-v1",
+  "requiredFields": [
+    "schemaVersion",
+    "generatedAt",
+    "collectionMode",
+    "privacyMode",
+    "capabilityBuckets",
+    "routePlanningHints",
+    "blockedReasons",
+    "warnings",
+    "sourcePolicyRefs"
+  ],
+  "allowedCollectionModes": [
+    "fixture_mock",
+    "local_profile_session_only",
+    "local_profile_skipped_by_policy",
+    "uploaded_private_future"
+  ],
+  "allowedPrivacyModes": [
+    "coarse",
+    "redacted",
+    "no_persistence",
+    "no_identifiers"
+  ],
+  "capabilityCategories": [
+    "environment",
+    "compute",
+    "graphics",
+    "mediaRuntime",
+    "storage",
+    "policy"
+  ],
+  "blockedRawFields": [
+    "persistentDeviceId",
+    "hostname",
+    "username",
+    "macAddress",
+    "networkInterfaces",
+    "exactCpuModelString",
+    "exactGpuAdapterId",
+    "environmentVariables",
+    "processList",
+    "installedApps",
+    "pathList"
+  ]
+}

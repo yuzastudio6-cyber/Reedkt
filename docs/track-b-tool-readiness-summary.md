@@ -21,4 +21,8 @@ Not started:
 - Cost estimator
 - Tool route manifest integration
 
-Next recommended phase: Phase 44I actual tool route manifest integration, with production/beta/broad-media/public/provider scopes still blocked.
+Phase 44D web capability profiler status: phase-complete restricted scope for browser route planning hints only.
+
+Phase 44E desktop capability profiler status: phase-complete restricted scope for desktop/local route planning hints only.
+
+Next recommended phase: Phase 44F desktop benchmark runner or Phase 44H cost estimator, with route execution, production, beta, broad-media, public-artifact, provider, local sidecar, and Track A scopes still blocked.

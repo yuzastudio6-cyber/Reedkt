@@ -1,0 +1,81 @@
+{
+  "phase": "44E",
+  "runId": "phase44e-desktop-capability-profiler-20260604",
+  "accessedAt": "2026-06-04",
+  "status": "official_sources_recorded",
+  "sources": [
+    {
+      "name": "Node.js os.availableParallelism",
+      "url": "https://nodejs.org/api/os.html#osavailableparallelism",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Node.js OS API for recommended parallelism metadata; Phase 44E buckets the value and does not benchmark.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    },
+    {
+      "name": "Node.js os.totalmem",
+      "url": "https://nodejs.org/api/os.html#ostotalmem",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Node.js OS API for total memory in bytes; Phase 44E stores only coarse buckets.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    },
+    {
+      "name": "Node.js os.freemem",
+      "url": "https://nodejs.org/api/os.html#osfreemem",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Node.js OS API for free memory in bytes; Phase 44E stores only coarse buckets.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    },
+    {
+      "name": "Node.js os.arch",
+      "url": "https://nodejs.org/api/os.html#osarch",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Node.js OS API for compiled architecture; Phase 44E stores architecture buckets only.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    },
+    {
+      "name": "Node.js os.machine",
+      "url": "https://nodejs.org/api/os.html#osmachine",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Node.js OS API for machine type; Phase 44E treats this as future optional coarse evidence only.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    },
+    {
+      "name": "Node.js os.cpus caution",
+      "url": "https://nodejs.org/api/os.html#oscpus",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Node.js docs caution against using os.cpus().length for parallelism; Phase 44E avoids exact CPU model persistence.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    },
+    {
+      "name": "Electron process API",
+      "url": "https://www.electronjs.org/docs/latest/api/process",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Electron process metadata source for future coarse Electron context detection; Phase 44E does not require Electron.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    },
+    {
+      "name": "Electron process sandboxing",
+      "url": "https://www.electronjs.org/docs/latest/tutorial/sandbox",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Electron sandboxing guidance; Phase 44E treats sandboxed renderers as requiring a future main-process bridge.",
+      "decisionImpact": "coarse_desktop_capability_metadata_only_no_execution",
+      "privacyCaveat": "bucket_or_redact_values_no_identifier_persistence"
+    }
+  ],
+  "tauriEvidence": "not_recorded_repo_has_no_tauri_stack"
+}

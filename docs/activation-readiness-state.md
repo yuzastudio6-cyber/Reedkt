@@ -258,3 +258,11 @@ Phase 44D adds a safe browser/web capability profiler under `src/lib/track-b/web
 Generated/mock fixtures cover high, mid, low, cross-origin-not-isolated, and insecure contexts. The Phase 44D readiness report marks `web_capability_profiler` as `phase_complete_restricted_scope`.
 
 Phase 44D does not upload live browser profiles, execute workers, process media/audio/OCR/VLM/model runtimes, call providers, route tools, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, create public artifacts, collect persistent identifiers, store raw full user agents, store exact screen resolution, store detailed GPU identity, or touch Track A. Desktop profiler, local sidecar, cost estimator, and hybrid E2E simulation remain pending.
+
+## Phase 44E Desktop Capability Profiler
+
+Phase 44E adds a safe desktop/local capability profiler under `src/lib/track-b/desktop-capability-profiler/` and committed evidence under `docs/activation-phase-44e-desktop-capability-profiler-reports/`. It records coarse environment, compute, graphics, media-runtime, storage, and policy buckets for future route planning hints only.
+
+Generated/mock fixtures cover high local, mid without ffmpeg, low resource, future Electron sandboxed renderer, and unknown desktop contexts. The Phase 44E readiness report marks `desktop_capability_profiler` as `phase_complete_restricted_scope`.
+
+Phase 44E does not upload live desktop profiles, persist local profiles by default, run benchmarks, execute workers, process media/audio/OCR/VLM/model runtimes, call providers, route tools, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, create public artifacts, collect hostnames, collect usernames, collect MAC addresses, store exact CPU model strings, store exact GPU identity, scan directories, dump environment variables, or touch Track A. Desktop benchmark runner, local sidecar, cost estimator, and hybrid E2E simulation remain pending.

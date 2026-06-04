@@ -106,3 +106,14 @@ Evidence must redact:
 - Migration deployed: no.
 - Staging approval: still `pending_human_approval`.
 - Production readiness: blocked.
+
+## Prompt 24A Evidence Intake
+
+Prompt 24A adds evidence intake, redaction rules, an evidence matrix, and evidence request material. It does not supply or validate dashboard evidence. Actual redacted evidence is still required before any staging inventory review can be considered.
+
+- Evidence status: `evidence_required`.
+- Redaction status: `not_applicable_no_evidence`.
+- Audit status: `evidence_required`.
+- Evidence files found in allowed tracked evidence paths: none.
+- Supabase environment touched: none.
+- SQL executed: none.

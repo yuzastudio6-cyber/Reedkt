@@ -43,7 +43,15 @@ Default state: `evidence_required`.
 - Production readiness approved: no
 - Beta unlock approved: no
 
+## Prompt 24A Evidence Intake Result
+
+- Evidence intake status: `evidence_required`
+- Evidence files supplied: none
+- Evidence matrix status: all required categories `missing`
+- Redaction status: `not_applicable_no_evidence`
+- Audit status: `evidence_required`
+- Next action: Prompt 24B redacted evidence review only after redacted evidence is supplied.
+
 ## No-Scope Confirmation
 
 No Supabase mutation, SQL execution, migration deployment, staging execution approval, production approval, or beta unlock is granted by this result template.
-

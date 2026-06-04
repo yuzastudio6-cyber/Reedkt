@@ -174,6 +174,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:project:readonly-audit:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_project_readonly_evidence_intake_diagnostics',
+    command: 'npm run --silent supabase:project:evidence-intake:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:project:evidence-intake:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

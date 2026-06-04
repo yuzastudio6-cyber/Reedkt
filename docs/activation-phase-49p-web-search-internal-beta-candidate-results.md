@@ -59,3 +59,5 @@ Readiness decision: `webSearchInternalBetaCandidateReady=true`.
 Phase50A readiness: `completed_static_map_geospatial_stack_approval_and_architecture`.
 
 Phase 50A handoff: Phase 50A approves only map/geospatial planning architecture. MapLibre GL JS, Turf.js, deck.gl, OSS CesiumJS planning, and OpenStreetMap/open map data are future-fixture planning candidates. Map runtime, tile downloads, live geocoding/routing, paid map providers, public tile hotlinking for beta/production, arbitrary tile endpoints, public artifacts, production, external beta, paid production, and broad media remain blocked.
+
+Phase 50F integration note: Phase 49P evidence may feed Phase 50F only as generated planning source records for private map planning E2E. Phase 50F must not run new live search, public SearXNG, broad crawling, arbitrary URL capture, live geocoding/routing, tile downloads, paid map providers, production, external beta, or broad media.

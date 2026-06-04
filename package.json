@@ -404,7 +404,11 @@
     "activation:cesiumjs-local-3d-fixture": "tsx server/cli/activation-cesiumjs-local-3d-fixture.ts",
     "activation:cesiumjs-local-3d-fixture:report": "tsx server/cli/activation-cesiumjs-local-3d-fixture-report.ts",
     "activation:cesiumjs-local-3d-fixture:iam-plan": "tsx server/cli/activation-cesiumjs-local-3d-fixture-iam-plan.ts",
-    "smoke:activation-cesiumjs-local-3d-fixture": "tsx server/smoke/activation-cesiumjs-local-3d-fixture-smoke.ts"
+    "smoke:activation-cesiumjs-local-3d-fixture": "tsx server/smoke/activation-cesiumjs-local-3d-fixture-smoke.ts",
+    "activation:web-search-map-planning-e2e": "tsx server/cli/activation-web-search-map-planning-e2e.ts",
+    "activation:web-search-map-planning-e2e:report": "tsx server/cli/activation-web-search-map-planning-e2e-report.ts",
+    "activation:web-search-map-planning-e2e:iam-plan": "tsx server/cli/activation-web-search-map-planning-e2e-iam-plan.ts",
+    "smoke:activation-web-search-map-planning-e2e": "tsx server/smoke/activation-web-search-map-planning-e2e-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

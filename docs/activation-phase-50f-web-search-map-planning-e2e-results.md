@@ -91,3 +91,7 @@ Validation:
 Phase50G readiness:
 
 - `ready_for_map_geospatial_internal_readiness_gate`.
+
+Phase 50G follow-up:
+
+- Phase 50G must remain evidence-only: no new map rendering, Playwright capture, live tiles, public OSM tile use, geocoding/routing, paid map provider, Cesium ion, D3/Three.js runtime expansion, production, external beta, or broad media unlock.

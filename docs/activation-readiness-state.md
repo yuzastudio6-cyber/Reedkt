@@ -123,8 +123,13 @@ Playwright local capture, Sharp derivatives from the Phase 50E screenshot, and
 private E2E: Phase 49P evidence is converted into generated planning sources,
 generated-only location candidates, Turf calculations, local/offline MapLibre +
 deck.gl and CesiumJS planning renders, Playwright local screenshots, Sharp
-derivatives, private manifests, and QA artifacts. Phase 50G can proceed only as
-a map/geospatial internal readiness gate if Phase 50F passes. Map runtime beyond these fixture phases, tile downloads, live
+derivatives, private manifests, and QA artifacts. Phase 50G closes only the
+map/geospatial internal readiness gate: it audits Phase 49P and Phase 50A-50F
+evidence, dependencies, provider/data policy, artifact privacy, ownership
+boundaries, and fail-closed behavior without new rendering or capture. If
+Phase 50G passes, map/geospatial is ready only for controlled internal testing
+and Phase 52A can proceed only as shared agent/tool ownership architecture.
+Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,
 Docker, broad GCP mutation, production, external beta, paid production, and

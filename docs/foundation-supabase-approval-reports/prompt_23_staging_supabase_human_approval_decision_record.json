@@ -1,0 +1,71 @@
+{
+  "reportId": "prompt_23_staging_supabase_human_approval_decision_record",
+  "prompt": "Prompt 23 - Staging Supabase/RLS Human Approval Decision Record",
+  "generatedAt": "2026-06-04T00:00:00.000Z",
+  "decisionDate": "2026-06-04",
+  "decision": "approved_for_guarded_staging_validation",
+  "approvalStatus": "guarded_staging_validation_approved",
+  "reviewedPackets": [
+    {
+      "prompt": "Prompt 21",
+      "pr": 168,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/168",
+      "status": "approval_packet_prepared"
+    },
+    {
+      "prompt": "Prompt 22",
+      "pr": 170,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/170",
+      "status": "ready_for_human_review"
+    }
+  ],
+  "stagingTargetReference": "redacted_required_at_execution_time",
+  "approvedFutureScope": {
+    "stagingExecutionAllowedInPrompt24Only": true,
+    "migrationChainValidationAllowed": true,
+    "approvedTestFileSource": "database/test-sql/local/001_auth_workspace_minimal_local_rls.sql",
+    "approvedFixtureFamily": "synthetic_auth_profile_workspace_project_only",
+    "broaderDomainTestsAllowed": false,
+    "productionAllowed": false,
+    "betaAllowed": false
+  },
+  "executionStatusInPrompt23": {
+    "stagingSupabaseRun": false,
+    "remoteSqlRun": false,
+    "productionSqlRun": false,
+    "migrationDeployment": false,
+    "providerCalls": false,
+    "mediaProcessing": false,
+    "workers": false,
+    "tools": false,
+    "cloudMutation": false,
+    "productionAffected": false
+  },
+  "requiredPrompt24Confirmations": [
+    "REEDITPRO_CONFIRM_STAGING_SUPABASE_RLS_VALIDATION=true",
+    "REEDITPRO_CONFIRM_STAGING_SUPABASE_SQL_EXECUTION=true",
+    "REEDITPRO_CONFIRM_STAGING_SUPABASE_MIGRATION_VALIDATION=true",
+    "REEDITPRO_CONFIRM_STAGING_SUPABASE_SYNTHETIC_FIXTURES=true",
+    "REEDITPRO_CONFIRM_STAGING_SUPABASE_CLEANUP=true",
+    "REEDITPRO_CONFIRM_STAGING_SUPABASE_ROLLBACK_ACCEPTANCE=true"
+  ],
+  "forbiddenActions": [
+    "production_supabase",
+    "remote_sql_outside_approved_staging_target",
+    "broad_staging_suite",
+    "draft_only_domain_sql",
+    "provider_calls",
+    "media_processing",
+    "worker_execution",
+    "tool_execution",
+    "render_export",
+    "storage_transfer",
+    "credit_mutation",
+    "stripe",
+    "external_telemetry",
+    "deployment",
+    "production_unlock",
+    "beta_unlock"
+  ],
+  "nextRecommendedPrompt": "Prompt 24 - Guarded staging Supabase/RLS validation execution"
+}

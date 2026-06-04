@@ -1,0 +1,87 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "all_broader_scopes_blocked",
+  "blockedScopes": [
+    {
+      "scope": "live_route_execution",
+      "status": "blocked",
+      "reason": "Requires a later explicit live-route approval phase."
+    },
+    {
+      "scope": "worker_execution",
+      "status": "blocked",
+      "reason": "No worker execution is approved by metadata readiness."
+    },
+    {
+      "scope": "local_sidecar_execution",
+      "status": "blocked",
+      "reason": "Phase 44G remains protocol-only and Phase 44K does not start a sidecar."
+    },
+    {
+      "scope": "tool_execution",
+      "status": "blocked",
+      "reason": "Tool execution requires approved plan snapshots, artifact scopes, and a later execution phase."
+    },
+    {
+      "scope": "media_audio_ocr_vlm_model_runtime",
+      "status": "blocked",
+      "reason": "No media/audio/OCR/VLM/model runtime is executed in Phase 44K."
+    },
+    {
+      "scope": "providers",
+      "status": "blocked",
+      "reason": "Provider calls remain outside this gate and blocked."
+    },
+    {
+      "scope": "public_output",
+      "status": "blocked",
+      "reason": "Only committed safe metadata is allowed; public artifacts remain blocked."
+    },
+    {
+      "scope": "broad_media",
+      "status": "blocked",
+      "reason": "Broad media processing remains blocked."
+    },
+    {
+      "scope": "arbitrary_media",
+      "status": "blocked",
+      "reason": "Arbitrary media inputs remain blocked."
+    },
+    {
+      "scope": "product_wide_internal_beta",
+      "status": "blocked",
+      "reason": "This gate covers desktop/hybrid metadata only, not product-wide beta."
+    },
+    {
+      "scope": "external_beta",
+      "status": "blocked",
+      "reason": "External beta requires broader production and safety gates."
+    },
+    {
+      "scope": "paid_production",
+      "status": "blocked",
+      "reason": "Paid production remains blocked."
+    },
+    {
+      "scope": "production",
+      "status": "blocked",
+      "reason": "Production remains blocked."
+    },
+    {
+      "scope": "vlm_runtime",
+      "status": "blocked",
+      "reason": "Qwen3-VL/vLLM remain excluded by prior VLM evidence."
+    },
+    {
+      "scope": "demucs_runtime",
+      "status": "blocked",
+      "reason": "Demucs remains blocked pending provenance/legal review."
+    },
+    {
+      "scope": "track_a",
+      "status": "blocked",
+      "reason": "Track A visual/render/runtime ownership is outside this Track B gate."
+    }
+  ]
+}

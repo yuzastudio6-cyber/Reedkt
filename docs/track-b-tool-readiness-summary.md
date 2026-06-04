@@ -27,4 +27,6 @@ Phase 44G local worker sidecar foundation status: phase-complete restricted scop
 
 Phase 44J hybrid compute E2E simulation status: phase-complete restricted scope for synthetic plan snapshot, artifact scope, route, cost, sidecar, and fail-closed metadata simulation only.
 
-Next recommended phase: Phase 44K desktop beta readiness gate, or a narrower route execution dry-run planning phase if the roadmap requires one first. Route execution, worker execution, production, beta, broad-media, public-artifact, provider, local sidecar execution, and Track A scopes remain blocked.
+Phase 44K desktop beta readiness gate status: internally beta-ready candidate for restricted internal desktop/hybrid metadata, planning, and simulation scope only.
+
+Next recommended phase: live route execution approval handoff, or a narrower route execution dry-run planning phase if the roadmap requires one first. Route execution, worker execution, production, product-wide beta, external beta, broad-media, public-artifact, provider, local sidecar execution, tool execution, VLM, Demucs, and Track A scopes remain blocked.

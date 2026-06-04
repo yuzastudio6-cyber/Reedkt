@@ -1,0 +1,10 @@
+{
+  "phase": "44K",
+  "runId": "phase44k-desktop-beta-readiness-gate-20260604",
+  "status": "passed",
+  "totalCriteria": 20,
+  "passedCriteria": 20,
+  "failedCriteria": [],
+  "desktopHybridComputeBetaStatus": "internally_beta_ready_candidate",
+  "scope": "restricted_internal_metadata_planning_simulation_only"
+}

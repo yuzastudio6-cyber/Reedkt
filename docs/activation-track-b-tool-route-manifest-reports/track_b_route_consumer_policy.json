@@ -1,0 +1,34 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "consumer_boundaries_defined",
+  "allowedConsumers": [
+    "internal_qa_planning_services",
+    "future_worker_orchestration",
+    "web_search_capture_for_sharp_only",
+    "ai_tools_graphics_for_sharp_only",
+    "track_a_visual_pipeline_for_sharp_only"
+  ],
+  "trackBDoesNotOwn": [
+    "web_search_provider_stack",
+    "AI Tools creative graphics workflows",
+    "Track A visual pipeline",
+    "map/geospatial stack"
+  ],
+  "consumerRequirements": [
+    "respect_approved_capability_ids",
+    "private_artifacts_only",
+    "no_frontend_secrets",
+    "no_public_output",
+    "no_raw_chat_execution",
+    "approved_plan_snapshots_required"
+  ],
+  "sharpLibvipsConsumers": [
+    "internal_qa_planning",
+    "future_worker_orchestration",
+    "web_search_capture",
+    "ai_tools_graphics",
+    "track_a_visual_pipeline",
+    "media_data_qa"
+  ]
+}

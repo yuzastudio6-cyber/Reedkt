@@ -1,0 +1,189 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "passed",
+  "sourceCapabilityManifestToolIds": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "demucs",
+    "paddleocr",
+    "paddlepaddle",
+    "qwen3_vl",
+    "vllm",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "routes": [
+    {
+      "routeId": "track_b_deepfilternet",
+      "toolId": "deepfilternet",
+      "family": "audio_timing",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_signalsmith_stretch",
+      "toolId": "signalsmith_stretch",
+      "family": "audio_timing",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_demucs",
+      "toolId": "demucs",
+      "family": "audio_timing",
+      "routeStatus": "route_disabled_blocked",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_paddleocr",
+      "toolId": "paddleocr",
+      "family": "ocr",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_paddlepaddle",
+      "toolId": "paddlepaddle",
+      "family": "ocr",
+      "routeStatus": "route_handoff_only",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_qwen3_vl",
+      "toolId": "qwen3_vl",
+      "family": "vlm",
+      "routeStatus": "route_disabled_excluded",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_vllm",
+      "toolId": "vllm",
+      "family": "vlm",
+      "routeStatus": "route_disabled_excluded",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_opencv",
+      "toolId": "opencv",
+      "family": "media_data",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_pyav",
+      "toolId": "pyav",
+      "family": "media_data",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_pyscenedetect",
+      "toolId": "pyscenedetect",
+      "family": "media_data",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_sharp_libvips",
+      "toolId": "sharp_libvips",
+      "family": "media_data",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_duckdb",
+      "toolId": "duckdb",
+      "family": "media_data",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_polars",
+      "toolId": "polars",
+      "family": "media_data",
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_web_capability_profiler",
+      "toolId": "web_capability_profiler",
+      "family": "hybrid_compute",
+      "routeStatus": "route_disabled_not_started",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_desktop_capability_profiler",
+      "toolId": "desktop_capability_profiler",
+      "family": "hybrid_compute",
+      "routeStatus": "route_disabled_not_started",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_local_worker_sidecar_planning",
+      "toolId": "local_worker_sidecar_planning",
+      "family": "hybrid_compute",
+      "routeStatus": "route_disabled_not_started",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_cost_estimator",
+      "toolId": "cost_estimator",
+      "family": "hybrid_compute",
+      "routeStatus": "route_disabled_not_started",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    },
+    {
+      "routeId": "track_b_tool_route_manifest_integration",
+      "toolId": "tool_route_manifest_integration",
+      "family": "hybrid_compute",
+      "routeStatus": "route_handoff_only",
+      "routeable": false,
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false
+    }
+  ]
+}

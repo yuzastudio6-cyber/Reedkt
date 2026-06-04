@@ -1,0 +1,86 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "private_artifact_scope_required",
+  "requiredFields": [
+    "inputArtifactScopeId",
+    "outputArtifactScopeId",
+    "privateGcsPrefix",
+    "allowedInputArtifactTypes",
+    "allowedOutputArtifactTypes",
+    "maxInputCount",
+    "maxDurationSeconds",
+    "maxFrameCount",
+    "maxAudioDurationSeconds",
+    "publicOutputAllowed",
+    "signedUrlSourceOfTruthAllowed",
+    "committedPayloadAllowed"
+  ],
+  "families": {
+    "audio_timing": {
+      "allowedPrivatePrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36*/"
+      ],
+      "allowedInputArtifactClasses": [
+        "approved_private_audio_metadata",
+        "approved_bounded_audio_artifact_ref"
+      ],
+      "allowedOutputArtifactClasses": [
+        "private_audio_qa_metadata",
+        "private_timing_qa_metadata"
+      ]
+    },
+    "ocr": {
+      "allowedPrivatePrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37*/"
+      ],
+      "allowedInputArtifactClasses": [
+        "approved_private_ocr_metadata",
+        "approved_safe_zone_artifact_ref"
+      ],
+      "allowedOutputArtifactClasses": [
+        "private_ocr_qa_metadata",
+        "safe_zone_signal_metadata"
+      ]
+    },
+    "vlm": {
+      "allowedPrivatePrefixes": [],
+      "allowedInputArtifactClasses": [],
+      "allowedOutputArtifactClasses": [],
+      "status": "blocked_excluded"
+    },
+    "media_data": {
+      "allowedPrivatePrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "allowedInputArtifactClasses": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata"
+      ],
+      "allowedOutputArtifactClasses": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ]
+    },
+    "hybrid_compute": {
+      "allowedPrivatePrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase44*/"
+      ],
+      "allowedInputArtifactClasses": [
+        "committed_capability_manifest_json",
+        "approved_plan_snapshot_metadata"
+      ],
+      "allowedOutputArtifactClasses": [
+        "route_manifest_metadata_report"
+      ],
+      "status": "metadata_only_pending_future_phases"
+    }
+  },
+  "publicArtifactRule": false,
+  "privateArtifactsOnly": true,
+  "committedMediaAudioModelPayloads": "blocked",
+  "committedPrivateArtifacts": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked",
+  "futureIamRecommendation": "use object prefix conditions per approved artifact scope"
+}

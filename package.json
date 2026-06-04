@@ -428,7 +428,13 @@
     "activation:supabase-milestone-sync": "tsx server/cli/activation-supabase-milestone-sync.ts",
     "activation:supabase-milestone-sync:report": "tsx server/cli/activation-supabase-milestone-sync-report.ts",
     "activation:supabase-milestone-sync:iam-plan": "tsx server/cli/activation-supabase-milestone-sync-iam-plan.ts",
-    "smoke:activation-supabase-milestone-sync": "tsx server/smoke/activation-supabase-milestone-sync-smoke.ts"
+    "smoke:activation-supabase-milestone-sync": "tsx server/smoke/activation-supabase-milestone-sync-smoke.ts",
+    "activation:shared-agent-tool-architecture": "tsx server/cli/activation-shared-agent-tool-architecture.ts",
+    "activation:shared-agent-tool-architecture:plan": "tsx server/cli/activation-shared-agent-tool-architecture-plan.ts",
+    "activation:shared-agent-tool-architecture:report": "tsx server/cli/activation-shared-agent-tool-architecture-report.ts",
+    "activation:shared-agent-tool-architecture:iam-plan": "tsx server/cli/activation-shared-agent-tool-architecture-iam-plan.ts",
+    "activation:shared-agent-tool:summary": "tsx server/cli/activation-shared-agent-tool-summary.ts",
+    "smoke:activation-shared-agent-tool-architecture": "tsx server/smoke/activation-shared-agent-tool-architecture-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

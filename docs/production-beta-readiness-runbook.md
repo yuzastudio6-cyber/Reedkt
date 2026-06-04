@@ -23,3 +23,9 @@ media, public delivery, final export, RNNoise, Demucs, providers, Revideo, FILM,
 or slow motion.
 
 Phase 36G closes the RNNoise/Demucs audio stack correction only. It removes RNNoise from active product flow and blocks Demucs download/runtime pending pretrained-model license/provenance clarity. It does not approve external beta, paid production, broad real media, arbitrary media, providers, Revideo, FILM, slow motion, public delivery, or final export.
+
+Phase 52A adds only shared agent and cross-track tool ownership architecture. It
+does not approve tool execution, model inference, media processing, web search,
+map rendering, browser capture, provider calls, Docker, GCP mutation, raw
+prompt execution, public artifacts, external beta, paid production, broad real
+media, or production.

@@ -173,6 +173,17 @@ ownership architecture. Production, external beta, paid production, broad media,
 public artifacts, signed URLs as source of truth, migrations, schema/RLS
 changes, historical backfill reruns, product row writes, provider calls, and
 frontend service-role exposure remain blocked.
+
+Phase 52A defines the shared agent/tool ownership architecture on top of Phase
+51D. It adds the canonical specialist agent roles, cross-track ownership map,
+capability/finding/intent/approved-snapshot schemas, routing policy,
+source-of-truth rules, cross-track handoff template, QA policy, and required
+Supabase milestone sync behavior for future phases. Phase 52B is ready only for
+a tool capability registry audit after Phase 52A QA and Supabase sync pass.
+Tool runtime execution, AI model inference, media processing, web search, map
+rendering, browser capture, provider calls, Docker, Cloud Run deploys,
+migrations, historical backfill reruns, raw prompt execution, public artifacts,
+production, external beta, paid production, and broad media remain blocked.
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

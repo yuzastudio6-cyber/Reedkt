@@ -1,0 +1,124 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "route_metadata_only_not_phase44h_cost_estimator",
+  "trueCostEstimator": "Phase 44H remains required",
+  "classes": [
+    "cpu_low",
+    "cpu_medium",
+    "cpu_heavy",
+    "gpu_required",
+    "blocked_unknown",
+    "pending_estimator"
+  ],
+  "routes": [
+    {
+      "toolId": "deepfilternet",
+      "family": "audio_timing",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "family": "audio_timing",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "demucs",
+      "family": "audio_timing",
+      "costCapacityClass": "blocked_unknown",
+      "costEstimateSource": "blocked_route_no_estimate"
+    },
+    {
+      "toolId": "paddleocr",
+      "family": "ocr",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "paddlepaddle",
+      "family": "ocr",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "qwen3_vl",
+      "family": "vlm",
+      "costCapacityClass": "gpu_required",
+      "costEstimateSource": "blocked_route_no_estimate"
+    },
+    {
+      "toolId": "vllm",
+      "family": "vlm",
+      "costCapacityClass": "gpu_required",
+      "costEstimateSource": "blocked_route_no_estimate"
+    },
+    {
+      "toolId": "opencv",
+      "family": "media_data",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "pyav",
+      "family": "media_data",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "pyscenedetect",
+      "family": "media_data",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "sharp_libvips",
+      "family": "media_data",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "duckdb",
+      "family": "media_data",
+      "costCapacityClass": "cpu_low",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "polars",
+      "family": "media_data",
+      "costCapacityClass": "cpu_low",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator"
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "family": "hybrid_compute",
+      "costCapacityClass": "pending_estimator",
+      "costEstimateSource": "pending_future_hybrid_compute_cost_phase"
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "family": "hybrid_compute",
+      "costCapacityClass": "pending_estimator",
+      "costEstimateSource": "pending_future_hybrid_compute_cost_phase"
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "family": "hybrid_compute",
+      "costCapacityClass": "pending_estimator",
+      "costEstimateSource": "pending_future_hybrid_compute_cost_phase"
+    },
+    {
+      "toolId": "cost_estimator",
+      "family": "hybrid_compute",
+      "costCapacityClass": "pending_estimator",
+      "costEstimateSource": "pending_future_hybrid_compute_cost_phase"
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "family": "hybrid_compute",
+      "costCapacityClass": "pending_estimator",
+      "costEstimateSource": "pending_future_hybrid_compute_cost_phase"
+    }
+  ]
+}

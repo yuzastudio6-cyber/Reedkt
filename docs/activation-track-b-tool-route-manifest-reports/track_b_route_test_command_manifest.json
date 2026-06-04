@@ -1,0 +1,139 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "safe_report_commands_only",
+  "routeManifestCommands": [
+    "npm run smoke:activation-track-b-tool-route-manifest",
+    "npm run activation:track-b-tool-route-manifest:report",
+    "npm run activation:track-b-tool-route-manifest:summary",
+    "npm run activation:track-b-capability-manifests:report"
+  ],
+  "familyCommands": [
+    {
+      "toolId": "deepfilternet",
+      "commands": [
+        "npm run activation:deepfilternet-runtime:report",
+        "npm run smoke:activation-deepfilternet-runtime"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "commands": [
+        "npm run activation:signalsmith-stretch-runtime:report",
+        "npm run activation:signalsmith-controlled-runtime:report"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "demucs",
+      "commands": [
+        "npm run activation:demucs-provenance:report",
+        "npm run smoke:activation-demucs-provenance"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "paddleocr",
+      "commands": [
+        "npm run activation:ocr-runtime:report",
+        "npm run activation:controlled-real-video-ocr-safe-zone:execution-report"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "paddlepaddle",
+      "commands": [
+        "npm run smoke:activation-ocr-runtime"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "qwen3_vl",
+      "commands": [
+        "npm run activation:vlm-decision-gate:summary"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "vllm",
+      "commands": [
+        "npm run activation:vlm-decision-gate:summary"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "opencv",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "pyav",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "pyscenedetect",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "sharp_libvips",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "duckdb",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "polars",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "commands": [],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "commands": [],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "commands": [],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "cost_estimator",
+      "commands": [],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "commands": [],
+      "runtimeCommandsAreConfirmationGatedAndNotExecutedInPhase44I": true
+    }
+  ]
+}

@@ -242,3 +242,11 @@ Phase 44I-A adds a reporting-only Track B capability manifest baseline under `do
 Restricted internal testing manifests include DeepFilterNet, Signalsmith Stretch, PaddleOCR, PaddlePaddle, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. Demucs remains blocked pending training-data provenance and human/legal review. Qwen3-VL and vLLM remain excluded while Phase 39C generated runtime verification is blocked. Web capability profiler, desktop capability profiler, local worker sidecar planning, cost estimator, and tool route manifest integration remain `not_started`.
 
 Phase 44I-A does not run Docker, Cloud Build, Cloud Run, GPU jobs, model downloads, media/audio/OCR/VLM runtimes, provider calls, IAM/GCP mutation, or beta/production unlocks. Phase 44I remains required for actual tool route manifest integration, and workers must execute approved plan snapshots within approved artifact scopes only.
+
+## Phase 44I Track B Tool Route Manifest Integration
+
+Phase 44I adds a metadata-only route manifest layer under `docs/activation-track-b-tool-route-manifest-reports/`. It consumes the PR #161 capability manifests as source of truth and adds route eligibility, plan snapshot, artifact scope, consumer, failure, and cost/capacity metadata only.
+
+Route-enabled restricted-internal metadata entries are DeepFilterNet, Signalsmith Stretch, PaddleOCR, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. PaddlePaddle and tool route manifest integration are handoff-only. Demucs remains `route_disabled_blocked`; Qwen3-VL and vLLM remain `route_disabled_excluded`; web capability profiler, desktop capability profiler, local worker sidecar planning, and cost estimator remain `route_disabled_not_started`.
+
+Every route keeps `runtimeExecutionAllowed` and `routeExecutionAllowed` false. Phase 44I does not run tools, workers, media/audio/OCR/VLM runtimes, Docker, Cloud Build, Cloud Run, GPU jobs, providers, model downloads, IAM/GCP mutation, beta, production, broad media, public output, arbitrary media, raw chat execution, or Track A.

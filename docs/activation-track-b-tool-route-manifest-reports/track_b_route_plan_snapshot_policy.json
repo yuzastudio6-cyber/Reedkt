@@ -1,0 +1,41 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "required_for_future_execution",
+  "requiredFields": [
+    "planSnapshotId",
+    "toolId",
+    "approvedCapabilityId",
+    "sourcePhase",
+    "routeManifestVersion",
+    "inputArtifactScopeId",
+    "outputArtifactScopeId",
+    "privateGcsPrefix",
+    "requesterContext",
+    "noRawPromptExecution",
+    "noProviderCallUnlessApproved",
+    "publicOutputAllowed",
+    "broadMediaAllowed",
+    "arbitraryMediaAllowed",
+    "confirmationPhase",
+    "auditReportPath",
+    "failureBehavior"
+  ],
+  "blockedInputs": [
+    "raw_chat_text_direct_worker_invocation",
+    "arbitrary_file_path",
+    "arbitrary_gcs_prefix",
+    "public_url",
+    "signed_url_source_of_truth",
+    "frontend_service_role_secret_access",
+    "unapproved_runtime_adapter"
+  ],
+  "defaultBooleans": {
+    "noRawPromptExecution": true,
+    "noProviderCallUnlessApproved": true,
+    "publicOutputAllowed": false,
+    "broadMediaAllowed": false,
+    "arbitraryMediaAllowed": false
+  },
+  "failureBehavior": "fail_closed_return_route_blocker"
+}

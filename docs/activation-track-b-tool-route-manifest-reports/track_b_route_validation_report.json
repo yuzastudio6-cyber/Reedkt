@@ -1,0 +1,23 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "passed",
+  "totalRoutes": 18,
+  "all18ToolIdsPresent": true,
+  "everyRouteHasRequiredFields": true,
+  "enabledRoutesRestrictedOnly": true,
+  "runtimeExecutionAllowedFalse": true,
+  "routeExecutionAllowedFalse": true,
+  "demucsBlocked": true,
+  "vlmExcluded": true,
+  "hybridToolsNotStarted": true,
+  "noRawChatExecution": true,
+  "noFrontendServiceRoleSecrets": true,
+  "noPublicArtifacts": true,
+  "noProviderCalls": true,
+  "noBroadMedia": true,
+  "noArbitraryMedia": true,
+  "productionExternalBetaPaidProductionBlocked": true,
+  "trackA": "not_touched",
+  "blockers": []
+}

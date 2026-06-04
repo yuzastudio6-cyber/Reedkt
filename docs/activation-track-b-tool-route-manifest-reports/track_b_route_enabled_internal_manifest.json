@@ -1,0 +1,1167 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "metadata_eligibility_only",
+  "runtimeExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "enabledRoutes": [
+    {
+      "routeId": "track_b_deepfilternet",
+      "toolId": "deepfilternet",
+      "family": "audio_timing",
+      "track": "track_b",
+      "capabilityIds": [
+        "bounded_speech_cleanup",
+        "internal_audio_qa_planning"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns DeepFilterNet audio/timing runtime hardening evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_audio_metadata",
+        "approved_bounded_audio_artifact_ref",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_audio_qa_metadata",
+        "private_timing_qa_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "36H",
+        "36M"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "36H",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/140",
+          "report": "docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports/phase_36h_deepfilternet_runtime_hardening_report.json",
+          "summary": "Linux x86_64 runtime hardening, generated audio, one bounded controlled sample, metrics, and private artifacts passed."
+        },
+        {
+          "phase": "36M",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/159",
+          "report": "docs/activation-phase-36m-audio-timing-internal-beta-readiness-gate-reports/phase_36m_audio_timing_beta_gate_decision.json",
+          "summary": "Audio/timing restricted internal beta-readiness gate treats DeepFilterNet as in-scope and Demucs excluded."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:deepfilternet-runtime:report",
+        "npm run smoke:activation-deepfilternet-runtime"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "none_for_manifest_baseline; future route integration remains Phase 44I"
+    },
+    {
+      "routeId": "track_b_signalsmith_stretch",
+      "toolId": "signalsmith_stretch",
+      "family": "audio_timing",
+      "track": "track_b",
+      "capabilityIds": [
+        "bounded_timing_stretch",
+        "internal_timing_qa_planning"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns Signalsmith Stretch audio/timing runtime evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_audio_metadata",
+        "approved_bounded_audio_artifact_ref",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_audio_qa_metadata",
+        "private_timing_qa_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "36I",
+        "36J"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "36I",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/147",
+          "report": "docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports/phase_36i_signalsmith_runtime_generated_fixture_report.json",
+          "summary": "Signalsmith source pin, temp build, generated fixtures, metrics, and private artifacts passed."
+        },
+        {
+          "phase": "36J",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/149",
+          "report": "docs/activation-phase-36j-controlled-real-media-timing-stretch-sample-reports/phase_36j_controlled_real_media_timing_stretch_report.json",
+          "summary": "One bounded approved controlled sample passed 1.10x/0.90x stretch gates with private artifacts."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:signalsmith-stretch-runtime:report",
+        "npm run activation:signalsmith-controlled-runtime:report"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "none_for_manifest_baseline; future route integration remains Phase 44I"
+    },
+    {
+      "routeId": "track_b_paddleocr",
+      "toolId": "paddleocr",
+      "family": "ocr",
+      "track": "track_b",
+      "capabilityIds": [
+        "internal_ocr_qa_planning",
+        "safe_zone_ocr_signal"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns OCR evidence and safe-zone metadata readiness.",
+      "approvedInputArtifactTypes": [
+        "approved_private_ocr_metadata",
+        "approved_safe_zone_artifact_ref",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_ocr_qa_metadata",
+        "safe_zone_signal_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase37*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "37E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "37E",
+          "report": "docs/activation-phase-37e-ocr-caption-render-qa-reports/phase_37e_ocr_caption_render_qa_report.json",
+          "summary": "OCR chain is available only as internal QA/planning metadata signal."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:ocr-runtime:report",
+        "npm run activation:controlled-real-video-ocr-safe-zone:execution-report"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after approved planner integration"
+    },
+    {
+      "routeId": "track_b_opencv",
+      "toolId": "opencv",
+      "family": "media_data",
+      "track": "track_b",
+      "capabilityIds": [
+        "internal_media_data_shape_metrics",
+        "bounded_frame_metrics"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "46E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "46E",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+          "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+          "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after Phase 44I integration"
+    },
+    {
+      "routeId": "track_b_pyav",
+      "toolId": "pyav",
+      "family": "media_data",
+      "track": "track_b",
+      "capabilityIds": [
+        "internal_media_container_probe",
+        "bounded_metadata_decode"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "46E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "46E",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+          "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+          "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after Phase 44I integration"
+    },
+    {
+      "routeId": "track_b_pyscenedetect",
+      "toolId": "pyscenedetect",
+      "family": "media_data",
+      "track": "track_b",
+      "capabilityIds": [
+        "bounded_scene_manifest"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "46E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "46E",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+          "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+          "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after Phase 44I integration"
+    },
+    {
+      "routeId": "track_b_sharp_libvips",
+      "toolId": "sharp_libvips",
+      "family": "media_data",
+      "track": "track_b",
+      "capabilityIds": [
+        "image_resize",
+        "thumbnail_generation",
+        "metadata_extraction",
+        "format_conversion"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration",
+        "web_search_capture",
+        "ai_tools_graphics",
+        "track_a_visual_pipeline",
+        "media_data_qa"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns core runtime hardening, server/worker policy, private artifact policy, and dependency caveats.",
+      "approvedInputArtifactTypes": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_medium",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "46E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "46E",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+          "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+          "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after Phase 44I integration"
+    },
+    {
+      "routeId": "track_b_duckdb",
+      "toolId": "duckdb",
+      "family": "media_data",
+      "track": "track_b",
+      "capabilityIds": [
+        "internal_qa_aggregation",
+        "metadata_reporting"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_low",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "46E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "46E",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+          "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+          "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after Phase 44I integration"
+    },
+    {
+      "routeId": "track_b_polars",
+      "toolId": "polars",
+      "family": "media_data",
+      "track": "track_b",
+      "capabilityIds": [
+        "internal_qa_transforms",
+        "metadata_reporting"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_low",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "46E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "46E",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+          "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+          "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after Phase 44I integration"
+    }
+  ]
+}

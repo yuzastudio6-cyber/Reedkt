@@ -176,3 +176,9 @@ Phase 46C is not a model-weight phase. It does not download, stage, approve, or 
 Phase 44I-A is not a model-weight phase. It does not download, stage, approve, or execute model weights. It creates a Track B restricted internal testing manifest baseline that records DeepFilterNet, Signalsmith Stretch, PaddleOCR/PaddlePaddle, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars as restricted internal-ready manifest entries based on prior gated evidence.
 
 Demucs remains blocked pending training-data/model-artifact provenance and human/legal review. Qwen3-VL and vLLM remain excluded while VLM generated runtime verification is blocked. Production, external beta, paid production, broad media, arbitrary media, public artifacts, provider calls, new model downloads, runtime execution, IAM/GCP mutation, and Track A remain blocked.
+
+## Phase 44I Track B Tool Route Manifest Integration
+
+Phase 44I is not a model-weight phase. It does not download, stage, approve, or execute model weights. It adds route eligibility metadata for the same 18 Track B tool ids and keeps model-related routes fail-closed.
+
+Demucs remains `route_disabled_blocked` with model download and source separation disabled pending training-data/model-artifact provenance and human/legal review. Qwen3-VL and vLLM remain `route_disabled_excluded` because Phase 39C generated runtime verification remains blocked. Route metadata does not approve non-Qwen models, new model downloads, provider calls, GPU jobs, production, beta, public output, broad media, arbitrary media, IAM/GCP mutation, or Track A.

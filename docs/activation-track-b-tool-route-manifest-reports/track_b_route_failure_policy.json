@@ -1,0 +1,19 @@
+{
+  "phase": "44I",
+  "runId": "phase44i-trackb-tool-route-manifest-integration-20260604",
+  "status": "fail_closed",
+  "rules": [
+    "route_resolution_failure_returns_blocked_reason_not_raw_execution",
+    "disabled_tools_cannot_route",
+    "excluded_tools_cannot_route",
+    "unknown_capability_fails_closed",
+    "missing_artifact_scope_fails_closed",
+    "public_output_request_fails_closed",
+    "broad_media_request_fails_closed",
+    "provider_call_request_fails_closed_unless_explicit_provider_phase_approves",
+    "frontend_server_secret_request_fails_closed",
+    "vlm_request_fails_closed",
+    "demucs_request_fails_closed",
+    "route_manifest_version_mismatch_fails_closed"
+  ]
+}

@@ -4,6 +4,8 @@
 
 Prompt 23S adds Supabase milestone sync policy, ledger/status contracts, reporting standards, static diagnostics, and tracker updates. Exact capability enabled: `none; Supabase milestone sync policy only`.
 
+PR: [PR #173](https://github.com/yuzastudio6-cyber/Reedkt/pull/173)
+
 ## Files Inspected
 
 - `PRODUCTION_FOUNDATION_STATUS.md`

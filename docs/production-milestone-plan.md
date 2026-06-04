@@ -542,6 +542,20 @@ Prompt 22 - Staging Supabase/RLS Human Approval Review.
 - Acceptance criteria: Prompt 22 docs exist, diagnostics pass, the result is `ready_for_human_review`, no approval is granted, no staging execution is claimed, no secrets or executable staging commands are added, and production readiness remains blocked.
 - Next prompt recommendation: Prompt 23 - Staging Supabase/RLS Human Approval Decision Record if validation and CI pass; otherwise Prompt 22A - Staging Approval Packet Hardening.
 - GitHub deliverable: branch, commit, push, PR with human review packet summary and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 23. Staging Supabase/RLS Human Approval Decision Record
+
+Prompt 23 - Staging Supabase/RLS Human Approval Decision Record.
+
+- Purpose: record a guarded human decision for future staging Supabase/RLS validation without running SQL or staging Supabase.
+- Deliverables after Prompt 23: `docs/staging-supabase-human-approval-decision-record.md`, `docs/staging-supabase-approved-test-selection.md`, `docs/staging-supabase-staging-execution-gates.md`, `docs/staging-supabase-rollback-cleanup-acceptance.md`, `docs/staging-supabase-human-approval-outcome.md`, `docs/foundation-supabase-approval-reports/prompt_23_staging_supabase_human_approval_decision_record.json`, `docs/implementation-prompts/prompt-23-staging-supabase-rls-human-approval-decision-record.md`, `scripts/validation/staging-supabase-human-approval-decision-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow trigger coverage for the Prompt 22 base branch, and tracker updates.
+- Implementation status after Prompt 23: validation prepared / guarded staging validation decision record only. Decision is `approved_for_guarded_staging_validation`, limited to Prompt 24.
+- Implements: decision record, approved test selection, execution gates, rollback/cleanup acceptance, outcome record, safe JSON report, diagnostics, and tracker updates.
+- Must not implement: staging execution, remote Supabase execution, production Supabase execution, local SQL execution, staging SQL execution, migrations, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, external telemetry, beta unlock, or production readiness.
+- What remains blocked: staging Supabase/RLS execution until Prompt 24 gates, staging migration evidence, production Supabase, broader local/staging domain SQL, runtime execution domains, and beta unlock.
+- Acceptance criteria: Prompt 23 docs exist, diagnostics pass, the decision is `approved_for_guarded_staging_validation`, Prompt 24 gates are explicit, approved tests are narrow, no SQL or Supabase execution is claimed, no secrets or connection strings are added, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 24 - Guarded staging Supabase/RLS validation execution.
+- GitHub deliverable: branch, commit, push, PR with decision record summary and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

@@ -53,6 +53,7 @@
     "supabase:rls:prep:diagnostics": "node scripts/validation/supabase-rls-preparation-diagnostics.mjs",
     "staging:supabase:approval:diagnostics": "node scripts/validation/staging-supabase-approval-packet-diagnostics.mjs",
     "staging:supabase:approval-review:diagnostics": "node scripts/validation/staging-supabase-human-approval-review-diagnostics.mjs",
+    "staging:supabase:approval-decision:diagnostics": "node scripts/validation/staging-supabase-human-approval-decision-diagnostics.mjs",
     "supabase:local:toolchain:probe": "node scripts/validation/local-supabase-host-toolchain-probe.mjs",
     "supabase:local:preflight": "node scripts/validation/local-supabase-safety-preflight.mjs",
     "supabase:rls:list-tests": "node scripts/validation/local-supabase-rls-runner.mjs --list-tests",

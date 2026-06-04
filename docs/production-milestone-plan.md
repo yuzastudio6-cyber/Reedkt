@@ -542,6 +542,20 @@ Prompt 22 - Staging Supabase/RLS Human Approval Review.
 - Acceptance criteria: Prompt 22 docs exist, diagnostics pass, the result is `ready_for_human_review`, no approval is granted, no staging execution is claimed, no secrets or executable staging commands are added, and production readiness remains blocked.
 - Next prompt recommendation: Prompt 23 - Staging Supabase/RLS Human Approval Decision Record if validation and CI pass; otherwise Prompt 22A - Staging Approval Packet Hardening.
 - GitHub deliverable: branch, commit, push, PR with human review packet summary and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 23. Staging Supabase/RLS Human Approval Decision Record
+
+Prompt 23 - Staging Supabase/RLS Human Approval Decision Record.
+
+- Purpose: record the current human approval decision state after Prompt 22 without granting approval.
+- Deliverables after Prompt 23: `docs/staging-supabase-human-approval-decision-record.md`, `docs/staging-supabase-human-decision-evidence-checklist.md`, `docs/staging-supabase-human-decision-state.md`, `docs/prompt-23-validation-results.md`, `docs/implementation-prompts/prompt-23-staging-supabase-rls-human-approval-decision-record.md`, `scripts/validation/staging-supabase-human-decision-record-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow trigger coverage for the Prompt 22 base branch, and tracker updates.
+- Implementation status after Prompt 23: validation blocked / pending human approval decision record only. The decision state is `pending_human_approval` because no human approval details were supplied.
+- Implements: machine-readable decision state, human decision evidence checklist, diagnostics, and explicit blocker tracking for missing human approval.
+- Must not implement: human approval grant, staging execution, remote Supabase execution, production Supabase execution, local SQL execution, staging SQL execution, migrations, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, external telemetry, beta unlock, or production readiness.
+- What remains blocked: actual human approval, staging Supabase/RLS execution, staging migration validation, production Supabase, broader local domain SQL, runtime execution domains, and beta unlock.
+- Acceptance criteria: Prompt 23 docs exist, diagnostics pass, the decision state is `pending_human_approval`, all approval booleans remain false, no staging execution is claimed, no secrets or executable staging commands are added, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 23A - Human Approval Decision Completion. Prompt 24 may only proceed after an actual human approval decision is supplied and recorded by a human owner.
+- GitHub deliverable: branch, commit, push, PR with pending decision summary and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

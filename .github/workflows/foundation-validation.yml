@@ -45,6 +45,7 @@ on:
       - codex/rp-foundation-23-pending-human-approval-decision-record
       - codex/rp-foundation-23s-supabase-milestone-sync-policy-v2
       - codex/rp-foundation-24-supabase-project-read-only-audit
+      - codex/rp-foundation-24a-supabase-project-readonly-audit-evidence-intake
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

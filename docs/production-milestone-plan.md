@@ -598,3 +598,18 @@ Prompt 24A - Supabase Project Read-Only Audit Evidence Intake.
 - Acceptance criteria: Prompt 24A docs exist, diagnostics pass, evidence status remains `evidence_required` when no evidence files exist, redaction status is `not_applicable_no_evidence`, no completed audit is claimed, no secrets or executable Supabase commands are added, and production readiness remains blocked.
 - Next prompt recommendation: Prompt 24B - Supabase Redacted Evidence Review if validation and CI pass and redacted evidence is supplied; Prompt 23A remains required before staging SQL or staging mutation.
 - GitHub deliverable: branch, commit, push, PR with evidence intake summary and explicit no-Supabase-execution statement.
+
+## 25. Staging Supabase/RLS Dry-Run Command Packet
+
+Prompt 25 - Staging Supabase/RLS Dry-Run Command Packet.
+
+- Purpose: prepare a future-only staging Supabase/RLS dry-run command packet after Prompt 24A evidence intake, without approving or running staging commands.
+- Deliverables after Prompt 25: `docs/staging-supabase-rls-dry-run-command-packet.md`, `docs/staging-supabase-command-safety-checklist.md`, `docs/staging-supabase-command-evidence-template.md`, `docs/staging-supabase-test-command-matrix.md`, `docs/staging-supabase-dry-run-go-no-go-checklist.md`, `docs/staging-supabase-future-command-templates.md`, `docs/prompt-25-validation-results.md`, `docs/implementation-prompts/prompt-25-staging-supabase-rls-dry-run-command-packet.md`, `scripts/validation/staging-supabase-dry-run-command-packet-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 24A base branch, and tracker updates.
+- Implementation status after Prompt 25: validation prepared / staging Supabase/RLS dry-run command packet only. Current packet state is `blocked_missing_evidence` and `blocked_missing_approval`.
+- Implements: future command templates with required approval warning, safety checklist, evidence template, test command matrix for the local-passed SQL candidate and draft SQL files `006` through `020`, go/no-go checklist, and diagnostics.
+- Must not implement: Supabase lifecycle commands, SQL execution, migrations, `psql`, `supabase link`, `supabase db push`, dashboard mutation, staging/remote/production Supabase execution, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, telemetry, dependency mutation, human approval grant, staging execution approval, beta unlock, or production readiness.
+- What remains blocked: human approval completion, redacted staging/production Supabase evidence, staging project identity verification, staging SQL execution, production Supabase, broader local/staging RLS coverage, runtime execution domains, and beta unlock.
+- Validation result: pending local validation and GitHub Foundation Validation at initial document creation; results are recorded in `docs/prompt-25-validation-results.md`.
+- Acceptance criteria: Prompt 25 docs exist, every command-template block contains `DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.`, diagnostics pass, no real project refs/secrets/connection strings are introduced, no staging/prod update is claimed, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 23A - Human Approval Decision Completion and Prompt 24B - Supabase Redacted Evidence Review before Prompt 26 - Approved Staging Supabase/RLS Validation Execution.
+- GitHub deliverable: branch, commit, push, PR with dry-run packet summary and explicit no-Supabase-execution statement.

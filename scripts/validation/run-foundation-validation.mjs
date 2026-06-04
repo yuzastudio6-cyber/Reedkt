@@ -180,6 +180,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:project:evidence-intake:diagnostics'],
     required: true,
   },
+  {
+    id: 'staging_supabase_dry_run_packet_diagnostics',
+    command: 'npm run --silent staging:supabase:dry-run-packet:diagnostics',
+    npmArgs: ['run', '--silent', 'staging:supabase:dry-run-packet:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

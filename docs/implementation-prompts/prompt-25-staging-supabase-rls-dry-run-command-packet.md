@@ -5,7 +5,7 @@
 Prompt 25 creates a future staging Supabase/RLS dry-run command packet from the Prompt 24A evidence intake base.
 
 - Branch: `codex/rp-foundation-25-staging-supabase-rls-dry-run-command-packet`
-- PR: pending
+- PR: [PR #185](https://github.com/yuzastudio6-cyber/Reedkt/pull/185)
 - PR base: `codex/rp-foundation-24a-supabase-project-readonly-audit-evidence-intake`
 - Exact capability enabled: none; staging Supabase/RLS dry-run command packet only.
 

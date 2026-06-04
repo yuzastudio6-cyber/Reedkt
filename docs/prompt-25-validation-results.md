@@ -83,7 +83,7 @@ Local validation was run from the Prompt 25 worktree with the Codex-bundled Node
 
 ## CI Status
 
-GitHub Foundation Validation is pending until the PR is opened.
+GitHub Foundation Validation is pending on [PR #185](https://github.com/yuzastudio6-cyber/Reedkt/pull/185).
 
 ## What Was Not Run
 

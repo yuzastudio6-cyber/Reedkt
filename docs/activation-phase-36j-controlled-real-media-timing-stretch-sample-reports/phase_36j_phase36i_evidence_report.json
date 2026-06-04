@@ -1,0 +1,10 @@
+{
+  "phase": "36J",
+  "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
+  "status": "loaded",
+  "phase36IReport": "docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports/phase_36i_signalsmith_runtime_generated_fixture_report.json",
+  "phase36HReport": "docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports/phase_36h_deepfilternet_runtime_hardening_report.json",
+  "selectedSignalsmithCommit": "44c8f865af9da8c29cc4a70a2d5a3ec83639c711",
+  "generatedFixtureEvidenceRequired": true,
+  "signalsmithGeneratedFixtureRerun": "not_run"
+}

@@ -1,0 +1,190 @@
+{
+  "status": "passed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/",
+  "objectCount": 18,
+  "uploads": [
+    {
+      "relativePath": "controlled-sample/controlled-stretch-contract-090.input.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-contract-090.input.raw",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 137,
+      "generation": "1780535618020820",
+      "sha256": "bf57591628fb321fd54b40d3746c1e973dd4fc2b4010fa6fa47a6b2a97a3ae93",
+      "sizeBytes": 384000
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-contract-090.output.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-contract-090.output.raw",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 164,
+      "generation": "1780535618228142",
+      "sha256": "065bdc79cbb507d074415da0a08ba2deb8d21160f87e226c8a3540fca7203a2a",
+      "sizeBytes": 345600
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-contract-090.output.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-contract-090.output.wav",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 146,
+      "generation": "1780535618416488",
+      "sha256": "05d912d54224341d312d6c91a8205c854d55e60de34d8ea3cd60606d76378e9c",
+      "sizeBytes": 172844
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-expand-110.input.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-expand-110.input.raw",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 172,
+      "generation": "1780535618619292",
+      "sha256": "bf57591628fb321fd54b40d3746c1e973dd4fc2b4010fa6fa47a6b2a97a3ae93",
+      "sizeBytes": 384000
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-expand-110.output.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-expand-110.output.raw",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 158,
+      "generation": "1780535618816937",
+      "sha256": "4cd9e08be566e506cbe1eb8b80640143a29cb9578e1abfcb0bfa7fe17d2cbbf7",
+      "sizeBytes": 422400
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-expand-110.output.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-expand-110.output.wav",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 171,
+      "generation": "1780535619019981",
+      "sha256": "439ee8700e49eea4596af8ba89eed018f6af7fa5b7a129a97b834d46e9b63591",
+      "sizeBytes": 211244
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-expand-125.input.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-expand-125.input.raw",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 155,
+      "generation": "1780535619218834",
+      "sha256": "bf57591628fb321fd54b40d3746c1e973dd4fc2b4010fa6fa47a6b2a97a3ae93",
+      "sizeBytes": 384000
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-expand-125.output.raw",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-expand-125.output.raw",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 162,
+      "generation": "1780535619419848",
+      "sha256": "458627c886e0d5ccf5fcefea8376c9d87df5e73c647621e4537c4c093adb2937",
+      "sizeBytes": 480000
+    },
+    {
+      "relativePath": "controlled-sample/controlled-stretch-expand-125.output.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/controlled-stretch-expand-125.output.wav",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 165,
+      "generation": "1780535619620807",
+      "sha256": "5363fbf27e9616929f9bf1f481669a7c208c94ba49e1cb99252335f5c44c2903",
+      "sizeBytes": 240044
+    },
+    {
+      "relativePath": "controlled-sample/phase36j_controlled_input_48k_mono.wav",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/controlled-sample/phase36j_controlled_input_48k_mono.wav",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 161,
+      "generation": "1780535619819084",
+      "sha256": "339b1874e82a3d821ad1cfe68a6e4eaffebf400de60584d6eb024210511f07c3",
+      "sizeBytes": 192078
+    },
+    {
+      "relativePath": "reports/phase_36j_signalsmith_controlled_ffmpeg_runtime_smoke_report.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_signalsmith_controlled_ffmpeg_runtime_smoke_report.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 161,
+      "generation": "1780535620020685",
+      "sha256": "2c6968812c42c04373c32f03f5817ec0f1a173d680da52ba98550fd5c1db9e29",
+      "sizeBytes": 5881
+    },
+    {
+      "relativePath": "reports/phase_36j_worker_audio_metrics.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_worker_audio_metrics.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 159,
+      "generation": "1780535620216091",
+      "sha256": "a463e484b8fa8ec648b24371eea53c65cf9bcebd3d00c3e19c5ff8039426bae8",
+      "sizeBytes": 3158
+    },
+    {
+      "relativePath": "reports/phase_36j_worker_binary.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_worker_binary.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 162,
+      "generation": "1780535620419934",
+      "sha256": "8d0801c02cf12581c01325abe26acfb1308df72426217943461c3ba6d5de93e7",
+      "sizeBytes": 182
+    },
+    {
+      "relativePath": "reports/phase_36j_worker_build.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_worker_build.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 161,
+      "generation": "1780535620623517",
+      "sha256": "aff1e0ff21664af45e502baf71e8c5ab4e6bf832f43bfaff5c199ea50a2cbf76",
+      "sizeBytes": 507
+    },
+    {
+      "relativePath": "reports/phase_36j_worker_controlled_stretch.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_worker_controlled_stretch.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 164,
+      "generation": "1780535620820936",
+      "sha256": "e9a8454065daf6db88a6dc9c6dceb22487293b953b370a0f7602a59a99cc925c",
+      "sizeBytes": 5123
+    },
+    {
+      "relativePath": "reports/phase_36j_worker_extraction.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_worker_extraction.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 150,
+      "generation": "1780535621017859",
+      "sha256": "d253eb6bd7356dc1825cdecdef77201f5e0d02c6a705faa699cd2121b44f50ca",
+      "sizeBytes": 2143
+    },
+    {
+      "relativePath": "reports/phase_36j_worker_sample_evidence.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_worker_sample_evidence.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 165,
+      "generation": "1780535621214204",
+      "sha256": "3543a6bc301959d9252ec462a1766b0f168aedd3cdc72a8c516737ec44dff7dc",
+      "sizeBytes": 1239
+    },
+    {
+      "relativePath": "reports/phase_36j_worker_source_fetch.json",
+      "target": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/reports/phase_36j_worker_source_fetch.json",
+      "status": "passed",
+      "mode": "uploaded",
+      "durationMs": 164,
+      "generation": "1780535621416486",
+      "sha256": "bace48cba0e30c05e2cb6b170186dd1c58e6181c598622b84659a9af1abe060e",
+      "sizeBytes": 3557
+    }
+  ],
+  "blockers": [],
+  "publicOutput": "blocked",
+  "signedUrls": "blocked"
+}

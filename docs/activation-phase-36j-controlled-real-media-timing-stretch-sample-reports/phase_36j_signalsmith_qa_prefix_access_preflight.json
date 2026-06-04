@@ -1,0 +1,17 @@
+{
+  "phase": "36J",
+  "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
+  "status": "passed",
+  "project": "reeditpro",
+  "activePrincipal": "aiediting@reeditpro.com",
+  "bucket": "gs://reeditpro-staging-reeditpro-qa-artifacts",
+  "bucketDescribeStatus": "passed",
+  "iamReadStatus": "passed",
+  "objectCreatorStatus": "existing",
+  "objectViewerReadbackStatus": "existing",
+  "publicAccessStatus": "blocked_public_access_not_present",
+  "broadIamWarnings": [],
+  "missingBindings": [],
+  "rerunCanProceed": true,
+  "blockers": []
+}

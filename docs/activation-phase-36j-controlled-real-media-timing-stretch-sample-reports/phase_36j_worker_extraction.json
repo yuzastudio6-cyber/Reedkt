@@ -1,0 +1,70 @@
+{
+  "status": "passed",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
+  "window": {
+    "startSeconds": 6.9,
+    "endSeconds": 8.9,
+    "durationSeconds": 2.0
+  },
+  "outputFormat": "48k_mono_pcm_wav",
+  "boundedWavSha256": "339b1874e82a3d821ad1cfe68a6e4eaffebf400de60584d6eb024210511f07c3",
+  "boundedWavSizeBytes": 192078,
+  "metrics": {
+    "durationSeconds": 2.0,
+    "sampleRate": 48000,
+    "channels": 1,
+    "rms": 0.10163347,
+    "peak": 0.568573,
+    "clippingCount": 0,
+    "silenceRatio": 0.0288125,
+    "transientCountProxy": 0,
+    "noiseBandProxy": 0.00490521
+  },
+  "ffprobeSummary": {
+    "args": [
+      "ffprobe",
+      "-v",
+      "error",
+      "-show_streams",
+      "-show_format",
+      "-of",
+      "json",
+      "/tmp/reeditpro-phase36j-signalsmith-controlled/controlled-media/approved-controlled-source.mp4"
+    ],
+    "returncode": 0,
+    "status": "passed",
+    "durationMs": 217,
+    "stdoutSummary": "{\n    \"streams\": [\n        {\n            \"index\": 0,\n            \"codec_name\": \"h264\",\n            \"codec_long_name\": \"H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10\",\n            \"profile\": \"High\",\n            \"codec_type\": \"video\",\n            \"codec_tag_string\": \"avc1\",\n            \"codec_tag\": \"0x31637661\",\n            \"width\": 2160,\n            \"height\": 3840,",
+    "stderrSummary": ""
+  },
+  "ffmpegExtraction": {
+    "args": [
+      "ffmpeg",
+      "-y",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-ss",
+      "6.9",
+      "-t",
+      "2.0",
+      "-i",
+      "/tmp/reeditpro-phase36j-signalsmith-controlled/controlled-media/approved-controlled-source.mp4",
+      "-vn",
+      "-ac",
+      "1",
+      "-ar",
+      "48000",
+      "-sample_fmt",
+      "s16",
+      "/tmp/reeditpro-phase36j-signalsmith-controlled/private-artifacts/controlled-sample/phase36j_controlled_input_48k_mono.wav"
+    ],
+    "returncode": 0,
+    "status": "passed",
+    "durationMs": 151,
+    "stdoutSummary": "",
+    "stderrSummary": ""
+  },
+  "privacy": "private_temp_only"
+}

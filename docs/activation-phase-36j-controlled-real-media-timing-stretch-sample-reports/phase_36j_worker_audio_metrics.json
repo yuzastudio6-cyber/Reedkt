@@ -1,0 +1,111 @@
+{
+  "status": "passed",
+  "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
+  "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
+  "inputMetrics": {
+    "durationSeconds": 2.0,
+    "sampleRate": 48000,
+    "channels": 1,
+    "rms": 0.10163347,
+    "peak": 0.568573,
+    "clippingCount": 0,
+    "silenceRatio": 0.0288125,
+    "transientCountProxy": 0,
+    "noiseBandProxy": 0.00490521
+  },
+  "fixtures": [
+    {
+      "fixtureId": "controlled-stretch-expand-110",
+      "stretchRatio": 1.1,
+      "durationRatio": 1.1,
+      "durationErrorSeconds": 0.0,
+      "latencyMs": 29,
+      "inputMetrics": {
+        "durationSeconds": 2.0,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.10163347,
+        "peak": 0.568573,
+        "clippingCount": 0,
+        "silenceRatio": 0.0288125,
+        "transientCountProxy": 0,
+        "noiseBandProxy": 0.00490521
+      },
+      "outputMetrics": {
+        "durationSeconds": 2.2,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.09949627,
+        "peak": 0.56114799,
+        "clippingCount": 0,
+        "silenceRatio": 0.08205492,
+        "transientCountProxy": 0,
+        "noiseBandProxy": 0.00439549
+      },
+      "outputSha256": "439ee8700e49eea4596af8ba89eed018f6af7fa5b7a129a97b834d46e9b63591",
+      "status": "passed"
+    },
+    {
+      "fixtureId": "controlled-stretch-contract-090",
+      "stretchRatio": 0.9,
+      "durationRatio": 0.9,
+      "durationErrorSeconds": 0.0,
+      "latencyMs": 25,
+      "inputMetrics": {
+        "durationSeconds": 2.0,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.10163347,
+        "peak": 0.568573,
+        "clippingCount": 0,
+        "silenceRatio": 0.0288125,
+        "transientCountProxy": 0,
+        "noiseBandProxy": 0.00490521
+      },
+      "outputMetrics": {
+        "durationSeconds": 1.8,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.09902525,
+        "peak": 0.52838421,
+        "clippingCount": 0,
+        "silenceRatio": 0.09038194,
+        "transientCountProxy": 0,
+        "noiseBandProxy": 0.00439162
+      },
+      "outputSha256": "05d912d54224341d312d6c91a8205c854d55e60de34d8ea3cd60606d76378e9c",
+      "status": "passed"
+    },
+    {
+      "fixtureId": "controlled-stretch-expand-125",
+      "stretchRatio": 1.25,
+      "durationRatio": 1.25,
+      "durationErrorSeconds": 0.0,
+      "latencyMs": 33,
+      "inputMetrics": {
+        "durationSeconds": 2.0,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.10163347,
+        "peak": 0.568573,
+        "clippingCount": 0,
+        "silenceRatio": 0.0288125,
+        "transientCountProxy": 0,
+        "noiseBandProxy": 0.00490521
+      },
+      "outputMetrics": {
+        "durationSeconds": 2.5,
+        "sampleRate": 48000,
+        "channels": 1,
+        "rms": 0.09799734,
+        "peak": 0.55842012,
+        "clippingCount": 0,
+        "silenceRatio": 0.0801,
+        "transientCountProxy": 0,
+        "noiseBandProxy": 0.00444555
+      },
+      "outputSha256": "5363fbf27e9616929f9bf1f481669a7c208c94ba49e1cb99252335f5c44c2903",
+      "status": "passed"
+    }
+  ]
+}

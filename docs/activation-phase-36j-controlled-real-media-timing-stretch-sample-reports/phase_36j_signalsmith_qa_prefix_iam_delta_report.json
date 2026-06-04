@@ -1,0 +1,35 @@
+{
+  "phase": "36J",
+  "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
+  "status": "passed",
+  "mode": "apply_missing",
+  "appliedBindings": [
+    {
+      "id": "phase36j-qa-prefix-create",
+      "status": "passed",
+      "role": "roles/storage.objectCreator",
+      "conditionTitle": "phase36j-signalsmith-qa-create",
+      "durationMs": 2983,
+      "stderrSummary": ""
+    },
+    {
+      "id": "phase36j-qa-prefix-readback",
+      "status": "passed",
+      "role": "roles/storage.objectViewer",
+      "conditionTitle": "phase36j-signalsmith-qa-readback",
+      "durationMs": 3748,
+      "stderrSummary": ""
+    }
+  ],
+  "beforeMissingBindings": [
+    "phase36j-qa-prefix-create",
+    "phase36j-qa-prefix-readback"
+  ],
+  "afterMissingBindings": [],
+  "objectCreatorStatus": "existing",
+  "objectViewerStatus": "existing",
+  "broadIam": "not_granted",
+  "publicAccess": "blocked_public_access_not_present",
+  "storageObjectsGetBlocker": "resolved",
+  "blockers": []
+}

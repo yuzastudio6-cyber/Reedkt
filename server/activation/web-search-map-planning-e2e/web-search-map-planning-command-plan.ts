@@ -1,0 +1,51 @@
+import { webSearchMapPlanningConfig, webSearchMapPlanningSafetyFlags } from './web-search-map-planning-policy'
+
+export function buildWebSearchMapPlanningCommandPlan() {
+  return {
+    phase: '50F',
+    mode: webSearchMapPlanningConfig.mode,
+    defaultMode: 'static_report_only',
+    executeRequires: [
+      'GCP_PROJECT_ID=reeditpro',
+      'GCP_REGION=us-central1',
+      'REEDITPRO_ENV=staging',
+      'REEDITPRO_CONFIRM_WEB_SEARCH_MAP_PLANNING_E2E=true',
+    ],
+    executionCommand: 'GCP_PROJECT_ID=reeditpro GCP_REGION=us-central1 REEDITPRO_ENV=staging REEDITPRO_CONFIRM_WEB_SEARCH_MAP_PLANNING_E2E=true npm run activation:web-search-map-planning-e2e -- --execute',
+    allowedInExecution: [
+      'generated planning source records from approved evidence',
+      'generated-only location candidates',
+      'Turf calculations on generated GeoJSON',
+      'MapLibre local/offline render',
+      'deck.gl local/offline overlay render',
+      'CesiumJS local/offline 3D render',
+      'Playwright local fixture capture',
+      'Sharp processing of Phase 50F screenshots only',
+      'private GCS artifact upload',
+    ],
+    blockedAlways: [
+      'live search',
+      'public SearXNG',
+      'broad crawling',
+      'arbitrary URL capture',
+      'live geocoding',
+      'live routing',
+      'tile downloads',
+      'public OSM tiles',
+      'Mapbox',
+      'Google Maps',
+      'Cesium ion',
+      'live terrain',
+      'live imagery',
+      '3D Tiles',
+      'paid map providers',
+      'public artifacts',
+      'signed URLs as source of truth',
+      'production',
+      'external beta',
+      'paid production',
+      'broad media',
+    ],
+    safetyFlags: webSearchMapPlanningSafetyFlags,
+  }
+}

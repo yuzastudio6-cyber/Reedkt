@@ -105,6 +105,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Proceed to Phase 50F only as web search + map planning private E2E.
 5. Do not use Cesium ion, live terrain/imagery, 3D Tiles, live tiles, public OSM tiles, geocoding/routing APIs, paid map providers, public artifacts, production/external beta/broad media, or treat Phase 50E as broad 3D map runtime approval.
 
+## After Phase 50F
+
+1. Review `activation:web-search-map-planning-e2e:report`, `activation:web-search-map-planning-e2e:iam-plan`, and the private Phase 50F artifacts.
+2. Verify Phase 49P and Phase 50A-50E evidence, generated planning source records, generated-only location candidates, Turf calculations, 2D MapLibre + deck.gl render metadata, 3D CesiumJS render metadata, screenshots, network logs, manifest, QA, and report artifacts.
+3. Confirm live search, public SearXNG, broad crawling, arbitrary URL capture, live geocoding/routing, tile downloads, public OSM tiles, Mapbox, Google Maps, Cesium ion, paid providers, public artifacts, production, beta, and broad media remain blocked.
+4. Proceed to Phase 50G only as a map/geospatial internal readiness gate.
+5. Do not treat Phase 50F as live geospatial runtime, map provider, public tile, production, external beta, or broad media approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

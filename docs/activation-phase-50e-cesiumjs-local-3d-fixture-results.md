@@ -70,3 +70,8 @@ Private artifacts:
 Phase50F readiness:
 
 - `ready_for_web_search_map_planning_private_e2e`
+
+Phase50F follow-up:
+
+- Phase 50F connects completed Phase 49P web-search evidence to generated/local map planning fixtures only.
+- Live search, geocoding, routing, tile downloads, paid providers, public artifacts, production, external beta, and broad media remain blocked.

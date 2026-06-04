@@ -119,8 +119,12 @@ requests and all mandatory QA gates passed. Phase 50E is ready only for CesiumJS
 generated/local/offline CesiumJS 3D planning validation, local Cesium runtime
 assets, no ion token, no live terrain/imagery, no 3D Tiles, no geocoder,
 Playwright local capture, Sharp derivatives from the Phase 50E screenshot, and
-0 external network requests. Phase 50F can proceed only as web search + map
-planning private E2E. Map runtime beyond these fixture phases, tile downloads, live
+0 external network requests. Phase 50F adds only web search + map planning
+private E2E: Phase 49P evidence is converted into generated planning sources,
+generated-only location candidates, Turf calculations, local/offline MapLibre +
+deck.gl and CesiumJS planning renders, Playwright local screenshots, Sharp
+derivatives, private manifests, and QA artifacts. Phase 50G can proceed only as
+a map/geospatial internal readiness gate if Phase 50F passes. Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,
 Docker, broad GCP mutation, production, external beta, paid production, and

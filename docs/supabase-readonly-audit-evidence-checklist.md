@@ -47,4 +47,3 @@ Use this checklist only for redacted read-only evidence. It does not authorize d
 - Redaction status: `not_applicable_no_evidence`.
 - Audit status: `evidence_required`.
 - Next action: provide redacted evidence for Prompt 24B review.
-

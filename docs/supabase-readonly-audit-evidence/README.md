@@ -24,4 +24,3 @@ Future evidence files should use descriptive names such as:
 - `production-project-identity.redacted.md`
 
 These files are examples only. Prompt 24A does not create them.
-

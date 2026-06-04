@@ -43,4 +43,3 @@ Do not provide service-role keys, anon keys, JWT secrets, database passwords, fu
 ## Current Status
 
 No redacted evidence files are currently present in the tracked allowed evidence paths. The audit state remains `evidence_required`.
-

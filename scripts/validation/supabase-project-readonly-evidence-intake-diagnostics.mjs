@@ -334,4 +334,3 @@ const summary = {
 }
 
 process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
-

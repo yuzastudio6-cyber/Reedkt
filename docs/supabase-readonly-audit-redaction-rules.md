@@ -52,4 +52,3 @@ If any supplied evidence includes secret-like material, signed URLs, raw connect
 ## No-Scope Confirmation
 
 Redaction review does not approve staging SQL, remote SQL, production SQL, Supabase mutation, migration deployment, dashboard changes, provider calls, worker execution, rendering, storage transfer, credit mutation, Stripe, telemetry, human approval, staging execution, production readiness, or beta unlock.
-

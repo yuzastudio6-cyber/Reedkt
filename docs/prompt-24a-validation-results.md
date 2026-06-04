@@ -2,7 +2,7 @@
 
 Prompt 24A adds the Supabase read-only audit evidence intake package. Exact capability enabled: `none; Supabase read-only audit evidence intake only`.
 
-PR: pending
+PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/182
 
 ## Files Inspected
 

@@ -62,4 +62,3 @@ Evidence intake is also blocked if any file claims staging/remote/production aud
 ## No-Scope Confirmation
 
 Prompt 24A does not run Supabase lifecycle commands, SQL, migrations, `psql`, staging Supabase, remote Supabase, production Supabase, deployment, providers, tools, workers, rendering, media processing, storage transfer, credit mutation, Stripe, telemetry, human approval, staging execution approval, production approval, or beta unlock.
-

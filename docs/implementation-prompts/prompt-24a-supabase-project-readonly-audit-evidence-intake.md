@@ -6,7 +6,7 @@ Prompt 24A creates the read-only Supabase audit evidence intake package. It reco
 
 Branch: `codex/rp-foundation-24a-supabase-project-readonly-audit-evidence-intake`
 
-PR: pending
+PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/182
 
 Exact capability enabled: `none; Supabase read-only audit evidence intake only`.
 

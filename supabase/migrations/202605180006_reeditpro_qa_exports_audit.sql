@@ -15,12 +15,15 @@ create table if not exists public.qa_reports (
   created_at timestamptz not null default now()
 );
 
+alter table public.qa_reports
+  add column if not exists approved_plan_snapshot_id uuid;
+
 create table if not exists public.qa_check_results (
   id uuid primary key default gen_random_uuid(),
   qa_report_id uuid not null references public.qa_reports(id) on delete cascade,
   category text,
   label text,
-  check text,
+  check_type text,
   status text,
   severity text,
   fallback_actions_json jsonb not null default '[]'::jsonb,
@@ -106,7 +109,62 @@ drop trigger if exists prevent_audit_event_delete on public.audit_events;
 create trigger prevent_audit_event_delete before delete on public.audit_events
 for each row execute function public.prevent_audit_event_mutation();
 
-create index if not exists idx_qa_reports_project_snapshot on public.qa_reports(project_id, approved_plan_snapshot_id);
+do $$
+begin
+  if to_regclass('public.qa_reports') is not null
+    and to_regclass('public.approved_plan_snapshots') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'qa_reports'
+        and column_name = 'approved_plan_snapshot_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'approved_plan_snapshots'
+        and column_name = 'id'
+    )
+    and not exists (
+      select 1
+      from pg_constraint
+      where conname = 'qa_reports_approved_plan_snapshot_id_fkey'
+        and conrelid = 'public.qa_reports'::regclass
+    )
+  then
+    alter table public.qa_reports
+      add constraint qa_reports_approved_plan_snapshot_id_fkey
+      foreign key (approved_plan_snapshot_id)
+      references public.approved_plan_snapshots(id)
+      on delete set null;
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.qa_reports') is not null
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'qa_reports'
+        and column_name = 'project_id'
+    )
+    and exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'qa_reports'
+        and column_name = 'approved_plan_snapshot_id'
+    )
+    and to_regclass('public.idx_qa_reports_project_snapshot') is null
+  then
+    create index idx_qa_reports_project_snapshot
+      on public.qa_reports(project_id, approved_plan_snapshot_id);
+  end if;
+end $$;
 create index if not exists idx_qa_check_results_report on public.qa_check_results(qa_report_id);
 create index if not exists idx_final_exports_project_snapshot on public.final_exports(project_id, approved_plan_snapshot_id);
 create index if not exists idx_audit_events_project_created on public.audit_events(project_id, created_at);

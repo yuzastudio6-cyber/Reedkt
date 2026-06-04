@@ -468,3 +468,35 @@ create table if not exists public.qa_check_results (
 No SQL/RLS smoke tests, staging Supabase, remote Supabase, production Supabase, provider calls, rendering, tool execution, worker execution, credit mutation, Stripe, deployment, or beta unlock ran in Prompt 20L.
 
 Prompt 20M/local migration-chain follow-up focused on `202605180006_reeditpro_qa_exports_audit.sql` is recommended before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20M Evidence Update
+
+Prompt 20M repairs the local-only QA/export/audit migration-chain blocker. It does not run SQL/RLS tests, capture Supabase keys, run providers, execute tools/workers, render/export, transfer storage, mutate credits, deploy, or touch staging/remote/production Supabase.
+
+Prompt 20M evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, `remoteRiskDetected=false`, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Local-only cleanup before start; no backup. |
+| `supabase start` | Failed after passing Prompt 20M migration | Local chain passed `202605180006_reeditpro_qa_exports_audit.sql` and failed at `202605180007_reeditpro_rls_policies.sql` with SQLSTATE `42P13`. |
+
+Prompt 20M readiness:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+- `canRunLocalSql=false`
+- no localhost-only DB URL captured
+- no SQL/RLS smoke test executed
+
+Next blocker:
+
+```text
+ERROR: cannot change name of input parameter "target_workspace_id" (SQLSTATE 42P13)
+At statement: 10
+create or replace function public.is_workspace_member(workspace_uuid uuid)
+```
+
+Prompt 20N is recommended before Prompt 20B can retry SQL execution.

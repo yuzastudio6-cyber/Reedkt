@@ -257,3 +257,19 @@ Manifest state after Prompt 20L:
 - local `supabase start` now fails in `202605180006_reeditpro_qa_exports_audit.sql` because `qa_check_results.check text` is parsed as invalid SQL syntax.
 
 Prompt 20M is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20M Migration Chain Repair Update
+
+Prompt 20M repairs the `qa_check_results.check text` syntax blocker in `supabase/migrations/202605180006_reeditpro_qa_exports_audit.sql`. The repair renames the column to `check_type`, adds nullable compatibility column `qa_reports.approved_plan_snapshot_id`, guards the approved snapshot FK, and guards `idx_qa_reports_project_snapshot`.
+
+Manifest state after Prompt 20M:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` passed `202605180006_reeditpro_qa_exports_audit.sql`;
+- local `supabase start` now fails in `202605180007_reeditpro_rls_policies.sql` because `create or replace function public.is_workspace_member(workspace_uuid uuid)` attempts to rename an existing input parameter from `target_workspace_id`.
+
+Prompt 20N is required before the Prompt 20B SQL candidate can be run.

@@ -6,7 +6,7 @@ Prompt 20M repairs the local-only Supabase migration-chain blocker in `supabase/
 
 - Branch: `codex/rp-foundation-20m-local-supabase-migration-chain-repair-follow-up-6`
 - Base: `origin/codex/rp-foundation-20l-local-supabase-migration-chain-repair-follow-up-5`
-- PR: Pending PR
+- PR: [PR #151](https://github.com/yuzastudio6-cyber/Reedkt/pull/151)
 - Exact production capability enabled: `none; local-only migration chain repair`
 
 ## Allowed Scope

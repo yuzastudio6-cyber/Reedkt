@@ -412,7 +412,11 @@
     "activation:map-geospatial-readiness": "tsx server/cli/activation-map-geospatial-readiness.ts",
     "activation:map-geospatial-readiness:report": "tsx server/cli/activation-map-geospatial-readiness-report.ts",
     "activation:map-geospatial-readiness:iam-plan": "tsx server/cli/activation-map-geospatial-readiness-iam-plan.ts",
-    "smoke:activation-map-geospatial-readiness": "tsx server/smoke/activation-map-geospatial-readiness-smoke.ts"
+    "smoke:activation-map-geospatial-readiness": "tsx server/smoke/activation-map-geospatial-readiness-smoke.ts",
+    "activation:supabase-data-plane-audit": "tsx server/cli/activation-supabase-data-plane-audit.ts",
+    "activation:supabase-data-plane-audit:report": "tsx server/cli/activation-supabase-data-plane-audit-report.ts",
+    "activation:supabase-data-plane-audit:iam-plan": "tsx server/cli/activation-supabase-data-plane-audit-iam-plan.ts",
+    "smoke:activation-supabase-data-plane-audit": "tsx server/smoke/activation-supabase-data-plane-audit-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

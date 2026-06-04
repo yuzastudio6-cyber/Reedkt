@@ -118,8 +118,18 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 1. Review `activation:map-geospatial-readiness:report`, `activation:map-geospatial-readiness:iam-plan`, and private Phase 50G JSON audit artifacts.
 2. Confirm Phase 49P and Phase 50A-50F evidence, dependency/package audit, provider/data policy audit, artifact privacy audit, ownership boundary audit, and fail-closed policy passed.
 3. Confirm the map/geospatial stack is ready only for controlled internal testing.
-4. Proceed to Phase 52A only as shared agent and tool ownership architecture unless system reconciliation is chosen first.
+4. Proceed to Phase 51A when Supabase persistence/activity reconciliation is needed before controlled internal beta; otherwise Phase 52A remains shared agent and tool ownership architecture only.
 5. Do not enable live tiles, public OSM tiles, geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, D3/Three.js runtime, public artifacts, production, external beta, paid production, or broad media.
+
+## After Phase 51A
+
+1. Review `activation:supabase-data-plane-audit:report`, `activation:supabase-data-plane-audit:iam-plan`, and any private Phase 51A JSON audit artifacts.
+2. Confirm the audit did not run migrations, SQL mutations, Supabase lifecycle commands, row writes, provider calls, signed URL creation, media processing, Docker, or deployments.
+3. Confirm remote activity is either count-only and sanitized or blocked with the exact missing credential/access reason.
+4. Confirm StoryTiming RLS triage remains false-positive-only unless a later local/staging RLS smoke proves otherwise.
+5. Confirm P0 data-plane blockers for user/project/job/artifact/approved-plan/provider/tool/runtime/activity coverage are recorded.
+6. Proceed to Phase 51B only as Supabase activation milestone registry planning after remote count-only activity and private artifact upload evidence are available.
+7. Do not treat Phase 51A as production, external beta, paid production, broad media, Supabase write-path, migration, or signed URL approval.
 
 ## After Phase 49I
 

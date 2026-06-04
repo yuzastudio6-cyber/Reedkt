@@ -384,7 +384,11 @@
     "activation:web-search-internal-beta-candidate": "tsx server/cli/activation-web-search-internal-beta-candidate.ts",
     "activation:web-search-internal-beta-candidate:report": "tsx server/cli/activation-web-search-internal-beta-candidate-report.ts",
     "activation:web-search-internal-beta-candidate:iam-plan": "tsx server/cli/activation-web-search-internal-beta-candidate-iam-plan.ts",
-    "smoke:activation-web-search-internal-beta-candidate": "tsx server/smoke/activation-web-search-internal-beta-candidate-smoke.ts"
+    "smoke:activation-web-search-internal-beta-candidate": "tsx server/smoke/activation-web-search-internal-beta-candidate-smoke.ts",
+    "activation:map-geospatial-approval:plan": "tsx server/cli/activation-map-geospatial-approval-plan.ts",
+    "activation:map-geospatial-approval:report": "tsx server/cli/activation-map-geospatial-approval-report.ts",
+    "activation:map-geospatial-tool:summary": "tsx server/cli/activation-map-geospatial-tool-summary.ts",
+    "smoke:activation-map-geospatial-approval-workflow": "tsx server/smoke/activation-map-geospatial-approval-workflow-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

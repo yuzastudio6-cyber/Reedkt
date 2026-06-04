@@ -63,6 +63,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 50A only as map/geospatial stack approval and architecture if Phase 49P passes.
 6. Do not treat Phase 49P as production, external beta, broad media, unrestricted provider execution, public crawling, or public artifact approval.
 
+## After Phase 50A
+
+1. Review `activation:map-geospatial-approval:report`, `activation:map-geospatial-approval:plan`, and `activation:map-geospatial-tool:summary`.
+2. Confirm MapLibre GL JS, Turf.js, deck.gl, OSS CesiumJS planning, and OpenStreetMap/open map data are planning-approved only.
+3. Confirm AI Tools retains D3/Three.js/creative graphics ownership, Track B retains Sharp/libvips/OpenCV/data/compute ownership, and web search remains source/citation evidence only.
+4. Confirm Mapbox, Google Maps, Cesium ion, paid providers, public tile hotlinking for beta/production, arbitrary tile endpoints, live geocoding/routing, map rendering, tile download, Playwright capture, public artifacts, production, external beta, paid production, and broad media remain blocked.
+5. Proceed to Phase 50B only as a generated/local MapLibre + Turf fixture.
+6. Do not install map packages, render maps, download tiles, call geocoding/routing APIs, launch Playwright, mutate GCP, add secrets, create public URLs, or treat Phase 50A as runtime/internal beta approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

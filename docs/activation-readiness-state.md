@@ -98,6 +98,17 @@ reading secret values, verifies UI/API gating and regression state, and keeps
 the result limited to controlled internal beta candidate scope. The completed
 run is `phase49p-20260603T21361`, with `webSearchInternalBetaCandidateReady=true`.
 Phase 50A may start only as map/geospatial stack approval and architecture.
+Phase 50A completes the map/geospatial stack approval architecture as static
+planning only. MapLibre GL JS, Turf.js, deck.gl, OSS CesiumJS planning, and
+OpenStreetMap/open map data are approved for future generated/private fixture
+planning. PMTiles, TileServer GL, Martin, Nominatim, Photon, Pelias, OSRM, and
+Valhalla remain future-scoped pending later evidence/runtime phases. Phase 50B
+may proceed only as a generated/local MapLibre + Turf fixture. Map runtime,
+tile downloads, live geocoding/routing, Mapbox, Google Maps, Cesium ion, paid
+providers, public tile hotlinking for beta/production, arbitrary tile endpoints,
+Playwright capture, public artifacts, package installation, Docker, GCP
+mutation, production, external beta, paid production, and broad media remain
+blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

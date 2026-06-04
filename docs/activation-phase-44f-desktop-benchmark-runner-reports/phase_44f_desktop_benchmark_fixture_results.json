@@ -1,0 +1,583 @@
+{
+  "phase": "44F",
+  "runId": "phase44f-desktop-benchmark-runner-20260604",
+  "status": "passed",
+  "fixtures": [
+    {
+      "fixtureId": "fixture-benchmark-high-desktop",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-benchmark-schema-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "benchmarkCaps": {
+          "singleThreadTargetMs": 250,
+          "singleThreadHardCapMs": 1000,
+          "parallelHardCapMs": 1500,
+          "maxParallelWorkers": 2,
+          "memoryDefaultBytes": 33554432,
+          "memoryHardCapBytes": 67108864,
+          "tempFileDefaultBytes": 1048576,
+          "tempFileHardCapBytes": 4194304,
+          "runtimeToolTimeoutMs": 2000,
+          "networkBenchmarkAllowed": false,
+          "gpuBenchmarkAllowed": false,
+          "sustainedStressAllowed": false
+        },
+        "benchmarkResults": {
+          "baseline": {
+            "status": "passed",
+            "bucket": "fast",
+            "durationBucket": "fast",
+            "notes": [
+              "metadata_only_startup_context"
+            ]
+          },
+          "cpuSingleThread": {
+            "status": "passed",
+            "bucket": "fast",
+            "durationBucket": "fast",
+            "notes": [
+              "generated_json_hash_typed_array_fixture"
+            ]
+          },
+          "cpuParallelOptional": {
+            "status": "passed",
+            "bucket": "fast",
+            "durationBucket": "fast",
+            "notes": [
+              "bounded_optional_parallel_fixture"
+            ]
+          },
+          "memory": {
+            "status": "passed",
+            "bucket": "fast",
+            "durationBucket": "fast",
+            "notes": [
+              "small_typed_array_allocation_copy"
+            ]
+          },
+          "storageTemp": {
+            "status": "passed",
+            "bucket": "ok",
+            "durationBucket": "unknown",
+            "notes": [
+              "tiny_temp_file_policy"
+            ]
+          },
+          "runtimeTools": {
+            "status": "passed",
+            "bucket": "available",
+            "durationBucket": "unknown",
+            "notes": [
+              "version_availability_metadata_only"
+            ]
+          },
+          "policy": {
+            "status": "passed",
+            "bucket": "ok",
+            "durationBucket": "unknown",
+            "notes": [
+              "route_worker_execution_blocked"
+            ]
+          }
+        },
+        "normalizedBuckets": {
+          "cpuSingleThread": "fast",
+          "cpuParallelOptional": "fast",
+          "memory": "fast",
+          "storageTemp": "ok",
+          "runtimeTools": "available"
+        },
+        "routePlanningHints": [
+          "local_light_cpu_tasks_possible_future",
+          "local_temp_storage_ok"
+        ],
+        "costEstimatorHints": [
+          "benchmark_supports_cost_estimator"
+        ],
+        "blockedReasons": [],
+        "warnings": [],
+        "sourcePolicyRefs": [
+          "phase_44f_desktop_benchmark_privacy_policy",
+          "phase_44f_desktop_benchmark_schema",
+          "phase_44e_desktop_capability_profiler",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedRouteHints": [],
+      "missingExpectedCostHints": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-mid-desktop",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-benchmark-schema-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "benchmarkCaps": {
+          "singleThreadTargetMs": 250,
+          "singleThreadHardCapMs": 1000,
+          "parallelHardCapMs": 1500,
+          "maxParallelWorkers": 2,
+          "memoryDefaultBytes": 33554432,
+          "memoryHardCapBytes": 67108864,
+          "tempFileDefaultBytes": 1048576,
+          "tempFileHardCapBytes": 4194304,
+          "runtimeToolTimeoutMs": 2000,
+          "networkBenchmarkAllowed": false,
+          "gpuBenchmarkAllowed": false,
+          "sustainedStressAllowed": false
+        },
+        "benchmarkResults": {
+          "baseline": {
+            "status": "passed",
+            "bucket": "fast",
+            "durationBucket": "fast",
+            "notes": [
+              "metadata_only_startup_context"
+            ]
+          },
+          "cpuSingleThread": {
+            "status": "passed",
+            "bucket": "mid",
+            "durationBucket": "mid",
+            "notes": [
+              "generated_json_hash_typed_array_fixture"
+            ]
+          },
+          "cpuParallelOptional": {
+            "status": "passed",
+            "bucket": "mid",
+            "durationBucket": "mid",
+            "notes": [
+              "bounded_optional_parallel_fixture"
+            ]
+          },
+          "memory": {
+            "status": "passed",
+            "bucket": "mid",
+            "durationBucket": "mid",
+            "notes": [
+              "small_typed_array_allocation_copy"
+            ]
+          },
+          "storageTemp": {
+            "status": "passed",
+            "bucket": "ok",
+            "durationBucket": "unknown",
+            "notes": [
+              "tiny_temp_file_policy"
+            ]
+          },
+          "runtimeTools": {
+            "status": "passed",
+            "bucket": "partial",
+            "durationBucket": "unknown",
+            "notes": [
+              "version_availability_metadata_only"
+            ]
+          },
+          "policy": {
+            "status": "passed",
+            "bucket": "ok",
+            "durationBucket": "unknown",
+            "notes": [
+              "route_worker_execution_blocked"
+            ]
+          }
+        },
+        "normalizedBuckets": {
+          "cpuSingleThread": "mid",
+          "cpuParallelOptional": "mid",
+          "memory": "mid",
+          "storageTemp": "ok",
+          "runtimeTools": "partial"
+        },
+        "routePlanningHints": [
+          "local_media_runtime_missing",
+          "local_metadata_tasks_possible",
+          "local_temp_storage_ok"
+        ],
+        "costEstimatorHints": [
+          "benchmark_supports_cost_estimator"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "media_runtime_unavailable"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44f_desktop_benchmark_privacy_policy",
+          "phase_44f_desktop_benchmark_schema",
+          "phase_44e_desktop_capability_profiler",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedRouteHints": [],
+      "missingExpectedCostHints": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-low-desktop",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-benchmark-schema-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "benchmarkCaps": {
+          "singleThreadTargetMs": 250,
+          "singleThreadHardCapMs": 1000,
+          "parallelHardCapMs": 1500,
+          "maxParallelWorkers": 2,
+          "memoryDefaultBytes": 33554432,
+          "memoryHardCapBytes": 67108864,
+          "tempFileDefaultBytes": 1048576,
+          "tempFileHardCapBytes": 4194304,
+          "runtimeToolTimeoutMs": 2000,
+          "networkBenchmarkAllowed": false,
+          "gpuBenchmarkAllowed": false,
+          "sustainedStressAllowed": false
+        },
+        "benchmarkResults": {
+          "baseline": {
+            "status": "passed",
+            "bucket": "mid",
+            "durationBucket": "mid",
+            "notes": [
+              "metadata_only_startup_context"
+            ]
+          },
+          "cpuSingleThread": {
+            "status": "passed",
+            "bucket": "slow",
+            "durationBucket": "slow",
+            "notes": [
+              "generated_json_hash_typed_array_fixture"
+            ]
+          },
+          "cpuParallelOptional": {
+            "status": "passed",
+            "bucket": "slow",
+            "durationBucket": "slow",
+            "notes": [
+              "bounded_optional_parallel_fixture"
+            ]
+          },
+          "memory": {
+            "status": "passed",
+            "bucket": "slow",
+            "durationBucket": "slow",
+            "notes": [
+              "small_typed_array_allocation_copy"
+            ]
+          },
+          "storageTemp": {
+            "status": "passed",
+            "bucket": "limited",
+            "durationBucket": "unknown",
+            "notes": [
+              "tiny_temp_file_policy"
+            ]
+          },
+          "runtimeTools": {
+            "status": "passed",
+            "bucket": "available",
+            "durationBucket": "unknown",
+            "notes": [
+              "version_availability_metadata_only"
+            ]
+          },
+          "policy": {
+            "status": "passed",
+            "bucket": "ok",
+            "durationBucket": "unknown",
+            "notes": [
+              "route_worker_execution_blocked"
+            ]
+          }
+        },
+        "normalizedBuckets": {
+          "cpuSingleThread": "slow",
+          "cpuParallelOptional": "slow",
+          "memory": "slow",
+          "storageTemp": "limited",
+          "runtimeTools": "available"
+        },
+        "routePlanningHints": [
+          "avoid_local_heavy_tasks",
+          "server_worker_preferred"
+        ],
+        "costEstimatorHints": [
+          "local_cost_penalty_expected"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "memory_fixture_slow",
+          "slow_single_thread_bucket",
+          "temp_storage_limited"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44f_desktop_benchmark_privacy_policy",
+          "phase_44f_desktop_benchmark_schema",
+          "phase_44e_desktop_capability_profiler",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedRouteHints": [],
+      "missingExpectedCostHints": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-parallel-unavailable",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-benchmark-schema-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "benchmarkCaps": {
+          "singleThreadTargetMs": 250,
+          "singleThreadHardCapMs": 1000,
+          "parallelHardCapMs": 1500,
+          "maxParallelWorkers": 2,
+          "memoryDefaultBytes": 33554432,
+          "memoryHardCapBytes": 67108864,
+          "tempFileDefaultBytes": 1048576,
+          "tempFileHardCapBytes": 4194304,
+          "runtimeToolTimeoutMs": 2000,
+          "networkBenchmarkAllowed": false,
+          "gpuBenchmarkAllowed": false,
+          "sustainedStressAllowed": false
+        },
+        "benchmarkResults": {
+          "baseline": {
+            "status": "passed",
+            "bucket": "fast",
+            "durationBucket": "fast",
+            "notes": [
+              "metadata_only_startup_context"
+            ]
+          },
+          "cpuSingleThread": {
+            "status": "passed",
+            "bucket": "mid",
+            "durationBucket": "mid",
+            "notes": [
+              "generated_json_hash_typed_array_fixture"
+            ]
+          },
+          "cpuParallelOptional": {
+            "status": "skipped",
+            "bucket": "unavailable",
+            "durationBucket": "unknown",
+            "notes": [
+              "worker_threads_unavailable"
+            ]
+          },
+          "memory": {
+            "status": "passed",
+            "bucket": "mid",
+            "durationBucket": "mid",
+            "notes": [
+              "small_typed_array_allocation_copy"
+            ]
+          },
+          "storageTemp": {
+            "status": "passed",
+            "bucket": "ok",
+            "durationBucket": "unknown",
+            "notes": [
+              "tiny_temp_file_policy"
+            ]
+          },
+          "runtimeTools": {
+            "status": "passed",
+            "bucket": "available",
+            "durationBucket": "unknown",
+            "notes": [
+              "version_availability_metadata_only"
+            ]
+          },
+          "policy": {
+            "status": "passed",
+            "bucket": "ok",
+            "durationBucket": "unknown",
+            "notes": [
+              "route_worker_execution_blocked"
+            ]
+          }
+        },
+        "normalizedBuckets": {
+          "cpuSingleThread": "mid",
+          "cpuParallelOptional": "unavailable",
+          "memory": "mid",
+          "storageTemp": "ok",
+          "runtimeTools": "available"
+        },
+        "routePlanningHints": [
+          "local_metadata_tasks_possible",
+          "local_temp_storage_ok",
+          "single_thread_only"
+        ],
+        "costEstimatorHints": [
+          "benchmark_supports_cost_estimator",
+          "parallel_workers_limited"
+        ],
+        "blockedReasons": [],
+        "warnings": [
+          "parallel_workers_limited"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44f_desktop_benchmark_privacy_policy",
+          "phase_44f_desktop_benchmark_schema",
+          "phase_44e_desktop_capability_profiler",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedRouteHints": [],
+      "missingExpectedCostHints": [],
+      "missingExpectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-benchmark-policy-blocked",
+      "status": "passed",
+      "profile": {
+        "schemaVersion": "desktop-benchmark-schema-v1",
+        "generatedAt": "2026-06-04T00:00:00.000Z",
+        "collectionMode": "fixture_mock",
+        "privacyMode": [
+          "coarse",
+          "redacted",
+          "no_persistence",
+          "no_identifiers"
+        ],
+        "benchmarkCaps": {
+          "singleThreadTargetMs": 250,
+          "singleThreadHardCapMs": 1000,
+          "parallelHardCapMs": 1500,
+          "maxParallelWorkers": 2,
+          "memoryDefaultBytes": 33554432,
+          "memoryHardCapBytes": 67108864,
+          "tempFileDefaultBytes": 1048576,
+          "tempFileHardCapBytes": 4194304,
+          "runtimeToolTimeoutMs": 2000,
+          "networkBenchmarkAllowed": false,
+          "gpuBenchmarkAllowed": false,
+          "sustainedStressAllowed": false
+        },
+        "benchmarkResults": {
+          "baseline": {
+            "status": "passed",
+            "bucket": "unknown",
+            "durationBucket": "unknown",
+            "notes": [
+              "metadata_only_startup_context"
+            ]
+          },
+          "cpuSingleThread": {
+            "status": "warning",
+            "bucket": "unknown",
+            "durationBucket": "unknown",
+            "notes": [
+              "generated_json_hash_typed_array_fixture"
+            ]
+          },
+          "cpuParallelOptional": {
+            "status": "skipped",
+            "bucket": "unavailable",
+            "durationBucket": "unknown",
+            "notes": [
+              "bounded_optional_parallel_fixture"
+            ]
+          },
+          "memory": {
+            "status": "warning",
+            "bucket": "unknown",
+            "durationBucket": "unknown",
+            "notes": [
+              "small_typed_array_allocation_copy"
+            ]
+          },
+          "storageTemp": {
+            "status": "passed",
+            "bucket": "unknown",
+            "durationBucket": "unknown",
+            "notes": [
+              "tiny_temp_file_policy"
+            ]
+          },
+          "runtimeTools": {
+            "status": "passed",
+            "bucket": "unknown",
+            "durationBucket": "unknown",
+            "notes": [
+              "version_availability_metadata_only"
+            ]
+          },
+          "policy": {
+            "status": "blocked",
+            "bucket": "blocked",
+            "durationBucket": "unknown",
+            "notes": [
+              "route_worker_execution_blocked"
+            ]
+          }
+        },
+        "normalizedBuckets": {
+          "cpuSingleThread": "unknown",
+          "cpuParallelOptional": "unavailable",
+          "memory": "unknown",
+          "storageTemp": "unknown",
+          "runtimeTools": "unknown"
+        },
+        "routePlanningHints": [
+          "benchmark_unavailable_fail_closed",
+          "single_thread_only"
+        ],
+        "costEstimatorHints": [
+          "benchmark_unavailable_fail_closed",
+          "parallel_workers_limited"
+        ],
+        "blockedReasons": [
+          "local_benchmark_blocked_without_confirmation"
+        ],
+        "warnings": [
+          "parallel_workers_limited"
+        ],
+        "sourcePolicyRefs": [
+          "phase_44f_desktop_benchmark_privacy_policy",
+          "phase_44f_desktop_benchmark_schema",
+          "phase_44e_desktop_capability_profiler",
+          "phase_44i_track_b_tool_route_manifest"
+        ]
+      },
+      "missingExpectedRouteHints": [],
+      "missingExpectedCostHints": [],
+      "missingExpectedBlockedReasons": []
+    }
+  ]
+}

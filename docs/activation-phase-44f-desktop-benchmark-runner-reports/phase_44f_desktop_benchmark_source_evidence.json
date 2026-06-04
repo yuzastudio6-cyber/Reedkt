@@ -1,0 +1,53 @@
+{
+  "phase": "44F",
+  "runId": "phase44f-desktop-benchmark-runner-20260604",
+  "accessedAt": "2026-06-04",
+  "status": "official_sources_recorded",
+  "sources": [
+    {
+      "name": "Node.js perf_hooks",
+      "url": "https://nodejs.org/api/perf_hooks.html",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official Node.js timing API evidence for performance.now and measure APIs; Phase 44F uses bounded timing only.",
+      "decisionImpact": "bounded_desktop_benchmark_metadata_only_no_route_or_worker_execution",
+      "privacyPerformanceCaveat": "strict_caps_generated_data_no_identifiers_no_sustained_stress"
+    },
+    {
+      "name": "Node.js worker_threads",
+      "url": "https://nodejs.org/api/worker_threads.html",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official worker_threads evidence for CPU-intensive JavaScript; Phase 44F caps optional parallel work and skips by default.",
+      "decisionImpact": "bounded_desktop_benchmark_metadata_only_no_route_or_worker_execution",
+      "privacyPerformanceCaveat": "strict_caps_generated_data_no_identifiers_no_sustained_stress"
+    },
+    {
+      "name": "Node.js crypto",
+      "url": "https://nodejs.org/api/crypto.html",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official crypto API evidence for SHA-256-style generated buffer hashing; Phase 44F uses generated tiny buffers only.",
+      "decisionImpact": "bounded_desktop_benchmark_metadata_only_no_route_or_worker_execution",
+      "privacyPerformanceCaveat": "strict_caps_generated_data_no_identifiers_no_sustained_stress"
+    },
+    {
+      "name": "Node.js fs",
+      "url": "https://nodejs.org/api/fs.html",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official file system API evidence for temp file checks; Phase 44F uses temp-only generated files and deletes them.",
+      "decisionImpact": "bounded_desktop_benchmark_metadata_only_no_route_or_worker_execution",
+      "privacyPerformanceCaveat": "strict_caps_generated_data_no_identifiers_no_sustained_stress"
+    },
+    {
+      "name": "Node.js os",
+      "url": "https://nodejs.org/api/os.html",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "Official OS API evidence for availableParallelism and memory context; exact CPU model data remains blocked/redacted.",
+      "decisionImpact": "bounded_desktop_benchmark_metadata_only_no_route_or_worker_execution",
+      "privacyPerformanceCaveat": "strict_caps_generated_data_no_identifiers_no_sustained_stress"
+    }
+  ]
+}

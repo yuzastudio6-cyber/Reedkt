@@ -194,3 +194,9 @@ Demucs model download/source separation remains blocked. Qwen3-VL and vLLM remai
 Phase 44E is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records coarse desktop capability metadata and generated/mock fixture evidence only.
 
 Demucs model download/source separation remains blocked. Qwen3-VL and vLLM remain excluded. Desktop ffmpeg/python/sharp availability hints do not approve media processing, model execution, GPU jobs, providers, production, beta, public output, broad media, arbitrary media, IAM/GCP mutation, route execution, worker execution, or Track A.
+
+## Phase 44F Desktop Benchmark Runner
+
+Phase 44F is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records generated/mock bounded desktop benchmark metadata only.
+
+Demucs model download/source separation remains blocked. Qwen3-VL and vLLM remain excluded. Benchmark hints do not approve media processing, model execution, GPU jobs, providers, production, beta, public output, broad media, arbitrary media, IAM/GCP mutation, route execution, worker execution, sidecar execution, or Track A.

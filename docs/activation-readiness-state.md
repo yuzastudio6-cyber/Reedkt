@@ -266,3 +266,11 @@ Phase 44E adds a safe desktop/local capability profiler under `src/lib/track-b/d
 Generated/mock fixtures cover high local, mid without ffmpeg, low resource, future Electron sandboxed renderer, and unknown desktop contexts. The Phase 44E readiness report marks `desktop_capability_profiler` as `phase_complete_restricted_scope`.
 
 Phase 44E does not upload live desktop profiles, persist local profiles by default, run benchmarks, execute workers, process media/audio/OCR/VLM/model runtimes, call providers, route tools, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, create public artifacts, collect hostnames, collect usernames, collect MAC addresses, store exact CPU model strings, store exact GPU identity, scan directories, dump environment variables, or touch Track A. Desktop benchmark runner, local sidecar, cost estimator, and hybrid E2E simulation remain pending.
+
+## Phase 44F Desktop Benchmark Runner
+
+Phase 44F adds a safe bounded desktop benchmark runner under `src/lib/track-b/desktop-benchmark-runner/` and committed evidence under `docs/activation-phase-44f-desktop-benchmark-runner-reports/`. It records generated/mock benchmark metadata for future route and cost planning hints only.
+
+Generated/mock fixtures cover high desktop, mid desktop with unavailable media runtime, low desktop, parallel-unavailable, and policy-blocked contexts. The Phase 44F readiness report marks `desktop_benchmark_runner` as `phase_complete_restricted_scope`.
+
+Phase 44F does not upload live benchmark results, persist local benchmark results by default, run optional local benchmarks in the baseline, execute workers, run sidecars, process media/audio/OCR/VLM/model runtimes, call providers, route tools, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, create public artifacts, collect hostnames, collect usernames, collect MAC addresses, store exact CPU/GPU identities, scan directories, dump environment variables, run network benchmarks, run GPU benchmarks, run sustained stress tests, or touch Track A. Local sidecar, full cost estimator, and hybrid E2E simulation remain pending.

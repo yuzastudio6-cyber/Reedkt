@@ -609,3 +609,31 @@ Prompt 20P readiness:
 - no SQL/RLS smoke test executed
 
 Prompt 20P2 is recommended to repair the later storage ownership/privilege blocker before Prompt 20B SQL execution.
+
+## Prompt 20P2 Evidence Update
+
+Prompt 20P2 repairs the later local-only storage ownership/privilege blocker in `supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql`. It converts two documentation-only `COMMENT ON POLICY ... ON storage.objects` statements into plain SQL comments and leaves bucket seed/upsert logic plus storage policy semantics unchanged.
+
+Prompt 20P2 evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, `remoteRiskDetected=false`, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Local-only cleanup before start; no backup. |
+| `supabase start` | Passed | Local migration chain completed after the storage policy comment repair. |
+| `supabase status --output json` | Completed | Sanitized DB evidence only: host `127.0.0.1`, port `54330`, database `postgres`, local-only yes. |
+| `npm run supabase:rls:list-tests` | Completed | Listed tests and executed no SQL. |
+| `npm run supabase:rls:local:dry-run` | Completed | Dry-run only; executed no SQL and did not call `supabase status`. |
+
+Prompt 20P2 readiness:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+- local `supabase start` passed
+- localhost-only DB evidence captured
+- `canRunLocalSql=false` until a later prompt supplies/verifies an approved localhost-only local DB URL for the guarded runner
+- no SQL/RLS smoke test executed
+
+Prompt 20B-Retry is recommended for the first executable local RLS smoke test run.

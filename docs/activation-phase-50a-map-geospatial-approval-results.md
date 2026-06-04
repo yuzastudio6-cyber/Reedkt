@@ -49,3 +49,5 @@ Map/geospatial owns MapLibre, Turf, deck.gl, CesiumJS planning, OSM/open data po
 ## Phase50B Readiness
 
 Phase 50B is ready only for a generated/local MapLibre + Turf fixture. Live tiles, live geocoding/routing, paid providers, public map artifacts, Playwright capture, production, external beta, paid production, and broad media remain blocked.
+
+Phase 50B consumes this readiness as generated/local fixture scope only. It may install `@turf/turf` for calculation proof, but `maplibre-gl` browser rendering remains deferred to Phase 50C.

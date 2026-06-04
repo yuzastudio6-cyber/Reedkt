@@ -1,0 +1,9 @@
+import { buildMapLibreTurfFixtureReport, summarizeMapLibreTurfFixtureReport } from '../activation/maplibre-turf-fixture'
+
+const report = buildMapLibreTurfFixtureReport()
+
+if (process.argv.includes('--json')) {
+  console.log(JSON.stringify(report, null, 2))
+} else {
+  console.log(summarizeMapLibreTurfFixtureReport(report))
+}

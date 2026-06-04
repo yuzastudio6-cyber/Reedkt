@@ -37,4 +37,4 @@ No execution confirmation or GCP environment is required for static report mode.
 
 ## Next Phase
 
-Phase 50B may start only as a generated/local MapLibre + Turf fixture. It must use generated GeoJSON and keep live tiles, geocoding, routing, browser capture, paid providers, and public artifacts blocked unless a later prompt explicitly changes scope.
+Phase 50B may start only as a generated/local MapLibre + Turf fixture. It must use generated GeoJSON, run Turf calculations only on generated data, build MapLibre-compatible manifest JSON only, and keep live tiles, geocoding, routing, browser capture, paid providers, and public artifacts blocked unless a later prompt explicitly changes scope.

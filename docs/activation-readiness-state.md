@@ -103,12 +103,16 @@ planning only. MapLibre GL JS, Turf.js, deck.gl, OSS CesiumJS planning, and
 OpenStreetMap/open map data are approved for future generated/private fixture
 planning. PMTiles, TileServer GL, Martin, Nominatim, Photon, Pelias, OSRM, and
 Valhalla remain future-scoped pending later evidence/runtime phases. Phase 50B
-may proceed only as a generated/local MapLibre + Turf fixture. Map runtime,
-tile downloads, live geocoding/routing, Mapbox, Google Maps, Cesium ion, paid
-providers, public tile hotlinking for beta/production, arbitrary tile endpoints,
-Playwright capture, public artifacts, package installation, Docker, GCP
-mutation, production, external beta, paid production, and broad media remain
-blocked.
+completed generated/local MapLibre + Turf fixture proof for
+`phase50b-20260604T01114`: synthetic GeoJSON, 9 Turf calculations,
+MapLibre-compatible manifest JSON, private artifacts, and blocked-feature QA.
+`@turf/turf` is installed for this calculation proof, while `maplibre-gl`
+remains uninstalled. Phase 50C may proceed only as a MapLibre local render +
+capture fixture. Map runtime beyond that future fixture, tile downloads, live
+geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
+hotlinking for beta/production, arbitrary tile endpoints, public artifacts,
+Docker, broad GCP mutation, production, external beta, paid production, and
+broad media remain blocked.
 Production, external beta, paid production, broad real media, final delivery,
 public output, providers, Revideo, Docker, Cloud Run, and media processing
 remain blocked.

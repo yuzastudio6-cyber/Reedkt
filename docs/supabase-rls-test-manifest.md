@@ -273,3 +273,19 @@ Manifest state after Prompt 20M:
 - local `supabase start` now fails in `202605180007_reeditpro_rls_policies.sql` because `create or replace function public.is_workspace_member(workspace_uuid uuid)` attempts to rename an existing input parameter from `target_workspace_id`.
 
 Prompt 20N is required before the Prompt 20B SQL candidate can be run.
+
+## Prompt 20N Migration Chain Repair Update
+
+Prompt 20N repairs the RLS helper input parameter-name blocker in `supabase/migrations/202605180007_reeditpro_rls_policies.sql`. It preserves `target_workspace_id` for the workspace helper functions so `create or replace function` does not attempt to rename existing function parameters.
+
+Manifest state after Prompt 20N:
+
+- files `001` through `005` remain manual legacy or review-needed SQL checklists;
+- files `006` through `020` remain draft-only;
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the first local executable candidate;
+- no local, staging, remote, or production SQL was run;
+- no localhost-only DB URL was captured;
+- local `supabase start` did not reach migration application because port `54322` was already bound by `rapportd`;
+- the Prompt 20N migration repair has not yet been proven by a successful local start.
+
+Prompt 20O is required before the Prompt 20B SQL candidate can be run.

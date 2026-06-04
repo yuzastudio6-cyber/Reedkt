@@ -500,3 +500,34 @@ create or replace function public.is_workspace_member(workspace_uuid uuid)
 ```
 
 Prompt 20N is recommended before Prompt 20B can retry SQL execution.
+
+## Prompt 20N Evidence Update
+
+Prompt 20N repairs the local-only RLS policy migration-chain blocker in `supabase/migrations/202605180007_reeditpro_rls_policies.sql`. It preserves the existing `target_workspace_id` input parameter names for `public.is_workspace_member(uuid)` and `public.is_workspace_owner_or_admin(uuid)`.
+
+Prompt 20N evidence shows:
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `npm run --silent supabase:local:toolchain:probe` | Completed, status `blocked`, exit code `0` | Reports Supabase CLI 2.104.0, Docker 29.5.2, `psql` 18.4, `remoteRiskDetected=false`, local SQL candidate present, and missing local DB URL. |
+| `npm run --silent supabase:local:preflight` | Completed, status `blocked`, exit code `0` | Reports `remoteRiskDetected=false`, `canStartLocalSupabase=true`, `canResetLocalSupabase=true`, `canRunLocalSql=false`, and blocker `local_db_url_missing`. |
+| `supabase stop --no-backup` | Completed | Local-only cleanup before start; no backup. |
+| `supabase start` | Failed before migrations | Local DB port `54322` is already bound before migration application. |
+| `lsof -nP -iTCP:54322 -sTCP:LISTEN` | Completed | Reports `rapportd` listening on `*:54322`. |
+
+Prompt 20N readiness:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+- `canRunLocalSql=false`
+- no localhost-only DB URL captured
+- no SQL/RLS smoke test executed
+
+Current blocker:
+
+```text
+failed to start docker container "supabase_db_reeditpro-local": Error response from daemon: ports are not available: exposing port TCP 0.0.0.0:54322 -> 127.0.0.1:0: listen tcp 0.0.0.0:54322: bind: address already in use
+```
+
+Prompt 20O is recommended to clear or route around the local-only `54322` port conflict and retry `supabase start` before Prompt 20B SQL execution.

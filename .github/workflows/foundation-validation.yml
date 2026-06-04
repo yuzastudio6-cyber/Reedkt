@@ -34,6 +34,7 @@ on:
       - codex/rp-foundation-20j-local-supabase-migration-chain-repair-follow-up-3
       - codex/rp-foundation-20k-local-supabase-migration-chain-repair-follow-up-4
       - codex/rp-foundation-20l-local-supabase-migration-chain-repair-follow-up-5
+      - codex/rp-foundation-20m-local-supabase-migration-chain-repair-follow-up-6
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

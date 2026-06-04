@@ -113,6 +113,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Proceed to Phase 50G only as a map/geospatial internal readiness gate.
 5. Do not treat Phase 50F as live geospatial runtime, map provider, public tile, production, external beta, or broad media approval.
 
+## After Phase 50G
+
+1. Review `activation:map-geospatial-readiness:report`, `activation:map-geospatial-readiness:iam-plan`, and private Phase 50G JSON audit artifacts.
+2. Confirm Phase 49P and Phase 50A-50F evidence, dependency/package audit, provider/data policy audit, artifact privacy audit, ownership boundary audit, and fail-closed policy passed.
+3. Confirm the map/geospatial stack is ready only for controlled internal testing.
+4. Proceed to Phase 52A only as shared agent and tool ownership architecture unless system reconciliation is chosen first.
+5. Do not enable live tiles, public OSM tiles, geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, D3/Three.js runtime, public artifacts, production, external beta, paid production, or broad media.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

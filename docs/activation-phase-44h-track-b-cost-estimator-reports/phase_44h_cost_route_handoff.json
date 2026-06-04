@@ -1,0 +1,19 @@
+{
+  "phase": "44H",
+  "runId": "phase44h-trackb-cost-estimator-20260604",
+  "status": "planning_only_route_execution_blocked",
+  "providesPlanningEstimatesOnly": true,
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "localSidecarExecutionAllowed": false,
+  "costEstimatorChoosesTools": false,
+  "cannotOverrideBlockedToolStatus": true,
+  "cannotApproveVlm": true,
+  "cannotApproveDemucs": true,
+  "cannotApproveBroadMedia": true,
+  "localWorkerSidecarRequired": "Phase 44G",
+  "hybridE2eSimulationRequired": "Phase 44J",
+  "workerExecutionRequiresApprovedPlanSnapshot": true,
+  "workerExecutionRequiresArtifactScope": true,
+  "pricingRefreshRequiredBeforeProductionOrPaidBeta": true
+}

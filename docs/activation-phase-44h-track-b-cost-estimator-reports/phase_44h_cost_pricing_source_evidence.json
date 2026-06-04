@@ -1,0 +1,59 @@
+{
+  "phase": "44H",
+  "runId": "phase44h-trackb-cost-estimator-20260604",
+  "status": "official_sources_recorded",
+  "accessedDate": "2026-06-04",
+  "region": "us-central1",
+  "currency": "USD",
+  "usesLiveBillingApi": false,
+  "authoritativeBilling": false,
+  "planningOnly": true,
+  "sources": [
+    {
+      "sourceId": "google_cloud_run_pricing",
+      "url": "https://cloud.google.com/run/pricing",
+      "relevantCategories": [
+        "Cloud Run Jobs CPU vCPU-second",
+        "Cloud Run Jobs memory GiB-second",
+        "Cloud Run L4 GPU per-second",
+        "free-tier caveats",
+        "data-transfer caveats"
+      ],
+      "exactRatesCaptured": true
+    },
+    {
+      "sourceId": "google_artifact_registry_pricing",
+      "url": "https://cloud.google.com/artifact-registry/pricing",
+      "relevantCategories": [
+        "artifact repository at-rest storage"
+      ],
+      "exactRatesCaptured": true
+    },
+    {
+      "sourceId": "google_cloud_storage_pricing",
+      "url": "https://cloud.google.com/storage/pricing",
+      "relevantCategories": [
+        "us-central1 Standard storage",
+        "operation caveats",
+        "egress/network caveats"
+      ],
+      "exactRatesCaptured": true
+    },
+    {
+      "sourceId": "google_compute_gpu_pricing",
+      "url": "https://cloud.google.com/compute/gpus-pricing",
+      "relevantCategories": [
+        "GPU pricing evidence only; VLM/GPU estimates remain blocked"
+      ],
+      "exactRatesCaptured": false
+    },
+    {
+      "sourceId": "google_cloud_pricing_calculator",
+      "url": "https://cloud.google.com/products/calculator",
+      "relevantCategories": [
+        "future manual estimate cross-check"
+      ],
+      "exactRatesCaptured": false
+    }
+  ]
+}

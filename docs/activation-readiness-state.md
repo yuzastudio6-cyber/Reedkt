@@ -239,7 +239,7 @@ Current classification:
 
 Phase 44I-A adds a reporting-only Track B capability manifest baseline under `docs/activation-track-b-capability-manifests-reports/`. It includes exactly 18 canonical Track B tool ids and classifies restricted internal testing eligibility without changing production routing.
 
-Restricted internal testing manifests include DeepFilterNet, Signalsmith Stretch, PaddleOCR, PaddlePaddle, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. Demucs remains blocked pending training-data provenance and human/legal review. Qwen3-VL and vLLM remain excluded while Phase 39C generated runtime verification is blocked. Web capability profiler, desktop capability profiler, local worker sidecar planning, cost estimator, and tool route manifest integration remain `not_started`.
+Restricted internal testing manifests include DeepFilterNet, Signalsmith Stretch, PaddleOCR, PaddlePaddle, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. Demucs remains blocked pending training-data provenance and human/legal review. Qwen3-VL and vLLM remain excluded while Phase 39C generated runtime verification is blocked. At the original Phase 44I-A baseline, web capability profiler, desktop capability profiler, local worker sidecar planning, cost estimator, and tool route manifest integration were `not_started`; later Phase 44D/44E/44F/44H/44I entries update those metadata statuses.
 
 Phase 44I-A does not run Docker, Cloud Build, Cloud Run, GPU jobs, model downloads, media/audio/OCR/VLM runtimes, provider calls, IAM/GCP mutation, or beta/production unlocks. Phase 44I remains required for actual tool route manifest integration, and workers must execute approved plan snapshots within approved artifact scopes only.
 
@@ -247,7 +247,7 @@ Phase 44I-A does not run Docker, Cloud Build, Cloud Run, GPU jobs, model downloa
 
 Phase 44I adds a metadata-only route manifest layer under `docs/activation-track-b-tool-route-manifest-reports/`. It consumes the PR #161 capability manifests as source of truth and adds route eligibility, plan snapshot, artifact scope, consumer, failure, and cost/capacity metadata only.
 
-Route-enabled restricted-internal metadata entries are DeepFilterNet, Signalsmith Stretch, PaddleOCR, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. PaddlePaddle and tool route manifest integration are handoff-only. Demucs remains `route_disabled_blocked`; Qwen3-VL and vLLM remain `route_disabled_excluded`; web capability profiler, desktop capability profiler, local worker sidecar planning, and cost estimator remain `route_disabled_not_started`.
+Route-enabled restricted-internal metadata entries are DeepFilterNet, Signalsmith Stretch, PaddleOCR, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. PaddlePaddle and tool route manifest integration are handoff-only. Demucs remains `route_disabled_blocked`; Qwen3-VL and vLLM remain `route_disabled_excluded`. Phase 44I route metadata originally kept web capability profiler, desktop capability profiler, local worker sidecar planning, and cost estimator as `route_disabled_not_started`; later profiler/benchmark/cost phases add planning metadata without changing `routeExecutionAllowed=false`.
 
 Every route keeps `runtimeExecutionAllowed` and `routeExecutionAllowed` false. Phase 44I does not run tools, workers, media/audio/OCR/VLM runtimes, Docker, Cloud Build, Cloud Run, GPU jobs, providers, model downloads, IAM/GCP mutation, beta, production, broad media, public output, arbitrary media, raw chat execution, or Track A.
 
@@ -274,3 +274,11 @@ Phase 44F adds a safe bounded desktop benchmark runner under `src/lib/track-b/de
 Generated/mock fixtures cover high desktop, mid desktop with unavailable media runtime, low desktop, parallel-unavailable, and policy-blocked contexts. The Phase 44F readiness report marks `desktop_benchmark_runner` as `phase_complete_restricted_scope`.
 
 Phase 44F does not upload live benchmark results, persist local benchmark results by default, run optional local benchmarks in the baseline, execute workers, run sidecars, process media/audio/OCR/VLM/model runtimes, call providers, route tools, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, create public artifacts, collect hostnames, collect usernames, collect MAC addresses, store exact CPU/GPU identities, scan directories, dump environment variables, run network benchmarks, run GPU benchmarks, run sustained stress tests, or touch Track A. Local sidecar, full cost estimator, and hybrid E2E simulation remain pending.
+
+## Phase 44H Track B Cost Estimator
+
+Phase 44H adds a safe Track B cost estimator under `server/activation/track-b-cost-estimator/` and committed evidence under `docs/activation-phase-44h-track-b-cost-estimator-reports/`. It records official pricing evidence, a dated static us-central1/USD pricing snapshot, 18-tool cost mappings, synthetic planning scenarios, guardrails, and route/cost handoff metadata only.
+
+The Phase 44H readiness report marks `cost_estimator` as `phase_complete_restricted_scope`. It is planning metadata only and does not query Billing APIs, read project billing, execute routes, start workers, start sidecars, process media/audio/OCR/VLM/model runtimes, call providers, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, or touch Track A.
+
+VLM and Demucs estimates remain blocked. GPU, provider, broad-media, production, paid-beta, and route-execution costs remain blocked until future approved phases. Local sidecar remains pending, and Phase 44J hybrid E2E simulation remains pending.

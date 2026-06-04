@@ -1,5 +1,7 @@
 # Production Model Weight Readiness Plan
 
+Phase 44H is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records static cost-planning metadata only; VLM GPU estimates and Demucs model/source-separation estimates remain blocked until their separate approval phases pass.
+
 Phase 36M is not a model-weight phase. It does not download, stage, approve, or execute model weights. It can mark audio/timing as an internally beta-ready candidate only for restricted internal QA/planning scope by explicitly excluding Demucs from the current scope. Demucs weights remain unavailable and blocked pending Phase 36K training-data/model-artifact provenance blockers and human/legal review.
 
 Phase 36K is a model-weight provenance decision gate for Demucs only. It records MIT source/package evidence, PyPI 4.0.1 package metadata, official pretrained candidate names, MUSDB/MUSDB-HQ context, Torchaudio HDemucs notes, and training-data blockers. It does not download, stage, hash, or execute Demucs weights. Demucs remains blocked pending training-data provenance and human/legal review; Phase 36L is not eligible unless one exact candidate receives future approval.

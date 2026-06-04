@@ -177,7 +177,10 @@ export async function inspectSupabaseMilestoneRegistryTables(client?: SupabaseCl
 
 export async function applySupabaseMilestoneMigrationWithPsql(dbUrl: string, migrationFile: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    await execFile('psql', [dbUrl, '-v', 'ON_ERROR_STOP=1', '-f', migrationFile], { maxBuffer: 8 * 1024 * 1024 })
+    await execFile('psql', ['-v', 'ON_ERROR_STOP=1', '-f', migrationFile], {
+      env: buildPsqlEnv(dbUrl),
+      maxBuffer: 8 * 1024 * 1024,
+    })
     return { ok: true }
   } catch (error) {
     return { ok: false, error: sanitizeCommandError(errorMessage(error)) }
@@ -227,7 +230,9 @@ function sanitizeCommandError(message: string): string {
   return message
     .replace(/postgres(?:ql)?:\/\/[^\s]+/gi, '<redacted-db-url>')
     .replace(/https?:\/\/[^\s)]+/g, '<redacted-url>')
-    .replace(/(service_role|apikey|authorization|password|token)[^,\n]*/gi, '<redacted-secret-field>')
+    .replace(/(service_role|apikey|authorization|token)[^,\n]*/gi, '<redacted-secret-field>')
+    .replace(/password\s*=\s*[^\s,\n]+/gi, 'password=<redacted>')
+    .replace(/password authentication failed for user "[^"]+"/gi, 'password authentication failed for user <redacted-db-user>')
     .slice(0, 700)
 }
 
@@ -252,4 +257,20 @@ function normalizeSupabaseProjectUrl(rawUrl: string): { url: string; warnings: s
   } catch {
     return { url: rawUrl, warnings: ['Supabase URL could not be parsed for path normalization; the raw backend-only value was passed to the client without printing it.'] }
   }
+}
+
+function buildPsqlEnv(dbUrl: string): NodeJS.ProcessEnv {
+  const parsed = new URL(dbUrl)
+  const env: NodeJS.ProcessEnv = { ...process.env }
+  env.PGHOST = parsed.hostname
+  if (parsed.port) env.PGPORT = parsed.port
+  env.PGDATABASE = decodeURIComponent(parsed.pathname.replace(/^\//, '') || 'postgres')
+  if (parsed.username) env.PGUSER = decodeURIComponent(parsed.username)
+  if (parsed.password) env.PGPASSWORD = decodeURIComponent(parsed.password)
+  const sslMode = parsed.searchParams.get('sslmode')
+  env.PGSSLMODE = sslMode || 'require'
+  env.PGCONNECT_TIMEOUT = '15'
+  delete env.SUPABASE_DB_URL
+  delete env.DATABASE_URL
+  return env
 }

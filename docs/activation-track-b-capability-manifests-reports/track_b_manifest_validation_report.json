@@ -1,0 +1,20 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "passed",
+  "toolCount": 18,
+  "canonicalToolIdsPresent": true,
+  "all18ToolIdsPresent": true,
+  "canonicalStatusVocabularyOnly": true,
+  "vlmCompositeExclusionPresent": true,
+  "demucsRuntimeDisabled": true,
+  "sharpLibvipsOwnershipBoundaryPresent": true,
+  "hybridToolsNotStarted": true,
+  "productionBetaBroadMediaProviderBlocks": true,
+  "rawChatExecutionBlocked": true,
+  "frontendServiceRoleSecretsBlocked": true,
+  "approvedPlanSnapshotArtifactScopeRequired": true,
+  "routeIntegrationPending": true,
+  "trackA": "not_touched",
+  "blockers": []
+}

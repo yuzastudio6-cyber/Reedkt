@@ -1,0 +1,62 @@
+{
+  "toolId": "qwen3_vl",
+  "displayName": "Qwen3-VL",
+  "family": "vlm",
+  "status": "excluded_for_initial_internal_testing",
+  "initialInternalTestingGroup": "excluded",
+  "restrictedInternalTestingEligible": false,
+  "restrictedInternalScope": "none",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "phase_complete_restricted_scope",
+  "runtimeEvidenceStatus": "blocked",
+  "privateArtifactPolicy": "private staged model evidence exists, but generated runtime verification remains blocked",
+  "runtimeLocationPolicy": "runtime retries blocked without explicit new approval",
+  "routeManifestPolicy": "excluded_from_initial_internal_testing_and_route_execution",
+  "ownerBoundary": "Track B owns VLM evidence and blocker policy only.",
+  "consumerBoundaries": [
+    "none until generated runtime verification passes"
+  ],
+  "dependencyCaveats": [
+    "vLLM/Qwen failed L4 OOM and generated semantic QA; SGLang failed import-smoke compatibility."
+  ],
+  "evidence": [
+    {
+      "phase": "39C-DECISION",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/120",
+      "report": "docs/activation-phase-39c-vlm-decision-gate-reports/phase_39c_vlm_decision_record.json",
+      "summary": "Phase 39C remains blocked; Phase 39D/39E remain blocked."
+    }
+  ],
+  "testCommands": [
+    "npm run activation:vlm-decision-gate:summary"
+  ],
+  "blockedCapabilities": [
+    "generated VLM runtime",
+    "controlled real-frame VLM",
+    "planning integration",
+    "provider calls"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "explicitly approved VLM recovery path only; otherwise keep excluded"
+}

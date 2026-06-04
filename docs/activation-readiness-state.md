@@ -234,3 +234,11 @@ Current classification:
 - production: blocked
 - external beta: blocked
 - paid production: blocked
+
+## Phase 44I-A Track B Capability Manifest Baseline
+
+Phase 44I-A adds a reporting-only Track B capability manifest baseline under `docs/activation-track-b-capability-manifests-reports/`. It includes exactly 18 canonical Track B tool ids and classifies restricted internal testing eligibility without changing production routing.
+
+Restricted internal testing manifests include DeepFilterNet, Signalsmith Stretch, PaddleOCR, PaddlePaddle, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. Demucs remains blocked pending training-data provenance and human/legal review. Qwen3-VL and vLLM remain excluded while Phase 39C generated runtime verification is blocked. Web capability profiler, desktop capability profiler, local worker sidecar planning, cost estimator, and tool route manifest integration remain `not_started`.
+
+Phase 44I-A does not run Docker, Cloud Build, Cloud Run, GPU jobs, model downloads, media/audio/OCR/VLM runtimes, provider calls, IAM/GCP mutation, or beta/production unlocks. Phase 44I remains required for actual tool route manifest integration, and workers must execute approved plan snapshots within approved artifact scopes only.

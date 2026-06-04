@@ -1,0 +1,152 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "passed",
+  "frontendServiceRoleSecrets": "blocked",
+  "heavyNativeFrontendImports": "blocked",
+  "consumerOnlyBoundaries": [
+    {
+      "toolId": "deepfilternet",
+      "ownerBoundary": "Track B owns DeepFilterNet audio/timing runtime hardening evidence and restricted internal scope.",
+      "consumers": [
+        "future audio planner",
+        "future QA reporting"
+      ]
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "ownerBoundary": "Track B owns Signalsmith Stretch audio/timing runtime evidence and restricted internal scope.",
+      "consumers": [
+        "future timing planner",
+        "future QA reporting"
+      ]
+    },
+    {
+      "toolId": "demucs",
+      "ownerBoundary": "Track B records provenance decision evidence only.",
+      "consumers": [
+        "none until approved"
+      ]
+    },
+    {
+      "toolId": "paddleocr",
+      "ownerBoundary": "Track B owns OCR evidence and safe-zone metadata readiness.",
+      "consumers": [
+        "caption/render QA planning",
+        "safe-zone planning"
+      ]
+    },
+    {
+      "toolId": "paddlepaddle",
+      "ownerBoundary": "Track B owns PaddlePaddle only as PaddleOCR runtime dependency evidence.",
+      "consumers": [
+        "PaddleOCR only"
+      ]
+    },
+    {
+      "toolId": "qwen3_vl",
+      "ownerBoundary": "Track B owns VLM evidence and blocker policy only.",
+      "consumers": [
+        "none until generated runtime verification passes"
+      ]
+    },
+    {
+      "toolId": "vllm",
+      "ownerBoundary": "Track B owns vLLM as VLM runtime evidence/blocker only.",
+      "consumers": [
+        "none until generated runtime verification passes"
+      ]
+    },
+    {
+      "toolId": "opencv",
+      "ownerBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "consumers": [
+        "future QA reporting",
+        "future planning metadata consumers"
+      ]
+    },
+    {
+      "toolId": "pyav",
+      "ownerBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "consumers": [
+        "future QA reporting",
+        "future planning metadata consumers"
+      ]
+    },
+    {
+      "toolId": "pyscenedetect",
+      "ownerBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "consumers": [
+        "future QA reporting",
+        "future planning metadata consumers"
+      ]
+    },
+    {
+      "toolId": "sharp_libvips",
+      "ownerBoundary": "Track B owns core runtime hardening, server/worker policy, private artifact policy, and dependency caveats.",
+      "consumers": [
+        "Web search, AI Tools graphics, and Track A visual pipeline may consume metadata only and do not own runtime hardening."
+      ]
+    },
+    {
+      "toolId": "duckdb",
+      "ownerBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "consumers": [
+        "future QA reporting",
+        "future planning metadata consumers"
+      ]
+    },
+    {
+      "toolId": "polars",
+      "ownerBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "consumers": [
+        "future QA reporting",
+        "future planning metadata consumers"
+      ]
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "ownerBoundary": "Track B owns future hybrid compute/cost routing planning only.",
+      "consumers": [
+        "future planner/router only after approved implementation"
+      ]
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "ownerBoundary": "Track B owns future hybrid compute/cost routing planning only.",
+      "consumers": [
+        "future planner/router only after approved implementation"
+      ]
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "ownerBoundary": "Track B owns future hybrid compute/cost routing planning only.",
+      "consumers": [
+        "future planner/router only after approved implementation"
+      ]
+    },
+    {
+      "toolId": "cost_estimator",
+      "ownerBoundary": "Track B owns future hybrid compute/cost routing planning only.",
+      "consumers": [
+        "future planner/router only after approved implementation"
+      ]
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "ownerBoundary": "Track B owns future hybrid compute/cost routing planning only.",
+      "consumers": [
+        "future planner/router only after approved implementation"
+      ]
+    }
+  ],
+  "sharpLibvipsBoundary": {
+    "owner": "Track B owns core runtime hardening, server/worker policy, private artifact policy, and dependency caveats.",
+    "consumersOnly": [
+      "web search",
+      "AI Tools graphics",
+      "Track A visual pipeline"
+    ],
+    "runtimeImportPolicy": "server_worker_only_frontend_forbidden"
+  }
+}

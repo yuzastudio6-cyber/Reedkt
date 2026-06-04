@@ -1,0 +1,59 @@
+{
+  "toolId": "paddlepaddle",
+  "displayName": "PaddlePaddle",
+  "family": "ocr",
+  "status": "phase_complete_restricted_scope",
+  "initialInternalTestingGroup": "included",
+  "restrictedInternalTestingEligible": true,
+  "restrictedInternalScope": "restricted internal OCR runtime dependency for approved PaddleOCR scopes",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "phase_complete_restricted_scope",
+  "runtimeEvidenceStatus": "controlled_sample_passed",
+  "privateArtifactPolicy": "dependency metadata only; no committed model/runtime payloads",
+  "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+  "routeManifestPolicy": "baseline_manifest_only_phase_44i_required_for_actual_tool_route_manifest_integration",
+  "ownerBoundary": "Track B owns PaddlePaddle only as PaddleOCR runtime dependency evidence.",
+  "consumerBoundaries": [
+    "PaddleOCR only"
+  ],
+  "dependencyCaveats": [
+    "PaddlePaddle is not a standalone user-facing route."
+  ],
+  "evidence": [
+    {
+      "phase": "37C-37E",
+      "summary": "PaddlePaddle evidence is tied to PaddleOCR generated/control safe-zone phases."
+    }
+  ],
+  "testCommands": [
+    "npm run smoke:activation-ocr-runtime"
+  ],
+  "blockedCapabilities": [
+    "standalone tool execution",
+    "broad OCR runtime",
+    "production OCR"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "future route handoff only as OCR dependency"
+}

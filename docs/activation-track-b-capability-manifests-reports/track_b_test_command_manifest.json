@@ -1,0 +1,115 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "safe_command_manifest_only",
+  "commands": [
+    {
+      "toolId": "deepfilternet",
+      "commands": [
+        "npm run activation:deepfilternet-runtime:report",
+        "npm run smoke:activation-deepfilternet-runtime"
+      ]
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "commands": [
+        "npm run activation:signalsmith-stretch-runtime:report",
+        "npm run activation:signalsmith-controlled-runtime:report"
+      ]
+    },
+    {
+      "toolId": "demucs",
+      "commands": [
+        "npm run activation:demucs-provenance:report",
+        "npm run smoke:activation-demucs-provenance"
+      ]
+    },
+    {
+      "toolId": "paddleocr",
+      "commands": [
+        "npm run activation:ocr-runtime:report",
+        "npm run activation:controlled-real-video-ocr-safe-zone:execution-report"
+      ]
+    },
+    {
+      "toolId": "paddlepaddle",
+      "commands": [
+        "npm run smoke:activation-ocr-runtime"
+      ]
+    },
+    {
+      "toolId": "qwen3_vl",
+      "commands": [
+        "npm run activation:vlm-decision-gate:summary"
+      ]
+    },
+    {
+      "toolId": "vllm",
+      "commands": [
+        "npm run activation:vlm-decision-gate:summary"
+      ]
+    },
+    {
+      "toolId": "opencv",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ]
+    },
+    {
+      "toolId": "pyav",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ]
+    },
+    {
+      "toolId": "pyscenedetect",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ]
+    },
+    {
+      "toolId": "sharp_libvips",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ]
+    },
+    {
+      "toolId": "duckdb",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ]
+    },
+    {
+      "toolId": "polars",
+      "commands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ]
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "commands": []
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "commands": []
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "commands": []
+    },
+    {
+      "toolId": "cost_estimator",
+      "commands": []
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "commands": []
+    }
+  ]
+}

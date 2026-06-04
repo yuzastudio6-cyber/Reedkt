@@ -1,0 +1,15 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "metadata_only_zero_cloud_runtime_cost",
+  "estimatedCloudCostUsd": 0,
+  "costDrivers": [
+    "local TypeScript report generation only"
+  ],
+  "noDocker": true,
+  "noCloudBuild": true,
+  "noCloudRun": true,
+  "noGpuJobs": true,
+  "noMediaRuntime": true,
+  "noProviderCalls": true
+}

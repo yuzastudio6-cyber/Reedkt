@@ -1,0 +1,117 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "globallyBlockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "model downloads",
+    "media/audio/OCR/VLM runtime execution",
+    "IAM/GCP mutation",
+    "raw chat execution",
+    "frontend service-role secrets",
+    "Track A runtime/visual/render stack"
+  ],
+  "blockedTools": [
+    {
+      "toolId": "demucs",
+      "status": "blocked_pending_training_data_provenance",
+      "blockedCapabilities": [
+        "download weights",
+        "stage weights",
+        "source separation",
+        "production audio processing"
+      ],
+      "nextPhase": "Phase 36L only after explicit human/legal approval; otherwise excluded from current internal scope"
+    },
+    {
+      "toolId": "qwen3_vl",
+      "status": "excluded_for_initial_internal_testing",
+      "blockedCapabilities": [
+        "generated VLM runtime",
+        "controlled real-frame VLM",
+        "planning integration",
+        "provider calls"
+      ],
+      "nextPhase": "explicitly approved VLM recovery path only; otherwise keep excluded"
+    },
+    {
+      "toolId": "vllm",
+      "status": "excluded_for_initial_internal_testing",
+      "blockedCapabilities": [
+        "generated VLM runtime",
+        "controlled real-frame VLM",
+        "planning integration"
+      ],
+      "nextPhase": "explicitly approved VLM recovery path only; otherwise keep excluded"
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "status": "not_started",
+      "blockedCapabilities": [
+        "runtime routing",
+        "cost-driven execution",
+        "worker dispatch",
+        "raw chat execution"
+      ],
+      "nextPhase": "Phase 44I route manifest integration or a dedicated profiler/cost phase"
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "status": "not_started",
+      "blockedCapabilities": [
+        "runtime routing",
+        "cost-driven execution",
+        "worker dispatch",
+        "raw chat execution"
+      ],
+      "nextPhase": "Phase 44I route manifest integration or a dedicated profiler/cost phase"
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "status": "not_started",
+      "blockedCapabilities": [
+        "runtime routing",
+        "cost-driven execution",
+        "worker dispatch",
+        "raw chat execution"
+      ],
+      "nextPhase": "Phase 44I route manifest integration or a dedicated profiler/cost phase"
+    },
+    {
+      "toolId": "cost_estimator",
+      "status": "not_started",
+      "blockedCapabilities": [
+        "runtime routing",
+        "cost-driven execution",
+        "worker dispatch",
+        "raw chat execution"
+      ],
+      "nextPhase": "Phase 44I route manifest integration or a dedicated profiler/cost phase"
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "status": "not_started",
+      "blockedCapabilities": [
+        "runtime routing",
+        "cost-driven execution",
+        "worker dispatch",
+        "raw chat execution"
+      ],
+      "nextPhase": "Phase 44I route manifest integration or a dedicated profiler/cost phase"
+    }
+  ],
+  "demucsRuntimeDisabled": true,
+  "vlmRuntimeRetriesBlocked": true,
+  "productionBetaBroadMediaBlocked": true
+}

@@ -1,0 +1,60 @@
+{
+  "toolId": "vllm",
+  "displayName": "vLLM",
+  "family": "vlm",
+  "status": "excluded_for_initial_internal_testing",
+  "initialInternalTestingGroup": "excluded",
+  "restrictedInternalTestingEligible": false,
+  "restrictedInternalScope": "none",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "phase_complete_restricted_scope",
+  "runtimeEvidenceStatus": "blocked",
+  "privateArtifactPolicy": "no runtime artifacts approved for internal testing route",
+  "runtimeLocationPolicy": "runtime retries blocked without explicit new approval",
+  "routeManifestPolicy": "excluded_from_initial_internal_testing_and_route_execution",
+  "ownerBoundary": "Track B owns vLLM as VLM runtime evidence/blocker only.",
+  "consumerBoundaries": [
+    "none until generated runtime verification passes"
+  ],
+  "dependencyCaveats": [
+    "Structured output did not solve Qwen visual perception/localization failures."
+  ],
+  "evidence": [
+    {
+      "phase": "39C-DECISION",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/120",
+      "summary": "Current vLLM/Qwen path is blocked by OOM and semantic generated-image QA failures."
+    }
+  ],
+  "testCommands": [
+    "npm run activation:vlm-decision-gate:summary"
+  ],
+  "blockedCapabilities": [
+    "generated VLM runtime",
+    "controlled real-frame VLM",
+    "planning integration"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "explicitly approved VLM recovery path only; otherwise keep excluded"
+}

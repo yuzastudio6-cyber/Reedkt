@@ -1,0 +1,69 @@
+{
+  "toolId": "signalsmith_stretch",
+  "displayName": "Signalsmith Stretch",
+  "family": "audio_timing",
+  "status": "internally_beta_ready_candidate_restricted_scope",
+  "initialInternalTestingGroup": "included",
+  "restrictedInternalTestingEligible": true,
+  "restrictedInternalScope": "bounded generated and controlled timing/stretch QA/planning evidence only",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "phase_complete_restricted_scope",
+  "runtimeEvidenceStatus": "controlled_sample_passed",
+  "privateArtifactPolicy": "private Phase 36I/36J metadata/artifacts only; no committed audio payloads",
+  "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+  "routeManifestPolicy": "baseline_manifest_only_phase_44i_required_for_actual_tool_route_manifest_integration",
+  "ownerBoundary": "Track B owns Signalsmith Stretch audio/timing runtime evidence and restricted internal scope.",
+  "consumerBoundaries": [
+    "future timing planner",
+    "future QA reporting"
+  ],
+  "dependencyCaveats": [
+    "C++ source/build path remains temp-only and worker-only."
+  ],
+  "evidence": [
+    {
+      "phase": "36I",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/147",
+      "report": "docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports/phase_36i_signalsmith_runtime_generated_fixture_report.json",
+      "summary": "Signalsmith source pin, temp build, generated fixtures, metrics, and private artifacts passed."
+    },
+    {
+      "phase": "36J",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/149",
+      "report": "docs/activation-phase-36j-controlled-real-media-timing-stretch-sample-reports/phase_36j_controlled_real_media_timing_stretch_report.json",
+      "summary": "One bounded approved controlled sample passed 1.10x/0.90x stretch gates with private artifacts."
+    }
+  ],
+  "testCommands": [
+    "npm run activation:signalsmith-stretch-runtime:report",
+    "npm run activation:signalsmith-controlled-runtime:report"
+  ],
+  "blockedCapabilities": [
+    "broad timing/stretch media",
+    "full-video timing processing",
+    "production audio processing"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "none_for_manifest_baseline; future route integration remains Phase 44I"
+}

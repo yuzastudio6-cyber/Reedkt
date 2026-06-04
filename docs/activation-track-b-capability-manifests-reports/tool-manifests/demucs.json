@@ -1,0 +1,63 @@
+{
+  "toolId": "demucs",
+  "displayName": "Demucs",
+  "family": "audio_timing",
+  "status": "blocked_pending_training_data_provenance",
+  "initialInternalTestingGroup": "excluded",
+  "restrictedInternalTestingEligible": false,
+  "restrictedInternalScope": "none",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "pending_approval",
+  "runtimeEvidenceStatus": "blocked",
+  "privateArtifactPolicy": "no model downloads, no weights, no source separation artifacts",
+  "runtimeLocationPolicy": "disabled until future human/legal approval",
+  "routeManifestPolicy": "excluded_from_initial_internal_testing_and_route_execution",
+  "ownerBoundary": "Track B records provenance decision evidence only.",
+  "consumerBoundaries": [
+    "none until approved"
+  ],
+  "dependencyCaveats": [
+    "Training-data provenance and model-artifact source policy remain unresolved."
+  ],
+  "evidence": [
+    {
+      "phase": "36K",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/156",
+      "report": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_provenance_decision.json",
+      "summary": "Demucs is blocked pending training-data provenance and human/legal review."
+    }
+  ],
+  "testCommands": [
+    "npm run activation:demucs-provenance:report",
+    "npm run smoke:activation-demucs-provenance"
+  ],
+  "blockedCapabilities": [
+    "download weights",
+    "stage weights",
+    "source separation",
+    "production audio processing"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "Phase 36L only after explicit human/legal approval; otherwise excluded from current internal scope"
+}

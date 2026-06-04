@@ -1,0 +1,62 @@
+{
+  "toolId": "paddleocr",
+  "displayName": "PaddleOCR",
+  "family": "ocr",
+  "status": "phase_complete_restricted_scope",
+  "initialInternalTestingGroup": "included",
+  "restrictedInternalTestingEligible": true,
+  "restrictedInternalScope": "restricted internal OCR safe-zone metadata/planning signal only",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "phase_complete_restricted_scope",
+  "runtimeEvidenceStatus": "controlled_sample_passed",
+  "privateArtifactPolicy": "private OCR metadata/artifacts only; no raw private frames committed",
+  "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+  "routeManifestPolicy": "baseline_manifest_only_phase_44i_required_for_actual_tool_route_manifest_integration",
+  "ownerBoundary": "Track B owns OCR evidence and safe-zone metadata readiness.",
+  "consumerBoundaries": [
+    "caption/render QA planning",
+    "safe-zone planning"
+  ],
+  "dependencyCaveats": [
+    "OCR runtime remains bounded to approved PP-OCRv5 assets and controlled scopes."
+  ],
+  "evidence": [
+    {
+      "phase": "37E",
+      "report": "docs/activation-phase-37e-ocr-caption-render-qa-reports/phase_37e_ocr_caption_render_qa_report.json",
+      "summary": "OCR chain is available only as internal QA/planning metadata signal."
+    }
+  ],
+  "testCommands": [
+    "npm run activation:ocr-runtime:report",
+    "npm run activation:controlled-real-video-ocr-safe-zone:execution-report"
+  ],
+  "blockedCapabilities": [
+    "broad OCR",
+    "arbitrary media OCR",
+    "production OCR"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "future route handoff only after approved planner integration"
+}

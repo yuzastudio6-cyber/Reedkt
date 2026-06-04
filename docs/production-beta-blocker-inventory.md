@@ -1,8 +1,8 @@
 # Production Beta Blocker Inventory
 
-This inventory records blockers before production-level beta. Prompt 23 guarded staging decision record does not clear production blockers.
+This inventory records blockers before production-level beta. Prompt 23 guarded staging decision record and Prompt 23S sync policy do not clear production blockers.
 
-Prompt 21 staging Supabase/RLS approval packet remains the approval-preparation baseline; Prompt 22 human approval review adds human review material; Prompt 23 records guarded staging validation approval for Prompt 24 only.
+Prompt 21 staging Supabase/RLS approval packet remains the approval-preparation baseline; Prompt 22 human approval review adds human review material; Prompt 23 records guarded staging validation approval for Prompt 24 only; Prompt 23S clarifies that staging sync is not applied and production sync remains blocked.
 
 | Severity | Blocker | Why it matters | Risk | Required fix | Owner/milestone | Can beta proceed without it? | Must be done before production beta? |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -27,7 +27,8 @@ Prompt 21 staging Supabase/RLS approval packet remains the approval-preparation 
 | Medium | Source-of-truth drift risk | Long PR stack can drift. | Confusing implementation targets. | Keep tracker and map updated. | Every prompt | Yes if monitored. | Yes |
 | Medium | Local host Node/npm architecture blocker | Local validation is inconsistent. | Developer validation gaps. | Use compatible Node path or CI. | Validation milestone | Yes with CI. | No if CI passes |
 | Medium | Broader local RLS coverage missing | One local auth/workspace/project smoke test passed, but other domains remain draft-only. | Narrow local evidence can miss storage, credits, jobs, render, QA, tool, provider, compliance, and observability policy issues. | Convert and run additional local domain SQL only in later approved prompts. | Future local RLS prompts | Yes for static planning only. | Yes before production beta |
+| Medium | Supabase milestone sync/status ledger not implemented | Prompt 23S defines future reporting policy and draft ledger shape, but no status-record table or append-only backend write path exists. | Milestone evidence can remain split across repo docs, PRs, and future external evidence until a reviewed ledger exists. | Implement future append-only status records only after schema/RLS approval and human-reviewed environment gates. | Future status-record milestone | Yes for static planning only. | Yes before production beta |
 
 ## Decision
 
-Prompt 23 records guarded staging validation approval for Prompt 24 after Prompt 20B-Retry ran and passed the first guarded local auth/workspace/project RLS smoke test. Production beta still cannot proceed because staging Supabase/RLS has not executed, broader local RLS coverage is incomplete, and runtime capabilities remain blocked. The next safe milestone is Prompt 24 - Guarded staging Supabase/RLS validation execution.
+Prompt 23 records guarded staging validation approval for Prompt 24 after Prompt 20B-Retry ran and passed the first guarded local auth/workspace/project RLS smoke test. Prompt 23S adds milestone sync policy only and does not apply staging sync, production sync, or backfill records. Production beta still cannot proceed because staging Supabase/RLS has not executed, broader local RLS coverage is incomplete, and runtime capabilities remain blocked. The next safe milestone is Prompt 24 - Supabase Project Inventory and Read-Only Audit or guarded staging validation execution after gates.

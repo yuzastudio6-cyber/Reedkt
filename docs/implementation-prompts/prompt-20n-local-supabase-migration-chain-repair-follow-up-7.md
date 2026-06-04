@@ -6,7 +6,7 @@ Prompt 20N repairs the local-only RLS policy migration helper parameter-name blo
 
 - Branch: `codex/rp-foundation-20n-local-supabase-migration-chain-repair-follow-up-7`
 - Base: `origin/codex/rp-foundation-20m-local-supabase-migration-chain-repair-follow-up-6`
-- PR: pending
+- PR: [PR #153](https://github.com/yuzastudio6-cyber/Reedkt/pull/153)
 - Exact production capability enabled: `none; local-only migration chain repair`
 
 ## Allowed Scope

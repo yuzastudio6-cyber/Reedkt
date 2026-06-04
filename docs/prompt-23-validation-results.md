@@ -77,7 +77,7 @@ Prompt 23 records a pending human approval decision state after Prompt 22. No hu
 
 - Prompt 22 base PR: PR #170 GitHub Foundation Validation passed on run `26964913735`.
 - Prompt 23 corrective branch: `codex/rp-foundation-23-pending-human-approval-decision-record`.
-- Prompt 23 PR: pending.
+- Prompt 23 PR: [PR #174](https://github.com/yuzastudio6-cyber/Reedkt/pull/174).
 - GitHub Foundation Validation: pending.
 
 ## Readiness Effect

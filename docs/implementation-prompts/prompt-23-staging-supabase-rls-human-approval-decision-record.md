@@ -6,7 +6,7 @@ Prompt 23 records the human approval decision state after Prompt 22. No human ap
 
 Branch: `codex/rp-foundation-23-pending-human-approval-decision-record`
 
-PR: pending
+PR: [PR #174](https://github.com/yuzastudio6-cyber/Reedkt/pull/174)
 
 Base: `origin/codex/rp-foundation-22-staging-supabase-rls-human-approval-review`
 

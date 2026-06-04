@@ -361,3 +361,20 @@ ERROR: column "metadata_json" of relation "workspaces" does not exist
 The SQL candidate was minimally adjusted to support the migrated local schema-era bridge by seeding `public.user_profiles`, using `workspaces.owner_user_id`, and using `projects.created_by`. The final guarded run passed and rolled back the synthetic transaction.
 
 Prompt 21 can prepare the staging Supabase/RLS validation approval packet. Broader local domain tests remain draft-only until explicitly converted in later milestones.
+
+## Prompt 21 Staging Selection Update
+
+Prompt 21 adds `docs/staging-rls-test-selection-matrix.md` as the staging approval classification for existing SQL files.
+
+Manifest state after Prompt 21:
+
+- `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` remains the only local-passed SQL file;
+- that local-passed file is a staging-candidate only after human approval and staging fixture adaptation;
+- files `001` through `005` remain legacy/manual or schema-review-needed;
+- files `006` through `020` remain draft-only;
+- storage, snapshots, credits, jobs/workers, media, render/export, QA/revision, tools, providers, compliance, observability, and E2E domains require fixture design or schema review before staging selection;
+- no staging SQL ran;
+- no remote or production SQL ran;
+- production readiness remains blocked.
+
+Prompt 22 can review the approval packet. It must not treat Prompt 21 as staging execution approval.

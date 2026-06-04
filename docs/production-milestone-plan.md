@@ -515,6 +515,19 @@ This plan converts the high-level ReeditPro production path into ordered repo mi
 - Acceptance criteria: the first local-only SQL candidate runs through the guarded runner, evidence records the first schema mismatch and final pass honestly, no raw `psql` command is run manually, no remote/staging/production target is touched, and the next prompt recommendation is clear.
 - Next prompt recommendation: Prompt 21 - Staging Supabase/RLS Validation Runbook and Approval Packet.
 - GitHub deliverable: branch, commit, push, PR with validation evidence and explicit no-staging/no-remote/no-production-Supabase statement.
+
+## 21. Staging Supabase/RLS Approval Packet
+
+- Purpose: prepare the human approval packet before any staging Supabase/RLS validation may run.
+- Deliverables after Prompt 21: `docs/staging-supabase-rls-approval-packet.md`, `docs/staging-supabase-rls-runbook.md`, `docs/staging-rls-test-selection-matrix.md`, `docs/staging-synthetic-fixture-plan.md`, `docs/staging-supabase-rollback-cleanup-plan.md`, `docs/staging-supabase-risk-register.md`, `docs/prompt-21-validation-results.md`, `docs/implementation-prompts/prompt-21-staging-supabase-rls-approval-packet.md`, `scripts/validation/staging-supabase-approval-packet-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow trigger coverage for the Prompt 20B-Retry base branch, and tracker updates.
+- Implementation status after Prompt 21: validation prepared / staging Supabase-RLS approval packet only. No staging, remote, production, local SQL, Supabase lifecycle command, migration deployment, provider, worker, tool, render, media, storage transfer, credit, Stripe, telemetry, or beta unlock is enabled.
+- Implements: approval packet, staging runbook, test selection matrix, synthetic fixture plan, rollback/cleanup plan, risk register, static diagnostics, and scorecard/blocker tracking.
+- Must not implement: staging/remote/production Supabase execution, local or remote SQL execution, production migration deployment, provider calls, rendering/export, tool execution, worker execution, production job claims, media processing, storage transfer, signed URL creation, credit mutation, Stripe/payment processing, external telemetry, dependency mutation, or production/beta unlock.
+- What remains blocked: human staging approval, staging Supabase/RLS execution, broader local RLS coverage, remote production Supabase, runtime execution domains, deployment, billing, external telemetry, and beta approval.
+- Validation result: pending local validation and GitHub Foundation Validation at initial document creation; results are recorded in `docs/prompt-21-validation-results.md`.
+- Acceptance criteria: packet clearly distinguishes local evidence, missing staging evidence, and blocked production readiness; only the Prompt 20B-Retry local SQL file is marked local-passed; diagnostics pass; no SQL or Supabase execution occurs.
+- Next prompt recommendation: Prompt 22 - Staging Supabase/RLS Human Approval Packet Review if validation and CI pass; otherwise Prompt 21A - Staging Approval Packet Hardening.
+- GitHub deliverable: branch, commit, push, PR with approval packet summary and explicit no-staging/no-remote/no-production-Supabase statement.
 - Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
 - Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
 - GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.

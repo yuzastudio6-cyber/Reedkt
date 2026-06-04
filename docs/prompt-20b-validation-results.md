@@ -365,3 +365,17 @@ Validation result:
 This is partial local RLS evidence only. It proves one guarded auth/workspace/project smoke path locally, not storage, snapshot, credit, job/worker, media, render/export, QA/revision, tool, provider, compliance, observability, staging, remote, or production RLS behavior.
 
 Next recommendation: Prompt 21 - Staging Supabase/RLS Validation Runbook and Approval Packet.
+
+## Prompt 21 Follow-Up
+
+Prompt 21 creates the staging Supabase/RLS approval packet after this local-only pass.
+
+Prompt 21 does not change Prompt 20B-Retry SQL evidence:
+
+- no additional local SQL ran;
+- no staging SQL ran;
+- no remote or production Supabase target was touched;
+- production readiness remains not approved;
+- the Prompt 20B-Retry local auth/profile/workspace/project smoke remains the only executed SQL/RLS smoke evidence.
+
+Prompt 21 adds approval materials, staging test selection, fixture planning, rollback/cleanup planning, risk tracking, and static diagnostics so Prompt 22 can review whether a staging run should be approved.

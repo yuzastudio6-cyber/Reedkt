@@ -1,0 +1,15 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "not_eligible",
+  "phase36LBlocked": true,
+  "requiredBeforePhase36L": [
+    "Human/legal approval for one exact Demucs/HDemucs model candidate.",
+    "Documented training-data and pretrained-weight provenance resolution.",
+    "Exact artifact URL and SHA-256 manifest without downloading in Phase 36K.",
+    "Private GCS staging prefix and checksum policy.",
+    "Runtime dependency and cost policy.",
+    "Private generated fixture plan with no broad media."
+  ],
+  "candidateIfHumanApprovesLowestRiskReviewPath": "mdx or torchaudio:HDEMUCS_HIGH_MUSDB may be reviewed first because their documented training data is MUSDB-HQ only, but MUSDB-HQ terms still require legal review."
+}

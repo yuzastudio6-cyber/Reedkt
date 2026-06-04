@@ -1,0 +1,117 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "accessedOn": "2026-06-04",
+  "researchStatus": "completed_for_decision_gate",
+  "sources": [
+    {
+      "id": "facebookresearch_demucs_archived_repo",
+      "sourceUrl": "https://github.com/facebookresearch/demucs",
+      "evidenceType": "official_repo",
+      "accessedOn": "2026-06-04",
+      "status": "available_archived",
+      "summary": "Meta/facebookresearch Demucs repository is public, MIT-licensed, and archived/read-only as of January 1, 2025.",
+      "decisionImpact": "Code license can be reviewed, but archived status increases maintenance and security risk for production/runtime use.",
+      "confidence": "high"
+    },
+    {
+      "id": "adefossez_demucs_maintainer_fork",
+      "sourceUrl": "https://github.com/adefossez/demucs",
+      "evidenceType": "maintainer_fork",
+      "accessedOn": "2026-06-04",
+      "status": "available_slow_maintenance",
+      "summary": "Maintainer fork states it is the officially maintained Demucs after the author left Meta, but also says no active feature work should be expected.",
+      "decisionImpact": "Future Phase 36L should choose an exact source ref only after security/dependency review.",
+      "confidence": "medium"
+    },
+    {
+      "id": "demucs_readme_pretrained_models",
+      "sourceUrl": "https://github.com/facebookresearch/demucs",
+      "evidenceType": "official_readme",
+      "accessedOn": "2026-06-04",
+      "status": "available",
+      "summary": "README lists htdemucs, htdemucs_ft, htdemucs_6s, hdemucs_mmi, mdx, mdx_extra, mdx_q, and mdx_extra_q pretrained model names and training notes.",
+      "decisionImpact": "The model list is discoverable, but Phase 36K still forbids downloading or staging these weights.",
+      "confidence": "high"
+    },
+    {
+      "id": "demucs_code_license_mit",
+      "sourceUrl": "https://github.com/facebookresearch/demucs/blob/main/LICENSE",
+      "evidenceType": "license_file",
+      "accessedOn": "2026-06-04",
+      "license": "MIT",
+      "status": "source_code_license_evidenced",
+      "summary": "The repository LICENSE file is MIT and names Meta Platforms, Inc. and affiliates.",
+      "decisionImpact": "Source code license is not the blocker; model weight and training data provenance remain unresolved.",
+      "confidence": "high"
+    },
+    {
+      "id": "demucs_pypi_license_mit",
+      "sourceUrl": "https://pypi.org/project/demucs/",
+      "evidenceType": "package_metadata",
+      "accessedOn": "2026-06-04",
+      "license": "MIT License",
+      "status": "package_license_evidenced",
+      "summary": "PyPI lists Demucs as MIT-licensed with OSI Approved MIT classifier.",
+      "decisionImpact": "Package metadata supports code/package review, not pretrained weight approval.",
+      "confidence": "high"
+    },
+    {
+      "id": "pypi_demucs_release_and_hash",
+      "sourceUrl": "https://pypi.org/project/demucs/",
+      "evidenceType": "package_release",
+      "accessedOn": "2026-06-04",
+      "summary": "PyPI lists latest observed Demucs 4.0.1, source distribution hash, Python requirement, MIT classifier, and package upload metadata.",
+      "decisionImpact": "Useful for future package pinning, but package evidence does not approve pretrained model weights.",
+      "confidence": "high"
+    },
+    {
+      "id": "torchaudio_hdemucs_musdb",
+      "sourceUrl": "https://docs.pytorch.org/audio/2.9.0/generated/torchaudio.pipelines.HDEMUCS_HIGH_MUSDB.html",
+      "evidenceType": "pretrained_bundle_docs",
+      "accessedOn": "2026-06-04",
+      "summary": "Torchaudio documents HDEMUCS_HIGH_MUSDB as trained on the MUSDB-HQ training set.",
+      "decisionImpact": "Training dataset is identified, but MUSDB-HQ license/access caveats still require human/legal review.",
+      "confidence": "high"
+    },
+    {
+      "id": "torchaudio_hdemucs_musdb_plus",
+      "sourceUrl": "https://docs.pytorch.org/audio/stable/pipelines.html",
+      "evidenceType": "pretrained_bundle_docs",
+      "accessedOn": "2026-06-04",
+      "summary": "Torchaudio documents HDEMUCS_HIGH_MUSDB_PLUS as trained on MUSDB-HQ train/test plus 150 internal Meta songs.",
+      "decisionImpact": "Internal Meta songs and test-set use are not acceptable for automatic approval.",
+      "confidence": "high"
+    },
+    {
+      "id": "musdb_dataset_license_context",
+      "sourceUrl": "https://sigsep.github.io/datasets/musdb.html",
+      "evidenceType": "dataset_license_context",
+      "accessedOn": "2026-06-04",
+      "summary": "MUSDB18 includes DSD100, MedleyDB Creative Commons BY-NC-SA 4.0 tracks, Native Instruments tracks, Easton Ellises BY-NC-SA 3.0 tracks, and academic-use access notes.",
+      "decisionImpact": "MUSDB/MUSDB-HQ provenance is not clean enough for automatic commercial production or broad beta approval.",
+      "confidence": "high"
+    },
+    {
+      "id": "hybrid_transformer_demucs_paper",
+      "sourceUrl": "https://arxiv.org/abs/2211.08553",
+      "evidenceType": "paper",
+      "accessedOn": "2026-06-04",
+      "summary": "HT Demucs paper evidence supports model architecture/training context but does not replace artifact-level legal approval.",
+      "decisionImpact": "Research evidence only; not enough for model-weight approval.",
+      "confidence": "medium"
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "code_license_vs_weight_training_data",
+      "summary": "Code/package sources show MIT licensing, while pretrained model training data includes MUSDB and extra/internal songs with unresolved usage rights.",
+      "decisionImpact": "Approve source code review separately from model weights; keep pretrained weight download/runtime blocked."
+    },
+    {
+      "id": "archived_repo_vs_maintainer_fork",
+      "summary": "Meta repository is archived/read-only; maintainer fork exists but states no active feature work should be expected.",
+      "decisionImpact": "Future runtime approval must include dependency/security review and exact source pinning."
+    }
+  ]
+}

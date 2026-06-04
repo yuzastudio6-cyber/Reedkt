@@ -1,0 +1,116 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "local_safe_metadata_only",
+  "privateUploadStatus": "not_run_phase36k_policy_no_cloud_mutation",
+  "objectCount": 0,
+  "artifacts": [
+    {
+      "file": "phase_36k_audio_timing_beta_scope_recommendation.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_audio_timing_beta_scope_recommendation.json",
+      "sizeBytes": 917,
+      "sha256": "0a919d79e9c13096d8765d327f7379398229cf4bce65028a801422de3cb029bd",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_audio_timing_prior_evidence_report.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_audio_timing_prior_evidence_report.json",
+      "sizeBytes": 1966,
+      "sha256": "9eb9fa1da01ab54413d967580a0e73f4f435e6e5984ce7d197db7ddf51b35e89",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_blocker_report.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_blocker_report.json",
+      "sizeBytes": 1683,
+      "sha256": "eeefb4f43aaaf796fc29e5885f8bd861828113e23233bdd9524ac4d9d72a5e73",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_license_evidence.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_license_evidence.json",
+      "sizeBytes": 1394,
+      "sha256": "8a5912eca957bb65feb579985b0018a025eeec72144b18b0fec6784a02821496",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_model_candidate_inventory.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_model_candidate_inventory.json",
+      "sizeBytes": 4352,
+      "sha256": "ba09711729d607e2e1a0649aa23a3ccbfff041ce930aec9726620e8422f35c8f",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_package_evidence.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_package_evidence.json",
+      "sizeBytes": 941,
+      "sha256": "67a50fe5cf94ee9b08e066f6e96cbc14dee86eb2431445b9b529817494a65b80",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_phase36l_handoff_manifest.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_phase36l_handoff_manifest.json",
+      "sizeBytes": 780,
+      "sha256": "8d511fbd5f14e290a23895ebbc5897126dcfe2736dafcbc93938e0ee6473770b",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_provenance_decision.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_provenance_decision.json",
+      "sizeBytes": 1246,
+      "sha256": "b51362ce0f0622438612eafeb3d671a9e3f8cd55eb8c8a91331cf7124cdf8817",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_provenance_plan.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_provenance_plan.json",
+      "sizeBytes": 3345,
+      "sha256": "f61b20d229530f4d4eaa936ca816550d80909cec60f5eabca3f2459029b26962",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_runtime_risk_report.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_runtime_risk_report.json",
+      "sizeBytes": 1252,
+      "sha256": "8a4de1dafd397d6b6500b3e9467730d2a4898cbe3ecec9e8edfb5d8bbd88acb6",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_source_evidence.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_source_evidence.json",
+      "sizeBytes": 1806,
+      "sha256": "4cbf626776d3f831fffee3c2d11ab81dc2c2f2ff9720079b53b1b9dd9eb9b97c",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_training_data_provenance_report.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_training_data_provenance_report.json",
+      "sizeBytes": 1801,
+      "sha256": "8296d4646e53850f71df9b55d0f80c6145e23d0ff5359ac0dca4e7d5ccd31896",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_web_research_report.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_web_research_report.json",
+      "sizeBytes": 6017,
+      "sha256": "51b9f3523ce5342ceadaf8de355f6836f86ef03116803c750cf31aee3903a9e4",
+      "committedSafeMetadataOnly": true
+    },
+    {
+      "file": "phase_36k_demucs_weight_artifact_source_policy.json",
+      "localPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports/phase_36k_demucs_weight_artifact_source_policy.json",
+      "sizeBytes": 917,
+      "sha256": "e9f668c5bf28f11bc8361d40cf7f125ee57f6e7754a9e28e2df123587e14b9dd",
+      "committedSafeMetadataOnly": true
+    }
+  ],
+  "forbiddenArtifacts": [
+    "Demucs weights",
+    "audio payloads",
+    "media payloads",
+    "source separation outputs",
+    "runtime caches",
+    "credentials",
+    "provider logs"
+  ]
+}

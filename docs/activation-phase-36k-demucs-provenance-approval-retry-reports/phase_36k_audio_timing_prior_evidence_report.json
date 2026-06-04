@@ -1,0 +1,38 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "prior_evidence_present",
+  "reports": [
+    {
+      "phase": "36H",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/140",
+      "path": "docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports/phase_36h_deepfilternet_runtime_hardening_report.json",
+      "expectedStatus": "passed",
+      "summary": "DeepFilterNet linux/amd64 runtime hardening and one bounded controlled speech cleanup sample passed.",
+      "present": true,
+      "observedStatus": "passed",
+      "observedAudioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete"
+    },
+    {
+      "phase": "36I",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/147",
+      "path": "docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports/phase_36i_signalsmith_runtime_generated_fixture_report.json",
+      "expectedStatus": "passed",
+      "summary": "Signalsmith Stretch exact source/runtime generated synthetic audio stretch fixtures passed.",
+      "present": true,
+      "observedStatus": "passed",
+      "observedAudioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete"
+    },
+    {
+      "phase": "36J",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/149",
+      "path": "docs/activation-phase-36j-controlled-real-media-timing-stretch-sample-reports/phase_36j_controlled_real_media_timing_stretch_report.json",
+      "expectedStatus": "passed",
+      "summary": "Signalsmith controlled real-media timing/stretch sample passed for one private bounded approved window.",
+      "present": true,
+      "observedStatus": "passed",
+      "observedAudioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete"
+    }
+  ],
+  "conclusion": "DeepFilterNet and Signalsmith evidence supports audio/timing progress, but Demucs source separation remains provenance-blocked."
+}

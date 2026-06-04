@@ -392,7 +392,11 @@
     "activation:maplibre-turf-fixture": "tsx server/cli/activation-maplibre-turf-fixture.ts",
     "activation:maplibre-turf-fixture:report": "tsx server/cli/activation-maplibre-turf-fixture-report.ts",
     "activation:maplibre-turf-fixture:iam-plan": "tsx server/cli/activation-maplibre-turf-fixture-iam-plan.ts",
-    "smoke:activation-maplibre-turf-fixture": "tsx server/smoke/activation-maplibre-turf-fixture-smoke.ts"
+    "smoke:activation-maplibre-turf-fixture": "tsx server/smoke/activation-maplibre-turf-fixture-smoke.ts",
+    "activation:maplibre-local-render-fixture": "tsx server/cli/activation-maplibre-local-render-fixture.ts",
+    "activation:maplibre-local-render-fixture:report": "tsx server/cli/activation-maplibre-local-render-fixture-report.ts",
+    "activation:maplibre-local-render-fixture:iam-plan": "tsx server/cli/activation-maplibre-local-render-fixture-iam-plan.ts",
+    "smoke:activation-maplibre-local-render-fixture": "tsx server/smoke/activation-maplibre-local-render-fixture-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
@@ -404,6 +408,7 @@
     "express": "^5.2.1",
     "jsdom": "^29.1.1",
     "lucide-react": "^1.14.0",
+    "maplibre-gl": "^5.24.0",
     "playwright": "^1.60.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

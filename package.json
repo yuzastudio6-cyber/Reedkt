@@ -388,12 +388,17 @@
     "activation:map-geospatial-approval:plan": "tsx server/cli/activation-map-geospatial-approval-plan.ts",
     "activation:map-geospatial-approval:report": "tsx server/cli/activation-map-geospatial-approval-report.ts",
     "activation:map-geospatial-tool:summary": "tsx server/cli/activation-map-geospatial-tool-summary.ts",
-    "smoke:activation-map-geospatial-approval-workflow": "tsx server/smoke/activation-map-geospatial-approval-workflow-smoke.ts"
+    "smoke:activation-map-geospatial-approval-workflow": "tsx server/smoke/activation-map-geospatial-approval-workflow-smoke.ts",
+    "activation:maplibre-turf-fixture": "tsx server/cli/activation-maplibre-turf-fixture.ts",
+    "activation:maplibre-turf-fixture:report": "tsx server/cli/activation-maplibre-turf-fixture-report.ts",
+    "activation:maplibre-turf-fixture:iam-plan": "tsx server/cli/activation-maplibre-turf-fixture-iam-plan.ts",
+    "smoke:activation-maplibre-turf-fixture": "tsx server/smoke/activation-maplibre-turf-fixture-smoke.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
     "@mozilla/readability": "^0.6.0",
     "@supabase/supabase-js": "^2.106.1",
+    "@turf/turf": "^7.3.5",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

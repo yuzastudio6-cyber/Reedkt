@@ -72,6 +72,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 50B only as a generated/local MapLibre + Turf fixture.
 6. Do not install map packages, render maps, download tiles, call geocoding/routing APIs, launch Playwright, mutate GCP, add secrets, create public URLs, or treat Phase 50A as runtime/internal beta approval.
 
+## After Phase 50B
+
+1. Review `activation:maplibre-turf-fixture:report`, `activation:maplibre-turf-fixture:iam-plan`, and the private Phase 50B artifacts for `phase50b-20260604T01114`.
+2. Confirm generated GeoJSON is synthetic, bounded, marked `generated_fixture`, and keeps `captureAllowed=false` plus `realWorldVerified=false`.
+3. Confirm Turf calculations passed for bbox, centroid, distance, route length, buffer, area, point-in-polygon, nearest-point, feature count, and coordinate validation.
+4. Confirm the MapLibre-compatible manifest contains only generated GeoJSON sources/layers and no remote sprite, glyph, tile, paid-provider, or public URL dependency.
+5. Proceed to Phase 50C only as a MapLibre local render + capture fixture.
+6. Do not download tiles, use public OSM tiles, call geocoding/routing APIs, use paid map providers, make map artifacts public, unlock production/external beta/broad media, or treat Phase 50B as rendered-map approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

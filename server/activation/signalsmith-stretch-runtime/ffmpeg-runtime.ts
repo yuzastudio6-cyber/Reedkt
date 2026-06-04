@@ -326,6 +326,7 @@ async function runCloudRunJob(): Promise<JsonRecord> {
   if (execute.status !== 'passed') blockers.push('phase36j_signalsmith_cloud_run_job_execute_failed')
   if (executionLogs.stdout.includes('phase36j_private_artifact_upload_failed')) blockers.push('phase36j_private_artifact_upload_failed')
   if (executionLogs.stdout.includes('does not have storage.objects.get access')) blockers.push('phase36j_cpu_worker_qa_prefix_storage_objects_get_missing')
+  if (executionLogs.stdout.includes('does not have storage.objects.list access')) blockers.push('phase36j_cpu_worker_qa_bucket_storage_objects_list_missing')
   return {
     phase: '36J',
     runId: SIGNALSMITH_CONTROLLED_RUN_ID,

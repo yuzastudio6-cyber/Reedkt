@@ -11,6 +11,9 @@ import sys
 import time
 import wave
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 SAMPLE_RATE = 48000
 SAMPLE_ID = "phase37d-phase32-color-export-safe-zone-window-v1"
@@ -92,6 +95,88 @@ def run_command(args, cwd=None, check=True, timeout=600):
     if check and proc.returncode != 0:
         raise RuntimeError(json.dumps(result, indent=2))
     return result
+
+
+def get_access_token():
+    request = Request(
+        "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
+        headers={"Metadata-Flavor": "Google"},
+    )
+    try:
+        with urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            return payload["access_token"]
+    except Exception:
+        result = run_command(["gcloud", "auth", "print-access-token"], check=False, timeout=60)
+        if result["status"] == "passed" and result["stdoutSummary"]:
+            return result["stdoutSummary"].splitlines()[0].strip()
+    raise RuntimeError("gcs_access_token_unavailable")
+
+
+def parse_gcs_uri(uri):
+    if not uri.startswith("gs://"):
+        raise RuntimeError(f"private_artifact_target_not_gcs:{uri}")
+    bucket_and_object = uri[5:]
+    bucket, _, object_name = bucket_and_object.partition("/")
+    if not bucket or not object_name:
+        raise RuntimeError(f"private_artifact_target_invalid:{uri}")
+    return bucket, object_name
+
+
+def gcs_object_metadata(bucket, object_name, token):
+    encoded = quote(object_name, safe="")
+    request = Request(
+        f"https://storage.googleapis.com/storage/v1/b/{bucket}/o/{encoded}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        if error.code == 404:
+            return None
+        raise
+
+
+def upload_file_to_gcs(path, target, token):
+    bucket, object_name = parse_gcs_uri(target)
+    existing = gcs_object_metadata(bucket, object_name, token)
+    if existing:
+        return {
+            "status": "passed",
+            "mode": "existing",
+            "generation": existing.get("generation"),
+            "objectSizeBytes": int(existing.get("size", 0)),
+        }
+    encoded = quote(object_name, safe="")
+    upload_url = f"https://storage.googleapis.com/upload/storage/v1/b/{bucket}/o?uploadType=media&ifGenerationMatch=0&name={encoded}"
+    request = Request(
+        upload_url,
+        data=Path(path).read_bytes(),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/octet-stream",
+        },
+    )
+    started = time.time()
+    try:
+        with urlopen(request, timeout=300) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            return {
+                "status": "passed",
+                "mode": "uploaded",
+                "durationMs": round((time.time() - started) * 1000),
+                "generation": payload.get("generation"),
+                "objectSizeBytes": int(payload.get("size", 0)),
+            }
+    except HTTPError as error:
+        return {
+            "status": "blocked",
+            "mode": "upload_failed",
+            "durationMs": round((time.time() - started) * 1000),
+            "error": f"HTTP {error.code}: {error.reason}",
+        }
 
 
 def sha256_file(path):
@@ -387,25 +472,20 @@ def run_controlled_stretch(binary_path, input_samples, output_dir):
 def upload_artifacts(artifact_dir, private_prefix):
     uploads = []
     blockers = []
-    if not shutil.which("gcloud"):
-        return {
-            "status": "blocked",
-            "privateArtifactPrefix": private_prefix,
-            "objectCount": 0,
-            "blockers": ["gcloud_unavailable_for_private_artifact_upload"],
-            "uploads": [],
-        }
+    token = get_access_token()
     for path in sorted(Path(artifact_dir).rglob("*")):
         if not path.is_file():
             continue
         relative = path.relative_to(artifact_dir).as_posix()
         target = private_prefix.rstrip("/") + "/" + relative
-        result = run_command(["gcloud", "--quiet", "storage", "cp", str(path), target], check=False, timeout=300)
+        result = upload_file_to_gcs(path, target, token)
         uploads.append({
             "relativePath": relative,
             "target": target,
             "status": result["status"],
-            "durationMs": result["durationMs"],
+            "mode": result.get("mode"),
+            "durationMs": result.get("durationMs", 0),
+            "generation": result.get("generation"),
             "sha256": sha256_file(path),
             "sizeBytes": path.stat().st_size,
         })

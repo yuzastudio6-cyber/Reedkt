@@ -1,0 +1,596 @@
+{
+  "phase": "36J",
+  "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
+  "project": "reeditpro",
+  "activePrincipal": "aiediting@reeditpro.com",
+  "bucket": "gs://reeditpro-staging-reeditpro-qa-artifacts",
+  "bucketDescribeStatus": "passed",
+  "bucketPublicAccessPrevention": "enforced",
+  "iamReadStatus": "passed",
+  "policy": [
+    {
+      "role": "roles/storage.legacyBucketOwner",
+      "members": [
+        "projectEditor:reeditpro",
+        "projectOwner:reeditpro"
+      ]
+    },
+    {
+      "role": "roles/storage.legacyBucketReader",
+      "members": [
+        "projectViewer:reeditpro"
+      ]
+    },
+    {
+      "role": "roles/storage.legacyObjectOwner",
+      "members": [
+        "projectEditor:reeditpro",
+        "projectOwner:reeditpro"
+      ]
+    },
+    {
+      "role": "roles/storage.legacyObjectReader",
+      "members": [
+        "projectViewer:reeditpro"
+      ]
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-qa-sa@reeditpro.iam.gserviceaccount.com",
+        "serviceAccount:reeditpro-stg-tool-ready-sa@reeditpro.iam.gserviceaccount.com"
+      ]
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 36C QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-audio-ai/phase36c/\")",
+        "title": "phase36c_deepfilternet_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 36D QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-audio-ai/phase36d/\")",
+        "title": "phase36d_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 36E QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-audio-ai/phase36e/\")",
+        "title": "phase36e_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 28 controlled speech-caption artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase28/\")",
+        "title": "phase28_controlled_artifact_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Phase 30B render worker create access for qa_phase30",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase30/\")",
+        "title": "phase30b_render_create_qa_phase30"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Phase 31 render worker create access for qa_phase31",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase31/\")",
+        "title": "phase31_render_create_qa_phase31"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Phase 32 render worker create access for qa_phase32",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase32/\")",
+        "title": "phase32_render_create_qa_phase32"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 33E QA reports only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase33e/\")",
+        "title": "phase33e_render_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 34D enhancement sample QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase34d/\")",
+        "title": "phase34d_real_video_enhancement_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 35D QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase35d/\")",
+        "title": "phase35d_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Phase 35F prefix-scoped roles/storage.objectCreator for activation-real-video/phase35f/",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase35f/\")",
+        "title": "reeditpro_phase35f_gpu_qa_creator"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 33D frame extraction reports only",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase33d/')",
+        "title": "phase33d_render_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 38C QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-film-runtime/phase38c/\")",
+        "title": "phase38c_film_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 38D QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-film-runtime/phase38d/\")",
+        "title": "phase38d_film_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 33C mask runtime QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-mask-runtime/phase33c/\")",
+        "title": "phase33c_birefnet_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 35C QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-sam2-runtime/phase35c/\")",
+        "title": "phase35c_sam2_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 40B QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-pro-color-image/phase40b/\")",
+        "title": "phase40b_pro_color_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 40C QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-pro-color-image/phase40c/\")",
+        "title": "phase40c_pro_color_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 40D QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-pro-color-image/phase40d/\")",
+        "title": "phase40d_pro_color_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 45A QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-render-hardening/phase45a/\")",
+        "title": "phase45a_libass_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 45B QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-render-hardening/phase45b/\")",
+        "title": "phase45b_remotion_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 45D QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-render-hardening/phase45d/\")",
+        "title": "phase45d_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 34C enhancement runtime QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-enhancement-runtime/phase34c/\")",
+        "title": "phase34c_real_esrgan_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 39C generated VLM runtime QA artifacts only",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-runtime/')",
+        "title": "phase39c-vlm-qa-create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may create private Phase 39C-SG QA artifacts only under the approved prefix",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-sglang-runtime/')",
+        "title": "phase39c-sg-qa-create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 36H DeepFilterNet QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase36h/deepfilternet-controlled-speech/\")",
+        "title": "phase36h_deepfilternet_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 39C-Q-SO3 perception canary QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-perception-canary/\")",
+        "title": "phase39cq-so3-qa-create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may create private Phase 39C-Q-SO structured-output QA artifacts only under the approved QA prefix.",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-structured-output/')",
+        "title": "phase39cq-so-qa-create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Phase 39C-SG-FIXED private QA artifact create only",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-sglang-fixed-kernel/')",
+        "title": "phase39c-vlm-sglang-fixed-qa-create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 33D QA reports only",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase33d/phase33d-20260528T160222/')",
+        "title": "phase33d_gpu_qa_create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Create Phase 33D QA reports only",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase33d/phase33d-20260528T161056/')",
+        "title": "phase33d_gpu_qa_create_phase33d_20260528T161056"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may create private Phase 39C-Q generated-runtime QA reports only under the approved QA prefix.",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-runtime-l4-compatible/')",
+        "title": "phase39cq-vlm-qa-create"
+      }
+    },
+    {
+      "role": "roles/storage.objectCreator",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may create private Phase 39C-Q-SO2 structured-output compatibility QA artifacts only under the approved QA prefix.",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-structured-output-compat/\")",
+        "title": "phase39cq-so2-qa-create"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may read back private Phase 39C-SG QA artifacts only under the approved prefix",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-sglang-runtime/')",
+        "title": "phase39c-sg-qa-readback"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read back Phase 36H DeepFilterNet QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase36h/deepfilternet-controlled-speech/\")",
+        "title": "phase36h_deepfilternet_qa_readback"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read back Phase 39C-Q-SO3 perception canary QA artifacts only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-perception-canary/\")",
+        "title": "phase39cq-so3-qa-readback"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may read back private Phase 39C-Q-SO structured-output QA artifacts only for upload verification.",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-structured-output/')",
+        "title": "phase39cq-so-qa-readback"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Phase 30B render worker read access for qa_phase28",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase28/phase28-20260528T01552/\")",
+        "title": "phase30b_render_view_qa_phase28"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Phase 30B render worker read access for qa_phase29",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-real-video/phase29/phase29-20260528T02254/\")",
+        "title": "phase30b_render_view_qa_phase29"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read only the approved Phase 36D QA evidence",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-audio-ai/phase36d/phase36d-20260530T141724/\")",
+        "title": "phase36e_phase36d_qa_read"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may read back private Phase 39C-Q QA reports only for upload verification.",
+        "expression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-runtime-l4-compatible/')",
+        "title": "phase39cq-vlm-qa-readback"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-gpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "GPU worker may read back private Phase 39C-Q-SO2 structured-output compatibility QA artifacts only for upload verification.",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase39c/generated-vlm-structured-output-compat/\")",
+        "title": "phase39cq-so2-qa-readback"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read Phase 40B QA evidence only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-pro-color-image/phase40b/phase40b-20260531T10390/\")",
+        "title": "phase40c_pro_color_phase40b_qa_read"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read Phase 40C QA evidence only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-pro-color-image/phase40c/phase40c-20260531T11504/\")",
+        "title": "phase40d_pro_color_phase40c_qa_read"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read approved Phase 45A QA evidence only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-render-hardening/phase45a/phase45a-20260531T19033/\")",
+        "title": "phase45d_phase45a_qa_read"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read approved Phase 45A QA evidence only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-render-hardening/phase45a/phase45a-20260531T19033/\")",
+        "title": "phase45b_remotion_phase45a_qa_read"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read approved Phase 45B QA evidence only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-render-hardening/phase45b/phase45b-20260531T19552/\")",
+        "title": "phase45d_phase45b_qa_read"
+      }
+    },
+    {
+      "role": "roles/storage.objectViewer",
+      "members": [
+        "serviceAccount:reeditpro-stg-render-sa@reeditpro.iam.gserviceaccount.com"
+      ],
+      "condition": {
+        "description": "Read approved Phase 45C QA evidence only",
+        "expression": "resource.name.startsWith(\"projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation-render-hardening/phase45c/phase45c-20260531T20404/\")",
+        "title": "phase45d_phase45c_qa_read"
+      }
+    }
+  ],
+  "requiredBindings": [
+    {
+      "id": "phase36j-qa-prefix-create",
+      "role": "roles/storage.objectCreator",
+      "conditionTitle": "phase36j-signalsmith-qa-create",
+      "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase36j/controlled-real-media-timing-stretch/')",
+      "status": "missing"
+    },
+    {
+      "id": "phase36j-qa-prefix-readback",
+      "role": "roles/storage.objectViewer",
+      "conditionTitle": "phase36j-signalsmith-qa-readback",
+      "conditionExpression": "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase36j/controlled-real-media-timing-stretch/')",
+      "status": "missing"
+    }
+  ],
+  "publicAccessStatus": "blocked_public_access_not_present",
+  "broadIamWarnings": [],
+  "missingBindings": [
+    "phase36j-qa-prefix-create",
+    "phase36j-qa-prefix-readback"
+  ],
+  "rerunCanProceed": false
+}

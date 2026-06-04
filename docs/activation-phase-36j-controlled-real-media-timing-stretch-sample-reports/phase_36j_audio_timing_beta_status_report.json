@@ -1,8 +1,8 @@
 {
   "phase": "36J",
   "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
-  "status": "blocked",
-  "audioTimingToolFamilyBetaStatus": "blocked",
+  "status": "passed",
+  "audioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
   "internalBetaReady": false,
   "externalBetaReady": false,
   "productionReady": false

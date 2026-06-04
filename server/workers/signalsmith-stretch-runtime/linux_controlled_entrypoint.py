@@ -7,6 +7,9 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 
 WORK_ROOT = Path(os.environ.get("REEDITPRO_PHASE36J_WORK_ROOT", "/tmp/reeditpro-phase36j-signalsmith-controlled"))
@@ -64,18 +67,103 @@ def write_json(path, payload):
     Path(path).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def get_access_token():
+    request = Request(
+        "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
+        headers={"Metadata-Flavor": "Google"},
+    )
+    try:
+        with urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            return payload["access_token"]
+    except Exception:
+        result = run_command(["gcloud", "auth", "print-access-token"], check=False, timeout=60)
+        if result["status"] == "passed" and result["stdoutSummary"]:
+            return result["stdoutSummary"].splitlines()[0].strip()
+    raise RuntimeError("gcs_access_token_unavailable")
+
+
+def parse_gcs_uri(uri):
+    if not uri.startswith("gs://"):
+        raise RuntimeError(f"private_artifact_target_not_gcs:{uri}")
+    bucket_and_object = uri[5:]
+    bucket, _, object_name = bucket_and_object.partition("/")
+    if not bucket or not object_name:
+        raise RuntimeError(f"private_artifact_target_invalid:{uri}")
+    return bucket, object_name
+
+
+def gcs_object_metadata(bucket, object_name, token):
+    encoded = quote(object_name, safe="")
+    request = Request(
+        f"https://storage.googleapis.com/storage/v1/b/{bucket}/o/{encoded}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        if error.code == 404:
+            return None
+        raise
+
+
+def upload_file_to_gcs(path, target, token):
+    bucket, object_name = parse_gcs_uri(target)
+    existing = gcs_object_metadata(bucket, object_name, token)
+    if existing:
+        return {
+            "status": "passed",
+            "mode": "existing",
+            "generation": existing.get("generation"),
+            "objectSizeBytes": int(existing.get("size", 0)),
+        }
+    encoded = quote(object_name, safe="")
+    upload_url = f"https://storage.googleapis.com/upload/storage/v1/b/{bucket}/o?uploadType=media&ifGenerationMatch=0&name={encoded}"
+    request = Request(
+        upload_url,
+        data=Path(path).read_bytes(),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/octet-stream",
+        },
+    )
+    started = time.time()
+    try:
+        with urlopen(request, timeout=300) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            return {
+                "status": "passed",
+                "mode": "uploaded",
+                "durationMs": round((time.time() - started) * 1000),
+                "generation": payload.get("generation"),
+                "objectSizeBytes": int(payload.get("size", 0)),
+            }
+    except HTTPError as error:
+        return {
+            "status": "blocked",
+            "mode": "upload_failed",
+            "durationMs": round((time.time() - started) * 1000),
+            "error": f"HTTP {error.code}: {error.reason}",
+        }
+
+
 def upload_reports(report_dir):
     uploads = []
     blockers = []
+    token = get_access_token()
     for path in sorted(Path(report_dir).glob("phase_36j_*.json")):
         target = PRIVATE_PREFIX + "reports/" + path.name
-        result = run_command(["gcloud", "--quiet", "storage", "cp", str(path), target], check=False, timeout=120)
+        result = upload_file_to_gcs(path, target, token)
         uploads.append({
             "relativePath": "reports/" + path.name,
             "target": target,
             "status": result["status"],
-            "durationMs": result["durationMs"],
-            "stderrSummary": result["stderrSummary"],
+            "mode": result.get("mode"),
+            "durationMs": result.get("durationMs", 0),
+            "generation": result.get("generation"),
+            "error": result.get("error"),
         })
         if result["status"] != "passed":
             blockers.append(f"upload_failed:{path.name}")

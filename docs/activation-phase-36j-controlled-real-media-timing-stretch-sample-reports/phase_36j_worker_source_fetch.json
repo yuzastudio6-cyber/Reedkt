@@ -1,0 +1,107 @@
+{
+  "status": "passed",
+  "cloneReport": {
+    "args": [
+      "git",
+      "clone",
+      "--recurse-submodules",
+      "--branch",
+      "1.1.0",
+      "--depth",
+      "1",
+      "https://github.com/Signalsmith-Audio/signalsmith-stretch.git",
+      "/tmp/reeditpro-phase36j-signalsmith-controlled/signalsmith-source"
+    ],
+    "returncode": 0,
+    "status": "passed",
+    "durationMs": 555,
+    "stdoutSummary": "",
+    "stderrSummary": "Cloning into '/tmp/reeditpro-phase36j-signalsmith-controlled/signalsmith-source'...\nNote: switching to '44c8f865af9da8c29cc4a70a2d5a3ec83639c711'.\n\nYou are in 'detached HEAD' state. You can look around, make experimental\nchanges and commit them, and you can discard any commits you make in this\nstate without impacting any branches by switching back to a branch.\n\nIf you want to create a new branch to retain commits you create, you may\ndo so (now or later) by using -c with the switch command. Example:\n\n  git switch -c <new-branch-name>\n"
+  },
+  "actualCommit": "44c8f865af9da8c29cc4a70a2d5a3ec83639c711",
+  "submoduleReport": {
+    "args": [
+      "git",
+      "submodule",
+      "status",
+      "--recursive"
+    ],
+    "returncode": 0,
+    "status": "passed",
+    "durationMs": 21,
+    "stdoutSummary": "",
+    "stderrSummary": ""
+  },
+  "sourceChecksums": [
+    {
+      "relativePath": "signalsmith-stretch.h",
+      "sizeBytes": 21508,
+      "sha256": "dc0f46d1edc11fe3a78d868d40da291f4074db2bb3e9fb2a38386d0b1cc911ee"
+    },
+    {
+      "relativePath": "LICENSE.txt",
+      "sizeBytes": 1093,
+      "sha256": "ee2ef82481ffb445ecdd4b3a4c1f82c0cddb2da8fe39d8e8dc384fffb3e7f06f"
+    },
+    {
+      "relativePath": "README.md",
+      "sizeBytes": 6330,
+      "sha256": "1f51ecd4662b7d83ab242608880304f19f5d997d0f142a3b2bc576fb0509e569"
+    },
+    {
+      "relativePath": "dsp/common.h",
+      "sizeBytes": 1787,
+      "sha256": "6276ed37f3ca77f5030012e4d3776a353e1cbdc4cd56548d6da8b40fcc7fa62b"
+    },
+    {
+      "relativePath": "dsp/curves.h",
+      "sizeBytes": 11583,
+      "sha256": "55f92e332a7c9467729a295e3ad8f1e3747f30a27d4d9e60bc49fac6df6168ad"
+    },
+    {
+      "relativePath": "dsp/delay.h",
+      "sizeBytes": 23408,
+      "sha256": "8404c2f3ece11314933d560a8fc6fd9c3220e2308492912b02ac6d1e834af24c"
+    },
+    {
+      "relativePath": "dsp/envelopes.h",
+      "sizeBytes": 17043,
+      "sha256": "168403fcc3c94e6655e84f9e9d2e374e627f7283e2c9cdf62361833322268e11"
+    },
+    {
+      "relativePath": "dsp/fft.h",
+      "sizeBytes": 16309,
+      "sha256": "79852e30a1145584d0ca976fc16673a99c99bb9ef9ae59e0a293e2756342f3f5"
+    },
+    {
+      "relativePath": "dsp/filters.h",
+      "sizeBytes": 17418,
+      "sha256": "05316be91af8da3f0d27a6feb27e04d8b08ce95ede3960ddbe54cab9f7d6f447"
+    },
+    {
+      "relativePath": "dsp/mix.h",
+      "sizeBytes": 6603,
+      "sha256": "3bb1f307e5f79fd3aafd91fac41d33c29cf0b0c2a6a2a0b5041981e050ec5834"
+    },
+    {
+      "relativePath": "dsp/perf.h",
+      "sizeBytes": 2450,
+      "sha256": "8d8dcad667c4955da42468f55d13a854a14541bc68121a4ebd09a08cdb6e3814"
+    },
+    {
+      "relativePath": "dsp/rates.h",
+      "sizeBytes": 6731,
+      "sha256": "17c70c9d2c123b2ec1823309ea4317aa711098aef874090c0c97901267dc8a1a"
+    },
+    {
+      "relativePath": "dsp/spectral.h",
+      "sizeBytes": 16513,
+      "sha256": "9353dc555dc74f6a2913bb439e3d2e2c1432d316bbb3bfd33c7f1a5d0af6d0eb"
+    },
+    {
+      "relativePath": "dsp/windows.h",
+      "sizeBytes": 8202,
+      "sha256": "e1ef72403301aed069f3d523cfde058e155f9c4054e4d19cbcefb38223ecbf3c"
+    }
+  ]
+}

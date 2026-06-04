@@ -1,19 +1,19 @@
 {
   "phase": "36J",
   "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
-  "status": "blocked",
-  "audioTimingToolFamilyBetaStatus": "blocked",
+  "status": "passed",
+  "audioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
   "phase36HEvidenceStatus": "loaded",
   "phase36IEvidenceStatus": "loaded",
-  "controlledSampleEvidenceStatus": "not_run",
+  "controlledSampleEvidenceStatus": "passed",
   "runtimePreflightStatus": "passed",
-  "ffmpegRuntimeStatus": "not_run",
+  "ffmpegRuntimeStatus": "passed",
   "cloudBuildStatus": "passed",
-  "cloudRunJobStatus": "blocked",
-  "extractionStatus": "not_run",
-  "controlledStretchStatus": "not_run",
-  "audioQaStatus": "not_run",
-  "privateArtifactStatus": "not_run",
+  "cloudRunJobStatus": "passed",
+  "extractionStatus": "passed",
+  "controlledStretchStatus": "passed",
+  "audioQaStatus": "passed",
+  "privateArtifactStatus": "passed",
   "selectedSample": {
     "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
     "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
@@ -27,14 +27,7 @@
   "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/",
   "runtimeImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/signalsmith-controlled-runtime-phase36j:phase36j-controlled-real-media-timing-stretch-20260603",
   "runtimeJob": "reeditpro-stg-signalsmith-controlled-runtime-phase36j",
-  "blockers": [
-    "ffmpeg_runtime_smoke_report_not_downloaded",
-    "phase36j_cpu_worker_qa_prefix_storage_objects_get_missing",
-    "phase36j_private_artifact_upload_failed",
-    "phase36j_signalsmith_cloud_run_job_execute_failed",
-    "phase36j_worker_result_not_downloaded",
-    "private_artifact_manifest_not_downloaded"
-  ],
+  "blockers": [],
   "blockedScopes": [
     "Demucs until provenance/legal approval",
     "Demucs download/runtime/source separation",
@@ -59,5 +52,5 @@
     "IAM mutation",
     "Track A runtime/visual/render stack"
   ],
-  "nextPhaseDecision": "Resolve exact Phase 36J ffmpeg/runtime blocker before Demucs or audio/timing beta gate."
+  "nextPhaseDecision": "Proceed to Phase 36K Demucs provenance approval retry or audio/timing beta-readiness decision gate if Demucs remains explicitly out of internal scope."
 }

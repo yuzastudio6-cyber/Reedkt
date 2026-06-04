@@ -7,7 +7,7 @@
     {
       "fixtureId": "controlled-stretch-expand-110",
       "stretchRatio": 1.1,
-      "durationTolerancePercent": 2,
+      "durationTolerancePercent": 2.0,
       "blocking": true,
       "status": "passed",
       "runtimeResult": {
@@ -27,7 +27,7 @@
       },
       "latencyMs": 29,
       "inputMetrics": {
-        "durationSeconds": 2,
+        "durationSeconds": 2.0,
         "sampleRate": 48000,
         "channels": 1,
         "rms": 0.10163347,
@@ -50,7 +50,7 @@
       },
       "expectedOutputDurationSeconds": 2.2,
       "durationRatio": 1.1,
-      "durationErrorSeconds": 0,
+      "durationErrorSeconds": 0.0,
       "toleranceSeconds": 0.044,
       "outputSha256": "439ee8700e49eea4596af8ba89eed018f6af7fa5b7a129a97b834d46e9b63591",
       "outputSizeBytes": 211244,
@@ -59,7 +59,7 @@
     {
       "fixtureId": "controlled-stretch-contract-090",
       "stretchRatio": 0.9,
-      "durationTolerancePercent": 2,
+      "durationTolerancePercent": 2.0,
       "blocking": true,
       "status": "passed",
       "runtimeResult": {
@@ -79,7 +79,7 @@
       },
       "latencyMs": 25,
       "inputMetrics": {
-        "durationSeconds": 2,
+        "durationSeconds": 2.0,
         "sampleRate": 48000,
         "channels": 1,
         "rms": 0.10163347,
@@ -102,7 +102,7 @@
       },
       "expectedOutputDurationSeconds": 1.8,
       "durationRatio": 0.9,
-      "durationErrorSeconds": 0,
+      "durationErrorSeconds": 0.0,
       "toleranceSeconds": 0.036,
       "outputSha256": "05d912d54224341d312d6c91a8205c854d55e60de34d8ea3cd60606d76378e9c",
       "outputSizeBytes": 172844,
@@ -111,7 +111,7 @@
     {
       "fixtureId": "controlled-stretch-expand-125",
       "stretchRatio": 1.25,
-      "durationTolerancePercent": 3,
+      "durationTolerancePercent": 3.0,
       "blocking": false,
       "stressFixture": true,
       "status": "passed",
@@ -132,7 +132,7 @@
       },
       "latencyMs": 33,
       "inputMetrics": {
-        "durationSeconds": 2,
+        "durationSeconds": 2.0,
         "sampleRate": 48000,
         "channels": 1,
         "rms": 0.10163347,
@@ -155,7 +155,7 @@
       },
       "expectedOutputDurationSeconds": 2.5,
       "durationRatio": 1.25,
-      "durationErrorSeconds": 0,
+      "durationErrorSeconds": 0.0,
       "toleranceSeconds": 0.075,
       "outputSha256": "5363fbf27e9616929f9bf1f481669a7c208c94ba49e1cb99252335f5c44c2903",
       "outputSizeBytes": 240044,

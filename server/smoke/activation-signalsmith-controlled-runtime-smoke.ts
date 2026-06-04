@@ -7,6 +7,7 @@ import {
   getSignalsmithControlledRuntimePlan,
 } from '../activation/signalsmith-stretch-runtime/controlled'
 import { getSignalsmithControlledFfmpegRuntimePlan } from '../activation/signalsmith-stretch-runtime/ffmpeg-runtime'
+import { getSignalsmithControlledQaPrefixAccessPlan } from '../activation/signalsmith-stretch-runtime/qa-prefix-access'
 
 function assert(condition: unknown, message: string): void {
   if (!condition) throw new Error(message)
@@ -15,11 +16,13 @@ function assert(condition: unknown, message: string): void {
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts?: Record<string, string> }
 const moduleSource = readFileSync('server/activation/signalsmith-stretch-runtime/controlled.ts', 'utf8')
 const ffmpegModuleSource = readFileSync('server/activation/signalsmith-stretch-runtime/ffmpeg-runtime.ts', 'utf8')
+const qaPrefixSource = readFileSync('server/activation/signalsmith-stretch-runtime/qa-prefix-access.ts', 'utf8')
 const workerSource = readFileSync('server/workers/signalsmith-stretch-runtime/run_signalsmith_controlled_suite.py', 'utf8')
 const linuxWorkerSource = readFileSync('server/workers/signalsmith-stretch-runtime/linux_controlled_entrypoint.py', 'utf8')
 const gcloudIgnore = readFileSync('cloudbuild/signalsmith-controlled-runtime-phase36j.gcloudignore', 'utf8')
 const plan = getSignalsmithControlledRuntimePlan()
 const ffmpegPlan = getSignalsmithControlledFfmpegRuntimePlan()
+const qaPrefixPlan = getSignalsmithControlledQaPrefixAccessPlan()
 
 for (const script of [
   'activation:signalsmith-controlled-runtime:plan',
@@ -33,6 +36,7 @@ for (const script of [
   'activation:signalsmith-controlled-runtime:ffmpeg-report',
   'activation:signalsmith-controlled-runtime:cloud-build',
   'activation:signalsmith-controlled-runtime:cloud-run-job',
+  'activation:signalsmith-controlled-runtime:qa-prefix-access',
   'smoke:activation-signalsmith-controlled-runtime',
 ]) {
   assert(packageJson.scripts?.[script], `Missing package script: ${script}`)
@@ -49,6 +53,13 @@ assert(ffmpegPlan.ffmpegRuntimeCompletion.image.includes('signalsmith-controlled
 assert(ffmpegPlan.ffmpegRuntimeCompletion.jobName === 'reeditpro-stg-signalsmith-controlled-runtime-phase36j', 'Phase 36J Cloud Run Job name changed.')
 assert(ffmpegPlan.ffmpegRuntimeCompletion.publicService === false, 'Phase 36J runtime must not be public.')
 assert(ffmpegPlan.ffmpegRuntimeCompletion.gpu === 'blocked', 'Phase 36J runtime must be CPU-only.')
+assert(qaPrefixPlan.requiredBindings.some((binding) => binding.role === 'roles/storage.objectViewer' && binding.conditionTitle === 'phase36j-signalsmith-qa-readback'), 'Phase 36J QA readback binding plan missing.')
+assert(qaPrefixPlan.requiredBindings.some((binding) => binding.role === 'roles/storage.objectCreator' && binding.conditionTitle === 'phase36j-signalsmith-qa-create'), 'Phase 36J QA create binding plan missing.')
+assert(qaPrefixSource.includes('REEDITPRO_CONFIRM_SIGNALSMITH_QA_PREFIX_ACCESS_FIX'), 'QA-prefix access fix confirmation missing.')
+assert(qaPrefixSource.includes('REEDITPRO_CONFIRM_SIGNALSMITH_SCOPED_IAM_UPDATE'), 'Scoped IAM update confirmation missing.')
+assert(qaPrefixSource.includes('roles/storage.objectAdmin') && qaPrefixSource.includes('roles/storage.admin'), 'QA-prefix helper must explicitly block broad storage roles.')
+assert(qaPrefixSource.includes('allUsers') && qaPrefixSource.includes('allAuthenticatedUsers'), 'QA-prefix helper must detect public principals.')
+assert(qaPrefixPlan.requiredBindings.every((binding) => binding.conditionExpression === "resource.name.startsWith('projects/_/buckets/reeditpro-staging-reeditpro-qa-artifacts/objects/activation/phase36j/controlled-real-media-timing-stretch/')"), 'QA-prefix condition expression changed.')
 assert(plan.controlledStretchFixtures.some((fixture) => fixture.fixtureId === 'controlled-stretch-expand-110' && fixture.stretchRatio === 1.1), '1.10x controlled stretch missing.')
 assert(plan.controlledStretchFixtures.some((fixture) => fixture.fixtureId === 'controlled-stretch-contract-090' && fixture.stretchRatio === 0.9), '0.90x controlled stretch missing.')
 

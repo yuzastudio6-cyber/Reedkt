@@ -201,6 +201,7 @@
     "activation:signalsmith-controlled-runtime:ffmpeg-report": "tsx server/cli/activation-signalsmith-controlled-runtime-ffmpeg-report.ts",
     "activation:signalsmith-controlled-runtime:cloud-build": "tsx server/cli/activation-signalsmith-controlled-runtime-cloud-build.ts",
     "activation:signalsmith-controlled-runtime:cloud-run-job": "tsx server/cli/activation-signalsmith-controlled-runtime-cloud-run-job.ts",
+    "activation:signalsmith-controlled-runtime:qa-prefix-access": "tsx server/cli/activation-signalsmith-controlled-runtime-qa-prefix-access.ts",
     "smoke:activation-signalsmith-controlled-runtime": "tsx server/smoke/activation-signalsmith-controlled-runtime-smoke.ts",
     "activation:real-video:deepfilternet-audio-cleanup": "tsx server/cli/activation-real-video-deepfilternet-audio-cleanup.ts",
     "activation:real-video:deepfilternet-audio-cleanup:report": "tsx server/cli/activation-real-video-deepfilternet-audio-cleanup-report.ts",

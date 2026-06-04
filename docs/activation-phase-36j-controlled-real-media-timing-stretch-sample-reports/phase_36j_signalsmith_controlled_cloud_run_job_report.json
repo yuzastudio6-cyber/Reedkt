@@ -1,31 +1,27 @@
 {
   "phase": "36J",
   "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
-  "status": "blocked",
+  "status": "passed",
   "jobName": "reeditpro-stg-signalsmith-controlled-runtime-phase36j",
-  "executionId": "reeditpro-stg-signalsmith-controlled-runtime-phase36j-b52sz",
+  "executionId": "reeditpro-stg-signalsmith-controlled-runtime-phase36j-qktfs",
   "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/",
   "deploy": {
     "status": "passed",
-    "durationMs": 4353,
+    "durationMs": 3879,
     "stdoutSummary": "An error occurred: module 'importlib.metadata' has no attribute 'packages_distributions'",
     "stderrSummary": "    $ gcloud components reinstall\nThis will also prompt to install a compatible version of Python.\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\n/usr/local/Caskroom/gcloud-cli/558.0.0/google-cloud-sdk/lib/third_party/google/api_core/_python_version_support.py:237: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.\n  warnings.warn(message, FutureWarning)\nDeploying container to Cloud Run job [reeditpro-stg-signalsmith-controlled-runtime-phase36j] in project [reeditpro] region [us-central1]\nUpdating job...\nDone.\nJob [reeditpro-stg-signalsmith-controlled-runtime-phase36j] has successfully been deployed.\nTo execute this job, use:\ngcloud run jobs execute reeditpro-stg-signalsmith-controlled-runtime-phase36j"
   },
   "execute": {
-    "status": "blocked",
-    "durationMs": 180451,
+    "status": "passed",
+    "durationMs": 120956,
     "stdoutSummary": "",
-    "stderrSummary": "This will also prompt to install a compatible version of Python.\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\nCreating execution...\nProvisioning resources.......................done\nStarting execution.........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................done\nRunning execution................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................failed\nExecuting job failed\nERROR: (gcloud.run.jobs.execute) The execution failed.\nView details about this execution by running:\ngcloud run jobs executions describe reeditpro-stg-signalsmith-controlled-runtime-phase36j-b52sz\nOr visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-signalsmith-controlled-runtime-phase36j-b52sz?project=390722338345"
+    "stderrSummary": "This will also prompt to install a compatible version of Python.\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it.\nCreating execution...\nProvisioning resources.........................................................................................................................................................................done\nStarting execution......................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................done\nRunning execution..................................................................................................................................................................................................................done\nDone.\nExecution [reeditpro-stg-signalsmith-controlled-runtime-phase36j-qktfs] has successfully completed.\nView details about this execution by running:\ngcloud run jobs executions describe reeditpro-stg-signalsmith-controlled-runtime-phase36j-qktfs\nOr visit https://console.cloud.google.com/run/jobs/executions/details/us-central1/reeditpro-stg-signalsmith-controlled-runtime-phase36j-qktfs?project=390722338345"
   },
   "executionLogs": {
-    "status": "passed",
-    "durationMs": 1410,
-    "stdoutSummary": "    \"upload_failed:phase_36j_worker_result.json\",\n    \"upload_failed:phase_36j_worker_extraction.json\",\n    \"upload_failed:phase_36j_worker_controlled_stretch.json\",\n    \"upload_failed:phase_36j_worker_build.json\",\n    \"upload_failed:phase_36j_worker_binary.json\",\n    \"upload_failed:phase_36j_worker_audio_metrics.json\",\n    \"upload_failed:phase_36j_signalsmith_controlled_ffmpeg_runtime_smoke_report.json\",\n    \"upload_failed:phase_36j_signalsmith_controlled_entrypoint_upload_report.json\",\n    \"upload_failed:phase_36j_signalsmith_controlled_cloud_worker_command.json\",\n    \"upload_failed:phase_36j_private_artifact_manifest.json\",\n  \"blockers\": [\n{",
-    "stderrSummary": "WARNING:  Python 3.9.x is no longer officially supported by the Google Cloud CLI\nand may not function correctly. Please use Python version 3.10 and up.\nTo reinstall gcloud, run:\n    $ gcloud components reinstall\nThis will also prompt to install a compatible version of Python.\nIf you have a compatible Python interpreter installed, you can use it by setting\nthe CLOUDSDK_PYTHON environment variable to point to it."
+    "status": "skipped",
+    "durationMs": 0,
+    "stdoutSummary": "",
+    "stderrSummary": ""
   },
-  "blockers": [
-    "phase36j_signalsmith_cloud_run_job_execute_failed",
-    "phase36j_private_artifact_upload_failed",
-    "phase36j_cpu_worker_qa_prefix_storage_objects_get_missing"
-  ]
+  "blockers": []
 }

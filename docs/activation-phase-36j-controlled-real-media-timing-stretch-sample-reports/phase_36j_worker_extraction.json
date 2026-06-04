@@ -5,13 +5,13 @@
   "window": {
     "startSeconds": 6.9,
     "endSeconds": 8.9,
-    "durationSeconds": 2
+    "durationSeconds": 2.0
   },
   "outputFormat": "48k_mono_pcm_wav",
   "boundedWavSha256": "339b1874e82a3d821ad1cfe68a6e4eaffebf400de60584d6eb024210511f07c3",
   "boundedWavSizeBytes": 192078,
   "metrics": {
-    "durationSeconds": 2,
+    "durationSeconds": 2.0,
     "sampleRate": 48000,
     "channels": 1,
     "rms": 0.10163347,

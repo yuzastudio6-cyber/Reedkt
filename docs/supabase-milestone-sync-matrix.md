@@ -68,7 +68,8 @@ Coverage note: Prompt 0-19 are repo/documentation/static-validation preparation 
 | 21 | Staging approval packet | `staging approval packet only` | `local_evidence_recorded` | `approved_for_staging_packet` | `blocked` | Packet prepared; staging not run. | Human review. |
 | 22 | Human approval review | `staging approval packet only` | `local_evidence_recorded` | `ready_for_staging_review` | `blocked` | Review packet ready; not approved. | Human decision record. |
 | 23 | Human approval decision record | `staging approval packet only` | `local_evidence_recorded` | `pending_human_approval` | `blocked` | No human approval details were supplied. Staging sync is not applied. | Prompt 23A human approval completion, or Prompt 24 read-only inventory/audit without staging SQL. |
+| 24 | Supabase project read-only audit | `docs/status only` | `local_evidence_recorded` | `evidence_required` | `blocked` | Read-only audit packet prepared; no redacted staging/production project evidence supplied. | Prompt 24A evidence intake; Prompt 23A still required before staging SQL. |
 
 ## Prompt 23S Conclusion
 
-The next Supabase environment update is not automatic. Prompt 24 may only be a read-only inventory/audit unless a human approval completion record is supplied first. Any future staging SQL must still confirm the staging target, gates, rollback/cleanup, synthetic fixture policy, and redacted evidence path before execution.
+The next Supabase environment update is not automatic. Prompt 24 is read-only audit preparation only and defaults to `evidence_required`. Prompt 24A may intake redacted dashboard evidence without mutation. Any future staging SQL still requires a human approval completion record, confirmed staging target, gates, rollback/cleanup, synthetic fixture policy, and redacted evidence path before execution.

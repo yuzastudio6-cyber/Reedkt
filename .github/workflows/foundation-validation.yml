@@ -43,6 +43,7 @@ on:
       - codex/rp-foundation-21-staging-supabase-rls-approval-packet
       - codex/rp-foundation-22-staging-supabase-rls-human-approval-review
       - codex/rp-foundation-23-pending-human-approval-decision-record
+      - codex/rp-foundation-23s-supabase-milestone-sync-policy-v2
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

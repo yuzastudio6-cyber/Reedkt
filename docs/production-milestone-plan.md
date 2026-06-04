@@ -570,3 +570,17 @@ Prompt 23S - Supabase Milestone Sync Policy.
 - Acceptance criteria: Prompt 23S docs exist, diagnostics pass, Prompt 23 is classified as `pending_human_approval`, no staging/prod update is claimed, no secrets or executable Supabase commands are added, and production readiness remains blocked.
 - Next prompt recommendation: Prompt 24 - Supabase Project Inventory and Read-Only Audit if validation and CI pass; Prompt 23A remains required before any staging SQL or staging mutation.
 - GitHub deliverable: branch, commit, push, PR with sync policy summary and explicit no-Supabase-execution statement.
+
+## 24. Supabase Project Read-Only Audit
+
+Prompt 24 - Supabase Project Read-Only Audit.
+
+- Purpose: prepare a read-only Supabase project inventory and evidence intake package before any staging update, staging RLS validation, production candidate, or beta readiness claim.
+- Deliverables after Prompt 24: `docs/supabase-project-read-only-audit.md`, `docs/supabase-project-inventory-checklist.md`, `docs/supabase-redacted-evidence-template.md`, `docs/supabase-project-activity-gap-analysis.md`, `docs/supabase-read-only-audit-runbook.md`, `docs/supabase-read-only-audit-result-template.md`, `docs/supabase-project-drift-risk-register.md`, `docs/prompt-24-validation-results.md`, `docs/implementation-prompts/prompt-24-supabase-project-read-only-audit.md`, `scripts/validation/supabase-project-readonly-audit-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 23S base branch, and tracker updates.
+- Implementation status after Prompt 24: validation prepared / Supabase project read-only audit packet only. Default audit state is `evidence_required`.
+- Implements: project inventory checklist, redacted evidence template, dashboard activity gap explanation, read-only audit runbook, result template, drift risk register, static diagnostics, and explicit separation between repo/local evidence and missing staging/production evidence.
+- Must not implement: Supabase lifecycle commands, SQL execution, migrations, `psql`, `supabase link`, `supabase db push`, dashboard mutation, staging/remote/production Supabase execution, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, telemetry, dependency mutation, human approval grant, staging execution approval, beta unlock, or production readiness.
+- What remains blocked: redacted staging/production Supabase evidence, human approval completion, staging Supabase/RLS execution, production Supabase, future ledger schema/RLS, broader local/staging RLS coverage, runtime execution domains, and beta unlock.
+- Acceptance criteria: Prompt 24 docs exist, diagnostics pass, audit status remains `evidence_required`, no completed remote/staging/production audit is claimed, no secrets or executable Supabase commands are added, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 24A - Supabase Project Read-Only Audit Evidence Intake if validation and CI pass; Prompt 23A remains required before staging SQL or staging mutation.
+- GitHub deliverable: branch, commit, push, PR with read-only audit package summary and explicit no-Supabase-execution statement.

@@ -208,3 +208,25 @@ create or replace function public.is_workspace_member(workspace_uuid uuid)
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20N - Local Supabase Migration Chain Repair Follow-Up 7, focused on `202605180007_reeditpro_rls_policies.sql`.
+
+## Prompt 20N Follow-Up
+
+Prompt 20N repaired the `public.is_workspace_member(uuid)` and `public.is_workspace_owner_or_admin(uuid)` input parameter-name conflicts in `supabase/migrations/202605180007_reeditpro_rls_policies.sql` by preserving the earlier `target_workspace_id` parameter name.
+
+Local safety gates passed for start eligibility:
+
+- `remoteRiskDetected=false`
+- `canStartLocalSupabase=true`
+- `canResetLocalSupabase=true`
+
+`supabase stop --no-backup` completed, but `supabase start` failed before migration application because local port `54322` was already bound:
+
+```text
+failed to start docker container "supabase_db_reeditpro-local": Error response from daemon: ports are not available: exposing port TCP 0.0.0.0:54322 -> 127.0.0.1:0: listen tcp 0.0.0.0:54322: bind: address already in use
+```
+
+Non-mutating inspection showed `rapportd` listening on `*:54322`.
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until local `supabase start` succeeds and captures a localhost-only DB URL. The next milestone should be Prompt 20O - Local Supabase Start Port Conflict And Migration Chain Retry.

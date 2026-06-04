@@ -140,3 +140,22 @@ The first local executable SQL candidate remains unexecuted:
 ## Next Prompt Recommendation
 
 Recommended next prompt: Prompt 20N - Local Supabase Migration Chain Repair Follow-Up 7, focused on the next exact migration-chain blocker in `202605180007_reeditpro_rls_policies.sql`.
+
+## Prompt 20N Follow-Up
+
+Prompt 20N repaired the `202605180007_reeditpro_rls_policies.sql` helper parameter-name conflict by preserving the earlier `target_workspace_id` input parameter names for:
+
+- `public.is_workspace_member(uuid)`
+- `public.is_workspace_owner_or_admin(uuid)`
+
+The project helper functions remained unchanged.
+
+Local safety gates still reported `remoteRiskDetected=false` and `canStartLocalSupabase=true`, so Prompt 20N ran `supabase stop --no-backup` and retried `supabase start`. The retry did not reach migration application because the local DB port was unavailable:
+
+```text
+failed to start docker container "supabase_db_reeditpro-local": Error response from daemon: ports are not available: exposing port TCP 0.0.0.0:54322 -> 127.0.0.1:0: listen tcp 0.0.0.0:54322: bind: address already in use
+```
+
+Non-mutating port inspection showed `rapportd` listening on `*:54322`.
+
+No `supabase status` command was run, no localhost-only DB URL was captured, and no SQL/RLS smoke test ran. The next safe milestone should clear or route around the local-only port conflict, then retry `supabase start` before Prompt 20B SQL execution.

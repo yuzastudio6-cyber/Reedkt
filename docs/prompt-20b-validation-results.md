@@ -192,3 +192,19 @@ create table if not exists public.qa_check_results (
 No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
 
 Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20M - Local Supabase Migration Chain Repair Follow-Up 6, focused on `202605180006_reeditpro_qa_exports_audit.sql`.
+
+## Prompt 20M Follow-Up
+
+Prompt 20M repaired the `qa_check_results.check text` syntax blocker in `supabase/migrations/202605180006_reeditpro_qa_exports_audit.sql` by renaming the column to `check_type`. Existing backend service code already reads `qa_check_results.check_type`, so this preserves the intended service contract without quoting a SQL keyword-shaped column. Prompt 20M also added nullable `qa_reports.approved_plan_snapshot_id` compatibility handling and guarded the approved snapshot FK/index.
+
+After the repair, local `supabase start` passed `202605180006_reeditpro_qa_exports_audit.sql` and advanced to the next migration-chain blocker:
+
+```text
+ERROR: cannot change name of input parameter "target_workspace_id" (SQLSTATE 42P13)
+At statement: 10
+create or replace function public.is_workspace_member(workspace_uuid uuid)
+```
+
+No SQL/RLS smoke test ran, no localhost-only DB URL was captured, and no staging/remote/production Supabase target was touched.
+
+Prompt 20B remains blocked until the local migration chain starts successfully. The next milestone should be Prompt 20N - Local Supabase Migration Chain Repair Follow-Up 7, focused on `202605180007_reeditpro_rls_policies.sql`.

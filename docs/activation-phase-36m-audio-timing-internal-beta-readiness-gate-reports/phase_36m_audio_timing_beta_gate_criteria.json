@@ -1,0 +1,96 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "evidenceStatus": "complete",
+  "privateArtifactVerificationStatus": "passed",
+  "criteria": [
+    {
+      "id": "phase36h_deepfilternet_runtime_hardening_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36h_generated_audio_fixture_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36h_controlled_speech_cleanup_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36h_private_artifacts_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36i_signalsmith_generated_runtime_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36i_generated_audio_qa_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36i_private_artifacts_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36j_controlled_timing_stretch_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36j_bounded_audio_extraction_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36j_controlled_stretch_qa_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36j_private_artifacts_passed",
+      "status": "passed"
+    },
+    {
+      "id": "phase36j_exact_approved_sample_used",
+      "status": "passed"
+    },
+    {
+      "id": "phase36k_demucs_excluded_by_policy",
+      "status": "passed"
+    },
+    {
+      "id": "phase36k_demucs_runtime_disabled",
+      "status": "passed"
+    },
+    {
+      "id": "private_json_artifact_verification_optional",
+      "status": "passed",
+      "summary": "Private JSON metadata verification is preferred but non-blocking when committed manifests are complete."
+    },
+    {
+      "id": "phase36m_private_metadata_upload",
+      "status": "passed"
+    },
+    {
+      "id": "rollback_blocker_policy_present",
+      "status": "passed"
+    },
+    {
+      "id": "support_runbook_present",
+      "status": "passed"
+    },
+    {
+      "id": "no_audio_or_media_processing_in_gate",
+      "status": "passed"
+    },
+    {
+      "id": "no_forbidden_execution_scope",
+      "status": "passed"
+    },
+    {
+      "id": "track_a_untouched",
+      "status": "passed"
+    }
+  ],
+  "blockers": [],
+  "warnings": []
+}

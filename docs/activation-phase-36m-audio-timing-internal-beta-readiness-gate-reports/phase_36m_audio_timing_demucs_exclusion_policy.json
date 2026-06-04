@@ -1,0 +1,19 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "demucsDecision": "blocked_pending_training_data_provenance",
+  "approvedForPhase36L": false,
+  "trainingDataProvenanceStatus": "blocked_pending_training_data_provenance",
+  "weightArtifactPolicyStatus": "no_weight_artifact_source_approved",
+  "currentInternalScopeDecision": "Demucs is explicitly excluded from restricted internal audio/timing QA/planning scope.",
+  "blockedDemucsScopes": [
+    "Demucs package installation",
+    "Demucs model/weight download",
+    "Demucs private model staging",
+    "Demucs runtime execution",
+    "source separation",
+    "Phase 36L without human/legal approval"
+  ],
+  "productRequirement": "Human/product approval must explicitly accept Demucs exclusion before product-wide beta can use this audio/timing internal candidate evidence."
+}

@@ -1,0 +1,14 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "checklist": [
+    "Phase 36H DeepFilterNet generated and controlled bounded evidence is committed.",
+    "Phase 36I Signalsmith generated timing/stretch evidence is committed.",
+    "Phase 36J Signalsmith controlled bounded timing/stretch evidence is committed.",
+    "Phase 36K Demucs provenance decision blocks runtime/source separation and supports scoped exclusion.",
+    "Phase 36M exact private JSON metadata verification is metadata-only and non-broad.",
+    "Phase 36M private upload contains JSON metadata only.",
+    "Blocked scope matrix preserves product beta, external beta, production, broad media, arbitrary media, public output, providers, VLM/OCR, Demucs, Docker/cloud/GPU/IAM, and Track A blocks."
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/",
+  "metadataOnly": true,
+  "jsonOnlyPrivateUpload": true,
+  "committedReportArtifacts": [
+    {
+      "id": "phase_36m_audio_timing_allowed_internal_scope_json",
+      "relativePath": "phase_36m_audio_timing_allowed_internal_scope.json",
+      "sizeBytes": 1447,
+      "sha256": "7fd52ad01ee4e8bbf4d0a94a780b0b6c58d9bce9533a4d15b292fe3adb6fa1d6",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_allowed_internal_scope.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_beta_gate_criteria_json",
+      "relativePath": "phase_36m_audio_timing_beta_gate_criteria.json",
+      "sizeBytes": 2339,
+      "sha256": "ff3f4225209583f788d39801e1646a1891d8d348e310e08cce21ae5035ce6c5e",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_beta_gate_criteria.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_beta_gate_decision_json",
+      "relativePath": "phase_36m_audio_timing_beta_gate_decision.json",
+      "sizeBytes": 1638,
+      "sha256": "72424add37ddf5e7bd79b3b0c7ed933cc421a969f67d4ff7638f07bc03585b0c",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_beta_gate_decision.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_beta_gate_input_manifest_json",
+      "relativePath": "phase_36m_audio_timing_beta_gate_input_manifest.json",
+      "sizeBytes": 3766,
+      "sha256": "8058556af31d2ba487f4031c5a2686ae5d74c1f1f735687ec16bf0ae5aff7991",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_beta_gate_input_manifest.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_beta_gate_plan_json",
+      "relativePath": "phase_36m_audio_timing_beta_gate_plan.json",
+      "sizeBytes": 3957,
+      "sha256": "4801843625e6a0b3b050149b1d735ed47ce5e05bc8aba7f45d33595df48ed74d",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_beta_gate_plan.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_beta_gate_scorecard_json",
+      "relativePath": "phase_36m_audio_timing_beta_gate_scorecard.json",
+      "sizeBytes": 461,
+      "sha256": "081bb51f06254c1a2ccc525f2a0f19abfb706534520c999b29ef6b3338f957ae",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_beta_gate_scorecard.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_blocked_scope_matrix_json",
+      "relativePath": "phase_36m_audio_timing_blocked_scope_matrix.json",
+      "sizeBytes": 1291,
+      "sha256": "8a9aaa6714b86c258af8d26498dcbbd0732558048a8feb6d3620947ee042ccf0",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_blocked_scope_matrix.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_caveat_classification_json",
+      "relativePath": "phase_36m_audio_timing_caveat_classification.json",
+      "sizeBytes": 2161,
+      "sha256": "afa09330d8f35607514bdc707f55c961a6c002f75c6cf9338c69c322edda681b",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_caveat_classification.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_demucs_exclusion_policy_json",
+      "relativePath": "phase_36m_audio_timing_demucs_exclusion_policy.json",
+      "sizeBytes": 896,
+      "sha256": "fbf4df58ec5bfe81546cf47679975baa02b25abe0036890b654f03a88c91544c",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_demucs_exclusion_policy.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_internal_beta_readiness_report_json",
+      "relativePath": "phase_36m_audio_timing_internal_beta_readiness_report.json",
+      "sizeBytes": 3835,
+      "sha256": "27ad2898ff8efd1c61cd4ee130efd9d187d15195921bd889b3cad503aac15adb",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_internal_beta_readiness_report.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_internal_beta_readiness_report_md",
+      "relativePath": "phase_36m_audio_timing_internal_beta_readiness_report.md",
+      "sizeBytes": 842,
+      "sha256": "c8d583bc25a0084eff5d6b21068dc5be2d89bfb9bc86a72e5993999038fb01e7",
+      "uploadedInPhase36m": false
+    },
+    {
+      "id": "phase_36m_audio_timing_prior_evidence_inventory_json",
+      "relativePath": "phase_36m_audio_timing_prior_evidence_inventory.json",
+      "sizeBytes": 3041,
+      "sha256": "cf87c975e766e5c336c1c297de3b5f87df1e4dc735cabff137f2499a33748df3",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_prior_evidence_inventory.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_prior_evidence_inventory_md",
+      "relativePath": "phase_36m_audio_timing_prior_evidence_inventory.md",
+      "sizeBytes": 1732,
+      "sha256": "82c7b51f1759468d48e664c63756159b34467a89d00cd6c26f16393de9a8bd78",
+      "uploadedInPhase36m": false
+    },
+    {
+      "id": "phase_36m_audio_timing_private_artifact_verification_report_json",
+      "relativePath": "phase_36m_audio_timing_private_artifact_verification_report.json",
+      "sizeBytes": 16101,
+      "sha256": "e506aeb55813d46379d87f36f1d94d7d2aae648bd439b25b39b4a65c29d34eb2",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_private_artifact_verification_report.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_rollback_blocker_policy_json",
+      "relativePath": "phase_36m_audio_timing_rollback_blocker_policy.json",
+      "sizeBytes": 986,
+      "sha256": "3c0e9b887f21ba2a454a2dec8e7a86398d32001696e8ba7135f8871f7aece69d",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_rollback_blocker_policy.json"
+    },
+    {
+      "id": "phase_36m_audio_timing_support_runbook_checklist_json",
+      "relativePath": "phase_36m_audio_timing_support_runbook_checklist.json",
+      "sizeBytes": 841,
+      "sha256": "5ae046afb046943f4dec26140f038b483476c5406f42e3ad46c95b6267462737",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_audio_timing_support_runbook_checklist.json"
+    },
+    {
+      "id": "phase_36m_blocker_report_json",
+      "relativePath": "phase_36m_blocker_report.json",
+      "sizeBytes": 2743,
+      "sha256": "d74617d1ffe8b7e10691214af4874713b90b7926824835416b7222e534b8f3ab",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_blocker_report.json"
+    },
+    {
+      "id": "phase_36m_private_artifact_manifest_json",
+      "relativePath": "phase_36m_private_artifact_manifest.json",
+      "sizeBytes": 9614,
+      "sha256": "e75c137f0c43180e7846a3612cb08acad22aac70684f45215b793270cc2a1bc2",
+      "uploadedInPhase36m": true,
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36m/audio-timing-internal-beta-readiness-gate/phase36m-audio-timing-internal-beta-readiness-gate-20260604/phase_36m_private_artifact_manifest.json"
+    }
+  ],
+  "uploadedObjectCount": 18,
+  "blockers": []
+}

@@ -6,6 +6,8 @@ Real user media beta requires human approval for deployment, storage, security, 
 
 External beta and paid production remain blocked by default in M17.
 
+Phase 36M may mark the audio/timing tool family as an internally beta-ready candidate for restricted internal QA/planning scope only. This scope covers bounded DeepFilterNet speech cleanup and bounded Signalsmith timing/stretch evidence from committed safe reports; Demucs remains excluded and blocked pending training-data provenance and human/legal review. Product-wide beta, external beta, paid production, production, broad media, arbitrary media, public output, providers, OCR/VLM runtime, Docker/cloud/GPU/IAM mutation, and Track A remain blocked.
+
 Phase 35F can produce private SAM2 feature E2E evidence for internal SAM2
 feature testing only. It does not approve external beta, paid production, broad
 real media, providers, public delivery, final export, Revideo, FILM, slow

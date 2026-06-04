@@ -1,0 +1,49 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "caveats": [
+    {
+      "id": "deepfilternet_one_controlled_sample",
+      "summary": "DeepFilterNet controlled evidence covers one approved private bounded speech-cleanup sample only.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "external_and_production_blocker"
+    },
+    {
+      "id": "signalsmith_one_controlled_sample",
+      "summary": "Signalsmith controlled evidence covers one approved private bounded timing/stretch sample only.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "external_and_production_blocker"
+    },
+    {
+      "id": "demucs_excluded_not_approved",
+      "summary": "Demucs source separation is excluded from restricted internal scope and remains blocked pending training-data provenance and human/legal review.",
+      "internalScopeImpact": "internal_scope_allowed_exclusion",
+      "productionImpact": "source_separation_blocker"
+    },
+    {
+      "id": "ffmpeg_linux_runtime_dependency",
+      "summary": "FFmpeg/ffprobe were used only in bounded private runtime phases and still require production configuration/legal review.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "production_blocker"
+    },
+    {
+      "id": "cloud_run_private_cpu_worker_dependency",
+      "summary": "Linux CPU Cloud Run jobs supplied prior bounded evidence; Phase 36M does not approve broad Cloud Run worker use.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "production_blocker"
+    },
+    {
+      "id": "vlm_ocr_product_caveat",
+      "summary": "VLM remains blocked and OCR runtime outside approved phases remains blocked; neither blocks audio/timing internal-scope evidence.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "product_beta_blocker"
+    },
+    {
+      "id": "broad_media_not_tested",
+      "summary": "No broad user media, arbitrary media, public output, or final export path is approved.",
+      "internalScopeImpact": "warning",
+      "productionImpact": "external_and_production_blocker"
+    }
+  ]
+}

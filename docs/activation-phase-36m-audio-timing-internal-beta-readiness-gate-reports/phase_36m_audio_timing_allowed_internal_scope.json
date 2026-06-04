@@ -1,0 +1,42 @@
+{
+  "phase": "36M",
+  "runId": "phase36m-audio-timing-internal-beta-readiness-gate-20260604",
+  "status": "passed",
+  "allowedInternalScope": "restricted internal QA/planning candidate for bounded audio/timing tool-family evidence only",
+  "allowedActivities": [
+    "review committed safe Phase 36H-36M metadata reports",
+    "use DeepFilterNet bounded speech-cleanup evidence as internal planning/QA signal",
+    "use Signalsmith bounded timing/stretch evidence as internal planning/QA signal",
+    "record Demucs as excluded/blocked for current internal scope",
+    "plan future audio/timing work with explicit approval gates"
+  ],
+  "notAllowed": [
+    "product-wide internal beta",
+    "external beta",
+    "paid production",
+    "production",
+    "broad media",
+    "arbitrary media paths",
+    "unapproved real media",
+    "full-video audio cleanup",
+    "full-video timing stretch",
+    "public output",
+    "public artifacts",
+    "signed URLs as source of truth",
+    "provider calls",
+    "Demucs runtime/model download/source separation",
+    "Phase 36L until human/legal approval resolves Demucs provenance",
+    "VLM runtime retries",
+    "OCR runtime outside approved OCR phases",
+    "DeepFilterNet runtime reruns",
+    "Signalsmith runtime reruns",
+    "audio/media processing",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "broad IAM",
+    "Track A runtime/visual/render stack"
+  ]
+}

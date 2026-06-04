@@ -5,6 +5,7 @@
 - Prompt: Prompt 25A - GCP Secret Manager Supabase Reference Contract.
 - Branch: `codex/rp-foundation-25a-gcp-secret-manager-supabase-reference-contract`.
 - Base: `origin/codex/rp-foundation-25-staging-supabase-rls-dry-run-command-packet`.
+- PR: [PR #186](https://github.com/yuzastudio6-cyber/Reedkt/pull/186).
 - Capability enabled: none; GCP Secret Manager Supabase reference contract only.
 - Supabase update required: docs/status only.
 - Supabase update status: docs_only.

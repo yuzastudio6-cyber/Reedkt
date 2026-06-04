@@ -10,7 +10,7 @@ Exact capability enabled: none; GCP Secret Manager Supabase reference contract o
 
 - Branch: `codex/rp-foundation-25a-gcp-secret-manager-supabase-reference-contract`
 - Base: `origin/codex/rp-foundation-25-staging-supabase-rls-dry-run-command-packet`
-- PR: pending
+- PR: [PR #186](https://github.com/yuzastudio6-cyber/Reedkt/pull/186)
 - PR title: `[foundation] Prompt 25A GCP Secret Manager Supabase reference contract`
 
 ## Allowed Scope

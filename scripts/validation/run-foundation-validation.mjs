@@ -162,6 +162,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'staging:supabase:approval-decision:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_milestone_sync_diagnostics',
+    command: 'npm run --silent supabase:milestone:sync:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:milestone:sync:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

@@ -1,0 +1,14 @@
+{
+  "phase": "44H",
+  "runId": "phase44h-trackb-cost-estimator-20260604",
+  "status": "active_for_planning_metadata_only",
+  "warningThresholdUsdPerRun": 1,
+  "hardBlockThresholdUsdPerRun": 5,
+  "gpuCostRequiresExplicitApproval": true,
+  "broadMediaCostAlwaysBlocked": true,
+  "productionCostRequiresProductionGate": true,
+  "providerCostRequiresProviderPhase": true,
+  "unknownRateBehavior": "warn_for_noncritical_metadata_scenarios_block_for_runtime_or_cloud_scenarios",
+  "disabledToolBehavior": "block",
+  "routeExecutionBehavior": "block_until_phase44j_or_later"
+}

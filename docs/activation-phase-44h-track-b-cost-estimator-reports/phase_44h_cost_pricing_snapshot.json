@@ -1,0 +1,40 @@
+{
+  "phase": "44H",
+  "runId": "phase44h-trackb-cost-estimator-20260604",
+  "pricingSnapshotId": "track-b-cost-pricing-snapshot-20260604-us-central1-usd",
+  "pricingSnapshotDate": "2026-06-04",
+  "region": "us-central1",
+  "currency": "USD",
+  "sourceUrls": [
+    "https://cloud.google.com/run/pricing",
+    "https://cloud.google.com/artifact-registry/pricing",
+    "https://cloud.google.com/storage/pricing",
+    "https://cloud.google.com/compute/gpus-pricing",
+    "https://cloud.google.com/products/calculator"
+  ],
+  "planningEstimateOnly": true,
+  "authoritativeBilling": false,
+  "usesLiveBillingApi": false,
+  "ratesMayChange": true,
+  "rates": {
+    "cloudRunJobsCpuVcpuSecondUsd": 0.000018,
+    "cloudRunJobsMemoryGibSecondUsd": 0.000002,
+    "cloudRunJobsGpuL4NoZonalRedundancySecondUsd": 0.0001867,
+    "artifactRegistryStorageOverFreeTierGibMonthUsd": 0.1,
+    "artifactRegistryFreeTierGibMonth": 0.5,
+    "cloudStorageStandardUsCentral1GibHourUsd": 0.000027397,
+    "cloudStorageStandardUsCentral1GibMonthUsd": 0.02,
+    "cloudStorageStandardClassAFlatNamespacePer1000OpsUsd": 0.005,
+    "cloudStorageStandardClassBFlatNamespacePer1000OpsUsd": 0.0004,
+    "cloudBuildBuildMinuteUsd": "unavailable",
+    "networkEgressGibUsd": "unavailable",
+    "computeGpuL4Usd": "unavailable_for_phase44h_estimates_gpu_blocked"
+  },
+  "caveats": [
+    "Cloud Run and Cloud Storage free tiers are not modeled.",
+    "Logging, monitoring, detailed operation costs, network egress, lifecycle transitions, discounts, and tax are excluded.",
+    "Cloud Build rates are unavailable in this snapshot; scenarios requiring build cost are low confidence or blocked.",
+    "GPU estimates remain blocked for Track B Phase 44H even though L4 pricing evidence is recorded.",
+    "Refresh official pricing before production, paid beta, or cost-driven execution."
+  ]
+}

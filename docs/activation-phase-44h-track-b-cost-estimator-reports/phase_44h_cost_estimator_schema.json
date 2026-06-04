@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "track-b-cost-estimator-v1",
+  "generatedAt": "2026-06-04",
+  "pricingSnapshotId": "track-b-cost-pricing-snapshot-20260604-us-central1-usd",
+  "pricingSnapshotDate": "2026-06-04",
+  "pricingSources": [
+    {
+      "sourceId": "google_cloud_run_pricing",
+      "url": "https://cloud.google.com/run/pricing",
+      "relevantCategories": [
+        "Cloud Run Jobs CPU vCPU-second",
+        "Cloud Run Jobs memory GiB-second",
+        "Cloud Run L4 GPU per-second",
+        "free-tier caveats",
+        "data-transfer caveats"
+      ],
+      "exactRatesCaptured": true
+    },
+    {
+      "sourceId": "google_artifact_registry_pricing",
+      "url": "https://cloud.google.com/artifact-registry/pricing",
+      "relevantCategories": [
+        "artifact repository at-rest storage"
+      ],
+      "exactRatesCaptured": true
+    },
+    {
+      "sourceId": "google_cloud_storage_pricing",
+      "url": "https://cloud.google.com/storage/pricing",
+      "relevantCategories": [
+        "us-central1 Standard storage",
+        "operation caveats",
+        "egress/network caveats"
+      ],
+      "exactRatesCaptured": true
+    },
+    {
+      "sourceId": "google_compute_gpu_pricing",
+      "url": "https://cloud.google.com/compute/gpus-pricing",
+      "relevantCategories": [
+        "GPU pricing evidence only; VLM/GPU estimates remain blocked"
+      ],
+      "exactRatesCaptured": false
+    },
+    {
+      "sourceId": "google_cloud_pricing_calculator",
+      "url": "https://cloud.google.com/products/calculator",
+      "relevantCategories": [
+        "future manual estimate cross-check"
+      ],
+      "exactRatesCaptured": false
+    }
+  ],
+  "currency": "USD",
+  "region": "us-central1",
+  "estimateMode": [
+    "synthetic_scenario",
+    "route_planning_metadata",
+    "authoritative_billing_never"
+  ],
+  "input": [
+    "toolId",
+    "routeId",
+    "capabilityId",
+    "runtimeClass",
+    "executionClass",
+    "estimatedDurationSeconds",
+    "cpuCount",
+    "memoryGiB",
+    "gpuType",
+    "gpuCount",
+    "artifactInputGiB",
+    "artifactOutputGiB",
+    "artifactStorageGiBMonth",
+    "imageStorageGiBMonth",
+    "buildMinutes",
+    "requestCount",
+    "egressGiB"
+  ],
+  "output": [
+    "estimatedComputeUsd",
+    "estimatedStorageUsd",
+    "estimatedArtifactRegistryUsd",
+    "estimatedBuildUsd",
+    "estimatedNetworkUsd",
+    "estimatedTotalUsd",
+    "estimateConfidence",
+    "costRiskClass",
+    "capacityRiskClass",
+    "warnings",
+    "blockers",
+    "noExecutionPerformed"
+  ]
+}

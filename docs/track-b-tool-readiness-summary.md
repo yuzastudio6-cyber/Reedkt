@@ -13,13 +13,9 @@ Excluded/blocked:
 - Demucs: blocked pending training-data/model-artifact provenance and human/legal review.
 - Qwen3-VL and vLLM: excluded while Phase 39C remains blocked and Phase 39D/39E remain blocked.
 
-Not started:
+Remaining not started:
 
-- Web capability profiler
-- Desktop capability profiler
 - Local worker sidecar planning
-- Cost estimator
-- Tool route manifest integration
 
 Phase 44D web capability profiler status: phase-complete restricted scope for browser route planning hints only.
 
@@ -27,4 +23,8 @@ Phase 44E desktop capability profiler status: phase-complete restricted scope fo
 
 Phase 44F desktop benchmark runner status: phase-complete restricted scope for route/cost planning hints only.
 
-Next recommended phase: Phase 44H cost estimator if cost gating should come first, or Phase 44G local worker sidecar foundation if local execution plumbing is the priority. Route execution, production, beta, broad-media, public-artifact, provider, local sidecar execution, and Track A scopes remain blocked.
+Phase 44I Track B tool route manifest integration status: phase-complete restricted scope for metadata/gating only.
+
+Phase 44H Track B cost estimator status: phase-complete restricted scope for static route/cost planning metadata only.
+
+Next recommended phase: Phase 44G local worker sidecar foundation if execution plumbing is the priority, or Phase 44J hybrid compute E2E simulation only after sidecar and required route/cost gates are in place. Route execution, production, beta, broad-media, public-artifact, provider, local sidecar execution, and Track A scopes remain blocked.

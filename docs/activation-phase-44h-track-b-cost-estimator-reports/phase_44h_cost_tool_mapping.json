@@ -1,0 +1,316 @@
+{
+  "phase": "44H",
+  "runId": "phase44h-trackb-cost-estimator-20260604",
+  "status": "passed",
+  "toolCount": 18,
+  "sourceCapabilityManifestTools": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "demucs",
+    "paddleocr",
+    "paddlepaddle",
+    "qwen3_vl",
+    "vllm",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "sourceRouteManifestVersion": "track-b-route-manifest-v1",
+  "tools": [
+    {
+      "toolId": "deepfilternet",
+      "routeId": "track_b_deepfilternet",
+      "capabilityId": "bounded_speech_cleanup",
+      "evidence": [
+        "36H",
+        "36M"
+      ],
+      "runtimeClass": "cpu_worker_medium",
+      "executionClass": "controlled_sample",
+      "costRiskClass": "low",
+      "estimateAllowed": true,
+      "estimateBehavior": "bounded Cloud Run CPU planning evidence from Phase 36H; Demucs/source separation excluded",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "routeId": "track_b_signalsmith_stretch",
+      "capabilityId": "bounded_timing_stretch",
+      "evidence": [
+        "36I",
+        "36J"
+      ],
+      "runtimeClass": "cpu_worker_medium",
+      "executionClass": "controlled_sample",
+      "costRiskClass": "low",
+      "estimateAllowed": true,
+      "estimateBehavior": "Phase 36I/36J generated and controlled timing/stretch evidence; broad media blocked",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "demucs",
+      "routeId": "track_b_demucs",
+      "capabilityId": "none",
+      "evidence": [
+        "36K"
+      ],
+      "runtimeClass": "blocked_unknown",
+      "executionClass": "blocked_runtime",
+      "costRiskClass": "blocked_unknown",
+      "estimateAllowed": false,
+      "estimateBehavior": "blocked_pending_training_data_model_artifact_provenance",
+      "blockers": [
+        "demucs_blocked_pending_training_data_provenance",
+        "model_download_disabled",
+        "source_separation_disabled"
+      ]
+    },
+    {
+      "toolId": "paddleocr",
+      "routeId": "track_b_paddleocr",
+      "capabilityId": "internal_ocr_qa_planning",
+      "evidence": [
+        "37E"
+      ],
+      "runtimeClass": "cpu_worker_medium",
+      "executionClass": "controlled_sample",
+      "costRiskClass": "low",
+      "estimateAllowed": true,
+      "estimateBehavior": "restricted OCR generated/controlled safe-zone planning estimate",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "paddlepaddle",
+      "routeId": "track_b_paddlepaddle",
+      "capabilityId": "ocr_runtime_foundation",
+      "evidence": [
+        "37C-37E"
+      ],
+      "runtimeClass": "cpu_worker_medium",
+      "executionClass": "future_worker_execution",
+      "costRiskClass": "medium",
+      "estimateAllowed": true,
+      "estimateBehavior": "dependency_runtime_foundation_only_no_direct_user_route",
+      "blockers": [
+        "not_direct_user_route",
+        "only_estimated_when_paddleocr_selected"
+      ]
+    },
+    {
+      "toolId": "qwen3_vl",
+      "routeId": "track_b_qwen3_vl",
+      "capabilityId": "none",
+      "evidence": [
+        "39C-DECISION"
+      ],
+      "runtimeClass": "blocked_gpu",
+      "executionClass": "blocked_runtime",
+      "costRiskClass": "blocked_unknown",
+      "estimateAllowed": false,
+      "estimateBehavior": "blocked_excluded_vlm_no_gpu_estimate_until_future_approval",
+      "blockers": [
+        "vlm_excluded",
+        "gpu_cost_blocked",
+        "phase39c_runtime_blocked"
+      ]
+    },
+    {
+      "toolId": "vllm",
+      "routeId": "track_b_vllm",
+      "capabilityId": "none",
+      "evidence": [
+        "39C-DECISION"
+      ],
+      "runtimeClass": "blocked_gpu",
+      "executionClass": "blocked_runtime",
+      "costRiskClass": "blocked_unknown",
+      "estimateAllowed": false,
+      "estimateBehavior": "blocked_excluded_vlm_no_gpu_estimate_until_future_approval",
+      "blockers": [
+        "vlm_excluded",
+        "gpu_cost_blocked",
+        "phase39c_runtime_blocked"
+      ]
+    },
+    {
+      "toolId": "opencv",
+      "routeId": "track_b_opencv",
+      "capabilityId": "internal_media_data_shape_metrics",
+      "evidence": [
+        "46E"
+      ],
+      "runtimeClass": "cpu_worker_medium",
+      "executionClass": "controlled_sample",
+      "costRiskClass": "low",
+      "estimateAllowed": true,
+      "estimateBehavior": "bounded media/data metadata and sample planning estimate only",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "pyav",
+      "routeId": "track_b_pyav",
+      "capabilityId": "internal_media_container_probe",
+      "evidence": [
+        "46E"
+      ],
+      "runtimeClass": "cpu_worker_medium",
+      "executionClass": "controlled_sample",
+      "costRiskClass": "low",
+      "estimateAllowed": true,
+      "estimateBehavior": "bounded media/data metadata and sample planning estimate only",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "pyscenedetect",
+      "routeId": "track_b_pyscenedetect",
+      "capabilityId": "bounded_scene_manifest",
+      "evidence": [
+        "46E"
+      ],
+      "runtimeClass": "cpu_worker_medium",
+      "executionClass": "controlled_sample",
+      "costRiskClass": "low",
+      "estimateAllowed": true,
+      "estimateBehavior": "bounded media/data metadata and sample planning estimate only",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "sharp_libvips",
+      "routeId": "track_b_sharp_libvips",
+      "capabilityId": "image_resize",
+      "evidence": [
+        "46E"
+      ],
+      "runtimeClass": "cpu_worker_light",
+      "executionClass": "generated_fixture",
+      "costRiskClass": "low",
+      "estimateAllowed": true,
+      "estimateBehavior": "server/worker image-processing planning estimate; consumers only outside Track B",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "duckdb",
+      "routeId": "track_b_duckdb",
+      "capabilityId": "internal_qa_aggregation",
+      "evidence": [
+        "46E"
+      ],
+      "runtimeClass": "local_light",
+      "executionClass": "metadata_only",
+      "costRiskClass": "free_or_negligible",
+      "estimateAllowed": true,
+      "estimateBehavior": "internal QA aggregation/transform estimate is negligible metadata-only",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "polars",
+      "routeId": "track_b_polars",
+      "capabilityId": "internal_qa_transforms",
+      "evidence": [
+        "46E"
+      ],
+      "runtimeClass": "local_light",
+      "executionClass": "metadata_only",
+      "costRiskClass": "free_or_negligible",
+      "estimateAllowed": true,
+      "estimateBehavior": "internal QA aggregation/transform estimate is negligible metadata-only",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "routeId": "track_b_web_capability_profiler",
+      "capabilityId": "none",
+      "evidence": [],
+      "runtimeClass": "local_light",
+      "executionClass": "metadata_only",
+      "costRiskClass": "free_or_negligible",
+      "estimateAllowed": true,
+      "estimateBehavior": "metadata-only profiler planning estimate is negligible",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "routeId": "track_b_desktop_capability_profiler",
+      "capabilityId": "none",
+      "evidence": [],
+      "runtimeClass": "local_light",
+      "executionClass": "metadata_only",
+      "costRiskClass": "free_or_negligible",
+      "estimateAllowed": true,
+      "estimateBehavior": "metadata-only profiler planning estimate is negligible",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "routeId": "track_b_local_worker_sidecar_planning",
+      "capabilityId": "none",
+      "evidence": [],
+      "runtimeClass": "not_started",
+      "executionClass": "blocked_runtime",
+      "costRiskClass": "blocked_unknown",
+      "estimateAllowed": false,
+      "estimateBehavior": "not_started_phase44g_required",
+      "blockers": [
+        "local_worker_sidecar_not_started"
+      ]
+    },
+    {
+      "toolId": "cost_estimator",
+      "routeId": "track_b_cost_estimator",
+      "capabilityId": "none",
+      "evidence": [],
+      "runtimeClass": "local_light",
+      "executionClass": "metadata_only",
+      "costRiskClass": "free_or_negligible",
+      "estimateAllowed": true,
+      "estimateBehavior": "metadata-only planning/reporting cost is negligible",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "routeId": "track_b_tool_route_manifest_integration",
+      "capabilityId": "route_manifest_metadata_handoff",
+      "evidence": [],
+      "runtimeClass": "local_light",
+      "executionClass": "metadata_only",
+      "costRiskClass": "free_or_negligible",
+      "estimateAllowed": true,
+      "estimateBehavior": "metadata-only planning/reporting cost is negligible",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    }
+  ]
+}

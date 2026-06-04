@@ -1,0 +1,66 @@
+{
+  "phase": "44H",
+  "runId": "phase44h-trackb-cost-estimator-20260604",
+  "status": "global_scopes_blocked_cost_estimator_passed",
+  "scenarioBlockers": [
+    {
+      "scenarioId": "vlm_blocked_scenario",
+      "blockers": [
+        "gpu_cost_requires_future_explicit_approval",
+        "runtime_blocked",
+        "vlm_estimate_blocked",
+        "vlm_excluded_gpu_cost_blocked"
+      ]
+    },
+    {
+      "scenarioId": "demucs_blocked_scenario",
+      "blockers": [
+        "demucs_blocked_pending_training_data_provenance",
+        "demucs_estimate_blocked",
+        "runtime_blocked"
+      ]
+    },
+    {
+      "scenarioId": "route_execution_blocked_scenario",
+      "blockers": [
+        "production_forbidden",
+        "route_execution_blocked_until_phase44j_or_later"
+      ]
+    }
+  ],
+  "globallyBlockedScopes": [
+    "route execution",
+    "worker execution",
+    "local worker sidecar execution",
+    "raw chat execution",
+    "media processing",
+    "audio processing",
+    "OCR runtime execution",
+    "VLM runtime execution",
+    "DeepFilterNet runtime execution",
+    "Signalsmith runtime execution",
+    "Demucs runtime execution",
+    "model downloads",
+    "provider calls",
+    "web search provider calls",
+    "billing API queries",
+    "Google Cloud project billing reads",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "GCP mutation",
+    "IAM mutation",
+    "network speed tests",
+    "GPU benchmarks",
+    "public artifacts",
+    "public output",
+    "broad media",
+    "arbitrary media input",
+    "product-wide internal beta",
+    "external beta",
+    "paid production",
+    "production",
+    "Track A runtime/visual/render stack"
+  ]
+}

@@ -41,6 +41,7 @@ on:
       - codex/rp-foundation-20p2-storage-ownership-privilege-follow-up
       - codex/rp-foundation-20b-retry-local-rls-first-executable-smoke-test-run
       - codex/rp-foundation-21-staging-supabase-rls-approval-packet
+      - codex/rp-foundation-22-staging-supabase-rls-human-approval-review
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

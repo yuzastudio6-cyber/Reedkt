@@ -150,6 +150,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'staging:supabase:approval:diagnostics'],
     required: true,
   },
+  {
+    id: 'staging_supabase_approval_review_diagnostics',
+    command: 'npm run --silent staging:supabase:approval-review:diagnostics',
+    npmArgs: ['run', '--silent', 'staging:supabase:approval-review:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

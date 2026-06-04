@@ -1,12 +1,14 @@
 # Production Beta Blocker Inventory
 
-This inventory records blockers before production-level beta. Prompt 21 does not clear these blockers.
+This inventory records blockers before production-level beta. Prompt 22 human approval review does not clear these blockers.
+
+Prompt 21 staging Supabase/RLS approval packet remains the approval-preparation baseline; Prompt 22 adds human review material but does not grant approval.
 
 | Severity | Blocker | Why it matters | Risk | Required fix | Owner/milestone | Can beta proceed without it? | Must be done before production beta? |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Critical | E2E staging smoke not run | No integrated evidence exists. | Unknown cross-domain failures. | Run approved staging smoke with synthetic fixtures. | Prompt 19/31 | No for production beta. | Yes |
-| Critical | Local/staging Supabase/RLS not executed | Local auth/workspace/project RLS now has partial evidence, but broader local RLS and all staging policies are not proven. Prompt 21 staging Supabase/RLS approval packet is prepared but not approved for execution. | Cross-workspace data exposure in staging/production-like conditions. | Expand local RLS coverage in future approved prompts and complete human review before any staging SQL execution. | Prompt 22 | No. | Yes |
-| Critical | Remote/staging migration not validated | Schema chain may not apply cleanly outside local. Prompt 21 adds approval/rollback material, not execution evidence. | Runtime data corruption or missing tables. | Use the approved local evidence package first, then stage only with explicit human approval. | Prompt 22 | No. | Yes |
+| Critical | Local/staging Supabase/RLS not executed | Local auth/workspace/project RLS now has partial evidence, but broader local RLS and all staging policies are not proven. Prompt 22 human approval review marks the packet `ready_for_human_review` but does not grant approval. | Cross-workspace data exposure in staging/production-like conditions. | Expand local RLS coverage in future approved prompts and complete a human decision record before any staging SQL execution. | Prompt 23 | No. | Yes |
+| Critical | Remote/staging migration not validated | Schema chain may not apply cleanly outside local. Prompt 22 adds human review material, not execution evidence. | Runtime data corruption or missing tables. | Use the approved local evidence package first, then stage only with explicit human approval. | Prompt 23 | No. | Yes |
 | Critical | Service-role backend persistence not enabled | Writes remain backend-required. | Fake readiness could be mistaken for production. | Add reviewed transactional services. | Future backend milestones | No. | Yes |
 | Critical | Real signed upload/download not validated | Private media boundary is unproven. | Data exposure or broken upload flow. | Validate private storage and signed URL policy. | Storage validation milestone | No. | Yes |
 | Critical | Credit transactional mutation not enabled | Spend/reserve/refund cannot be trusted. | Unbounded cost or billing mismatch. | Implement transactional credit ledger. | Credit runtime milestone | No. | Yes |
@@ -28,4 +30,4 @@ This inventory records blockers before production-level beta. Prompt 21 does not
 
 ## Decision
 
-Prompt 21 prepares the staging Supabase/RLS approval packet after Prompt 20B-Retry ran and passed the first guarded local auth/workspace/project RLS smoke test. Production beta still cannot proceed because staging Supabase/RLS has not executed, broader local RLS coverage is incomplete, human staging approval is not granted, and runtime capabilities remain blocked. The next safe milestone is Prompt 22 - Staging Supabase/RLS Human Approval Packet Review.
+Prompt 22 human approval review records the staging Supabase/RLS packet as `ready_for_human_review` after Prompt 20B-Retry ran and passed the first guarded local auth/workspace/project RLS smoke test. Production beta still cannot proceed because staging Supabase/RLS has not executed, broader local RLS coverage is incomplete, human staging approval is not granted, and runtime capabilities remain blocked. The next safe milestone is Prompt 23 - Staging Supabase/RLS Human Approval Decision Record.

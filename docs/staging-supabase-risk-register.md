@@ -12,3 +12,6 @@ Prompt 21 records staging approval risks before any staging execution. The regis
 | overly broad first test set | High | Running all domain drafts at once can hide cause and cleanup scope. | First approved staging run should start with a narrow auth/workspace/project candidate. | Matrix marks only one local-passed staging candidate. |
 | runtime side effect leakage | Critical | Provider, worker, render, storage transfer, credit, Stripe, or telemetry side effects would exceed scope. | Fixture plan excludes runtime execution and side-effect domains. | Blocked by packet scope. |
 
+## Prompt 22 Human Review
+
+Prompt 22 human review keeps every critical risk open until a human decision record is created. The review state is `ready_for_human_review`, not approval, and staging execution remains blocked.

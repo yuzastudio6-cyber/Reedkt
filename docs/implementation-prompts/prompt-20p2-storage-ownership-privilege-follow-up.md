@@ -6,7 +6,7 @@ Prompt 20P2 repairs the local-only storage ownership blocker discovered after Pr
 
 - Branch: `codex/rp-foundation-20p2-storage-ownership-privilege-follow-up`
 - Base: `origin/codex/rp-foundation-20p-local-supabase-migration-chain-repair-follow-up-8`
-- PR: pending
+- PR: [PR #162](https://github.com/yuzastudio6-cyber/Reedkt/pull/162)
 - PR title: `[foundation] Prompt 20P2 storage ownership privilege follow-up`
 - Exact production capability enabled: `none; local-only storage ownership/privilege repair`
 

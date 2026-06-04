@@ -577,6 +577,16 @@ def main():
         "privateArtifactManifest": private_manifest,
         "blockers": sorted(set(blockers)),
     }
+    write_json(report_dir / "phase_36j_private_artifact_manifest.json", private_manifest)
+    write_json(report_dir / "phase_36j_worker_result.json", result)
+    # The first upload captures runtime artifacts and reports produced before the
+    # manifest existed. Upload the reports directory again so the final manifest
+    # and worker result are available as private JSON metadata.
+    final_report_upload = upload_artifacts(report_dir, args.private_prefix.rstrip("/") + "/reports/")
+    result["finalReportUpload"] = final_report_upload
+    if final_report_upload["status"] != "passed":
+        result["status"] = "blocked"
+        result["blockers"] = sorted(set([*result["blockers"], *final_report_upload.get("blockers", [])]))
     print(json.dumps(result, indent=2))
 
     if not args.keep_temp and final_status == "passed":

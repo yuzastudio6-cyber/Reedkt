@@ -1,10 +1,9 @@
 {
+  "id": "phase_36j_private_artifact_manifest",
   "phase": "36J",
   "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
-  "status": "blocked",
-  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/",
-  "objectCount": 0,
-  "reason": "Worker did not emit private artifact manifest.",
-  "publicOutput": "blocked",
-  "signedUrls": "blocked"
+  "status": "not_run",
+  "blockers": [
+    "private_artifact_manifest_not_downloaded"
+  ]
 }

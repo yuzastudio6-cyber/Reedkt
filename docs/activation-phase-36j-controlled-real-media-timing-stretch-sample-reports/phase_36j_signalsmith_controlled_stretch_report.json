@@ -1,7 +1,9 @@
 {
-  "id": "controlled_stretch",
+  "id": "phase_36j_signalsmith_controlled_stretch_report",
   "phase": "36J",
   "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
   "status": "not_run",
-  "reason": "not_run"
+  "blockers": [
+    "controlled_stretch_not_run"
+  ]
 }

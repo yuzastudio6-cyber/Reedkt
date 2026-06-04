@@ -6,11 +6,14 @@
   "phase36HEvidenceStatus": "loaded",
   "phase36IEvidenceStatus": "loaded",
   "controlledSampleEvidenceStatus": "not_run",
-  "runtimePreflightStatus": "blocked",
+  "runtimePreflightStatus": "passed",
+  "ffmpegRuntimeStatus": "not_run",
+  "cloudBuildStatus": "passed",
+  "cloudRunJobStatus": "blocked",
   "extractionStatus": "not_run",
   "controlledStretchStatus": "not_run",
   "audioQaStatus": "not_run",
-  "privateArtifactStatus": "blocked",
+  "privateArtifactStatus": "not_run",
   "selectedSample": {
     "sampleId": "phase37d-phase32-color-export-safe-zone-window-v1",
     "chainId": "controlled-real-video-chain-phase28-through-phase32-v1",
@@ -21,40 +24,40 @@
     "maxDurationSeconds": 5,
     "privateOnly": true
   },
-  "stretchFixtures": [
-    {
-      "fixtureId": "controlled-stretch-expand-110",
-      "stretchRatio": 1.1,
-      "durationTolerancePercent": 2,
-      "blocking": true
-    },
-    {
-      "fixtureId": "controlled-stretch-contract-090",
-      "stretchRatio": 0.9,
-      "durationTolerancePercent": 2,
-      "blocking": true
-    },
-    {
-      "fixtureId": "controlled-stretch-expand-125",
-      "stretchRatio": 1.25,
-      "durationTolerancePercent": 3,
-      "blocking": false,
-      "stressFixture": true
-    }
-  ],
-  "boundedControlledAudioOnly": true,
-  "arbitraryMedia": "not_run_blocked",
-  "broadMedia": "not_run_blocked",
-  "providerCalls": "not_run_blocked",
-  "deepFilterNetRuntime": "not_run_blocked",
-  "demucs": "not_run_blocked",
-  "vlm": "not_run_blocked",
-  "ocr": "not_run_blocked",
-  "trackA": "not_touched",
+  "privateArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase36j/controlled-real-media-timing-stretch/phase36j-controlled-real-media-timing-stretch-20260603/",
+  "runtimeImage": "us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/signalsmith-controlled-runtime-phase36j:phase36j-controlled-real-media-timing-stretch-20260603",
+  "runtimeJob": "reeditpro-stg-signalsmith-controlled-runtime-phase36j",
   "blockers": [
-    "ffmpeg_unavailable_for_bounded_audio_extraction",
-    "ffprobe_unavailable_for_bounded_audio_validation",
-    "signalsmith_controlled_runtime_preflight_incomplete"
+    "ffmpeg_runtime_smoke_report_not_downloaded",
+    "phase36j_cpu_worker_qa_prefix_storage_objects_get_missing",
+    "phase36j_private_artifact_upload_failed",
+    "phase36j_signalsmith_cloud_run_job_execute_failed",
+    "phase36j_worker_result_not_downloaded",
+    "private_artifact_manifest_not_downloaded"
   ],
-  "nextPhaseDecision": "Resolve exact Phase 36J blocker before audio/timing beta-readiness or Demucs follow-up."
+  "blockedScopes": [
+    "Demucs until provenance/legal approval",
+    "Demucs download/runtime/source separation",
+    "DeepFilterNet runtime execution in Phase 36J",
+    "Signalsmith generated fixture rerun except evidence read",
+    "OCR runtime",
+    "VLM runtime retries",
+    "provider calls",
+    "arbitrary media paths",
+    "broad media",
+    "unapproved real media",
+    "public media URLs",
+    "signed URLs as source of truth",
+    "full-video processing",
+    "final export",
+    "public output",
+    "production",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "Docker/Cloud Build/Cloud Run unless separately approved",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhaseDecision": "Resolve exact Phase 36J ffmpeg/runtime blocker before Demucs or audio/timing beta gate."
 }

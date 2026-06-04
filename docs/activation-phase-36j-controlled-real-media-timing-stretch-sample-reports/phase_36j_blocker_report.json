@@ -3,9 +3,12 @@
   "runId": "phase36j-controlled-real-media-timing-stretch-20260603",
   "status": "blocked",
   "blockers": [
-    "ffmpeg_unavailable_for_bounded_audio_extraction",
-    "ffprobe_unavailable_for_bounded_audio_validation",
-    "signalsmith_controlled_runtime_preflight_incomplete"
+    "ffmpeg_runtime_smoke_report_not_downloaded",
+    "phase36j_cpu_worker_qa_prefix_storage_objects_get_missing",
+    "phase36j_private_artifact_upload_failed",
+    "phase36j_signalsmith_cloud_run_job_execute_failed",
+    "phase36j_worker_result_not_downloaded",
+    "private_artifact_manifest_not_downloaded"
   ],
   "blockedScopes": [
     "Demucs until provenance/legal approval",

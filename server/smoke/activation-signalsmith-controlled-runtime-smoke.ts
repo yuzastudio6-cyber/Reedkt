@@ -6,6 +6,7 @@ import {
   SIGNALSMITH_CONTROLLED_SAMPLE,
   getSignalsmithControlledRuntimePlan,
 } from '../activation/signalsmith-stretch-runtime/controlled'
+import { getSignalsmithControlledFfmpegRuntimePlan } from '../activation/signalsmith-stretch-runtime/ffmpeg-runtime'
 
 function assert(condition: unknown, message: string): void {
   if (!condition) throw new Error(message)
@@ -13,8 +14,12 @@ function assert(condition: unknown, message: string): void {
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts?: Record<string, string> }
 const moduleSource = readFileSync('server/activation/signalsmith-stretch-runtime/controlled.ts', 'utf8')
+const ffmpegModuleSource = readFileSync('server/activation/signalsmith-stretch-runtime/ffmpeg-runtime.ts', 'utf8')
 const workerSource = readFileSync('server/workers/signalsmith-stretch-runtime/run_signalsmith_controlled_suite.py', 'utf8')
+const linuxWorkerSource = readFileSync('server/workers/signalsmith-stretch-runtime/linux_controlled_entrypoint.py', 'utf8')
+const gcloudIgnore = readFileSync('cloudbuild/signalsmith-controlled-runtime-phase36j.gcloudignore', 'utf8')
 const plan = getSignalsmithControlledRuntimePlan()
+const ffmpegPlan = getSignalsmithControlledFfmpegRuntimePlan()
 
 for (const script of [
   'activation:signalsmith-controlled-runtime:plan',
@@ -23,6 +28,11 @@ for (const script of [
   'activation:signalsmith-controlled-runtime:iam-plan',
   'activation:signalsmith-controlled-runtime:cost-summary',
   'activation:signalsmith-controlled-runtime:summary',
+  'activation:signalsmith-controlled-runtime:ffmpeg-plan',
+  'activation:signalsmith-controlled-runtime:ffmpeg-smoke',
+  'activation:signalsmith-controlled-runtime:ffmpeg-report',
+  'activation:signalsmith-controlled-runtime:cloud-build',
+  'activation:signalsmith-controlled-runtime:cloud-run-job',
   'smoke:activation-signalsmith-controlled-runtime',
 ]) {
   assert(packageJson.scripts?.[script], `Missing package script: ${script}`)
@@ -35,6 +45,10 @@ assert(SIGNALSMITH_CONTROLLED_REPORT_DIR.includes('phase-36j'), 'Phase 36J repor
 assert(plan.selectedSample.sampleId === SIGNALSMITH_CONTROLLED_SAMPLE.sampleId, 'Controlled sample id changed.')
 assert(plan.selectedSample.privateOnly === true, 'Controlled sample must be private.')
 assert(plan.selectedSample.windowStartSeconds === 6.9 && plan.selectedSample.windowEndSeconds === 8.9, 'Controlled window changed.')
+assert(ffmpegPlan.ffmpegRuntimeCompletion.image.includes('signalsmith-controlled-runtime-phase36j'), 'Phase 36J ffmpeg runtime image plan missing.')
+assert(ffmpegPlan.ffmpegRuntimeCompletion.jobName === 'reeditpro-stg-signalsmith-controlled-runtime-phase36j', 'Phase 36J Cloud Run Job name changed.')
+assert(ffmpegPlan.ffmpegRuntimeCompletion.publicService === false, 'Phase 36J runtime must not be public.')
+assert(ffmpegPlan.ffmpegRuntimeCompletion.gpu === 'blocked', 'Phase 36J runtime must be CPU-only.')
 assert(plan.controlledStretchFixtures.some((fixture) => fixture.fixtureId === 'controlled-stretch-expand-110' && fixture.stretchRatio === 1.1), '1.10x controlled stretch missing.')
 assert(plan.controlledStretchFixtures.some((fixture) => fixture.fixtureId === 'controlled-stretch-contract-090' && fixture.stretchRatio === 0.9), '0.90x controlled stretch missing.')
 
@@ -64,6 +78,9 @@ for (const forbidden of [
 
 assert(moduleSource.includes('phase36i_generated_fixture_evidence_missing'), 'Phase 36I evidence gate missing.')
 assert(moduleSource.includes('approved_controlled_timing_stretch_sample_missing'), 'Controlled sample blocker missing.')
+assert(ffmpegModuleSource.includes('ffmpeg_runtime_smoke_report_not_downloaded'), 'FFmpeg runtime smoke report gate missing.')
+assert(ffmpegModuleSource.includes('phase36j_signalsmith_cloud_build_failed'), 'Cloud Build blocker missing.')
+assert(ffmpegModuleSource.includes('phase36j_signalsmith_cloud_run_job_execute_failed'), 'Cloud Run Job blocker missing.')
 assert(moduleSource.includes('controlled_audio_window_not_timing_stretch_suitable') || workerSource.includes('controlled_audio_window_not_timing_stretch_suitable'), 'Timing suitability blocker missing.')
 assert(moduleSource.includes('full-video processing'), 'Full-video blocked scope missing.')
 assert(moduleSource.includes('Track A runtime/visual/render stack'), 'Track A blocked scope missing.')
@@ -75,6 +92,11 @@ assert(workerSource.includes('source_prefix_not_allowed'), 'Approved source pref
 assert(workerSource.includes('controlled_sample_sha256_mismatch'), 'Controlled sample checksum guard missing.')
 assert(workerSource.includes('publicOutput') && workerSource.includes('signedUrl'), 'Public/signed URL blocks missing.')
 assert(workerSource.includes('boundedControlledAudioOnly'), 'Bounded controlled audio marker missing.')
+assert(linuxWorkerSource.includes('linux_amd64_required'), 'Linux/amd64 runtime guard missing.')
+assert(linuxWorkerSource.includes('ffmpeg') && linuxWorkerSource.includes('ffprobe'), 'Linux entrypoint must smoke ffmpeg/ffprobe.')
+assert(linuxWorkerSource.includes('mediaAccessDuringSmoke') && linuxWorkerSource.includes('False'), 'Runtime smoke must not read media.')
+assert(gcloudIgnore.includes('**/*.wav') && gcloudIgnore.includes('**/*.mp4') && gcloudIgnore.includes('**/.env'), 'Build context guard must exclude media and env files.')
+assert(gcloudIgnore.includes('**/node_modules') && gcloudIgnore.includes('**/private-artifacts'), 'Build context guard must exclude dependencies and private artifacts.')
 
 for (const reportFile of SIGNALSMITH_CONTROLLED_EXPECTED_REPORT_FILES) {
   assert(reportFile.startsWith('phase_36j_'), `Unexpected Phase 36J report file: ${reportFile}`)

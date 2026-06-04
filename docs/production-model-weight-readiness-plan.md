@@ -1,5 +1,7 @@
 # Production Model Weight Readiness Plan
 
+Phase 44J is not a model-weight phase. It does not download, stage, approve, or execute model weights. It simulates Track B hybrid compute route/cost/sidecar decisions using committed metadata only. VLM and Demucs routes remain blocked, model downloads remain blocked, runtime execution remains blocked, and public output, beta, production, providers, broad media, and Track A remain blocked.
+
 Phase 44H is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records static cost-planning metadata only; VLM GPU estimates and Demucs model/source-separation estimates remain blocked until their separate approval phases pass.
 
 Phase 44G is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records local worker sidecar protocol, policy, and mock fixture metadata only; VLM, Demucs, model downloads, route execution, worker execution, sidecar execution, production, beta, public output, broad media, and Track A remain blocked.

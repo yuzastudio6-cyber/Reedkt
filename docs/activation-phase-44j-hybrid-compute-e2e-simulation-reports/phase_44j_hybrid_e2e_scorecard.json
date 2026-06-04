@@ -1,0 +1,59 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "passed",
+  "totalCriteria": 10,
+  "passedCriteria": 10,
+  "criteria": [
+    {
+      "criterionId": "required_inputs_loaded",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "simulation_schema_present",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "fifteen_plan_fixtures_present",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "artifact_scope_fixtures_present",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "route_simulation_fail_closed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "cost_guardrail_simulation_fail_closed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "sidecar_simulation_execution_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "failure_fixtures_fail_closed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_execution_performed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "vlm_demucs_provider_public_broad_cases_blocked",
+      "passed": true,
+      "status": "passed"
+    }
+  ]
+}

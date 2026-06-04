@@ -1,0 +1,244 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "passed",
+  "sourceCostEstimatorStatus": "phase_complete_restricted_scope",
+  "noBillingApiCalls": true,
+  "noExecutionPerformed": true,
+  "scenarioCount": 15,
+  "blockedCount": 8,
+  "warningCount": 0,
+  "results": [
+    {
+      "fixtureId": "plan-audio-deepfilternet-internal",
+      "toolId": "deepfilternet",
+      "status": "passed",
+      "decision": "within_guardrail",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "server_worker_preferred",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-audio-signalsmith-internal",
+      "toolId": "signalsmith_stretch",
+      "status": "passed",
+      "decision": "within_guardrail",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "server_worker_preferred",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-media-data-sharp-thumbnail",
+      "toolId": "sharp_libvips",
+      "status": "passed",
+      "decision": "within_guardrail",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "local_light",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-media-data-duckdb-reporting",
+      "toolId": "duckdb",
+      "status": "passed",
+      "decision": "within_guardrail",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "local_light",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-ocr-safe-zone",
+      "toolId": "paddleocr",
+      "status": "passed",
+      "decision": "within_guardrail",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "server_worker_preferred",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-vlm-blocked",
+      "toolId": "qwen3_vl",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "blocked_gpu",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "vlm_route_blocked",
+        "vlm_gpu_cost_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-demucs-blocked",
+      "toolId": "demucs",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "blocked_unknown",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "demucs_route_blocked",
+        "demucs_cost_blocked_pending_provenance"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-broad-media-blocked",
+      "toolId": "opencv",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "server_worker_preferred",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "broad_media_blocked",
+        "broad_media_cost_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-public-output-blocked",
+      "toolId": "sharp_libvips",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "local_light",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "public_output_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-provider-call-blocked",
+      "toolId": "paddleocr",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "server_worker_preferred",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "provider_calls_blocked",
+        "provider_cost_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-raw-chat-execution-blocked",
+      "toolId": "duckdb",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "local_light",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "raw_chat_execution_blocked"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-missing-artifact-scope-blocked",
+      "toolId": "polars",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "local_light",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "missing_outputArtifactScopeId"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-cost-hard-block",
+      "toolId": "pyscenedetect",
+      "status": "passed",
+      "decision": "blocked",
+      "estimatedCostUsd": 7.5,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "server_worker_preferred",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [
+        "cost_hard_block_requested",
+        "cost_hard_block_threshold_exceeded"
+      ],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-low-resource-server-preferred",
+      "toolId": "pyav",
+      "status": "passed",
+      "decision": "within_guardrail",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "server_worker_preferred",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    },
+    {
+      "fixtureId": "plan-high-desktop-future-local-candidate",
+      "toolId": "duckdb",
+      "status": "passed",
+      "decision": "within_guardrail",
+      "estimatedCostUsd": 0.15,
+      "warningThresholdUsd": 1,
+      "hardBlockThresholdUsd": 5,
+      "capacityHint": "local_medium",
+      "noBillingApiCalls": true,
+      "noExecutionPerformed": true,
+      "blockedReasons": [],
+      "warnings": []
+    }
+  ]
+}

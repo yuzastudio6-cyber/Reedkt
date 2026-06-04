@@ -1,0 +1,141 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "passed",
+  "failureCount": 13,
+  "noFallbackToRawExecution": true,
+  "noExecutionPerformed": true,
+  "results": [
+    {
+      "fixtureId": "failure-missing-capability-manifest",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "missing_capability_manifest"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-route-version-mismatch",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "route_manifest_version_mismatch"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-artifact-mismatch",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "artifact_scope_mismatch"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-cost-hard-block",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "cost_hard_block_threshold_exceeded"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-blocked-route-execution",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "route_execution_not_allowed",
+        "runtime_execution_not_allowed"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-raw-chat",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "raw_chat_execution_blocked"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-public-artifact",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "public_artifact_blocked"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-provider-call",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "provider_calls_blocked"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-broad-media",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "broad_media_blocked"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-vlm",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "vlm_route_blocked"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-demucs",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "demucs_route_blocked"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-sidecar-protocol-mismatch",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "protocol_version_mismatch"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    },
+    {
+      "fixtureId": "failure-frontend-secret-request",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "frontend_secret_request_blocked"
+      ],
+      "noFallbackToRawExecution": true,
+      "noExecutionPerformed": true
+    }
+  ]
+}

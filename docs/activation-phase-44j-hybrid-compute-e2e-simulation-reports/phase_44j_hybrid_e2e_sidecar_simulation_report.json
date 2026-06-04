@@ -1,0 +1,223 @@
+{
+  "phase": "44J",
+  "runId": "phase44j-hybrid-compute-e2e-simulation-20260604",
+  "status": "passed",
+  "sourceSidecarProtocol": "Phase 44G local worker sidecar validators",
+  "executionBlockedForEveryFixture": true,
+  "noSidecarProcessStarted": true,
+  "noExecutionPerformed": true,
+  "results": [
+    {
+      "fixtureId": "plan-audio-deepfilternet-internal",
+      "status": "passed",
+      "planValidationAccepted": true,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-audio-signalsmith-internal",
+      "status": "passed",
+      "planValidationAccepted": true,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-media-data-sharp-thumbnail",
+      "status": "passed",
+      "planValidationAccepted": true,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-media-data-duckdb-reporting",
+      "status": "passed",
+      "planValidationAccepted": true,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-ocr-safe-zone",
+      "status": "passed",
+      "planValidationAccepted": true,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-vlm-blocked",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "vlm_route_blocked"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-demucs-blocked",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "demucs_route_blocked"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-broad-media-blocked",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "broad_media_blocked"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-public-output-blocked",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "public_output_blocked"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-provider-call-blocked",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "provider_calls_blocked"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-raw-chat-execution-blocked",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "raw_chat_execution_blocked"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-missing-artifact-scope-blocked",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": false,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "missing_outputArtifactScopeId",
+        "missing_output_artifact_scope"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-cost-hard-block",
+      "status": "passed",
+      "planValidationAccepted": false,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [
+        "cost_hard_block_requested"
+      ],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-low-resource-server-preferred",
+      "status": "passed",
+      "planValidationAccepted": true,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    },
+    {
+      "fixtureId": "plan-high-desktop-future-local-candidate",
+      "status": "passed",
+      "planValidationAccepted": true,
+      "artifactScopeAccepted": true,
+      "executionBlocked": true,
+      "executionBlockedReason": "phase44j_metadata_simulation_no_execution",
+      "sidecarProtocolVersion": "track-b-sidecar-protocol-v1",
+      "blockedReasons": [],
+      "warnings": [
+        "sidecar_execution_blocked_by_phase44j_policy"
+      ]
+    }
+  ]
+}

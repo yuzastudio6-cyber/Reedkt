@@ -1,0 +1,20 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "blocked",
+  "demucsDecision": "blocked_pending_training_data_provenance",
+  "sourceCodeDecision": "source_code_mit_evidenced_not_runtime_approval",
+  "packageDecision": "pypi_metadata_evidenced_not_install_approval",
+  "modelWeightDecision": "blocked_pending_model_artifact_provenance",
+  "trainingDataDecision": "blocked_pending_training_data_provenance",
+  "humanLegalReviewRequired": true,
+  "approvedForPhase36L": false,
+  "rationale": [
+    "MIT code/package evidence does not prove pretrained model weight rights.",
+    "Default and high-quality candidates reference MUSDB-HQ plus extra/internal songs with unresolved terms.",
+    "MUSDB/MUSDB-HQ contains academic/noncommercial/sharealike/licensing caveats.",
+    "No exact immutable model artifact source, checksum, or private staging policy is approved in Phase 36K."
+  ],
+  "audioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "nextPhaseDecision": "Do not run Phase 36L unless a human/legal reviewer approves an exact Demucs candidate; otherwise proceed to audio/timing internal beta gate only if Demucs is explicitly excluded from current internal scope."
+}

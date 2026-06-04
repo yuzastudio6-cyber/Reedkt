@@ -1,0 +1,55 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "blocked",
+  "blockers": [
+    {
+      "id": "training_data_provenance_unresolved",
+      "severity": "blocking",
+      "summary": "MUSDB-HQ and extra/internal song provenance prevents automatic pretrained model approval."
+    },
+    {
+      "id": "model_weight_artifact_source_unapproved",
+      "severity": "blocking",
+      "summary": "No exact immutable Demucs model artifact URL/checksum/private staging policy is approved."
+    },
+    {
+      "id": "human_legal_review_required",
+      "severity": "blocking",
+      "summary": "A human/legal decision is required before Phase 36L can download or stage weights."
+    },
+    {
+      "id": "phase36l_download_runtime_blocked",
+      "severity": "blocking",
+      "summary": "Phase 36L must not start until the provenance decision changes to approved for future guarded planning."
+    }
+  ],
+  "blockedScopes": [
+    "Phase 36L Demucs download/runtime until a human/legal approval resolves model provenance",
+    "Demucs model downloads",
+    "Demucs private staging",
+    "Demucs runtime execution",
+    "source separation",
+    "audio/media processing",
+    "arbitrary media",
+    "broad media",
+    "unapproved real media",
+    "provider calls",
+    "VLM runtime retries",
+    "OCR runtime",
+    "DeepFilterNet runtime reruns",
+    "Signalsmith runtime reruns",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "public artifacts",
+    "public output",
+    "internal beta unlock",
+    "external beta",
+    "paid production",
+    "production",
+    "Track A runtime/visual/render stack"
+  ]
+}

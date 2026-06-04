@@ -23,3 +23,5 @@ media, public delivery, final export, RNNoise, Demucs, providers, Revideo, FILM,
 or slow motion.
 
 Phase 36G closes the RNNoise/Demucs audio stack correction only. It removes RNNoise from active product flow and blocks Demucs download/runtime pending pretrained-model license/provenance clarity. It does not approve external beta, paid production, broad real media, arbitrary media, providers, Revideo, FILM, slow motion, public delivery, or final export.
+
+Phase 36K keeps Demucs blocked after a provenance/legal-risk retry. MIT source and package evidence exists, but pretrained model weights remain blocked because training-data provenance, model artifact source, and human/legal approval are incomplete. Phase 36L download/runtime must not run unless one exact candidate is approved later. Audio/timing can advance toward an internal beta-readiness gate only if Demucs source separation is explicitly excluded from current internal scope or later approved phases pass.

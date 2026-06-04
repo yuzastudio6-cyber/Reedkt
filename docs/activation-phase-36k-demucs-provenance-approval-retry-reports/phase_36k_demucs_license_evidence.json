@@ -1,0 +1,33 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "code_and_package_license_evidenced_model_weights_not_approved",
+  "evidence": [
+    {
+      "id": "demucs_code_license_mit",
+      "sourceUrl": "https://github.com/facebookresearch/demucs/blob/main/LICENSE",
+      "evidenceType": "license_file",
+      "accessedOn": "2026-06-04",
+      "license": "MIT",
+      "status": "source_code_license_evidenced",
+      "summary": "The repository LICENSE file is MIT and names Meta Platforms, Inc. and affiliates.",
+      "decisionImpact": "Source code license is not the blocker; model weight and training data provenance remain unresolved.",
+      "confidence": "high"
+    },
+    {
+      "id": "demucs_pypi_license_mit",
+      "sourceUrl": "https://pypi.org/project/demucs/",
+      "evidenceType": "package_metadata",
+      "accessedOn": "2026-06-04",
+      "license": "MIT License",
+      "status": "package_license_evidenced",
+      "summary": "PyPI lists Demucs as MIT-licensed with OSI Approved MIT classifier.",
+      "decisionImpact": "Package metadata supports code/package review, not pretrained weight approval.",
+      "confidence": "high"
+    }
+  ],
+  "unresolvedLegalReview": [
+    "Pretrained model weights are not approved by MIT code license alone.",
+    "Training data terms require human/legal review before source separation use."
+  ]
+}

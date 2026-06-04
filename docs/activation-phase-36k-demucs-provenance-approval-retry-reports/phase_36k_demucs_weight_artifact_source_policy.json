@@ -1,0 +1,28 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "no_weight_artifact_source_approved",
+  "policy": {
+    "allowedInPhase36K": [
+      "Record official model names.",
+      "Record official source URLs and caveats.",
+      "Draft future private staging requirements."
+    ],
+    "forbiddenInPhase36K": [
+      "Download model weights.",
+      "Download package artifacts.",
+      "Resolve torch hub caches.",
+      "Use signed URLs as source of truth.",
+      "Stage model artifacts.",
+      "Run source separation."
+    ],
+    "futurePhase36LRequirements": [
+      "Human/legal approval for exact model candidate.",
+      "Exact source URL and immutable version/hash manifest.",
+      "Private GCS staging path.",
+      "SHA-256 verification before runtime.",
+      "No public artifacts or committed weights.",
+      "Runtime cost and dependency approval."
+    ]
+  }
+}

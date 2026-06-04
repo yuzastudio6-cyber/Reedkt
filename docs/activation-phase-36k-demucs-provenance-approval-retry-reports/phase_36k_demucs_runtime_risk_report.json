@@ -1,0 +1,32 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "runtime_not_approved",
+  "risks": [
+    {
+      "id": "heavy_pytorch_torchaudio_dependency",
+      "severity": "medium",
+      "summary": "Demucs runtime depends on PyTorch/torchaudio-style stacks that require worker isolation and dependency/security review."
+    },
+    {
+      "id": "gpu_memory_and_cost",
+      "severity": "medium",
+      "summary": "Official docs mention CPU fallback and GPU memory segment controls; production quality/cost would need bounded worker policy."
+    },
+    {
+      "id": "codec_and_ffmpeg_surface",
+      "severity": "medium",
+      "summary": "Input/output audio formats and ffmpeg behavior must remain private-worker-only and reviewed for codec/patent/configuration exposure."
+    },
+    {
+      "id": "stem_outputs_privacy",
+      "severity": "high",
+      "summary": "Source separation outputs can expose vocals/stems from private user or controlled media and require strict private artifact policy."
+    },
+    {
+      "id": "music_rights_and_user_media",
+      "severity": "high",
+      "summary": "Broad stem separation over user media may implicate music rights and is blocked for beta/production."
+    }
+  ]
+}

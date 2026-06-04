@@ -1,0 +1,32 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "blocked_pending_training_data_provenance",
+  "findings": [
+    {
+      "id": "musdb_hq_academic_noncommercial_context",
+      "sourceUrl": "https://sigsep.github.io/datasets/musdb.html",
+      "summary": "MUSDB18/MUSDB18-HQ are identified as core training data for several Demucs/HDemucs candidates and include academic-use access and Creative Commons noncommercial/sharealike components.",
+      "impact": "Requires human/legal review before commercial, beta, or broad user-media source separation."
+    },
+    {
+      "id": "extra_800_songs_unresolved",
+      "sourceUrl": "https://github.com/adefossez/demucs",
+      "summary": "HT Demucs candidates are described as trained on MUSDB-HQ plus an extra training dataset of 800 songs.",
+      "impact": "Extra song provenance, licenses, and artifact rights are not sufficient for automatic approval."
+    },
+    {
+      "id": "internal_meta_songs_unresolved",
+      "sourceUrl": "https://docs.pytorch.org/audio/stable/pipelines.html",
+      "summary": "Torchaudio HDEMUCS_HIGH_MUSDB_PLUS references additional internal Meta songs.",
+      "impact": "Internal dataset provenance blocks automated approval for ReeditPro runtime use."
+    },
+    {
+      "id": "musdb_test_set_training_caveat",
+      "sourceUrl": "https://docs.pytorch.org/audio/stable/pipelines.html",
+      "summary": "Some pretrained bundles/docs mention training on both MUSDB-HQ train and test sets.",
+      "impact": "Test-set training is not a legal blocker by itself, but it is a provenance and benchmark-interpretation caveat."
+    }
+  ],
+  "conclusion": "Demucs pretrained model provenance is not sufficiently clear for Phase 36L download/runtime without human/legal approval."
+}

@@ -1,0 +1,18 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "audioTimingToolFamilyBetaStatus": "phase-complete but tool-family incomplete",
+  "demucsScopeRecommendation": "deferred_not_required_for_current_audio_timing_internal_scope_requires_human_product_approval",
+  "recommendation": [
+    "Keep Demucs blocked for download/runtime/source separation.",
+    "Permit a future audio/timing internal beta gate to evaluate whether DeepFilterNet plus Signalsmith evidence is enough for restricted internal QA/planning scope.",
+    "Do not include Demucs source separation in internal beta unless Phase 36L and later runtime evidence pass."
+  ],
+  "blockedUntilExplicitApproval": [
+    "Source separation over broad user media.",
+    "Music/stem separation features.",
+    "Demucs model download/private staging.",
+    "Demucs runtime execution.",
+    "External beta or production use."
+  ]
+}

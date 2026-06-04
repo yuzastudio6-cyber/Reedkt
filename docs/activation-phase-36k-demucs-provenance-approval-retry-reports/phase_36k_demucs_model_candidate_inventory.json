@@ -1,0 +1,94 @@
+{
+  "phase": "36K",
+  "runId": "phase36k-demucs-provenance-approval-retry-20260604",
+  "status": "candidates_inventoried_no_candidate_approved",
+  "candidates": [
+    {
+      "modelId": "htdemucs",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "First Hybrid Transformer Demucs model; default model; trained on MUSDB plus 800 extra songs.",
+      "trainingDataStatus": "blocked_extra_800_songs_unresolved",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked"
+    },
+    {
+      "modelId": "htdemucs_ft",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "Fine-tuned htdemucs; same training set as htdemucs; slower but potentially better.",
+      "trainingDataStatus": "blocked_extra_800_songs_unresolved",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked"
+    },
+    {
+      "modelId": "htdemucs_6s",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "Experimental 6-source model adding guitar and piano; README caveats piano quality.",
+      "trainingDataStatus": "blocked_extra_training_data_unresolved",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked"
+    },
+    {
+      "modelId": "hdemucs_mmi",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "Hybrid Demucs v3 retrained on MUSDB plus 800 songs.",
+      "trainingDataStatus": "blocked_extra_800_songs_unresolved",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked"
+    },
+    {
+      "modelId": "mdx",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "MDX challenge model trained only on MUSDB HQ.",
+      "trainingDataStatus": "blocked_musdb_hq_academic_and_noncommercial_caveats",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked_pending_human_legal_review"
+    },
+    {
+      "modelId": "mdx_extra",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "MDX challenge model trained with extra training data including MUSDB test set.",
+      "trainingDataStatus": "blocked_extra_training_data_and_test_set_use_unresolved",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked"
+    },
+    {
+      "modelId": "mdx_q",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "Quantized mdx model.",
+      "trainingDataStatus": "inherits_mdx_training_data_blocker",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked_pending_human_legal_review"
+    },
+    {
+      "modelId": "mdx_extra_q",
+      "source": "Demucs README pretrained model list",
+      "officialDescription": "Quantized mdx_extra model.",
+      "trainingDataStatus": "inherits_mdx_extra_training_data_blocker",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked"
+    },
+    {
+      "modelId": "torchaudio:HDEMUCS_HIGH_MUSDB",
+      "source": "https://docs.pytorch.org/audio/2.9.0/generated/torchaudio.pipelines.HDEMUCS_HIGH_MUSDB.html",
+      "officialDescription": "Torchaudio pretrained Hybrid Demucs bundle trained on MUSDB-HQ training set.",
+      "trainingDataStatus": "blocked_musdb_hq_academic_and_noncommercial_caveats",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked_pending_human_legal_review"
+    },
+    {
+      "modelId": "torchaudio:HDEMUCS_HIGH_MUSDB_PLUS",
+      "source": "https://docs.pytorch.org/audio/stable/pipelines.html",
+      "officialDescription": "Torchaudio pretrained bundle trained on MUSDB-HQ train and test sets plus 150 internal Meta songs.",
+      "trainingDataStatus": "blocked_internal_meta_songs_and_test_set_use_unresolved",
+      "weightArtifactStatus": "not_downloaded_not_staged_not_approved",
+      "phase36LStatus": "blocked"
+    }
+  ],
+  "candidatePolicy": {
+    "phase36KDownloadAllowed": false,
+    "phase36KRuntimeAllowed": false,
+    "phase36LRequiresHumanApproval": true,
+    "exactArtifactSourceRequired": true,
+    "privateStagingRequired": true
+  }
+}

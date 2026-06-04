@@ -1,0 +1,82 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "metadata_only",
+  "publicArtifacts": "blocked",
+  "signedUrlsAsSourceOfTruth": "blocked",
+  "committedPayloads": "blocked",
+  "policies": [
+    {
+      "toolId": "deepfilternet",
+      "privateArtifactPolicy": "private Phase 36H metadata/artifacts only; no committed audio payloads"
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "privateArtifactPolicy": "private Phase 36I/36J metadata/artifacts only; no committed audio payloads"
+    },
+    {
+      "toolId": "demucs",
+      "privateArtifactPolicy": "no model downloads, no weights, no source separation artifacts"
+    },
+    {
+      "toolId": "paddleocr",
+      "privateArtifactPolicy": "private OCR metadata/artifacts only; no raw private frames committed"
+    },
+    {
+      "toolId": "paddlepaddle",
+      "privateArtifactPolicy": "dependency metadata only; no committed model/runtime payloads"
+    },
+    {
+      "toolId": "qwen3_vl",
+      "privateArtifactPolicy": "private staged model evidence exists, but generated runtime verification remains blocked"
+    },
+    {
+      "toolId": "vllm",
+      "privateArtifactPolicy": "no runtime artifacts approved for internal testing route"
+    },
+    {
+      "toolId": "opencv",
+      "privateArtifactPolicy": "private media/data QA metadata/artifacts only; no committed media-derived payloads"
+    },
+    {
+      "toolId": "pyav",
+      "privateArtifactPolicy": "private media/data QA metadata/artifacts only; no committed media-derived payloads"
+    },
+    {
+      "toolId": "pyscenedetect",
+      "privateArtifactPolicy": "private media/data QA metadata/artifacts only; no committed media-derived payloads"
+    },
+    {
+      "toolId": "sharp_libvips",
+      "privateArtifactPolicy": "private media/data QA metadata/artifacts only; no committed media-derived payloads"
+    },
+    {
+      "toolId": "duckdb",
+      "privateArtifactPolicy": "private media/data QA metadata/artifacts only; no committed media-derived payloads"
+    },
+    {
+      "toolId": "polars",
+      "privateArtifactPolicy": "private media/data QA metadata/artifacts only; no committed media-derived payloads"
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "privateArtifactPolicy": "not_started_no_artifacts"
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "privateArtifactPolicy": "not_started_no_artifacts"
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "privateArtifactPolicy": "not_started_no_artifacts"
+    },
+    {
+      "toolId": "cost_estimator",
+      "privateArtifactPolicy": "not_started_no_artifacts"
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "privateArtifactPolicy": "not_started_no_artifacts"
+    }
+  ]
+}

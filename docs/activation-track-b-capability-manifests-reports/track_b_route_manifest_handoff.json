@@ -1,0 +1,14 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "handoff_pending",
+  "routeIntegrationStatus": "phase_44i_required",
+  "baselineOnly": true,
+  "approvedPlanSnapshotsRequired": true,
+  "artifactScopeRequired": true,
+  "rawChatExecution": "blocked",
+  "directToolExecutionFromModelOutput": "blocked",
+  "workersExecuteApprovedPlanSnapshotsOnly": true,
+  "productionRouting": "blocked",
+  "nextPhase": "Phase 44I actual tool route manifest integration"
+}

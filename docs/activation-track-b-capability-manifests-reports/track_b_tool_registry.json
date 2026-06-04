@@ -1,0 +1,153 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "passed",
+  "canonicalToolIds": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "demucs",
+    "paddleocr",
+    "paddlepaddle",
+    "qwen3_vl",
+    "vllm",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "tools": [
+    {
+      "toolId": "deepfilternet",
+      "displayName": "DeepFilterNet",
+      "family": "audio_timing",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "displayName": "Signalsmith Stretch",
+      "family": "audio_timing",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "demucs",
+      "displayName": "Demucs",
+      "family": "audio_timing",
+      "status": "blocked_pending_training_data_provenance",
+      "initialInternalTestingGroup": "excluded"
+    },
+    {
+      "toolId": "paddleocr",
+      "displayName": "PaddleOCR",
+      "family": "ocr",
+      "status": "phase_complete_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "paddlepaddle",
+      "displayName": "PaddlePaddle",
+      "family": "ocr",
+      "status": "phase_complete_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "qwen3_vl",
+      "displayName": "Qwen3-VL",
+      "family": "vlm",
+      "status": "excluded_for_initial_internal_testing",
+      "initialInternalTestingGroup": "excluded"
+    },
+    {
+      "toolId": "vllm",
+      "displayName": "vLLM",
+      "family": "vlm",
+      "status": "excluded_for_initial_internal_testing",
+      "initialInternalTestingGroup": "excluded"
+    },
+    {
+      "toolId": "opencv",
+      "displayName": "OpenCV",
+      "family": "media_data",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "pyav",
+      "displayName": "PyAV",
+      "family": "media_data",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "pyscenedetect",
+      "displayName": "PySceneDetect",
+      "family": "media_data",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "sharp_libvips",
+      "displayName": "Sharp/libvips",
+      "family": "media_data",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "duckdb",
+      "displayName": "DuckDB",
+      "family": "media_data",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "polars",
+      "displayName": "Polars",
+      "family": "media_data",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "initialInternalTestingGroup": "included"
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "displayName": "Web capability profiler",
+      "family": "hybrid_compute_cost_routing",
+      "status": "not_started",
+      "initialInternalTestingGroup": "not_started"
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "displayName": "Desktop capability profiler",
+      "family": "hybrid_compute_cost_routing",
+      "status": "not_started",
+      "initialInternalTestingGroup": "not_started"
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "displayName": "Local worker sidecar planning",
+      "family": "hybrid_compute_cost_routing",
+      "status": "not_started",
+      "initialInternalTestingGroup": "not_started"
+    },
+    {
+      "toolId": "cost_estimator",
+      "displayName": "Cost estimator",
+      "family": "hybrid_compute_cost_routing",
+      "status": "not_started",
+      "initialInternalTestingGroup": "not_started"
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "displayName": "Tool route manifest integration",
+      "family": "hybrid_compute_cost_routing",
+      "status": "not_started",
+      "initialInternalTestingGroup": "not_started"
+    }
+  ]
+}

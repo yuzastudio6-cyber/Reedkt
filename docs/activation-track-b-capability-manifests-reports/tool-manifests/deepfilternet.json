@@ -1,0 +1,69 @@
+{
+  "toolId": "deepfilternet",
+  "displayName": "DeepFilterNet",
+  "family": "audio_timing",
+  "status": "internally_beta_ready_candidate_restricted_scope",
+  "initialInternalTestingGroup": "included",
+  "restrictedInternalTestingEligible": true,
+  "restrictedInternalScope": "bounded internal speech-cleanup QA/planning evidence only",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "phase_complete_restricted_scope",
+  "runtimeEvidenceStatus": "controlled_sample_passed",
+  "privateArtifactPolicy": "private Phase 36H metadata/artifacts only; no committed audio payloads",
+  "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+  "routeManifestPolicy": "baseline_manifest_only_phase_44i_required_for_actual_tool_route_manifest_integration",
+  "ownerBoundary": "Track B owns DeepFilterNet audio/timing runtime hardening evidence and restricted internal scope.",
+  "consumerBoundaries": [
+    "future audio planner",
+    "future QA reporting"
+  ],
+  "dependencyCaveats": [
+    "DeepFilterNet model/runtime evidence remains bounded to approved v0.5.6 private artifacts."
+  ],
+  "evidence": [
+    {
+      "phase": "36H",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/140",
+      "report": "docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports/phase_36h_deepfilternet_runtime_hardening_report.json",
+      "summary": "Linux x86_64 runtime hardening, generated audio, one bounded controlled sample, metrics, and private artifacts passed."
+    },
+    {
+      "phase": "36M",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/159",
+      "report": "docs/activation-phase-36m-audio-timing-internal-beta-readiness-gate-reports/phase_36m_audio_timing_beta_gate_decision.json",
+      "summary": "Audio/timing restricted internal beta-readiness gate treats DeepFilterNet as in-scope and Demucs excluded."
+    }
+  ],
+  "testCommands": [
+    "npm run activation:deepfilternet-runtime:report",
+    "npm run smoke:activation-deepfilternet-runtime"
+  ],
+  "blockedCapabilities": [
+    "broad media cleanup",
+    "full-video cleanup",
+    "production audio processing"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "none_for_manifest_baseline; future route integration remains Phase 44I"
+}

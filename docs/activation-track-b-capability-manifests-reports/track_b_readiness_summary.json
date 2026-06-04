@@ -1,0 +1,37 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "passed",
+  "trackBManifestBaseline": "complete",
+  "includedRestrictedInternalReady": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "paddleocr",
+    "paddlepaddle",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars"
+  ],
+  "excludedBlocked": [
+    "demucs",
+    "qwen3_vl",
+    "vllm"
+  ],
+  "notStarted": [
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "production": "blocked",
+  "externalBeta": "blocked",
+  "paidProduction": "blocked",
+  "broadMedia": "blocked",
+  "publicArtifacts": "blocked",
+  "providers": "blocked",
+  "trackA": "not_touched"
+}

@@ -1,0 +1,63 @@
+{
+  "toolId": "pyav",
+  "displayName": "PyAV",
+  "family": "media_data",
+  "status": "internally_beta_ready_candidate_restricted_scope",
+  "initialInternalTestingGroup": "included",
+  "restrictedInternalTestingEligible": true,
+  "restrictedInternalScope": "media container/probe/frame metadata evidence only",
+  "sourceEvidenceStatus": "phase_complete_restricted_scope",
+  "licenseEvidenceStatus": "phase_complete_restricted_scope",
+  "runtimeEvidenceStatus": "controlled_sample_passed",
+  "privateArtifactPolicy": "private media/data QA metadata/artifacts only; no committed media-derived payloads",
+  "runtimeLocationPolicy": "server/worker/reporting-only; browser/frontend imports blocked",
+  "routeManifestPolicy": "baseline_manifest_only_phase_44i_required_for_actual_tool_route_manifest_integration",
+  "ownerBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+  "consumerBoundaries": [
+    "future QA reporting",
+    "future planning metadata consumers"
+  ],
+  "dependencyCaveats": [
+    "FFmpeg dependency and codec/legal policy remain production/external blockers."
+  ],
+  "evidence": [
+    {
+      "phase": "46E",
+      "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+      "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+      "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+    }
+  ],
+  "testCommands": [
+    "npm run activation:media-data-beta-gate:summary",
+    "npm run smoke:activation-media-data-beta-gate"
+  ],
+  "blockedCapabilities": [
+    "production media/data routing",
+    "broad media processing",
+    "public artifacts"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "future route handoff only after Phase 44I integration"
+}

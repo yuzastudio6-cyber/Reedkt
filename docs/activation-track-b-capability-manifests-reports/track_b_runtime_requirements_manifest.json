@@ -1,0 +1,115 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "baseline_only_no_runtime_execution",
+  "requirements": [
+    {
+      "toolId": "deepfilternet",
+      "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "signalsmith_stretch",
+      "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "demucs",
+      "runtimeLocationPolicy": "disabled until future human/legal approval",
+      "runtimeEvidenceStatus": "blocked",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "paddleocr",
+      "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "paddlepaddle",
+      "runtimeLocationPolicy": "CPU worker/runtime-only; no frontend import",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "qwen3_vl",
+      "runtimeLocationPolicy": "runtime retries blocked without explicit new approval",
+      "runtimeEvidenceStatus": "blocked",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "vllm",
+      "runtimeLocationPolicy": "runtime retries blocked without explicit new approval",
+      "runtimeEvidenceStatus": "blocked",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "opencv",
+      "runtimeLocationPolicy": "server/worker/reporting-only; browser/frontend imports blocked",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "pyav",
+      "runtimeLocationPolicy": "server/worker/reporting-only; browser/frontend imports blocked",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "pyscenedetect",
+      "runtimeLocationPolicy": "server/worker/reporting-only; browser/frontend imports blocked",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "sharp_libvips",
+      "runtimeLocationPolicy": "server/worker/reporting-only; browser/frontend imports blocked",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "duckdb",
+      "runtimeLocationPolicy": "server/worker/reporting-only; browser/frontend imports blocked",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "polars",
+      "runtimeLocationPolicy": "server/worker/reporting-only; browser/frontend imports blocked",
+      "runtimeEvidenceStatus": "controlled_sample_passed",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "web_capability_profiler",
+      "runtimeLocationPolicy": "not_started_no_runtime",
+      "runtimeEvidenceStatus": "not_started",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "desktop_capability_profiler",
+      "runtimeLocationPolicy": "not_started_no_runtime",
+      "runtimeEvidenceStatus": "not_started",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "local_worker_sidecar_planning",
+      "runtimeLocationPolicy": "not_started_no_runtime",
+      "runtimeEvidenceStatus": "not_started",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "cost_estimator",
+      "runtimeLocationPolicy": "not_started_no_runtime",
+      "runtimeEvidenceStatus": "not_started",
+      "noRuntimeExecutedInThisPhase": true
+    },
+    {
+      "toolId": "tool_route_manifest_integration",
+      "runtimeLocationPolicy": "not_started_no_runtime",
+      "runtimeEvidenceStatus": "not_started",
+      "noRuntimeExecutedInThisPhase": true
+    }
+  ]
+}

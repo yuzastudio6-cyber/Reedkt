@@ -1,0 +1,43 @@
+{
+  "phase": "44I-A",
+  "runId": "phase44ia-trackb-capability-manifest-baseline-20260604",
+  "status": "passed",
+  "includedRestrictedInternalReady": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "paddleocr",
+    "paddlepaddle",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars"
+  ],
+  "excludedBlocked": [
+    "demucs",
+    "qwen3_vl",
+    "vllm"
+  ],
+  "notStarted": [
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "compositeExclusions": [
+    {
+      "id": "qwen_vlm_vllm",
+      "status": "excluded_for_initial_internal_testing",
+      "tools": [
+        "qwen3_vl",
+        "vllm"
+      ],
+      "reason": "Phase 39C remains blocked; Qwen3-VL/vLLM generated runtime verification did not pass."
+    }
+  ],
+  "routeExecution": "blocked_until_phase_44i_actual_route_manifest_integration",
+  "rawChatExecution": "blocked",
+  "approvedPlanSnapshotRequired": true
+}

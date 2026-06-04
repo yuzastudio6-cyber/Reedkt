@@ -1,0 +1,53 @@
+{
+  "toolId": "cost_estimator",
+  "displayName": "Cost estimator",
+  "family": "hybrid_compute_cost_routing",
+  "status": "not_started",
+  "initialInternalTestingGroup": "not_started",
+  "restrictedInternalTestingEligible": false,
+  "restrictedInternalScope": "none",
+  "sourceEvidenceStatus": "not_started",
+  "licenseEvidenceStatus": "not_started",
+  "runtimeEvidenceStatus": "not_started",
+  "privateArtifactPolicy": "not_started_no_artifacts",
+  "runtimeLocationPolicy": "not_started_no_runtime",
+  "routeManifestPolicy": "not_started_phase_44i_required_before_any_route_integration",
+  "ownerBoundary": "Track B owns future hybrid compute/cost routing planning only.",
+  "consumerBoundaries": [
+    "future planner/router only after approved implementation"
+  ],
+  "dependencyCaveats": [
+    "No implementation or runtime evidence exists yet."
+  ],
+  "evidence": [],
+  "testCommands": [],
+  "blockedCapabilities": [
+    "runtime routing",
+    "cost-driven execution",
+    "worker dispatch",
+    "raw chat execution"
+  ],
+  "blockedScopes": [
+    "production",
+    "paid production",
+    "product-wide internal beta",
+    "external beta",
+    "broad media",
+    "arbitrary media input",
+    "public artifacts",
+    "public output",
+    "provider calls",
+    "raw chat execution",
+    "direct tool execution from model output",
+    "frontend service-role secrets",
+    "unapproved model downloads",
+    "unapproved runtime execution",
+    "Docker",
+    "Cloud Build",
+    "Cloud Run",
+    "GPU jobs",
+    "IAM mutation",
+    "Track A runtime/visual/render stack"
+  ],
+  "nextPhase": "Phase 44I route manifest integration or a dedicated profiler/cost phase"
+}

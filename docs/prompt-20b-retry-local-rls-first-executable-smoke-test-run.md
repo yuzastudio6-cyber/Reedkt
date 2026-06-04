@@ -10,7 +10,7 @@ No staging Supabase, remote Supabase, production Supabase, remote SQL, migration
 
 - Branch: `codex/rp-foundation-20b-retry-local-rls-first-executable-smoke-test-run`
 - Base: `origin/codex/rp-foundation-20p2-storage-ownership-privilege-follow-up`
-- PR: pending
+- PR: [PR #166](https://github.com/yuzastudio6-cyber/Reedkt/pull/166)
 
 ## Local Toolchain Status
 

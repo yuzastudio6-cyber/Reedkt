@@ -6,7 +6,7 @@ Run the first guarded local-only RLS smoke test from a clean sibling worktree ba
 
 - Branch: `codex/rp-foundation-20b-retry-local-rls-first-executable-smoke-test-run`
 - Base: `origin/codex/rp-foundation-20p2-storage-ownership-privilege-follow-up`
-- PR: pending
+- PR: [PR #166](https://github.com/yuzastudio6-cyber/Reedkt/pull/166)
 - PR title: `[foundation] Prompt 20B retry local RLS first executable smoke test run`
 - Exact capability enabled: `none; first local-only RLS smoke validation`
 

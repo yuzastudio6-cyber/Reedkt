@@ -396,9 +396,16 @@
     "activation:maplibre-local-render-fixture": "tsx server/cli/activation-maplibre-local-render-fixture.ts",
     "activation:maplibre-local-render-fixture:report": "tsx server/cli/activation-maplibre-local-render-fixture-report.ts",
     "activation:maplibre-local-render-fixture:iam-plan": "tsx server/cli/activation-maplibre-local-render-fixture-iam-plan.ts",
-    "smoke:activation-maplibre-local-render-fixture": "tsx server/smoke/activation-maplibre-local-render-fixture-smoke.ts"
+    "smoke:activation-maplibre-local-render-fixture": "tsx server/smoke/activation-maplibre-local-render-fixture-smoke.ts",
+    "activation:deckgl-local-overlay-fixture": "tsx server/cli/activation-deckgl-local-overlay-fixture.ts",
+    "activation:deckgl-local-overlay-fixture:report": "tsx server/cli/activation-deckgl-local-overlay-fixture-report.ts",
+    "activation:deckgl-local-overlay-fixture:iam-plan": "tsx server/cli/activation-deckgl-local-overlay-fixture-iam-plan.ts",
+    "smoke:activation-deckgl-local-overlay-fixture": "tsx server/smoke/activation-deckgl-local-overlay-fixture-smoke.ts"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.3.3",
+    "@deck.gl/layers": "^9.3.3",
+    "@deck.gl/mapbox": "^9.3.3",
     "@google-cloud/storage": "^7.19.0",
     "@mozilla/readability": "^0.6.0",
     "@supabase/supabase-js": "^2.106.1",

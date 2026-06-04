@@ -70,6 +70,8 @@ QA outputs:
 
 Phase 50D readiness: `ready_for_deckgl_overlay_fixture`.
 
+Phase 50D is limited to generated/local/offline deck.gl overlays on the Phase 50C pattern. It does not unlock live tiles, public OSM tiles, geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, CesiumJS runtime, public artifacts, production, external beta, paid production, or broad media.
+
 This readiness is limited to a generated/local deck.gl overlay fixture. It is not live tile, geocoding/routing, public OSM tile, paid-provider, production, external beta, or broad-media readiness.
 
 ## Dependency Change

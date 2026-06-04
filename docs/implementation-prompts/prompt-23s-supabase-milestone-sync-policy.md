@@ -5,7 +5,7 @@
 Prompt 23S creates a Supabase milestone sync policy package from `origin/codex/rp-foundation-23-pending-human-approval-decision-record`.
 
 - Branch: `codex/rp-foundation-23s-supabase-milestone-sync-policy-v2`
-- PR: pending creation.
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/178
 - Exact capability enabled: `none; Supabase milestone sync policy only`
 
 ## Allowed Scope

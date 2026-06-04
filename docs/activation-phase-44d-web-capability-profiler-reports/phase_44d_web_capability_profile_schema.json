@@ -1,0 +1,44 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "schemaVersion": "web-capability-profile-v1",
+  "requiredFields": [
+    "schemaVersion",
+    "generatedAt",
+    "collectionMode",
+    "privacyMode",
+    "capabilityBuckets",
+    "routePlanningHints",
+    "blockedReasons",
+    "warnings",
+    "unsupportedApis",
+    "sourcePolicyRefs"
+  ],
+  "allowedCollectionModes": [
+    "fixture_mock",
+    "live_browser_local_only",
+    "uploaded_private_future"
+  ],
+  "allowedPrivacyModes": [
+    "coarse",
+    "no_persistence",
+    "no_identifiers"
+  ],
+  "capabilityCategories": [
+    "environment",
+    "compute",
+    "graphics",
+    "media",
+    "storage",
+    "network",
+    "policy"
+  ],
+  "blockedRawFields": [
+    "persistentDeviceId",
+    "rawUserAgent",
+    "exactScreenResolution",
+    "gpuAdapterVendor",
+    "gpuAdapterDevice",
+    "ipAddress"
+  ]
+}

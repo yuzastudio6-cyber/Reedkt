@@ -1,0 +1,52 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "status": "hints_only_route_execution_blocked",
+  "sourcePr164": "https://github.com/yuzastudio6-cyber/Reedkt/pull/164",
+  "routeManifestVersion": "track-b-route-manifest-v1",
+  "webCapabilityProfilerStatus": "phase_complete_restricted_scope",
+  "handoffExample": {
+    "profileSchemaVersion": "web-capability-profile-v1",
+    "routeManifestVersion": "track-b-route-manifest-v1",
+    "routePlanningHints": [
+      "browser_can_assist_preview_metadata",
+      "browser_preview_metadata_possible",
+      "web_media_preview_possible",
+      "webcodecs_present_but_media_processing_blocked",
+      "webgpu_present_but_unapproved"
+    ],
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "costEstimatorComplete": false,
+    "desktopProfilerComplete": false,
+    "browserProfilingCanOverrideBlockedRoutes": false,
+    "vlm": "excluded",
+    "demucs": "blocked",
+    "broadMedia": "blocked",
+    "publicArtifacts": "blocked",
+    "providerCalls": "blocked"
+  },
+  "routeHints": [
+    "prefer_server_worker",
+    "browser_preview_metadata_possible",
+    "browser_image_metadata_possible",
+    "webgpu_present_but_unapproved",
+    "webcodecs_present_but_media_processing_blocked",
+    "low_storage_avoid_browser_processing",
+    "cross_origin_isolation_required_for_threads",
+    "unknown_capability_fail_closed"
+  ],
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "toolChoiceAuthority": "planner_and_future_route_gate_only",
+  "browserProfilingCannotOverrideBlockedRoutes": true,
+  "costEstimatorRequired": "Phase 44H",
+  "hybridE2eSimulationRequired": "Phase 44J",
+  "approvedPlanSnapshotRequired": true,
+  "artifactScopeRequired": true,
+  "vlm": "excluded",
+  "demucs": "blocked",
+  "broadMedia": "blocked",
+  "publicArtifacts": "blocked",
+  "providerCalls": "blocked"
+}

@@ -1,0 +1,80 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "accessedAt": "2026-06-04",
+  "status": "official_sources_recorded",
+  "sources": [
+    {
+      "name": "WebCodecs API",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents browser audio/video encode/decode APIs and Dedicated Worker availability; Phase 44D records availability only and does not process media.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "WebGPU API",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents WebGPU as limited availability; Phase 44D treats presence as unapproved planning metadata only.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "GPU.requestAdapter",
+      "url": "https://developer.mozilla.org/docs/Web/API/GPU/requestAdapter",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN marks requestAdapter as secure-context dependent and limited availability; Phase 44D does not persist adapter vendor/device details.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "SharedArrayBuffer",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents cross-origin isolation requirements for shared memory; Phase 44D warns when isolation is missing.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "Navigator.hardwareConcurrency",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Navigator/hardwareConcurrency",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents logical processor count; Phase 44D buckets the value and never stores exact values.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "Navigator.deviceMemory",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Navigator/deviceMemory",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents approximate memory; Phase 44D buckets the value and treats absence as unknown.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "StorageManager.estimate",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/estimate",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents approximate usage/quota estimates; Phase 44D buckets estimates and does not request persistence.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "OffscreenCanvas",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents off-main-thread canvas capability; Phase 44D records availability only.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    },
+    {
+      "name": "Network Information API",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API",
+      "evidenceType": "official_documentation",
+      "accessedAt": "2026-06-04",
+      "summary": "MDN documents coarse connection information with limited support; Phase 44D records optional coarse values only and performs no speed test.",
+      "decisionImpact": "coarse_availability_metadata_only_no_execution"
+    }
+  ]
+}

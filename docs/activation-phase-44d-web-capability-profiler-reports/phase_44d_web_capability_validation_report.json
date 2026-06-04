@@ -1,0 +1,30 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "status": "passed",
+  "fixtureCount": 5,
+  "fixtureIds": [
+    "fixture-modern-web-high",
+    "fixture-mid-web-no-webgpu",
+    "fixture-low-capability-mobile",
+    "fixture-cross-origin-not-isolated",
+    "fixture-insecure-context"
+  ],
+  "allFixturesPassed": true,
+  "browserSafeModule": "src/lib/track-b/web-capability-profiler",
+  "schemaExists": true,
+  "privacyPolicyExists": true,
+  "routeHandoffHintsOnly": true,
+  "noPersistentDeviceId": true,
+  "noRawUserAgentStorage": true,
+  "noExactScreenResolution": true,
+  "noDetailedGpuIdentity": true,
+  "noNetworkSpeedTest": true,
+  "noProviderCalls": true,
+  "noMediaProcessing": true,
+  "noRouteExecution": true,
+  "noWorkerExecution": true,
+  "productionExternalBetaPaidProductionBlocked": true,
+  "trackA": "not_touched",
+  "blockers": []
+}

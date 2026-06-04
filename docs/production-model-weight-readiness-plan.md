@@ -182,3 +182,9 @@ Demucs remains blocked pending training-data/model-artifact provenance and human
 Phase 44I is not a model-weight phase. It does not download, stage, approve, or execute model weights. It adds route eligibility metadata for the same 18 Track B tool ids and keeps model-related routes fail-closed.
 
 Demucs remains `route_disabled_blocked` with model download and source separation disabled pending training-data/model-artifact provenance and human/legal review. Qwen3-VL and vLLM remain `route_disabled_excluded` because Phase 39C generated runtime verification remains blocked. Route metadata does not approve non-Qwen models, new model downloads, provider calls, GPU jobs, production, beta, public output, broad media, arbitrary media, IAM/GCP mutation, or Track A.
+
+## Phase 44D Web Capability Profiler
+
+Phase 44D is not a model-weight phase. It does not download, stage, approve, or execute model weights. It records coarse browser capability metadata and generated/mock fixture evidence only.
+
+Demucs model download/source separation remains blocked. Qwen3-VL and vLLM remain excluded. WebGPU/WebCodecs availability hints do not approve VLM, model execution, GPU jobs, providers, production, beta, public output, broad media, arbitrary media, IAM/GCP mutation, or Track A.

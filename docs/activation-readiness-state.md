@@ -250,3 +250,11 @@ Phase 44I adds a metadata-only route manifest layer under `docs/activation-track
 Route-enabled restricted-internal metadata entries are DeepFilterNet, Signalsmith Stretch, PaddleOCR, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars. PaddlePaddle and tool route manifest integration are handoff-only. Demucs remains `route_disabled_blocked`; Qwen3-VL and vLLM remain `route_disabled_excluded`; web capability profiler, desktop capability profiler, local worker sidecar planning, and cost estimator remain `route_disabled_not_started`.
 
 Every route keeps `runtimeExecutionAllowed` and `routeExecutionAllowed` false. Phase 44I does not run tools, workers, media/audio/OCR/VLM runtimes, Docker, Cloud Build, Cloud Run, GPU jobs, providers, model downloads, IAM/GCP mutation, beta, production, broad media, public output, arbitrary media, raw chat execution, or Track A.
+
+## Phase 44D Web Capability Profiler
+
+Phase 44D adds a safe browser/web capability profiler under `src/lib/track-b/web-capability-profiler/` and committed evidence under `docs/activation-phase-44d-web-capability-profiler-reports/`. It records coarse environment, compute, graphics, media, storage, network, and policy buckets for route planning hints only.
+
+Generated/mock fixtures cover high, mid, low, cross-origin-not-isolated, and insecure contexts. The Phase 44D readiness report marks `web_capability_profiler` as `phase_complete_restricted_scope`.
+
+Phase 44D does not upload live browser profiles, execute workers, process media/audio/OCR/VLM/model runtimes, call providers, route tools, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, create public artifacts, collect persistent identifiers, store raw full user agents, store exact screen resolution, store detailed GPU identity, or touch Track A. Desktop profiler, local sidecar, cost estimator, and hybrid E2E simulation remain pending.

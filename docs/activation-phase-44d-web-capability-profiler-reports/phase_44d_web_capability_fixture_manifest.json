@@ -1,0 +1,71 @@
+{
+  "phase": "44D",
+  "runId": "phase44d-web-capability-profiler-20260604",
+  "status": "generated_mock_fixtures_only",
+  "fixtures": [
+    {
+      "fixtureId": "fixture-modern-web-high",
+      "description": "Secure, isolated, high-capability browser with WebGPU, WebCodecs, WebGL2, OffscreenCanvas, high concurrency, and large storage.",
+      "expectedHints": [
+        "browser_can_assist_preview_metadata",
+        "webgpu_present_but_unapproved"
+      ],
+      "expectedWarnings": [
+        "webgpu_present_but_unapproved_for_execution",
+        "webcodecs_present_but_media_processing_blocked"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-mid-web-no-webgpu",
+      "description": "Mid-capability browser with WebCodecs and WebGL2 but no WebGPU.",
+      "expectedHints": [
+        "web_media_preview_possible",
+        "gpu_compute_unavailable"
+      ],
+      "expectedWarnings": [
+        "webcodecs_present_but_media_processing_blocked"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-low-capability-mobile",
+      "description": "Low-capability mobile-like browser with low compute, low storage, no WebGPU, and no WebCodecs.",
+      "expectedHints": [
+        "server_worker_preferred",
+        "avoid_browser_heavy_processing"
+      ],
+      "expectedWarnings": [
+        "shared_memory_unavailable_cross_origin_isolation",
+        "low_storage_capacity",
+        "low_compute_capacity"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-cross-origin-not-isolated",
+      "description": "Secure browser without cross-origin isolation, so shared memory and wasm threads are unavailable.",
+      "expectedHints": [
+        "cross_origin_isolation_required_for_threads"
+      ],
+      "expectedWarnings": [
+        "shared_memory_unavailable_cross_origin_isolation",
+        "webcodecs_present_but_media_processing_blocked"
+      ],
+      "expectedBlockedReasons": []
+    },
+    {
+      "fixtureId": "fixture-insecure-context",
+      "description": "Insecure context where WebGPU and storage estimate paths must fail closed.",
+      "expectedHints": [
+        "unknown_capability_fail_closed"
+      ],
+      "expectedWarnings": [
+        "shared_memory_unavailable_cross_origin_isolation"
+      ],
+      "expectedBlockedReasons": [
+        "insecure_context"
+      ]
+    }
+  ]
+}

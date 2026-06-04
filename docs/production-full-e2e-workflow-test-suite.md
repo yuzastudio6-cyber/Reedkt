@@ -6,6 +6,10 @@ The suite uses approved snapshot IDs, tool execution plan IDs, idempotency keys,
 
 The E2E orchestrator validates stage ordering, artifact handoff, QA aggregation, fallback summaries, readiness blockers, and final-delivery rules. Local-dev generated fixture mode remains optional and must use generated temp media only when explicitly enabled and tool availability is safe.
 
+## Phase 51A Supabase Data-Plane Dependency
+
+Phase 51A audits Supabase/PostgreSQL persistence, migrations, RLS, runtime integration, and optional count-only remote activity. The production E2E workflow must not assume Supabase writes, migrations, signed URL generation, worker claims, provider request logging, storage object records, or approved plan snapshot persistence are live until a later schema/migration hardening phase proves those paths. Phase 51A does not unlock production, external beta, paid production, broad media, SQL execution, migrations, or row writes.
+
 ## Milestone 17 Consumption
 
 M17 consumes E2E dry-run results for beta readiness. Internal dry-run testing may be allowed only when the E2E suite passes and safety/cost/security docs exist.

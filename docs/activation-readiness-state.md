@@ -129,6 +129,14 @@ evidence, dependencies, provider/data policy, artifact privacy, ownership
 boundaries, and fail-closed behavior without new rendering or capture. If
 Phase 50G passes, map/geospatial is ready only for controlled internal testing
 and Phase 52A can proceed only as shared agent/tool ownership architecture.
+Phase 51A adds a read-only Supabase data-plane audit after Phase 50G. It
+inspects committed Supabase clients, env/secret boundaries, migration SQL,
+RLS/storage/signed URL policy evidence, runtime integration references, optional
+count-only remote activity, and P0 beta blockers. It does not run migrations,
+Supabase lifecycle commands, SQL mutations, row writes, signed URL creation,
+provider calls, media processing, Docker, deployment, production, external beta,
+paid production, or broad media. Phase 51B can proceed only as schema/migration
+hardening planning when Phase 51A evidence is sufficient.
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

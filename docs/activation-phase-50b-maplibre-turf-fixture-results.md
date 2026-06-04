@@ -23,7 +23,7 @@ Run ID: `phase50b-20260604T01114`
 
 ## Dependency Change
 
-`@turf/turf` is added for Phase 50B calculation proof. `maplibre-gl` remains uninstalled and deferred to a later explicit runtime/render fixture phase.
+`@turf/turf` is added for Phase 50B calculation proof. `maplibre-gl` is deferred to Phase 50C for a local/offline render fixture only.
 
 ## Private Artifact Prefixes
 
@@ -65,4 +65,4 @@ Warnings:
 
 ## Phase50C Readiness
 
-Ready only for a local MapLibre render + capture fixture. Public tile use, live geocoding/routing, paid map providers, production, external beta, paid production, and broad media remain blocked.
+Ready only for a local/offline MapLibre render + capture fixture. Phase 50C must use generated Phase 50B-style GeoJSON, local `maplibre-gl` assets, local HTML overlay labels, and no remote tiles/glyphs/sprites/images. Public tile use, live geocoding/routing, paid map providers, production, external beta, paid production, and broad media remain blocked.

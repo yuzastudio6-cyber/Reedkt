@@ -81,6 +81,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 50C only as a MapLibre local render + capture fixture.
 6. Do not download tiles, use public OSM tiles, call geocoding/routing APIs, use paid map providers, make map artifacts public, unlock production/external beta/broad media, or treat Phase 50B as rendered-map approval.
 
+## After Phase 50C
+
+1. Review `activation:maplibre-local-render-fixture:report`, `activation:maplibre-local-render-fixture:iam-plan`, and the private Phase 50C artifacts.
+2. Confirm the MapLibre render used generated Phase 50B-style GeoJSON, local `maplibre-gl` assets, local labels outside the map canvas, and no remote tiles, glyphs, sprites, or images.
+3. Confirm the Playwright network guard observed no external requests and the 1280x720 screenshot plus Sharp preview/thumbnail/metadata were uploaded privately.
+4. Proceed to Phase 50D only as a generated/local deck.gl overlay fixture.
+5. Do not use live tiles, public OSM tiles, geocoding/routing APIs, paid map providers, public artifacts, production/external beta/broad media, or treat Phase 50C as broad map runtime approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

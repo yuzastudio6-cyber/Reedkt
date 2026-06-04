@@ -106,9 +106,12 @@ Valhalla remain future-scoped pending later evidence/runtime phases. Phase 50B
 completed generated/local MapLibre + Turf fixture proof for
 `phase50b-20260604T01114`: synthetic GeoJSON, 9 Turf calculations,
 MapLibre-compatible manifest JSON, private artifacts, and blocked-feature QA.
-`@turf/turf` is installed for this calculation proof, while `maplibre-gl`
-remains uninstalled. Phase 50C may proceed only as a MapLibre local render +
-capture fixture. Map runtime beyond that future fixture, tile downloads, live
+`@turf/turf` is installed for this calculation proof. Phase 50C completed
+`phase50c-20260604T020852`, adding `maplibre-gl` only for a
+generated/local/offline MapLibre render + Playwright capture + Sharp derivative
+fixture using local assets and generated GeoJSON. The network guard observed no
+external requests and all mandatory QA gates passed. Phase 50D is ready only for
+a generated/local deck.gl overlay fixture. Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,
 Docker, broad GCP mutation, production, external beta, paid production, and

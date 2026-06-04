@@ -556,6 +556,17 @@ Prompt 23 - Staging Supabase/RLS Human Approval Decision Record.
 - Acceptance criteria: Prompt 23 docs exist, diagnostics pass, the decision state is `pending_human_approval`, all approval booleans remain false, no staging execution is claimed, no secrets or executable staging commands are added, and production readiness remains blocked.
 - Next prompt recommendation: Prompt 23A - Human Approval Decision Completion. Prompt 24 may only proceed after an actual human approval decision is supplied and recorded by a human owner.
 - GitHub deliverable: branch, commit, push, PR with pending decision summary and explicit no-staging/no-remote/no-production-Supabase statement.
-- Main files/tables/services: all prior milestone services and tables, staging Supabase/GCS/Cloud Run resources if approved, smoke scripts, audit logs.
-- Acceptance criteria: smoke test passes or produces documented blockers; every expensive action is gated, logged, idempotent, private, and tied to an approved snapshot.
-- GitHub deliverable: branch, commit, push, PR with staging evidence, blockers, rollback notes, and exact production capability enabled statement.
+
+## 23S. Supabase Milestone Sync Policy
+
+Prompt 23S - Supabase Milestone Sync Policy.
+
+- Purpose: define how repository milestones, local evidence, approval packet readiness, pending human approval, staging sync, and production sync are reported separately.
+- Deliverables after Prompt 23S: `docs/supabase-milestone-sync-policy.md`, `docs/supabase-milestone-ledger-contract.md`, `docs/supabase-milestone-sync-matrix.md`, `docs/supabase-update-gate-contract.md`, `docs/supabase-success-milestone-reporting-standard.md`, `docs/supabase-milestone-backfill-plan.md`, `docs/supabase-status-record-schema-draft.md`, `docs/prompt-23s-validation-results.md`, `docs/implementation-prompts/prompt-23s-supabase-milestone-sync-policy.md`, `scripts/validation/supabase-milestone-sync-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 23 pending base, and tracker updates.
+- Implementation status after Prompt 23S: validation infrastructure / Supabase milestone sync policy only. Prompt 23 remains `pending_human_approval`; staging sync is not applied and production sync is blocked.
+- Implements: update type vocabulary, future append-only ledger contract, Prompt 0-23 sync matrix, update gates, success reporting standard, future backfill plan, draft status-record schema, and diagnostics.
+- Must not implement: Supabase lifecycle commands, SQL execution, migrations, staging sync, production sync, ledger table creation, backfill execution, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, telemetry, human approval grant, beta unlock, or production readiness.
+- What remains blocked: human approval completion, staging Supabase/RLS execution, production Supabase, future ledger schema/RLS, append-only write path, broader local/staging RLS coverage, runtime execution domains, and beta unlock.
+- Acceptance criteria: Prompt 23S docs exist, diagnostics pass, Prompt 23 is classified as `pending_human_approval`, no staging/prod update is claimed, no secrets or executable Supabase commands are added, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 24 - Supabase Project Inventory and Read-Only Audit if validation and CI pass; Prompt 23A remains required before any staging SQL or staging mutation.
+- GitHub deliverable: branch, commit, push, PR with sync policy summary and explicit no-Supabase-execution statement.

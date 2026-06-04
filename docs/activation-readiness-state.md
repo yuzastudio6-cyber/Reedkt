@@ -110,8 +110,12 @@ MapLibre-compatible manifest JSON, private artifacts, and blocked-feature QA.
 `phase50c-20260604T020852`, adding `maplibre-gl` only for a
 generated/local/offline MapLibre render + Playwright capture + Sharp derivative
 fixture using local assets and generated GeoJSON. The network guard observed no
-external requests and all mandatory QA gates passed. Phase 50D is ready only for
-a generated/local deck.gl overlay fixture. Map runtime beyond these fixture phases, tile downloads, live
+external requests and all mandatory QA gates passed. Phase 50D completed
+`phase50d-20260604T030406`, using `@deck.gl/core`, `@deck.gl/layers`,
+and `@deck.gl/mapbox` local bundles for generated/local/offline Scatterplot,
+Path, Polygon, and Arc overlays. The network guard observed no external
+requests and all mandatory QA gates passed. Phase 50E is ready only for CesiumJS
+3D planning fixture work. Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,
 Docker, broad GCP mutation, production, external beta, paid production, and

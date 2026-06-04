@@ -89,6 +89,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Proceed to Phase 50D only as a generated/local deck.gl overlay fixture.
 5. Do not use live tiles, public OSM tiles, geocoding/routing APIs, paid map providers, public artifacts, production/external beta/broad media, or treat Phase 50C as broad map runtime approval.
 
+## After Phase 50D
+
+1. Review `activation:deckgl-local-overlay-fixture:report`, `activation:deckgl-local-overlay-fixture:iam-plan`, and the private Phase 50D artifacts.
+2. Confirm deck.gl used generated local overlay data only, local `@deck.gl/core`, `@deck.gl/layers`, and `@deck.gl/mapbox` bundles, and no D3, Three.js, CesiumJS, CDN, tile, geocoding, or routing dependency.
+3. Confirm the network guard observed no external requests and the 1280x720 screenshot plus Sharp preview/thumbnail/metadata were uploaded privately.
+4. Proceed to Phase 50E only as a CesiumJS 3D planning fixture.
+5. Do not use live tiles, public OSM tiles, geocoding/routing APIs, paid map providers, public artifacts, production/external beta/broad media, or treat Phase 50D as broad map runtime approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

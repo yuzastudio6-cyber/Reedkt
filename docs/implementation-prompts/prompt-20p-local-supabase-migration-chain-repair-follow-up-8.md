@@ -6,7 +6,7 @@ Prompt 20P repairs the local-only migration-chain blocker in `supabase/migration
 
 Branch: `codex/rp-foundation-20p-local-supabase-migration-chain-repair-follow-up-8`
 
-PR: pending
+PR: [PR #158](https://github.com/yuzastudio6-cyber/Reedkt/pull/158)
 
 PR base: `codex/rp-foundation-20o-local-supabase-start-port-conflict-retry`
 

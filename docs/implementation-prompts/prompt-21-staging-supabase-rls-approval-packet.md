@@ -6,7 +6,7 @@ Implement Prompt 21 from a clean sibling worktree based on `origin/codex/rp-foun
 
 - Branch: `codex/rp-foundation-21-staging-supabase-rls-approval-packet`
 - PR base: `codex/rp-foundation-20b-retry-local-rls-first-executable-smoke-test-run`
-- PR: Pending
+- PR: [PR #168](https://github.com/yuzastudio6-cyber/Reedkt/pull/168)
 - PR title: `[foundation] Prompt 21 staging Supabase RLS approval packet`
 - Exact capability enabled: `none; staging Supabase/RLS approval packet only`
 
@@ -73,4 +73,3 @@ Prompt 20B-Retry passed the first guarded local-only auth/profile/workspace/proj
 - Diagnostics exist and pass.
 - No SQL, Supabase lifecycle command, staging/remote/prod Supabase, deployment, runtime execution, or beta unlock occurs.
 - Next prompt recommendation is clear.
-

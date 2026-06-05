@@ -1,26 +1,26 @@
 {
-  "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
-  "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
+  "phase": "supabase-staging-target-proof-deploy-rerun",
+  "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
   "status": "blocked",
   "activeBlockers": [
     "approved_staging_target_reference_missing",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
-    "plugin_schema_state_not_inspected",
-    "plugin_rls_state_not_inspected",
     "blocked_target_not_staging",
-    "blocked_credentials_unavailable",
-    "cli_db_push_unavailable",
     "staging_schema_deploy_not_confirmed",
     "staging_schema_deploy_not_run",
     "staging_schema_verify_not_confirmed",
     "staging_schema_verification_not_run"
   ],
-  "expectedCurrentEnvironmentBlocker": "supabase_plugin_target_not_confirmed_as_staging",
-  "operatorActionRequired": "Provide explicit staging target proof or use a Supabase staging branch/project before rerun.",
+  "expectedCurrentEnvironmentBlockers": [
+    "approved_staging_target_reference_missing",
+    "supabase_plugin_target_not_confirmed_as_staging"
+  ],
+  "operatorActionRequired": "Add an approved non-secret staging Supabase project reference in repo-safe metadata before rerun.",
   "stillBlockedScopes": [
+    "staging_schema_deploy_until_target_proof_passes",
+    "staging_schema_verify_until_target_proof_passes",
     "track_b_backfill_write",
-    "milestone_data_insert",
     "production_supabase",
     "production_sql",
     "direct_manual_remote_sql",

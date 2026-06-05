@@ -37,6 +37,7 @@
   "credentialPayloadsPrinted": false,
   "productionAffected": false,
   "blockers": [
+    "approved_staging_target_reference_missing",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
     "plugin_schema_state_not_inspected",

@@ -22,6 +22,12 @@ Any future command block that names a Secret Manager reference must include:
 
 Prompt 25A does not add executable secret-fetch commands.
 
+## Metadata-Only Future Discovery Templates
+
+If a later human-approved prompt creates command templates for Secret Manager reference discovery, those templates must list metadata only and must not access secret versions. The allowed future operation category is reference presence review, not value retrieval.
+
+Future templates may describe metadata listing in prose, but Prompt 25A keeps all command examples non-executable and placeholder-only. A later prompt must still include the approval warning and must keep payload access blocked.
+
 ## Forbidden Command Content
 
 Future command packets must not include raw:
@@ -37,7 +43,7 @@ Future command packets must not include raw:
 - project refs;
 - connection strings.
 
-Secret Manager value-access commands are forbidden in Prompt 25A. Future prompts may introduce reviewed command templates only after human approval and redacted evidence are accepted.
+Secret Manager value-access commands are forbidden in Prompt 25A. Future prompts may introduce reviewed metadata-only command templates after human approval and redacted evidence are accepted. Secret payload access remains a separate runtime/operator decision and must not print values into Codex, repo files, CI logs, PRs, or docs.
 
 ## Evidence Redaction
 

@@ -41,6 +41,8 @@ const requiredTermsByFile = {
     'SQL executed: none.',
     'Prompt 23 remains `pending_human_approval`.',
     'All staging and production Supabase values must be handled as Secret Manager references, not copied values.',
+    'Future approved discovery may confirm whether expected Secret Manager entries exist by listing redacted metadata only.',
+    'Secret values may be used only by a future approved runtime or manual operator flow that keeps payloads outside Codex and outside tracked repo artifacts.',
   ],
   'docs/gcp-secret-manager-supabase-secret-matrix.md': [
     'GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF',
@@ -56,22 +58,26 @@ const requiredTermsByFile = {
     'GCP_SECRET_REF_SUPABASE_PRODUCTION_JWT_SECRET',
     'GCP_SECRET_REF_SUPABASE_PRODUCTION_STORAGE_ENDPOINT',
     '`reference_required`; `access_not_verified`',
+    'Metadata discovery means reference existence only. It does not mean payload access or value verification.',
   ],
   'docs/gcp-secret-manager-supabase-access-policy.md': [
     'Least-Privilege',
     'Service-role and JWT references must never be frontend-visible.',
     'Prompt 25A records none of these as approved.',
+    'Future metadata-only discovery can verify that expected references exist without revealing payloads.',
   ],
   'docs/gcp-secret-manager-supabase-command-placeholder-policy.md': [
     '<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>',
     '${GCP_SECRET_REF_SUPABASE_STAGING_DB_URL}',
     'DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.',
     'Prompt 25A does not add executable secret-fetch commands.',
+    'The allowed future operation category is reference presence review, not value retrieval.',
   ],
   'docs/prompt-25a-validation-results.md': [
     'Capability enabled: none; GCP Secret Manager Supabase reference contract only.',
     'Google Cloud API touched: no.',
     'Secret Manager values fetched: no.',
+    'Secret Manager metadata fetched: no.',
     'Supabase environment touched: none.',
     'SQL ran: none.',
   ],
@@ -86,6 +92,7 @@ const requiredTermsByFile = {
   'docs/staging-supabase-future-command-templates.md': [
     '<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>',
     'DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.',
+    'Future Secret Reference Presence Review Packet',
   ],
 }
 
@@ -125,6 +132,8 @@ const unsafeClaimPatterns = [
   /\bstaging (supabase|sql|rls|migration).{0,100}\b(ran|executed|passed|completed|validated|approved|applied)\b/i,
   /\bproduction (supabase|sql|readiness|beta).{0,100}\b(ran|executed|passed|completed|validated|approved|ready|unlocked)\b/i,
   /\bSecret Manager values? (fetched|read|printed|retrieved|verified)\b/i,
+  /\bSecret Manager payloads? (fetched|read|printed|retrieved|verified|accessed)\b/i,
+  /\bsecret versions? (accessed|read|fetched|printed|retrieved)\b/i,
   /\bGoogle Cloud API touched:\s*yes\b/i,
   /\bSecret Manager API touched:\s*yes\b/i,
   /\bSQL (ran|executed|passed|completed)\b/i,
@@ -216,7 +225,9 @@ const summary = {
   migrationDeployed: 'no',
   googleCloudApiTouched: false,
   secretManagerApiTouched: false,
+  secretManagerMetadataFetched: false,
   secretManagerValuesFetched: false,
+  metadataOnlyDiscoveryDocumented: true,
   humanApprovalGranted: false,
   stagingExecutionApproved: false,
   requiredDocsChecked: requiredDocs.length,

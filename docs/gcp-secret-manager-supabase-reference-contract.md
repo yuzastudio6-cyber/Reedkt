@@ -2,6 +2,8 @@
 
 Prompt 25A defines how ReeditPro refers to Supabase environment values that are expected to live in Google Cloud Secret Manager. It does not fetch, inspect, print, validate, or store any secret value.
 
+Prompt 25A follow-up records that future approved operators should find Supabase values through Google Cloud Secret Manager. This still means finding reference metadata and approved reference names first, not reading payloads in Codex or writing values into repository artifacts.
+
 ## Current State
 
 - Capability enabled: none; GCP Secret Manager Supabase reference contract only.
@@ -21,6 +23,29 @@ All staging and production Supabase values must be handled as Secret Manager ref
 Allowed reference names use the `GCP_SECRET_REF_` prefix and identify the environment and purpose, for example `<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>`. Reference names are not secrets by themselves, but they still must not be used to imply that access has been verified.
 
 Future URI-style references may use placeholder-only forms such as `gcp-secret://projects/<GCP_PROJECT_PLACEHOLDER>/secrets/<GCP_SECRET_NAME_PLACEHOLDER>/versions/latest`. Real project IDs, real secret names, real versions, and secret payloads are not allowed in repo docs until a future evidence-review prompt explicitly accepts redacted metadata.
+
+## Metadata-Only Discovery
+
+Future approved discovery may confirm whether expected Secret Manager entries exist by listing redacted metadata only. Allowed metadata includes:
+
+- redacted or placeholder project scope;
+- secret reference name;
+- labels that do not contain values;
+- creation/update timestamps when redacted enough for evidence policy;
+- replication policy summary;
+- IAM binding summary without principals that expose private accounts;
+- rotation status summary.
+
+Metadata-only discovery must not access secret versions or payloads. In particular, value lookup commands must remain outside Codex and outside repository logs until a future human-approved runtime packet exists with a secure operator path.
+
+The reference contract supports this future path:
+
+1. Confirm a human approval record exists.
+2. Confirm redacted Supabase project evidence is accepted.
+3. Confirm the approved operator or service account.
+4. List secret metadata only.
+5. Record redacted reference presence.
+6. Keep payload access blocked unless a later execution prompt explicitly authorizes a secure runtime path.
 
 ## No Raw Supabase Values
 
@@ -59,6 +84,10 @@ Access to Secret Manager values is future-only and must require:
 - explicit command packet approval.
 
 Prompt 25A grants none of those approvals.
+
+## Value Access Boundary
+
+Secret values may be used only by a future approved runtime or manual operator flow that keeps payloads outside Codex and outside tracked repo artifacts. Prompt 25A allows the repo to know that values are expected to be in Google Cloud Secret Manager; it does not allow this agent, docs, diagnostics, scripts, PR text, or CI to fetch or display those values.
 
 ## Rotation And Revocation
 

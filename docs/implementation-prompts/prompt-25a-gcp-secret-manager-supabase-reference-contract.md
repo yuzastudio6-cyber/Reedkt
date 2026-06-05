@@ -19,6 +19,7 @@ Exact capability enabled: none; GCP Secret Manager Supabase reference contract o
 - Document staging and production reference separation.
 - Document future least-privilege access and rotation policy.
 - Document command placeholder rules.
+- Document metadata-only reference discovery expectations.
 - Add static diagnostics that inspect repo files only.
 - Update source-of-truth and readiness trackers.
 

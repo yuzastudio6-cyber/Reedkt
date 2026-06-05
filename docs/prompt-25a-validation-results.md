@@ -39,6 +39,7 @@
 - Added command placeholder policy.
 - Added static diagnostics for reference-only safety.
 - Updated Prompt 25 docs and trackers to require Secret Manager reference placeholders.
+- Added metadata-only discovery language so future approved operators can find references in Google Cloud Secret Manager without exposing payload values.
 
 ## Validation Status
 
@@ -72,6 +73,7 @@ Prompt 25A did not run Supabase lifecycle commands or SQL. The non-mutating loca
 - Google Cloud API touched: no.
 - Secret Manager API touched: no.
 - Secret Manager values fetched: no.
+- Secret Manager metadata fetched: no.
 - Supabase environment touched: none.
 - SQL ran: none.
 - Human approval granted: no.

@@ -8,6 +8,8 @@ Every command block includes this exact warning:
 
 Prompt 25A requires future Supabase command packets to use GCP Secret Manager reference placeholders, not raw Supabase values. The examples below remain blocked templates and do not fetch Secret Manager values.
 
+Prompt 25A follow-up allows future command packets to find references through metadata-only Secret Manager discovery after human approval and accepted evidence. Payload access remains forbidden for command templates in this packet.
+
 ## Static Validation Packet
 
 ```sh
@@ -46,6 +48,15 @@ echo "Future approved dry-run target is <REDACTED_STAGING_PROJECT_REF> with DB p
 ```sh
 DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.
 echo "Future approved dry-run target must resolve through <GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF> and <GCP_SECRET_REF_SUPABASE_STAGING_DB_URL> after approval and evidence review."
+```
+
+## Future Secret Reference Presence Review Packet
+
+This packet is for future metadata-only reference presence review. It must not access secret versions or print payloads.
+
+```sh
+DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.
+echo "Future metadata-only review confirms the presence of <GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF> and <GCP_SECRET_REF_SUPABASE_STAGING_DB_URL> without reading payload values."
 ```
 
 ## Cleanup Command Packet

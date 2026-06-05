@@ -27,6 +27,30 @@ Before any future staging or production secret access, the approval packet must 
 
 Prompt 25A records none of these as approved.
 
+## Metadata Discovery Boundary
+
+Future metadata-only discovery can verify that expected references exist without revealing payloads. That discovery must use an approved operator or service account, must not access secret versions, and must record only redacted evidence.
+
+Allowed evidence for metadata discovery:
+
+- expected reference name present or missing;
+- redacted project scope;
+- redacted labels;
+- IAM summary without sensitive principal details;
+- rotation status summary;
+- audit log summary.
+
+Forbidden evidence:
+
+- secret payloads;
+- database URLs;
+- service-role keys;
+- anon key values;
+- JWT secret values;
+- signed URLs;
+- complete connection strings;
+- private operator account details.
+
 ## Audit And Logging
 
 Future access must produce redacted evidence that proves access was controlled without exposing the value. Logs must not include secret payloads, raw database URLs, raw keys, signed URLs, passwords, or tokens.

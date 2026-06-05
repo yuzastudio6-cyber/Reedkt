@@ -1,0 +1,8 @@
+{
+  "phase": "supabase-trackb-milestone-staging-backfill",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "skipped",
+  "reason": "schema_check_blocked_before_rls_evaluation",
+  "rlsSafe": false,
+  "blockers": []
+}

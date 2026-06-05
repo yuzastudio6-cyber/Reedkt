@@ -1,5 +1,7 @@
 # Production Model Weight Readiness Plan
 
+The Supabase Track B milestone staging backfill is not a model-weight phase. It reads the Phase 44P safe metadata export and is blocked before staging write on the PR #196 base because activation milestone registry schema evidence is absent. It does not download, stage, approve, or execute model weights, and VLM/Demucs model paths, provider calls, route/tool/worker execution, public output, beta, production, broad media, and Track A remain blocked.
+
 Phase 44O is not a model-weight phase. It does not download, stage, approve, or execute model weights. It executes only a metadata-only DuckDB route dry-run using committed safe reports; DuckDB runtime, Polars runtime, VLM and Demucs model paths, model downloads, runtime execution, public output, beta, production, providers, broad media, raw chat execution, and Track A remain blocked.
 
 Phase 44N is not a model-weight phase. It does not download, stage, approve, or execute model weights. It approves only a future metadata-only DuckDB route dry-run packet; VLM and Demucs model paths remain blocked, model downloads remain blocked, runtime execution remains blocked, and public output, beta, production, providers, broad media, raw chat execution, and Track A remain blocked.

@@ -1,0 +1,23 @@
+{
+  "phase": "supabase-trackb-milestone-staging-backfill",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "passed",
+  "stagingOnly": true,
+  "productionTargetRejected": true,
+  "stagingTargetReference": "redacted_required_at_execution_time",
+  "credentialNamesAllowed": [
+    "REEDITPRO_STAGING_SUPABASE_URL",
+    "REEDITPRO_STAGING_SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_URL only when REEDITPRO_SUPABASE_TARGET_ENV=staging",
+    "SUPABASE_SERVICE_ROLE_KEY only when REEDITPRO_SUPABASE_TARGET_ENV=staging"
+  ],
+  "credentialPayloadsPrinted": false,
+  "urlProvided": false,
+  "serviceRoleKeyProvided": false,
+  "targetConfirmed": false,
+  "remoteReadPerformed": false,
+  "remoteSqlRun": false,
+  "migrationDeployment": false,
+  "schemaMutation": false,
+  "blockers": []
+}

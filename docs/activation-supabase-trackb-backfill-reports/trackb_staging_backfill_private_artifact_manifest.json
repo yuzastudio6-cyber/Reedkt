@@ -1,0 +1,25 @@
+{
+  "phase": "supabase-trackb-milestone-staging-backfill",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "committed_safe_metadata_only",
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "privatePayloadsCommitted": false,
+  "secretPayloadsCommitted": false,
+  "reportDir": "docs/activation-supabase-trackb-backfill-reports",
+  "expectedReports": [
+    "trackb_backfill_plan.json",
+    "trackb_export_validation_report.json",
+    "staging_supabase_backfill_preflight_report.json",
+    "staging_supabase_registry_schema_check.json",
+    "staging_supabase_registry_rls_check.json",
+    "trackb_staging_backfill_diff_report.json",
+    "trackb_staging_backfill_write_report.json",
+    "trackb_staging_backfill_verification_report.json",
+    "trackb_staging_backfill_audit_report.json",
+    "trackb_staging_backfill_rollback_plan.json",
+    "trackb_staging_backfill_blocker_report.json",
+    "trackb_staging_backfill_readiness_report.json",
+    "trackb_staging_backfill_private_artifact_manifest.json"
+  ]
+}

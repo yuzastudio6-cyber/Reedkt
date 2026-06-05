@@ -1,0 +1,66 @@
+{
+  "status": "blocked",
+  "pluginAvailableToCodexSession": true,
+  "pluginUsableFromRepoCliDirectly": false,
+  "pluginObservationSource": "connected_supabase_plugin_observation_committed_as_safe_metadata",
+  "targetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+  "targetCheckConfirmed": false,
+  "selectedProject": {
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "projectName": "Reeditpro",
+    "status": "ACTIVE_HEALTHY",
+    "region": "us-west-1",
+    "hostRedacted": true
+  },
+  "expectedStagingProjectRefProvided": false,
+  "targetEnvironmentStatus": "missing_or_not_staging",
+  "targetProofStatus": "missing_or_unrecognized",
+  "metadataLabelLooksStaging": false,
+  "operatorProofMatches": false,
+  "stagingTargetConfirmed": false,
+  "observedProjects": [
+    {
+      "projectRef": "wmyyttnynmteqgcdishd",
+      "projectName": "Reeditpro",
+      "region": "us-west-1",
+      "status": "ACTIVE_HEALTHY",
+      "postgresEngine": "17",
+      "releaseChannel": "ga",
+      "createdAt": "2026-05-11T17:48:42.077692Z",
+      "hostRedacted": true,
+      "stagingLabelDetected": false
+    },
+    {
+      "projectRef": "jgvjrouckmdibwwbnczc",
+      "projectName": "yuzastudio6-cyber's Project",
+      "region": "us-east-1",
+      "status": "INACTIVE",
+      "postgresEngine": "17",
+      "releaseChannel": "ga",
+      "createdAt": "2026-05-01T11:27:23.660611Z",
+      "hostRedacted": true,
+      "stagingLabelDetected": false
+    }
+  ],
+  "observedMigrations": [
+    "202605130001",
+    "202605130002",
+    "202605130003",
+    "202605130004",
+    "202605130005",
+    "202605130006",
+    "202605130007",
+    "202605130008",
+    "202605190001"
+  ],
+  "observedRegistryMigrationPresent": false,
+  "branchListStatus": "failed_in_plugin_session_project_reference_missing_when_validating_permissions",
+  "forbiddenConfirmationsSet": [],
+  "credentialPayloadsPrinted": false,
+  "secretsRead": false,
+  "productionTargetAllowed": false,
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging"
+  ]
+}

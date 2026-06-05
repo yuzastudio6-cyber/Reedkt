@@ -1,0 +1,34 @@
+{
+  "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
+  "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
+  "status": "blocked",
+  "verificationPerformed": false,
+  "pluginReadOnlyCatalogInspectionPerformed": false,
+  "delegatedToPr202CliVerify": false,
+  "reason": "target_not_confirmed_as_staging_no_verification_allowed",
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY"
+  ],
+  "allowlistedReadOnlyCatalogQueries": [
+    "information_schema.tables registry table presence",
+    "pg_class relrowsecurity for registry tables",
+    "information_schema.role_table_grants public/anon/authenticated/service_role checks",
+    "pg_indexes and pg_constraint registry metadata checks"
+  ],
+  "credentialPayloadsPrinted": false,
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "directManualSqlRun": false,
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "blocked_target_not_staging",
+    "blocked_credentials_unavailable",
+    "cli_db_push_unavailable",
+    "staging_schema_deploy_not_confirmed",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verify_not_confirmed",
+    "staging_schema_verification_not_run"
+  ]
+}

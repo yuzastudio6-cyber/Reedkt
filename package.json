@@ -434,7 +434,12 @@
     "activation:shared-agent-tool-architecture:report": "tsx server/cli/activation-shared-agent-tool-architecture-report.ts",
     "activation:shared-agent-tool-architecture:iam-plan": "tsx server/cli/activation-shared-agent-tool-architecture-iam-plan.ts",
     "activation:shared-agent-tool:summary": "tsx server/cli/activation-shared-agent-tool-summary.ts",
-    "smoke:activation-shared-agent-tool-architecture": "tsx server/smoke/activation-shared-agent-tool-architecture-smoke.ts"
+    "smoke:activation-shared-agent-tool-architecture": "tsx server/smoke/activation-shared-agent-tool-architecture-smoke.ts",
+    "activation:tool-capability-registry-audit": "tsx server/cli/activation-tool-capability-registry-audit.ts",
+    "activation:tool-capability-registry-audit:report": "tsx server/cli/activation-tool-capability-registry-audit-report.ts",
+    "activation:tool-capability-registry-audit:iam-plan": "tsx server/cli/activation-tool-capability-registry-audit-iam-plan.ts",
+    "activation:tool-capability-registry:summary": "tsx server/cli/activation-tool-capability-registry-summary.ts",
+    "smoke:activation-tool-capability-registry-audit": "tsx server/smoke/activation-tool-capability-registry-audit-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

@@ -30,6 +30,7 @@ export const toolCapabilityManifestSchema: SchemaDefinition = {
     'supabaseMilestoneRefs',
     'testCommands',
     'lastValidatedPhase',
+    'lastValidatedRunId',
   ],
   policyNotes: [
     'Manifest consumers do not become owners.',

@@ -1,0 +1,55 @@
+import type { SupabaseHistoricalBackfillPhaseDefinition } from './supabase-historical-backfill-types'
+
+export const supabaseHistoricalBackfillCanonicalPhases: SupabaseHistoricalBackfillPhaseDefinition[] = [
+  phase('45F', 'Track A visual-video readiness closure', 'phase45f-20260601T01103', 'P0', 'track_a', 'track_a_visual_video', 'codex/rp-activation-45f-track-a-visual-video-readiness-closure', null, null, 'ready_for_internal_private_visual_video_testing', 'docs/activation-phase-45f-track-a-visual-video-readiness-closure-results.md', 'Track A internal private visual-video testing readiness is complete.', [{ toolId: 'track_a_visual_video_stack', displayName: 'Track A Visual-Video Stack', readinessState: 'ready_for_internal_private_visual_video_testing', runtimeAllowed: false }]),
+  phase('49P', 'Web search/capture internal beta candidate', 'phase49p-20260603T21361', 'P0', 'activation', 'web_search_capture', 'codex/rp-activation-49p-web-search-internal-beta-candidate', null, null, 'ready_for_controlled_internal_beta_candidate', 'docs/activation-phase-49p-web-search-internal-beta-candidate-results.md', 'Web search/capture is ready only for controlled internal beta candidate testing.', [{ toolId: 'web_search_capture_stack', displayName: 'Web Search/Capture Stack', readinessState: 'ready_for_controlled_internal_beta_candidate', runtimeAllowed: true }]),
+  phase('49N', 'Search provider readiness gate', 'phase49n-20260603T18331', 'P0', 'activation', 'search_provider_stack', 'codex/rp-activation-49n-search-provider-readiness-gate', null, null, 'ready_for_controlled_internal_testing', 'docs/activation-phase-49n-search-provider-readiness-results.md', 'Search provider stack is ready for controlled internal testing only.', [{ toolId: 'search_provider_stack', displayName: 'Search Provider Stack', readinessState: 'ready_for_controlled_internal_testing', runtimeAllowed: true }]),
+  phase('50F', 'Web search + map planning private E2E', 'phase50f-20260604T141223', 'P0', 'activation', 'web_search_map_planning', 'codex/rp-activation-50f-web-search-map-planning-private-e2e', null, null, 'ready_for_map_geospatial_internal_readiness_gate', 'docs/activation-phase-50f-web-search-map-planning-e2e-results.md', 'Web-search evidence can feed generated/private map planning E2E.', [{ toolId: 'web_search_map_planning_e2e', displayName: 'Web Search + Map Planning E2E', readinessState: 'ready_for_map_geospatial_internal_readiness_gate', runtimeAllowed: true }]),
+  phase('50G', 'Map/geospatial internal readiness', 'phase50g-20260604T153331', 'P0', 'activation', 'map_geospatial', 'codex/rp-activation-50g-map-geospatial-internal-readiness', null, null, 'ready_for_controlled_internal_testing', 'docs/activation-phase-50g-map-geospatial-readiness-results.md', 'Map/geospatial stack is ready for controlled internal testing only.', [{ toolId: 'map_geospatial_stack', displayName: 'Map/Geospatial Stack', readinessState: 'ready_for_controlled_internal_testing', runtimeAllowed: true }]),
+  phase('51A', 'Supabase data-plane audit', 'phase51a-20260604T204225', 'P0', 'activation', 'supabase_data_plane', 'codex/rp-activation-51a-supabase-data-plane-audit', null, null, 'ready_for_supabase_activation_milestone_registry', 'docs/activation-phase-51a-supabase-data-plane-audit-results.md', 'Supabase data-plane audit completed with read-only remote counts and StoryTiming RLS triage.', [{ toolId: 'supabase_data_plane_audit', displayName: 'Supabase Data-Plane Audit', readinessState: 'ready_for_supabase_activation_milestone_registry', runtimeAllowed: true }]),
+  phase('51B', 'Supabase activation milestone registry', 'phase51b-20260605T013720', 'P0', 'activation', 'supabase_milestone_registry', 'codex/rp-activation-51b-supabase-activation-milestone-registry', 183, 'https://github.com/yuzastudio6-cyber/Reedkt/pull/183', 'ready_for_historical_activation_evidence_backfill', 'docs/activation-phase-51b-supabase-milestone-registry-results.md', 'Supabase activation milestone registry completed and Phase 51C backfill is ready.', [{ toolId: 'supabase_activation_registry', displayName: 'Supabase Activation Milestone Registry', readinessState: 'ready_for_historical_activation_evidence_backfill', runtimeAllowed: true }]),
+  phase('49H', 'Web search/capture internal readiness', 'phase49h-20260603T020009', 'P1', 'activation', 'web_search_capture', 'codex/rp-activation-49h-web-search-capture-internal-readiness', null, null, 'ready_for_web_search_ui_api_gating', 'docs/activation-phase-49h-web-search-capture-readiness-results.md', 'Optional web search/capture readiness evidence.', []),
+  phase('49I', 'Web search/capture UI API gating', 'phase49i-20260603T060000', 'P1', 'activation', 'web_search_capture', 'codex/rp-activation-49i-web-search-ui-api-gating', null, null, 'ready_for_optional_brave_fallback_policy_review', 'docs/activation-phase-49i-web-search-ui-api-gating-results.md', 'Optional internal UI/API gating evidence.', []),
+  phase('49O', 'Web search regression failure suite', 'phase49o-20260603T20311', 'P1', 'activation', 'web_search_capture', 'codex/rp-activation-49o-web-search-regression-failure-suite', null, null, 'ready_for_controlled_internal_beta_candidate_gate_or_system_reconciliation', 'docs/activation-phase-49o-web-search-regression-suite-results.md', 'Optional web search regression/failure-mode evidence.', []),
+  phase('50A', 'Map/geospatial approval architecture', 'phase50a-static-approval', 'P1', 'activation', 'map_geospatial', 'codex/rp-activation-50a-map-geospatial-approval-architecture', null, null, 'ready_for_maplibre_turf_generated_fixture', 'docs/activation-phase-50a-map-geospatial-approval-results.md', 'Optional static map/geospatial approval evidence.', []),
+  phase('50B', 'MapLibre + Turf generated fixture', 'phase50b-20260604T01114', 'P1', 'activation', 'map_geospatial', 'codex/rp-activation-50b-maplibre-turf-generated-fixture', null, null, 'ready_for_maplibre_local_render_capture_fixture', 'docs/activation-phase-50b-maplibre-turf-fixture-results.md', 'Optional MapLibre/Turf fixture evidence.', []),
+  phase('50C', 'MapLibre local render fixture', 'phase50c-20260604T020852', 'P1', 'activation', 'map_geospatial', 'codex/rp-activation-50c-maplibre-local-render-capture-fixture', null, null, 'ready_for_deckgl_local_overlay_fixture', 'docs/activation-phase-50c-maplibre-local-render-fixture-results.md', 'Optional MapLibre local render evidence.', []),
+  phase('50D', 'deck.gl local overlay fixture', 'phase50d-20260604T030406', 'P1', 'activation', 'map_geospatial', 'codex/rp-activation-50d-deckgl-local-overlay-fixture', null, null, 'ready_for_cesiumjs_local_3d_planning_fixture', 'docs/activation-phase-50d-deckgl-local-overlay-fixture-results.md', 'Optional deck.gl local overlay evidence.', []),
+  phase('50E', 'CesiumJS local 3D planning fixture', 'phase50e-20260604T130326', 'P1', 'activation', 'map_geospatial', 'codex/rp-activation-50e-cesiumjs-local-3d-planning-fixture', null, null, 'ready_for_web_search_map_planning_private_e2e', 'docs/activation-phase-50e-cesiumjs-local-3d-fixture-results.md', 'Optional CesiumJS local 3D planning evidence.', []),
+]
+
+function phase(
+  phaseId: string,
+  phaseName: string,
+  runId: string,
+  priority: 'P0' | 'P1',
+  track: string,
+  subsystem: string,
+  branch: string,
+  prNumber: number | null,
+  prUrl: string | null,
+  readinessStatus: string,
+  docsPath: string,
+  summary: string,
+  toolCapabilities: SupabaseHistoricalBackfillPhaseDefinition['toolCapabilities'],
+): SupabaseHistoricalBackfillPhaseDefinition {
+  return {
+    phaseId,
+    phaseName,
+    runId,
+    priority,
+    track,
+    subsystem,
+    branch,
+    baseBranch: 'codex/rp-activation-51b-supabase-activation-milestone-registry',
+    prNumber,
+    prUrl,
+    status: 'completed',
+    qaStatus: 'passed',
+    readinessStatus,
+    completedAt: null,
+    docsPath,
+    summary,
+    toolCapabilities,
+  }
+}

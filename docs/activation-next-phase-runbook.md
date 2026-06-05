@@ -2,6 +2,21 @@
 
 This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is available. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
 
+## After Phase 51B
+
+1. Review `activation:supabase-milestone-registry:report`, `activation:supabase-milestone-registry:iam-plan`, and the private Phase 51B artifacts for `phase51b-20260605T013720`.
+2. Confirm the six registry tables are visible through zero-row PostgREST probes and one controlled Phase 51B bundle wrote/read back.
+3. Confirm GCS remains the private artifact store and Supabase stores metadata plus private `gs://` references only.
+4. Proceed to Phase 51C only as historical activation evidence backfill. Do not run migrations, schema/RLS changes, Supabase lifecycle commands, historical tool runtimes, provider calls, public artifacts, or production/external beta/broad-media unlocks.
+
+## After Phase 51C
+
+1. Review `activation:supabase-historical-backfill:report`, `activation:supabase-historical-backfill:iam-plan`, and the private Phase 51C artifacts for `phase51c-20260605T022737`.
+2. Confirm P0 historical phases `45F`, `49P`, `49N`, `50F`, `50G`, `51A`, and `51B` wrote/read back through idempotent registry upserts.
+3. Confirm optional P1 phases `49H`, `49O`, `50A`, `50B`, `50C`, `50D`, and `50E` wrote/read back, while `49I` was skipped with an explicit evidence mismatch reason.
+4. Confirm all feature gates remain disabled and no public/signed URL source-of-truth, raw provider response, secret value, large blob, migration, schema/RLS mutation, production, external beta, or broad-media unlock occurred.
+5. Proceed to Phase 51D only as automatic per-phase Supabase milestone sync.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

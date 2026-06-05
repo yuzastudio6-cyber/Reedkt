@@ -153,6 +153,15 @@ production/broad media unlocks, raw prompt execution, provider execution, and
 frontend service-role exposure. Phase 51C may proceed only as historical
 activation evidence backfill after schema verification, one Phase 51B bundle
 write/readback, QA, and private artifact upload pass.
+Phase 51C completed the historical activation evidence backfill for
+`phase51c-20260605T022737`. It wrote and read back all P0 historical milestone
+bundles (`45F`, `49P`, `49N`, `50F`, `50G`, `51A`, and `51B`) plus available
+optional P1 bundles (`49H`, `49O`, `50A`, `50B`, `50C`, `50D`, and `50E`) into
+the Phase 51B registry tables. Optional `49I` was skipped with an explicit
+evidence mismatch reason. The run stored structured metadata and private
+`gs://` artifact references only, kept GCS as the private artifact store, and
+did not apply migrations or alter schema/RLS. Phase 51D is ready only for
+automatic per-phase Supabase milestone sync.
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

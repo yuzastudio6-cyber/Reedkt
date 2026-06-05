@@ -420,7 +420,11 @@
     "activation:supabase-milestone-registry": "tsx server/cli/activation-supabase-milestone-registry.ts",
     "activation:supabase-milestone-registry:report": "tsx server/cli/activation-supabase-milestone-registry-report.ts",
     "activation:supabase-milestone-registry:iam-plan": "tsx server/cli/activation-supabase-milestone-registry-iam-plan.ts",
-    "smoke:activation-supabase-milestone-registry": "tsx server/smoke/activation-supabase-milestone-registry-smoke.ts"
+    "smoke:activation-supabase-milestone-registry": "tsx server/smoke/activation-supabase-milestone-registry-smoke.ts",
+    "activation:supabase-historical-backfill": "tsx server/cli/activation-supabase-historical-backfill.ts",
+    "activation:supabase-historical-backfill:report": "tsx server/cli/activation-supabase-historical-backfill-report.ts",
+    "activation:supabase-historical-backfill:iam-plan": "tsx server/cli/activation-supabase-historical-backfill-iam-plan.ts",
+    "smoke:activation-supabase-historical-backfill": "tsx server/smoke/activation-supabase-historical-backfill-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

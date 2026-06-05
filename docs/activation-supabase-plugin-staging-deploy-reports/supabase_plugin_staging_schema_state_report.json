@@ -1,0 +1,44 @@
+{
+  "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
+  "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
+  "status": "blocked",
+  "targetConfirmedStaging": false,
+  "schemaInspectionPerformed": false,
+  "pluginReadOnlyCatalogSqlRun": false,
+  "reason": "target_not_confirmed_as_staging_no_schema_inspection_allowed",
+  "observedMigrationIds": [
+    "202605130001",
+    "202605130002",
+    "202605130003",
+    "202605130004",
+    "202605130005",
+    "202605130006",
+    "202605130007",
+    "202605130008",
+    "202605190001"
+  ],
+  "registryMigrationId": "202606050001",
+  "registryMigrationObserved": false,
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "tableState": "blocked_until_staging_target_confirmed",
+  "credentialPayloadsPrinted": false,
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "plugin_schema_state_not_inspected"
+  ]
+}

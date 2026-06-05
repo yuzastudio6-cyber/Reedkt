@@ -1,0 +1,38 @@
+{
+  "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
+  "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
+  "status": "blocked",
+  "selectedStrategy": "blocked_target_not_staging",
+  "strategyOrder": [
+    "cli_db_push",
+    "plugin_migration_safe_apply",
+    "blocked_no_migration_safe_deploy_path",
+    "blocked_target_not_staging",
+    "blocked_credentials_unavailable"
+  ],
+  "cliDbPush": {
+    "available": false,
+    "stagingDbUrlProvided": false,
+    "stagingTargetConfirmedByPlugin": false,
+    "dryRunRequiredBeforeApply": true,
+    "sourceReport": "docs/activation-supabase-milestone-registry-staging-deploy-reports/staging_credential_preflight_report.json"
+  },
+  "pluginMigrationSafeApply": {
+    "availableToRepoCli": false,
+    "operatorPluginToolAvailableInCodexSession": true,
+    "allowedOnlyWhenTargetConfirmedStaging": true,
+    "directSqlFallbackAllowed": false,
+    "status": "not_available"
+  },
+  "blockedNoMigrationSafeDeployPathWhenOnlyDirectSqlExists": true,
+  "credentialPayloadsPrinted": false,
+  "productionAffected": false,
+  "trackBRowsWritten": false,
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "blocked_target_not_staging",
+    "blocked_credentials_unavailable",
+    "cli_db_push_unavailable"
+  ]
+}

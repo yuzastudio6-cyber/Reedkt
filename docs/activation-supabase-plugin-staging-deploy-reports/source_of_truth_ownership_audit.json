@@ -1,0 +1,206 @@
+{
+  "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
+  "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
+  "status": "passed",
+  "auditDate": "2026-06-05",
+  "worktreeRequired": "/private/tmp/reeditpro-supabase-plugin-staging-schema-deploy-verify",
+  "branch": "codex/rp-foundation-supabase-plugin-staging-schema-deploy-verify",
+  "baseBranch": "codex/rp-foundation-supabase-milestone-registry-staging-deploy-verify",
+  "reviewedPrs": [
+    {
+      "pr": 196,
+      "role": "Track B readiness rollup export source",
+      "expectedHead": "codex/rp-trackb-readiness-rollup-supabase-milestone-export"
+    },
+    {
+      "pr": 198,
+      "role": "Track B staging backfill path, no writes in this phase",
+      "expectedHead": "codex/rp-foundation-supabase-trackb-milestone-staging-backfill"
+    },
+    {
+      "pr": 200,
+      "role": "Activation milestone registry schema/RLS migration owner",
+      "expectedHead": "codex/rp-foundation-supabase-milestone-registry-schema-rls"
+    },
+    {
+      "pr": 202,
+      "role": "CLI staging deploy/verify predecessor",
+      "expectedHead": "codex/rp-foundation-supabase-milestone-registry-staging-deploy-verify"
+    }
+  ],
+  "ownership": {
+    "thisPhaseOwns": "plugin-assisted staging target/deploy/verify reports and fail-closed policy only",
+    "pr200Owns": "registry schema/RLS migration",
+    "pr198Owns": "future Track B staging metadata backfill",
+    "pr196Owns": "Track B safe milestone export",
+    "productionPromotionOwns": "future production approval, not this phase"
+  },
+  "rootSources": [
+    {
+      "file": "README.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "AGENTS.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "product-plan.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "intent-led-edit-planning.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "pricing-and-credits.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-schema-planning-bridge.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "database-migration-readiness-checklist.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-table-specification.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "sql-migration-draft-review.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-rls-policy-draft.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-storage-bucket-draft.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "migration-review-and-rls-hardening.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "rls-hardening-matrix.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "data-privacy-retention-plan.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-production-test-readiness.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-local-staging-test-plan.md",
+      "exists": true,
+      "requiredByAgents": true
+    }
+  ],
+  "docSources": [
+    {
+      "file": "docs/activation-phase-roadmap.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/production-beta-readiness-scorecard.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/production-milestone-index.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-activation-milestone-registry-schema.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-activation-milestone-registry-rls-policy.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-activation-milestone-registry-staging-deployment.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-trackb-backfill-rerun-after-staging-schema.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    }
+  ],
+  "missingRootSources": [],
+  "missingDocSources": [],
+  "migration": {
+    "path": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+    "exists": true,
+    "requiredTablesExpected": [
+      "activation_milestones",
+      "activation_phase_runs",
+      "activation_tool_readiness",
+      "activation_pr_evidence",
+      "activation_artifact_manifests",
+      "activation_blockers",
+      "activation_allowed_scopes",
+      "activation_blocked_scopes",
+      "activation_next_phases",
+      "activation_human_approvals",
+      "activation_sync_audit_log"
+    ],
+    "requiredTablesPresent": [
+      "activation_milestones",
+      "activation_phase_runs",
+      "activation_tool_readiness",
+      "activation_pr_evidence",
+      "activation_artifact_manifests",
+      "activation_blockers",
+      "activation_allowed_scopes",
+      "activation_blocked_scopes",
+      "activation_next_phases",
+      "activation_human_approvals",
+      "activation_sync_audit_log"
+    ],
+    "unsafeMigrationTextDetected": false
+  },
+  "packageLockPolicy": "must_remain_unchanged",
+  "secretsCommitted": false,
+  "remoteSqlRun": false,
+  "productionAffected": false,
+  "trackBBackfillWrites": false,
+  "blockers": []
+}

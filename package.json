@@ -57,6 +57,7 @@
     "supabase:milestone:sync:diagnostics": "node scripts/validation/supabase-milestone-sync-diagnostics.mjs",
     "supabase:project:readonly-audit:diagnostics": "node scripts/validation/supabase-project-readonly-audit-diagnostics.mjs",
     "supabase:project:evidence-intake:diagnostics": "node scripts/validation/supabase-project-readonly-evidence-intake-diagnostics.mjs",
+    "supabase:redacted-evidence:review:diagnostics": "node scripts/validation/supabase-redacted-evidence-review-diagnostics.mjs",
     "staging:supabase:dry-run-packet:diagnostics": "node scripts/validation/staging-supabase-dry-run-command-packet-diagnostics.mjs",
     "gcp:supabase:secret-refs:diagnostics": "node scripts/validation/gcp-secret-manager-supabase-reference-diagnostics.mjs",
     "supabase:local:toolchain:probe": "node scripts/validation/local-supabase-host-toolchain-probe.mjs",

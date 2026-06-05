@@ -599,6 +599,20 @@ Prompt 24A - Supabase Project Read-Only Audit Evidence Intake.
 - Next prompt recommendation: Prompt 24B - Supabase Redacted Evidence Review if validation and CI pass and redacted evidence is supplied; Prompt 23A remains required before staging SQL or staging mutation.
 - GitHub deliverable: branch, commit, push, PR with evidence intake summary and explicit no-Supabase-execution statement.
 
+## 24B. Supabase Redacted Evidence Review
+
+Prompt 24B - Supabase Redacted Evidence Review.
+
+- Purpose: review only tracked redacted Supabase evidence files in approved evidence paths, without touching Google Cloud, Secret Manager, Supabase, SQL, migrations, deployment, or runtime systems.
+- Deliverables after Prompt 24B: `docs/supabase-redacted-evidence-review.md`, updated `docs/supabase-readonly-audit-evidence-matrix.md`, updated `docs/supabase-read-only-audit-result-template.md`, `docs/prompt-24b-validation-results.md`, `docs/implementation-prompts/prompt-24b-supabase-redacted-evidence-review.md`, `scripts/validation/supabase-redacted-evidence-review-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 25A base branch, and tracker updates.
+- Implementation status after Prompt 24B: evidence required / Supabase redacted evidence review only. The only tracked approved-path file is `docs/supabase-readonly-audit-evidence/README.md`, which is instruction-only and not counted as evidence.
+- Implements: evidence path review, instruction-file versus evidence-file distinction, evidence category classification, unsafe evidence detection without printing values, default missing evidence matrix, and static diagnostics.
+- Must not implement: Google Cloud API calls, Secret Manager API calls, Secret Manager metadata fetches, Secret Manager value fetches, Supabase lifecycle commands, SQL execution, migrations, `psql`, `supabase link`, `supabase db push`, dashboard mutation, staging/remote/production Supabase execution, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, telemetry, dependency mutation, human approval grant, staging execution approval, beta unlock, or production readiness.
+- What remains blocked: all redacted Supabase evidence categories, Secret Manager reference metadata evidence, human approval completion, staging project identity verification, staging SQL execution, production Supabase, broader local/staging RLS coverage, runtime execution domains, and beta unlock.
+- Acceptance criteria: Prompt 24B docs exist, diagnostics pass, evidence status remains `evidence_required` when no counted evidence files exist, redaction status is `not_applicable_no_evidence`, no completed audit is claimed, no secrets or executable Supabase commands are added, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 24C - Supabase Evidence Collection Follow-Up; Prompt 23A remains required before staging SQL or staging mutation.
+- GitHub deliverable: branch, commit, push, PR with redacted evidence review summary and explicit no-Google-Cloud-or-Supabase-execution statement.
+
 ## 25. Staging Supabase/RLS Dry-Run Command Packet
 
 Prompt 25 - Staging Supabase/RLS Dry-Run Command Packet.

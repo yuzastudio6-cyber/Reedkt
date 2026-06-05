@@ -4,7 +4,7 @@
   "status": "rollback_plan_documented",
   "rollbackRequiredForCurrentReports": false,
   "rollbackRequiredIfFutureWriteRuns": true,
-  "rollbackScope": "staging_activation_runs_rows_written_by_phase_id_and_run_id_from_phase44p_export",
+  "rollbackScope": "staging_activation_phase_runs_rows_written_by_phase_id_and_run_id_from_phase44p_export",
   "cleanupPolicy": [
     "delete or revert only rows whose phase_id/run_id match this backfill run",
     "do not drop tables",
@@ -13,6 +13,6 @@
     "record redacted cleanup evidence before promotion review"
   ],
   "blockers": [
-    "supabase_milestone_registry_schema_missing"
+    "staging_supabase_credentials_unavailable"
   ]
 }

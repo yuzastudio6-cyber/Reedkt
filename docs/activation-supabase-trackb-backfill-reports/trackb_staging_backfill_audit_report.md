@@ -9,4 +9,4 @@ This phase consumes the Phase 44P safe Track B milestone export and may write st
 - Write status: blocked
 - Write performed: no
 - Rows written: 0
-- Active blockers: supabase_milestone_registry_schema_missing
+- Active blockers: staging_supabase_credentials_unavailable

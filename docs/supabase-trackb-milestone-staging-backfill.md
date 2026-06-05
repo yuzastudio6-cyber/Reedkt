@@ -17,4 +17,4 @@ Blocked scope:
 - Service-role secrets in frontend or committed artifacts.
 - Provider calls, route execution, worker execution, tool execution, media processing, public output, beta unlock, production unlock, and Track A.
 
-On the PR #196 base, the activation milestone registry schema evidence is not present. The expected fail-closed result is `supabase_milestone_registry_schema_missing` until a Foundation/Supabase-approved registry schema exists before backfill.
+On the PR #196 base, the activation milestone registry schema evidence was not present. The schema/RLS follow-up phase adds the committed registry migration and updates the backfill checker to recognize the new table set, but Track B data backfill remains blocked until a guarded staging rerun has staging credentials, explicit confirmations, and verified schema/RLS.

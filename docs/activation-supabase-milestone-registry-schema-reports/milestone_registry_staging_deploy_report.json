@@ -1,0 +1,21 @@
+{
+  "phase": "supabase-milestone-registry-schema-rls",
+  "runId": "supabase-milestone-registry-schema-rls-20260605",
+  "status": "skipped",
+  "deployPerformed": false,
+  "reason": "blocked_before_staging_deploy",
+  "deploymentWorkflow": "supabase_migration_workflow_only",
+  "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION"
+  ],
+  "credentialPayloadsPrinted": false,
+  "remoteSqlRun": false,
+  "productionSqlRun": false,
+  "productionAffected": false,
+  "backfillRowsWritten": false,
+  "blockers": [
+    "staging_supabase_credentials_unavailable"
+  ]
+}

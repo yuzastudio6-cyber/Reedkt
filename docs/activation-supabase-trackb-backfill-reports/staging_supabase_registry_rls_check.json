@@ -1,8 +1,18 @@
 {
   "phase": "supabase-trackb-milestone-staging-backfill",
   "runId": "supabase-trackb-milestone-staging-backfill-20260605",
-  "status": "skipped",
-  "reason": "schema_check_blocked_before_rls_evaluation",
-  "rlsSafe": false,
+  "status": "passed",
+  "rlsSafe": true,
+  "requiredSnippets": [
+    "enable row level security",
+    "revoke all on table public.activation_phase_runs from public, anon, authenticated",
+    "grant select, insert, update, delete on table public.activation_phase_runs to service_role",
+    "check (production_allowed = false)",
+    "check (external_beta_allowed = false)",
+    "check (broad_media_allowed = false)"
+  ],
+  "missingSnippets": [],
+  "publicAccessGranted": false,
+  "frontendSecretAccess": false,
   "blockers": []
 }

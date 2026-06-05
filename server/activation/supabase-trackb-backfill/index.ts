@@ -61,15 +61,20 @@ export const SUPABASE_TRACKB_BACKFILL_FORBIDDEN_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_ARBITRARY_MEDIA_INPUT',
 ] as const
 
-const REGISTRY_MIGRATION_PATH = 'supabase/migrations/202606040001_activation_milestone_registry.sql'
-const REGISTRY_MODULE_PATH = 'server/activation/supabase-milestone-registry'
+const REGISTRY_MIGRATION_PATH = 'supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql'
+const REGISTRY_MODULE_PATH = 'server/activation/supabase-milestone-registry-schema'
 const EXPECTED_REGISTRY_TABLES = [
-  'activation_runs',
-  'activation_artifacts',
-  'activation_qa_gates',
-  'readiness_snapshots',
-  'tool_capabilities',
-  'feature_gates',
+  'activation_milestones',
+  'activation_phase_runs',
+  'activation_tool_readiness',
+  'activation_pr_evidence',
+  'activation_artifact_manifests',
+  'activation_blockers',
+  'activation_allowed_scopes',
+  'activation_blocked_scopes',
+  'activation_next_phases',
+  'activation_human_approvals',
+  'activation_sync_audit_log',
 ] as const
 
 const FORBIDDEN_EXPORT_KEYS = [
@@ -397,8 +402,8 @@ function buildRegistryRlsCheck(schemaCheck: Record<string, unknown>) {
   const migrationText = readFileSync(REGISTRY_MIGRATION_PATH, 'utf8')
   const requiredSnippets = [
     'enable row level security',
-    'revoke all on table public.activation_runs from public, anon, authenticated',
-    'grant select, insert, update, delete on table public.activation_runs to service_role',
+    'revoke all on table public.activation_phase_runs from public, anon, authenticated',
+    'grant select, insert, update, delete on table public.activation_phase_runs to service_role',
     'check (production_allowed = false)',
     'check (external_beta_allowed = false)',
     'check (broad_media_allowed = false)',
@@ -455,7 +460,7 @@ function buildDiffReport(exportValidationReport: Record<string, unknown>, blocke
     status: blockers.length === 0 ? 'passed' : 'blocked',
     diffMode: blockers.length === 0 ? 'planned_idempotent_upsert_rows' : 'blocked_before_staging_diff',
     sourceExportValidated: exportValidationReport.status === 'passed',
-    plannedTable: 'public.activation_runs',
+    plannedTable: 'public.activation_phase_runs',
     plannedRows: records.length,
     plannedUniqueKey: ['phase_id', 'run_id'],
     remoteStagingReadPerformed: false,
@@ -542,7 +547,7 @@ function buildRollbackPlan(blockers: SupabaseTrackBBackfillBlocker[]) {
     status: 'rollback_plan_documented',
     rollbackRequiredForCurrentReports: false,
     rollbackRequiredIfFutureWriteRuns: true,
-    rollbackScope: 'staging_activation_runs_rows_written_by_phase_id_and_run_id_from_phase44p_export',
+    rollbackScope: 'staging_activation_phase_runs_rows_written_by_phase_id_and_run_id_from_phase44p_export',
     cleanupPolicy: [
       'delete or revert only rows whose phase_id/run_id match this backfill run',
       'do not drop tables',
@@ -753,21 +758,19 @@ function getStagingCredentialsStatus() {
 function toActivationRunRow(record: TrackBSupabaseMilestoneBackfillRecord) {
   return {
     phase_id: record.phaseId,
-    phase_name: record.milestoneName,
     run_id: `${record.phaseId}-${record.exportVersion}`,
-    status: mapActivationStatus(record.status),
+    run_status: mapActivationStatus(record.status),
     track: record.track,
-    subsystem: 'track_b',
+    family: record.family,
     branch: record.branch,
     pr_number: record.prNumber,
     pr_url: record.prUrl,
-    base_branch: SUPABASE_TRACKB_BACKFILL_BASE_BRANCH,
     commit_sha: record.commitSha,
-    qa_status: record.status.includes('blocked') || record.status.includes('excluded') ? 'blocked' : 'passed',
-    readiness_status: record.readinessStatus,
+    source_report_path: record.createdFromReportPath,
     completed_at: null,
-    summary: record.milestoneName,
-    summary_json: {
+    result_json: {
+      milestoneName: record.milestoneName,
+      readinessStatus: record.readinessStatus,
       family: record.family,
       toolIds: record.toolIds,
       betaStatus: record.betaStatus,
@@ -778,18 +781,25 @@ function toActivationRunRow(record: TrackBSupabaseMilestoneBackfillRecord) {
       artifactPrefix: record.artifactPrefix,
       artifactObjectCount: record.artifactObjectCount ?? 0,
     },
-    blockers_json: record.blockedScopes,
-    warnings_json: [
+    blocker_codes: record.blockedScopes,
+    production_allowed: false,
+    external_beta_allowed: false,
+    paid_production_allowed: false,
+    broad_media_allowed: false,
+    public_output_allowed: false,
+    provider_calls_allowed: false,
+    warnings: [
       'staging metadata backfill only',
       'production, beta, route execution, workers, tools, media, providers, and Track A remain blocked',
     ],
   }
 }
 
-function mapActivationStatus(status: string): 'planned' | 'completed' | 'partial' | 'blocked' {
+function mapActivationStatus(status: string): 'planned' | 'passed' | 'blocked' | 'warning' | 'skipped' | 'approved' {
   if (status.includes('blocked') || status.includes('excluded')) return 'blocked'
-  if (status.includes('phase_complete') || status.includes('internally_beta_ready_candidate')) return 'completed'
-  return 'partial'
+  if (status.includes('phase_complete') || status.includes('internally_beta_ready_candidate')) return 'passed'
+  if (status.includes('approved')) return 'approved'
+  return 'warning'
 }
 
 async function writeStagingRows(url: string, serviceRoleKey: string, records: TrackBSupabaseMilestoneBackfillRecord[]) {
@@ -800,9 +810,9 @@ async function writeStagingRows(url: string, serviceRoleKey: string, records: Tr
     })
     const rows = records.map((record) => toActivationRunRow(record))
     const { error, data } = await client
-      .from('activation_runs')
+      .from('activation_phase_runs')
       .upsert(rows, { onConflict: 'phase_id,run_id' })
-      .select('phase_id,run_id,status')
+      .select('phase_id,run_id,run_status')
     if (error) {
       return {
         phase: SUPABASE_TRACKB_BACKFILL_PHASE,
@@ -851,8 +861,8 @@ async function verifyStagingRows(url: string, serviceRoleKey: string, records: T
     })
     const phaseIds = records.map((record) => record.phaseId)
     const { data, error } = await client
-      .from('activation_runs')
-      .select('phase_id,run_id,status')
+      .from('activation_phase_runs')
+      .select('phase_id,run_id,run_status')
       .in('phase_id', phaseIds)
     if (error) {
       return {

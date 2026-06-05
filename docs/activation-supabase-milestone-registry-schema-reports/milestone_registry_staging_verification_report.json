@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-milestone-registry-schema-rls",
+  "runId": "supabase-milestone-registry-schema-rls-20260605",
+  "status": "skipped",
+  "verificationPerformed": false,
+  "reason": "staging_deploy_not_performed",
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "remoteSqlRun": false,
+  "productionSqlRun": false,
+  "productionAffected": false,
+  "blockers": [
+    "staging_supabase_credentials_unavailable"
+  ]
+}

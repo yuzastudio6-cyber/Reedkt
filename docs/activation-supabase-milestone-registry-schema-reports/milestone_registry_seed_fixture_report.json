@@ -1,0 +1,18 @@
+{
+  "phase": "supabase-milestone-registry-schema-rls",
+  "runId": "supabase-milestone-registry-schema-rls-20260605",
+  "status": "passed",
+  "seedPath": "supabase/seed/activation_milestone_registry_seed.sql",
+  "seedExists": true,
+  "localOnly": true,
+  "includesPassedMilestone": true,
+  "includesBlockedMilestone": true,
+  "includesReadiness": true,
+  "includesBlocker": true,
+  "includesPrEvidence": true,
+  "includesArtifactMetadata": true,
+  "unsafePayloadDetected": false,
+  "stagingSeedRun": false,
+  "productionSeedRun": false,
+  "blockers": []
+}

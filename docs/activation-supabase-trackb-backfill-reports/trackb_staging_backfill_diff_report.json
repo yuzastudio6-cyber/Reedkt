@@ -4,7 +4,7 @@
   "status": "blocked",
   "diffMode": "blocked_before_staging_diff",
   "sourceExportValidated": true,
-  "plannedTable": "public.activation_runs",
+  "plannedTable": "public.activation_phase_runs",
   "plannedRows": 30,
   "plannedUniqueKey": [
     "phase_id",
@@ -14,6 +14,6 @@
   "remoteSqlRun": false,
   "rowsToInsertOrUpdate": [],
   "blockers": [
-    "supabase_milestone_registry_schema_missing"
+    "staging_supabase_credentials_unavailable"
   ]
 }

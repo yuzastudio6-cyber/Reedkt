@@ -5,6 +5,7 @@
 Prompt 23A records conditional staging-only user/owner authorization for future Supabase/RLS validation.
 
 - Branch: `codex/rp-foundation-23a-human-approval-decision-completion`
+- PR: [PR #210](https://github.com/yuzastudio6-cyber/Reedkt/pull/210)
 - PR title: `[foundation] Prompt 23A human approval decision completion`
 - Capability enabled: none; conditional staging-only human approval record only.
 - Decision state: `approved_for_staging_validation_when_gates_pass`.

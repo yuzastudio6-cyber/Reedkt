@@ -70,7 +70,9 @@ Prompt 23A records conditional staging-only user/owner authorization for future 
 
 ## CI Status
 
-GitHub Foundation Validation is pending until this branch is pushed and the PR is opened.
+PR: [PR #210](https://github.com/yuzastudio6-cyber/Reedkt/pull/210).
+
+GitHub Foundation Validation is pending.
 
 ## Blockers
 

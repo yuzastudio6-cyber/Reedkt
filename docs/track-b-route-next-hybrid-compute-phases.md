@@ -12,8 +12,9 @@ Completed metadata phases:
 - Phase 44J: hybrid compute E2E simulation.
 - Phase 44K: desktop beta readiness gate for restricted metadata/planning/simulation.
 - Phase 44L: route dry-run approval packet for a future no-op handshake only.
+- Phase 44M: no-op route dry-run execution for `candidate-noop-sidecar-handshake` only.
 
-Next candidate phase: Phase 44M no-op route dry-run execution before any live execution approval.
+Next candidate phase: a separate metadata-only route dry-run approval/execution phase before any live execution approval.
 
 Cost/capacity labels in the route manifest remain metadata only: `cpu_low`, `cpu_medium`, `cpu_heavy`, `gpu_required`, `blocked_unknown`, and `pending_estimator`.
 

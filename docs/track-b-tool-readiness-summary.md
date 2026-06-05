@@ -31,4 +31,6 @@ Phase 44K desktop beta readiness gate status: internally beta-ready candidate fo
 
 Phase 44L Track B route dry-run approval packet status: approved only for a future `candidate-noop-sidecar-handshake` dry-run in Phase 44M. Phase 44L does not execute the dry-run.
 
-Next recommended phase: Phase 44M no-op route dry-run execution. Route execution, worker execution, production, product-wide beta, external beta, broad-media, public-artifact, provider, local sidecar execution, tool execution, VLM, Demucs, raw chat execution, and Track A scopes remain blocked.
+Phase 44M Track B no-op route dry-run status: phase-complete restricted scope for the approved no-op handshake harness only. Plan snapshot validation, artifact scope validation, secret payload guard, no-op audit, and 12 failure fixtures passed without real worker, sidecar, tool, media, provider, or secret payload access.
+
+Next recommended phase: a separate metadata-only route dry-run approval/execution phase. Live route execution, worker execution, production, product-wide beta, external beta, broad-media, public-artifact, provider, local sidecar execution, tool execution, VLM, Demucs, raw chat execution, and Track A scopes remain blocked.

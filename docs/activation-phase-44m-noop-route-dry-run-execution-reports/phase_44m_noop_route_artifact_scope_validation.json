@@ -1,0 +1,14 @@
+{
+  "phase": "44M",
+  "runId": "phase44m-noop-route-dry-run-execution-20260605",
+  "inputArtifactScopeId": "phase44l-input-scope-metadata-only",
+  "outputArtifactScopeId": "phase44l-output-scope-metadata-only",
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [],
+  "publicOutputAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "arbitraryPathAllowed": false,
+  "broadMediaAllowed": false
+}

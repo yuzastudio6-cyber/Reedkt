@@ -1,0 +1,20 @@
+{
+  "phase": "44M",
+  "runId": "phase44m-noop-route-dry-run-execution-20260605",
+  "status": "phase44l_committed_safe_metadata_loaded",
+  "sourceApprovalPr": 188,
+  "sourceApprovalReportDir": "docs/activation-phase-44l-route-dry-run-approval-reports",
+  "selectedCandidateId": "candidate-noop-sidecar-handshake",
+  "phase44lDecision": "approved_for_future_noop_route_dry_run",
+  "phase44lDecisionStatus": "passed",
+  "phase44lPlanSnapshotId": "phase44l-plan-snapshot-candidate-noop-sidecar-handshake-v1",
+  "phase44lOutputArtifactScopeId": "phase44l-output-scope-metadata-only",
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "publicOutputAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "realToolRuntimeCandidatesApproved": false,
+  "privatePayloadsRead": false,
+  "secretPayloadsRead": false
+}

@@ -454,7 +454,12 @@
     "activation:approved-plan-snapshot-validation:report": "tsx server/cli/activation-approved-plan-snapshot-validation-report.ts",
     "activation:approved-plan-snapshot-validation:iam-plan": "tsx server/cli/activation-approved-plan-snapshot-validation-iam-plan.ts",
     "activation:approved-plan:summary": "tsx server/cli/activation-approved-plan-summary.ts",
-    "smoke:activation-approved-plan-snapshot-validation": "tsx server/smoke/activation-approved-plan-snapshot-validation-smoke.ts"
+    "smoke:activation-approved-plan-snapshot-validation": "tsx server/smoke/activation-approved-plan-snapshot-validation-smoke.ts",
+    "activation:system-readiness-reconciliation": "tsx server/cli/activation-system-readiness-reconciliation.ts",
+    "activation:system-readiness-reconciliation:report": "tsx server/cli/activation-system-readiness-reconciliation-report.ts",
+    "activation:system-readiness-reconciliation:iam-plan": "tsx server/cli/activation-system-readiness-reconciliation-iam-plan.ts",
+    "activation:system-readiness:summary": "tsx server/cli/activation-system-readiness-summary.ts",
+    "smoke:activation-system-readiness-reconciliation": "tsx server/smoke/activation-system-readiness-reconciliation-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

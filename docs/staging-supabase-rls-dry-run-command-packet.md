@@ -7,17 +7,17 @@ Prompt 25 does not run Supabase lifecycle commands, SQL, migrations, `psql`, sta
 ## Current Decision State
 
 - Dry-run packet status: `blocked_missing_evidence`.
-- Human approval status: `blocked_missing_approval`.
+- Human approval status: `conditional_approval_recorded`.
 - Supabase update required: docs/status only.
 - Supabase update status: docs_only.
 - Supabase environment touched: none.
 - SQL executed: none.
 - Migration deployed: no.
-- Staging execution approved: no.
+- Staging execution approval: conditional when gates pass.
 - Production readiness approved: no.
 - Beta unlocked: no.
 
-Prompt 23 remains `pending_human_approval`. Prompt 24A records `evidence_required` and `not_applicable_no_evidence` because no tracked redacted Supabase project evidence has been supplied.
+Prompt 23A records `approved_for_staging_validation_when_gates_pass`. Prompt 23A records conditional staging-only approval, but this packet remains no-go until every gate passes. Prompt 24A records `evidence_required` and `not_applicable_no_evidence` because no tracked redacted Supabase project evidence has been supplied.
 
 Prompt 25A requires future staging command packets to use GCP Secret Manager reference placeholders for Supabase values. Future packet text must refer to placeholders such as `<GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF>` and `<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>` instead of raw Supabase project refs, database URLs, keys, JWT secrets, or storage endpoints.
 
@@ -39,7 +39,7 @@ The packet covers:
 
 The packet may support a future approved Prompt 26 only after all prerequisites are true:
 
-- a human approval completion record exists;
+- a conditional human approval completion record exists;
 - redacted Supabase project evidence has been supplied and accepted;
 - staging project identity is confirmed and redacted;
 - production project identity remains separate and blocked;
@@ -71,10 +71,10 @@ This packet does not approve:
 | --- | --- | --- |
 | Static repo validation | Confirm approved branch, commit, and SQL file list. | Template only. Not run. |
 | Staging identity verification | Confirm redacted staging project identity and production separation. | Blocked by missing evidence. |
-| Migration dry-run review | Review migration command packet before any apply. | Blocked by missing approval and evidence. |
-| RLS dry-run review | Review selected SQL tests and fixtures. | Blocked by missing approval and evidence. |
-| Cleanup review | Review cleanup packet for synthetic fixtures. | Blocked by missing approval and evidence. |
-| Rollback review | Review rollback packet and owner chain. | Blocked by missing approval and evidence. |
+| Migration dry-run review | Review migration command packet before any apply. | Blocked by missing evidence and incomplete gates. |
+| RLS dry-run review | Review selected SQL tests and fixtures. | Blocked by missing evidence and incomplete gates. |
+| Cleanup review | Review cleanup packet for synthetic fixtures. | Blocked by missing evidence and incomplete gates. |
+| Rollback review | Review rollback packet and owner chain. | Blocked by missing evidence and incomplete gates. |
 
 ## Future Command Template Example
 
@@ -89,9 +89,9 @@ The full future command template set lives in `docs/staging-supabase-future-comm
 
 ## Required Evidence Before Use
 
-Prompt 25 requires these evidence categories before any future staging command can move from template to execution:
+Prompt 25 requires these evidence and gate categories before any future staging command can move from template to execution:
 
-- human approval decision completion;
+- conditional human approval decision completion;
 - redacted staging project identity;
 - redacted production separation evidence;
 - approved branch and commit evidence;
@@ -103,4 +103,4 @@ Prompt 25 requires these evidence categories before any future staging command c
 
 ## Safety Summary
 
-Prompt 25 keeps all staging commands blocked. The packet is ready for review only as documentation. The next safe actions are Prompt 23A for human approval completion and Prompt 24B for redacted evidence review if evidence is supplied.
+Prompt 25 keeps all staging commands blocked. Prompt 23A records conditional approval, but the packet remains documentation-only until evidence, target, commit, test-set, cleanup, rollback, and Secret Manager reference gates pass. The next safe action is Prompt 24D for redacted evidence review if evidence is supplied.

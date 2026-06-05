@@ -39,7 +39,7 @@ const requiredTermsByFile = {
     'Supabase update status: docs_only.',
     'Supabase environment touched: none.',
     'SQL executed: none.',
-    'Prompt 23 remains `pending_human_approval`.',
+    'Prompt 23A records conditional staging-only approval, but Secret Manager reference and evidence gates remain required.',
     'All staging and production Supabase values must be handled as Secret Manager references, not copied values.',
     'Future approved discovery may confirm whether expected Secret Manager entries exist by listing redacted metadata only.',
     'Secret values may be used only by a future approved runtime or manual operator flow that keeps payloads outside Codex and outside tracked repo artifacts.',
@@ -163,7 +163,7 @@ function finding(file, kind, line, excerpt) {
 }
 
 function isSafeContext(line) {
-  return /\b(no|not|never|forbid|forbidden|blocked|must not|do not|does not|did not|without|placeholder|reference only|future-only|template|redacted|none|pending|required|prohibited|warning|partially_reviewed_connected_metadata|connected metadata)\b/i.test(line)
+  return /\b(no|not|never|forbid|forbidden|blocked|must not|do not|does not|did not|without|placeholder|reference only|future-only|template|redacted|none|pending|required|prohibited|warning|partially_reviewed_connected_metadata|connected metadata|conditional approval|approved_for_staging_validation_when_gates_pass|conditional_approval_recorded|gates remain required)\b/i.test(line)
 }
 
 function scanPatterns(files, patterns, kind, { redact = false } = {}) {

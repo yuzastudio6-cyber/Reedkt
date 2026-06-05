@@ -102,4 +102,4 @@ Scorecard update:
 
 ## Next Prompt
 
-Recommended next prompt: Prompt 23A - Human Approval Decision Completion. Prompt 24 may only proceed after an actual human approval decision is supplied and recorded by a human owner.
+Prompt 23A follow-up note: user/owner chat authorization was later supplied and recorded in `docs/prompt-23a-validation-results.md` as `approved_for_staging_validation_when_gates_pass`. Prompt 23 remains the historical pending-decision record; Prompt 23A is the current conditional staging-only approval record. Staging execution still requires accepted evidence, redacted project identity, approved PR/commit/test-set, Secret Manager reference handling, cleanup, and rollback gates.

@@ -2,14 +2,14 @@
 
 Prompt 25 maps the existing local-passed and draft SQL files to future staging command templates. It does not run SQL and does not approve staging execution.
 
-Current packet state: `blocked_missing_evidence` and `blocked_missing_approval`.
+Current packet state: `blocked_missing_evidence` and `conditional_approval_recorded`.
 
 ## Matrix Rules
 
 - Only `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` may be marked `local-passed`.
 - Draft files remain `draft-only`, `requires fixture design`, `requires schema review`, or `blocked`.
 - Future command templates are placeholders only.
-- Every future staging command remains blocked until a human approval record and accepted redacted evidence exist.
+- Every future staging command remains blocked until conditional approval gates and accepted redacted evidence are complete.
 
 ## Test Matrix
 

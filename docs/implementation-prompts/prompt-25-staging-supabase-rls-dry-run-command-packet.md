@@ -12,7 +12,7 @@ Prompt 25 creates a future staging Supabase/RLS dry-run command packet from the 
 ## Decision State
 
 - Dry-run packet status: `blocked_missing_evidence`.
-- Human approval status: `blocked_missing_approval`.
+- Human approval status: `conditional_approval_recorded`.
 - Supabase update required: docs/status only.
 - Supabase update status: docs_only.
 - Supabase environment touched: none.
@@ -50,8 +50,8 @@ Prompt 25 creates a future staging Supabase/RLS dry-run command packet from the 
 - Stripe.
 - Telemetry.
 - Dependency mutation.
-- Human approval grant.
-- Staging execution approval.
+- Unconditional human approval grant.
+- Staging execution before gates pass.
 - Production or beta unlock.
 
 ## Deliverables
@@ -94,8 +94,8 @@ Prompt 25 creates a future staging Supabase/RLS dry-run command packet from the 
 - Test matrix includes the local passed SQL candidate plus draft SQL files `006` through `020`.
 - Diagnostics pass and are wired into foundation validation.
 - Trackers reference Prompt 25.
-- No staging execution, SQL execution, migration deployment, Supabase environment mutation, human approval grant, production readiness, or beta unlock is claimed.
+- No staging execution, SQL execution, migration deployment, Supabase environment mutation, unconditional human approval grant, production readiness, or beta unlock is claimed.
 
 ## Recommended Next Prompt
 
-Prompt 23A - Human Approval Decision Completion and Prompt 24B - Supabase Redacted Evidence Review remain prerequisites before any Prompt 26 staging Supabase/RLS validation execution.
+Prompt 24D - Supabase Evidence Review With Supplied Files remains required before any Prompt 26 staging Supabase/RLS validation execution.

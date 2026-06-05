@@ -45,7 +45,7 @@ Prompt 26B uses only the supplied Prompt 26A connected read-only findings:
 - Advisor findings are unresolved.
 - Redacted Supabase evidence files remain incomplete.
 - Secret Manager reference metadata evidence remains incomplete.
-- Prompt 23 remains `pending_human_approval`.
+- Prompt 23A records conditional staging-only approval, but evidence and execution gates remain incomplete.
 - Staging SQL is not approved.
 - Production/beta remains blocked.
 

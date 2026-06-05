@@ -1,79 +1,99 @@
 # Staging Supabase Human Approval Decision Record
 
-Prompt 23 records the current human approval decision state after the Prompt 22 review packet. No human approver details were supplied for this milestone, so the only valid decision state is `pending_human_approval`.
+Prompt 23A records the human owner authorization supplied in chat after Prompt 23 had recorded `pending_human_approval`.
 
-This document is a blocker record. It does not approve staging Supabase/RLS execution, staging SQL, production readiness, beta unlock, deployment, or runtime execution.
+This is a conditional staging-only approval record. It authorizes future staging Supabase/RLS validation only when required gates pass. It does not approve production, beta, real data, runtime execution, provider calls, tool execution, worker execution, rendering/export, storage transfer, credit mutation, Stripe/payment processing, deployment, or broad service-role runtime.
 
 ## Current Decision
 
 | Field | Current value |
 | --- | --- |
-| Decision state | `pending_human_approval` |
-| Human approver recorded | No |
-| Staging execution approved | No |
-| Staging SQL approved | No |
+| Decision state | `approved_for_staging_validation_when_gates_pass` |
+| Approval type | `conditional_staging_validation_approval` |
+| Approval source | `user_owner_chat_authorization` |
+| Human approver recorded | Yes, as owner/user chat authorization only |
+| Staging execution approval | Conditional; only when all gates pass |
+| Staging SQL approval | Conditional; only approved staging-safe SQL/RLS tests in a later execution prompt |
 | Production readiness approved | No |
 | Beta unlock approved | No |
-| Next allowed prompt | Prompt 23A - Human Approval Decision Completion |
+| Next allowed prompt | Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after gates pass |
 
-Prompt 22 marked the approval packet as `ready_for_human_review`. That readiness state means the packet can be reviewed by a human owner; it does not grant approval. Prompt 23 confirms that no human approval details were supplied.
+Prompt 22 marked the approval packet as `ready_for_human_review`. Prompt 23 recorded that approval was still pending. Prompt 23A now records user/owner chat authorization, but keeps execution blocked until every staging gate is complete.
 
 ## Evidence Reviewed
 
-| Evidence | Current status | Prompt 23 interpretation |
+| Evidence | Current status | Prompt 23A interpretation |
 | --- | --- | --- |
 | Prompt 20B-Retry local RLS smoke result | One guarded local auth/profile/workspace/project SQL path passed | Partial local evidence only. |
 | Prompt 21 staging approval packet | Prepared | Approval preparation only. |
-| Prompt 22 human review packet | `ready_for_human_review` | Review-ready, not approved. |
-| Human approval details | Not supplied | Staging remains blocked. |
-| Staging Supabase/RLS evidence | Not collected | No staging claim can be made. |
+| Prompt 22 human review packet | `ready_for_human_review` | Review-ready packet. |
+| Prompt 23 decision record | `pending_human_approval` | Superseded by Prompt 23A conditional authorization. |
+| User/owner chat authorization | Supplied | Conditional staging-only approval source. |
+| Staging Supabase/RLS evidence | Not collected | Required before execution. |
+| Redacted staging project identity | Not accepted | Required before execution. |
+| Approved PR/commit/test set | Not selected | Required before execution. |
 | Production readiness evidence | Not collected | Production remains blocked. |
 
 Prompt 20B-Retry proves only one local auth/profile/workspace/project RLS smoke path. It does not prove broader local RLS coverage, staging RLS, staging migrations, production RLS, runtime behavior, or beta readiness.
 
-## What Has Not Happened
+## Conditional Approval Scope
 
-- No human approver name, role, date, PR, commit, or approval statement was supplied.
-- No redacted staging project reference was approved.
-- No staging fixture plan was approved for execution.
-- No staging SQL test set was approved.
-- No staging SQL ran.
-- No staging, remote, or production Supabase target was touched.
-- No production readiness, beta readiness, or runtime capability was approved.
+Approved for future execution prompts only:
 
-## Required Future Human Decision Fields
+- verify staging project identity through redacted evidence;
+- use Google Cloud Secret Manager reference names/placeholders only;
+- run approved staging Supabase/RLS validation after required gates pass;
+- use synthetic, cleanupable fixtures only;
+- run approved staging-safe SQL/RLS tests only;
+- collect redacted evidence;
+- run cleanup and rollback according to the approved packet.
 
-A future human-owned decision record must include:
+## Required Gates Before Execution
 
-- approver name;
-- approver role;
-- approval date and time;
-- reviewed PR and commit;
-- redacted staging project reference;
-- exact staging test set;
-- synthetic fixture namespace and cleanup plan;
-- rollback owner and cleanup owner;
-- execution restrictions;
-- evidence redaction requirements;
-- expiration or review date;
-- explicit statement that production readiness and beta unlock remain blocked unless separately approved.
+- accepted redacted Supabase project evidence;
+- confirmed staging project identity and production separation;
+- approved branch, PR, commit, and SQL/RLS test set;
+- accepted synthetic fixture namespace;
+- cleanup owner and rollback owner recorded;
+- GCP Secret Manager reference names verified as references only, not values;
+- no raw secrets, signed URLs, private media URLs, service-role keys, provider keys, Stripe keys, JWT secrets, or full database connection strings;
+- stop-on-first-failure rule accepted.
+
+## Still Blocked
+
+- production Supabase;
+- production data;
+- production/beta unlock;
+- real user data;
+- provider calls;
+- render/export execution;
+- tool execution;
+- worker execution;
+- production job claims;
+- media processing;
+- storage transfer or signed URL creation;
+- Stripe/payment processing;
+- raw secret exposure;
+- broad service-role runtime.
+
+## RLS Boundary
+
+Future staging RLS validation must treat public/exposed schema tables conservatively. Supabase RLS guidance requires explicit RLS and policy thinking for exposed schema tables, and `anon`, `authenticated`, and `service_role` behavior must be evaluated separately. Prompt 23A records approval state only; it does not create policies, grants, SQL files, or migrations.
 
 ## Current Decision Booleans
 
 | Boolean | Value |
 | --- | --- |
-| `stagingExecutionApproved` | `false` |
-| `stagingSqlApproved` | `false` |
+| `stagingExecutionApprovedWhenGatesPass` | `true` |
+| `stagingSqlApprovedWhenGatesPass` | `true` |
 | `productionReadinessApproved` | `false` |
 | `betaUnlockApproved` | `false` |
-| `humanApproverRecorded` | `false` |
+| `humanApproverRecorded` | `true` |
 
 ## Next Step
 
-Recommended next prompt: Prompt 23A - Human Approval Decision Completion.
-
-Prompt 24 may only be considered after an actual human approval decision is supplied and recorded by a human owner. This Prompt 23 record does not authorize Prompt 24 staging execution.
+Recommended next prompt: Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after gates pass. If the required evidence, project, commit, test-set, Secret Manager reference, cleanup, or rollback gates are incomplete, use Prompt 23A-A - Human Approval Decision Record Hardening or the appropriate evidence hardening prompt before execution.
 
 ## Explicit Boundary
 
-No staging deployment, production deployment, staging Supabase execution, remote Supabase execution, production Supabase execution, local SQL execution, staging SQL execution, remote SQL execution, migration deployment, `supabase start`, `supabase status`, `supabase db reset`, `supabase link`, raw `psql`, provider call, rendering/export, tool execution, worker execution, production job claim, media processing, browser capture, storage transfer, signed URL creation, credit mutation, Stripe checkout/webhook/payment processing, external telemetry, production/beta unlock, schema-changing production migration, dependency mutation, human approval grant, or broad service-role handler is enabled by Prompt 23.
+No staging deployment, production deployment, staging Supabase execution, remote Supabase execution, production Supabase execution, local SQL execution, staging SQL execution, remote SQL execution, migration deployment, `supabase start`, `supabase status`, `supabase db reset`, `supabase link`, raw `psql`, Google Cloud API call, Secret Manager API call, Secret Manager metadata fetch, Secret Manager value fetch, provider call, rendering/export, tool execution, worker execution, production job claim, media processing, browser capture, storage transfer, signed URL creation, credit mutation, Stripe checkout/webhook/payment processing, external telemetry, production/beta unlock, schema-changing production migration, dependency mutation, or broad service-role handler is enabled by Prompt 23A.

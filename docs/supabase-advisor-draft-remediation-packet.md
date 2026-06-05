@@ -49,7 +49,7 @@ The packet uses only Prompt 26A supplied connected read-only findings and Prompt
 Execution readiness is defined in `docs/supabase-advisor-draft-remediation-execution-readiness.md`. Current state:
 
 - Local execution readiness: not ready.
-- Staging execution readiness: blocked by `pending_human_approval`, missing accepted redacted evidence, and draft-only remediation.
+- Staging execution readiness: blocked by incomplete conditional approval gates, missing accepted redacted evidence, and draft-only remediation.
 - Production execution readiness: blocked.
 - Advisor remediation applied: no.
 

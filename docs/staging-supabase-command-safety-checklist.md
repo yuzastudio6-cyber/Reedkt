@@ -1,6 +1,6 @@
 # Staging Supabase Command Safety Checklist
 
-Current packet state: `blocked_missing_evidence` and `blocked_missing_approval`.
+Current packet state: `blocked_missing_evidence` and `conditional_approval_recorded`.
 
 Prompt 25A adds the GCP Secret Manager Supabase reference rule. Future command packets must use reference placeholders such as `<GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF>` and `<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>` instead of raw Supabase values.
 
@@ -12,7 +12,7 @@ Use this checklist before any future staging Supabase/RLS command packet is cons
 
 | Gate | Required before staging command execution | Prompt 25 state |
 | --- | --- | --- |
-| Human approval completion record | Required | Missing |
+| Human approval completion record | Required | Conditional approval recorded; execution gates incomplete |
 | Redacted evidence acceptance | Required | Missing |
 | Staging project identity confirmed | Required | Missing |
 | Production project separation confirmed | Required | Missing |
@@ -52,4 +52,4 @@ Future templates must use placeholders only:
 - Supabase environment touched: none.
 - SQL executed: none.
 - Migration deployed: no.
-- Next allowed preparation: Prompt 23A human approval completion and Prompt 24B redacted evidence review if evidence is supplied.
+- Next allowed preparation: Prompt 24D redacted evidence review if evidence is supplied.

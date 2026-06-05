@@ -60,7 +60,7 @@ echo "Record approved future command evidence for <REDACTED_STAGING_PROJECT_REF>
 ## Current Prompt 25 Evidence
 
 - Evidence status: `evidence_required`.
-- Approval status: `blocked_missing_approval`.
+- Approval status: `conditional_approval_recorded`.
 - Supabase update required: docs/status only.
 - Supabase update status: docs_only.
 - Supabase environment touched: none.

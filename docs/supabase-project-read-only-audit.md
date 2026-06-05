@@ -50,10 +50,11 @@ Activity should appear only after approved Supabase actions occur, such as proje
 - Prompt 20B-Retry passed one guarded local-only auth/profile/workspace/project RLS smoke test.
 - Prompt 21 prepared the staging Supabase/RLS approval packet.
 - Prompt 22 marked the packet `ready_for_human_review`.
-- Prompt 23 recorded `pending_human_approval`.
+- Prompt 23 recorded historical `pending_human_approval`.
+- Prompt 23A recorded conditional staging-only approval as `approved_for_staging_validation_when_gates_pass`.
 - Prompt 23S created the milestone sync policy and kept staging sync `not_applied`.
 
-Prompt 23 remains `pending_human_approval`; Prompt 24 does not change that state.
+Prompt 23A records conditional staging-only approval, but Prompt 24 does not execute staging audit or SQL.
 
 ## Missing Evidence
 
@@ -104,7 +105,7 @@ Evidence must redact:
 - Supabase environment touched: none.
 - SQL executed: none.
 - Migration deployed: no.
-- Staging approval: still `pending_human_approval`.
+- Staging approval: `conditional_approval_recorded`; evidence and execution gates remain incomplete.
 - Production readiness: blocked.
 
 ## Prompt 24A Evidence Intake

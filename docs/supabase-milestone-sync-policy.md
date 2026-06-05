@@ -11,11 +11,11 @@ Future milestone summaries must distinguish:
 - repo milestone completed;
 - local evidence collected;
 - staging approval prepared;
-- staging approval pending, granted, or blocked;
+- staging approval pending, conditional, granted, or blocked;
 - staging Supabase actually updated;
 - production Supabase actually updated.
 
-Prompt 23 records `pending_human_approval` because no human approval details were supplied. Prompt 23S does not treat staging as approved, staging as applied, or production as approved.
+Prompt 23 records `pending_human_approval` historically because no human approval details were supplied. Prompt 23A records conditional staging-only approval as `approved_for_staging_validation_when_gates_pass`. Prompt 23S does not treat conditional approval as staging applied, staging validated, or production approved.
 
 ## Update Types
 
@@ -37,9 +37,9 @@ Prompt 23 records `pending_human_approval` because no human approval details wer
 - Local evidence does not imply staging evidence.
 - Staging approval packets do not imply staging execution.
 - A pending human approval decision does not imply staging approval.
-- Human approval for staging, if later granted by a human owner, does not imply production approval.
+- Conditional human approval for staging does not imply staging execution, staging validation, or production approval.
 - No AI-created artifact may approve production.
-- No staging update may happen without human approval and execution-time gates.
+- No staging update may happen without conditional approval and execution-time gates.
 - No production update may happen without prior staging evidence, human approval, rollback plan, and cleanup plan.
 - No committed evidence may contain service-role keys, provider keys, Stripe keys, JWT secrets, signed URLs, full connection strings, or private media URLs.
 
@@ -68,8 +68,8 @@ Prompt 23S creates only the sync policy package and diagnostic checks. Current s
 
 - Supabase update type: `docs/status only`.
 - Local evidence: existing Prompt 20B-Retry local evidence only.
-- Staging approval: Prompt 23 remains `pending_human_approval`.
+- Staging approval: Prompt 23A records `approved_for_staging_validation_when_gates_pass`.
 - Staging sync status: not applied.
 - Production sync status: blocked.
 - Production readiness: not approved.
-- Next Supabase action: Prompt 24 may perform read-only inventory/audit only; staging SQL remains blocked until a human approval completion record exists.
+- Next Supabase action: Prompt 24D may review supplied redacted evidence; staging SQL remains blocked until conditional approval gates, accepted evidence, target identity, approved commit/test-set, Secret Manager references, cleanup, and rollback are complete.

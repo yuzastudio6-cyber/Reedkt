@@ -11,12 +11,23 @@ const prompt23Docs = [
   'docs/implementation-prompts/prompt-23-staging-supabase-rls-human-approval-decision-record.md',
 ]
 
+const prompt23aDocs = [
+  'docs/prompt-23a-validation-results.md',
+  'docs/implementation-prompts/prompt-23a-human-approval-decision-completion.md',
+]
+
 const priorPacketDocs = [
   'docs/staging-supabase-rls-approval-packet.md',
   'docs/staging-supabase-human-approval-review.md',
   'docs/staging-supabase-human-approval-checklist.md',
   'docs/staging-supabase-approval-decision-template.md',
   'docs/prompt-22-validation-results.md',
+]
+
+const laterGateDocs = [
+  'docs/staging-supabase-rls-dry-run-command-packet.md',
+  'docs/gcp-secret-manager-supabase-reference-contract.md',
+  'docs/supabase-milestone-sync-matrix.md',
 ]
 
 const trackingFiles = [
@@ -32,27 +43,34 @@ const trackingFiles = [
 ]
 
 const requiredDecisionRecordTerms = [
-  'pending_human_approval',
+  'approved_for_staging_validation_when_gates_pass',
+  'conditional_staging_validation_approval',
+  'user_owner_chat_authorization',
+  'conditional staging-only approval',
   'Prompt 20B-Retry proves only one local auth/profile/workspace/project RLS smoke path',
-  'Prompt 22 marked the approval packet as `ready_for_human_review`',
-  'no human approval details were supplied',
-  'Prompt 23A - Human Approval Decision Completion',
+  'public/exposed schema tables',
+  '`anon`, `authenticated`, and `service_role`',
 ]
 
 const requiredChecklistTerms = [
-  'Prompt 23 does not complete this checklist and does not grant approval',
-  'Human approver recorded: no',
-  'Staging execution approved: no',
-  'Staging SQL approved: no',
-  'Production readiness approved: no',
-  'Beta unlock approved: no',
+  'Human authorization supplied through chat.',
+  'Approval source recorded as `user_owner_chat_authorization`.',
+  'Accepted Supabase evidence: still required.',
+  'Approved PR/commit: still required before execution.',
+  'Production approval: no.',
+  'Beta unlock: no.',
 ]
 
 const requiredValidationTerms = [
-  'Decision state: `pending_human_approval`',
-  'Human approver recorded: no',
+  'Decision state: `approved_for_staging_validation_when_gates_pass`',
+  'Approval type: `conditional_staging_validation_approval`',
+  'Approval source: `user_owner_chat_authorization`',
   'Staging Supabase/RLS has not run',
-  'Prompt 23A - Human Approval Decision Completion',
+]
+
+const requiredRubricTerms = [
+  'conditional_go_pending_gates',
+  'execution is still blocked until evidence, project identity, commit, test-set, Secret Manager reference, synthetic fixture, rollback, and cleanup gates are complete',
 ]
 
 const forbiddenAffirmativePatterns = [
@@ -60,12 +78,10 @@ const forbiddenAffirmativePatterns = [
   /"stagingSqlApproved"\s*:\s*true/i,
   /"productionReadinessApproved"\s*:\s*true/i,
   /"betaUnlockApproved"\s*:\s*true/i,
-  /"humanApproverRecorded"\s*:\s*true/i,
-  /\bdecisionState\b.{0,80}\bapproved_for_staging_validation\b/i,
+  /\b(applied_to_staging|validated_in_staging|applied_to_production|approved_for_production)\b/i,
   /\bstaging (sql|supabase|rls) (has )?(passed|run|executed)\b/i,
-  /\bstaging execution (is )?(approved|granted|allowed)\b/i,
-  /\bstaging sql (is )?(approved|granted|allowed)\b/i,
-  /\bhuman approval (is )?(approved|granted|recorded)\b/i,
+  /\bstaging execution (is )?(unconditionally )?(granted|allowed)\b/i,
+  /\bstaging sql (is )?(unconditionally )?(granted|allowed)\b/i,
   /\bproduction (readiness|beta) (is )?(approved|unlocked|enabled)\b/i,
   /\bbeta (is )?(approved|unlocked|enabled)\b/i,
 ]
@@ -78,7 +94,7 @@ const forbiddenCommandPatterns = [
   /\bsupabase\s+migration\s+(up|repair|squash)\b/i,
   /\bnpm\s+run\s+supabase:rls:local:run\b/i,
   /\bpsql\s+['"`-]/i,
-  /\bgcloud\s+(run|functions|builds|deploy|app)\b/i,
+  /\bgcloud\s+(run|functions|builds|deploy|app|secrets)\b/i,
   /\bfirebase\s+deploy\b/i,
   /\bvercel\s+(deploy|--prod)\b/i,
   /\bnetlify\s+deploy\b/i,
@@ -119,12 +135,13 @@ function finding(file, pattern, excerpt, line = 1) {
   }
 }
 
-function isAllowedTemplateLine(line) {
-  return /\b(template|future human|future owner|future decision|future prompt|only after|may only|allowed prompt|next allowed)\b/i.test(line)
+function isAllowedConditionalLine(line) {
+  return /\b(when gates pass|conditional|conditional_go_pending_gates|future-only|future staging|future execution|only after|required gates|next allowed|placeholder|template)\b/i.test(line)
 }
 
 function isProhibitionLine(line) {
-  return /\b(do not|must not|forbidden|prohibited|not run|not executed|not allowed|blocked|never|does not|not granted|not approved|not collected|not supplied|not recorded|no human approval|no staging|no production|remains false|remains blocked|false|null)\b/i.test(line)
+  return /\b(do not|must not|forbidden|prohibited|not run|not executed|not allowed|blocked|never|does not|not granted|not approved|not collected|not supplied|not recorded|no staging|no production|remains false|remains blocked|false|null|still required|missing)\b/i.test(line)
+    || /\bno[.:]?\s*$/i.test(line)
     || /\bapproved\s*[:|]\s*no\b/i.test(line)
 }
 
@@ -133,7 +150,7 @@ function scanPatterns(files, patterns, label) {
   for (const file of files) {
     const lines = readFile(file).split('\n')
     lines.forEach((line, index) => {
-      if (isProhibitionLine(line) || isAllowedTemplateLine(line)) return
+      if (isProhibitionLine(line) || isAllowedConditionalLine(line)) return
       for (const pattern of patterns) {
         if (pattern.test(line)) {
           findings.push(finding(file, label, line, index + 1))
@@ -174,16 +191,23 @@ function parseDecisionState() {
 function decisionStateFindings(state) {
   if (!state) return []
   const expected = {
-    decisionState: 'pending_human_approval',
-    stagingExecutionApproved: false,
-    stagingSqlApproved: false,
+    decisionState: 'approved_for_staging_validation_when_gates_pass',
+    approvalType: 'conditional_staging_validation_approval',
+    approvalSource: 'user_owner_chat_authorization',
+    stagingExecutionApprovedWhenGatesPass: true,
+    stagingSqlApprovedWhenGatesPass: true,
     productionReadinessApproved: false,
     betaUnlockApproved: false,
-    humanApproverRecorded: false,
+    humanApproverRecorded: true,
+    approverRole: 'owner_user',
     approvedPr: null,
     approvedCommit: null,
     approvedStagingProjectRefRedacted: null,
-    nextAllowedPrompt: 'Prompt 23A - Human Approval Decision Completion',
+    requiresAcceptedSupabaseEvidence: true,
+    requiresGcpSecretManagerReferences: true,
+    requiresDryRunPacket: true,
+    requiresCleanupRollbackPlan: true,
+    nextAllowedPrompt: 'Prompt 26 — Approved Staging Supabase/RLS Validation Execution only after gates pass',
   }
 
   return Object.entries(expected)
@@ -197,13 +221,13 @@ function decisionStateFindings(state) {
     )
 }
 
-const allRequiredFiles = [...prompt23Docs, ...priorPacketDocs, ...trackingFiles]
+const allRequiredFiles = [...prompt23Docs, ...prompt23aDocs, ...priorPacketDocs, ...laterGateDocs, ...trackingFiles]
 const missingFiles = allRequiredFiles
   .filter((file) => !fileExists(file))
-  .map((file) => finding(file, 'requiredFileMissing', 'Required Prompt 23 decision file is missing.'))
+  .map((file) => finding(file, 'requiredFileMissing', 'Required Prompt 23A decision file is missing.'))
 
-const scannedFiles = [...prompt23Docs, ...trackingFiles].filter(fileExists)
-const prompt23ExistingDocs = prompt23Docs.filter(fileExists)
+const scannedFiles = [...prompt23Docs, ...prompt23aDocs, ...laterGateDocs, ...trackingFiles].filter(fileExists)
+const promptDecisionDocs = [...prompt23Docs, ...prompt23aDocs].filter(fileExists)
 const { value: decisionState, findings: decisionParseFindings } = parseDecisionState()
 
 const criticalFindings = [
@@ -212,9 +236,10 @@ const criticalFindings = [
   ...decisionStateFindings(decisionState),
   ...missingTextFindings('docs/staging-supabase-human-approval-decision-record.md', requiredDecisionRecordTerms, 'decisionRecordTermMissing'),
   ...missingTextFindings('docs/staging-supabase-human-decision-evidence-checklist.md', requiredChecklistTerms, 'decisionChecklistTermMissing'),
-  ...missingTextFindings('docs/prompt-23-validation-results.md', requiredValidationTerms, 'validationTermMissing'),
+  ...missingTextFindings('docs/staging-supabase-go-no-go-rubric.md', requiredRubricTerms, 'goNoGoTermMissing'),
+  ...missingTextFindings('docs/prompt-23a-validation-results.md', requiredValidationTerms, 'validationTermMissing'),
   ...scanPatterns(scannedFiles, forbiddenAffirmativePatterns, 'forbiddenApprovalOrExecutionClaim'),
-  ...scanPatterns(prompt23ExistingDocs, forbiddenCommandPatterns, 'forbiddenExecutableCommand'),
+  ...scanPatterns(promptDecisionDocs, forbiddenCommandPatterns, 'forbiddenExecutableCommand'),
   ...scanPatterns(scannedFiles, forbiddenSecretPatterns, 'forbiddenSecretOrConnectionStringValue'),
 ]
 
@@ -227,7 +252,6 @@ const milestoneText = readFile('docs/production-milestone-plan.md')
 const promptReadmeText = readFile('docs/implementation-prompts/README.md')
 const blockerText = readFile('docs/production-beta-blocker-inventory.md')
 const scorecardText = readFile('docs/beta-readiness-scorecard.md')
-const prompt22ValidationText = readFile('docs/prompt-22-validation-results.md')
 
 const reviewIndex = runnerText.indexOf('staging_supabase_approval_review_diagnostics')
 const decisionIndex = runnerText.indexOf('staging_supabase_approval_decision_diagnostics')
@@ -236,14 +260,13 @@ const behaviorChecks = {
   packageScriptRegistered: /"staging:supabase:approval-decision:diagnostics":\s*"node scripts\/validation\/staging-supabase-human-decision-record-diagnostics\.mjs"/.test(packageText),
   diagnosticsInFoundationRunner: /staging:supabase:approval-decision:diagnostics/.test(runnerText),
   diagnosticsAfterPrompt22ReviewDiagnostics: reviewIndex >= 0 && decisionIndex > reviewIndex,
-  workflowCoversPrompt22Base: /codex\/rp-foundation-22-staging-supabase-rls-human-approval-review/.test(workflowText),
-  statusReferencesPrompt23: /Staging Supabase\/RLS Human Approval Decision Record/.test(statusText),
-  sourceMapReferencesPrompt23: /staging Supabase\/RLS human approval decision record/i.test(sourceMapText),
-  milestoneReferencesPrompt23: /Prompt 23 - Staging Supabase\/RLS Human Approval Decision Record/.test(milestoneText),
-  implementationReadmeReferencesPrompt23: /\| 23 \| Staging Supabase\/RLS Human Approval Decision Record \|/.test(promptReadmeText),
-  blockerInventoryReferencesPrompt23: /Prompt 23 pending decision record/i.test(blockerText),
-  scorecardReferencesPrompt23: /Prompt 23 pending decision record/i.test(scorecardText),
-  prompt22CiRecorded: /26964913735/.test(prompt22ValidationText),
+  workflowCoversPrompt26DBase: /codex\/rp-foundation-26d-rls-no-policy-table-classification-contract/.test(workflowText),
+  statusReferencesPrompt23A: /Human Approval Decision Completion/.test(statusText),
+  sourceMapReferencesPrompt23A: /conditional staging-only human approval/i.test(sourceMapText),
+  milestoneReferencesPrompt23A: /Prompt 23A - Human Approval Decision Completion/.test(milestoneText),
+  implementationReadmeReferencesPrompt23A: /\| 23A \| Human Approval Decision Completion \|/.test(promptReadmeText),
+  blockerInventoryReferencesPrompt23A: /conditional staging approval recorded/i.test(blockerText),
+  scorecardReferencesPrompt23A: /Prompt 23A conditional approval/i.test(scorecardText),
 }
 
 const behaviorFailures = Object.entries(behaviorChecks)
@@ -255,13 +278,19 @@ criticalFindings.push(...behaviorFailures)
 const summary = {
   generatedAt: new Date().toISOString(),
   status: criticalFindings.length === 0 ? 'passed' : 'failed',
-  decisionState: criticalFindings.length === 0 ? 'pending_human_approval' : 'blocked_needs_hardening',
+  decisionState: criticalFindings.length === 0 ? 'approved_for_staging_validation_when_gates_pass' : 'blocked_needs_hardening',
+  approvalType: 'conditional_staging_validation_approval',
+  approvalSource: 'user_owner_chat_authorization',
   approvalState: {
-    humanApproverRecorded: false,
-    stagingExecutionApproved: false,
-    stagingSqlApproved: false,
+    humanApproverRecorded: true,
+    stagingExecutionApprovedWhenGatesPass: true,
+    stagingSqlApprovedWhenGatesPass: true,
     productionReadinessApproved: false,
     betaUnlockApproved: false,
+    requiresAcceptedSupabaseEvidence: true,
+    requiresGcpSecretManagerReferences: true,
+    requiresDryRunPacket: true,
+    requiresCleanupRollbackPlan: true,
   },
   safety: {
     connectsToSupabase: false,
@@ -283,8 +312,8 @@ const summary = {
   findings: criticalFindings,
   nextRecommendedPrompt:
     criticalFindings.length === 0
-      ? 'Prompt 23A - Human Approval Decision Completion'
-      : 'Prompt 23A - Human Approval Decision Record Hardening',
+      ? 'Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after gates pass'
+      : 'Prompt 23A-A - Human Approval Decision Record Hardening',
 }
 
 console.log(JSON.stringify(summary, null, 2))

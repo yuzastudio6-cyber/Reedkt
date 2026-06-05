@@ -46,9 +46,9 @@ const policyRequiredTerms = [
   '`staging status record`',
   '`production candidate`',
   '`production update`',
-  'Prompt 23 records `pending_human_approval`',
+  'Prompt 23A records conditional staging-only approval as `approved_for_staging_validation_when_gates_pass`.',
   'No AI-created artifact may approve production.',
-  'No staging update may happen without human approval',
+  'Conditional human approval for staging does not imply staging execution, staging validation, or production approval.',
 ]
 
 const ledgerRequiredTerms = [
@@ -78,7 +78,10 @@ const matrixRequiredTerms = [
   '21',
   '22',
   '23',
+  '23A',
   'pending_human_approval',
+  'approved_for_staging_validation_when_gates_pass',
+  'conditional_approval_recorded',
   'One guarded local auth/workspace/project RLS smoke test passed.',
 ]
 
@@ -145,7 +148,7 @@ function isAllowedVocabularyLine(line) {
 }
 
 function isProhibitionLine(line) {
-  return /\b(do not|must not|forbidden|prohibited|blocked|never|not run|not applied|not approved|no production|no beta|does not|did not|none|false|without human approval|future-only|draft-only|pending_human_approval)\b/i.test(line)
+  return /\b(do not|must not|forbidden|prohibited|blocked|never|not run|not applied|not approved|no production|no beta|does not|did not|none|false|without human approval|future-only|draft-only|pending_human_approval|approved_for_staging_validation_when_gates_pass|conditional_approval_recorded|gates remain required)\b/i.test(line)
 }
 
 function missingTextFindings(file, values, label) {
@@ -185,6 +188,7 @@ const behaviorChecks = {
   diagnosticsInFoundationRunner: /supabase:milestone:sync:diagnostics/.test(runnerText),
   diagnosticsAfterPrompt23DecisionDiagnostics: decisionIndex >= 0 && syncIndex > decisionIndex,
   workflowCoversPrompt23PendingBase: /codex\/rp-foundation-23-pending-human-approval-decision-record/.test(workflowText),
+  workflowCoversPrompt26DBase: /codex\/rp-foundation-26d-rls-no-policy-table-classification-contract/.test(workflowText),
 }
 
 const behaviorFailures = Object.entries(behaviorChecks)
@@ -215,16 +219,21 @@ if (!/23.*pending_human_approval/i.test(matrixOneLine)) {
   criticalFindings.push(finding('docs/supabase-milestone-sync-matrix.md', 'prompt23PendingMissing', 'Prompt 23 pending human approval state is not clearly recorded.'))
 }
 
+if (!/23A.*approved_for_staging_validation_when_gates_pass.*conditional_approval_recorded/i.test(matrixOneLine)) {
+  criticalFindings.push(finding('docs/supabase-milestone-sync-matrix.md', 'prompt23AConditionalApprovalMissing', 'Prompt 23A conditional approval state is not clearly recorded.'))
+}
+
 const summary = {
   generatedAt: new Date().toISOString(),
   status: criticalFindings.length === 0 ? 'passed' : 'failed',
   policyStatus: criticalFindings.length === 0 ? 'docs_status_only' : 'blocked_pending_policy_changes',
   supabaseUpdateType: 'docs/status only',
-  prompt23DecisionState: 'pending_human_approval',
+  prompt23DecisionState: 'approved_for_staging_validation_when_gates_pass',
+  conditionalApprovalRecorded: true,
   stagingSyncStatus: 'not_applied',
   productionSyncStatus: 'blocked',
   nextRecommendedPrompt: criticalFindings.length === 0
-    ? 'Prompt 24 - Supabase Project Inventory and Read-Only Audit'
+    ? 'Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after gates pass'
     : 'Prompt 23S-A - Supabase Milestone Sync Policy Hardening',
   safety: {
     connectsToSupabase: false,
@@ -252,7 +261,7 @@ const summary = {
   behaviorChecks,
   findings: criticalFindings,
   recommendation: criticalFindings.length === 0
-    ? 'Prompt 23S sync policy diagnostics passed. Prompt 23 remains pending_human_approval; Prompt 23S did not run or apply Supabase.'
+    ? 'Prompt 23S sync policy diagnostics passed. Prompt 23A records conditional approval only; no Supabase environment was run or applied.'
     : 'Repair Prompt 23S sync policy artifacts before treating the milestone reporting policy as complete.',
 }
 

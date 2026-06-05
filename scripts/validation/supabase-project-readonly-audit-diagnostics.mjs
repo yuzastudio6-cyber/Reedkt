@@ -42,7 +42,7 @@ const requiredTermsByFile = {
     'Audit status: `evidence_required`.',
     'Supabase environment touched: none.',
     'SQL executed: none.',
-    'Prompt 23 remains `pending_human_approval`',
+    'Prompt 23A records conditional staging-only approval, but Prompt 24 does not execute staging audit or SQL.',
     'Supabase dashboard activity can be empty',
   ],
   'docs/supabase-project-inventory-checklist.md': [
@@ -147,7 +147,7 @@ function finding(file, pattern, excerpt, line = 1) {
 }
 
 function isProhibitionLine(line) {
-  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|pending_human_approval|partially_reviewed_connected_metadata|connected metadata)\b/i.test(line)
+  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|pending_human_approval|approved_for_staging_validation_when_gates_pass|conditional_approval_recorded|partially_reviewed_connected_metadata|connected metadata|conditional staging-only approval)\b/i.test(line)
 }
 
 function isVocabularyLine(line) {
@@ -217,7 +217,8 @@ const summary = {
   environmentTouched: 'none',
   sqlExecuted: 'none',
   migrationDeployed: false,
-  prompt23DecisionState: 'pending_human_approval',
+  prompt23DecisionState: 'approved_for_staging_validation_when_gates_pass',
+  conditionalApprovalRecorded: true,
   nextRecommendedPrompt: criticalFindings.length === 0
     ? 'Prompt 24A - Supabase Project Read-Only Audit Evidence Intake'
     : 'Prompt 24A - Supabase Project Read-Only Audit Hardening',

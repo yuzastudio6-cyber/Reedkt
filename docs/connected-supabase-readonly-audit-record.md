@@ -38,7 +38,7 @@ Postgres logs showed recent connection/authentication activity. Prompt 26A does 
 
 - Redacted dashboard/file evidence remains missing.
 - Secret Manager reference metadata evidence remains missing.
-- Human approval remains `pending_human_approval`.
+- Prompt 23A conditional staging-only approval is recorded, but connected evidence, accepted redaction, and execution gates remain incomplete.
 - Staging SQL remains blocked.
 - Production and beta remain blocked.
 

@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-milestone-registry-staging-deploy-verify",
+  "runId": "supabase-milestone-registry-staging-deploy-verify-20260605",
+  "status": "blocked",
+  "stagingExecutionAllowed": false,
+  "stagingDeployStatus": "blocked",
+  "stagingVerifyStatus": "blocked",
+  "stagingRlsVerifyStatus": "blocked",
+  "pr198SchemaCheckStatusAfterSchema": "passed",
+  "pr198RlsCheckStatusAfterSchema": "passed",
+  "pr198SchemaMissingResolvedByCommittedMigration": true,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "directManualSqlRun": false,
+  "providerCalls": "not_run",
+  "routeExecution": "not_run",
+  "workerExecution": "not_run",
+  "trackA": "not_touched",
+  "blockers": [
+    "staging_supabase_credentials_unavailable",
+    "staging_target_not_confirmed",
+    "staging_supabase_cli_unavailable"
+  ],
+  "nextRecommendedPhase": "Resolve the exact staging credential/CLI/target blockers, then rerun guarded staging schema deploy/verify."
+}

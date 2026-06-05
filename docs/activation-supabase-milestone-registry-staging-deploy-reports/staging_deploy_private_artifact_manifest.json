@@ -1,0 +1,24 @@
+{
+  "phase": "supabase-milestone-registry-staging-deploy-verify",
+  "runId": "supabase-milestone-registry-staging-deploy-verify-20260605",
+  "status": "committed_safe_metadata_only",
+  "reportDir": "docs/activation-supabase-milestone-registry-staging-deploy-reports",
+  "expectedReports": [
+    "staging_deploy_plan.json",
+    "staging_credential_preflight_report.json",
+    "staging_schema_deploy_report.json",
+    "staging_schema_verification_report.json",
+    "staging_rls_verification_report.json",
+    "trackb_backfill_preflight_after_schema_deploy.json",
+    "trackb_backfill_diff_after_schema_deploy.json",
+    "staging_deploy_blocker_report.json",
+    "staging_deploy_readiness_report.json",
+    "staging_deploy_private_artifact_manifest.json"
+  ],
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "secretsCommitted": false,
+  "credentialPayloadsPrinted": false,
+  "stagingDataWritten": false,
+  "productionAffected": false
+}

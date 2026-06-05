@@ -1,0 +1,27 @@
+{
+  "phase": "supabase-milestone-registry-staging-deploy-verify",
+  "runId": "supabase-milestone-registry-staging-deploy-verify-20260605",
+  "status": "blocked",
+  "deployPerformed": false,
+  "dryRunPerformed": false,
+  "reason": "blocked_before_staging_deploy",
+  "deploymentWorkflow": "supabase_db_push_db_url_dry_run_then_apply",
+  "commandDocs": "https://supabase.com/docs/reference/cli/supabase-db-push",
+  "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+  "tempDeployContextPolicy": {
+    "migrationOnly": true,
+    "seedFilesIncluded": false,
+    "trackBExportIncluded": false,
+    "unrelatedMigrationsIncluded": false
+  },
+  "credentialPayloadsPrinted": false,
+  "trackBRowsWritten": false,
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "directManualSqlRun": false,
+  "blockers": [
+    "staging_supabase_credentials_unavailable",
+    "staging_target_not_confirmed",
+    "staging_supabase_cli_unavailable"
+  ]
+}

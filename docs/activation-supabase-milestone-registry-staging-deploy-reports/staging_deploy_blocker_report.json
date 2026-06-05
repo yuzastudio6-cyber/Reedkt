@@ -1,0 +1,30 @@
+{
+  "phase": "supabase-milestone-registry-staging-deploy-verify",
+  "runId": "supabase-milestone-registry-staging-deploy-verify-20260605",
+  "status": "blocked",
+  "activeBlockers": [
+    "staging_supabase_credentials_unavailable",
+    "staging_target_not_confirmed",
+    "staging_supabase_cli_unavailable"
+  ],
+  "expectedCurrentEnvironmentBlockers": [
+    "staging_supabase_credentials_unavailable",
+    "staging_supabase_cli_unavailable"
+  ],
+  "stillBlockedScopes": [
+    "track_b_backfill_write",
+    "milestone_data_insert",
+    "production_supabase",
+    "production_sql",
+    "manual_remote_sql",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock",
+    "track_a"
+  ]
+}

@@ -1,9 +1,7 @@
 import {
-  buildSupabaseMilestoneRegistrySchemaReports,
-  writeSupabaseMilestoneRegistrySchemaArtifacts,
-} from '../activation/supabase-milestone-registry-schema'
+  executeSupabaseMilestoneRegistryStagingVerify,
+} from '../activation/supabase-milestone-registry-schema/milestone-registry-staging-deploy-verify'
 
-const reports = buildSupabaseMilestoneRegistrySchemaReports()
-await writeSupabaseMilestoneRegistrySchemaArtifacts(reports)
-console.log(JSON.stringify(reports.stagingVerificationReport, null, 2))
-process.exit(0)
+const result = await executeSupabaseMilestoneRegistryStagingVerify()
+console.log(JSON.stringify(result.reports.schemaVerificationReport, null, 2))
+process.exit(result.exitCode)

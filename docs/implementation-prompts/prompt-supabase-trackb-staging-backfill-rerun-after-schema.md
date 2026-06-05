@@ -2,6 +2,8 @@
 
 Rerun the guarded PR #198 Track B milestone staging backfill after the activation milestone registry schema/RLS has been deployed and verified in staging.
 
+Phase `supabase-milestone-registry-staging-deploy-verify` adds the guarded staging deploy/verify path for the PR #200 registry migration. If its reports are blocked by `staging_supabase_credentials_unavailable` or `staging_supabase_cli_unavailable`, resolve those operator/tooling blockers before attempting this backfill rerun.
+
 Allowed:
 
 - Read the committed Phase 44P Track B Supabase milestone export.
@@ -19,6 +21,9 @@ Blocked:
 Expected command sequence:
 
 ```bash
+npm run activation:supabase-milestone-registry-schema:staging-deploy-report
+npm run activation:supabase-milestone-registry-schema:staging-deploy-summary
+npm run smoke:activation-supabase-milestone-registry-staging-deploy
 npm run activation:supabase-trackb-backfill:preflight
 npm run activation:supabase-trackb-backfill:diff
 REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL=true \

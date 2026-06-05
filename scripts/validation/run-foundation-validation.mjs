@@ -187,6 +187,12 @@ const requiredChecks = [
     required: true,
   },
   {
+    id: 'supabase_evidence_collection_follow_up_diagnostics',
+    command: 'npm run --silent supabase:evidence:collection:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:evidence:collection:diagnostics'],
+    required: true,
+  },
+  {
     id: 'staging_supabase_dry_run_packet_diagnostics',
     command: 'npm run --silent staging:supabase:dry-run-packet:diagnostics',
     npmArgs: ['run', '--silent', 'staging:supabase:dry-run-packet:diagnostics'],

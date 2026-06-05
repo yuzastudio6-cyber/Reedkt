@@ -82,8 +82,8 @@ const requiredTermsByFile = {
     'Current evidence status: `evidence_required`.',
     'Current redaction status: `not_applicable_no_evidence`.',
     'Current audit status: `evidence_required`.',
-    '| Project identity | yes | none supplied | `missing`',
-    '| Secret Manager reference metadata only | yes | none supplied | `missing`',
+    '| Project identity | yes | `docs/supabase-readonly-audit-evidence/project-identity-redacted.md` | yes | `missing`',
+    '| Secret Manager reference metadata only | yes | `docs/supabase-readonly-audit-evidence/gcp-secret-manager-reference-metadata-redacted.md` | yes | `missing`',
     'Do not mark this matrix `accepted`, `ready_for_staging_inventory_review`, or complete',
   ],
   'docs/supabase-read-only-audit-result-template.md': [
@@ -258,8 +258,13 @@ const evidenceFiles = evidencePathFiles.filter((file) => !isInstructionFile(file
 const instructionFiles = evidencePathFiles.filter(isInstructionFile)
 
 const matrixText = readFile('docs/supabase-readonly-audit-evidence-matrix.md')
+function hasMissingCategoryRow(category) {
+  const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`\\|\\s*${escapedCategory}\\s*\\|\\s*yes\\s*\\|[^\\n]*\\|\\s*\\\`missing\\\``, 'i').test(matrixText)
+}
+
 const missingCategoryRows = evidenceCategories
-  .filter((category) => !matrixText.includes(`| ${category} | yes | none supplied | \`missing\``))
+  .filter((category) => !hasMissingCategoryRow(category))
   .map((category) => finding('docs/supabase-readonly-audit-evidence-matrix.md', 'missingEvidenceCategory', 1, category))
 
 const packageText = readFile('package.json')

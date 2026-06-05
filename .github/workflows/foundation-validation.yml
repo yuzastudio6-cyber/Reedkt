@@ -46,6 +46,7 @@ on:
       - codex/rp-foundation-23s-supabase-milestone-sync-policy-v2
       - codex/rp-foundation-24-supabase-project-read-only-audit
       - codex/rp-foundation-24a-supabase-project-readonly-audit-evidence-intake
+      - codex/rp-foundation-24b-supabase-redacted-evidence-review
       - codex/rp-foundation-25-staging-supabase-rls-dry-run-command-packet
       - codex/rp-foundation-25a-gcp-secret-manager-supabase-reference-contract
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix

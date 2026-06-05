@@ -671,3 +671,19 @@ Prompt 26A - Connected Supabase Read-Only Audit and Advisor Triage.
 - Acceptance criteria: Prompt 26A docs exist, diagnostics pass, only redacted project ref `wmyy****ishd` is recorded, connected metadata is not treated as staging validation, advisor findings are triaged but not remediated, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
 - Next prompt recommendation: Prompt 26B - Supabase Advisor Hardening Plan. Prompt 23A and Prompt 24D remain required before staging execution.
 - GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.
+
+## 26B. Supabase Advisor Hardening Plan
+
+Prompt 26B - Supabase Advisor Hardening Plan.
+
+- Purpose: convert Prompt 26A supplied advisor findings into prioritized future remediation workstreams without applying changes.
+- Deliverables after Prompt 26B: `docs/supabase-advisor-hardening-plan.md`, `docs/supabase-advisor-hardening-priority-matrix.md`, `docs/supabase-rls-no-policy-hardening-plan.md`, `docs/supabase-security-definer-hardening-plan.md`, `docs/supabase-function-search-path-hardening-plan.md`, `docs/supabase-fk-index-hardening-plan.md`, `docs/supabase-advisor-hardening-prompt-sequence.md`, `docs/prompt-26b-validation-results.md`, `docs/implementation-prompts/prompt-26b-supabase-advisor-hardening-plan.md`, `scripts/validation/supabase-advisor-hardening-plan-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 26A base branch, and tracker updates.
+- Implementation status after Prompt 26B: validation prepared / Supabase advisor hardening plan only. Advisor hardening status is `advisor_hardening_planned`.
+- Validation status after Prompt 26B: local validation should run `git diff --check`, lint, server typecheck, foundation validation, advisor-hardening diagnostics, connected-audit diagnostics, existing Supabase/GCP/staging diagnostics, local toolchain probe/preflight, and RLS list/dry-run only. Full build may remain local Darwin/Rolldown environment-blocked and rely on Linux CI.
+- Implements: prioritized planning for RLS no-policy tables, SECURITY DEFINER exposure, mutable function `search_path`, and unindexed foreign-key findings.
+- Must not implement: Supabase lifecycle/status commands, SQL execution, migrations, advisor remediation, policy/index/function/grant changes, Google Cloud or Secret Manager calls, secret fetching, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, human approval grant, staging approval, production approval, deployment, or beta unlock.
+- Main files/concepts: Prompt 26A connected advisor findings, RLS no-policy tables, SECURITY DEFINER functions, mutable search path functions, unindexed foreign-key findings, hardening priority matrix, and source-of-truth trackers.
+- What remains blocked: advisor findings are unresolved; redacted evidence files are still incomplete; Secret Manager metadata evidence remains incomplete; Prompt 23 remains `pending_human_approval`; staging SQL, production readiness, and beta remain blocked.
+- Acceptance criteria: Prompt 26B docs exist, diagnostics pass, findings are prioritized as future candidates only, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
+- Next prompt recommendation: Prompt 26C - Supabase Advisor Draft Remediation Packet. Prompt 23A and Prompt 24D remain required before staging execution.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.

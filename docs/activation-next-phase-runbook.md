@@ -33,6 +33,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Confirm no tool runtime, model inference, media processing, web search, map rendering, browser capture, provider call, Docker, Cloud Run deploy, migration, historical backfill rerun, public artifact, raw prompt execution, production, external beta, or broad media unlock occurred.
 5. Proceed to Phase 52B only as a tool capability registry audit.
 
+## After Phase 52B
+
+1. Review `activation:tool-capability-registry-audit:report`, `activation:tool-capability-registry-audit:iam-plan`, `activation:tool-capability-registry:summary`, and the private Phase 52B artifacts.
+2. Confirm the registry has exactly 67 records: 13 Track A, 8 web search, 12 map/geospatial, 4 Supabase, 12 AI Tools placeholders, and 18 Track B placeholders/status records.
+3. Confirm Supabase readback verifies the Phase 52B activation run, all 67 `tool_capabilities` rows, and the `tool_capability_registry` readiness snapshot.
+4. Confirm VLM remains excluded due Phase 39C L4/vLLM CUDA OOM and Demucs remains blocked pending model provenance.
+5. Proceed to Phase 52C only as a multi-agent dry-run on existing evidence.
+6. Do not execute tools, models, media processing, web search, map rendering, providers, migrations, schema changes, Docker, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

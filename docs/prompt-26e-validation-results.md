@@ -4,7 +4,7 @@
 
 - Prompt: Prompt 26E - RLS No-Policy Draft Migration Plan.
 - Branch: `codex/rp-foundation-26e-rls-no-policy-draft-migration-plan`.
-- PR: pending.
+- PR: [PR #213](https://github.com/yuzastudio6-cyber/Reedkt/pull/213).
 - Capability enabled: none; RLS no-policy draft migration plan only.
 - Supabase update required: docs/status only.
 - Supabase update status: docs_only.

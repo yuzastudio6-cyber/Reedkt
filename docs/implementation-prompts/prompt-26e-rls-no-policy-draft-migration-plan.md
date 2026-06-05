@@ -6,7 +6,7 @@ Implement Prompt 26E from a clean sibling worktree based on `origin/codex/rp-fou
 
 - Branch: `codex/rp-foundation-26e-rls-no-policy-draft-migration-plan`.
 - PR title: `[foundation] Prompt 26E RLS no-policy draft migration plan`.
-- PR: pending.
+- PR: [PR #213](https://github.com/yuzastudio6-cyber/Reedkt/pull/213).
 - Exact capability enabled: none; RLS no-policy draft migration plan only.
 
 ## Scope

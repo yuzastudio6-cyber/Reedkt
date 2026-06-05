@@ -64,7 +64,7 @@ Prompt 26D creates the RLS no-policy table classification and policy contract. I
 - Foundation runner wiring added: `supabase_rls_no_policy_classification_diagnostics`.
 - Local diagnostic status: passed.
 - PR: [#207](https://github.com/yuzastudio6-cyber/Reedkt/pull/207).
-- GitHub Foundation Validation status: pending.
+- GitHub Foundation Validation status: passed on [run 27026502022](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/27026502022/job/79767769844).
 
 ## Validation Commands
 

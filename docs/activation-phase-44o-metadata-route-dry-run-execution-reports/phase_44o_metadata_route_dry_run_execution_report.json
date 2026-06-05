@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [
+    "metadata_route_dry_run_completed_without_runtime_execution"
+  ],
+  "metadataRouteDryRunStatus": "passed",
+  "candidateId": "candidate-duckdb-metadata-route-dry-run",
+  "routeResolved": true,
+  "routeEligibleForFutureDryRun": true,
+  "executionPerformed": false,
+  "routeExecutionPerformed": false,
+  "runtimeExecutionPerformed": false,
+  "workerExecutionPerformed": false,
+  "toolExecutionPerformed": false,
+  "sidecarExecutionPerformed": false,
+  "duckDbRuntimePerformed": false,
+  "polarsRuntimePerformed": false,
+  "providerCallsPerformed": false,
+  "mediaAccessPerformed": false,
+  "audioAccessPerformed": false,
+  "ocrRuntimePerformed": false,
+  "vlmRuntimePerformed": false,
+  "secretPayloadAccessPerformed": false
+}

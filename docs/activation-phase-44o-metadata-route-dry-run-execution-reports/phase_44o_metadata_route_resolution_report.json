@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [
+    "route_metadata_resolved_without_runtime_execution"
+  ],
+  "routeResolved": true,
+  "routeEligibleForFutureDryRun": true,
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "executionPerformed": false,
+  "routeExecutionPerformed": false,
+  "toolExecutionPerformed": false,
+  "workerExecutionPerformed": false,
+  "sidecarExecutionPerformed": false,
+  "duckDbRuntimePerformed": false
+}

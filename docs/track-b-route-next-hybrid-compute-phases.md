@@ -14,8 +14,9 @@ Completed metadata phases:
 - Phase 44L: route dry-run approval packet for a future no-op handshake only.
 - Phase 44M: no-op route dry-run execution for `candidate-noop-sidecar-handshake` only.
 - Phase 44N: metadata route dry-run approval packet for future `candidate-duckdb-metadata-route-dry-run` execution only.
+- Phase 44O: metadata-only route dry-run execution for the Phase 44N-approved DuckDB candidate only.
 
-Next candidate phase: Phase 44O metadata-only route dry-run execution, limited to the Phase 44N-approved DuckDB candidate.
+Next candidate phase: a separate tool-runtime route approval packet for the lowest-risk metadata tool route, or product-level internal beta aggregation if roadmap priority shifts.
 
 Cost/capacity labels in the route manifest remain metadata only: `cpu_low`, `cpu_medium`, `cpu_heavy`, `gpu_required`, `blocked_unknown`, and `pending_estimator`.
 

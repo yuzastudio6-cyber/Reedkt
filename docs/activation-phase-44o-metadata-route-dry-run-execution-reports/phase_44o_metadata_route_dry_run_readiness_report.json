@@ -1,0 +1,21 @@
+{
+  "phase": "44O",
+  "runId": "phase44o-metadata-route-dry-run-execution-20260605",
+  "status": "passed",
+  "trackBMetadataRouteDryRun": "phase_complete_restricted_scope",
+  "selectedCandidateId": "candidate-duckdb-metadata-route-dry-run",
+  "noSecretPayloadAccessRequired": true,
+  "duckDbRouteResolvedMetadataOnly": true,
+  "duckDbRuntimeExecuted": false,
+  "realWorkerExecution": "not_run",
+  "sidecarExecution": "not_run",
+  "toolExecution": "not_run",
+  "futureRealToolRuntimeRoute": "requires_separate_approval_execution_phase",
+  "productWideInternalBeta": "blocked",
+  "externalBeta": "blocked",
+  "paidProduction": "blocked",
+  "production": "blocked",
+  "broadMedia": "blocked",
+  "publicArtifacts": "blocked",
+  "trackA": "not_touched"
+}

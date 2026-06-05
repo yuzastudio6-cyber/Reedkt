@@ -1,0 +1,14 @@
+{
+  "phase": "44O",
+  "runId": "phase44o-metadata-route-dry-run-execution-20260605",
+  "inputArtifactScopeId": "phase44n-input-scope-duckdb-metadata-route-dry-run",
+  "outputArtifactScopeId": "phase44n-output-scope-duckdb-metadata-route-dry-run",
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [],
+  "publicOutputAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "arbitraryPathAllowed": false,
+  "broadMediaAllowed": false
+}

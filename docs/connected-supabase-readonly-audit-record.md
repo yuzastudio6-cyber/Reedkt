@@ -54,4 +54,3 @@ Postgres logs showed recent connection/authentication activity. Prompt 26A does 
 - Secret Manager values fetched: no.
 - Secrets recorded: no.
 - Production/beta unlock: no.
-

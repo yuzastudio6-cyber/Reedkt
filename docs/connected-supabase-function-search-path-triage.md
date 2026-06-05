@@ -33,4 +33,3 @@ Future hardening should prefer reviewed migrations that:
 ## Current Decision
 
 Prompt 26A does not create SQL or migrations. Prompt 26B should plan the hardening sequence.
-

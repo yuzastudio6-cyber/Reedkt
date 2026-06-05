@@ -29,4 +29,3 @@ SECURITY DEFINER functions run with the privileges of the function owner. Broad 
 ## Current Decision
 
 No immediate change is made. Prompt 26B should create a function hardening plan, and a later migration prompt should implement only reviewed changes.
-

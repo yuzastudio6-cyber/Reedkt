@@ -18,4 +18,3 @@ The connected read-only audit reported RLS enabled but no policies on the tables
 - SQL executed in Prompt 26A: none.
 - Staging validation approved: no.
 - Production readiness approved: no.
-

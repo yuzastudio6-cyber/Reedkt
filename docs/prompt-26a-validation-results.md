@@ -69,7 +69,9 @@ Prompt 26A records connected Supabase read-only audit findings and advisor triag
 
 ## CI Status
 
-GitHub Foundation Validation is pending until the Prompt 26A PR is opened.
+Prompt 26A PR: [#197](https://github.com/yuzastudio6-cyber/Reedkt/pull/197).
+
+GitHub Foundation Validation is pending after PR creation.
 
 ## Blockers
 

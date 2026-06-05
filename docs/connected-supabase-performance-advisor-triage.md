@@ -34,4 +34,3 @@ Unindexed foreign keys can cause slow joins, slow deletes/updates, heavier locks
 ## Current Decision
 
 Prompt 26A records the performance findings and recommends Prompt 26B/26E. No index migration is created.
-

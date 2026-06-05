@@ -273,4 +273,3 @@ console.log(JSON.stringify(summary, null, 2))
 if (failures.length > 0) {
   process.exitCode = 1
 }
-

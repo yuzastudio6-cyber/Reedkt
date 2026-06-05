@@ -6,6 +6,7 @@ Implement Prompt 26A from a clean sibling worktree based on `origin/codex/rp-fou
 
 - Branch: `codex/rp-foundation-26a-connected-supabase-readonly-audit-triage`
 - PR title: `[foundation] Prompt 26A connected Supabase read-only audit triage`
+- PR: [#197](https://github.com/yuzastudio6-cyber/Reedkt/pull/197)
 - Exact capability enabled: none; connected Supabase read-only audit triage only
 
 ## Allowed Scope
@@ -53,4 +54,3 @@ Do not mutate Supabase, run SQL, run local SQL, run staging SQL, run remote SQL,
 - Audit status is `partially_reviewed_connected_metadata`.
 - Redacted evidence and Secret Manager metadata evidence remain incomplete.
 - No Supabase, Google Cloud, Secret Manager, SQL, migration, deployment, runtime execution, approval, or beta/production capability is enabled.
-

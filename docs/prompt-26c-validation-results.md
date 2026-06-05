@@ -59,7 +59,9 @@ Local validation recorded during implementation:
 | `npm run build:server` | Local environment blocked | Same Darwin Rolldown native binding/code-signature blocker during Vite server build. |
 | `npm run foundation:validate:with-build` | Environment blocked | Required checks passed; optional build classified `environment_blocked`. |
 
-GitHub Foundation Validation status: pending until PR is opened.
+GitHub PR: [PR #204](https://github.com/yuzastudio6-cyber/Reedkt/pull/204).
+
+GitHub Foundation Validation status: pending.
 
 ## Current Blockers
 

@@ -5,6 +5,7 @@
 Prompt 26C creates a draft remediation packet for Supabase advisor findings recorded in Prompt 26A and planned in Prompt 26B.
 
 - Branch: `codex/rp-foundation-26c-supabase-advisor-draft-remediation-packet`
+- PR: [PR #204](https://github.com/yuzastudio6-cyber/Reedkt/pull/204)
 - PR title: `[foundation] Prompt 26C Supabase advisor draft remediation packet`
 - PR base: `codex/rp-foundation-26b-supabase-advisor-hardening-plan`
 - Exact capability enabled: none; Supabase advisor draft remediation packet only.

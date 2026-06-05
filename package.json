@@ -449,7 +449,12 @@
     "activation:agent-tool-plan-bridge:report": "tsx server/cli/activation-agent-tool-plan-bridge-report.ts",
     "activation:agent-tool-plan-bridge:iam-plan": "tsx server/cli/activation-agent-tool-plan-bridge-iam-plan.ts",
     "activation:agent-tool-plan:summary": "tsx server/cli/activation-agent-tool-plan-summary.ts",
-    "smoke:activation-agent-tool-plan-bridge": "tsx server/smoke/activation-agent-tool-plan-bridge-smoke.ts"
+    "smoke:activation-agent-tool-plan-bridge": "tsx server/smoke/activation-agent-tool-plan-bridge-smoke.ts",
+    "activation:approved-plan-snapshot-validation": "tsx server/cli/activation-approved-plan-snapshot-validation.ts",
+    "activation:approved-plan-snapshot-validation:report": "tsx server/cli/activation-approved-plan-snapshot-validation-report.ts",
+    "activation:approved-plan-snapshot-validation:iam-plan": "tsx server/cli/activation-approved-plan-snapshot-validation-iam-plan.ts",
+    "activation:approved-plan:summary": "tsx server/cli/activation-approved-plan-summary.ts",
+    "smoke:activation-approved-plan-snapshot-validation": "tsx server/smoke/activation-approved-plan-snapshot-validation-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

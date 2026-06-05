@@ -61,6 +61,16 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 6. Proceed to Phase 52E only as approved-plan snapshot validation or system reconciliation on existing evidence.
 7. Do not execute tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After Phase 52E
+
+1. Review `activation:approved-plan-snapshot-validation:report`, `activation:approved-plan-snapshot-validation:iam-plan`, `activation:approved-plan:summary`, and the private Phase 52E artifacts.
+2. Confirm the seven Phase 52D candidate approved-plan snapshots are schema-valid, candidate-only, non-executable, and routed to the correct owners.
+3. Confirm the four blocked/handoff records remain blocked or handoff-only for AI Tools and Track B boundaries.
+4. Confirm runtime, worker, provider, web search, browser capture, map rendering, public artifact, signed URL source-of-truth, raw prompt, production, external beta, paid production, and broad-media gates remain disabled.
+5. Confirm one Phase 52E Supabase milestone sync record wrote/read back through the Phase 51D path and stores only private `gs://` references plus structured metadata.
+6. Proceed to Phase 52F only as system readiness reconciliation / controlled internal test planning on existing evidence.
+7. Do not execute candidate snapshots, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

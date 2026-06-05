@@ -222,6 +222,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:advisor:draft-remediation:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_rls_no_policy_classification_diagnostics',
+    command: 'npm run --silent supabase:rls-no-policy:classification:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:rls-no-policy:classification:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

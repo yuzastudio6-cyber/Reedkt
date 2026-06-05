@@ -55,6 +55,8 @@ Execution readiness is defined in `docs/supabase-advisor-draft-remediation-execu
 
 ## Next Prompt
 
-Recommended next prompt: Prompt 26D - RLS No-Policy Table Classification and Policy Contract.
+Prompt 26D - RLS No-Policy Table Classification and Policy Contract creates the RLS table classification, access model, policy intent, test contract, handoff notes, and migration-readiness checklist for the six no-policy tables. It still does not apply remediation.
+
+Recommended next prompt after Prompt 26D: Prompt 26E - RLS No-Policy Draft Migration Plan.
 
 Prompt 23A - Human Approval Decision Completion and Prompt 24D - Supabase Evidence Review With Supplied Files remain required before staging execution.

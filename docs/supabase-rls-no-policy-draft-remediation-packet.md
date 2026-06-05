@@ -31,6 +31,21 @@ Future remediation should classify each table before writing SQL:
 - `authenticated_static_read`: authenticated users can read non-sensitive static capability metadata.
 - `service_role_write_only`: only trusted backend/service-role paths can mutate rows.
 
+## Prompt 26D classification outcome
+
+Prompt 26D records `rls_no_policy_classified` and chooses conservative raw-table models:
+
+| Table | Prompt 26D model | Follow-up |
+| --- | --- | --- |
+| `activation_artifacts` | `backend_service_role_only` | Future Prompt 26E draft migration plan only. |
+| `activation_qa_gates` | `backend_service_role_only` | Future Prompt 26E draft migration plan only. |
+| `activation_runs` | `backend_service_role_only` | Future Prompt 26E draft migration plan only. |
+| `feature_gates` | `no_client_access` | Future Prompt 26E draft migration plan only. |
+| `readiness_snapshots` | `backend_service_role_only` | Future Prompt 26E draft migration plan only. |
+| `tool_capabilities` | `no_client_access` | Future Prompt 26E draft migration plan only. |
+
+Prompt 26D is a classification contract only. No RLS policy is applied in Prompt 26D.
+
 ## Blockers
 
 - Exact table columns and grants need review from accepted redacted evidence or local schema inspection in a future approved prompt.

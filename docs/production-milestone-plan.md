@@ -702,3 +702,18 @@ Prompt 26C - Supabase Advisor Draft Remediation Packet.
 - Acceptance criteria: Prompt 26C docs exist, diagnostics pass, active migrations are unchanged, draft sketches include required DRAFT ONLY and DO NOT EXECUTE warnings, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
 - Next prompt recommendation: Prompt 26D - RLS No-Policy Table Classification and Policy Contract. Prompt 23A and Prompt 24D remain required before staging execution.
 - GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.
+
+## 26D. RLS No-Policy Table Classification and Policy Contract
+
+Prompt 26D - RLS No-Policy Table Classification and Policy Contract.
+
+- Purpose: classify the six connected-advisor RLS enabled/no-policy tables and define future access models, policy intent, test requirements, handoff notes, and migration-readiness gates without applying remediation.
+- Deliverables after Prompt 26D: `docs/supabase-rls-no-policy-table-classification.md`, `docs/supabase-rls-no-policy-access-model-contract.md`, `docs/supabase-rls-no-policy-table-policy-contract.md`, `docs/supabase-rls-no-policy-test-contract.md`, `docs/supabase-rls-no-policy-handoff-notes.md`, `docs/supabase-rls-no-policy-migration-readiness-checklist.md`, `docs/prompt-26d-validation-results.md`, `docs/implementation-prompts/prompt-26d-rls-no-policy-table-classification-contract.md`, `scripts/validation/supabase-rls-no-policy-classification-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 26C base branch, and tracker updates.
+- Implementation status after Prompt 26D: validation prepared / RLS no-policy classification contract only. Advisor hardening status is `rls_no_policy_classified`.
+- Implements: conservative raw-table classifications for `activation_artifacts`, `activation_qa_gates`, `activation_runs`, `feature_gates`, `readiness_snapshots`, and `tool_capabilities`; access model definitions; table policy intent; future local/staging test contract; workstream handoff notes; and migration readiness checklist.
+- Must not implement: active migration files, executable SQL files, Supabase lifecycle/status commands, SQL execution, migrations, advisor remediation, policy/index/function/grant changes, Google Cloud or Secret Manager calls, secret fetching, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, human approval grant, staging approval, production approval, deployment, or beta unlock.
+- Main files/concepts: RLS no-policy classification, `backend_service_role_only`, `no_client_access`, workspace/project helper review requirements, future policy model approval, local/staging test gates, and source-of-truth trackers.
+- What remains blocked: advisor findings are unresolved; classification is not remediation; exact columns/grants/helper functions/indexes need review; redacted evidence files are still incomplete; Secret Manager metadata evidence remains incomplete; Prompt 23 remains `pending_human_approval`; staging SQL, production readiness, and beta remain blocked.
+- Acceptance criteria: Prompt 26D docs exist, diagnostics pass, all six no-policy tables are classified, active migrations are unchanged, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
+- Next prompt recommendation: Prompt 26E - RLS No-Policy Draft Migration Plan. Prompt 23A and Prompt 24D remain required before staging execution.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.

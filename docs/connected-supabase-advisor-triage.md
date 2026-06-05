@@ -40,7 +40,9 @@ Prompt 26A is triage only. Prompt 26B adds an advisor hardening plan only. Futur
 
 1. Prompt 26B - Supabase Advisor Hardening Plan.
 2. Prompt 26C - Supabase Advisor Draft Remediation Packet.
-3. Prompt 26D - Function Security Hardening Design.
-4. Prompt 26E - Foreign-Key Index Migration Design.
-5. Prompt 23A - Human Approval Decision Completion before staging execution.
-6. Prompt 24D - Supabase Evidence Review With Supplied Files before staging execution.
+3. Prompt 26D - RLS No-Policy Table Classification and Policy Contract.
+4. Prompt 26E - RLS No-Policy Draft Migration Plan.
+5. Prompt 26F - Function Search Path Hardening Migration Plan.
+6. Future FK index migration design prompt.
+7. Prompt 23A - Human Approval Decision Completion before staging execution.
+8. Prompt 24D - Supabase Evidence Review With Supplied Files before staging execution.

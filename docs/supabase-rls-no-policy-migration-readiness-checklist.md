@@ -6,6 +6,8 @@ Prompt 26D does not create a migration. This checklist defines what must be true
 
 - Checklist status: `migration_readiness_checklist_created`.
 - Classification reviewed: pending.
+- Draft migration plan created: yes.
+- Executable migration ready: no.
 - Table purpose confirmed: pending.
 - Required columns confirmed: pending.
 - Helper functions reviewed: pending.
@@ -22,9 +24,10 @@ Prompt 26D does not create a migration. This checklist defines what must be true
 
 ## Required Review Gates
 
-| Gate | Requirement | Current Prompt 26D state |
+| Gate | Requirement | Current Prompt 26E state |
 | --- | --- | --- |
-| Classification reviewed | A human or future approved review confirms each table purpose and access model. | Pending. |
+| Classification reviewed | A human or future approved review confirms each table purpose and access model. | Draft plan created from Prompt 26D classification; human/schema evidence review still pending. |
+| Draft migration plan | Future policy naming, dependency, tests, rollback, and staging evidence requirements are documented. | Created by Prompt 26E. |
 | Table purpose confirmed | Accepted evidence or approved local schema review confirms each table's role. | Pending. |
 | Required columns confirmed | Scope, owner, id, timestamp, and sensitivity columns are known. | Pending. |
 | Helper functions reviewed | Workspace/project membership helpers are reviewed for SECURITY DEFINER and search-path risks. | Pending. |
@@ -47,5 +50,4 @@ Prompt 26D does not create a migration. This checklist defines what must be true
 
 ## Recommended Next Prompt
 
-Prompt 26E - RLS No-Policy Draft Migration Plan.
-
+Prompt 26E-1 - RLS No-Policy Local Draft Migration Implementation, or Prompt 26F - Function Search Path Hardening Migration Plan.

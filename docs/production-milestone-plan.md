@@ -717,3 +717,17 @@ Prompt 26D - RLS No-Policy Table Classification and Policy Contract.
 - Acceptance criteria: Prompt 26D docs exist, diagnostics pass, all six no-policy tables are classified, active migrations are unchanged, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
 - Next prompt recommendation: Prompt 26E - RLS No-Policy Draft Migration Plan. Prompt 23A and Prompt 24D remain required before staging execution.
 - GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.
+
+## 26E. RLS No-Policy Draft Migration Plan
+
+Prompt 26E - RLS No-Policy Draft Migration Plan.
+
+- Purpose: convert the Prompt 26D six-table classification into a draft migration plan, future policy naming contract, dependency matrix, future test matrix, rollback/cleanup plan, and staging evidence requirements without creating active SQL.
+- Deliverables after Prompt 26E: `docs/supabase-rls-no-policy-draft-migration-plan.md`, `docs/supabase-rls-no-policy-policy-naming-contract.md`, `docs/supabase-rls-no-policy-policy-dependency-matrix.md`, `docs/supabase-rls-no-policy-future-test-matrix.md`, `docs/supabase-rls-no-policy-rollback-cleanup-plan.md`, `docs/supabase-rls-no-policy-staging-evidence-requirements.md`, `docs/prompt-26e-validation-results.md`, `docs/implementation-prompts/prompt-26e-rls-no-policy-draft-migration-plan.md`, `scripts/validation/supabase-rls-no-policy-draft-migration-plan-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 26D base branch, and tracker updates.
+- Implementation status after Prompt 26E: validation prepared / RLS no-policy draft migration plan only. Advisor hardening status is `rls_no_policy_draft_migration_plan_created`.
+- Implements: draft future policy names, dependency review matrix, denial-first local/staging test design, rollback/cleanup requirements, staging evidence requirements, and stricter draft-only Markdown SQL labels.
+- Must not implement: active migration files, executable SQL files, Supabase lifecycle/status commands, SQL execution, migrations, advisor remediation, policy/index/function/grant changes, Google Cloud or Secret Manager calls, secret fetching, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, human approval grant, staging approval, production approval, deployment, or beta unlock.
+- What remains blocked: advisor findings are unresolved; the draft plan is not remediation; exact columns/grants/helper functions/indexes need review; accepted evidence and Secret Manager reference evidence remain incomplete; staging SQL, production readiness, and beta remain blocked.
+- Acceptance criteria: Prompt 26E docs exist, diagnostics pass, all six no-policy tables are included, draft SQL remains Markdown-only, active migrations are unchanged, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
+- Next prompt recommendation: Prompt 26E-1 - RLS No-Policy Local Draft Migration Implementation, or Prompt 26F - Function Search Path Hardening Migration Plan. Prompt 23A and Prompt 24D remain required before staging execution.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.

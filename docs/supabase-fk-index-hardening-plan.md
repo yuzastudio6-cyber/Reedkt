@@ -23,4 +23,4 @@ Prompt 26A reported unindexed foreign-key findings. Prompt 26B creates an index 
 
 ## Prompt 26B Decision
 
-No index is created in Prompt 26B. Prompt 26E should produce the exact additive index migration design after a complete advisor export or accepted evidence package is reviewed.
+No index is created in Prompt 26B. A future FK index migration design prompt should produce the exact additive index migration design after a complete advisor export or accepted evidence package is reviewed.

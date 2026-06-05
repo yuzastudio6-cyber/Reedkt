@@ -2,7 +2,7 @@
 
 Status: partial/blocked after controlled execution.
 
-Run ID: `phase51b-20260604T231808`
+Run ID: `phase51b-20260605T000541`
 
 Phase 51B adds the Supabase activation milestone registry schema, server-only
 writer/readers, idempotent bundle upsert path, private GCS report artifacts,
@@ -38,26 +38,29 @@ fail-closed behavior.
 
 Private artifacts:
 
-- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260604T231808/schema/activation-milestone-schema.json`
-- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260604T231808/migration/activation-milestone-migration-summary.json`
-- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260604T231808/bundle/phase51b-milestone-bundle.json`
-- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260604T231808/backfill/activation-milestone-backfill-plan.json`
-- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-supabase/phase51b/phase51b-20260604T231808/qa/supabase-milestone-registry-qa.json`
-- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-supabase/phase51b/phase51b-20260604T231808/reports/phase51b-report.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260605T000541/schema/activation-milestone-schema.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260605T000541/migration/activation-milestone-migration-summary.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260605T000541/bundle/phase51b-milestone-bundle.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/phase51b/phase51b-20260605T000541/backfill/activation-milestone-backfill-plan.json`
+- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-supabase/phase51b/phase51b-20260605T000541/qa/supabase-milestone-registry-qa.json`
+- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-supabase/phase51b/phase51b-20260605T000541/reports/phase51b-report.json`
 
 Blocker:
 
 - Registry tables are missing or unreadable through PostgREST schema cache:
   `activation_runs`, `activation_artifacts`, `activation_qa_gates`,
   `readiness_snapshots`, `tool_capabilities`, and `feature_gates`.
-- The configured `SUPABASE_DB_URL` endpoint refused the `psql` TCP connection
-  on port 5432 from this environment.
+- The configured `SUPABASE_DB_URL` endpoint resolves to an IPv6-only direct
+  database host from this environment, and TCP port 5432 refused the `psql`
+  connection.
 
 Human action required:
 
 - Provide a backend-only Supabase DB URL that is reachable from this execution
-  environment, or apply the committed migration through the approved database
-  migration process and rerun Phase 51B without broadening permissions.
+  environment, such as an approved Supabase pooler/session-mode URL if direct
+  IPv6 database access is unavailable, or apply the committed migration through
+  the approved database migration process and rerun Phase 51B without broadening
+  permissions.
 
 Phase51C readiness: blocked until schema verification, one Phase 51B bundle
 write/readback, QA, and private artifact upload all pass.

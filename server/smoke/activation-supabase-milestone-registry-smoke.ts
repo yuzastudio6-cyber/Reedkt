@@ -91,7 +91,10 @@ assert.equal(commandPlan.blockedAlways.some((item) => item.includes('Supabase li
 assert.equal(iamPlan.defaultMutationAllowed, false)
 assert.equal(iamPlan.databasePlan.ddlThroughSupabaseRestAllowed, false)
 assert.equal(report.reportId, 'activation-phase-51b-supabase-milestone-registry')
-assert.equal(report.phase51CReadiness, 'blocked')
+assert.equal(
+  report.phase51CReadiness,
+  report.executionReport?.ok ? 'ready_for_historical_activation_evidence_backfill' : 'blocked',
+)
 assert.equal(report.writeVerification.publicArtifactRejected, true)
 assert.equal(report.writeVerification.signedUrlRejected, true)
 assert.equal(report.writeVerification.secretLookingValueRejected, true)

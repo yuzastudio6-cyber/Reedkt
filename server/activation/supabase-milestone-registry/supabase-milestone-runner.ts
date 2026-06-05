@@ -105,6 +105,10 @@ export async function runSupabaseMilestoneRegistry(input: { execute: boolean; ap
   let milestoneBundle = initialBundle
   if (schemaVerification.allTablesPresent && client) {
     writeVerification = await writeMilestoneBundle(client, initialBundle)
+    writeVerification = {
+      ...writeVerification,
+      migrationApplied: migrationSummary.status === 'applied',
+    }
     milestoneBundle = {
       ...initialBundle,
       status: writeVerification.status === 'completed' ? 'completed' : 'blocked',

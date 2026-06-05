@@ -51,6 +51,16 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 52D only as an agent-to-tool-plan bridge on existing evidence.
 6. Do not execute tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After Phase 52D
+
+1. Review `activation:agent-tool-plan-bridge:report`, `activation:agent-tool-plan-bridge:iam-plan`, `activation:agent-tool-plan:summary`, and the private Phase 52D artifacts.
+2. Confirm exactly seven allowed intents became `candidate_only` approved-plan snapshot candidates.
+3. Confirm `motion_graphics_lower_third` and `noise_cleanup` are handoff-only, while `qwen_vlm_visual_understanding_request` and `demucs_stem_separation_request` remain blocked.
+4. Confirm Track A, web search, map/geospatial, AI Tools graphics, Track B audio/VLM, Worker Runtime, and Supabase milestone sync handoff packets exist.
+5. Confirm one Phase 52D Supabase milestone sync record wrote/read back and stores only private `gs://` references plus structured metadata.
+6. Proceed to Phase 52E only as approved-plan snapshot validation or system reconciliation on existing evidence.
+7. Do not execute tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

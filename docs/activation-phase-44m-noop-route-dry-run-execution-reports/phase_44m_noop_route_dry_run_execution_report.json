@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [
+    "noop_handshake_id_is_ephemeral_and_not_a_persistent_identity"
+  ],
+  "noopRouteDryRunStatus": "passed",
+  "candidateId": "candidate-noop-sidecar-handshake",
+  "ephemeralHandshakeId": "phase44m-noop-route-dry-run-execution-20260605-ephemeral-noop-handshake",
+  "persistentIdCreated": false,
+  "executionPerformed": false,
+  "routeExecutionPerformed": false,
+  "workerExecutionPerformed": false,
+  "toolExecutionPerformed": false,
+  "sidecarProcessStarted": false,
+  "providerCallsPerformed": false,
+  "mediaAccessPerformed": false,
+  "secretPayloadAccessPerformed": false
+}

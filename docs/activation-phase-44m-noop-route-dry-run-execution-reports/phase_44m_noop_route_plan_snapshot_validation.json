@@ -1,0 +1,15 @@
+{
+  "phase": "44M",
+  "runId": "phase44m-noop-route-dry-run-execution-20260605",
+  "selectedCandidateId": "candidate-noop-sidecar-handshake",
+  "planSnapshotId": "phase44l-plan-snapshot-candidate-noop-sidecar-handshake-v1",
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [],
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "sidecarExecutionAllowed": false,
+  "toolExecutionAllowed": false
+}

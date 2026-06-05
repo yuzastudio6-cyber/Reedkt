@@ -1,5 +1,7 @@
 # Production Model Weight Readiness Plan
 
+Phase 44M is not a model-weight phase. It does not download, stage, approve, or execute model weights. It executes only a no-op route dry-run harness using committed safe metadata; VLM and Demucs model paths remain blocked, model downloads remain blocked, runtime execution remains blocked, and public output, beta, production, providers, broad media, raw chat execution, and Track A remain blocked.
+
 Phase 44L is not a model-weight phase. It does not download, stage, approve, or execute model weights. It approves only a future no-op route dry-run candidate as metadata planning; VLM and Demucs model paths remain blocked, model downloads remain blocked, runtime execution remains blocked, and public output, beta, production, providers, broad media, raw chat execution, and Track A remain blocked.
 
 Phase 44K is not a model-weight phase. It does not download, stage, approve, or execute model weights. It reads committed Track B desktop/hybrid metadata evidence only and can mark desktop/hybrid compute as an internally beta-ready candidate for restricted metadata/planning/simulation scope. VLM and Demucs model paths remain blocked, model downloads remain blocked, runtime execution remains blocked, and public output, beta, production, providers, broad media, and Track A remain blocked.

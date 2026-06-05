@@ -1,0 +1,21 @@
+{
+  "phase": "44M",
+  "runId": "phase44m-noop-route-dry-run-execution-20260605",
+  "status": "passed",
+  "candidateId": "candidate-noop-sidecar-handshake",
+  "planSnapshotId": "phase44l-plan-snapshot-candidate-noop-sidecar-handshake-v1",
+  "inputArtifactScopeId": "phase44l-input-scope-metadata-only",
+  "outputArtifactScopeId": "phase44l-output-scope-metadata-only",
+  "planSnapshotValidation": "passed",
+  "artifactScopeValidation": "passed",
+  "secretPayloadGuard": "passed",
+  "noopExecution": "passed",
+  "noPersistentIdentity": true,
+  "noSecretPayloadAccess": true,
+  "noWorkerExecution": true,
+  "noToolExecution": true,
+  "noSidecarProcess": true,
+  "noMediaAccess": true,
+  "noProviderCalls": true,
+  "auditConclusion": "noop_route_dry_run_passed_restricted_scope"
+}

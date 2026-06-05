@@ -5,6 +5,7 @@
 Implement Prompt 26D from a clean sibling worktree based on `origin/codex/rp-foundation-26c-supabase-advisor-draft-remediation-packet`.
 
 - Branch: `codex/rp-foundation-26d-rls-no-policy-table-classification-contract`
+- PR: [#207](https://github.com/yuzastudio6-cyber/Reedkt/pull/207)
 - PR title: `[foundation] Prompt 26D RLS no-policy table classification contract`
 - Capability enabled: none; RLS no-policy classification contract only.
 - Supabase update required: docs/status only.
@@ -48,4 +49,3 @@ Required local validation includes diff checks, `npm ci`, lint, server typecheck
 ## Next Prompt
 
 Prompt 26E - RLS No-Policy Draft Migration Plan.
-

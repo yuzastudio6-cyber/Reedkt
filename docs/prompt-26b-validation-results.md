@@ -65,7 +65,7 @@ Prompt 26B adds a Supabase advisor hardening plan based on Prompt 26A supplied c
 
 ## CI Status
 
-Prompt 26B PR: pending.
+Prompt 26B PR: [#201](https://github.com/yuzastudio6-cyber/Reedkt/pull/201).
 
 GitHub Foundation Validation: pending.
 

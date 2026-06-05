@@ -6,7 +6,7 @@ Implement Prompt 26B from a clean sibling worktree based on `origin/codex/rp-fou
 
 - Branch: `codex/rp-foundation-26b-supabase-advisor-hardening-plan`
 - PR title: `[foundation] Prompt 26B Supabase advisor hardening plan`
-- PR: pending
+- PR: [#201](https://github.com/yuzastudio6-cyber/Reedkt/pull/201)
 - Exact capability enabled: none; Supabase advisor hardening plan only
 
 ## Allowed Scope

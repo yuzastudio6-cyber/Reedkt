@@ -1,0 +1,17 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "rollback_policy_ready",
+  "routeExecutionAllowedRemainsFalse": true,
+  "rollbackActions": [
+    "remove_candidate_approval_metadata_if_revoked",
+    "keep_route_execution_allowed_false",
+    "block_future_dry_run_if_candidate_plan_or_artifact_scope_mismatch",
+    "block_future_dry_run_if_public_output_requested",
+    "block_future_dry_run_if_media_input_requested",
+    "block_future_dry_run_if_provider_call_requested",
+    "block_future_dry_run_if_vlm_or_demucs_requested",
+    "block_future_dry_run_if_raw_chat_requested",
+    "operator_escalation_required_for_scope_ambiguity"
+  ]
+}

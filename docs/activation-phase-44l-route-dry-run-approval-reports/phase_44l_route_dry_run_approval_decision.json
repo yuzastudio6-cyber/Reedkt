@@ -1,0 +1,23 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "passed",
+  "decision": "approved_for_future_noop_route_dry_run",
+  "selectedCandidateId": "candidate-noop-sidecar-handshake",
+  "selectedCandidateReason": "Validates protocol metadata only; no tool runtime, media, or artifact payload.",
+  "phase44lExecutionOccurred": false,
+  "futureExecutionOnly": true,
+  "futureExecutionPhaseRequired": "Phase 44M no-op route dry-run execution",
+  "routeExecution": "blocked",
+  "runtimeExecution": "blocked",
+  "workerExecution": "blocked",
+  "sidecarExecution": "blocked",
+  "toolExecution": "blocked",
+  "mediaAudioOcrVlmModelRuntime": "blocked",
+  "providers": "blocked",
+  "productWideInternalBeta": "blocked",
+  "externalBeta": "blocked",
+  "paidProduction": "blocked",
+  "production": "blocked",
+  "trackA": "not_touched"
+}

@@ -29,4 +29,6 @@ Phase 44J hybrid compute E2E simulation status: phase-complete restricted scope 
 
 Phase 44K desktop beta readiness gate status: internally beta-ready candidate for restricted internal desktop/hybrid metadata, planning, and simulation scope only.
 
-Next recommended phase: live route execution approval handoff, or a narrower route execution dry-run planning phase if the roadmap requires one first. Route execution, worker execution, production, product-wide beta, external beta, broad-media, public-artifact, provider, local sidecar execution, tool execution, VLM, Demucs, and Track A scopes remain blocked.
+Phase 44L Track B route dry-run approval packet status: approved only for a future `candidate-noop-sidecar-handshake` dry-run in Phase 44M. Phase 44L does not execute the dry-run.
+
+Next recommended phase: Phase 44M no-op route dry-run execution. Route execution, worker execution, production, product-wide beta, external beta, broad-media, public-artifact, provider, local sidecar execution, tool execution, VLM, Demucs, raw chat execution, and Track A scopes remain blocked.

@@ -1,0 +1,74 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "plan_snapshot_ready_for_future_noop_dry_run_only",
+  "planSnapshotId": "phase44l-plan-snapshot-candidate-noop-sidecar-handshake-v1",
+  "candidateId": "candidate-noop-sidecar-handshake",
+  "routeManifestVersion": "track-b-route-manifest-v1",
+  "routeId": "phase44l-route-noop-sidecar-handshake",
+  "toolId": "track_b_noop_route_validator",
+  "capabilityId": "no_op_handshake",
+  "inputArtifactScopeId": "phase44l-input-scope-metadata-only",
+  "outputArtifactScopeId": "phase44l-output-scope-metadata-only",
+  "sourcePhase": "phase_44l",
+  "confirmationPhase": "phase_44m_required",
+  "rawChatExecution": false,
+  "publicOutputAllowed": false,
+  "broadMediaAllowed": false,
+  "arbitraryMediaAllowed": false,
+  "providerCallsAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "sidecarExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "noExecutionPerformed": true,
+  "futureExecutionRequires": [
+    "explicit_human_approval",
+    "explicit_phase_44m_confirmation_env_vars",
+    "new_execution_phase",
+    "fresh_artifact_scope_validation",
+    "fresh_operator_abort_and_rollback_review"
+  ],
+  "validatorCompatibility": {
+    "mappedToolId": "local_worker_sidecar_planning",
+    "request": {
+      "type": "plan_snapshot_validate_request",
+      "planSnapshotId": "phase44l-plan-snapshot-candidate-noop-sidecar-handshake-v1",
+      "routeId": "phase44l-route-noop-sidecar-handshake",
+      "toolId": "local_worker_sidecar_planning",
+      "capabilityId": "no_op_handshake",
+      "inputArtifactScopeId": "phase44l-input-scope-metadata-only",
+      "outputArtifactScopeId": "phase44l-output-scope-metadata-only",
+      "requestedAction": "validate_only",
+      "confirmationPhase": "phase_44m_required",
+      "sourcePhase": "phase_44l",
+      "routeManifestVersion": "track-b-route-manifest-v1",
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "publicOutputAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "providerCallsAllowed": false,
+      "maxRuntimeBounds": {
+        "maxDurationSeconds": 5,
+        "maxInputCount": 0,
+        "maxOutputSizeBytes": 0
+      },
+      "auditReportPath": "docs/activation-phase-44l-route-dry-run-approval-reports/phase_44l_route_dry_run_approval_decision.json"
+    },
+    "result": {
+      "type": "plan_snapshot_validate_response",
+      "accepted": true,
+      "blockedReasons": [],
+      "warnings": [
+        "runtime_bounds_recorded_for_future_phase_only"
+      ],
+      "normalizedPolicy": {
+        "noRawChatExecution": true,
+        "executionBlockedInPhase44G": true,
+        "failClosed": true
+      }
+    }
+  }
+}

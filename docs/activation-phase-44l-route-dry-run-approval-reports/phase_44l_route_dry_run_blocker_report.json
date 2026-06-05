@@ -1,0 +1,31 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "no_phase44l_blockers_for_approval_packet",
+  "failedCriteria": [],
+  "failedSecurityChecks": [],
+  "stillBlocked": [
+    "future_dry_run_execution_until_phase44m",
+    "live_route_execution",
+    "worker_execution",
+    "local_sidecar_execution",
+    "tool_execution",
+    "media_audio_ocr_vlm_model_runtime",
+    "providers",
+    "docker_cloud_gcp_iam_mutation",
+    "public_output",
+    "public_artifacts",
+    "broad_media",
+    "arbitrary_media",
+    "raw_chat_execution",
+    "arbitrary_paths",
+    "frontend_service_role_secrets",
+    "vlm_runtime",
+    "demucs_runtime",
+    "product_wide_internal_beta",
+    "external_beta",
+    "paid_production",
+    "production",
+    "track_a"
+  ]
+}

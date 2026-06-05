@@ -1,0 +1,114 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "passed",
+  "totalCriteria": 20,
+  "passedCriteria": 20,
+  "criteria": [
+    {
+      "criterionId": "phase_44k_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "phase_44j_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "phase_44g_sidecar_protocol_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "phase_44h_cost_guardrails_passed",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "phase_44i_route_manifest_exists",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "phase_44ia_capability_manifests_exist",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "selected_candidate_noop_or_metadata_only",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_media_processing",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_tool_runtime",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_provider_calls",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_public_output",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_broad_media",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_raw_chat_execution",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_arbitrary_path",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_service_role_secrets_in_frontend",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "no_disabled_tools_selected",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "vlm_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "demucs_blocked",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "operator_approval_required_before_future_execution",
+      "passed": true,
+      "status": "passed"
+    },
+    {
+      "criterionId": "future_dry_run_execution_requires_explicit_confirmations",
+      "passed": true,
+      "status": "passed"
+    }
+  ],
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "sidecarExecutionAllowed": false,
+  "toolExecutionAllowed": false
+}

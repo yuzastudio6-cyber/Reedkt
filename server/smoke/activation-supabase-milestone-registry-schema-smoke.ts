@@ -90,9 +90,20 @@ for (const oldTable of ['activation_runs', 'activation_artifacts', 'activation_q
 }
 
 for (const { file, text } of readAllFiles('server/activation/supabase-milestone-registry-schema')) {
-  assert(!text.includes("from 'node:child_process'"), `Schema module must not import child_process: ${file}`)
-  assert(!text.includes('spawn('), `Schema module must not spawn processes: ${file}`)
-  assert(!text.includes('execFile'), `Schema module must not execute subprocesses: ${file}`)
+  const isStagingDeployVerifyModule = file.endsWith('milestone-registry-staging-deploy-verify.ts')
+  if (isStagingDeployVerifyModule) {
+    assert(text.includes("import { execFile } from 'node:child_process'"), `Staging deploy module must use execFile only: ${file}`)
+    assert(!text.includes('spawn('), `Staging deploy module must not spawn processes: ${file}`)
+    assert(!text.includes('exec('), `Staging deploy module must not use shell exec: ${file}`)
+    assert(text.includes('shell: false'), `Staging deploy module must force shell false: ${file}`)
+    assert(text.includes('REEDITPRO_SUPABASE_CLI_PATH'), `Staging deploy module must support explicit Supabase CLI path: ${file}`)
+    assert(text.includes('supabase_db_push_db_url_dry_run_then_apply'), `Staging deploy module must dry-run before apply: ${file}`)
+    assert(text.includes('trackBRowsWritten: false'), `Staging deploy module must not write Track B rows: ${file}`)
+  } else {
+    assert(!text.includes("from 'node:child_process'"), `Schema module must not import child_process except staging deploy verifier: ${file}`)
+    assert(!text.includes('spawn('), `Schema module must not spawn processes: ${file}`)
+    assert(!text.includes('execFile'), `Schema module must not execute subprocesses except staging deploy verifier: ${file}`)
+  }
   assert(!/from ['"].*track-a/i.test(text), `Schema module must not import Track A: ${file}`)
   assert(!text.includes('OPENAI_API_KEY'), `Schema module must not reference provider env vars: ${file}`)
   assert(!text.includes('ANTHROPIC_API_KEY'), `Schema module must not reference provider env vars: ${file}`)

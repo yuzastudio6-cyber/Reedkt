@@ -1,0 +1,82 @@
+{
+  "phase": "supabase-milestone-registry-staging-deploy-verify",
+  "runId": "supabase-milestone-registry-staging-deploy-verify-20260605",
+  "branch": "codex/rp-foundation-supabase-milestone-registry-staging-deploy-verify",
+  "baseBranch": "codex/rp-foundation-supabase-trackb-milestone-staging-backfill",
+  "sourcePr200": "https://github.com/yuzastudio6-cyber/Reedkt/pull/200",
+  "sourcePr198": "https://github.com/yuzastudio6-cyber/Reedkt/pull/198",
+  "mode": "staging_schema_deploy_verify_only",
+  "reportDir": "docs/activation-supabase-milestone-registry-staging-deploy-reports",
+  "expectedReports": [
+    "staging_deploy_plan.json",
+    "staging_credential_preflight_report.json",
+    "staging_schema_deploy_report.json",
+    "staging_schema_verification_report.json",
+    "staging_rls_verification_report.json",
+    "trackb_backfill_preflight_after_schema_deploy.json",
+    "trackb_backfill_diff_after_schema_deploy.json",
+    "staging_deploy_blocker_report.json",
+    "staging_deploy_readiness_report.json",
+    "staging_deploy_private_artifact_manifest.json"
+  ],
+  "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+  "migrationId": "202606050001",
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "supabaseCliDocs": "https://supabase.com/docs/reference/cli/supabase-db-push",
+  "deployConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION"
+  ],
+  "verifyConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SUPABASE_REMOTE_SQL",
+    "REEDITPRO_CONFIRM_PRODUCTION_SUPABASE_SQL_EXECUTION",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_TRACKB_SUPABASE_EXPORT_READ",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TOOL_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME",
+    "REEDITPRO_CONFIRM_PUBLIC_ARTIFACT_OUTPUT",
+    "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING",
+    "REEDITPRO_CONFIRM_ARBITRARY_MEDIA_INPUT"
+  ],
+  "deploymentWorkflow": "supabase db push --db-url with --dry-run first",
+  "verificationWorkflow": "supabase migration list --db-url plus committed migration/RLS evidence",
+  "tempDeployContextPolicy": {
+    "containsOnlyMigration": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+    "seedFilesIncluded": false,
+    "trackBExportIncluded": false,
+    "trackBBackfillRowsIncluded": false,
+    "unrelatedMigrationsIncluded": false,
+    "directSqlEditorCommands": false
+  },
+  "noProductionSupabase": true,
+  "noTrackBBackfillWrites": true,
+  "noMilestoneDataInserts": true,
+  "noProviderCalls": true,
+  "noRouteWorkerToolExecution": true,
+  "noMediaProcessing": true,
+  "noBetaProductionUnlock": true,
+  "noTrackA": true,
+  "nextRecommendedPhase": "Rerun PR #198 guarded Track B staging backfill after staging schema/RLS verification passes."
+}

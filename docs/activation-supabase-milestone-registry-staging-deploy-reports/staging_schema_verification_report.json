@@ -1,0 +1,30 @@
+{
+  "phase": "supabase-milestone-registry-staging-deploy-verify",
+  "runId": "supabase-milestone-registry-staging-deploy-verify-20260605",
+  "status": "blocked",
+  "verificationPerformed": false,
+  "reason": "blocked_before_staging_verify",
+  "verificationWorkflow": "supabase_migration_list_db_url_plus_static_migration_rls_evidence",
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "credentialPayloadsPrinted": false,
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "directManualSqlRun": false,
+  "blockers": [
+    "staging_supabase_credentials_unavailable",
+    "staging_target_not_confirmed",
+    "staging_supabase_cli_unavailable"
+  ]
+}

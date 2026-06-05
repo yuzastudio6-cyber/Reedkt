@@ -702,3 +702,15 @@ Prompt 26C - Supabase Advisor Draft Remediation Packet.
 - Acceptance criteria: Prompt 26C docs exist, diagnostics pass, active migrations are unchanged, draft sketches include required DRAFT ONLY and DO NOT EXECUTE warnings, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
 - Next prompt recommendation: Prompt 26D - RLS No-Policy Table Classification and Policy Contract. Prompt 23A and Prompt 24D remain required before staging execution.
 - GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.
+
+## XCHAT-0. Cross-Chat Ownership And Integration Registry
+
+XCHAT-0 - ReEditPro Cross-Chat Ownership and Integration Registry.
+
+- Purpose: create the shared repo source-of-truth layer for cross-chat ownership, integration boundaries, duplicate-work prevention, prompt start checks, final response standards, and handoff contracts.
+- Deliverables after XCHAT-0: `docs/cross-chat/README.md`, ownership registry, workstream status ledger, integration boundary map, handoff contract, duplicate-work policy, prompt start checklist, final response standard, open blockers, E2E system map, AI Tools ownership doc, map boundary note, XCHAT-0 implementation prompt record, diagnostics script, package script wiring, foundation validation runner wiring, and tracker updates.
+- Implementation status after XCHAT-0: docs-only / coordination registry only.
+- Implements: AI Tools / Creative Graphics ownership recording, map/geospatial boundary recording, Track A/Track B/Supabase/provider/worker/billing/deployment boundary preservation, and static diagnostics.
+- Must not implement: runtime implementation, Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, render/export execution, tool execution, worker execution, media processing, storage transfer, signed URL creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, production/beta unlock, dependency mutation, human approval grant, staging execution approval, or broad service-role handler.
+- Next prompt recommendation: Prompt GD-0 - AI Tools / Graphic Design Stack Repo Audit, or Prompt 26D if Supabase hardening remains priority.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit cross-chat/no-runtime statement.

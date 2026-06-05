@@ -97,7 +97,13 @@ for (const forbidden of [
 }
 
 const reports = await buildSupabaseStagingTargetProofReports()
-const approved = reports.approvedTargetReferenceReport as { status?: string; blockers?: string[] }
+const approved = reports.approvedTargetReferenceReport as {
+  status?: string
+  blockers?: string[]
+  approvedStagingProjectName?: string
+  approvedStagingProjectRef?: string
+  approvedEnvironment?: string
+}
 const proof = reports.pluginTargetProofReport as {
   status?: string
   stagingTargetProofPassed?: boolean
@@ -118,9 +124,13 @@ const readiness = reports.readinessReport as {
   productionAffected?: boolean
   blockers?: string[]
 }
-assert(approved.status === 'blocked', 'Smoke baseline must keep approved staging reference blocked until repo-safe proof exists.')
-assert((approved.blockers ?? []).includes('approved_staging_target_reference_missing'), 'Approved target reference blocker missing.')
-assert(proof.stagingTargetProofPassed === false, 'Plugin target proof must not pass without approved reference.')
+assert(approved.status === 'passed', 'Smoke baseline must load the repo-safe approved staging reference.')
+assert(approved.approvedStagingProjectName === 'Reeditpro', 'Approved staging target proof name mismatch.')
+assert(approved.approvedStagingProjectRef === 'wmyyttnynmteqgcdishd', 'Approved staging target proof ref mismatch.')
+assert(approved.approvedEnvironment === 'staging', 'Approved staging target proof environment mismatch.')
+assert((approved.blockers ?? []).length === 0, 'Approved target reference must not have blockers after reference approval.')
+assert(proof.stagingTargetProofPassed === false, 'Plugin target proof must not pass without its own target-check confirmation.')
+assert((proof.blockers ?? []).includes('supabase_plugin_staging_target_check_not_confirmed'), 'Plugin target proof must require its own target-check confirmation.')
 assert((proof.blockers ?? []).includes('supabase_plugin_target_not_confirmed_as_staging'), 'Plugin target proof must record ambiguous target blocker.')
 assert(proof.secretPayloadsPrinted === false && proof.secretPayloadsRead === false, 'Target proof must not read or print secret payloads.')
 assert(deploy.deployPerformed === false, 'Smoke must not perform staging deploy.')
@@ -154,7 +164,7 @@ console.log(JSON.stringify({
   phase: 'supabase-staging-target-proof-deploy-rerun',
   reportDir: SUPABASE_STAGING_TARGET_PROOF_REPORT_DIR,
   expectedReports: SUPABASE_STAGING_TARGET_PROOF_EXPECTED_REPORTS.length,
-  approvedTargetReference: 'missing_by_design',
+  approvedTargetReference: 'passed',
   pluginTargetProofPassed: false,
   deployPerformed: false,
   trackBRowsWritten: false,

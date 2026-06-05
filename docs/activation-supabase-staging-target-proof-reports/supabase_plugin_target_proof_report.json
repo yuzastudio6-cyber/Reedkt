@@ -7,13 +7,20 @@
   "pluginTargetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
   "pluginTargetCheckConfirmed": false,
   "approvedReference": {
-    "status": "blocked",
-    "approvedStagingTargetReferenceFound": false,
-    "approvedStagingProjectRef": null,
-    "approvedStagingProjectName": null,
-    "approvedEnvironment": null,
-    "approvedReferenceSource": null,
+    "status": "passed",
+    "approvedStagingTargetReferenceFound": true,
+    "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+    "approvedStagingProjectName": "Reeditpro",
+    "approvedEnvironment": "staging",
+    "approvedReferenceSource": "docs/supabase-approved-staging-target-reference.md",
     "sourceFilesInspected": [
+      {
+        "file": "docs/supabase-approved-staging-target-reference.md",
+        "exists": true,
+        "hasApprovedStatusMarker": true,
+        "hasProjectRefMarker": true,
+        "hasEnvironmentMarker": true
+      },
       {
         "file": "docs/supabase-staging-target-proof-policy.md",
         "exists": true,
@@ -60,9 +67,7 @@
     "runtimeProvidedReferenceIgnored": false,
     "secretPayloadsRead": false,
     "secretPayloadsPrinted": false,
-    "blockers": [
-      "approved_staging_target_reference_missing"
-    ]
+    "blockers": []
   },
   "pluginPreflight": {
     "status": "blocked",
@@ -82,13 +87,20 @@
     "targetEnvironmentStatus": "missing_or_not_staging",
     "targetProofStatus": "missing_or_unrecognized",
     "approvedReference": {
-      "status": "blocked",
-      "approvedStagingTargetReferenceFound": false,
-      "approvedStagingProjectRef": null,
-      "approvedStagingProjectName": null,
-      "approvedEnvironment": null,
-      "approvedReferenceSource": null,
+      "status": "passed",
+      "approvedStagingTargetReferenceFound": true,
+      "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+      "approvedStagingProjectName": "Reeditpro",
+      "approvedEnvironment": "staging",
+      "approvedReferenceSource": "docs/supabase-approved-staging-target-reference.md",
       "sourceFilesInspected": [
+        {
+          "file": "docs/supabase-approved-staging-target-reference.md",
+          "exists": true,
+          "hasApprovedStatusMarker": true,
+          "hasProjectRefMarker": true,
+          "hasEnvironmentMarker": true
+        },
         {
           "file": "docs/supabase-staging-target-proof-policy.md",
           "exists": true,
@@ -135,9 +147,7 @@
       "runtimeProvidedReferenceIgnored": false,
       "secretPayloadsRead": false,
       "secretPayloadsPrinted": false,
-      "blockers": [
-        "approved_staging_target_reference_missing"
-      ]
+      "blockers": []
     },
     "approvedTargetProofConfirmed": false,
     "metadataLabelLooksStaging": false,
@@ -185,7 +195,6 @@
     "secretsRead": false,
     "productionTargetAllowed": false,
     "blockers": [
-      "approved_staging_target_reference_missing",
       "supabase_plugin_staging_target_check_not_confirmed",
       "supabase_plugin_target_not_confirmed_as_staging"
     ]
@@ -209,14 +218,13 @@
     "202605190001"
   ],
   "registryMigrationObserved": false,
-  "approvedReferenceMatchesPluginTarget": false,
+  "approvedReferenceMatchesPluginTarget": true,
   "stagingTargetProofPassed": false,
   "productionSignalDetected": false,
   "ambiguousTargetSignal": true,
   "secretPayloadsRead": false,
   "secretPayloadsPrinted": false,
   "blockers": [
-    "approved_staging_target_reference_missing",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
     "blocked_target_not_staging"

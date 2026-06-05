@@ -3,7 +3,6 @@
   "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
   "status": "blocked",
   "activeBlockers": [
-    "approved_staging_target_reference_missing",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
     "blocked_target_not_staging",
@@ -16,7 +15,7 @@
     "approved_staging_target_reference_missing",
     "supabase_plugin_target_not_confirmed_as_staging"
   ],
-  "operatorActionRequired": "Add an approved non-secret staging Supabase project reference in repo-safe metadata before rerun.",
+  "operatorActionRequired": "Confirm the plugin target matches the approved staging reference before rerun.",
   "stillBlockedScopes": [
     "staging_schema_deploy_until_target_proof_passes",
     "staging_schema_verify_until_target_proof_passes",

@@ -1,0 +1,25 @@
+{
+  "phase": "supabase-approved-staging-target-reference",
+  "runId": "supabase-approved-staging-target-reference-20260605",
+  "status": "passed",
+  "activeBlockers": [],
+  "resolvedPriorBlockerForPr209": "approved_staging_target_reference_missing",
+  "stillBlockedScopes": [
+    "staging_schema_deploy_until_pr209_target_proof_confirmations_pass",
+    "staging_schema_verify_until_pr209_target_proof_confirmations_pass",
+    "track_b_backfill_write_until_pr198_confirmations_pass",
+    "production_supabase",
+    "production_sql",
+    "direct_manual_remote_sql",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock",
+    "track_a"
+  ],
+  "operatorActionRequired": "Rerun PR #209 target proof wrapper with its own confirmations; do not write data in this phase."
+}

@@ -2,7 +2,7 @@
   "phase": "supabase-staging-target-proof-deploy-rerun",
   "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
   "status": "blocked",
-  "selectedStrategy": "blocked_missing_approved_staging_reference",
+  "selectedStrategy": "blocked_target_not_staging",
   "deployPerformed": false,
   "delegatedToPr206PluginDeploy": false,
   "dryRunPerformed": false,
@@ -27,7 +27,6 @@
   "productionAffected": false,
   "trackBRowsWritten": false,
   "blockers": [
-    "approved_staging_target_reference_missing",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
     "blocked_target_not_staging",

@@ -1,0 +1,37 @@
+{
+  "phase": "supabase-approved-staging-target-reference",
+  "runId": "supabase-approved-staging-target-reference-20260605",
+  "status": "passed",
+  "approvedReferencePolicy": {
+    "projectRefIsSafeMetadata": true,
+    "projectNameIsSafeMetadata": true,
+    "environmentLabelIsSafeMetadata": true,
+    "dbUrlsForbidden": true,
+    "serviceRoleKeysForbidden": true,
+    "anonKeysForbidden": true,
+    "accessTokensForbidden": true,
+    "passwordsForbidden": true,
+    "signedUrlsForbidden": true,
+    "credentialPayloadViewingForbidden": true,
+    "pluginObservationAloneIsNotApproval": true,
+    "runtimeEnvReferenceAloneIsNotApproval": true
+  },
+  "executionPolicy": {
+    "stagingSqlExecutionAllowedInThisPhase": false,
+    "remoteSqlRun": false,
+    "migrationDeployment": false,
+    "trackBBackfillWrite": false,
+    "productionAffected": false,
+    "providerCalls": "not_run",
+    "routeToolWorkerExecution": "not_run",
+    "mediaProcessing": "not_run",
+    "trackA": "not_touched"
+  },
+  "futureGatePolicy": {
+    "pr209StillRequiresOwnConfirmations": true,
+    "pr206DeployVerifyStillRequiresSeparateConfirmations": true,
+    "pr198BackfillStillRequiresSeparateConfirmations": true,
+    "productionPromotionRequiresSeparateHumanReview": true
+  },
+  "blockers": []
+}

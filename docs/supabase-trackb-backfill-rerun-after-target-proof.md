@@ -25,4 +25,4 @@ The PR #198 guarded Track B staging backfill may be rerun only after:
 
 ## Current Recommendation
 
-Resolve `approved_staging_target_reference_missing` first. Then rerun the plugin staging schema deploy/verify wrapper. Only after verified schema/RLS should PR #198’s backfill preflight/diff/write path be reconsidered.
+The approved staging target reference is now recorded as safe metadata. Rerun the plugin staging schema deploy/verify wrapper only after the PR #209 proof confirmations pass. Only after verified schema/RLS should PR #198's backfill preflight/diff/write path be reconsidered in a separate phase.

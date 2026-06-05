@@ -1,0 +1,22 @@
+{
+  "phase": "supabase-approved-staging-target-reference",
+  "runId": "supabase-approved-staging-target-reference-20260605",
+  "status": "metadata_committed_only",
+  "reportDir": "docs/activation-supabase-approved-staging-target-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "approved_staging_target_reference.json",
+    "approved_staging_target_policy_report.json",
+    "approved_staging_target_blocker_report.json",
+    "approved_staging_target_readiness_report.json",
+    "approved_staging_target_private_artifact_manifest.json",
+    "approved_staging_target_readiness_report.md"
+  ],
+  "privateUploadRequired": false,
+  "secretsIncluded": false,
+  "dbUrlsIncluded": false,
+  "serviceKeysIncluded": false,
+  "signedUrlsIncluded": false,
+  "privatePayloadsIncluded": false,
+  "mediaPayloadsIncluded": false
+}

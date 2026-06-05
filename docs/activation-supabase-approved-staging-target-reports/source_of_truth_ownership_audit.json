@@ -1,0 +1,126 @@
+{
+  "phase": "supabase-approved-staging-target-reference",
+  "runId": "supabase-approved-staging-target-reference-20260605",
+  "status": "passed",
+  "ownerWorkstream": "SUPABASE_RLS_STORAGE_DATABASE",
+  "relatedWorkstreams": [
+    "TRACK_B_MEDIA_PROCESSING",
+    "OBSERVABILITY_AUDIT_COST",
+    "WORKER_RUNTIME_JOBS"
+  ],
+  "nonOwnedWorkstreams": [
+    "Track B runtime/tool execution",
+    "Track A visual/video runtime",
+    "provider gateway/model execution",
+    "frontend UX",
+    "production or beta unlocks"
+  ],
+  "sourceFiles": [
+    {
+      "file": "AGENTS.md",
+      "required": true,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/supabase-approved-staging-target-reference.md",
+      "required": true,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/supabase-staging-target-proof-policy.md",
+      "required": true,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/supabase-plugin-staging-target-proof-report.md",
+      "required": true,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/supabase-plugin-staging-target-policy.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/supabase-milestone-registry-staging-deploy-rerun.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/supabase-trackb-backfill-rerun-after-target-proof.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/activation-readiness-state.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/activation-phase-roadmap.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/production-beta-readiness-scorecard.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/production-model-weight-readiness-plan.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    },
+    {
+      "file": "docs/track-b-tool-readiness-summary.md",
+      "required": false,
+      "exists": true,
+      "secretLikePayloadDetected": false
+    }
+  ],
+  "integrationPrs": [
+    {
+      "pr": 196,
+      "role": "Track B rollup export evidence"
+    },
+    {
+      "pr": 198,
+      "role": "Track B staging backfill path"
+    },
+    {
+      "pr": 200,
+      "role": "registry schema/RLS migration"
+    },
+    {
+      "pr": 202,
+      "role": "CLI staging deploy/verify wrapper"
+    },
+    {
+      "pr": 206,
+      "role": "plugin-assisted deploy/verify wrapper"
+    },
+    {
+      "pr": 209,
+      "role": "staging target proof deploy rerun"
+    }
+  ],
+  "duplicateWorkAvoidance": [
+    "do not add or deploy registry schema in this phase",
+    "do not write Track B milestone rows in this phase",
+    "do not infer staging from plugin project name alone after this approval; PR #209 still requires proof confirmations"
+  ],
+  "secretPayloadsRead": false,
+  "secretPayloadsPrinted": false,
+  "blockers": []
+}

@@ -90,7 +90,9 @@ Prompt 24C creates the Supabase evidence collection follow-up package.
 
 ## CI Status
 
-GitHub Foundation Validation is pending until the Prompt 24C PR is opened.
+Prompt 24C PR: [PR #193](https://github.com/yuzastudio6-cyber/Reedkt/pull/193).
+
+GitHub Foundation Validation is pending.
 
 ## Blockers
 

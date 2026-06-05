@@ -6,6 +6,7 @@ Implement Prompt 24C from a clean sibling worktree based on `origin/codex/rp-fou
 
 - Branch: `codex/rp-foundation-24c-supabase-evidence-collection-follow-up`
 - PR title: `[foundation] Prompt 24C Supabase evidence collection follow-up`
+- PR: [PR #193](https://github.com/yuzastudio6-cyber/Reedkt/pull/193)
 - Exact capability enabled: none; Supabase evidence collection follow-up only
 
 ## Allowed Scope

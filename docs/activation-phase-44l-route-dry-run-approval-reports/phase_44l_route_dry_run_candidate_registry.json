@@ -1,0 +1,73 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "candidate_registry_ready",
+  "selectedCandidateId": "candidate-noop-sidecar-handshake",
+  "approvedCandidateTypesForPhase44L": [
+    "no-op",
+    "metadata-only"
+  ],
+  "realToolRuntimeCandidatesApproved": false,
+  "candidates": [
+    {
+      "candidateId": "candidate-noop-sidecar-handshake",
+      "type": "no-op",
+      "selected": true,
+      "approvalStatus": "selected_for_future_noop_route_dry_run",
+      "reason": "Validates protocol metadata only; no tool runtime, media, or artifact payload.",
+      "noToolRuntime": true,
+      "noMedia": true,
+      "noProviderCalls": true,
+      "noPublicOutput": true,
+      "futureRouteDryRunCandidate": true
+    },
+    {
+      "candidateId": "candidate-metadata-route-validation",
+      "type": "metadata-only",
+      "selected": false,
+      "approvalStatus": "eligible_alternative_not_selected",
+      "reason": "Uses route manifest plus plan snapshot validators; no tool runtime or media.",
+      "noToolRuntime": true,
+      "noMedia": true,
+      "noProviderCalls": true,
+      "noPublicOutput": true,
+      "futureRouteDryRunCandidate": true
+    },
+    {
+      "candidateId": "candidate-private-artifact-scope-validation",
+      "type": "metadata-only",
+      "selected": false,
+      "approvalStatus": "eligible_alternative_not_selected",
+      "reason": "Validates private artifact scope policy; no artifact payload upload required in Phase 44L.",
+      "noToolRuntime": true,
+      "noMedia": true,
+      "noProviderCalls": true,
+      "noPublicOutput": true,
+      "futureRouteDryRunCandidate": true
+    },
+    {
+      "candidateId": "candidate-duckdb-metadata-report-route",
+      "type": "future tool route candidate",
+      "selected": false,
+      "approvalStatus": "not_approved_for_phase44l",
+      "reason": "Would invoke tool code; defer until no-op route dry-run passes.",
+      "noToolRuntime": false,
+      "noMedia": true,
+      "noProviderCalls": true,
+      "noPublicOutput": true,
+      "futureRouteDryRunCandidate": false
+    },
+    {
+      "candidateId": "candidate-sharp-thumbnail-route",
+      "type": "future tool route candidate",
+      "selected": false,
+      "approvalStatus": "not_approved_for_phase44l",
+      "reason": "Would process image artifacts; defer until metadata-only route dry-run passes.",
+      "noToolRuntime": false,
+      "noMedia": true,
+      "noProviderCalls": true,
+      "noPublicOutput": true,
+      "futureRouteDryRunCandidate": false
+    }
+  ]
+}

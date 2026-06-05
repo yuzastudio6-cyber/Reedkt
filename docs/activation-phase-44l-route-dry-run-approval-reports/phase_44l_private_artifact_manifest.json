@@ -1,0 +1,29 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "committed_metadata_only_no_private_upload",
+  "privateUpload": "not_required",
+  "privateRead": "not_run",
+  "objectCount": 0,
+  "committedArtifacts": [
+    "phase_44l_route_dry_run_plan.json",
+    "phase_44l_route_dry_run_prior_evidence_inventory.json",
+    "phase_44l_route_dry_run_prior_evidence_inventory.md",
+    "phase_44l_route_dry_run_input_manifest.json",
+    "phase_44l_route_dry_run_candidate_registry.json",
+    "phase_44l_route_dry_run_approval_criteria.json",
+    "phase_44l_route_dry_run_plan_snapshot.json",
+    "phase_44l_route_dry_run_artifact_scope.json",
+    "phase_44l_route_dry_run_security_review.json",
+    "phase_44l_route_dry_run_operator_checklist.json",
+    "phase_44l_route_dry_run_rollback_policy.json",
+    "phase_44l_route_dry_run_approval_decision.json",
+    "phase_44l_route_dry_run_approval_decision.md",
+    "phase_44l_route_dry_run_blocker_report.json",
+    "phase_44l_route_dry_run_readiness_report.json",
+    "phase_44l_private_artifact_manifest.json"
+  ],
+  "noMediaAudioModelPayloads": true,
+  "noPrivatePayloadsCommitted": true,
+  "noSecrets": true
+}

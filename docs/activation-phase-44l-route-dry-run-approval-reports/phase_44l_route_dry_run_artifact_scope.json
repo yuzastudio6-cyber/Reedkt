@@ -1,0 +1,45 @@
+{
+  "phase": "44L",
+  "runId": "phase44l-trackb-route-dry-run-approval-packet-20260604",
+  "status": "artifact_scope_ready_for_future_metadata_only_dry_run",
+  "inputArtifactScopeId": "phase44l-input-scope-metadata-only",
+  "outputArtifactScopeId": "phase44l-output-scope-metadata-only",
+  "noMediaInput": true,
+  "noAudioInput": true,
+  "noModelInput": true,
+  "noProviderOutput": true,
+  "privateMetadataOnlyReportScope": true,
+  "publicOutputAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "arbitraryPathAllowed": false,
+  "broadMediaAllowed": false,
+  "payloadUploadInPhase44L": false,
+  "futureDryRunMayWritePrivateMetadataOnlyIfApproved": true,
+  "validatorCompatibility": {
+    "request": {
+      "type": "artifact_scope_validate_request",
+      "artifactScopeId": "phase44l-output-scope-metadata-only",
+      "artifactClasses": [
+        "safe_json_report",
+        "safe_markdown_report"
+      ],
+      "privateGcsPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase44m/noop-route-dry-run/future-run-id/",
+      "localTempScope": "phase44m-ephemeral-metadata-only",
+      "publicOutputRequested": false,
+      "arbitraryPathRequested": false,
+      "signedUrlAsSourceOfTruth": false,
+      "committedPrivatePayloadRequested": false,
+      "broadMediaBucketRequested": false
+    },
+    "result": {
+      "type": "artifact_scope_validate_response",
+      "accepted": true,
+      "blockedReasons": [],
+      "redactedScope": {
+        "artifactScopeId": "phase44l-output-scope-metadata-only",
+        "privateGcsPrefixBucket": "gs://reeditpro-staging-reeditpro-qa-artifacts",
+        "localTempScopePolicy": "ephemeral_only"
+      }
+    }
+  }
+}

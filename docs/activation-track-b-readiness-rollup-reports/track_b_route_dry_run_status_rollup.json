@@ -1,0 +1,30 @@
+{
+  "phase": "44P",
+  "runId": "phase44p-trackb-readiness-rollup-supabase-milestone-export-20260605",
+  "status": "passed",
+  "routeManifestVersion": "track-b-route-manifest-v1",
+  "phase44mNoopDryRun": {
+    "prNumber": 189,
+    "status": "phase_complete_restricted_scope",
+    "executionPerformed": false,
+    "reportDir": "docs/activation-phase-44m-noop-route-dry-run-execution-reports"
+  },
+  "phase44oMetadataDryRun": {
+    "prNumber": 194,
+    "status": "passed",
+    "executionPerformed": false,
+    "routeExecutionPerformed": false,
+    "reportDir": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports"
+  },
+  "duckDbRoute": {
+    "routeId": "track_b_duckdb",
+    "routeStatus": "route_enabled_restricted_internal",
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "routeDryRunOnly": true
+  },
+  "liveRouteExecution": "blocked",
+  "workerExecution": "blocked",
+  "sidecarExecution": "blocked",
+  "toolRuntimeExecution": "blocked"
+}

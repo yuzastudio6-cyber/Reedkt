@@ -1,0 +1,26 @@
+{
+  "phase": "44P",
+  "runId": "phase44p-trackb-readiness-rollup-supabase-milestone-export-20260605",
+  "status": "committed_safe_metadata_only",
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "privatePayloadsCommitted": false,
+  "secretPayloadsCommitted": false,
+  "supabaseWritePerformed": false,
+  "reportDir": "docs/activation-track-b-readiness-rollup-reports",
+  "expectedReports": [
+    "track_b_readiness_rollup_plan.json",
+    "track_b_pr_evidence_inventory.json",
+    "track_b_tool_status_rollup.json",
+    "track_b_phase_status_rollup.json",
+    "track_b_internal_ready_scope_rollup.json",
+    "track_b_blocked_scope_rollup.json",
+    "track_b_route_dry_run_status_rollup.json",
+    "track_b_supabase_milestone_export.json",
+    "track_b_supabase_milestone_export.schema.json",
+    "track_b_next_phase_recommendation.json",
+    "track_b_readiness_rollup_report.json",
+    "track_b_private_artifact_manifest.json",
+    "track_b_readiness_blocker_report.json"
+  ]
+}

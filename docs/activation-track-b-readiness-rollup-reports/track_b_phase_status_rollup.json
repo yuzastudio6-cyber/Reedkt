@@ -1,0 +1,441 @@
+{
+  "phase": "44P",
+  "runId": "phase44p-trackb-readiness-rollup-supabase-milestone-export-20260605",
+  "status": "passed",
+  "phases": [
+    {
+      "phaseId": "37A",
+      "sourceId": "phase37a_paddleocr_approval",
+      "prNumber": 51,
+      "title": "PaddleOCR model/runtime approval workflow",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "reportPath": "docs/activation-phase-37a-paddleocr-model-runtime-approval.md"
+    },
+    {
+      "phaseId": "37B",
+      "sourceId": "phase37b_paddleocr_assets",
+      "prNumber": 53,
+      "title": "PaddleOCR exact asset download/private staging workflow",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "reportPath": "docs/activation-phase-37b-paddleocr-exact-assets-download.md"
+    },
+    {
+      "phaseId": "37C",
+      "sourceId": "phase37c_generated_ocr_runtime",
+      "prNumber": 56,
+      "title": "Generated OCR runtime verification",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "reportPath": "docs/activation-phase-37c-generated-ocr-runtime-verification.md"
+    },
+    {
+      "phaseId": "37D-GATE",
+      "sourceId": "phase37d_ocr_safe_zone_gate",
+      "prNumber": 57,
+      "title": "Controlled real-video OCR safe-zone gate",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "reportPath": "docs/activation-phase-37d-controlled-real-video-ocr-safe-zone.md"
+    },
+    {
+      "phaseId": "37D-EXECUTION",
+      "sourceId": "phase37d_ocr_safe_zone_execution",
+      "prNumber": 59,
+      "title": "Controlled real-video OCR safe-zone execution",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "reportPath": "docs/activation-phase-37d-controlled-real-video-ocr-safe-zone-execution.md"
+    },
+    {
+      "phaseId": "37E",
+      "sourceId": "phase37e_ocr_caption_render_qa",
+      "prNumber": 61,
+      "title": "OCR safe-zone caption/render QA integration",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "reportPath": "docs/activation-phase-37e-ocr-caption-render-qa.md"
+    },
+    {
+      "phaseId": "39C",
+      "sourceId": "phase39c_vlm_decision_gate",
+      "prNumber": 120,
+      "title": "VLM decision gate",
+      "status": "blocked",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "qwen3_vl",
+        "vllm"
+      ],
+      "reportPath": "docs/activation-phase-39c-vlm-decision-gate-reports/phase_39c_vlm_decision_record.json"
+    },
+    {
+      "phaseId": "46A",
+      "sourceId": "phase46a_media_data_readiness",
+      "prNumber": 123,
+      "title": "Media/data tool readiness audit",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "reportPath": "docs/activation-phase-46a-media-data-readiness-reports"
+    },
+    {
+      "phaseId": "46B",
+      "sourceId": "phase46b_generated_media_data",
+      "prNumber": 125,
+      "title": "Generated media/data analysis suite",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "reportPath": "docs/activation-phase-46b-generated-media-data-suite-reports"
+    },
+    {
+      "phaseId": "46C",
+      "sourceId": "phase46c_controlled_media_data",
+      "prNumber": 128,
+      "title": "Controlled real-video media/data suite",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "reportPath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports"
+    },
+    {
+      "phaseId": "46D",
+      "sourceId": "phase46d_reporting_qa",
+      "prNumber": 135,
+      "title": "DuckDB/Polars reporting QA integration and auth rerun",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "duckdb",
+        "polars"
+      ],
+      "reportPath": "docs/activation-phase-46d-duckdb-polars-reporting-qa-reports"
+    },
+    {
+      "phaseId": "46E",
+      "sourceId": "phase46e_media_data_beta_gate",
+      "prNumber": 138,
+      "title": "Media/data internal beta readiness gate",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "reportPath": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports"
+    },
+    {
+      "phaseId": "36H",
+      "sourceId": "phase36h_deepfilternet",
+      "prNumber": 140,
+      "title": "DeepFilterNet runtime hardening controlled speech",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "deepfilternet"
+      ],
+      "reportPath": "docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports"
+    },
+    {
+      "phaseId": "36I",
+      "sourceId": "phase36i_signalsmith_generated",
+      "prNumber": 147,
+      "title": "Signalsmith Stretch generated fixture",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "signalsmith_stretch"
+      ],
+      "reportPath": "docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports"
+    },
+    {
+      "phaseId": "36J",
+      "sourceId": "phase36j_signalsmith_controlled",
+      "prNumber": 149,
+      "title": "Controlled real-media timing stretch sample",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "signalsmith_stretch"
+      ],
+      "reportPath": "docs/activation-phase-36j-controlled-real-media-timing-stretch-sample-reports"
+    },
+    {
+      "phaseId": "36K",
+      "sourceId": "phase36k_demucs_provenance",
+      "prNumber": 156,
+      "title": "Demucs provenance approval retry",
+      "status": "blocked_pending_training_data_provenance",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "demucs"
+      ],
+      "reportPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports"
+    },
+    {
+      "phaseId": "36M",
+      "sourceId": "phase36m_audio_timing_beta_gate",
+      "prNumber": 159,
+      "title": "Audio/timing internal beta readiness gate",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "deepfilternet",
+        "signalsmith_stretch",
+        "demucs"
+      ],
+      "reportPath": "docs/activation-phase-36m-audio-timing-internal-beta-readiness-gate-reports"
+    },
+    {
+      "phaseId": "44I-A",
+      "sourceId": "phase44ia_capability_manifest",
+      "prNumber": 161,
+      "title": "Track B capability manifest baseline",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "deepfilternet",
+        "signalsmith_stretch",
+        "demucs",
+        "paddleocr",
+        "paddlepaddle",
+        "qwen3_vl",
+        "vllm",
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars",
+        "web_capability_profiler",
+        "desktop_capability_profiler",
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-track-b-capability-manifests-reports"
+    },
+    {
+      "phaseId": "44I",
+      "sourceId": "phase44i_route_manifest",
+      "prNumber": 164,
+      "title": "Track B tool route manifest integration",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "deepfilternet",
+        "signalsmith_stretch",
+        "demucs",
+        "paddleocr",
+        "paddlepaddle",
+        "qwen3_vl",
+        "vllm",
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars",
+        "web_capability_profiler",
+        "desktop_capability_profiler",
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-track-b-tool-route-manifest-reports"
+    },
+    {
+      "phaseId": "44D",
+      "sourceId": "phase44d_web_capability_profiler",
+      "prNumber": 167,
+      "title": "Web capability profiler",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "web_capability_profiler"
+      ],
+      "reportPath": "docs/activation-phase-44d-web-capability-profiler-reports"
+    },
+    {
+      "phaseId": "44E",
+      "sourceId": "phase44e_desktop_capability_profiler",
+      "prNumber": 176,
+      "title": "Desktop capability profiler",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "desktop_capability_profiler"
+      ],
+      "reportPath": "docs/activation-phase-44e-desktop-capability-profiler-reports"
+    },
+    {
+      "phaseId": "44F",
+      "sourceId": "phase44f_desktop_benchmark_runner",
+      "prNumber": 177,
+      "title": "Desktop benchmark runner",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "desktop_capability_profiler"
+      ],
+      "reportPath": "docs/activation-phase-44f-desktop-benchmark-runner-reports"
+    },
+    {
+      "phaseId": "44H",
+      "sourceId": "phase44h_cost_estimator",
+      "prNumber": 180,
+      "title": "Track B cost estimator",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "cost_estimator"
+      ],
+      "reportPath": "docs/activation-phase-44h-track-b-cost-estimator-reports"
+    },
+    {
+      "phaseId": "44G",
+      "sourceId": "phase44g_sidecar_foundation",
+      "prNumber": 181,
+      "title": "Local worker sidecar foundation",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "local_worker_sidecar_planning"
+      ],
+      "reportPath": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports"
+    },
+    {
+      "phaseId": "44J",
+      "sourceId": "phase44j_hybrid_e2e_simulation",
+      "prNumber": 184,
+      "title": "Hybrid compute E2E simulation",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports"
+    },
+    {
+      "phaseId": "44K",
+      "sourceId": "phase44k_desktop_beta_gate",
+      "prNumber": 187,
+      "title": "Desktop beta readiness gate",
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "web_capability_profiler",
+        "desktop_capability_profiler",
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-phase-44k-desktop-beta-readiness-gate-reports"
+    },
+    {
+      "phaseId": "44L",
+      "sourceId": "phase44l_route_dry_run_approval",
+      "prNumber": 188,
+      "title": "Track B route dry-run approval packet",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "local_worker_sidecar_planning",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-phase-44l-route-dry-run-approval-reports"
+    },
+    {
+      "phaseId": "44M",
+      "sourceId": "phase44m_noop_route_dry_run",
+      "prNumber": 189,
+      "title": "No-op route dry-run execution",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "local_worker_sidecar_planning",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-phase-44m-noop-route-dry-run-execution-reports"
+    },
+    {
+      "phaseId": "44N",
+      "sourceId": "phase44n_metadata_route_approval",
+      "prNumber": 192,
+      "title": "Metadata route dry-run approval packet",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "duckdb",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-phase-44n-metadata-route-dry-run-approval-reports"
+    },
+    {
+      "phaseId": "44O",
+      "sourceId": "phase44o_metadata_route_dry_run",
+      "prNumber": 194,
+      "title": "Metadata route dry-run execution",
+      "status": "phase_complete_restricted_scope",
+      "committedEvidenceExists": true,
+      "toolIds": [
+        "duckdb",
+        "tool_route_manifest_integration"
+      ],
+      "reportPath": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports"
+    }
+  ]
+}

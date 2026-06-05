@@ -1,0 +1,596 @@
+{
+  "phase": "44P",
+  "runId": "phase44p-trackb-readiness-rollup-supabase-milestone-export-20260605",
+  "status": "committed_safe_evidence_inventory_built",
+  "sourceBasePr": 194,
+  "inventory": [
+    {
+      "sourceId": "phase37a_paddleocr_approval",
+      "phase": "37A",
+      "prNumber": 51,
+      "title": "PaddleOCR model/runtime approval workflow",
+      "branch": "codex/rp-activation-37a-paddleocr-model-runtime-approval",
+      "reportPath": "docs/activation-phase-37a-paddleocr-model-runtime-approval.md",
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/51",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase37b_paddleocr_assets",
+      "phase": "37B",
+      "prNumber": 53,
+      "title": "PaddleOCR exact asset download/private staging workflow",
+      "branch": "codex/rp-activation-37b-paddleocr-exact-assets-download",
+      "reportPath": "docs/activation-phase-37b-paddleocr-exact-assets-download.md",
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/53",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase37c_generated_ocr_runtime",
+      "phase": "37C",
+      "prNumber": 56,
+      "title": "Generated OCR runtime verification",
+      "branch": "codex/rp-activation-37c-generated-ocr-runtime-verification",
+      "reportPath": "docs/activation-phase-37c-generated-ocr-runtime-verification.md",
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/56",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase37d_ocr_safe_zone_gate",
+      "phase": "37D-GATE",
+      "prNumber": 57,
+      "title": "Controlled real-video OCR safe-zone gate",
+      "branch": "codex/rp-activation-37d-controlled-real-video-ocr-safe-zone-gate",
+      "reportPath": "docs/activation-phase-37d-controlled-real-video-ocr-safe-zone.md",
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/57",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase37d_ocr_safe_zone_execution",
+      "phase": "37D-EXECUTION",
+      "prNumber": 59,
+      "title": "Controlled real-video OCR safe-zone execution",
+      "branch": "codex/rp-activation-37d-controlled-real-video-ocr-safe-zone-execution",
+      "reportPath": "docs/activation-phase-37d-controlled-real-video-ocr-safe-zone-execution.md",
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/59",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase37e_ocr_caption_render_qa",
+      "phase": "37E",
+      "prNumber": 61,
+      "title": "OCR safe-zone caption/render QA integration",
+      "branch": "codex/rp-activation-37e-ocr-safe-zone-caption-render-qa",
+      "reportPath": "docs/activation-phase-37e-ocr-caption-render-qa.md",
+      "toolIds": [
+        "paddleocr",
+        "paddlepaddle"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/61",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase39c_vlm_decision_gate",
+      "phase": "39C",
+      "prNumber": 120,
+      "title": "VLM decision gate",
+      "branch": "codex/rp-activation-39c-vlm-decision-gate-recovery-plan",
+      "reportPath": "docs/activation-phase-39c-vlm-decision-gate-reports/phase_39c_vlm_decision_record.json",
+      "toolIds": [
+        "qwen3_vl",
+        "vllm"
+      ],
+      "status": "blocked",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/120",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase46a_media_data_readiness",
+      "phase": "46A",
+      "prNumber": 123,
+      "title": "Media/data tool readiness audit",
+      "branch": "codex/rp-activation-46a-media-data-tool-readiness-audit",
+      "reportPath": "docs/activation-phase-46a-media-data-readiness-reports",
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/123",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase46b_generated_media_data",
+      "phase": "46B",
+      "prNumber": 125,
+      "title": "Generated media/data analysis suite",
+      "branch": "codex/rp-activation-46b-generated-media-data-analysis-suite",
+      "reportPath": "docs/activation-phase-46b-generated-media-data-suite-reports",
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/125",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase46c_controlled_media_data",
+      "phase": "46C",
+      "prNumber": 128,
+      "title": "Controlled real-video media/data suite",
+      "branch": "codex/rp-activation-46c-controlled-real-video-media-data-suite",
+      "reportPath": "docs/activation-phase-46c-controlled-real-video-media-data-suite-reports",
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/128",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase46d_reporting_qa",
+      "phase": "46D",
+      "prNumber": 135,
+      "title": "DuckDB/Polars reporting QA integration and auth rerun",
+      "branch": "codex/rp-activation-46d-auth-rerun-duckdb-polars-reporting-qa",
+      "reportPath": "docs/activation-phase-46d-duckdb-polars-reporting-qa-reports",
+      "toolIds": [
+        "duckdb",
+        "polars"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/135",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase46e_media_data_beta_gate",
+      "phase": "46E",
+      "prNumber": 138,
+      "title": "Media/data internal beta readiness gate",
+      "branch": "codex/rp-activation-46e-media-data-internal-beta-readiness-gate",
+      "reportPath": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports",
+      "toolIds": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase36h_deepfilternet",
+      "phase": "36H",
+      "prNumber": 140,
+      "title": "DeepFilterNet runtime hardening controlled speech",
+      "branch": "codex/rp-activation-36h-deepfilternet-runtime-hardening-controlled-speech",
+      "reportPath": "docs/activation-phase-36h-deepfilternet-runtime-hardening-controlled-speech-reports",
+      "toolIds": [
+        "deepfilternet"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/140",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase36i_signalsmith_generated",
+      "phase": "36I",
+      "prNumber": 147,
+      "title": "Signalsmith Stretch generated fixture",
+      "branch": "codex/rp-activation-36i-signalsmith-stretch-generated-fixture",
+      "reportPath": "docs/activation-phase-36i-signalsmith-stretch-generated-fixture-reports",
+      "toolIds": [
+        "signalsmith_stretch"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/147",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase36j_signalsmith_controlled",
+      "phase": "36J",
+      "prNumber": 149,
+      "title": "Controlled real-media timing stretch sample",
+      "branch": "codex/rp-activation-36j-controlled-real-media-timing-stretch-sample",
+      "reportPath": "docs/activation-phase-36j-controlled-real-media-timing-stretch-sample-reports",
+      "toolIds": [
+        "signalsmith_stretch"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/149",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase36k_demucs_provenance",
+      "phase": "36K",
+      "prNumber": 156,
+      "title": "Demucs provenance approval retry",
+      "branch": "codex/rp-activation-36k-demucs-provenance-approval-retry",
+      "reportPath": "docs/activation-phase-36k-demucs-provenance-approval-retry-reports",
+      "toolIds": [
+        "demucs"
+      ],
+      "status": "blocked_pending_training_data_provenance",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/156",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase36m_audio_timing_beta_gate",
+      "phase": "36M",
+      "prNumber": 159,
+      "title": "Audio/timing internal beta readiness gate",
+      "branch": "codex/rp-activation-36m-audio-timing-internal-beta-readiness-gate",
+      "reportPath": "docs/activation-phase-36m-audio-timing-internal-beta-readiness-gate-reports",
+      "toolIds": [
+        "deepfilternet",
+        "signalsmith_stretch",
+        "demucs"
+      ],
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/159",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44ia_capability_manifest",
+      "phase": "44I-A",
+      "prNumber": 161,
+      "title": "Track B capability manifest baseline",
+      "branch": "codex/rp-trackb-capability-manifest-baseline",
+      "reportPath": "docs/activation-track-b-capability-manifests-reports",
+      "toolIds": [
+        "deepfilternet",
+        "signalsmith_stretch",
+        "demucs",
+        "paddleocr",
+        "paddlepaddle",
+        "qwen3_vl",
+        "vllm",
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars",
+        "web_capability_profiler",
+        "desktop_capability_profiler",
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/161",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44i_route_manifest",
+      "phase": "44I",
+      "prNumber": 164,
+      "title": "Track B tool route manifest integration",
+      "branch": "codex/rp-activation-44i-trackb-tool-route-manifest-integration",
+      "reportPath": "docs/activation-track-b-tool-route-manifest-reports",
+      "toolIds": [
+        "deepfilternet",
+        "signalsmith_stretch",
+        "demucs",
+        "paddleocr",
+        "paddlepaddle",
+        "qwen3_vl",
+        "vllm",
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars",
+        "web_capability_profiler",
+        "desktop_capability_profiler",
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/164",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44d_web_capability_profiler",
+      "phase": "44D",
+      "prNumber": 167,
+      "title": "Web capability profiler",
+      "branch": "codex/rp-activation-44d-web-capability-profiler",
+      "reportPath": "docs/activation-phase-44d-web-capability-profiler-reports",
+      "toolIds": [
+        "web_capability_profiler"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/167",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44e_desktop_capability_profiler",
+      "phase": "44E",
+      "prNumber": 176,
+      "title": "Desktop capability profiler",
+      "branch": "codex/rp-activation-44e-desktop-capability-profiler",
+      "reportPath": "docs/activation-phase-44e-desktop-capability-profiler-reports",
+      "toolIds": [
+        "desktop_capability_profiler"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/176",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44f_desktop_benchmark_runner",
+      "phase": "44F",
+      "prNumber": 177,
+      "title": "Desktop benchmark runner",
+      "branch": "codex/rp-activation-44f-desktop-benchmark-runner",
+      "reportPath": "docs/activation-phase-44f-desktop-benchmark-runner-reports",
+      "toolIds": [
+        "desktop_capability_profiler"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/177",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44h_cost_estimator",
+      "phase": "44H",
+      "prNumber": 180,
+      "title": "Track B cost estimator",
+      "branch": "codex/rp-activation-44h-trackb-cost-estimator",
+      "reportPath": "docs/activation-phase-44h-track-b-cost-estimator-reports",
+      "toolIds": [
+        "cost_estimator"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/180",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44g_sidecar_foundation",
+      "phase": "44G",
+      "prNumber": 181,
+      "title": "Local worker sidecar foundation",
+      "branch": "codex/rp-activation-44g-local-worker-sidecar-foundation",
+      "reportPath": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+      "toolIds": [
+        "local_worker_sidecar_planning"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/181",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44j_hybrid_e2e_simulation",
+      "phase": "44J",
+      "prNumber": 184,
+      "title": "Hybrid compute E2E simulation",
+      "branch": "codex/rp-activation-44j-hybrid-compute-e2e-simulation",
+      "reportPath": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+      "toolIds": [
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/184",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44k_desktop_beta_gate",
+      "phase": "44K",
+      "prNumber": 187,
+      "title": "Desktop beta readiness gate",
+      "branch": "codex/rp-activation-44k-desktop-beta-readiness-gate",
+      "reportPath": "docs/activation-phase-44k-desktop-beta-readiness-gate-reports",
+      "toolIds": [
+        "web_capability_profiler",
+        "desktop_capability_profiler",
+        "local_worker_sidecar_planning",
+        "cost_estimator",
+        "tool_route_manifest_integration"
+      ],
+      "status": "internally_beta_ready_candidate_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/187",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44l_route_dry_run_approval",
+      "phase": "44L",
+      "prNumber": 188,
+      "title": "Track B route dry-run approval packet",
+      "branch": "codex/rp-activation-44l-trackb-route-dry-run-approval-packet",
+      "reportPath": "docs/activation-phase-44l-route-dry-run-approval-reports",
+      "toolIds": [
+        "local_worker_sidecar_planning",
+        "tool_route_manifest_integration"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/188",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44m_noop_route_dry_run",
+      "phase": "44M",
+      "prNumber": 189,
+      "title": "No-op route dry-run execution",
+      "branch": "codex/rp-activation-44m-noop-route-dry-run-execution",
+      "reportPath": "docs/activation-phase-44m-noop-route-dry-run-execution-reports",
+      "toolIds": [
+        "local_worker_sidecar_planning",
+        "tool_route_manifest_integration"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/189",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44n_metadata_route_approval",
+      "phase": "44N",
+      "prNumber": 192,
+      "title": "Metadata route dry-run approval packet",
+      "branch": "codex/rp-activation-44n-metadata-route-dry-run-approval-packet",
+      "reportPath": "docs/activation-phase-44n-metadata-route-dry-run-approval-reports",
+      "toolIds": [
+        "duckdb",
+        "tool_route_manifest_integration"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/192",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    },
+    {
+      "sourceId": "phase44o_metadata_route_dry_run",
+      "phase": "44O",
+      "prNumber": 194,
+      "title": "Metadata route dry-run execution",
+      "branch": "codex/rp-activation-44o-metadata-route-dry-run-execution",
+      "reportPath": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports",
+      "toolIds": [
+        "duckdb",
+        "tool_route_manifest_integration"
+      ],
+      "status": "phase_complete_restricted_scope",
+      "commitSha": "a06c901fa7cb2b5e0cb9d469c3773f1aa92602bb",
+      "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/194",
+      "committedEvidenceExists": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForRollup": true
+    }
+  ],
+  "noPrivatePayloadsRead": true,
+  "noSecretPayloadsRead": true,
+  "noSupabaseReadOrWrite": true
+}

@@ -1,0 +1,80 @@
+{
+  "phase": "44P",
+  "runId": "phase44p-trackb-readiness-rollup-supabase-milestone-export-20260605",
+  "status": "restricted_internal_metadata_scope_only",
+  "internalReadyToolIds": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "paddleocr",
+    "paddlepaddle",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "internalReadyCount": 15,
+  "allowedScopesByTool": {
+    "deepfilternet": [
+      "bounded internal speech-cleanup QA/planning evidence only"
+    ],
+    "signalsmith_stretch": [
+      "bounded generated and controlled timing/stretch QA/planning evidence only"
+    ],
+    "paddleocr": [
+      "restricted internal OCR safe-zone metadata/planning signal only"
+    ],
+    "paddlepaddle": [
+      "restricted internal OCR runtime dependency for approved PaddleOCR scopes"
+    ],
+    "opencv": [
+      "deterministic geometry/frame/image analysis; generated and controlled metadata evidence only"
+    ],
+    "pyav": [
+      "media container/probe/frame metadata evidence only"
+    ],
+    "pyscenedetect": [
+      "bounded scene-change metadata evidence only"
+    ],
+    "sharp_libvips": [
+      "server/worker image metadata/thumbnail hardening evidence only"
+    ],
+    "duckdb": [
+      "metadata-only QA/reporting aggregation evidence only"
+    ],
+    "polars": [
+      "metadata-only QA/reporting transforms evidence only"
+    ],
+    "web_capability_profiler": [
+      "coarse_capability_planning_hints_only"
+    ],
+    "desktop_capability_profiler": [
+      "coarse_capability_planning_hints_only"
+    ],
+    "local_worker_sidecar_planning": [
+      "protocol_policy_and_simulation_metadata_only"
+    ],
+    "cost_estimator": [
+      "static_planning_cost_metadata_only"
+    ],
+    "tool_route_manifest_integration": [
+      "metadata_gating_and_supabase_export_reference_only"
+    ]
+  },
+  "scopeBoundaries": [
+    "restricted internal QA/planning/simulation only",
+    "no product-wide internal beta unlock",
+    "no external beta unlock",
+    "no production unlock",
+    "no public artifacts",
+    "no broad or arbitrary media",
+    "no providers",
+    "no Track A"
+  ]
+}

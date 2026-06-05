@@ -9,7 +9,8 @@ Prompt 26B is the advisor hardening planning step. Prompt 26C is the umbrella dr
 | Prompt 26B | Advisor hardening plan. | No. | Priority matrix and workstream plans. |
 | Prompt 26C | Supabase advisor umbrella draft remediation packet. | No. | Draft-only packets and Markdown SQL sketches for RLS, SECURITY DEFINER, search path, and FK index workstreams. |
 | Prompt 26D | RLS no-policy table classification and policy contract. | No. | Table-by-table policy/no-access contract. |
-| Prompt 26E | RLS no-policy draft migration plan. | No SQL execution unless explicitly approved later. | Draft migration plan, rollback model, and local/staging test design. |
+| Prompt 26E | RLS no-policy draft migration plan. | No. | Draft migration plan, policy naming contract, dependency matrix, rollback model, and local/staging test design. |
+| Prompt 26E-1 | RLS no-policy local draft migration implementation. | Local-only if explicitly approved and gated. | Candidate local migration SQL and local denial tests. |
 | Prompt 26F | Function hardening migration plan. | No SQL execution unless explicitly approved later. | SECURITY DEFINER, grant, and search-path contract. |
 | Future FK index prompt | FK index migration design packet. | No SQL execution unless explicitly approved later. | Additive index migration design. |
 | Prompt 26G | Local advisor remediation validation candidate. | Local-only if approved and gated. | Local migration validation evidence. |
@@ -26,4 +27,4 @@ Prompt 26B is the advisor hardening planning step. Prompt 26C is the umbrella dr
 
 ## Current Recommendation
 
-Prompt 26D - RLS No-Policy Table Classification and Policy Contract records `rls_no_policy_classified` for the six RLS no-policy tables and still does not apply remediation. Proceed to Prompt 26E - RLS No-Policy Draft Migration Plan after Prompt 26D validation and CI pass.
+Prompt 26E - RLS No-Policy Draft Migration Plan records `rls_no_policy_draft_migration_plan_created` for the six RLS no-policy tables and still does not apply remediation. Proceed to Prompt 26E-1 - RLS No-Policy Local Draft Migration Implementation only if local implementation is approved and gated, or Prompt 26F - Function Search Path Hardening Migration Plan if function hardening takes priority.

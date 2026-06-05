@@ -228,6 +228,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:rls-no-policy:classification:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_rls_no_policy_draft_migration_diagnostics',
+    command: 'npm run --silent supabase:rls-no-policy:draft-migration:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:rls-no-policy:draft-migration:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

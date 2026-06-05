@@ -46,10 +46,23 @@ Prompt 26D records `rls_no_policy_classified` and chooses conservative raw-table
 
 Prompt 26D is a classification contract only. No RLS policy is applied in Prompt 26D.
 
+## Prompt 26E draft migration plan outcome
+
+Prompt 26E records `rls_no_policy_draft_migration_plan_created` and turns the Prompt 26D classification into draft planning artifacts only:
+
+- Draft migration plan: `docs/supabase-rls-no-policy-draft-migration-plan.md`.
+- Future policy names: `docs/supabase-rls-no-policy-policy-naming-contract.md`.
+- Dependency matrix: `docs/supabase-rls-no-policy-policy-dependency-matrix.md`.
+- Future tests: `docs/supabase-rls-no-policy-future-test-matrix.md`.
+- Rollback/cleanup: `docs/supabase-rls-no-policy-rollback-cleanup-plan.md`.
+- Staging evidence: `docs/supabase-rls-no-policy-staging-evidence-requirements.md`.
+
+Prompt 26E is a draft migration plan only. No RLS policy is applied in Prompt 26E.
+
 ## Blockers
 
 - Exact table columns and grants need review from accepted redacted evidence or local schema inspection in a future approved prompt.
-- Prompt 23 remains `pending_human_approval`.
+- Prompt 23 remains `pending_human_approval` on this branch.
 - Prompt 24D accepted evidence is missing.
 - No staging SQL is approved.
 

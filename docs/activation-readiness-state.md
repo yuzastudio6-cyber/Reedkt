@@ -205,6 +205,20 @@ map rendering, media processing, migrations, schema changes, Docker, Cloud Run,
 production, external beta, paid production, or broad media. Phase 52D is ready
 only for an agent-to-tool-plan bridge on existing evidence if Phase 52C QA and
 Supabase milestone sync readback pass.
+
+Phase 52D adds the agent-to-tool plan bridge on top of canonical Phase 52C run
+`phase52c-20260605T134904`. It converts the seven allowed Phase 52C intents into
+candidate-only approved-plan snapshot records, preserves four blocked/handoff
+records for AI Tools and Track B ownership boundaries, emits handoff packets for
+Track A, web search, map/geospatial, AI Tools graphics, Track B audio/VLM,
+Worker Runtime, and Supabase milestone sync, and writes one Phase 52D milestone
+sync record during confirmed execution. Phase 52E is ready only for approved
+plan snapshot validation/system reconciliation on existing evidence after Phase
+52D QA and Supabase readback pass. No tool runtime, worker execution, model
+inference, provider call, media processing, web search, browser capture, map
+rendering, migration, schema change, historical backfill, Docker, Cloud Run,
+public artifact, raw prompt execution, production, external beta, paid
+production, or broad media path is enabled.
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

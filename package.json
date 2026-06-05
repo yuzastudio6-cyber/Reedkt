@@ -444,7 +444,12 @@
     "activation:multi-agent-dry-run:report": "tsx server/cli/activation-multi-agent-dry-run-report.ts",
     "activation:multi-agent-dry-run:iam-plan": "tsx server/cli/activation-multi-agent-dry-run-iam-plan.ts",
     "activation:multi-agent:summary": "tsx server/cli/activation-multi-agent-summary.ts",
-    "smoke:activation-multi-agent-dry-run": "tsx server/smoke/activation-multi-agent-dry-run-smoke.ts"
+    "smoke:activation-multi-agent-dry-run": "tsx server/smoke/activation-multi-agent-dry-run-smoke.ts",
+    "activation:agent-tool-plan-bridge": "tsx server/cli/activation-agent-tool-plan-bridge.ts",
+    "activation:agent-tool-plan-bridge:report": "tsx server/cli/activation-agent-tool-plan-bridge-report.ts",
+    "activation:agent-tool-plan-bridge:iam-plan": "tsx server/cli/activation-agent-tool-plan-bridge-iam-plan.ts",
+    "activation:agent-tool-plan:summary": "tsx server/cli/activation-agent-tool-plan-summary.ts",
+    "smoke:activation-agent-tool-plan-bridge": "tsx server/smoke/activation-agent-tool-plan-bridge-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

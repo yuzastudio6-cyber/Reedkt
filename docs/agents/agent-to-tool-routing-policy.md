@@ -13,3 +13,5 @@ Routing boundaries:
 - Demucs-dependent intents respect the Demucs provenance blocker until resolved.
 
 Blocked routes: direct agent-to-tool execution, raw prompt worker execution, unrestricted provider fallback, production, external beta, and broad media.
+
+Phase 52D materializes this policy as bridge metadata only. Allowed Phase 52C intents become `candidate_plan_only` approved-plan snapshot candidates, while AI Tools-owned graphics and Track B-owned audio/VLM intents become handoff or blocked records.

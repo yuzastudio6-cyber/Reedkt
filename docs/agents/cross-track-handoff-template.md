@@ -24,3 +24,5 @@ Rules:
 - Distinguish source-of-truth artifacts from previews.
 - Do not include secrets or public/signed URLs as source of truth.
 - Preserve production, external beta, paid production, and broad media blockers unless a later gate explicitly clears them.
+
+Phase 52D emits handoff packets for Track A, web search, map/geospatial, AI Tools graphics, Track B audio/VLM, Worker Runtime, and Supabase milestone sync. Those packets are coordination artifacts, not execution authorization.

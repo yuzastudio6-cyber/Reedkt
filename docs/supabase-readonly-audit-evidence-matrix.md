@@ -6,9 +6,11 @@ Current redaction status: `not_applicable_no_evidence`.
 
 Current audit status: `evidence_required`.
 
+Connected Supabase audit status: `partially_reviewed_connected_metadata`.
+
 Template files created: yes.
 
-Prompt 24B found no counted redacted evidence files in the allowed evidence paths. `docs/supabase-readonly-audit-evidence/README.md` exists, but it is an instruction file only and is not counted as evidence. Prompt 24C adds templates and exact requested filenames; templates are instruction files only and are not counted as supplied evidence. Every category remains `missing`.
+Prompt 24B found no counted redacted evidence files in the allowed evidence paths. `docs/supabase-readonly-audit-evidence/README.md` exists, but it is an instruction file only and is not counted as evidence. Prompt 24C adds templates and exact requested filenames; templates are instruction files only and are not counted as supplied evidence. Prompt 26A records supplied connected metadata and advisor triage, but that metadata is not counted as a supplied redacted evidence file. Every category remains `missing`.
 
 | Category | Required | Required evidence file | Template created? | Current status | Redaction status | Blocker | Human/operator next action |
 | --- | --- | --- | --- | --- | --- | --- | --- |

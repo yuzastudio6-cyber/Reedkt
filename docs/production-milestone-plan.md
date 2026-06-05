@@ -655,3 +655,19 @@ Prompt 25A - GCP Secret Manager Supabase Reference Contract.
 - Acceptance criteria: Prompt 25A docs exist, diagnostics pass, no raw Supabase values or Secret Manager payloads are introduced, Prompt 25 future command packet docs use Secret Manager reference placeholders, and production readiness remains blocked.
 - Next prompt recommendation: Prompt 23A - Human Approval Decision Completion and Prompt 24B - Supabase Redacted Evidence Review before Prompt 26 - Approved Staging Supabase/RLS Validation Execution.
 - GitHub deliverable: branch, commit, push, PR with reference contract summary and explicit no-GCP-or-Supabase-execution statement.
+
+## 26A. Connected Supabase Read-Only Audit and Advisor Triage
+
+Prompt 26A - Connected Supabase Read-Only Audit and Advisor Triage.
+
+- Purpose: record supplied connected read-only Supabase project metadata and advisor findings, then triage the next hardening work without fetching, mutating, or executing anything.
+- Deliverables after Prompt 26A: `docs/connected-supabase-readonly-audit-record.md`, `docs/connected-supabase-advisor-triage.md`, `docs/connected-supabase-rls-no-policy-inventory.md`, `docs/connected-supabase-security-definer-triage.md`, `docs/connected-supabase-function-search-path-triage.md`, `docs/connected-supabase-performance-advisor-triage.md`, `docs/prompt-26a-validation-results.md`, `docs/implementation-prompts/prompt-26a-connected-supabase-readonly-audit-triage.md`, `scripts/validation/connected-supabase-readonly-audit-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 24C base branch, and tracker updates.
+- Implementation status after Prompt 26A: validation prepared / connected Supabase read-only audit triage only. Connected Supabase audit status is `partially_reviewed_connected_metadata`.
+- Validation status after Prompt 26A: local validation should run `git diff --check`, lint, server typecheck, foundation validation, connected-audit diagnostics, existing Supabase/GCP/staging diagnostics, local toolchain probe/preflight, and RLS list/dry-run only. Full build may remain local Darwin/Rolldown environment-blocked and rely on Linux CI.
+- Implements: documentation of the supplied active project metadata for redacted ref `wmyy****ishd`, inactive/default project note, no Edge Functions deployed, generated schema/types summary, log summary, RLS no-policy inventory, SECURITY DEFINER triage, mutable `search_path` triage, and unindexed foreign-key advisor triage.
+- Must not implement: Supabase lifecycle/status commands, SQL execution, migrations, advisor remediation, policy/index/function changes, Google Cloud or Secret Manager calls, secret fetching, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, human approval grant, staging approval, production approval, deployment, or beta unlock.
+- Main files/concepts: connected read-only project metadata, advisor findings, RLS no-policy tables, SECURITY DEFINER functions, mutable search path functions, unindexed foreign-key findings, and source-of-truth trackers.
+- What remains blocked: advisor findings are unresolved; redacted evidence files are still incomplete; Secret Manager metadata evidence remains incomplete; Prompt 23 remains `pending_human_approval`; staging SQL, production readiness, and beta remain blocked.
+- Acceptance criteria: Prompt 26A docs exist, diagnostics pass, only redacted project ref `wmyy****ishd` is recorded, connected metadata is not treated as staging validation, advisor findings are triaged but not remediated, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
+- Next prompt recommendation: Prompt 26B - Supabase Advisor Hardening Plan. Prompt 23A and Prompt 24D remain required before staging execution.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.

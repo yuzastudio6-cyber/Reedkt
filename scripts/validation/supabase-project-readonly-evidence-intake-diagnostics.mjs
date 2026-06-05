@@ -177,7 +177,7 @@ function secretFinding(file, pattern, line = 1) {
 }
 
 function isProhibitionLine(line) {
-  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|not_applicable_no_evidence|pending_human_approval|missing)\b/i.test(line)
+  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|not_applicable_no_evidence|pending_human_approval|missing|partially_reviewed_connected_metadata|connected metadata)\b/i.test(line)
 }
 
 function isVocabularyLine(line) {

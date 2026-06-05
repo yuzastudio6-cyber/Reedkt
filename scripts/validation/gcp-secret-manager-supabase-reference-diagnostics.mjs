@@ -163,7 +163,7 @@ function finding(file, kind, line, excerpt) {
 }
 
 function isSafeContext(line) {
-  return /\b(no|not|never|forbid|forbidden|blocked|must not|do not|does not|did not|without|placeholder|reference only|future-only|template|redacted|none|pending|required|prohibited|warning)\b/i.test(line)
+  return /\b(no|not|never|forbid|forbidden|blocked|must not|do not|does not|did not|without|placeholder|reference only|future-only|template|redacted|none|pending|required|prohibited|warning|partially_reviewed_connected_metadata|connected metadata)\b/i.test(line)
 }
 
 function scanPatterns(files, patterns, kind, { redact = false } = {}) {

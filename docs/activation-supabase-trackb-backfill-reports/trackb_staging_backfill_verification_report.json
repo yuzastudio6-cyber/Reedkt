@@ -1,0 +1,13 @@
+{
+  "phase": "supabase-trackb-milestone-staging-backfill",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "blocked",
+  "verificationPerformed": false,
+  "reason": "blocked_before_verification",
+  "rowsVerified": 0,
+  "remoteSqlRun": false,
+  "productionAffected": false,
+  "blockers": [
+    "supabase_milestone_registry_schema_missing"
+  ]
+}

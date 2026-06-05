@@ -1,0 +1,31 @@
+{
+  "phase": "supabase-trackb-milestone-staging-backfill",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "blocked",
+  "schemaEvidenceMode": "committed_registry_schema_required_before_staging_write",
+  "migrationPath": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+  "migrationExists": false,
+  "registryModulePath": "server/activation/supabase-milestone-registry",
+  "registryModuleExists": false,
+  "requiredTables": [
+    "activation_runs",
+    "activation_artifacts",
+    "activation_qa_gates",
+    "readiness_snapshots",
+    "tool_capabilities",
+    "feature_gates"
+  ],
+  "missingTables": [
+    "activation_runs",
+    "activation_artifacts",
+    "activation_qa_gates",
+    "readiness_snapshots",
+    "tool_capabilities",
+    "feature_gates"
+  ],
+  "schemaMutationPerformed": false,
+  "migrationDeploymentPerformed": false,
+  "blockers": [
+    "supabase_milestone_registry_schema_missing"
+  ]
+}

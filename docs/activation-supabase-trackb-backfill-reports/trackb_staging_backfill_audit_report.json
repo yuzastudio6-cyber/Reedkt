@@ -1,0 +1,28 @@
+{
+  "phase": "supabase-trackb-milestone-staging-backfill",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "blocked",
+  "sourcePr196": "https://github.com/yuzastudio6-cyber/Reedkt/pull/196",
+  "exportValidationStatus": "passed",
+  "diffStatus": "blocked",
+  "writeStatus": "blocked",
+  "verificationStatus": "blocked",
+  "credentialPayloadsPrinted": false,
+  "secretsCommitted": false,
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "productionSqlRun": false,
+  "migrationDeployment": false,
+  "schemaMutation": false,
+  "providerCalls": "not_run",
+  "routeExecution": "not_run",
+  "workerExecution": "not_run",
+  "toolExecution": "not_run",
+  "mediaProcessing": "not_run",
+  "publicOutput": "blocked",
+  "betaProductionUnlock": "blocked",
+  "trackA": "not_touched",
+  "blockers": [
+    "supabase_milestone_registry_schema_missing"
+  ]
+}

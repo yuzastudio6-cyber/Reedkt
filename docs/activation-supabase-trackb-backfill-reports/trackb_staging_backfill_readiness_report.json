@@ -1,0 +1,19 @@
+{
+  "phase": "supabase-trackb-milestone-staging-backfill",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "blocked",
+  "exportValidation": "passed",
+  "stagingExecutionAllowed": false,
+  "stagingWriteStatus": "blocked",
+  "stagingVerificationStatus": "blocked",
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "migrationDeployment": false,
+  "schemaMutation": false,
+  "productBetaUnlocked": false,
+  "productionUnlocked": false,
+  "nextRecommendedPhase": "Resolve the exact blocker before any staging write or production promotion approval.",
+  "blockers": [
+    "supabase_milestone_registry_schema_missing"
+  ]
+}

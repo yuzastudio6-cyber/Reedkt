@@ -439,7 +439,12 @@
     "activation:tool-capability-registry-audit:report": "tsx server/cli/activation-tool-capability-registry-audit-report.ts",
     "activation:tool-capability-registry-audit:iam-plan": "tsx server/cli/activation-tool-capability-registry-audit-iam-plan.ts",
     "activation:tool-capability-registry:summary": "tsx server/cli/activation-tool-capability-registry-summary.ts",
-    "smoke:activation-tool-capability-registry-audit": "tsx server/smoke/activation-tool-capability-registry-audit-smoke.ts"
+    "smoke:activation-tool-capability-registry-audit": "tsx server/smoke/activation-tool-capability-registry-audit-smoke.ts",
+    "activation:multi-agent-dry-run": "tsx server/cli/activation-multi-agent-dry-run.ts",
+    "activation:multi-agent-dry-run:report": "tsx server/cli/activation-multi-agent-dry-run-report.ts",
+    "activation:multi-agent-dry-run:iam-plan": "tsx server/cli/activation-multi-agent-dry-run-iam-plan.ts",
+    "activation:multi-agent:summary": "tsx server/cli/activation-multi-agent-summary.ts",
+    "smoke:activation-multi-agent-dry-run": "tsx server/smoke/activation-multi-agent-dry-run-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

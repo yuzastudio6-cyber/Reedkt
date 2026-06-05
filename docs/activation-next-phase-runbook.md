@@ -42,6 +42,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Proceed to Phase 52C only as a multi-agent dry-run on existing evidence.
 6. Do not execute tools, models, media processing, web search, map rendering, providers, migrations, schema changes, Docker, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After Phase 52C
+
+1. Review `activation:multi-agent-dry-run:report`, `activation:multi-agent-dry-run:iam-plan`, `activation:multi-agent:summary`, and the private Phase 52C artifacts.
+2. Confirm the dry-run includes at least six deterministic scenarios, all 12 Phase 52A agents, the required 11 edit-intent candidates, Producer gate decisions, and QA/Safety gate decisions.
+3. Confirm only internal-testing-ready intents are allowed as `candidate_plan_only`, while VLM, Demucs, direct AI Tools execution, Track B blocked runtime, public artifacts, raw prompt execution, production, external beta, paid production, and broad media remain blocked.
+4. Confirm one Phase 52C Supabase milestone sync record wrote/read back through the Phase 51D path and stores only private `gs://` references and structured metadata.
+5. Proceed to Phase 52D only as an agent-to-tool-plan bridge on existing evidence.
+6. Do not execute tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

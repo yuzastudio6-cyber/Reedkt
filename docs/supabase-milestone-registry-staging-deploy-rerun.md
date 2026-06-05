@@ -13,9 +13,8 @@ This phase wraps the existing PR #206 plugin-assisted deploy/verify path. It doe
 
 ## Current Result
 
-The current repo does not contain an approved staging project reference. The rerun stays blocked with:
+The current repo contains a non-secret approved staging project reference for `Reeditpro` / `wmyyttnynmteqgcdishd`. The rerun still stays blocked until the PR #209 target proof confirmations and deploy/verify gates pass.
 
-- `approved_staging_target_reference_missing`
 - `supabase_plugin_target_not_confirmed_as_staging`
 
 ## Boundaries

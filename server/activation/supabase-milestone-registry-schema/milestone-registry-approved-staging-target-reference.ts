@@ -4,6 +4,7 @@ export const SUPABASE_APPROVED_STAGING_TARGET_REFERENCE_CONFIRMATION =
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF'
 
 export const SUPABASE_APPROVED_STAGING_TARGET_REFERENCE_SOURCES = [
+  'docs/supabase-approved-staging-target-reference.md',
   'docs/supabase-staging-target-proof-policy.md',
   'docs/supabase-plugin-staging-target-policy.md',
   'docs/supabase-milestone-registry-staging-credential-policy.md',

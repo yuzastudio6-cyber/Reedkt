@@ -4,7 +4,7 @@ The Supabase Track B milestone staging backfill is not a model-weight phase. It 
 
 The Supabase activation milestone registry schema/RLS phase is not a model-weight phase. It creates only service-role-only schema/RLS metadata for future staging milestone backfill, with local seed/assertion fixtures and no model downloads, model staging, route/tool/worker execution, provider calls, media processing, beta unlock, production unlock, or Track A.
 
-The Supabase staging target proof deploy rerun is not a model-weight phase. It adds non-secret staging target proof metadata and a guarded wrapper around the existing plugin schema deploy path. It does not download, stage, approve, or execute model weights, and the default result is blocked until a repo-approved staging Supabase target reference exists.
+The Supabase approved staging target reference phase is not a model-weight phase. It records only the non-secret staging target reference `Reeditpro` / `wmyyttnynmteqgcdishd` for the future PR #209 deploy proof rerun. It does not download, stage, approve, or execute model weights, and it does not authorize staging schema deploy, verification SQL, Track B backfill writes, production, beta, providers, runtime execution, or Track A.
 
 Phase 44O is not a model-weight phase. It does not download, stage, approve, or execute model weights. It executes only a metadata-only DuckDB route dry-run using committed safe reports; DuckDB runtime, Polars runtime, VLM and Demucs model paths, model downloads, runtime execution, public output, beta, production, providers, broad media, raw chat execution, and Track A remain blocked.
 

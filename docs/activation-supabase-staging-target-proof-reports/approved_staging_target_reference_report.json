@@ -1,11 +1,18 @@
 {
-  "status": "blocked",
-  "approvedStagingTargetReferenceFound": false,
-  "approvedStagingProjectRef": null,
-  "approvedStagingProjectName": null,
-  "approvedEnvironment": null,
-  "approvedReferenceSource": null,
+  "status": "passed",
+  "approvedStagingTargetReferenceFound": true,
+  "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+  "approvedStagingProjectName": "Reeditpro",
+  "approvedEnvironment": "staging",
+  "approvedReferenceSource": "docs/supabase-approved-staging-target-reference.md",
   "sourceFilesInspected": [
+    {
+      "file": "docs/supabase-approved-staging-target-reference.md",
+      "exists": true,
+      "hasApprovedStatusMarker": true,
+      "hasProjectRefMarker": true,
+      "hasEnvironmentMarker": true
+    },
     {
       "file": "docs/supabase-staging-target-proof-policy.md",
       "exists": true,
@@ -52,7 +59,5 @@
   "runtimeProvidedReferenceIgnored": false,
   "secretPayloadsRead": false,
   "secretPayloadsPrinted": false,
-  "blockers": [
-    "approved_staging_target_reference_missing"
-  ]
+  "blockers": []
 }

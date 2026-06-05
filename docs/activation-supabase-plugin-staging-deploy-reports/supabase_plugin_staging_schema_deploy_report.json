@@ -25,7 +25,6 @@
   "remoteSqlRun": false,
   "directManualSqlRun": false,
   "blockers": [
-    "approved_staging_target_reference_missing",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
     "blocked_target_not_staging",

@@ -13,18 +13,18 @@ Passing proof requires all of:
 - no production or ambiguous target signal,
 - no DB URL, access token, service-role key, anon key, password, signed URL, or secret payload printed or committed.
 
-Current baseline:
+Current approved-reference baseline:
 
-- approved staging target reference: `missing`
+- approved staging target reference: `approved`
 - plugin observed target: `Reeditpro` / `wmyyttnynmteqgcdishd`
 - staging decision: `blocked`
-- blockers: `approved_staging_target_reference_missing`, `supabase_plugin_target_not_confirmed_as_staging`
+- blockers: `supabase_plugin_target_not_confirmed_as_staging` until the PR #209 proof confirmations and deploy/verify gates pass
 
 ## Safe Reference Format
 
-The approved target loader looks only for a committed non-secret approval marker, not for runtime env vars or plugin observations. Until a future approval adds a real staging reference, this phase must remain blocked.
+The approved target loader looks only for a committed non-secret approval marker, not for runtime env vars or plugin observations. The approved marker now lives in `docs/supabase-approved-staging-target-reference.md`.
 
-The approval marker must be reviewed before use and must not include DB URLs, keys, tokens, passwords, signed URLs, or raw Supabase output.
+The approval marker must be reviewed before use and must not include DB URLs, keys, tokens, passwords, signed URLs, or raw Supabase output. A passing approved reference does not authorize staging deploy, verification SQL, Track B backfill writes, production use, beta, or public output by itself.
 
 ## Forbidden Actions
 
@@ -42,4 +42,4 @@ The approval marker must be reviewed before use and must not include DB URLs, ke
 
 ## Next
 
-If proof remains blocked, add a narrowly approved non-secret staging target reference in a follow-up. If proof passes and schema deploy/verify passes, rerun the guarded PR #198 Track B staging backfill.
+Rerun the PR #209 staging target proof wrapper with its own target-check, deploy, and verify confirmations. If proof passes and schema deploy/verify passes, rerun the guarded PR #198 Track B staging backfill in a separate phase.

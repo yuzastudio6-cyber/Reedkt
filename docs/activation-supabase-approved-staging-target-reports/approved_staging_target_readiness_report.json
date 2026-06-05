@@ -1,0 +1,20 @@
+{
+  "phase": "supabase-approved-staging-target-reference",
+  "runId": "supabase-approved-staging-target-reference-20260605",
+  "status": "passed",
+  "approvalStatus": "approved_staging_reference_recorded",
+  "stagingTargetReferenceApproved": true,
+  "stagingExecutionAllowed": false,
+  "stagingSchemaDeployAuthorizedByThisPhase": false,
+  "stagingSchemaVerifyAuthorizedByThisPhase": false,
+  "trackBBackfillAuthorizedByThisPhase": false,
+  "remoteSqlRun": false,
+  "migrationDeployment": false,
+  "productionAffected": false,
+  "providerCalls": "not_run",
+  "routeToolWorkerExecution": "not_run",
+  "mediaProcessing": "not_run",
+  "trackA": "not_touched",
+  "nextRecommendedPhase": "Rerun the PR #209 staging target proof/deploy wrapper with its own proof and deploy confirmations.",
+  "blockers": []
+}

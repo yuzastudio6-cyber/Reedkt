@@ -4,10 +4,10 @@ This matrix prioritizes Prompt 26A advisor findings for future remediation desig
 
 | Priority | Advisor category | Objects | Risk | Future prompt | Prompt 26B action |
 | --- | --- | --- | --- | --- | --- |
-| P0 | RLS enabled/no policies | `activation_artifacts`, `activation_qa_gates`, `activation_runs`, `feature_gates`, `readiness_snapshots`, `tool_capabilities` | Possible data exposure or unpredictable fail-closed behavior on runtime/readiness/tool tables. | Prompt 26C | Plan only. |
-| P0 | SECURITY DEFINER exposure | `has_workspace_role`, `is_workspace_owner_or_admin`, `is_workspace_owner_record`, `set_updated_at`, `can_export_render`, `is_project_editor`, `is_project_member` | Broad execute grants may expose helper behavior or create an RLS bypass if bodies are too permissive. | Prompt 26D | Plan only. |
-| P1 | Mutable function `search_path` | Worker, generation, approved snapshot, job, and E2E helper functions. | Functions may resolve unexpected objects unless schema references and search path are fixed. | Prompt 26D | Plan only. |
-| P2 | Unindexed foreign keys | Runtime/foundation FK examples across idempotency, approved snapshots, chat, credits, and edit plans. | Slow validation, lock contention, and poor production performance signal. | Prompt 26E | Plan only. |
+| P0 | RLS enabled/no policies | `activation_artifacts`, `activation_qa_gates`, `activation_runs`, `feature_gates`, `readiness_snapshots`, `tool_capabilities` | Possible data exposure or unpredictable fail-closed behavior on runtime/readiness/tool tables. | Prompt 26D classification, then Prompt 26E draft migration plan. | Plan only. |
+| P0 | SECURITY DEFINER exposure | `has_workspace_role`, `is_workspace_owner_or_admin`, `is_workspace_owner_record`, `set_updated_at`, `can_export_render`, `is_project_editor`, `is_project_member` | Broad execute grants may expose helper behavior or create an RLS bypass if bodies are too permissive. | Prompt 26F. | Plan only. |
+| P1 | Mutable function `search_path` | Worker, generation, approved snapshot, job, and E2E helper functions. | Functions may resolve unexpected objects unless schema references and search path are fixed. | Prompt 26F. | Plan only. |
+| P2 | Unindexed foreign keys | Runtime/foundation FK examples across idempotency, approved snapshots, chat, credits, and edit plans. | Slow validation, lock contention, and poor production performance signal. | Future FK index migration design prompt. | Plan only. |
 
 ## Go/No-Go Rules
 

@@ -6,22 +6,24 @@ Current redaction status: `not_applicable_no_evidence`.
 
 Current audit status: `evidence_required`.
 
-Prompt 24B found no counted redacted evidence files in the allowed evidence paths. `docs/supabase-readonly-audit-evidence/README.md` exists, but it is an instruction file only and is not counted as evidence. Every category remains `missing`.
+Template files created: yes.
 
-| Category | Required | Evidence file/reference | Current status | Redaction status | Blocker | Next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| Project identity | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted project identity evidence is missing. | Provide redacted project identity evidence. |
-| Project access | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted access or role evidence is missing. | Provide redacted access evidence. |
-| Database migrations | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted migration history evidence is missing. | Provide redacted migration evidence. |
-| Database schema | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted schema inventory evidence is missing. | Provide redacted schema evidence. |
-| RLS policies | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted RLS policy evidence is missing. | Provide redacted RLS evidence. |
-| Storage buckets | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted storage bucket evidence is missing. | Provide redacted storage bucket evidence. |
-| Storage policies | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted storage policy evidence is missing. | Provide redacted storage policy evidence. |
-| Auth settings | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted auth setting evidence is missing. | Provide redacted auth evidence. |
-| Edge functions | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted edge function inventory evidence is missing. | Provide redacted edge function inventory or no-functions evidence. |
-| Logs/activity | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted dashboard activity/log evidence is missing. | Provide redacted activity evidence. |
-| Milestone sync state | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted Supabase milestone sync evidence is missing. | Provide redacted status/sync evidence. |
-| Secret Manager reference metadata only | yes | none supplied | `missing` | `not_applicable_no_evidence` | Redacted reference metadata evidence is missing. | Provide redacted reference metadata only; do not provide payloads. |
+Prompt 24B found no counted redacted evidence files in the allowed evidence paths. `docs/supabase-readonly-audit-evidence/README.md` exists, but it is an instruction file only and is not counted as evidence. Prompt 24C adds templates and exact requested filenames; templates are instruction files only and are not counted as supplied evidence. Every category remains `missing`.
+
+| Category | Required | Required evidence file | Template created? | Current status | Redaction status | Blocker | Human/operator next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Project identity | yes | `docs/supabase-readonly-audit-evidence/project-identity-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted project identity evidence is missing. | Fill `templates/project-identity-redacted.template.md` without secrets. |
+| Project access | yes | `docs/supabase-readonly-audit-evidence/project-identity-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted access or role evidence is missing. | Include redacted access summary in the project identity evidence file. |
+| Database migrations | yes | `docs/supabase-readonly-audit-evidence/database-migrations-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted migration history evidence is missing. | Fill `templates/database-migrations-redacted.template.md` without SQL output or credentials. |
+| Database schema | yes | `docs/supabase-readonly-audit-evidence/database-schema-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted schema inventory evidence is missing. | Fill `templates/database-schema-redacted.template.md` without row data. |
+| RLS policies | yes | `docs/supabase-readonly-audit-evidence/rls-policies-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted RLS policy evidence is missing. | Fill `templates/rls-policies-redacted.template.md` with policy names/state only. |
+| Storage buckets | yes | `docs/supabase-readonly-audit-evidence/storage-buckets-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted storage bucket evidence is missing. | Fill `templates/storage-buckets-redacted.template.md` with bucket state and no object secrets. |
+| Storage policies | yes | `docs/supabase-readonly-audit-evidence/storage-buckets-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted storage policy evidence is missing. | Include storage policy names/state in the storage bucket evidence file. |
+| Auth settings | yes | `docs/supabase-readonly-audit-evidence/auth-settings-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted auth setting evidence is missing. | Fill `templates/auth-settings-redacted.template.md`; crop key panels. |
+| Edge functions | yes | `docs/supabase-readonly-audit-evidence/edge-functions-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted edge function inventory evidence is missing. | Fill `templates/edge-functions-redacted.template.md` or record no-functions evidence. |
+| Logs/activity | yes | `docs/supabase-readonly-audit-evidence/activity-summary-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted dashboard activity/log evidence is missing. | Fill `templates/activity-summary-redacted.template.md` with summary only. |
+| Milestone sync state | yes | `docs/supabase-readonly-audit-evidence/milestone-sync-state-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted Supabase milestone sync evidence is missing. | Fill `templates/milestone-sync-state-redacted.template.md`; do not claim staging update. |
+| Secret Manager reference metadata only | yes | `docs/supabase-readonly-audit-evidence/gcp-secret-manager-reference-metadata-redacted.md` | yes | `missing` | `not_applicable_no_evidence` | Redacted reference metadata evidence is missing. | Fill `templates/gcp-secret-manager-reference-metadata-redacted.template.md`; do not provide payloads. |
 
 ## Acceptance Rule
 

@@ -79,7 +79,8 @@ const requiredTermsByFile = {
     'Current evidence status: `evidence_required`.',
     'Current redaction status: `not_applicable_no_evidence`.',
     'Current audit status: `evidence_required`.',
-    '| Project identity | yes | none supplied | `missing`',
+    '| Project identity | yes | `docs/supabase-readonly-audit-evidence/project-identity-redacted.md` | yes | `missing`',
+    '| Secret Manager reference metadata only | yes | `docs/supabase-readonly-audit-evidence/gcp-secret-manager-reference-metadata-redacted.md` | yes | `missing`',
     'Do not mark this matrix `accepted`, `ready_for_staging_inventory_review`, or complete',
   ],
   'docs/supabase-readonly-audit-evidence-request.md': [
@@ -227,6 +228,13 @@ function scanPatterns(files, patterns, label, options = {}) {
   return findings
 }
 
+function hasMissingCategoryRow(category) {
+  const matrixText = readFile('docs/supabase-readonly-audit-evidence-matrix.md')
+  return matrixText
+    .split('\n')
+    .some((line) => line.includes(`| ${category} | yes |`) && line.includes('| `missing` |'))
+}
+
 const missingFiles = [...requiredDocs, ...requiredPriorDocs, ...trackingFiles]
   .filter((file) => !fileExists(file))
   .map((file) => finding(file, 'requiredFileMissing', 'Required Prompt 24A file is missing.'))
@@ -245,7 +253,8 @@ const behaviorChecks = {
   diagnosticsInFoundationRunner: /supabase:project:evidence-intake:diagnostics/.test(runnerText),
   diagnosticsAfterReadonlyAuditDiagnostics: readonlyAuditIndex >= 0 && evidenceIntakeIndex > readonlyAuditIndex,
   evidenceMatrixDefaultsMissing: /Current evidence status: `evidence_required`/.test(readFile('docs/supabase-readonly-audit-evidence-matrix.md'))
-    && /\|\s*Project identity\s*\|\s*yes\s*\|\s*none supplied\s*\|\s*`missing`/.test(readFile('docs/supabase-readonly-audit-evidence-matrix.md')),
+    && hasMissingCategoryRow('Project identity')
+    && hasMissingCategoryRow('Secret Manager reference metadata only'),
 }
 
 const behaviorFailures = Object.entries(behaviorChecks)

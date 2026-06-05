@@ -25,6 +25,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Confirm the sync stored private `gs://` references only and did not apply migrations, rerun historical backfill, write product rows, call providers, expose service-role credentials, create public artifacts, or unlock production/external beta/broad media.
 5. Proceed to Phase 52A only as shared agent and tool ownership architecture.
 
+## After Phase 52A
+
+1. Review `activation:shared-agent-tool-architecture:report`, `activation:shared-agent-tool-architecture:iam-plan`, `activation:shared-agent-tool:summary`, the private Phase 52A artifacts for `phase52a-20260605T111515`, and `docs/agents/*`.
+2. Confirm all 12 specialist agents, tool ownership groups, capability manifest schema, agent finding schema, edit intent schema, approved plan snapshot schema, routing policy, source-of-truth policy, and cross-track handoff template are present.
+3. Confirm Phase 52A wrote/read back one Supabase milestone sync record using the Phase 51D sync layer.
+4. Confirm no tool runtime, model inference, media processing, web search, map rendering, browser capture, provider call, Docker, Cloud Run deploy, migration, historical backfill rerun, public artifact, raw prompt execution, production, external beta, or broad media unlock occurred.
+5. Proceed to Phase 52B only as a tool capability registry audit.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

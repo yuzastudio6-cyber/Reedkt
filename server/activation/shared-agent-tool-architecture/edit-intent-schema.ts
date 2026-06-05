@@ -1,0 +1,41 @@
+import type { SchemaDefinition } from './shared-agent-tool-architecture-types'
+
+export const editIntentSchema: SchemaDefinition = {
+  schemaId: 'edit_intent_v1',
+  description: 'Structured intent candidate derived from agent findings before Producer and QA/Safety policy checks.',
+  requiredFields: [
+    'intentId',
+    'agentId',
+    'intentType',
+    'targetScope',
+    'evidenceRefs',
+    'rationale',
+    'proposedToolFamily',
+    'requiredCapabilities',
+    'estimatedCostClass',
+    'riskLevel',
+    'privacyImpact',
+    'userApprovalRequired',
+    'blocked',
+    'blockedReason',
+    'allowedInInternalTesting',
+    'allowedInExternalBeta',
+    'allowedInProduction',
+  ],
+  examples: [
+    { intentType: 'conservative_color_adjustment', proposedToolFamily: 'track_a_visual_video' },
+    { intentType: 'caption_burnin_preview', proposedToolFamily: 'track_a_visual_video' },
+    { intentType: 'text_behind_subject_preview', proposedToolFamily: 'track_a_visual_video' },
+    { intentType: 'route_map_overlay', proposedToolFamily: 'map_geospatial' },
+    { intentType: 'location_context_card', proposedToolFamily: 'map_geospatial' },
+    { intentType: 'voiceover_generation', proposedToolFamily: 'track_b_audio' },
+    { intentType: 'noise_cleanup', proposedToolFamily: 'track_b_audio' },
+    { intentType: 'motion_graphics_lower_third', proposedToolFamily: 'ai_tools_graphics_design' },
+    { intentType: 'slow_motion_segment', proposedToolFamily: 'track_a_visual_video' },
+    { intentType: 'web_research_planning_context', proposedToolFamily: 'web_search_capture' },
+  ],
+  policyNotes: [
+    'Edit intents are not worker instructions.',
+    'External beta and production flags remain false unless a later readiness gate changes them.',
+  ],
+}

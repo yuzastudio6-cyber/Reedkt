@@ -1,5 +1,7 @@
 # Supabase Redacted Evidence Template
 
+Prompt 25A note: Supabase evidence must reference GCP Secret Manager placeholders only, such as `<GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF>`, and must not include Secret Manager payloads, raw Supabase values, or complete unredacted resource paths.
+
 Use this template when a human reviewer supplies future read-only Supabase dashboard evidence. Do not paste secrets, keys, passwords, full connection strings, signed URLs, private media URLs, or row data.
 
 ## Evidence Metadata
@@ -84,4 +86,3 @@ Do not include:
 - raw connection strings;
 - private media URLs;
 - private user row data.
-

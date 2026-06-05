@@ -613,3 +613,17 @@ Prompt 25 - Staging Supabase/RLS Dry-Run Command Packet.
 - Acceptance criteria: Prompt 25 docs exist, every command-template block contains `DO NOT RUN UNTIL HUMAN APPROVAL RECORD EXISTS.`, diagnostics pass, no real project refs/secrets/connection strings are introduced, no staging/prod update is claimed, and production readiness remains blocked.
 - Next prompt recommendation: Prompt 23A - Human Approval Decision Completion and Prompt 24B - Supabase Redacted Evidence Review before Prompt 26 - Approved Staging Supabase/RLS Validation Execution.
 - GitHub deliverable: branch, commit, push, PR with dry-run packet summary and explicit no-Supabase-execution statement.
+
+## 25A. GCP Secret Manager Supabase Reference Contract
+
+Prompt 25A - GCP Secret Manager Supabase Reference Contract.
+
+- Purpose: define how future staging and production Supabase values are referenced through GCP Secret Manager without fetching, printing, storing, or validating secret values.
+- Deliverables after Prompt 25A: `docs/gcp-secret-manager-supabase-reference-contract.md`, `docs/gcp-secret-manager-supabase-secret-matrix.md`, `docs/gcp-secret-manager-supabase-access-policy.md`, `docs/gcp-secret-manager-supabase-command-placeholder-policy.md`, `docs/prompt-25a-validation-results.md`, `docs/implementation-prompts/prompt-25a-gcp-secret-manager-supabase-reference-contract.md`, `scripts/validation/gcp-secret-manager-supabase-reference-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 25 base branch, and tracker updates.
+- Implementation status after Prompt 25A: validation prepared / GCP Secret Manager Supabase reference contract only. Secret references are `reference_required` and `access_not_verified`.
+- Implements: Supabase reference naming, staging/production separation, future access/rotation/revocation policy, command placeholder rules, and static diagnostics.
+- Must not implement: Google Cloud API calls, Secret Manager API calls, Secret Manager value fetches, Supabase lifecycle commands, SQL execution, migrations, `psql`, `supabase link`, `supabase db push`, dashboard mutation, staging/remote/production Supabase execution, deployment, providers, workers, tools, render/export, media processing, storage transfer, credit mutation, Stripe, telemetry, dependency mutation, human approval grant, staging execution approval, beta unlock, or production readiness.
+- What remains blocked: human approval completion, accepted redacted Supabase evidence, verified Secret Manager references, staging project identity verification, staging SQL execution, production Supabase, broader local/staging RLS coverage, runtime execution domains, and beta unlock.
+- Acceptance criteria: Prompt 25A docs exist, diagnostics pass, no raw Supabase values or Secret Manager payloads are introduced, Prompt 25 future command packet docs use Secret Manager reference placeholders, and production readiness remains blocked.
+- Next prompt recommendation: Prompt 23A - Human Approval Decision Completion and Prompt 24B - Supabase Redacted Evidence Review before Prompt 26 - Approved Staging Supabase/RLS Validation Execution.
+- GitHub deliverable: branch, commit, push, PR with reference contract summary and explicit no-GCP-or-Supabase-execution statement.

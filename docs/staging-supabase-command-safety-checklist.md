@@ -2,6 +2,10 @@
 
 Current packet state: `blocked_missing_evidence` and `blocked_missing_approval`.
 
+Prompt 25A adds the GCP Secret Manager Supabase reference rule. Future command packets must use reference placeholders such as `<GCP_SECRET_REF_SUPABASE_STAGING_PROJECT_REF>` and `<GCP_SECRET_REF_SUPABASE_STAGING_DB_URL>` instead of raw Supabase values.
+
+Prompt 25A follow-up also requires future Secret Manager discovery to be metadata-only unless a separate human-approved runtime/operator packet explicitly authorizes secure value use outside Codex and outside repo artifacts.
+
 Use this checklist before any future staging Supabase/RLS command packet is considered executable. Prompt 25 does not execute the checklist against a real Supabase environment.
 
 ## Approval Gates

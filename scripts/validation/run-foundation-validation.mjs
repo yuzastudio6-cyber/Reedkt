@@ -186,6 +186,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'staging:supabase:dry-run-packet:diagnostics'],
     required: true,
   },
+  {
+    id: 'gcp_supabase_secret_refs_diagnostics',
+    command: 'npm run --silent gcp:supabase:secret-refs:diagnostics',
+    npmArgs: ['run', '--silent', 'gcp:supabase:secret-refs:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

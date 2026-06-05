@@ -1,0 +1,16 @@
+{
+  "phase": "44O",
+  "runId": "phase44o-metadata-route-dry-run-execution-20260605",
+  "selectedCandidateId": "candidate-duckdb-metadata-route-dry-run",
+  "planSnapshotId": "phase44n-plan-snapshot-candidate-duckdb-metadata-route-dry-run-v1",
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [],
+  "routeExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "sidecarExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "duckDbRuntimeExecutionAllowed": false
+}

@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [
+    "phase44h_cost_snapshot_is_static_planning_metadata"
+  ],
+  "costGuardStatus": "passed",
+  "billingApiCalls": "not_run",
+  "cloudCalls": "not_run",
+  "metadataOnlyCostAllowed": true
+}

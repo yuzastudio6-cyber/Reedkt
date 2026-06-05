@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "passed": true,
+  "blockedReasons": [],
+  "warnings": [
+    "sidecar_policy_validation_only_execution_response_remains_blocked"
+  ],
+  "sidecarValidationStatus": "passed",
+  "planSnapshotAccepted": true,
+  "artifactScopeAccepted": true,
+  "executionBlockedResponse": {
+    "type": "execution_blocked_response",
+    "blockedReason": "phase44g_execution_not_allowed",
+    "requiredFuturePhase": "Phase 44J or later explicit execution phase",
+    "auditRef": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports/phase_44o_metadata_route_dry_run_audit_report.json"
+  },
+  "sidecarProcessStarted": false
+}

@@ -1,0 +1,26 @@
+{
+  "phase": "44O",
+  "runId": "phase44o-metadata-route-dry-run-execution-20260605",
+  "status": "committed_safe_metadata_only",
+  "privateUploadRequired": false,
+  "privatePayloadsCommitted": false,
+  "secretPayloadsCommitted": false,
+  "reportDir": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports",
+  "expectedReports": [
+    "phase_44o_metadata_route_dry_run_plan.json",
+    "phase_44o_metadata_route_dry_run_prior_evidence_inventory.json",
+    "phase_44o_metadata_route_dry_run_prior_evidence_inventory.md",
+    "phase_44o_metadata_route_secret_payload_guard.json",
+    "phase_44o_metadata_route_plan_snapshot_validation.json",
+    "phase_44o_metadata_route_artifact_scope_validation.json",
+    "phase_44o_metadata_route_resolution_report.json",
+    "phase_44o_metadata_route_cost_guard_report.json",
+    "phase_44o_metadata_route_sidecar_validation_report.json",
+    "phase_44o_metadata_route_dry_run_execution_report.json",
+    "phase_44o_metadata_route_dry_run_audit_report.json",
+    "phase_44o_metadata_route_dry_run_failure_report.json",
+    "phase_44o_metadata_route_dry_run_readiness_report.json",
+    "phase_44o_metadata_route_dry_run_blocker_report.json",
+    "phase_44o_private_artifact_manifest.json"
+  ]
+}

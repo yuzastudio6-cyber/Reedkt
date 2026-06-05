@@ -1,0 +1,289 @@
+{
+  "phase": "44O",
+  "runId": "phase44o-metadata-route-dry-run-execution-20260605",
+  "status": "all_required_committed_safe_evidence_loaded",
+  "sourceEvidence": [
+    {
+      "inputId": "pr192_metadata_route_dry_run_approval",
+      "pr": 192,
+      "phase": "44N",
+      "title": "Phase 44N metadata route dry-run approval packet",
+      "reportDir": "docs/activation-phase-44n-metadata-route-dry-run-approval-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    },
+    {
+      "inputId": "pr189_noop_route_dry_run_execution",
+      "pr": 189,
+      "phase": "44M",
+      "title": "Phase 44M no-op route dry-run execution",
+      "reportDir": "docs/activation-phase-44m-noop-route-dry-run-execution-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    },
+    {
+      "inputId": "pr188_route_dry_run_approval_packet",
+      "pr": 188,
+      "phase": "44L",
+      "title": "Phase 44L route dry-run approval packet",
+      "reportDir": "docs/activation-phase-44l-route-dry-run-approval-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    },
+    {
+      "inputId": "pr187_desktop_beta_readiness_gate",
+      "pr": 187,
+      "phase": "44K",
+      "title": "Phase 44K desktop beta readiness gate",
+      "reportDir": "docs/activation-phase-44k-desktop-beta-readiness-gate-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    },
+    {
+      "inputId": "pr184_hybrid_compute_e2e_simulation",
+      "pr": 184,
+      "phase": "44J",
+      "title": "Phase 44J hybrid compute E2E simulation",
+      "reportDir": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    },
+    {
+      "inputId": "pr181_local_worker_sidecar_foundation",
+      "pr": 181,
+      "phase": "44G",
+      "title": "Phase 44G local worker sidecar foundation",
+      "reportDir": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    },
+    {
+      "inputId": "pr180_track_b_cost_estimator",
+      "pr": 180,
+      "phase": "44H",
+      "title": "Phase 44H Track B cost estimator",
+      "reportDir": "docs/activation-phase-44h-track-b-cost-estimator-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    },
+    {
+      "inputId": "pr164_track_b_route_manifest",
+      "pr": 164,
+      "phase": "44I",
+      "title": "Phase 44I Track B tool route manifest integration",
+      "reportDir": "docs/activation-track-b-tool-route-manifest-reports",
+      "loaded": true,
+      "required": true,
+      "privatePayloadsRead": false,
+      "secretPayloadsRead": false,
+      "acceptedForPhase44O": true
+    }
+  ],
+  "phase44n": {
+    "reportDir": "docs/activation-phase-44n-metadata-route-dry-run-approval-reports",
+    "selectedCandidateId": "candidate-duckdb-metadata-route-dry-run",
+    "decision": "approved_for_future_metadata_only_route_dry_run",
+    "status": "passed"
+  },
+  "phase44m": {
+    "reportDir": "docs/activation-phase-44m-noop-route-dry-run-execution-reports",
+    "noopRouteDryRunStatus": "passed",
+    "routeExecutionPerformed": false,
+    "secretPayloadAccessPerformed": false
+  },
+  "phase44l": {
+    "reportDir": "docs/activation-phase-44l-route-dry-run-approval-reports",
+    "decision": "approved_for_future_noop_route_dry_run",
+    "status": "passed"
+  },
+  "phase44k": {
+    "reportDir": "docs/activation-phase-44k-desktop-beta-readiness-gate-reports",
+    "status": "passed",
+    "desktopHybridComputeBetaStatus": "internally beta-ready candidate"
+  },
+  "phase44j": {
+    "reportDir": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+    "status": "passed"
+  },
+  "routeManifest": {
+    "reportDir": "docs/activation-track-b-tool-route-manifest-reports",
+    "validationStatus": "passed",
+    "routeManifestVersion": "track-b-route-manifest-v1",
+    "duckDbRoute": {
+      "routeId": "track_b_duckdb",
+      "toolId": "duckdb",
+      "family": "media_data",
+      "track": "track_b",
+      "capabilityIds": [
+        "internal_qa_aggregation",
+        "metadata_reporting"
+      ],
+      "routeStatus": "route_enabled_restricted_internal",
+      "routeable": true,
+      "routeableReason": "restricted internal metadata eligibility only; runtime and route execution remain blocked in Phase 44I",
+      "initialInternalTestingIncluded": true,
+      "allowedConsumers": [
+        "internal_qa_planning",
+        "future_worker_orchestration"
+      ],
+      "blockedConsumers": [
+        "frontend_direct_runtime",
+        "raw_chat_executor",
+        "public_output_publisher",
+        "production_router",
+        "external_beta_router",
+        "provider_gateway_without_approval"
+      ],
+      "ownershipBoundary": "Track B owns deterministic media/data readiness evidence and restricted internal scope.",
+      "approvedInputArtifactTypes": [
+        "approved_private_media_metadata",
+        "approved_generated_fixture_metadata",
+        "approved_controlled_sample_metadata",
+        "approved_plan_snapshot_metadata"
+      ],
+      "blockedInputArtifactTypes": [
+        "arbitrary_file_path",
+        "arbitrary_gcs_prefix",
+        "public_url",
+        "signed_url_source_of_truth",
+        "committed_private_payload",
+        "broad_user_media",
+        "unapproved_model_weight"
+      ],
+      "approvedOutputArtifactTypes": [
+        "private_media_data_qa_metadata",
+        "private_reporting_metadata"
+      ],
+      "blockedOutputArtifactTypes": [
+        "public_artifact",
+        "committed_media_payload",
+        "committed_audio_payload",
+        "committed_model_payload",
+        "raw_private_transcript",
+        "provider_log_with_secrets"
+      ],
+      "requiredPlanSnapshotFields": [
+        "planSnapshotId",
+        "toolId",
+        "approvedCapabilityId",
+        "sourcePhase",
+        "routeManifestVersion",
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "requesterContext",
+        "noRawPromptExecution",
+        "noProviderCallUnlessApproved",
+        "publicOutputAllowed",
+        "broadMediaAllowed",
+        "arbitraryMediaAllowed",
+        "confirmationPhase",
+        "auditReportPath",
+        "failureBehavior"
+      ],
+      "requiredArtifactScopeFields": [
+        "inputArtifactScopeId",
+        "outputArtifactScopeId",
+        "privateGcsPrefix",
+        "allowedInputArtifactTypes",
+        "allowedOutputArtifactTypes",
+        "maxInputCount",
+        "maxDurationSeconds",
+        "maxFrameCount",
+        "maxAudioDurationSeconds",
+        "publicOutputAllowed",
+        "signedUrlSourceOfTruthAllowed",
+        "committedPayloadAllowed"
+      ],
+      "requiredConfirmations": [
+        "future_tool_specific_confirmation_phase_required",
+        "approved_plan_snapshot_required",
+        "approved_artifact_scope_required"
+      ],
+      "runtimeAdapterStatus": "metadata_declared_runtime_adapter_not_invoked",
+      "runtimeExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "privateGcsPrefixes": [
+        "gs://reeditpro-staging-reeditpro-qa-artifacts/activation/phase46*/"
+      ],
+      "publicOutputAllowed": false,
+      "providerCallsAllowed": false,
+      "broadMediaAllowed": false,
+      "arbitraryMediaAllowed": false,
+      "productionAllowed": false,
+      "externalBetaAllowed": false,
+      "failureBehavior": "fail_closed_return_blocked_reason_never_fallback_to_raw_execution",
+      "costCapacityClass": "cpu_low",
+      "costEstimateSource": "rough_class_from_prior_track_b_evidence_not_phase44h_estimator",
+      "prerequisitePhases": [
+        "46E"
+      ],
+      "evidenceRefs": [
+        {
+          "phase": "46E",
+          "pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/138",
+          "report": "docs/activation-phase-46e-media-data-internal-beta-readiness-gate-reports/phase_46e_media_data_beta_gate_decision.json",
+          "summary": "Media/data internal beta gate passed only for restricted internal QA/planning scope."
+        }
+      ],
+      "testCommands": [
+        "npm run activation:media-data-beta-gate:summary",
+        "npm run smoke:activation-media-data-beta-gate"
+      ],
+      "blockedReasons": [
+        "runtime_execution_blocked_in_phase44i",
+        "route_execution_blocked_until_future_approved_plan_snapshot_artifact_scope_phase"
+      ],
+      "nextRequiredPhase": "future route handoff only after Phase 44I integration"
+    }
+  },
+  "costEstimator": {
+    "reportDir": "docs/activation-phase-44h-track-b-cost-estimator-reports",
+    "duckDbCost": {
+      "toolId": "duckdb",
+      "routeId": "track_b_duckdb",
+      "capabilityId": "internal_qa_aggregation",
+      "evidence": [
+        "46E"
+      ],
+      "runtimeClass": "local_light",
+      "executionClass": "metadata_only",
+      "costRiskClass": "free_or_negligible",
+      "estimateAllowed": true,
+      "estimateBehavior": "internal QA aggregation/transform estimate is negligible metadata-only",
+      "blockers": [
+        "route_execution_still_blocked_until_future_phase"
+      ]
+    }
+  },
+  "sidecarFoundation": {
+    "reportDir": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+    "validationStatus": "passed",
+    "allowsValidationOnly": true,
+    "executionAllowed": false
+  },
+  "privatePayloadsRead": false,
+  "secretPayloadsRead": false,
+  "noTrackA": true
+}

@@ -1,0 +1,169 @@
+{
+  "phase": "44O",
+  "runId": "phase44o-metadata-route-dry-run-execution-20260605",
+  "status": "passed",
+  "fixtureCount": 16,
+  "passedFixtures": 16,
+  "failureFixtures": [
+    {
+      "fixtureId": "fixture-secret-payload-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "unexpected_secret_payload_access_required"
+      ],
+      "expectedBlockedReason": "unexpected_secret_payload_access_required",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-raw-chat-execution-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "raw_chat_execution_blocked"
+      ],
+      "expectedBlockedReason": "raw_chat_execution_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-route-execution-allowed-true",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "route_execution_allowed_true_blocked"
+      ],
+      "expectedBlockedReason": "route_execution_allowed_true_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-runtime-execution-allowed-true",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "runtime_execution_allowed_true_blocked"
+      ],
+      "expectedBlockedReason": "runtime_execution_allowed_true_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-execute-tool-true",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "execute_tool_true_blocked"
+      ],
+      "expectedBlockedReason": "execute_tool_true_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-duckdb-runtime-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "duckdb_runtime_blocked"
+      ],
+      "expectedBlockedReason": "duckdb_runtime_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-worker-execution-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "worker_execution_blocked"
+      ],
+      "expectedBlockedReason": "worker_execution_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-sidecar-execution-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "sidecar_execution_blocked"
+      ],
+      "expectedBlockedReason": "sidecar_execution_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-demucs-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "demucs_route_blocked"
+      ],
+      "expectedBlockedReason": "demucs_route_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-vlm-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "vlm_route_blocked"
+      ],
+      "expectedBlockedReason": "vlm_route_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-provider-call-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "provider_calls_blocked"
+      ],
+      "expectedBlockedReason": "provider_calls_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-public-output-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "public_output_blocked"
+      ],
+      "expectedBlockedReason": "public_output_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-arbitrary-path-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "arbitrary_path_blocked"
+      ],
+      "expectedBlockedReason": "arbitrary_path_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-media-artifact-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "media_artifact_blocked"
+      ],
+      "expectedBlockedReason": "media_artifact_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-signed-url-source-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "signed_url_source_blocked"
+      ],
+      "expectedBlockedReason": "signed_url_source_blocked",
+      "expectedBlockedReasonObserved": true
+    },
+    {
+      "fixtureId": "fixture-cost-hard-block-requested",
+      "status": "passed",
+      "blocked": true,
+      "blockedReasons": [
+        "cost_hard_block_requested"
+      ],
+      "expectedBlockedReason": "cost_hard_block_requested",
+      "expectedBlockedReasonObserved": true
+    }
+  ]
+}

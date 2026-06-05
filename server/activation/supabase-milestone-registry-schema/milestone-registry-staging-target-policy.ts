@@ -1,7 +1,13 @@
+import {
+  SUPABASE_APPROVED_STAGING_TARGET_REFERENCE_CONFIRMATION,
+  buildApprovedStagingTargetReferenceReport,
+} from './milestone-registry-approved-staging-target-reference'
+
 export const SUPABASE_PLUGIN_STAGING_TARGET_CHECK_CONFIRMATION =
   'REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK'
 
 export const SUPABASE_PLUGIN_ALLOWED_CONFIRMATIONS = [
+  SUPABASE_APPROVED_STAGING_TARGET_REFERENCE_CONFIRMATION,
   SUPABASE_PLUGIN_STAGING_TARGET_CHECK_CONFIRMATION,
   'REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY',
   'REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY',
@@ -28,6 +34,7 @@ export const SUPABASE_PLUGIN_FORBIDDEN_CONFIRMATIONS = [
 ] as const
 
 export type SupabasePluginTargetBlocker =
+  | 'approved_staging_target_reference_missing'
   | 'supabase_plugin_staging_target_check_not_confirmed'
   | 'supabase_plugin_target_not_confirmed_as_staging'
   | 'supabase_plugin_project_ref_mismatch'
@@ -78,19 +85,26 @@ export function buildSupabasePluginTargetPreflight() {
   const forbiddenConfirmations = getForbiddenPluginConfirmations()
   const targetCheckConfirmed = process.env[SUPABASE_PLUGIN_STAGING_TARGET_CHECK_CONFIRMATION] === 'true'
   const observedActiveProject = OBSERVED_SUPABASE_PLUGIN_PROJECTS.find((project) => project.status === 'ACTIVE_HEALTHY')
+  const approvedReference = buildApprovedStagingTargetReferenceReport()
   const selectedProjectRef = process.env.REEDITPRO_SUPABASE_PLUGIN_PROJECT_REF ?? observedActiveProject?.projectRef ?? 'unknown'
   const selectedProjectName = process.env.REEDITPRO_SUPABASE_PLUGIN_PROJECT_NAME ?? observedActiveProject?.projectName ?? 'unknown'
   const expectedStagingProjectRef = process.env.REEDITPRO_SUPABASE_PLUGIN_EXPECTED_STAGING_PROJECT_REF
   const targetEnvironment = process.env.REEDITPRO_SUPABASE_PLUGIN_TARGET_ENV
   const targetProof = process.env.REEDITPRO_SUPABASE_PLUGIN_STAGING_TARGET_PROOF
+  const approvedTargetProofConfirmed =
+    process.env[SUPABASE_APPROVED_STAGING_TARGET_REFERENCE_CONFIRMATION] === 'true' &&
+    approvedReference.status === 'passed' &&
+    approvedReference.approvedStagingProjectRef === selectedProjectRef &&
+    approvedReference.approvedEnvironment === 'staging'
   const metadataLabelLooksStaging = /(^|[-_\s])staging($|[-_\s])/i.test(selectedProjectName)
   const operatorProofMatches =
     targetEnvironment === 'staging' &&
     targetProof === 'staging_confirmed_by_operator' &&
     Boolean(expectedStagingProjectRef) &&
     expectedStagingProjectRef === selectedProjectRef
-  const stagingTargetConfirmed = targetCheckConfirmed && (metadataLabelLooksStaging || operatorProofMatches)
+  const stagingTargetConfirmed = targetCheckConfirmed && (metadataLabelLooksStaging || operatorProofMatches || approvedTargetProofConfirmed)
   const blockers = new Set<SupabasePluginTargetBlocker>()
+  if (approvedReference.status !== 'passed') blockers.add('approved_staging_target_reference_missing')
   if (!targetCheckConfirmed) blockers.add('supabase_plugin_staging_target_check_not_confirmed')
   if (targetCheckConfirmed && expectedStagingProjectRef && expectedStagingProjectRef !== selectedProjectRef) {
     blockers.add('supabase_plugin_project_ref_mismatch')
@@ -115,6 +129,8 @@ export function buildSupabasePluginTargetPreflight() {
     expectedStagingProjectRefProvided: Boolean(expectedStagingProjectRef),
     targetEnvironmentStatus: targetEnvironment === 'staging' ? 'staging_claim_provided' : 'missing_or_not_staging',
     targetProofStatus: targetProof === 'staging_confirmed_by_operator' ? 'operator_staging_proof_provided' : 'missing_or_unrecognized',
+    approvedReference,
+    approvedTargetProofConfirmed,
     metadataLabelLooksStaging,
     operatorProofMatches,
     stagingTargetConfirmed,

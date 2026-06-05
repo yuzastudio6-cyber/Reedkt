@@ -1,0 +1,58 @@
+{
+  "status": "blocked",
+  "approvedStagingTargetReferenceFound": false,
+  "approvedStagingProjectRef": null,
+  "approvedStagingProjectName": null,
+  "approvedEnvironment": null,
+  "approvedReferenceSource": null,
+  "sourceFilesInspected": [
+    {
+      "file": "docs/supabase-staging-target-proof-policy.md",
+      "exists": true,
+      "hasApprovedStatusMarker": false,
+      "hasProjectRefMarker": false,
+      "hasEnvironmentMarker": false
+    },
+    {
+      "file": "docs/supabase-plugin-staging-target-policy.md",
+      "exists": true,
+      "hasApprovedStatusMarker": false,
+      "hasProjectRefMarker": false,
+      "hasEnvironmentMarker": false
+    },
+    {
+      "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+      "exists": true,
+      "hasApprovedStatusMarker": false,
+      "hasProjectRefMarker": false,
+      "hasEnvironmentMarker": false
+    },
+    {
+      "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+      "exists": true,
+      "hasApprovedStatusMarker": false,
+      "hasProjectRefMarker": false,
+      "hasEnvironmentMarker": false
+    },
+    {
+      "file": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+      "exists": true,
+      "hasApprovedStatusMarker": false,
+      "hasProjectRefMarker": false,
+      "hasEnvironmentMarker": false
+    }
+  ],
+  "safeReferencePolicy": {
+    "projectRefIsSafeMetadata": true,
+    "dbUrlIsForbidden": true,
+    "keysTokensPasswordsForbidden": true,
+    "pluginObservationAloneIsNotApproval": true,
+    "runtimeEnvRefAloneIsNotApproval": true
+  },
+  "runtimeProvidedReferenceIgnored": false,
+  "secretPayloadsRead": false,
+  "secretPayloadsPrinted": false,
+  "blockers": [
+    "approved_staging_target_reference_missing"
+  ]
+}

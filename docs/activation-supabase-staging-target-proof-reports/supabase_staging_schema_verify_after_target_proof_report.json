@@ -1,32 +1,31 @@
 {
-  "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
-  "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
+  "phase": "supabase-staging-target-proof-deploy-rerun",
+  "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
   "status": "blocked",
   "verificationPerformed": false,
-  "pluginReadOnlyCatalogInspectionPerformed": false,
-  "delegatedToPr202CliVerify": false,
-  "reason": "target_not_confirmed_as_staging_no_verification_allowed",
+  "delegatedToPr206PluginVerify": false,
+  "reason": "target_proof_failed_no_verification_sql_allowed",
   "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
     "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
     "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY"
   ],
   "allowlistedReadOnlyCatalogQueries": [
-    "information_schema.tables registry table presence",
-    "pg_class relrowsecurity for registry tables",
-    "information_schema.role_table_grants public/anon/authenticated/service_role checks",
-    "pg_indexes and pg_constraint registry metadata checks"
+    "migration history presence for 202606050001",
+    "registry table presence",
+    "registry table RLS enabled",
+    "public anon authenticated revokes and service-role-only grants"
   ],
   "credentialPayloadsPrinted": false,
-  "productionAffected": false,
+  "secretPayloadsRead": false,
   "remoteSqlRun": false,
   "directManualSqlRun": false,
+  "productionAffected": false,
   "blockers": [
     "approved_staging_target_reference_missing",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
     "blocked_target_not_staging",
-    "blocked_credentials_unavailable",
-    "cli_db_push_unavailable",
     "staging_schema_deploy_not_confirmed",
     "staging_schema_deploy_not_run",
     "staging_schema_verify_not_confirmed",

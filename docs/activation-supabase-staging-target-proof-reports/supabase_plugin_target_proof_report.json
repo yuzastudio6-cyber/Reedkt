@@ -1,0 +1,224 @@
+{
+  "phase": "supabase-staging-target-proof-deploy-rerun",
+  "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
+  "status": "blocked",
+  "proofConfirmation": "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
+  "proofConfirmationSet": false,
+  "pluginTargetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+  "pluginTargetCheckConfirmed": false,
+  "approvedReference": {
+    "status": "blocked",
+    "approvedStagingTargetReferenceFound": false,
+    "approvedStagingProjectRef": null,
+    "approvedStagingProjectName": null,
+    "approvedEnvironment": null,
+    "approvedReferenceSource": null,
+    "sourceFilesInspected": [
+      {
+        "file": "docs/supabase-staging-target-proof-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-plugin-staging-target-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      }
+    ],
+    "safeReferencePolicy": {
+      "projectRefIsSafeMetadata": true,
+      "dbUrlIsForbidden": true,
+      "keysTokensPasswordsForbidden": true,
+      "pluginObservationAloneIsNotApproval": true,
+      "runtimeEnvRefAloneIsNotApproval": true
+    },
+    "runtimeProvidedReferenceIgnored": false,
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": [
+      "approved_staging_target_reference_missing"
+    ]
+  },
+  "pluginPreflight": {
+    "status": "blocked",
+    "pluginAvailableToCodexSession": true,
+    "pluginUsableFromRepoCliDirectly": false,
+    "pluginObservationSource": "connected_supabase_plugin_observation_committed_as_safe_metadata",
+    "targetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+    "targetCheckConfirmed": false,
+    "selectedProject": {
+      "projectRef": "wmyyttnynmteqgcdishd",
+      "projectName": "Reeditpro",
+      "status": "ACTIVE_HEALTHY",
+      "region": "us-west-1",
+      "hostRedacted": true
+    },
+    "expectedStagingProjectRefProvided": false,
+    "targetEnvironmentStatus": "missing_or_not_staging",
+    "targetProofStatus": "missing_or_unrecognized",
+    "approvedReference": {
+      "status": "blocked",
+      "approvedStagingTargetReferenceFound": false,
+      "approvedStagingProjectRef": null,
+      "approvedStagingProjectName": null,
+      "approvedEnvironment": null,
+      "approvedReferenceSource": null,
+      "sourceFilesInspected": [
+        {
+          "file": "docs/supabase-staging-target-proof-policy.md",
+          "exists": true,
+          "hasApprovedStatusMarker": false,
+          "hasProjectRefMarker": false,
+          "hasEnvironmentMarker": false
+        },
+        {
+          "file": "docs/supabase-plugin-staging-target-policy.md",
+          "exists": true,
+          "hasApprovedStatusMarker": false,
+          "hasProjectRefMarker": false,
+          "hasEnvironmentMarker": false
+        },
+        {
+          "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+          "exists": true,
+          "hasApprovedStatusMarker": false,
+          "hasProjectRefMarker": false,
+          "hasEnvironmentMarker": false
+        },
+        {
+          "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+          "exists": true,
+          "hasApprovedStatusMarker": false,
+          "hasProjectRefMarker": false,
+          "hasEnvironmentMarker": false
+        },
+        {
+          "file": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+          "exists": true,
+          "hasApprovedStatusMarker": false,
+          "hasProjectRefMarker": false,
+          "hasEnvironmentMarker": false
+        }
+      ],
+      "safeReferencePolicy": {
+        "projectRefIsSafeMetadata": true,
+        "dbUrlIsForbidden": true,
+        "keysTokensPasswordsForbidden": true,
+        "pluginObservationAloneIsNotApproval": true,
+        "runtimeEnvRefAloneIsNotApproval": true
+      },
+      "runtimeProvidedReferenceIgnored": false,
+      "secretPayloadsRead": false,
+      "secretPayloadsPrinted": false,
+      "blockers": [
+        "approved_staging_target_reference_missing"
+      ]
+    },
+    "approvedTargetProofConfirmed": false,
+    "metadataLabelLooksStaging": false,
+    "operatorProofMatches": false,
+    "stagingTargetConfirmed": false,
+    "observedProjects": [
+      {
+        "projectRef": "wmyyttnynmteqgcdishd",
+        "projectName": "Reeditpro",
+        "region": "us-west-1",
+        "status": "ACTIVE_HEALTHY",
+        "postgresEngine": "17",
+        "releaseChannel": "ga",
+        "createdAt": "2026-05-11T17:48:42.077692Z",
+        "hostRedacted": true,
+        "stagingLabelDetected": false
+      },
+      {
+        "projectRef": "jgvjrouckmdibwwbnczc",
+        "projectName": "yuzastudio6-cyber's Project",
+        "region": "us-east-1",
+        "status": "INACTIVE",
+        "postgresEngine": "17",
+        "releaseChannel": "ga",
+        "createdAt": "2026-05-01T11:27:23.660611Z",
+        "hostRedacted": true,
+        "stagingLabelDetected": false
+      }
+    ],
+    "observedMigrations": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605190001"
+    ],
+    "observedRegistryMigrationPresent": false,
+    "branchListStatus": "failed_in_plugin_session_project_reference_missing_when_validating_permissions",
+    "forbiddenConfirmationsSet": [],
+    "credentialPayloadsPrinted": false,
+    "secretsRead": false,
+    "productionTargetAllowed": false,
+    "blockers": [
+      "approved_staging_target_reference_missing",
+      "supabase_plugin_staging_target_check_not_confirmed",
+      "supabase_plugin_target_not_confirmed_as_staging"
+    ]
+  },
+  "selectedPluginProject": {
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "projectName": "Reeditpro",
+    "status": "ACTIVE_HEALTHY",
+    "region": "us-west-1",
+    "hostRedacted": true
+  },
+  "observedPluginMigrations": [
+    "202605130001",
+    "202605130002",
+    "202605130003",
+    "202605130004",
+    "202605130005",
+    "202605130006",
+    "202605130007",
+    "202605130008",
+    "202605190001"
+  ],
+  "registryMigrationObserved": false,
+  "approvedReferenceMatchesPluginTarget": false,
+  "stagingTargetProofPassed": false,
+  "productionSignalDetected": false,
+  "ambiguousTargetSignal": true,
+  "secretPayloadsRead": false,
+  "secretPayloadsPrinted": false,
+  "blockers": [
+    "approved_staging_target_reference_missing",
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "blocked_target_not_staging"
+  ]
+}

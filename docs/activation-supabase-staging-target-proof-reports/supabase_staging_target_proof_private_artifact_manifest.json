@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-staging-target-proof-deploy-rerun",
+  "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
+  "status": "metadata_committed_only",
+  "reportDir": "docs/activation-supabase-staging-target-proof-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "supabase_staging_target_proof_plan.json",
+    "approved_staging_target_reference_report.json",
+    "supabase_plugin_target_proof_report.json",
+    "supabase_staging_target_proof_deploy_strategy_report.json",
+    "supabase_staging_schema_deploy_rerun_report.json",
+    "supabase_staging_schema_verify_after_target_proof_report.json",
+    "supabase_staging_rls_verify_after_target_proof_report.json",
+    "trackb_backfill_preflight_after_target_proof_schema_deploy.json",
+    "trackb_backfill_diff_after_target_proof_schema_deploy.json",
+    "supabase_staging_target_proof_blocker_report.json",
+    "supabase_staging_target_proof_readiness_report.json",
+    "supabase_staging_target_proof_private_artifact_manifest.json"
+  ],
+  "privateUploadRequired": false,
+  "secretsIncluded": false,
+  "dbUrlsIncluded": false,
+  "serviceKeysIncluded": false,
+  "mediaPayloadsIncluded": false
+}

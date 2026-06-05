@@ -71,6 +71,16 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 6. Proceed to Phase 52F only as system readiness reconciliation / controlled internal test planning on existing evidence.
 7. Do not execute candidate snapshots, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After Phase 52F
+
+1. Review `activation:system-readiness-reconciliation:report`, `activation:system-readiness-reconciliation:iam-plan`, `activation:system-readiness:summary`, and the private Phase 52F artifacts.
+2. Confirm all 12 workstreams are represented with ready scope, blocked scope, owner, and next prompt.
+3. Confirm every controlled internal test lane is non-executing and records the correct owner handoff.
+4. Confirm blocker inventory, feature-gate reconciliation, risk register, handoff packets, source-of-truth policy, and QA gates pass.
+5. Confirm one Phase 52F Supabase milestone sync record wrote/read back through the Phase 51D path and stores only private `gs://` references plus structured metadata.
+6. Proceed to Phase 52G only as a controlled internal test go/no-go packet or owner handoff dispatch phase.
+7. Do not execute candidate snapshots, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

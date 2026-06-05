@@ -19,3 +19,7 @@ Agents may cite review artifacts, but workers must execute from approved source 
 - Public artifacts as source of truth.
 - Raw provider responses, raw Brave snippets, DB URLs, service-role keys, API keys, bearer tokens, or secret values in manifests.
 - Workers executing from raw chat, screenshots, previews, PR summaries, or unapproved artifacts.
+
+## Phase 52F Reconciliation Rule
+
+Phase 52F system readiness artifacts may summarize readiness, blockers, and owner handoffs, but they do not replace domain source-of-truth manifests. Controlled internal test planning must continue to reference approved snapshots, tool capability records, readiness snapshots, and private `gs://` artifacts rather than public URLs, signed URLs, screenshots, or PR prose.

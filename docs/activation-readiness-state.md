@@ -233,6 +233,22 @@ rendering, migrations, schema/RLS changes, historical backfill, Docker, Cloud
 Run, public artifacts, signed URL source-of-truth, raw prompt execution,
 production, external beta, paid production, and broad media remain blocked.
 
+Phase 52F reconciles cross-workstream system readiness and creates a controlled
+internal test plan on existing evidence only. It represents Track A,
+web-search/capture, map/geospatial, Supabase milestone/readiness, shared
+agent/tool architecture, AI Tools placeholders, Track B blockers, Worker
+Runtime, Provider Gateway, Compliance/Security, Observability/Audit/Cost,
+Frontend UX, and Billing/Credits ownership boundaries. Phase 52F may upload
+private JSON artifacts and write/read exactly one Supabase milestone sync
+record through the Phase 51D path. Phase 52G is ready only for a controlled
+internal test go/no-go packet or owner handoff dispatch if Phase 52F QA and
+Supabase readback pass. Candidate snapshot execution, tool runtime, worker
+execution, model inference, provider calls, media processing, web search,
+browser capture, map rendering, migrations, schema/RLS changes, historical
+backfill, Docker, Cloud Run, public artifacts, signed URL source-of-truth, raw
+prompt execution, production, external beta, paid production, and broad media
+remain blocked.
+
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

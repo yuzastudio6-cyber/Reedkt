@@ -198,7 +198,7 @@ function secretFinding(file, kind, line) {
 }
 
 function isSafeContext(line) {
-  return /\b(no|not|never|forbid|forbidden|blocked|must not|do not|does not|did not|without|placeholder|reference only|metadata-only|future-only|template|redacted|none|pending|required|prohibited|warning|missing|not_applicable_no_evidence|evidence_required|access_not_verified|instruction file|payloadViewed: no|payload viewed: no|Payloads excluded: yes|excluded: yes|Backfill executed: no|Staging sync applied: no)\b/i.test(line)
+  return /\b(no|not|never|forbid|forbidden|blocked|must not|do not|does not|did not|without|placeholder|reference only|metadata-only|future-only|template|redacted|none|pending|required|prohibited|warning|missing|not_applicable_no_evidence|evidence_required|access_not_verified|partially_reviewed_connected_metadata|connected metadata|instruction file|payloadViewed: no|payload viewed: no|Payloads excluded: yes|excluded: yes|Backfill executed: no|Staging sync applied: no)\b/i.test(line)
 }
 
 function walkFiles(relativeDir) {

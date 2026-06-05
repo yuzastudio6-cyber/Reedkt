@@ -147,7 +147,7 @@ function finding(file, pattern, excerpt, line = 1) {
 }
 
 function isProhibitionLine(line) {
-  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|pending_human_approval)\b/i.test(line)
+  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|pending_human_approval|partially_reviewed_connected_metadata|connected metadata)\b/i.test(line)
 }
 
 function isVocabularyLine(line) {

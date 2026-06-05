@@ -204,6 +204,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'gcp:supabase:secret-refs:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_connected_readonly_audit_diagnostics',
+    command: 'npm run --silent supabase:connected-readonly-audit:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:connected-readonly-audit:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

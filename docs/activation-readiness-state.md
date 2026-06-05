@@ -162,6 +162,17 @@ evidence mismatch reason. The run stored structured metadata and private
 `gs://` artifact references only, kept GCS as the private artifact store, and
 did not apply migrations or alter schema/RLS. Phase 51D is ready only for
 automatic per-phase Supabase milestone sync.
+
+Phase 51D completed automatic per-phase Supabase milestone sync for
+`phase51d-20260605T032516`. The run resolved Supabase credentials backend-only
+from Google Secret Manager, verified registry tables through zero-row probes,
+wrote exactly one Phase 51D self-sync bundle, read it back by `(phase_id,
+run_id)`, uploaded private JSON artifacts, and stored only structured metadata
+plus private `gs://` references. Phase 52A is ready for shared agent and tool
+ownership architecture. Production, external beta, paid production, broad media,
+public artifacts, signed URLs as source of truth, migrations, schema/RLS
+changes, historical backfill reruns, product row writes, provider calls, and
+frontend service-role exposure remain blocked.
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

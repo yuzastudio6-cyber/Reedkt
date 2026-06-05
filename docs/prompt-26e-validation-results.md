@@ -50,7 +50,7 @@ No Supabase lifecycle command, SQL, `psql`, migration, Google Cloud call, Secret
 
 ## CI Status
 
-GitHub Foundation Validation status: pending PR creation.
+GitHub Foundation Validation passed on run `27034015756`, job `79793305439`.
 
 ## Beta Readiness Update
 

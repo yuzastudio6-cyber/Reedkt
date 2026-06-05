@@ -687,3 +687,18 @@ Prompt 26B - Supabase Advisor Hardening Plan.
 - Acceptance criteria: Prompt 26B docs exist, diagnostics pass, findings are prioritized as future candidates only, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
 - Next prompt recommendation: Prompt 26C - Supabase Advisor Draft Remediation Packet. Prompt 23A and Prompt 24D remain required before staging execution.
 - GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.
+
+## 26C. Supabase Advisor Draft Remediation Packet
+
+Prompt 26C - Supabase Advisor Draft Remediation Packet.
+
+- Purpose: convert the Prompt 26B hardening plan into draft-only remediation packets and Markdown SQL sketches without applying any remediation.
+- Deliverables after Prompt 26C: `docs/supabase-advisor-draft-remediation-packet.md`, `docs/supabase-rls-no-policy-draft-remediation-packet.md`, `docs/supabase-security-definer-draft-remediation-packet.md`, `docs/supabase-function-search-path-draft-remediation-packet.md`, `docs/supabase-fk-index-draft-remediation-packet.md`, `docs/supabase-advisor-draft-remediation-execution-readiness.md`, `docs/draft-sql/supabase-advisor-remediation/README.md`, four `.sql.md` draft sketches, `docs/prompt-26c-validation-results.md`, `docs/implementation-prompts/prompt-26c-supabase-advisor-draft-remediation-packet.md`, `scripts/validation/supabase-advisor-draft-remediation-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 26B base branch, and tracker updates.
+- Implementation status after Prompt 26C: validation prepared / Supabase advisor draft remediation packet only. Advisor draft remediation status is `draft_remediation_planned`.
+- Implements: draft packets for RLS no-policy tables, SECURITY DEFINER exposure, mutable search path warnings, FK index candidates, and execution-readiness gates for future local/staging/prod remediation prompts.
+- Must not implement: active migration files, Supabase lifecycle/status commands, SQL execution, migrations, advisor remediation, policy/index/function/grant changes, Google Cloud or Secret Manager calls, secret fetching, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, human approval grant, staging approval, production approval, deployment, or beta unlock.
+- Main files/concepts: draft remediation packet, `.sql.md` sketches, RLS access models, function/grant review, fixed search-path review, additive index candidates, execution readiness gates, and source-of-truth trackers.
+- What remains blocked: advisor findings are unresolved; sketches are not executable; redacted evidence files are still incomplete; Secret Manager metadata evidence remains incomplete; Prompt 23 remains `pending_human_approval`; staging SQL, production readiness, and beta remain blocked.
+- Acceptance criteria: Prompt 26C docs exist, diagnostics pass, active migrations are unchanged, draft sketches include required DRAFT ONLY and DO NOT EXECUTE warnings, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
+- Next prompt recommendation: Prompt 26D - RLS No-Policy Table Classification and Policy Contract. Prompt 23A and Prompt 24D remain required before staging execution.
+- GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.

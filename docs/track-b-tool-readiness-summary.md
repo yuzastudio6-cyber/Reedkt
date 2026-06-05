@@ -33,4 +33,6 @@ Phase 44L Track B route dry-run approval packet status: approved only for a futu
 
 Phase 44M Track B no-op route dry-run status: phase-complete restricted scope for the approved no-op handshake harness only. Plan snapshot validation, artifact scope validation, secret payload guard, no-op audit, and 12 failure fixtures passed without real worker, sidecar, tool, media, provider, or secret payload access.
 
-Next recommended phase: a separate metadata-only route dry-run approval/execution phase. Live route execution, worker execution, production, product-wide beta, external beta, broad-media, public-artifact, provider, local sidecar execution, tool execution, VLM, Demucs, raw chat execution, and Track A scopes remain blocked.
+Phase 44N Track B metadata route dry-run approval status: approved only for a future `candidate-duckdb-metadata-route-dry-run` execution phase if criteria pass. Phase 44N does not execute the route, DuckDB runtime, workers, sidecars, tools, media, providers, or secrets.
+
+Next recommended phase: Phase 44O metadata-only route dry-run execution. Live route execution, worker execution, production, product-wide beta, external beta, broad-media, public-artifact, provider, local sidecar execution, tool execution, VLM, Demucs, raw chat execution, and Track A scopes remain blocked.

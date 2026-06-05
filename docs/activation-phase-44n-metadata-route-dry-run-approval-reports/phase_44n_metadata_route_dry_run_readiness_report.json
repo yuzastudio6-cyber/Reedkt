@@ -1,0 +1,16 @@
+{
+  "phase": "44N",
+  "runId": "phase44n-metadata-route-dry-run-approval-packet-20260605",
+  "status": "passed",
+  "trackBMetadataRouteDryRunApproval": "approved_for_future_metadata_only_route_dry_run",
+  "selectedCandidateId": "candidate-duckdb-metadata-route-dry-run",
+  "noExecutionOccurred": true,
+  "futureMetadataRouteDryRunExecution": "requires_phase44o_or_equivalent",
+  "productWideInternalBeta": "blocked",
+  "externalBeta": "blocked",
+  "paidProduction": "blocked",
+  "production": "blocked",
+  "broadMedia": "blocked",
+  "publicArtifacts": "blocked",
+  "trackA": "not_touched"
+}

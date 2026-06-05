@@ -1,0 +1,29 @@
+{
+  "phase": "44N",
+  "runId": "phase44n-metadata-route-dry-run-approval-packet-20260605",
+  "status": "artifact_scope_ready_for_future_metadata_only_route_dry_run",
+  "inputArtifactScopeId": "phase44n-input-scope-duckdb-metadata-route-dry-run",
+  "outputArtifactScopeId": "phase44n-output-scope-duckdb-metadata-route-dry-run",
+  "allowedInputArtifactClasses": [
+    "approved_private_media_metadata",
+    "approved_generated_fixture_metadata",
+    "approved_controlled_sample_metadata",
+    "approved_plan_snapshot_metadata"
+  ],
+  "allowedOutputArtifactClasses": [
+    "private_reporting_metadata",
+    "route_dry_run_metadata_report"
+  ],
+  "noMediaInput": true,
+  "noAudioInput": true,
+  "noModelInput": true,
+  "noProviderOutput": true,
+  "noPayloadUploadInPhase44N": true,
+  "publicOutputAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "arbitraryLocalPathAllowed": false,
+  "arbitraryGcsPrefixAllowed": false,
+  "broadMediaAllowed": false,
+  "committedPayloadAllowed": false,
+  "futureMetadataRouteDryRunMayWritePrivateMetadataOnlyIfApproved": true
+}

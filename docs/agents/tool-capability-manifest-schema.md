@@ -9,7 +9,7 @@ Every tool family should publish a manifest with:
 - `owner`
 - `status`
 - `internalTestingReady`
-- `betaCandidateReady`
+- `internalBetaCandidateReady`
 - `productionReady`
 - `capabilities`
 - `inputs`
@@ -25,6 +25,7 @@ Every tool family should publish a manifest with:
 - `blockedUses`
 - `allowedConsumers`
 - `readinessEvidence`
+- `supabaseMilestoneRefs`
 - `testCommands`
 - `lastValidatedPhase`
 

@@ -11,4 +11,4 @@ Canonical flow:
 5. QA/Safety Agent checks policy, artifact privacy, hallucination risk, and blocked features.
 6. Workers may execute only an approved plan snapshot in a later approved runtime phase.
 
-Phase 52A is static architecture only. Production, external beta, paid production, broad media, raw prompt execution, public artifacts, unrestricted providers, and direct agent-to-tool execution remain blocked.
+Phase 52A is architecture plus private artifact and Supabase milestone-sync evidence only. Production, external beta, paid production, broad media, raw prompt execution, public artifacts, unrestricted providers, and direct agent-to-tool execution remain blocked.

@@ -27,6 +27,7 @@ export const approvedPlanSnapshotSchema: SchemaDefinition = {
     'externalBetaAllowed',
     'broadMediaAllowed',
     'qaRequirements',
+    'supabaseMilestoneSyncPolicy',
     'rollbackPolicy',
   ],
   requiredDefaults: {

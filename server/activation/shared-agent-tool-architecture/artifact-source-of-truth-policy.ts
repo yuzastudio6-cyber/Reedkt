@@ -35,5 +35,11 @@ export const artifactSourceOfTruthPolicy: SourceOfTruthPolicy = {
       reviewArtifactsOnly: ['waveform previews', 'spectrogram previews'],
       rules: ['Waveform and spectrogram previews are review artifacts only.'],
     },
+    {
+      domain: 'supabase',
+      sourceOfTruth: ['activation milestone registry rows', 'private gs:// artifact references', 'readiness snapshots', 'tool capability rows', 'feature gate rows'],
+      reviewArtifactsOnly: ['sanitized report excerpts', 'PR summaries'],
+      rules: ['Supabase stores structured metadata and private artifact references only.', 'GCS remains the private artifact store for blobs and reports.', 'Secret values, raw provider payloads, and signed URLs are never source of truth.'],
+    },
   ],
 }

@@ -22,6 +22,7 @@ export const toolOwnershipMap: ToolOwnershipMap = {
         'Nominatim/Photon/Pelias future-scoped',
         'OSRM/Valhalla future-scoped',
         'shared agent architecture',
+        'Supabase milestone/readiness coordination',
         'system integration/readiness',
       ],
       consumerNotes: ['Consumes Sharp screenshot derivatives without claiming Track B general Sharp/libvips ownership.'],

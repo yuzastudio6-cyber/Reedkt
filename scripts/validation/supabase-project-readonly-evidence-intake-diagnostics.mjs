@@ -177,7 +177,7 @@ function secretFinding(file, pattern, line = 1) {
 }
 
 function isProhibitionLine(line) {
-  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|not_applicable_no_evidence|pending_human_approval|missing|partially_reviewed_connected_metadata|connected metadata)\b/i.test(line)
+  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|not_applicable_no_evidence|pending_human_approval|approved_for_staging_validation_when_gates_pass|conditional_approval_recorded|missing|partially_reviewed_connected_metadata|connected metadata)\b/i.test(line)
 }
 
 function isVocabularyLine(line) {
@@ -304,7 +304,8 @@ const summary = {
   environmentTouched: 'none',
   sqlExecuted: 'none',
   migrationDeployed: false,
-  prompt23DecisionState: 'pending_human_approval',
+  prompt23DecisionState: 'approved_for_staging_validation_when_gates_pass',
+  conditionalApprovalRecorded: true,
   nextRecommendedPrompt: criticalFindings.length === 0
     ? 'Prompt 24B - Supabase Redacted Evidence Review'
     : 'Prompt 24A-Hardening - Supabase Evidence Intake Hardening',

@@ -12,9 +12,10 @@ Prompt 25A follow-up records that future approved operators should find Supabase
 - Supabase environment touched: none.
 - SQL executed: none.
 - Migration deployed: no.
-- Prompt 23 remains `pending_human_approval`.
+- Prompt 23A records `approved_for_staging_validation_when_gates_pass`.
 - Prompt 24A remains `evidence_required`.
-- Prompt 25 remains `blocked_missing_evidence` and `blocked_missing_approval`.
+- Prompt 25 remains `blocked_missing_evidence` with `conditional_approval_recorded`.
+- Prompt 23A records conditional staging-only approval, but Secret Manager reference and evidence gates remain required.
 
 ## Contract
 
@@ -40,7 +41,7 @@ Metadata-only discovery must not access secret versions or payloads. In particul
 
 The reference contract supports this future path:
 
-1. Confirm a human approval record exists.
+1. Confirm the conditional human approval record exists.
 2. Confirm redacted Supabase project evidence is accepted.
 3. Confirm the approved operator or service account.
 4. List secret metadata only.
@@ -74,7 +75,7 @@ Staging references must never be reused for production. Production references mu
 
 Access to Secret Manager values is future-only and must require:
 
-- a human approval completion record;
+- a conditional human approval completion record;
 - accepted redacted Supabase project evidence;
 - a named execution owner;
 - a named service account or approved human operator;
@@ -99,4 +100,4 @@ Rotation status in Prompt 25A is `reference_required` and `access_not_verified`.
 
 Prompt 25 command templates remain blocked. Prompt 25A only changes the placeholder policy so future command packets point to Secret Manager reference placeholders instead of raw Supabase values.
 
-The next safe Supabase actions remain Prompt 23A for human approval completion and Prompt 24B for redacted evidence review. Prompt 26 can be considered only after approval and accepted evidence exist.
+The next safe Supabase action remains Prompt 24D for redacted evidence review if evidence is supplied. Prompt 26 can be considered only after conditional approval gates and accepted evidence exist.

@@ -45,7 +45,7 @@ Supabase reference principle: tables in exposed schemas need explicit RLS and ro
 ## Blockers
 
 - Exact table columns and grants need accepted evidence or approved local schema review.
-- Prompt 23 remains `pending_human_approval`.
+- Prompt 23A records conditional staging-only approval, but evidence and execution gates remain incomplete.
 - Prompt 24D accepted redacted evidence is missing.
 - No staging SQL is approved.
 - No advisor remediation is applied.
@@ -53,4 +53,3 @@ Supabase reference principle: tables in exposed schemas need explicit RLS and ro
 ## Next Supabase Action
 
 Recommended next prompt: Prompt 26E - RLS No-Policy Draft Migration Plan.
-

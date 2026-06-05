@@ -83,10 +83,10 @@ Prompt 25A did not run Supabase lifecycle commands or SQL. The non-mutating loca
 
 ## Blockers
 
-- Human approval remains `pending_human_approval`.
+- Human approval is conditionally recorded in Prompt 23A as `approved_for_staging_validation_when_gates_pass`.
 - Redacted Supabase project evidence remains `evidence_required`.
 - Secret Manager references are required but not verified.
-- Prompt 25 command packet remains `blocked_missing_evidence` and `blocked_missing_approval`.
+- Prompt 25 command packet remains `blocked_missing_evidence` with `conditional_approval_recorded`.
 
 ## Next Prompt
 

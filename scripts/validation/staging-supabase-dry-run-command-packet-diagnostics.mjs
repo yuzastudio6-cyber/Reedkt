@@ -39,16 +39,16 @@ const trackingFiles = [
 const requiredTermsByFile = {
   'docs/staging-supabase-rls-dry-run-command-packet.md': [
     'Dry-run packet status: `blocked_missing_evidence`.',
-    'Human approval status: `blocked_missing_approval`.',
+    'Human approval status: `conditional_approval_recorded`.',
     'Supabase update required: docs/status only.',
     'Supabase update status: docs_only.',
     'Supabase environment touched: none.',
     'SQL executed: none.',
     'Migration deployed: no.',
-    'Prompt 23 remains `pending_human_approval`.',
+    'Prompt 23A records conditional staging-only approval, but this packet remains no-go until every gate passes.',
   ],
   'docs/staging-supabase-command-safety-checklist.md': [
-    'Current packet state: `blocked_missing_evidence` and `blocked_missing_approval`.',
+    'Current packet state: `blocked_missing_evidence` and `conditional_approval_recorded`.',
     '<REDACTED_STAGING_PROJECT_REF>',
     '<APPROVED_BRANCH>',
     '<APPROVED_COMMIT>',
@@ -69,7 +69,7 @@ const requiredTermsByFile = {
   ],
   'docs/staging-supabase-dry-run-go-no-go-checklist.md': [
     '`blocked_missing_evidence`',
-    '`blocked_missing_approval`',
+    '`conditional_approval_recorded`',
     'Decision: no-go.',
   ],
   'docs/staging-supabase-future-command-templates.md': [
@@ -82,7 +82,7 @@ const requiredTermsByFile = {
   ],
   'docs/prompt-25-validation-results.md': [
     'Dry-run packet status: `blocked_missing_evidence`.',
-    'Human approval status: `blocked_missing_approval`.',
+    'Human approval status: `conditional_approval_recorded`.',
     'Supabase update required: docs/status only.',
     'Supabase update status: docs_only.',
   ],
@@ -95,7 +95,7 @@ const trackerRequiredTerms = {
   'docs/implementation-prompts/README.md': ['25', 'Staging Supabase/RLS Dry-Run Command Packet'],
   'docs/beta-readiness-scorecard.md': ['Prompt 25 dry-run command packet'],
   'docs/production-beta-blocker-inventory.md': ['blocked dry-run command packet'],
-  'docs/supabase-milestone-sync-matrix.md': ['25', 'blocked_missing_evidence', 'blocked_missing_approval'],
+  'docs/supabase-milestone-sync-matrix.md': ['25', 'blocked_missing_evidence', 'conditional_approval_recorded'],
 }
 
 const forbiddenSecretPatterns = [
@@ -168,7 +168,7 @@ function secretFinding(file, pattern, line = 1) {
 }
 
 function isProhibitionLine(line) {
-  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|not_applicable_no_evidence|pending_human_approval|blocked_missing_evidence|blocked_missing_approval|placeholder|template only|future|missing|no-go)\b/i.test(line)
+  return /\b(do not|must not|forbid|forbidden|blocked|never|no|not|without|prohibited|does not|did not|none|false|redact|remove|evidence_required|not_applicable_no_evidence|pending_human_approval|approved_for_staging_validation_when_gates_pass|conditional_approval_recorded|blocked_missing_evidence|blocked_missing_approval|placeholder|template only|future|missing|no-go)\b/i.test(line)
 }
 
 function isVocabularyLine(line) {
@@ -267,15 +267,15 @@ const criticalFindings = [
 const summary = {
   generatedAt: new Date().toISOString(),
   status: criticalFindings.length === 0 ? 'passed' : 'failed',
-  packetStatus: criticalFindings.length === 0 ? 'blocked_until_approval_and_evidence' : 'blocked_pending_packet_hardening',
-  goNoGoState: ['blocked_missing_evidence', 'blocked_missing_approval'],
+  packetStatus: criticalFindings.length === 0 ? 'blocked_until_required_gates_pass' : 'blocked_pending_packet_hardening',
+  goNoGoState: ['blocked_missing_evidence', 'conditional_approval_recorded'],
   supabaseUpdateType: 'docs/status only',
   supabaseUpdateStatus: 'docs_only',
   environmentTouched: 'none',
   sqlExecuted: 'none',
   migrationDeployed: false,
   nextRecommendedPrompt: criticalFindings.length === 0
-    ? 'Prompt 23A - Human Approval Decision Completion and Prompt 24B - Supabase Redacted Evidence Review before Prompt 26'
+    ? 'Prompt 24D - Supabase Evidence Review With Supplied Files before Prompt 26'
     : 'Prompt 25A - Staging Supabase Dry-Run Command Packet Hardening',
   safety: {
     connectsToSupabase: false,
@@ -306,7 +306,7 @@ const summary = {
   behaviorChecks,
   findings: criticalFindings,
   recommendation: criticalFindings.length === 0
-    ? 'Prompt 25 dry-run packet diagnostics passed. The packet remains blocked until human approval and redacted evidence exist.'
+    ? 'Prompt 25 dry-run packet diagnostics passed. Conditional approval is recorded, but execution remains blocked until evidence, project, PR, commit, Secret Manager, cleanup, and rollback gates pass.'
     : 'Repair Prompt 25 dry-run packet artifacts before treating the command packet as validation-ready.',
 }
 

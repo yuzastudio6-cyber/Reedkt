@@ -6,13 +6,13 @@ Prompt 25 creates the staging Supabase/RLS dry-run command packet. It is documen
 
 - Exact production capability enabled: none; staging Supabase/RLS dry-run command packet only.
 - Dry-run packet status: `blocked_missing_evidence`.
-- Human approval status: `blocked_missing_approval`.
+- Human approval status: `conditional_approval_recorded`.
 - Supabase update required: docs/status only.
 - Supabase update status: docs_only.
 - Supabase environment touched: none.
 - SQL executed: none.
 - Migration deployed: no.
-- Staging execution approved: no.
+- Staging execution approved: conditional when gates pass.
 - Production readiness approved: no.
 - Beta unlocked: no.
 
@@ -66,13 +66,13 @@ Local validation was run from the Prompt 25 worktree with the Codex-bundled Node
 | `npm run lint` | passed | Initial lint exposed untracked AppleDouble metadata; those local artifacts were removed and lint passed. |
 | `npm run typecheck:server` | passed | Server TypeScript check passed. |
 | `npm run foundation:validate` | passed | Default foundation validation passed and includes Prompt 25 diagnostic. |
-| `npm run --silent staging:supabase:dry-run-packet:diagnostics` | passed | Packet status remains `blocked_until_approval_and_evidence`; environment touched `none`, SQL executed `none`, migration deployed `false`. |
+| `npm run --silent staging:supabase:dry-run-packet:diagnostics` | passed | Packet status remains `blocked_until_required_gates_pass`; environment touched `none`, SQL executed `none`, migration deployed `false`. |
 | `npm run --silent supabase:project:readonly-audit:diagnostics` | passed | Audit status remains `evidence_required`. |
 | `npm run --silent supabase:project:evidence-intake:diagnostics` | passed | Evidence status remains `evidence_required`; no supplied evidence files. |
-| `npm run --silent supabase:milestone:sync:diagnostics` | passed | Prompt 23 remains `pending_human_approval`; staging sync not applied. |
+| `npm run --silent supabase:milestone:sync:diagnostics` | passed | Prompt 23A records conditional approval only; staging sync not applied. |
 | `npm run --silent staging:supabase:approval:diagnostics` | passed | Staging approval packet diagnostics passed; staging remains unrun. |
 | `npm run --silent staging:supabase:approval-review:diagnostics` | passed | Review state remains `ready_for_human_review`, not approved. |
-| `npm run --silent staging:supabase:approval-decision:diagnostics` | passed | Decision state remains `pending_human_approval`. |
+| `npm run --silent staging:supabase:approval-decision:diagnostics` | passed | Decision state is `approved_for_staging_validation_when_gates_pass`; execution gates remain incomplete. |
 | `npm run --silent supabase:local:toolchain:probe` | passed | Probe remained non-mutating. Host still reports `/usr/local/bin/supabase` wrong-architecture and `psql` missing under this PATH. |
 | `npm run --silent supabase:local:preflight` | passed / blocked state | Exited 0 and reported `remoteRiskDetected=false`; local SQL remains blocked by toolchain/DB URL blockers under this PATH. |
 | `npm run supabase:rls:list-tests` | passed | Listed tests only; no SQL executed. |
@@ -100,15 +100,14 @@ GitHub Foundation Validation is pending on [PR #185](https://github.com/yuzastud
 
 ## Remaining Blockers
 
-- Human approval completion is missing.
+- Conditional human approval completion is recorded, but execution gates remain incomplete.
 - Redacted Supabase project evidence is missing.
 - Staging project identity is not verified.
 - Production separation evidence is not supplied.
-- Staging SQL execution is not approved.
+- Staging SQL execution remains blocked until all conditional approval gates pass.
 - Production readiness remains blocked.
 
 ## Next Recommended Prompt
 
-- Prompt 23A - Human Approval Decision Completion.
-- Prompt 24B - Supabase Redacted Evidence Review if evidence is supplied.
-- Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after human approval and accepted redacted evidence exist.
+- Prompt 24D - Supabase Evidence Review With Supplied Files.
+- Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after conditional approval gates and accepted redacted evidence exist.

@@ -1,27 +1,40 @@
 # Staging Supabase Go/No-Go Rubric
 
-This rubric supports a future human decision. Prompt 22 does not approve staging execution.
+This rubric supports future staging Supabase/RLS validation decisions. Prompt 23A records conditional user/owner authorization, not immediate staging execution.
+
+## Current Decision State
+
+Prompt 23A state: `conditional_go_pending_gates`.
+
+Meaning:
+
+- approval exists in principle for staging Supabase/RLS validation;
+- execution is still blocked until evidence, project identity, commit, test-set, Secret Manager reference, synthetic fixture, rollback, and cleanup gates are complete;
+- production readiness and beta unlock remain not approved.
 
 ## Go
 
-A future human reviewer may choose `approved_for_staging_validation` only when all of these are true:
+A later execution prompt may proceed only when all of these are true:
 
 - the staging project is disposable, isolated, and not production;
-- the approved test set is explicit and narrow;
+- accepted redacted evidence confirms staging identity and production separation;
+- the approved branch, PR, commit, and test set are explicit;
 - fixtures are synthetic, cleanupable, and workspace/project-isolated;
 - evidence redaction rules are accepted;
 - rollback and cleanup owners are available;
+- GCP Secret Manager handling uses reference names/placeholders only and does not expose values;
+- public/exposed schema tables have explicit role-scoped RLS review for `anon`, `authenticated`, and `service_role`;
 - production readiness remains explicitly not approved.
 
-## Conditional Go
+## Conditional Go Pending Gates
 
-A future reviewer may choose `approved_with_restrictions` when staging validation can proceed with limits, such as:
+Prompt 23A is `conditional_go_pending_gates` when user/owner authorization is recorded but one or more execution gates remain incomplete, such as:
 
-- only migration validation is allowed;
-- only one RLS test file is allowed;
-- cleanup must be independently verified before any next test;
-- evidence retention has a restricted destination;
-- a specific risk requires extra reviewer signoff.
+- accepted redacted Supabase evidence is missing;
+- approved PR/commit/test-set is not recorded;
+- cleanup owner or rollback owner is missing;
+- Secret Manager reference metadata is not accepted;
+- selected SQL files need review before staging use.
 
 ## No-Go
 
@@ -31,7 +44,7 @@ A future reviewer should choose `blocked_pending_changes` or `rejected` when any
 - secrets or full connection strings would be exposed;
 - fixture cleanup is unclear;
 - rollback owner is unavailable;
-- selected SQL files are draft-only without conversion;
+- selected SQL files are draft-only without review;
 - runtime side effects are included;
 - the packet implies production readiness or beta unlock.
 
@@ -46,8 +59,12 @@ Any future approved staging run must stop if:
 - a secret or signed URL is exposed;
 - production target risk appears.
 
-## Prompt 22 Result
+## Prompt 22 And Prompt 23A Results
 
 Prompt 22 result: `ready_for_human_review`.
 
-This result is a packet completeness state only. Actual approval is not granted.
+Actual approval is not granted by Prompt 22.
+
+Prompt 23A result: `approved_for_staging_validation_when_gates_pass`.
+
+These states do not run staging. Prompt 23A records conditional approval only; the next execution prompt must still prove every gate before any staging Supabase/RLS command or SQL may run.

@@ -131,6 +131,16 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 6. Proceed to Phase 51B only as Supabase activation milestone registry planning after remote count-only activity and private artifact upload evidence are available.
 7. Do not treat Phase 51A as production, external beta, paid production, broad media, Supabase write-path, migration, or signed URL approval.
 
+## After Phase 51B
+
+1. Review `activation:supabase-milestone-registry:report`, `activation:supabase-milestone-registry:iam-plan`, and private Phase 51B JSON artifacts if execution ran.
+2. Confirm Supabase is only the structured activation/readiness ledger and GCS remains the private artifact store.
+3. Confirm the migration, if applied, used only local `psql` with explicit confirmation and direct DB URL availability.
+4. Confirm all registry tables are RLS-enabled, service-role-only, and do not grant direct access to `public`, `anon`, or `authenticated`.
+5. Confirm the Phase 51B writer rejects public artifacts, signed URL source-of-truth, secret-looking values, production/beta/broad-media unlocks, and frontend service-role exposure.
+6. Proceed to Phase 51C only as historical activation evidence backfill if Phase 51B schema/write verification passes.
+7. Do not treat Phase 51B as controlled beta, production, broad historical backfill, public artifact, signed URL, provider, worker, or runtime execution approval.
+
 ## After Phase 49I
 
 1. Review `activation:web-search-ui-api-gating:report` and the private Phase 49I artifacts for `phase49i-20260603T031706`.

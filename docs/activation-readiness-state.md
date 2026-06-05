@@ -142,6 +142,17 @@ mutations, row writes, signed URL creation, provider calls, media processing,
 Docker, deployment, production, external beta, paid production, or broad media.
 Phase 51B is ready only for Supabase activation milestone registry planning;
 controlled internal beta remains blocked until later schema/runtime hardening.
+Phase 51B adds the Supabase activation milestone registry as a structured
+activation/readiness ledger while GCS remains the private artifact store. It
+defines `activation_runs`, `activation_artifacts`, `activation_qa_gates`,
+`readiness_snapshots`, `tool_capabilities`, and `feature_gates` with RLS
+enabled and direct access revoked from `public`, `anon`, and `authenticated`.
+The writer is server-only, idempotent, and rejects public artifacts, signed URL
+source-of-truth, secret-looking values, production/external beta/paid
+production/broad media unlocks, raw prompt execution, provider execution, and
+frontend service-role exposure. Phase 51C may proceed only as historical
+activation evidence backfill after schema verification, one Phase 51B bundle
+write/readback, QA, and private artifact upload pass.
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

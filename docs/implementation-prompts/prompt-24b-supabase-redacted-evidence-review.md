@@ -5,6 +5,7 @@
 Implement Prompt 24B from a clean sibling worktree based on `origin/codex/rp-foundation-25a-gcp-secret-manager-supabase-reference-contract`.
 
 - Branch: `codex/rp-foundation-24b-supabase-redacted-evidence-review`
+- PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/190
 - PR title: `[foundation] Prompt 24B Supabase redacted evidence review`
 - Exact capability enabled: none; Supabase redacted evidence review only
 

@@ -85,7 +85,9 @@ Prompt 24B implements the Supabase redacted evidence review package.
 
 ## CI Status
 
-GitHub Foundation Validation is pending until the Prompt 24B PR is opened.
+Prompt 24B PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/190
+
+GitHub Foundation Validation is pending for PR #190.
 
 ## Blockers
 

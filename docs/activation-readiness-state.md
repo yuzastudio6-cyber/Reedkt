@@ -296,3 +296,9 @@ Phase 44H adds a safe Track B cost estimator under `server/activation/track-b-co
 The Phase 44H readiness report marks `cost_estimator` as `phase_complete_restricted_scope`. It is planning metadata only and does not query Billing APIs, read project billing, execute routes, start workers, start sidecars, process media/audio/OCR/VLM/model runtimes, call providers, run Docker/Cloud/GPU jobs, mutate GCP/IAM, unlock beta/production, or touch Track A.
 
 VLM and Demucs estimates remain blocked. GPU, provider, broad-media, production, paid-beta, and route-execution costs remain blocked until future approved phases. Local sidecar remains pending, and Phase 44J hybrid E2E simulation remains pending.
+
+## Phase 44P Track B Readiness Rollup And Supabase Milestone Export
+
+Phase 44P adds a server-only Track B readiness rollup under `server/activation/track-b-readiness-rollup/` and committed safe reports under `docs/activation-track-b-readiness-rollup-reports/`. It consolidates the 18 canonical Track B tool ids, prior PR/phase evidence, restricted internal-ready scopes, blocked scopes, route dry-run status, and a Supabase-ready milestone export/schema.
+
+The Phase 44P export is a future Foundation/Supabase handoff only. It does not write Supabase, run staging/remote/production SQL, deploy migrations, execute routes/workers/sidecars/tools, process media/audio/OCR/VLM/model payloads, call providers, mutate Docker/Cloud/GCP/IAM, unlock beta/production, create public output, or touch Track A. Future staging backfill requires a separate Foundation/Supabase-approved prompt.

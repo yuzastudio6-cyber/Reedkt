@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/track-b-supabase-milestone-export.schema.json",
+  "title": "Track B Supabase Milestone Export",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "exportVersion",
+    "generatedByPhase",
+    "status",
+    "supabaseWritePerformed",
+    "remoteSqlRun",
+    "migrationDeployment",
+    "forbiddenPayloadClasses",
+    "records"
+  ],
+  "properties": {
+    "exportVersion": {
+      "const": "track-b-supabase-milestone-export-v1"
+    },
+    "generatedByPhase": {
+      "const": "44P"
+    },
+    "generatedByRunId": {
+      "type": "string"
+    },
+    "status": {
+      "const": "safe_metadata_export_ready_for_future_supabase_backfill"
+    },
+    "supabaseWritePerformed": {
+      "const": false
+    },
+    "remoteSqlRun": {
+      "const": false
+    },
+    "migrationDeployment": {
+      "const": false
+    },
+    "productionAffected": {
+      "const": false
+    },
+    "forbiddenPayloadClasses": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "service_role_key",
+          "anon_key",
+          "jwt_secret",
+          "provider_key",
+          "secret_value",
+          "signed_url",
+          "raw_media_payload",
+          "raw_audio_payload",
+          "raw_frame_payload",
+          "raw_transcript_payload",
+          "model_weight_payload",
+          "private_artifact_contents",
+          "cloud_run_log_contents",
+          "raw_prompt",
+          "user_pii"
+        ]
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "phaseId",
+          "track",
+          "family",
+          "toolIds",
+          "milestoneName",
+          "status",
+          "readinessStatus",
+          "betaStatus",
+          "branch",
+          "allowedScope",
+          "blockedScopes",
+          "nextPhase",
+          "createdFromReportPath",
+          "exportVersion"
+        ],
+        "properties": {
+          "phaseId": {
+            "type": "string"
+          },
+          "track": {
+            "const": "track_b"
+          },
+          "family": {
+            "type": "string"
+          },
+          "toolIds": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "deepfilternet",
+                "signalsmith_stretch",
+                "demucs",
+                "paddleocr",
+                "paddlepaddle",
+                "qwen3_vl",
+                "vllm",
+                "opencv",
+                "pyav",
+                "pyscenedetect",
+                "sharp_libvips",
+                "duckdb",
+                "polars",
+                "web_capability_profiler",
+                "desktop_capability_profiler",
+                "local_worker_sidecar_planning",
+                "cost_estimator",
+                "tool_route_manifest_integration"
+              ]
+            }
+          },
+          "milestoneName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "readinessStatus": {
+            "type": "string"
+          },
+          "betaStatus": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "prNumber": {
+            "type": "number"
+          },
+          "prUrl": {
+            "type": "string",
+            "pattern": "^https://github.com/yuzastudio6-cyber/Reedkt/pull/[0-9]+$"
+          },
+          "commitSha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "artifactPrefix": {
+            "type": "string",
+            "pattern": "^(docs/|gs://reeditpro-staging-reeditpro-qa-artifacts/activation/)"
+          },
+          "artifactObjectCount": {
+            "type": "number",
+            "minimum": 0
+          },
+          "allowedScope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockedScopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "nextPhase": {
+            "type": "string"
+          },
+          "createdFromReportPath": {
+            "type": "string",
+            "pattern": "^docs/"
+          },
+          "exportVersion": {
+            "const": "track-b-supabase-milestone-export-v1"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "secretValue"
+              ]
+            },
+            {
+              "required": [
+                "serviceRoleKey"
+              ]
+            },
+            {
+              "required": [
+                "providerKey"
+              ]
+            },
+            {
+              "required": [
+                "signedUrl"
+              ]
+            },
+            {
+              "required": [
+                "rawPayload"
+              ]
+            },
+            {
+              "required": [
+                "userPii"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "policy": {
+    "forbids": [
+      "service_role_key",
+      "anon_key",
+      "jwt_secret",
+      "provider_key",
+      "secret_value",
+      "signed_url",
+      "raw_media_payload",
+      "raw_audio_payload",
+      "raw_frame_payload",
+      "raw_transcript_payload",
+      "model_weight_payload",
+      "private_artifact_contents",
+      "cloud_run_log_contents",
+      "raw_prompt",
+      "user_pii"
+    ],
+    "noSupabaseWriteInPhase44P": true,
+    "futureBackfillRequiresFoundationSupabaseApproval": true
+  }
+}

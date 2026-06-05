@@ -1,31 +1,27 @@
 {
   "phase": "supabase-trackb-milestone-staging-backfill",
   "runId": "supabase-trackb-milestone-staging-backfill-20260605",
-  "status": "blocked",
+  "status": "passed",
   "schemaEvidenceMode": "committed_registry_schema_required_before_staging_write",
-  "migrationPath": "supabase/migrations/202606040001_activation_milestone_registry.sql",
-  "migrationExists": false,
-  "registryModulePath": "server/activation/supabase-milestone-registry",
-  "registryModuleExists": false,
+  "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+  "migrationExists": true,
+  "registryModulePath": "server/activation/supabase-milestone-registry-schema",
+  "registryModuleExists": true,
   "requiredTables": [
-    "activation_runs",
-    "activation_artifacts",
-    "activation_qa_gates",
-    "readiness_snapshots",
-    "tool_capabilities",
-    "feature_gates"
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
   ],
-  "missingTables": [
-    "activation_runs",
-    "activation_artifacts",
-    "activation_qa_gates",
-    "readiness_snapshots",
-    "tool_capabilities",
-    "feature_gates"
-  ],
+  "missingTables": [],
   "schemaMutationPerformed": false,
   "migrationDeploymentPerformed": false,
-  "blockers": [
-    "supabase_milestone_registry_schema_missing"
-  ]
+  "blockers": []
 }

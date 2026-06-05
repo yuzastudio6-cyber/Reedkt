@@ -14,6 +14,6 @@
   "productionUnlocked": false,
   "nextRecommendedPhase": "Resolve the exact blocker before any staging write or production promotion approval.",
   "blockers": [
-    "supabase_milestone_registry_schema_missing"
+    "staging_supabase_credentials_unavailable"
   ]
 }

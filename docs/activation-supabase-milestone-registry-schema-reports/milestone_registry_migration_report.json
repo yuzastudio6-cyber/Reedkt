@@ -1,0 +1,35 @@
+{
+  "phase": "supabase-milestone-registry-schema-rls",
+  "runId": "supabase-milestone-registry-schema-rls-20260605",
+  "status": "passed",
+  "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+  "migrationExists": true,
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "missingTables": [],
+  "unsafeColumns": [],
+  "unsafePatterns": [],
+  "safetyFlags": [
+    "production_allowed boolean not null default false",
+    "external_beta_allowed boolean not null default false",
+    "paid_production_allowed boolean not null default false",
+    "broad_media_allowed boolean not null default false",
+    "public_output_allowed boolean not null default false",
+    "provider_calls_allowed boolean not null default false"
+  ],
+  "missingSafetyFlags": [],
+  "backfillRowsWritten": false,
+  "schemaOnly": true,
+  "blockers": []
+}

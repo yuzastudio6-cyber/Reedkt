@@ -1,17 +1,16 @@
 {
-  "phase": "supabase-trackb-milestone-staging-backfill",
-  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "phase": "supabase-milestone-registry-schema-rls",
+  "runId": "supabase-milestone-registry-schema-rls-20260605",
   "status": "blocked",
   "activeBlockers": [
     "staging_supabase_credentials_unavailable"
   ],
-  "expectedDefaultBlockerOnPr196Base": "supabase_milestone_registry_schema_missing",
+  "expectedPr198BlockerResolvedByThisPhase": "supabase_milestone_registry_schema_missing",
   "stillBlockedScopes": [
+    "track_b_data_backfill",
     "production_supabase_write",
     "production_sql",
-    "remote_schema_mutation",
-    "migration_deployment",
-    "service_role_secret_printing",
+    "remote_manual_sql",
     "provider_calls",
     "route_execution",
     "worker_execution",

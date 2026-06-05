@@ -8,6 +8,6 @@
   "remoteSqlRun": false,
   "productionAffected": false,
   "blockers": [
-    "supabase_milestone_registry_schema_missing"
+    "staging_supabase_credentials_unavailable"
   ]
 }

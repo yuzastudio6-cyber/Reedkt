@@ -1,0 +1,25 @@
+{
+  "phase": "supabase-milestone-registry-schema-rls",
+  "runId": "supabase-milestone-registry-schema-rls-20260605",
+  "status": "committed_safe_metadata_only",
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "reportDir": "docs/activation-supabase-milestone-registry-schema-reports",
+  "expectedReports": [
+    "milestone_registry_schema_plan.json",
+    "milestone_registry_migration_report.json",
+    "milestone_registry_rls_policy_report.json",
+    "milestone_registry_local_validation_report.json",
+    "milestone_registry_rls_test_report.json",
+    "milestone_registry_seed_fixture_report.json",
+    "milestone_registry_staging_preflight_report.json",
+    "milestone_registry_staging_deploy_report.json",
+    "milestone_registry_staging_verification_report.json",
+    "milestone_registry_blocker_report.json",
+    "milestone_registry_readiness_report.json",
+    "milestone_registry_private_artifact_manifest.json"
+  ],
+  "forbiddenPayloadsCommitted": false,
+  "stagingDataWritten": false,
+  "productionAffected": false
+}

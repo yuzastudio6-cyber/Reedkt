@@ -79,10 +79,15 @@ assert(exportValidation.remoteSqlRun === false, 'Source export must not have run
 assert(exportValidation.migrationDeployment === false, 'Source export must not deploy migrations.')
 
 const schemaCheck = reports.registrySchemaCheck as { status?: string; blockers?: string[]; schemaMutationPerformed?: boolean; migrationDeploymentPerformed?: boolean }
-assert(schemaCheck.status === 'blocked', 'PR #196 base should block because registry schema evidence is absent.')
-assert(schemaCheck.blockers?.includes('supabase_milestone_registry_schema_missing'), 'Schema missing blocker must be explicit.')
+assert(schemaCheck.status === 'passed', 'Registry schema evidence should pass after the schema/RLS phase.')
 assert(schemaCheck.schemaMutationPerformed === false, 'Schema mutation must not be performed.')
 assert(schemaCheck.migrationDeploymentPerformed === false, 'Migration deployment must not be performed.')
+
+const rlsCheck = reports.registryRlsCheck as { status?: string; rlsSafe?: boolean; publicAccessGranted?: boolean; frontendSecretAccess?: boolean }
+assert(rlsCheck.status === 'passed', 'Registry RLS evidence should pass after the schema/RLS phase.')
+assert(rlsCheck.rlsSafe === true, 'Registry RLS evidence must be safe.')
+assert(rlsCheck.publicAccessGranted === false, 'Registry RLS must not grant public access.')
+assert(rlsCheck.frontendSecretAccess === false, 'Registry RLS must not require frontend secret access.')
 
 const writeReport = reports.writeReport as { writePerformed?: boolean; remoteSqlRun?: boolean; productionAffected?: boolean; migrationDeployment?: boolean }
 assert(writeReport.writePerformed === false, 'Staging write must not run while schema is missing.')
@@ -91,7 +96,8 @@ assert(writeReport.productionAffected === false, 'Production must not be affecte
 assert(writeReport.migrationDeployment === false, 'Migration deployment must remain false.')
 
 const blockerReport = reports.blockerReport as { activeBlockers?: string[]; stillBlockedScopes?: string[] }
-assert(blockerReport.activeBlockers?.includes('supabase_milestone_registry_schema_missing'), 'Blocker report must include schema blocker.')
+assert(!blockerReport.activeBlockers?.includes('supabase_milestone_registry_schema_missing'), 'Schema missing blocker should be resolved by this branch.')
+assert(blockerReport.activeBlockers?.includes('staging_supabase_credentials_unavailable'), 'Backfill should now block on missing staging credentials, not schema.')
 for (const scope of ['production_supabase_write', 'route_execution', 'worker_execution', 'provider_calls', 'track_a']) {
   assert(blockerReport.stillBlockedScopes?.includes(scope), `Blocked scope must remain listed: ${scope}`)
 }
@@ -108,7 +114,7 @@ console.log(JSON.stringify({
   phase: 'supabase-trackb-milestone-staging-backfill',
   reportDir: SUPABASE_TRACKB_BACKFILL_REPORT_DIR,
   exportRecords: exportValidation.recordCount,
-  expectedBlocker: 'supabase_milestone_registry_schema_missing',
+  activeBlocker: 'staging_supabase_credentials_unavailable',
   stagingWrite: 'not_run',
   remoteSql: 'not_run',
   migrationDeployment: 'not_run',

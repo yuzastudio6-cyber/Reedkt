@@ -28,3 +28,5 @@ Track A owns visual-video core tooling including FFmpeg, ffprobe, libass, Remoti
 The registry is metadata only. Phase 52B does not execute tools, models, media processing, web search, map rendering, providers, Docker, migrations, schema changes, or production/beta paths.
 
 VLM remains excluded because Phase 39C recorded L4/vLLM CUDA OOM. Demucs remains blocked pending model provenance.
+
+Phase 52C consumes this registry for a deterministic multi-agent dry-run. The dry-run may allow only internal-testing-ready capabilities as `candidate_plan_only`, while blocked, future-scoped, external-track-owned, VLM, Demucs, and AI Tools runtime paths remain handoff-only or blocked.

@@ -424,7 +424,11 @@
     "activation:supabase-historical-backfill": "tsx server/cli/activation-supabase-historical-backfill.ts",
     "activation:supabase-historical-backfill:report": "tsx server/cli/activation-supabase-historical-backfill-report.ts",
     "activation:supabase-historical-backfill:iam-plan": "tsx server/cli/activation-supabase-historical-backfill-iam-plan.ts",
-    "smoke:activation-supabase-historical-backfill": "tsx server/smoke/activation-supabase-historical-backfill-smoke.ts"
+    "smoke:activation-supabase-historical-backfill": "tsx server/smoke/activation-supabase-historical-backfill-smoke.ts",
+    "activation:supabase-milestone-sync": "tsx server/cli/activation-supabase-milestone-sync.ts",
+    "activation:supabase-milestone-sync:report": "tsx server/cli/activation-supabase-milestone-sync-report.ts",
+    "activation:supabase-milestone-sync:iam-plan": "tsx server/cli/activation-supabase-milestone-sync-iam-plan.ts",
+    "smoke:activation-supabase-milestone-sync": "tsx server/smoke/activation-supabase-milestone-sync-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

@@ -17,6 +17,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 4. Confirm all feature gates remain disabled and no public/signed URL source-of-truth, raw provider response, secret value, large blob, migration, schema/RLS mutation, production, external beta, or broad-media unlock occurred.
 5. Proceed to Phase 51D only as automatic per-phase Supabase milestone sync.
 
+## After Phase 51D
+
+1. Review `activation:supabase-milestone-sync:report`, `activation:supabase-milestone-sync:iam-plan`, and the private Phase 51D artifacts for `phase51d-20260605T032516`.
+2. Confirm the `ActivationMilestoneSyncInput` contract, report adapter, sanitizer policy, and future PR summary template are present.
+3. Confirm one Phase 51D self-sync bundle wrote to the Phase 51B registry tables and read back by `(phase_id, run_id)`.
+4. Confirm the sync stored private `gs://` references only and did not apply migrations, rerun historical backfill, write product rows, call providers, expose service-role credentials, create public artifacts, or unlock production/external beta/broad media.
+5. Proceed to Phase 52A only as shared agent and tool ownership architecture.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

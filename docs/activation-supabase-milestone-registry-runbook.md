@@ -46,3 +46,6 @@ Blocked throughout: Supabase lifecycle commands, destructive migrations, public
 or authenticated table access, frontend service-role exposure, public artifacts,
 signed URLs as source of truth, raw prompt execution, providers, production,
 external beta, paid production, and broad media.
+
+Phase 51D reuses this registry and writer path for automatic per-phase milestone
+sync. It does not apply migrations or alter the registry schema.

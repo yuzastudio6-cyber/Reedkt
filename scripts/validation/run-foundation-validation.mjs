@@ -210,6 +210,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:connected-readonly-audit:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_advisor_hardening_plan_diagnostics',
+    command: 'npm run --silent supabase:advisor:hardening-plan:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:advisor:hardening-plan:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

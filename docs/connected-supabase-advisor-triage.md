@@ -34,12 +34,12 @@ Performance advisors reported unindexed foreign keys across runtime/foundation t
 
 ## No Automatic Remediation Rule
 
-Prompt 26A is triage only. Future prompts must design, review, and validate any policy, function, grant, or index migration before execution. No advisor fix is implemented here.
+Prompt 26A is triage only. Prompt 26B adds an advisor hardening plan only. Future remediation prompts must design, review, and validate any policy, function, grant, or index migration before execution. No advisor fix is implemented here.
 
 ## Recommended Sequence
 
 1. Prompt 26B - Supabase Advisor Hardening Plan.
-2. Prompt 26C - RLS No-Policy Remediation Design.
+2. Prompt 26C - Supabase Advisor Draft Remediation Packet.
 3. Prompt 26D - Function Security Hardening Design.
 4. Prompt 26E - Foreign-Key Index Migration Design.
 5. Prompt 23A - Human Approval Decision Completion before staging execution.

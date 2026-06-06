@@ -731,3 +731,16 @@ Prompt 26E - RLS No-Policy Draft Migration Plan.
 - Acceptance criteria: Prompt 26E docs exist, diagnostics pass, all six no-policy tables are included, draft SQL remains Markdown-only, active migrations are unchanged, no staging/production update is claimed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
 - Next prompt recommendation: Prompt 26E-1 - RLS No-Policy Local Draft Migration Implementation, or Prompt 26F - Function Search Path Hardening Migration Plan. Prompt 23A and Prompt 24D remain required before staging execution.
 - GitHub deliverable: branch, commit, push, PR with validation and explicit no-mutation/no-secret/no-execution statement.
+
+## 26E-1. RLS No-Policy Local Migration Candidate
+
+Prompt 26E-1 - RLS No-Policy Local Migration Candidate.
+
+- Purpose: create a guarded local migration candidate and catalog-only local test for the six RLS no-policy advisor tables, without staging/remote/production Supabase execution.
+- Deliverables after Prompt 26E-1: `supabase/migrations/202606060001_rls_no_policy_advisor_remediation.sql`, `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql`, `docs/prompt-26e1-rls-no-policy-local-migration-candidate.md`, `docs/prompt-26e1-validation-results.md`, `docs/implementation-prompts/prompt-26e1-rls-no-policy-local-migration-candidate.md`, `scripts/validation/supabase-rls-no-policy-local-candidate-diagnostics.mjs`, package script wiring, foundation validation runner wiring, workflow coverage for the Prompt 26E base branch, and tracker updates.
+- Implementation status after Prompt 26E-1: `local_candidate_prepared` unless the guarded local SQL test runs and passes.
+- Implements: deny-only `anon`/`authenticated` policies for `activation_artifacts`, `activation_qa_gates`, `activation_runs`, `feature_gates`, `readiness_snapshots`, and `tool_capabilities` when those tables exist locally; catalog-only policy-shape test candidate.
+- Must not implement: staging/remote/production Supabase, Google Cloud, Secret Manager, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, service-role handlers, grants, helper functions, indexes, public/authenticated writes, staging approval, production readiness, deployment, or beta unlock.
+- What remains blocked: local candidate validation if target tables are absent or no localhost-only DB URL exists; staging execution until human approval, accepted evidence, Secret Manager reference gates, approved PR/commit/test set, rollback/cleanup, and final gate requirements pass.
+- Acceptance criteria: candidate migration/test/docs/diagnostics exist, diagnostics pass, only six tables are targeted, no broad client access is created, and status remains local-only unless guarded local SQL passes.
+- Next prompt recommendation: Prompt 26E-2 - RLS No-Policy Local Candidate Validation Fix if local validation fails or table evidence is incomplete; otherwise Prompt 26F - Function Search Path Hardening Migration Plan.

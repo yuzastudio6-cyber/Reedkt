@@ -28,3 +28,12 @@ Prompt 26B is the advisor hardening planning step. Prompt 26C is the umbrella dr
 ## Current Recommendation
 
 Prompt 26E - RLS No-Policy Draft Migration Plan records `rls_no_policy_draft_migration_plan_created` for the six RLS no-policy tables and still does not apply remediation. Proceed to Prompt 26E-1 - RLS No-Policy Local Draft Migration Implementation only if local implementation is approved and gated, or Prompt 26F - Function Search Path Hardening Migration Plan if function hardening takes priority.
+## Prompt 26E-1 status
+
+Prompt 26E-1 creates the first local migration candidate for the RLS no-policy track and adds a catalog-only local test candidate. Status: `local_candidate_prepared`.
+
+Recommended sequence after Prompt 26E-1:
+
+- Prompt 26E-2 - RLS No-Policy Local Candidate Validation Fix, if local candidate validation fails or local table evidence is incomplete.
+- Prompt 26F - Function Search Path Hardening Migration Plan, if RLS candidate preparation succeeds and function hardening is the next priority.
+- Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after all approval, evidence, Secret Manager reference, PR/commit/test-set, rollback/cleanup, and final gate requirements pass.

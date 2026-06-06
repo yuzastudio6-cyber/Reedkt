@@ -29,6 +29,16 @@ Prompt 19 inventories the current SQL/RLS files and records how each file should
 
 The first executable candidate should be `006_auth_workspace_rls_smoke_tests.draft.sql` after Prompt 20 verifies the local Supabase environment and fixture strategy. Broad E2E RLS smoke remains draft-only until local domain tests pass.
 
+## Prompt 26E-1 Local Candidate Update
+
+Prompt 26E-1 adds a second local SQL candidate:
+
+| File | Prompt 26E-1 status | Prompt 26E-1 execution result | Prompt 26E-1 blocker |
+| --- | --- | --- | --- |
+| `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` | local_executable_candidate | not_run | Requires localhost-only DB URL, guarded runner approval, and all six advisor tables present in local schema. |
+
+The candidate is catalog-only and does not insert fixture rows. It verifies the Prompt 26E-1 RLS policy names and deny-only shape for `activation_artifacts`, `activation_qa_gates`, `activation_runs`, `feature_gates`, `readiness_snapshots`, and `tool_capabilities`.
+
 ## Prompt 20 Execution Update
 
 Prompt 20 added a local-only safety preflight and guarded RLS runner, but did not execute SQL or convert draft SQL files because the local target is blocked.

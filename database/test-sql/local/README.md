@@ -90,6 +90,7 @@ A draft SQL file may become executable only when:
 ## Current Executable Test List
 
 - `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B/20B-Retry auth/profile/workspace/project candidate. Status: passed locally through the guarded runner in Prompt 20B-Retry after a fixture-only compatibility update for the local schema-era bridge.
+- `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` - Prompt 26E-1 catalog-only RLS no-policy advisor table candidate. Status: local candidate prepared; run only through the guarded runner after preflight proves a localhost-only DB URL and `canRunLocalSql=true`. The test intentionally fails if any of the six advisor tables are absent and does not insert fixture rows because accepted column/schema evidence is incomplete.
 
 ## Current Draft-Only Test List
 
@@ -131,3 +132,16 @@ npm run supabase:rls:local:run -- --confirm-local-only --file database/test-sql/
 ```
 
 The first run exposed a local schema compatibility issue in the fixture (`workspaces.metadata_json` did not exist). The SQL candidate was minimally adjusted to seed `public.user_profiles` bridge records and use the legacy-compatible `workspaces.owner_user_id` and `projects.created_by` columns while still testing Prompt 3 auth/profile/workspace/project policies. The final guarded run passed and rolled back the synthetic fixture transaction.
+
+## Prompt 26E-1 Local Candidate
+
+Prompt 26E-1 adds `002_rls_no_policy_advisor_tables_local.sql` as a catalog-only local SQL candidate for the six connected-advisor RLS no-policy tables:
+
+- `activation_artifacts`
+- `activation_qa_gates`
+- `activation_runs`
+- `feature_gates`
+- `readiness_snapshots`
+- `tool_capabilities`
+
+The test verifies table presence, RLS enablement, expected policy names, `anon`/`authenticated` role targeting, and deny-only predicates/checks. It does not insert fixtures, does not depend on row data, and remains local-only/prohibited from staging, remote, and production targets.

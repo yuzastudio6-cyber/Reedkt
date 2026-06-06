@@ -24,3 +24,8 @@ Prompt 26E records dependencies that must be confirmed before future RLS policy 
 - Helper functions must be reviewed before policies depend on them.
 - Policy predicates that use scope columns need index review before staging.
 - Missing scope or sensitivity evidence blocks positive read policies.
+## Prompt 26E-1 local candidate update
+
+Prompt 26E-1 status: `local_candidate_prepared`.
+
+The local candidate uses only denial policies for `anon` and `authenticated`, so it does not depend on helper functions, ownership columns, positive read scoping, or fixture rows. The catalog-only test still depends on the six target tables existing in the local schema and RLS being enabled by the candidate migration.

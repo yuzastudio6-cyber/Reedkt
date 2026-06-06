@@ -269,6 +269,7 @@ for (const [file, terms] of Object.entries(trackerTerms)) {
 
 const migrationPromptMarkers = listFiles('supabase/migrations')
   .filter((file) => file.endsWith('.sql'))
+  .filter((file) => file !== 'supabase/migrations/202606060001_rls_no_policy_advisor_remediation.sql')
   .flatMap((file) => {
     const text = readFile(file)
     if (/Prompt 26E|rls_no_policy_draft_migration_plan_created|activation_artifacts_select_backend_only/i.test(text)) {

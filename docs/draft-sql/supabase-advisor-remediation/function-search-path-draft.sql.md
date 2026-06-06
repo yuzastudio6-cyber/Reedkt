@@ -1,6 +1,8 @@
 # Function Search Path Draft SQL Sketch
 
-DRAFT ONLY. DO NOT EXECUTE. This sketch is not validated, not applied to Supabase, and requires future prompt.
+DRAFT ONLY — DO NOT EXECUTE.
+NOT AN ACTIVE MIGRATION.
+This sketch is not validated, not applied to Supabase, and requires future prompt.
 
 ## Intent
 
@@ -19,25 +21,32 @@ Sketch future fixed-search-path remediation for mutable function search-path fin
 ## Review-Only Sketch
 
 ```sql
--- DRAFT ONLY. DO NOT EXECUTE.
--- Not validated. Not applied to Supabase. Requires future prompt.
--- Future prompt must preserve signatures and review dependencies first.
+-- DRAFT ONLY — DO NOT EXECUTE
+-- NOT AN ACTIVE MIGRATION
+-- not validated
+-- not applied to Supabase
+-- requires future prompt
+-- Future prompt must preserve function name, argument types, parameter names,
+-- return type, security mode, volatility, owner expectations, and grants.
+-- Future prompt must use fixed search_path plus schema-qualified references.
 
--- Candidate pattern only:
--- create or replace function public.example_function(...)
--- returns ...
--- language plpgsql
--- security definer
--- set search_path = public, auth
--- as $$
+-- Candidate review-only shape, not runnable:
+-- create or replace function public.<function_name>(<preserve_existing_args>)
+-- returns <preserve_existing_return_type>
+-- language <preserve_existing_language>
+-- <preserve_existing_security_mode>
+-- set search_path = ''
+-- as $function$
 -- begin
---   -- Body must use schema-qualified references after review.
+--   -- Use schema-qualified references such as public.<table> and auth.<helper>.
+--   -- Preserve behavior; do not change grants, owners, security mode, or
+--   -- RLS policy behavior in the search-path-only candidate.
 -- end;
--- $$;
+-- $function$;
 
--- The placeholder above is not an executable remediation.
+-- The placeholder above is not executable SQL and is not an active migration.
 ```
 
 ## Non-Execution Notes
 
-No function definition is changed by Prompt 26C. No staging or production validation is claimed.
+No function definition is changed by Prompt 26F. No staging or production validation is claimed. No active file under `supabase/migrations/` is added or changed for this function search-path planning scope.

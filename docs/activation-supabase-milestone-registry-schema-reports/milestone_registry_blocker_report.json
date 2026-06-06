@@ -3,7 +3,6 @@
   "runId": "supabase-milestone-registry-schema-rls-20260605",
   "status": "blocked",
   "activeBlockers": [
-    "milestone_registry_local_validation_confirmation_missing",
     "staging_supabase_credentials_unavailable"
   ],
   "expectedPr198BlockerResolvedByThisPhase": "supabase_milestone_registry_schema_missing",

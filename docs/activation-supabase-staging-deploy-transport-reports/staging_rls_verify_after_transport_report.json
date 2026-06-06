@@ -36,10 +36,9 @@
   "secretPayloadsRead": false,
   "productionAffected": false,
   "blockers": [
-    "staging_supabase_db_url_secret_reference_missing",
-    "blocked_credentials_unavailable",
     "cli_db_push_unavailable",
     "npx_cli_db_push_unavailable",
+    "blocked_no_migration_safe_deploy_path",
     "staging_schema_verification_not_run",
     "staging_rls_verification_failed"
   ]

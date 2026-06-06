@@ -1,7 +1,7 @@
 {
   "phase": "supabase-staging-deploy-transport-rerun",
   "runId": "supabase-staging-deploy-transport-rerun-20260606",
-  "status": "blocked",
+  "status": "passed",
   "approvedTargetReferenceReport": {
     "status": "passed",
     "approvedStagingTargetReferenceFound": true,
@@ -195,18 +195,20 @@
   "secretReferenceGuardReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
     "runId": "supabase-staging-deploy-transport-rerun-20260606",
-    "status": "blocked",
+    "status": "passed",
     "approvedDbUrlReferenceNames": [
       "REEDITPRO_STAGING_SUPABASE_DB_URL",
       "SUPABASE_STAGING_DB_URL",
       "STAGING_SUPABASE_DB_URL"
     ],
-    "presentDbUrlReferenceNames": [],
-    "selectedDbUrlReferenceName": null,
+    "presentDbUrlReferenceNames": [
+      "REEDITPRO_STAGING_SUPABASE_DB_URL"
+    ],
+    "selectedDbUrlReferenceName": "REEDITPRO_STAGING_SUPABASE_DB_URL",
     "dbUrlTargetValidation": {
-      "status": "skipped",
-      "dbUrlProvided": false,
-      "dbUrlParsedInMemory": false,
+      "status": "passed",
+      "dbUrlProvided": true,
+      "dbUrlParsedInMemory": true,
       "dbUrlValuePrinted": false,
       "dbUrlValueCommitted": false,
       "credentialPayloadsPrinted": false,
@@ -214,17 +216,17 @@
       "usernamePrinted": false,
       "passwordPrinted": false,
       "approvedStagingProjectRefPresent": true,
-      "approvedStagingProjectRefMatched": false,
-      "dbUrlTargetMatchedApprovedStaging": false,
+      "approvedStagingProjectRefMatched": true,
+      "dbUrlTargetMatchedApprovedStaging": true,
       "directDbHostPatternRecognized": false,
-      "poolerUsernamePatternRecognized": false,
+      "poolerUsernamePatternRecognized": true,
       "productionTargetSelected": false,
       "blockers": []
     },
-    "dbUrlTargetMatchedApprovedStaging": false,
-    "dbUrlTargetRefMatched": false,
+    "dbUrlTargetMatchedApprovedStaging": true,
+    "dbUrlTargetRefMatched": true,
     "dbUrlTargetRefPresent": true,
-    "dbUrlParsedInMemory": false,
+    "dbUrlParsedInMemory": true,
     "dbUrlPayloadViewed": false,
     "dbUrlValuePrinted": false,
     "dbUrlValueCommitted": false,
@@ -236,10 +238,7 @@
     "productionTargetSelected": false,
     "credentialPayloadsPrinted": false,
     "secretPayloadsRead": false,
-    "blockers": [
-      "staging_supabase_db_url_secret_reference_missing",
-      "blocked_credentials_unavailable"
-    ]
+    "blockers": []
   },
   "cliPreflightReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
@@ -280,14 +279,40 @@
   "npxPreflightReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
     "runId": "supabase-staging-deploy-transport-rerun-20260606",
-    "status": "skipped",
+    "status": "blocked",
     "npxConfirmation": "REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED",
-    "npxConfirmed": false,
+    "npxConfirmed": true,
     "nodeVersion": "24.14.0",
-    "npxDownloadAttempted": false,
+    "npxCommandResult": {
+      "status": "blocked",
+      "exitCode": 126,
+      "signal": null,
+      "command": "npx",
+      "args": [
+        "--yes",
+        "supabase",
+        "--version"
+      ],
+      "cwd": "process_cwd",
+      "stdoutSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 56,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "outputContainsExpectedMigrationId": false,
+      "errorCategory": "bad_cpu_type_in_executable"
+    },
+    "npxDownloadAttempted": true,
+    "repoDependencyInstalled": false,
+    "packageLockChanged": false,
     "credentialPayloadsPrinted": false,
     "blockers": [
-      "npx_cli_not_confirmed"
+      "npx_cli_db_push_unavailable"
     ]
   },
   "localEvidenceReport": {
@@ -306,8 +331,5 @@
   "secretPayloadsRead": false,
   "productionAffected": false,
   "directManualSqlRun": false,
-  "blockers": [
-    "staging_supabase_db_url_secret_reference_missing",
-    "blocked_credentials_unavailable"
-  ]
+  "blockers": []
 }

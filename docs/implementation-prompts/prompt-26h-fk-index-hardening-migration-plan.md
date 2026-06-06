@@ -2,7 +2,7 @@
 
 Branch: `codex/rp-foundation-26h-fk-index-hardening-migration-plan`
 Base branch: `origin/codex/rp-foundation-26g-security-definer-exposure-migration-plan`
-PR: pending
+PR: [PR #230](https://github.com/yuzastudio6-cyber/Reedkt/pull/230)
 
 Exact capability enabled: none; FK index hardening migration plan only.
 
@@ -37,4 +37,3 @@ Prompt 26H turns Prompt 26A connected read-only unindexed-FK advisor findings in
 ## Recommended Next Prompt
 
 Prompt 26H-1 - FK Index Local Migration Candidate or Prompt GD-0 - AI Tools / Graphic Design Stack Repo Audit.
-

@@ -2,6 +2,8 @@
 
 Prompt 26H - FK Index Hardening Migration Plan
 
+PR: [PR #230](https://github.com/yuzastudio6-cyber/Reedkt/pull/230).
+
 FK index migration plan status: `fk_index_migration_plan_created`.
 Supabase update required: docs/status only.
 Supabase update status: docs_only.

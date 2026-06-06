@@ -10,7 +10,7 @@ Exact production capability enabled: none; local RLS candidate toolchain/schema 
 
 - Branch: `codex/rp-foundation-26e3-local-rls-candidate-toolchain-schema-follow-up`
 - Base: `origin/codex/rp-foundation-26e2-rls-no-policy-local-candidate-validation-fix`
-- PR: pending
+- PR: [#225](https://github.com/yuzastudio6-cyber/Reedkt/pull/225)
 
 ## Required Candidate
 

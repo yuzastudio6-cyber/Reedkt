@@ -1,0 +1,37 @@
+{
+  "phase": "SUPABASE_RLS_STORAGE_DATABASE-0",
+  "runId": "supabase-runtime-unlock-repo-audit-20260606",
+  "status": "blocked",
+  "preflightStatus": "blocked",
+  "strategyStatus": "blocked",
+  "selectedStrategy": "blocked_target_not_staging",
+  "readinessStatus": "blocked",
+  "dbUrlTargetMatchedApprovedStaging": false,
+  "dbUrlValuePrinted": false,
+  "credentialPayloadsPrinted": false,
+  "candidateDbUrlSecretRef": "SUPABASE_DB_URL",
+  "activeBlockers": [
+    "secret_manager_supabase_db_url_candidate_missing_staging_label",
+    "secure_secret_manager_env_injection_required",
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "staging_supabase_db_url_secret_reference_missing",
+    "blocked_credentials_unavailable",
+    "blocked_target_not_staging",
+    "cli_db_push_unavailable",
+    "npx_cli_db_push_unavailable",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verification_not_run",
+    "staging_rls_verification_failed"
+  ],
+  "requiredRepair": [
+    "provide a compatible migration-safe Supabase CLI or gated npx transport",
+    "rerun PR #223 with secure SUPABASE_DB_URL process-env injection",
+    "run dry-run before apply through supabase db push --db-url only"
+  ],
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "stagingRlsVerified": false,
+  "dataBackfill": false,
+  "productionAffected": false
+}

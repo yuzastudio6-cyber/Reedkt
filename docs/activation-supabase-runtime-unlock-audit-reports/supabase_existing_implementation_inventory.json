@@ -1,0 +1,431 @@
+{
+  "phase": "SUPABASE_RLS_STORAGE_DATABASE-0",
+  "runId": "supabase-runtime-unlock-repo-audit-20260606",
+  "status": "passed",
+  "prReferences": [
+    {
+      "pr": 196,
+      "role": "Track B readiness rollup/export",
+      "expectedPath": "docs/activation-track-b-readiness-rollup-reports/track_b_supabase_milestone_export.json",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/196",
+      "evidencePresent": true
+    },
+    {
+      "pr": 198,
+      "role": "guarded Track B staging backfill module",
+      "expectedPath": "server/activation/supabase-trackb-backfill/index.ts",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/198",
+      "evidencePresent": true
+    },
+    {
+      "pr": 200,
+      "role": "activation milestone registry schema/RLS migration",
+      "expectedPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/200",
+      "evidencePresent": true
+    },
+    {
+      "pr": 202,
+      "role": "guarded staging deploy/verify wrapper",
+      "expectedPath": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/202",
+      "evidencePresent": true
+    },
+    {
+      "pr": 206,
+      "role": "plugin-assisted staging deploy wrapper",
+      "expectedPath": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/206",
+      "evidencePresent": true
+    },
+    {
+      "pr": 209,
+      "role": "staging target proof wrapper",
+      "expectedPath": "docs/activation-supabase-staging-target-proof-reports/supabase_plugin_target_proof_report.json",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/209",
+      "evidencePresent": true
+    },
+    {
+      "pr": 212,
+      "role": "approved staging target reference",
+      "expectedPath": "docs/activation-supabase-approved-staging-target-reports/approved_staging_target_reference.json",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/212",
+      "evidencePresent": true
+    },
+    {
+      "pr": 216,
+      "role": "after-reference deploy wrapper",
+      "expectedPath": "docs/activation-supabase-staging-schema-deploy-after-target-reference-reports/supabase_staging_schema_deploy_strategy_after_reference_report.json",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/216",
+      "evidencePresent": true
+    },
+    {
+      "pr": 223,
+      "role": "deploy transport wrapper and Secret Manager discovery",
+      "expectedPath": "server/activation/supabase-milestone-registry-schema/milestone-registry-staging-deploy-transport.ts",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/223",
+      "evidencePresent": true
+    }
+  ],
+  "requiredImplementationFound": {
+    "trackBExport": true,
+    "trackBBackfillModule": true,
+    "registryMigration": true,
+    "registrySchemaModule": true,
+    "approvedStagingTarget": true,
+    "stagingTargetProof": true,
+    "deployTransportModule": true,
+    "secretManagerDiscovery": true
+  },
+  "evidence": [
+    {
+      "id": "trackBReadinessExport",
+      "path": "docs/activation-track-b-readiness-rollup-reports/track_b_supabase_milestone_export.json",
+      "present": true,
+      "status": "safe_metadata_export_ready_for_future_supabase_backfill",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "trackBReadinessExportSchema",
+      "path": "docs/activation-track-b-readiness-rollup-reports/track_b_supabase_milestone_export.schema.json",
+      "present": true,
+      "status": null,
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "trackBReadinessReport",
+      "path": "docs/activation-track-b-readiness-rollup-reports/track_b_readiness_rollup_final_report.json",
+      "present": false,
+      "status": null,
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "trackBBackfillModule",
+      "path": "server/activation/supabase-trackb-backfill/index.ts",
+      "present": true,
+      "status": null,
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "trackBBackfillPreflight",
+      "path": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": [
+        "staging_supabase_credentials_unavailable"
+      ]
+    },
+    {
+      "id": "trackBBackfillBlocker",
+      "path": "docs/activation-supabase-trackb-backfill-reports/trackb_staging_backfill_blocker_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": null,
+      "activeBlockers": [
+        "staging_supabase_credentials_unavailable"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "milestoneRegistryMigration",
+      "path": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+      "present": true,
+      "status": null,
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "milestoneRegistryModule",
+      "path": "server/activation/supabase-milestone-registry-schema/index.ts",
+      "present": true,
+      "status": null,
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "milestoneRegistryMigrationReport",
+      "path": "docs/activation-supabase-milestone-registry-schema-reports/milestone_registry_migration_report.json",
+      "present": true,
+      "status": "passed",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "milestoneRegistryRlsPolicyReport",
+      "path": "docs/activation-supabase-milestone-registry-schema-reports/milestone_registry_rls_policy_report.json",
+      "present": true,
+      "status": "passed",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "pluginTargetPreflight",
+      "path": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": [
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging"
+      ]
+    },
+    {
+      "id": "approvedStagingTarget",
+      "path": "docs/activation-supabase-approved-staging-target-reports/approved_staging_target_reference.json",
+      "present": true,
+      "status": "passed",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "stagingTargetProof",
+      "path": "docs/activation-supabase-staging-target-proof-reports/supabase_plugin_target_proof_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": [
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging",
+        "blocked_target_not_staging"
+      ]
+    },
+    {
+      "id": "afterReferenceStrategy",
+      "path": "docs/activation-supabase-staging-schema-deploy-after-target-reference-reports/supabase_staging_schema_deploy_strategy_after_reference_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": "blocked_until_target_proof_and_migration_safe_path_pass",
+      "activeBlockers": [],
+      "blockers": [
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging",
+        "blocked_target_not_staging",
+        "blocked_credentials_unavailable",
+        "cli_db_push_unavailable",
+        "staging_supabase_db_url_secret_reference_missing",
+        "npx_cli_db_push_unavailable"
+      ]
+    },
+    {
+      "id": "deployTransportModule",
+      "path": "server/activation/supabase-milestone-registry-schema/milestone-registry-staging-deploy-transport.ts",
+      "present": true,
+      "status": null,
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "deployTransportPreflight",
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_preflight_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": [
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging",
+        "staging_supabase_db_url_secret_reference_missing",
+        "blocked_credentials_unavailable",
+        "blocked_target_not_staging"
+      ]
+    },
+    {
+      "id": "deployTransportStrategy",
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_strategy_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": "blocked_target_not_staging",
+      "activeBlockers": [],
+      "blockers": [
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging",
+        "staging_supabase_db_url_secret_reference_missing",
+        "blocked_credentials_unavailable",
+        "blocked_target_not_staging",
+        "cli_db_push_unavailable",
+        "npx_cli_db_push_unavailable"
+      ]
+    },
+    {
+      "id": "deployTransportBlocker",
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_blocker_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": null,
+      "activeBlockers": [
+        "secret_manager_supabase_db_url_candidate_missing_staging_label",
+        "secure_secret_manager_env_injection_required",
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging",
+        "staging_supabase_db_url_secret_reference_missing",
+        "blocked_credentials_unavailable",
+        "blocked_target_not_staging",
+        "cli_db_push_unavailable",
+        "npx_cli_db_push_unavailable",
+        "staging_schema_deploy_not_run",
+        "staging_schema_verification_not_run",
+        "staging_rls_verification_failed"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "deployTransportReadiness",
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_readiness_report.json",
+      "present": true,
+      "status": "blocked",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": [
+        "secret_manager_supabase_db_url_candidate_missing_staging_label",
+        "secure_secret_manager_env_injection_required",
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging",
+        "staging_supabase_db_url_secret_reference_missing",
+        "blocked_credentials_unavailable",
+        "blocked_target_not_staging",
+        "cli_db_push_unavailable",
+        "npx_cli_db_push_unavailable",
+        "staging_schema_deploy_not_run",
+        "staging_schema_verification_not_run",
+        "staging_rls_verification_failed"
+      ]
+    },
+    {
+      "id": "secretDiscovery",
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_secret_reference_discovery_report.json",
+      "present": true,
+      "status": "passed",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    },
+    {
+      "id": "secretCandidates",
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_secret_reference_candidates.json",
+      "present": true,
+      "status": "passed",
+      "selectedStrategy": null,
+      "activeBlockers": [],
+      "blockers": []
+    }
+  ],
+  "sourceOfTruthInventory": {
+    "status": "recorded",
+    "inspectedAt": "2026-06-06",
+    "files": [
+      {
+        "path": "README.md",
+        "present": true
+      },
+      {
+        "path": "AGENTS.md",
+        "present": true
+      },
+      {
+        "path": "PRODUCTION_FOUNDATION_STATUS.md",
+        "present": false
+      },
+      {
+        "path": "docs/source-of-truth-map.md",
+        "present": false
+      },
+      {
+        "path": "docs/production-milestone-plan.md",
+        "present": false
+      },
+      {
+        "path": "docs/production-architecture-freeze.md",
+        "present": false
+      },
+      {
+        "path": "docs/architecture-boundary-matrix.md",
+        "present": false
+      },
+      {
+        "path": "docs/future-backend-service-map.md",
+        "present": false
+      },
+      {
+        "path": "docs/future-worker-lanes.md",
+        "present": false
+      },
+      {
+        "path": "docs/tool-call-foundation.md",
+        "present": false
+      },
+      {
+        "path": "docs/tool-readiness-worker-runtime-foundation.md",
+        "present": false
+      },
+      {
+        "path": "docs/worker-claim-execution-contract-hardening.md",
+        "present": false
+      },
+      {
+        "path": "docs/provider-gateway-foundation.md",
+        "present": false
+      },
+      {
+        "path": "docs/render-preview-export-foundation.md",
+        "present": false
+      },
+      {
+        "path": "docs/media-readiness-probe-timing-foundation.md",
+        "present": false
+      },
+      {
+        "path": "docs/compliance-license-security-review-foundation.md",
+        "present": false
+      },
+      {
+        "path": "docs/observability-audit-abuse-cost-foundation.md",
+        "present": false
+      },
+      {
+        "path": "docs/supabase-milestone-sync-policy.md",
+        "present": false
+      },
+      {
+        "path": "docs/supabase-success-milestone-reporting-standard.md",
+        "present": false
+      },
+      {
+        "path": "docs/beta-readiness-scorecard.md",
+        "present": false
+      },
+      {
+        "path": "docs/production-beta-blocker-inventory.md",
+        "present": false
+      },
+      {
+        "path": "docs/implementation-prompts/README.md",
+        "present": false
+      }
+    ],
+    "presentCount": 2,
+    "missingCount": 20,
+    "missingFilesAreAuditFactsNotFabricated": true
+  },
+  "noDuplicateSchemaCreated": true,
+  "noDuplicateDeployWrapperCreated": true,
+  "noDuplicateTrackBExportCreated": true,
+  "noDuplicateBackfillPathCreated": true
+}

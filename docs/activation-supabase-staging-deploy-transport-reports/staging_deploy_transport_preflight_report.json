@@ -1,7 +1,7 @@
 {
   "phase": "supabase-staging-deploy-transport-rerun",
   "runId": "supabase-staging-deploy-transport-rerun-20260606",
-  "status": "passed",
+  "status": "blocked",
   "approvedTargetReferenceReport": {
     "status": "passed",
     "approvedStagingTargetReferenceFound": true,
@@ -66,12 +66,12 @@
     "blockers": []
   },
   "pluginTargetProofReport": {
-    "status": "passed",
+    "status": "blocked",
     "pluginAvailableToCodexSession": true,
     "pluginUsableFromRepoCliDirectly": false,
     "pluginObservationSource": "connected_supabase_plugin_observation_committed_as_safe_metadata",
     "targetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
-    "targetCheckConfirmed": true,
+    "targetCheckConfirmed": false,
     "selectedProject": {
       "projectRef": "wmyyttnynmteqgcdishd",
       "projectName": "Reeditpro",
@@ -145,10 +145,10 @@
       "secretPayloadsPrinted": false,
       "blockers": []
     },
-    "approvedTargetProofConfirmed": true,
+    "approvedTargetProofConfirmed": false,
     "metadataLabelLooksStaging": false,
     "operatorProofMatches": false,
-    "stagingTargetConfirmed": true,
+    "stagingTargetConfirmed": false,
     "observedProjects": [
       {
         "projectRef": "wmyyttnynmteqgcdishd",
@@ -190,25 +190,26 @@
     "credentialPayloadsPrinted": false,
     "secretsRead": false,
     "productionTargetAllowed": false,
-    "blockers": []
+    "blockers": [
+      "supabase_plugin_staging_target_check_not_confirmed",
+      "supabase_plugin_target_not_confirmed_as_staging"
+    ]
   },
   "secretReferenceGuardReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
     "runId": "supabase-staging-deploy-transport-rerun-20260606",
-    "status": "passed",
+    "status": "blocked",
     "approvedDbUrlReferenceNames": [
       "REEDITPRO_STAGING_SUPABASE_DB_URL",
       "SUPABASE_STAGING_DB_URL",
       "STAGING_SUPABASE_DB_URL"
     ],
-    "presentDbUrlReferenceNames": [
-      "REEDITPRO_STAGING_SUPABASE_DB_URL"
-    ],
-    "selectedDbUrlReferenceName": "REEDITPRO_STAGING_SUPABASE_DB_URL",
+    "presentDbUrlReferenceNames": [],
+    "selectedDbUrlReferenceName": null,
     "dbUrlTargetValidation": {
-      "status": "passed",
-      "dbUrlProvided": true,
-      "dbUrlParsedInMemory": true,
+      "status": "skipped",
+      "dbUrlProvided": false,
+      "dbUrlParsedInMemory": false,
       "dbUrlValuePrinted": false,
       "dbUrlValueCommitted": false,
       "credentialPayloadsPrinted": false,
@@ -216,17 +217,17 @@
       "usernamePrinted": false,
       "passwordPrinted": false,
       "approvedStagingProjectRefPresent": true,
-      "approvedStagingProjectRefMatched": true,
-      "dbUrlTargetMatchedApprovedStaging": true,
+      "approvedStagingProjectRefMatched": false,
+      "dbUrlTargetMatchedApprovedStaging": false,
       "directDbHostPatternRecognized": false,
-      "poolerUsernamePatternRecognized": true,
+      "poolerUsernamePatternRecognized": false,
       "productionTargetSelected": false,
       "blockers": []
     },
-    "dbUrlTargetMatchedApprovedStaging": true,
-    "dbUrlTargetRefMatched": true,
+    "dbUrlTargetMatchedApprovedStaging": false,
+    "dbUrlTargetRefMatched": false,
     "dbUrlTargetRefPresent": true,
-    "dbUrlParsedInMemory": true,
+    "dbUrlParsedInMemory": false,
     "dbUrlPayloadViewed": false,
     "dbUrlValuePrinted": false,
     "dbUrlValueCommitted": false,
@@ -238,7 +239,10 @@
     "productionTargetSelected": false,
     "credentialPayloadsPrinted": false,
     "secretPayloadsRead": false,
-    "blockers": []
+    "blockers": [
+      "staging_supabase_db_url_secret_reference_missing",
+      "blocked_credentials_unavailable"
+    ]
   },
   "cliPreflightReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
@@ -279,40 +283,14 @@
   "npxPreflightReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
     "runId": "supabase-staging-deploy-transport-rerun-20260606",
-    "status": "blocked",
+    "status": "skipped",
     "npxConfirmation": "REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED",
-    "npxConfirmed": true,
+    "npxConfirmed": false,
     "nodeVersion": "24.14.0",
-    "npxCommandResult": {
-      "status": "blocked",
-      "exitCode": 126,
-      "signal": null,
-      "command": "npx",
-      "args": [
-        "--yes",
-        "supabase",
-        "--version"
-      ],
-      "cwd": "process_cwd",
-      "stdoutSummary": {
-        "byteLength": 0,
-        "lineCount": 0,
-        "secretPatternDetected": false
-      },
-      "stderrSummary": {
-        "byteLength": 56,
-        "lineCount": 1,
-        "secretPatternDetected": false
-      },
-      "outputContainsExpectedMigrationId": false,
-      "errorCategory": "bad_cpu_type_in_executable"
-    },
-    "npxDownloadAttempted": true,
-    "repoDependencyInstalled": false,
-    "packageLockChanged": false,
+    "npxDownloadAttempted": false,
     "credentialPayloadsPrinted": false,
     "blockers": [
-      "npx_cli_db_push_unavailable"
+      "npx_cli_not_confirmed"
     ]
   },
   "localEvidenceReport": {
@@ -331,5 +309,11 @@
   "secretPayloadsRead": false,
   "productionAffected": false,
   "directManualSqlRun": false,
-  "blockers": []
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "staging_supabase_db_url_secret_reference_missing",
+    "blocked_credentials_unavailable",
+    "blocked_target_not_staging"
+  ]
 }

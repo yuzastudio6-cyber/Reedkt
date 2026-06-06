@@ -13,7 +13,7 @@ Prompt 26B is the advisor hardening planning step. Prompt 26C is the umbrella dr
 | Prompt 26E-1 | RLS no-policy local draft migration implementation. | Local-only if explicitly approved and gated. | Candidate local migration SQL and local denial tests. |
 | Prompt 26F | Function search_path hardening migration plan. | No. | Signature preservation, schema qualification, future tests, rollback/cleanup, staging evidence, and draft-only search-path sketch. |
 | Prompt 26F-1 | Function search path local migration candidate. | Local-only if explicitly approved and gated. | Active local candidate migration and behavior tests for the nine mutable search-path functions. |
-| Prompt 26G | SECURITY DEFINER exposure migration plan. | No. | SECURITY DEFINER exposure contract and grant/body review plan. |
+| Prompt 26G | SECURITY DEFINER exposure migration plan. | No. | SECURITY DEFINER exposure contract, classification, grant/body review plan, invoker decision contract, future tests, rollback/cleanup, and staging evidence requirements. |
 | Future FK index prompt | FK index migration design packet. | No SQL execution unless explicitly approved later. | Additive index migration design. |
 | Prompt 23A | Human approval completion. | Approval record only. | Required before staging execution. |
 | Prompt 24D | Evidence review with supplied files. | Review only. | Accepted/rejected redacted evidence. |
@@ -47,4 +47,14 @@ Recommended sequence after Prompt 26F:
 
 - Prompt 26F-1 - Function Search Path Local Migration Candidate, if function hardening proceeds.
 - Prompt 26G - SECURITY DEFINER Exposure Migration Plan, if SECURITY DEFINER exposure review takes priority.
+- Prompt 23A and Prompt 24D remain required before any staging execution path.
+
+## Prompt 26G SECURITY DEFINER exposure migration plan status
+
+Prompt 26G records `security_definer_exposure_migration_plan_created` for seven SECURITY DEFINER exposure advisor findings: `has_workspace_role`, `is_workspace_owner_or_admin`, `is_workspace_owner_record`, `set_updated_at`, `can_export_render`, `is_project_editor`, and `is_project_member`. It does not create an active migration, execute SQL, alter functions, change grants, apply advisor remediation, grant approval, or touch any Supabase environment.
+
+Recommended sequence after Prompt 26G:
+
+- Prompt 26G-1 - SECURITY DEFINER Local Migration Candidate, if grant/function hardening proceeds.
+- Prompt 26H - FK Index Hardening Migration Plan, if FK advisor planning is prioritized.
 - Prompt 23A and Prompt 24D remain required before any staging execution path.

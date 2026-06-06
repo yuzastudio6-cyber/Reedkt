@@ -4,8 +4,8 @@
 
 - Branch: `codex/rp-foundation-26f-function-search-path-hardening-migration-plan`
 - Base: `origin/codex/rp-foundation-26e3-local-rls-candidate-toolchain-schema-follow-up`
-- PR: pending
-- Status: open / pending validation
+- PR: [PR #226](https://github.com/yuzastudio6-cyber/Reedkt/pull/226)
+- Status: open / local validation passed / CI pending
 - Production capability enabled: none; function search_path hardening migration plan only
 
 ## Scope
@@ -31,3 +31,7 @@ No Supabase lifecycle/status command, SQL, raw `psql`, migration deployment, act
 ## Validation
 
 Validation commands and results are recorded in `docs/prompt-26f-validation-results.md`.
+
+## Pull Request
+
+PR: [#226](https://github.com/yuzastudio6-cyber/Reedkt/pull/226).

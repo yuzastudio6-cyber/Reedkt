@@ -3,7 +3,7 @@
 Prompt: `Prompt 26F - Function Search Path Hardening Migration Plan`.
 Branch: `codex/rp-foundation-26f-function-search-path-hardening-migration-plan`.
 Base: `origin/codex/rp-foundation-26e3-local-rls-candidate-toolchain-schema-follow-up`.
-PR: pending.
+PR: [#226](https://github.com/yuzastudio6-cyber/Reedkt/pull/226).
 
 ## Status
 

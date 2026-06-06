@@ -246,6 +246,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:function-search-path:migration-plan:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_security_definer_migration_plan_diagnostics',
+    command: 'npm run --silent supabase:security-definer:migration-plan:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:security-definer:migration-plan:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

@@ -1,5 +1,9 @@
 export { SoundMusicAudioPlanCard } from './SoundMusicAudioPlanCard'
 export {
+  createMockSoundMusicAudioChatCardProps,
+  type MockSoundMusicAudioChatCardOptions,
+} from './soundMusicAudioChatUiData'
+export {
   buildSoundMusicAudioAccessSafety,
   buildSoundMusicAudioCueGroups,
   buildSoundMusicAudioHandoffItems,

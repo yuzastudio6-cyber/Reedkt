@@ -36,6 +36,8 @@ Prompt 26E-2 found local toolchain blockers before `supabase start` or SQL execu
 
 Status: `blocked_pending_toolchain`.
 
+GitHub Foundation Validation passed for PR #220 on run `27062923756`, job `79878718035`.
+
 ## Boundaries
 
 Do not touch staging, remote, or production Supabase. Do not run raw `psql`, Supabase link, remote SQL, migrations against remote targets, Google Cloud APIs, Secret Manager APIs, provider calls, worker execution, tool execution, render/export, storage transfer, credit mutation, Stripe, telemetry, deployment, or beta/production unlock.

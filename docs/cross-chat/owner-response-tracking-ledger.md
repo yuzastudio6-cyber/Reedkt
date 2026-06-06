@@ -27,3 +27,14 @@ Initial Phase 52H ledger:
 
 Provider Gateway and Worker Runtime remain execution-blocked even while their
 owner response status is pending.
+
+## Phase 53A Owner Acceptance Overlay
+
+Phase 53A does not mark pending owners as accepted. It adds an owner acceptance
+matrix that each workstream can use to move from `pending` or
+`accepted_with_blockers` into the runtime unlock ladder only after the owner
+returns evidence for the requested repo audit.
+
+The Phase 53A next prompt for the cross-chat ledger is Phase 53B owner
+acceptance intake. Phase 53B should update ledger rows only from explicit owner
+responses or keep them pending with blocker notes.

@@ -74,7 +74,7 @@ Commands were run with the Codex-bundled Node path because the default local `no
 
 ## CI Status
 
-GitHub Foundation Validation: pending PR creation.
+GitHub Foundation Validation: rerun pending after workflow Node pin to match the Codex local Node 24.14 path. The first run failed before validation because GitHub's floating Node 24 image used npm 11.13 and rejected the activation-base lockfile on Linux. No dependency metadata was changed.
 
 ## Boundaries
 

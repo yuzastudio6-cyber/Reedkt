@@ -1,14 +1,18 @@
 # Supabase Function Search Path Draft Remediation Packet
 
-Prompt 26C records a future remediation packet for mutable function `search_path` warnings. No function definition is changed in Prompt 26C.
+Prompt 26C records a future remediation packet for mutable function `search_path` warnings. Prompt 26F extends it with a migration-planning contract. No function definition is changed in Prompt 26F.
 
 ## Status
 
 - Draft status: `draft_only`.
+- Function search path migration plan status: `function_search_path_migration_plan_created`.
 - Function search path hardening applied: no.
 - SQL executed: none.
 - Active migration created: no.
 - Supabase environment touched: none.
+- Migration deployed: no.
+
+No function definition is changed in Prompt 26C.
 
 ## Functions For Future Review
 
@@ -29,9 +33,11 @@ Prompt 26C records a future remediation packet for mutable function `search_path
 Future remediation should:
 
 - Preserve function signatures unless a compatibility plan says otherwise.
+- Preserve parameter names, return type, volatility, owner expectations, grants, and existing security mode unless separately reviewed.
 - Use explicit schema qualification for table and helper references.
-- Set a fixed search path appropriate to each function after reviewing its body.
+- Prefer fixed empty search path with schema-qualified references after reviewing each body.
 - Pair changes with local migration-chain validation before any staging review.
+- Keep service-role behavior backend-only and never browser-visible.
 
 ## Blockers
 
@@ -39,7 +45,17 @@ Future remediation should:
 - Some functions may be trigger helpers or policy dependencies; careless replacement can break RLS.
 - Prompt 23 remains `pending_human_approval`.
 - Prompt 24D accepted evidence is missing.
+- GCP Secret Manager reference evidence is incomplete.
 
 ## Draft Sketch
 
 Review-only search-path sketch: `docs/draft-sql/supabase-advisor-remediation/function-search-path-draft.sql.md`.
+
+## Prompt 26F Planning Files
+
+- `docs/supabase-function-search-path-migration-plan.md`
+- `docs/supabase-function-search-path-signature-preservation-contract.md`
+- `docs/supabase-function-search-path-schema-qualification-checklist.md`
+- `docs/supabase-function-search-path-future-test-matrix.md`
+- `docs/supabase-function-search-path-rollback-cleanup-plan.md`
+- `docs/supabase-function-search-path-staging-evidence-requirements.md`

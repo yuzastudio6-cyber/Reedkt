@@ -240,6 +240,12 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:rls-no-policy:local-candidate:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_function_search_path_migration_plan_diagnostics',
+    command: 'npm run --silent supabase:function-search-path:migration-plan:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:function-search-path:migration-plan:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

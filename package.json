@@ -67,6 +67,7 @@
     "supabase:rls-no-policy:classification:diagnostics": "node scripts/validation/supabase-rls-no-policy-classification-diagnostics.mjs",
     "supabase:rls-no-policy:draft-migration:diagnostics": "node scripts/validation/supabase-rls-no-policy-draft-migration-plan-diagnostics.mjs",
     "supabase:rls-no-policy:local-candidate:diagnostics": "node scripts/validation/supabase-rls-no-policy-local-candidate-diagnostics.mjs",
+    "supabase:function-search-path:migration-plan:diagnostics": "node scripts/validation/supabase-function-search-path-migration-plan-diagnostics.mjs",
     "supabase:local:toolchain:probe": "node scripts/validation/local-supabase-host-toolchain-probe.mjs",
     "supabase:local:preflight": "node scripts/validation/local-supabase-safety-preflight.mjs",
     "supabase:rls:list-tests": "node scripts/validation/local-supabase-rls-runner.mjs --list-tests",

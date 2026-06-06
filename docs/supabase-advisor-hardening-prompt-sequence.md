@@ -11,9 +11,10 @@ Prompt 26B is the advisor hardening planning step. Prompt 26C is the umbrella dr
 | Prompt 26D | RLS no-policy table classification and policy contract. | No. | Table-by-table policy/no-access contract. |
 | Prompt 26E | RLS no-policy draft migration plan. | No. | Draft migration plan, policy naming contract, dependency matrix, rollback model, and local/staging test design. |
 | Prompt 26E-1 | RLS no-policy local draft migration implementation. | Local-only if explicitly approved and gated. | Candidate local migration SQL and local denial tests. |
-| Prompt 26F | Function hardening migration plan. | No SQL execution unless explicitly approved later. | SECURITY DEFINER, grant, and search-path contract. |
+| Prompt 26F | Function search_path hardening migration plan. | No. | Signature preservation, schema qualification, future tests, rollback/cleanup, staging evidence, and draft-only search-path sketch. |
+| Prompt 26F-1 | Function search path local migration candidate. | Local-only if explicitly approved and gated. | Active local candidate migration and behavior tests for the nine mutable search-path functions. |
+| Prompt 26G | SECURITY DEFINER exposure migration plan. | No. | SECURITY DEFINER exposure contract and grant/body review plan. |
 | Future FK index prompt | FK index migration design packet. | No SQL execution unless explicitly approved later. | Additive index migration design. |
-| Prompt 26G | Local advisor remediation validation candidate. | Local-only if approved and gated. | Local migration validation evidence. |
 | Prompt 23A | Human approval completion. | Approval record only. | Required before staging execution. |
 | Prompt 24D | Evidence review with supplied files. | Review only. | Accepted/rejected redacted evidence. |
 
@@ -37,3 +38,13 @@ Recommended sequence after Prompt 26E-1:
 - Prompt 26E-2 - RLS No-Policy Local Candidate Validation Fix, if local candidate validation fails or local table evidence is incomplete.
 - Prompt 26F - Function Search Path Hardening Migration Plan, if RLS candidate preparation succeeds and function hardening is the next priority.
 - Prompt 26 - Approved Staging Supabase/RLS Validation Execution only after all approval, evidence, Secret Manager reference, PR/commit/test-set, rollback/cleanup, and final gate requirements pass.
+
+## Prompt 26F function search_path hardening migration plan status
+
+Prompt 26F records `function_search_path_migration_plan_created` for nine mutable function `search_path` advisor findings. It does not create an active migration, execute SQL, alter functions, apply advisor remediation, grant approval, or touch any Supabase environment.
+
+Recommended sequence after Prompt 26F:
+
+- Prompt 26F-1 - Function Search Path Local Migration Candidate, if function hardening proceeds.
+- Prompt 26G - SECURITY DEFINER Exposure Migration Plan, if SECURITY DEFINER exposure review takes priority.
+- Prompt 23A and Prompt 24D remain required before any staging execution path.

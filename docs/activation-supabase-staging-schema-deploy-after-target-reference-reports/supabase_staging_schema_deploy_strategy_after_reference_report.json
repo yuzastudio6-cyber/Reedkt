@@ -2,16 +2,67 @@
   "phase": "supabase-staging-schema-deploy-after-target-reference",
   "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
   "status": "blocked",
-  "selectedStrategy": "blocked_no_migration_safe_deploy_path",
+  "selectedStrategy": "blocked_until_target_proof_and_migration_safe_path_pass",
   "strategyOrder": [
     "load_pr212_approved_staging_target_reference",
     "confirm_plugin_target_matches_approved_staging_ref",
+    "delegate_to_supabase_staging_deploy_transport",
     "delegate_to_pr209_pr206_migration_safe_deploy_path",
     "blocked_no_migration_safe_deploy_path"
   ],
   "cliDbPushPreferred": true,
   "dryRunRequiredBeforeApply": true,
   "pluginMigrationSafeApplyAllowedOnlyIfMigrationHistorySafe": true,
+  "transportStrategyReport": {
+    "phase": "supabase-staging-deploy-transport-rerun",
+    "runId": "supabase-staging-deploy-transport-rerun-20260606",
+    "status": "blocked",
+    "selectedStrategy": "blocked_target_not_staging",
+    "selectedCommand": null,
+    "strategyOrder": [
+      "cli_db_push",
+      "npx_cli_db_push",
+      "plugin_migration_safe_apply",
+      "blocked_no_migration_safe_deploy_path",
+      "blocked_credentials_unavailable",
+      "blocked_target_not_staging"
+    ],
+    "cliDbPush": {
+      "available": false,
+      "source": "PATH",
+      "dryRunRequiredBeforeApply": true
+    },
+    "npxCliDbPush": {
+      "available": false,
+      "requiresConfirmation": "REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED",
+      "repoDependencyInstalled": false,
+      "packageLockChanged": false,
+      "dryRunRequiredBeforeApply": true
+    },
+    "pluginMigrationSafeApply": {
+      "available": false,
+      "selected": false,
+      "migrationHistoryMustBePreserved": true,
+      "directSqlFallbackAllowed": false
+    },
+    "directManualSqlAllowed": false,
+    "dashboardSqlEditorAllowed": false,
+    "seedDeployAllowed": false,
+    "trackBExportRowsAllowed": false,
+    "unrelatedMigrationsAllowed": false,
+    "credentialPayloadsPrinted": false,
+    "secretPayloadsRead": false,
+    "productionAffected": false,
+    "blockers": [
+      "supabase_plugin_staging_target_check_not_confirmed",
+      "supabase_plugin_target_not_confirmed_as_staging",
+      "staging_supabase_db_url_secret_reference_missing",
+      "blocked_credentials_unavailable",
+      "blocked_target_not_staging",
+      "cli_db_push_unavailable",
+      "npx_cli_db_push_unavailable"
+    ]
+  },
   "directManualSqlAllowed": false,
   "seedDeployAllowed": false,
   "trackBExportRowsAllowed": false,
@@ -19,7 +70,7 @@
   "delegatedReport": {
     "phase": "supabase-staging-target-proof-deploy-rerun",
     "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
-    "status": "passed",
+    "status": "blocked",
     "selectedStrategy": "blocked_target_not_staging",
     "strategyOrder": [
       "prove_repo_approved_staging_target",
@@ -32,7 +83,7 @@
       "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
       "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
       "status": "blocked",
-      "selectedStrategy": "blocked_no_migration_safe_deploy_path",
+      "selectedStrategy": "blocked_target_not_staging",
       "strategyOrder": [
         "cli_db_push",
         "plugin_migration_safe_apply",
@@ -43,7 +94,7 @@
       "cliDbPush": {
         "available": false,
         "stagingDbUrlProvided": false,
-        "stagingTargetConfirmedByPlugin": true,
+        "stagingTargetConfirmedByPlugin": false,
         "dryRunRequiredBeforeApply": true,
         "sourceReport": "docs/activation-supabase-milestone-registry-staging-deploy-reports/staging_credential_preflight_report.json"
       },
@@ -59,9 +110,11 @@
       "productionAffected": false,
       "trackBRowsWritten": false,
       "blockers": [
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging",
+        "blocked_target_not_staging",
         "blocked_credentials_unavailable",
-        "cli_db_push_unavailable",
-        "blocked_no_migration_safe_deploy_path"
+        "cli_db_push_unavailable"
       ]
     },
     "delegatedMigrationId": "202606050001",
@@ -74,14 +127,22 @@
     "secretPayloadsRead": false,
     "productionAffected": false,
     "trackBRowsWritten": false,
-    "blockers": []
+    "blockers": [
+      "supabase_plugin_staging_target_check_not_confirmed",
+      "supabase_plugin_target_not_confirmed_as_staging",
+      "blocked_target_not_staging"
+    ]
   },
   "credentialPayloadsPrinted": false,
   "secretPayloadsRead": false,
   "productionAffected": false,
   "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "blocked_target_not_staging",
     "blocked_credentials_unavailable",
     "cli_db_push_unavailable",
-    "blocked_no_migration_safe_deploy_path"
+    "staging_supabase_db_url_secret_reference_missing",
+    "npx_cli_db_push_unavailable"
   ]
 }

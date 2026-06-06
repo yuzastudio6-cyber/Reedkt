@@ -1,0 +1,183 @@
+{
+  "phase": "supabase-staging-deploy-transport-rerun",
+  "runId": "supabase-staging-deploy-transport-rerun-20260606",
+  "status": "passed",
+  "auditDate": "2026-06-06",
+  "worktreeRequired": "/private/tmp/reeditpro-supabase-staging-deploy-transport-rerun",
+  "branch": "codex/rp-foundation-supabase-staging-deploy-transport-rerun",
+  "baseBranch": "codex/rp-foundation-supabase-staging-schema-deploy-after-target-reference",
+  "reviewedPrs": [
+    196,
+    198,
+    200,
+    202,
+    206,
+    209,
+    212,
+    216
+  ],
+  "ownership": {
+    "thisPhaseOwns": "migration-safe staging deploy transport proof and rerun reports",
+    "pr216Owns": "after-reference deploy wrapper and prior blocker evidence",
+    "pr212Owns": "approved non-secret staging target reference",
+    "pr198Owns": "future Track B staging backfill, no writes in this phase",
+    "pr200Owns": "registry schema/RLS migration"
+  },
+  "rootSources": [
+    {
+      "file": "README.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "AGENTS.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "PRODUCTION_FOUNDATION_STATUS.md",
+      "exists": false,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-schema-planning-bridge.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "database-migration-readiness-checklist.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-table-specification.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "migration-review-and-rls-hardening.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "rls-hardening-matrix.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "data-privacy-retention-plan.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-production-test-readiness.md",
+      "exists": true,
+      "requiredByAgents": true
+    },
+    {
+      "file": "supabase-local-staging-test-plan.md",
+      "exists": true,
+      "requiredByAgents": true
+    }
+  ],
+  "docSources": [
+    {
+      "file": "docs/source-of-truth-map.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/production-milestone-plan.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/architecture-boundary-matrix.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/future-backend-service-map.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-milestone-sync-policy.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-success-milestone-reporting-standard.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/beta-readiness-scorecard.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/production-beta-blocker-inventory.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/implementation-prompts/README.md",
+      "exists": false,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-approved-staging-target-reference.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    },
+    {
+      "file": "docs/supabase-staging-schema-deploy-after-approved-target-reference.md",
+      "exists": true,
+      "requiredForThisPhase": true
+    }
+  ],
+  "crossChat": {
+    "path": "docs/cross-chat",
+    "exists": false,
+    "fileCount": 0
+  },
+  "migration": {
+    "path": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+    "exists": true,
+    "migrationId": "202606050001",
+    "requiredTablesExpected": [
+      "activation_milestones",
+      "activation_phase_runs",
+      "activation_tool_readiness",
+      "activation_pr_evidence",
+      "activation_artifact_manifests",
+      "activation_blockers",
+      "activation_allowed_scopes",
+      "activation_blocked_scopes",
+      "activation_next_phases",
+      "activation_human_approvals",
+      "activation_sync_audit_log"
+    ],
+    "requiredTablesPresent": [
+      "activation_milestones",
+      "activation_phase_runs",
+      "activation_tool_readiness",
+      "activation_pr_evidence",
+      "activation_artifact_manifests",
+      "activation_blockers",
+      "activation_allowed_scopes",
+      "activation_blocked_scopes",
+      "activation_next_phases",
+      "activation_human_approvals",
+      "activation_sync_audit_log"
+    ],
+    "unsafeMigrationTextDetected": false
+  },
+  "packageLockPolicy": "must_remain_unchanged",
+  "secretsCommitted": false,
+  "productionAffected": false,
+  "trackBBackfillWrites": false,
+  "directManualSqlRun": false,
+  "blockers": []
+}

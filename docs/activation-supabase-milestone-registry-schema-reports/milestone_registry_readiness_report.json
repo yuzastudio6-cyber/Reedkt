@@ -1,12 +1,12 @@
 {
   "phase": "supabase-milestone-registry-schema-rls",
   "runId": "supabase-milestone-registry-schema-rls-20260605",
-  "status": "local_schema_ready_staging_blocked_or_not_run",
-  "schemaRlsReadyForStaging": true,
+  "status": "blocked",
+  "schemaRlsReadyForStaging": false,
   "migrationStatus": "passed",
   "rlsStatus": "passed",
-  "localValidationStatus": "passed",
-  "localRlsTestStatus": "passed",
+  "localValidationStatus": "blocked",
+  "localRlsTestStatus": "blocked",
   "stagingPreflightStatus": "blocked",
   "stagingDeploymentStatus": "skipped",
   "stagingVerificationStatus": "skipped",
@@ -20,6 +20,7 @@
   "trackA": "not_touched",
   "nextRecommendedPhase": "Resolve staging credential/toolchain blockers, deploy schema via guarded Supabase migration workflow, then rerun PR #198 guarded backfill.",
   "blockers": [
+    "milestone_registry_local_validation_confirmation_missing",
     "staging_supabase_credentials_unavailable"
   ]
 }

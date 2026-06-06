@@ -1,0 +1,49 @@
+{
+  "phase": "supabase-staging-deploy-transport-rerun",
+  "runId": "supabase-staging-deploy-transport-rerun-20260606",
+  "status": "blocked",
+  "verificationPerformed": false,
+  "verificationWorkflow": "verified_migration_history_plus_static_committed_rls_evidence",
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "rlsExpectedEnabled": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "publicAnonAuthenticatedRevokesExpected": true,
+  "serviceRoleOnlyGrantExpected": true,
+  "credentialPayloadsPrinted": false,
+  "secretPayloadsRead": false,
+  "productionAffected": false,
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "staging_supabase_db_url_secret_reference_missing",
+    "blocked_credentials_unavailable",
+    "blocked_target_not_staging",
+    "cli_db_push_unavailable",
+    "npx_cli_db_push_unavailable",
+    "staging_schema_verification_not_run",
+    "staging_rls_verification_failed"
+  ]
+}

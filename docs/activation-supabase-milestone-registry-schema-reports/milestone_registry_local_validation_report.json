@@ -1,18 +1,20 @@
 {
   "phase": "supabase-milestone-registry-schema-rls",
   "runId": "supabase-milestone-registry-schema-rls-20260605",
-  "status": "passed",
+  "status": "blocked",
   "localValidationMode": "static_migration_seed_rls_assertion_inspection",
   "confirmationRequired": [
     "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_LOCAL_VALIDATE"
   ],
   "confirmationPresent": false,
-  "confirmationRequiredForThisInvocation": false,
+  "confirmationRequiredForThisInvocation": true,
   "migrationStatus": "passed",
   "rlsStatus": "passed",
   "seedStatus": "passed",
   "remoteSqlRun": false,
   "productionSqlRun": false,
   "stagingMutation": false,
-  "blockers": []
+  "blockers": [
+    "milestone_registry_local_validation_confirmation_missing"
+  ]
 }

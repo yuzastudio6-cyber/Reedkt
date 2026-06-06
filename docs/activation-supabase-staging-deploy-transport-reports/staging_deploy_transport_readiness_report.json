@@ -1,0 +1,31 @@
+{
+  "phase": "supabase-staging-deploy-transport-rerun",
+  "runId": "supabase-staging-deploy-transport-rerun-20260606",
+  "status": "blocked",
+  "stagingSchemaVerified": false,
+  "stagingDeployStatus": "blocked",
+  "stagingVerifyStatus": "blocked",
+  "stagingRlsVerifyStatus": "blocked",
+  "pr198SchemaCheckStatusAfterSchema": "passed",
+  "pr198SchemaMissingResolvedByCommittedMigration": true,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directManualSqlRun": false,
+  "providerCalls": "not_run",
+  "routeExecution": "not_run",
+  "workerExecution": "not_run",
+  "trackA": "not_touched",
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "staging_supabase_db_url_secret_reference_missing",
+    "blocked_credentials_unavailable",
+    "blocked_target_not_staging",
+    "cli_db_push_unavailable",
+    "npx_cli_db_push_unavailable",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verification_not_run",
+    "staging_rls_verification_failed"
+  ],
+  "nextRecommendedPhase": "Resolve the exact CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker."
+}

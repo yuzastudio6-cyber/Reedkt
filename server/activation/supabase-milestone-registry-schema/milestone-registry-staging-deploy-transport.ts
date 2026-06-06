@@ -136,6 +136,9 @@ type TransportBlocker =
   | 'supabase_plugin_project_ref_mismatch'
   | 'blocked_target_not_staging'
   | 'staging_supabase_db_url_secret_reference_missing'
+  | 'staging_db_url_target_ref_missing'
+  | 'staging_db_url_target_ref_mismatch'
+  | 'staging_db_url_target_unparseable'
   | 'blocked_credentials_unavailable'
   | 'cli_db_push_unavailable'
   | 'npx_cli_db_push_unavailable'
@@ -210,6 +213,25 @@ interface SecretManagerMetadataCommandResult {
   payloadAccessAttempted: false
   secretValuesPrinted: false
   errorCategory?: string
+}
+
+interface DbUrlTargetValidationReport {
+  status: TransportStatus
+  dbUrlProvided: boolean
+  dbUrlParsedInMemory: boolean
+  dbUrlValuePrinted: false
+  dbUrlValueCommitted: false
+  credentialPayloadsPrinted: false
+  hostnamePrinted: false
+  usernamePrinted: false
+  passwordPrinted: false
+  approvedStagingProjectRefPresent: boolean
+  approvedStagingProjectRefMatched: boolean
+  dbUrlTargetMatchedApprovedStaging: boolean
+  directDbHostPatternRecognized: boolean
+  poolerUsernamePatternRecognized: boolean
+  productionTargetSelected: false
+  blockers: TransportBlocker[]
 }
 
 interface TransportReports {
@@ -353,7 +375,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
   const secretReferenceDiscovery = await buildSecretManagerReferenceDiscovery()
   const approvedTargetReferenceReport = buildApprovedStagingTargetReferenceReport()
   const pluginTargetProofReport = buildSupabasePluginTargetPreflight()
-  const secretReferenceGuardReport = buildSecretReferenceGuard()
+  const secretReferenceGuardReport = buildSecretReferenceGuard(approvedTargetReferenceReport)
   const cliPreflightReport = await buildCliPreflight()
   const npxPreflightReport = await buildNpxPreflight()
   const localEvidenceReport = buildLocalEvidenceReport()
@@ -902,11 +924,17 @@ function buildTransportPreflightReport(input: {
   }
 }
 
-function buildSecretReferenceGuard() {
+function buildSecretReferenceGuard(approvedTargetReferenceReport: Record<string, unknown>) {
   const presentReferenceNames = SUPABASE_STAGING_DB_URL_SECRET_REFERENCE_NAMES.filter((name) =>
     Boolean(process.env[name]),
   )
   const selectedReferenceName = presentReferenceNames[0] ?? null
+  const selectedDbUrl = selectedReferenceName ? process.env[selectedReferenceName] : undefined
+  const approvedRef =
+    typeof approvedTargetReferenceReport.approvedStagingProjectRef === 'string'
+      ? approvedTargetReferenceReport.approvedStagingProjectRef
+      : null
+  const dbUrlTargetValidation = buildDbUrlTargetValidation(selectedDbUrl, approvedRef)
   const accessTokenReferencePresent = Boolean(
     process.env.SUPABASE_ACCESS_TOKEN || process.env.REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN,
   )
@@ -914,6 +942,7 @@ function buildSecretReferenceGuard() {
   if (!selectedReferenceName) {
     blockers.push('staging_supabase_db_url_secret_reference_missing', 'blocked_credentials_unavailable')
   }
+  if (selectedReferenceName) blockers.push(...dbUrlTargetValidation.blockers)
   return {
     phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
     runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
@@ -921,15 +950,114 @@ function buildSecretReferenceGuard() {
     approvedDbUrlReferenceNames: SUPABASE_STAGING_DB_URL_SECRET_REFERENCE_NAMES,
     presentDbUrlReferenceNames: presentReferenceNames,
     selectedDbUrlReferenceName: selectedReferenceName,
+    dbUrlTargetValidation,
+    dbUrlTargetMatchedApprovedStaging: dbUrlTargetValidation.dbUrlTargetMatchedApprovedStaging,
+    dbUrlTargetRefMatched: dbUrlTargetValidation.approvedStagingProjectRefMatched,
+    dbUrlTargetRefPresent: dbUrlTargetValidation.approvedStagingProjectRefPresent,
+    dbUrlParsedInMemory: dbUrlTargetValidation.dbUrlParsedInMemory,
     dbUrlPayloadViewed: false,
     dbUrlValuePrinted: false,
+    dbUrlValueCommitted: false,
     accessTokenReferencePresent,
     accessTokenPayloadViewed: false,
     serviceRoleKeyRequired: false,
     serviceRoleKeyPayloadViewed: false,
     productionDbUrlReferenceSelected: false,
+    productionTargetSelected: false,
     credentialPayloadsPrinted: false,
     secretPayloadsRead: false,
+    blockers,
+  }
+}
+
+function buildDbUrlTargetValidation(
+  dbUrl: string | undefined,
+  approvedStagingProjectRef: string | null,
+): DbUrlTargetValidationReport {
+  if (!dbUrl) {
+    return {
+      status: 'skipped',
+      dbUrlProvided: false,
+      dbUrlParsedInMemory: false,
+      dbUrlValuePrinted: false,
+      dbUrlValueCommitted: false,
+      credentialPayloadsPrinted: false,
+      hostnamePrinted: false,
+      usernamePrinted: false,
+      passwordPrinted: false,
+      approvedStagingProjectRefPresent: Boolean(approvedStagingProjectRef),
+      approvedStagingProjectRefMatched: false,
+      dbUrlTargetMatchedApprovedStaging: false,
+      directDbHostPatternRecognized: false,
+      poolerUsernamePatternRecognized: false,
+      productionTargetSelected: false,
+      blockers: [],
+    }
+  }
+
+  const blockers: TransportBlocker[] = []
+  let parsedUrl: URL
+  try {
+    parsedUrl = new URL(dbUrl)
+  } catch {
+    blockers.push('staging_db_url_target_unparseable')
+    return {
+      status: 'blocked',
+      dbUrlProvided: true,
+      dbUrlParsedInMemory: false,
+      dbUrlValuePrinted: false,
+      dbUrlValueCommitted: false,
+      credentialPayloadsPrinted: false,
+      hostnamePrinted: false,
+      usernamePrinted: false,
+      passwordPrinted: false,
+      approvedStagingProjectRefPresent: Boolean(approvedStagingProjectRef),
+      approvedStagingProjectRefMatched: false,
+      dbUrlTargetMatchedApprovedStaging: false,
+      directDbHostPatternRecognized: false,
+      poolerUsernamePatternRecognized: false,
+      productionTargetSelected: false,
+      blockers,
+    }
+  }
+
+  const protocolAllowed = parsedUrl.protocol === 'postgres:' || parsedUrl.protocol === 'postgresql:'
+  const hostname = parsedUrl.hostname.toLowerCase()
+  const username = decodeURIComponent(parsedUrl.username).toLowerCase()
+  const candidateRefs = new Set<string>()
+  const directDbHostMatch = hostname.match(/^db\.([a-z0-9]{20})\.supabase\.co$/)
+  if (directDbHostMatch?.[1]) candidateRefs.add(directDbHostMatch[1])
+  for (const match of username.matchAll(/[a-z0-9]{20}/g)) {
+    candidateRefs.add(match[0])
+  }
+  const approvedRefPresent = Boolean(approvedStagingProjectRef)
+  const approvedRefMatched = approvedStagingProjectRef
+    ? candidateRefs.has(approvedStagingProjectRef) || dbUrl.includes(approvedStagingProjectRef)
+    : false
+  const targetRefDetected = candidateRefs.size > 0 || approvedRefMatched
+  const directDbHostPatternRecognized = Boolean(directDbHostMatch)
+  const poolerUsernamePatternRecognized = username.includes('postgres.') && /[a-z0-9]{20}/.test(username)
+
+  if (!protocolAllowed) blockers.push('staging_db_url_target_unparseable')
+  if (!targetRefDetected) blockers.push('staging_db_url_target_ref_missing')
+  if (targetRefDetected && !approvedRefMatched) blockers.push('staging_db_url_target_ref_mismatch')
+
+  return {
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    dbUrlProvided: true,
+    dbUrlParsedInMemory: true,
+    dbUrlValuePrinted: false,
+    dbUrlValueCommitted: false,
+    credentialPayloadsPrinted: false,
+    hostnamePrinted: false,
+    usernamePrinted: false,
+    passwordPrinted: false,
+    approvedStagingProjectRefPresent: approvedRefPresent,
+    approvedStagingProjectRefMatched: approvedRefMatched,
+    dbUrlTargetMatchedApprovedStaging: approvedRefMatched && blockers.length === 0,
+    directDbHostPatternRecognized,
+    poolerUsernamePatternRecognized,
+    productionTargetSelected: false,
     blockers,
   }
 }
@@ -1262,6 +1390,9 @@ function buildBlockerReport(blockers: TransportBlocker[]) {
       'secret_manager_supabase_db_url_candidate_missing_staging_label',
       'secure_secret_manager_env_injection_required',
       'staging_supabase_db_url_secret_reference_missing',
+      'staging_db_url_target_ref_missing',
+      'staging_db_url_target_ref_mismatch',
+      'staging_db_url_target_unparseable',
       'blocked_credentials_unavailable',
       'cli_db_push_unavailable',
       'npx_cli_db_push_unavailable',

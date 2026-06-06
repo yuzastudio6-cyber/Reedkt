@@ -83,6 +83,10 @@ for (const required of [
   'productionAffected: false',
   'credentialPayloadsPrinted: false',
   'secretPayloadsRead: false',
+  'dbUrlTargetMatchedApprovedStaging',
+  'staging_db_url_target_ref_mismatch',
+  'staging_db_url_target_unparseable',
+  'staging_db_url_target_ref_missing',
 ]) {
   assert(moduleText.includes(required), `Transport module missing guard: ${required}`)
 }
@@ -126,7 +130,13 @@ const baselineReports = await buildSupabaseStagingDeployTransportReports()
 const baselinePreflight = baselineReports.preflightReport as {
   status?: string
   npxPreflightReport?: { status?: string; npxDownloadAttempted?: boolean; blockers?: string[] }
-  secretReferenceGuardReport?: { blockers?: string[]; dbUrlPayloadViewed?: boolean; dbUrlValuePrinted?: boolean }
+  secretReferenceGuardReport?: {
+    blockers?: string[]
+    dbUrlPayloadViewed?: boolean
+    dbUrlValuePrinted?: boolean
+    dbUrlTargetMatchedApprovedStaging?: boolean
+    dbUrlTargetValidation?: { status?: string; dbUrlProvided?: boolean; dbUrlValuePrinted?: boolean }
+  }
 }
 const baselineStrategy = baselineReports.strategyReport as {
   selectedStrategy?: string
@@ -174,6 +184,15 @@ assert(
   baselinePreflight.secretReferenceGuardReport?.dbUrlPayloadViewed === false &&
     baselinePreflight.secretReferenceGuardReport?.dbUrlValuePrinted === false,
   'DB URL guard must not view or print payloads.',
+)
+assert(
+  baselinePreflight.secretReferenceGuardReport?.dbUrlTargetValidation?.status === 'skipped' &&
+    baselinePreflight.secretReferenceGuardReport.dbUrlTargetValidation.dbUrlProvided === false,
+  'DB URL target validation must skip safely when no DB URL reference is present.',
+)
+assert(
+  baselinePreflight.secretReferenceGuardReport?.dbUrlTargetMatchedApprovedStaging === false,
+  'Missing DB URL must not be reported as matching approved staging.',
 )
 assert(
   baselineStrategy.selectedStrategy === 'blocked_target_not_staging' ||
@@ -247,6 +266,97 @@ assert(
   `Proof-confirmed strategy must remain blocked without DB URL/CLI transport, saw ${proofStrategy.selectedStrategy}`,
 )
 
+process.env.REEDITPRO_STAGING_SUPABASE_DB_URL = [
+  'postgresql',
+  '://',
+  'postgres',
+  '.',
+  'wmyyttnynmteqgcdishd',
+  ':redacted@aws-0-us-central1.pooler.supabase.com:6543/postgres',
+].join('')
+const matchingDbUrlReports = await buildSupabaseStagingDeployTransportReports()
+const matchingPreflight = matchingDbUrlReports.preflightReport as {
+  secretReferenceGuardReport?: {
+    status?: string
+    selectedDbUrlReferenceName?: string
+    dbUrlValuePrinted?: boolean
+    credentialPayloadsPrinted?: boolean
+    productionTargetSelected?: boolean
+    dbUrlTargetMatchedApprovedStaging?: boolean
+    dbUrlTargetValidation?: {
+      status?: string
+      dbUrlParsedInMemory?: boolean
+      dbUrlValuePrinted?: boolean
+      hostnamePrinted?: boolean
+      usernamePrinted?: boolean
+      passwordPrinted?: boolean
+      dbUrlTargetMatchedApprovedStaging?: boolean
+      poolerUsernamePatternRecognized?: boolean
+      blockers?: string[]
+    }
+  }
+}
+assert(
+  matchingPreflight.secretReferenceGuardReport?.status === 'passed',
+  'Synthetic matching staging DB URL should pass the redacted secret-reference guard.',
+)
+assert(
+  matchingPreflight.secretReferenceGuardReport?.selectedDbUrlReferenceName === 'REEDITPRO_STAGING_SUPABASE_DB_URL',
+  'Synthetic matching DB URL should select the approved env reference name only.',
+)
+assert(
+  matchingPreflight.secretReferenceGuardReport?.dbUrlTargetMatchedApprovedStaging === true &&
+    matchingPreflight.secretReferenceGuardReport.dbUrlTargetValidation?.dbUrlTargetMatchedApprovedStaging === true,
+  'Synthetic matching DB URL should match the approved staging project ref.',
+)
+assert(
+  matchingPreflight.secretReferenceGuardReport?.dbUrlValuePrinted === false &&
+    matchingPreflight.secretReferenceGuardReport.credentialPayloadsPrinted === false &&
+    matchingPreflight.secretReferenceGuardReport.productionTargetSelected === false &&
+    matchingPreflight.secretReferenceGuardReport.dbUrlTargetValidation?.hostnamePrinted === false &&
+    matchingPreflight.secretReferenceGuardReport.dbUrlTargetValidation.usernamePrinted === false &&
+    matchingPreflight.secretReferenceGuardReport.dbUrlTargetValidation.passwordPrinted === false,
+  'Synthetic matching DB URL validation must report only redacted target status.',
+)
+assert(
+  matchingPreflight.secretReferenceGuardReport?.dbUrlTargetValidation?.poolerUsernamePatternRecognized === true,
+  'Synthetic pooler DB URL should be recognized through the username project-ref pattern.',
+)
+
+process.env.REEDITPRO_STAGING_SUPABASE_DB_URL = [
+  'postgresql',
+  '://',
+  'postgres',
+  '.',
+  'aaaaaaaaaaaaaaaaaaaa',
+  ':redacted@aws-0-us-central1.pooler.supabase.com:6543/postgres',
+].join('')
+const mismatchedDbUrlReports = await buildSupabaseStagingDeployTransportReports()
+const mismatchedPreflight = mismatchedDbUrlReports.preflightReport as {
+  secretReferenceGuardReport?: {
+    status?: string
+    dbUrlTargetMatchedApprovedStaging?: boolean
+    blockers?: string[]
+    dbUrlTargetValidation?: { blockers?: string[]; dbUrlValuePrinted?: boolean }
+  }
+}
+assert(
+  mismatchedPreflight.secretReferenceGuardReport?.status === 'blocked' &&
+    mismatchedPreflight.secretReferenceGuardReport.dbUrlTargetMatchedApprovedStaging === false,
+  'Synthetic mismatched DB URL must block before deploy.',
+)
+assert(
+  mismatchedPreflight.secretReferenceGuardReport?.blockers?.includes('staging_db_url_target_ref_mismatch') &&
+    mismatchedPreflight.secretReferenceGuardReport.dbUrlTargetValidation?.blockers?.includes(
+      'staging_db_url_target_ref_mismatch',
+    ),
+  'Synthetic mismatched DB URL must report the redacted target-ref mismatch blocker.',
+)
+assert(
+  mismatchedPreflight.secretReferenceGuardReport?.dbUrlTargetValidation?.dbUrlValuePrinted === false,
+  'Synthetic mismatched DB URL must not print the URL value.',
+)
+
 for (const [name, value] of savedEnv) {
   if (value === undefined) delete process.env[name]
   else process.env[name] = value
@@ -264,6 +374,8 @@ for (const forbidden of [
   '"serviceRoleKey":',
   '"secretValue"',
   '"signedUrl"',
+  'postgres.wmyyttnynmteqgcdishd',
+  'postgres.aaaaaaaaaaaaaaaaaaaa',
   'secrets versions access',
   'gcloud secrets versions',
   'private-user-images.githubusercontent.com',
@@ -281,6 +393,8 @@ console.log(JSON.stringify({
   secretManagerCandidateDbUrlRef: 'SUPABASE_DB_URL',
   secretManagerAccessTokenCandidate: null,
   secretManagerPayloadAccess: false,
+  syntheticMatchingDbUrlTargetCheck: true,
+  syntheticMismatchedDbUrlBlocks: true,
   deployPerformed: false,
   trackBRowsWritten: false,
   productionAffected: false,

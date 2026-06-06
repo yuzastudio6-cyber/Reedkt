@@ -2,7 +2,7 @@
   "phase": "supabase-staging-deploy-transport-rerun",
   "runId": "supabase-staging-deploy-transport-rerun-20260606",
   "status": "blocked",
-  "selectedStrategy": "blocked_target_not_staging",
+  "selectedStrategy": "blocked_credentials_unavailable",
   "selectedCommand": null,
   "strategyOrder": [
     "cli_db_push",
@@ -39,11 +39,8 @@
   "secretPayloadsRead": false,
   "productionAffected": false,
   "blockers": [
-    "supabase_plugin_staging_target_check_not_confirmed",
-    "supabase_plugin_target_not_confirmed_as_staging",
     "staging_supabase_db_url_secret_reference_missing",
     "blocked_credentials_unavailable",
-    "blocked_target_not_staging",
     "cli_db_push_unavailable",
     "npx_cli_db_push_unavailable"
   ]

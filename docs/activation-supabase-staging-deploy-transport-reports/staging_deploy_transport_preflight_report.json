@@ -66,12 +66,12 @@
     "blockers": []
   },
   "pluginTargetProofReport": {
-    "status": "blocked",
+    "status": "passed",
     "pluginAvailableToCodexSession": true,
     "pluginUsableFromRepoCliDirectly": false,
     "pluginObservationSource": "connected_supabase_plugin_observation_committed_as_safe_metadata",
     "targetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
-    "targetCheckConfirmed": false,
+    "targetCheckConfirmed": true,
     "selectedProject": {
       "projectRef": "wmyyttnynmteqgcdishd",
       "projectName": "Reeditpro",
@@ -145,10 +145,10 @@
       "secretPayloadsPrinted": false,
       "blockers": []
     },
-    "approvedTargetProofConfirmed": false,
+    "approvedTargetProofConfirmed": true,
     "metadataLabelLooksStaging": false,
     "operatorProofMatches": false,
-    "stagingTargetConfirmed": false,
+    "stagingTargetConfirmed": true,
     "observedProjects": [
       {
         "projectRef": "wmyyttnynmteqgcdishd",
@@ -190,10 +190,7 @@
     "credentialPayloadsPrinted": false,
     "secretsRead": false,
     "productionTargetAllowed": false,
-    "blockers": [
-      "supabase_plugin_staging_target_check_not_confirmed",
-      "supabase_plugin_target_not_confirmed_as_staging"
-    ]
+    "blockers": []
   },
   "secretReferenceGuardReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
@@ -206,13 +203,37 @@
     ],
     "presentDbUrlReferenceNames": [],
     "selectedDbUrlReferenceName": null,
+    "dbUrlTargetValidation": {
+      "status": "skipped",
+      "dbUrlProvided": false,
+      "dbUrlParsedInMemory": false,
+      "dbUrlValuePrinted": false,
+      "dbUrlValueCommitted": false,
+      "credentialPayloadsPrinted": false,
+      "hostnamePrinted": false,
+      "usernamePrinted": false,
+      "passwordPrinted": false,
+      "approvedStagingProjectRefPresent": true,
+      "approvedStagingProjectRefMatched": false,
+      "dbUrlTargetMatchedApprovedStaging": false,
+      "directDbHostPatternRecognized": false,
+      "poolerUsernamePatternRecognized": false,
+      "productionTargetSelected": false,
+      "blockers": []
+    },
+    "dbUrlTargetMatchedApprovedStaging": false,
+    "dbUrlTargetRefMatched": false,
+    "dbUrlTargetRefPresent": true,
+    "dbUrlParsedInMemory": false,
     "dbUrlPayloadViewed": false,
     "dbUrlValuePrinted": false,
+    "dbUrlValueCommitted": false,
     "accessTokenReferencePresent": false,
     "accessTokenPayloadViewed": false,
     "serviceRoleKeyRequired": false,
     "serviceRoleKeyPayloadViewed": false,
     "productionDbUrlReferenceSelected": false,
+    "productionTargetSelected": false,
     "credentialPayloadsPrinted": false,
     "secretPayloadsRead": false,
     "blockers": [
@@ -286,10 +307,7 @@
   "productionAffected": false,
   "directManualSqlRun": false,
   "blockers": [
-    "supabase_plugin_staging_target_check_not_confirmed",
-    "supabase_plugin_target_not_confirmed_as_staging",
     "staging_supabase_db_url_secret_reference_missing",
-    "blocked_credentials_unavailable",
-    "blocked_target_not_staging"
+    "blocked_credentials_unavailable"
   ]
 }

@@ -12,6 +12,10 @@ Reports may record only the reference name and present/missing status. They must
 
 If no approved DB URL reference is present, the deploy must stop with `staging_supabase_db_url_secret_reference_missing` and `blocked_credentials_unavailable`.
 
+When a DB URL reference is present, PR #223 must parse it in memory only and confirm that the URL targets the approved staging project ref `wmyyttnynmteqgcdishd`. Reports may record only redacted booleans such as `dbUrlTargetMatchedApprovedStaging`; they must not record the host, username, password, query string, or full URL. Direct `db.<project-ref>.supabase.co` URLs and Supabase pooler URLs with a `postgres.<project-ref>` username are the allowed target-match patterns.
+
+If the DB URL cannot be parsed, lacks a target ref, or points at any ref other than the approved staging ref, the deploy must stop before dry-run with `staging_db_url_target_unparseable`, `staging_db_url_target_ref_missing`, or `staging_db_url_target_ref_mismatch`.
+
 ## Secret Manager Metadata Discovery
 
 PR #223 may inspect Google Cloud Secret Manager metadata only. The allowed inspection commands are limited to `gcloud config get-value project`, `gcloud secrets list --project=reeditpro --format=json(...)`, and `gcloud secrets describe <secret> --project=reeditpro --format=json(...)`.

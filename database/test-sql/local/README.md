@@ -90,7 +90,7 @@ A draft SQL file may become executable only when:
 ## Current Executable Test List
 
 - `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B/20B-Retry auth/profile/workspace/project candidate. Status: passed locally through the guarded runner in Prompt 20B-Retry after a fixture-only compatibility update for the local schema-era bridge.
-- `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` - Prompt 26E-1 catalog-only RLS no-policy advisor table candidate. Status: local candidate prepared; run only through the guarded runner after preflight proves a localhost-only DB URL and `canRunLocalSql=true`. The test intentionally fails if any of the six advisor tables are absent and does not insert fixture rows because accepted column/schema evidence is incomplete.
+- `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` - Prompt 26E-1 catalog-only RLS no-policy advisor table candidate. Status after Prompt 26E-2: blocked pending local toolchain; run only through the guarded runner after preflight proves a localhost-only DB URL and `canRunLocalSql=true`. The test intentionally fails if any of the six advisor tables are absent and does not insert fixture rows because accepted column/schema evidence is incomplete.
 
 ## Current Draft-Only Test List
 
@@ -145,3 +145,13 @@ Prompt 26E-1 adds `002_rls_no_policy_advisor_tables_local.sql` as a catalog-only
 - `tool_capabilities`
 
 The test verifies table presence, RLS enablement, expected policy names, `anon`/`authenticated` role targeting, and deny-only predicates/checks. It does not insert fixtures, does not depend on row data, and remains local-only/prohibited from staging, remote, and production targets.
+
+## Prompt 26E-2 Validation Fix Attempt
+
+Prompt 26E-2 attempted to validate `002_rls_no_policy_advisor_tables_local.sql`, but local preflight blocked execution before `supabase start` or SQL:
+
+- `supabase_cli_arch_mismatch`
+- `docker_daemon_unavailable`
+- `local_db_url_missing`
+
+No SQL ran. The file remains a local executable candidate only, not local pass evidence.

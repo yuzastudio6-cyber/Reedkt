@@ -744,3 +744,16 @@ Prompt 26E-1 - RLS No-Policy Local Migration Candidate.
 - What remains blocked: local candidate validation if target tables are absent or no localhost-only DB URL exists; staging execution until human approval, accepted evidence, Secret Manager reference gates, approved PR/commit/test set, rollback/cleanup, and final gate requirements pass.
 - Acceptance criteria: candidate migration/test/docs/diagnostics exist, diagnostics pass, only six tables are targeted, no broad client access is created, and status remains local-only unless guarded local SQL passes.
 - Next prompt recommendation: Prompt 26E-2 - RLS No-Policy Local Candidate Validation Fix if local validation fails or table evidence is incomplete; otherwise Prompt 26F - Function Search Path Hardening Migration Plan.
+
+## 26E-2. RLS No-Policy Local Candidate Validation Fix
+
+Prompt 26E-2 - RLS No-Policy Local Candidate Validation Fix.
+
+- Purpose: retry local-only validation of the Prompt 26E-1 RLS no-policy candidate without touching staging, remote, or production Supabase.
+- Deliverables after Prompt 26E-2: `docs/prompt-26e2-rls-no-policy-local-candidate-validation-fix.md`, `docs/prompt-26e2-validation-results.md`, `docs/implementation-prompts/prompt-26e2-rls-no-policy-local-candidate-validation-fix.md`, local evidence updates, manifest updates, blocker/scorecard updates, workflow trigger coverage for the Prompt 26E-1 base branch, and tracker updates.
+- Implementation status after Prompt 26E-2: `blocked_pending_toolchain`; no local SQL run and no candidate bug exposed.
+- Implements: local-only toolchain/preflight verification and honest blocker recording for the Prompt 26E-1 candidate.
+- Must not implement: staging/remote/production Supabase, Google Cloud, Secret Manager, raw `psql`, SQL outside the guarded runner, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, service-role handlers, grants, helper functions, indexes, public/authenticated writes, staging approval, production readiness, deployment, or beta unlock.
+- What remains blocked: local validation requires an arm64-compatible Supabase CLI, reachable local Docker daemon, and localhost-only local DB URL; staging execution still requires human approval, accepted evidence, Secret Manager reference gates, approved PR/commit/test set, rollback/cleanup, and final gate requirements.
+- Acceptance criteria: Prompt 26E-2 docs exist, validation records exact blockers, no candidate status is marked passed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
+- Next prompt recommendation: Prompt 26E-3 - Local RLS Candidate Toolchain or Schema Follow-Up, or Prompt 26F - Function Search Path Hardening Migration Plan.

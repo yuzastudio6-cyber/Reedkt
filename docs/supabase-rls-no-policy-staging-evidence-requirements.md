@@ -30,3 +30,14 @@ Prompt 26E defines evidence that a future approved staging validation must captu
 - GCP Secret Manager references must remain references only; payloads must not be printed or committed.
 - Rollback and cleanup ownership must be recorded before staging execution.
 - Production readiness remains blocked regardless of staging evidence until a separate production approval path exists.
+## Prompt 26E-1 staging evidence addendum
+
+The Prompt 26E-1 local candidate is not staging evidence. Before any future staging application, the following evidence must be accepted:
+
+- redacted staging project identity and migration state;
+- confirmation that the six target tables exist in the approved staging schema;
+- accepted policy review for the 24 deny-only policies;
+- Secret Manager reference gates and rollback/cleanup owner confirmation;
+- approved PR, commit, test set, and human gate record.
+
+Until those gates pass, staging sync remains blocked and the candidate remains local-only.

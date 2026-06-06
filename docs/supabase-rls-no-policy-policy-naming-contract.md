@@ -34,3 +34,7 @@ Prompt 26E defines future policy names for the six RLS-enabled/no-policy tables.
 - If a later prompt approves project/workspace-scoped reads, policy names must be revised before SQL is created.
 - Static catalog visibility for `tool_capabilities` must not imply that tools, providers, workers, render/export, or beta features are production-enabled.
 - Any service-role or backend-only policy must be paired with backend boundary evidence and must not be exposed to frontend code.
+
+## Prompt 26E-1 local candidate update
+
+Explicit deny policy names prepared as local candidate in `supabase/migrations/202606060001_rls_no_policy_advisor_remediation.sql`. The Prompt 26E-1 candidate uses the names in this contract only for `anon` and `authenticated` deny policies and does not add grants, service-role policies, positive read policies, or public/authenticated writes.

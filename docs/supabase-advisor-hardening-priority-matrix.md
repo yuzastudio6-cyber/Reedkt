@@ -23,3 +23,6 @@ This matrix prioritizes Prompt 26A advisor findings for future remediation desig
 - Table/column existence check across schema-era migrations.
 - Local validation plan for every future migration.
 - Human approval record before staging execution.
+## Prompt 26E-1 update
+
+Prompt 26E-1 advances the RLS no-policy row from draft planning to `local_candidate_prepared` only. It does not resolve advisor findings until the candidate is validated locally and later approved for staging.

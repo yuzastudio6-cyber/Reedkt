@@ -55,3 +55,17 @@ Supabase reference principle: tables in exposed schemas, including `public` by d
 ## Recommended Future Prompt
 
 Prompt 26E-1 - RLS No-Policy Local Draft Migration Implementation, if RLS policy migration design proceeds after review. If RLS policy migration waits, use Prompt 26F - Function Search Path Hardening Migration Plan.
+
+## Prompt 26E-1 local candidate update
+
+Prompt 26E-1 prepares the first local candidate from this draft plan:
+
+- Candidate migration: `supabase/migrations/202606060001_rls_no_policy_advisor_remediation.sql`.
+- Local catalog-only test: `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql`.
+- Candidate status: `local_candidate_prepared`.
+- Supabase update status: local_candidate_prepared.
+- Supabase environment touched: none.
+- SQL executed: none.
+- Migration deployed: no.
+
+The candidate keeps the denial-first model from Prompt 26E and adds no grants, helper functions, indexes, table definitions, service-role handlers, positive read policies, or public/authenticated writes.

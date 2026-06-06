@@ -69,3 +69,8 @@ Prompt 26E is a draft migration plan only. No RLS policy is applied in Prompt 26
 ## Draft Sketch
 
 Review-only policy sketch: `docs/draft-sql/supabase-advisor-remediation/rls-no-policy-draft.sql.md`.
+## Prompt 26E-1 local candidate outcome
+
+Prompt 26E-1 outcome: `local_candidate_prepared`.
+
+The local candidate creates deny-only `anon`/`authenticated` policies for the six classified advisor tables when they exist locally. This is not applied staging remediation, not production remediation, and not advisor clearance.

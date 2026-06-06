@@ -30,4 +30,7 @@ Prompt 26D defines future policy intent for the six connected-advisor RLS-enable
 - Authenticated users must remain denied from raw tables in the current classification.
 - Writes must remain backend/service-role only and must not be exposed through frontend clients.
 - Local tests must pass before staging, and staging requires Prompt 23A approval plus accepted Prompt 24D evidence.
+## Prompt 26E-1 local candidate note
+
+Prompt 26E-1 implements the contract as a local deny-only candidate, not as staging remediation. The candidate targets only `anon` and `authenticated` with `using (false)` / `with check (false)` policy shapes and does not create grants, service-role policies, helper functions, indexes, or positive client access.
 

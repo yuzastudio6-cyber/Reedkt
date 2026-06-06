@@ -37,3 +37,16 @@ Prompt 26E drafts rollback and cleanup requirements for a future RLS no-policy m
 ## Production Rule
 
 No production rollback or production migration may occur from this plan. Production rollback requires separate production approval, accepted staging evidence, and a production-specific command packet.
+## Prompt 26E-1 local candidate rollback note
+
+If the Prompt 26E-1 local candidate must be backed out before a future staging-reviewed migration, remove the candidate migration from the branch or apply an approved local rollback that drops only the candidate policies:
+
+```sql
+-- Local review rollback sketch only; do not run outside an approved local prompt.
+drop policy if exists activation_artifacts_select_backend_only on public.activation_artifacts;
+drop policy if exists activation_artifacts_insert_backend_only on public.activation_artifacts;
+drop policy if exists activation_artifacts_update_backend_only on public.activation_artifacts;
+drop policy if exists activation_artifacts_delete_backend_only on public.activation_artifacts;
+```
+
+The real rollback list must include all 24 Prompt 26E-1 policies and must stay scoped to the six advisor tables. No row cleanup is required because `002_rls_no_policy_advisor_tables_local.sql` is catalog-only and rolls back without fixture inserts.

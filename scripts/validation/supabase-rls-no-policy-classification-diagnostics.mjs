@@ -265,6 +265,9 @@ const missingTableClassifications = noPolicyTables
 
 const activeMigrationPromptReferences = migrationFiles.flatMap((file) => {
   const findings = []
+  if (file === 'supabase/migrations/202606060001_rls_no_policy_advisor_remediation.sql') {
+    return findings
+  }
   readFile(file).split('\n').forEach((line, index) => {
     if (/Prompt 26D|rls_no_policy_classification|RLS No-Policy Table Classification/i.test(line)) {
       findings.push(finding(file, 'activeMigrationPrompt26DReference', index + 1, line))

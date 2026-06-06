@@ -690,3 +690,18 @@ Prompt 21 adds approval materials only:
 - `docs/staging-supabase-risk-register.md`.
 
 No staging, remote, or production Supabase target was touched.
+## Prompt 26E-1 RLS No-Policy Local Candidate Evidence
+
+Prompt 26E-1 prepares `supabase/migrations/202606060001_rls_no_policy_advisor_remediation.sql` and `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql`.
+
+Evidence status:
+
+- Local candidate status: `local_candidate_prepared`.
+- Guarded local SQL run: not run.
+- SQL executed: none.
+- Supabase environment touched: none.
+- Migration deployed: no.
+- Preflight status: blocked, with `remoteRiskDetected=false` and `canRunLocalSql=false`.
+- Blocker IDs: `supabase_cli_arch_mismatch`, `docker_daemon_unavailable`, `local_db_url_missing`.
+
+The candidate should not be treated as local pass evidence until the guarded runner executes `002_rls_no_policy_advisor_tables_local.sql` against a verified localhost-only DB URL and all six target tables exist locally.

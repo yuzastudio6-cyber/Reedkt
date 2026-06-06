@@ -25,3 +25,12 @@ Prompt 26E defines future test requirements only. It does not create executable 
 - Use rollback or deterministic cleanup.
 - Do not include private media, signed URLs, provider keys, Stripe data, service-role keys, raw Secret Manager values, production rows, or real staging customer data.
 - Staging tests require human approval completion, accepted evidence, target confirmation, rollback/cleanup plan, and reviewed command packet.
+## Prompt 26E-1 local candidate update
+
+`database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` is now the catalog-only local candidate for this RLS no-policy track.
+
+| Test | Status | Scope | Expected result |
+| --- | --- | --- | --- |
+| `002_rls_no_policy_advisor_tables_local.sql` | catalog-only local candidate | Six advisor tables, RLS enabled flag, expected policy names, `anon`/`authenticated` deny-only predicates/checks | Passes only when all six tables exist locally and the Prompt 26E-1 candidate policies are present. |
+
+This test does not insert rows and does not prove positive workspace/project behavior. Staging tests remain future-only and still require accepted evidence plus approval gates.

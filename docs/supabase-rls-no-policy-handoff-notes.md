@@ -35,4 +35,14 @@ Prompt 26D is owned by SUPABASE_RLS_STORAGE_DATABASE. It creates classification 
 ## Next Handoff
 
 Prompt 26E should convert this classification into a draft migration plan only. Prompt 23A and Prompt 24D remain separately required before any staging execution.
+## Prompt 26E-1 handoff
+
+Prompt 26E-1 affects these workstreams:
+
+- `SUPABASE_RLS_STORAGE_DATABASE`: owns the local candidate and catalog-only validation path.
+- `WORKER_RUNTIME_JOBS`: should treat activation/readiness raw tables as browser-denied until future backend summaries are approved.
+- `AI_TOOLS_CREATIVE_GRAPHICS`: should treat `tool_capabilities` raw rows as no-client-access until a safe static catalog surface is reviewed.
+- `OBSERVABILITY_AUDIT_COST`: should treat readiness evidence as backend-only until redaction and immutability are reviewed.
+- `COMPLIANCE_SECURITY`: should review service-role handling, no-secret docs, and no public/authenticated writes before staging.
+- `PROVIDER_GATEWAY`, `RENDER_EXPORT`, `SOUND_MUSIC`, and `MAP_GEOSPATIAL`: no direct execution changes; use this candidate only as access-control context.
 

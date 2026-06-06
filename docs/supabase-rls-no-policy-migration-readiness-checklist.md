@@ -51,3 +51,13 @@ Prompt 26D does not create a migration. This checklist defines what must be true
 ## Recommended Next Prompt
 
 Prompt 26E-1 - RLS No-Policy Local Draft Migration Implementation, or Prompt 26F - Function Search Path Hardening Migration Plan.
+## Prompt 26E-1 local candidate readiness note
+
+Prompt 26E-1 prepares the local migration candidate and catalog-only local SQL test. Current readiness:
+
+- Local migration candidate created: yes.
+- Local catalog-only test candidate created: yes.
+- Guarded local SQL executed: no at initial candidate creation.
+- Staging migration ready: no.
+- Production migration ready: no.
+- Remaining required gates: localhost-only DB URL, local table presence, accepted redacted evidence, Secret Manager references, approved PR/commit/test set, rollback/cleanup ownership, and human staging gate completion.

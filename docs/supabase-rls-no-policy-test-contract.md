@@ -34,4 +34,7 @@ Prompt 26D defines future test requirements only. It does not create executable 
 - Every future local test must prove authenticated raw-table denial for the current Prompt 26D model.
 - Any future user-visible summary/catalog path must be tested separately from raw table policies.
 - Staging tests require Prompt 23A human approval completion, accepted evidence, confirmed staging target, rollback/cleanup plan, and redacted evidence handling.
+## Prompt 26E-1 local candidate note
+
+`database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` satisfies the first catalog-only local test contract for policy presence and deny-only shape. It does not satisfy row-level fixture tests, positive access tests, service-role/backend tests, or staging tests.
 

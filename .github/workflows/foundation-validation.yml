@@ -59,6 +59,7 @@ on:
       - codex/rp-foundation-26e2-rls-no-policy-local-candidate-validation-fix
       - codex/rp-foundation-26e3-local-rls-candidate-toolchain-schema-follow-up
       - codex/rp-foundation-26f-function-search-path-hardening-migration-plan
+      - codex/rp-foundation-26g-security-definer-exposure-migration-plan
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

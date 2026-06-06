@@ -14,7 +14,8 @@ Prompt 26B is the advisor hardening planning step. Prompt 26C is the umbrella dr
 | Prompt 26F | Function search_path hardening migration plan. | No. | Signature preservation, schema qualification, future tests, rollback/cleanup, staging evidence, and draft-only search-path sketch. |
 | Prompt 26F-1 | Function search path local migration candidate. | Local-only if explicitly approved and gated. | Active local candidate migration and behavior tests for the nine mutable search-path functions. |
 | Prompt 26G | SECURITY DEFINER exposure migration plan. | No. | SECURITY DEFINER exposure contract, classification, grant/body review plan, invoker decision contract, future tests, rollback/cleanup, and staging evidence requirements. |
-| Future FK index prompt | FK index migration design packet. | No SQL execution unless explicitly approved later. | Additive index migration design. |
+| Prompt 26H | FK index hardening migration plan. | No. | FK priority matrix, duplicate review contract, naming contract, write-amplification risk matrix, future tests, rollback/cleanup, staging evidence, and draft-only FK index sketch. |
+| Prompt 26H-1 | FK index local migration candidate. | Local-only if explicitly approved and gated. | Future active local additive index candidate and local catalog/performance checks. |
 | Prompt 23A | Human approval completion. | Approval record only. | Required before staging execution. |
 | Prompt 24D | Evidence review with supplied files. | Review only. | Accepted/rejected redacted evidence. |
 
@@ -57,4 +58,14 @@ Recommended sequence after Prompt 26G:
 
 - Prompt 26G-1 - SECURITY DEFINER Local Migration Candidate, if grant/function hardening proceeds.
 - Prompt 26H - FK Index Hardening Migration Plan, if FK advisor planning is prioritized.
+- Prompt 23A and Prompt 24D remain required before any staging execution path.
+
+## Prompt 26H FK index hardening migration plan status
+
+Prompt 26H records `fk_index_migration_plan_created` for fifteen unindexed FK advisor findings. It does not create an active migration, execute SQL, create indexes, apply advisor remediation, grant approval, or touch any Supabase environment.
+
+Recommended sequence after Prompt 26H:
+
+- Prompt 26H-1 - FK Index Local Migration Candidate, if FK index hardening proceeds.
+- Prompt GD-0 - AI Tools / Graphic Design Stack Repo Audit, if the user pivots to graphic-design stack audit.
 - Prompt 23A and Prompt 24D remain required before any staging execution path.

@@ -2,6 +2,18 @@
 
 Prompt 26C records future additive index candidates for Prompt 26A unindexed foreign-key advisor findings. No index is created in Prompt 26C.
 
+## Prompt 26H Status
+
+Prompt 26H records `fk_index_migration_plan_created`.
+Supabase update required: docs/status only.
+Supabase update status: docs_only.
+Supabase environment touched: none.
+SQL executed: none.
+Migration deployed: no.
+Active migration created: no.
+
+Prompt 26H expands this packet into planning docs and keeps all SQL as Markdown-only draft sketches.
+
 ## Status
 
 - Draft status: `draft_only`.
@@ -50,3 +62,5 @@ Future index migrations should:
 ## Draft Sketch
 
 Review-only index sketch: `docs/draft-sql/supabase-advisor-remediation/fk-indexes-draft.sql.md`.
+
+Recommended next prompt: Prompt 26H-1 - FK Index Local Migration Candidate or Prompt GD-0 - AI Tools / Graphic Design Stack Repo Audit.

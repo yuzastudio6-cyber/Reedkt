@@ -249,6 +249,18 @@ backfill, Docker, Cloud Run, public artifacts, signed URL source-of-truth, raw
 prompt execution, production, external beta, paid production, and broad media
 remain blocked.
 
+Phase 52G creates the controlled internal test go/no-go packet and owner
+handoff dispatch package on existing Phase 52F evidence only. It may upload
+private JSON/Markdown artifacts and write/read exactly one Supabase milestone
+sync record through the Phase 51D path. Phase 52H is ready only for
+cross-workstream handoff tracking / owner response intake, or a pause for
+owners to execute their handoff prompts in their own scopes. Candidate snapshot
+execution, tool runtime, worker execution, model inference, provider calls,
+media processing, web search, browser capture, map rendering, migrations,
+schema/RLS changes, historical backfill, Docker, Cloud Run, public artifacts,
+signed URL source-of-truth, raw prompt execution, production, external beta,
+paid production, and broad media remain blocked.
+
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

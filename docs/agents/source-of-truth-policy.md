@@ -23,3 +23,7 @@ Agents may cite review artifacts, but workers must execute from approved source 
 ## Phase 52F Reconciliation Rule
 
 Phase 52F system readiness artifacts may summarize readiness, blockers, and owner handoffs, but they do not replace domain source-of-truth manifests. Controlled internal test planning must continue to reference approved snapshots, tool capability records, readiness snapshots, and private `gs://` artifacts rather than public URLs, signed URLs, screenshots, or PR prose.
+
+## Phase 52G Go/No-Go Rule
+
+Phase 52G go/no-go and owner prompt artifacts are coordination records only. They may cite private Phase 52F/52G `gs://` artifacts and Supabase milestone rows, but they do not authorize runtime execution and do not replace approved snapshots, tool capability manifests, owner readiness manifests, or domain-specific source records.

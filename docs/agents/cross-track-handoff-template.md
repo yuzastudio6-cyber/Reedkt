@@ -28,3 +28,5 @@ Rules:
 Phase 52D emits handoff packets for Track A, web search, map/geospatial, AI Tools graphics, Track B audio/VLM, Worker Runtime, and Supabase milestone sync. Those packets are coordination artifacts, not execution authorization.
 
 Phase 52F emits owner-specific system readiness handoff packets for AI Tools, map/geospatial, sound/music/audio, Track A, Track B, Supabase, Provider Gateway, Worker Runtime, Compliance/Security, Observability/Audit/Cost, Frontend UX, and Billing/Credits. Those packets are controlled internal test planning artifacts only; they do not authorize tools, workers, providers, models, production, external beta, or broad media.
+
+Phase 52G emits owner prompt packets for those same workstreams and records the go/no-go decision. Handoff recipients must return readiness, blockers, validation expectations, Supabase update classification, and blocked-feature confirmation before any later phase considers execution.

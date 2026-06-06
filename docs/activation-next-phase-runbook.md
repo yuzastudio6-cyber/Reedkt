@@ -81,6 +81,16 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 6. Proceed to Phase 52G only as a controlled internal test go/no-go packet or owner handoff dispatch phase.
 7. Do not execute candidate snapshots, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After Phase 52G
+
+1. Review `activation:controlled-internal-test-go-no-go:report`, `activation:controlled-internal-test-go-no-go:iam-plan`, `activation:controlled-internal-test:summary`, and the private Phase 52G artifacts.
+2. Confirm the top-level decision includes owner handoff and non-executing internal planning only.
+3. Confirm all 12 owner prompt packets were generated and no runtime/external beta/production go state was emitted.
+4. Confirm the blocker inventory and source-of-truth policy preserve private `gs://` artifacts only.
+5. Confirm one Phase 52G Supabase milestone sync record wrote/read back through the Phase 51D path and stores only private `gs://` references plus structured metadata.
+6. Proceed to Phase 52H only as cross-workstream handoff tracking / owner response intake, or pause for owners to execute their handoff prompts in their own scopes.
+7. Do not execute candidate snapshots, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

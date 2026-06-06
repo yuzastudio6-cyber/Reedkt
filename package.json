@@ -28,6 +28,7 @@
     "smoke:sound-music-audio-contracts": "tsx server/smoke/sound-music-audio-contracts-smoke.ts",
     "smoke:sound-music-audio-planner": "tsx server/smoke/sound-music-audio-planner-smoke.ts",
     "smoke:sound-music-audio-card": "tsx server/smoke/sound-music-audio-card-smoke.ts",
+    "smoke:sound-music-audio-chat-renderer": "tsx server/smoke/sound-music-audio-chat-renderer-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

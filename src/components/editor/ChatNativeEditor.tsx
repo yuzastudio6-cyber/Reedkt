@@ -84,6 +84,10 @@ import { MinimalProjectHeader } from './MinimalProjectHeader'
 import { MusicPlanChatFlow } from './music/MusicPlanChatFlow'
 import { PreviewReadyCard } from './PreviewReadyCard'
 import { SFXPlanChatFlow } from './sfx/SFXPlanChatFlow'
+import {
+  createMockSoundMusicAudioChatCardProps,
+  SoundMusicAudioPlanCard,
+} from './sound'
 
 function normalizeClipOrder(clips: ClipSource[]) {
   return clips.map((clip, index) => ({ ...clip, uploadedOrder: index + 1 }))
@@ -156,6 +160,10 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const [revisionMessage, setRevisionMessage] = useState('')
   const [showMusicPlan, setShowMusicPlan] = useState(false)
   const [showSFXPlan, setShowSFXPlan] = useState(false)
+  const [showSoundMusicAudioPlan, setShowSoundMusicAudioPlan] = useState(false)
+  const [soundMusicAudioPreviewApproved, setSoundMusicAudioPreviewApproved] = useState(false)
+  const [removedSoundMusicAudioCueIds, setRemovedSoundMusicAudioCueIds] = useState<string[]>([])
+  const [soundMusicAudioMockMessage, setSoundMusicAudioMockMessage] = useState('')
   const progressTimerRef = useRef<number | null>(null)
 
   const plannerInput = useMemo(
@@ -250,6 +258,14 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
   const cleanupReady = cleanupPreferenceConfirmed && plan.sourceCleanupPlan?.status === 'confirmed'
   const trimReviewReady = Boolean(plan.trimReviewPlan && !plan.trimReviewPlan.approvalBlocked)
   const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && editLevelConfirmed && visualPreferenceConfirmed
+  const soundMusicAudioCardProps = useMemo(
+    () =>
+      createMockSoundMusicAudioChatCardProps({
+        approvedPreview: soundMusicAudioPreviewApproved,
+        removedCueIds: removedSoundMusicAudioCueIds,
+      }),
+    [removedSoundMusicAudioCueIds, soundMusicAudioPreviewApproved],
+  )
 
   function showCard(id: string) {
     return shouldShowCard(cardById[id], displayMode)
@@ -287,6 +303,10 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
     setProgressIndex(0)
     setShowMusicPlan(false)
     setShowSFXPlan(false)
+    setShowSoundMusicAudioPlan(false)
+    setSoundMusicAudioPreviewApproved(false)
+    setRemovedSoundMusicAudioCueIds([])
+    setSoundMusicAudioMockMessage('')
   }
 
   function resetAfterSourceChange() {
@@ -556,6 +576,31 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
 
   function handleRemoveRealMotion() {
     setRevisionMessage('Real Motion removed from the proposed plan. I would replace it with Graphic Design / VisualExplain or still-with-editor-motion in a lower-cost revision.')
+  }
+
+  function handleOpenSoundMusicAudioPlan() {
+    setShowSoundMusicAudioPlan(true)
+    setSoundMusicAudioMockMessage('')
+  }
+
+  function handleApproveSoundMusicAudioPreview() {
+    setSoundMusicAudioPreviewApproved(true)
+    setSoundMusicAudioMockMessage('Sound/Music/Audio plan preview approved for this local mock chat only. Real generation, credits, provider calls, worker dispatch, storage, Supabase mutation, and export remain blocked.')
+  }
+
+  function handleReviseSoundMusicAudioPlan() {
+    setSoundMusicAudioPreviewApproved(false)
+    setSoundMusicAudioMockMessage('Revision requested for the local mock Sound/Music/Audio plan. No approval record, credit record, generation request, worker job, provider call, storage object, or Supabase mutation was created.')
+  }
+
+  function handleRemoveSoundMusicAudioCue(cueId: string) {
+    setSoundMusicAudioPreviewApproved(false)
+    setRemovedSoundMusicAudioCueIds((current) => (current.includes(cueId) ? current : [...current, cueId]))
+    setSoundMusicAudioMockMessage(`Cue ${cueId} was removed from this local mock plan preview only. No generated asset, storage change, provider call, worker dispatch, or Supabase mutation was created.`)
+  }
+
+  function handleViewSoundMusicAudioHandoffDetails() {
+    setSoundMusicAudioMockMessage('Handoff details are visible in the mock Sound/Music/Audio card. Track A, Track B, Provider Gateway, Worker Runtime, Supabase/RLS/Storage, and Observability remain future handoffs before real audio execution.')
   }
 
   function handleSend() {
@@ -870,6 +915,17 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
               />
               <div className="sfx-plan-entry-card">
                 <div>
+                  <span className="section-eyebrow">SOUND_MUSIC_AUDIO</span>
+                  <strong>Review mock Sound/Music/Audio plan</strong>
+                  <p>Display the mock-safe combined card for SFX, ambience, music/Lyria planning, SoundSync timing, private manifests, blocked uses, and handoff readiness inside chat.</p>
+                  <small>Planning preview only: no approval records, credits, providers, workers, storage, Supabase, public artifacts, signed access, or final delivery behavior.</small>
+                </div>
+                <Button onClick={handleOpenSoundMusicAudioPlan} variant={showSoundMusicAudioPlan ? 'secondary' : 'primary'}>
+                  {showSoundMusicAudioPlan ? 'Mock sound plan opened' : 'Open mock sound plan'}
+                </Button>
+              </div>
+              <div className="sfx-plan-entry-card">
+                <div>
                   <span className="section-eyebrow">SoundSync SFX</span>
                   <strong>Plan SFX inside chat</strong>
                   <p>Review edit-layer SFX, provider routes, prompt previews, timing, mix, QA, credits, and library decisions without opening a separate sound dashboard.</p>
@@ -889,6 +945,25 @@ export function ChatNativeEditor({ onOpenTimeline }: ChatNativeEditorProps) {
                   {showMusicPlan ? 'SoundSync plan opened' : 'Plan music with SoundSync'}
                 </Button>
               </div>
+            </ChatMessage>
+          )}
+
+          {setupReady && showSoundMusicAudioPlan && (
+            <ChatMessage role="ai">
+              <p>Here is the mock-only Sound/Music/Audio planning card. It displays metadata and handoff readiness only; real generation and execution stay blocked.</p>
+              <SoundMusicAudioPlanCard
+                {...soundMusicAudioCardProps}
+                onApproveMock={handleApproveSoundMusicAudioPreview}
+                onRemoveCueMock={handleRemoveSoundMusicAudioCue}
+                onReviseMock={handleReviseSoundMusicAudioPlan}
+                onViewHandoffDetailsMock={handleViewSoundMusicAudioHandoffDetails}
+              />
+            </ChatMessage>
+          )}
+
+          {setupReady && soundMusicAudioMockMessage && (
+            <ChatMessage role="ai">
+              <p>{soundMusicAudioMockMessage}</p>
             </ChatMessage>
           )}
 

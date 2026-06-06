@@ -6,7 +6,7 @@ Capability enabled: none; local RLS candidate validation attempt only.
 
 - Branch: `codex/rp-foundation-26e2-rls-no-policy-local-candidate-validation-fix`.
 - Base: `origin/codex/rp-foundation-26e1-rls-no-policy-local-migration-candidate`.
-- PR: pending.
+- PR: [#220](https://github.com/yuzastudio6-cyber/Reedkt/pull/220).
 - Supabase update required: docs/status only.
 - Supabase update status: blocked.
 - Supabase environment touched: none.
@@ -72,7 +72,7 @@ The Prompt 26E-1 migration and catalog test remain unchanged. No candidate bug w
 
 ## CI Status
 
-GitHub Foundation Validation is pending until the PR is opened.
+GitHub Foundation Validation is pending for PR #220.
 
 ## Next Prompt
 

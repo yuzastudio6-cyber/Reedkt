@@ -731,3 +731,41 @@ Host/tool evidence:
 - No localhost-only local Supabase DB URL was verified.
 
 The Prompt 26E-1 migration and SQL candidate remain unchanged. Prompt 26E-2 does not provide local pass evidence.
+
+## Prompt 26E-3 Local RLS Candidate Toolchain/Schema Follow-Up Evidence
+
+Prompt 26E-3 attempted to unblock local validation of the Prompt 26E-1 local candidate.
+
+Candidate files:
+
+- `supabase/migrations/202606060001_rls_no_policy_advisor_remediation.sql`
+- `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql`
+
+Local toolchain evidence:
+
+- Initial `/tmp/reeditpro-local-bin/supabase`: absent.
+- Initial PATH fallback: `/usr/local/bin/supabase`, x86_64 on arm64, bad CPU / error `-86`.
+- Temporary outside-repo shim: `/tmp/reeditpro-local-bin/supabase`, created for the current shell only using pinned `supabase@2.104.0`.
+- Supabase CLI after shim: version `2.104.0`.
+- Docker CLI: version `29.5.2`, build `79eb04c`.
+- Docker daemon: unavailable to this process.
+- `psql`: `psql (PostgreSQL) 18.4 (Postgres.app)`.
+- Local DB URL: not verified.
+- `remoteRiskDetected=false`.
+- `canStartLocalSupabase=false`.
+- `canRunLocalSql=false`.
+
+Prompt 26E-3 did not run `supabase start`, `supabase status`, raw `psql`, or guarded SQL. The local candidate remains unvalidated in this environment.
+
+Classification:
+
+- Supabase update required: `docs/status only`.
+- Supabase update status: `local_validation_blocked_by_codex_environment`.
+- Supabase environment touched: `none`.
+- SQL executed: `none`.
+- Migration deployed: `no`.
+
+Remaining blockers:
+
+- `docker_daemon_unavailable`
+- `local_db_url_missing`

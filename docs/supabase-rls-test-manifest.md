@@ -49,6 +49,16 @@ Prompt 26E-2 retried local validation for `database/test-sql/local/002_rls_no_po
 
 The migration/test candidate remains unchanged because no candidate bug was exposed before the safety gates blocked execution.
 
+## Prompt 26E-3 Local Candidate Toolchain/Schema Follow-Up Update
+
+Prompt 26E-3 retried local validation for `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql`, but no SQL ran.
+
+| File | Prompt 26E-3 status | Prompt 26E-3 execution result | Prompt 26E-3 blocker |
+| --- | --- | --- | --- |
+| `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` | local executable candidate; validation blocked by Codex environment | not run | `docker_daemon_unavailable`, `local_db_url_missing` |
+
+Prompt 26E-3 resolved the CLI blocker for the current shell only with a temporary outside-repo shim. The Prompt 26E-1 migration/test candidate remains unchanged and does not provide local pass evidence.
+
 ## Prompt 20 Execution Update
 
 Prompt 20 added a local-only safety preflight and guarded RLS runner, but did not execute SQL or convert draft SQL files because the local target is blocked.

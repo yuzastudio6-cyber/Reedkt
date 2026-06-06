@@ -1,6 +1,7 @@
 import type {
   PrivateAudioArtifactManifest,
   SoundAgentEditSegmentInput,
+  SoundAgentPlan,
   SoundAgentPlannerInput,
   SoundAgentPlannerResult,
   SoundAgentRequestedOutputMode,

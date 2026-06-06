@@ -4,6 +4,8 @@ Phase 18 starts the post-M17 activation track. Milestones 0-17 built the dry-run
 
 This roadmap is not launch approval. Production-ready, external beta, paid production, and broad real user media remain blocked until the later gates explicitly pass. Codex must not approve broad model use, run providers, deploy GPU, download unapproved model weights, add secrets, or process arbitrary real media.
 
+The Supabase staging schema deploy after approved target reference phase consumes PR #212's approved non-secret staging project reference (`Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`) and reruns the guarded activation milestone registry schema/RLS deploy wrapper only when staging target proof, confirmations, credentials, and a migration-safe deploy path pass. Track B backfill writes, production Supabase, direct SQL, providers, route/tool/worker execution, beta/production unlock, and Track A remain blocked. The next phase after verified staging schema/RLS is the separate PR #198 guarded Track B staging backfill rerun.
+
 ## Phases 18-39E
 
 | Phase | Goal | Why it exists | Main files/scripts expected later | Human-run actions | Acceptance gates | Must not be done |

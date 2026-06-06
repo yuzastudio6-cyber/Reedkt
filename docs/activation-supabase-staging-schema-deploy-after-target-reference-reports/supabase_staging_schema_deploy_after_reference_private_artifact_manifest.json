@@ -1,0 +1,28 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "metadata_committed_only",
+  "reportDir": "docs/activation-supabase-staging-schema-deploy-after-target-reference-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "approved_staging_target_reference_loaded_report.json",
+    "supabase_plugin_target_proof_after_reference_report.json",
+    "supabase_staging_schema_deploy_strategy_after_reference_report.json",
+    "supabase_staging_schema_deploy_after_reference_report.json",
+    "supabase_staging_schema_verify_after_reference_report.json",
+    "supabase_staging_rls_verify_after_reference_report.json",
+    "trackb_backfill_preflight_after_reference_schema_deploy.json",
+    "trackb_backfill_diff_after_reference_schema_deploy.json",
+    "supabase_staging_schema_deploy_after_reference_blocker_report.json",
+    "supabase_staging_schema_deploy_after_reference_readiness_report.json",
+    "supabase_staging_schema_deploy_after_reference_private_artifact_manifest.json",
+    "supabase_staging_schema_deploy_after_reference_readiness_report.md"
+  ],
+  "privateUploadRequired": false,
+  "secretsIncluded": false,
+  "dbUrlsIncluded": false,
+  "serviceKeysIncluded": false,
+  "accessTokensIncluded": false,
+  "signedUrlsIncluded": false,
+  "mediaPayloadsIncluded": false
+}

@@ -1,0 +1,30 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "blocked",
+  "stagingSchemaVerified": false,
+  "stagingDeployAllowedOnlyWithConfirmations": true,
+  "schemaDeployStatus": "blocked",
+  "schemaVerifyStatus": "blocked",
+  "rlsVerifyStatus": "blocked",
+  "pr198BackfillRowsWritten": false,
+  "trackBBackfillWriteStillBlocked": true,
+  "productionAffected": false,
+  "remoteSqlRun": false,
+  "directManualSqlRun": false,
+  "providerCalls": "not_run",
+  "routeExecution": "not_run",
+  "workerExecution": "not_run",
+  "toolExecution": "not_run",
+  "trackA": "not_touched",
+  "blockers": [
+    "blocked_credentials_unavailable",
+    "cli_db_push_unavailable",
+    "blocked_no_migration_safe_deploy_path",
+    "staging_schema_deploy_not_confirmed",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verify_not_confirmed",
+    "staging_schema_verification_not_run"
+  ],
+  "nextRecommendedPhase": "Resolve the exact credential/CLI/migration-safe deploy blocker and rerun the after-reference deploy wrapper."
+}

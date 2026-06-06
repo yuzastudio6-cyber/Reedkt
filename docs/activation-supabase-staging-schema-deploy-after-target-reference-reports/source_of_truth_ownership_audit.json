@@ -1,0 +1,190 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "passed",
+  "branch": "codex/rp-foundation-supabase-staging-schema-deploy-after-target-reference",
+  "baseBranch": "codex/rp-foundation-supabase-approved-staging-target-reference",
+  "reviewedPrs": [
+    {
+      "pr": 198,
+      "role": "future guarded Track B staging backfill, preflight/diff only in this phase"
+    },
+    {
+      "pr": 200,
+      "role": "activation milestone registry schema/RLS migration owner"
+    },
+    {
+      "pr": 206,
+      "role": "plugin-assisted deploy/verify wrapper"
+    },
+    {
+      "pr": 209,
+      "role": "staging target proof deploy rerun wrapper"
+    },
+    {
+      "pr": 212,
+      "role": "approved non-secret staging target reference"
+    }
+  ],
+  "sourceProofReportDir": "docs/activation-supabase-staging-target-proof-reports",
+  "delegatedSourceAudit": {
+    "phase": "supabase-staging-target-proof-deploy-rerun",
+    "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
+    "status": "passed",
+    "auditDate": "2026-06-05",
+    "branch": "codex/rp-foundation-supabase-staging-target-proof-deploy-rerun",
+    "baseBranch": "codex/rp-foundation-supabase-plugin-staging-schema-deploy-verify",
+    "reviewedPrs": [
+      {
+        "pr": 198,
+        "role": "future guarded Track B staging backfill, no write in this phase"
+      },
+      {
+        "pr": 200,
+        "role": "activation milestone registry schema/RLS migration owner"
+      },
+      {
+        "pr": 202,
+        "role": "CLI staging deploy/verify predecessor"
+      },
+      {
+        "pr": 206,
+        "role": "plugin-assisted staging deploy verifier and current base"
+      }
+    ],
+    "ownership": {
+      "thisPhaseOwns": "staging target proof packet and deploy-rerun wrapper only",
+      "pr206Owns": "existing plugin-assisted deploy/verify policy and reports",
+      "pr200Owns": "registry schema/RLS migration",
+      "pr198Owns": "future Track B milestone metadata backfill"
+    },
+    "sourceFiles": [
+      {
+        "file": "AGENTS.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "supabase-schema-planning-bridge.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "database-migration-readiness-checklist.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "supabase-table-specification.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "migration-review-and-rls-hardening.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "rls-hardening-matrix.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "data-privacy-retention-plan.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "supabase-production-test-readiness.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "supabase-local-staging-test-plan.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "docs/activation-phase-roadmap.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "docs/supabase-plugin-staging-target-policy.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "docs/supabase-plugin-staging-milestone-registry-deploy-verify.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+        "exists": true,
+        "unsafeSecretLikeTextDetected": false
+      }
+    ],
+    "migration": {
+      "path": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+      "exists": true,
+      "requiredTablesExpected": [
+        "activation_milestones",
+        "activation_phase_runs",
+        "activation_tool_readiness",
+        "activation_pr_evidence",
+        "activation_artifact_manifests",
+        "activation_blockers",
+        "activation_allowed_scopes",
+        "activation_blocked_scopes",
+        "activation_next_phases",
+        "activation_human_approvals",
+        "activation_sync_audit_log"
+      ],
+      "requiredTablesPresent": [
+        "activation_milestones",
+        "activation_phase_runs",
+        "activation_tool_readiness",
+        "activation_pr_evidence",
+        "activation_artifact_manifests",
+        "activation_blockers",
+        "activation_allowed_scopes",
+        "activation_blocked_scopes",
+        "activation_next_phases",
+        "activation_human_approvals",
+        "activation_sync_audit_log"
+      ]
+    },
+    "productionAffected": false,
+    "remoteSqlRun": false,
+    "trackBBackfillRowsWritten": false,
+    "blockers": []
+  },
+  "ownership": {
+    "thisPhaseOwns": "after-reference deploy/verify rerun reports and script namespace",
+    "pr212Owns": "approved staging target reference metadata",
+    "pr209Owns": "target proof and deploy delegation policy",
+    "pr206Owns": "plugin/CLI migration-safe deploy and verify path",
+    "pr198Owns": "future Track B metadata backfill write path"
+  },
+  "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "secretsIncluded": false,
+  "credentialPayloadsPrinted": false,
+  "remoteSqlRun": false,
+  "productionAffected": false,
+  "trackBRowsWritten": false,
+  "blockers": []
+}

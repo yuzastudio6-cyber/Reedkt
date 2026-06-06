@@ -1,0 +1,81 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "passed",
+  "sourcePr212": "https://github.com/yuzastudio6-cyber/Reedkt/pull/212",
+  "sourceReport": "docs/activation-supabase-approved-staging-target-reports/approved_staging_target_reference.json",
+  "approvedReferenceLoaded": true,
+  "approvedStagingProjectName": "Reeditpro",
+  "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+  "approvedEnvironment": "staging",
+  "credentialPayloadViewed": false,
+  "credentialPayloadPrinted": false,
+  "secretsIncluded": false,
+  "remoteSqlRun": false,
+  "migrationDeployment": false,
+  "productionAffected": false,
+  "delegatedReport": {
+    "status": "passed",
+    "approvedStagingTargetReferenceFound": true,
+    "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+    "approvedStagingProjectName": "Reeditpro",
+    "approvedEnvironment": "staging",
+    "approvedReferenceSource": "docs/supabase-approved-staging-target-reference.md",
+    "sourceFilesInspected": [
+      {
+        "file": "docs/supabase-approved-staging-target-reference.md",
+        "exists": true,
+        "hasApprovedStatusMarker": true,
+        "hasProjectRefMarker": true,
+        "hasEnvironmentMarker": true
+      },
+      {
+        "file": "docs/supabase-staging-target-proof-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-plugin-staging-target-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      }
+    ],
+    "safeReferencePolicy": {
+      "projectRefIsSafeMetadata": true,
+      "dbUrlIsForbidden": true,
+      "keysTokensPasswordsForbidden": true,
+      "pluginObservationAloneIsNotApproval": true,
+      "runtimeEnvRefAloneIsNotApproval": true
+    },
+    "runtimeProvidedReferenceIgnored": false,
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": []
+  },
+  "blockers": []
+}

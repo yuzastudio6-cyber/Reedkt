@@ -3,9 +3,9 @@
 ## Implementation Record
 
 - Branch: `codex/rp-foundation-26g-security-definer-exposure-migration-plan`
-- PR: pending
+- PR: [#227](https://github.com/yuzastudio6-cyber/Reedkt/pull/227)
 - Base branch: `origin/codex/rp-foundation-26f-function-search-path-hardening-migration-plan`
-- Status: open / pending validation
+- Status: open / local validation passed / CI pending
 - Production capability enabled: none; SECURITY DEFINER exposure migration plan only
 
 ## Scope

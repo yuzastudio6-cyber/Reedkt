@@ -89,7 +89,8 @@ Local validation was run on 2026-06-06 with the Codex-bundled Node/npm path.
 
 ## CI Status
 
-GitHub Foundation Validation: pending until the Prompt 26G PR is opened.
+- PR: [#227](https://github.com/yuzastudio6-cyber/Reedkt/pull/227).
+- GitHub Foundation Validation: pending.
 
 ## Next Prompt
 

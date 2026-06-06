@@ -74,7 +74,7 @@ If the local DB URL is missing or the six tables are absent locally, success mus
 
 ## CI Status
 
-GitHub Foundation Validation is pending for PR #217.
+GitHub Foundation Validation passed for PR #217 on run `27051016187`, job `79846462429`.
 
 ## Blockers
 
@@ -86,3 +86,7 @@ GitHub Foundation Validation is pending for PR #217.
 ## Next Prompt
 
 Prompt 26E-2 - RLS No-Policy Local Candidate Validation Fix if local candidate validation fails or local table evidence is incomplete. Prompt 26F - Function Search Path Hardening Migration Plan if RLS candidate preparation succeeds and function hardening is next priority.
+
+## Prompt 26E-2 Follow-Up Note
+
+Prompt 26E-2 retried the local validation path and remained blocked before `supabase start` or SQL execution. The local safety gates reported `supabase_cli_arch_mismatch`, `docker_daemon_unavailable`, and `local_db_url_missing`; no candidate migration/test bug was exposed.

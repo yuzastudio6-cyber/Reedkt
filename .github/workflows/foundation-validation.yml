@@ -55,6 +55,7 @@ on:
       - codex/rp-foundation-26c-supabase-advisor-draft-remediation-packet
       - codex/rp-foundation-26d-rls-no-policy-table-classification-contract
       - codex/rp-foundation-26e-rls-no-policy-draft-migration-plan
+      - codex/rp-foundation-26e1-rls-no-policy-local-migration-candidate
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

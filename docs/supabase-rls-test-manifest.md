@@ -39,6 +39,16 @@ Prompt 26E-1 adds a second local SQL candidate:
 
 The candidate is catalog-only and does not insert fixture rows. It verifies the Prompt 26E-1 RLS policy names and deny-only shape for `activation_artifacts`, `activation_qa_gates`, `activation_runs`, `feature_gates`, `readiness_snapshots`, and `tool_capabilities`.
 
+## Prompt 26E-2 Local Candidate Validation Fix Update
+
+Prompt 26E-2 retried local validation for `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql`, but no SQL ran.
+
+| File | Prompt 26E-2 status | Prompt 26E-2 execution result | Prompt 26E-2 blocker |
+| --- | --- | --- | --- |
+| `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` | local_executable_candidate | not_run | Preflight blocked local validation: `supabase_cli_arch_mismatch`, `docker_daemon_unavailable`, and `local_db_url_missing`. |
+
+The migration/test candidate remains unchanged because no candidate bug was exposed before the safety gates blocked execution.
+
 ## Prompt 20 Execution Update
 
 Prompt 20 added a local-only safety preflight and guarded RLS runner, but did not execute SQL or convert draft SQL files because the local target is blocked.

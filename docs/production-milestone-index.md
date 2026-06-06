@@ -6,6 +6,8 @@ This index locks the order of ReeditPro production runtime milestones. Milestone
 
 Current implementation item: Phase 18, activation baseline audit and real video testing roadmap. Milestone 17 completed static hardening policies, observability templates, sanitized logging, cost controls, privacy/retention policy, security review, beta scorecards, runbooks, and smoke validation. Phase 18 starts activation planning only; it is not automatic production launch.
 
+Foundation/Supabase staging schema deploy after approved target reference is a schema-only activation follow-up. It can resolve staging schema/RLS readiness for the future Track B milestone backfill, but it does not write Track B milestone rows, mutate production, deploy unrelated migrations, run providers, execute tools/workers/routes, process media, unlock beta/production, or touch Track A.
+
 Core rules for every milestone:
 
 - Workers execute approved plan snapshots, not raw chat.

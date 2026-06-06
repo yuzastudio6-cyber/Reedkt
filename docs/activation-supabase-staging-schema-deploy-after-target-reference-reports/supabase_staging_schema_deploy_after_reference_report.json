@@ -1,0 +1,58 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "blocked",
+  "sourcePr209": "https://github.com/yuzastudio6-cyber/Reedkt/pull/209",
+  "sourceReport": "docs/activation-supabase-staging-target-proof-reports/supabase_staging_schema_deploy_rerun_report.json",
+  "deployPerformed": false,
+  "migrationApplied": false,
+  "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+  "migrationId": "202606050001",
+  "migrationSafeWorkflowOnly": true,
+  "tempMigrationContextContainsOnlyRegistryMigration": true,
+  "dryRunRequiredBeforeApply": true,
+  "seedDeployAllowed": false,
+  "trackBRowsWritten": false,
+  "remoteSqlRun": false,
+  "directManualSqlRun": false,
+  "credentialPayloadsPrinted": false,
+  "secretPayloadsRead": false,
+  "productionAffected": false,
+  "delegatedReport": {
+    "phase": "supabase-staging-target-proof-deploy-rerun",
+    "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
+    "status": "blocked",
+    "selectedStrategy": "blocked_target_not_staging",
+    "deployPerformed": false,
+    "delegatedToPr206PluginDeploy": false,
+    "dryRunPerformed": false,
+    "migrationApplied": false,
+    "reason": "blocked_before_target_proof_deploy_rerun",
+    "migrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+    "migrationId": "202606050001",
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
+      "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+      "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION"
+    ],
+    "missingConfirmations": [
+      "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION"
+    ],
+    "credentialPayloadsPrinted": false,
+    "secretPayloadsRead": false,
+    "remoteSqlRun": false,
+    "directManualSqlRun": false,
+    "productionAffected": false,
+    "trackBRowsWritten": false,
+    "blockers": [
+      "staging_schema_deploy_not_confirmed",
+      "staging_schema_deploy_not_run"
+    ]
+  },
+  "blockers": [
+    "staging_schema_deploy_not_confirmed",
+    "staging_schema_deploy_not_run"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "blocked",
+  "selectedStrategy": "blocked_no_migration_safe_deploy_path",
+  "strategyOrder": [
+    "load_pr212_approved_staging_target_reference",
+    "confirm_plugin_target_matches_approved_staging_ref",
+    "delegate_to_pr209_pr206_migration_safe_deploy_path",
+    "blocked_no_migration_safe_deploy_path"
+  ],
+  "cliDbPushPreferred": true,
+  "dryRunRequiredBeforeApply": true,
+  "pluginMigrationSafeApplyAllowedOnlyIfMigrationHistorySafe": true,
+  "directManualSqlAllowed": false,
+  "seedDeployAllowed": false,
+  "trackBExportRowsAllowed": false,
+  "unrelatedMigrationsAllowed": false,
+  "delegatedReport": {
+    "phase": "supabase-staging-target-proof-deploy-rerun",
+    "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
+    "status": "passed",
+    "selectedStrategy": "blocked_target_not_staging",
+    "strategyOrder": [
+      "prove_repo_approved_staging_target",
+      "compare_plugin_project_to_approved_target",
+      "delegate_to_pr206_plugin_deploy",
+      "blocked_missing_approved_staging_reference",
+      "blocked_target_not_staging"
+    ],
+    "pr206DeployStrategy": {
+      "phase": "supabase-plugin-staging-milestone-registry-deploy-verify",
+      "runId": "supabase-plugin-staging-milestone-registry-deploy-verify-20260605",
+      "status": "blocked",
+      "selectedStrategy": "blocked_no_migration_safe_deploy_path",
+      "strategyOrder": [
+        "cli_db_push",
+        "plugin_migration_safe_apply",
+        "blocked_no_migration_safe_deploy_path",
+        "blocked_target_not_staging",
+        "blocked_credentials_unavailable"
+      ],
+      "cliDbPush": {
+        "available": false,
+        "stagingDbUrlProvided": false,
+        "stagingTargetConfirmedByPlugin": true,
+        "dryRunRequiredBeforeApply": true,
+        "sourceReport": "docs/activation-supabase-milestone-registry-staging-deploy-reports/staging_credential_preflight_report.json"
+      },
+      "pluginMigrationSafeApply": {
+        "availableToRepoCli": false,
+        "operatorPluginToolAvailableInCodexSession": true,
+        "allowedOnlyWhenTargetConfirmedStaging": true,
+        "directSqlFallbackAllowed": false,
+        "status": "not_available"
+      },
+      "blockedNoMigrationSafeDeployPathWhenOnlyDirectSqlExists": true,
+      "credentialPayloadsPrinted": false,
+      "productionAffected": false,
+      "trackBRowsWritten": false,
+      "blockers": [
+        "blocked_credentials_unavailable",
+        "cli_db_push_unavailable",
+        "blocked_no_migration_safe_deploy_path"
+      ]
+    },
+    "delegatedMigrationId": "202606050001",
+    "delegatedMigrationSafeWorkflowOnly": true,
+    "deploySeeds": false,
+    "deployTrackBExportRows": false,
+    "deployUnrelatedMigrations": false,
+    "rawAdHocSqlAllowed": false,
+    "credentialPayloadsPrinted": false,
+    "secretPayloadsRead": false,
+    "productionAffected": false,
+    "trackBRowsWritten": false,
+    "blockers": []
+  },
+  "credentialPayloadsPrinted": false,
+  "secretPayloadsRead": false,
+  "productionAffected": false,
+  "blockers": [
+    "blocked_credentials_unavailable",
+    "cli_db_push_unavailable",
+    "blocked_no_migration_safe_deploy_path"
+  ]
+}

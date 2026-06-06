@@ -1,0 +1,37 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "blocked",
+  "activeBlockers": [
+    "blocked_credentials_unavailable",
+    "cli_db_push_unavailable",
+    "blocked_no_migration_safe_deploy_path",
+    "staging_schema_deploy_not_confirmed",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verify_not_confirmed",
+    "staging_schema_verification_not_run"
+  ],
+  "expectedSafeBlockersWhenCredentialsOrCliAreMissing": [
+    "blocked_credentials_unavailable",
+    "cli_db_push_unavailable",
+    "blocked_no_migration_safe_deploy_path",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verification_not_run"
+  ],
+  "operatorActionRequired": "Resolve the exact credential, CLI, target-proof, or migration-safe deploy blocker before retrying staging schema deploy.",
+  "stillBlockedScopes": [
+    "track_b_backfill_write",
+    "production_supabase",
+    "production_sql",
+    "direct_manual_remote_sql",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock",
+    "track_a"
+  ]
+}

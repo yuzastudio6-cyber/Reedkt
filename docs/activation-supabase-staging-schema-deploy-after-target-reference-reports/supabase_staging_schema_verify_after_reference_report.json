@@ -1,0 +1,63 @@
+{
+  "phase": "supabase-staging-schema-deploy-after-target-reference",
+  "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
+  "status": "blocked",
+  "sourceReport": "docs/activation-supabase-staging-target-proof-reports/supabase_staging_schema_verify_after_target_proof_report.json",
+  "verificationPerformed": false,
+  "schemaMetadataOnly": true,
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "allowlistedReadOnlyCatalogQueriesOnly": true,
+  "remoteSqlRun": false,
+  "directManualSqlRun": false,
+  "credentialPayloadsPrinted": false,
+  "secretPayloadsRead": false,
+  "productionAffected": false,
+  "delegatedReport": {
+    "phase": "supabase-staging-target-proof-deploy-rerun",
+    "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
+    "status": "blocked",
+    "verificationPerformed": false,
+    "delegatedToPr206PluginVerify": false,
+    "reason": "verify_requires_successful_deploy_evidence_and_confirmation",
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
+      "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+      "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY"
+    ],
+    "allowlistedReadOnlyCatalogQueries": [
+      "migration history presence for 202606050001",
+      "registry table presence",
+      "registry table RLS enabled",
+      "public anon authenticated revokes and service-role-only grants"
+    ],
+    "credentialPayloadsPrinted": false,
+    "secretPayloadsRead": false,
+    "remoteSqlRun": false,
+    "directManualSqlRun": false,
+    "productionAffected": false,
+    "blockers": [
+      "staging_schema_deploy_not_confirmed",
+      "staging_schema_deploy_not_run",
+      "staging_schema_verify_not_confirmed",
+      "staging_schema_verification_not_run"
+    ]
+  },
+  "blockers": [
+    "staging_schema_deploy_not_confirmed",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verify_not_confirmed",
+    "staging_schema_verification_not_run"
+  ]
+}

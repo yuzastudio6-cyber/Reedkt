@@ -6,7 +6,7 @@ Prompt 26E-1 creates a local-only RLS no-policy advisor remediation candidate fr
 
 - Branch: `codex/rp-foundation-26e1-rls-no-policy-local-migration-candidate`.
 - Base: `origin/codex/rp-foundation-26e-rls-no-policy-draft-migration-plan`.
-- PR: pending.
+- PR: [#217](https://github.com/yuzastudio6-cyber/Reedkt/pull/217).
 - Exact capability enabled: none; local RLS policy candidate only.
 
 ## Scope

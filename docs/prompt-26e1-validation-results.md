@@ -6,7 +6,7 @@ Capability enabled: none; local RLS policy candidate only.
 
 - Branch: `codex/rp-foundation-26e1-rls-no-policy-local-migration-candidate`.
 - Base: `origin/codex/rp-foundation-26e-rls-no-policy-draft-migration-plan`.
-- PR: pending.
+- PR: [#217](https://github.com/yuzastudio6-cyber/Reedkt/pull/217).
 - Supabase update required: docs/status only.
 - Supabase update status: local_candidate_prepared.
 - Supabase environment touched: none.
@@ -74,7 +74,7 @@ If the local DB URL is missing or the six tables are absent locally, success mus
 
 ## CI Status
 
-GitHub Foundation Validation is pending until the PR is opened.
+GitHub Foundation Validation is pending for PR #217.
 
 ## Blockers
 

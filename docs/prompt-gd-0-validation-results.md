@@ -6,6 +6,8 @@ Branch: `codex/rp-gd-0-ai-tools-creative-graphics-repo-audit`
 
 Base: `origin/codex/rp-activation-53a-runtime-unlock-roadmap-owner-acceptance-audit`
 
+PR: [#231](https://github.com/yuzastudio6-cyber/Reedkt/pull/231)
+
 Production capability enabled: `none; AI Tools creative graphics repo audit only`
 
 ## Files Inspected

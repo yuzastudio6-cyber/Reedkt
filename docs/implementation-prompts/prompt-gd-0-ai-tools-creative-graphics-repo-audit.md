@@ -34,4 +34,4 @@ No implementation/runtime capability is added. The milestone produces repo audit
 
 ## PR
 
-PR link: pending.
+PR link: [#231](https://github.com/yuzastudio6-cyber/Reedkt/pull/231).

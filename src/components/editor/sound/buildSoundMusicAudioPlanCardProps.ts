@@ -18,6 +18,7 @@ import type {
   SoundToolResult,
   TimingAwareSoundCueManifest,
 } from '../../../types/audio-music'
+import type { SoundMusicAudioHandoffEvidenceReview } from './buildSoundMusicAudioHandoffEvidenceReview'
 
 export type SoundMusicAudioPlanCardMode = Extract<SoundExecutionMode, 'planning_only' | 'mock_preview_only'>
 
@@ -118,6 +119,7 @@ export interface SoundMusicAudioPlanCardProps {
   qaNotes?: string[]
   soundSyncNotes?: string[]
   accessSafety?: SoundMusicAudioAccessSafetySummary
+  evidenceReview?: SoundMusicAudioHandoffEvidenceReview
   onApproveMock?: () => void
   onReviseMock?: () => void
   onRemoveCueMock?: (cueId: string) => void

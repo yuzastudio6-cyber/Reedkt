@@ -14,6 +14,10 @@ import {
   type SoundMusicAudioCueGroups,
   type SoundMusicAudioPlanCardProps,
 } from './buildSoundMusicAudioPlanCardProps'
+import {
+  buildSoundMusicAudioHandoffEvidenceReview,
+} from './buildSoundMusicAudioHandoffEvidenceReview'
+import { SoundMusicAudioHandoffEvidenceReviewPanel } from './SoundMusicAudioHandoffEvidenceReview'
 import type { SoundCuePlan } from '../../../types/audio-music'
 
 function label(value: string | number | boolean | undefined): string {
@@ -137,6 +141,19 @@ export function SoundMusicAudioPlanCard(props: SoundMusicAudioPlanCardProps) {
     toolRequests: props.toolRequests,
   })
   const accessSafety = props.accessSafety ?? buildSoundMusicAudioAccessSafety(props.privateArtifactManifest)
+  const evidenceReview = props.evidenceReview ?? buildSoundMusicAudioHandoffEvidenceReview({
+    plan: props.plan,
+    timingManifest: props.timingManifest,
+    privateArtifactManifest: props.privateArtifactManifest,
+    handoffReadiness: props.handoffReadiness,
+    summary,
+    providerSummaries,
+    runtimeSummaries,
+    executionGateResults: props.executionGateResults,
+    handoffMetadata: props.handoffMetadata,
+    qaNotes,
+    accessSafety,
+  })
   const mode = props.mode ?? 'planning_only'
 
   return (
@@ -283,6 +300,8 @@ export function SoundMusicAudioPlanCard(props: SoundMusicAudioPlanCardProps) {
           {!props.plan.blockedUses.length && <span>Real generation remains fail-closed until future handoffs are complete.</span>}
         </div>
       </details>
+
+      <SoundMusicAudioHandoffEvidenceReviewPanel review={evidenceReview} />
 
       <details className="understanding-section">
         <summary>Handoff readiness</summary>

@@ -10,6 +10,7 @@ import {
   buildSoundMusicAudioSoundSyncNotes,
   type SoundMusicAudioPlanCardProps,
 } from './buildSoundMusicAudioPlanCardProps'
+import { buildSoundMusicAudioHandoffEvidenceReview } from './buildSoundMusicAudioHandoffEvidenceReview'
 import type {
   PrivateAudioArtifactManifest,
   SoundAgentPlan,
@@ -633,6 +634,38 @@ export function createMockSoundMusicAudioChatCardProps(
   const providerSummaries = buildSoundMusicAudioProviderSummaries(plan)
   const runtimeSummaries = buildSoundMusicAudioRuntimeSummaries(plan)
   const toolRequests = createMockToolRequests(cueIds)
+  const executionGateResults = createMockExecutionGateResults()
+  const handoffMetadata = createMockHandoffMetadata()
+  const qaNotes = buildSoundMusicAudioQaNotes({
+    plan,
+    qaWarnings: [
+      'Speech safety: music and ambience stay below dialogue until real audio QA exists.',
+      'No-random-SFX policy: each cue must support an edit event, visual motion, ambience need, or soundtrack purpose.',
+    ],
+  })
+  const soundSyncNotes = buildSoundMusicAudioSoundSyncNotes({
+    timingManifest,
+    toolRequests,
+  })
+  const accessSafety = buildSoundMusicAudioAccessSafety(privateArtifactManifest)
+  const summary = buildSoundMusicAudioPlanSummary({
+    plan,
+    cueGroups,
+    privateArtifactManifest,
+  })
+  const evidenceReview = buildSoundMusicAudioHandoffEvidenceReview({
+    plan,
+    timingManifest,
+    privateArtifactManifest,
+    handoffReadiness,
+    summary,
+    providerSummaries,
+    runtimeSummaries,
+    executionGateResults,
+    handoffMetadata,
+    qaNotes,
+    accessSafety,
+  })
 
   return {
     plan,
@@ -640,30 +673,18 @@ export function createMockSoundMusicAudioChatCardProps(
     privateArtifactManifest,
     handoffReadiness,
     toolRequests,
-    executionGateResults: createMockExecutionGateResults(),
-    handoffMetadata: createMockHandoffMetadata(),
+    executionGateResults,
+    handoffMetadata,
     mode: 'mock_preview_only',
     cueGroups,
-    summary: buildSoundMusicAudioPlanSummary({
-      plan,
-      cueGroups,
-      privateArtifactManifest,
-    }),
+    summary,
     providerSummaries,
     runtimeSummaries,
     lyriaPlanning: buildSoundMusicAudioLyriaPlanningMetadata({ cueGroups, providerSummaries }),
     handoffItems: buildSoundMusicAudioHandoffItems(handoffReadiness),
-    qaNotes: buildSoundMusicAudioQaNotes({
-      plan,
-      qaWarnings: [
-        'Speech safety: music and ambience stay below dialogue until real audio QA exists.',
-        'No-random-SFX policy: each cue must support an edit event, visual motion, ambience need, or soundtrack purpose.',
-      ],
-    }),
-    soundSyncNotes: buildSoundMusicAudioSoundSyncNotes({
-      timingManifest,
-      toolRequests,
-    }),
-    accessSafety: buildSoundMusicAudioAccessSafety(privateArtifactManifest),
+    qaNotes,
+    soundSyncNotes,
+    accessSafety,
+    evidenceReview,
   }
 }

@@ -756,4 +756,15 @@ Prompt 26E-2 - RLS No-Policy Local Candidate Validation Fix.
 - Must not implement: staging/remote/production Supabase, Google Cloud, Secret Manager, raw `psql`, SQL outside the guarded runner, provider/tool/worker/render/storage/credit/Stripe/telemetry execution, service-role handlers, grants, helper functions, indexes, public/authenticated writes, staging approval, production readiness, deployment, or beta unlock.
 - What remains blocked: local validation requires an arm64-compatible Supabase CLI, reachable local Docker daemon, and localhost-only local DB URL; staging execution still requires human approval, accepted evidence, Secret Manager reference gates, approved PR/commit/test set, rollback/cleanup, and final gate requirements.
 - Acceptance criteria: Prompt 26E-2 docs exist, validation records exact blockers, no candidate status is marked passed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
-- Next prompt recommendation: Prompt 26E-3 - Local RLS Candidate Toolchain or Schema Follow-Up, or Prompt 26F - Function Search Path Hardening Migration Plan.
+
+## 26E-3. Local RLS Candidate Toolchain/Schema Follow-Up
+
+Prompt 26E-3 - Local RLS Candidate Toolchain/Schema Follow-Up.
+
+- Purpose: determine whether the Prompt 26E-1 local RLS no-policy candidate can be validated in the current Codex environment without touching staging, remote, or production Supabase.
+- Deliverables after Prompt 26E-3: `docs/prompt-26e3-local-rls-candidate-toolchain-schema-follow-up.md`, `docs/prompt-26e3-validation-results.md`, `docs/implementation-prompts/prompt-26e3-local-rls-candidate-toolchain-schema-follow-up.md`, local evidence updates, manifest updates, blocker/scorecard updates, workflow trigger coverage for the Prompt 26E-2 base branch, and tracker updates.
+- Implementation status after Prompt 26E-3: `local_validation_blocked_by_codex_environment`; no local SQL run and no candidate bug exposed.
+- Implements: temporary outside-repo local CLI shim verification for Supabase CLI `2.104.0` and honest blocker recording for Docker daemon plus localhost DB URL gates.
+- What remains blocked: local Docker daemon is unavailable, no localhost-only local DB URL is verified, guarded local SQL has not run, staging/remote/production Supabase remain untouched, accepted evidence and Secret Manager references remain incomplete, and production beta remains blocked.
+- Acceptance criteria: Prompt 26E-3 docs exist, validation records exact blockers after CLI shim repair, no candidate status is marked passed, and no Supabase/Google Cloud/Secret Manager/SQL/runtime execution capability is enabled.
+- Next prompt recommendation: Prompt 26E-4 - Local RLS Candidate Toolchain or Schema Follow-Up, or Prompt 26F - Function Search Path Hardening Migration Plan.

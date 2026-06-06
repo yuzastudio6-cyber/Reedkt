@@ -90,7 +90,7 @@ A draft SQL file may become executable only when:
 ## Current Executable Test List
 
 - `database/test-sql/local/001_auth_workspace_minimal_local_rls.sql` - Prompt 20B/20B-Retry auth/profile/workspace/project candidate. Status: passed locally through the guarded runner in Prompt 20B-Retry after a fixture-only compatibility update for the local schema-era bridge.
-- `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` - Prompt 26E-1 catalog-only RLS no-policy advisor table candidate. Status after Prompt 26E-2: blocked pending local toolchain; run only through the guarded runner after preflight proves a localhost-only DB URL and `canRunLocalSql=true`. The test intentionally fails if any of the six advisor tables are absent and does not insert fixture rows because accepted column/schema evidence is incomplete.
+- `database/test-sql/local/002_rls_no_policy_advisor_tables_local.sql` - Prompt 26E-1 catalog-only RLS no-policy advisor table candidate. Status after Prompt 26E-3: local validation blocked by Codex environment; run only through the guarded runner after preflight proves a localhost-only DB URL and `canRunLocalSql=true`. The test intentionally fails if any of the six advisor tables are absent and does not insert fixture rows because accepted column/schema evidence is incomplete.
 
 ## Current Draft-Only Test List
 
@@ -155,3 +155,18 @@ Prompt 26E-2 attempted to validate `002_rls_no_policy_advisor_tables_local.sql`,
 - `local_db_url_missing`
 
 No SQL ran. The file remains a local executable candidate only, not local pass evidence.
+
+## Prompt 26E-3 Toolchain/Schema Follow-Up
+
+Prompt 26E-3 retried local validation and repaired the Supabase CLI path for the current shell with a temporary outside-repo shim:
+
+- Shim path: `/tmp/reeditpro-local-bin/supabase`
+- Shim CLI version: `2.104.0`
+- Committed artifact: none
+
+Local validation still blocked before `supabase start` or SQL:
+
+- `docker_daemon_unavailable`
+- `local_db_url_missing`
+
+Prompt 26E-3 did not expose a candidate bug, and the migration/test remain unchanged.

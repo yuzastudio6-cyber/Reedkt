@@ -5,6 +5,10 @@
   "reportDir": "docs/activation-supabase-staging-deploy-transport-reports",
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
+    "staging_secret_reference_discovery_report.json",
+    "staging_secret_reference_candidates.json",
+    "staging_secret_reference_blocker_report.json",
+    "staging_secret_reference_readiness_report.json",
     "staging_deploy_transport_preflight_report.json",
     "staging_deploy_transport_strategy_report.json",
     "staging_schema_deploy_transport_report.json",

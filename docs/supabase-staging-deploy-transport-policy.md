@@ -19,3 +19,24 @@ Blocked:
 - provider, route, worker, tool, media, beta, production, public output, and Track A paths
 
 If no migration-safe transport exists, the correct result is `blocked_no_migration_safe_deploy_path`.
+
+## Secret Manager Reference Discovery
+
+The transport may add metadata-only Secret Manager discovery reports. These reports can record project metadata, secret names, labels, create times, and reference-name recommendations, but they must never access or expose secret payloads.
+
+Allowed metadata discovery:
+
+- `gcloud config get-value project`
+- `gcloud secrets list --project=reeditpro --format=json(...)`
+- `gcloud secrets describe <secret> --project=reeditpro --format=json(...)`
+
+Forbidden:
+
+- Secret Manager payload reads or version-access operations
+- DB URL, password, token, service-role key, anon key, JWT secret, signed URL, provider key, or credential payload output
+- using `SUPABASE_URL` as a deploy DB URL
+- using `SUPABASE_SERVICE_ROLE_KEY` as a deploy DB URL
+
+Current metadata-only discovery classifies `SUPABASE_DB_URL` as the candidate DB URL reference with `medium` confidence. It remains blocked for deploy because the Secret Manager metadata lacks an `env=staging` label and because Codex has not viewed the payload. A future operator must securely inject the payload into `REEDITPRO_STAGING_SUPABASE_DB_URL`, with no logging, and then rerun the migration-safe transport gates.
+
+No Supabase SQL, migration deployment, Track B backfill, production mutation, route/tool/worker execution, media processing, provider call, or Track A work is authorized by Secret Manager reference discovery.

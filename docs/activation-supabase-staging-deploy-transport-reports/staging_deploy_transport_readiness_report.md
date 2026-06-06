@@ -11,5 +11,5 @@ This phase proves a migration-safe staging deploy transport for `supabase/migrat
 - Track B backfill rows written: no
 - Production affected: no
 - Direct/manual SQL run: no
-- Active blockers: supabase_plugin_staging_target_check_not_confirmed, supabase_plugin_target_not_confirmed_as_staging, staging_supabase_db_url_secret_reference_missing, blocked_credentials_unavailable, blocked_target_not_staging, cli_db_push_unavailable, npx_cli_db_push_unavailable, staging_schema_deploy_not_run, staging_schema_verification_not_run, staging_rls_verification_failed
-- Next: Resolve the exact CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker.
+- Active blockers: secret_manager_supabase_db_url_candidate_missing_staging_label, secure_secret_manager_env_injection_required, supabase_plugin_staging_target_check_not_confirmed, supabase_plugin_target_not_confirmed_as_staging, staging_supabase_db_url_secret_reference_missing, blocked_credentials_unavailable, blocked_target_not_staging, cli_db_push_unavailable, npx_cli_db_push_unavailable, staging_schema_deploy_not_run, staging_schema_verification_not_run, staging_rls_verification_failed
+- Next: Resolve the exact Secret Manager label/operator-injection, CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker.

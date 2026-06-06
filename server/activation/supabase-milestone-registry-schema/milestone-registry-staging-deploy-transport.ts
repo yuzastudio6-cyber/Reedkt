@@ -95,6 +95,10 @@ export const SUPABASE_STAGING_DB_URL_SECRET_REFERENCE_NAMES = [
 
 export const SUPABASE_STAGING_DEPLOY_TRANSPORT_EXPECTED_REPORTS = [
   'source_of_truth_ownership_audit.json',
+  'staging_secret_reference_discovery_report.json',
+  'staging_secret_reference_candidates.json',
+  'staging_secret_reference_blocker_report.json',
+  'staging_secret_reference_readiness_report.json',
   'staging_deploy_transport_preflight_report.json',
   'staging_deploy_transport_strategy_report.json',
   'staging_schema_deploy_transport_report.json',
@@ -120,6 +124,12 @@ type TransportStrategy =
 
 type TransportBlocker =
   | 'source_of_truth_ownership_audit_failed'
+  | 'secret_manager_metadata_discovery_unavailable'
+  | 'secret_manager_metadata_project_mismatch'
+  | 'secret_manager_supabase_db_url_candidate_missing'
+  | 'secret_manager_supabase_db_url_candidate_missing_staging_label'
+  | 'secret_manager_supabase_access_token_candidate_missing'
+  | 'secure_secret_manager_env_injection_required'
   | 'approved_staging_target_reference_missing'
   | 'supabase_plugin_staging_target_check_not_confirmed'
   | 'supabase_plugin_target_not_confirmed_as_staging'
@@ -161,8 +171,53 @@ interface OutputSummary {
   secretPatternDetected: boolean
 }
 
+interface SecretMetadata {
+  name: string
+  secretId: string
+  labels: Record<string, string>
+  annotations: Record<string, string>
+  replication: Record<string, unknown>
+  createTime: string | null
+  payloadViewed: false
+  secretValuesPrinted: false
+}
+
+interface SecretReferenceCandidate {
+  secretName: string
+  resourceName: string
+  candidateType:
+    | 'staging_supabase_db_url'
+    | 'supabase_project_url_not_db_url'
+    | 'service_role_key_not_db_url'
+    | 'optional_supabase_cli_access_token'
+  confidence: 'high' | 'medium' | 'low' | 'not_selected'
+  reason: string
+  environmentLabel: string | null
+  project: string
+  payloadViewed: false
+  secretValuesPrinted: false
+  selectedForDbUrlEnvInjection: boolean
+}
+
+interface SecretManagerMetadataCommandResult {
+  status: TransportStatus
+  exitCode: number | null
+  command: string
+  args: string[]
+  stdoutSummary: OutputSummary
+  stderrSummary: OutputSummary
+  parsedJson: boolean
+  payloadAccessAttempted: false
+  secretValuesPrinted: false
+  errorCategory?: string
+}
+
 interface TransportReports {
   sourceOfTruthOwnershipAudit: Record<string, unknown>
+  secretReferenceDiscoveryReport: Record<string, unknown>
+  secretReferenceCandidates: Record<string, unknown>
+  secretReferenceBlockerReport: Record<string, unknown>
+  secretReferenceReadinessReport: Record<string, unknown>
   preflightReport: Record<string, unknown>
   strategyReport: Record<string, unknown>
   schemaDeployTransportReport: Record<string, unknown>
@@ -214,6 +269,20 @@ const SECRET_PATTERNS = [
   /x-goog-signature=/i,
 ] as const
 
+const SECRET_MANAGER_PROJECT_ID = 'reeditpro'
+const SECRET_MANAGER_PROJECT_NUMBER = '390722338345'
+const SECRET_MANAGER_DISCOVERY_COMMANDS = [
+  'gcloud config get-value project',
+  'gcloud secrets list --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
+  'gcloud secrets describe SECRET_NAME --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
+] as const
+const SECRET_MANAGER_FORBIDDEN_PAYLOAD_OPERATIONS = [
+  'secret_version_payload_access',
+  'secret_version_payload_add',
+  'secret_version_payload_destroy',
+  'secret_version_payload_disable',
+] as const
+
 export function getSupabaseStagingDeployTransportPlan() {
   return {
     phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
@@ -247,6 +316,16 @@ export function getSupabaseStagingDeployTransportPlan() {
     allowedConfirmations: SUPABASE_STAGING_DEPLOY_TRANSPORT_ALLOWED_CONFIRMATIONS,
     forbiddenConfirmations: SUPABASE_STAGING_DEPLOY_TRANSPORT_FORBIDDEN_CONFIRMATIONS,
     approvedDbUrlSecretReferenceNames: SUPABASE_STAGING_DB_URL_SECRET_REFERENCE_NAMES,
+    secretManagerDiscovery: {
+      projectId: SECRET_MANAGER_PROJECT_ID,
+      projectNumber: SECRET_MANAGER_PROJECT_NUMBER,
+      metadataOnly: true,
+      allowedCommands: SECRET_MANAGER_DISCOVERY_COMMANDS,
+      forbiddenPayloadOperations: SECRET_MANAGER_FORBIDDEN_PAYLOAD_OPERATIONS,
+      recommendedDbUrlSecretRefEnv: 'REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF',
+      recommendedDbUrlSecretRef: 'SUPABASE_DB_URL',
+      optionalAccessTokenSecretRefEnv: 'SUPABASE_ACCESS_TOKEN_SECRET_REF',
+    },
     tempMigrationContextPolicy: {
       containsOnlyMigration: SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
       seedFilesIncluded: false,
@@ -271,6 +350,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
   rlsVerifyAfterTransportReport?: Record<string, unknown>
 } = {}): Promise<TransportReports> {
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
+  const secretReferenceDiscovery = await buildSecretManagerReferenceDiscovery()
   const approvedTargetReferenceReport = buildApprovedStagingTargetReferenceReport()
   const pluginTargetProofReport = buildSupabasePluginTargetPreflight()
   const secretReferenceGuardReport = buildSecretReferenceGuard()
@@ -296,6 +376,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
   const backfillReports = buildSupabaseTrackBBackfillReports()
   const blockers = collectUniqueBlockers(
     extractBlockers(sourceOfTruthOwnershipAudit),
+    extractBlockers(secretReferenceDiscovery.blockerReport),
     extractBlockers(preflightReport),
     extractBlockers(strategyReport),
     extractBlockers(schemaDeployTransportReport),
@@ -304,6 +385,10 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
   )
   return {
     sourceOfTruthOwnershipAudit,
+    secretReferenceDiscoveryReport: secretReferenceDiscovery.discoveryReport,
+    secretReferenceCandidates: secretReferenceDiscovery.candidatesReport,
+    secretReferenceBlockerReport: secretReferenceDiscovery.blockerReport,
+    secretReferenceReadinessReport: secretReferenceDiscovery.readinessReport,
     preflightReport,
     strategyReport,
     schemaDeployTransportReport,
@@ -331,6 +416,10 @@ export async function writeSupabaseStagingDeployTransportArtifacts(
   reportDir = SUPABASE_STAGING_DEPLOY_TRANSPORT_REPORT_DIR,
 ): Promise<void> {
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'source_of_truth_ownership_audit.json'), reports.sourceOfTruthOwnershipAudit)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_discovery_report.json'), reports.secretReferenceDiscoveryReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_candidates.json'), reports.secretReferenceCandidates)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_blocker_report.json'), reports.secretReferenceBlockerReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_readiness_report.json'), reports.secretReferenceReadinessReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_deploy_transport_preflight_report.json'), reports.preflightReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_deploy_transport_strategy_report.json'), reports.strategyReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_schema_deploy_transport_report.json'), reports.schemaDeployTransportReport)
@@ -617,6 +706,160 @@ function buildSourceOfTruthOwnershipAudit() {
     trackBBackfillWrites: false,
     directManualSqlRun: false,
     blockers,
+  }
+}
+
+async function buildSecretManagerReferenceDiscovery() {
+  const projectCommand = await runSecretManagerMetadataCommand(['config', 'get-value', 'project'])
+  const activeProjectId = projectCommand.stdout.trim() || null
+  const listCommand = await runSecretManagerMetadataCommand([
+    'secrets',
+    'list',
+    `--project=${SECRET_MANAGER_PROJECT_ID}`,
+    '--format=json(name,labels,replication,createTime,annotations)',
+  ])
+  const listedSecrets = parseSecretMetadataList(listCommand.stdout)
+  const candidateIds = [
+    'SUPABASE_DB_URL',
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    ...listedSecrets
+      .map((secret) => secret.secretId)
+      .filter((secretId) => /supabase.*(?:access|cli).*token|(?:access|cli).*token.*supabase/i.test(secretId)),
+  ]
+  const describedSecrets = new Map<string, SecretMetadata>()
+  const describeCommandReports: SecretManagerMetadataCommandResult[] = []
+  for (const secretId of [...new Set(candidateIds)]) {
+    const describeCommand = await runSecretManagerMetadataCommand([
+      'secrets',
+      'describe',
+      secretId,
+      `--project=${SECRET_MANAGER_PROJECT_ID}`,
+      '--format=json(name,labels,replication,createTime,annotations)',
+    ])
+    describeCommandReports.push(toMetadataCommandReport(describeCommand))
+    if (describeCommand.status === 'passed') {
+      const describedSecret = parseSecretMetadata(describeCommand.stdout)
+      if (describedSecret) describedSecrets.set(describedSecret.secretId, describedSecret)
+    }
+  }
+
+  const secrets = mergeSecretsById(listedSecrets, [...describedSecrets.values()])
+  const candidates = buildSecretReferenceCandidates(secrets)
+  const selectedDbUrlCandidate = candidates.find(
+    (candidate) => candidate.candidateType === 'staging_supabase_db_url',
+  )
+  const accessTokenCandidate = candidates.find(
+    (candidate) => candidate.candidateType === 'optional_supabase_cli_access_token',
+  )
+  const blockers: TransportBlocker[] = []
+  if (projectCommand.status !== 'passed' || listCommand.status !== 'passed') {
+    blockers.push('secret_manager_metadata_discovery_unavailable')
+  }
+  if (activeProjectId !== SECRET_MANAGER_PROJECT_ID) {
+    blockers.push('secret_manager_metadata_project_mismatch')
+  }
+  if (!selectedDbUrlCandidate) {
+    blockers.push('secret_manager_supabase_db_url_candidate_missing')
+  } else if (selectedDbUrlCandidate.environmentLabel !== 'staging') {
+    blockers.push('secret_manager_supabase_db_url_candidate_missing_staging_label')
+  }
+  blockers.push('secure_secret_manager_env_injection_required')
+
+  const shared = {
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    project: SECRET_MANAGER_PROJECT_ID,
+    projectNumber: SECRET_MANAGER_PROJECT_NUMBER,
+    payloadViewed: false,
+    secretValuesPrinted: false,
+    secretPayloadsRead: false,
+    credentialPayloadsPrinted: false,
+  }
+  const discoveryReport = {
+    ...shared,
+    status: projectCommand.status === 'passed' && listCommand.status === 'passed' ? 'passed' : 'blocked',
+    discoveryMode: 'google_cloud_secret_manager_metadata_only',
+    activeGcloudProject: activeProjectId,
+    activeProjectMatchesExpected: activeProjectId === SECRET_MANAGER_PROJECT_ID,
+    allowedCommands: SECRET_MANAGER_DISCOVERY_COMMANDS,
+    forbiddenPayloadOperations: SECRET_MANAGER_FORBIDDEN_PAYLOAD_OPERATIONS,
+    payloadAccessCommandRun: false,
+    secretVersionAccessRun: false,
+    metadataCommands: {
+      project: toMetadataCommandReport(projectCommand),
+      list: toMetadataCommandReport(listCommand),
+      describe: describeCommandReports,
+    },
+    secretCount: secrets.length,
+    candidateCount: candidates.length,
+    recommendedDbUrlSecretRef: selectedDbUrlCandidate?.secretName ?? null,
+    optionalAccessTokenSecretRef: accessTokenCandidate?.secretName ?? null,
+    blockers: projectCommand.status === 'passed' && listCommand.status === 'passed'
+      ? []
+      : ['secret_manager_metadata_discovery_unavailable'],
+  }
+  const candidatesReport = {
+    ...shared,
+    status: selectedDbUrlCandidate ? 'passed' : 'blocked',
+    candidates,
+    selectedDbUrlCandidate: selectedDbUrlCandidate?.secretName ?? null,
+    selectedDbUrlConfidence: selectedDbUrlCandidate?.confidence ?? null,
+    notSelectedAsDbUrl: candidates
+      .filter((candidate) => !candidate.selectedForDbUrlEnvInjection)
+      .map((candidate) => ({
+        secretName: candidate.secretName,
+        candidateType: candidate.candidateType,
+        reason: candidate.reason,
+      })),
+    recommendedEnvMapping: {
+      REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF: selectedDbUrlCandidate?.secretName ?? null,
+      SUPABASE_ACCESS_TOKEN_SECRET_REF: accessTokenCandidate?.secretName ?? null,
+    },
+    payloadAccessCommandRun: false,
+    blockers: selectedDbUrlCandidate ? [] : ['secret_manager_supabase_db_url_candidate_missing'],
+  }
+  const blockerReport = {
+    ...shared,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    blockers,
+    activeBlockers: blockers,
+    candidateDbUrlSecretRef: selectedDbUrlCandidate?.secretName ?? null,
+    candidateDbUrlConfidence: selectedDbUrlCandidate?.confidence ?? null,
+    optionalAccessTokenSecretRef: accessTokenCandidate?.secretName ?? null,
+    remainingBlocker:
+      'securely_inject_secret_manager_payload_into_REEDITPRO_STAGING_SUPABASE_DB_URL_and_rerun_transport',
+    payloadAccessCommandRun: false,
+  }
+  const readinessReport = {
+    ...shared,
+    status: 'blocked',
+    secretReferenceDiscoveryStatus: discoveryReport.status,
+    candidateDbUrlSecretRef: selectedDbUrlCandidate?.secretName ?? null,
+    candidateDbUrlEnvironmentLabel: selectedDbUrlCandidate?.environmentLabel ?? null,
+    candidateDbUrlConfidence: selectedDbUrlCandidate?.confidence ?? null,
+    optionalAccessTokenSecretRef: accessTokenCandidate?.secretName ?? null,
+    recommendedEnvMapping: {
+      REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF: selectedDbUrlCandidate?.secretName ?? null,
+      SUPABASE_ACCESS_TOKEN_SECRET_REF: accessTokenCandidate?.secretName ?? null,
+    },
+    deployTransportStillRequires: [
+      'secure_env_injection_to_REEDITPRO_STAGING_SUPABASE_DB_URL',
+      'usable_supabase_cli_or_confirmed_npx_supabase',
+      'current_shell_deploy_and_verify_confirmations',
+    ],
+    payloadAccessCommandRun: false,
+    supabaseSqlRun: false,
+    migrationDeployment: false,
+    trackBBackfillWrite: false,
+    productionAffected: false,
+    blockers,
+  }
+  return {
+    discoveryReport,
+    candidatesReport,
+    blockerReport,
+    readinessReport,
   }
 }
 
@@ -1016,6 +1259,8 @@ function buildBlockerReport(blockers: TransportBlocker[]) {
     status: blockers.length === 0 ? 'passed' : 'blocked',
     activeBlockers: blockers,
     expectedCurrentEnvironmentBlockers: [
+      'secret_manager_supabase_db_url_candidate_missing_staging_label',
+      'secure_secret_manager_env_injection_required',
       'staging_supabase_db_url_secret_reference_missing',
       'blocked_credentials_unavailable',
       'cli_db_push_unavailable',
@@ -1026,7 +1271,7 @@ function buildBlockerReport(blockers: TransportBlocker[]) {
     ],
     operatorActionRequired: blockers.length === 0
       ? 'No blocker recorded for staging deploy transport.'
-      : 'Resolve the exact CLI, npx, staging DB URL secret-reference, or target-proof blocker before retrying deploy.',
+      : 'Resolve the exact Secret Manager label/operator-injection, CLI, npx, staging DB URL secret-reference, or target-proof blocker before retrying deploy.',
     stillBlockedScopes: [
       'track_b_backfill_write',
       'milestone_data_insert',
@@ -1080,7 +1325,7 @@ function buildReadinessReport(
     blockers,
     nextRecommendedPhase: stagingSchemaVerified
       ? 'Rerun PR #198 guarded Track B staging backfill without schema mutation confirmations.'
-      : 'Resolve the exact CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker.',
+      : 'Resolve the exact Secret Manager label/operator-injection, CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker.',
   }
 }
 
@@ -1119,6 +1364,54 @@ function createTempDeployContext() {
       secretsIncluded: false,
     },
   }
+}
+
+interface RawSecretManagerMetadataCommand {
+  status: TransportStatus
+  exitCode: number | null
+  command: string
+  args: string[]
+  stdout: string
+  stderr: string
+  errorCategory?: string
+}
+
+function runSecretManagerMetadataCommand(args: string[], timeout = 60000): Promise<RawSecretManagerMetadataCommand> {
+  return new Promise((resolve) => {
+    try {
+      execFile('gcloud', args, {
+        cwd: process.cwd(),
+        shell: false,
+        timeout,
+        maxBuffer: 1024 * 1024,
+        env: process.env,
+      }, (error, stdout, stderr) => {
+        const err = error as NodeJS.ErrnoException & { code?: number | string }
+        const exitCode = typeof err?.code === 'number' ? err.code : error ? 1 : 0
+        resolve({
+          status: error ? 'blocked' : 'passed',
+          exitCode,
+          command: 'gcloud',
+          args: redactSecretManagerArgs(args),
+          stdout: stdout ?? '',
+          stderr: stderr ?? '',
+          errorCategory: error ? detectErrorCategory(`${stdout ?? ''}\n${stderr ?? ''}\n${error.message}`) : undefined,
+        })
+      })
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException
+      const output = error instanceof Error ? error.message : String(error)
+      resolve({
+        status: 'blocked',
+        exitCode: typeof err.errno === 'number' ? err.errno : 1,
+        command: 'gcloud',
+        args: redactSecretManagerArgs(args),
+        stdout: '',
+        stderr: output,
+        errorCategory: detectErrorCategory(output),
+      })
+    }
+  })
 }
 
 function runTransportCommand(command: string, args: string[], cwd: string, timeout = 60000): Promise<CommandResult> {
@@ -1198,6 +1491,153 @@ function getForbiddenConfirmationBlockers(): TransportBlocker[] {
 
 function redactArgs(args: string[]) {
   return args.map((arg, index) => args[index - 1] === '--db-url' ? '[REDACTED_STAGING_DB_URL]' : arg)
+}
+
+function redactSecretManagerArgs(args: string[]) {
+  return args.map((arg) => SECRET_MANAGER_PROJECT_ID === arg ? SECRET_MANAGER_PROJECT_ID : arg)
+}
+
+function toMetadataCommandReport(command: RawSecretManagerMetadataCommand): SecretManagerMetadataCommandResult {
+  return {
+    status: command.status,
+    exitCode: command.exitCode,
+    command: command.command,
+    args: command.args,
+    stdoutSummary: summarizeMetadataOutput(command.stdout),
+    stderrSummary: summarizeOutput(command.stderr),
+    parsedJson: command.status === 'passed',
+    payloadAccessAttempted: false,
+    secretValuesPrinted: false,
+    errorCategory: command.errorCategory,
+  }
+}
+
+function summarizeMetadataOutput(output: string): OutputSummary {
+  return {
+    byteLength: Buffer.byteLength(output, 'utf8'),
+    lineCount: output.length === 0 ? 0 : output.split(/\r?\n/).filter(Boolean).length,
+    secretPatternDetected: false,
+  }
+}
+
+function parseSecretMetadataList(stdout: string): SecretMetadata[] {
+  try {
+    const parsed = JSON.parse(stdout || '[]') as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed.map(parseSecretMetadata).filter((secret): secret is SecretMetadata => Boolean(secret))
+  } catch {
+    return []
+  }
+}
+
+function parseSecretMetadata(stdoutOrObject: string | unknown): SecretMetadata | null {
+  try {
+    const parsed = typeof stdoutOrObject === 'string'
+      ? JSON.parse(stdoutOrObject || '{}') as Record<string, unknown>
+      : stdoutOrObject as Record<string, unknown>
+    const name = typeof parsed.name === 'string' ? parsed.name : ''
+    const secretId = extractSecretId(name)
+    if (!name || !secretId) return null
+    return {
+      name,
+      secretId,
+      labels: isRecord(parsed.labels) ? stringifyRecord(parsed.labels) : {},
+      annotations: isRecord(parsed.annotations) ? stringifyRecord(parsed.annotations) : {},
+      replication: isRecord(parsed.replication) ? parsed.replication : {},
+      createTime: typeof parsed.createTime === 'string' ? parsed.createTime : null,
+      payloadViewed: false,
+      secretValuesPrinted: false,
+    }
+  } catch {
+    return null
+  }
+}
+
+function mergeSecretsById(...groups: SecretMetadata[][]): SecretMetadata[] {
+  const merged = new Map<string, SecretMetadata>()
+  for (const secret of groups.flat()) {
+    merged.set(secret.secretId, secret)
+  }
+  return [...merged.values()].sort((left, right) => left.secretId.localeCompare(right.secretId))
+}
+
+function buildSecretReferenceCandidates(secrets: SecretMetadata[]): SecretReferenceCandidate[] {
+  const candidates: SecretReferenceCandidate[] = []
+  const addCandidate = (
+    secret: SecretMetadata,
+    candidateType: SecretReferenceCandidate['candidateType'],
+    confidence: SecretReferenceCandidate['confidence'],
+    reason: string,
+    selectedForDbUrlEnvInjection: boolean,
+  ) => {
+    candidates.push({
+      secretName: secret.secretId,
+      resourceName: secret.name,
+      candidateType,
+      confidence,
+      reason,
+      environmentLabel: secret.labels.env ?? secret.labels.environment ?? null,
+      project: SECRET_MANAGER_PROJECT_ID,
+      payloadViewed: false,
+      secretValuesPrinted: false,
+      selectedForDbUrlEnvInjection,
+    })
+  }
+  for (const secret of secrets) {
+    if (secret.secretId === 'SUPABASE_DB_URL') {
+      const environmentLabel = secret.labels.env ?? secret.labels.environment
+      addCandidate(
+        secret,
+        'staging_supabase_db_url',
+        environmentLabel === 'staging' ? 'high' : 'medium',
+        environmentLabel === 'staging'
+          ? 'Exact DB URL secret name has staging environment label.'
+          : 'Exact DB URL secret name exists, but no staging environment label was present in Secret Manager metadata.',
+        true,
+      )
+    } else if (secret.secretId === 'SUPABASE_URL') {
+      addCandidate(
+        secret,
+        'supabase_project_url_not_db_url',
+        'not_selected',
+        'Secret is labeled staging, but it is the Supabase API/project URL, not the Postgres DB connection URL required by supabase db push --db-url.',
+        false,
+      )
+    } else if (secret.secretId === 'SUPABASE_SERVICE_ROLE_KEY') {
+      addCandidate(
+        secret,
+        'service_role_key_not_db_url',
+        'not_selected',
+        'Secret is labeled staging, but service-role key payloads are forbidden for deploy transport and must not be used as --db-url.',
+        false,
+      )
+    } else if (/supabase.*(?:access|cli).*token|(?:access|cli).*token.*supabase/i.test(secret.secretId)) {
+      addCandidate(
+        secret,
+        'optional_supabase_cli_access_token',
+        secret.labels.env === 'staging' ? 'high' : 'low',
+        'Name resembles an optional Supabase CLI access-token reference; payload remains unread and this is not required for DB URL transport.',
+        false,
+      )
+    }
+  }
+  return candidates
+}
+
+function extractSecretId(resourceName: string) {
+  return resourceName.split('/secrets/')[1] ?? ''
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function stringifyRecord(record: Record<string, unknown>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(record)
+      .filter(([, value]) => typeof value === 'string')
+      .map(([key, value]) => [key, value as string]),
+  )
 }
 
 function summarizeOutput(output: string): OutputSummary {

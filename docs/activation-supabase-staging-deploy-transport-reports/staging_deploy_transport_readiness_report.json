@@ -16,6 +16,8 @@
   "workerExecution": "not_run",
   "trackA": "not_touched",
   "blockers": [
+    "secret_manager_supabase_db_url_candidate_missing_staging_label",
+    "secure_secret_manager_env_injection_required",
     "supabase_plugin_staging_target_check_not_confirmed",
     "supabase_plugin_target_not_confirmed_as_staging",
     "staging_supabase_db_url_secret_reference_missing",
@@ -27,5 +29,5 @@
     "staging_schema_verification_not_run",
     "staging_rls_verification_failed"
   ],
-  "nextRecommendedPhase": "Resolve the exact CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker."
+  "nextRecommendedPhase": "Resolve the exact Secret Manager label/operator-injection, CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker."
 }

@@ -67,9 +67,17 @@ for (const required of [
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
   'SUPABASE_STAGING_DB_URL',
   'STAGING_SUPABASE_DB_URL',
+  'SUPABASE_DB_URL',
+  'REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF',
+  'SUPABASE_ACCESS_TOKEN_SECRET_REF',
   'REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED',
   'npx_cli_db_push',
   '--dry-run',
+  'gcloud',
+  'secrets',
+  'describe',
+  'secretVersionAccessRun: false',
+  'payloadAccessCommandRun: false',
   'directManualSqlAllowed: false',
   'trackBRowsWritten: false',
   'productionAffected: false',
@@ -85,6 +93,9 @@ for (const forbidden of [
   'REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE=true',
   'execute_sql',
   'supabase.from(',
+  'secrets versions access',
+  "'versions', 'access'",
+  '"versions", "access"',
   'from "../track-a',
   'from "../../track-a',
   'OPENAI_API_KEY',
@@ -128,6 +139,35 @@ const baselineDeploy = baselineReports.schemaDeployTransportReport as {
   productionAffected?: boolean
   directManualSqlRun?: boolean
 }
+const baselineSecretDiscovery = baselineReports.secretReferenceDiscoveryReport as {
+  payloadAccessCommandRun?: boolean
+  secretVersionAccessRun?: boolean
+  recommendedDbUrlSecretRef?: string | null
+  optionalAccessTokenSecretRef?: string | null
+}
+const baselineSecretCandidates = baselineReports.secretReferenceCandidates as {
+  selectedDbUrlCandidate?: string | null
+  selectedDbUrlConfidence?: string | null
+  recommendedEnvMapping?: {
+    REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF?: string | null
+    SUPABASE_ACCESS_TOKEN_SECRET_REF?: string | null
+  }
+  candidates?: Array<{
+    secretName?: string
+    candidateType?: string
+    selectedForDbUrlEnvInjection?: boolean
+    payloadViewed?: boolean
+    secretValuesPrinted?: boolean
+  }>
+}
+const baselineSecretReadiness = baselineReports.secretReferenceReadinessReport as {
+  candidateDbUrlSecretRef?: string | null
+  optionalAccessTokenSecretRef?: string | null
+  payloadAccessCommandRun?: boolean
+  supabaseSqlRun?: boolean
+  migrationDeployment?: boolean
+  trackBBackfillWrite?: boolean
+}
 assert(baselinePreflight.npxPreflightReport?.status === 'skipped', 'npx preflight must skip without confirmation.')
 assert(baselinePreflight.npxPreflightReport?.npxDownloadAttempted === false, 'npx must not download without confirmation.')
 assert(
@@ -146,6 +186,47 @@ assert(baselineDeploy.dryRunPerformed === false, 'Smoke must not run dry-run.')
 assert(baselineDeploy.trackBRowsWritten === false, 'Smoke must not write Track B rows.')
 assert(baselineDeploy.productionAffected === false, 'Smoke must not affect production.')
 assert(baselineDeploy.directManualSqlRun === false, 'Smoke must not run direct/manual SQL.')
+assert(baselineSecretDiscovery.payloadAccessCommandRun === false, 'Secret Manager discovery must not access payloads.')
+assert(baselineSecretDiscovery.secretVersionAccessRun === false, 'Secret Manager discovery must not run secret-version access.')
+assert(
+  baselineSecretDiscovery.recommendedDbUrlSecretRef === 'SUPABASE_DB_URL',
+  'Secret Manager discovery must classify SUPABASE_DB_URL as the candidate DB URL ref.',
+)
+assert(
+  baselineSecretDiscovery.optionalAccessTokenSecretRef === null,
+  'Secret Manager discovery should record no optional Supabase access-token candidate when none is present.',
+)
+assert(
+  baselineSecretCandidates.selectedDbUrlCandidate === 'SUPABASE_DB_URL' &&
+    baselineSecretCandidates.selectedDbUrlConfidence === 'medium',
+  'Secret Manager candidates must select SUPABASE_DB_URL with medium confidence until staging label/operator injection is present.',
+)
+assert(
+  baselineSecretCandidates.recommendedEnvMapping?.REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF === 'SUPABASE_DB_URL' &&
+    baselineSecretCandidates.recommendedEnvMapping?.SUPABASE_ACCESS_TOKEN_SECRET_REF === null,
+  'Secret Manager report must emit reference-name-only env mapping.',
+)
+const candidateTypesByName = new Map(
+  (baselineSecretCandidates.candidates ?? []).map((candidate) => [candidate.secretName, candidate]),
+)
+assert(
+  candidateTypesByName.get('SUPABASE_URL')?.candidateType === 'supabase_project_url_not_db_url',
+  'SUPABASE_URL must be classified as a project URL, not a deploy DB URL.',
+)
+assert(
+  candidateTypesByName.get('SUPABASE_SERVICE_ROLE_KEY')?.candidateType === 'service_role_key_not_db_url',
+  'SUPABASE_SERVICE_ROLE_KEY must not be treated as a deploy DB URL.',
+)
+assert(
+  (baselineSecretCandidates.candidates ?? []).every(
+    (candidate) => candidate.payloadViewed === false && candidate.secretValuesPrinted === false,
+  ),
+  'Secret Manager candidates must record names only, never payloads.',
+)
+assert(baselineSecretReadiness.payloadAccessCommandRun === false, 'Secret readiness must not access payloads.')
+assert(baselineSecretReadiness.supabaseSqlRun === false, 'Secret readiness must not run Supabase SQL.')
+assert(baselineSecretReadiness.migrationDeployment === false, 'Secret readiness must not deploy migrations.')
+assert(baselineSecretReadiness.trackBBackfillWrite === false, 'Secret readiness must not write Track B backfill rows.')
 
 process.env.REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF = 'true'
 process.env.REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK = 'true'
@@ -183,6 +264,8 @@ for (const forbidden of [
   '"serviceRoleKey":',
   '"secretValue"',
   '"signedUrl"',
+  'secrets versions access',
+  'gcloud secrets versions',
   'private-user-images.githubusercontent.com',
 ]) {
   assert(!reportText.includes(forbidden), `Transport reports must not include forbidden payload: ${forbidden}`)
@@ -195,6 +278,9 @@ console.log(JSON.stringify({
   expectedReports: SUPABASE_STAGING_DEPLOY_TRANSPORT_EXPECTED_REPORTS.length,
   npxSkippedWithoutConfirmation: true,
   targetProofPassesWithAllowedConfirmations: true,
+  secretManagerCandidateDbUrlRef: 'SUPABASE_DB_URL',
+  secretManagerAccessTokenCandidate: null,
+  secretManagerPayloadAccess: false,
   deployPerformed: false,
   trackBRowsWritten: false,
   productionAffected: false,

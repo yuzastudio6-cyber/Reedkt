@@ -74,7 +74,9 @@ Commands were run with the Codex-bundled Node path because the default local `no
 
 ## CI Status
 
-GitHub Foundation Validation: rerun pending after workflow Node pin to match the Codex local Node 24.14 path and package-lock sync for two optional transitive `@emnapi` metadata entries already referenced by the existing Rolldown WASM optional binding. No `package.json` dependency was added and no runtime capability was enabled.
+GitHub Foundation Validation: passed on run `27077681267`, job `79917731949`.
+
+CI note: the workflow uses Node 24.14 and the package-lock contains two optional transitive `@emnapi` metadata entries already referenced by the existing Rolldown WASM optional binding. No `package.json` dependency was added and no runtime capability was enabled.
 
 ## Boundaries
 

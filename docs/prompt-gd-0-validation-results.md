@@ -74,7 +74,7 @@ Commands were run with the Codex-bundled Node path because the default local `no
 
 ## CI Status
 
-GitHub Foundation Validation: rerun pending after workflow Node pin to match the Codex local Node 24.14 path. The first run failed before validation because GitHub's floating Node 24 image used npm 11.13 and rejected the activation-base lockfile on Linux. No dependency metadata was changed.
+GitHub Foundation Validation: rerun pending after workflow Node pin to match the Codex local Node 24.14 path and package-lock sync for two optional transitive `@emnapi` metadata entries already referenced by the existing Rolldown WASM optional binding. No `package.json` dependency was added and no runtime capability was enabled.
 
 ## Boundaries
 

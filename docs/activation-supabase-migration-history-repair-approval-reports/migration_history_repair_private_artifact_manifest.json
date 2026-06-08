@@ -1,0 +1,28 @@
+{
+  "phase": "supabase-migration-history-repair-approval",
+  "runId": "supabase-migration-history-repair-approval-20260608",
+  "status": "committed_safe_metadata_only",
+  "reportDir": "docs/activation-supabase-migration-history-repair-approval-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "migration_history_repair_approval_plan.json",
+    "migration_history_evidence_inventory.json",
+    "migration_history_local_remote_comparison.json",
+    "migration_history_repair_candidate_plan.json",
+    "migration_history_repair_risk_report.json",
+    "migration_history_repair_operator_checklist.json",
+    "migration_history_repair_approval_decision.json",
+    "migration_history_repair_blocker_report.json",
+    "migration_history_repair_readiness_report.json",
+    "migration_history_repair_private_artifact_manifest.json"
+  ],
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "secretsCommitted": false,
+  "credentialPayloadsPrinted": false,
+  "sqlExecuted": false,
+  "migrationRepairRun": false,
+  "migrationDeployed": false,
+  "stagingDataWritten": false,
+  "productionAffected": false
+}

@@ -1,0 +1,20 @@
+{
+  "phase": "supabase-migration-history-repair-approval",
+  "runId": "supabase-migration-history-repair-approval-20260608",
+  "status": "blocked",
+  "overallRisk": "high",
+  "targetRisk": "low_staging_target_confirmed",
+  "historyMismatchRisk": "high",
+  "schemaDriftRisk": "high",
+  "productionRisk": "low_production_explicitly_excluded",
+  "rollbackRisk": "medium_history_repair_reversal_requires_separate_reverted_command_review",
+  "trackBBackfillImpact": "blocked_no_rows_written",
+  "directSqlRisk": "low_direct_sql_forbidden",
+  "secretExposureRisk": "low_reports_redacted",
+  "remoteSchemaEquivalenceProven": false,
+  "remoteUnknownMigrationIds": [],
+  "candidateVersionCount": 12,
+  "blockers": [
+    "remote_schema_equivalence_not_proven"
+  ]
+}

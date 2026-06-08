@@ -4,7 +4,7 @@ Status: `local_validation_passed_with_local_build_environment_blocker`
 
 Branch: `codex/rp-gd-4-ai-tools-creative-graphics-static-fixture-gate-review`
 Base: `origin/codex/rp-gd-3-ai-tools-creative-graphics-generated-local-fixture-candidates`
-PR: pending
+PR: [#240](https://github.com/yuzastudio6-cyber/Reedkt/pull/240)
 
 Production capability enabled: `none; AI Tools creative graphics static fixture gate review only`
 
@@ -79,7 +79,7 @@ Local validation recorded:
 
 ## CI Status
 
-GitHub Foundation Validation: pending PR creation.
+GitHub Foundation Validation: pending.
 
 ## Cross-Chat Impact
 

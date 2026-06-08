@@ -1,26 +1,13 @@
-# Supabase Staging Migration-History Repair Execution Prompt
+# Supabase Staging Migration-History Repair Execution
 
-Use only after a separate human/product approval provides remote schema equivalence evidence for the repair versions listed in the approval packet.
+Status: blocked.
 
-Scope:
+The remote schema equivalence review did not approve repair execution.
 
-- Run only the approved `supabase migration repair ... --status applied --db-url [REDACTED_STAGING_DB_URL]` command.
-- Use the approved staging target `Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`.
-- Do not deploy schema in the repair phase unless a later prompt explicitly adds it.
-- After repair, rerun PR #223 migration-history audit and full-repo dry-run.
-- Only after a passing dry-run may a separate PR #223 deploy phase apply `202606050001_activation_milestone_registry_schema_rls.sql`.
+Missing evidence:
+- Decision: `blocked_pending_remote_history_evidence`
+- Overall equivalence: `insufficient_evidence`
+- Required repair versions still under review: `202605180001 202605180002 202605180003 202605180004 202605180005 202605180006 202605180007 202605180008 202605190002 202605200001 202605200002 202605210001`
+- Evidence report: `docs/activation-supabase-remote-schema-equivalence-reports/remote_schema_equivalence_comparison_report.json`
 
-Forbidden:
-
-- production Supabase
-- direct/manual SQL
-- schema DDL/DML
-- Track B backfill writes
-- seed data
-- provider calls
-- tool, worker, route, or media execution
-- Track A
-- secret payload printing or committed credentials
-- beta or production unlock
-
-The repair execution phase must fail closed if the exact approved repair versions, staging target, credential redaction, or post-repair dry-run gates do not match the approval packet.
+Do not run `supabase migration repair`, schema deploy, Track B backfill, production SQL, direct DDL/DML, providers, tools/workers/routes, media, Track A, beta, or production unlock.

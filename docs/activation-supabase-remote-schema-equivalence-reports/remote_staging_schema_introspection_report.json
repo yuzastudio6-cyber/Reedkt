@@ -1,0 +1,47 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "mode": "readonly_catalog_introspection",
+  "reviewExecuted": true,
+  "approvedDbUrlEnvNames": [
+    "REEDITPRO_STAGING_SUPABASE_DB_URL",
+    "SUPABASE_STAGING_DB_URL",
+    "STAGING_SUPABASE_DB_URL"
+  ],
+  "dbUrlEnvPresent": false,
+  "dbUrlEnvName": null,
+  "dbUrlValuePrinted": false,
+  "dbUrlTargetMatchedApprovedStaging": false,
+  "credentialPayloadsPrinted": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "psqlAvailable": true,
+  "psqlVersionChecked": true,
+  "psqlVersionSummary": "psql (PostgreSQL) 18.4 (Postgres.app)",
+  "productionTouched": false,
+  "directDdlDmlRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "forbiddenConfirmationsSet": [],
+  "status": "blocked",
+  "inspectedCatalogs": [],
+  "queryReports": [],
+  "catalog": {
+    "tables": [],
+    "columns": [],
+    "constraints": [],
+    "indexes": [],
+    "policies": [],
+    "rls": [],
+    "triggers": [],
+    "functions": [],
+    "types": [],
+    "extensions": [],
+    "storageBuckets": [],
+    "migrationHistory": []
+  },
+  "blockers": [
+    "staging_db_url_unavailable_for_readonly_introspection"
+  ]
+}

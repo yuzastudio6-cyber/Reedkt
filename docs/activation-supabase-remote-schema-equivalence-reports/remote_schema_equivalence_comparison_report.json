@@ -1,0 +1,202 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "status": "blocked",
+  "overallEquivalence": "insufficient_evidence",
+  "remoteIntrospectionStatus": "blocked",
+  "missingMigrationCount": 12,
+  "equivalentMigrationCount": 0,
+  "unknownMigrationCount": 12,
+  "notEquivalentMigrationCount": 0,
+  "perMigrationResults": [
+    {
+      "version": "202605180001",
+      "migrationFile": "supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 72,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605180002",
+      "migrationFile": "supabase/migrations/202605180002_reeditpro_media_source_sequence.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 53,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605180003",
+      "migrationFile": "supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 79,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605180004",
+      "migrationFile": "supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 95,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605180005",
+      "migrationFile": "supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 84,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605180006",
+      "migrationFile": "supabase/migrations/202605180006_reeditpro_qa_exports_audit.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 74,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605180007",
+      "migrationFile": "supabase/migrations/202605180007_reeditpro_rls_policies.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 144,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605180008",
+      "migrationFile": "supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 12,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605190002",
+      "migrationFile": "supabase/migrations/202605190002_storytiming_master_tables.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 26,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605200001",
+      "migrationFile": "supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 12,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605200002",
+      "migrationFile": "supabase/migrations/202605200002_worker_leases_runtime_transport.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 65,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    {
+      "version": "202605210001",
+      "migrationFile": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "equivalent": "unknown",
+      "confidence": "low",
+      "expectedObjectCount": 184,
+      "observedObjectCount": 0,
+      "missingObjects": [
+        "remote_catalog_introspection_unavailable"
+      ],
+      "observedObjects": [],
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    }
+  ],
+  "confidence": "low",
+  "productionTouched": false,
+  "directDdlDmlRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "blockers": [
+    "remote_schema_equivalence_not_proven"
+  ]
+}

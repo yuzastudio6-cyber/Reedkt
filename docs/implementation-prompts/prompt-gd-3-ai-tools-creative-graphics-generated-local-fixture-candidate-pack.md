@@ -49,4 +49,4 @@ No runtime implementation, Supabase mutation, SQL execution, Google Cloud API ca
 
 ## PR
 
-PR link: pending.
+PR link: [#237](https://github.com/yuzastudio6-cyber/Reedkt/pull/237).

@@ -4,7 +4,7 @@ Status: `local_validation_passed_with_local_build_environment_blocker`
 
 Branch: `codex/rp-gd-3-ai-tools-creative-graphics-generated-local-fixture-candidates`
 Base: `origin/codex/rp-gd-2-ai-tools-creative-graphics-dry-run-fixture-pack`
-PR: pending
+PR: [#237](https://github.com/yuzastudio6-cyber/Reedkt/pull/237)
 
 Production capability enabled: `none; AI Tools creative graphics generated/local fixture candidate pack only`
 
@@ -111,7 +111,7 @@ Local validation recorded:
 
 ## CI Status
 
-GitHub Foundation Validation: pending PR creation.
+GitHub Foundation Validation: pending.
 
 ## Cross-Chat Impact
 

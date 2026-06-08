@@ -6,6 +6,9 @@ export {
   SoundMusicAudioDryRunEvidencePanel,
 } from './SoundMusicAudioDryRunEvidencePanel'
 export {
+  SoundMusicAudioFixtureSpecHandoffPanel,
+} from './SoundMusicAudioFixtureSpecHandoffPanel'
+export {
   buildSoundMusicAudioHandoffEvidenceReview,
   type BuildSoundMusicAudioHandoffEvidenceReviewInput,
   type SoundMusicAudioBlockedUseOwnerMapping,
@@ -31,6 +34,12 @@ export {
   type SoundMusicAudioDryRunUnlockStage,
   type SoundMusicAudioDryRunWorkerRuntimeEvidence,
 } from './buildSoundMusicAudioDryRunEvidence'
+export {
+  buildSoundMusicAudioFixtureSpecHandoff,
+  type SoundMusicAudioFixtureSpecGateDisplay,
+  type SoundMusicAudioFixtureSpecHandoffDisplay,
+  type SoundMusicAudioFixtureSpecOwnerDisplay,
+} from './buildSoundMusicAudioFixtureSpecHandoff'
 export {
   createMockSoundMusicAudioChatCardProps,
   type MockSoundMusicAudioChatCardOptions,

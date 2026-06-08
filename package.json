@@ -32,6 +32,7 @@
     "smoke:sound-music-audio-handoff-evidence": "tsx server/smoke/sound-music-audio-handoff-evidence-smoke.ts",
     "smoke:sound-music-audio-dry-run-contracts": "tsx server/smoke/sound-music-audio-dry-run-contracts-smoke.ts",
     "smoke:sound-music-audio-dry-run-evidence-card": "tsx server/smoke/sound-music-audio-dry-run-evidence-card-smoke.ts",
+    "smoke:sound-music-audio-generated-local-fixture-plan": "tsx server/smoke/sound-music-audio-generated-local-fixture-plan-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

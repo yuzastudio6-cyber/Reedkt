@@ -9,6 +9,9 @@ export {
   SoundMusicAudioFixtureSpecHandoffPanel,
 } from './SoundMusicAudioFixtureSpecHandoffPanel'
 export {
+  SoundMusicAudioOwnerAcceptanceChecklistPanel,
+} from './SoundMusicAudioOwnerAcceptanceChecklistPanel'
+export {
   buildSoundMusicAudioHandoffEvidenceReview,
   type BuildSoundMusicAudioHandoffEvidenceReviewInput,
   type SoundMusicAudioBlockedUseOwnerMapping,
@@ -40,6 +43,11 @@ export {
   type SoundMusicAudioFixtureSpecHandoffDisplay,
   type SoundMusicAudioFixtureSpecOwnerDisplay,
 } from './buildSoundMusicAudioFixtureSpecHandoff'
+export {
+  buildSoundMusicAudioOwnerAcceptanceChecklist,
+  type SoundMusicAudioOwnerAcceptanceChecklistDisplay,
+  type SoundMusicAudioOwnerAcceptanceGateDisplay,
+} from './buildSoundMusicAudioOwnerAcceptanceChecklist'
 export {
   createMockSoundMusicAudioChatCardProps,
   type MockSoundMusicAudioChatCardOptions,

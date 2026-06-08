@@ -16,7 +16,9 @@ import {
   type SoundMusicAudioDryRunEvidenceDisplay,
 } from './buildSoundMusicAudioDryRunEvidence'
 import { buildSoundMusicAudioFixtureSpecHandoff } from './buildSoundMusicAudioFixtureSpecHandoff'
+import { buildSoundMusicAudioOwnerAcceptanceChecklist } from './buildSoundMusicAudioOwnerAcceptanceChecklist'
 import { SOUND_MUSIC_AUDIO_GENERATED_LOCAL_FIXTURE_SPEC } from '../../../backend/mock/mock-sound-music-audio-generated-local-fixture-spec'
+import { SOUND_MUSIC_AUDIO_OWNER_ACCEPTANCE_CHECKLIST } from '../../../backend/mock/mock-sound-music-audio-owner-acceptance-checklist'
 import type {
   PrivateAudioArtifactManifest,
   SoundAgentPlan,
@@ -894,5 +896,6 @@ export function createMockSoundMusicAudioChatCardProps(
     evidenceReview,
     dryRunEvidence,
     fixtureSpecHandoff: buildSoundMusicAudioFixtureSpecHandoff(SOUND_MUSIC_AUDIO_GENERATED_LOCAL_FIXTURE_SPEC),
+    ownerAcceptanceChecklist: buildSoundMusicAudioOwnerAcceptanceChecklist(SOUND_MUSIC_AUDIO_OWNER_ACCEPTANCE_CHECKLIST),
   }
 }

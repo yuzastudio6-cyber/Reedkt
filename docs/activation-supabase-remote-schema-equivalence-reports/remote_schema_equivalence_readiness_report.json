@@ -6,7 +6,7 @@
   "approvedForFutureRepair": false,
   "supabaseUpdateStatus": "evidence_review_only",
   "supabaseEnvironmentTouched": "staging_readonly_catalog_only_if_confirmed",
-  "sqlExecuted": "no",
+  "sqlExecuted": "read_only_catalog_introspection_only_if_report_status_passed",
   "migrationRepairRun": false,
   "schemaDeployRun": false,
   "trackBBackfillRun": false,

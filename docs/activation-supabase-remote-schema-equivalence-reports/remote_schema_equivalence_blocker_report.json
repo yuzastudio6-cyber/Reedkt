@@ -3,7 +3,6 @@
   "runId": "supabase-remote-schema-equivalence-review-20260608",
   "status": "blocked",
   "activeBlockers": [
-    "staging_db_url_unavailable_for_readonly_introspection",
     "remote_schema_equivalence_not_proven"
   ],
   "forbiddenConfirmationSet": false,

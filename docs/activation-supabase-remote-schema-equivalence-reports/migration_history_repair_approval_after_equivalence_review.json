@@ -6,7 +6,7 @@
   "approvedForFutureRepair": false,
   "repairExecutionStillRequiresSeparatePhase": true,
   "reason": "Remote schema equivalence for all 12 missing migration-history entries is not proven.",
-  "overallEquivalence": "insufficient_evidence",
+  "overallEquivalence": "not_equivalent",
   "confidence": "low",
   "exactRepairVersions": [
     "202605180001",

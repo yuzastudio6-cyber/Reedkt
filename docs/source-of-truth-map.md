@@ -71,3 +71,25 @@ GD-2 status terms:
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## GD-3 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Generated/local fixture candidate pack | `docs/ai-tools/creative-graphics-generated-local-fixture-candidate-pack.md` |
+| Per-tool generated/local candidates | `docs/ai-tools/generated-local-fixture-candidates/` |
+| Local artifact manifest candidates | `docs/ai-tools/creative-graphics-local-artifact-manifest-candidates.md` |
+| QA evidence templates | `docs/ai-tools/creative-graphics-generated-local-qa-evidence-templates.md` |
+| Track A handoff candidates | `docs/ai-tools/creative-graphics-generated-local-track-a-handoff-candidates.md` |
+| Worker envelope candidates | `docs/ai-tools/creative-graphics-generated-local-worker-envelope-candidates.md` |
+| Generated/local readiness matrix | `docs/ai-tools/creative-graphics-generated-local-readiness-matrix.md` |
+| Validation results | `docs/prompt-gd-3-validation-results.md` |
+
+GD-3 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / generated_local_fixture_not_executed`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

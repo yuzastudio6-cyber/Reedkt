@@ -11,6 +11,7 @@
     "ai-tools:creative-graphics:audit:diagnostics": "node scripts/validation/ai-tools-creative-graphics-audit-diagnostics.mjs",
     "ai-tools:creative-graphics:manifest:diagnostics": "node scripts/validation/ai-tools-creative-graphics-manifest-diagnostics.mjs",
     "ai-tools:creative-graphics:dry-run-fixtures:diagnostics": "node scripts/validation/ai-tools-creative-graphics-dry-run-fixtures-diagnostics.mjs",
+    "ai-tools:creative-graphics:generated-local-candidates:diagnostics": "node scripts/validation/ai-tools-creative-graphics-generated-local-candidates-diagnostics.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
     "build:remotion-worker:mock": "npm run typecheck:server && vite build --config vite.remotion-worker.config.ts",

@@ -1,0 +1,22 @@
+{
+  "candidateId": "gd3_anime_js_motion_generated_local_candidate",
+  "sourceDryRunFixtureId": "gd2_anime_js_motion_dry_run",
+  "toolId": "anime_js_motion",
+  "ownerWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "currentUnlockStage": "dry_run_fixture_spec_created",
+  "targetUnlockStage": "generated_local_fixture_candidate_prepared",
+  "syntheticInputManifestRef": "<SYNTHETIC_INPUT_MANIFEST_PLACEHOLDER>",
+  "expectedGeneratedArtifactTypes": ["motion_timeline_manifest", "text_animation_manifest"],
+  "expectedLocalArtifactPathPlaceholder": "<LOCAL_ARTIFACT_PATH_PLACEHOLDER>",
+  "expectedPrivateGcsPathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+  "expectedSupabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+  "expectedChecksumPlaceholder": "<CHECKSUM_PLACEHOLDER>",
+  "expectedTrackAHandoffRef": "<TRACK_A_HANDOFF_PLACEHOLDER>",
+  "qaEvidenceTemplateRef": "<QA_EVIDENCE_PLACEHOLDER>",
+  "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+  "blockedUses": ["raw_prompt_worker_execution", "signed_url_as_source_of_truth", "public_artifact", "final_delivery_without_track_a_validation", "provider_fallback_without_approval", "production_beta_unlock"],
+  "requiredFutureExecutionGate": "Prompt GD-4A or later approved controlled fixture execution gate",
+  "passCriteria": ["candidate_parses", "source_dry_run_fixture_referenced", "private_artifact_placeholders_present", "motion_timeline_placeholder_present", "qa_evidence_template_referenced", "no_actual_artifact_claim"],
+  "failCriteria": ["animation_execution_claim", "real_local_path_reference", "public_or_signed_url_reference", "tool_execution_claim", "runtime_unlock_claim"],
+  "supabaseUpdateClassification": { "updateRequired": "docs/status only", "updateStatus": "docs_only", "environmentTouched": "none", "sqlExecuted": "none", "migrationDeployed": "no" }
+}

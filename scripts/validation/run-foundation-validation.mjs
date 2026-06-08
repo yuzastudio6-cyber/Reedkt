@@ -36,6 +36,7 @@ const requiredChecks = [
   'ai-tools:creative-graphics:audit:diagnostics',
   'ai-tools:creative-graphics:manifest:diagnostics',
   'ai-tools:creative-graphics:dry-run-fixtures:diagnostics',
+  'ai-tools:creative-graphics:generated-local-candidates:diagnostics',
 ];
 
 const results = [];

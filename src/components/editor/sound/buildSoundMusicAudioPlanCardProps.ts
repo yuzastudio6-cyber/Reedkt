@@ -21,6 +21,7 @@ import type {
 import type { SoundMusicAudioHandoffEvidenceReview } from './buildSoundMusicAudioHandoffEvidenceReview'
 import type { SoundMusicAudioDryRunEvidenceDisplay } from './buildSoundMusicAudioDryRunEvidence'
 import type { SoundMusicAudioFixtureSpecHandoffDisplay } from './buildSoundMusicAudioFixtureSpecHandoff'
+import type { SoundMusicAudioOwnerAcceptanceChecklistDisplay } from './buildSoundMusicAudioOwnerAcceptanceChecklist'
 
 export type SoundMusicAudioPlanCardMode = Extract<SoundExecutionMode, 'planning_only' | 'mock_preview_only'>
 
@@ -124,6 +125,7 @@ export interface SoundMusicAudioPlanCardProps {
   evidenceReview?: SoundMusicAudioHandoffEvidenceReview
   dryRunEvidence?: SoundMusicAudioDryRunEvidenceDisplay
   fixtureSpecHandoff?: SoundMusicAudioFixtureSpecHandoffDisplay
+  ownerAcceptanceChecklist?: SoundMusicAudioOwnerAcceptanceChecklistDisplay
   onApproveMock?: () => void
   onReviseMock?: () => void
   onRemoveCueMock?: (cueId: string) => void

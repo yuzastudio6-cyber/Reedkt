@@ -35,6 +35,7 @@
     "smoke:sound-music-audio-generated-local-fixture-plan": "tsx server/smoke/sound-music-audio-generated-local-fixture-plan-smoke.ts",
     "smoke:sound-music-audio-generated-local-fixture-spec": "tsx server/smoke/sound-music-audio-generated-local-fixture-spec-smoke.ts",
     "smoke:sound-music-audio-fixture-handoff-packet": "tsx server/smoke/sound-music-audio-fixture-handoff-packet-smoke.ts",
+    "smoke:sound-music-audio-owner-acceptance-checklist": "tsx server/smoke/sound-music-audio-owner-acceptance-checklist-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

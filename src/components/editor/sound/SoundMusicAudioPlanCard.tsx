@@ -18,6 +18,7 @@ import {
   buildSoundMusicAudioHandoffEvidenceReview,
 } from './buildSoundMusicAudioHandoffEvidenceReview'
 import { SoundMusicAudioHandoffEvidenceReviewPanel } from './SoundMusicAudioHandoffEvidenceReview'
+import { SoundMusicAudioDryRunEvidencePanel } from './SoundMusicAudioDryRunEvidencePanel'
 import type { SoundCuePlan } from '../../../types/audio-music'
 
 function label(value: string | number | boolean | undefined): string {
@@ -302,6 +303,7 @@ export function SoundMusicAudioPlanCard(props: SoundMusicAudioPlanCardProps) {
       </details>
 
       <SoundMusicAudioHandoffEvidenceReviewPanel review={evidenceReview} />
+      {props.dryRunEvidence && <SoundMusicAudioDryRunEvidencePanel evidence={props.dryRunEvidence} />}
 
       <details className="understanding-section">
         <summary>Handoff readiness</summary>

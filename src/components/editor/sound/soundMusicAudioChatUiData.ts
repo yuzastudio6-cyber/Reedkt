@@ -11,6 +11,10 @@ import {
   type SoundMusicAudioPlanCardProps,
 } from './buildSoundMusicAudioPlanCardProps'
 import { buildSoundMusicAudioHandoffEvidenceReview } from './buildSoundMusicAudioHandoffEvidenceReview'
+import {
+  buildSoundMusicAudioDryRunEvidence,
+  type SoundMusicAudioDryRunEvidenceDisplay,
+} from './buildSoundMusicAudioDryRunEvidence'
 import type {
   PrivateAudioArtifactManifest,
   SoundAgentPlan,
@@ -19,6 +23,7 @@ import type {
   SoundExecutionGateResult,
   SoundHandoffReadiness,
   SoundHandoffReadinessCheck,
+  SoundProviderId,
   SoundProviderPolicy,
   SoundRuntimePolicy,
   SoundToolRequest,
@@ -50,6 +55,48 @@ const mockBlockedUses: SoundBlockedUseReason[] = [
   'final_render_export_not_owned',
   'provider_gateway_handoff_required',
   'worker_runtime_handoff_required',
+]
+
+const mockDryRunStructuredFindingIds = [
+  'mock-sound-2b-structured-finding-dialogue-safety',
+  'mock-sound-2b-structured-finding-cue-timing',
+]
+
+const mockDryRunEditIntentIds = [
+  'mock-sound-2b-edit-intent-timing-manifest',
+  'mock-sound-2b-edit-intent-private-audio-manifest',
+]
+
+const mockDryRunBlockedProviders: SoundProviderId[] = [
+  'openmoss_moss_soundeffect_v2_pending_verification',
+  'meta_audiogen_disabled',
+  'woosh_disabled',
+  'tangoflux_disabled',
+  'mmaudio_disabled',
+]
+
+const mockDryRunPlanningOnlyProviders: SoundProviderId[] = [
+  'mock_sfx_provider',
+  'mock_music_provider',
+  'lyria_mock',
+  'mirelo_sfx_mock',
+  'mmaudio_mock',
+]
+
+const mockDryRunLicenseGatedPlanningProviders: SoundProviderId[] = [
+  'dasheng_audiogen_candidate',
+  'stable_audio_open_license_gated',
+]
+
+const mockDryRunProcessingOnlyProviders: SoundProviderId[] = [
+  'audioflux_analysis_only',
+  'signalsmith_stretch_processing_only',
+]
+
+const mockDryRunReviewGatedProcessingProviders: SoundProviderId[] = [
+  'deepfilternet_review_required',
+  'rnnoise_review_required',
+  'demucs_review_required',
 ]
 
 const mockSoundProviderPolicies: SoundProviderPolicy[] = [
@@ -604,6 +651,159 @@ function createMockHandoffMetadata(): SoundMusicAudioPlanCardProps['handoffMetad
   }
 }
 
+function createMockDryRunEvidence(input: {
+  timingManifest: TimingAwareSoundCueManifest
+  privateArtifactManifest: PrivateAudioArtifactManifest
+}): SoundMusicAudioDryRunEvidenceDisplay {
+  const futureRequirements = [
+    'checksum and canonical private storage path evidence before generated/local fixture',
+    'source-of-truth storage object records before storage writes',
+    'Track A acceptance before final mux/export',
+    'Provider Gateway acceptance before real transport',
+    'Worker Runtime acceptance before dispatch',
+    'Supabase/RLS/Storage acceptance before mutation or storage writes',
+    'Observability and Billing acceptance before beta or production',
+  ]
+
+  return buildSoundMusicAudioDryRunEvidence({
+    dryRunRequestId: 'mock-sound-2c-dry-run-evidence-request',
+    structuredFindingIds: mockDryRunStructuredFindingIds,
+    editIntentIds: mockDryRunEditIntentIds,
+    approvedSnapshot: {
+      approvedPlanSnapshotId: 'mock-approved-snapshot-sound-2b-dry-run',
+      approvalStatus: 'mock_approved_reference_only',
+      snapshotChecksum: 'mock-sha256-sound-2b-approved-snapshot-checksum',
+      immutablePlanVersion: 'mock-sound-plan-version-2b-001',
+      approvedAt: '2026-06-06T00:00:00.000Z',
+      sourceFindingIds: mockDryRunStructuredFindingIds,
+      sourceIntentIds: mockDryRunEditIntentIds,
+      revisionId: 'mock-sound-revision-2b-001',
+      metadataOnly: true,
+      createsSnapshot: false,
+      requiredFutureEvidence: [
+        'real approved_plan_snapshots row',
+        'immutable snapshot hash verified by Supabase owner',
+        'credit approval and reservation evidence before generation',
+        'owner acceptance before generated/local fixture',
+      ],
+    },
+    timingManifest: input.timingManifest,
+    privateArtifactManifest: input.privateArtifactManifest,
+    providerGateway: {
+      owner: 'PROVIDER_GATEWAY_MODELS',
+      mayCallProvider: false,
+      transportAllowed: false,
+      providerSecretsAllowed: false,
+      fallbackExecutionAllowed: false,
+      licenseEvidenceRequired: [
+        'Provider Gateway transport review',
+        'provider license and commercial export evidence',
+        'provider cost and retry/fallback policy evidence',
+      ],
+      blockedProviders: mockDryRunBlockedProviders,
+      planningOnlyProviders: mockDryRunPlanningOnlyProviders,
+      licenseGatedPlanningProviders: mockDryRunLicenseGatedPlanningProviders,
+      processingOnlyProviders: mockDryRunProcessingOnlyProviders,
+      reviewGatedProcessingProviders: mockDryRunReviewGatedProcessingProviders,
+      lyriaPlanning: {
+        providerId: 'lyria_mock',
+        allowedFamilies: ['music_cue', 'soundtrack_layer', 'audio_mood_design'],
+        usedForSfxFoleyAmbience: false,
+        generationEnabled: false,
+        providerGatewayRequired: true,
+      },
+    },
+    workerRuntime: {
+      owner: 'WORKER_RUNTIME_JOBS',
+      mayDispatchWorker: false,
+      workerPayloadCreated: false,
+      productionWorkerPayloadAllowed: false,
+      requiresApprovedSnapshot: true,
+      requiresIdempotencyKey: true,
+      idempotencyKey: 'mock-sound-2b-worker-idempotency-key',
+      rawPromptExecutionAllowed: false,
+      signedUrlInputAllowed: false,
+      serviceRoleKeyAllowed: false,
+      providerSecretAllowed: false,
+      generatedAssetCreationAllowed: false,
+      requiredFutureContractFields: [
+        'ProductionWorkerJobPayload mapping accepted by WORKER_RUNTIME_JOBS',
+        'timing manifest id',
+        'private audio artifact manifest id',
+        'approved snapshot id',
+        'stable idempotency key',
+        'claim/lease/event contract evidence',
+      ],
+    },
+    supabaseStorage: {
+      owner: 'SUPABASE_RLS_STORAGE_DATABASE',
+      mayMutateSupabase: false,
+      mayWriteStorage: false,
+      sqlAllowed: false,
+      migrationAllowed: false,
+      signedUrlSourceOfTruthAllowed: false,
+      publicArtifactAllowed: false,
+      requiredFutureTablesOrRecords: [
+        'approved_plan_snapshots',
+        'worker_runtime_configs',
+        'storage.buckets',
+        'storage.objects',
+        'storage_object_records',
+        'generation_requests',
+        'generated_assets',
+        'jobs',
+        'job_events',
+        'sound_effect_plans',
+        'ambient_sound_plans',
+        'music_plans',
+        'credit_estimates',
+        'credit_approvals',
+        'credit_reservations',
+      ],
+    },
+    qaObservabilityBilling: {
+      observabilityOwner: 'OBSERVABILITY_AUDIT_COST',
+      billingOwner: 'BILLING_STRIPE_CREDITS',
+      qaEvidencePersisted: false,
+      creditEstimateCreated: false,
+      creditApprovalCreated: false,
+      creditReservationCreated: false,
+      spendOccurred: false,
+      refundOrReleaseOccurred: false,
+      auditEvidenceRequired: [
+        'audio QA report evidence',
+        'provider/license audit evidence',
+        'worker gate event evidence',
+        'cost estimate and reservation audit evidence',
+      ],
+    },
+    trackHandoffs: {
+      trackAOwner: 'TRACK_A_RENDER_EXPORT',
+      trackAFinalExportReady: false,
+      finalMuxExportAllowed: false,
+      trackBOwner: 'TRACK_B_MEDIA_PROCESSING',
+      trackBExecutionAccepted: false,
+    },
+    noSideEffectGates: {
+      mayCallProvider: false,
+      mayDispatchWorker: false,
+      mayCreateGeneratedAsset: false,
+      publicArtifactAllowed: false,
+      supabaseMutationAllowed: false,
+      gcpMutationAllowed: false,
+      signedUrlsPresent: false,
+      publicUrlsPresent: false,
+      providerSecretsPresent: false,
+      serviceRoleKeysPresent: false,
+      rawWorkerPromptPresent: false,
+      generatedAssetsCreated: false,
+      storageWritesCreated: false,
+    },
+    blockedUses: mockBlockedUses,
+    futureRequirements,
+  })
+}
+
 export function createMockSoundMusicAudioChatCardProps(
   options: MockSoundMusicAudioChatCardOptions = {},
 ): SoundMusicAudioPlanCardProps {
@@ -653,6 +853,10 @@ export function createMockSoundMusicAudioChatCardProps(
     cueGroups,
     privateArtifactManifest,
   })
+  const dryRunEvidence = createMockDryRunEvidence({
+    timingManifest,
+    privateArtifactManifest,
+  })
   const evidenceReview = buildSoundMusicAudioHandoffEvidenceReview({
     plan,
     timingManifest,
@@ -686,5 +890,6 @@ export function createMockSoundMusicAudioChatCardProps(
     soundSyncNotes,
     accessSafety,
     evidenceReview,
+    dryRunEvidence,
   }
 }

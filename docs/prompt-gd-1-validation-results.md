@@ -4,7 +4,7 @@ Status: `local_validation_complete_with_environment_blocked_build`
 
 Branch: `codex/rp-gd-1-ai-tools-creative-graphics-manifest-contract`
 Base: `origin/codex/rp-gd-0-ai-tools-creative-graphics-repo-audit`
-PR: pending
+PR: [#233](https://github.com/yuzastudio6-cyber/Reedkt/pull/233)
 
 Production capability enabled: `none; AI Tools creative graphics manifest contract only`
 
@@ -83,7 +83,7 @@ Commands were run with the Codex-bundled Node path because the default local `no
 
 ## CI Status
 
-GitHub Foundation Validation: pending PR creation.
+GitHub Foundation Validation: pending for PR [#233](https://github.com/yuzastudio6-cyber/Reedkt/pull/233).
 
 ## Boundaries
 

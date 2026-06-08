@@ -56,3 +56,21 @@ Prompt GD-3: Creative Graphics Generated/Local Fixture Candidate Pack.
 ## Next Milestone
 
 `Prompt GD-4 - Creative Graphics Static Validation and Fixture Gate Review`
+
+## GD-4 Milestone
+
+Prompt GD-4: Creative Graphics Static Fixture Gate Review.
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / generated_local_fixture_not_executed`
+- Static gate result: `static_gate_passed_with_warnings`
+- Capability: `none; AI Tools creative graphics static fixture gate review only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime execution remains blocked.
+
+## Next Milestone After GD-4
+
+`Prompt GD-5 - Controlled Generated Fixture Execution Plan`

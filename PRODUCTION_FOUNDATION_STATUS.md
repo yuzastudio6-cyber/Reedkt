@@ -148,3 +148,40 @@ Authoritative GD-3 files:
 - `docs/prompt-gd-3-validation-results.md`
 
 Next milestone: `Prompt GD-4 - Creative Graphics Static Validation and Fixture Gate Review`.
+
+## GD-4 Creative Graphics Static Fixture Gate Review
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / generated_local_fixture_not_executed`
+- Static gate result: `static_gate_passed_with_warnings`
+- Production capability enabled: `none; AI Tools creative graphics static fixture gate review only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime/tool execution: none
+- Worker execution: none
+- Provider/model calls: none
+- Render/export: none
+- Media processing: none
+- Browser capture: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Supabase lifecycle/mutation: none
+- Dependency mutation: none
+- Approval grant: none
+- Production/beta unlock: none
+
+Authoritative GD-4 files:
+
+- `docs/ai-tools/creative-graphics-static-fixture-gate-review.md`
+- `docs/ai-tools/creative-graphics-per-tool-static-validation-matrix.md`
+- `docs/ai-tools/creative-graphics-fixture-consistency-review.md`
+- `docs/ai-tools/creative-graphics-track-a-handoff-readiness-review.md`
+- `docs/ai-tools/creative-graphics-worker-envelope-readiness-review.md`
+- `docs/ai-tools/creative-graphics-qa-evidence-readiness-review.md`
+- `docs/ai-tools/creative-graphics-static-gate-blocker-inventory.md`
+- `docs/ai-tools/creative-graphics-next-execution-plan-readiness.md`
+- `docs/prompt-gd-4-validation-results.md`
+
+Next milestone: `Prompt GD-5 - Controlled Generated Fixture Execution Plan`.

@@ -7,6 +7,7 @@ on:
       - codex/rp-gd-0-ai-tools-creative-graphics-repo-audit
       - codex/rp-gd-1-ai-tools-creative-graphics-manifest-contract
       - codex/rp-gd-2-ai-tools-creative-graphics-dry-run-fixture-pack
+      - codex/rp-gd-3-ai-tools-creative-graphics-generated-local-fixture-candidates
 
 jobs:
   foundation-validation:

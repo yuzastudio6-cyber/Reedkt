@@ -93,3 +93,27 @@ GD-3 status terms:
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## GD-4 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Static fixture gate review | `docs/ai-tools/creative-graphics-static-fixture-gate-review.md` |
+| Per-tool static validation matrix | `docs/ai-tools/creative-graphics-per-tool-static-validation-matrix.md` |
+| Fixture consistency review | `docs/ai-tools/creative-graphics-fixture-consistency-review.md` |
+| Track A handoff readiness review | `docs/ai-tools/creative-graphics-track-a-handoff-readiness-review.md` |
+| Worker envelope readiness review | `docs/ai-tools/creative-graphics-worker-envelope-readiness-review.md` |
+| QA evidence readiness review | `docs/ai-tools/creative-graphics-qa-evidence-readiness-review.md` |
+| Static gate blocker inventory | `docs/ai-tools/creative-graphics-static-gate-blocker-inventory.md` |
+| Next execution-plan readiness | `docs/ai-tools/creative-graphics-next-execution-plan-readiness.md` |
+| Validation results | `docs/prompt-gd-4-validation-results.md` |
+
+GD-4 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / generated_local_fixture_not_executed`
+- Static gate result: `static_gate_passed_with_warnings`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

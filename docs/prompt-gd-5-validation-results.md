@@ -98,7 +98,7 @@ Both Vite build commands hit the known local Darwin Rolldown native binding/code
 
 ## CI Status
 
-GitHub Foundation Validation: pending PR creation.
+GitHub Foundation Validation: passed on run `27151253775`, job `80142505839`.
 
 ## Cross-Chat Impact
 

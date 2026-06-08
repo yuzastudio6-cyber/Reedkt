@@ -1,0 +1,16 @@
+{
+  "phase": "supabase-migration-history-repair-approval",
+  "runId": "supabase-migration-history-repair-approval-20260608",
+  "status": "blocked",
+  "decision": "blocked_pending_remote_history_evidence",
+  "approvalPacketGenerated": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "directSqlRun": false,
+  "blockers": [
+    "remote_schema_equivalence_not_proven"
+  ],
+  "nextRecommendedPhase": "Provide remote schema equivalence evidence and human review before repair execution."
+}

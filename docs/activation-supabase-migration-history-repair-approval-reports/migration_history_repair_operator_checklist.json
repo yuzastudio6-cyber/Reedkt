@@ -1,0 +1,78 @@
+{
+  "phase": "supabase-migration-history-repair-approval",
+  "runId": "supabase-migration-history-repair-approval-20260608",
+  "status": "passed",
+  "checklist": [
+    {
+      "item": "staging target confirmed",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "repair candidate reviewed",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "exact migration versions reviewed",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "no production",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "no direct SQL",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "no schema DDL/DML",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "no Track B data backfill",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "DB URL secret redacted",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "dry-run after repair required",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "deploy after repair requires separate phase",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    },
+    {
+      "item": "rollback plan reviewed",
+      "required": true,
+      "satisfiedForApprovalPacket": true
+    }
+  ],
+  "repairVersionsToReview": [
+    "202605180001",
+    "202605180002",
+    "202605180003",
+    "202605180004",
+    "202605180005",
+    "202605180006",
+    "202605180007",
+    "202605180008",
+    "202605190002",
+    "202605200001",
+    "202605200002",
+    "202605210001"
+  ],
+  "operatorMustNotRunRepairFromThisPacket": true,
+  "blockers": []
+}

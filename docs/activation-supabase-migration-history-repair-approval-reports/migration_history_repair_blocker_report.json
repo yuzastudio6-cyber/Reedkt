@@ -1,0 +1,20 @@
+{
+  "phase": "supabase-migration-history-repair-approval",
+  "runId": "supabase-migration-history-repair-approval-20260608",
+  "status": "blocked",
+  "activeBlockers": [
+    "remote_schema_equivalence_not_proven"
+  ],
+  "expectedDefaultBlocker": "remote_schema_equivalence_not_proven",
+  "stillBlockedScopes": [
+    "migration_repair_execution",
+    "staging_schema_deploy",
+    "track_b_staging_backfill",
+    "production_supabase",
+    "direct_sql",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock",
+    "track_a"
+  ]
+}

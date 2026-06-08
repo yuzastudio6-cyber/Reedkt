@@ -52,6 +52,7 @@ export const SUPABASE_STAGING_DEPLOY_TRANSPORT_ALLOWED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY',
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION',
   'REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED',
+  'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
 ] as const
 
 export const SUPABASE_STAGING_DEPLOY_TRANSPORT_REQUIRED_DEPLOY_CONFIRMATIONS = [
@@ -115,6 +116,7 @@ export const SUPABASE_STAGING_DEPLOY_TRANSPORT_EXPECTED_REPORTS = [
 type TransportStatus = 'passed' | 'blocked' | 'skipped' | 'planned'
 type TransportStrategy =
   | 'cli_db_push'
+  | 'temp_npm_exec_supabase_cli'
   | 'npx_cli_db_push'
   | 'plugin_migration_safe_apply'
   | 'blocked_no_migration_safe_deploy_path'
@@ -136,11 +138,15 @@ type TransportBlocker =
   | 'supabase_plugin_project_ref_mismatch'
   | 'blocked_target_not_staging'
   | 'staging_supabase_db_url_secret_reference_missing'
+  | 'staging_supabase_db_url_secret_payload_access_denied'
+  | 'staging_supabase_db_url_secret_payload_invalid'
   | 'staging_db_url_target_ref_missing'
   | 'staging_db_url_target_ref_mismatch'
   | 'staging_db_url_target_unparseable'
   | 'blocked_credentials_unavailable'
   | 'cli_db_push_unavailable'
+  | 'temp_npm_exec_not_confirmed'
+  | 'temp_npm_exec_supabase_cli_unavailable'
   | 'npx_cli_db_push_unavailable'
   | 'npx_cli_not_confirmed'
   | 'blocked_no_migration_safe_deploy_path'
@@ -304,6 +310,9 @@ const SECRET_MANAGER_FORBIDDEN_PAYLOAD_OPERATIONS = [
   'secret_version_payload_destroy',
   'secret_version_payload_disable',
 ] as const
+const TEMP_SUPABASE_CLI_NPM_CACHE = path.join('/tmp', 'reeditpro-supabase-cli-cache')
+const TEMP_SUPABASE_CLI_NPM_PREFIX = path.join('/tmp', 'reeditpro-supabase-cli-prefix')
+const TEMP_SUPABASE_CLI_PACKAGE = 'supabase@latest'
 
 export function getSupabaseStagingDeployTransportPlan() {
   return {
@@ -331,6 +340,7 @@ export function getSupabaseStagingDeployTransportPlan() {
     supabaseDocsAccessedAt: '2026-06-06',
     deployStrategyOrder: [
       'cli_db_push',
+      'temp_npm_exec_supabase_cli',
       'npx_cli_db_push',
       'plugin_migration_safe_apply',
       'blocked_no_migration_safe_deploy_path',
@@ -347,6 +357,17 @@ export function getSupabaseStagingDeployTransportPlan() {
       recommendedDbUrlSecretRefEnv: 'REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF',
       recommendedDbUrlSecretRef: 'SUPABASE_DB_URL',
       optionalAccessTokenSecretRefEnv: 'SUPABASE_ACCESS_TOKEN_SECRET_REF',
+    },
+    tempNpmExecSupabaseCliPolicy: {
+      strategy: 'temp_npm_exec_supabase_cli',
+      confirmation: 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+      command: 'npm exec --yes --package supabase@latest -- supabase',
+      cachePolicy: 'temp_cache_prefix_outside_repo',
+      cacheDir: 'redacted_tmp_cache_directory',
+      prefixDir: 'redacted_tmp_prefix_directory',
+      repoDependencyInstalled: false,
+      packageLockChanged: false,
+      globalInstallAttempted: false,
     },
     tempMigrationContextPolicy: {
       containsOnlyMigration: SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
@@ -377,6 +398,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
   const pluginTargetProofReport = buildSupabasePluginTargetPreflight()
   const secretReferenceGuardReport = buildSecretReferenceGuard(approvedTargetReferenceReport)
   const cliPreflightReport = await buildCliPreflight()
+  const tempNpmExecPreflightReport = await buildTempNpmExecPreflight()
   const npxPreflightReport = await buildNpxPreflight()
   const localEvidenceReport = buildLocalEvidenceReport()
   const preflightReport = buildTransportPreflightReport({
@@ -384,6 +406,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
     pluginTargetProofReport,
     secretReferenceGuardReport,
     cliPreflightReport,
+    tempNpmExecPreflightReport,
     npxPreflightReport,
     localEvidenceReport,
   })
@@ -500,7 +523,7 @@ export async function executeSupabaseStagingDeployTransportDeploy(input: {
     blockers.length > 0 ||
     strategy.status !== 'passed' ||
     !strategy.selectedCommand ||
-    !['cli_db_push', 'npx_cli_db_push'].includes(strategy.selectedStrategy ?? '')
+    !['cli_db_push', 'temp_npm_exec_supabase_cli', 'npx_cli_db_push'].includes(strategy.selectedStrategy ?? '')
   ) {
     const reports = await buildSupabaseStagingDeployTransportReports({
       schemaDeployTransportReport: buildBlockedSchemaDeployTransportReport(
@@ -514,11 +537,14 @@ export async function executeSupabaseStagingDeployTransportDeploy(input: {
 
   const dbUrl = readSelectedStagingDbUrl()
   const tempContext = createTempDeployContext()
+  const commandEnv = getTransportCommandEnvOverrides(strategy.selectedStrategy)
   try {
     const dryRun = await runTransportCommand(
       strategy.selectedCommand.command,
       [...strategy.selectedCommand.prefixArgs, 'db', 'push', '--db-url', dbUrl, '--dry-run'],
       tempContext.root,
+      60000,
+      commandEnv,
     )
     if (dryRun.status !== 'passed') {
       const reports = await buildSupabaseStagingDeployTransportReports({
@@ -538,6 +564,8 @@ export async function executeSupabaseStagingDeployTransportDeploy(input: {
       strategy.selectedCommand.command,
       [...strategy.selectedCommand.prefixArgs, 'db', 'push', '--db-url', dbUrl],
       tempContext.root,
+      60000,
+      commandEnv,
     )
     if (deploy.status !== 'passed') {
       const reports = await buildSupabaseStagingDeployTransportReports({
@@ -613,7 +641,7 @@ export async function executeSupabaseStagingDeployTransportVerify(): Promise<{ r
     blockers.length > 0 ||
     strategy.status !== 'passed' ||
     !strategy.selectedCommand ||
-    !['cli_db_push', 'npx_cli_db_push'].includes(strategy.selectedStrategy ?? '')
+    !['cli_db_push', 'temp_npm_exec_supabase_cli', 'npx_cli_db_push'].includes(strategy.selectedStrategy ?? '')
   ) {
     const verificationReport = {
       phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
@@ -639,10 +667,13 @@ export async function executeSupabaseStagingDeployTransportVerify(): Promise<{ r
   }
 
   const dbUrl = readSelectedStagingDbUrl()
+  const commandEnv = getTransportCommandEnvOverrides(strategy.selectedStrategy)
   const migrationList = await runTransportCommand(
     strategy.selectedCommand.command,
     [...strategy.selectedCommand.prefixArgs, 'migration', 'list', '--db-url', dbUrl],
     process.cwd(),
+    60000,
+    commandEnv,
   )
   const migrationDetected =
     migrationList.status === 'passed' && migrationList.outputContainsExpectedMigrationId === true
@@ -766,7 +797,9 @@ async function buildSecretManagerReferenceDiscovery() {
     }
   }
 
-  const secrets = mergeSecretsById(listedSecrets, [...describedSecrets.values()])
+  const liveSecrets = mergeSecretsById(listedSecrets, [...describedSecrets.values()])
+  const priorSafeMetadataFallbackUsed = liveSecrets.length === 0
+  const secrets = priorSafeMetadataFallbackUsed ? buildPriorSafeSecretReferenceMetadata() : liveSecrets
   const candidates = buildSecretReferenceCandidates(secrets)
   const selectedDbUrlCandidate = candidates.find(
     (candidate) => candidate.candidateType === 'staging_supabase_db_url',
@@ -815,6 +848,10 @@ async function buildSecretManagerReferenceDiscovery() {
     },
     secretCount: secrets.length,
     candidateCount: candidates.length,
+    candidateSource: priorSafeMetadataFallbackUsed
+      ? 'prior_committed_safe_secret_reference_metadata'
+      : 'live_gcloud_secret_manager_metadata',
+    liveMetadataRefreshStatus: projectCommand.status === 'passed' && listCommand.status === 'passed' ? 'passed' : 'blocked',
     recommendedDbUrlSecretRef: selectedDbUrlCandidate?.secretName ?? null,
     optionalAccessTokenSecretRef: accessTokenCandidate?.secretName ?? null,
     blockers: projectCommand.status === 'passed' && listCommand.status === 'passed'
@@ -824,6 +861,10 @@ async function buildSecretManagerReferenceDiscovery() {
   const candidatesReport = {
     ...shared,
     status: selectedDbUrlCandidate ? 'passed' : 'blocked',
+    candidateSource: priorSafeMetadataFallbackUsed
+      ? 'prior_committed_safe_secret_reference_metadata'
+      : 'live_gcloud_secret_manager_metadata',
+    liveMetadataRefreshStatus: projectCommand.status === 'passed' && listCommand.status === 'passed' ? 'passed' : 'blocked',
     candidates,
     selectedDbUrlCandidate: selectedDbUrlCandidate?.secretName ?? null,
     selectedDbUrlConfidence: selectedDbUrlCandidate?.confidence ?? null,
@@ -867,7 +908,7 @@ async function buildSecretManagerReferenceDiscovery() {
     },
     deployTransportStillRequires: [
       'secure_env_injection_to_REEDITPRO_STAGING_SUPABASE_DB_URL',
-      'usable_supabase_cli_or_confirmed_npx_supabase',
+      'usable_supabase_cli_confirmed_temp_npm_exec_supabase_or_confirmed_npx_supabase',
       'current_shell_deploy_and_verify_confirmations',
     ],
     payloadAccessCommandRun: false,
@@ -890,6 +931,7 @@ function buildTransportPreflightReport(input: {
   pluginTargetProofReport: Record<string, unknown>
   secretReferenceGuardReport: Record<string, unknown>
   cliPreflightReport: Record<string, unknown>
+  tempNpmExecPreflightReport: Record<string, unknown>
   npxPreflightReport: Record<string, unknown>
   localEvidenceReport: Record<string, unknown>
 }) {
@@ -912,6 +954,7 @@ function buildTransportPreflightReport(input: {
     pluginTargetProofReport: input.pluginTargetProofReport,
     secretReferenceGuardReport: input.secretReferenceGuardReport,
     cliPreflightReport: input.cliPreflightReport,
+    tempNpmExecPreflightReport: input.tempNpmExecPreflightReport,
     npxPreflightReport: input.npxPreflightReport,
     localEvidenceReport: input.localEvidenceReport,
     migrationPath: SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
@@ -938,9 +981,16 @@ function buildSecretReferenceGuard(approvedTargetReferenceReport: Record<string,
   const accessTokenReferencePresent = Boolean(
     process.env.SUPABASE_ACCESS_TOKEN || process.env.REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN,
   )
+  const dbUrlSecretPayloadAccessStatus = process.env.REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_PAYLOAD_ACCESS_STATUS
   const blockers: TransportBlocker[] = []
   if (!selectedReferenceName) {
     blockers.push('staging_supabase_db_url_secret_reference_missing', 'blocked_credentials_unavailable')
+  }
+  if (dbUrlSecretPayloadAccessStatus === 'denied') {
+    blockers.push('staging_supabase_db_url_secret_payload_access_denied')
+  }
+  if (dbUrlSecretPayloadAccessStatus === 'invalid') {
+    blockers.push('staging_supabase_db_url_secret_payload_invalid')
   }
   if (selectedReferenceName) blockers.push(...dbUrlTargetValidation.blockers)
   return {
@@ -959,6 +1009,9 @@ function buildSecretReferenceGuard(approvedTargetReferenceReport: Record<string,
     dbUrlValuePrinted: false,
     dbUrlValueCommitted: false,
     accessTokenReferencePresent,
+    dbUrlSecretPayloadAccessStatus: dbUrlSecretPayloadAccessStatus ?? 'not_attempted_or_not_reported',
+    dbUrlPayloadAccessDenied: dbUrlSecretPayloadAccessStatus === 'denied',
+    dbUrlPayloadInvalid: dbUrlSecretPayloadAccessStatus === 'invalid',
     accessTokenPayloadViewed: false,
     serviceRoleKeyRequired: false,
     serviceRoleKeyPayloadViewed: false,
@@ -1117,6 +1170,59 @@ async function buildNpxPreflight() {
   }
 }
 
+async function buildTempNpmExecPreflight() {
+  const tempExecConfirmed = process.env.REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC === 'true'
+  const nodeVersion = process.versions.node
+  const tempCachePolicy = buildTempNpmExecCachePolicy()
+  if (!tempExecConfirmed) {
+    return {
+      phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+      runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+      status: 'skipped',
+      tempExecConfirmation: 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+      tempExecConfirmed,
+      nodeVersion,
+      packageName: TEMP_SUPABASE_CLI_PACKAGE,
+      tempCachePolicy,
+      npmExecAttempted: false,
+      tempCliDownloadAttempted: false,
+      repoDependencyInstalled: false,
+      packageLockChanged: false,
+      globalInstallAttempted: false,
+      credentialPayloadsPrinted: false,
+      blockers: ['temp_npm_exec_not_confirmed'],
+    }
+  }
+
+  ensureTempNpmExecDirs()
+  const result = await runTransportCommand(
+    'npm',
+    ['exec', '--yes', '--package', TEMP_SUPABASE_CLI_PACKAGE, '--', 'supabase', '--version'],
+    process.cwd(),
+    120000,
+    getTempNpmExecEnvOverrides(),
+  )
+  const blockers: TransportBlocker[] = result.status === 'passed' ? [] : ['temp_npm_exec_supabase_cli_unavailable']
+  return {
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    tempExecConfirmation: 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+    tempExecConfirmed,
+    nodeVersion,
+    packageName: TEMP_SUPABASE_CLI_PACKAGE,
+    tempCachePolicy,
+    npmExecCommandResult: result,
+    npmExecAttempted: true,
+    tempCliDownloadAttempted: true,
+    repoDependencyInstalled: false,
+    packageLockChanged: false,
+    globalInstallAttempted: false,
+    credentialPayloadsPrinted: false,
+    blockers,
+  }
+}
+
 function buildLocalEvidenceReport() {
   const reports = buildSupabaseMilestoneRegistrySchemaReports()
   const blockers: TransportBlocker[] =
@@ -1147,7 +1253,8 @@ function buildStrategyReport(preflightReport: Record<string, unknown>) {
     pluginTargetProofReport?: { stagingTargetConfirmed?: boolean }
     secretReferenceGuardReport?: { selectedDbUrlReferenceName?: string | null }
     cliPreflightReport?: { status?: TransportStatus }
-    npxPreflightReport?: { status?: TransportStatus }
+    tempNpmExecPreflightReport?: { status?: TransportStatus; blockers?: TransportBlocker[] }
+    npxPreflightReport?: { status?: TransportStatus; blockers?: TransportBlocker[] }
     localEvidenceReport?: { status?: TransportStatus }
     blockers?: TransportBlocker[]
   }
@@ -1156,6 +1263,7 @@ function buildStrategyReport(preflightReport: Record<string, unknown>) {
   const credentialsReady = Boolean(preflight.secretReferenceGuardReport?.selectedDbUrlReferenceName)
   const localEvidenceReady = preflight.localEvidenceReport?.status === 'passed'
   const cliReady = preflight.cliPreflightReport?.status === 'passed'
+  const tempNpmExecReady = preflight.tempNpmExecPreflightReport?.status === 'passed'
   const npxReady = preflight.npxPreflightReport?.status === 'passed'
   const pluginMigrationSafeApplyReady =
     process.env.REEDITPRO_SUPABASE_PLUGIN_MIGRATION_SAFE_APPLY_AVAILABLE === 'true' &&
@@ -1173,6 +1281,13 @@ function buildStrategyReport(preflightReport: Record<string, unknown>) {
       prefixArgs: [],
       commandLabel: process.env.REEDITPRO_SUPABASE_CLI_PATH ? 'configured_supabase_cli_path_redacted' : 'supabase_from_path',
     }
+  } else if (tempNpmExecReady) {
+    selectedStrategy = 'temp_npm_exec_supabase_cli'
+    selectedCommand = {
+      command: 'npm',
+      prefixArgs: ['exec', '--yes', '--package', TEMP_SUPABASE_CLI_PACKAGE, '--', 'supabase'],
+      commandLabel: 'temp_npm_exec_supabase_cli_gated',
+    }
   } else if (npxReady) {
     selectedStrategy = 'npx_cli_db_push'
     selectedCommand = {
@@ -1187,9 +1302,21 @@ function buildStrategyReport(preflightReport: Record<string, unknown>) {
     selectedStrategy = 'blocked_no_migration_safe_deploy_path'
   }
 
-  if (!cliReady) blockers.add('cli_db_push_unavailable')
-  if (!npxReady) blockers.add('npx_cli_db_push_unavailable')
-  if (selectedStrategy === 'blocked_no_migration_safe_deploy_path') blockers.add('blocked_no_migration_safe_deploy_path')
+  if (selectedStrategy === 'blocked_no_migration_safe_deploy_path') {
+    blockers.add('blocked_no_migration_safe_deploy_path')
+    if (!cliReady) blockers.add('cli_db_push_unavailable')
+  }
+  if (selectedStrategy === 'blocked_no_migration_safe_deploy_path' && !tempNpmExecReady) {
+    const tempBlockers = preflight.tempNpmExecPreflightReport?.blockers ?? []
+    if (tempBlockers.length === 0) blockers.add('temp_npm_exec_supabase_cli_unavailable')
+    for (const blocker of tempBlockers) blockers.add(blocker)
+  }
+  if (selectedStrategy === 'blocked_no_migration_safe_deploy_path' && !npxReady) {
+    const npxBlockers = preflight.npxPreflightReport?.blockers ?? []
+    if (npxBlockers.length === 0) blockers.add('npx_cli_db_push_unavailable')
+    for (const blocker of npxBlockers) blockers.add(blocker)
+    blockers.add('npx_cli_db_push_unavailable')
+  }
 
   const passed = blockers.size === 0 && selectedCommand !== null
   return {
@@ -1200,6 +1327,7 @@ function buildStrategyReport(preflightReport: Record<string, unknown>) {
     selectedCommand,
     strategyOrder: [
       'cli_db_push',
+      'temp_npm_exec_supabase_cli',
       'npx_cli_db_push',
       'plugin_migration_safe_apply',
       'blocked_no_migration_safe_deploy_path',
@@ -1209,6 +1337,17 @@ function buildStrategyReport(preflightReport: Record<string, unknown>) {
     cliDbPush: {
       available: cliReady,
       source: process.env.REEDITPRO_SUPABASE_CLI_PATH ? 'REEDITPRO_SUPABASE_CLI_PATH' : 'PATH',
+      dryRunRequiredBeforeApply: true,
+    },
+    tempNpmExecSupabaseCli: {
+      available: tempNpmExecReady,
+      selected: selectedStrategy === 'temp_npm_exec_supabase_cli',
+      requiresConfirmation: 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+      packageName: TEMP_SUPABASE_CLI_PACKAGE,
+      cachePolicy: buildTempNpmExecCachePolicy(),
+      repoDependencyInstalled: false,
+      packageLockChanged: false,
+      globalInstallAttempted: false,
       dryRunRequiredBeforeApply: true,
     },
     npxCliDbPush: {
@@ -1390,11 +1529,15 @@ function buildBlockerReport(blockers: TransportBlocker[]) {
       'secret_manager_supabase_db_url_candidate_missing_staging_label',
       'secure_secret_manager_env_injection_required',
       'staging_supabase_db_url_secret_reference_missing',
+      'staging_supabase_db_url_secret_payload_access_denied',
+      'staging_supabase_db_url_secret_payload_invalid',
       'staging_db_url_target_ref_missing',
       'staging_db_url_target_ref_mismatch',
       'staging_db_url_target_unparseable',
       'blocked_credentials_unavailable',
       'cli_db_push_unavailable',
+      'temp_npm_exec_not_confirmed',
+      'temp_npm_exec_supabase_cli_unavailable',
       'npx_cli_db_push_unavailable',
       'blocked_no_migration_safe_deploy_path',
       'staging_schema_deploy_not_run',
@@ -1402,7 +1545,7 @@ function buildBlockerReport(blockers: TransportBlocker[]) {
     ],
     operatorActionRequired: blockers.length === 0
       ? 'No blocker recorded for staging deploy transport.'
-      : 'Resolve the exact Secret Manager label/operator-injection, CLI, npx, staging DB URL secret-reference, or target-proof blocker before retrying deploy.',
+      : 'Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, or target-proof blocker before retrying deploy.',
     stillBlockedScopes: [
       'track_b_backfill_write',
       'milestone_data_insert',
@@ -1456,7 +1599,7 @@ function buildReadinessReport(
     blockers,
     nextRecommendedPhase: stagingSchemaVerified
       ? 'Rerun PR #198 guarded Track B staging backfill without schema mutation confirmations.'
-      : 'Resolve the exact Secret Manager label/operator-injection, CLI, npx, staging DB URL secret-reference, or migration-safe transport blocker.',
+      : 'Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, or migration-safe transport blocker.',
   }
 }
 
@@ -1495,6 +1638,43 @@ function createTempDeployContext() {
       secretsIncluded: false,
     },
   }
+}
+
+function buildTempNpmExecCachePolicy() {
+  return {
+    cacheDir: 'redacted_temp_npm_cache_outside_repo',
+    prefixDir: 'redacted_temp_npm_prefix_outside_repo',
+    cacheInsideRepo: isPathInsideRepo(TEMP_SUPABASE_CLI_NPM_CACHE),
+    prefixInsideRepo: isPathInsideRepo(TEMP_SUPABASE_CLI_NPM_PREFIX),
+    repoDependencyInstalled: false,
+    packageLockChanged: false,
+    globalInstallAttempted: false,
+  }
+}
+
+function ensureTempNpmExecDirs() {
+  mkdirSync(TEMP_SUPABASE_CLI_NPM_CACHE, { recursive: true })
+  mkdirSync(TEMP_SUPABASE_CLI_NPM_PREFIX, { recursive: true })
+}
+
+function getTempNpmExecEnvOverrides(): Record<string, string> {
+  return {
+    NPM_CONFIG_CACHE: TEMP_SUPABASE_CLI_NPM_CACHE,
+    NPM_CONFIG_PREFIX: TEMP_SUPABASE_CLI_NPM_PREFIX,
+    npm_config_cache: TEMP_SUPABASE_CLI_NPM_CACHE,
+    npm_config_prefix: TEMP_SUPABASE_CLI_NPM_PREFIX,
+  }
+}
+
+function getTransportCommandEnvOverrides(strategy: TransportStrategy | undefined) {
+  if (strategy !== 'temp_npm_exec_supabase_cli') return {}
+  ensureTempNpmExecDirs()
+  return getTempNpmExecEnvOverrides()
+}
+
+function isPathInsideRepo(candidatePath: string) {
+  const relative = path.relative(process.cwd(), candidatePath)
+  return relative.length === 0 || (!relative.startsWith('..') && !path.isAbsolute(relative))
 }
 
 interface RawSecretManagerMetadataCommand {
@@ -1545,7 +1725,13 @@ function runSecretManagerMetadataCommand(args: string[], timeout = 60000): Promi
   })
 }
 
-function runTransportCommand(command: string, args: string[], cwd: string, timeout = 60000): Promise<CommandResult> {
+function runTransportCommand(
+  command: string,
+  args: string[],
+  cwd: string,
+  timeout = 60000,
+  envOverrides: Record<string, string> = {},
+): Promise<CommandResult> {
   return new Promise((resolve) => {
     try {
       execFile(command, args, {
@@ -1553,7 +1739,7 @@ function runTransportCommand(command: string, args: string[], cwd: string, timeo
         shell: false,
         timeout,
         maxBuffer: 1024 * 1024,
-        env: process.env,
+        env: { ...process.env, ...envOverrides },
       }, (error, stdout, stderr) => {
         const err = error as NodeJS.ErrnoException & { code?: number | string; signal?: string }
         const exitCode = typeof err?.code === 'number' ? err.code : error ? 1 : 0
@@ -1690,6 +1876,41 @@ function mergeSecretsById(...groups: SecretMetadata[][]): SecretMetadata[] {
     merged.set(secret.secretId, secret)
   }
   return [...merged.values()].sort((left, right) => left.secretId.localeCompare(right.secretId))
+}
+
+function buildPriorSafeSecretReferenceMetadata(): SecretMetadata[] {
+  return [
+    {
+      name: `projects/${SECRET_MANAGER_PROJECT_NUMBER}/secrets/SUPABASE_DB_URL`,
+      secretId: 'SUPABASE_DB_URL',
+      labels: {},
+      annotations: {},
+      replication: {},
+      createTime: null,
+      payloadViewed: false,
+      secretValuesPrinted: false,
+    },
+    {
+      name: `projects/${SECRET_MANAGER_PROJECT_NUMBER}/secrets/SUPABASE_SERVICE_ROLE_KEY`,
+      secretId: 'SUPABASE_SERVICE_ROLE_KEY',
+      labels: { env: 'staging' },
+      annotations: {},
+      replication: {},
+      createTime: null,
+      payloadViewed: false,
+      secretValuesPrinted: false,
+    },
+    {
+      name: `projects/${SECRET_MANAGER_PROJECT_NUMBER}/secrets/SUPABASE_URL`,
+      secretId: 'SUPABASE_URL',
+      labels: { env: 'staging' },
+      annotations: {},
+      replication: {},
+      createTime: null,
+      payloadViewed: false,
+      secretValuesPrinted: false,
+    },
+  ]
 }
 
 function buildSecretReferenceCandidates(secrets: SecretMetadata[]): SecretReferenceCandidate[] {

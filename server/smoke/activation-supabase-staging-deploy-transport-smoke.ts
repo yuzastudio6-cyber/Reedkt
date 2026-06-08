@@ -71,6 +71,13 @@ for (const required of [
   'REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF',
   'SUPABASE_ACCESS_TOKEN_SECRET_REF',
   'REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED',
+  'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+  'temp_npm_exec_supabase_cli',
+  'temp_npm_exec_not_confirmed',
+  'temp_npm_exec_supabase_cli_unavailable',
+  'NPM_CONFIG_CACHE',
+  'NPM_CONFIG_PREFIX',
+  'supabase@latest',
   'npx_cli_db_push',
   '--dry-run',
   'gcloud',
@@ -84,6 +91,8 @@ for (const required of [
   'credentialPayloadsPrinted: false',
   'secretPayloadsRead: false',
   'dbUrlTargetMatchedApprovedStaging',
+  'staging_supabase_db_url_secret_payload_access_denied',
+  'staging_supabase_db_url_secret_payload_invalid',
   'staging_db_url_target_ref_mismatch',
   'staging_db_url_target_unparseable',
   'staging_db_url_target_ref_missing',
@@ -105,6 +114,8 @@ for (const forbidden of [
   'OPENAI_API_KEY',
   'ANTHROPIC_API_KEY',
   'console.log(process.env',
+  'npm install -g',
+  '--global',
 ]) {
   assert(!moduleText.includes(forbidden), `Transport module must not include forbidden path/token: ${forbidden}`)
 }
@@ -117,6 +128,8 @@ for (const name of [
   'REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY',
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION',
   'REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED',
+  'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+  'REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_PAYLOAD_ACCESS_STATUS',
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
   'SUPABASE_STAGING_DB_URL',
   'STAGING_SUPABASE_DB_URL',
@@ -129,6 +142,22 @@ for (const name of [
 const baselineReports = await buildSupabaseStagingDeployTransportReports()
 const baselinePreflight = baselineReports.preflightReport as {
   status?: string
+  tempNpmExecPreflightReport?: {
+    status?: string
+    npmExecAttempted?: boolean
+    tempCliDownloadAttempted?: boolean
+    repoDependencyInstalled?: boolean
+    packageLockChanged?: boolean
+    globalInstallAttempted?: boolean
+    blockers?: string[]
+    tempCachePolicy?: {
+      cacheInsideRepo?: boolean
+      prefixInsideRepo?: boolean
+      repoDependencyInstalled?: boolean
+      packageLockChanged?: boolean
+      globalInstallAttempted?: boolean
+    }
+  }
   npxPreflightReport?: { status?: string; npxDownloadAttempted?: boolean; blockers?: string[] }
   secretReferenceGuardReport?: {
     blockers?: string[]
@@ -141,6 +170,11 @@ const baselinePreflight = baselineReports.preflightReport as {
 const baselineStrategy = baselineReports.strategyReport as {
   selectedStrategy?: string
   blockers?: string[]
+  tempNpmExecSupabaseCli?: {
+    available?: boolean
+    requiresConfirmation?: string
+    cachePolicy?: { cacheInsideRepo?: boolean; prefixInsideRepo?: boolean; packageLockChanged?: boolean }
+  }
 }
 const baselineDeploy = baselineReports.schemaDeployTransportReport as {
   deployPerformed?: boolean
@@ -181,6 +215,28 @@ const baselineSecretReadiness = baselineReports.secretReferenceReadinessReport a
 assert(baselinePreflight.npxPreflightReport?.status === 'skipped', 'npx preflight must skip without confirmation.')
 assert(baselinePreflight.npxPreflightReport?.npxDownloadAttempted === false, 'npx must not download without confirmation.')
 assert(
+  baselinePreflight.tempNpmExecPreflightReport?.status === 'skipped' &&
+    baselinePreflight.tempNpmExecPreflightReport.npmExecAttempted === false &&
+    baselinePreflight.tempNpmExecPreflightReport.tempCliDownloadAttempted === false,
+  'Temp npm exec preflight must skip without confirmation.',
+)
+assert(
+  baselinePreflight.tempNpmExecPreflightReport?.blockers?.includes('temp_npm_exec_not_confirmed'),
+  'Temp npm exec preflight must record the explicit confirmation blocker.',
+)
+assert(
+  baselinePreflight.tempNpmExecPreflightReport?.repoDependencyInstalled === false &&
+    baselinePreflight.tempNpmExecPreflightReport.packageLockChanged === false &&
+    baselinePreflight.tempNpmExecPreflightReport.globalInstallAttempted === false,
+  'Temp npm exec preflight must not install repo dependencies, change package-lock, or use global install.',
+)
+assert(
+  baselinePreflight.tempNpmExecPreflightReport?.tempCachePolicy?.cacheInsideRepo === false &&
+    baselinePreflight.tempNpmExecPreflightReport.tempCachePolicy.prefixInsideRepo === false &&
+    baselinePreflight.tempNpmExecPreflightReport.tempCachePolicy.packageLockChanged === false,
+  'Temp npm exec cache and prefix must stay outside the repo.',
+)
+assert(
   baselinePreflight.secretReferenceGuardReport?.dbUrlPayloadViewed === false &&
     baselinePreflight.secretReferenceGuardReport?.dbUrlValuePrinted === false,
   'DB URL guard must not view or print payloads.',
@@ -199,6 +255,13 @@ assert(
     baselineStrategy.selectedStrategy === 'blocked_credentials_unavailable' ||
     baselineStrategy.selectedStrategy === 'blocked_no_migration_safe_deploy_path',
   `Unexpected baseline strategy: ${baselineStrategy.selectedStrategy}`,
+)
+assert(
+  baselineStrategy.tempNpmExecSupabaseCli?.available === false &&
+    baselineStrategy.tempNpmExecSupabaseCli.requiresConfirmation === 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC' &&
+    baselineStrategy.tempNpmExecSupabaseCli.cachePolicy?.cacheInsideRepo === false &&
+    baselineStrategy.tempNpmExecSupabaseCli.cachePolicy.prefixInsideRepo === false,
+  'Strategy report must expose the gated temp npm exec fallback without selecting it by default.',
 )
 assert(baselineDeploy.deployPerformed === false, 'Smoke must not deploy.')
 assert(baselineDeploy.dryRunPerformed === false, 'Smoke must not run dry-run.')
@@ -389,6 +452,7 @@ console.log(JSON.stringify({
   reportDir: SUPABASE_STAGING_DEPLOY_TRANSPORT_REPORT_DIR,
   expectedReports: SUPABASE_STAGING_DEPLOY_TRANSPORT_EXPECTED_REPORTS.length,
   npxSkippedWithoutConfirmation: true,
+  tempNpmExecSkippedWithoutConfirmation: true,
   targetProofPassesWithAllowedConfirmations: true,
   secretManagerCandidateDbUrlRef: 'SUPABASE_DB_URL',
   secretManagerAccessTokenCandidate: null,

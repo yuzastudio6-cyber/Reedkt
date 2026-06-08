@@ -1,6 +1,6 @@
 # Prompt GD-1 Validation Results
 
-Status: `local_validation_complete_with_environment_blocked_build`
+Status: `local_validation_complete_ci_passed_with_environment_blocked_build`
 
 Branch: `codex/rp-gd-1-ai-tools-creative-graphics-manifest-contract`
 Base: `origin/codex/rp-gd-0-ai-tools-creative-graphics-repo-audit`
@@ -83,7 +83,7 @@ Commands were run with the Codex-bundled Node path because the default local `no
 
 ## CI Status
 
-GitHub Foundation Validation: pending for PR [#233](https://github.com/yuzastudio6-cyber/Reedkt/pull/233).
+GitHub Foundation Validation: passed for PR [#233](https://github.com/yuzastudio6-cyber/Reedkt/pull/233) on run `27111598462`, job `80010469476`.
 
 ## Boundaries
 

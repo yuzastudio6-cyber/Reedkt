@@ -5,6 +5,7 @@ on:
     branches:
       - codex/rp-activation-53a-runtime-unlock-roadmap-owner-acceptance-audit
       - codex/rp-gd-0-ai-tools-creative-graphics-repo-audit
+      - codex/rp-gd-1-ai-tools-creative-graphics-manifest-contract
 
 jobs:
   foundation-validation:

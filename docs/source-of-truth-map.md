@@ -24,3 +24,27 @@ Status terms:
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## GD-1 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Capability manifest contract | `docs/ai-tools/creative-graphics-capability-manifest-contract.md` |
+| Per-tool manifest drafts | `docs/ai-tools/manifests/` |
+| Output artifact registry | `docs/ai-tools/creative-graphics-output-artifact-registry.md` |
+| Private artifact contract | `docs/ai-tools/creative-graphics-private-artifact-contract.md` |
+| Dry-run fixture contract | `docs/ai-tools/creative-graphics-dry-run-fixture-contract.md` |
+| Track A handoff contract | `docs/ai-tools/creative-graphics-track-a-handoff-contract.md` |
+| Worker/tool-call boundary | `docs/ai-tools/creative-graphics-worker-toolcall-boundary.md` |
+| QA readiness contract | `docs/ai-tools/creative-graphics-qa-readiness-contract.md` |
+| All-tools readiness matrix | `docs/ai-tools/creative-graphics-all-tools-readiness-matrix.md` |
+| Next fixture plan | `docs/ai-tools/creative-graphics-next-fixture-plan.md` |
+
+GD-1 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_not_started`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

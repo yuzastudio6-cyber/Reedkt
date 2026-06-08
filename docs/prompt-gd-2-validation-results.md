@@ -4,7 +4,7 @@ Status: `local_validation_complete_with_environment_blocked_build`
 
 Branch: `codex/rp-gd-2-ai-tools-creative-graphics-dry-run-fixture-pack`
 Base: `origin/codex/rp-gd-1-ai-tools-creative-graphics-manifest-contract`
-PR: pending
+PR: [#235](https://github.com/yuzastudio6-cyber/Reedkt/pull/235)
 
 Production capability enabled: `none; AI Tools creative graphics dry-run fixture pack only`
 
@@ -99,7 +99,7 @@ Production capability enabled: `none; AI Tools creative graphics dry-run fixture
 
 ## CI Status
 
-GitHub Foundation Validation: pending PR creation.
+GitHub Foundation Validation: pending for PR [#235](https://github.com/yuzastudio6-cyber/Reedkt/pull/235).
 
 ## Cross-Chat Impact
 

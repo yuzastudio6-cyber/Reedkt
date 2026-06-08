@@ -15,6 +15,8 @@ import {
   buildSoundMusicAudioDryRunEvidence,
   type SoundMusicAudioDryRunEvidenceDisplay,
 } from './buildSoundMusicAudioDryRunEvidence'
+import { buildSoundMusicAudioFixtureSpecHandoff } from './buildSoundMusicAudioFixtureSpecHandoff'
+import { SOUND_MUSIC_AUDIO_GENERATED_LOCAL_FIXTURE_SPEC } from '../../../backend/mock/mock-sound-music-audio-generated-local-fixture-spec'
 import type {
   PrivateAudioArtifactManifest,
   SoundAgentPlan,
@@ -891,5 +893,6 @@ export function createMockSoundMusicAudioChatCardProps(
     accessSafety,
     evidenceReview,
     dryRunEvidence,
+    fixtureSpecHandoff: buildSoundMusicAudioFixtureSpecHandoff(SOUND_MUSIC_AUDIO_GENERATED_LOCAL_FIXTURE_SPEC),
   }
 }

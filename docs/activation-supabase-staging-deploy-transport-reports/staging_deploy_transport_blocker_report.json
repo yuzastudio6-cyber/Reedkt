@@ -1,0 +1,51 @@
+{
+  "phase": "supabase-staging-deploy-transport-rerun",
+  "runId": "supabase-staging-deploy-transport-rerun-20260606",
+  "status": "blocked",
+  "activeBlockers": [
+    "staging_schema_dry_run_failed",
+    "blocked_pending_migration_history_repair_approval",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verification_not_run",
+    "staging_rls_verification_failed"
+  ],
+  "expectedCurrentEnvironmentBlockers": [
+    "secret_manager_supabase_db_url_candidate_missing_staging_label",
+    "secure_secret_manager_env_injection_required",
+    "staging_supabase_db_url_secret_reference_missing",
+    "staging_supabase_db_url_secret_payload_access_denied",
+    "staging_supabase_db_url_secret_payload_invalid",
+    "staging_db_url_target_ref_missing",
+    "staging_db_url_target_ref_mismatch",
+    "staging_db_url_target_unparseable",
+    "blocked_credentials_unavailable",
+    "cli_db_push_unavailable",
+    "temp_npm_exec_not_confirmed",
+    "temp_npm_exec_supabase_cli_unavailable",
+    "npx_cli_db_push_unavailable",
+    "blocked_no_migration_safe_deploy_path",
+    "staging_migration_history_audit_not_confirmed",
+    "staging_migration_history_list_failed",
+    "blocked_pending_migration_history_repair_approval",
+    "staging_dry_run_contains_unapproved_migrations",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verification_not_run"
+  ],
+  "operatorActionRequired": "Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, target-proof, or migration-history audit blocker before retrying deploy.",
+  "stillBlockedScopes": [
+    "track_b_backfill_write",
+    "milestone_data_insert",
+    "production_supabase",
+    "production_sql",
+    "manual_remote_sql",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock",
+    "track_a"
+  ]
+}

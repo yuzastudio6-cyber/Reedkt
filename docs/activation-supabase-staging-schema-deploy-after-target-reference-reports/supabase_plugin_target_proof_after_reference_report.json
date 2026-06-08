@@ -1,13 +1,13 @@
 {
   "phase": "supabase-staging-schema-deploy-after-target-reference",
   "runId": "supabase-staging-schema-deploy-after-target-reference-20260605",
-  "status": "passed",
+  "status": "blocked",
   "sourcePr209": "https://github.com/yuzastudio6-cyber/Reedkt/pull/209",
   "sourceReport": "docs/activation-supabase-staging-target-proof-reports/supabase_plugin_target_proof_report.json",
   "proofConfirmation": "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
-  "proofConfirmationSet": true,
+  "proofConfirmationSet": false,
   "pluginTargetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
-  "pluginTargetCheckConfirmed": true,
+  "pluginTargetCheckConfirmed": false,
   "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
   "selectedPluginProject": {
     "projectRef": "wmyyttnynmteqgcdishd",
@@ -16,19 +16,19 @@
     "region": "us-west-1",
     "hostRedacted": true
   },
-  "stagingTargetProofPassed": true,
+  "stagingTargetProofPassed": false,
   "productionTargetConfirmed": false,
-  "ambiguousTargetSignal": false,
+  "ambiguousTargetSignal": true,
   "credentialPayloadsPrinted": false,
   "secretPayloadsRead": false,
   "delegatedReport": {
     "phase": "supabase-staging-target-proof-deploy-rerun",
     "runId": "supabase-staging-target-proof-deploy-rerun-20260605",
-    "status": "passed",
+    "status": "blocked",
     "proofConfirmation": "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
-    "proofConfirmationSet": true,
+    "proofConfirmationSet": false,
     "pluginTargetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
-    "pluginTargetCheckConfirmed": true,
+    "pluginTargetCheckConfirmed": false,
     "approvedReference": {
       "status": "passed",
       "approvedStagingTargetReferenceFound": true,
@@ -93,12 +93,12 @@
       "blockers": []
     },
     "pluginPreflight": {
-      "status": "passed",
+      "status": "blocked",
       "pluginAvailableToCodexSession": true,
       "pluginUsableFromRepoCliDirectly": false,
       "pluginObservationSource": "connected_supabase_plugin_observation_committed_as_safe_metadata",
       "targetCheckConfirmation": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
-      "targetCheckConfirmed": true,
+      "targetCheckConfirmed": false,
       "selectedProject": {
         "projectRef": "wmyyttnynmteqgcdishd",
         "projectName": "Reeditpro",
@@ -172,10 +172,10 @@
         "secretPayloadsPrinted": false,
         "blockers": []
       },
-      "approvedTargetProofConfirmed": true,
+      "approvedTargetProofConfirmed": false,
       "metadataLabelLooksStaging": false,
       "operatorProofMatches": false,
-      "stagingTargetConfirmed": true,
+      "stagingTargetConfirmed": false,
       "observedProjects": [
         {
           "projectRef": "wmyyttnynmteqgcdishd",
@@ -217,7 +217,10 @@
       "credentialPayloadsPrinted": false,
       "secretsRead": false,
       "productionTargetAllowed": false,
-      "blockers": []
+      "blockers": [
+        "supabase_plugin_staging_target_check_not_confirmed",
+        "supabase_plugin_target_not_confirmed_as_staging"
+      ]
     },
     "selectedPluginProject": {
       "projectRef": "wmyyttnynmteqgcdishd",
@@ -239,12 +242,20 @@
     ],
     "registryMigrationObserved": false,
     "approvedReferenceMatchesPluginTarget": true,
-    "stagingTargetProofPassed": true,
+    "stagingTargetProofPassed": false,
     "productionSignalDetected": false,
-    "ambiguousTargetSignal": false,
+    "ambiguousTargetSignal": true,
     "secretPayloadsRead": false,
     "secretPayloadsPrinted": false,
-    "blockers": []
+    "blockers": [
+      "supabase_plugin_staging_target_check_not_confirmed",
+      "supabase_plugin_target_not_confirmed_as_staging",
+      "blocked_target_not_staging"
+    ]
   },
-  "blockers": []
+  "blockers": [
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "blocked_target_not_staging"
+  ]
 }

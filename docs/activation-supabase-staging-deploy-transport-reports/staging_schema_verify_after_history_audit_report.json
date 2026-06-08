@@ -1,0 +1,18 @@
+{
+  "phase": "supabase-staging-deploy-transport-rerun",
+  "runId": "supabase-staging-deploy-transport-rerun-20260606",
+  "status": "blocked",
+  "selectedStrategy": "blocked_pending_manual_review",
+  "verificationPerformed": false,
+  "reason": "history_audit_verify_requires_successful_deploy_or_verify_only_state",
+  "credentialPayloadsPrinted": false,
+  "secretPayloadsRead": false,
+  "productionAffected": false,
+  "directManualSqlRun": false,
+  "migrationRepairRun": false,
+  "blockers": [
+    "staging_schema_dry_run_failed",
+    "blocked_pending_migration_history_repair_approval",
+    "staging_schema_verification_not_run"
+  ]
+}

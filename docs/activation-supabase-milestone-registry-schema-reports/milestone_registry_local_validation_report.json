@@ -6,8 +6,8 @@
   "confirmationRequired": [
     "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_LOCAL_VALIDATE"
   ],
-  "confirmationPresent": false,
-  "confirmationRequiredForThisInvocation": false,
+  "confirmationPresent": true,
+  "confirmationRequiredForThisInvocation": true,
   "migrationStatus": "passed",
   "rlsStatus": "passed",
   "seedStatus": "passed",

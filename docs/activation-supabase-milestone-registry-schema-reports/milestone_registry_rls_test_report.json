@@ -7,8 +7,8 @@
   "confirmationRequired": [
     "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_LOCAL_VALIDATE"
   ],
-  "confirmationPresent": false,
-  "confirmationRequiredForThisInvocation": false,
+  "confirmationPresent": true,
+  "confirmationRequiredForThisInvocation": true,
   "requiredSnippets": [
     "activation registry RLS is enabled on every table",
     "activation registry has no anon/authenticated table privileges",

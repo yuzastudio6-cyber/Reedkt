@@ -6,8 +6,6 @@ import {
 import {
   SUPABASE_STAGING_TARGET_PROOF_REPORT_DIR,
   buildSupabaseStagingTargetProofReports,
-  executeSupabaseStagingTargetProofDeploy,
-  executeSupabaseStagingTargetProofVerify,
 } from './milestone-registry-staging-target-proof'
 import {
   SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
@@ -22,6 +20,11 @@ import {
 import {
   SUPABASE_PLUGIN_STAGING_TARGET_CHECK_CONFIRMATION,
 } from './milestone-registry-staging-target-policy'
+import {
+  buildSupabaseStagingDeployTransportReports,
+  executeSupabaseStagingDeployTransportDeploy,
+  executeSupabaseStagingDeployTransportVerify,
+} from './milestone-registry-staging-deploy-transport'
 
 export const SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_PHASE =
   'supabase-staging-schema-deploy-after-target-reference'
@@ -175,6 +178,7 @@ export async function buildSupabaseStagingSchemaAfterReferenceReports(overrides:
   rlsVerifyAfterReferenceReport?: Record<string, unknown>
 } = {}): Promise<AfterReferenceReports> {
   const proofReports = await buildSupabaseStagingTargetProofReports()
+  const transportReports = await buildSupabaseStagingDeployTransportReports()
   const sourceOfTruthOwnershipAudit = buildAfterReferenceSourceAudit(proofReports.sourceOfTruthOwnershipAudit)
   const approvedStagingTargetReferenceLoadedReport = buildApprovedReferenceLoadedReport(
     proofReports.approvedTargetReferenceReport,
@@ -186,22 +190,23 @@ export async function buildSupabaseStagingSchemaAfterReferenceReports(overrides:
   const deployStrategyAfterReferenceReport = buildDeployStrategyAfterReferenceReport(
     proofReports.deployStrategyReport,
     pluginTargetProofAfterReferenceReport,
+    transportReports.strategyReport,
   )
   const schemaDeployAfterReferenceReport =
     overrides.schemaDeployAfterReferenceReport ??
-    buildSchemaDeployAfterReferenceReport(proofReports.schemaDeployRerunReport)
+    buildSchemaDeployAfterReferenceReport(transportReports.schemaDeployTransportReport)
   const schemaVerifyAfterReferenceReport =
     overrides.schemaVerifyAfterReferenceReport ??
-    buildSchemaVerifyAfterReferenceReport(proofReports.schemaVerifyAfterTargetProofReport)
+    buildSchemaVerifyAfterReferenceReport(transportReports.schemaVerifyAfterTransportReport)
   const rlsVerifyAfterReferenceReport =
     overrides.rlsVerifyAfterReferenceReport ??
-    buildRlsVerifyAfterReferenceReport(proofReports.rlsVerifyAfterTargetProofReport)
+    buildRlsVerifyAfterReferenceReport(transportReports.rlsVerifyAfterTransportReport)
   const trackBBackfillPreflightAfterReferenceSchemaDeploy = wrapTrackBBackfillReport(
-    proofReports.trackBBackfillPreflightAfterTargetProofSchemaDeploy,
+    transportReports.trackBBackfillPreflightAfterTransportSchemaDeploy,
     'preflight',
   )
   const trackBBackfillDiffAfterReferenceSchemaDeploy = wrapTrackBBackfillReport(
-    proofReports.trackBBackfillDiffAfterTargetProofSchemaDeploy,
+    transportReports.trackBBackfillDiffAfterTransportSchemaDeploy,
     'diff',
   )
   const blockers = collectUniqueBlockers(
@@ -285,30 +290,19 @@ export async function readSupabaseStagingSchemaAfterReferenceSummary() {
 export async function executeSupabaseStagingSchemaAfterReferenceDeploy(input: {
   keepTemp: boolean
 }): Promise<{ reports: AfterReferenceReports; exitCode: number }> {
-  const initialReports = await buildSupabaseStagingSchemaAfterReferenceReports()
-  const strategy = initialReports.deployStrategyAfterReferenceReport as {
-    status?: string
-    selectedStrategy?: string
-    blockers?: string[]
-  }
-  if (strategy.status !== 'passed' || strategy.selectedStrategy !== 'delegate_to_pr209_pr206_migration_safe_deploy_path') {
-    await writeSupabaseStagingSchemaAfterReferenceArtifacts(initialReports)
-    return { reports: initialReports, exitCode: 1 }
-  }
-
-  const result = await executeSupabaseStagingTargetProofDeploy(input)
+  const result = await executeSupabaseStagingDeployTransportDeploy(input)
   const reports = await buildSupabaseStagingSchemaAfterReferenceReports({
-    schemaDeployAfterReferenceReport: buildSchemaDeployAfterReferenceReport(result.reports.schemaDeployRerunReport),
+    schemaDeployAfterReferenceReport: buildSchemaDeployAfterReferenceReport(result.reports.schemaDeployTransportReport),
   })
   await writeSupabaseStagingSchemaAfterReferenceArtifacts(reports)
   return { reports, exitCode: result.exitCode }
 }
 
 export async function executeSupabaseStagingSchemaAfterReferenceVerify(): Promise<{ reports: AfterReferenceReports; exitCode: number }> {
-  const result = await executeSupabaseStagingTargetProofVerify()
+  const result = await executeSupabaseStagingDeployTransportVerify()
   const reports = await buildSupabaseStagingSchemaAfterReferenceReports({
-    schemaVerifyAfterReferenceReport: buildSchemaVerifyAfterReferenceReport(result.reports.schemaVerifyAfterTargetProofReport),
-    rlsVerifyAfterReferenceReport: buildRlsVerifyAfterReferenceReport(result.reports.rlsVerifyAfterTargetProofReport),
+    schemaVerifyAfterReferenceReport: buildSchemaVerifyAfterReferenceReport(result.reports.schemaVerifyAfterTransportReport),
+    rlsVerifyAfterReferenceReport: buildRlsVerifyAfterReferenceReport(result.reports.rlsVerifyAfterTransportReport),
   })
   await writeSupabaseStagingSchemaAfterReferenceArtifacts(reports)
   return { reports, exitCode: result.exitCode }
@@ -430,6 +424,7 @@ function buildPluginTargetProofAfterReferenceReport(
 function buildDeployStrategyAfterReferenceReport(
   report: Record<string, unknown>,
   pluginTargetProofAfterReferenceReport: Record<string, unknown>,
+  transportStrategyReport: Record<string, unknown>,
 ) {
   const strategy = report as {
     status?: string
@@ -438,34 +433,43 @@ function buildDeployStrategyAfterReferenceReport(
     pr206DeployStrategy?: Record<string, unknown>
   }
   const proof = pluginTargetProofAfterReferenceReport as { status?: string; blockers?: string[] }
+  const transport = transportStrategyReport as { status?: string; selectedStrategy?: string; blockers?: string[] }
   const pr206DeployStrategy = strategy.pr206DeployStrategy as { blockers?: string[]; selectedStrategy?: string; status?: string } | undefined
-  const blockers = collectUniqueBlockers(strategy.blockers ?? [], proof.blockers ?? [], pr206DeployStrategy?.blockers ?? [])
+  const blockers = collectUniqueBlockers(
+    strategy.blockers ?? [],
+    proof.blockers ?? [],
+    pr206DeployStrategy?.blockers ?? [],
+    transport.blockers ?? [],
+  )
   const selectedStrategy =
-    proof.status === 'passed' && strategy.status === 'passed' && strategy.selectedStrategy === 'delegate_to_pr206_plugin_deploy'
-      ? 'delegate_to_pr209_pr206_migration_safe_deploy_path'
+    proof.status === 'passed' && transport.status === 'passed'
+      ? 'delegate_to_supabase_staging_deploy_transport'
       : strategy.selectedStrategy === 'blocked_no_migration_safe_deploy_path' ||
-          pr206DeployStrategy?.selectedStrategy === 'blocked_no_migration_safe_deploy_path'
+          pr206DeployStrategy?.selectedStrategy === 'blocked_no_migration_safe_deploy_path' ||
+          transport.selectedStrategy === 'blocked_no_migration_safe_deploy_path'
         ? 'blocked_no_migration_safe_deploy_path'
         : 'blocked_until_target_proof_and_migration_safe_path_pass'
-  if (selectedStrategy !== 'delegate_to_pr209_pr206_migration_safe_deploy_path' && blockers.length === 0) {
+  if (selectedStrategy !== 'delegate_to_supabase_staging_deploy_transport' && blockers.length === 0) {
     blockers.push('blocked_no_migration_safe_deploy_path')
   }
   return {
     phase: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_PHASE,
     runId: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_RUN_ID,
-    status: blockers.length === 0 && selectedStrategy === 'delegate_to_pr209_pr206_migration_safe_deploy_path'
+    status: blockers.length === 0 && selectedStrategy === 'delegate_to_supabase_staging_deploy_transport'
       ? 'passed'
       : 'blocked',
     selectedStrategy,
     strategyOrder: [
       'load_pr212_approved_staging_target_reference',
       'confirm_plugin_target_matches_approved_staging_ref',
+      'delegate_to_supabase_staging_deploy_transport',
       'delegate_to_pr209_pr206_migration_safe_deploy_path',
       'blocked_no_migration_safe_deploy_path',
     ],
     cliDbPushPreferred: true,
     dryRunRequiredBeforeApply: true,
     pluginMigrationSafeApplyAllowedOnlyIfMigrationHistorySafe: true,
+    transportStrategyReport,
     directManualSqlAllowed: false,
     seedDeployAllowed: false,
     trackBExportRowsAllowed: false,
@@ -484,8 +488,8 @@ function buildSchemaDeployAfterReferenceReport(report: Record<string, unknown>) 
     phase: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_PHASE,
     runId: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_RUN_ID,
     status: source.status === 'passed' && source.deployPerformed === true ? 'passed' : 'blocked',
-    sourcePr209: 'https://github.com/yuzastudio6-cyber/Reedkt/pull/209',
-    sourceReport: 'docs/activation-supabase-staging-target-proof-reports/supabase_staging_schema_deploy_rerun_report.json',
+    sourcePr216: 'https://github.com/yuzastudio6-cyber/Reedkt/pull/216',
+    sourceReport: 'docs/activation-supabase-staging-deploy-transport-reports/staging_schema_deploy_transport_report.json',
     deployPerformed: source.deployPerformed === true,
     migrationApplied: source.deployPerformed === true,
     migrationPath: SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
@@ -511,7 +515,7 @@ function buildSchemaVerifyAfterReferenceReport(report: Record<string, unknown>) 
     phase: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_PHASE,
     runId: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_RUN_ID,
     status: source.status === 'passed' && source.verificationPerformed === true ? 'passed' : 'blocked',
-    sourceReport: 'docs/activation-supabase-staging-target-proof-reports/supabase_staging_schema_verify_after_target_proof_report.json',
+    sourceReport: 'docs/activation-supabase-staging-deploy-transport-reports/staging_schema_verify_after_transport_report.json',
     verificationPerformed: source.verificationPerformed === true,
     schemaMetadataOnly: true,
     requiredTables: SUPABASE_MILESTONE_REGISTRY_TABLES,
@@ -532,7 +536,7 @@ function buildRlsVerifyAfterReferenceReport(report: Record<string, unknown>) {
     phase: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_PHASE,
     runId: SUPABASE_STAGING_SCHEMA_AFTER_REFERENCE_RUN_ID,
     status: source.status === 'passed' && source.verificationPerformed === true ? 'passed' : 'blocked',
-    sourceReport: 'docs/activation-supabase-staging-target-proof-reports/supabase_staging_rls_verify_after_target_proof_report.json',
+    sourceReport: 'docs/activation-supabase-staging-deploy-transport-reports/staging_rls_verify_after_transport_report.json',
     verificationPerformed: source.verificationPerformed === true,
     requiredTables: SUPABASE_MILESTONE_REGISTRY_TABLES,
     rlsExpectedEnabled: SUPABASE_MILESTONE_REGISTRY_TABLES,

@@ -1,0 +1,33 @@
+{
+  "phase": "SUPABASE_RLS_STORAGE_DATABASE-0",
+  "runId": "supabase-runtime-unlock-repo-audit-20260606",
+  "status": "blocked_pending_deploy_transport_repair",
+  "currentUnlockStageBeforeAudit": "owner_accepted",
+  "auditDecision": "repo_audit_passed",
+  "nextRecommendedUnlockStage": "fix_exact_missing_deploy_transport_blocker_before_dry_run",
+  "nextSupabaseAction": "repair or provide a compatible migration-safe Supabase CLI/npx transport, then rerun PR #223 after secure SUPABASE_DB_URL process-env injection",
+  "doNotProceedTo": [
+    "dry_run_passed",
+    "staging_fixture_passed",
+    "Track B backfill write",
+    "internal beta candidate",
+    "production candidate"
+  ],
+  "blockers": [
+    "secret_manager_supabase_db_url_candidate_missing_staging_label",
+    "secure_secret_manager_env_injection_required",
+    "supabase_plugin_staging_target_check_not_confirmed",
+    "supabase_plugin_target_not_confirmed_as_staging",
+    "staging_supabase_db_url_secret_reference_missing",
+    "blocked_credentials_unavailable",
+    "blocked_target_not_staging",
+    "cli_db_push_unavailable",
+    "npx_cli_db_push_unavailable",
+    "staging_schema_deploy_not_run",
+    "staging_schema_verification_not_run",
+    "staging_rls_verification_failed"
+  ],
+  "supabaseMilestoneSync": "blocked_pending_staging_schema_deploy_transport",
+  "handoffOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "handoffPrompt": "PR #223 deploy transport repair/rerun with compatible Supabase CLI transport"
+}

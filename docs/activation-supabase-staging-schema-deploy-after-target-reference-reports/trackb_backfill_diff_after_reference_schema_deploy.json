@@ -14,20 +14,38 @@
   "workerExecution": "not_run",
   "trackA": "not_touched",
   "delegatedReport": {
-    "phase": "supabase-trackb-milestone-staging-backfill",
-    "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+    "phase": "supabase-staging-deploy-transport-rerun",
+    "runId": "supabase-staging-deploy-transport-rerun-20260606",
     "status": "blocked",
-    "diffMode": "blocked_before_staging_diff",
-    "sourceExportValidated": true,
-    "plannedTable": "public.activation_phase_runs",
-    "plannedRows": 30,
-    "plannedUniqueKey": [
-      "phase_id",
-      "run_id"
-    ],
-    "remoteStagingReadPerformed": false,
-    "remoteSqlRun": false,
-    "rowsToInsertOrUpdate": [],
+    "mode": "diff",
+    "sourcePr198": "https://github.com/yuzastudio6-cyber/Reedkt/pull/198",
+    "writePathRun": false,
+    "stagingMetadataWriteConfirmationSet": false,
+    "trackBBackfillConfirmationSet": false,
+    "productionAffected": false,
+    "providerCalls": "not_run",
+    "routeExecution": "not_run",
+    "workerExecution": "not_run",
+    "trackA": "not_touched",
+    "delegatedReport": {
+      "phase": "supabase-trackb-milestone-staging-backfill",
+      "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+      "status": "blocked",
+      "diffMode": "blocked_before_staging_diff",
+      "sourceExportValidated": true,
+      "plannedTable": "public.activation_phase_runs",
+      "plannedRows": 30,
+      "plannedUniqueKey": [
+        "phase_id",
+        "run_id"
+      ],
+      "remoteStagingReadPerformed": false,
+      "remoteSqlRun": false,
+      "rowsToInsertOrUpdate": [],
+      "blockers": [
+        "staging_supabase_credentials_unavailable"
+      ]
+    },
     "blockers": [
       "staging_supabase_credentials_unavailable"
     ]

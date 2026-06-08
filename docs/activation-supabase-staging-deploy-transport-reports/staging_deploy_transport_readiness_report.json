@@ -17,9 +17,10 @@
   "trackA": "not_touched",
   "blockers": [
     "staging_schema_dry_run_failed",
-    "remote_migration_history_not_in_temp_context",
+    "blocked_pending_migration_history_repair_approval",
+    "staging_schema_deploy_not_run",
     "staging_schema_verification_not_run",
     "staging_rls_verification_failed"
   ],
-  "nextRecommendedPhase": "Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, or migration-safe transport blocker."
+  "nextRecommendedPhase": "Open a separate migration-history repair approval packet before any deploy retry."
 }

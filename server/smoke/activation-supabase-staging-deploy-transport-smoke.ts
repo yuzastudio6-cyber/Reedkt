@@ -37,6 +37,7 @@ for (const script of [
 
 for (const file of [
   'server/activation/supabase-milestone-registry-schema/milestone-registry-staging-deploy-transport.ts',
+  'server/activation/supabase-milestone-registry-schema/milestone-registry-staging-migration-history-audit.ts',
   'server/cli/activation-supabase-staging-deploy-transport-plan.ts',
   'server/cli/activation-supabase-staging-deploy-transport-preflight.ts',
   'server/cli/activation-supabase-staging-deploy-transport-deploy.ts',
@@ -62,6 +63,9 @@ assert(!existsSync('server/workers/supabase-staging-deploy-transport'), 'Transpo
 const moduleText = readFileSync(
   'server/activation/supabase-milestone-registry-schema/milestone-registry-staging-deploy-transport.ts',
   'utf8',
+) + readFileSync(
+  'server/activation/supabase-milestone-registry-schema/milestone-registry-staging-migration-history-audit.ts',
+  'utf8',
 )
 for (const required of [
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
@@ -72,6 +76,8 @@ for (const required of [
   'SUPABASE_ACCESS_TOKEN_SECRET_REF',
   'REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED',
   'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+  'REEDITPRO_CONFIRM_SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT',
+  'REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR',
   'temp_npm_exec_supabase_cli',
   'temp_npm_exec_not_confirmed',
   'temp_npm_exec_supabase_cli_unavailable',
@@ -96,6 +102,17 @@ for (const required of [
   'credentialPayloadsPrinted: false',
   'secretPayloadsRead: false',
   'dbUrlTargetMatchedApprovedStaging',
+  'migration list',
+  '--output-format',
+  'staging_migration_history_audit_report.json',
+  'staging_local_remote_migration_comparison_report.json',
+  'staging_migration_deploy_strategy_after_history_audit.json',
+  'staging_schema_dry_run_after_history_audit_report.json',
+  'staging_schema_deploy_after_history_audit_report.json',
+  'staging_schema_verify_after_history_audit_report.json',
+  'blocked_pending_migration_history_repair_approval',
+  'staging_dry_run_contains_unapproved_migrations',
+  'migrationRepairRun: false',
   'staging_supabase_db_url_secret_payload_access_denied',
   'staging_supabase_db_url_secret_payload_invalid',
   'staging_db_url_target_ref_mismatch',
@@ -121,6 +138,9 @@ for (const forbidden of [
   'console.log(process.env',
   'npm install -g',
   '--global',
+  'migration repair --',
+  "'migration', 'repair'",
+  '"migration", "repair"',
 ]) {
   assert(!moduleText.includes(forbidden), `Transport module must not include forbidden path/token: ${forbidden}`)
 }
@@ -134,6 +154,7 @@ for (const name of [
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION',
   'REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED',
   'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+  'REEDITPRO_CONFIRM_SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT',
   'REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_PAYLOAD_ACCESS_STATUS',
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
   'SUPABASE_STAGING_DB_URL',
@@ -187,6 +208,26 @@ const baselineDeploy = baselineReports.schemaDeployTransportReport as {
   trackBRowsWritten?: boolean
   productionAffected?: boolean
   directManualSqlRun?: boolean
+}
+const baselineHistoryAudit = baselineReports.migrationHistoryAuditReport as {
+  status?: string
+  confirmationPresent?: boolean
+  remoteHistoryListed?: boolean
+  command?: { status?: string }
+  blockers?: string[]
+}
+const baselineHistoryDryRun = baselineReports.schemaDryRunAfterHistoryAuditReport as {
+  status?: string
+  dryRunPerformed?: boolean
+  deployAllowedByDryRun?: boolean
+  blockers?: string[]
+}
+const baselineHistoryStrategy = baselineReports.migrationDeployStrategyAfterHistoryAudit as {
+  status?: string
+  deployAllowed?: boolean
+  migrationRepairAllowed?: boolean
+  directManualSqlAllowed?: boolean
+  blockers?: string[]
 }
 const baselineSecretDiscovery = baselineReports.secretReferenceDiscoveryReport as {
   payloadAccessCommandRun?: boolean
@@ -287,6 +328,24 @@ assert(baselineDeploy.dryRunPerformed === false, 'Smoke must not run dry-run.')
 assert(baselineDeploy.trackBRowsWritten === false, 'Smoke must not write Track B rows.')
 assert(baselineDeploy.productionAffected === false, 'Smoke must not affect production.')
 assert(baselineDeploy.directManualSqlRun === false, 'Smoke must not run direct/manual SQL.')
+assert(
+  baselineHistoryAudit.confirmationPresent === false &&
+    baselineHistoryAudit.remoteHistoryListed === false &&
+    baselineHistoryAudit.command?.status === 'skipped' &&
+    baselineHistoryAudit.blockers?.includes('staging_migration_history_audit_not_confirmed'),
+  'Migration history audit must skip safely without the explicit audit confirmation.',
+)
+assert(
+  baselineHistoryDryRun.dryRunPerformed === false &&
+    baselineHistoryDryRun.deployAllowedByDryRun === false,
+  'Migration-history dry-run must not run without a passed migration-history audit.',
+)
+assert(
+  baselineHistoryStrategy.deployAllowed === false &&
+    baselineHistoryStrategy.migrationRepairAllowed === false &&
+    baselineHistoryStrategy.directManualSqlAllowed === false,
+  'Migration-history strategy must block deploy and repair paths by default.',
+)
 assert(baselineSecretDiscovery.payloadAccessCommandRun === false, 'Secret Manager discovery must not access payloads.')
 assert(baselineSecretDiscovery.secretVersionAccessRun === false, 'Secret Manager discovery must not run secret-version access.')
 assert(
@@ -472,9 +531,9 @@ for (const report of SUPABASE_STAGING_DEPLOY_TRANSPORT_EXPECTED_REPORTS) {
 
 const reportText = readAllFiles(SUPABASE_STAGING_DEPLOY_TRANSPORT_REPORT_DIR).map(({ text }) => text).join('\n')
 for (const forbidden of [
-  'BEGIN PRIVATE KEY',
-  'postgres://',
-  'postgresql://',
+  ['BEGIN', 'PRIVATE KEY'].join(' '),
+  ['postgres', '://'].join(''),
+  ['postgresql', '://'].join(''),
   '"serviceRoleKey":',
   '"secretValue"',
   '"signedUrl"',

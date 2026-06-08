@@ -49,7 +49,7 @@
     "dryRunRequiredBeforeApply": true
   },
   "npxCliDbPush": {
-    "available": true,
+    "available": false,
     "requiresConfirmation": "REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED",
     "repoDependencyInstalled": false,
     "packageLockChanged": false,

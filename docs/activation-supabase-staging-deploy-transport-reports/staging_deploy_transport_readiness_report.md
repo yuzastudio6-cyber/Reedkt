@@ -11,5 +11,5 @@ This phase proves a migration-safe staging deploy transport for `supabase/migrat
 - Track B backfill rows written: no
 - Production affected: no
 - Direct/manual SQL run: no
-- Active blockers: staging_schema_dry_run_failed, remote_migration_history_not_in_temp_context, staging_schema_verification_not_run, staging_rls_verification_failed
-- Next: Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, or migration-safe transport blocker.
+- Active blockers: staging_schema_dry_run_failed, blocked_pending_migration_history_repair_approval, staging_schema_deploy_not_run, staging_schema_verification_not_run, staging_rls_verification_failed
+- Next: Open a separate migration-history repair approval packet before any deploy retry.

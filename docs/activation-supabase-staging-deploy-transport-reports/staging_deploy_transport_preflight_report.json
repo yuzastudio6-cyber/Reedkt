@@ -231,7 +231,7 @@
     "dbUrlValuePrinted": false,
     "dbUrlValueCommitted": false,
     "accessTokenReferencePresent": false,
-    "dbUrlSecretPayloadAccessStatus": "not_attempted_or_not_reported",
+    "dbUrlSecretPayloadAccessStatus": "present",
     "dbUrlPayloadAccessDenied": false,
     "dbUrlPayloadInvalid": false,
     "accessTokenPayloadViewed": false,
@@ -268,6 +268,7 @@
         "secretPatternDetected": false
       },
       "outputContainsExpectedMigrationId": false,
+      "outputMigrationIds": [],
       "errorCategory": "command_failed"
     },
     "versionOutputPresent": true,
@@ -320,7 +321,8 @@
         "lineCount": 0,
         "secretPatternDetected": false
       },
-      "outputContainsExpectedMigrationId": false
+      "outputContainsExpectedMigrationId": false,
+      "outputMigrationIds": []
     },
     "npmExecAttempted": true,
     "tempCliDownloadAttempted": true,
@@ -333,37 +335,15 @@
   "npxPreflightReport": {
     "phase": "supabase-staging-deploy-transport-rerun",
     "runId": "supabase-staging-deploy-transport-rerun-20260606",
-    "status": "passed",
+    "status": "skipped",
     "npxConfirmation": "REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED",
-    "npxConfirmed": true,
+    "npxConfirmed": false,
     "nodeVersion": "24.14.0",
-    "npxCommandResult": {
-      "status": "passed",
-      "exitCode": 0,
-      "command": "npx",
-      "args": [
-        "--yes",
-        "supabase",
-        "--version"
-      ],
-      "cwd": "process_cwd",
-      "stdoutSummary": {
-        "byteLength": 8,
-        "lineCount": 1,
-        "secretPatternDetected": false
-      },
-      "stderrSummary": {
-        "byteLength": 0,
-        "lineCount": 0,
-        "secretPatternDetected": false
-      },
-      "outputContainsExpectedMigrationId": false
-    },
-    "npxDownloadAttempted": true,
-    "repoDependencyInstalled": false,
-    "packageLockChanged": false,
+    "npxDownloadAttempted": false,
     "credentialPayloadsPrinted": false,
-    "blockers": []
+    "blockers": [
+      "npx_cli_not_confirmed"
+    ]
   },
   "localEvidenceReport": {
     "phase": "supabase-staging-deploy-transport-rerun",

@@ -13,6 +13,7 @@ function readExistingAttemptReport(fileName: string): Record<string, unknown> | 
   try {
     const report = JSON.parse(readFileSync(fullPath, 'utf8')) as Record<string, unknown>
     const hasAttemptState =
+      report.auditPerformed === true ||
       report.deployPerformed === true ||
       report.deployAttempted === true ||
       report.dryRunPerformed === true ||
@@ -24,6 +25,8 @@ function readExistingAttemptReport(fileName: string): Record<string, unknown> | 
 }
 
 const reports = await buildSupabaseStagingDeployTransportReports({
+  schemaDeployAfterHistoryAuditReport: readExistingAttemptReport('staging_schema_deploy_after_history_audit_report.json'),
+  schemaVerifyAfterHistoryAuditReport: readExistingAttemptReport('staging_schema_verify_after_history_audit_report.json'),
   schemaDeployTransportReport: readExistingAttemptReport('staging_schema_deploy_transport_report.json'),
   schemaVerifyAfterTransportReport: readExistingAttemptReport('staging_schema_verify_after_transport_report.json'),
   rlsVerifyAfterTransportReport: readExistingAttemptReport('staging_rls_verify_after_transport_report.json'),

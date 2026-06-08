@@ -4,7 +4,8 @@
   "status": "blocked",
   "activeBlockers": [
     "staging_schema_dry_run_failed",
-    "remote_migration_history_not_in_temp_context",
+    "blocked_pending_migration_history_repair_approval",
+    "staging_schema_deploy_not_run",
     "staging_schema_verification_not_run",
     "staging_rls_verification_failed"
   ],
@@ -23,10 +24,14 @@
     "temp_npm_exec_supabase_cli_unavailable",
     "npx_cli_db_push_unavailable",
     "blocked_no_migration_safe_deploy_path",
+    "staging_migration_history_audit_not_confirmed",
+    "staging_migration_history_list_failed",
+    "blocked_pending_migration_history_repair_approval",
+    "staging_dry_run_contains_unapproved_migrations",
     "staging_schema_deploy_not_run",
     "staging_schema_verification_not_run"
   ],
-  "operatorActionRequired": "Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, or target-proof blocker before retrying deploy.",
+  "operatorActionRequired": "Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, target-proof, or migration-history audit blocker before retrying deploy.",
   "stillBlockedScopes": [
     "track_b_backfill_write",
     "milestone_data_insert",

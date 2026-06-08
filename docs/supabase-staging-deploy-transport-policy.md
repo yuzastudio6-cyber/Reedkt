@@ -5,10 +5,20 @@ This phase may deploy only `supabase/migrations/202606050001_activation_mileston
 Approved migration-safe transport order:
 
 1. `supabase db push --db-url` using a redacted staging DB URL environment reference.
-2. `npx supabase db push --db-url` only when `REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED=true`.
-3. Plugin migration-safe apply only if it preserves migration history and is proven by safe metadata.
+2. `npm exec --yes --package supabase@latest -- supabase db push --db-url` using temp npm cache/prefix outside the repo, only when `REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC=true`.
+3. `npx supabase db push --db-url` only when `REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED=true`.
+4. Plugin migration-safe apply only if it preserves migration history and is proven by safe metadata.
 
-The deploy must run a `--dry-run` first, use a temporary Supabase context containing only the registry migration, and exclude seeds, Track B export rows, unrelated migrations, credentials, and private payloads.
+Before any deploy retry, the transport must run a non-mutating migration-history audit:
+
+- `supabase migration list --db-url [REDACTED] --output-format json`
+- compare remote migration IDs with committed local `supabase/migrations`
+- run full-repo `supabase db push --db-url [REDACTED] --dry-run`
+- allow apply only if the dry-run proves exactly `202606050001_activation_milestone_registry_schema_rls.sql`
+
+`--include-all` is diagnostic-only and must never be applied in this phase. Migration repair is explicitly out of scope and requires a separate approval packet.
+
+The deploy must run a `--dry-run` first, use only the committed migration workflow proven by the audit, and exclude seeds, Track B export rows, credentials, private payloads, direct SQL, and manual migration-history edits.
 
 Blocked:
 
@@ -19,6 +29,8 @@ Blocked:
 - provider, route, worker, tool, media, beta, production, public output, and Track A paths
 
 If no migration-safe transport exists, the correct result is `blocked_no_migration_safe_deploy_path`.
+
+If remote/local migration history is ambiguous, the correct result is `blocked_pending_migration_history_repair_approval`.
 
 ## Secret Manager Reference Discovery
 

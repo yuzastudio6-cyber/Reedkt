@@ -1,0 +1,68 @@
+{
+  "phase": "supabase-staging-deploy-transport-rerun",
+  "runId": "supabase-staging-deploy-transport-rerun-20260606",
+  "status": "blocked",
+  "dryRunPerformed": true,
+  "command": {
+    "status": "blocked",
+    "exitCode": 1,
+    "signal": null,
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "db",
+      "push",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--dry-run"
+    ],
+    "cwd": "process_cwd",
+    "stdoutSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 843,
+      "lineCount": 12,
+      "secretPatternDetected": false
+    },
+    "outputContainsExpectedMigrationId": false,
+    "outputMigrationIds": [],
+    "errorCategory": "command_failed"
+  },
+  "targetMigrationId": "202606050001",
+  "olderLocalMigrationsAbsentRemotely": [
+    "202605180001",
+    "202605180002",
+    "202605180003",
+    "202605180004",
+    "202605180005",
+    "202605180006",
+    "202605180007",
+    "202605180008",
+    "202605190002",
+    "202605200001",
+    "202605200002",
+    "202605210001"
+  ],
+  "olderLocalMigrationsAbsentRemotelyCount": 12,
+  "approvedMigrationIds": [],
+  "unapprovedMigrationIds": [],
+  "dryRunOutputMigrationIds": [],
+  "deployAllowedByDryRun": false,
+  "verifyOnly": false,
+  "credentialPayloadsPrinted": false,
+  "dbUrlPrinted": false,
+  "directManualSqlRun": false,
+  "migrationRepairRun": false,
+  "blockers": [
+    "staging_schema_dry_run_failed",
+    "blocked_pending_migration_history_repair_approval"
+  ]
+}

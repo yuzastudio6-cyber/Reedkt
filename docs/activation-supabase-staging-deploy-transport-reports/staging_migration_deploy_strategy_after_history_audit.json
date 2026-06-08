@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-staging-deploy-transport-rerun",
+  "runId": "supabase-staging-deploy-transport-rerun-20260606",
+  "status": "blocked",
+  "selectedStrategy": "blocked_pending_manual_review",
+  "deployAllowed": false,
+  "deployNeeded": false,
+  "verifyOnly": false,
+  "reason": "full_repo_dry_run_did_not_prove_exact_reviewed_migration_set",
+  "allowedStrategies": [
+    "full_repo_migrations_dry_run",
+    "temp_context_with_history_stub",
+    "include_all_dry_run_only",
+    "blocked_pending_migration_history_repair_approval",
+    "blocked_pending_manual_review"
+  ],
+  "tempContextWithHistoryStubUsed": false,
+  "includeAllDryRunOnly": false,
+  "includeAllApplyAllowed": false,
+  "migrationRepairAllowed": false,
+  "migrationRepairRun": false,
+  "directManualSqlAllowed": false,
+  "trackBRowsWritten": false,
+  "productionAffected": false,
+  "blockers": [
+    "staging_schema_dry_run_failed",
+    "blocked_pending_migration_history_repair_approval"
+  ]
+}

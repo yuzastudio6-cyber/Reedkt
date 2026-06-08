@@ -1,14 +1,10 @@
 import { execFile } from 'node:child_process'
 import {
-  copyFileSync,
   existsSync,
   mkdirSync,
-  mkdtempSync,
   readFileSync,
   readdirSync,
-  rmSync,
 } from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import {
   writeVlmRuntimeJsonArtifact,
@@ -27,6 +23,17 @@ import {
 import {
   SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID,
 } from './milestone-registry-supabase-plugin-deploy-plan'
+import {
+  SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT_CONFIRMATION,
+  SUPABASE_STAGING_MIGRATION_HISTORY_REPORTS,
+  buildDeployStrategyAfterHistoryAuditReport,
+  buildDryRunAfterHistoryAuditReport,
+  buildLocalMigrationInventory,
+  buildLocalRemoteMigrationComparisonReport,
+  buildMigrationHistoryAuditReport,
+  extractMigrationIds,
+  parseSupabaseMigrationListOutput,
+} from './milestone-registry-staging-migration-history-audit'
 import {
   SUPABASE_PLUGIN_STAGING_TARGET_CHECK_CONFIRMATION,
   buildSupabasePluginTargetPreflight,
@@ -53,6 +60,7 @@ export const SUPABASE_STAGING_DEPLOY_TRANSPORT_ALLOWED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION',
   'REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED',
   'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+  SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT_CONFIRMATION,
 ] as const
 
 export const SUPABASE_STAGING_DEPLOY_TRANSPORT_REQUIRED_DEPLOY_CONFIRMATIONS = [
@@ -61,6 +69,7 @@ export const SUPABASE_STAGING_DEPLOY_TRANSPORT_REQUIRED_DEPLOY_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY',
   'REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_VERIFY',
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION',
+  SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT_CONFIRMATION,
 ] as const
 
 export const SUPABASE_STAGING_DEPLOY_TRANSPORT_REQUIRED_VERIFY_CONFIRMATIONS = [
@@ -76,6 +85,7 @@ export const SUPABASE_STAGING_DEPLOY_TRANSPORT_FORBIDDEN_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL',
   'REEDITPRO_CONFIRM_PRODUCTION_SUPABASE_SQL_EXECUTION',
   'REEDITPRO_CONFIRM_SUPABASE_REMOTE_SQL',
+  'REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR',
   'REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT',
   'REEDITPRO_CONFIRM_SECRET_MANAGER_ACCESS',
   'REEDITPRO_CONFIRM_PROVIDER_CALLS',
@@ -101,6 +111,7 @@ export const SUPABASE_STAGING_DEPLOY_TRANSPORT_EXPECTED_REPORTS = [
   'staging_secret_reference_blocker_report.json',
   'staging_secret_reference_readiness_report.json',
   'staging_secret_payload_access_preflight_report.json',
+  ...SUPABASE_STAGING_MIGRATION_HISTORY_REPORTS,
   'staging_deploy_transport_preflight_report.json',
   'staging_deploy_transport_strategy_report.json',
   'staging_schema_deploy_transport_report.json',
@@ -158,6 +169,12 @@ type TransportBlocker =
   | 'staging_schema_verification_not_run'
   | 'staging_schema_dry_run_failed'
   | 'remote_migration_history_not_in_temp_context'
+  | 'staging_migration_history_audit_not_confirmed'
+  | 'staging_migration_history_list_failed'
+  | 'blocked_pending_migration_history_repair_approval'
+  | 'blocked_pending_manual_review'
+  | 'staging_dry_run_contains_unapproved_migrations'
+  | 'staging_history_claims_applied_but_schema_missing'
   | 'staging_schema_deploy_failed'
   | 'staging_schema_verification_failed'
   | 'staging_rls_verification_failed'
@@ -173,6 +190,7 @@ interface CommandResult {
   stdoutSummary: OutputSummary
   stderrSummary: OutputSummary
   outputContainsExpectedMigrationId?: boolean
+  outputMigrationIds?: string[]
   errorCategory?: string
 }
 
@@ -249,6 +267,12 @@ interface TransportReports {
   secretReferenceBlockerReport: Record<string, unknown>
   secretReferenceReadinessReport: Record<string, unknown>
   secretPayloadAccessPreflightReport: Record<string, unknown>
+  migrationHistoryAuditReport: Record<string, unknown>
+  localRemoteMigrationComparisonReport: Record<string, unknown>
+  migrationDeployStrategyAfterHistoryAudit: Record<string, unknown>
+  schemaDryRunAfterHistoryAuditReport: Record<string, unknown>
+  schemaDeployAfterHistoryAuditReport: Record<string, unknown>
+  schemaVerifyAfterHistoryAuditReport: Record<string, unknown>
   preflightReport: Record<string, unknown>
   strategyReport: Record<string, unknown>
   schemaDeployTransportReport: Record<string, unknown>
@@ -296,8 +320,8 @@ const SECRET_PATTERNS = [
   /access[_-]?token/i,
   /jwt[_-]?secret/i,
   /password/i,
-  /BEGIN PRIVATE KEY/i,
-  /x-goog-signature=/i,
+  /BEGIN\s+PRIVATE\s+KEY/i,
+  /x-goog-signature\s*=/i,
 ] as const
 
 const SECRET_MANAGER_PROJECT_ID = 'reeditpro'
@@ -342,6 +366,7 @@ export function getSupabaseStagingDeployTransportPlan() {
     supabaseMigrationDocs: 'https://supabase.com/docs/guides/deployment/database-migrations',
     supabaseDocsAccessedAt: '2026-06-06',
     deployStrategyOrder: [
+      'full_repo_migrations_dry_run_after_history_audit',
       'cli_db_push',
       'temp_npm_exec_supabase_cli',
       'npx_cli_db_push',
@@ -379,6 +404,14 @@ export function getSupabaseStagingDeployTransportPlan() {
       unrelatedMigrationsIncluded: false,
       secretsIncluded: false,
     },
+    migrationHistoryAuditPolicy: {
+      confirmation: SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT_CONFIRMATION,
+      primaryCommand: 'supabase migration list --db-url [REDACTED] --output-format json',
+      fullRepoDryRunCommand: 'supabase db push --db-url [REDACTED] --dry-run',
+      includeAllPolicy: 'diagnostic_dry_run_only_never_apply',
+      migrationRepairAllowed: false,
+      requiredBeforeDeploy: true,
+    },
     noTrackBBackfillWrites: true,
     noProductionSupabase: true,
     noDirectManualSql: true,
@@ -394,6 +427,8 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
   schemaDeployTransportReport?: Record<string, unknown>
   schemaVerifyAfterTransportReport?: Record<string, unknown>
   rlsVerifyAfterTransportReport?: Record<string, unknown>
+  schemaDeployAfterHistoryAuditReport?: Record<string, unknown>
+  schemaVerifyAfterHistoryAuditReport?: Record<string, unknown>
 } = {}): Promise<TransportReports> {
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
   const secretReferenceDiscovery = await buildSecretManagerReferenceDiscovery()
@@ -415,8 +450,14 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
     localEvidenceReport,
   })
   const strategyReport = buildStrategyReport(preflightReport)
+  const migrationHistoryReports = await buildStagingMigrationHistoryAuditReports(preflightReport, strategyReport)
+  const schemaDeployAfterHistoryAuditReport =
+    overrides.schemaDeployAfterHistoryAuditReport ?? migrationHistoryReports.schemaDeployAfterHistoryAuditReport
+  const schemaVerifyAfterHistoryAuditReport =
+    overrides.schemaVerifyAfterHistoryAuditReport ?? migrationHistoryReports.schemaVerifyAfterHistoryAuditReport
   const schemaDeployTransportReport =
-    overrides.schemaDeployTransportReport ?? buildDefaultSchemaDeployTransportReport(strategyReport)
+    overrides.schemaDeployTransportReport ??
+    buildDefaultSchemaDeployTransportReport(strategyReport, migrationHistoryReports.migrationDeployStrategyAfterHistoryAudit)
   const schemaVerifyAfterTransportReport =
     overrides.schemaVerifyAfterTransportReport ?? buildDefaultSchemaVerifyAfterTransportReport(strategyReport)
   const rlsVerifyAfterTransportReport =
@@ -429,6 +470,12 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
     extractBlockers(secretPayloadAccessPreflightReport),
     extractBlockers(preflightReport),
     extractBlockers(strategyReport),
+    extractBlockers(migrationHistoryReports.migrationHistoryAuditReport),
+    extractBlockers(migrationHistoryReports.localRemoteMigrationComparisonReport),
+    extractBlockers(migrationHistoryReports.migrationDeployStrategyAfterHistoryAudit),
+    extractBlockers(migrationHistoryReports.schemaDryRunAfterHistoryAuditReport),
+    extractBlockers(schemaDeployAfterHistoryAuditReport),
+    extractBlockers(schemaVerifyAfterHistoryAuditReport),
     extractBlockers(schemaDeployTransportReport),
     extractBlockers(schemaVerifyAfterTransportReport),
     extractBlockers(rlsVerifyAfterTransportReport),
@@ -440,6 +487,12 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
     secretReferenceBlockerReport: secretReferenceDiscovery.blockerReport,
     secretReferenceReadinessReport: secretReferenceDiscovery.readinessReport,
     secretPayloadAccessPreflightReport,
+    migrationHistoryAuditReport: migrationHistoryReports.migrationHistoryAuditReport,
+    localRemoteMigrationComparisonReport: migrationHistoryReports.localRemoteMigrationComparisonReport,
+    migrationDeployStrategyAfterHistoryAudit: migrationHistoryReports.migrationDeployStrategyAfterHistoryAudit,
+    schemaDryRunAfterHistoryAuditReport: migrationHistoryReports.schemaDryRunAfterHistoryAuditReport,
+    schemaDeployAfterHistoryAuditReport,
+    schemaVerifyAfterHistoryAuditReport,
     preflightReport,
     strategyReport,
     schemaDeployTransportReport,
@@ -472,6 +525,12 @@ export async function writeSupabaseStagingDeployTransportArtifacts(
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_blocker_report.json'), reports.secretReferenceBlockerReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_readiness_report.json'), reports.secretReferenceReadinessReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_payload_access_preflight_report.json'), reports.secretPayloadAccessPreflightReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_migration_history_audit_report.json'), reports.migrationHistoryAuditReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_local_remote_migration_comparison_report.json'), reports.localRemoteMigrationComparisonReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_migration_deploy_strategy_after_history_audit.json'), reports.migrationDeployStrategyAfterHistoryAudit)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_schema_dry_run_after_history_audit_report.json'), reports.schemaDryRunAfterHistoryAuditReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_schema_deploy_after_history_audit_report.json'), reports.schemaDeployAfterHistoryAuditReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_schema_verify_after_history_audit_report.json'), reports.schemaVerifyAfterHistoryAuditReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_deploy_transport_preflight_report.json'), reports.preflightReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_deploy_transport_strategy_report.json'), reports.strategyReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_schema_deploy_transport_report.json'), reports.schemaDeployTransportReport)
@@ -512,6 +571,7 @@ export async function readSupabaseStagingDeployTransportSummary() {
 export async function executeSupabaseStagingDeployTransportDeploy(input: {
   keepTemp: boolean
 }): Promise<{ reports: TransportReports; exitCode: number }> {
+  void input
   const initialReports = await buildSupabaseStagingDeployTransportReports()
   const strategy = initialReports.strategyReport as {
     status?: TransportStatus
@@ -542,92 +602,167 @@ export async function executeSupabaseStagingDeployTransportDeploy(input: {
     return { reports, exitCode: 1 }
   }
 
-  const dbUrl = readSelectedStagingDbUrl()
-  const tempContext = createTempDeployContext()
-  const commandEnv = getTransportCommandEnvOverrides(strategy.selectedStrategy)
-  try {
-    const dryRun = await runTransportCommand(
-      strategy.selectedCommand.command,
-      [...strategy.selectedCommand.prefixArgs, 'db', 'push', '--db-url', dbUrl, '--dry-run'],
-      tempContext.root,
-      60000,
-      commandEnv,
-    )
-    if (dryRun.status !== 'passed') {
-      const reports = await buildSupabaseStagingDeployTransportReports({
-        schemaDeployTransportReport: buildFailedSchemaDeployTransportReport(
-          'staging_schema_dry_run_failed',
-          dryRun,
-          tempContext,
-          true,
-          false,
-        ),
-      })
-      await writeSupabaseStagingDeployTransportArtifacts(reports)
-      return { reports, exitCode: 1 }
+  const historyStrategy = initialReports.migrationDeployStrategyAfterHistoryAudit as {
+    status?: TransportStatus
+    selectedStrategy?: string
+    deployAllowed?: boolean
+    deployNeeded?: boolean
+    verifyOnly?: boolean
+    blockers?: TransportBlocker[]
+  }
+  const dryRunAfterAudit = initialReports.schemaDryRunAfterHistoryAuditReport as {
+    status?: TransportStatus
+    deployAllowedByDryRun?: boolean
+    approvedMigrationIds?: string[]
+    unapprovedMigrationIds?: string[]
+    blockers?: TransportBlocker[]
+  }
+  if (historyStrategy.verifyOnly === true) {
+    const deployReport = {
+      phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+      runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+      status: 'passed',
+      selectedStrategy: 'full_repo_migrations_dry_run',
+      deployPerformed: false,
+      dryRunPerformed: false,
+      migrationDeployment: false,
+      deploySkippedBecauseAlreadyApplied: true,
+      migrationPath: SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
+      migrationId: SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID,
+      credentialPayloadsPrinted: false,
+      secretPayloadsRead: false,
+      seedFilesIncluded: false,
+      trackBRowsWritten: false,
+      productionAffected: false,
+      directManualSqlRun: false,
+      migrationRepairRun: false,
+      blockers: [],
     }
-
-    const deploy = await runTransportCommand(
-      strategy.selectedCommand.command,
-      [...strategy.selectedCommand.prefixArgs, 'db', 'push', '--db-url', dbUrl],
-      tempContext.root,
-      60000,
-      commandEnv,
-    )
-    if (deploy.status !== 'passed') {
-      const reports = await buildSupabaseStagingDeployTransportReports({
-        schemaDeployTransportReport: buildFailedSchemaDeployTransportReport(
-          'staging_schema_deploy_failed',
-          deploy,
-          tempContext,
-          true,
-          true,
-        ),
-      })
-      await writeSupabaseStagingDeployTransportArtifacts(reports)
-      return { reports, exitCode: 1 }
-    }
-
     const reports = await buildSupabaseStagingDeployTransportReports({
-      schemaDeployTransportReport: {
-        phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
-        runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
-        status: 'passed',
-        selectedStrategy: strategy.selectedStrategy,
-        deployPerformed: true,
-        dryRunPerformed: true,
-        dryRunStatus: dryRun.status,
-        deployStatus: deploy.status,
-        migrationDeployment: true,
-        migrationPath: SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
-        migrationId: SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID,
-        tempDeployContextCreated: true,
-        tempDeployContextRetained: input.keepTemp,
-        tempDeployContextPolicy: tempContext.report,
-        dryRunCommand: dryRun,
-        deployCommand: deploy,
-        credentialPayloadsPrinted: false,
-        secretPayloadsRead: false,
-        seedFilesIncluded: false,
-        trackBRowsWritten: false,
-        productionAffected: false,
-        directManualSqlRun: false,
-        blockers: [],
-      },
-      schemaVerifyAfterTransportReport: {
-        phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
-        runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
-        status: 'planned',
-        verificationPerformed: false,
-        reason: 'staging_verify_command_required_after_transport_deploy',
-        blockers: ['staging_schema_verification_not_run'],
-      },
+      schemaDeployTransportReport: deployReport,
+      schemaDeployAfterHistoryAuditReport: deployReport,
     })
     await writeSupabaseStagingDeployTransportArtifacts(reports)
     return { reports, exitCode: 0 }
-  } finally {
-    if (!input.keepTemp) rmSync(tempContext.root, { recursive: true, force: true })
   }
+  if (
+    historyStrategy.status !== 'passed' ||
+    historyStrategy.deployAllowed !== true ||
+    dryRunAfterAudit.status !== 'passed' ||
+    dryRunAfterAudit.deployAllowedByDryRun !== true ||
+    (dryRunAfterAudit.unapprovedMigrationIds ?? []).length > 0 ||
+    !(dryRunAfterAudit.approvedMigrationIds ?? []).includes(SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID)
+  ) {
+    const reports = await buildSupabaseStagingDeployTransportReports({
+      schemaDeployTransportReport: buildBlockedSchemaDeployTransportReport(
+        'blocked_before_staging_deploy_history_audit_not_safe',
+        collectUniqueBlockers(
+          historyStrategy.blockers ?? [],
+          dryRunAfterAudit.blockers ?? [],
+          ['staging_schema_deploy_not_run'],
+        ),
+      ),
+      schemaDeployAfterHistoryAuditReport: buildDefaultHistoryDeployReport(historyStrategy),
+    })
+    await writeSupabaseStagingDeployTransportArtifacts(reports)
+    return { reports, exitCode: 1 }
+  }
+
+  const dbUrl = readSelectedStagingDbUrl()
+  const commandEnv = getTransportCommandEnvOverrides(strategy.selectedStrategy)
+  const dryRun = await runTransportCommand(
+    strategy.selectedCommand.command,
+    [...strategy.selectedCommand.prefixArgs, 'db', 'push', '--db-url', dbUrl, '--dry-run'],
+    process.cwd(),
+    60000,
+    commandEnv,
+  )
+  const dryRunMigrationIds = dryRun.outputMigrationIds ?? []
+  const unapprovedDryRunMigrationIds = dryRunMigrationIds.filter((id) => id !== SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID)
+  if (
+    dryRun.status !== 'passed' ||
+    unapprovedDryRunMigrationIds.length > 0 ||
+    !dryRunMigrationIds.includes(SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID)
+  ) {
+    const failedReport = buildFailedSchemaDeployTransportReport(
+      unapprovedDryRunMigrationIds.length > 0
+        ? 'staging_dry_run_contains_unapproved_migrations'
+        : 'staging_schema_dry_run_failed',
+      dryRun,
+      buildFullRepoDeployContextReport(),
+      true,
+      false,
+    )
+    const reports = await buildSupabaseStagingDeployTransportReports({
+      schemaDeployTransportReport: failedReport,
+      schemaDeployAfterHistoryAuditReport: failedReport,
+    })
+    await writeSupabaseStagingDeployTransportArtifacts(reports)
+    return { reports, exitCode: 1 }
+  }
+
+  const deploy = await runTransportCommand(
+    strategy.selectedCommand.command,
+    [...strategy.selectedCommand.prefixArgs, 'db', 'push', '--db-url', dbUrl],
+    process.cwd(),
+    60000,
+    commandEnv,
+  )
+  if (deploy.status !== 'passed') {
+    const failedReport = buildFailedSchemaDeployTransportReport(
+      'staging_schema_deploy_failed',
+      deploy,
+      buildFullRepoDeployContextReport(),
+      true,
+      true,
+    )
+    const reports = await buildSupabaseStagingDeployTransportReports({
+      schemaDeployTransportReport: failedReport,
+      schemaDeployAfterHistoryAuditReport: failedReport,
+    })
+    await writeSupabaseStagingDeployTransportArtifacts(reports)
+    return { reports, exitCode: 1 }
+  }
+
+  const deployReport = {
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    status: 'passed',
+    selectedStrategy: historyStrategy.selectedStrategy,
+    deployPerformed: true,
+    dryRunPerformed: true,
+    dryRunStatus: dryRun.status,
+    deployStatus: deploy.status,
+    migrationDeployment: true,
+    migrationPath: SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH,
+    migrationId: SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID,
+    fullRepoMigrationContextUsed: true,
+    deployContextPolicy: buildFullRepoDeployContextReport().report,
+    dryRunCommand: dryRun,
+    deployCommand: deploy,
+    credentialPayloadsPrinted: false,
+    secretPayloadsRead: false,
+    seedFilesIncluded: false,
+    trackBRowsWritten: false,
+    productionAffected: false,
+    directManualSqlRun: false,
+    migrationRepairRun: false,
+    blockers: [],
+  }
+  const reports = await buildSupabaseStagingDeployTransportReports({
+    schemaDeployTransportReport: deployReport,
+    schemaDeployAfterHistoryAuditReport: deployReport,
+    schemaVerifyAfterTransportReport: {
+      phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+      runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+      status: 'planned',
+      verificationPerformed: false,
+      reason: 'staging_verify_command_required_after_transport_deploy',
+      blockers: ['staging_schema_verification_not_run'],
+    },
+  })
+  await writeSupabaseStagingDeployTransportArtifacts(reports)
+  return { reports, exitCode: 0 }
 }
 
 export async function executeSupabaseStagingDeployTransportVerify(): Promise<{ reports: TransportReports; exitCode: number }> {
@@ -675,15 +810,17 @@ export async function executeSupabaseStagingDeployTransportVerify(): Promise<{ r
 
   const dbUrl = readSelectedStagingDbUrl()
   const commandEnv = getTransportCommandEnvOverrides(strategy.selectedStrategy)
-  const migrationList = await runTransportCommand(
+  const migrationList = await runTransportCommandWithRaw(
     strategy.selectedCommand.command,
-    [...strategy.selectedCommand.prefixArgs, 'migration', 'list', '--db-url', dbUrl],
+    [...strategy.selectedCommand.prefixArgs, 'migration', 'list', '--db-url', dbUrl, '--output-format', 'json'],
     process.cwd(),
     60000,
     commandEnv,
   )
+  const parsedHistory = parseSupabaseMigrationListOutput(migrationList.stdout)
   const migrationDetected =
-    migrationList.status === 'passed' && migrationList.outputContainsExpectedMigrationId === true
+    migrationList.report.status === 'passed' &&
+    parsedHistory.remoteIds.includes(SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID)
   const verificationBlockers: TransportBlocker[] = migrationDetected
     ? []
     : ['staging_schema_verification_failed']
@@ -691,10 +828,13 @@ export async function executeSupabaseStagingDeployTransportVerify(): Promise<{ r
     phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
     runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
     status: verificationBlockers.length === 0 ? 'passed' : 'blocked',
-    verificationPerformed: migrationList.status === 'passed',
+    verificationPerformed: migrationList.report.status === 'passed',
     verificationWorkflow: 'supabase_migration_list_db_url_plus_static_migration_rls_evidence',
     selectedStrategy: strategy.selectedStrategy,
-    migrationListCommand: migrationList,
+    migrationListCommand: migrationList.report,
+    migrationHistoryParseMode: parsedHistory.parseMode,
+    migrationHistoryJsonParsed: parsedHistory.jsonParsed,
+    remoteMigrationIds: parsedHistory.remoteIds,
     migrationId: SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID,
     migrationDetected,
     requiredTables: SUPABASE_MILESTONE_REGISTRY_TABLES,
@@ -707,6 +847,11 @@ export async function executeSupabaseStagingDeployTransportVerify(): Promise<{ r
   const rlsReport = buildRlsVerificationFromSchemaReport(verificationReport, buildLocalEvidenceReport())
   const reports = await buildSupabaseStagingDeployTransportReports({
     schemaVerifyAfterTransportReport: verificationReport,
+    schemaVerifyAfterHistoryAuditReport: {
+      ...verificationReport,
+      historyAuditVerification: true,
+      verificationWorkflow: 'migration_history_audit_verify_after_deploy_or_already_applied',
+    },
     rlsVerifyAfterTransportReport: rlsReport,
   })
   await writeSupabaseStagingDeployTransportArtifacts(reports)
@@ -1016,6 +1161,141 @@ async function buildSecretPayloadAccessPreflightReport() {
       secretIamPolicy: toMetadataCommandReport(iamPolicyCommand),
     },
     blockers,
+  }
+}
+
+async function buildStagingMigrationHistoryAuditReports(
+  preflightReport: Record<string, unknown>,
+  strategyReport: Record<string, unknown>,
+) {
+  const confirmationPresent = process.env[SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT_CONFIRMATION] === 'true'
+  const strategy = strategyReport as {
+    status?: TransportStatus
+    selectedStrategy?: TransportStrategy
+    selectedCommand?: CommandPlan
+  }
+  const blockers = collectUniqueBlockers(
+    extractBlockers(preflightReport),
+    extractBlockers(strategyReport),
+    confirmationPresent ? [] : ['staging_migration_history_audit_not_confirmed'],
+  )
+  const localInventory = buildLocalMigrationInventory()
+  if (
+    blockers.length > 0 ||
+    strategy.status !== 'passed' ||
+    !strategy.selectedCommand ||
+    !['cli_db_push', 'temp_npm_exec_supabase_cli', 'npx_cli_db_push'].includes(strategy.selectedStrategy ?? '')
+  ) {
+    const blockedCommand = buildSkippedCommandReport(
+      'supabase',
+      ['migration', 'list', '--db-url', '[REDACTED_STAGING_DB_URL]', '--output-format', 'json'],
+      blockers,
+    )
+    const parsedHistory = parseSupabaseMigrationListOutput('')
+    const migrationHistoryAuditReport = buildMigrationHistoryAuditReport({
+      phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+      runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+      command: blockedCommand,
+      parsedHistory,
+      localInventory,
+      confirmationPresent,
+    })
+    const localRemoteMigrationComparisonReport = buildLocalRemoteMigrationComparisonReport({
+      phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+      runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+      localInventory,
+      parsedHistory,
+      auditStatus: String(migrationHistoryAuditReport.status),
+    })
+    const schemaDryRunAfterHistoryAuditReport = buildDryRunAfterHistoryAuditReport({
+      phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+      runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+      command: null,
+      comparisonReport: localRemoteMigrationComparisonReport,
+    })
+    const migrationDeployStrategyAfterHistoryAudit = buildDeployStrategyAfterHistoryAuditReport({
+      phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+      runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+      comparisonReport: localRemoteMigrationComparisonReport,
+      dryRunReport: schemaDryRunAfterHistoryAuditReport,
+    })
+    return {
+      migrationHistoryAuditReport,
+      localRemoteMigrationComparisonReport,
+      migrationDeployStrategyAfterHistoryAudit,
+      schemaDryRunAfterHistoryAuditReport,
+      schemaDeployAfterHistoryAuditReport: buildDefaultHistoryDeployReport(migrationDeployStrategyAfterHistoryAudit),
+      schemaVerifyAfterHistoryAuditReport: buildDefaultHistoryVerifyReport(migrationDeployStrategyAfterHistoryAudit),
+    }
+  }
+
+  const dbUrl = readSelectedStagingDbUrl()
+  const commandEnv = getTransportCommandEnvOverrides(strategy.selectedStrategy)
+  const migrationList = await runTransportCommandWithRaw(
+    strategy.selectedCommand.command,
+    [...strategy.selectedCommand.prefixArgs, 'migration', 'list', '--db-url', dbUrl, '--output-format', 'json'],
+    process.cwd(),
+    60000,
+    commandEnv,
+  )
+  const parsedHistory = parseSupabaseMigrationListOutput(migrationList.stdout)
+  const migrationHistoryAuditReport = buildMigrationHistoryAuditReport({
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    command: migrationList.report,
+    parsedHistory,
+    localInventory,
+    confirmationPresent,
+  })
+  const localRemoteMigrationComparisonReport = buildLocalRemoteMigrationComparisonReport({
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    localInventory,
+    parsedHistory,
+    auditStatus: String(migrationHistoryAuditReport.status),
+  })
+
+  const comparison = localRemoteMigrationComparisonReport as {
+    status?: string
+    targetMigrationPending?: boolean
+    targetMigrationRemoteApplied?: boolean
+    remoteUnknownMigrationIds?: string[]
+  }
+  let dryRunCommand: CommandResult | null = null
+  if (
+    migrationHistoryAuditReport.status === 'passed' &&
+    comparison.status === 'passed' &&
+    comparison.targetMigrationPending === true &&
+    (comparison.remoteUnknownMigrationIds ?? []).length === 0
+  ) {
+    const dryRun = await runTransportCommand(
+      strategy.selectedCommand.command,
+      [...strategy.selectedCommand.prefixArgs, 'db', 'push', '--db-url', dbUrl, '--dry-run'],
+      process.cwd(),
+      60000,
+      commandEnv,
+    )
+    dryRunCommand = dryRun
+  }
+  const schemaDryRunAfterHistoryAuditReport = buildDryRunAfterHistoryAuditReport({
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    command: dryRunCommand,
+    comparisonReport: localRemoteMigrationComparisonReport,
+  })
+  const migrationDeployStrategyAfterHistoryAudit = buildDeployStrategyAfterHistoryAuditReport({
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    comparisonReport: localRemoteMigrationComparisonReport,
+    dryRunReport: schemaDryRunAfterHistoryAuditReport,
+  })
+  return {
+    migrationHistoryAuditReport,
+    localRemoteMigrationComparisonReport,
+    migrationDeployStrategyAfterHistoryAudit,
+    schemaDryRunAfterHistoryAuditReport,
+    schemaDeployAfterHistoryAuditReport: buildDefaultHistoryDeployReport(migrationDeployStrategyAfterHistoryAudit),
+    schemaVerifyAfterHistoryAuditReport: buildDefaultHistoryVerifyReport(migrationDeployStrategyAfterHistoryAudit),
   }
 }
 
@@ -1468,13 +1748,25 @@ function buildStrategyReport(preflightReport: Record<string, unknown>) {
   }
 }
 
-function buildDefaultSchemaDeployTransportReport(strategyReport: Record<string, unknown>) {
+function buildDefaultSchemaDeployTransportReport(
+  strategyReport: Record<string, unknown>,
+  migrationDeployStrategyAfterHistoryAudit?: Record<string, unknown>,
+) {
   const strategy = strategyReport as { selectedStrategy?: TransportStrategy; blockers?: TransportBlocker[] }
+  const historyStrategy = migrationDeployStrategyAfterHistoryAudit as {
+    selectedStrategy?: string
+    deployAllowed?: boolean
+    verifyOnly?: boolean
+    blockers?: TransportBlocker[]
+  } | undefined
   return {
     phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
     runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
     status: 'blocked',
     selectedStrategy: strategy.selectedStrategy,
+    migrationHistoryStrategy: historyStrategy?.selectedStrategy ?? null,
+    migrationHistoryDeployAllowed: historyStrategy?.deployAllowed === true,
+    migrationHistoryVerifyOnly: historyStrategy?.verifyOnly === true,
     deployPerformed: false,
     dryRunPerformed: false,
     migrationDeployment: false,
@@ -1487,7 +1779,9 @@ function buildDefaultSchemaDeployTransportReport(strategyReport: Record<string, 
     trackBRowsWritten: false,
     productionAffected: false,
     directManualSqlRun: false,
-    blockers: collectUniqueBlockers(strategy.blockers ?? [], ['staging_schema_deploy_not_run']),
+    blockers: collectUniqueBlockers(strategy.blockers ?? [], historyStrategy?.blockers ?? [], [
+      'staging_schema_deploy_not_run',
+    ]),
   }
 }
 
@@ -1537,6 +1831,59 @@ function buildDefaultRlsVerifyAfterTransportReport(
   }
 }
 
+function buildDefaultHistoryDeployReport(strategyReport: Record<string, unknown>) {
+  const strategy = strategyReport as {
+    status?: string
+    selectedStrategy?: string
+    deployAllowed?: boolean
+    deployNeeded?: boolean
+    verifyOnly?: boolean
+    blockers?: TransportBlocker[]
+  }
+  return {
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    status: strategy.verifyOnly === true ? 'passed' : 'blocked',
+    selectedStrategy: strategy.selectedStrategy,
+    deployAllowedByHistoryAudit: strategy.deployAllowed === true,
+    deployNeeded: strategy.deployNeeded === true,
+    verifyOnly: strategy.verifyOnly === true,
+    deployPerformed: false,
+    dryRunPerformed: false,
+    migrationDeployment: false,
+    reason: strategy.verifyOnly === true
+      ? 'target_migration_already_applied_deploy_not_required'
+      : 'history_audit_deploy_report_requires_execute_flag_and_passed_dry_run',
+    credentialPayloadsPrinted: false,
+    secretPayloadsRead: false,
+    trackBRowsWritten: false,
+    productionAffected: false,
+    directManualSqlRun: false,
+    migrationRepairRun: false,
+    blockers: strategy.verifyOnly === true
+      ? []
+      : collectUniqueBlockers(strategy.blockers ?? [], ['staging_schema_deploy_not_run']),
+  }
+}
+
+function buildDefaultHistoryVerifyReport(strategyReport: Record<string, unknown>) {
+  const strategy = strategyReport as { selectedStrategy?: string; blockers?: TransportBlocker[] }
+  return {
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    status: 'blocked',
+    selectedStrategy: strategy.selectedStrategy,
+    verificationPerformed: false,
+    reason: 'history_audit_verify_requires_successful_deploy_or_verify_only_state',
+    credentialPayloadsPrinted: false,
+    secretPayloadsRead: false,
+    productionAffected: false,
+    directManualSqlRun: false,
+    migrationRepairRun: false,
+    blockers: collectUniqueBlockers(strategy.blockers ?? [], ['staging_schema_verification_not_run']),
+  }
+}
+
 function buildRlsVerificationFromSchemaReport(
   schemaVerifyAfterTransportReport: Record<string, unknown>,
   localEvidenceReport: Record<string, unknown>,
@@ -1568,7 +1915,7 @@ function buildBlockedSchemaDeployTransportReport(reason: string, blockers: Trans
 function buildFailedSchemaDeployTransportReport(
   blocker: TransportBlocker,
   command: CommandResult,
-  tempContext: ReturnType<typeof createTempDeployContext>,
+  deployContext: ReturnType<typeof buildFullRepoDeployContextReport>,
   dryRunPerformed: boolean,
   deployAttempted: boolean,
 ) {
@@ -1580,8 +1927,8 @@ function buildFailedSchemaDeployTransportReport(
     dryRunPerformed,
     deployAttempted,
     migrationDeployment: false,
-    tempDeployContextCreated: true,
-    tempDeployContextPolicy: tempContext.report,
+    deployContextMode: deployContext.contextMode,
+    deployContextPolicy: deployContext.report,
     failedCommand: command,
     credentialPayloadsPrinted: false,
     secretPayloadsRead: false,
@@ -1638,12 +1985,16 @@ function buildBlockerReport(blockers: TransportBlocker[]) {
       'temp_npm_exec_supabase_cli_unavailable',
       'npx_cli_db_push_unavailable',
       'blocked_no_migration_safe_deploy_path',
+      'staging_migration_history_audit_not_confirmed',
+      'staging_migration_history_list_failed',
+      'blocked_pending_migration_history_repair_approval',
+      'staging_dry_run_contains_unapproved_migrations',
       'staging_schema_deploy_not_run',
       'staging_schema_verification_not_run',
     ],
     operatorActionRequired: blockers.length === 0
       ? 'No blocker recorded for staging deploy transport.'
-      : 'Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, or target-proof blocker before retrying deploy.',
+      : 'Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, target-proof, or migration-history audit blocker before retrying deploy.',
     stillBlockedScopes: [
       'track_b_backfill_write',
       'milestone_data_insert',
@@ -1697,7 +2048,10 @@ function buildReadinessReport(
     blockers,
     nextRecommendedPhase: stagingSchemaVerified
       ? 'Rerun PR #198 guarded Track B staging backfill without schema mutation confirmations.'
-      : 'Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, or migration-safe transport blocker.',
+      : blockers.includes('blocked_pending_migration_history_repair_approval') ||
+          blockers.includes('staging_dry_run_contains_unapproved_migrations')
+        ? 'Open a separate migration-history repair approval packet before any deploy retry.'
+        : 'Resolve the exact Secret Manager label/operator-injection, CLI, temp npm exec, npx, staging DB URL secret-reference, target-proof, or migration-history audit blocker.',
   }
 }
 
@@ -1717,22 +2071,23 @@ function buildPrivateArtifactManifest() {
   }
 }
 
-function createTempDeployContext() {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'reeditpro-staging-deploy-transport-'))
-  const migrationDir = path.join(root, 'supabase', 'migrations')
-  mkdirSync(migrationDir, { recursive: true })
+function buildFullRepoDeployContextReport() {
   const migrationFileName = path.basename(SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH)
-  copyFileSync(SUPABASE_MILESTONE_REGISTRY_MIGRATION_PATH, path.join(migrationDir, migrationFileName))
   return {
-    root,
+    contextMode: 'full_repo_migrations_dry_run_after_history_audit',
     report: {
-      root: 'redacted_temp_directory',
+      root: 'repo_worktree_redacted',
+      migrationDir: path.join('supabase', 'migrations'),
       migrationFileName,
-      migrationFilesCopied: [migrationFileName],
-      copiedFileCount: 1,
+      approvedMigrationId: SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID,
+      deployContextMode: 'full_repo_migrations_dry_run_after_history_audit',
+      dryRunMustProveReviewedMigrationSet: true,
+      includeAllApplyAllowed: false,
+      migrationRepairAllowed: false,
       seedFilesIncluded: false,
       trackBExportRowsIncluded: false,
       unrelatedMigrationsIncluded: false,
+      directManualSqlIncluded: false,
       secretsIncluded: false,
     },
   }
@@ -1852,6 +2207,7 @@ function runTransportCommand(
           stdoutSummary: summarizeOutput(stdout ?? ''),
           stderrSummary: summarizeOutput(stderr ?? ''),
           outputContainsExpectedMigrationId: output.includes(SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID),
+          outputMigrationIds: extractMigrationIds(output),
           errorCategory: error ? detectErrorCategory(output) : undefined,
         })
       })
@@ -1868,10 +2224,88 @@ function runTransportCommand(
         stdoutSummary: summarizeOutput(''),
         stderrSummary: summarizeOutput(output),
         outputContainsExpectedMigrationId: false,
+        outputMigrationIds: extractMigrationIds(output),
         errorCategory: detectErrorCategory(output),
       })
     }
   })
+}
+
+function runTransportCommandWithRaw(
+  command: string,
+  args: string[],
+  cwd: string,
+  timeout = 60000,
+  envOverrides: Record<string, string> = {},
+): Promise<{ report: CommandResult; stdout: string; stderr: string }> {
+  return new Promise((resolve) => {
+    try {
+      execFile(command, args, {
+        cwd,
+        shell: false,
+        timeout,
+        maxBuffer: 1024 * 1024,
+        env: { ...process.env, ...envOverrides },
+      }, (error, stdout, stderr) => {
+        const err = error as NodeJS.ErrnoException & { code?: number | string; signal?: string }
+        const exitCode = typeof err?.code === 'number' ? err.code : error ? 1 : 0
+        const output = `${stdout ?? ''}\n${stderr ?? ''}\n${error?.message ?? ''}`
+        resolve({
+          report: {
+            status: error ? 'blocked' : 'passed',
+            exitCode,
+            signal: err?.signal,
+            command: path.basename(command),
+            args: redactArgs(args),
+            cwd: cwd === process.cwd() ? 'process_cwd' : 'redacted_temp_directory',
+            stdoutSummary: summarizeOutput(stdout ?? ''),
+            stderrSummary: summarizeOutput(stderr ?? ''),
+            outputContainsExpectedMigrationId: output.includes(SUPABASE_PLUGIN_STAGING_DEPLOY_MIGRATION_ID),
+            outputMigrationIds: extractMigrationIds(output),
+            errorCategory: error ? detectErrorCategory(output) : undefined,
+          },
+          stdout: stdout ?? '',
+          stderr: stderr ?? '',
+        })
+      })
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException
+      const output = error instanceof Error ? error.message : String(error)
+      resolve({
+        report: {
+          status: 'blocked',
+          exitCode: typeof err.errno === 'number' ? err.errno : 1,
+          signal: undefined,
+          command: path.basename(command),
+          args: redactArgs(args),
+          cwd: cwd === process.cwd() ? 'process_cwd' : 'redacted_temp_directory',
+          stdoutSummary: summarizeOutput(''),
+          stderrSummary: summarizeOutput(output),
+          outputContainsExpectedMigrationId: false,
+          outputMigrationIds: extractMigrationIds(output),
+          errorCategory: detectErrorCategory(output),
+        },
+        stdout: '',
+        stderr: output,
+      })
+    }
+  })
+}
+
+function buildSkippedCommandReport(command: string, args: string[], blockers: TransportBlocker[]): CommandResult {
+  return {
+    status: 'skipped',
+    exitCode: null,
+    signal: null,
+    command,
+    args: redactArgs(args),
+    cwd: 'process_cwd',
+    stdoutSummary: summarizeOutput(''),
+    stderrSummary: summarizeOutput(''),
+    outputContainsExpectedMigrationId: false,
+    outputMigrationIds: [],
+    errorCategory: blockers[0],
+  }
 }
 
 function readSelectedStagingDbUrl() {

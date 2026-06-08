@@ -117,3 +117,31 @@ GD-4 status terms:
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## GD-5 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Controlled fixture execution plan | `docs/ai-tools/creative-graphics-controlled-fixture-execution-plan.md` |
+| Per-tool execution readiness | `docs/ai-tools/creative-graphics-per-tool-execution-readiness-plan.md` |
+| Fixture execution groups | `docs/ai-tools/creative-graphics-fixture-execution-groups.md` |
+| Future execution command templates | `docs/ai-tools/creative-graphics-future-execution-command-templates.md` |
+| QA/evidence collection plan | `docs/ai-tools/creative-graphics-execution-qa-evidence-plan.md` |
+| Track A handoff evidence plan | `docs/ai-tools/creative-graphics-execution-track-a-handoff-plan.md` |
+| Worker/tool-call gate plan | `docs/ai-tools/creative-graphics-execution-worker-gate-plan.md` |
+| Failure/rollback/cleanup plan | `docs/ai-tools/creative-graphics-execution-failure-rollback-cleanup-plan.md` |
+| Execution gate decision record | `docs/ai-tools/creative-graphics-execution-gate-decision-record.md` |
+| Validation results | `docs/prompt-gd-5-validation-results.md` |
+
+GD-5 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
+- Execution approval state: `not_approved`
+- Production capability enabled: `none; AI Tools creative graphics controlled execution plan only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Tools covered: all 12 AI Tools creative graphics tools.
+- Next recommended prompt: `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`

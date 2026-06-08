@@ -1,6 +1,6 @@
 # Creative Graphics Next Fixture Plan
 
-Status: `static_gate_passed_with_warnings`
+Status: `static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved`
 
 ## GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack
 
@@ -31,7 +31,15 @@ Status: `static_gate_passed_with_warnings`
 - Goal: plan first controlled generated/local fixture execution without executing it.
 - Allowed scope: execution plan, evidence collection plan, private artifact policy, Track A handoff plan, worker envelope plan, rollback plan.
 - Blocked scope: actual fixture execution, generated artifacts, uploads, signed URLs, public artifacts, final render/export, worker runtime.
-- Tools covered: all 12 GD tools unless GD-5 chooses a smaller pilot set.
+- Tools covered: all 12 GD tools.
 - Evidence required: explicit execution gates, synthetic inputs, private artifact destinations, QA evidence requirements, cost/audit controls, and owner handoff approvals.
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
+- Execution approval state: `not_approved`
+- Production capability enabled: `none; AI Tools creative graphics controlled execution plan only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
 
-Recommended next prompt: `Prompt GD-5 - Controlled Generated Fixture Execution Plan`.
+Recommended next prompt: `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`.

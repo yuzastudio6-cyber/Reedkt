@@ -37,6 +37,7 @@ const requiredChecks = [
   'ai-tools:creative-graphics:manifest:diagnostics',
   'ai-tools:creative-graphics:dry-run-fixtures:diagnostics',
   'ai-tools:creative-graphics:generated-local-candidates:diagnostics',
+  'ai-tools:creative-graphics:static-gate:diagnostics',
 ];
 
 const results = [];

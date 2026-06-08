@@ -51,8 +51,17 @@ This activation-base blocker inventory was added for Prompt GD-0.
 
 - Generated/local fixture candidates have not executed and must not be treated as generated artifacts.
 - No local artifacts, private GCS objects, Supabase artifact records, checksums, uploads, or QA evidence files were created.
-- Static validation and fixture gate review are still required.
+- Static validation and fixture gate review now exists as GD-4 static review only.
 - Staging fixtures are missing.
 - Track A final render/export validation remains out of GD scope and blocked.
 - Worker execution remains blocked until a future unlock gate.
 - Tool execution, provider/model calls, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, storage transfer, public artifacts, signed URLs, and production/beta unlock remain blocked.
+
+## GD-4 Remaining Blockers
+
+- Static gate passed with warnings only; it does not approve generated/local execution.
+- Generated/local fixture execution evidence is missing.
+- QA evidence files are missing.
+- Track A final render/export validation remains out of GD scope and blocked.
+- Worker execution remains blocked until a future unlock gate.
+- Private artifact storage records, checksums, uploads, signed URLs, public artifacts, Supabase mutation, SQL, and production/beta unlock remain blocked.

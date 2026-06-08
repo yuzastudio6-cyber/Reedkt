@@ -1,6 +1,6 @@
 # Creative Graphics Next Fixture Plan
 
-Status: `generated_local_fixture_candidate_prepared`
+Status: `static_gate_passed_with_warnings`
 
 ## GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack
 
@@ -18,20 +18,20 @@ Status: `generated_local_fixture_candidate_prepared`
 - Tools covered: all 12 GD tools.
 - Evidence created: local artifact placeholders, private artifact placeholders, QA evidence templates, Track A handoff candidates, worker envelope candidates.
 
-## GD-4 - Creative Graphics Motion/Animation Fixture Candidate
+## GD-4 - Creative Graphics Static Fixture Gate Review
 
-- Goal: prepare local candidate plans for motion, canvas, 3D, and Lottie overlay outputs.
-- Allowed scope: local fixture plans and future candidate docs.
-- Blocked scope: runtime execution, worker execution, browser capture, render/export.
-- Tools covered: Remotion graphics, Three.js, PixiJS, Anime.js, Lottie-web.
-- Evidence required: timing context, fps/duration fields, alpha and safe-zone requirements.
+- Goal: statically validate GD-1 manifests, GD-2 dry-run fixtures, and GD-3 generated/local candidates across all 12 tools.
+- Allowed scope: docs, static diagnostics, per-tool gate matrix, consistency review, handoff review, worker envelope review, QA readiness review, blocker inventory.
+- Blocked scope: runtime execution, worker execution, browser capture, render/export, media processing, storage transfer, Supabase mutation, SQL, public artifacts, signed URLs.
+- Tools covered: all 12 GD tools.
+- Evidence created: static gate result, per-tool warning rows, consistency review, blocker inventory, and next execution-plan readiness decision.
 
-## GD-5 - Creative Graphics Track A Handoff Dry-Run
+## GD-5 - Controlled Generated Fixture Execution Plan
 
-- Goal: verify private artifact manifests can be handed to Track A without transferring ownership.
-- Allowed scope: dry-run handoff docs and static validation.
-- Blocked scope: final composition, final render/export, delivery, public artifacts.
-- Tools covered: all GD tools with Track A handoff fields.
-- Evidence required: handoff field completeness and Track A boundary compliance.
+- Goal: plan first controlled generated/local fixture execution without executing it.
+- Allowed scope: execution plan, evidence collection plan, private artifact policy, Track A handoff plan, worker envelope plan, rollback plan.
+- Blocked scope: actual fixture execution, generated artifacts, uploads, signed URLs, public artifacts, final render/export, worker runtime.
+- Tools covered: all 12 GD tools unless GD-5 chooses a smaller pilot set.
+- Evidence required: explicit execution gates, synthetic inputs, private artifact destinations, QA evidence requirements, cost/audit controls, and owner handoff approvals.
 
-Recommended next prompt: `Prompt GD-4 - Creative Graphics Static Validation and Fixture Gate Review`.
+Recommended next prompt: `Prompt GD-5 - Controlled Generated Fixture Execution Plan`.

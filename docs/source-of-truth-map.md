@@ -48,3 +48,26 @@ GD-1 status terms:
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## GD-2 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Dry-run fixture pack | `docs/ai-tools/creative-graphics-dry-run-fixture-pack.md` |
+| Per-tool dry-run fixture specs | `docs/ai-tools/dry-run-fixtures/` |
+| Synthetic input examples | `docs/ai-tools/creative-graphics-dry-run-input-manifest-examples.md` |
+| Placeholder output manifests | `docs/ai-tools/creative-graphics-dry-run-output-manifest-examples.md` |
+| Fixture QA checklist | `docs/ai-tools/creative-graphics-dry-run-qa-checklist.md` |
+| Track A handoff examples | `docs/ai-tools/creative-graphics-dry-run-track-a-handoff-examples.md` |
+| Worker envelope examples | `docs/ai-tools/creative-graphics-dry-run-worker-envelope-examples.md` |
+| Dry-run readiness matrix | `docs/ai-tools/creative-graphics-dry-run-readiness-matrix.md` |
+| Validation results | `docs/prompt-gd-2-validation-results.md` |
+
+GD-2 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

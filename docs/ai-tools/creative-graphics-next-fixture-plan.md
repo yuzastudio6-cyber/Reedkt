@@ -1,6 +1,6 @@
 # Creative Graphics Next Fixture Plan
 
-Status: `manifest_draft`
+Status: `dry_run_fixture_spec_created`
 
 ## GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack
 
@@ -8,7 +8,7 @@ Status: `manifest_draft`
 - Allowed scope: docs, fixture schemas, static diagnostics.
 - Blocked scope: tool execution, worker execution, render/export, providers, Supabase, SQL, cloud, public artifacts.
 - Tools covered: all 12 GD tools.
-- Evidence required: fixture input shape, expected private artifact type, QA checks, blocked uses.
+- Evidence created: fixture input shape, expected private artifact type, QA checks, blocked uses.
 
 ## GD-3 - Creative Graphics Static Asset Fixture Candidate
 
@@ -34,4 +34,4 @@ Status: `manifest_draft`
 - Tools covered: all GD tools with Track A handoff fields.
 - Evidence required: handoff field completeness and Track A boundary compliance.
 
-Recommended next prompt: `Prompt GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack`.
+Recommended next prompt: `Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`.

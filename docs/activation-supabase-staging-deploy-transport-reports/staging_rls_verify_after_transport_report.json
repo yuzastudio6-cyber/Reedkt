@@ -36,9 +36,6 @@
   "secretPayloadsRead": false,
   "productionAffected": false,
   "blockers": [
-    "staging_supabase_db_url_secret_reference_missing",
-    "blocked_credentials_unavailable",
-    "staging_supabase_db_url_secret_payload_access_denied",
     "staging_schema_verification_not_run",
     "staging_rls_verification_failed"
   ]

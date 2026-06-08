@@ -85,6 +85,11 @@ for (const required of [
   'describe',
   'secretVersionAccessRun: false',
   'payloadAccessCommandRun: false',
+  'staging_secret_payload_access_preflight_report.json',
+  'metadata_only_secret_payload_access_preflight',
+  'get-iam-policy',
+  'payloadPrinted: false',
+  'dbUrlPrinted: false',
   'directManualSqlAllowed: false',
   'trackBRowsWritten: false',
   'productionAffected: false',
@@ -212,6 +217,20 @@ const baselineSecretReadiness = baselineReports.secretReferenceReadinessReport a
   migrationDeployment?: boolean
   trackBBackfillWrite?: boolean
 }
+const baselineSecretPayloadPreflight = baselineReports.secretPayloadAccessPreflightReport as {
+  mode?: string
+  payloadAccessAttempted?: boolean
+  payloadAccessCommandRun?: boolean
+  payloadPrinted?: boolean
+  dbUrlPrinted?: boolean
+  credentialPayloadsPrinted?: boolean
+  secretValuesPrinted?: boolean
+  metadataCommands?: {
+    authList?: { payloadAccessAttempted?: boolean; secretValuesPrinted?: boolean }
+    secretDescribe?: { payloadAccessAttempted?: boolean; secretValuesPrinted?: boolean }
+    secretIamPolicy?: { payloadAccessAttempted?: boolean; secretValuesPrinted?: boolean }
+  }
+}
 assert(baselinePreflight.npxPreflightReport?.status === 'skipped', 'npx preflight must skip without confirmation.')
 assert(baselinePreflight.npxPreflightReport?.npxDownloadAttempted === false, 'npx must not download without confirmation.')
 assert(
@@ -309,6 +328,28 @@ assert(baselineSecretReadiness.payloadAccessCommandRun === false, 'Secret readin
 assert(baselineSecretReadiness.supabaseSqlRun === false, 'Secret readiness must not run Supabase SQL.')
 assert(baselineSecretReadiness.migrationDeployment === false, 'Secret readiness must not deploy migrations.')
 assert(baselineSecretReadiness.trackBBackfillWrite === false, 'Secret readiness must not write Track B backfill rows.')
+assert(
+  baselineSecretPayloadPreflight.mode === 'metadata_only_secret_payload_access_preflight',
+  'Secret payload preflight must be metadata-only.',
+)
+assert(
+  baselineSecretPayloadPreflight.payloadAccessAttempted === false &&
+    baselineSecretPayloadPreflight.payloadAccessCommandRun === false,
+  'Secret payload preflight must not access Secret Manager payloads.',
+)
+assert(
+  baselineSecretPayloadPreflight.payloadPrinted === false &&
+    baselineSecretPayloadPreflight.dbUrlPrinted === false &&
+    baselineSecretPayloadPreflight.credentialPayloadsPrinted === false &&
+    baselineSecretPayloadPreflight.secretValuesPrinted === false,
+  'Secret payload preflight must not print secret values or DB URLs.',
+)
+assert(
+  baselineSecretPayloadPreflight.metadataCommands?.authList?.payloadAccessAttempted === false &&
+    baselineSecretPayloadPreflight.metadataCommands.secretDescribe?.payloadAccessAttempted === false &&
+    baselineSecretPayloadPreflight.metadataCommands.secretIamPolicy?.payloadAccessAttempted === false,
+  'Secret payload preflight metadata commands must remain non-payload commands.',
+)
 
 process.env.REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF = 'true'
 process.env.REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK = 'true'

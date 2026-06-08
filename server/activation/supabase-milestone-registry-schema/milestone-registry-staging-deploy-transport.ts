@@ -100,6 +100,7 @@ export const SUPABASE_STAGING_DEPLOY_TRANSPORT_EXPECTED_REPORTS = [
   'staging_secret_reference_candidates.json',
   'staging_secret_reference_blocker_report.json',
   'staging_secret_reference_readiness_report.json',
+  'staging_secret_payload_access_preflight_report.json',
   'staging_deploy_transport_preflight_report.json',
   'staging_deploy_transport_strategy_report.json',
   'staging_schema_deploy_transport_report.json',
@@ -156,6 +157,7 @@ type TransportBlocker =
   | 'staging_schema_deploy_not_run'
   | 'staging_schema_verification_not_run'
   | 'staging_schema_dry_run_failed'
+  | 'remote_migration_history_not_in_temp_context'
   | 'staging_schema_deploy_failed'
   | 'staging_schema_verification_failed'
   | 'staging_rls_verification_failed'
@@ -246,6 +248,7 @@ interface TransportReports {
   secretReferenceCandidates: Record<string, unknown>
   secretReferenceBlockerReport: Record<string, unknown>
   secretReferenceReadinessReport: Record<string, unknown>
+  secretPayloadAccessPreflightReport: Record<string, unknown>
   preflightReport: Record<string, unknown>
   strategyReport: Record<string, unknown>
   schemaDeployTransportReport: Record<string, unknown>
@@ -394,6 +397,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
 } = {}): Promise<TransportReports> {
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
   const secretReferenceDiscovery = await buildSecretManagerReferenceDiscovery()
+  const secretPayloadAccessPreflightReport = await buildSecretPayloadAccessPreflightReport()
   const approvedTargetReferenceReport = buildApprovedStagingTargetReferenceReport()
   const pluginTargetProofReport = buildSupabasePluginTargetPreflight()
   const secretReferenceGuardReport = buildSecretReferenceGuard(approvedTargetReferenceReport)
@@ -422,6 +426,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
   const blockers = collectUniqueBlockers(
     extractBlockers(sourceOfTruthOwnershipAudit),
     extractBlockers(secretReferenceDiscovery.blockerReport),
+    extractBlockers(secretPayloadAccessPreflightReport),
     extractBlockers(preflightReport),
     extractBlockers(strategyReport),
     extractBlockers(schemaDeployTransportReport),
@@ -434,6 +439,7 @@ export async function buildSupabaseStagingDeployTransportReports(overrides: {
     secretReferenceCandidates: secretReferenceDiscovery.candidatesReport,
     secretReferenceBlockerReport: secretReferenceDiscovery.blockerReport,
     secretReferenceReadinessReport: secretReferenceDiscovery.readinessReport,
+    secretPayloadAccessPreflightReport,
     preflightReport,
     strategyReport,
     schemaDeployTransportReport,
@@ -465,6 +471,7 @@ export async function writeSupabaseStagingDeployTransportArtifacts(
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_candidates.json'), reports.secretReferenceCandidates)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_blocker_report.json'), reports.secretReferenceBlockerReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_reference_readiness_report.json'), reports.secretReferenceReadinessReport)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_secret_payload_access_preflight_report.json'), reports.secretPayloadAccessPreflightReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_deploy_transport_preflight_report.json'), reports.preflightReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_deploy_transport_strategy_report.json'), reports.strategyReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'staging_schema_deploy_transport_report.json'), reports.schemaDeployTransportReport)
@@ -807,6 +814,9 @@ async function buildSecretManagerReferenceDiscovery() {
   const accessTokenCandidate = candidates.find(
     (candidate) => candidate.candidateType === 'optional_supabase_cli_access_token',
   )
+  const approvedDbUrlEnvPresent = SUPABASE_STAGING_DB_URL_SECRET_REFERENCE_NAMES.some((name) =>
+    Boolean(process.env[name]),
+  )
   const blockers: TransportBlocker[] = []
   if (projectCommand.status !== 'passed' || listCommand.status !== 'passed') {
     blockers.push('secret_manager_metadata_discovery_unavailable')
@@ -816,10 +826,10 @@ async function buildSecretManagerReferenceDiscovery() {
   }
   if (!selectedDbUrlCandidate) {
     blockers.push('secret_manager_supabase_db_url_candidate_missing')
-  } else if (selectedDbUrlCandidate.environmentLabel !== 'staging') {
+  } else if (selectedDbUrlCandidate.environmentLabel !== 'staging' && !approvedDbUrlEnvPresent) {
     blockers.push('secret_manager_supabase_db_url_candidate_missing_staging_label')
   }
-  blockers.push('secure_secret_manager_env_injection_required')
+  if (!approvedDbUrlEnvPresent) blockers.push('secure_secret_manager_env_injection_required')
 
   const shared = {
     phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
@@ -890,8 +900,11 @@ async function buildSecretManagerReferenceDiscovery() {
     candidateDbUrlSecretRef: selectedDbUrlCandidate?.secretName ?? null,
     candidateDbUrlConfidence: selectedDbUrlCandidate?.confidence ?? null,
     optionalAccessTokenSecretRef: accessTokenCandidate?.secretName ?? null,
+    approvedDbUrlEnvPresent,
     remainingBlocker:
-      'securely_inject_secret_manager_payload_into_REEDITPRO_STAGING_SUPABASE_DB_URL_and_rerun_transport',
+      approvedDbUrlEnvPresent
+        ? 'migration_safe_transport_dry_run_or_verification_must_pass_before_deploy_completion'
+        : 'securely_inject_secret_manager_payload_into_REEDITPRO_STAGING_SUPABASE_DB_URL_and_rerun_transport',
     payloadAccessCommandRun: false,
   }
   const readinessReport = {
@@ -902,15 +915,21 @@ async function buildSecretManagerReferenceDiscovery() {
     candidateDbUrlEnvironmentLabel: selectedDbUrlCandidate?.environmentLabel ?? null,
     candidateDbUrlConfidence: selectedDbUrlCandidate?.confidence ?? null,
     optionalAccessTokenSecretRef: accessTokenCandidate?.secretName ?? null,
+    approvedDbUrlEnvPresent,
     recommendedEnvMapping: {
       REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF: selectedDbUrlCandidate?.secretName ?? null,
       SUPABASE_ACCESS_TOKEN_SECRET_REF: accessTokenCandidate?.secretName ?? null,
     },
-    deployTransportStillRequires: [
-      'secure_env_injection_to_REEDITPRO_STAGING_SUPABASE_DB_URL',
-      'usable_supabase_cli_confirmed_temp_npm_exec_supabase_or_confirmed_npx_supabase',
-      'current_shell_deploy_and_verify_confirmations',
-    ],
+    deployTransportStillRequires: approvedDbUrlEnvPresent
+      ? [
+          'migration_safe_supabase_db_push_dry_run_success',
+          'staging_schema_verification_after_successful_deploy',
+        ]
+      : [
+          'secure_env_injection_to_REEDITPRO_STAGING_SUPABASE_DB_URL',
+          'usable_supabase_cli_confirmed_temp_npm_exec_supabase_or_confirmed_npx_supabase',
+          'current_shell_deploy_and_verify_confirmations',
+        ],
     payloadAccessCommandRun: false,
     supabaseSqlRun: false,
     migrationDeployment: false,
@@ -923,6 +942,80 @@ async function buildSecretManagerReferenceDiscovery() {
     candidatesReport,
     blockerReport,
     readinessReport,
+  }
+}
+
+async function buildSecretPayloadAccessPreflightReport() {
+  const projectCommand = await runSecretManagerMetadataCommand(['config', 'get-value', 'project'])
+  const authCommand = await runSecretManagerMetadataCommand(['auth', 'list', '--format=json(account,status)'])
+  const describeCommand = await runSecretManagerMetadataCommand([
+    'secrets',
+    'describe',
+    'SUPABASE_DB_URL',
+    `--project=${SECRET_MANAGER_PROJECT_ID}`,
+    '--format=json(name,labels,replication,createTime,annotations)',
+  ])
+  const iamPolicyCommand = await runSecretManagerMetadataCommand([
+    'secrets',
+    'get-iam-policy',
+    'SUPABASE_DB_URL',
+    `--project=${SECRET_MANAGER_PROJECT_ID}`,
+    '--format=json',
+  ])
+
+  const activeProjectId = projectCommand.stdout.trim() || null
+  const authSummary = parseGcloudAuthList(authCommand.stdout)
+  const iamSummary = parseSecretIamPolicySummary(iamPolicyCommand.stdout, authSummary.activeAccountForComparison)
+  const secretMetadata = parseSecretMetadata(describeCommand.stdout)
+  const blockers: TransportBlocker[] = []
+  if (projectCommand.status !== 'passed') blockers.push('secret_manager_metadata_discovery_unavailable')
+  if (activeProjectId !== SECRET_MANAGER_PROJECT_ID) blockers.push('secret_manager_metadata_project_mismatch')
+  if (authCommand.status !== 'passed' || !authSummary.activeAccountPresent) {
+    blockers.push('staging_supabase_db_url_secret_payload_access_denied')
+  }
+  if (describeCommand.status !== 'passed' || !secretMetadata) {
+    blockers.push('secret_manager_supabase_db_url_candidate_missing')
+  }
+  if (iamPolicyCommand.status !== 'passed') {
+    blockers.push('staging_supabase_db_url_secret_payload_access_denied')
+  }
+
+  return {
+    phase: SUPABASE_STAGING_DEPLOY_TRANSPORT_PHASE,
+    runId: SUPABASE_STAGING_DEPLOY_TRANSPORT_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    mode: 'metadata_only_secret_payload_access_preflight',
+    project: SECRET_MANAGER_PROJECT_ID,
+    activeGcloudProject: activeProjectId,
+    activeProjectMatchesExpected: activeProjectId === SECRET_MANAGER_PROJECT_ID,
+    secretName: 'SUPABASE_DB_URL',
+    secretResourceNameRedacted: secretMetadata ? `projects/${SECRET_MANAGER_PROJECT_NUMBER}/secrets/SUPABASE_DB_URL` : null,
+    secretDescribeStatus: describeCommand.status,
+    secretIamPolicyStatus: iamPolicyCommand.status,
+    authListStatus: authCommand.status,
+    authSummary: {
+      accountCount: authSummary.accountCount,
+      activeAccountPresent: authSummary.activeAccountPresent,
+      activePrincipalRedacted: true,
+      inactiveAccountCount: authSummary.inactiveAccountCount,
+    },
+    iamPolicySummary: iamSummary,
+    payloadAccessAttempted: false,
+    payloadAccessCommandRun: false,
+    payloadPrinted: false,
+    dbUrlPrinted: false,
+    dbUrlWrittenToFile: false,
+    credentialPayloadsPrinted: false,
+    secretValuesPrinted: false,
+    productionAffected: false,
+    trackBBackfillWrite: false,
+    metadataCommands: {
+      project: toMetadataCommandReport(projectCommand),
+      authList: toMetadataCommandReport(authCommand),
+      secretDescribe: toMetadataCommandReport(describeCommand),
+      secretIamPolicy: toMetadataCommandReport(iamPolicyCommand),
+    },
+    blockers,
   }
 }
 
@@ -1495,7 +1588,12 @@ function buildFailedSchemaDeployTransportReport(
     trackBRowsWritten: false,
     productionAffected: false,
     directManualSqlRun: false,
-    blockers: [blocker],
+    blockers: collectUniqueBlockers(
+      [blocker],
+      command.errorCategory === 'remote_migration_history_not_in_temp_context'
+        ? ['remote_migration_history_not_in_temp_context']
+        : [],
+    ),
   }
 }
 
@@ -1870,6 +1968,76 @@ function parseSecretMetadata(stdoutOrObject: string | unknown): SecretMetadata |
   }
 }
 
+function parseGcloudAuthList(stdout: string) {
+  try {
+    const parsed = JSON.parse(stdout || '[]') as unknown
+    const entries = Array.isArray(parsed) ? parsed.filter(isRecord) : []
+    const activeEntry = entries.find(
+      (entry) => entry.status === 'ACTIVE' && typeof entry.account === 'string',
+    )
+    return {
+      accountCount: entries.length,
+      inactiveAccountCount: entries.filter((entry) => entry.status !== 'ACTIVE').length,
+      activeAccountPresent: Boolean(activeEntry),
+      activeAccountForComparison:
+        activeEntry && typeof activeEntry.account === 'string' ? activeEntry.account : null,
+    }
+  } catch {
+    return {
+      accountCount: 0,
+      inactiveAccountCount: 0,
+      activeAccountPresent: false,
+      activeAccountForComparison: null,
+    }
+  }
+}
+
+function parseSecretIamPolicySummary(stdout: string, activeAccountForComparison: string | null) {
+  try {
+    const parsed = JSON.parse(stdout || '{}') as unknown
+    const bindings = isRecord(parsed) && Array.isArray(parsed.bindings)
+      ? parsed.bindings.filter(isRecord)
+      : []
+    const secretAccessorBindings = bindings.filter((binding) => binding.role === 'roles/secretmanager.secretAccessor')
+    const activePrincipalMembers = activeAccountForComparison
+      ? [`user:${activeAccountForComparison}`, `serviceAccount:${activeAccountForComparison}`]
+      : []
+    const activePrincipalDirectSecretAccessorBinding =
+      activePrincipalMembers.length > 0 &&
+      secretAccessorBindings.some((binding) =>
+        Array.isArray(binding.members) &&
+        binding.members.some((member) => activePrincipalMembers.includes(String(member))),
+      )
+
+    return {
+      status: 'parsed',
+      bindingCount: bindings.length,
+      secretAccessorBindingCount: secretAccessorBindings.length,
+      activePrincipalPresent: Boolean(activeAccountForComparison),
+      activePrincipalRedacted: true,
+      activePrincipalDirectSecretAccessorBinding,
+      inheritedProjectIamNotInspected: true,
+      iamMemberValuesPrinted: false,
+      payloadAccessAppearsAllowed:
+        activePrincipalDirectSecretAccessorBinding
+          ? 'direct_secret_level_accessor_binding_present'
+          : 'not_proven_by_secret_level_policy',
+    }
+  } catch {
+    return {
+      status: 'parse_failed',
+      bindingCount: 0,
+      secretAccessorBindingCount: 0,
+      activePrincipalPresent: Boolean(activeAccountForComparison),
+      activePrincipalRedacted: true,
+      activePrincipalDirectSecretAccessorBinding: false,
+      inheritedProjectIamNotInspected: true,
+      iamMemberValuesPrinted: false,
+      payloadAccessAppearsAllowed: 'not_proven_by_secret_level_policy',
+    }
+  }
+}
+
 function mergeSecretsById(...groups: SecretMetadata[][]): SecretMetadata[] {
   const merged = new Map<string, SecretMetadata>()
   for (const secret of groups.flat()) {
@@ -2001,6 +2169,9 @@ function summarizeOutput(output: string): OutputSummary {
 }
 
 function detectErrorCategory(output: string) {
+  if (/Remote migration versions not found in local migrations directory/i.test(output)) {
+    return 'remote_migration_history_not_in_temp_context'
+  }
   if (/bad cpu type/i.test(output)) return 'bad_cpu_type_in_executable'
   if (/enoent|not found/i.test(output)) return 'executable_not_found'
   if (/permission denied/i.test(output)) return 'permission_denied'

@@ -1,9 +1,20 @@
 {
   "phase": "supabase-staging-deploy-transport-rerun",
   "runId": "supabase-staging-deploy-transport-rerun-20260606",
-  "status": "blocked",
-  "selectedStrategy": "blocked_credentials_unavailable",
-  "selectedCommand": null,
+  "status": "passed",
+  "selectedStrategy": "temp_npm_exec_supabase_cli",
+  "selectedCommand": {
+    "command": "npm",
+    "prefixArgs": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase"
+    ],
+    "commandLabel": "temp_npm_exec_supabase_cli_gated"
+  },
   "strategyOrder": [
     "cli_db_push",
     "temp_npm_exec_supabase_cli",
@@ -20,7 +31,7 @@
   },
   "tempNpmExecSupabaseCli": {
     "available": true,
-    "selected": false,
+    "selected": true,
     "requiresConfirmation": "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
     "packageName": "supabase@latest",
     "cachePolicy": {
@@ -38,7 +49,7 @@
     "dryRunRequiredBeforeApply": true
   },
   "npxCliDbPush": {
-    "available": false,
+    "available": true,
     "requiresConfirmation": "REEDITPRO_CONFIRM_SUPABASE_CLI_NPX_ALLOWED",
     "repoDependencyInstalled": false,
     "packageLockChanged": false,
@@ -58,9 +69,5 @@
   "credentialPayloadsPrinted": false,
   "secretPayloadsRead": false,
   "productionAffected": false,
-  "blockers": [
-    "staging_supabase_db_url_secret_reference_missing",
-    "blocked_credentials_unavailable",
-    "staging_supabase_db_url_secret_payload_access_denied"
-  ]
+  "blockers": []
 }

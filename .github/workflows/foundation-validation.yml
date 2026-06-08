@@ -6,6 +6,7 @@ on:
       - codex/rp-activation-53a-runtime-unlock-roadmap-owner-acceptance-audit
       - codex/rp-gd-0-ai-tools-creative-graphics-repo-audit
       - codex/rp-gd-1-ai-tools-creative-graphics-manifest-contract
+      - codex/rp-gd-2-ai-tools-creative-graphics-dry-run-fixture-pack
 
 jobs:
   foundation-validation:

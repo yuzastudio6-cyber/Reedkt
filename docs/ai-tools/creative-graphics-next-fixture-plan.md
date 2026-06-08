@@ -1,6 +1,6 @@
 # Creative Graphics Next Fixture Plan
 
-Status: `dry_run_fixture_spec_created`
+Status: `generated_local_fixture_candidate_prepared`
 
 ## GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack
 
@@ -10,13 +10,13 @@ Status: `dry_run_fixture_spec_created`
 - Tools covered: all 12 GD tools.
 - Evidence created: fixture input shape, expected private artifact type, QA checks, blocked uses.
 
-## GD-3 - Creative Graphics Static Asset Fixture Candidate
+## GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack
 
-- Goal: prepare local candidate plans for SVG, chart, diagram, card, and raster artifact outputs.
-- Allowed scope: local fixture plans and future candidate docs.
-- Blocked scope: generated public artifacts, signed URLs, Track A final render/export.
-- Tools covered: D3.js, Apache ECharts, Vega/Vega-Lite, SVG.js, Viz.js/Graphviz, Satori, @resvg/resvg-js.
-- Evidence required: synthetic inputs, manifest completeness, private artifact placeholders.
+- Goal: prepare generated/local candidate plans for all 12 tools.
+- Allowed scope: static candidate manifests, private artifact placeholders, QA evidence templates, and handoff candidates.
+- Blocked scope: actual generated artifacts, uploads, signed URLs, public artifacts, runtime execution, Track A final render/export.
+- Tools covered: all 12 GD tools.
+- Evidence created: local artifact placeholders, private artifact placeholders, QA evidence templates, Track A handoff candidates, worker envelope candidates.
 
 ## GD-4 - Creative Graphics Motion/Animation Fixture Candidate
 
@@ -34,4 +34,4 @@ Status: `dry_run_fixture_spec_created`
 - Tools covered: all GD tools with Track A handoff fields.
 - Evidence required: handoff field completeness and Track A boundary compliance.
 
-Recommended next prompt: `Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`.
+Recommended next prompt: `Prompt GD-4 - Creative Graphics Static Validation and Fixture Gate Review`.

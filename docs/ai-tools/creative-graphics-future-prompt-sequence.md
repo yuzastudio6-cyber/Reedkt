@@ -1,6 +1,6 @@
 # Creative Graphics Future Prompt Sequence
 
-Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry_run_not_executed`
+Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / generated_local_fixture_not_executed`
 
 ## Recommended Sequence
 
@@ -8,15 +8,15 @@ Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / dry
    - Completed as manifest drafts and contracts only.
 2. `Prompt GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack`
    - Completed as static fixture specs and examples only.
-3. `Prompt GD-3 - Creative Graphics Static Asset Fixture Candidate`
-   - Plan local static SVG/chart/diagram/card/raster candidates.
-4. `Prompt GD-4 - Creative Graphics Motion/Animation Fixture Candidate`
-   - Plan local motion, canvas, 3D, and Lottie overlay candidates.
-5. `Prompt GD-5 - Creative Graphics Track A Handoff Dry-Run`
-   - Verify handoff fields without final composition/render/export execution.
+3. `Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`
+   - Completed as generated/local fixture candidate specs only.
+4. `Prompt GD-4 - Creative Graphics Static Validation and Fixture Gate Review`
+   - Static validation and fixture gate review for generated/local candidates.
+5. `Prompt GD-4A - First Controlled Generated Fixture Execution Plan`
+   - Plan first controlled execution only if future execution gates are explicitly approved.
 
 ## Current Recommendation
 
-Recommended next prompt: `Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`.
+Recommended next prompt: `Prompt GD-4 - Creative Graphics Static Validation and Fixture Gate Review`.
 
-Production capability enabled: `none; AI Tools creative graphics dry-run fixture pack only`
+Production capability enabled: `none; AI Tools creative graphics generated/local fixture candidate pack only`

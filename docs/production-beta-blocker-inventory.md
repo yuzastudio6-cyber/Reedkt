@@ -38,7 +38,7 @@ This activation-base blocker inventory was added for Prompt GD-0.
 ## GD-2 Remaining Blockers
 
 - Dry-run fixture specs have not executed and must not be treated as generated artifacts.
-- Generated/local fixture candidates are missing.
+- Generated/local fixture candidates now exist as static GD-3 specs only.
 - Staging fixtures are missing.
 - Track A final render/export validation remains out of GD scope and blocked.
 - Worker execution remains blocked until a future unlock gate.
@@ -46,3 +46,13 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Provider/model calls remain blocked.
 - Public artifacts and signed URL source-of-truth remain blocked.
 - Runtime, internal beta, external beta, production, paid production, and broad media unlock remain blocked.
+
+## GD-3 Remaining Blockers
+
+- Generated/local fixture candidates have not executed and must not be treated as generated artifacts.
+- No local artifacts, private GCS objects, Supabase artifact records, checksums, uploads, or QA evidence files were created.
+- Static validation and fixture gate review are still required.
+- Staging fixtures are missing.
+- Track A final render/export validation remains out of GD scope and blocked.
+- Worker execution remains blocked until a future unlock gate.
+- Tool execution, provider/model calls, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, storage transfer, public artifacts, signed URLs, and production/beta unlock remain blocked.

@@ -40,6 +40,19 @@ Prompt GD-2: Creative Graphics All-Tools Dry-Run Fixture Pack.
 - Migration deployed: `no`
 - Runtime execution remains blocked.
 
+## GD-3 Milestone
+
+Prompt GD-3: Creative Graphics Generated/Local Fixture Candidate Pack.
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / generated_local_fixture_not_executed`
+- Capability: `none; AI Tools creative graphics generated/local fixture candidate pack only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime execution remains blocked.
+
 ## Next Milestone
 
-`Prompt GD-3 - Creative Graphics Generated/Local Fixture Candidate Pack`
+`Prompt GD-4 - Creative Graphics Static Validation and Fixture Gate Review`

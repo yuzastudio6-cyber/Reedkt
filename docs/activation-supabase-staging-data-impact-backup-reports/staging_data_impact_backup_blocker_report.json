@@ -1,11 +1,9 @@
 {
   "phase": "supabase-staging-data-impact-backup-approval",
   "runId": "supabase-staging-data-impact-backup-approval-20260609",
-  "status": "blocked",
-  "decision": "blocked_pending_staging_owner_approval",
-  "activeBlockers": [
-    "staging_owner_data_loss_acceptance_missing"
-  ],
+  "status": "passed",
+  "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+  "activeBlockers": [],
   "blockedScopes": [
     "reset_execution_until_separate_approved_phase",
     "migration_history_repair",

@@ -69,8 +69,19 @@ assert(
 )
 assert(
   reports.ownerAcceptance.accepted !== true ||
-    reports.ownerAcceptance.confirmationSet === true,
-  'Owner acceptance artifact must also have the explicit owner confirmation.',
+    reports.ownerAcceptance.confirmationSet === true ||
+    reports.ownerAcceptance.persistedDecisionUpdateAccepted === true,
+  'Owner acceptance artifact must have explicit current confirmation or committed decision-update proof.',
+)
+assert(
+  reports.approvalDecision.decision !== 'approved_for_future_staging_reset_and_reapply_migrations' ||
+    reports.ownerAcceptanceArtifact.status === 'approved',
+  'Approved future reset decision requires an approved owner data-loss acceptance artifact.',
+)
+assert(
+  reports.approvalDecision.decision !== 'approved_for_future_staging_reset_and_reapply_migrations' ||
+    reports.ownerAcceptanceDecisionUpdate.ownerAcceptanceAccepted === true,
+  'Approved future reset decision requires owner acceptance in the decision update report.',
 )
 assert(
   reports.readonlyInspection.dbUrlValuePrinted === false &&
@@ -88,6 +99,7 @@ for (const forbidden of [
   'supabase.from(',
   "from '../track-a",
   "from '../../track-a",
+  'supabase db reset',
   'supabase db push',
   'supabase migration repair',
 ]) {

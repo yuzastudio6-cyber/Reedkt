@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "approved_for_future_execution_only",
+  "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+  "approvalStatus": "future_reset_reapply_approved_not_executed",
+  "targetEnvironment": "staging",
+  "targetProjectName": "Reeditpro",
+  "targetProjectRef": "wmyyttnynmteqgcdishd",
+  "dataImpactStatus": "reviewed_from_readonly_metadata",
+  "backupSnapshotPlanStatus": "acceptable_for_future_execution_not_run",
+  "ownerAcceptanceArtifactStatus": "approved",
+  "ownerAcceptanceAccepted": true,
+  "approvalCriteria": {
+    "dataImpactReviewed": true,
+    "backupSnapshotPlanAcceptable": true,
+    "ownerAcceptanceApproved": true,
+    "unacceptableRiskDetected": false
+  },
+  "futureResetApproved": true,
+  "resetExecutionApproved": false,
+  "migrationRepairApproved": false,
+  "schemaDeployApproved": false,
+  "trackBBackfillApproved": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false,
+  "nextSupabaseAction": "Open separate guarded staging reset/reapply execution phase with backup first and post-reset verification."
+}

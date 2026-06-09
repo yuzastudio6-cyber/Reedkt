@@ -7,6 +7,8 @@
     "docs/activation-supabase-staging-data-impact-backup-reports",
     "docs/supabase-staging-data-impact-backup-approval-decision.md",
     "docs/supabase-staging-data-impact-backup-operator-checklist.md",
+    "docs/supabase-staging-owner-data-loss-acceptance.md",
+    "docs/supabase-staging-reset-owner-approval-decision.md",
     "docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md"
   ],
   "forbiddenPayloads": [

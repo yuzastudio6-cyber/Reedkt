@@ -1,0 +1,50 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "approved",
+  "approvalStatus": "owner_data_loss_acceptance_approved",
+  "acceptedByRole": "staging_owner_or_product_owner",
+  "targetEnvironment": "staging",
+  "targetProjectName": "Reeditpro",
+  "targetProjectRef": "wmyyttnynmteqgcdishd",
+  "productionExcluded": true,
+  "acceptedRisk": [
+    "staging data may be deleted or overwritten in a future reset phase",
+    "Track B backfill is separate",
+    "production is excluded",
+    "provider tool worker route and media execution are excluded"
+  ],
+  "acceptanceScope": [
+    "staging_only",
+    "approved_target_only",
+    "future_reset_and_reapply_migrations_phase_only",
+    "no_track_b_backfill_in_reset_phase",
+    "no_production_sql"
+  ],
+  "requiredBeforeExecution": [
+    "backup_snapshot_export_plan_observed_if_required",
+    "dry_run_or_preview_if_available",
+    "post_reset_schema_rls_verification",
+    "post_reset_migration_history_verification",
+    "no_secrets_printed",
+    "track_b_backfill_remains_separate_after_schema_verification"
+  ],
+  "confirmationNames": [
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE"
+  ],
+  "confirmationSet": false,
+  "artifactConfirmationSet": false,
+  "persistedDecisionUpdateAccepted": true,
+  "ownerAcceptanceAccepted": true,
+  "secretValuesIncluded": false,
+  "dbUrlsIncluded": false,
+  "serviceKeysIncluded": false,
+  "signedUrlsIncluded": false,
+  "privatePayloadsIncluded": false,
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

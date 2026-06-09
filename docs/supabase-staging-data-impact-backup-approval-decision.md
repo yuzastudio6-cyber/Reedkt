@@ -1,8 +1,8 @@
 # Supabase Staging Data Impact Backup Approval Decision
 
-Decision: `blocked_pending_staging_owner_approval`
+Decision: `approved_for_future_staging_reset_and_reapply_migrations`
 
-Approval status: `not_approved_for_execution`
+Approval status: `future_reset_reapply_approved_not_executed`
 
 This approval/review packet did not run staging reset, migrations, migration repair, schema deploy, direct DDL/DML, Track B backfill, production SQL, provider calls, worker/tool/route execution, media processing, Track A, beta, or production unlocks.
 
@@ -14,13 +14,13 @@ This approval/review packet did not run staging reset, migrations, migration rep
 - Live staging inspection: `passed`
 - Data impact: `reviewed_from_readonly_metadata`
 - Backup/snapshot plan: `acceptable_for_future_execution_not_run`
-- Owner acceptance: `missing`
+- Owner acceptance: `accepted`
 - Risk: `high`
 
 ## Blockers
 
-- `staging_owner_data_loss_acceptance_missing`
+- none
 
 ## Next Action
 
-Resolve exact data-impact, backup/snapshot, or staging-owner acceptance blockers before reset/reapply execution.
+Separate guarded staging reset/reapply execution packet with backup first and verification after reset.

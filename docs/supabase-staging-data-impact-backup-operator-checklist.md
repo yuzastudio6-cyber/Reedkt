@@ -1,6 +1,6 @@
 # Supabase Staging Data Impact Backup Operator Checklist
 
-Decision: `blocked_pending_staging_owner_approval`
+Decision: `approved_for_future_staging_reset_and_reapply_migrations`
 
 - [ ] staging target confirmed and production excluded
 - [ ] read-only data-impact inventory reviewed

@@ -1,6 +1,8 @@
 import {
   SUPABASE_STAGING_BACKUP_SNAPSHOT_CONFIRMATION,
   SUPABASE_STAGING_DATA_IMPACT_REVIEW_CONFIRMATION,
+  SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION,
+  SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION,
   SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION,
   executeSupabaseStagingDataImpactBackup,
   readSupabaseStagingDataImpactBackupSummary,
@@ -15,6 +17,14 @@ if (!process.argv.includes('--execute')) {
       SUPABASE_STAGING_BACKUP_SNAPSHOT_CONFIRMATION,
       SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION,
     ],
+    ownerAcceptanceConfirmations: [
+      SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION,
+      SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION,
+    ],
+    safeExecutionModes: [
+      '--readonly',
+      '--accept-owner-risk',
+    ],
     stagingResetRun: false,
     migrationRepairRun: false,
     schemaDeployRun: false,
@@ -27,6 +37,7 @@ if (!process.argv.includes('--execute')) {
 
 const result = await executeSupabaseStagingDataImpactBackup({
   readonlyMode: process.argv.includes('--readonly'),
+  acceptOwnerRisk: process.argv.includes('--accept-owner-risk'),
   keepTemp: process.argv.includes('--keep-temp'),
 })
 

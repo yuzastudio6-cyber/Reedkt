@@ -30,6 +30,8 @@ export const SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION =
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION'
 export const SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION =
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE'
+export const SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION =
+  'REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT'
 
 export const SUPABASE_STAGING_DATA_IMPACT_BACKUP_EXPECTED_REPORTS = [
   'source_of_truth_ownership_audit.json',
@@ -39,6 +41,8 @@ export const SUPABASE_STAGING_DATA_IMPACT_BACKUP_EXPECTED_REPORTS = [
   'staging_data_impact_inventory.json',
   'staging_data_impact_risk_report.json',
   'staging_backup_snapshot_plan.json',
+  'staging_owner_data_loss_acceptance_artifact.json',
+  'staging_owner_data_loss_acceptance_decision_update.json',
   'staging_data_impact_backup_operator_checklist.json',
   'staging_data_impact_backup_approval_decision.json',
   'staging_data_impact_backup_blocker_report.json',
@@ -49,10 +53,14 @@ export const SUPABASE_STAGING_DATA_IMPACT_BACKUP_EXPECTED_REPORTS = [
 export const SUPABASE_STAGING_DATA_IMPACT_BACKUP_DOCS = [
   'docs/supabase-staging-data-impact-backup-approval-decision.md',
   'docs/supabase-staging-data-impact-backup-operator-checklist.md',
+  'docs/supabase-staging-owner-data-loss-acceptance.md',
+  'docs/supabase-staging-reset-owner-approval-decision.md',
   'docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md',
 ] as const
 
 const APPROVED_STAGING_PROJECT_REF = 'wmyyttnynmteqgcdishd'
+const APPROVED_STAGING_PROJECT_NAME = 'Reeditpro'
+const APPROVED_STAGING_ENVIRONMENT = 'staging'
 const APPROVED_DB_URL_ENV_NAMES = [
   'REEDITPRO_STAGING_SUPABASE_DB_URL',
   'SUPABASE_STAGING_DB_URL',
@@ -60,8 +68,13 @@ const APPROVED_DB_URL_ENV_NAMES = [
 ] as const
 const OWNER_ACCEPTANCE_PATHS = [
   'docs/supabase-staging-owner-data-loss-acceptance.md',
+  'docs/supabase-staging-reset-owner-approval-decision.md',
   'docs/staging-supabase-reset-owner-approval.md',
 ] as const
+const OWNER_ACCEPTANCE_DECISION_UPDATE_PATH = path.join(
+  SUPABASE_STAGING_DATA_IMPACT_BACKUP_REPORT_DIR,
+  'staging_owner_data_loss_acceptance_decision_update.json',
+)
 const SOURCE_OF_TRUTH_PATHS = [
   'README.md',
   'AGENTS.md',
@@ -168,6 +181,7 @@ export function getSupabaseStagingDataImpactBackupPlan() {
       SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION,
     ],
     conditionalAllowedConfirmations: [
+      SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION,
       SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION,
     ],
     forbiddenConfirmations: FORBIDDEN_CONFIRMATIONS,
@@ -178,6 +192,7 @@ export function getSupabaseStagingDataImpactBackupPlan() {
 
 export function buildSupabaseStagingDataImpactBackupReports(input: {
   executeReadonly?: boolean
+  acceptOwnerRisk?: boolean
 } = {}) {
   const plan = getSupabaseStagingDataImpactBackupPlan()
   const sourceAudit = buildSourceOfTruthOwnershipAudit()
@@ -188,9 +203,17 @@ export function buildSupabaseStagingDataImpactBackupReports(input: {
   const dataImpactInventory = buildDataImpactInventory(evidenceInventory, readonlyInspection)
   const riskReport = buildRiskReport(dataImpactInventory, readonlyInspection)
   const backupSnapshotPlan = buildBackupSnapshotPlan(dataImpactInventory)
-  const ownerAcceptance = buildOwnerAcceptanceReview()
+  const ownerAcceptance = buildOwnerAcceptanceReview({ acceptOwnerRisk: input.acceptOwnerRisk === true })
+  const ownerAcceptanceArtifact = buildOwnerDataLossAcceptanceArtifact(ownerAcceptance)
   const operatorChecklist = buildOperatorChecklist(dataImpactInventory, backupSnapshotPlan, ownerAcceptance)
   const decision = buildApprovalDecision(dataImpactInventory, backupSnapshotPlan, riskReport, ownerAcceptance)
+  const ownerAcceptanceDecisionUpdate = buildOwnerDataLossAcceptanceDecisionUpdate(
+    ownerAcceptanceArtifact,
+    decision,
+    dataImpactInventory,
+    backupSnapshotPlan,
+    riskReport,
+  )
   const blockerReport = buildBlockerReport(decision, dataImpactInventory, backupSnapshotPlan, ownerAcceptance)
   const readinessReport = buildReadinessReport(decision, blockerReport)
   const privateArtifactManifest = buildPrivateArtifactManifest()
@@ -203,6 +226,8 @@ export function buildSupabaseStagingDataImpactBackupReports(input: {
     riskReport,
     backupSnapshotPlan,
     ownerAcceptance,
+    ownerAcceptanceArtifact,
+    ownerAcceptanceDecisionUpdate,
     operatorChecklist,
     approvalDecision: decision,
     blockerReport,
@@ -225,6 +250,14 @@ export async function writeSupabaseStagingDataImpactBackupArtifacts(
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'staging_data_impact_inventory.json'), reports.dataImpactInventory)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'staging_data_impact_risk_report.json'), reports.riskReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'staging_backup_snapshot_plan.json'), reports.backupSnapshotPlan)
+  await writeVlmRuntimeJsonArtifact(
+    path.join(dir, 'staging_owner_data_loss_acceptance_artifact.json'),
+    reports.ownerAcceptanceArtifact,
+  )
+  await writeVlmRuntimeJsonArtifact(
+    path.join(dir, 'staging_owner_data_loss_acceptance_decision_update.json'),
+    reports.ownerAcceptanceDecisionUpdate,
+  )
   await writeVlmRuntimeJsonArtifact(
     path.join(dir, 'staging_data_impact_backup_operator_checklist.json'),
     reports.operatorChecklist,
@@ -254,6 +287,14 @@ export async function writeSupabaseStagingDataImpactBackupArtifacts(
     renderChecklistMarkdown(reports),
   )
   await writeVlmRuntimeTextArtifact(
+    'docs/supabase-staging-owner-data-loss-acceptance.md',
+    renderOwnerAcceptanceMarkdown(reports),
+  )
+  await writeVlmRuntimeTextArtifact(
+    'docs/supabase-staging-reset-owner-approval-decision.md',
+    renderOwnerApprovalDecisionMarkdown(reports),
+  )
+  await writeVlmRuntimeTextArtifact(
     'docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md',
     renderResetExecutionHandoffPrompt(reports),
   )
@@ -261,17 +302,33 @@ export async function writeSupabaseStagingDataImpactBackupArtifacts(
 
 export async function executeSupabaseStagingDataImpactBackup(input: {
   readonlyMode: boolean
+  acceptOwnerRisk: boolean
   keepTemp: boolean
 }) {
   void input.keepTemp
   const reports = buildSupabaseStagingDataImpactBackupReports({
     executeReadonly: input.readonlyMode,
+    acceptOwnerRisk: input.acceptOwnerRisk,
   })
   await writeSupabaseStagingDataImpactBackupArtifacts(reports)
+  const readonlyConfirmationsPassed =
+    !input.readonlyMode ||
+    (process.env[SUPABASE_STAGING_DATA_IMPACT_REVIEW_CONFIRMATION] === 'true' &&
+      process.env[SUPABASE_STAGING_BACKUP_SNAPSHOT_CONFIRMATION] === 'true' &&
+      process.env[SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION] === 'true')
+  const ownerAcceptanceConfirmationsPassed =
+    !input.acceptOwnerRisk ||
+    (process.env[SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION] === 'true' &&
+      process.env[SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION] === 'true')
+  const forbiddenConfirmationsClear = FORBIDDEN_CONFIRMATIONS.every((name) => process.env[name] !== 'true')
+  const approvalOutcomePassed =
+    !input.acceptOwnerRisk ||
+    reports.approvalDecision.decision === 'approved_for_future_staging_reset_and_reapply_migrations'
   const confirmationsPassed =
-    process.env[SUPABASE_STAGING_DATA_IMPACT_REVIEW_CONFIRMATION] === 'true' &&
-    process.env[SUPABASE_STAGING_BACKUP_SNAPSHOT_CONFIRMATION] === 'true' &&
-    process.env[SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION] === 'true'
+    readonlyConfirmationsPassed &&
+    ownerAcceptanceConfirmationsPassed &&
+    forbiddenConfirmationsClear &&
+    approvalOutcomePassed
   return { reports, exitCode: confirmationsPassed ? 0 : 1 }
 }
 
@@ -665,8 +722,17 @@ function buildBackupSnapshotPlan(dataImpactInventory: JsonRecord) {
   }
 }
 
-function buildOwnerAcceptanceReview() {
+function buildOwnerAcceptanceReview(input: { acceptOwnerRisk: boolean }) {
   const confirmationSet = process.env[SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION] === 'true'
+  const artifactConfirmationSet =
+    process.env[SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION] === 'true'
+  const persistedDecisionUpdate = readJsonArtifact(OWNER_ACCEPTANCE_DECISION_UPDATE_PATH)
+  const persistedDecisionUpdateAccepted =
+    persistedDecisionUpdate?.ownerAcceptanceAccepted === true &&
+    persistedDecisionUpdate?.decision === 'approved_for_future_staging_reset_and_reapply_migrations' &&
+    persistedDecisionUpdate?.targetEnvironment === APPROVED_STAGING_ENVIRONMENT &&
+    persistedDecisionUpdate?.targetProjectRef === APPROVED_STAGING_PROJECT_REF
+  const currentExecutionAccepted = input.acceptOwnerRisk && artifactConfirmationSet && confirmationSet
   const candidates = OWNER_ACCEPTANCE_PATHS.map((ownerPath) => {
     const present = existsSync(ownerPath)
     const text = present ? readFileSync(ownerPath, 'utf8') : ''
@@ -683,25 +749,135 @@ function buildOwnerAcceptanceReview() {
       ],
     }
   })
-  const artifactAccepted = candidates.some((candidate) => candidate.accepted)
-  const accepted = artifactAccepted && confirmationSet
+  const artifactAccepted = candidates.some((candidate) => candidate.accepted) || currentExecutionAccepted
+  const accepted = artifactAccepted && (confirmationSet || persistedDecisionUpdateAccepted || currentExecutionAccepted)
   return {
     phase: SUPABASE_STAGING_DATA_IMPACT_BACKUP_PHASE,
     runId: SUPABASE_STAGING_DATA_IMPACT_BACKUP_RUN_ID,
-    status: accepted ? 'accepted' : artifactAccepted ? 'artifact_present_confirmation_missing' : 'missing',
+    status: accepted
+      ? 'accepted'
+      : artifactAccepted
+        ? artifactConfirmationSet
+          ? 'artifact_present_owner_confirmation_missing'
+          : 'artifact_present_confirmation_missing'
+        : 'missing',
     accepted,
     artifactAccepted,
+    currentExecutionAccepted,
+    persistedDecisionUpdateAccepted,
     confirmationRequired: artifactAccepted,
     confirmationSet,
     confirmationName: SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION,
+    artifactConfirmationSet,
+    artifactConfirmationName: SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION,
     candidateSources: candidates,
     blocker: accepted
       ? null
       : artifactAccepted
-        ? 'staging_owner_data_loss_acceptance_not_confirmed'
+        ? artifactConfirmationSet
+          ? 'staging_owner_data_loss_acceptance_not_confirmed'
+          : 'staging_owner_data_loss_acceptance_artifact_not_confirmed'
         : 'staging_owner_data_loss_acceptance_missing',
     ownerAcceptanceRequiredBeforeFutureReset: true,
     stagingResetRun: false,
+  }
+}
+
+function buildOwnerDataLossAcceptanceArtifact(ownerAcceptance: JsonRecord) {
+  const approved = ownerAcceptance.accepted === true
+  return {
+    phase: SUPABASE_STAGING_DATA_IMPACT_BACKUP_PHASE,
+    runId: SUPABASE_STAGING_DATA_IMPACT_BACKUP_RUN_ID,
+    status: approved ? 'approved' : 'blocked',
+    approvalStatus: approved ? 'owner_data_loss_acceptance_approved' : 'owner_data_loss_acceptance_not_confirmed',
+    acceptedByRole: 'staging_owner_or_product_owner',
+    targetEnvironment: APPROVED_STAGING_ENVIRONMENT,
+    targetProjectName: APPROVED_STAGING_PROJECT_NAME,
+    targetProjectRef: APPROVED_STAGING_PROJECT_REF,
+    productionExcluded: true,
+    acceptedRisk: [
+      'staging data may be deleted or overwritten in a future reset phase',
+      'Track B backfill is separate',
+      'production is excluded',
+      'provider tool worker route and media execution are excluded',
+    ],
+    acceptanceScope: [
+      'staging_only',
+      'approved_target_only',
+      'future_reset_and_reapply_migrations_phase_only',
+      'no_track_b_backfill_in_reset_phase',
+      'no_production_sql',
+    ],
+    requiredBeforeExecution: [
+      'backup_snapshot_export_plan_observed_if_required',
+      'dry_run_or_preview_if_available',
+      'post_reset_schema_rls_verification',
+      'post_reset_migration_history_verification',
+      'no_secrets_printed',
+      'track_b_backfill_remains_separate_after_schema_verification',
+    ],
+    confirmationNames: [
+      SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT_CONFIRMATION,
+      SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION,
+    ],
+    confirmationSet: ownerAcceptance.confirmationSet === true,
+    artifactConfirmationSet: ownerAcceptance.artifactConfirmationSet === true,
+    persistedDecisionUpdateAccepted: ownerAcceptance.persistedDecisionUpdateAccepted === true,
+    ownerAcceptanceAccepted: ownerAcceptance.accepted === true,
+    secretValuesIncluded: false,
+    dbUrlsIncluded: false,
+    serviceKeysIncluded: false,
+    signedUrlsIncluded: false,
+    privatePayloadsIncluded: false,
+    stagingResetRun: false,
+    migrationRepairRun: false,
+    schemaDeployRun: false,
+    trackBBackfillRun: false,
+    productionAffected: false,
+  }
+}
+
+function buildOwnerDataLossAcceptanceDecisionUpdate(
+  ownerAcceptanceArtifact: JsonRecord,
+  decision: JsonRecord,
+  dataImpactInventory: JsonRecord,
+  backupSnapshotPlan: JsonRecord,
+  riskReport: JsonRecord,
+) {
+  return {
+    phase: SUPABASE_STAGING_DATA_IMPACT_BACKUP_PHASE,
+    runId: SUPABASE_STAGING_DATA_IMPACT_BACKUP_RUN_ID,
+    status:
+      decision.decision === 'approved_for_future_staging_reset_and_reapply_migrations'
+        ? 'approved_for_future_execution_only'
+        : 'blocked',
+    decision: decision.decision,
+    approvalStatus: decision.approvalStatus,
+    targetEnvironment: APPROVED_STAGING_ENVIRONMENT,
+    targetProjectName: APPROVED_STAGING_PROJECT_NAME,
+    targetProjectRef: APPROVED_STAGING_PROJECT_REF,
+    dataImpactStatus: dataImpactInventory.status,
+    backupSnapshotPlanStatus: backupSnapshotPlan.status,
+    ownerAcceptanceArtifactStatus: ownerAcceptanceArtifact.status,
+    ownerAcceptanceAccepted: ownerAcceptanceArtifact.ownerAcceptanceAccepted === true,
+    approvalCriteria: {
+      dataImpactReviewed: dataImpactInventory.status === 'reviewed_from_readonly_metadata',
+      backupSnapshotPlanAcceptable: backupSnapshotPlan.status === 'acceptable_for_future_execution_not_run',
+      ownerAcceptanceApproved: ownerAcceptanceArtifact.status === 'approved',
+      unacceptableRiskDetected: riskReport.unacceptableRiskDetected === true,
+    },
+    futureResetApproved: decision.futureResetApproved === true,
+    resetExecutionApproved: false,
+    migrationRepairApproved: false,
+    schemaDeployApproved: false,
+    trackBBackfillApproved: false,
+    productionAffected: false,
+    directDdlDmlRun: false,
+    secretsPrintedOrCommitted: false,
+    nextSupabaseAction:
+      decision.decision === 'approved_for_future_staging_reset_and_reapply_migrations'
+        ? 'Open separate guarded staging reset/reapply execution phase with backup first and post-reset verification.'
+        : decision.nextSupabaseAction,
   }
 }
 
@@ -792,7 +968,9 @@ function buildBlockerReport(
   if (ownerAcceptance.accepted !== true) {
     activeBlockers.push(
       ownerAcceptance.artifactAccepted === true
-        ? 'staging_owner_data_loss_acceptance_not_confirmed'
+        ? ownerAcceptance.artifactConfirmationSet === true
+          ? 'staging_owner_data_loss_acceptance_not_confirmed'
+          : 'staging_owner_data_loss_acceptance_artifact_not_confirmed'
         : 'staging_owner_data_loss_acceptance_missing',
     )
   }
@@ -853,6 +1031,8 @@ function buildPrivateArtifactManifest() {
       SUPABASE_STAGING_DATA_IMPACT_BACKUP_REPORT_DIR,
       'docs/supabase-staging-data-impact-backup-approval-decision.md',
       'docs/supabase-staging-data-impact-backup-operator-checklist.md',
+      'docs/supabase-staging-owner-data-loss-acceptance.md',
+      'docs/supabase-staging-reset-owner-approval-decision.md',
       'docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md',
     ],
     forbiddenPayloads: [
@@ -1190,6 +1370,76 @@ Blocked in this packet: staging reset, migration repair, schema deploy, direct D
 `
 }
 
+function renderOwnerAcceptanceMarkdown(reports: ReturnType<typeof buildSupabaseStagingDataImpactBackupReports>) {
+  return `# Supabase Staging Owner Data-Loss Acceptance
+
+staging_reset_data_loss_acceptance_status: approved
+approved_staging_environment: staging
+
+Approval status: \`${reports.ownerAcceptanceArtifact.approvalStatus}\`
+
+Accepted by role: \`${reports.ownerAcceptanceArtifact.acceptedByRole}\`
+
+Approved target:
+- Environment: \`${reports.ownerAcceptanceArtifact.targetEnvironment}\`
+- Project name: \`${reports.ownerAcceptanceArtifact.targetProjectName}\`
+- Project ref: \`${reports.ownerAcceptanceArtifact.targetProjectRef}\`
+
+The staging owner/product owner accepts that a future staging reset/reapply phase may delete or overwrite staging database state for the approved staging target only.
+
+Accepted scope:
+- staging only
+- production excluded
+- no production SQL
+- no Track B backfill in the reset phase
+- no provider/tool/worker/route execution
+- backup/snapshot/export plan must be followed if required by PR #252
+- dry-run or preview must run first when available
+- post-reset schema/RLS verification is required
+- Track B staging backfill remains a separate later phase
+
+Secret values included: \`false\`
+
+This artifact does not run staging reset, migration repair, schema deploy, direct DDL/DML, Track B backfill, production Supabase, provider calls, tools/workers/routes, media processing, Track A, beta, or production unlocks.
+`
+}
+
+function renderOwnerApprovalDecisionMarkdown(reports: ReturnType<typeof buildSupabaseStagingDataImpactBackupReports>) {
+  return `# Supabase Staging Reset Owner Approval Decision
+
+staging_reset_data_loss_acceptance_status: approved
+approved_staging_environment: staging
+
+Decision: \`${reports.approvalDecision.decision}\`
+
+Approval status: \`${reports.approvalDecision.approvalStatus}\`
+
+Owner acceptance status: \`${reports.ownerAcceptance.status}\`
+
+Approval target:
+- Environment: \`${reports.ownerAcceptanceArtifact.targetEnvironment}\`
+- Project name: \`${reports.ownerAcceptanceArtifact.targetProjectName}\`
+- Project ref: \`${reports.ownerAcceptanceArtifact.targetProjectRef}\`
+
+Decision basis:
+- Data impact: \`${reports.dataImpactInventory.status}\`
+- Backup/snapshot plan: \`${reports.backupSnapshotPlan.status}\`
+- Risk: \`${reports.riskReport.overallRisk}\`
+- Active blockers: ${reports.blockerReport.activeBlockers.length > 0 ? reports.blockerReport.activeBlockers.map((blocker) => `\`${blocker}\``).join(', ') : 'none'}
+
+Execution status:
+- staging reset: not run
+- migration repair: not run
+- schema deploy: not run
+- Track B backfill: not run
+- production Supabase: not run
+- direct DDL/DML: not run
+- secrets printed or committed: no
+
+Next action: ${reports.readinessReport.nextRecommendedPhase}
+`
+}
+
 function renderResetExecutionHandoffPrompt(reports: ReturnType<typeof buildSupabaseStagingDataImpactBackupReports>) {
   return `# Supabase Staging Reset And Reapply Execution Prompt
 
@@ -1199,10 +1449,12 @@ Current decision: \`${reports.approvalDecision.decision}\`
 
 Execution remains blocked unless all are true:
 - staging data impact is reviewed;
-- backup/snapshot/export plan is approved and executed first;
+- staging owner data-loss acceptance is approved for \`${APPROVED_STAGING_PROJECT_NAME}\` / \`${APPROVED_STAGING_PROJECT_REF}\` / \`${APPROVED_STAGING_ENVIRONMENT}\`;
+- backup/snapshot/export plan is approved and executed first when required;
 - staging owner data-loss acceptance is committed as safe metadata;
 - target proof confirms staging only;
-- reset/reapply uses an approved Supabase workflow;
+- dry-run or preview runs first when available;
+- reset/reapply uses an approved Supabase workflow only;
 - post-reset schema, RLS, migration history, and registry checks are run;
 - Track B staging backfill remains a separate follow-up after schema verification.
 

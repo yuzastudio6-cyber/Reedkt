@@ -13,6 +13,8 @@
     "staging_data_impact_inventory.json",
     "staging_data_impact_risk_report.json",
     "staging_backup_snapshot_plan.json",
+    "staging_owner_data_loss_acceptance_artifact.json",
+    "staging_owner_data_loss_acceptance_decision_update.json",
     "staging_data_impact_backup_operator_checklist.json",
     "staging_data_impact_backup_approval_decision.json",
     "staging_data_impact_backup_blocker_report.json",
@@ -22,6 +24,8 @@
   "docs": [
     "docs/supabase-staging-data-impact-backup-approval-decision.md",
     "docs/supabase-staging-data-impact-backup-operator-checklist.md",
+    "docs/supabase-staging-owner-data-loss-acceptance.md",
+    "docs/supabase-staging-reset-owner-approval-decision.md",
     "docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md"
   ],
   "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
@@ -70,6 +74,7 @@
     "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION"
   ],
   "conditionalAllowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_ARTIFACT",
     "REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE"
   ],
   "forbiddenConfirmations": [

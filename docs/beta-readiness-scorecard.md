@@ -57,3 +57,22 @@ GD-7 Migration deployed: `no`
 GD-7 raises static/local execution-path clarity only. Runtime/tool execution readiness remains `0%` until an approved package is already importable and produces local private evidence. Production beta readiness remains `1%`.
 
 Next recommended prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`
+
+## GD-8 Package Runtime Enablement
+
+GD-8 changes package availability only. It raises package import confidence for most creative graphics packages but does not generate fixtures or unlock runtime delivery.
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / package_runtime_probe_mostly_passed_with_native_blocker / generated_local_fixture_not_executed`
+- Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+- Package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
+- Import-only passed tools: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, and `satori_social_cards`
+- Blocked tool: `resvg_js_svg_rasterization`; status `package_runtime_blocked`; reason `needs_runtime_review`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Runtime/tool execution readiness remains conservative because generated/local fixture execution is still `generated_local_fixture_not_executed`. Production beta readiness remains `1%`.
+
+Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`

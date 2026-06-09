@@ -12,6 +12,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | GD-5 - Creative Graphics Controlled Fixture Execution Plan | implemented_ci_passed | `codex/rp-gd-5-ai-tools-creative-graphics-controlled-fixture-execution-plan` | [#243](https://github.com/yuzastudio6-cyber/Reedkt/pull/243) | `none; AI Tools creative graphics controlled execution plan only` |
 | GD-6 - Creative Graphics Execution Approval Gate Packet | implemented_pr_open | `codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate` | [#245](https://github.com/yuzastudio6-cyber/Reedkt/pull/245) | `none; AI Tools creative graphics execution approval gate packet only` |
 | GD-7 - Creative Graphics Controlled Local Fixture Execution | implemented_ci_passed | `codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution` | [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250) | `none; controlled local creative graphics fixture execution only` |
+| GD-8 - Creative Graphics Package Runtime Enablement | implemented_local_validation_pending | `codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement` | pending | `none; AI Tools creative graphics package runtime enablement only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -40,3 +41,9 @@ GD-7 Group B tools remain `needs_package_review`: `anime_js_motion`, `lottie_web
 GD-7 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
 
 Next recommended prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`.
+
+GD-8 package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`. Import-only probe passed for `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, and `satori_social_cards`; `resvg_js_svg_rasterization` remains `package_runtime_blocked` with `needs_runtime_review`.
+
+GD-8 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
+
+Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`.

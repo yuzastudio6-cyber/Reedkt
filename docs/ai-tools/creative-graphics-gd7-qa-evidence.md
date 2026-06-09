@@ -24,3 +24,21 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## GD-8 QA Evidence Addendum
+
+GD-8 has package import evidence only. It does not create visual QA evidence because generated/local fixture execution remains `generated_local_fixture_not_executed`.
+
+- Package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
+- Passed package probes: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`
+- Blocked package probe: `resvg_js_svg_rasterization`
+- QA screenshots: none
+- Render/export QA: none
+- Track A validation: none
+- Worker execution QA: none
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.

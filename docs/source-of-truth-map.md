@@ -200,3 +200,30 @@ GD-7 status terms:
 - SQL executed: `none`
 - Migration deployed: `no`
 - Next recommended prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`
+
+## GD-8 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Package runtime enablement | `docs/ai-tools/creative-graphics-package-runtime-enablement.md` |
+| Package runtime matrix | `docs/ai-tools/creative-graphics-package-runtime-matrix.md` |
+| Package license/security notes | `docs/ai-tools/creative-graphics-package-license-security-notes.md` |
+| Runtime probe evidence | `docs/ai-tools/creative-graphics-gd8-runtime-probe-evidence.md` |
+| Import-only runtime probe | `scripts/fixtures/ai-tools/probe-creative-graphics-runtimes.mjs` |
+| Package runtime diagnostic | `scripts/validation/ai-tools-creative-graphics-package-runtime-diagnostics.mjs` |
+| Validation results | `docs/prompt-gd-8-validation-results.md` |
+
+GD-8 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / package_runtime_probe_mostly_passed_with_native_blocker / generated_local_fixture_not_executed`
+- Package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
+- Passing package status: `package_runtime_probe_passed`
+- Blocked package status: `package_runtime_blocked`; `needs_runtime_review`
+- Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Tools covered: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`, and `resvg_js_svg_rasterization`
+- Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`

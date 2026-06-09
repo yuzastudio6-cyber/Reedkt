@@ -121,3 +121,22 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Migration deployed: `no`
 - Production capability enabled: `none; controlled local creative graphics fixture execution only`
 - Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`
+
+## GD-8 Remaining Blockers
+
+- GD-8 added direct package dependencies and ran import-only probes, but generated/local fixture execution remains `generated_local_fixture_not_executed`.
+- Runtime unlock status is `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / package_runtime_probe_mostly_passed_with_native_blocker / generated_local_fixture_not_executed`.
+- Package runtime status is `package_runtime_probe_mostly_passed_with_native_blocker`.
+- Import-only package probes passed for `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, and `satori_social_cards`.
+- `resvg_js_svg_rasterization` remains `package_runtime_blocked` because `@resvg/resvg-js` needs runtime review after local `ERR_DLOPEN_FAILED`.
+- Generated/local fixture evidence remains missing for all 12 tools.
+- QA evidence files remain placeholder-only.
+- Track A final render/export validation remains out of GD scope and blocked.
+- Worker execution, provider/model calls, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, storage transfer, public artifacts, signed URLs, and production/beta unlock remain blocked.
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+- Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`

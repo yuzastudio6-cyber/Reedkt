@@ -11,6 +11,7 @@ on:
       - codex/rp-gd-4-ai-tools-creative-graphics-static-fixture-gate-review
       - codex/rp-gd-5-ai-tools-creative-graphics-controlled-fixture-execution-plan
       - codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate
+      - codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution
 
 jobs:
   foundation-validation:

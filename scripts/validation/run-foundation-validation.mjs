@@ -41,6 +41,7 @@ const requiredChecks = [
   'ai-tools:creative-graphics:execution-plan:diagnostics',
   'ai-tools:creative-graphics:execution-approval:diagnostics',
   'ai-tools:creative-graphics:gd7-local-execution:diagnostics',
+  'ai-tools:creative-graphics:package-runtime:diagnostics',
 ];
 
 const results = [];

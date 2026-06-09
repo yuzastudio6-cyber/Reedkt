@@ -263,3 +263,43 @@ Authoritative GD-6 files:
 - `docs/prompt-gd-6-validation-results.md`
 
 Next milestone: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.
+
+## GD-7 Creative Graphics Controlled Local Fixture Execution
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`
+- Local fixture runner created: yes
+- Local fixture runner executed: no, pending package/runtime import checks after `npm ci`
+- Group A status: `generated_local_fixture_blocked` unless an approved runtime is already importable without dependency mutation
+- Group A tools checked: `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Group B status: `needs_package_review` for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`
+- Group C status: `blocked` for `pixijs_canvas_graphics` and `three_js_visuals`
+- Production capability enabled: `none; controlled local creative graphics fixture execution only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Worker execution: none
+- Provider/model calls: none
+- Render/export: none
+- Browser capture: none
+- Media processing: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Dependency mutation: none
+- Public artifacts: none
+- Signed URLs: none
+- Production/beta unlock: none
+
+Authoritative GD-7 files:
+
+- `docs/ai-tools/creative-graphics-gd7-runtime-availability.md`
+- `docs/ai-tools/creative-graphics-gd7-local-output-policy.md`
+- `docs/ai-tools/creative-graphics-gd7-local-execution-evidence.md`
+- `docs/ai-tools/creative-graphics-gd7-local-artifact-manifest-evidence.md`
+- `docs/ai-tools/creative-graphics-gd7-qa-evidence.md`
+- `scripts/fixtures/ai-tools/run-creative-graphics-gd7-fixtures.mjs`
+- `scripts/validation/ai-tools-creative-graphics-gd7-local-execution-diagnostics.mjs`
+- `docs/prompt-gd-7-validation-results.md`
+
+Next milestone: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`.

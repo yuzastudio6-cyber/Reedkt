@@ -60,3 +60,21 @@ Status: `static_gate_passed_with_warnings / execution_plan_ready / approved_for_
 - Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.
+
+## GD-7 - Creative Graphics Controlled Local Fixture Execution
+
+- Goal: create a local-only Group A fixture runner and record package/runtime availability without installing or mutating dependencies.
+- Allowed scope: package import checks, local-only runner creation, local output policy, docs, diagnostics, and tracker updates.
+- Blocked scope: dependency mutation, Group B execution, Group C execution, workers, providers/models, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, uploads, storage transfer, public artifacts, signed URLs, beta, and production.
+- Group A status: `generated_local_fixture_blocked` for `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams` unless existing lockfile packages are already importable.
+- Group B status: `needs_package_review` for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`.
+- Group C status: `blocked` for `pixijs_canvas_graphics` and `three_js_visuals`.
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`
+- Production capability enabled: `none; controlled local creative graphics fixture execution only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`.

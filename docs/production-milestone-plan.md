@@ -115,3 +115,24 @@ Prompt GD-6: Creative Graphics Execution Approval Gate Packet.
 ## Next Milestone After GD-6
 
 `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`
+
+## GD-7 Milestone
+
+Prompt GD-7: Creative Graphics Controlled Local Fixture Execution.
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`
+- Capability: `none; controlled local creative graphics fixture execution only`
+- Group A status: `generated_local_fixture_blocked` unless package/runtime import checks prove an approved local runtime is already available
+- Group A tools: `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Group B tools: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`; status `needs_package_review`
+- Group C tools: `pixijs_canvas_graphics`, `three_js_visuals`; status `blocked`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime execution remains package-gated and local-only; no dependency mutation is allowed.
+
+## Next Milestone After GD-7
+
+`Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`

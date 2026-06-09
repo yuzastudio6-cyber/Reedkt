@@ -1,6 +1,6 @@
 # Creative Graphics Next Fixture Plan
 
-Status: `static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved`
+Status: `static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution`
 
 ## GD-2 - Creative Graphics All-Tools Dry-Run Fixture Pack
 
@@ -42,4 +42,21 @@ Status: `static_gate_passed_with_warnings / execution_plan_ready / execution_not
 - SQL executed: `none`
 - Migration deployed: `no`
 
-Recommended next prompt: `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`.
+## GD-6 - Creative Graphics Execution Approval Gate Packet
+
+- Goal: record the controlled future approval gate for GD-7 without executing any tool, worker, render, upload, storage transfer, Supabase, SQL, Google Cloud, Secret Manager, dependency mutation, or beta/production action.
+- Allowed scope: approval packet docs, Group A/B/C matrix, GD-7 allowed scope, GD-7 blocked scope, QA evidence requirements, decision record, diagnostics, and tracker updates.
+- Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+- Group B status: `needs_package_review`
+- Group C status: `blocked`
+- Package/runtime finding: the GD-5 branch has candidate docs and diagnostics, but the owned graphics runtimes are not direct package dependencies; GD-7 must skip any tool whose package/script is unavailable and must not install or mutate dependencies.
+- Tools covered: all 12 GD tools.
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
+- Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Recommended next prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.

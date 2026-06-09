@@ -82,3 +82,23 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Migration deployed: `no`
 - Production capability enabled: `none; AI Tools creative graphics controlled execution plan only`
 - Tools covered: all 12 AI Tools creative graphics tools.
+
+## GD-6 Remaining Blockers
+
+- GD-6 records `approved_for_gd7_controlled_local_fixture_execution` only for future GD-7 controlled local synthetic private fixture work.
+- Runtime unlock status is `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`.
+- Group A status is `approved_for_gd7_controlled_local_fixture_execution`, but execution evidence is still missing until GD-7 runs controlled local checks.
+- Group B status is `needs_package_review`; `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics` remain blocked from GD-7 execution until package/runtime availability is reviewed.
+- Group C status is `blocked`; `pixijs_canvas_graphics` and `three_js_visuals` require a later canvas/3D-specific approval gate.
+- Generated/local fixture execution evidence is missing.
+- QA evidence files are missing.
+- Track A final render/export validation remains out of GD scope and blocked.
+- Worker execution remains blocked until a future unlock gate.
+- Tool execution, provider/model calls, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, storage transfer, public artifacts, signed URLs, dependency mutation, and production/beta unlock remain blocked.
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+- Tools covered: all 12 AI Tools creative graphics tools.

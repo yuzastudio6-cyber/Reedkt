@@ -1,6 +1,6 @@
 # Creative Graphics Future Prompt Sequence
 
-Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
+Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
 
 ## Recommended Sequence
 
@@ -15,17 +15,23 @@ Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / gen
 5. `Prompt GD-5 - Controlled Generated Fixture Execution Plan`
    - Completed as execution-plan documentation only; execution remains blocked until a later explicit approval gate.
 6. `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`
-   - Next planned approval-gate packet for controlled fixture execution.
-7. `Prompt GD-5A - Execution Plan Fixes`
+   - Completed as approval-gate packet only; Group A is approved for future GD-7 controlled local synthetic private fixture execution, Group B needs package review, and Group C remains blocked.
+7. `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`
+   - Next planned controlled local fixture execution prompt; GD-7 must skip missing packages/scripts and must not mutate dependencies.
+8. `Prompt GD-6A - Execution Approval Gate Hardening`
    - Use only if a future static gate diagnostic finds missing files, unsafe claims, or schema mismatch.
 
 ## Current Recommendation
 
-Recommended next prompt: `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`.
+Recommended next prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.
 
 Production capability enabled: `none; AI Tools creative graphics static fixture gate review only`
 GD-5 production capability enabled: `none; AI Tools creative graphics controlled execution plan only`
-Execution approval state: `not_approved`
+GD-6 production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+Execution approval state: `approved_for_gd7_controlled_local_fixture_execution`
+Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+Group B status: `needs_package_review`
+Group C status: `blocked`
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`
 Supabase environment touched: `none`

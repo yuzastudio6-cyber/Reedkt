@@ -223,3 +223,43 @@ Authoritative GD-5 files:
 - `docs/prompt-gd-5-validation-results.md`
 
 Next milestone: `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`.
+
+## GD-6 Creative Graphics Execution Approval Gate Packet
+
+- Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_not_executed`
+- Execution approval decision: `approved_for_gd7_controlled_local_fixture_execution`
+- Approval scope: `local_generated_fixture_execution_only`
+- Group A GD-7 status: `approved_for_gd7_controlled_local_fixture_execution`
+- Group B GD-7 status: `needs_package_review`
+- Group C GD-7 status: `blocked`
+- Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime/tool execution: none
+- Worker execution: none
+- Provider/model calls: none
+- Render/export: none
+- Media processing: none
+- Browser capture: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Supabase lifecycle/mutation: none
+- Dependency mutation: none
+- Public artifacts: none
+- Signed URLs: none
+- Production/beta unlock: none
+
+Authoritative GD-6 files:
+
+- `docs/ai-tools/creative-graphics-execution-approval-gate-packet.md`
+- `docs/ai-tools/creative-graphics-execution-approval-matrix.md`
+- `docs/ai-tools/creative-graphics-gd7-allowed-scope.md`
+- `docs/ai-tools/creative-graphics-gd7-blocked-scope.md`
+- `docs/ai-tools/creative-graphics-gd7-qa-evidence-requirements.md`
+- `docs/ai-tools/creative-graphics-gd7-approval-decision-record.md`
+- `docs/prompt-gd-6-validation-results.md`
+
+Next milestone: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.

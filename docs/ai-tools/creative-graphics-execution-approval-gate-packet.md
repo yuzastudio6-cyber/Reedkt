@@ -64,3 +64,22 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.
+
+## GD-7 Follow-Up Status
+
+GD-7 preserves the GD-6 approval scope but records controlled local execution as package-gated. The current GD-7 status is `generated_local_fixture_blocked` unless `npm ci` and import checks prove an approved Group A runtime is already available without dependency mutation.
+
+Group A tools under the GD-7 check: `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+
+Group B remains `needs_package_review`: `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`.
+
+Group C remains `blocked`: `pixijs_canvas_graphics` and `three_js_visuals`.
+
+GD-7 production capability enabled: `none; controlled local creative graphics fixture execution only`
+GD-7 Supabase update required: `docs/status only`
+GD-7 Supabase update status: `docs_only`
+GD-7 Supabase environment touched: `none`
+GD-7 SQL executed: `none`
+GD-7 Migration deployed: `no`
+
+Recommended next prompt after GD-7: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`.

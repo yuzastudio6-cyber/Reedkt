@@ -17,19 +17,22 @@ Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / gen
 6. `Prompt GD-6 - Creative Graphics Execution Approval Gate Packet`
    - Completed as approval-gate packet only; Group A is approved for future GD-7 controlled local synthetic private fixture execution, Group B needs package review, and Group C remains blocked.
 7. `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`
-   - Next planned controlled local fixture execution prompt; GD-7 must skip missing packages/scripts and must not mutate dependencies.
-8. `Prompt GD-6A - Execution Approval Gate Hardening`
+   - Creates the local-only runner and records `generated_local_fixture_blocked` unless approved Group A runtimes are already importable without dependency mutation.
+8. `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`
+   - Review package/runtime requirements for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`; keep Group C blocked.
+9. `Prompt GD-6A - Execution Approval Gate Hardening`
    - Use only if a future static gate diagnostic finds missing files, unsafe claims, or schema mismatch.
 
 ## Current Recommendation
 
-Recommended next prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.
+Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`.
 
 Production capability enabled: `none; AI Tools creative graphics static fixture gate review only`
 GD-5 production capability enabled: `none; AI Tools creative graphics controlled execution plan only`
 GD-6 production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+GD-7 production capability enabled: `none; controlled local creative graphics fixture execution only`
 Execution approval state: `approved_for_gd7_controlled_local_fixture_execution`
-Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+Group A status: `generated_local_fixture_blocked`
 Group B status: `needs_package_review`
 Group C status: `blocked`
 Supabase update required: `docs/status only`

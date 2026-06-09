@@ -40,6 +40,7 @@ const requiredChecks = [
   'ai-tools:creative-graphics:static-gate:diagnostics',
   'ai-tools:creative-graphics:execution-plan:diagnostics',
   'ai-tools:creative-graphics:execution-approval:diagnostics',
+  'ai-tools:creative-graphics:gd7-local-execution:diagnostics',
 ];
 
 const results = [];

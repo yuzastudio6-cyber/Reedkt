@@ -11,6 +11,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | GD-4 - Creative Graphics Static Fixture Gate Review | implemented_local_validation_passed | `codex/rp-gd-4-ai-tools-creative-graphics-static-fixture-gate-review` | [#240](https://github.com/yuzastudio6-cyber/Reedkt/pull/240) | `none; AI Tools creative graphics static fixture gate review only` |
 | GD-5 - Creative Graphics Controlled Fixture Execution Plan | implemented_ci_passed | `codex/rp-gd-5-ai-tools-creative-graphics-controlled-fixture-execution-plan` | [#243](https://github.com/yuzastudio6-cyber/Reedkt/pull/243) | `none; AI Tools creative graphics controlled execution plan only` |
 | GD-6 - Creative Graphics Execution Approval Gate Packet | implemented_pr_open | `codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate` | [#245](https://github.com/yuzastudio6-cyber/Reedkt/pull/245) | `none; AI Tools creative graphics execution approval gate packet only` |
+| GD-7 - Creative Graphics Controlled Local Fixture Execution | implemented_ci_passed | `codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution` | [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250) | `none; controlled local creative graphics fixture execution only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -29,3 +30,13 @@ GD-6 Supabase update required: `docs/status only`; Supabase update status: `docs
 GD-6 tools covered: all 12 AI Tools creative graphics tools.
 
 Next recommended prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`.
+
+GD-7 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`
+
+GD-7 Group A status: `generated_local_fixture_blocked` unless approved runtimes are already importable without dependency mutation. Group A tools: `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`.
+
+GD-7 Group B tools remain `needs_package_review`: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`. GD-7 Group C tools remain `blocked`: `pixijs_canvas_graphics`, `three_js_visuals`.
+
+GD-7 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
+
+Next recommended prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`.

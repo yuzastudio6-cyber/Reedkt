@@ -18,12 +18,19 @@ Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spe
 Production capability enabled: `none; AI Tools creative graphics static fixture gate review only`
 GD-5 production capability enabled: `none; AI Tools creative graphics controlled execution plan only`
 GD-6 production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
+GD-7 production capability enabled: `none; controlled local creative graphics fixture execution only`
 Execution approval state: `approved_for_gd7_controlled_local_fixture_execution`
-Group A status: `approved_for_gd7_controlled_local_fixture_execution`
+Group A status: `generated_local_fixture_blocked`
+Group A tools: `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
 Group B status: `needs_package_review`
+Group B tools: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
 Group C status: `blocked`
+Group C tools: `pixijs_canvas_graphics`, `three_js_visuals`
+GD-7 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`

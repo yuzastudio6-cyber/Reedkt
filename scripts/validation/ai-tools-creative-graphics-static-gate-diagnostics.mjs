@@ -97,7 +97,7 @@ function scanUnsafeLines(relativePath, text) {
     /Supabase environment touched:\s*`?(local|staging|remote|production|yes|true)`?/i,
     /SQL executed:\s*`?(local|staging|remote|production|yes|true)`?/i,
     /Migration deployed:\s*`?(yes|true|staging|production)`?/i,
-    /production capability enabled:\s*`?(?!none; AI Tools creative graphics execution approval gate packet only|none; AI Tools creative graphics controlled execution plan only|none; AI Tools creative graphics static fixture gate review only|none; AI Tools creative graphics generated\/local fixture candidate pack only|none; AI Tools creative graphics dry-run fixture pack only|none; AI Tools creative graphics manifest contract only|none; AI Tools creative graphics repo audit only)/i,
+    /production capability enabled:\s*`?(?!none; controlled local creative graphics fixture execution only|none; AI Tools creative graphics execution approval gate packet only|none; AI Tools creative graphics controlled execution plan only|none; AI Tools creative graphics static fixture gate review only|none; AI Tools creative graphics generated\/local fixture candidate pack only|none; AI Tools creative graphics dry-run fixture pack only|none; AI Tools creative graphics manifest contract only|none; AI Tools creative graphics repo audit only)/i,
     /actual generated artifacts?:\s*`?(created|yes|true|present)`?/i,
     /generated\/local fixture execution:\s*`?(enabled|yes|true|executed|ran|passed)`?/i,
     /public artifact(?:s)?:\s*`?(created|yes|true|present|allowed|enabled)`?/i,

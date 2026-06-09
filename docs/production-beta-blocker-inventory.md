@@ -102,3 +102,22 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Migration deployed: `no`
 - Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
 - Tools covered: all 12 AI Tools creative graphics tools.
+
+## GD-7 Remaining Blockers
+
+- GD-7 creates a local-only fixture runner and evidence policy, but current package/runtime availability is expected to block execution unless `npm ci` proves approved Group A runtime imports already work without dependency mutation.
+- Runtime unlock status is `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`.
+- Group A status is `generated_local_fixture_blocked` for `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams` unless an approved runtime is importable after dependency installation from the existing lockfile.
+- Group B status is `needs_package_review` for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`.
+- Group C status is `blocked` for `pixijs_canvas_graphics` and `three_js_visuals`.
+- Generated/local fixture execution evidence remains missing if all Group A runtime imports fail.
+- QA evidence files remain placeholder-only unless the runner executes an approved runtime.
+- Track A final render/export validation remains out of GD scope and blocked.
+- Worker execution, provider/model calls, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, storage transfer, public artifacts, signed URLs, dependency mutation, and production/beta unlock remain blocked.
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Production capability enabled: `none; controlled local creative graphics fixture execution only`
+- Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`

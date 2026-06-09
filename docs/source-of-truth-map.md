@@ -173,3 +173,30 @@ GD-6 status terms:
 - Migration deployed: `no`
 - Tools covered: all 12 AI Tools creative graphics tools.
 - Next recommended prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixture Execution`
+
+## GD-7 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| GD-7 runtime availability | `docs/ai-tools/creative-graphics-gd7-runtime-availability.md` |
+| GD-7 local output policy | `docs/ai-tools/creative-graphics-gd7-local-output-policy.md` |
+| GD-7 local execution evidence | `docs/ai-tools/creative-graphics-gd7-local-execution-evidence.md` |
+| GD-7 local artifact manifest evidence | `docs/ai-tools/creative-graphics-gd7-local-artifact-manifest-evidence.md` |
+| GD-7 QA evidence | `docs/ai-tools/creative-graphics-gd7-qa-evidence.md` |
+| GD-7 local runner | `scripts/fixtures/ai-tools/run-creative-graphics-gd7-fixtures.mjs` |
+| GD-7 diagnostics | `scripts/validation/ai-tools-creative-graphics-gd7-local-execution-diagnostics.mjs` |
+| Validation results | `docs/prompt-gd-7-validation-results.md` |
+
+GD-7 status terms:
+
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`
+- Group A tools: `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Group B tools: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+- Group C tools: `pixijs_canvas_graphics`, `three_js_visuals`
+- Production capability enabled: `none; controlled local creative graphics fixture execution only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Next recommended prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`

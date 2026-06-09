@@ -42,3 +42,18 @@ GD-6 Supabase update status: `docs_only`
 GD-6 Supabase environment touched: `none`
 GD-6 SQL executed: `none`
 GD-6 Migration deployed: `no`
+
+GD-7 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / generated_local_fixture_blocked`
+GD-7 production capability enabled: `none; controlled local creative graphics fixture execution only`
+GD-7 Group A status: `generated_local_fixture_blocked` for `svg_js_vector_graphics`, `satori_social_cards`, `resvg_js_svg_rasterization`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams` unless runtime import checks prove otherwise.
+GD-7 Group B status: `needs_package_review` for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`
+GD-7 Group C status: `blocked` for `pixijs_canvas_graphics` and `three_js_visuals`
+GD-7 Supabase update required: `docs/status only`
+GD-7 Supabase update status: `docs_only`
+GD-7 Supabase environment touched: `none`
+GD-7 SQL executed: `none`
+GD-7 Migration deployed: `no`
+
+GD-7 raises static/local execution-path clarity only. Runtime/tool execution readiness remains `0%` until an approved package is already importable and produces local private evidence. Production beta readiness remains `1%`.
+
+Next recommended prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`

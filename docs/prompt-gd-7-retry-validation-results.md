@@ -79,9 +79,11 @@ Result: `generated_local_fixture_partially_passed`
 
 ## GitHub Foundation Validation
 
-Status: `pending_pr_creation`
+PR: [#260](https://github.com/yuzastudio6-cyber/Reedkt/pull/260)
 
-The PR link and GitHub Foundation Validation status will be added after the branch is pushed and the pull request is created.
+Status: `pending`
+
+GitHub Foundation Validation is pending after PR creation.
 
 ## Boundary Status
 

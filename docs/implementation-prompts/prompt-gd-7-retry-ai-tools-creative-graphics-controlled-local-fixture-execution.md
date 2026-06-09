@@ -51,9 +51,9 @@ No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API c
 
 ## PR Tracking
 
-PR: pending.
+PR: [#260](https://github.com/yuzastudio6-cyber/Reedkt/pull/260).
 
-Local validation: in progress.
+Local validation: `implemented_local_validation_passed_with_local_build_environment_blocked`.
 
 GitHub Foundation Validation: pending.
 

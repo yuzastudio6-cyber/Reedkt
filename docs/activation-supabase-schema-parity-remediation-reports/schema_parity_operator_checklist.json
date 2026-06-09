@@ -1,0 +1,22 @@
+{
+  "phase": "supabase-schema-parity-remediation-strategy",
+  "runId": "supabase-schema-parity-remediation-strategy-20260609",
+  "status": "blocked",
+  "selectedStrategy": "staging_reset_and_reapply_migrations",
+  "checklist": [
+    "review all 11 missing effects from PR #241",
+    "confirm staging-only target and no production target",
+    "confirm no Track B backfill in the same phase",
+    "confirm no direct SQL/manual dashboard mutation",
+    "confirm no migration-history repair-only path",
+    "confirm selected staging reset/schema parity remediation strategy",
+    "confirm rollback/failure owner and cleanup behavior",
+    "confirm migration-safe dry-run requirement before any execution",
+    "confirm post-remediation verification and PR #198 backfill remains separate"
+  ],
+  "completionRequiredBeforeExecution": true,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

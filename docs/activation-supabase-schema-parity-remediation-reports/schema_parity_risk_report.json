@@ -1,0 +1,31 @@
+{
+  "phase": "supabase-schema-parity-remediation-strategy",
+  "runId": "supabase-schema-parity-remediation-strategy-20260609",
+  "status": "blocked",
+  "overallRisk": "high",
+  "driftClassification": "broad_foundational_schema_drift",
+  "remoteEquivalenceDecision": "not_equivalent",
+  "priorRepairDecision": "blocked_pending_remote_history_evidence",
+  "nonEquivalentMigrationCount": 11,
+  "missingObjectCount": 553,
+  "highRiskMigrationCount": 11,
+  "dataChangingMigrationCount": 11,
+  "policyRiskMigrationCount": 4,
+  "stagingDataRisk": true,
+  "productionRisk": false,
+  "unacceptableSchemaDriftRisk": false,
+  "riskReasons": [
+    "remote staging schema is not equivalent to local migration intent",
+    "11 migration effects are absent remotely",
+    "missing effects include data-changing statements such as storage bucket inserts and policy churn",
+    "missing effects include RLS/storage policy changes",
+    "one later migration appears applied while earlier foundational migrations are absent"
+  ],
+  "recommendedNextApproval": "staging_reset_and_reapply_migrations_approval_packet",
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

@@ -9,7 +9,7 @@
     },
     {
       "item": "data impact inventory reviewed",
-      "status": "blocked"
+      "status": "reviewed"
     },
     {
       "item": "auth/users/workspaces/projects/media/artifact/milestone impact accepted by owner",
@@ -17,7 +17,7 @@
     },
     {
       "item": "backup/export/snapshot mechanism approved",
-      "status": "blocked"
+      "status": "planned"
     },
     {
       "item": "backup destination, retention, access control, and restore test approved",

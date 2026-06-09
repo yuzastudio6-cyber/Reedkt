@@ -28,6 +28,8 @@ export const SUPABASE_STAGING_BACKUP_SNAPSHOT_CONFIRMATION =
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_BACKUP_SNAPSHOT_APPROVAL_PACKET'
 export const SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION =
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION'
+export const SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION =
+  'REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE'
 
 export const SUPABASE_STAGING_DATA_IMPACT_BACKUP_EXPECTED_REPORTS = [
   'source_of_truth_ownership_audit.json',
@@ -164,6 +166,9 @@ export function getSupabaseStagingDataImpactBackupPlan() {
       SUPABASE_STAGING_DATA_IMPACT_REVIEW_CONFIRMATION,
       SUPABASE_STAGING_BACKUP_SNAPSHOT_CONFIRMATION,
       SUPABASE_STAGING_SCHEMA_READONLY_CONFIRMATION,
+    ],
+    conditionalAllowedConfirmations: [
+      SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION,
     ],
     forbiddenConfirmations: FORBIDDEN_CONFIRMATIONS,
     approvalThreshold:
@@ -419,10 +424,13 @@ function runReadonlyStagingDataImpactInspection() {
     approvedDbUrlEnvNames: APPROVED_DB_URL_ENV_NAMES,
     dbUrlEnvPresent: dbUrlCheck.present,
     dbUrlEnvName: dbUrlCheck.envName,
+    dbUrlSecretRefUsed: getSecretHandlingMetadata().dbUrlSecretRefUsed,
+    dbUrlSecretPayloadAccessStatus: getSecretHandlingMetadata().dbUrlSecretPayloadAccessStatus,
     dbUrlValuePrinted: false,
     dbUrlTargetMatchedApprovedStaging: dbUrlCheck.targetMatched,
     credentialPayloadsPrinted: false,
     secretPayloadPrinted: false,
+    secretPayloadAccessAttempted: getSecretHandlingMetadata().secretPayloadAccessAttempted,
     secretPayloadCommitted: false,
     psqlAvailable: psqlCheck.available,
     psqlVersionChecked: psqlCheck.versionChecked,
@@ -491,9 +499,12 @@ function buildNotExecutedReadonlyInspectionReport() {
     catalog: emptyReadonlyInspectionCatalog(),
     approvedDbUrlEnvNames: APPROVED_DB_URL_ENV_NAMES,
     dbUrlEnvPresent: APPROVED_DB_URL_ENV_NAMES.some((name) => Boolean(process.env[name])),
+    dbUrlSecretRefUsed: getSecretHandlingMetadata().dbUrlSecretRefUsed,
+    dbUrlSecretPayloadAccessStatus: getSecretHandlingMetadata().dbUrlSecretPayloadAccessStatus,
     dbUrlValuePrinted: false,
     credentialPayloadsPrinted: false,
     secretPayloadPrinted: false,
+    secretPayloadAccessAttempted: getSecretHandlingMetadata().secretPayloadAccessAttempted,
     secretPayloadCommitted: false,
     rowContentsRead: false,
     countOnly: true,
@@ -655,6 +666,7 @@ function buildBackupSnapshotPlan(dataImpactInventory: JsonRecord) {
 }
 
 function buildOwnerAcceptanceReview() {
+  const confirmationSet = process.env[SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION] === 'true'
   const candidates = OWNER_ACCEPTANCE_PATHS.map((ownerPath) => {
     const present = existsSync(ownerPath)
     const text = present ? readFileSync(ownerPath, 'utf8') : ''
@@ -671,14 +683,23 @@ function buildOwnerAcceptanceReview() {
       ],
     }
   })
-  const accepted = candidates.some((candidate) => candidate.accepted)
+  const artifactAccepted = candidates.some((candidate) => candidate.accepted)
+  const accepted = artifactAccepted && confirmationSet
   return {
     phase: SUPABASE_STAGING_DATA_IMPACT_BACKUP_PHASE,
     runId: SUPABASE_STAGING_DATA_IMPACT_BACKUP_RUN_ID,
-    status: accepted ? 'accepted' : 'missing',
+    status: accepted ? 'accepted' : artifactAccepted ? 'artifact_present_confirmation_missing' : 'missing',
     accepted,
+    artifactAccepted,
+    confirmationRequired: artifactAccepted,
+    confirmationSet,
+    confirmationName: SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE_CONFIRMATION,
     candidateSources: candidates,
-    blocker: accepted ? null : 'staging_owner_data_loss_acceptance_missing',
+    blocker: accepted
+      ? null
+      : artifactAccepted
+        ? 'staging_owner_data_loss_acceptance_not_confirmed'
+        : 'staging_owner_data_loss_acceptance_missing',
     ownerAcceptanceRequiredBeforeFutureReset: true,
     stagingResetRun: false,
   }
@@ -768,7 +789,13 @@ function buildBlockerReport(
   const activeBlockers: StagingDataImpactBackupBlocker[] = []
   if (dataImpactInventory.status !== 'reviewed_from_readonly_metadata') activeBlockers.push('staging_data_impact_not_reviewed')
   if (backupSnapshotPlan.status !== 'acceptable_for_future_execution_not_run') activeBlockers.push('staging_backup_snapshot_plan_missing')
-  if (ownerAcceptance.accepted !== true) activeBlockers.push('staging_owner_data_loss_acceptance_missing')
+  if (ownerAcceptance.accepted !== true) {
+    activeBlockers.push(
+      ownerAcceptance.artifactAccepted === true
+        ? 'staging_owner_data_loss_acceptance_not_confirmed'
+        : 'staging_owner_data_loss_acceptance_missing',
+    )
+  }
   if (decision.decision === 'rejected_due_unacceptable_staging_reset_risk') activeBlockers.push('unacceptable_staging_reset_risk')
   return {
     phase: SUPABASE_STAGING_DATA_IMPACT_BACKUP_PHASE,
@@ -842,7 +869,38 @@ function buildPrivateArtifactManifest() {
       'storage object payloads',
     ],
     secretPayloadAccess: false,
+    secretPayloadAccessAttempted: getSecretHandlingMetadata().secretPayloadAccessAttempted,
+    secretPayloadStoredInArtifacts: false,
+    secretHandling: getSecretHandlingMetadata(),
     secretsPrintedOrCommitted: false,
+  }
+}
+
+function getSecretHandlingMetadata() {
+  const existingInspection = readJsonArtifact(
+    path.join(SUPABASE_STAGING_DATA_IMPACT_BACKUP_REPORT_DIR, 'staging_data_impact_readonly_inspection_report.json'),
+  )
+  const rawStatus =
+    process.env.REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_PAYLOAD_ACCESS_STATUS ??
+    (typeof existingInspection?.dbUrlSecretPayloadAccessStatus === 'string'
+      ? existingInspection.dbUrlSecretPayloadAccessStatus
+      : undefined)
+  const allowedStatus = rawStatus === 'succeeded' || rawStatus === 'failed' || rawStatus === 'not_attempted'
+  const dbUrlSecretRefUsed =
+    process.env.REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF === 'SUPABASE_DB_URL'
+      ? 'SUPABASE_DB_URL'
+      : existingInspection?.dbUrlSecretRefUsed === 'SUPABASE_DB_URL'
+        ? 'SUPABASE_DB_URL'
+        : null
+  return {
+    dbUrlSecretRefUsed,
+    dbUrlSecretPayloadAccessStatus: allowedStatus ? rawStatus : dbUrlSecretRefUsed ? 'not_attempted' : 'not_attempted',
+    secretPayloadAccessAttempted:
+      rawStatus === 'succeeded' || rawStatus === 'failed' || existingInspection?.secretPayloadAccessAttempted === true,
+    payloadPrinted: false,
+    payloadCommitted: false,
+    dbUrlEnvPresent:
+      APPROVED_DB_URL_ENV_NAMES.some((name) => Boolean(process.env[name])) || existingInspection?.dbUrlEnvPresent === true,
   }
 }
 

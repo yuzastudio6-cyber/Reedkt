@@ -2,7 +2,7 @@
 
 Use this prompt only after the staging data-impact and backup/snapshot approval decision is `approved_for_future_staging_reset_and_reapply_migrations`.
 
-Current decision: `blocked_pending_staging_data_impact_review`
+Current decision: `blocked_pending_staging_owner_approval`
 
 Execution remains blocked unless all are true:
 - staging data impact is reviewed;

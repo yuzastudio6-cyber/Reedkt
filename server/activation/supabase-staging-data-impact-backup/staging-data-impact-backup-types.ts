@@ -18,6 +18,7 @@ export type StagingDataImpactBackupBlocker =
   | 'staging_data_impact_not_reviewed'
   | 'staging_backup_snapshot_plan_missing'
   | 'staging_owner_data_loss_acceptance_missing'
+  | 'staging_owner_data_loss_acceptance_not_confirmed'
   | 'unacceptable_staging_reset_risk'
   | 'forbidden_confirmation_set'
 

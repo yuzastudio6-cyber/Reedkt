@@ -67,6 +67,17 @@ assert(
     reports.approvalDecision.decision !== 'approved_for_future_staging_reset_and_reapply_migrations',
   'Future reset must not be approved without explicit staging-owner data-loss acceptance.',
 )
+assert(
+  reports.ownerAcceptance.accepted !== true ||
+    reports.ownerAcceptance.confirmationSet === true,
+  'Owner acceptance artifact must also have the explicit owner confirmation.',
+)
+assert(
+  reports.readonlyInspection.dbUrlValuePrinted === false &&
+    reports.readonlyInspection.secretPayloadPrinted === false &&
+    reports.readonlyInspection.secretPayloadCommitted === false,
+  'Read-only inspection reports must keep DB URL and secret payloads redacted.',
+)
 
 const moduleText = readAllFiles('server/activation/supabase-staging-data-impact-backup')
   .map(({ text }) => text)

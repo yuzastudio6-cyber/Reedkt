@@ -1,16 +1,16 @@
 {
   "phase": "supabase-staging-data-impact-backup-approval",
   "runId": "supabase-staging-data-impact-backup-approval-20260609",
-  "status": "blocked",
+  "status": "reviewed_requires_owner_acceptance",
   "overallRisk": "high",
-  "authUserRisk": "not_observed_in_metadata",
-  "workspaceProjectRisk": "not_observed_in_metadata",
-  "storageArtifactReferenceRisk": "not_observed_in_metadata",
+  "authUserRisk": "medium_presence_requires_owner_acceptance",
+  "workspaceProjectRisk": "medium_presence_requires_owner_acceptance",
+  "storageArtifactReferenceRisk": "medium_presence_requires_owner_acceptance",
   "milestoneRegistryRisk": "not_observed_in_metadata",
-  "internalTestingDisruptionRisk": "medium_until_owner_acceptance",
-  "dataLossRisk": "medium_until_owner_acceptance",
+  "internalTestingDisruptionRisk": "requires_owner_acceptance",
+  "dataLossRisk": "high_without_backup_and_owner_acceptance",
   "resetSafety": "not_approved_in_this_phase",
-  "readOnlyInspectionStatus": "blocked",
+  "readOnlyInspectionStatus": "passed",
   "unacceptableRiskDetected": false,
   "requiredApprovals": [
     "staging_owner_data_loss_acceptance",
@@ -18,9 +18,7 @@
     "reset_reapply_execution_approval",
     "post_reset_verification_acceptance"
   ],
-  "blockers": [
-    "staging_data_impact_not_reviewed"
-  ],
+  "blockers": [],
   "stagingResetRun": false,
   "productionAffected": false
 }

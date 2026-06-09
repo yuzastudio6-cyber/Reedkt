@@ -1,7 +1,7 @@
 {
   "phase": "supabase-staging-data-impact-backup-approval",
   "runId": "supabase-staging-data-impact-backup-approval-20260609",
-  "status": "planned_requires_data_inventory",
+  "status": "acceptable_for_future_execution_not_run",
   "preResetBackupSnapshotOrExportRequired": true,
   "backupRunInThisPhase": false,
   "backupExecutionRequiresSeparatePhase": true,
@@ -27,9 +27,7 @@
     "this phase does not read row contents",
     "backup destination and retention owner must be confirmed separately"
   ],
-  "blockers": [
-    "staging_data_impact_not_reviewed"
-  ],
+  "blockers": [],
   "stagingResetRun": false,
   "productionAffected": false
 }

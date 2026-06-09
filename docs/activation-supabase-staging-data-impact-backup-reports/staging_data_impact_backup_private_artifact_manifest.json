@@ -23,5 +23,15 @@
     "storage object payloads"
   ],
   "secretPayloadAccess": false,
+  "secretPayloadAccessAttempted": true,
+  "secretPayloadStoredInArtifacts": false,
+  "secretHandling": {
+    "dbUrlSecretRefUsed": "SUPABASE_DB_URL",
+    "dbUrlSecretPayloadAccessStatus": "succeeded",
+    "secretPayloadAccessAttempted": true,
+    "payloadPrinted": false,
+    "payloadCommitted": false,
+    "dbUrlEnvPresent": true
+  },
   "secretsPrintedOrCommitted": false
 }

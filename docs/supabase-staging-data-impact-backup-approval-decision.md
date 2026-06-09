@@ -1,6 +1,6 @@
 # Supabase Staging Data Impact Backup Approval Decision
 
-Decision: `blocked_pending_staging_data_impact_review`
+Decision: `blocked_pending_staging_owner_approval`
 
 Approval status: `not_approved_for_execution`
 
@@ -11,16 +11,14 @@ This approval/review packet did not run staging reset, migrations, migration rep
 - PR #248 reset decision: `blocked_pending_staging_data_impact_review`
 - PR #247 strategy: `staging_reset_and_reapply_migrations`
 - PR #241 equivalence: `not_equivalent`
-- Live staging inspection: `blocked`
-- Data impact: `blocked`
-- Backup/snapshot plan: `planned_requires_data_inventory`
+- Live staging inspection: `passed`
+- Data impact: `reviewed_from_readonly_metadata`
+- Backup/snapshot plan: `acceptable_for_future_execution_not_run`
 - Owner acceptance: `missing`
 - Risk: `high`
 
 ## Blockers
 
-- `staging_data_impact_not_reviewed`
-- `staging_backup_snapshot_plan_missing`
 - `staging_owner_data_loss_acceptance_missing`
 
 ## Next Action

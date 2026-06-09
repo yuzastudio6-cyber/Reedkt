@@ -2,12 +2,10 @@
   "phase": "supabase-staging-data-impact-backup-approval",
   "runId": "supabase-staging-data-impact-backup-approval-20260609",
   "status": "blocked",
-  "decision": "blocked_pending_staging_data_impact_review",
+  "decision": "blocked_pending_staging_owner_approval",
   "futureResetApproved": false,
   "resetExecutionAllowedInThisPhase": false,
   "blockers": [
-    "staging_data_impact_not_reviewed",
-    "staging_backup_snapshot_plan_missing",
     "staging_owner_data_loss_acceptance_missing"
   ],
   "nextRecommendedPhase": "Resolve exact data-impact, backup/snapshot, or staging-owner acceptance blockers before reset/reapply execution.",

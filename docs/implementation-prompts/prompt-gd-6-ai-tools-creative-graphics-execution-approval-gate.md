@@ -31,4 +31,4 @@ GD-6 creates the execution approval gate packet for a future GD-7 controlled loc
 
 ## PR
 
-PR link: pending.
+PR link: [#245](https://github.com/yuzastudio6-cyber/Reedkt/pull/245).

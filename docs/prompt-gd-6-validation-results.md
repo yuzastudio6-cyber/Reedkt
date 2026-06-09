@@ -4,7 +4,7 @@ Status: `local_validation_passed_with_local_build_environment_blocked`
 
 Branch: `codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate`
 Base: `origin/codex/rp-gd-5-ai-tools-creative-graphics-controlled-fixture-execution-plan`
-PR: pending
+PR: [#245](https://github.com/yuzastudio6-cyber/Reedkt/pull/245)
 
 Production capability enabled: `none; AI Tools creative graphics execution approval gate packet only`
 

@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "blocked",
+  "stagingResetReapplyComplete": false,
+  "stagingResetRun": false,
+  "migrationHistoryVerified": false,
+  "schemaRlsVerified": false,
+  "trackBBackfillPreflightStatus": "blocked",
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "migrationRepairRun": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "staging_reset_execute_not_confirmed",
+    "staging_db_reset_not_confirmed",
+    "staging_owner_data_loss_acceptance_not_confirmed",
+    "staging_backup_snapshot_packet_not_confirmed",
+    "staging_schema_mutation_not_confirmed",
+    "staging_reset_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed"
+  ],
+  "nextRecommendedPhase": "Resolve the exact staging reset backup, secret, CLI, reset, or post-reset verification blocker before Track B backfill."
+}

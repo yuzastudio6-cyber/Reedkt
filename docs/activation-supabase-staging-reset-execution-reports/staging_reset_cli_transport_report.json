@@ -1,0 +1,48 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "passed",
+  "selectedStrategy": "temp_npm_exec_supabase_cli",
+  "confirmation": "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
+  "confirmed": true,
+  "packageName": "supabase@latest",
+  "command": {
+    "status": "passed",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "--version"
+    ],
+    "cwd": "process_cwd",
+    "exitCode": 0,
+    "stdoutSummary": {
+      "byteLength": 8,
+      "lineCount": 1,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    }
+  },
+  "cachePolicy": {
+    "cacheDir": "redacted_temp_npm_cache_outside_repo",
+    "prefixDir": "redacted_temp_npm_prefix_outside_repo",
+    "cacheInsideRepo": false,
+    "prefixInsideRepo": false,
+    "repoDependencyInstalled": false,
+    "packageLockChanged": false,
+    "globalInstallAttempted": false
+  },
+  "packageLockChanged": false,
+  "repoDependencyInstalled": false,
+  "globalInstallAttempted": false,
+  "credentialPayloadsPrinted": false,
+  "blockers": []
+}

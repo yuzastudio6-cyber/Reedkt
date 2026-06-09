@@ -1,0 +1,71 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "blocked",
+  "verificationPerformed": true,
+  "schemaRlsVerified": false,
+  "psqlCommand": {
+    "status": "passed",
+    "command": "psql",
+    "args": [
+      "-X",
+      "-qAt",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-c",
+      "[REDACTED_READONLY_SCHEMA_QUERY]"
+    ],
+    "cwd": "process_cwd",
+    "exitCode": 0,
+    "stdoutSummary": {
+      "byteLength": 47,
+      "lineCount": 1,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    }
+  },
+  "requiredTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "tableCountFound": 0,
+  "missingTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "rlsDisabledTables": [],
+  "broadGrantCount": 0,
+  "publicAnonAuthenticatedRevoked": true,
+  "serviceRoleOnlyExpected": true,
+  "dbUrlPrinted": false,
+  "hostnamePrinted": false,
+  "usernamePrinted": false,
+  "passwordPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "productionAffected": false,
+  "blockers": [
+    "staging_post_reset_schema_rls_verify_failed"
+  ]
+}

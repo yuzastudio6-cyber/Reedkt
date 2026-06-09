@@ -157,3 +157,27 @@ Prompt GD-8: Creative Graphics Package Runtime Enablement.
 ## Next Milestone After GD-8
 
 `Prompt GD-8A - Package Runtime Fixes`
+
+## GD-8A Milestone
+
+Prompt GD-8A: Creative Graphics resvg Native Runtime Fixes.
+
+- Status: `local_darwin_native_blocker`
+- Capability: `none; AI Tools creative graphics resvg runtime review only`
+- Package under review: `@resvg/resvg-js@2.6.2`
+- Tool under review: `resvg_js_svg_rasterization`
+- Local platform evidence: `darwin/arm64`; Node: `24.14.0`
+- Native package present: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Local blocker: `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Rasterization executed: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime fixture generation remains unrun.
+
+## Next Milestone After GD-8A
+
+`Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

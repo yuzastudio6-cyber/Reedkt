@@ -60,3 +60,22 @@ GD-8 did not run the GD-7 fixture runner. It added package dependencies and ran 
 
 Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
 Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
+
+## GD-8A resvg Runtime Review Addendum
+
+GD-8A does not run the GD-7 fixture runner. It narrows the remaining Group A blocker to import-only native diagnosis for `@resvg/resvg-js@2.6.2`.
+
+- Tool under review: `resvg_js_svg_rasterization`
+- Local platform: `darwin/arm64`; Node: `24.14.0`
+- Local native package: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Current local import error: `ERR_DLOPEN_FAILED`
+- Current error class: `darwin_code_signature_native_binding_load_failure`
+- Current classification after focused CI import evidence: `local_darwin_native_blocker`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Rasterization executed: none
+- Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

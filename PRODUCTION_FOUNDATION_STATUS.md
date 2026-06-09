@@ -342,3 +342,45 @@ Authoritative GD-8 files:
 - `docs/prompt-gd-8-validation-results.md`
 
 Next milestone: `Prompt GD-8A - Package Runtime Fixes`.
+
+## GD-8A Creative Graphics resvg Native Runtime Fixes
+
+- Status: `local_darwin_native_blocker`
+- Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Package under review: `@resvg/resvg-js@2.6.2`
+- Tool under review: `resvg_js_svg_rasterization`
+- Local platform evidence: `darwin/arm64`; Node: `24.14.0`
+- Native package present locally: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Lockfile native metadata: Android, Darwin, Linux, and Windows optional native packages are present
+- Current local blocker: `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure`
+- GD-8 CI status: passed, but no resvg import probe was run there
+- GD-8A CI status: focused import-only resvg probe passed on `linux/x64`; overall classification `local_darwin_native_blocker`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Rasterization executed: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Worker execution: none
+- Provider/model calls: none
+- Render/export: none
+- Browser capture: none
+- Media processing: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Storage transfer: none
+- Signed URLs: none
+- Public artifacts: none
+- Production/beta unlock: none
+
+Authoritative GD-8A files:
+
+- `docs/ai-tools/creative-graphics-resvg-native-runtime-review.md`
+- `docs/ai-tools/creative-graphics-resvg-fallback-boundary.md`
+- `docs/ai-tools/creative-graphics-gd8a-resvg-probe-evidence.md`
+- `scripts/fixtures/ai-tools/probe-resvg-native-runtime.mjs`
+- `scripts/validation/ai-tools-creative-graphics-resvg-runtime-diagnostics.mjs`
+- `docs/prompt-gd-8a-validation-results.md`
+
+Next milestone: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

@@ -81,3 +81,24 @@ Package runtime status:
 - Production/beta unlock: none
 
 Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
+
+## GD-8A resvg Runtime Review Addendum
+
+Prompt GD-8A narrows the package-runtime follow-up to `@resvg/resvg-js@2.6.2` for `resvg_js_svg_rasterization`.
+
+- GD-8A production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- GD-8A local platform: `darwin/arm64`; Node: `24.14.0`
+- Native package present locally: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Lockfile native metadata: Android, Darwin, Linux, and Windows optional `@resvg/resvg-js-*` packages are present
+- Local error: `ERR_DLOPEN_FAILED`
+- Local error class: `darwin_code_signature_native_binding_load_failure`
+- Current GD-8A classification after CI import evidence: `local_darwin_native_blocker`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Rasterization executed: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+GD-8A adds a focused import-only CI probe. The GD-8 GitHub Foundation Validation run passed, but GD-8 CI did not run the resvg import probe. GD-8A CI passed and the focused probe imported resvg on `linux/x64`, so the remaining blocker is local Darwin native loading.

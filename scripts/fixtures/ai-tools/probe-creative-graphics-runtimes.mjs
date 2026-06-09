@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -73,11 +73,121 @@ const probes = [
 const repoRoot = process.cwd();
 const runId = `gd8-${new Date().toISOString().replace(/[:.]/g, '-')}`;
 const outputDir = path.join(repoRoot, '.local-artifacts', 'ai-tools', 'gd-8', runId);
+const resvgNativePackages = [
+  '@resvg/resvg-js-android-arm-eabi',
+  '@resvg/resvg-js-android-arm64',
+  '@resvg/resvg-js-darwin-arm64',
+  '@resvg/resvg-js-darwin-x64',
+  '@resvg/resvg-js-linux-arm-gnueabihf',
+  '@resvg/resvg-js-linux-arm64-gnu',
+  '@resvg/resvg-js-linux-arm64-musl',
+  '@resvg/resvg-js-linux-x64-gnu',
+  '@resvg/resvg-js-linux-x64-musl',
+  '@resvg/resvg-js-win32-arm64-msvc',
+  '@resvg/resvg-js-win32-ia32-msvc',
+  '@resvg/resvg-js-win32-x64-msvc',
+];
+
+function sanitizeMessage(message) {
+  return String(message)
+    .replaceAll(repoRoot, '<repo>')
+    .replace(/\/[^)\s]*node_modules\/(@resvg\/resvg-js-[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+)/g, 'node_modules/$1')
+    .replace(/\s+/g, ' ')
+    .slice(0, 240);
+}
+
+function compactErrorClass(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : 'IMPORT_FAILED';
+
+  if (code === 'ERR_MODULE_NOT_FOUND') {
+    return 'module_not_found';
+  }
+
+  if (/code signature/i.test(message)) {
+    return 'darwin_code_signature_native_binding_load_failure';
+  }
+
+  if (/dlopen|native binding/i.test(message) || code === 'ERR_DLOPEN_FAILED') {
+    return 'native_binding_load_failure';
+  }
+
+  if (/\b(window|document|navigator|HTMLElement|HTMLCanvasElement)\b/i.test(message)) {
+    return 'browser_only_import_requires_review';
+  }
+
+  return 'import_error_needs_review';
+}
+
+function readJsonIfPresent(relativePath) {
+  const absolutePath = path.join(repoRoot, relativePath);
+  if (!existsSync(absolutePath)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(readFileSync(absolutePath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function currentResvgNativePackageCandidates() {
+  if (process.platform === 'darwin' && process.arch === 'arm64') {
+    return ['@resvg/resvg-js-darwin-arm64'];
+  }
+  if (process.platform === 'darwin' && process.arch === 'x64') {
+    return ['@resvg/resvg-js-darwin-x64'];
+  }
+  if (process.platform === 'linux' && process.arch === 'x64') {
+    return ['@resvg/resvg-js-linux-x64-gnu', '@resvg/resvg-js-linux-x64-musl'];
+  }
+  if (process.platform === 'linux' && process.arch === 'arm64') {
+    return ['@resvg/resvg-js-linux-arm64-gnu', '@resvg/resvg-js-linux-arm64-musl'];
+  }
+  if (process.platform === 'win32' && process.arch === 'x64') {
+    return ['@resvg/resvg-js-win32-x64-msvc'];
+  }
+  return [];
+}
+
+function nativePackageRelativePath(packageName) {
+  return path.join('node_modules', ...packageName.split('/'));
+}
+
+function resvgNativeDiagnostics(error = null) {
+  const packageJson = readJsonIfPresent('node_modules/@resvg/resvg-js/package.json');
+  const lockfile = readJsonIfPresent('package-lock.json');
+  const lockPackages = lockfile?.packages ?? {};
+  const optionalNativePackagesInLock = resvgNativePackages.filter((packageName) =>
+    Object.prototype.hasOwnProperty.call(lockPackages, nativePackageRelativePath(packageName)),
+  );
+  const currentNativePackageCandidates = currentResvgNativePackageCandidates();
+  const installedNativePackageCandidates = currentNativePackageCandidates.filter((packageName) =>
+    existsSync(path.join(repoRoot, nativePackageRelativePath(packageName))),
+  );
+
+  return {
+    platform: process.platform,
+    arch: process.arch,
+    nodeVersion: process.version,
+    packageName: '@resvg/resvg-js',
+    packageVersion: packageJson?.version ?? 'unknown',
+    currentNativePackageCandidates,
+    installedNativePackageCandidates,
+    nativePackagePresent: installedNativePackageCandidates.length > 0,
+    optionalNativePackagesInLock,
+    errorName: error instanceof Error ? error.name : error ? 'ImportError' : null,
+    errorCode: error && typeof error === 'object' && 'code' in error ? String(error.code) : null,
+    errorClass: error ? compactErrorClass(error) : null,
+    errorSummary: error ? sanitizeMessage(error instanceof Error ? error.message : String(error)) : null,
+  };
+}
 
 function classifyError(error) {
   const message = error instanceof Error ? error.message : String(error);
   const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : 'IMPORT_FAILED';
-  const compactMessage = message.replace(/\s+/g, ' ').slice(0, 240);
+  const compactMessage = sanitizeMessage(message);
 
   if (code === 'ERR_MODULE_NOT_FOUND') {
     return {
@@ -117,7 +227,7 @@ function classifyError(error) {
 async function probeRuntime(probe) {
   try {
     await import(probe.packageName);
-    return {
+    const result = {
       ...probe,
       status: 'passed',
       blocker: null,
@@ -128,8 +238,12 @@ async function probeRuntime(probe) {
       workerExecuted: false,
       providerModelCalled: false,
     };
+    if (probe.packageName === '@resvg/resvg-js') {
+      result.resvgNativeDiagnostics = resvgNativeDiagnostics();
+    }
+    return result;
   } catch (error) {
-    return {
+    const result = {
       ...probe,
       ...classifyError(error),
       importOnly: true,
@@ -139,6 +253,10 @@ async function probeRuntime(probe) {
       workerExecuted: false,
       providerModelCalled: false,
     };
+    if (probe.packageName === '@resvg/resvg-js') {
+      result.resvgNativeDiagnostics = resvgNativeDiagnostics(error);
+    }
+    return result;
   }
 }
 
@@ -192,6 +310,8 @@ console.log(
         status: result.status,
         blocker: result.blocker,
         errorCode: result.errorCode,
+        errorClass: result.resvgNativeDiagnostics?.errorClass,
+        nativePackagePresent: result.resvgNativeDiagnostics?.nativePackagePresent,
       })),
       reportPath: path.relative(repoRoot, path.join(outputDir, 'runtime-probe-report.json')),
     },

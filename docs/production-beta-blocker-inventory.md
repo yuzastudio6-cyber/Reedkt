@@ -140,3 +140,21 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Migration deployed: `no`
 - Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
 - Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`
+
+## GD-8A Remaining Blockers
+
+- GD-8A reviews `@resvg/resvg-js@2.6.2` native import only; generated/local fixture execution remains `generated_local_fixture_not_executed`.
+- Current classification is `local_darwin_native_blocker` after focused GD-8A CI import evidence passed.
+- Local platform evidence is `darwin/arm64`; Node: `24.14.0`.
+- Local native package `node_modules/@resvg/resvg-js-darwin-arm64` exists, but local import fails with `ERR_DLOPEN_FAILED` and `darwin_code_signature_native_binding_load_failure`.
+- Linux import viability was not proven by GD-8 CI because GD-8 did not run a resvg import probe; GD-8A CI now proves focused import-only availability on `linux/x64`.
+- Rasterization readiness is not claimed.
+- Track A final render/export validation remains out of GD scope and blocked.
+- Track B media processing, Sharp/libvips alternatives, storage transfer, public artifacts, signed URLs, worker/provider/model execution, browser capture, render/export, Supabase mutation, SQL, Google Cloud, Secret Manager, and production/beta unlock remain blocked.
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution

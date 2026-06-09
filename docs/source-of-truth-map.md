@@ -227,3 +227,32 @@ GD-8 status terms:
 - Migration deployed: `no`
 - Tools covered: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`, and `resvg_js_svg_rasterization`
 - Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`
+
+## GD-8A Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| resvg native runtime review | `docs/ai-tools/creative-graphics-resvg-native-runtime-review.md` |
+| resvg fallback boundary | `docs/ai-tools/creative-graphics-resvg-fallback-boundary.md` |
+| GD-8A probe evidence | `docs/ai-tools/creative-graphics-gd8a-resvg-probe-evidence.md` |
+| Focused resvg native probe | `scripts/fixtures/ai-tools/probe-resvg-native-runtime.mjs` |
+| resvg runtime diagnostic | `scripts/validation/ai-tools-creative-graphics-resvg-runtime-diagnostics.mjs` |
+| Validation results | `docs/prompt-gd-8a-validation-results.md` |
+
+GD-8A status terms:
+
+- Runtime review status: `local_darwin_native_blocker`
+- Package under review: `@resvg/resvg-js@2.6.2`
+- Tool under review: `resvg_js_svg_rasterization`
+- Local platform: `darwin/arm64`; Node: `24.14.0`
+- Native package present: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Local blocker: `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure`
+- Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- GitHub focused resvg probe: `passed` on `linux/x64`
+- Next recommended prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`

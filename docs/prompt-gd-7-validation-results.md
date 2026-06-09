@@ -4,7 +4,7 @@ Status: `local_validation_passed_with_build_environment_blocked`
 
 Branch: `codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution`
 Base: `origin/codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate`
-PR: pending
+PR: [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250)
 
 Production capability enabled: `none; controlled local creative graphics fixture execution only`
 
@@ -70,7 +70,7 @@ Production capability enabled: `none; controlled local creative graphics fixture
 - `npm run build:server`: local `environment_blocked`; Darwin Rolldown native binding code-signature failure.
 - `npm run foundation:validate:with-build`: passed, with `build` and `build:server` classified as `environment_blocked`.
 
-GitHub Foundation Validation: pending PR.
+GitHub Foundation Validation: pending on PR [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250).
 
 ## Cross-Chat Impact
 

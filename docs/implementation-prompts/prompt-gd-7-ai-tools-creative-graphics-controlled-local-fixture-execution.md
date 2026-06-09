@@ -31,7 +31,7 @@ GD-7 checks approved Group A package/runtime availability, creates a local-only 
 
 ## PR
 
-PR link: pending.
+PR link: [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250).
 
 ## Local Validation
 

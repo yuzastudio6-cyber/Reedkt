@@ -44,7 +44,7 @@ CI status: pending.
 
 - `git diff --check`: passed.
 - `git diff --check origin/codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution...HEAD`: passed.
-- `npm ci`: passed after lockfile sync.
+- `npm ci`: passed after npm 11.9.0 lockfile sync.
 - `npm run lint`: passed.
 - `npm run typecheck:server`: passed.
 - Runtime probe: `package_runtime_probe_mostly_passed_with_native_blocker`.

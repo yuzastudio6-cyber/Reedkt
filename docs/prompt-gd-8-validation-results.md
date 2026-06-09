@@ -34,7 +34,7 @@ Dependencies added:
 
 Probe script: `scripts/fixtures/ai-tools/probe-creative-graphics-runtimes.mjs`
 
-Run ID: `gd8-2026-06-09T03-51-02-567Z`
+Run ID: `gd8-2026-06-09T04-17-00-924Z`
 
 Result:
 
@@ -54,8 +54,8 @@ Result:
 | `git diff --check` | passed | No whitespace errors. |
 | `git diff --check origin/codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution...HEAD` | passed | No whitespace errors against the GD-7 base. |
 | package install | passed | Added GD-8 creative graphics packages; install reported five moderate audit findings. |
-| lockfile sync | passed | Initial clean install exposed a transitive lock mismatch; the normal npm workflow synced the lockfile and the retry passed. |
-| `npm ci` | passed | Clean install completed; five moderate audit findings remain. |
+| lockfile sync | passed | Initial clean install exposed a transitive lock mismatch; npm 11.9.0 lockfile sync matched GitHub runner expectations and the retry passed. |
+| `npm ci` | passed | Clean install completed with npm 11.9.0; five moderate audit findings remain. |
 | `npm run lint` | passed | ESLint passed. |
 | `npm run typecheck:server` | passed | Server TypeScript check passed. |
 | runtime probe | `package_runtime_probe_mostly_passed_with_native_blocker` | 12 passed, `@resvg/resvg-js` blocked by local native loading. |

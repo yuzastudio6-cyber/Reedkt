@@ -71,7 +71,7 @@ Result:
 
 PR: [#253](https://github.com/yuzastudio6-cyber/Reedkt/pull/253).
 
-GitHub Foundation Validation: pending.
+GitHub Foundation Validation: passed, run [27183593073](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/27183593073/job/80247697043).
 
 ## Boundaries
 

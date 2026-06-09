@@ -38,7 +38,7 @@ Runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
 
 PR: [#253](https://github.com/yuzastudio6-cyber/Reedkt/pull/253).
 
-CI status: pending.
+CI status: passed, GitHub Foundation Validation run [27183593073](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/27183593073/job/80247697043).
 
 ## Local Validation
 

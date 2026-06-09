@@ -69,7 +69,7 @@ Result:
 
 ## GitHub Validation
 
-PR: pending.
+PR: [#253](https://github.com/yuzastudio6-cyber/Reedkt/pull/253).
 
 GitHub Foundation Validation: pending.
 

@@ -36,7 +36,7 @@ Runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
 
 ## Current PR
 
-PR: pending.
+PR: [#253](https://github.com/yuzastudio6-cyber/Reedkt/pull/253).
 
 CI status: pending.
 

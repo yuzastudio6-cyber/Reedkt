@@ -39,7 +39,7 @@ No fixture generation, no SVG rasterization, no media rendering, no worker/provi
 
 ## PR Tracking
 
-PR: pending.
+PR: [#255](https://github.com/yuzastudio6-cyber/Reedkt/pull/255).
 
 Local validation: passed with expected `ci_linux_viability_unknown` local Darwin resvg import classification.
 

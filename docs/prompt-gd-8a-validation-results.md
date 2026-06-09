@@ -86,6 +86,7 @@ GD-8 CI passed, but did not run a resvg import probe. GD-8A adds that import-onl
 - Current classification: `ci_linux_viability_unknown`.
 - Generated/local fixture status: `generated_local_fixture_not_executed`.
 - Local build status: `environment_blocked` by Darwin Rolldown native binding/code-signature failure.
+- PR: [#255](https://github.com/yuzastudio6-cyber/Reedkt/pull/255).
 - GitHub Foundation Validation status: pending.
 
 Recommended next prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless the GD-8A Linux CI import probe passes, in which case use `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.

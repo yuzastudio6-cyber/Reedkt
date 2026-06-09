@@ -13,7 +13,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | GD-6 - Creative Graphics Execution Approval Gate Packet | implemented_pr_open | `codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate` | [#245](https://github.com/yuzastudio6-cyber/Reedkt/pull/245) | `none; AI Tools creative graphics execution approval gate packet only` |
 | GD-7 - Creative Graphics Controlled Local Fixture Execution | implemented_ci_passed | `codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution` | [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250) | `none; controlled local creative graphics fixture execution only` |
 | GD-8 - Creative Graphics Package Runtime Enablement | implemented_ci_passed | `codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement` | [#253](https://github.com/yuzastudio6-cyber/Reedkt/pull/253) | `none; AI Tools creative graphics package runtime enablement only` |
-| GD-8A - Creative Graphics resvg Native Runtime Fixes | implemented_local_validation_pending | `codex/rp-gd-8a-ai-tools-creative-graphics-package-runtime-fixes` | pending | `none; AI Tools creative graphics resvg runtime review only` |
+| GD-8A - Creative Graphics resvg Native Runtime Fixes | implemented_pr_open | `codex/rp-gd-8a-ai-tools-creative-graphics-package-runtime-fixes` | [#255](https://github.com/yuzastudio6-cyber/Reedkt/pull/255) | `none; AI Tools creative graphics resvg runtime review only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 

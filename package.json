@@ -41,6 +41,7 @@
     "smoke:supabase-sound-local-fixture-validation-plan": "tsx server/smoke/supabase-sound-local-fixture-validation-plan-smoke.ts",
     "smoke:supabase-sound-local-sql-validation-owner-acceptance": "tsx server/smoke/supabase-sound-local-sql-validation-owner-acceptance-smoke.ts",
     "smoke:supabase-sound-local-sql-owner-evidence": "tsx server/smoke/supabase-sound-local-sql-owner-evidence-smoke.ts",
+    "smoke:supabase-sound-local-sql-approval-requests": "tsx server/smoke/supabase-sound-local-sql-approval-requests-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

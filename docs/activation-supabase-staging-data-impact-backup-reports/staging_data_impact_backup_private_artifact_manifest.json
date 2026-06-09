@@ -1,0 +1,27 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "artifactPolicy": "committed_safe_metadata_only",
+  "privateUploadRequired": false,
+  "committedArtifacts": [
+    "docs/activation-supabase-staging-data-impact-backup-reports",
+    "docs/supabase-staging-data-impact-backup-approval-decision.md",
+    "docs/supabase-staging-data-impact-backup-operator-checklist.md",
+    "docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md"
+  ],
+  "forbiddenPayloads": [
+    "DB URLs",
+    "service-role keys",
+    "anon keys",
+    "JWT secrets",
+    "access tokens",
+    "signed URLs",
+    "private media URLs",
+    "provider keys",
+    "row contents",
+    "backup files",
+    "storage object payloads"
+  ],
+  "secretPayloadAccess": false,
+  "secretsPrintedOrCommitted": false
+}

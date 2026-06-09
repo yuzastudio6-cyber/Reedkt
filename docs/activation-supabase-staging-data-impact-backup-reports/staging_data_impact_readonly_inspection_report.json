@@ -1,0 +1,44 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "mode": "readonly_staging_metadata_count_inspection",
+  "reviewExecuted": true,
+  "approvedDbUrlEnvNames": [
+    "REEDITPRO_STAGING_SUPABASE_DB_URL",
+    "SUPABASE_STAGING_DB_URL",
+    "STAGING_SUPABASE_DB_URL"
+  ],
+  "dbUrlEnvPresent": false,
+  "dbUrlEnvName": null,
+  "dbUrlValuePrinted": false,
+  "dbUrlTargetMatchedApprovedStaging": false,
+  "credentialPayloadsPrinted": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "psqlAvailable": true,
+  "psqlVersionChecked": true,
+  "psqlVersionSummary": "psql (PostgreSQL) 18.4 (Postgres.app)",
+  "rowContentsRead": false,
+  "countOnly": true,
+  "productionTouched": false,
+  "directDdlDmlRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "forbiddenConfirmationsSet": [],
+  "status": "blocked",
+  "inspectedCatalogs": [],
+  "queryReports": [],
+  "catalog": {
+    "schemas": [],
+    "tables": [],
+    "tableEstimates": [],
+    "rls": [],
+    "policies": [],
+    "storageBuckets": [],
+    "migrationHistory": []
+  },
+  "blockers": [
+    "staging_db_url_unavailable_for_data_impact_review"
+  ]
+}

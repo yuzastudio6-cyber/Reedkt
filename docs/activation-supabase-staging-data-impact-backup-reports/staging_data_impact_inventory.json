@@ -1,0 +1,58 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "blocked",
+  "sourceEvidence": {
+    "pr248Decision": "blocked_pending_staging_data_impact_review",
+    "pr247Strategy": "staging_reset_and_reapply_migrations",
+    "pr241Equivalence": "not_equivalent",
+    "pr241NotEquivalentMigrationCount": 11
+  },
+  "liveInspectionStatus": "blocked",
+  "schemasPresent": [],
+  "tableCount": 0,
+  "tablesPresent": [],
+  "tableRowEstimates": [],
+  "categories": {
+    "authUsers": {
+      "present": false,
+      "tables": [],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    },
+    "workspaceProject": {
+      "present": false,
+      "tables": [],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    },
+    "mediaArtifacts": {
+      "present": false,
+      "tables": [],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    },
+    "milestoneRegistry": {
+      "present": false,
+      "tables": [],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    }
+  },
+  "storageBuckets": [],
+  "privateArtifactReferenceRisk": "not_observed_in_metadata",
+  "internalTestingDataRisk": "not_observed_in_metadata",
+  "migrationHistoryVersionsObserved": [],
+  "rowContentsRead": false,
+  "countOnlyOrEstimateOnly": true,
+  "unknowns": [
+    "live staging metadata/count inspection did not pass",
+    "auth/user/workspace/project/media/artifact row impact remains unknown",
+    "backup sizing and restore expectations remain unverified"
+  ],
+  "blockers": [
+    "staging_data_impact_not_reviewed"
+  ],
+  "stagingResetRun": false,
+  "productionAffected": false
+}

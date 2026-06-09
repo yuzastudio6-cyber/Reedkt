@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "blocked",
+  "decision": "blocked_pending_staging_data_impact_review",
+  "activeBlockers": [
+    "staging_data_impact_not_reviewed",
+    "staging_backup_snapshot_plan_missing",
+    "staging_owner_data_loss_acceptance_missing"
+  ],
+  "blockedScopes": [
+    "reset_execution_until_separate_approved_phase",
+    "migration_history_repair",
+    "schema_deploy",
+    "track_b_staging_backfill",
+    "production_supabase",
+    "direct_sql",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock"
+  ],
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

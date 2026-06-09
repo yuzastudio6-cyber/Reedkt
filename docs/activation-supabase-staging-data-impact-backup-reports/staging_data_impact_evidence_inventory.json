@@ -1,0 +1,69 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "pr248": {
+    "decision": "blocked_pending_staging_data_impact_review",
+    "approvalStatus": "not_approved_for_execution",
+    "dataImpactStatus": "blocked",
+    "backupSnapshotStatus": "blocked",
+    "sourceReportsPresent": true
+  },
+  "pr247": {
+    "decision": "blocked_pending_staging_reset_approval",
+    "selectedStrategy": "staging_reset_and_reapply_migrations",
+    "sourceReportsPresent": true
+  },
+  "pr241": {
+    "overallEquivalence": "not_equivalent",
+    "equivalentMigrationCount": 1,
+    "notEquivalentMigrationCount": 11,
+    "remoteIntrospectionStatus": "passed",
+    "sourceReportPresent": true
+  },
+  "pr223": {
+    "readinessStatus": "blocked",
+    "sourceReportPresent": true
+  },
+  "pr198": {
+    "readinessStatus": "blocked_or_report_missing",
+    "sourceReportPresent": false
+  },
+  "pr200": {
+    "milestoneRegistryMigrationPath": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+    "milestoneRegistryMigrationPresent": true
+  },
+  "localMigrations": {
+    "count": 22,
+    "versions": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001"
+    ],
+    "latest": "202606050001_activation_milestone_registry_schema_rls.sql"
+  },
+  "safeMetadataOnly": true,
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

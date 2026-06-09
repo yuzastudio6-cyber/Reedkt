@@ -1,0 +1,16 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "blocked",
+  "decision": "blocked_pending_staging_data_impact_review",
+  "futureResetApproved": false,
+  "resetExecutionAllowedInThisPhase": false,
+  "blockers": [
+    "staging_data_impact_not_reviewed",
+    "staging_backup_snapshot_plan_missing",
+    "staging_owner_data_loss_acceptance_missing"
+  ],
+  "nextRecommendedPhase": "Resolve exact data-impact, backup/snapshot, or staging-owner acceptance blockers before reset/reapply execution.",
+  "supabaseMilestoneSync": "blocked until staging schema parity, milestone registry schema/RLS deploy, and Track B backfill pass",
+  "productionAffected": false
+}

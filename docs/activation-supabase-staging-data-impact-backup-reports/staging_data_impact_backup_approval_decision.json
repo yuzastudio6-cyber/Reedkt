@@ -1,0 +1,21 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "blocked",
+  "decision": "blocked_pending_staging_data_impact_review",
+  "approvalStatus": "not_approved_for_execution",
+  "futureResetApproved": false,
+  "resetExecutionApproved": false,
+  "migrationRepairApproved": false,
+  "schemaDeployApproved": false,
+  "trackBBackfillApproved": false,
+  "productionAffected": false,
+  "rationale": "Read-only staging metadata/count inspection is unavailable or incomplete, so impact is not reviewed.",
+  "nextSupabaseAction": "Resolve the exact data-impact, backup/snapshot, or staging-owner acceptance blocker before reset/reapply execution.",
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

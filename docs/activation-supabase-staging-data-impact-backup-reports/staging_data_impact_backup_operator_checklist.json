@@ -1,0 +1,52 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "decisionGate": "future_reset_requires_all_items_checked_in_separate_execution_phase",
+  "checklist": [
+    {
+      "item": "staging target confirmed and production excluded",
+      "status": "required"
+    },
+    {
+      "item": "data impact inventory reviewed",
+      "status": "blocked"
+    },
+    {
+      "item": "auth/users/workspaces/projects/media/artifact/milestone impact accepted by owner",
+      "status": "blocked"
+    },
+    {
+      "item": "backup/export/snapshot mechanism approved",
+      "status": "blocked"
+    },
+    {
+      "item": "backup destination, retention, access control, and restore test approved",
+      "status": "required_before_execution"
+    },
+    {
+      "item": "reset/reapply dry-run or preview approved",
+      "status": "required_before_execution"
+    },
+    {
+      "item": "post-reset schema/RLS/migration-history verification approved",
+      "status": "required_before_execution"
+    },
+    {
+      "item": "Track B backfill remains separate after schema verification",
+      "status": "required"
+    },
+    {
+      "item": "no direct ad-hoc SQL, migration repair, or production target",
+      "status": "required"
+    },
+    {
+      "item": "secrets redacted and never committed",
+      "status": "required"
+    }
+  ],
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

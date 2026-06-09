@@ -59,3 +59,21 @@ CI status: passed, GitHub Foundation Validation run [27183593073](https://github
 ## Next Prompt
 
 Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
+
+## GD-8A Follow-Up
+
+Prompt GD-8A narrows the remaining GD-8 blocker to `@resvg/resvg-js@2.6.2` native import review for `resvg_js_svg_rasterization`.
+
+- GD-8A production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Local platform: `darwin/arm64`; Node: `24.14.0`
+- Local native package: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Local error: `ERR_DLOPEN_FAILED`
+- Error class: `darwin_code_signature_native_binding_load_failure`
+- Current classification before GD-8A CI import evidence: `ci_linux_viability_unknown`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Rasterization executed: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

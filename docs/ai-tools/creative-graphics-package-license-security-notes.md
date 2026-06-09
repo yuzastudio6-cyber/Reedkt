@@ -44,3 +44,22 @@ The GD-8 install step reported five moderate audit findings. No dependency remed
 - Production/beta unlock: none
 
 Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
+
+## GD-8A resvg Native Runtime Note
+
+GD-8A keeps `@resvg/resvg-js@2.6.2` under runtime review. The package metadata remains `MPL-2.0`; no dependency replacement, dependency addition, or license approval is added by GD-8A.
+
+- Local platform: `darwin/arm64`; Node: `24.14.0`
+- Local native package present: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Lockfile optional native metadata present for Android, Darwin, Linux, and Windows packages
+- Current local import error: `ERR_DLOPEN_FAILED`
+- Current error class: `darwin_code_signature_native_binding_load_failure`
+- Current classification before focused CI import evidence: `ci_linux_viability_unknown`
+- GD-8A production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Rasterization executed: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

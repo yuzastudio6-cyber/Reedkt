@@ -96,3 +96,22 @@ Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review
 - Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
+
+## GD-8A - Creative Graphics resvg Native Runtime Fixes
+
+- Goal: diagnose `@resvg/resvg-js@2.6.2` native import/loading for `resvg_js_svg_rasterization` without rasterizing, generating fixtures, rendering, uploading, or changing dependencies.
+- Allowed scope: import-only focused probe, sanitized native error metadata, package-relative optional native package evidence, docs, diagnostics, tracker updates, and CI probe.
+- Blocked scope: SVG rasterization, fixture generation, generated artifacts, workers, providers/models, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, uploads, storage transfer, public artifacts, signed URLs, beta, and production.
+- Runtime review status: `ci_linux_viability_unknown`
+- Local platform: `darwin/arm64`; Node: `24.14.0`
+- Local native package: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Local blocker: `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Recommended next prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless GD-8A CI import evidence supports `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.

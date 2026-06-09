@@ -13,6 +13,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | GD-6 - Creative Graphics Execution Approval Gate Packet | implemented_pr_open | `codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate` | [#245](https://github.com/yuzastudio6-cyber/Reedkt/pull/245) | `none; AI Tools creative graphics execution approval gate packet only` |
 | GD-7 - Creative Graphics Controlled Local Fixture Execution | implemented_ci_passed | `codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution` | [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250) | `none; controlled local creative graphics fixture execution only` |
 | GD-8 - Creative Graphics Package Runtime Enablement | implemented_ci_passed | `codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement` | [#253](https://github.com/yuzastudio6-cyber/Reedkt/pull/253) | `none; AI Tools creative graphics package runtime enablement only` |
+| GD-8A - Creative Graphics resvg Native Runtime Fixes | implemented_local_validation_pending | `codex/rp-gd-8a-ai-tools-creative-graphics-package-runtime-fixes` | pending | `none; AI Tools creative graphics resvg runtime review only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -47,3 +48,11 @@ GD-8 package runtime status: `package_runtime_probe_mostly_passed_with_native_bl
 GD-8 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
 
 Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`.
+
+GD-8A resvg runtime classification: `ci_linux_viability_unknown`. Local Darwin evidence records `@resvg/resvg-js@2.6.2`, `darwin/arm64`, Node: `24.14.0`, package-relative native package `node_modules/@resvg/resvg-js-darwin-arm64`, and local `ERR_DLOPEN_FAILED` / `darwin_code_signature_native_binding_load_failure`.
+
+GD-8A Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
+
+GD-8A generated/local fixture status: `generated_local_fixture_not_executed`; rasterization executed: none.
+
+Next recommended prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless GD-8A CI import evidence supports `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.

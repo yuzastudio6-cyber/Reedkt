@@ -58,3 +58,29 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## GD-8A Focused resvg Probe Addendum
+
+GD-8A keeps the GD-8 probe import-only and adds sanitized native diagnostics for `@resvg/resvg-js@2.6.2`.
+
+Focused GD-8A probe script: `scripts/fixtures/ai-tools/probe-resvg-native-runtime.mjs`
+
+Expected local focused result:
+
+- Platform: `darwin/arm64`
+- Node: `24.14.0`
+- Native package present: `node_modules/@resvg/resvg-js-darwin-arm64`
+- Error code: `ERR_DLOPEN_FAILED`
+- Error class: `darwin_code_signature_native_binding_load_failure`
+- Classification before CI evidence: `ci_linux_viability_unknown`
+- Fixture generation: `none`
+- Rasterization executed: `none`
+- Generated/local fixture status: `generated_local_fixture_not_executed`
+- Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+GD-8 CI passed but did not run the focused resvg import probe. GD-8A adds the CI probe to determine whether Linux import viability is proven.

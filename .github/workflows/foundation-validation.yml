@@ -12,6 +12,7 @@ on:
       - codex/rp-gd-5-ai-tools-creative-graphics-controlled-fixture-execution-plan
       - codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate
       - codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution
+      - codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement
 
 jobs:
   foundation-validation:
@@ -28,6 +29,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: GD-8A resvg native import probe
+        run: node scripts/fixtures/ai-tools/probe-resvg-native-runtime.mjs
 
       - name: Foundation validation
         run: npm run foundation:validate

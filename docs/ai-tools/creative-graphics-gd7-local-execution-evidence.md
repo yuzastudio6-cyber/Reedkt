@@ -40,3 +40,23 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## GD-8 Package Runtime Evidence Addendum
+
+GD-8 did not run the GD-7 fixture runner. It added package dependencies and ran import-only package probes instead.
+
+- Package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
+- `package_runtime_probe_passed`: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`
+- `package_runtime_blocked`: `resvg_js_svg_rasterization`
+- Native review blocker: `@resvg/resvg-js` `ERR_DLOPEN_FAILED`
+- Fixture generation: none
+- Generated artifacts: none
+- Tool execution: none
+- Worker execution: none
+- Render/export: none
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.

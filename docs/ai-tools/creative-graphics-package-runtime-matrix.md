@@ -1,0 +1,29 @@
+# Creative Graphics Package Runtime Matrix
+
+Prompt: `GD-8`
+
+Status: `package_runtime_probe_mostly_passed_with_native_blocker`
+
+| Tool ID | Package(s) | Direct dependency added? | Import-only probe status | Runtime note | Current fixture status | Next action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `remotion_graphics` | `remotion@4.0.474` | yes | `package_runtime_probe_passed` | Package import only; `@remotion/renderer` remains absent. | `generated_local_fixture_not_executed` | GD-7 retry can consider import availability, but final render/export remains Track A-owned. |
+| `d3_dataviz` | `d3@7.9.0` | yes | `package_runtime_probe_passed` | Import-only availability verified locally. | `generated_local_fixture_not_executed` | Candidate for future GD-7 retry. |
+| `three_js_visuals` | `three@0.184.0` | yes | `package_runtime_probe_passed` | Import-only availability verified; Group C remains canvas/3D blocked. | `generated_local_fixture_not_executed` | Later canvas/3D approval gate required. |
+| `pixijs_canvas_graphics` | `pixi.js@8.19.0` | yes | `package_runtime_probe_passed` | Import-only availability verified; Group C remains canvas blocked. | `generated_local_fixture_not_executed` | Later canvas/3D approval gate required. |
+| `anime_js_motion` | `animejs@4.4.1` | yes | `package_runtime_probe_passed` | Import-only availability verified; Group B package review improved. | `generated_local_fixture_not_executed` | Future motion-specific local fixture review. |
+| `lottie_web_overlays` | `lottie-web@5.13.0` | yes | `package_runtime_probe_passed` | Import-only availability verified; browser/runtime behavior still needs review. | `generated_local_fixture_not_executed` | Future motion-overlay local fixture review. |
+| `svg_js_vector_graphics` | `@svgdotjs/svg.js@3.2.5` | yes | `package_runtime_probe_passed` | Import-only availability verified locally. | `generated_local_fixture_not_executed` | Candidate for future GD-7 retry. |
+| `echarts_dataviz` | `echarts@6.1.0` | yes | `package_runtime_probe_passed` | Import-only availability verified locally. | `generated_local_fixture_not_executed` | Candidate for future GD-7 retry. |
+| `vega_lite_dataviz` | `vega@6.2.0`, `vega-lite@6.4.3` | yes | `package_runtime_probe_passed` | Both dataviz packages imported successfully. | `generated_local_fixture_not_executed` | Candidate for future GD-7 retry. |
+| `viz_graphviz_diagrams` | `@viz-js/viz@3.28.0` | yes | `package_runtime_probe_passed` | Import-only availability verified locally. | `generated_local_fixture_not_executed` | Candidate for future GD-7 retry. |
+| `satori_social_cards` | `satori@0.26.0` | yes | `package_runtime_probe_passed` | Import-only availability verified locally. | `generated_local_fixture_not_executed` | Candidate for future GD-7 retry. |
+| `resvg_js_svg_rasterization` | `@resvg/resvg-js@2.6.2` | yes | `package_runtime_blocked`; `needs_runtime_review` | Local Darwin native import failed with `ERR_DLOPEN_FAILED`. | `generated_local_fixture_not_executed` | Prompt GD-8A package runtime fix or platform-specific review. |
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.

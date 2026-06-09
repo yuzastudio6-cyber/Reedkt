@@ -32,10 +32,40 @@ Because dependency mutation is blocked, controlled local fixture execution is bl
 | `pixijs_canvas_graphics` | `blocked` | Group C is blocked until a later canvas-specific gate. |
 | `three_js_visuals` | `blocked` | Group C is blocked until a later 3D-specific gate. |
 
-## Supabase Status
+## Supabase Boundary
 
 - Supabase update required: `docs/status only`
 - Supabase update status: `docs_only`
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## GD-8 Package Runtime Follow-Up
+
+GD-8 added direct package dependencies and ran import-only probes for all 12 AI Tools creative graphics tools. Runtime fixture generation remains `generated_local_fixture_not_executed`.
+
+Package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
+
+| Tool ID | GD-8 package runtime status |
+| --- | --- |
+| `remotion_graphics` | `package_runtime_probe_passed` |
+| `d3_dataviz` | `package_runtime_probe_passed` |
+| `three_js_visuals` | `package_runtime_probe_passed` |
+| `pixijs_canvas_graphics` | `package_runtime_probe_passed` |
+| `anime_js_motion` | `package_runtime_probe_passed` |
+| `lottie_web_overlays` | `package_runtime_probe_passed` |
+| `svg_js_vector_graphics` | `package_runtime_probe_passed` |
+| `echarts_dataviz` | `package_runtime_probe_passed` |
+| `vega_lite_dataviz` | `package_runtime_probe_passed` |
+| `viz_graphviz_diagrams` | `package_runtime_probe_passed` |
+| `satori_social_cards` | `package_runtime_probe_passed` |
+| `resvg_js_svg_rasterization` | `package_runtime_blocked`; `needs_runtime_review` |
+
+Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.

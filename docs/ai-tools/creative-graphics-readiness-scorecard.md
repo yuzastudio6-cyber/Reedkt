@@ -34,3 +34,27 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`
+
+## GD-8 Package Runtime Update
+
+GD-8 improves package availability only. Runtime fixture generation remains unrun.
+
+| Area | Score | GD-8 impact |
+| --- | ---: | --- |
+| Tool inventory | 82% | All 12 tools now have direct package availability records and import-only probe status. |
+| Package runtime readiness | 68% | 12 of 13 package imports passed locally; `@resvg/resvg-js` remains `package_runtime_blocked` with `needs_runtime_review`. |
+| Local validation readiness | 55% | Package probe and diagnostics exist; visual fixture execution remains `generated_local_fixture_not_executed`. |
+| Production readiness | 1% | No runtime, worker, provider, render, media, storage, SQL, or deployment path is enabled. |
+
+GD-8 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / package_runtime_probe_mostly_passed_with_native_blocker / generated_local_fixture_not_executed`
+GD-8 production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+GD-8 package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
+GD-8 `package_runtime_probe_passed` tools: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`
+GD-8 `package_runtime_blocked` tool: `resvg_js_svg_rasterization`; `needs_runtime_review`
+GD-8 Supabase update required: `docs/status only`
+GD-8 Supabase update status: `docs_only`
+GD-8 Supabase environment touched: `none`
+GD-8 SQL executed: `none`
+GD-8 Migration deployed: `no`
+
+Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`

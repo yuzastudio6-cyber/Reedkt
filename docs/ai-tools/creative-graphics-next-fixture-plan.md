@@ -78,3 +78,21 @@ Recommended next prompt: `Prompt GD-7 - Creative Graphics Controlled Local Fixtu
 - Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-8 - Creative Graphics Package Runtime Review for Group B`.
+
+## GD-8 - Creative Graphics Package Runtime Enablement
+
+- Goal: add direct package availability for the AI Tools creative graphics set and run import-only runtime probes.
+- Allowed scope: package dependency additions, package lock update, import-only probe script, local uncommitted probe evidence, docs, diagnostics, and tracker updates.
+- Blocked scope: fixture generation, generated artifacts, uploads, signed URLs, public artifacts, workers, providers/models, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, beta, and production.
+- Package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
+- `package_runtime_probe_passed`: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`
+- `package_runtime_blocked`: `resvg_js_svg_rasterization`; reason `needs_runtime_review`
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / package_runtime_probe_mostly_passed_with_native_blocker / generated_local_fixture_not_executed`
+- Production capability enabled: `none; AI Tools creative graphics package runtime enablement only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.

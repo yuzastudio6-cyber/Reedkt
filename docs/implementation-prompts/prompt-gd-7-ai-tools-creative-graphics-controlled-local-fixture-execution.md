@@ -42,3 +42,4 @@ PR link: [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250).
 - `npm run foundation:validate`: passed.
 - `npm run build` and `npm run build:server`: local `environment_blocked` by Darwin Rolldown native binding code-signature failure.
 - `npm run foundation:validate:with-build`: passed with build steps classified as `environment_blocked`.
+- GitHub Foundation Validation: passed on run `27180187256`, job `80237404619`.

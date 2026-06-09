@@ -162,7 +162,7 @@ Prompt GD-8: Creative Graphics Package Runtime Enablement.
 
 Prompt GD-8A: Creative Graphics resvg Native Runtime Fixes.
 
-- Status: `ci_linux_viability_unknown`
+- Status: `local_darwin_native_blocker`
 - Capability: `none; AI Tools creative graphics resvg runtime review only`
 - Package under review: `@resvg/resvg-js@2.6.2`
 - Tool under review: `resvg_js_svg_rasterization`
@@ -180,4 +180,4 @@ Prompt GD-8A: Creative Graphics resvg Native Runtime Fixes.
 
 ## Next Milestone After GD-8A
 
-`Prompt GD-8B - resvg Alternative Runtime Review` unless GD-8A CI import evidence supports `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.
+`Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

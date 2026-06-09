@@ -81,7 +81,7 @@ Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`
 
 GD-8A improves native-runtime classification only. It does not generate fixtures or raise production readiness.
 
-- Runtime review status: `ci_linux_viability_unknown`
+- Runtime review status: `local_darwin_native_blocker`
 - Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 - Tool under review: `resvg_js_svg_rasterization`
 - Package under review: `@resvg/resvg-js@2.6.2`
@@ -96,6 +96,6 @@ GD-8A improves native-runtime classification only. It does not generate fixtures
 - SQL executed: `none`
 - Migration deployed: `no`
 
-Package runtime readiness remains conservative until focused CI import evidence is reviewed. Production beta readiness remains `1%`.
+Package runtime readiness remains conservative because generated/local fixture execution is still unrun, but focused Linux CI import evidence passed. Production beta readiness remains `1%`.
 
-Next recommended prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless GD-8A CI import evidence supports `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.
+Next recommended prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

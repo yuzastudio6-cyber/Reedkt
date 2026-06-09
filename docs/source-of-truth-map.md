@@ -241,7 +241,7 @@ GD-8 status terms:
 
 GD-8A status terms:
 
-- Runtime review status: `ci_linux_viability_unknown`
+- Runtime review status: `local_darwin_native_blocker`
 - Package under review: `@resvg/resvg-js@2.6.2`
 - Tool under review: `resvg_js_svg_rasterization`
 - Local platform: `darwin/arm64`; Node: `24.14.0`
@@ -254,4 +254,5 @@ GD-8A status terms:
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
-- Next recommended prompt: `Prompt GD-8B - resvg Alternative Runtime Review` or `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution` if focused CI import evidence passes
+- GitHub focused resvg probe: `passed` on `linux/x64`
+- Next recommended prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`

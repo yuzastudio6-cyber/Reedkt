@@ -10,7 +10,7 @@ Production capability enabled: `none; AI Tools creative graphics resvg runtime r
 
 ## Implementation Status
 
-Status: `implemented_local_validation_passed_with_ci_linux_viability_unknown`
+Status: `implemented_ci_passed_with_local_darwin_native_blocker`
 
 GD-8A adds resvg native runtime review docs, sanitizes the broader GD-8 package probe for resvg native errors, adds a focused import-only `@resvg/resvg-js` native probe, wires a static diagnostic, and records tracker updates. It does not add or replace dependencies.
 
@@ -28,6 +28,9 @@ Local platform evidence:
 - Classification before CI focused probe evidence: `ci_linux_viability_unknown`.
 - Broad probe run ID: `gd8-2026-06-09T13-47-11-492Z`.
 - Focused probe run ID: `gd8a-2026-06-09T13-47-11-496Z`.
+- GitHub focused probe run ID: `gd8a-2026-06-09T13-55-19-776Z`.
+- GitHub focused probe status: `passed` on `linux/x64`.
+- Final classification after CI evidence: `local_darwin_native_blocker`.
 
 GD-8 CI passed, but did not run a resvg import probe. GD-8A adds that import-only probe to the Foundation Validation workflow.
 
@@ -41,7 +44,7 @@ GD-8 CI passed, but did not run a resvg import probe. GD-8A adds that import-onl
 | `npm run lint` | passed | ESLint passed. |
 | `npm run typecheck:server` | passed | Server typecheck passed. |
 | `node scripts/fixtures/ai-tools/probe-creative-graphics-runtimes.mjs` | passed with expected blocker | 12 package imports passed; `@resvg/resvg-js` blocked with `ERR_DLOPEN_FAILED`; run ID `gd8-2026-06-09T13-47-11-492Z`. |
-| `node scripts/fixtures/ai-tools/probe-resvg-native-runtime.mjs` | passed with expected blocker | Focused import-only probe classified `ci_linux_viability_unknown`; run ID `gd8a-2026-06-09T13-47-11-496Z`. |
+| `node scripts/fixtures/ai-tools/probe-resvg-native-runtime.mjs` | passed with expected blocker | Focused import-only local probe classified `ci_linux_viability_unknown`; run ID `gd8a-2026-06-09T13-47-11-496Z`. |
 | `npm run --silent ai-tools:creative-graphics:resvg-runtime:diagnostics` | passed | GD-8A diagnostic passed. |
 | Existing GD diagnostics from GD-0 through GD-8 | passed | Covered by `npm run foundation:validate`; every GD diagnostic passed. |
 | `npm run foundation:validate` | passed | Full non-build foundation validation passed. |
@@ -83,10 +86,10 @@ GD-8 CI passed, but did not run a resvg import probe. GD-8A adds that import-onl
 - Dependencies added/replaced: no.
 - Fixture generation: no.
 - Rasterization readiness claimed: no.
-- Current classification: `ci_linux_viability_unknown`.
+- Current classification: `local_darwin_native_blocker`.
 - Generated/local fixture status: `generated_local_fixture_not_executed`.
 - Local build status: `environment_blocked` by Darwin Rolldown native binding/code-signature failure.
 - PR: [#255](https://github.com/yuzastudio6-cyber/Reedkt/pull/255).
-- GitHub Foundation Validation status: pending.
+- GitHub Foundation Validation status: passed, run `27211119431`, job `80340139677`.
 
-Recommended next prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless the GD-8A Linux CI import probe passes, in which case use `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.
+Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

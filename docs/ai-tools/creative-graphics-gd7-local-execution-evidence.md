@@ -70,7 +70,7 @@ GD-8A does not run the GD-7 fixture runner. It narrows the remaining Group A blo
 - Local native package: `node_modules/@resvg/resvg-js-darwin-arm64`
 - Current local import error: `ERR_DLOPEN_FAILED`
 - Current error class: `darwin_code_signature_native_binding_load_failure`
-- Current classification before focused CI import evidence: `ci_linux_viability_unknown`
+- Current classification after focused CI import evidence: `local_darwin_native_blocker`
 - Generated/local fixture status: `generated_local_fixture_not_executed`
 - Rasterization executed: none
 - Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`

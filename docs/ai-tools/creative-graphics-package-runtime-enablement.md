@@ -92,7 +92,7 @@ Prompt GD-8A narrows the package-runtime follow-up to `@resvg/resvg-js@2.6.2` fo
 - Lockfile native metadata: Android, Darwin, Linux, and Windows optional `@resvg/resvg-js-*` packages are present
 - Local error: `ERR_DLOPEN_FAILED`
 - Local error class: `darwin_code_signature_native_binding_load_failure`
-- Current GD-8A classification before CI import evidence: `ci_linux_viability_unknown`
+- Current GD-8A classification after CI import evidence: `local_darwin_native_blocker`
 - Generated/local fixture status: `generated_local_fixture_not_executed`
 - Rasterization executed: none
 - Supabase update required: `docs/status only`
@@ -101,4 +101,4 @@ Prompt GD-8A narrows the package-runtime follow-up to `@resvg/resvg-js@2.6.2` fo
 - SQL executed: `none`
 - Migration deployed: `no`
 
-GD-8A adds a focused import-only CI probe. The GD-8 GitHub Foundation Validation run passed, but GD-8 CI did not run the resvg import probe, so Linux import viability is not yet proven until GD-8A CI evidence is reviewed.
+GD-8A adds a focused import-only CI probe. The GD-8 GitHub Foundation Validation run passed, but GD-8 CI did not run the resvg import probe. GD-8A CI passed and the focused probe imported resvg on `linux/x64`, so the remaining blocker is local Darwin native loading.

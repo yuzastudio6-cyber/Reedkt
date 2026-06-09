@@ -21,7 +21,7 @@ GD-8A diagnoses `@resvg/resvg-js@2.6.2` native import/loading for the `resvg_js_
 
 ## Required Classification State
 
-Current state before GD-8A CI import evidence: `ci_linux_viability_unknown`.
+Current state after GD-8A CI import evidence: `local_darwin_native_blocker`.
 
 Allowed final classifications:
 
@@ -45,6 +45,6 @@ Local validation: passed with expected `ci_linux_viability_unknown` local Darwin
 
 Local build status: `environment_blocked` by Darwin Rolldown native binding/code-signature failure.
 
-CI status: pending.
+CI status: passed. GitHub Foundation Validation run `27211119431`, job `80340139677`, reported focused resvg import `passed` on `linux/x64`, making the overall classification `local_darwin_native_blocker`.
 
-Recommended next prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless the GD-8A Linux CI import probe passes, in which case use `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.
+Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

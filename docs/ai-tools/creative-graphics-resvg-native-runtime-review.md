@@ -2,7 +2,7 @@
 
 Prompt: `GD-8A - Creative Graphics resvg Native Runtime Fixes`
 
-Status: `ci_linux_viability_unknown`
+Status: `local_darwin_native_blocker`
 
 Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 
@@ -22,6 +22,8 @@ Local platform evidence supplied and rechecked for GD-8A:
 - Local import result: `ERR_DLOPEN_FAILED`.
 - Local error class: `darwin_code_signature_native_binding_load_failure`.
 - Local classification before CI import evidence: `ci_linux_viability_unknown`.
+- GD-8A Linux CI focused import result: `passed`.
+- GD-8A Linux CI focused import classification: `fixed` for the CI host import, which makes the overall milestone classification `local_darwin_native_blocker`.
 
 The GD-8 GitHub Foundation Validation run passed, but it did not run a focused `@resvg/resvg-js` import probe. GD-8A adds the import-only focused probe so future CI can distinguish a local Darwin native blocker from a package-wide runtime blocker.
 
@@ -48,7 +50,7 @@ Required optional native package families:
 
 ## Current Decision
 
-GD-8A keeps `resvg_js_svg_rasterization` at `package_runtime_blocked` until the focused probe proves import availability in CI or a later runtime review selects an alternative. Rasterization readiness is not claimed under any GD-8A outcome.
+GD-8A keeps `resvg_js_svg_rasterization` blocked on the local Darwin host, but Linux CI import availability is proven by the focused import-only probe. The overall classification is `local_darwin_native_blocker`. Rasterization readiness is not claimed under any GD-8A outcome.
 
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`
@@ -56,4 +58,4 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
-Recommended next prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless the GD-8A Linux CI import probe passes, in which case use `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.
+Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

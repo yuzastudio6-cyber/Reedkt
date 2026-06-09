@@ -54,7 +54,7 @@ GD-8A keeps `@resvg/resvg-js@2.6.2` under runtime review. The package metadata r
 - Lockfile optional native metadata present for Android, Darwin, Linux, and Windows packages
 - Current local import error: `ERR_DLOPEN_FAILED`
 - Current error class: `darwin_code_signature_native_binding_load_failure`
-- Current classification before focused CI import evidence: `ci_linux_viability_unknown`
+- Current classification after focused CI import evidence: `local_darwin_native_blocker`
 - GD-8A production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 - Generated/local fixture status: `generated_local_fixture_not_executed`
 - Rasterization executed: none

@@ -87,6 +87,9 @@ function errorClass(error) {
 
 function classifyImportResult({ status, error = null }) {
   if (status === 'passed') {
+    if (process.platform === 'linux' && process.env.GITHUB_ACTIONS === 'true') {
+      return 'local_darwin_native_blocker';
+    }
     return 'fixed';
   }
 

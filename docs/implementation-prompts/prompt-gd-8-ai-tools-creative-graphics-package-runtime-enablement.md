@@ -69,7 +69,7 @@ Prompt GD-8A narrows the remaining GD-8 blocker to `@resvg/resvg-js@2.6.2` nativ
 - Local native package: `node_modules/@resvg/resvg-js-darwin-arm64`
 - Local error: `ERR_DLOPEN_FAILED`
 - Error class: `darwin_code_signature_native_binding_load_failure`
-- Current classification before GD-8A CI import evidence: `ci_linux_viability_unknown`
+- Current classification after GD-8A CI import evidence: `local_darwin_native_blocker`
 - Generated/local fixture status: `generated_local_fixture_not_executed`
 - Rasterization executed: none
 - Supabase update required: `docs/status only`

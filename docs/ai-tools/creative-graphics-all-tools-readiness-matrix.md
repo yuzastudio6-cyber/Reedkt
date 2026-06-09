@@ -60,11 +60,11 @@ GD-8 Migration deployed: `no`
 
 ## GD-8A resvg Runtime Matrix Addendum
 
-Status: `ci_linux_viability_unknown`
+Status: `local_darwin_native_blocker`
 
 | Tool ID | GD-8A package | Local native evidence | GD-8A classification | Generated/local fixture status |
 | --- | --- | --- | --- | --- |
-| `resvg_js_svg_rasterization` | `@resvg/resvg-js@2.6.2` | `darwin/arm64`; Node: `24.14.0`; `node_modules/@resvg/resvg-js-darwin-arm64`; local `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure` | `ci_linux_viability_unknown` pending focused CI import evidence | `generated_local_fixture_not_executed` |
+| `resvg_js_svg_rasterization` | `@resvg/resvg-js@2.6.2` | `darwin/arm64`; Node: `24.14.0`; `node_modules/@resvg/resvg-js-darwin-arm64`; local `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure`; Linux CI import passed | `local_darwin_native_blocker` | `generated_local_fixture_not_executed` |
 
 GD-8A production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 GD-8A Supabase update required: `docs/status only`

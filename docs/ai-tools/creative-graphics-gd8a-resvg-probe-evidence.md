@@ -2,7 +2,7 @@
 
 Prompt: `GD-8A - Creative Graphics resvg Native Runtime Fixes`
 
-Status: `ci_linux_viability_unknown`
+Status: `local_darwin_native_blocker`
 
 Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 
@@ -38,7 +38,7 @@ The probe output must use package-relative native identifiers and must not print
 
 ## CI Evidence Status
 
-GD-8 GitHub Foundation Validation passed, but it did not run a resvg import probe. GD-8A adds a workflow import-only probe so CI can report Linux import viability without generating fixtures. Until that CI probe is observed, Linux import viability remains `ci_linux_viability_unknown`.
+GD-8 GitHub Foundation Validation passed, but it did not run a resvg import probe. GD-8A added the workflow import-only probe. GitHub Foundation Validation run `27211119431`, job `80340139677`, reported focused resvg probe status `passed` on `linux/x64` with native package present and no error code. Overall GD-8A classification is `local_darwin_native_blocker`.
 
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`

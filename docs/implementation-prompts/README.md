@@ -49,10 +49,10 @@ GD-8 Supabase update required: `docs/status only`; Supabase update status: `docs
 
 Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`.
 
-GD-8A resvg runtime classification: `ci_linux_viability_unknown`. Local Darwin evidence records `@resvg/resvg-js@2.6.2`, `darwin/arm64`, Node: `24.14.0`, package-relative native package `node_modules/@resvg/resvg-js-darwin-arm64`, and local `ERR_DLOPEN_FAILED` / `darwin_code_signature_native_binding_load_failure`.
+GD-8A resvg runtime classification: `local_darwin_native_blocker`. Local Darwin evidence records `@resvg/resvg-js@2.6.2`, `darwin/arm64`, Node: `24.14.0`, package-relative native package `node_modules/@resvg/resvg-js-darwin-arm64`, and local `ERR_DLOPEN_FAILED` / `darwin_code_signature_native_binding_load_failure`; GitHub Foundation Validation run `27211119431` proved focused import-only resvg availability on `linux/x64`.
 
 GD-8A Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
 
 GD-8A generated/local fixture status: `generated_local_fixture_not_executed`; rasterization executed: none.
 
-Next recommended prompt: `Prompt GD-8B - resvg Alternative Runtime Review` unless GD-8A CI import evidence supports `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.
+Next recommended prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

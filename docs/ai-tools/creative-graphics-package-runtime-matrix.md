@@ -32,7 +32,7 @@ Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
 
 | Tool ID | Package | GD-8A status | Local platform | Native package evidence | Current classification | Fixture status |
 | --- | --- | --- | --- | --- | --- | --- |
-| `resvg_js_svg_rasterization` | `@resvg/resvg-js@2.6.2` | `package_runtime_blocked` pending focused CI import evidence | `darwin/arm64`; Node: `24.14.0` | `node_modules/@resvg/resvg-js-darwin-arm64` present; lockfile includes Android/Darwin/Linux/Windows optional native packages | `ci_linux_viability_unknown`; local error `ERR_DLOPEN_FAILED`; class `darwin_code_signature_native_binding_load_failure` | `generated_local_fixture_not_executed` |
+| `resvg_js_svg_rasterization` | `@resvg/resvg-js@2.6.2` | `package_runtime_probe_passed` on Linux CI; local Darwin native load blocked | `darwin/arm64`; Node: `24.14.0` | `node_modules/@resvg/resvg-js-darwin-arm64` present; lockfile includes Android/Darwin/Linux/Windows optional native packages | `local_darwin_native_blocker`; local error `ERR_DLOPEN_FAILED`; class `darwin_code_signature_native_binding_load_failure`; Linux CI import passed | `generated_local_fixture_not_executed` |
 
 GD-8A production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 Supabase update required: `docs/status only`

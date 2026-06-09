@@ -250,7 +250,7 @@ const summary = {
   migrationDeployed: 'no',
   productionCapabilityEnabled: 'none; AI Tools creative graphics resvg runtime review only',
   nextRecommendedPrompt:
-    'Prompt GD-8B - resvg Alternative Runtime Review or Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution if CI import passes',
+    'Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution; use Prompt GD-8B - resvg Alternative Runtime Review only if Darwin-local execution is required',
   failures,
 };
 

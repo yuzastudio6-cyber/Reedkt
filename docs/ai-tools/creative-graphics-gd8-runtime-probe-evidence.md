@@ -73,6 +73,7 @@ Expected local focused result:
 - Error code: `ERR_DLOPEN_FAILED`
 - Error class: `darwin_code_signature_native_binding_load_failure`
 - Classification before CI evidence: `ci_linux_viability_unknown`
+- Classification after GD-8A CI evidence: `local_darwin_native_blocker`
 - Fixture generation: `none`
 - Rasterization executed: `none`
 - Generated/local fixture status: `generated_local_fixture_not_executed`
@@ -83,4 +84,4 @@ Expected local focused result:
 - SQL executed: `none`
 - Migration deployed: `no`
 
-GD-8 CI passed but did not run the focused resvg import probe. GD-8A adds the CI probe to determine whether Linux import viability is proven.
+GD-8 CI passed but did not run the focused resvg import probe. GD-8A CI ran the probe successfully on `linux/x64`, so Linux import viability is proven while local Darwin native loading remains blocked.

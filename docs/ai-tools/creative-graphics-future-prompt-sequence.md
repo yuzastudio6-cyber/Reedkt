@@ -21,7 +21,7 @@ Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / gen
 8. `Prompt GD-8 - Creative Graphics Package Runtime Enablement`
    - Adds direct package dependencies and import-only probes for the 12 AI Tools creative graphics tools; records `package_runtime_probe_mostly_passed_with_native_blocker`.
 9. `Prompt GD-8A - Creative Graphics resvg Native Runtime Fixes`
-   - Review `@resvg/resvg-js@2.6.2` native import only, record `ci_linux_viability_unknown` until CI import evidence exists, and preserve `generated_local_fixture_not_executed`.
+   - Review `@resvg/resvg-js@2.6.2` native import only, record `local_darwin_native_blocker` after Linux CI import evidence passes, and preserve `generated_local_fixture_not_executed`.
 10. `Prompt GD-6A - Execution Approval Gate Hardening`
    - Use only if a future static gate diagnostic finds missing files, unsafe claims, or schema mismatch.
 
@@ -42,10 +42,11 @@ Group C status: `blocked`
 Package runtime status: `package_runtime_probe_mostly_passed_with_native_blocker`
 Package runtime passed tools: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`
 Package runtime blocked tool: `resvg_js_svg_rasterization`; status `package_runtime_blocked`; reason `needs_runtime_review`
-GD-8A resvg runtime classification: `ci_linux_viability_unknown`
+GD-8A resvg runtime classification: `local_darwin_native_blocker`
 GD-8A local platform: `darwin/arm64`; Node: `24.14.0`
 GD-8A local native package: `node_modules/@resvg/resvg-js-darwin-arm64`
 GD-8A local blocker: `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure`
+GD-8A Linux CI focused import probe: `passed` on `linux/x64`
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`
 Supabase environment touched: `none`

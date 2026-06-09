@@ -2,7 +2,7 @@
 
 Prompt: `GD-8A - Creative Graphics resvg Native Runtime Fixes`
 
-Status: `ci_linux_viability_unknown`
+Status: `local_darwin_native_blocker`
 
 Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 
@@ -37,7 +37,7 @@ GD-8A must not claim:
 
 ## Current Handoff
 
-`resvg_js_svg_rasterization` remains a Group A tool with package availability under review. If Linux CI import passes, the blocker becomes a local Darwin native signing issue and GD-7 retry may proceed with the usual private/synthetic gates. If Linux CI import fails too, GD-8B should evaluate runtime alternatives or SVG-only fallback boundaries.
+`resvg_js_svg_rasterization` remains a Group A tool with local Darwin native loading blocked. Linux CI import passed in GD-8A, so the blocker is classified as `local_darwin_native_blocker` and GD-7 retry may proceed with the usual private/synthetic gates on an import-capable runtime host. If future fixture work requires Darwin-local resvg execution, GD-8B should evaluate runtime alternatives or SVG-only fallback boundaries.
 
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`

@@ -345,7 +345,7 @@ Next milestone: `Prompt GD-8A - Package Runtime Fixes`.
 
 ## GD-8A Creative Graphics resvg Native Runtime Fixes
 
-- Status: `ci_linux_viability_unknown`
+- Status: `local_darwin_native_blocker`
 - Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 - Package under review: `@resvg/resvg-js@2.6.2`
 - Tool under review: `resvg_js_svg_rasterization`
@@ -354,7 +354,7 @@ Next milestone: `Prompt GD-8A - Package Runtime Fixes`.
 - Lockfile native metadata: Android, Darwin, Linux, and Windows optional native packages are present
 - Current local blocker: `ERR_DLOPEN_FAILED`; `darwin_code_signature_native_binding_load_failure`
 - GD-8 CI status: passed, but no resvg import probe was run there
-- GD-8A CI intent: run focused import-only resvg probe for Linux viability evidence
+- GD-8A CI status: focused import-only resvg probe passed on `linux/x64`; overall classification `local_darwin_native_blocker`
 - Generated/local fixture status: `generated_local_fixture_not_executed`
 - Rasterization executed: none
 - Supabase update required: `docs/status only`
@@ -383,4 +383,4 @@ Authoritative GD-8A files:
 - `scripts/validation/ai-tools-creative-graphics-resvg-runtime-diagnostics.mjs`
 - `docs/prompt-gd-8a-validation-results.md`
 
-Next milestone: `Prompt GD-8B - resvg Alternative Runtime Review` unless GD-8A CI import evidence supports `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`.
+Next milestone: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.

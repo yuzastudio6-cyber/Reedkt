@@ -25,6 +25,30 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-7-Retry Artifact Manifest Addendum
+
+Prompt: `GD-7-Retry`
+
+Status: `generated_local_fixture_partially_passed`
+
+Local ignored manifest: `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/local-artifact-manifest.json`
+
+Executed local private SVG artifacts:
+
+- `satori_social_cards`; checksum `a141b7d996c475d97c8dd65ff5f79b875b755159e0bc437b06a1e93fc4afd5f6`.
+- `d3_dataviz`; checksum `5e3013b1a32164b1e0d211a94432efb49ccf8c769838e20ea5ebb3e4e8c63ace`.
+- `echarts_dataviz`; checksum `ee9781e8d1cd2c269b1ca67df505e691b9214cbfdefe43804e9bfbb56a6485a4`.
+- `vega_lite_dataviz`; checksum `c9c35623828fc21b882a10bb67dc368819c205550044e7728c453cb3108d5672`.
+- `viz_graphviz_diagrams`; checksum `bc57f8104346cf724893efa195e6c235b477233b688434967621e6357600ac45`.
+
+Future persistence remains placeholder-only: `<PRIVATE_GCS_PATH_PLACEHOLDER>`, `<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>`, and `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## GD-8 Package Runtime Addendum
 
 GD-8 created import-only package runtime evidence, not artifact evidence. No local generated artifacts, private storage objects, checksums, uploads, signed URLs, or public artifacts were created.

@@ -228,6 +228,30 @@ GD-8 status terms:
 - Tools covered: `remotion_graphics`, `d3_dataviz`, `three_js_visuals`, `pixijs_canvas_graphics`, `anime_js_motion`, `lottie_web_overlays`, `svg_js_vector_graphics`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`, `satori_social_cards`, and `resvg_js_svg_rasterization`
 - Next recommended prompt: `Prompt GD-8A - Package Runtime Fixes`
 
+## GD-7-Retry Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| GD-7-Retry local execution evidence | `docs/ai-tools/creative-graphics-gd7-retry-local-execution-evidence.md` |
+| GD-7-Retry local artifact manifest evidence | `docs/ai-tools/creative-graphics-gd7-retry-local-artifact-manifest-evidence.md` |
+| GD-7-Retry QA evidence | `docs/ai-tools/creative-graphics-gd7-retry-qa-evidence.md` |
+| GD-7-Retry runner | `scripts/fixtures/ai-tools/run-creative-graphics-gd7-fixtures.mjs` |
+| GD-7-Retry diagnostics | `scripts/validation/ai-tools-creative-graphics-gd7-retry-local-execution-diagnostics.mjs` |
+| Validation results | `docs/prompt-gd-7-retry-validation-results.md` |
+
+GD-7-Retry status terms:
+
+- Runtime unlock status: `generated_local_fixture_partially_passed`
+- Executed tools: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Skipped tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`
+- Resvg status: `local_darwin_native_blocker`
+- Production capability enabled: `none; controlled local creative graphics fixture execution only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
 ## GD-8A Sources
 
 | Topic | Authoritative source |

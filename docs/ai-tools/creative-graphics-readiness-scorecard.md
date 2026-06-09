@@ -82,3 +82,21 @@ GD-8A SQL executed: `none`
 GD-8A Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.
+
+## GD-7-Retry Readiness Update
+
+Status: `generated_local_fixture_partially_passed`
+
+- Local synthetic fixture evidence now exists for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+- `svg_js_vector_graphics` remains skipped by `node_dom_runtime_unavailable_no_dependency_mutation`.
+- `resvg_js_svg_rasterization` remains skipped by `local_darwin_native_blocker`.
+- Group B remains `needs_package_review`.
+- Group C remains `blocked`.
+- Track A final render/export validation remains a future handoff.
+
+Production capability enabled: `none; controlled local creative graphics fixture execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

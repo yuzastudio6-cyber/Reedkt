@@ -384,3 +384,28 @@ Authoritative GD-8A files:
 - `docs/prompt-gd-8a-validation-results.md`
 
 Next milestone: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.
+
+## GD-7-Retry Creative Graphics Controlled Local Fixture Execution
+
+- Status: `generated_local_fixture_partially_passed`
+- Runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / approved_for_gd7_controlled_local_fixture_execution / package_runtime_probe_mostly_passed_with_native_blocker / generated_local_fixture_partially_passed`
+- Production capability enabled: `none; controlled local creative graphics fixture execution only`
+- Executed Group A tools: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Skipped Group A tool: `svg_js_vector_graphics`; reason `node_dom_runtime_unavailable_no_dependency_mutation`
+- Blocked/skipped Group A tool: `resvg_js_svg_rasterization`; reason `local_darwin_native_blocker`
+- Group B tools not executed: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+- Group C tools blocked: `pixijs_canvas_graphics`, `three_js_visuals`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Authoritative GD-7-Retry files:
+
+- `docs/ai-tools/creative-graphics-gd7-retry-local-execution-evidence.md`
+- `docs/ai-tools/creative-graphics-gd7-retry-local-artifact-manifest-evidence.md`
+- `docs/ai-tools/creative-graphics-gd7-retry-qa-evidence.md`
+- `docs/prompt-gd-7-retry-validation-results.md`
+
+Next milestone: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.

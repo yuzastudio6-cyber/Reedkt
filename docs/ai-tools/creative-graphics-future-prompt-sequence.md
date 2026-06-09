@@ -22,7 +22,9 @@ Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / gen
    - Adds direct package dependencies and import-only probes for the 12 AI Tools creative graphics tools; records `package_runtime_probe_mostly_passed_with_native_blocker`.
 9. `Prompt GD-8A - Creative Graphics resvg Native Runtime Fixes`
    - Review `@resvg/resvg-js@2.6.2` native import only, record `local_darwin_native_blocker` after Linux CI import evidence passes, and preserve `generated_local_fixture_not_executed`.
-10. `Prompt GD-6A - Execution Approval Gate Hardening`
+10. `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`
+   - Retry Group A local synthetic fixture generation after GD-8/GD-8A and record `generated_local_fixture_partially_passed`.
+11. `Prompt GD-6A - Execution Approval Gate Hardening`
    - Use only if a future static gate diagnostic finds missing files, unsafe claims, or schema mismatch.
 
 ## Current Recommendation
@@ -53,3 +55,22 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 Tools covered: all 12 AI Tools creative graphics tools.
+
+## GD-7-Retry Sequence Addendum
+
+Status: `generated_local_fixture_partially_passed`
+
+GD-7-Retry executed local private SVG fixtures for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+
+`svg_js_vector_graphics` was skipped with `node_dom_runtime_unavailable_no_dependency_mutation`; `resvg_js_svg_rasterization` was skipped with `local_darwin_native_blocker`.
+
+Group B tools remain not executed: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`. Group C tools remain blocked: `pixijs_canvas_graphics`, `three_js_visuals`.
+
+Production capability enabled: `none; controlled local creative graphics fixture execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Recommended next prompt: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.

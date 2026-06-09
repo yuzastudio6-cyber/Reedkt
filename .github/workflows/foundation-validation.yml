@@ -13,6 +13,7 @@ on:
       - codex/rp-gd-6-ai-tools-creative-graphics-execution-approval-gate
       - codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution
       - codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement
+      - codex/rp-gd-8a-ai-tools-creative-graphics-package-runtime-fixes
 
 jobs:
   foundation-validation:

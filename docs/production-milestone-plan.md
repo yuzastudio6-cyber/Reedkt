@@ -181,3 +181,25 @@ Prompt GD-8A: Creative Graphics resvg Native Runtime Fixes.
 ## Next Milestone After GD-8A
 
 `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.
+
+## GD-7-Retry Milestone
+
+Prompt GD-7-Retry: Creative Graphics Controlled Local Fixture Execution.
+
+- Status: `generated_local_fixture_partially_passed`
+- Capability: `none; controlled local creative graphics fixture execution only`
+- Executed Group A tools: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Skipped Group A tool: `svg_js_vector_graphics`; reason `node_dom_runtime_unavailable_no_dependency_mutation`
+- Blocked/skipped Group A tool: `resvg_js_svg_rasterization`; reason `local_darwin_native_blocker`
+- Group B tools not executed: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+- Group C tools blocked: `pixijs_canvas_graphics`, `three_js_visuals`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Runtime remains local synthetic fixture evidence only; Track A final render/export remains a future handoff.
+
+## Next Milestone After GD-7-Retry
+
+`Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.

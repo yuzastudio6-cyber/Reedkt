@@ -79,3 +79,22 @@ GD-8 Supabase environment touched: `none`
 GD-8 SQL executed: `none`
 GD-8 Migration deployed: `no`
 Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
+
+## GD-7-Retry Execution Result
+
+Status: `generated_local_fixture_partially_passed`
+
+| Group | Tools | GD-7-Retry result |
+| --- | --- | --- |
+| Group A | `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams` | approved tools executed locally and created private SVG evidence |
+| Group A | `svg_js_vector_graphics` | skipped because Node DOM runtime is unavailable and dependency mutation is blocked |
+| Group A | `resvg_js_svg_rasterization` | blocked/skipped by `local_darwin_native_blocker` |
+| Group B | `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics` | not executed |
+| Group C | `pixijs_canvas_graphics`, `three_js_visuals` | blocked |
+
+Production capability enabled: `none; controlled local creative graphics fixture execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

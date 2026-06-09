@@ -158,3 +158,20 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Migration deployed: `no`
 - Production capability enabled: `none; AI Tools creative graphics resvg runtime review only`
 - Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution
+
+## GD-7-Retry Remaining Blockers
+
+- GD-7-Retry produced local private SVG evidence for five approved Group A tools, but Track A final render/export validation remains out of GD scope and blocked.
+- `svg_js_vector_graphics` remains skipped because SVG.js needs a DOM runtime and GD-7-Retry does not mutate dependencies.
+- `resvg_js_svg_rasterization` remains blocked/skipped by `local_darwin_native_blocker`; rasterization readiness is not claimed.
+- Group B tools remain not executed and need package/runtime review: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`.
+- Group C tools remain blocked: `pixijs_canvas_graphics`, `three_js_visuals`.
+- Worker execution, provider/model calls, render/export, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, storage transfer, public artifacts, signed URLs, dependency mutation, and production/beta unlock remain blocked.
+- Runtime unlock status: `generated_local_fixture_partially_passed`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Production capability enabled: `none; controlled local creative graphics fixture execution only`
+- Recommended next prompt: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.

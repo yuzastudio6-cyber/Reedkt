@@ -14,6 +14,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | GD-7 - Creative Graphics Controlled Local Fixture Execution | implemented_ci_passed | `codex/rp-gd-7-ai-tools-creative-graphics-controlled-local-fixture-execution` | [#250](https://github.com/yuzastudio6-cyber/Reedkt/pull/250) | `none; controlled local creative graphics fixture execution only` |
 | GD-8 - Creative Graphics Package Runtime Enablement | implemented_ci_passed | `codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement` | [#253](https://github.com/yuzastudio6-cyber/Reedkt/pull/253) | `none; AI Tools creative graphics package runtime enablement only` |
 | GD-8A - Creative Graphics resvg Native Runtime Fixes | implemented_pr_open | `codex/rp-gd-8a-ai-tools-creative-graphics-package-runtime-fixes` | [#255](https://github.com/yuzastudio6-cyber/Reedkt/pull/255) | `none; AI Tools creative graphics resvg runtime review only` |
+| GD-7-Retry - Creative Graphics Controlled Local Fixture Execution | implemented_local_validation_in_progress | `codex/rp-gd-7-retry-ai-tools-creative-graphics-controlled-local-fixture-execution` | pending | `none; controlled local creative graphics fixture execution only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -56,3 +57,9 @@ GD-8A Supabase update required: `docs/status only`; Supabase update status: `doc
 GD-8A generated/local fixture status: `generated_local_fixture_not_executed`; rasterization executed: none.
 
 Next recommended prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.
+
+GD-7-Retry runtime unlock status: `generated_local_fixture_partially_passed`. Executed tools: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`. Skipped/blocker tools: `svg_js_vector_graphics` with `node_dom_runtime_unavailable_no_dependency_mutation`; `resvg_js_svg_rasterization` with `local_darwin_native_blocker`.
+
+GD-7-Retry Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
+
+Next recommended prompt after GD-7-Retry: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.

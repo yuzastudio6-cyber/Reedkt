@@ -115,3 +115,20 @@ Recommended next prompt: `Prompt GD-8A - Package Runtime Fixes`.
 - Migration deployed: `no`
 
 Recommended next prompt: `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`; use `Prompt GD-8B - resvg Alternative Runtime Review` only if future fixture work needs Darwin-local resvg execution rather than Linux/runtime-host execution.
+
+## GD-7-Retry - Creative Graphics Controlled Local Fixture Execution
+
+- Goal: retry Group A controlled local synthetic fixture execution after GD-8/GD-8A package runtime enablement.
+- Result: `generated_local_fixture_partially_passed`.
+- Executed tools: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`.
+- Skipped tools: `svg_js_vector_graphics` with `node_dom_runtime_unavailable_no_dependency_mutation`; `resvg_js_svg_rasterization` with `local_darwin_native_blocker`.
+- Local ignored output root: `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/`.
+- Evidence created: local private SVG outputs, artifact manifest, checksums, and QA evidence for executed tools.
+- Blocked scope remained blocked: Group B, Group C, workers, providers/models, final render/export, browser capture, media processing, Supabase, SQL, Google Cloud, Secret Manager, uploads, signed URLs, public artifacts, beta, and production.
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Recommended next prompt: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.

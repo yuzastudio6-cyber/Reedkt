@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "metadata_committed_only",
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "committedArtifacts": [
+    "docs/activation-supabase-staging-reset-approval-reports",
+    "docs/supabase-staging-reset-approval-decision.md",
+    "docs/supabase-staging-reset-operator-checklist.md",
+    "docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md"
+  ],
+  "forbiddenPayloadClasses": [
+    "db_url",
+    "service_role_key",
+    "anon_key",
+    "jwt_secret",
+    "access_token",
+    "signed_url",
+    "provider_key",
+    "private_payload",
+    "media_payload",
+    "model_payload"
+  ],
+  "secretRefUsed": "none",
+  "secretPayloadAccess": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false
+}

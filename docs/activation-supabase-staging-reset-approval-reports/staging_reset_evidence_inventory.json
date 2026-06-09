@@ -1,0 +1,68 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "passed",
+  "sourceReports": [
+    "docs/activation-supabase-schema-parity-remediation-reports/schema_parity_decision.json",
+    "docs/activation-supabase-schema-parity-remediation-reports/schema_parity_recommended_strategy.json",
+    "docs/activation-supabase-remote-schema-equivalence-reports/remote_schema_equivalence_comparison_report.json",
+    "docs/activation-supabase-migration-history-repair-approval-reports/migration_history_repair_approval_decision.json",
+    "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_readiness_report.json",
+    "docs/activation-supabase-trackb-backfill-reports/supabase_trackb_backfill_readiness_report.json"
+  ],
+  "schemaParityStrategy": "staging_reset_and_reapply_migrations",
+  "schemaParityDecision": "blocked_pending_staging_reset_approval",
+  "remoteEquivalence": "not_equivalent",
+  "equivalentMigrationCount": 1,
+  "notEquivalentMigrationCount": 11,
+  "repairApprovalDecision": "blocked_pending_remote_history_evidence",
+  "deployTransportStatus": "blocked",
+  "backfillStatus": "blocked_or_report_missing",
+  "milestoneRegistryMigration": {
+    "path": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+    "present": true
+  },
+  "approvedStagingTargetReference": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "source": "PR #212 committed approved target reference"
+  },
+  "localMigrationCount": 22,
+  "localMigrationFiles": [
+    "202605130001_core_reeditpro_tables.sql",
+    "202605130002_intent_edit_planning_tables.sql",
+    "202605130003_professional_edit_quality_engine.sql",
+    "202605130004_credit_ledger_approval_gate.sql",
+    "202605130005_job_orchestration_agent_runs.sql",
+    "202605130006_stroke_motion_data_model.sql",
+    "202605130007_generation_providers_generated_assets.sql",
+    "202605130008_render_preview_export_revision_qa.sql",
+    "202605180001_reeditpro_core_workspace_projects.sql",
+    "202605180002_reeditpro_media_source_sequence.sql",
+    "202605180003_reeditpro_intent_plan_versions.sql",
+    "202605180004_reeditpro_credits_approval_snapshots.sql",
+    "202605180005_reeditpro_generation_assets_jobs.sql",
+    "202605180006_reeditpro_qa_exports_audit.sql",
+    "202605180007_reeditpro_rls_policies.sql",
+    "202605180008_reeditpro_storage_buckets_policies.sql",
+    "202605190001_sfx_director_tables.sql",
+    "202605190002_storytiming_master_tables.sql",
+    "202605200001_storage_upload_pipeline_readiness.sql",
+    "202605200002_worker_leases_runtime_transport.sql",
+    "202605210001_e2e_runtime_readiness_tables.sql",
+    "202606050001_activation_milestone_registry_schema_rls.sql"
+  ],
+  "knownBlockers": [
+    "schema_parity_not_proven",
+    "migration_history_repair_unsafe",
+    "schema_deploy_blocked",
+    "track_b_backfill_blocked"
+  ],
+  "currentUnlockStage": "staging_reset_approval_packet",
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

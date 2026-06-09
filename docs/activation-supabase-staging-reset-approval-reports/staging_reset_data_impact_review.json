@@ -1,0 +1,24 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "blocked",
+  "blocker": "staging_data_impact_not_reviewed",
+  "isStagingUsedByInternalUsers": "unknown_requires_human_review",
+  "importantStagingRecords": "unknown_requires_human_review",
+  "privateArtifactReferencesInStaging": "unknown_requires_human_review",
+  "authUserWorkspaceProjectRecordsAtRisk": "unknown_requires_human_review",
+  "dataExportOrSnapshotRequiredBeforeReset": true,
+  "canResetProceedWithoutUserOrDataLoss": false,
+  "evidenceContext": {
+    "localMigrationCount": 22,
+    "notEquivalentMigrationCount": 11
+  },
+  "unknowns": [
+    "whether staging contains important auth users",
+    "whether staging contains workspaces/projects needed for QA",
+    "whether staging contains private artifact references",
+    "whether any records require export before reset"
+  ],
+  "stagingResetRun": false,
+  "productionAffected": false
+}

@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "blocked",
+  "decision": "blocked_pending_staging_data_impact_review",
+  "readinessStatus": "approval_packet_complete_execution_blocked",
+  "resetApprovalPacketComplete": true,
+  "executionReady": false,
+  "activeBlockers": [
+    "staging_data_impact_not_reviewed",
+    "staging_backup_snapshot_plan_missing",
+    "staging_reset_dependency_review_required",
+    "staging_reset_execution_not_approved",
+    "migration_order_dry_run_required",
+    "staging_reset_approval_packet_not_confirmed",
+    "staging_reset_risk_review_not_confirmed"
+  ],
+  "nextRecommendedPhase": "Resolve staging data impact and backup/snapshot review before a separate reset/reapply execution approval phase.",
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

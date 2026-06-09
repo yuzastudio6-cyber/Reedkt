@@ -1,0 +1,17 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "passed_for_metadata_only",
+  "approvedStagingTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "source": "PR #212"
+  },
+  "productionExcluded": true,
+  "pluginTargetProofRequiredAgainInExecution": true,
+  "dbUrlTargetProofRequiredAgainInExecution": true,
+  "targetMutationInThisPhase": false,
+  "stagingResetRun": false,
+  "productionAffected": false
+}

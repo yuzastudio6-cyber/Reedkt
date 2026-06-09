@@ -1,0 +1,88 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "relatedWorkstreams": {
+    "trackBMediaProcessing": "safe Track B milestone export only",
+    "observabilityAuditCost": "future registry/audit consumer only",
+    "workerRuntimeJobs": "not executed",
+    "productInternalBetaAggregation": "depends on milestone state later"
+  },
+  "explicitlyNotOwned": [
+    "Track B runtime/tool execution",
+    "Track A visual/video pipeline",
+    "provider/model execution",
+    "frontend UX",
+    "production/external beta unlocks"
+  ],
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true,
+      "note": "available_for_approval_packet"
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true,
+      "note": "available_for_approval_packet"
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    },
+    {
+      "path": "docs/cross-chat",
+      "present": false,
+      "note": "missing_in_pr_247_branch_recorded_as_audit_fact"
+    }
+  ],
+  "duplicateWorkRisk": "high_if_new_deploy_wrapper_schema_or_backfill_path_is_created",
+  "secretPayloadAccess": false,
+  "sqlExecuted": false,
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

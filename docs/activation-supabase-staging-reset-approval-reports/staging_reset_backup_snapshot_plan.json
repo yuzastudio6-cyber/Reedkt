@@ -1,0 +1,16 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "blocked",
+  "blocker": "staging_backup_snapshot_plan_missing",
+  "preResetBackupSnapshotOrExportRequired": true,
+  "futureBackupCommandClass": "redacted_supabase_cli_or_dashboard_backup_export_to_be_approved_later",
+  "backupRunInThisPhase": false,
+  "storageDestinationPolicy": "private_staging_backup_destination_only_no_public_links",
+  "retentionPolicy": "requires_human_owner_duration_and_cleanup_approval",
+  "secretPolicy": "credential_values_never_logged_or_committed",
+  "restoreRollbackConcept": "restore from approved pre-reset snapshot/export or stop and escalate",
+  "backupMechanismKnown": false,
+  "stagingResetRun": false,
+  "productionAffected": false
+}

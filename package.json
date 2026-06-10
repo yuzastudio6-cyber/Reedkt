@@ -29,6 +29,7 @@
     "tracka:creative-graphics:private-preview-qa:diagnostics": "node scripts/validation/tracka-creative-graphics-private-preview-qa-diagnostics.mjs",
     "tracka:creative-graphics:controlled-private-sample-plan:diagnostics": "node scripts/validation/tracka-creative-graphics-controlled-private-sample-plan-diagnostics.mjs",
     "tracka:creative-graphics:controlled-private-sample:diagnostics": "node scripts/validation/tracka-creative-graphics-controlled-private-sample-execution-diagnostics.mjs",
+    "tracka:creative-graphics:controlled-private-sample-qa:diagnostics": "node scripts/validation/tracka-creative-graphics-controlled-private-sample-qa-diagnostics.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
     "build:remotion-worker:mock": "npm run typecheck:server && vite build --config vite.remotion-worker.config.ts",

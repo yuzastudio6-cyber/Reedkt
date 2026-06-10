@@ -6,7 +6,7 @@ Branch: `codex/rp-tracka-gd-handoff-3a-source-artifact-preservation-fix`
 
 Base: `origin/codex/rp-tracka-gd-handoff-3-controlled-private-preview-execution`
 
-PR: pending
+PR: [#277](https://github.com/yuzastudio6-cyber/Reedkt/pull/277)
 
 Production capability enabled: `none; source artifact preservation for Track A private preview only`
 

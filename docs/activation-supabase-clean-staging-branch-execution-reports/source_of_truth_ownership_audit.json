@@ -1,0 +1,136 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "mode": "clean_staging_branch_execution",
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/cross-chat",
+      "present": false,
+      "type": "file"
+    }
+  ],
+  "reportPaths": [
+    {
+      "path": "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_approval_decision.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_readiness_report.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-support-ticket-submission-reports/support_ticket_submission_readiness_report.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-reset-retry-failure-diagnostics-reports/reset_retry_recovery_decision.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-reset-retry-execution-reports/staging_reset_retry_execution_report.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-data-impact-backup-reports/staging_data_impact_backup_approval_decision.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-schema-parity-remediation-reports/schema_parity_decision.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-remote-schema-equivalence-reports/remote_schema_equivalence_comparison_report.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_readiness_report.json",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-supabase-milestone-registry-schema-reports/schema_readiness_report.json",
+      "present": false,
+      "required": false
+    },
+    {
+      "path": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+      "present": true,
+      "required": true
+    }
+  ],
+  "localMigrationInventory": {
+    "migrationDir": "supabase/migrations",
+    "localMigrationCount": 22,
+    "targetRegistryMigrationFile": "202606050001_activation_milestone_registry_schema_rls.sql",
+    "targetRegistryMigrationPresent": true
+  },
+  "status": "passed",
+  "blockers": [],
+  "productionAffected": false,
+  "trackBBackfillRowsWritten": false,
+  "secretsPrintedOrCommitted": false
+}

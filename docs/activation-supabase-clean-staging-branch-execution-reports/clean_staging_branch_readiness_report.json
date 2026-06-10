@@ -1,0 +1,31 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "status": "blocked",
+  "supabaseUpdateRequired": "clean_staging_branch_creation_or_reuse_and_migration_apply",
+  "supabaseUpdateStatus": "clean_staging_branch_execution_blocked",
+  "supabaseEnvironmentTouched": "none",
+  "branchName": "reeditpro-internal-staging-clean",
+  "branchAction": "not_run",
+  "branchStatus": "unknown",
+  "withProductionData": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "schemaRlsVerified": false,
+  "migrationHistoryVerified": false,
+  "targetReferenceStatus": "blocked",
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "supabase_access_token_unavailable",
+    "temp_npm_supabase_cli_unavailable",
+    "clean_staging_branch_list_failed",
+    "clean_staging_branch_health_unavailable",
+    "clean_branch_migration_apply_transport_unavailable",
+    "clean_branch_schema_rls_verify_failed",
+    "clean_branch_migration_history_verify_failed",
+    "staging_supabase_credentials_unavailable"
+  ],
+  "nextRecommendedPhase": "Resolve the exact clean branch, migration transport, or secret-reference blocker before Track B backfill."
+}

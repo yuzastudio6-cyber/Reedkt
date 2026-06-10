@@ -1,0 +1,114 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "branch": "codex/rp-foundation-supabase-clean-staging-branch-execution",
+  "baseBranch": "codex/rp-foundation-supabase-clean-staging-target-approval",
+  "prTitle": "[foundation] Supabase clean staging branch execution",
+  "worktree": "/private/tmp/reeditpro-supabase-clean-staging-branch-execution",
+  "reportDir": "docs/activation-supabase-clean-staging-branch-execution-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "clean_staging_branch_execution_plan.json",
+    "clean_staging_branch_precheck_report.json",
+    "clean_staging_branch_cli_transport_report.json",
+    "clean_staging_branch_existing_check_report.json",
+    "clean_staging_branch_creation_report.json",
+    "clean_staging_branch_health_report.json",
+    "clean_staging_branch_migration_apply_report.json",
+    "clean_staging_branch_schema_rls_verify_report.json",
+    "clean_staging_branch_migration_history_verify_report.json",
+    "clean_staging_target_reference.json",
+    "clean_staging_branch_trackb_backfill_preflight_report.json",
+    "clean_staging_branch_trackb_backfill_diff_report.json",
+    "clean_staging_branch_blocker_report.json",
+    "clean_staging_branch_readiness_report.json",
+    "clean_staging_branch_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-clean-staging-branch-execution.md",
+    "docs/supabase-clean-staging-branch-secret-policy.md",
+    "docs/supabase-approved-clean-staging-target-reference.md",
+    "docs/supabase-clean-staging-branch-schema-rls-verification.md",
+    "docs/supabase-trackb-backfill-after-clean-staging-branch.md",
+    "docs/implementation-prompts/prompt-supabase-trackb-backfill-after-clean-staging-branch.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePrs": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    252,
+    269,
+    271,
+    276,
+    280
+  ],
+  "docsBasis": {
+    "supabaseCliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "supabaseDatabaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "supabaseChangelog": "https://supabase.com/changelog",
+    "checkedAt": "2026-06-10",
+    "branchCreateFlags": [
+      "--persistent",
+      "--project-ref"
+    ],
+    "forbiddenBranchDataCloneFlag": "with_data_clone_flag_forbidden",
+    "dbPushFlags": [
+      "--db-url",
+      "--dry-run"
+    ]
+  },
+  "cleanBranchTarget": {
+    "parentProjectName": "Reeditpro",
+    "parentProjectRef": "wmyyttnynmteqgcdishd",
+    "branchName": "reeditpro-internal-staging-clean",
+    "environment": "clean_staging",
+    "persistent": true,
+    "withProductionData": false,
+    "purpose": "internal milestone registry/schema/RLS and future Track B metadata backfill"
+  },
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_PERSISTENT_BRANCH_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_ACCEPTANCE",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_NO_PRODUCTION_DATA",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY",
+    "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "allowedCommandClasses": [
+    "npm exec --yes --package supabase@latest -- supabase --version",
+    "supabase branches list --project-ref [PARENT_PROJECT_REF]",
+    "supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]",
+    "supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL] --dry-run",
+    "supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL]",
+    "supabase migration list --db-url [REDACTED_CLEAN_BRANCH_DB_URL]"
+  ],
+  "blockedCommandClasses": [
+    "supabase branches create with production data clone",
+    "remote_reset_command_forbidden",
+    "migration_history_repair_command_forbidden",
+    "direct_manual_sql",
+    "track_b_backfill_write",
+    "provider_worker_tool_route_media_execution",
+    "production_supabase"
+  ]
+}

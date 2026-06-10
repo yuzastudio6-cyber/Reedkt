@@ -1,0 +1,32 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "status": "blocked",
+  "parentProjectRef": "wmyyttnynmteqgcdishd",
+  "parentProjectName": "Reeditpro",
+  "branchName": "reeditpro-internal-staging-clean",
+  "branchRef": null,
+  "environment": "clean_staging",
+  "purpose": "internal milestone registry/schema/RLS and future Track B staging metadata backfill",
+  "allowedUses": [
+    "schema_rls_verification",
+    "track_b_milestone_metadata_backfill_after_separate_approval"
+  ],
+  "blockedUses": [
+    "production",
+    "public_artifacts",
+    "provider_calls",
+    "broad_media",
+    "tool_worker_route_execution",
+    "track_a",
+    "beta_or_production_unlock"
+  ],
+  "secretValuesIncluded": false,
+  "dbUrlIncluded": false,
+  "serviceRoleKeyIncluded": false,
+  "anonKeyIncluded": false,
+  "accessTokenIncluded": false,
+  "blockers": [
+    "clean_staging_branch_health_unavailable"
+  ]
+}

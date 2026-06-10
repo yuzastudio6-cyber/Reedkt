@@ -1,0 +1,11 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "report": "clean_staging_branch_existing_check_report",
+  "status": "skipped",
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "clean_staging_branch_list_failed"
+  ]
+}

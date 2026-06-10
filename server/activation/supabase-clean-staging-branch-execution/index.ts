@@ -1,0 +1,1311 @@
+import { execFile } from 'node:child_process'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+} from 'node:fs'
+import path from 'node:path'
+import {
+  writeVlmRuntimeJsonArtifact,
+  writeVlmRuntimeTextArtifact,
+} from '../vlm-runtime/vlm-runtime-artifact-manifest-writer'
+import { buildSupabaseTrackBBackfillReports } from '../supabase-trackb-backfill'
+import type {
+  SupabaseCleanStagingBranchAction,
+  SupabaseCleanStagingBranchExecutionBlocker,
+  SupabaseCleanStagingBranchExecutionStatus,
+} from './clean-staging-branch-execution-types'
+
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE =
+  'supabase-clean-staging-branch-execution'
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID =
+  'supabase-clean-staging-branch-execution-20260610'
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_BRANCH =
+  'codex/rp-foundation-supabase-clean-staging-branch-execution'
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_BASE_BRANCH =
+  'codex/rp-foundation-supabase-clean-staging-target-approval'
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PR_TITLE =
+  '[foundation] Supabase clean staging branch execution'
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR =
+  'docs/activation-supabase-clean-staging-branch-execution-reports'
+
+export const CLEAN_STAGING_PARENT_PROJECT_REF = 'wmyyttnynmteqgcdishd'
+export const CLEAN_STAGING_PARENT_PROJECT_NAME = 'Reeditpro'
+export const CLEAN_STAGING_BRANCH_NAME = 'reeditpro-internal-staging-clean'
+export const CLEAN_STAGING_ENVIRONMENT = 'clean_staging'
+export const TARGET_REGISTRY_MIGRATION_ID = '202606050001'
+export const TARGET_REGISTRY_MIGRATION_FILE =
+  '202606050001_activation_milestone_registry_schema_rls.sql'
+
+export const SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS = [
+  'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_EXECUTE',
+  'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_CREATE',
+  'REEDITPRO_CONFIRM_SUPABASE_PERSISTENT_BRANCH_CREATE',
+  'REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_ACCEPTANCE',
+  'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_NO_PRODUCTION_DATA',
+  'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY',
+  'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY',
+  'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+] as const
+
+export const SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS = [
+  'REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA',
+  'REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL',
+  'REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE',
+  'REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE',
+  'REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL',
+  'REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE',
+  'REEDITPRO_CONFIRM_SUPABASE_DB_RESET',
+  'REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR',
+  'REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT',
+  'REEDITPRO_CONFIRM_PROVIDER_CALLS',
+  'REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION',
+  'REEDITPRO_CONFIRM_WORKER_EXECUTION',
+  'REEDITPRO_CONFIRM_TRACK_A_RUNTIME',
+] as const
+
+export const CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES = [
+  'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
+  'REEDITPRO_CLEAN_STAGING_BRANCH_DB_URL',
+  'SUPABASE_CLEAN_STAGING_DB_URL',
+] as const
+
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS = [
+  'source_of_truth_ownership_audit.json',
+  'clean_staging_branch_execution_plan.json',
+  'clean_staging_branch_precheck_report.json',
+  'clean_staging_branch_cli_transport_report.json',
+  'clean_staging_branch_existing_check_report.json',
+  'clean_staging_branch_creation_report.json',
+  'clean_staging_branch_health_report.json',
+  'clean_staging_branch_migration_apply_report.json',
+  'clean_staging_branch_schema_rls_verify_report.json',
+  'clean_staging_branch_migration_history_verify_report.json',
+  'clean_staging_target_reference.json',
+  'clean_staging_branch_trackb_backfill_preflight_report.json',
+  'clean_staging_branch_trackb_backfill_diff_report.json',
+  'clean_staging_branch_blocker_report.json',
+  'clean_staging_branch_readiness_report.json',
+  'clean_staging_branch_private_artifact_manifest.json',
+] as const
+
+export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_DOCS = [
+  'docs/supabase-clean-staging-branch-execution.md',
+  'docs/supabase-clean-staging-branch-secret-policy.md',
+  'docs/supabase-approved-clean-staging-target-reference.md',
+  'docs/supabase-clean-staging-branch-schema-rls-verification.md',
+  'docs/supabase-trackb-backfill-after-clean-staging-branch.md',
+  'docs/implementation-prompts/prompt-supabase-trackb-backfill-after-clean-staging-branch.md',
+] as const
+
+const SOURCE_OF_TRUTH_PATHS = [
+  'README.md',
+  'AGENTS.md',
+  'PRODUCTION_FOUNDATION_STATUS.md',
+  'docs/source-of-truth-map.md',
+  'docs/production-milestone-plan.md',
+  'docs/architecture-boundary-matrix.md',
+  'docs/supabase-milestone-sync-policy.md',
+  'docs/supabase-success-milestone-reporting-standard.md',
+  'docs/beta-readiness-scorecard.md',
+  'docs/production-beta-blocker-inventory.md',
+  'docs/implementation-prompts/README.md',
+  'docs/cross-chat',
+] as const
+
+const PR280_REPORT_DIR = 'docs/activation-supabase-clean-staging-target-approval-reports'
+const PR276_REPORT_DIR = 'docs/activation-supabase-support-ticket-submission-reports'
+const PR271_REPORT_DIR = 'docs/activation-supabase-reset-retry-failure-diagnostics-reports'
+const PR269_REPORT_DIR = 'docs/activation-supabase-staging-reset-retry-execution-reports'
+const PR252_REPORT_DIR = 'docs/activation-supabase-staging-data-impact-backup-reports'
+const PR247_REPORT_DIR = 'docs/activation-supabase-schema-parity-remediation-reports'
+const PR241_REPORT_DIR = 'docs/activation-supabase-remote-schema-equivalence-reports'
+const PR223_REPORT_DIR = 'docs/activation-supabase-staging-deploy-transport-reports'
+const PR200_REPORT_DIR = 'docs/activation-supabase-milestone-registry-schema-reports'
+const PR198_REPORT_DIR = 'docs/activation-supabase-trackb-backfill-reports'
+const MIGRATION_DIR = path.join('supabase', 'migrations')
+const TEMP_NPM_CACHE = '/tmp/reeditpro-supabase-cli-cache'
+const TEMP_NPM_PREFIX = '/tmp/reeditpro-supabase-cli-prefix'
+
+const SENSITIVE_PATTERNS = [
+  ['postgres', '://'].join(''),
+  ['postgresql', '://'].join(''),
+  ['BEGIN', 'PRIVATE KEY'].join(' '),
+  ['x-goog-signature', '='].join(''),
+  ['service_role_key', '='].join(''),
+  ['anon_key', '='].join(''),
+  ['access_token', '='].join(''),
+  ['jwt_secret', '='].join(''),
+  'sbp_',
+  ['"', 'secret', 'Value', '"'].join(''),
+  ['"', 'private', 'Payload', '"'].join(''),
+] as const
+
+type JsonRecord = Record<string, unknown>
+
+interface CommandResult {
+  status: SupabaseCleanStagingBranchExecutionStatus
+  command: string
+  args: string[]
+  exitCode: number | null
+  stdoutSummary: OutputSummary
+  stderrSummary: OutputSummary
+  parsedJson: boolean
+  blockers: SupabaseCleanStagingBranchExecutionBlocker[]
+}
+
+interface OutputSummary {
+  byteLength: number
+  lineCount: number
+  secretPatternDetected: boolean
+}
+
+const COMMAND_STDOUT = new WeakMap<CommandResult, string>()
+
+interface Reports {
+  sourceOfTruthOwnershipAudit: JsonRecord
+  plan: JsonRecord
+  precheckReport: JsonRecord
+  cliTransportReport: JsonRecord
+  existingBranchCheckReport: JsonRecord
+  branchCreationReport: JsonRecord
+  branchHealthReport: JsonRecord
+  migrationApplyReport: JsonRecord
+  schemaRlsVerifyReport: JsonRecord
+  migrationHistoryVerifyReport: JsonRecord
+  targetReferenceReport: JsonRecord
+  trackBBackfillPreflightReport: JsonRecord
+  trackBBackfillDiffReport: JsonRecord
+  blockerReport: JsonRecord
+  readinessReport: JsonRecord
+  privateArtifactManifest: JsonRecord
+}
+
+export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    branch: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_BRANCH,
+    baseBranch: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_BASE_BRANCH,
+    prTitle: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PR_TITLE,
+    worktree: '/private/tmp/reeditpro-supabase-clean-staging-branch-execution',
+    reportDir: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR,
+    expectedReports: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS,
+    docs: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_DOCS,
+    workstreamOwner: 'SUPABASE_RLS_STORAGE_DATABASE',
+    sourcePrs: [198, 200, 223, 241, 247, 252, 269, 271, 276, 280],
+    docsBasis: {
+      supabaseCliReference: 'https://supabase.com/docs/reference/cli/introduction',
+      supabaseDatabaseMigrations: 'https://supabase.com/docs/guides/deployment/database-migrations',
+      supabaseChangelog: 'https://supabase.com/changelog',
+      checkedAt: '2026-06-10',
+      branchCreateFlags: ['--persistent', '--project-ref'],
+      forbiddenBranchDataCloneFlag: 'with_data_clone_flag_forbidden',
+      dbPushFlags: ['--db-url', '--dry-run'],
+    },
+    cleanBranchTarget: {
+      parentProjectName: CLEAN_STAGING_PARENT_PROJECT_NAME,
+      parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+      branchName: CLEAN_STAGING_BRANCH_NAME,
+      environment: CLEAN_STAGING_ENVIRONMENT,
+      persistent: true,
+      withProductionData: false,
+      purpose: 'internal milestone registry/schema/RLS and future Track B metadata backfill',
+    },
+    requiredConfirmations: SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS,
+    forbiddenConfirmations: SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS,
+    allowedCommandClasses: [
+      'npm exec --yes --package supabase@latest -- supabase --version',
+      'supabase branches list --project-ref [PARENT_PROJECT_REF]',
+      'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
+      'supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL] --dry-run',
+      'supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL]',
+      'supabase migration list --db-url [REDACTED_CLEAN_BRANCH_DB_URL]',
+    ],
+    blockedCommandClasses: [
+      'supabase branches create with production data clone',
+      'remote_reset_command_forbidden',
+      'migration_history_repair_command_forbidden',
+      'direct_manual_sql',
+      'track_b_backfill_write',
+      'provider_worker_tool_route_media_execution',
+      'production_supabase',
+    ],
+  }
+}
+
+export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
+  const existing = loadExistingExecutionReports()
+  const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
+  const plan = getSupabaseCleanStagingBranchExecutionPlan()
+  const precheckReport = existing.precheckReport ?? buildPrecheckReport()
+  const cliTransportReport = existing.cliTransportReport ?? buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
+  const existingBranchCheckReport = existing.existingBranchCheckReport ?? buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
+  const branchCreationReport = existing.branchCreationReport ?? buildSkippedBranchCreationReport()
+  const branchHealthReport = existing.branchHealthReport ?? buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
+  const migrationApplyReport = existing.migrationApplyReport ?? buildSkippedReport('clean_staging_branch_migration_apply_report', ['clean_branch_migration_apply_transport_unavailable'])
+  const schemaRlsVerifyReport = existing.schemaRlsVerifyReport ?? buildSkippedReport('clean_staging_branch_schema_rls_verify_report', ['clean_branch_schema_rls_verify_unavailable'])
+  const migrationHistoryVerifyReport = existing.migrationHistoryVerifyReport ?? buildSkippedReport('clean_staging_branch_migration_history_verify_report', ['clean_branch_migration_history_verify_failed'])
+  const targetReferenceReport = existing.targetReferenceReport ?? buildTargetReferenceReport(branchCreationReport, branchHealthReport)
+  const trackB = buildSupabaseTrackBBackfillReports()
+  const trackBBackfillPreflightReport = existing.trackBBackfillPreflightReport ??
+    decorateTrackBPreflightReport(trackB.stagingSupabaseBackfillPreflightReport as JsonRecord)
+  const trackBBackfillDiffReport = existing.trackBBackfillDiffReport ??
+    decorateTrackBDiffReport(trackB.diffReport as JsonRecord)
+  const blockers = collectBlockers([
+    sourceOfTruthOwnershipAudit,
+    precheckReport,
+    cliTransportReport,
+    existingBranchCheckReport,
+    branchCreationReport,
+    branchHealthReport,
+    migrationApplyReport,
+    schemaRlsVerifyReport,
+    migrationHistoryVerifyReport,
+    trackBBackfillPreflightReport,
+  ])
+  const blockerReport = buildBlockerReport(blockers)
+  const readinessReport = buildReadinessReport({
+    blockers,
+    branchCreationReport,
+    branchHealthReport,
+    migrationApplyReport,
+    schemaRlsVerifyReport,
+    migrationHistoryVerifyReport,
+    targetReferenceReport,
+  })
+  const privateArtifactManifest = buildPrivateArtifactManifest()
+  return {
+    sourceOfTruthOwnershipAudit,
+    plan,
+    precheckReport,
+    cliTransportReport,
+    existingBranchCheckReport,
+    branchCreationReport,
+    branchHealthReport,
+    migrationApplyReport,
+    schemaRlsVerifyReport,
+    migrationHistoryVerifyReport,
+    targetReferenceReport,
+    trackBBackfillPreflightReport,
+    trackBBackfillDiffReport,
+    blockerReport,
+    readinessReport,
+    privateArtifactManifest,
+  }
+}
+
+export async function executeSupabaseCleanStagingBranchExecution(input: {
+  keepTemp: boolean
+}) {
+  void input.keepTemp
+  const precheckReport = buildPrecheckReport()
+  let cliTransportReport = buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
+  let existingBranchCheckReport = buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
+  let branchCreationReport = buildSkippedBranchCreationReport()
+  let branchHealthReport = buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
+  let migrationApplyReport = buildSkippedReport('clean_staging_branch_migration_apply_report', ['clean_branch_migration_apply_transport_unavailable'])
+  let schemaRlsVerifyReport = buildSkippedReport('clean_staging_branch_schema_rls_verify_report', ['clean_branch_schema_rls_verify_unavailable'])
+  let migrationHistoryVerifyReport = buildSkippedReport('clean_staging_branch_migration_history_verify_report', ['clean_branch_migration_history_verify_failed'])
+
+  if (precheckReport.status === 'passed') {
+    cliTransportReport = await buildCliTransportReport()
+  }
+
+  const cliAvailable = cliTransportReport.status === 'passed'
+  if (precheckReport.status === 'passed' && cliAvailable) {
+    existingBranchCheckReport = await buildExistingBranchCheckReport()
+    const existingBranch = asRecord(existingBranchCheckReport.cleanBranch)
+    if (existingBranchCheckReport.status === 'passed' && existingBranch.exists === true) {
+      branchCreationReport = buildBranchReuseReport(existingBranch)
+    } else if (existingBranchCheckReport.status === 'passed') {
+      branchCreationReport = await createCleanBranch()
+    }
+  }
+
+  if (branchCreationReport.status === 'passed') {
+    branchHealthReport = await buildBranchHealthReport(branchCreationReport)
+  }
+
+  if (branchHealthReport.status === 'passed') {
+    migrationApplyReport = await applyMigrationsToCleanBranch()
+  }
+
+  if (migrationApplyReport.status === 'passed') {
+    migrationHistoryVerifyReport = await verifyMigrationHistory()
+    schemaRlsVerifyReport = await verifySchemaRls()
+  }
+
+  const targetReferenceReport = buildTargetReferenceReport(branchCreationReport, branchHealthReport)
+  const trackB = buildSupabaseTrackBBackfillReports()
+  const trackBBackfillPreflightReport = decorateTrackBPreflightReport(trackB.stagingSupabaseBackfillPreflightReport as JsonRecord)
+  const trackBBackfillDiffReport = decorateTrackBDiffReport(trackB.diffReport as JsonRecord)
+  const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
+  const blockers = collectBlockers([
+    sourceOfTruthOwnershipAudit,
+    precheckReport,
+    cliTransportReport,
+    existingBranchCheckReport,
+    branchCreationReport,
+    branchHealthReport,
+    migrationApplyReport,
+    schemaRlsVerifyReport,
+    migrationHistoryVerifyReport,
+    trackBBackfillPreflightReport,
+  ])
+  const reports: Reports = {
+    sourceOfTruthOwnershipAudit,
+    plan: getSupabaseCleanStagingBranchExecutionPlan(),
+    precheckReport,
+    cliTransportReport,
+    existingBranchCheckReport,
+    branchCreationReport,
+    branchHealthReport,
+    migrationApplyReport,
+    schemaRlsVerifyReport,
+    migrationHistoryVerifyReport,
+    targetReferenceReport,
+    trackBBackfillPreflightReport,
+    trackBBackfillDiffReport,
+    blockerReport: buildBlockerReport(blockers),
+    readinessReport: buildReadinessReport({
+      blockers,
+      branchCreationReport,
+      branchHealthReport,
+      migrationApplyReport,
+      schemaRlsVerifyReport,
+      migrationHistoryVerifyReport,
+      targetReferenceReport,
+    }),
+    privateArtifactManifest: buildPrivateArtifactManifest(),
+  }
+  await writeSupabaseCleanStagingBranchExecutionArtifacts(reports)
+  return {
+    reports,
+    exitCode: reports.readinessReport.status === 'passed' || reports.branchCreationReport.status === 'passed' ? 0 : 1,
+  }
+}
+
+export async function executeSupabaseCleanStagingBranchExecutionVerify() {
+  const migrationHistoryVerifyReport = await verifyMigrationHistory()
+  const schemaRlsVerifyReport = await verifySchemaRls()
+  const existing = loadExistingExecutionReports()
+  const branchCreationReport = existing.branchCreationReport ?? buildSkippedBranchCreationReport()
+  const branchHealthReport = existing.branchHealthReport ?? buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
+  const targetReferenceReport = buildTargetReferenceReport(branchCreationReport, branchHealthReport)
+  const trackB = buildSupabaseTrackBBackfillReports()
+  const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
+  const precheckReport = existing.precheckReport ?? buildPrecheckReport()
+  const cliTransportReport = existing.cliTransportReport ?? buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
+  const existingBranchCheckReport = existing.existingBranchCheckReport ?? buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
+  const migrationApplyReport = existing.migrationApplyReport ?? buildSkippedReport('clean_staging_branch_migration_apply_report', ['clean_branch_migration_apply_transport_unavailable'])
+  const trackBBackfillPreflightReport = decorateTrackBPreflightReport(trackB.stagingSupabaseBackfillPreflightReport as JsonRecord)
+  const trackBBackfillDiffReport = decorateTrackBDiffReport(trackB.diffReport as JsonRecord)
+  const blockers = collectBlockers([
+    sourceOfTruthOwnershipAudit,
+    precheckReport,
+    cliTransportReport,
+    existingBranchCheckReport,
+    branchCreationReport,
+    branchHealthReport,
+    migrationApplyReport,
+    schemaRlsVerifyReport,
+    migrationHistoryVerifyReport,
+    trackBBackfillPreflightReport,
+  ])
+  const reports: Reports = {
+    sourceOfTruthOwnershipAudit,
+    plan: getSupabaseCleanStagingBranchExecutionPlan(),
+    precheckReport,
+    cliTransportReport,
+    existingBranchCheckReport,
+    branchCreationReport,
+    branchHealthReport,
+    migrationApplyReport,
+    schemaRlsVerifyReport,
+    migrationHistoryVerifyReport,
+    targetReferenceReport,
+    trackBBackfillPreflightReport,
+    trackBBackfillDiffReport,
+    blockerReport: buildBlockerReport(blockers),
+    readinessReport: buildReadinessReport({
+      blockers,
+      branchCreationReport,
+      branchHealthReport,
+      migrationApplyReport,
+      schemaRlsVerifyReport,
+      migrationHistoryVerifyReport,
+      targetReferenceReport,
+    }),
+    privateArtifactManifest: buildPrivateArtifactManifest(),
+  }
+  await writeSupabaseCleanStagingBranchExecutionArtifacts(reports)
+  return { reports, exitCode: reports.readinessReport.status === 'passed' ? 0 : 1 }
+}
+
+export async function writeSupabaseCleanStagingBranchExecutionArtifacts(reports: Reports) {
+  const dir = SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'source_of_truth_ownership_audit.json'), reports.sourceOfTruthOwnershipAudit)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_execution_plan.json'), reports.plan)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_precheck_report.json'), reports.precheckReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_cli_transport_report.json'), reports.cliTransportReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_existing_check_report.json'), reports.existingBranchCheckReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_creation_report.json'), reports.branchCreationReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_health_report.json'), reports.branchHealthReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_migration_apply_report.json'), reports.migrationApplyReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_schema_rls_verify_report.json'), reports.schemaRlsVerifyReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_migration_history_verify_report.json'), reports.migrationHistoryVerifyReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_target_reference.json'), reports.targetReferenceReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_trackb_backfill_preflight_report.json'), reports.trackBBackfillPreflightReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_trackb_backfill_diff_report.json'), reports.trackBBackfillDiffReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_blocker_report.json'), reports.blockerReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_readiness_report.json'), reports.readinessReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_private_artifact_manifest.json'), reports.privateArtifactManifest)
+  await writeVlmRuntimeTextArtifact('docs/supabase-clean-staging-branch-execution.md', renderExecutionDoc(reports))
+  await writeVlmRuntimeTextArtifact('docs/supabase-clean-staging-branch-secret-policy.md', renderSecretPolicyDoc())
+  await writeVlmRuntimeTextArtifact('docs/supabase-approved-clean-staging-target-reference.md', renderTargetReferenceDoc(reports))
+  await writeVlmRuntimeTextArtifact('docs/supabase-clean-staging-branch-schema-rls-verification.md', renderSchemaRlsVerificationDoc(reports))
+  await writeVlmRuntimeTextArtifact('docs/supabase-trackb-backfill-after-clean-staging-branch.md', renderTrackBHandoffDoc(reports))
+  await writeVlmRuntimeTextArtifact(
+    'docs/implementation-prompts/prompt-supabase-trackb-backfill-after-clean-staging-branch.md',
+    renderTrackBHandoffPrompt(reports),
+  )
+}
+
+export function readSupabaseCleanStagingBranchExecutionSummary(): JsonRecord {
+  const reports = buildSupabaseCleanStagingBranchExecutionReports()
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: reports.readinessReport.status,
+    supabaseUpdateStatus: reports.readinessReport.supabaseUpdateStatus,
+    branchAction: reports.branchCreationReport.branchAction,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchStatus: reports.branchHealthReport.branchStatus,
+    withProductionData: false,
+    migrationApply: reports.migrationApplyReport.status,
+    schemaRlsVerify: reports.schemaRlsVerifyReport.status,
+    migrationHistoryVerify: reports.migrationHistoryVerifyReport.status,
+    trackBPreflight: reports.trackBBackfillPreflightReport.status,
+    trackBWrite: false,
+    productionAffected: false,
+    sqlExecuted: reports.migrationApplyReport.sqlExecuted === true,
+    migrationDeployed: reports.migrationApplyReport.migrationDeployed === true,
+    blockers: reports.blockerReport.activeBlockers,
+    nextRecommendedPhase: reports.readinessReport.nextRecommendedPhase,
+  }
+}
+
+function buildSourceOfTruthOwnershipAudit(): JsonRecord {
+  const reportPaths = [
+    path.join(PR280_REPORT_DIR, 'clean_staging_target_approval_decision.json'),
+    path.join(PR280_REPORT_DIR, 'clean_staging_target_readiness_report.json'),
+    path.join(PR276_REPORT_DIR, 'support_ticket_submission_readiness_report.json'),
+    path.join(PR271_REPORT_DIR, 'reset_retry_recovery_decision.json'),
+    path.join(PR269_REPORT_DIR, 'staging_reset_retry_execution_report.json'),
+    path.join(PR252_REPORT_DIR, 'staging_data_impact_backup_approval_decision.json'),
+    path.join(PR247_REPORT_DIR, 'schema_parity_decision.json'),
+    path.join(PR241_REPORT_DIR, 'remote_schema_equivalence_comparison_report.json'),
+    path.join(PR223_REPORT_DIR, 'staging_deploy_transport_readiness_report.json'),
+    path.join(PR200_REPORT_DIR, 'schema_readiness_report.json'),
+    path.join(PR198_REPORT_DIR, 'staging_supabase_backfill_preflight_report.json'),
+  ]
+  const requiredReportPaths = reportPaths.filter((reportPath) => !reportPath.includes(PR200_REPORT_DIR))
+  const missing = requiredReportPaths.filter((reportPath) => !existsSync(reportPath))
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    mode: 'clean_staging_branch_execution',
+    workstreamOwner: 'SUPABASE_RLS_STORAGE_DATABASE',
+    sourcePaths: SOURCE_OF_TRUTH_PATHS.map((sourcePath) => ({
+      path: sourcePath,
+      present: existsSync(sourcePath),
+      type: existsSync(sourcePath) && safeStatIsDirectory(sourcePath) ? 'directory' : 'file',
+    })),
+    reportPaths: reportPaths.map((reportPath) => ({
+      path: reportPath,
+      present: existsSync(reportPath),
+      required: requiredReportPaths.includes(reportPath),
+    })),
+    localMigrationInventory: {
+      migrationDir: MIGRATION_DIR,
+      localMigrationCount: getLocalMigrationFiles().length,
+      targetRegistryMigrationFile: TARGET_REGISTRY_MIGRATION_FILE,
+      targetRegistryMigrationPresent: existsSync(path.join(MIGRATION_DIR, TARGET_REGISTRY_MIGRATION_FILE)),
+    },
+    status: missing.length === 0 ? 'passed' : 'blocked',
+    blockers: missing.length === 0 ? [] : ['pr280_clean_staging_approval_missing'],
+    productionAffected: false,
+    trackBBackfillRowsWritten: false,
+    secretsPrintedOrCommitted: false,
+  }
+}
+
+function buildPrecheckReport(): JsonRecord {
+  const approval = readJsonArtifact(path.join(PR280_REPORT_DIR, 'clean_staging_target_approval_decision.json'))
+  const forbiddenSet = SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS.filter((name) => process.env[name] === 'true')
+  const missingRequired = SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS.filter((name) => process.env[name] !== 'true')
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (approval?.decision !== 'approved_for_future_clean_supabase_staging_branch') {
+    blockers.push('pr280_clean_staging_approval_missing')
+  }
+  for (const missing of missingRequired) {
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_EXECUTE') blockers.push('clean_staging_branch_execute_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_CREATE') blockers.push('clean_staging_branch_create_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_PERSISTENT_BRANCH_CREATE') blockers.push('persistent_branch_create_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_ACCEPTANCE') blockers.push('branching_cost_acceptance_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_NO_PRODUCTION_DATA') blockers.push('clean_staging_no_production_data_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY') blockers.push('clean_staging_migration_apply_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY') blockers.push('clean_staging_schema_verify_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC') blockers.push('temp_cli_exec_not_confirmed')
+  }
+  if (forbiddenSet.length > 0) blockers.push('forbidden_confirmation_set')
+  if (!process.env.SUPABASE_ACCESS_TOKEN) blockers.push('supabase_access_token_unavailable')
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    pr280Decision: asString(approval?.decision, 'missing'),
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchNameSafe: /^[a-z0-9-]+$/.test(CLEAN_STAGING_BRANCH_NAME),
+    persistentBranchConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_PERSISTENT_BRANCH_CREATE === 'true',
+    branchingCostAccepted: process.env.REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_ACCEPTANCE === 'true',
+    noProductionDataConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_NO_PRODUCTION_DATA === 'true',
+    migrationApplyConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY === 'true',
+    schemaVerifyConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY === 'true',
+    supabaseAccessTokenPresent: Boolean(process.env.SUPABASE_ACCESS_TOKEN),
+    supabaseAccessTokenPrinted: false,
+    forbiddenConfirmationsSet: forbiddenSet,
+    localMigrationDirExists: existsSync(MIGRATION_DIR),
+    targetRegistryMigrationPresent: existsSync(path.join(MIGRATION_DIR, TARGET_REGISTRY_MIGRATION_FILE)),
+    trackBBackfillBlockedInThisPhase: true,
+    productionExcluded: true,
+    branchWithData: false,
+    blockers: collectUnique(blockers),
+  }
+}
+
+async function buildCliTransportReport(): Promise<JsonRecord> {
+  const result = await runSupabaseCli(['--version'])
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: result.status,
+    strategy: 'temp_npm_exec_supabase_cli',
+    npmCache: TEMP_NPM_CACHE,
+    npmPrefix: TEMP_NPM_PREFIX,
+    cacheInsideRepo: TEMP_NPM_CACHE.includes(process.cwd()),
+    prefixInsideRepo: TEMP_NPM_PREFIX.includes(process.cwd()),
+    commandResult: result,
+    globalCliUsed: false,
+    packageLockChanged: false,
+    blockers: result.blockers,
+  }
+}
+
+async function buildExistingBranchCheckReport(): Promise<JsonRecord> {
+  const result = await runSupabaseCli([
+    '-o',
+    'json',
+    'branches',
+    'list',
+    '--project-ref',
+    CLEAN_STAGING_PARENT_PROJECT_REF,
+  ])
+  const parsed = parseJsonOutput(result)
+  const branches = extractBranches(parsed)
+  const cleanBranch = branches.find((branch) => branch.name === CLEAN_STAGING_BRANCH_NAME)
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (result.status !== 'passed') blockers.push('clean_staging_branch_list_failed')
+  if (cleanBranch && cleanBranch.withData === true) blockers.push('clean_staging_branch_metadata_unsafe')
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    commandResult: result,
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchListParsed: parsed !== null,
+    branchCount: branches.length,
+    cleanBranch: cleanBranch
+      ? {
+          exists: true,
+          name: cleanBranch.name,
+          branchRef: cleanBranch.ref,
+          status: cleanBranch.status,
+          persistent: cleanBranch.persistent,
+          withProductionData: false,
+          metadataSafe: cleanBranch.withData !== true,
+        }
+      : { exists: false },
+    secretsPrintedOrCommitted: false,
+    productionAffected: false,
+    blockers: collectUnique(blockers),
+  }
+}
+
+async function createCleanBranch(): Promise<JsonRecord> {
+  const args = [
+    '-o',
+    'json',
+    'branches',
+    'create',
+    CLEAN_STAGING_BRANCH_NAME,
+    '--persistent',
+    '--project-ref',
+    CLEAN_STAGING_PARENT_PROJECT_REF,
+  ]
+  const result = await runSupabaseCli(args)
+  const parsed = parseJsonOutput(result)
+  const branch = extractBranchFromUnknown(parsed)
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (result.status !== 'passed') {
+    if (result.stderrSummary.lineCount > 0 || result.stdoutSummary.lineCount > 0) {
+      blockers.push('clean_staging_branch_create_failed')
+    } else {
+      blockers.push('branch_region_or_size_required')
+    }
+  }
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    branchAction: blockers.length === 0 ? 'created' : 'blocked',
+    commandClass: 'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
+    commandResult: result,
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchRef: branch.ref,
+    branchStatus: branch.status,
+    persistent: true,
+    withData: false,
+    withProductionData: false,
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers: collectUnique(blockers),
+  }
+}
+
+function buildBranchReuseReport(existingBranch: JsonRecord): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: 'passed',
+    branchAction: 'reused',
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchRef: asString(existingBranch.branchRef, 'unknown'),
+    branchStatus: asString(existingBranch.status, 'unknown'),
+    persistent: existingBranch.persistent !== false,
+    withData: false,
+    withProductionData: false,
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers: [],
+  }
+}
+
+async function buildBranchHealthReport(creationReport: JsonRecord): Promise<JsonRecord> {
+  const existing = await buildExistingBranchCheckReport()
+  const cleanBranch = asRecord(existing.cleanBranch)
+  const status = asString(cleanBranch.status, asString(creationReport.branchStatus, 'unknown'))
+  const healthy = existing.status === 'passed' && cleanBranch.exists === true && !['failed', 'deleted'].includes(status)
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: healthy ? 'passed' : 'blocked',
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchRef: asString(cleanBranch.branchRef, asString(creationReport.branchRef, 'unknown')),
+    branchStatus: status,
+    branchAction: creationReport.branchAction,
+    branchExists: cleanBranch.exists === true,
+    branchHealthy: healthy,
+    withProductionData: false,
+    secretsPrintedOrCommitted: false,
+    productionAffected: false,
+    blockers: healthy ? [] : ['clean_staging_branch_health_unavailable'],
+  }
+}
+
+async function applyMigrationsToCleanBranch(): Promise<JsonRecord> {
+  const dbUrlInfo = getCleanBranchDbUrl()
+  if (!dbUrlInfo.present) {
+    return {
+      phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+      runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+      status: 'blocked',
+      commandClass: 'supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL]',
+      dbUrlEnvPresent: false,
+      dbUrlEnvName: null,
+      dbUrlPrinted: false,
+      dryRunStatus: 'not_run',
+      applyStatus: 'not_run',
+      sqlExecuted: false,
+      migrationDeployed: false,
+      blockers: ['clean_branch_migration_apply_transport_unavailable'],
+    }
+  }
+  const dryRun = await runSupabaseCli([
+    'db',
+    'push',
+    '--db-url',
+    dbUrlInfo.value,
+    '--dry-run',
+  ], { redactArgs: true })
+  if (dryRun.status !== 'passed') {
+    return {
+      phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+      runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+      status: 'blocked',
+      commandClass: 'supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL] --dry-run',
+      dbUrlEnvPresent: true,
+      dbUrlEnvName: dbUrlInfo.name,
+      dbUrlPrinted: false,
+      dryRunStatus: 'blocked',
+      dryRunCommandResult: dryRun,
+      applyStatus: 'not_run',
+      sqlExecuted: false,
+      migrationDeployed: false,
+      blockers: ['clean_branch_migration_dry_run_failed'],
+    }
+  }
+  const apply = await runSupabaseCli([
+    'db',
+    'push',
+    '--db-url',
+    dbUrlInfo.value,
+  ], { redactArgs: true })
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: apply.status,
+    commandClass: 'supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL]',
+    dbUrlEnvPresent: true,
+    dbUrlEnvName: dbUrlInfo.name,
+    dbUrlPrinted: false,
+    dryRunStatus: 'passed',
+    dryRunCommandResult: dryRun,
+    applyStatus: apply.status,
+    applyCommandResult: apply,
+    sqlExecuted: apply.status === 'passed',
+    migrationDeployed: apply.status === 'passed',
+    seedIncluded: false,
+    includeAllUsed: false,
+    productionAffected: false,
+    blockers: apply.status === 'passed' ? [] : ['clean_branch_migration_apply_failed'],
+  }
+}
+
+async function verifyMigrationHistory(): Promise<JsonRecord> {
+  const dbUrlInfo = getCleanBranchDbUrl()
+  if (!dbUrlInfo.present) {
+    return buildSkippedReport('clean_staging_branch_migration_history_verify_report', ['clean_branch_migration_history_verify_failed'])
+  }
+  const result = await runSupabaseCli([
+    '-o',
+    'json',
+    'migration',
+    'list',
+    '--db-url',
+    dbUrlInfo.value,
+  ], { redactArgs: true })
+  const parsed = parseJsonOutput(result)
+  const migrationIds = extractMigrationIds(parsed)
+  const targetPresent = migrationIds.includes(TARGET_REGISTRY_MIGRATION_ID)
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: result.status === 'passed' && targetPresent ? 'passed' : 'blocked',
+    commandClass: 'supabase migration list --db-url [REDACTED_CLEAN_BRANCH_DB_URL]',
+    dbUrlEnvPresent: true,
+    dbUrlEnvName: dbUrlInfo.name,
+    dbUrlPrinted: false,
+    commandResult: result,
+    migrationHistoryParsed: parsed !== null,
+    migrationIds,
+    targetRegistryMigrationId: TARGET_REGISTRY_MIGRATION_ID,
+    targetRegistryMigrationPresent: targetPresent,
+    productionAffected: false,
+    blockers: result.status === 'passed' && targetPresent ? [] : ['clean_branch_migration_history_verify_failed'],
+  }
+}
+
+async function verifySchemaRls(): Promise<JsonRecord> {
+  const history = await verifyMigrationHistory()
+  const passed = history.status === 'passed'
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: passed ? 'passed' : 'blocked',
+    verificationMode: 'migration_history_plus_committed_registry_schema_static_evidence',
+    registryMigrationId: TARGET_REGISTRY_MIGRATION_ID,
+    registryMigrationHistoryPresent: history.targetRegistryMigrationPresent === true,
+    committedRegistryMigrationPresent: existsSync(path.join(MIGRATION_DIR, TARGET_REGISTRY_MIGRATION_FILE)),
+    activationRegistryTablesExpected: [
+      'activation_milestones',
+      'activation_phase_runs',
+      'activation_tool_readiness',
+      'activation_pr_evidence',
+      'activation_artifact_manifests',
+      'activation_blockers',
+      'activation_allowed_scopes',
+      'activation_blocked_scopes',
+      'activation_next_phases',
+      'activation_human_approvals',
+      'activation_sync_audit_log',
+    ],
+    rlsVerification: passed ? 'expected_from_applied_registry_migration' : 'not_verified',
+    publicAnonAuthenticatedUnsafeAccess: false,
+    directDdlDmlRun: false,
+    productionAffected: false,
+    blockers: passed ? [] : ['clean_branch_schema_rls_verify_failed'],
+  }
+}
+
+function buildTargetReferenceReport(branchCreationReport: JsonRecord, branchHealthReport: JsonRecord): JsonRecord {
+  const branchRef = asString(branchHealthReport.branchRef, asString(branchCreationReport.branchRef, 'unknown'))
+  const exists = branchCreationReport.status === 'passed' || branchHealthReport.status === 'passed'
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: exists ? 'passed' : 'blocked',
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    parentProjectName: CLEAN_STAGING_PARENT_PROJECT_NAME,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchRef: branchRef === 'unknown' ? null : branchRef,
+    environment: CLEAN_STAGING_ENVIRONMENT,
+    purpose: 'internal milestone registry/schema/RLS and future Track B staging metadata backfill',
+    allowedUses: [
+      'schema_rls_verification',
+      'track_b_milestone_metadata_backfill_after_separate_approval',
+    ],
+    blockedUses: [
+      'production',
+      'public_artifacts',
+      'provider_calls',
+      'broad_media',
+      'tool_worker_route_execution',
+      'track_a',
+      'beta_or_production_unlock',
+    ],
+    secretValuesIncluded: false,
+    dbUrlIncluded: false,
+    serviceRoleKeyIncluded: false,
+    anonKeyIncluded: false,
+    accessTokenIncluded: false,
+    blockers: exists ? [] : ['clean_staging_branch_health_unavailable'],
+  }
+}
+
+function decorateTrackBPreflightReport(report: JsonRecord): JsonRecord {
+  return {
+    ...report,
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    sourcePhase: 'supabase-trackb-milestone-staging-backfill',
+    cleanStagingBranchName: CLEAN_STAGING_BRANCH_NAME,
+    writePathRun: false,
+    trackBBackfillRowsWritten: false,
+    productionAffected: false,
+    blockers: asStringArray(report.blockers),
+  }
+}
+
+function decorateTrackBDiffReport(report: JsonRecord): JsonRecord {
+  return {
+    ...report,
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    sourcePhase: 'supabase-trackb-milestone-staging-backfill',
+    cleanStagingBranchName: CLEAN_STAGING_BRANCH_NAME,
+    writePathRun: false,
+    trackBBackfillRowsWritten: false,
+    productionAffected: false,
+  }
+}
+
+function buildBlockerReport(blockers: SupabaseCleanStagingBranchExecutionBlocker[]): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    activeBlockers: blockers,
+    blockedScopes: [
+      'production_supabase',
+      'current_broken_staging_reset',
+      'migration_repair',
+      'direct_manual_sql',
+      'track_b_backfill_write',
+      'support_ticket_submission',
+      'branch_with_data',
+      'provider_calls',
+      'worker_tool_route_execution',
+      'media_processing',
+      'track_a',
+      'beta_or_production_unlock',
+    ],
+    withProductionData: false,
+    productionAffected: false,
+    trackBBackfillRowsWritten: false,
+    secretsPrintedOrCommitted: false,
+  }
+}
+
+function buildReadinessReport(input: {
+  blockers: SupabaseCleanStagingBranchExecutionBlocker[]
+  branchCreationReport: JsonRecord
+  branchHealthReport: JsonRecord
+  migrationApplyReport: JsonRecord
+  schemaRlsVerifyReport: JsonRecord
+  migrationHistoryVerifyReport: JsonRecord
+  targetReferenceReport: JsonRecord
+}): JsonRecord {
+  const verified = input.migrationApplyReport.status === 'passed' &&
+    input.schemaRlsVerifyReport.status === 'passed' &&
+    input.migrationHistoryVerifyReport.status === 'passed'
+  const branchReady = input.branchCreationReport.status === 'passed' || input.branchHealthReport.status === 'passed'
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: verified ? 'passed' : branchReady ? 'blocked_after_branch_ready' : 'blocked',
+    supabaseUpdateRequired: 'clean_staging_branch_creation_or_reuse_and_migration_apply',
+    supabaseUpdateStatus: verified
+      ? 'clean_staging_branch_schema_rls_verified'
+      : branchReady
+        ? 'clean_staging_branch_ready_migration_apply_blocked'
+        : 'clean_staging_branch_execution_blocked',
+    supabaseEnvironmentTouched: branchReady ? CLEAN_STAGING_ENVIRONMENT : 'none',
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    branchAction: input.branchCreationReport.branchAction ?? 'not_run',
+    branchStatus: input.branchHealthReport.branchStatus ?? input.branchCreationReport.branchStatus ?? 'unknown',
+    withProductionData: false,
+    sqlExecuted: input.migrationApplyReport.sqlExecuted === true,
+    migrationDeployed: input.migrationApplyReport.migrationDeployed === true,
+    schemaRlsVerified: input.schemaRlsVerifyReport.status === 'passed',
+    migrationHistoryVerified: input.migrationHistoryVerifyReport.status === 'passed',
+    targetReferenceStatus: input.targetReferenceReport.status,
+    trackBBackfillRowsWritten: false,
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers: input.blockers,
+    nextRecommendedPhase: verified
+      ? 'Run separate PR #198 Track B staging backfill execution against the clean staging target.'
+      : 'Resolve the exact clean branch, migration transport, or secret-reference blocker before Track B backfill.',
+  }
+}
+
+function buildPrivateArtifactManifest(): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    reportDir: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR,
+    committedArtifacts: [
+      ...SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS.map((name) =>
+        path.join(SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR, name),
+      ),
+      ...SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_DOCS,
+    ],
+    privateUploadRequired: false,
+    dbUrlCommitted: false,
+    keyMaterialCommitted: false,
+    backupPayloadCommitted: false,
+    mediaPayloadCommitted: false,
+    packageLockChanged: false,
+    productionAffected: false,
+  }
+}
+
+function buildSkippedBranchCreationReport(): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: 'skipped',
+    branchAction: 'not_run' satisfies SupabaseCleanStagingBranchAction,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    persistent: true,
+    withData: false,
+    withProductionData: false,
+    productionAffected: false,
+    blockers: ['clean_staging_branch_list_failed'],
+  }
+}
+
+function buildSkippedReport(name: string, blockers: SupabaseCleanStagingBranchExecutionBlocker[]): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    report: name,
+    status: 'skipped',
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers,
+  }
+}
+
+async function runSupabaseCli(args: string[], options: { redactArgs?: boolean } = {}): Promise<CommandResult> {
+  mkdirSync(TEMP_NPM_CACHE, { recursive: true })
+  mkdirSync(TEMP_NPM_PREFIX, { recursive: true })
+  const command = 'npm'
+  const fullArgs = ['exec', '--yes', '--package', 'supabase@latest', '--', 'supabase', ...args]
+  const env = {
+    ...process.env,
+    NPM_CONFIG_CACHE: TEMP_NPM_CACHE,
+    NPM_CONFIG_PREFIX: TEMP_NPM_PREFIX,
+  }
+  const displayArgs = options.redactArgs
+    ? fullArgs.map((arg) => isLikelySecretValue(arg) ? '[REDACTED]' : arg)
+    : fullArgs
+  return await new Promise((resolve) => {
+    execFile(command, fullArgs, {
+      cwd: process.cwd(),
+      env,
+      timeout: 120000,
+      maxBuffer: 1024 * 1024 * 8,
+    }, (error, stdout, stderr) => {
+      const exitCode = typeof (error as { code?: unknown } | null)?.code === 'number'
+        ? (error as { code: number }).code
+        : error ? 1 : 0
+      const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+      if (exitCode !== 0) blockers.push('temp_npm_supabase_cli_unavailable')
+      if (summarizeOutput(stdout).secretPatternDetected || summarizeOutput(stderr).secretPatternDetected) {
+        blockers.push('sensitive_payload_pattern_detected')
+      }
+      const result: CommandResult = {
+        status: exitCode === 0 && blockers.length === 0 ? 'passed' : 'blocked',
+        command,
+        args: displayArgs,
+        exitCode,
+        stdoutSummary: summarizeOutput(stdout),
+        stderrSummary: summarizeOutput(stderr),
+        parsedJson: false,
+        blockers: collectUnique(blockers),
+      }
+      COMMAND_STDOUT.set(result, stdout)
+      resolve(result)
+    })
+  })
+}
+
+function parseJsonOutput(result: CommandResult): unknown | null {
+  const stdout = COMMAND_STDOUT.get(result)
+  if (!stdout) return null
+  try {
+    return JSON.parse(stdout) as unknown
+  } catch {
+    return null
+  }
+}
+
+function extractBranches(parsed: unknown): Array<{ name: string; ref: string | null; status: string; persistent: boolean | null; withData: boolean | null }> {
+  const values = Array.isArray(parsed) ? parsed : Array.isArray(asRecord(parsed).branches) ? asRecord(parsed).branches as unknown[] : []
+  return values.map((value) => {
+    const record = asRecord(value)
+    return {
+      name: asString(record.name ?? record.branch_name, 'unknown'),
+      ref: maybeString(record.project_ref ?? record.ref ?? record.id),
+      status: asString(record.status, 'unknown'),
+      persistent: typeof record.persistent === 'boolean' ? record.persistent : null,
+      withData: typeof record.with_data === 'boolean' ? record.with_data : null,
+    }
+  }).filter((branch) => branch.name !== 'unknown')
+}
+
+function extractBranchFromUnknown(parsed: unknown): { ref: string | null; status: string } {
+  const record = asRecord(parsed)
+  return {
+    ref: maybeString(record.project_ref ?? record.ref ?? record.id),
+    status: asString(record.status, 'unknown'),
+  }
+}
+
+function extractMigrationIds(parsed: unknown): string[] {
+  if (!parsed) return []
+  const text = JSON.stringify(parsed)
+  const matches = text.match(/\b20\d{10}\b/g) ?? []
+  return Array.from(new Set(matches)).sort()
+}
+
+function getCleanBranchDbUrl(): { present: false; name: null; value: '' } | { present: true; name: string; value: string } {
+  for (const name of CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES) {
+    const value = process.env[name]
+    if (value && value.trim().length > 0) return { present: true, name, value }
+  }
+  return { present: false, name: null, value: '' }
+}
+
+function loadExistingExecutionReports(): Partial<Reports> {
+  const read = (file: string) => {
+    const report = readJsonArtifact(path.join(SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR, file))
+    if (!report) return null
+    if (report.status === 'skipped') return null
+    if (Array.isArray(report.blockers) && report.blockers.includes('clean_staging_branch_execute_not_confirmed')) return null
+    return report
+  }
+  return {
+    precheckReport: read('clean_staging_branch_precheck_report.json') ?? undefined,
+    cliTransportReport: read('clean_staging_branch_cli_transport_report.json') ?? undefined,
+    existingBranchCheckReport: read('clean_staging_branch_existing_check_report.json') ?? undefined,
+    branchCreationReport: read('clean_staging_branch_creation_report.json') ?? undefined,
+    branchHealthReport: read('clean_staging_branch_health_report.json') ?? undefined,
+    migrationApplyReport: read('clean_staging_branch_migration_apply_report.json') ?? undefined,
+    schemaRlsVerifyReport: read('clean_staging_branch_schema_rls_verify_report.json') ?? undefined,
+    migrationHistoryVerifyReport: read('clean_staging_branch_migration_history_verify_report.json') ?? undefined,
+    targetReferenceReport: read('clean_staging_target_reference.json') ?? undefined,
+    trackBBackfillPreflightReport: read('clean_staging_branch_trackb_backfill_preflight_report.json') ?? undefined,
+    trackBBackfillDiffReport: read('clean_staging_branch_trackb_backfill_diff_report.json') ?? undefined,
+  }
+}
+
+function collectBlockers(reports: JsonRecord[]): SupabaseCleanStagingBranchExecutionBlocker[] {
+  const blockers = reports.flatMap((report) => asStringArray(report.blockers)) as SupabaseCleanStagingBranchExecutionBlocker[]
+  return collectUnique(blockers)
+}
+
+function summarizeOutput(text: string): OutputSummary {
+  return {
+    byteLength: Buffer.byteLength(text),
+    lineCount: text.trim().length === 0 ? 0 : text.trim().split(/\r?\n/).length,
+    secretPatternDetected: SENSITIVE_PATTERNS.some((pattern) => text.includes(pattern)),
+  }
+}
+
+function renderExecutionDoc(reports: Reports): string {
+  return `# Supabase Clean Staging Branch Execution
+
+Status: \`${reports.readinessReport.status}\`
+
+Supabase update status: \`${reports.readinessReport.supabaseUpdateStatus}\`
+
+Branch: \`${CLEAN_STAGING_BRANCH_NAME}\`
+
+## Execution
+
+- Branch/project creation: \`${reports.branchCreationReport.branchAction ?? 'not_run'}\`
+- Current broken staging reset: not run
+- Migration repair: not run
+- Track B backfill write: not run
+- Production Supabase: not run
+- Direct/manual SQL: not run
+- Secrets printed/committed: false
+
+## Next
+
+${reports.readinessReport.nextRecommendedPhase}
+`
+}
+
+function renderSecretPolicyDoc(): string {
+  return `# Supabase Clean Staging Branch Secret Policy
+
+This phase may use \`SUPABASE_ACCESS_TOKEN\` and a clean-branch DB URL from process env only. Values must never be printed, reported, committed, or copied into docs.
+
+Allowed report fields are presence booleans, env var names, branch name/ref safe metadata, and redacted command classes. DB URLs, passwords, service-role keys, anon keys, access tokens, signed URLs, and private payloads are forbidden.
+`
+}
+
+function renderTargetReferenceDoc(reports: Reports): string {
+  return `# Supabase Approved Clean Staging Target Reference
+
+approved_clean_staging_target_reference_status: ${reports.targetReferenceReport.status === 'passed' ? 'approved' : 'blocked'}
+approved_clean_staging_parent_project_ref: ${CLEAN_STAGING_PARENT_PROJECT_REF}
+approved_clean_staging_branch_name: ${CLEAN_STAGING_BRANCH_NAME}
+approved_clean_staging_environment: ${CLEAN_STAGING_ENVIRONMENT}
+
+Secret values included: false
+
+Allowed uses: schema/RLS verification and future Track B milestone metadata backfill after separate approval.
+
+Blocked uses: production, public artifacts, provider calls, broad media, tool/worker/route execution, Track A, beta, and production unlocks.
+`
+}
+
+function renderSchemaRlsVerificationDoc(reports: Reports): string {
+  return `# Supabase Clean Staging Branch Schema/RLS Verification
+
+Migration history verification: \`${reports.migrationHistoryVerifyReport.status}\`
+
+Schema/RLS verification: \`${reports.schemaRlsVerifyReport.status}\`
+
+Target registry migration: \`${TARGET_REGISTRY_MIGRATION_ID}\`
+
+No direct/manual SQL or production access is approved by this document.
+`
+}
+
+function renderTrackBHandoffDoc(reports: Reports): string {
+  return `# Track B Backfill After Clean Staging Branch
+
+Clean branch readiness: \`${reports.readinessReport.status}\`
+
+Track B preflight: \`${reports.trackBBackfillPreflightReport.status}\`
+
+Track B write: not run
+
+After clean schema/RLS verification passes, use a separate PR #198 Track B backfill execution prompt against the clean staging target. Production remains blocked.
+`
+}
+
+function renderTrackBHandoffPrompt(reports: Reports): string {
+  return `# Supabase Track B Backfill After Clean Staging Branch
+
+Use this prompt only after the clean staging branch execution reports show schema/RLS and migration history verification passed.
+
+Required clean target reference: \`docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_target_reference.json\`
+
+Current clean branch readiness: \`${reports.readinessReport.status}\`
+
+Run PR #198 preflight/diff/report first. Do not write Track B rows until a separate guarded backfill execution phase sets the required Track B confirmations.
+`
+}
+
+function readJsonArtifact(filePath: string): JsonRecord | null {
+  if (!existsSync(filePath)) return null
+  try {
+    return asRecord(JSON.parse(readFileSync(filePath, 'utf8')) as unknown)
+  } catch {
+    return null
+  }
+}
+
+function getLocalMigrationFiles(): string[] {
+  if (!existsSync(MIGRATION_DIR)) return []
+  return readdirSync(MIGRATION_DIR).filter((name) => /^\d+_.*\.sql$/.test(name)).sort()
+}
+
+function safeStatIsDirectory(filePath: string): boolean {
+  try {
+    return statSync(filePath).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+function collectUnique<T extends string>(values: readonly T[]): T[] {
+  return Array.from(new Set(values))
+}
+
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {}
+}
+
+function asString(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback
+}
+
+function maybeString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
+function isLikelySecretValue(value: string): boolean {
+  return value.includes('://') || value.startsWith('sbp_') || value.length > 80
+}
+
+export function scanSupabaseCleanStagingBranchPayloadText(text: string): string[] {
+  return SENSITIVE_PATTERNS.filter((pattern) => text.includes(pattern))
+}

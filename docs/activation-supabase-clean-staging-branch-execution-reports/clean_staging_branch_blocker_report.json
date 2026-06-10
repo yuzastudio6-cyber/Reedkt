@@ -1,0 +1,33 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "status": "blocked",
+  "activeBlockers": [
+    "supabase_access_token_unavailable",
+    "temp_npm_supabase_cli_unavailable",
+    "clean_staging_branch_list_failed",
+    "clean_staging_branch_health_unavailable",
+    "clean_branch_migration_apply_transport_unavailable",
+    "clean_branch_schema_rls_verify_failed",
+    "clean_branch_migration_history_verify_failed",
+    "staging_supabase_credentials_unavailable"
+  ],
+  "blockedScopes": [
+    "production_supabase",
+    "current_broken_staging_reset",
+    "migration_repair",
+    "direct_manual_sql",
+    "track_b_backfill_write",
+    "support_ticket_submission",
+    "branch_with_data",
+    "provider_calls",
+    "worker_tool_route_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ],
+  "withProductionData": false,
+  "productionAffected": false,
+  "trackBBackfillRowsWritten": false,
+  "secretsPrintedOrCommitted": false
+}

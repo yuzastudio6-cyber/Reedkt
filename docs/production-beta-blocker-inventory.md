@@ -313,3 +313,34 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Next recommended prompt: `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`.
+
+## TRACKA-GD-HANDOFF-5 Blocker Update
+
+Planning result: `controlled_private_sample_plan_ready_with_warnings`
+
+Decision state: `ready_with_warnings_for_tracka_gd_handoff_6`
+
+Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Current blockers retained:
+
+- controlled private sample execution approval now remains false;
+- future approved plan snapshot binding;
+- future private GCS path, manifest, checksum, and Supabase artifact row source-of-truth binding;
+- final render/export;
+- public artifacts;
+- uploads/storage transfer;
+- signed URLs;
+- worker/provider/model execution;
+- Supabase mutation and SQL;
+- GCP and Secret Manager access;
+- internal beta, external beta, production, and paid production.
+
+Production capability enabled: `none; Track A creative graphics controlled private sample planning only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next recommended prompt: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`.

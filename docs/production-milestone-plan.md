@@ -369,3 +369,32 @@ Prompt TRACKA-GD-HANDOFF-4: Private Preview QA Review.
 ## Next Milestone After TRACKA-GD-HANDOFF-4
 
 `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`; use `TRACKA-GD-HANDOFF-4A - Private Preview QA Fixes` only if QA evidence, diagnostics, or CI later fail.
+
+## TRACKA-GD-HANDOFF-5 Controlled Private Sample Planning
+
+Prompt TRACKA-GD-HANDOFF-5: Controlled Private Sample Planning.
+
+- Status: `controlled_private_sample_plan_ready_with_warnings`
+- Decision state: `ready_with_warnings_for_tracka_gd_handoff_6`
+- Capability: `none; Track A creative graphics controlled private sample planning only`
+- Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
+- Controlled private sample execution approved now: false
+- Internal beta: blocked
+- External beta: blocked
+- Production: blocked
+- Paid production: blocked
+- Final render/export: blocked
+- Public artifacts: blocked
+- Uploads/storage transfer: blocked
+- Signed URLs: blocked
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Track A controlled private sample execution remains blocked until Handoff-6.
+
+## Next Milestone After TRACKA-GD-HANDOFF-5
+
+`TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`; use `TRACKA-GD-HANDOFF-5A - Private Sample Planning Fixes` if planning diagnostics or CI fail.

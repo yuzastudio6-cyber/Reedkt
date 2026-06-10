@@ -21,6 +21,7 @@ on:
       - codex/rp-tracka-gd-handoff-3-controlled-private-preview-execution
       - codex/rp-tracka-gd-handoff-3a-source-artifact-preservation-fix
       - codex/rp-tracka-gd-handoff-3-retry-controlled-private-preview-execution
+      - codex/rp-tracka-gd-handoff-4-private-preview-qa-review
 
 jobs:
   foundation-validation:

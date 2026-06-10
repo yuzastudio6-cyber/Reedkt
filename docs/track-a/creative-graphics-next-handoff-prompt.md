@@ -245,6 +245,33 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-5 Next Prompt Update
+
+Planning result: `controlled_private_sample_plan_ready_with_warnings`
+
+Decision state: `ready_with_warnings_for_tracka_gd_handoff_6`
+
+Use `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution` next only when Track A is ready for a separately scoped local/private sample execution prompt.
+
+Accepted fixtures:
+
+- `satori_social_cards`
+- `d3_dataviz`
+- `echarts_dataviz`
+- `vega_lite_dataviz`
+- `viz_graphviz_diagrams`
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Blocked scope remains AI tool execution, fixture regeneration, final render/export, uploads, public artifacts, signed URLs, worker/provider/model execution, Supabase mutation, SQL, GCP, Secret Manager, and beta/production unlock.
+
+Production capability enabled: `none; Track A creative graphics controlled private sample planning only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 Use `TRACKA-GD-HANDOFF-4 - Private Preview QA Review` next. The retry verified the five accepted source artifacts and recorded local/private output summaries without final render/export, upload, signed URL creation, public artifact creation, worker/provider/model execution, Supabase mutation, SQL, GCP, or Secret Manager access.
 
 Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`

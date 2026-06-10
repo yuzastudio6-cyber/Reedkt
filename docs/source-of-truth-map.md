@@ -471,3 +471,31 @@ TRACKA-GD-HANDOFF-4 status terms:
 - SQL executed: `none`
 - Migration deployed: `no`
 - Next recommended prompt: `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`
+
+## TRACKA-GD-HANDOFF-5 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Controlled private sample plan | `docs/track-a/creative-graphics-controlled-private-sample-plan.md` |
+| Evidence lockfile | `docs/track-a/creative-graphics-controlled-private-sample-evidence-lockfile.md` |
+| Warning remediation | `docs/track-a/creative-graphics-controlled-private-sample-warning-remediation.md` |
+| Execution gate | `docs/track-a/creative-graphics-controlled-private-sample-execution-gate.md` |
+| QA/observability plan | `docs/track-a/creative-graphics-controlled-private-sample-qa-observability-plan.md` |
+| Cleanup/rollback plan | `docs/track-a/creative-graphics-controlled-private-sample-cleanup-rollback-plan.md` |
+| Next prompt guide | `docs/track-a/creative-graphics-controlled-private-sample-next-prompt.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-controlled-private-sample-plan-diagnostics.mjs` |
+| Validation results | `docs/prompt-tracka-gd-handoff-5-validation-results.md` |
+
+TRACKA-GD-HANDOFF-5 status terms:
+
+- Planning result: `controlled_private_sample_plan_ready_with_warnings`
+- Decision state: `ready_with_warnings_for_tracka_gd_handoff_6`
+- Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Production capability enabled: `none; Track A creative graphics controlled private sample planning only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Next recommended prompt: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`

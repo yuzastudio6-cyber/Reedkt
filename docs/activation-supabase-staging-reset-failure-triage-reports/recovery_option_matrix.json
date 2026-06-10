@@ -1,0 +1,61 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "decisionDefault": "recovery_path_manual_operator_review_required",
+  "riskClassification": "possible_partial_or_failed_staging_reset_requires_manual_review",
+  "resetAttemptedInPr259": true,
+  "stagingSqlMayHaveRun": true,
+  "options": [
+    {
+      "option": "retry_reset_after_fix",
+      "status": "not_approved",
+      "reason": "Exact reset failure cause is not proven and staging may have been partially touched.",
+      "requiresFutureApproval": true,
+      "resetRetryRunInThisPhase": false
+    },
+    {
+      "option": "restore_backup_then_retry",
+      "status": "not_approved",
+      "reason": "PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven.",
+      "requiresFutureApproval": true,
+      "restoreRunInThisPhase": false
+    },
+    {
+      "option": "ordered_migration_apply_without_reset",
+      "status": "not_approved",
+      "reason": "Would be a staging schema mutation and must be separately scoped, dry-run reviewed, and approved.",
+      "requiresFutureApproval": true,
+      "schemaDeployRunInThisPhase": false
+    },
+    {
+      "option": "manual_operator_review",
+      "status": "recommended_default",
+      "reason": "Failure reached the reset CLI and committed evidence does not prove a safe automated recovery action.",
+      "requiresFutureApproval": true,
+      "selected": true
+    },
+    {
+      "option": "supabase_support_or_cli_issue",
+      "status": "conditional",
+      "reason": "Use only if redacted logs or readonly evidence identifies a CLI/platform issue.",
+      "requiresFutureApproval": true
+    },
+    {
+      "option": "reject_due_staging_data_risk",
+      "status": "conditional",
+      "reason": "Use only if staging data/dependency review shows reset recovery is unacceptable.",
+      "requiresFutureApproval": true
+    }
+  ],
+  "resetRetryApproved": false,
+  "restoreApproved": false,
+  "orderedMigrationApplyApproved": false,
+  "migrationRepairApproved": false,
+  "trackBBackfillApproved": false,
+  "productionAffected": false,
+  "blockers": [
+    "manual_operator_review_required",
+    "future_recovery_execution_approval_required"
+  ]
+}

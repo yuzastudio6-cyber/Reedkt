@@ -1,0 +1,15 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "not_attempted",
+  "inspectionPerformed": false,
+  "reason": "readonly_staging_inspection_optional_and_not_requested_for_default_reports",
+  "dbUrlEnvPresent": false,
+  "dbUrlValuePrinted": false,
+  "credentialPayloadsPrinted": false,
+  "secretPayloadPrinted": false,
+  "productionTouched": false,
+  "directDdlDmlRun": false,
+  "mutationRun": false,
+  "blockers": []
+}

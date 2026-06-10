@@ -1,0 +1,45 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "activeBlockers": [
+    "staging_reset_failed",
+    "staging_sql_may_have_run",
+    "reset_failure_cause_not_proven",
+    "staging_post_reset_migration_history_verify_failed",
+    "registry_migration_not_applied",
+    "staging_post_reset_schema_rls_verify_failed",
+    "registry_schema_absent_after_failed_reset",
+    "manual_operator_review_required",
+    "future_recovery_execution_approval_required"
+  ],
+  "expectedSafeBlockers": [
+    "staging_reset_failed",
+    "staging_sql_may_have_run",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed",
+    "registry_migration_not_applied",
+    "registry_schema_absent_after_failed_reset",
+    "manual_operator_review_required",
+    "future_recovery_execution_approval_required"
+  ],
+  "stillBlockedScopes": [
+    "staging_reset_retry",
+    "schema_deploy",
+    "migration_repair",
+    "track_b_backfill_write",
+    "production_supabase",
+    "direct_manual_sql",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "track_a",
+    "beta_unlock",
+    "production_unlock"
+  ],
+  "resetRetryAllowed": false,
+  "recoveryExecutionAllowed": false,
+  "productionAffected": false
+}

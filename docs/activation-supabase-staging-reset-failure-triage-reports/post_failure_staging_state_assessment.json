@@ -1,0 +1,37 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "source": "committed_pr259_reports_plus_optional_readonly_inspection",
+  "resetAttempted": true,
+  "resetPerformed": false,
+  "stagingSqlMayHaveRun": true,
+  "migrationHistoryVerified": false,
+  "registryMigrationApplied": false,
+  "registryTablesFound": 0,
+  "registryTablesMissing": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "optionalReadonlyInspectionStatus": "not_attempted",
+  "optionalReadonlyInspectionPerformed": false,
+  "stateConfidence": "medium_low_from_committed_pr259_post_verify_only",
+  "clearForFurtherMutation": false,
+  "mutationBlockReason": "staging reset reached the CLI, failed, and registry schema remains absent; recovery requires separate human review",
+  "productionAffected": false,
+  "blockers": [
+    "staging_reset_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed",
+    "manual_operator_review_required"
+  ]
+}

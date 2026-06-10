@@ -1,0 +1,95 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "passed",
+  "pr259": {
+    "resetExecutionReportPresent": true,
+    "postVerifyReportPresent": true,
+    "schemaRlsVerifyReportPresent": true,
+    "backupExportReportPresent": true,
+    "resetStatus": "blocked",
+    "resetAttempted": true,
+    "resetPerformed": false,
+    "stagingSqlMayHaveRun": true,
+    "resetCommandExitCode": 1,
+    "resetErrorCategory": "command_failed",
+    "resetCommandStdoutSecretPatternDetected": false,
+    "resetCommandStderrSecretPatternDetected": false,
+    "migrationHistoryVerified": false,
+    "schemaRlsVerified": false,
+    "registryMigrationApplied": false,
+    "registryTablesFound": 0,
+    "activeBlockers": [
+      "staging_reset_execute_not_confirmed",
+      "staging_db_reset_not_confirmed",
+      "staging_owner_data_loss_acceptance_not_confirmed",
+      "staging_backup_snapshot_packet_not_confirmed",
+      "staging_schema_mutation_not_confirmed",
+      "staging_reset_failed",
+      "staging_post_reset_migration_history_verify_failed",
+      "staging_post_reset_schema_rls_verify_failed"
+    ],
+    "readinessStatus": "blocked"
+  },
+  "upstreamEvidence": {
+    "pr252Decision": {
+      "path": "docs/activation-supabase-staging-data-impact-backup-reports/staging_data_impact_backup_approval_decision.json",
+      "present": true,
+      "status": "approved_for_future_execution_only",
+      "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+      "blockers": []
+    },
+    "pr248Decision": {
+      "path": "docs/activation-supabase-staging-reset-approval-reports/staging_reset_approval_decision.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "blocked_pending_staging_data_impact_review",
+      "blockers": []
+    },
+    "pr247Decision": {
+      "path": "docs/activation-supabase-schema-parity-remediation-reports/schema_parity_decision.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "blocked_pending_staging_reset_approval",
+      "blockers": []
+    },
+    "pr241Equivalence": {
+      "path": "docs/activation-supabase-remote-schema-equivalence-reports/migration_history_repair_approval_after_equivalence_review.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "blocked_pending_remote_history_evidence",
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    "pr223Transport": {
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_readiness_report.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "missing",
+      "blockers": [
+        "staging_schema_dry_run_failed",
+        "blocked_pending_migration_history_repair_approval",
+        "staging_schema_deploy_not_run",
+        "staging_schema_verification_not_run",
+        "staging_rls_verification_failed"
+      ]
+    },
+    "pr198Backfill": {
+      "path": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "missing",
+      "blockers": [
+        "staging_supabase_credentials_unavailable"
+      ]
+    }
+  },
+  "safeMetadataOnly": true,
+  "resetRetryRun": false,
+  "schemaDeployRun": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "blockers": []
+}

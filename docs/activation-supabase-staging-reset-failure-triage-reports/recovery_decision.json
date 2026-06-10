@@ -1,0 +1,33 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "decision": "recovery_path_manual_operator_review_required",
+  "approvalStatus": "not_approved_for_recovery_execution",
+  "recoveryExecutionAllowedInThisPhase": false,
+  "resetRetryApproved": false,
+  "restoreApproved": false,
+  "orderedMigrationApplyApproved": false,
+  "migrationRepairApproved": false,
+  "schemaDeployApproved": false,
+  "trackBBackfillApproved": false,
+  "productionApproved": false,
+  "selectedRecommendation": "manual_operator_review_before_any_recovery_mutation",
+  "partialResetRisk": "medium_high",
+  "requiredBeforeFutureRecovery": [
+    "redacted reset failure log review",
+    "operator confirmation of staging state after failed reset",
+    "backup/restore sufficiency review",
+    "separate human approval for exact recovery action",
+    "post-recovery migration history and schema/RLS verification"
+  ],
+  "sqlExecutedInThisPhase": false,
+  "stagingMutationInThisPhase": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "manual_operator_review_required",
+    "future_recovery_execution_approval_required"
+  ]
+}

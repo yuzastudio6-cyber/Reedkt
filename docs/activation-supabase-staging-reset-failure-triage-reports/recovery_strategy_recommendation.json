@@ -1,0 +1,47 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "selectedRecommendation": "manual_operator_review_before_any_recovery_mutation",
+  "decision": "recovery_path_manual_operator_review_required",
+  "rationale": [
+    "PR #259 reset failed after reaching the Supabase CLI.",
+    "Committed post-failure verification shows registry migration and registry tables are still absent.",
+    "The PR #259 backup exists only as private temp metadata backup and is not committed.",
+    "No future reset retry, restore, ordered apply, or migration repair is safe without a separate approval phase."
+  ],
+  "nextRecommendedPhase": "Human-approved staging reset recovery execution packet after operator review of safe failure logs, backup sufficiency, and target state.",
+  "rejectedAutomaticOptions": [
+    {
+      "option": "retry_reset_after_fix",
+      "status": "not_approved",
+      "reason": "Exact reset failure cause is not proven and staging may have been partially touched.",
+      "requiresFutureApproval": true,
+      "resetRetryRunInThisPhase": false
+    },
+    {
+      "option": "restore_backup_then_retry",
+      "status": "not_approved",
+      "reason": "PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven.",
+      "requiresFutureApproval": true,
+      "restoreRunInThisPhase": false
+    },
+    {
+      "option": "ordered_migration_apply_without_reset",
+      "status": "not_approved",
+      "reason": "Would be a staging schema mutation and must be separately scoped, dry-run reviewed, and approved.",
+      "requiresFutureApproval": true,
+      "schemaDeployRunInThisPhase": false
+    }
+  ],
+  "partialResetRisk": "medium_high",
+  "resetRetryRun": false,
+  "schemaDeployRun": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "blockers": [
+    "manual_operator_review_required",
+    "future_recovery_execution_approval_required"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "phase": "supabase-clean-staging-target-approval",
+  "runId": "supabase-clean-staging-target-approval-20260610",
+  "reportDir": "docs/activation-supabase-clean-staging-target-approval-reports",
+  "committedArtifacts": [
+    "docs/activation-supabase-clean-staging-target-approval-reports/source_of_truth_ownership_audit.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_approval_plan.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_evidence_inventory.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_option_matrix.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_cost_risk_review.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_secret_reference_plan.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_migration_and_backfill_plan.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_operator_checklist.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_approval_decision.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_blocker_report.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_readiness_report.json",
+    "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_private_artifact_manifest.json",
+    "docs/supabase-clean-staging-target-approval-decision.md",
+    "docs/supabase-clean-staging-target-operator-checklist.md",
+    "docs/implementation-prompts/prompt-supabase-clean-staging-target-execution.md"
+  ],
+  "privateUploadRequired": false,
+  "privateDataPayloadsCommitted": false,
+  "dbUrlCommitted": false,
+  "keyMaterialCommitted": false,
+  "backupPayloadCommitted": false,
+  "mediaPayloadCommitted": false,
+  "branchOrProjectCreated": false,
+  "productionAffected": false
+}

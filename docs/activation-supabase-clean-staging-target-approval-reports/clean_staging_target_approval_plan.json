@@ -1,0 +1,103 @@
+{
+  "phase": "supabase-clean-staging-target-approval",
+  "runId": "supabase-clean-staging-target-approval-20260610",
+  "branch": "codex/rp-foundation-supabase-clean-staging-target-approval",
+  "baseBranch": "codex/rp-foundation-supabase-support-ticket-submission",
+  "prTitle": "[foundation] Supabase clean staging target approval",
+  "worktree": "/private/tmp/reeditpro-supabase-clean-staging-target-approval",
+  "reportDir": "docs/activation-supabase-clean-staging-target-approval-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "clean_staging_target_approval_plan.json",
+    "clean_staging_evidence_inventory.json",
+    "clean_staging_option_matrix.json",
+    "clean_staging_cost_risk_review.json",
+    "clean_staging_secret_reference_plan.json",
+    "clean_staging_migration_and_backfill_plan.json",
+    "clean_staging_operator_checklist.json",
+    "clean_staging_target_approval_decision.json",
+    "clean_staging_target_blocker_report.json",
+    "clean_staging_target_readiness_report.json",
+    "clean_staging_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-clean-staging-target-approval-decision.md",
+    "docs/supabase-clean-staging-target-operator-checklist.md",
+    "docs/implementation-prompts/prompt-supabase-clean-staging-target-execution.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePrs": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    252,
+    269,
+    271,
+    274,
+    276
+  ],
+  "docsBasis": {
+    "supabaseCliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "supabaseDatabaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "supabaseChangelog": "https://supabase.com/changelog",
+    "checkedAt": "2026-06-10",
+    "branchOrProjectCreationApprovedInThisPhase": false
+  },
+  "approvedCurrentStagingTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "allowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_TARGET_APPROVAL_PACKET",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_REPLACEMENT_REVIEW"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCH_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_PROJECT_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_PUSH",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SUPABASE_CLI_CREATE_TICKET",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "preferredDecision": "approved_for_future_clean_supabase_staging_branch",
+  "fallbackDecision": "approved_for_future_clean_supabase_staging_project",
+  "allowedActions": [
+    "read_committed_safe_reports",
+    "compare_clean_staging_options",
+    "record_future_execution_gates",
+    "write_safe_reports_and_docs"
+  ],
+  "blockedActions": [
+    "supabase_branch_creation",
+    "supabase_project_creation",
+    "staging_reset",
+    "schema_migration_deploy",
+    "migration_history_repair",
+    "direct_sql_or_ddl_dml",
+    "track_b_backfill_write",
+    "support_ticket_submission",
+    "production_supabase",
+    "secret_payload_access_or_printing",
+    "provider_calls",
+    "route_tool_worker_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ]
+}

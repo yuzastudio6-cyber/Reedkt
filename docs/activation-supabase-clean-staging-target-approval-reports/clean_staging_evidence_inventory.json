@@ -1,0 +1,81 @@
+{
+  "phase": "supabase-clean-staging-target-approval",
+  "runId": "supabase-clean-staging-target-approval-20260610",
+  "status": "passed",
+  "approvedCurrentStagingTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "pr276": {
+    "supportTicketSubmissionPath": "docs/activation-supabase-support-ticket-submission-reports/support_ticket_submission_readiness_report.json",
+    "decision": "support_ticket_ready_for_manual_operator_submission",
+    "status": "ready_for_manual_operator_submission",
+    "supportTicketSubmitted": false,
+    "supportPacketEvidenceStatus": "passed"
+  },
+  "pr274": {
+    "decisionPath": "docs/activation-supabase-support-escalation-approval-reports/support_escalation_approval_decision.json",
+    "decision": "approved_for_future_manual_supabase_support_ticket",
+    "approvalStatus": "future_manual_support_ticket_approved_not_submitted",
+    "supportTicketSubmitted": false
+  },
+  "pr271": {
+    "diagnosticsDecision": "recovery_path_supabase_support_packet",
+    "stagingSqlMayHaveRun": true
+  },
+  "pr269": {
+    "resetRetryStatus": "blocked",
+    "resetAttempted": true,
+    "stagingSqlMayHaveRun": true,
+    "selectedStrategy": "temp_npm_exec_supabase_cli"
+  },
+  "pr252": {
+    "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+    "approvalStatus": "future_reset_reapply_approved_not_executed",
+    "currentStagingDataNotRequiredForInternalTesting": true
+  },
+  "pr247": {
+    "decision": "blocked_pending_staging_reset_approval",
+    "selectedStrategy": "staging_reset_and_reapply_migrations"
+  },
+  "pr241": {
+    "overallEquivalence": "not_equivalent",
+    "remoteIntrospectionStatus": "passed",
+    "missingMigrationCount": 12,
+    "equivalentMigrationCount": 1,
+    "notEquivalentMigrationCount": 11,
+    "repairDecision": "blocked_pending_remote_history_evidence"
+  },
+  "pr223": {
+    "transportStatus": "blocked",
+    "nextRecommendedPhase": "Open a separate migration-history repair approval packet before any deploy retry.",
+    "blockers": [
+      "staging_schema_dry_run_failed",
+      "blocked_pending_migration_history_repair_approval",
+      "staging_schema_deploy_not_run",
+      "staging_schema_verification_not_run",
+      "staging_rls_verification_failed"
+    ]
+  },
+  "pr198": {
+    "preflightStatus": "blocked",
+    "blockers": [
+      "staging_supabase_credentials_unavailable"
+    ],
+    "trackBBackfillRowsWritten": false
+  },
+  "currentStagingRepairUnsafe": true,
+  "currentStagingDataNotRequiredForInternalTesting": true,
+  "productionExclusionPreserved": true,
+  "trackBBackfillSeparate": true,
+  "branchOrProjectCreated": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "supportTicketSubmitted": false,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

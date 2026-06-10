@@ -325,3 +325,16 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+## TRACKA-GD-HANDOFF-6 Next Handoff
+
+Handoff-6 result: `controlled_private_sample_passed_with_warnings`.
+
+Next recommended prompt: `TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review`.
+
+Use `TRACKA-GD-HANDOFF-6A - Controlled Private Sample Fixes` if validation or review finds missing controlled sample evidence, checksum mismatch, unsafe claims, or incomplete warning disposition.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

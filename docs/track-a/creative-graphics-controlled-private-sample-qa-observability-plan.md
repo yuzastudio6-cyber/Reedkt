@@ -57,3 +57,15 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-6 Evidence Collected
+
+Handoff-6 created:
+
+- `docs/track-a/creative-graphics-controlled-private-sample-qa-evidence.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-observability-evidence.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-cleanup-evidence.md`
+
+Sample result: `controlled_private_sample_passed_with_warnings`
+
+The warning set remains open for Handoff-7 review.

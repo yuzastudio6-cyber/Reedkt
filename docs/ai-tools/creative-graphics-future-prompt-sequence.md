@@ -232,3 +232,18 @@ Next prompt: `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`.
 - Migration deployed: `no`
 
 Next prompt: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`.
+## TRACKA-GD-HANDOFF-6 Sequence Addendum
+
+Completed sequence state:
+
+`generated_local_fixture_partially_passed` -> `source_artifacts_preserved` -> `private_preview_local_passed` -> `private_preview_qa_passed_with_warnings` -> `controlled_private_sample_passed_with_warnings`
+
+Next recommended prompt: `TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review`.
+
+Use `TRACKA-GD-HANDOFF-6A - Controlled Private Sample Fixes` only if Handoff-6 diagnostics, validation, or evidence review finds a blocker.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

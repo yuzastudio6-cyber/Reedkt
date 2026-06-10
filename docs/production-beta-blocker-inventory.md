@@ -344,3 +344,32 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Next recommended prompt: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`.
+## TRACKA-GD-HANDOFF-6 Blocker Inventory Addendum
+
+Resolved for local/private Track A sample evidence:
+
+- `controlled_private_sample_passed_with_warnings` for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+
+Still blocked:
+
+- internal beta readiness review;
+- external beta;
+- production;
+- paid production;
+- final delivery renderer/exporter gate;
+- public artifact gate;
+- signed URL gate;
+- upload/storage transfer gate;
+- Supabase mutation and SQL;
+- worker execution;
+- provider/model calls;
+- Group B and Group C creative graphics tools;
+- resvg rasterization.
+
+Next recommended prompt: `TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

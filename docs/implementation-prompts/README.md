@@ -23,6 +23,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | TRACKA-GD-HANDOFF-3-Retry - Controlled Private Preview Execution | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-3-retry-controlled-private-preview-execution` | [#281](https://github.com/yuzastudio6-cyber/Reedkt/pull/281) | `none; controlled local/private Track A preview execution only if executed` |
 | TRACKA-GD-HANDOFF-4 - Private Preview QA Review | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-4-private-preview-qa-review` | [#285](https://github.com/yuzastudio6-cyber/Reedkt/pull/285) | `none; Track A creative graphics private preview QA review only` |
 | TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning | implemented_local_validation_passed | `codex/rp-tracka-gd-handoff-5-controlled-private-sample-planning` | [PR #288](https://github.com/yuzastudio6-cyber/Reedkt/pull/288) | `none; Track A creative graphics controlled private sample planning only` |
+| TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution | implemented_pending_validation | `codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution` | [PR #291](https://github.com/yuzastudio6-cyber/Reedkt/pull/291) | `none; Track A creative graphics controlled private sample execution only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -133,3 +134,11 @@ TRACKA-GD-HANDOFF-5 planning result: `controlled_private_sample_plan_ready_with_
 TRACKA-GD-HANDOFF-5 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
 
 Next recommended prompt after TRACKA-GD-HANDOFF-5: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`.
+
+TRACKA-GD-HANDOFF-6 sample result: `controlled_private_sample_passed_with_warnings`. Runtime unlock status: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed / private_preview_qa_passed_with_warnings / controlled_private_sample_passed_with_warnings`.
+
+TRACKA-GD-HANDOFF-6 accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`. Excluded fixtures/tools remain `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, and `three_js_visuals`.
+
+TRACKA-GD-HANDOFF-6 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
+
+Next recommended prompt after TRACKA-GD-HANDOFF-6: `TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review`.

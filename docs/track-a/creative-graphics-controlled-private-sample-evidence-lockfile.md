@@ -46,3 +46,13 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-6 Lockfile Addendum
+
+Handoff-6 consumed this lockfile and verified all five accepted source SVGs before local/private sample composition.
+
+Sample result: `controlled_private_sample_passed_with_warnings`
+
+Local sample run ID: `tracka-gd-handoff-6-2026-06-10T21-32-06-022Z`
+
+Local output evidence remains ignored under `.local-artifacts/track-a/gd-controlled-private-sample/tracka-gd-handoff-6-2026-06-10T21-32-06-022Z`. Committed evidence summaries are in the Handoff-6 Track A docs.

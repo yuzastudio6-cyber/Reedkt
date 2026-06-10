@@ -58,3 +58,11 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-6 Gate Outcome
+
+Handoff-6 result: `controlled_private_sample_passed_with_warnings`
+
+The Handoff-6 local/private sample gate was used only for controlled sample evidence. It did not approve internal beta, external beta, production, public artifact creation, signed URL delivery, storage upload, Supabase mutation, worker execution, provider/model calls, or final delivery renderer/exporter work.
+
+Next allowed prompt: `TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review`.

@@ -398,3 +398,16 @@ Prompt TRACKA-GD-HANDOFF-5: Controlled Private Sample Planning.
 ## Next Milestone After TRACKA-GD-HANDOFF-5
 
 `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`; use `TRACKA-GD-HANDOFF-5A - Private Sample Planning Fixes` if planning diagnostics or CI fail.
+## TRACKA-GD-HANDOFF-6 Milestone Note
+
+TRACKA-GD-HANDOFF-6 records `controlled_private_sample_passed_with_warnings` for the five accepted creative graphics fixtures.
+
+The milestone advances Track A local/private sample evidence only. Internal beta, external beta, production, paid production, public delivery, signed URL delivery, storage upload, Supabase mutation, worker execution, provider/model calls, broad media, and final delivery renderer/exporter work remain blocked.
+
+Next recommended milestone: `TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

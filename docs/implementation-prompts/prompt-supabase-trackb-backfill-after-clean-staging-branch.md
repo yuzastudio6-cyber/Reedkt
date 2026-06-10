@@ -4,9 +4,13 @@ Use this prompt only after the clean staging branch execution reports show schem
 
 Required clean target reference: `docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_target_reference.json`
 
-Current clean branch readiness: `blocked_after_branch_ready`
+Current clean branch readiness: `passed`
 
-Current migration transport: `blocked`
+Current migration transport: `passed`
+
+Current migration apply: `passed`
+
+Current schema/RLS verification: `passed`
 
 Current branch create diagnostics: `none`
 

@@ -1,10 +1,12 @@
 # Supabase Clean Staging Branch Execution
 
-Status: `blocked_after_branch_ready`
+Status: `passed`
 
-Supabase update status: `clean_staging_branch_ready_migration_apply_blocked`
+Supabase update status: `clean_staging_branch_schema_rls_verified`
 
 Branch: `reeditpro-internal-staging-clean`
+
+Clean branch project ref: `fnjiylwirntrqdcwpbho`
 
 ## Execution
 
@@ -17,7 +19,12 @@ Branch: `reeditpro-internal-staging-clean`
 - Org plan evidence: `Pro`
 - Access-token secret discovery: `passed`
 - Access-token injection: `passed`
-- Migration transport: `blocked`
+- Migration transport: `passed`
+- Milestone registry migration precheck: `passed`
+- Milestone registry migration apply: `passed`
+- Migration history verification: `passed`
+- Schema/RLS verification: `passed`
+- Migration apply path: `_apply_migration`
 - Current broken staging reset: not run
 - Migration repair: not run
 - Track B backfill write: not run
@@ -27,4 +34,4 @@ Branch: `reeditpro-internal-staging-clean`
 
 ## Next
 
-Resolve the exact clean branch, migration transport, or secret-reference blocker before Track B backfill.
+Run separate PR #198 Track B staging backfill execution against the clean staging target.

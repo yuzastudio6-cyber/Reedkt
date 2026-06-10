@@ -7,6 +7,8 @@
   "branchName": "reeditpro-internal-staging-clean",
   "branchRef": "fnjiylwirntrqdcwpbho",
   "environment": "clean_staging",
+  "migrationRegistryStatus": "passed",
+  "schemaRlsVerificationStatus": "passed",
   "purpose": "internal milestone registry/schema/RLS and future Track B staging metadata backfill",
   "allowedUses": [
     "schema_rls_verification",

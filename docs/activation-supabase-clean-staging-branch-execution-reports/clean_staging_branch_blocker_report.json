@@ -3,10 +3,8 @@
   "runId": "supabase-clean-staging-branch-execution-20260610",
   "status": "blocked",
   "activeBlockers": [
-    "clean_branch_migration_apply_transport_unavailable",
-    "clean_branch_schema_rls_verify_failed",
-    "clean_branch_migration_history_verify_failed",
-    "staging_supabase_credentials_unavailable"
+    "staging_supabase_credentials_unavailable",
+    "trackb_backfill_clean_branch_target_not_wired"
   ],
   "blockedScopes": [
     "production_supabase",

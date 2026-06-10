@@ -18,6 +18,7 @@
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_create_retry_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_health_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_migration_transport_report.json",
+    "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_migration_apply_precheck_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_secret_reference_plan.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_migration_apply_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_schema_rls_verify_report.json",

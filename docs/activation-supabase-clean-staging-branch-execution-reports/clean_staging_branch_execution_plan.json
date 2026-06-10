@@ -22,6 +22,7 @@
     "clean_staging_branch_create_retry_report.json",
     "clean_staging_branch_health_report.json",
     "clean_staging_branch_migration_transport_report.json",
+    "clean_staging_branch_migration_apply_precheck_report.json",
     "clean_staging_branch_secret_reference_plan.json",
     "clean_staging_branch_migration_apply_report.json",
     "clean_staging_branch_schema_rls_verify_report.json",
@@ -80,6 +81,7 @@
     "parentProjectName": "Reeditpro",
     "parentProjectRef": "wmyyttnynmteqgcdishd",
     "branchName": "reeditpro-internal-staging-clean",
+    "branchProjectRef": "fnjiylwirntrqdcwpbho",
     "environment": "clean_staging",
     "persistent": true,
     "withProductionData": false,
@@ -126,7 +128,10 @@
     "supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF] [OPTIONAL_SAFE_REGION_SIZE_FLAGS]",
     "supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL] --dry-run",
     "supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL]",
-    "supabase migration list --db-url [REDACTED_CLEAN_BRANCH_DB_URL]"
+    "supabase migration list --db-url [REDACTED_CLEAN_BRANCH_DB_URL]",
+    "supabase plugin _list_migrations --project-id [CLEAN_BRANCH_PROJECT_REF]",
+    "supabase plugin _apply_migration --project-id [CLEAN_BRANCH_PROJECT_REF] --name activation_milestone_registry_schema_rls",
+    "supabase plugin _execute_sql read-only catalog verification"
   ],
   "blockedCommandClasses": [
     "supabase branches create with production data clone",

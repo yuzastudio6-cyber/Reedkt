@@ -1,8 +1,12 @@
 # Supabase Clean Staging Branch Schema/RLS Verification
 
-Migration history verification: `skipped`
+Migration history verification: `passed`
 
-Schema/RLS verification: `blocked`
+Schema/RLS verification: `passed`
+
+Migration apply precheck: `passed`
+
+Migration apply: `passed`
 
 Target registry migration: `202606050001`
 

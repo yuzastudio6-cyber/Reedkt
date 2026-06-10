@@ -1,10 +1,13 @@
 {
   "phase": "supabase-clean-staging-branch-execution",
   "runId": "supabase-clean-staging-branch-execution-20260610",
-  "status": "blocked",
-  "verificationMode": "migration_history_plus_committed_registry_schema_static_evidence",
+  "status": "passed",
+  "verificationMode": "supabase_plugin_readonly_catalog_queries",
+  "targetProjectRef": "fnjiylwirntrqdcwpbho",
+  "branchName": "reeditpro-internal-staging-clean",
+  "branchProjectRef": "fnjiylwirntrqdcwpbho",
   "registryMigrationId": "202606050001",
-  "registryMigrationHistoryPresent": false,
+  "registryMigrationHistoryPresent": true,
   "committedRegistryMigrationPresent": true,
   "activationRegistryTablesExpected": [
     "activation_milestones",
@@ -19,11 +22,16 @@
     "activation_human_approvals",
     "activation_sync_audit_log"
   ],
-  "rlsVerification": "not_verified",
+  "activationRegistryTableCount": 11,
+  "activationRegistryTablesPresent": true,
+  "expectedKeyColumnsVerified": true,
+  "rlsVerification": "passed_readonly_catalog",
+  "rlsEnabledOnRegistryTables": true,
   "publicAnonAuthenticatedUnsafeAccess": false,
   "directDdlDmlRun": false,
+  "pluginExecuteSqlReadOnlyCatalogOnly": true,
+  "trackBBackfillRowsWritten": false,
   "productionAffected": false,
-  "blockers": [
-    "clean_branch_schema_rls_verify_failed"
-  ]
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
 }

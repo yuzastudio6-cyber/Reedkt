@@ -77,6 +77,10 @@ assert(reports.branchCreateRetryStrategyReport.dataCloneAllowed === false, 'Bran
 assert(reports.branchCreateRetryReport.withData === false, 'Branch retry report must record withData=false.')
 assert(reports.branchCreationReport.productionAffected === false, 'Production must not be affected.')
 assert(reports.migrationApplyReport.productionAffected !== true, 'Migration apply must not affect production.')
+assert(reports.migrationApplyPrecheckReport.withData === false, 'Migration apply precheck must preserve data-less branch target.')
+assert(reports.migrationApplyPrecheckReport.targetProjectRef === 'fnjiylwirntrqdcwpbho', 'Migration apply must target the clean branch project ref.')
+assert(reports.migrationApplyReport.directManualSqlRun !== true, 'Migration apply must not use direct/manual SQL.')
+assert(reports.schemaRlsVerifyReport.directDdlDmlRun !== true, 'Schema/RLS verify must not run DDL/DML.')
 assert(reports.accessTokenSecretDiscoveryReport.payloadPrinted === false, 'Access-token discovery must not print payloads.')
 assert(reports.accessTokenInjectionReport.payloadPrinted === false, 'Access-token injection report must not print payloads.')
 assert(reports.accessTokenInjectionReport.payloadCommitted === false, 'Access-token injection report must not commit payloads.')
@@ -92,7 +96,6 @@ for (const forbidden of [
   '--with-data',
   'supabase db reset',
   'supabase migration repair',
-  'execute_sql',
   'supabase.from(',
   "from '../track-a",
   "from '../../track-a",
@@ -104,6 +107,7 @@ for (const forbidden of [
 }
 assert(moduleText.includes('branches'), 'Branch execution module must include branch command handling.')
 assert(moduleText.includes('db') && moduleText.includes('push'), 'Migration apply command class must be represented.')
+assert(moduleText.includes('readonly_catalog'), 'Read-only schema verification must be represented.')
 
 const reportsAndDocs = readAllFiles(SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR)
   .concat(SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_DOCS.map((file) => ({ file, text: readFileSync(file, 'utf8') })))

@@ -1,12 +1,18 @@
 # Track B Backfill After Clean Staging Branch
 
-Clean branch readiness: `blocked_after_branch_ready`
+Clean branch readiness: `passed`
 
 Track B preflight: `blocked`
 
 Track B write: not run
 
-Clean branch migration transport: `blocked`
+Clean branch migration transport: `passed`
+
+Milestone registry migration apply: `passed`
+
+Milestone registry migration history: `passed`
+
+Milestone registry schema/RLS: `passed`
 
 Branch create diagnostics: `none`
 

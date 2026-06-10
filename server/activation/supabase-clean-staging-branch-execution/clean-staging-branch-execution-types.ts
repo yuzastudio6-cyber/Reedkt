@@ -9,6 +9,7 @@ export type SupabaseCleanStagingBranchExecutionBlocker =
   | 'clean_staging_schema_verify_not_confirmed'
   | 'temp_cli_exec_not_confirmed'
   | 'access_token_secret_injection_not_confirmed'
+  | 'preinjected_access_token_not_confirmed'
   | 'forbidden_confirmation_set'
   | 'secret_manager_metadata_discovery_unavailable'
   | 'supabase_access_token_secret_reference_missing'

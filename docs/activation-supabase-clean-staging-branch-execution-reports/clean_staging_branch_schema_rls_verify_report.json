@@ -1,11 +1,29 @@
 {
   "phase": "supabase-clean-staging-branch-execution",
   "runId": "supabase-clean-staging-branch-execution-20260610",
-  "report": "clean_staging_branch_schema_rls_verify_report",
-  "status": "skipped",
+  "status": "blocked",
+  "verificationMode": "migration_history_plus_committed_registry_schema_static_evidence",
+  "registryMigrationId": "202606050001",
+  "registryMigrationHistoryPresent": false,
+  "committedRegistryMigrationPresent": true,
+  "activationRegistryTablesExpected": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "rlsVerification": "not_verified",
+  "publicAnonAuthenticatedUnsafeAccess": false,
+  "directDdlDmlRun": false,
   "productionAffected": false,
-  "secretsPrintedOrCommitted": false,
   "blockers": [
-    "clean_branch_schema_rls_verify_unavailable"
+    "clean_branch_schema_rls_verify_failed"
   ]
 }

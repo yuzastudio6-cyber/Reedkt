@@ -1,11 +1,39 @@
 {
   "phase": "supabase-clean-staging-branch-execution",
   "runId": "supabase-clean-staging-branch-execution-20260610",
-  "report": "clean_staging_branch_cli_transport_report",
-  "status": "skipped",
-  "productionAffected": false,
-  "secretsPrintedOrCommitted": false,
-  "blockers": [
-    "temp_npm_supabase_cli_unavailable"
-  ]
+  "status": "passed",
+  "strategy": "temp_npm_exec_supabase_cli",
+  "npmCache": "/tmp/reeditpro-supabase-cli-cache",
+  "npmPrefix": "/tmp/reeditpro-supabase-cli-prefix",
+  "cacheInsideRepo": false,
+  "prefixInsideRepo": false,
+  "commandResult": {
+    "status": "passed",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "--version"
+    ],
+    "exitCode": 0,
+    "stdoutSummary": {
+      "byteLength": 8,
+      "lineCount": 1,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "parsedJson": false,
+    "blockers": []
+  },
+  "globalCliUsed": false,
+  "packageLockChanged": false,
+  "blockers": []
 }

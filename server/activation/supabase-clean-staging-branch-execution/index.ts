@@ -49,6 +49,7 @@ export const SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY',
   'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
   'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION',
+  'REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED',
 ] as const
 
 export const SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS = [
@@ -75,9 +76,6 @@ export const CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES = [
 
 export const SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS = [
   'SUPABASE_ACCESS_TOKEN',
-  'SUPABASE_MANAGEMENT_ACCESS_TOKEN',
-  'REEDITPRO_SUPABASE_ACCESS_TOKEN',
-  'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN',
 ] as const
 
 export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS = [
@@ -236,7 +234,7 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
     forbiddenConfirmations: SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS,
     allowedCommandClasses: [
       'gcloud config get-value project',
-      'gcloud secrets list --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
+      'gcloud secrets describe SUPABASE_ACCESS_TOKEN --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
       'gcloud secrets versions access latest --secret=[SELECTED_ACCESS_TOKEN_SECRET_REF] --project=reeditpro',
       'npm exec --yes --package supabase@latest -- supabase --version',
       'supabase branches list --project-ref [PARENT_PROJECT_REF]',
@@ -258,6 +256,7 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
       project: SECRET_MANAGER_PROJECT_ID,
       candidateRefs: SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS,
       payloadAccessRequires: 'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION=true',
+      preinjectedTokenRequires: 'REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED=true',
       payloadPrinted: false,
       payloadCommitted: false,
     },
@@ -642,6 +641,7 @@ function buildPrecheckReport(): JsonRecord {
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY') blockers.push('clean_staging_schema_verify_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC') blockers.push('temp_cli_exec_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION') blockers.push('access_token_secret_injection_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED') blockers.push('preinjected_access_token_not_confirmed')
   }
   if (forbiddenSet.length > 0) blockers.push('forbidden_confirmation_set')
   if (!process.env.SUPABASE_ACCESS_TOKEN) blockers.push('supabase_access_token_unavailable')
@@ -661,6 +661,7 @@ function buildPrecheckReport(): JsonRecord {
     supabaseAccessTokenPresent: Boolean(process.env.SUPABASE_ACCESS_TOKEN),
     supabaseAccessTokenPrinted: false,
     accessTokenSecretInjectionConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION === 'true',
+    preinjectedAccessTokenAllowed: process.env.REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED === 'true',
     forbiddenConfirmationsSet: forbiddenSet,
     localMigrationDirExists: existsSync(MIGRATION_DIR),
     targetRegistryMigrationPresent: existsSync(path.join(MIGRATION_DIR, TARGET_REGISTRY_MIGRATION_FILE)),
@@ -672,21 +673,65 @@ function buildPrecheckReport(): JsonRecord {
 }
 
 async function buildAccessTokenSecretDiscoveryReport(): Promise<JsonRecord> {
+  const preinjectedAllowed = process.env.REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED === 'true'
+  const existingTokenPresent = Boolean(process.env.SUPABASE_ACCESS_TOKEN)
+  if (existingTokenPresent) {
+    const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = preinjectedAllowed
+      ? []
+      : ['preinjected_access_token_not_confirmed']
+    return {
+      phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+      runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+      status: blockers.length === 0 ? 'passed' : 'blocked',
+      mode: 'preinjected_supabase_access_token_discovery',
+      tokenSource: preinjectedAllowed ? 'preinjected_env' : 'unavailable',
+      project: SECRET_MANAGER_PROJECT_ID,
+      activeGcloudProject: 'not_checked_preinjected_token',
+      activeProjectMatchesExpected: null,
+      allowedCommands: [],
+      skippedCommands: [
+        'gcloud config get-value project',
+        'gcloud secrets describe SUPABASE_ACCESS_TOKEN --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
+      ],
+      forbiddenPayloadOperations: ['gcloud secrets versions access unless env token is absent and exact ref is selected'],
+      candidateSecretRefs: ['SUPABASE_ACCESS_TOKEN'],
+      discoveredSecretCount: 0,
+      candidateTokenSecretRefs: [],
+      selectedTokenSecretRef: null,
+      selectedTokenSecretConfidence: null,
+      envVarPresent: true,
+      envVarName: 'SUPABASE_ACCESS_TOKEN',
+      payloadAccessAttempted: false,
+      payloadAccessCommandRun: false,
+      payloadViewed: false,
+      payloadPrinted: false,
+      payloadCommitted: false,
+      tokenValuePrinted: false,
+      tokenValueCommitted: false,
+      dbUrlPrinted: false,
+      secretValuesPrinted: false,
+      credentialPayloadsPrinted: false,
+      metadataCommands: {},
+      blockers,
+    }
+  }
+
   const projectCommand = await runGcloudMetadataCommand(['config', 'get-value', 'project'])
-  const listCommand = await runGcloudMetadataCommand([
+  const describeCommand = await runGcloudMetadataCommand([
     'secrets',
-    'list',
+    'describe',
+    'SUPABASE_ACCESS_TOKEN',
     `--project=${SECRET_MANAGER_PROJECT_ID}`,
     '--format=json(name,labels,replication,createTime,annotations)',
   ])
   const activeProject = asString(COMMAND_STDOUT.get(projectCommand)?.trim(), 'unknown')
-  const secrets = listCommand.status === 'passed'
-    ? extractSecretMetadata(parseJsonOutput(listCommand))
-    : []
-  const candidates = buildAccessTokenSecretCandidates(secrets)
+  const secretMetadata = describeCommand.status === 'passed'
+    ? extractSecretMetadata([parseJsonOutput(describeCommand)]).find((secret) => secret.secretName === 'SUPABASE_ACCESS_TOKEN') ?? null
+    : null
+  const candidates = secretMetadata ? buildAccessTokenSecretCandidates([secretMetadata]) : []
   const selected = candidates.find((candidate) => candidate.selected === true)
   const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
-  if (projectCommand.status !== 'passed' || listCommand.status !== 'passed') {
+  if (projectCommand.status !== 'passed' || describeCommand.status !== 'passed') {
     blockers.push('secret_manager_metadata_discovery_unavailable')
   }
   if (!selected) blockers.push('supabase_access_token_secret_reference_missing')
@@ -694,17 +739,18 @@ async function buildAccessTokenSecretDiscoveryReport(): Promise<JsonRecord> {
     phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
     runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
     status: blockers.length === 0 ? 'passed' : 'blocked',
-    mode: 'metadata_only_supabase_access_token_secret_discovery',
+    mode: 'exact_ref_supabase_access_token_secret_discovery',
+    tokenSource: selected ? 'exact_secret_ref' : 'unavailable',
     project: SECRET_MANAGER_PROJECT_ID,
     activeGcloudProject: activeProject,
     activeProjectMatchesExpected: activeProject === SECRET_MANAGER_PROJECT_ID,
     allowedCommands: [
       'gcloud config get-value project',
-      'gcloud secrets list --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
+      'gcloud secrets describe SUPABASE_ACCESS_TOKEN --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
     ],
     forbiddenPayloadOperations: ['gcloud secrets versions access'],
-    candidateSecretRefs: SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS,
-    discoveredSecretCount: secrets.length,
+    candidateSecretRefs: ['SUPABASE_ACCESS_TOKEN'],
+    discoveredSecretCount: secretMetadata ? 1 : 0,
     candidateTokenSecretRefs: candidates,
     selectedTokenSecretRef: selected?.secretName ?? null,
     selectedTokenSecretConfidence: selected?.confidence ?? null,
@@ -720,7 +766,7 @@ async function buildAccessTokenSecretDiscoveryReport(): Promise<JsonRecord> {
     credentialPayloadsPrinted: false,
     metadataCommands: {
       project: projectCommand,
-      list: listCommand,
+      describe: describeCommand,
     },
     blockers: collectUnique(blockers),
   }
@@ -729,13 +775,34 @@ async function buildAccessTokenSecretDiscoveryReport(): Promise<JsonRecord> {
 async function buildAccessTokenInjectionReport(discoveryReport: JsonRecord): Promise<JsonRecord> {
   const selectedSecretRef = maybeString(discoveryReport.selectedTokenSecretRef)
   const confirmationPresent = process.env.REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION === 'true'
+  const preinjectedAllowed = process.env.REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED === 'true'
   const existingTokenPresent = Boolean(process.env.SUPABASE_ACCESS_TOKEN)
   if (existingTokenPresent) {
+    if (!preinjectedAllowed) {
+      return {
+        phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+        runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+        status: 'blocked',
+        mode: 'current_process_supabase_access_token_present_without_confirmation',
+        tokenSource: 'unavailable',
+        secretRefUsed: null,
+        payloadAccessStatus: 'not_attempted',
+        payloadAccessCommandRun: false,
+        payloadPrinted: false,
+        payloadCommitted: false,
+        tokenValuePrinted: false,
+        tokenValueCommitted: false,
+        envVarPresent: true,
+        envVarName: 'SUPABASE_ACCESS_TOKEN',
+        blockers: ['preinjected_access_token_not_confirmed'],
+      }
+    }
     return {
       phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
       runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
       status: 'passed',
       mode: 'current_process_supabase_access_token_already_present',
+      tokenSource: 'preinjected_env',
       secretRefUsed: process.env.REEDITPRO_SUPABASE_ACCESS_TOKEN_SECRET_REF ?? selectedSecretRef ?? 'current_process_env',
       payloadAccessStatus: 'not_attempted',
       payloadAccessCommandRun: false,
@@ -758,6 +825,7 @@ async function buildAccessTokenInjectionReport(discoveryReport: JsonRecord): Pro
       runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
       status: 'blocked',
       mode: 'supabase_access_token_secret_injection',
+      tokenSource: 'unavailable',
       secretRefUsed: selectedSecretRef,
       payloadAccessStatus: 'not_attempted',
       payloadAccessCommandRun: false,
@@ -780,6 +848,7 @@ async function buildAccessTokenInjectionReport(discoveryReport: JsonRecord): Pro
       runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
       status: 'blocked',
       mode: 'supabase_access_token_secret_injection',
+      tokenSource: 'unavailable',
       secretRefUsed: selectedSecretRef,
       payloadAccessStatus: access.status,
       payloadAccessCommandRun: true,
@@ -800,6 +869,7 @@ async function buildAccessTokenInjectionReport(discoveryReport: JsonRecord): Pro
     runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
     status: 'passed',
     mode: 'supabase_access_token_secret_injection',
+    tokenSource: 'exact_secret_ref',
     secretRefUsed: selectedSecretRef,
     payloadAccessStatus: 'succeeded',
     payloadAccessCommandRun: true,
@@ -841,9 +911,10 @@ function buildSecretReferencePlan(
   migrationTransportReport: JsonRecord,
 ): JsonRecord {
   const tokenSecretRef = maybeString(accessTokenDiscoveryReport.selectedTokenSecretRef)
+  const tokenSource = maybeString(accessTokenDiscoveryReport.tokenSource)
   const cleanDbUrlPresent = migrationTransportReport.dbUrlEnvPresent === true
   const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
-  if (!tokenSecretRef) blockers.push('supabase_access_token_secret_reference_missing')
+  if (!tokenSecretRef && tokenSource !== 'preinjected_env') blockers.push('supabase_access_token_secret_reference_missing')
   if (!cleanDbUrlPresent) blockers.push('clean_branch_migration_apply_transport_unavailable')
   return {
     phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
@@ -852,6 +923,7 @@ function buildSecretReferencePlan(
     mode: 'clean_staging_branch_secret_reference_plan',
     recommendedAccessTokenSecretRefEnv: 'REEDITPRO_SUPABASE_ACCESS_TOKEN_SECRET_REF',
     recommendedAccessTokenSecretRef: tokenSecretRef,
+    accessTokenSource: tokenSource ?? 'unavailable',
     recommendedCleanBranchDbUrlEnv: 'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
     acceptedCleanBranchDbUrlEnvNames: CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES,
     cleanBranchDbUrlEnvPresent: cleanDbUrlPresent,
@@ -894,7 +966,7 @@ async function buildExistingBranchCheckReport(): Promise<JsonRecord> {
     'list',
     '--project-ref',
     CLEAN_STAGING_PARENT_PROJECT_REF,
-  ])
+  ], { failureBlocker: 'clean_staging_branch_list_failed' })
   const parsed = parseJsonOutput(result)
   const branches = extractBranches(parsed)
   const cleanBranch = branches.find((branch) => branch.name === CLEAN_STAGING_BRANCH_NAME)
@@ -938,7 +1010,7 @@ async function createCleanBranch(): Promise<JsonRecord> {
     '--project-ref',
     CLEAN_STAGING_PARENT_PROJECT_REF,
   ]
-  const result = await runSupabaseCli(args)
+  const result = await runSupabaseCli(args, { failureBlocker: 'clean_staging_branch_create_failed' })
   const parsed = parseJsonOutput(result)
   const branch = extractBranchFromUnknown(parsed)
   const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
@@ -1034,7 +1106,7 @@ async function applyMigrationsToCleanBranch(): Promise<JsonRecord> {
     '--db-url',
     dbUrlInfo.value,
     '--dry-run',
-  ], { redactArgs: true })
+  ], { redactArgs: true, failureBlocker: 'clean_branch_migration_dry_run_failed' })
   if (dryRun.status !== 'passed') {
     return {
       phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
@@ -1057,7 +1129,7 @@ async function applyMigrationsToCleanBranch(): Promise<JsonRecord> {
     'push',
     '--db-url',
     dbUrlInfo.value,
-  ], { redactArgs: true })
+  ], { redactArgs: true, failureBlocker: 'clean_branch_migration_apply_failed' })
   return {
     phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
     runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
@@ -1091,7 +1163,7 @@ async function verifyMigrationHistory(): Promise<JsonRecord> {
     'list',
     '--db-url',
     dbUrlInfo.value,
-  ], { redactArgs: true })
+  ], { redactArgs: true, failureBlocker: 'clean_branch_migration_history_verify_failed' })
   const parsed = parseJsonOutput(result)
   const migrationIds = extractMigrationIds(parsed)
   const targetPresent = migrationIds.includes(TARGET_REGISTRY_MIGRATION_ID)
@@ -1399,7 +1471,10 @@ async function accessSecretPayload(secretRef: string): Promise<{
   })
 }
 
-async function runSupabaseCli(args: string[], options: { redactArgs?: boolean } = {}): Promise<CommandResult> {
+async function runSupabaseCli(args: string[], options: {
+  redactArgs?: boolean
+  failureBlocker?: SupabaseCleanStagingBranchExecutionBlocker
+} = {}): Promise<CommandResult> {
   mkdirSync(TEMP_NPM_CACHE, { recursive: true })
   mkdirSync(TEMP_NPM_PREFIX, { recursive: true })
   const command = 'npm'
@@ -1423,7 +1498,7 @@ async function runSupabaseCli(args: string[], options: { redactArgs?: boolean } 
         ? (error as { code: number }).code
         : error ? 1 : 0
       const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
-      if (exitCode !== 0) blockers.push('temp_npm_supabase_cli_unavailable')
+      if (exitCode !== 0) blockers.push(options.failureBlocker ?? 'temp_npm_supabase_cli_unavailable')
       if (summarizeOutput(stdout).secretPatternDetected || summarizeOutput(stderr).secretPatternDetected) {
         blockers.push('sensitive_payload_pattern_detected')
       }

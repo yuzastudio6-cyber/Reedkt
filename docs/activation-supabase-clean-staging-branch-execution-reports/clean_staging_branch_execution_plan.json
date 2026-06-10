@@ -83,7 +83,8 @@
     "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY",
     "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY",
     "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
-    "REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION"
+    "REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION",
+    "REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED"
   ],
   "forbiddenConfirmations": [
     "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",
@@ -102,7 +103,7 @@
   ],
   "allowedCommandClasses": [
     "gcloud config get-value project",
-    "gcloud secrets list --project=reeditpro --format=json(name,labels,replication,createTime,annotations)",
+    "gcloud secrets describe SUPABASE_ACCESS_TOKEN --project=reeditpro --format=json(name,labels,replication,createTime,annotations)",
     "gcloud secrets versions access latest --secret=[SELECTED_ACCESS_TOKEN_SECRET_REF] --project=reeditpro",
     "npm exec --yes --package supabase@latest -- supabase --version",
     "supabase branches list --project-ref [PARENT_PROJECT_REF]",
@@ -123,12 +124,10 @@
   "accessTokenSecretPolicy": {
     "project": "reeditpro",
     "candidateRefs": [
-      "SUPABASE_ACCESS_TOKEN",
-      "SUPABASE_MANAGEMENT_ACCESS_TOKEN",
-      "REEDITPRO_SUPABASE_ACCESS_TOKEN",
-      "REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN"
+      "SUPABASE_ACCESS_TOKEN"
     ],
     "payloadAccessRequires": "REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION=true",
+    "preinjectedTokenRequires": "REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED=true",
     "payloadPrinted": false,
     "payloadCommitted": false
   }

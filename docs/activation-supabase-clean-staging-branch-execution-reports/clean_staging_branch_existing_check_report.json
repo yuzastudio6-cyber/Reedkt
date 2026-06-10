@@ -1,11 +1,46 @@
 {
   "phase": "supabase-clean-staging-branch-execution",
   "runId": "supabase-clean-staging-branch-execution-20260610",
-  "report": "clean_staging_branch_existing_check_report",
-  "status": "skipped",
-  "productionAffected": false,
+  "status": "passed",
+  "commandResult": {
+    "status": "passed",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "-o",
+      "json",
+      "branches",
+      "list",
+      "--project-ref",
+      "wmyyttnynmteqgcdishd"
+    ],
+    "exitCode": 0,
+    "stdoutSummary": {
+      "byteLength": 3,
+      "lineCount": 1,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "parsedJson": false,
+    "blockers": []
+  },
+  "parentProjectRef": "wmyyttnynmteqgcdishd",
+  "branchName": "reeditpro-internal-staging-clean",
+  "branchListParsed": true,
+  "branchCount": 0,
+  "cleanBranch": {
+    "exists": false
+  },
   "secretsPrintedOrCommitted": false,
-  "blockers": [
-    "clean_staging_branch_list_failed"
-  ]
+  "productionAffected": false,
+  "blockers": []
 }

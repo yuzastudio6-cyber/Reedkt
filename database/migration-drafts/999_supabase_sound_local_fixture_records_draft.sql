@@ -28,6 +28,47 @@ comment on schema public is
 -- create storage buckets, create storage objects, or enable execution.
 
 -- ---------------------------------------------------------------------------
+-- Baseline prerequisite guard
+-- ---------------------------------------------------------------------------
+-- SUPABASE-SOUND-4-RETRY showed that an empty throwaway database fails before
+-- this draft can be evaluated because the ReEditPro baseline schema is absent.
+-- This draft intentionally extends existing surfaces; it must not recreate
+-- approved_plan_snapshots or any other baseline runtime table.
+do $$
+declare
+  missing_relations text[];
+begin
+  select array_agg(required_relation order by required_relation)
+    into missing_relations
+  from (
+    values
+      ('public.approved_plan_snapshots'),
+      ('public.storage_object_records'),
+      ('public.signed_url_events'),
+      ('public.generation_requests'),
+      ('public.generated_assets'),
+      ('public.jobs'),
+      ('public.job_events'),
+      ('public.sound_effect_plans'),
+      ('public.ambient_sound_plans'),
+      ('public.music_plans'),
+      ('public.audio_environment_analysis'),
+      ('public.qa_reports'),
+      ('public.credit_estimates'),
+      ('public.credit_approvals'),
+      ('public.credit_reservations'),
+      ('public.worker_runtime_configs')
+  ) as required(required_relation)
+  where to_regclass(required_relation) is null;
+
+  if coalesce(array_length(missing_relations, 1), 0) > 0 then
+    raise exception
+      'SUPABASE_SOUND_DRAFT_REQUIRES_BASELINE_SCHEMA: missing baseline relation(s): %. Local throwaway validation must first load the baseline ReEditPro schema or use an approved baseline validation harness. Required starting relation includes public.approved_plan_snapshots.',
+      array_to_string(missing_relations, ', ');
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- approved_plan_snapshots fixture linkage
 -- ---------------------------------------------------------------------------
 alter table public.approved_plan_snapshots
@@ -259,12 +300,24 @@ comment on table public.credit_approvals is
 comment on table public.credit_reservations is
   'Credit reservation, spend, refund, and release rows remain blocked for SOUND local fixture draft planning.';
 
-comment on table public.feature_gates is
-  'SUPABASE-SOUND-2 does not seed or mutate feature gates. Runtime remains fail-closed.';
-comment on table public.tool_capabilities is
-  'SUPABASE-SOUND-2 does not seed tool capabilities. Provider and worker capability unlock remains owner-gated.';
 comment on table public.worker_runtime_configs is
   'SUPABASE-SOUND-2 does not create worker runtime configs. Worker execution remains blocked.';
+
+-- feature_gates and tool_capabilities exist in the live read-only metadata
+-- audit, but this branch does not include an active local create-table source.
+-- Keep them optional for draft comment purposes and never create or seed them.
+do $$
+begin
+  if to_regclass('public.feature_gates') is not null then
+    comment on table public.feature_gates is
+      'SUPABASE-SOUND-2 does not seed or mutate feature gates. Runtime remains fail-closed.';
+  end if;
+
+  if to_regclass('public.tool_capabilities') is not null then
+    comment on table public.tool_capabilities is
+      'SUPABASE-SOUND-2 does not seed tool capabilities. Provider and worker capability unlock remains owner-gated.';
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------------------
 -- RLS policy draft

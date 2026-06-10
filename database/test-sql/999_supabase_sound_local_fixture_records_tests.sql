@@ -13,6 +13,44 @@
 -- These assertions are intentionally text-reviewed by the SUPABASE-SOUND-2 smoke
 -- and are not executed by this prompt.
 
+-- Baseline prerequisite guard. SUPABASE-SOUND-4-RETRY proved that an empty
+-- throwaway database can otherwise skip/fail unclearly before fixture-specific
+-- assertions run. These tests extend existing ReEditPro surfaces; they must not
+-- recreate baseline tables.
+do $$
+declare
+  missing_relations text[];
+begin
+  select array_agg(required_relation order by required_relation)
+    into missing_relations
+  from (
+    values
+      ('public.approved_plan_snapshots'),
+      ('public.storage_object_records'),
+      ('public.signed_url_events'),
+      ('public.generation_requests'),
+      ('public.generated_assets'),
+      ('public.jobs'),
+      ('public.job_events'),
+      ('public.sound_effect_plans'),
+      ('public.ambient_sound_plans'),
+      ('public.music_plans'),
+      ('public.audio_environment_analysis'),
+      ('public.qa_reports'),
+      ('public.credit_estimates'),
+      ('public.credit_approvals'),
+      ('public.credit_reservations'),
+      ('public.worker_runtime_configs')
+  ) as required(required_relation)
+  where to_regclass(required_relation) is null;
+
+  if coalesce(array_length(missing_relations, 1), 0) > 0 then
+    raise exception
+      'SUPABASE_SOUND_DRAFT_REQUIRES_BASELINE_SCHEMA: missing baseline relation(s): %. Local throwaway validation must first load the baseline ReEditPro schema or use an approved baseline validation harness. Required starting relation includes public.approved_plan_snapshots.',
+      array_to_string(missing_relations, ', ');
+  end if;
+end $$;
+
 select 'approved snapshots are immutable for fixture scope' as assertion
 where exists (
   select 1

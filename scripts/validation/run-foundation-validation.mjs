@@ -52,6 +52,7 @@ const requiredChecks = [
   'tracka:creative-graphics:private-preview-retry:diagnostics',
   'tracka:creative-graphics:private-preview-qa:diagnostics',
   'tracka:creative-graphics:controlled-private-sample-plan:diagnostics',
+  'tracka:creative-graphics:controlled-private-sample:diagnostics',
 ];
 
 const results = [];

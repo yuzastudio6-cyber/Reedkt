@@ -44,3 +44,18 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-6 Warning Disposition
+
+Handoff-6 collected local/private sample evidence and retained the warnings for Handoff-7 review.
+
+Sample result: `controlled_private_sample_passed_with_warnings`
+
+Warnings still requiring review before any internal beta discussion:
+
+- `tracka_warning_safe_zone_readability`
+- `tracka_warning_synthetic_data_correctness`
+- `tracka_warning_source_of_truth_binding`
+- `tracka_warning_final_render_export_not_reviewed`
+
+Internal beta, external beta, production, public artifact creation, signed URL delivery, storage upload, Supabase mutation, worker execution, provider/model calls, and final delivery renderer/exporter work remain blocked.

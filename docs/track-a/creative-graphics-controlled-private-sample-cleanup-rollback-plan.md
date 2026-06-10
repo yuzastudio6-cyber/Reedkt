@@ -39,3 +39,13 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-6 Cleanup Addendum
+
+Handoff-6 retained local ignored evidence for review.
+
+Local output root: `.local-artifacts/track-a/gd-controlled-private-sample/tracka-gd-handoff-6-2026-06-10T21-32-06-022Z`
+
+Cleanup performed: no.
+
+No GCS cleanup, signed URL cleanup, public artifact cleanup, Supabase cleanup, or SQL cleanup is needed.

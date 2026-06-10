@@ -499,3 +499,18 @@ TRACKA-GD-HANDOFF-5 status terms:
 - SQL executed: `none`
 - Migration deployed: `no`
 - Next recommended prompt: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`
+## TRACKA-GD-HANDOFF-6 Source Of Truth Addendum
+
+Controlled private sample result: `controlled_private_sample_passed_with_warnings`.
+
+Runtime unlock status: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed / private_preview_qa_passed_with_warnings / controlled_private_sample_passed_with_warnings`.
+
+Handoff-6 used committed source artifacts and checksum manifests as the local/private evidence source. The future product source of truth remains `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`; signed URLs are not source of truth.
+
+Local output evidence is ignored under `.local-artifacts/track-a/gd-controlled-private-sample/tracka-gd-handoff-6-2026-06-10T21-32-06-022Z`. Committed docs record sanitized paths and checksums only.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

@@ -264,3 +264,16 @@ TRACKA-GD-HANDOFF-0 improves Track A handoff clarity only. It does not raise pro
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+## TRACKA-GD-HANDOFF-6 Readiness Note
+
+Controlled private sample result: `controlled_private_sample_passed_with_warnings`.
+
+Readiness impact: improves Track A local/private sample evidence only. Internal beta remains blocked until Handoff-7 reviews warning disposition, source-of-truth binding, cleanup evidence, observability evidence, QA ownership, and downstream gate requirements.
+
+Production beta remains blocked.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

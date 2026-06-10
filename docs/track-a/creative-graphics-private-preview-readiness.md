@@ -203,3 +203,16 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+## TRACKA-GD-HANDOFF-6 Private Preview Lineage Addendum
+
+The private preview lineage now feeds a controlled private sample result: `controlled_private_sample_passed_with_warnings`.
+
+Lineage: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed / private_preview_qa_passed_with_warnings / controlled_private_sample_passed_with_warnings`.
+
+The Handoff-6 result does not change the private preview source-of-truth policy and does not approve public artifacts, signed URL delivery, storage upload, Supabase mutation, worker execution, provider/model calls, beta, production, or final delivery renderer/exporter work.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

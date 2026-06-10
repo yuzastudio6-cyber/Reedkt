@@ -715,3 +715,41 @@ Authoritative TRACKA-GD-HANDOFF-5 files:
 - `docs/prompt-tracka-gd-handoff-5-validation-results.md`
 
 Next milestone: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`.
+
+## TRACKA-GD-HANDOFF-6 Controlled Private Sample Execution
+
+- Sample result: `controlled_private_sample_passed_with_warnings`
+- Runtime unlock status: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed / private_preview_qa_passed_with_warnings / controlled_private_sample_passed_with_warnings`
+- Capability: `none; Track A creative graphics controlled private sample execution only`
+- Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Local sample run ID: `tracka-gd-handoff-6-2026-06-10T21-32-06-022Z`
+- Local sample evidence: `.local-artifacts/track-a/gd-controlled-private-sample/tracka-gd-handoff-6-2026-06-10T21-32-06-022Z`
+- Internal beta gate: blocked
+- External beta gate: blocked
+- Production gate: blocked
+- Final delivery renderer/exporter gate: blocked
+- Public artifact gate: blocked
+- Signed URL gate: blocked
+- Supabase mutation gate: blocked
+- Worker execution gate: blocked
+- Provider/model call gate: blocked
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Authoritative TRACKA-GD-HANDOFF-6 files:
+
+- `docs/track-a/creative-graphics-controlled-private-sample-prerequisite-check.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-execution-evidence.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-qa-evidence.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-observability-evidence.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-cleanup-evidence.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-go-no-go-record.md`
+- `docs/prompt-tracka-gd-handoff-6-validation-results.md`
+
+Next milestone: `TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review`.

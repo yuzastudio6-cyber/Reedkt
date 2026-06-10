@@ -1,0 +1,30 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "status": "private_temp_backup_created_not_committed",
+  "backupRoot": "redacted_temp_directory_outside_repo",
+  "backupFiles": [
+    {
+      "class": "schema_dump",
+      "path": "redacted_temp_schema_dump_path",
+      "committed": false,
+      "printed": false
+    }
+  ],
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "backupPayloadCommitted": false,
+  "backupPayloadPrinted": false,
+  "dbUrlCommitted": false,
+  "secretsCommitted": false,
+  "productionAffected": false,
+  "trackBBackfillWrite": false,
+  "trackBBackfillRowsWritten": false,
+  "migrationRepairRun": false,
+  "directDdlDmlRun": false,
+  "supabaseDbPushRun": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false
+}

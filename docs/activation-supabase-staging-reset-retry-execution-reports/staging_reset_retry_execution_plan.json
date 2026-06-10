@@ -1,0 +1,92 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "branch": "codex/rp-foundation-supabase-staging-reset-retry-execution",
+  "baseBranch": "codex/rp-foundation-supabase-staging-reset-retry-approval",
+  "prTitle": "[foundation] Supabase staging reset retry execution",
+  "worktree": "/private/tmp/reeditpro-supabase-staging-reset-retry-execution",
+  "reportDir": "docs/activation-supabase-staging-reset-retry-execution-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "staging_reset_retry_execution_plan.json",
+    "staging_reset_retry_execution_precheck_report.json",
+    "staging_reset_retry_secret_guard_report.json",
+    "staging_reset_retry_cli_transport_report.json",
+    "staging_reset_retry_backup_export_execution_report.json",
+    "staging_reset_retry_backup_artifact_manifest.json",
+    "staging_reset_retry_command_preview_report.json",
+    "staging_reset_retry_execution_report.json",
+    "staging_reset_retry_post_verify_report.json",
+    "staging_reset_retry_schema_rls_verify_report.json",
+    "staging_reset_retry_trackb_backfill_preflight_report.json",
+    "staging_reset_retry_trackb_backfill_diff_report.json",
+    "staging_reset_retry_blocker_report.json",
+    "staging_reset_retry_readiness_report.json",
+    "staging_reset_retry_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-staging-reset-retry-execution.md",
+    "docs/supabase-staging-reset-retry-secret-policy.md",
+    "docs/supabase-staging-reset-retry-backup-export.md",
+    "docs/supabase-staging-reset-retry-post-verification.md",
+    "docs/supabase-trackb-backfill-after-reset-retry.md",
+    "docs/implementation-prompts/prompt-supabase-trackb-staging-backfill-after-reset-retry.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "approvedStagingTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "sourcePrs": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    248,
+    252,
+    259,
+    262,
+    265
+  ],
+  "docsBasis": {
+    "cliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "databaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "changelog": "https://supabase.com/changelog.md",
+    "checkedAt": "2026-06-10",
+    "dbResetFlagsObserved": [
+      "--db-url",
+      "--no-seed"
+    ],
+    "resetDryRunSupported": false
+  },
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
+    "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_BACKUP_SNAPSHOT_APPROVAL_PACKET",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION",
+    "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC"
+  ],
+  "backupExportConfirmation": "REEDITPRO_CONFIRM_SUPABASE_STAGING_BACKUP_EXPORT_EXECUTE",
+  "approvedResetCommandShape": "npm exec --yes --package supabase@latest -- supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed",
+  "rejectedPreviousResetOperationFlag": "--yes",
+  "resetRetryScope": {
+    "stagingOnly": true,
+    "productionAffected": false,
+    "trackBBackfillWrite": false,
+    "migrationRepairRun": false,
+    "supabaseDbPushRun": false,
+    "directDdlDmlRun": false,
+    "providerCalls": false,
+    "routeToolWorkerExecution": false,
+    "mediaProcessing": false,
+    "trackA": false,
+    "betaOrProductionUnlock": false
+  }
+}

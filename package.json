@@ -56,6 +56,7 @@
     "smoke:supabase-sound-local-throwaway-validation-retry-result": "tsx server/smoke/supabase-sound-local-throwaway-validation-retry-result-smoke.ts",
     "smoke:supabase-sound-draft-migration-baseline-guard-fix": "tsx server/smoke/supabase-sound-draft-migration-baseline-guard-fix-smoke.ts",
     "smoke:supabase-sound-local-baseline-validation-result": "tsx server/smoke/supabase-sound-local-baseline-validation-result-smoke.ts",
+    "smoke:supabase-sound-local-baseline-schema-harness-plan": "tsx server/smoke/supabase-sound-local-baseline-schema-harness-plan-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

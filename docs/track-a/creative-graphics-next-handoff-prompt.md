@@ -37,6 +37,36 @@ Required evidence:
 - QA summary
 - approved plan snapshot placeholder
 
+## TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet
+
+Use only after TRACKA-GD-HANDOFF-1 gates pass and Track A is ready for a separately approved controlled private preview prompt.
+
+Allowed future scope:
+
+- controlled private preview composition for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`
+- private manifest/checksum/source-of-truth validation
+- private preview QA evidence
+
+Blocked scope:
+
+- final render/export
+- public artifacts
+- signed URLs
+- storage upload unless separately approved
+- Supabase mutation
+- SQL
+- worker/provider/model/tool execution beyond the approved Handoff-2 scope
+- production/beta unlock
+
+Required evidence:
+
+- `private_preview_composition_plan_ready_with_warnings`
+- accepted private preview manifest template
+- approved plan snapshot reference
+- confirmed output frame
+- safe-zone/readability/data/graph QA plan
+- cleanup/rollback owner
+
 ## GD-7A - Creative Graphics Fixture Evidence Fixes
 
 Use when Track A decides the accepted-with-warnings fixture evidence is insufficient for private preview planning.

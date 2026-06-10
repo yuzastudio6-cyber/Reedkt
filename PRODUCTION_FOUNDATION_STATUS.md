@@ -446,3 +446,42 @@ Authoritative TRACKA-GD-HANDOFF-0 files:
 - `docs/prompt-tracka-gd-handoff-0-validation-results.md`
 
 Next milestone: `TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific blocker lanes.
+
+## TRACKA-GD-HANDOFF-1 Private Preview Composition Plan
+
+- Status: `private_preview_composition_plan_ready_with_warnings`
+- Private preview status: `private_preview_not_executed`
+- Production capability enabled: `none; Track A private preview composition plan only`
+- Accepted fixtures planned: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Track A composition planning document: present
+- Track A private preview generation: none
+- Track A final render/export: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Worker execution: none
+- Provider/model calls: none
+- Browser capture: none
+- Media processing: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Storage transfer: none
+- Signed URLs: none
+- Public artifacts: none
+- Production/beta unlock: none
+
+Authoritative TRACKA-GD-HANDOFF-1 files:
+
+- `docs/track-a/creative-graphics-private-preview-composition-plan.md`
+- `docs/track-a/creative-graphics-accepted-fixture-layout-timing-plan.md`
+- `docs/track-a/creative-graphics-private-preview-manifest-template.md`
+- `docs/track-a/creative-graphics-private-preview-qa-checklist.md`
+- `docs/track-a/creative-graphics-private-preview-missing-metadata-remediation-plan.md`
+- `docs/track-a/creative-graphics-private-preview-execution-gate-packet.md`
+- `docs/track-a/creative-graphics-handoff-2-allowed-blocked-scope.md`
+- `docs/prompt-tracka-gd-handoff-1-validation-results.md`
+
+Next milestone: `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.

@@ -151,3 +151,18 @@ Recommended next prompt: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics
 - Migration deployed: `no`
 
 Recommended next prompt: `TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific blocker lanes.
+
+## TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan
+
+- Status: `private_preview_composition_plan_ready_with_warnings`
+- Private preview status: `private_preview_not_executed`
+- Accepted fixtures planned: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
+- Production capability enabled: `none; Track A private preview composition plan only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Recommended next prompt: `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.

@@ -45,6 +45,7 @@ const requiredChecks = [
   'ai-tools:creative-graphics:resvg-runtime:diagnostics',
   'ai-tools:creative-graphics:gd7-retry-local-execution:diagnostics',
   'tracka:creative-graphics:handoff:diagnostics',
+  'tracka:creative-graphics:private-preview-plan:diagnostics',
 ];
 
 const results = [];

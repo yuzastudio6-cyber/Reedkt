@@ -25,6 +25,7 @@ Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / gen
 10. `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`
    - Retry Group A local synthetic fixture generation after GD-8/GD-8A and record `generated_local_fixture_partially_passed`.
 11. `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`
+12. `Prompt TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`
    - Review GD-7-Retry local/private fixture evidence and record `tracka_handoff_ready_with_warnings` without private preview generation.
 12. `Prompt GD-6A - Execution Approval Gate Hardening`
    - Use only if a future static gate diagnostic finds missing files, unsafe claims, or schema mismatch.
@@ -95,3 +96,15 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Recommended next prompt: `TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific blocker lanes.
+
+## TRACKA-GD-HANDOFF-1 Sequence Addendum
+
+TRACKA-GD-HANDOFF-1 creates the private preview composition plan for the five accepted-with-warnings GD-7-Retry SVG fixtures.
+
+- Status: `private_preview_composition_plan_ready_with_warnings`
+- Private preview status: `private_preview_not_executed`
+- Accepted fixtures planned: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
+- Production capability enabled: `none; Track A private preview composition plan only`
+
+Recommended next prompt: `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet`.

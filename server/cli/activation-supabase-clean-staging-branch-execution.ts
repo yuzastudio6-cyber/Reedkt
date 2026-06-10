@@ -20,6 +20,7 @@ if (!process.argv.includes('--execute')) {
 
 const result = await executeSupabaseCleanStagingBranchExecution({
   keepTemp: process.argv.includes('--keep-temp'),
+  diagnoseCreate: process.argv.includes('--diagnose-create'),
 })
 
 console.log(JSON.stringify(readSupabaseCleanStagingBranchExecutionSummary(), null, 2))

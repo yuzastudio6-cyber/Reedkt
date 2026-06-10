@@ -50,6 +50,7 @@ export const SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
   'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION',
   'REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED',
+  'REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS',
 ] as const
 
 export const SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS = [
@@ -87,6 +88,10 @@ export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS = [
   'clean_staging_branch_cli_transport_report.json',
   'clean_staging_branch_existing_check_report.json',
   'clean_staging_branch_creation_report.json',
+  'clean_staging_branch_create_failure_diagnostics_report.json',
+  'clean_staging_branch_cli_help_report.json',
+  'clean_staging_branch_create_retry_strategy_report.json',
+  'clean_staging_branch_create_retry_report.json',
   'clean_staging_branch_health_report.json',
   'clean_staging_branch_migration_transport_report.json',
   'clean_staging_branch_secret_reference_plan.json',
@@ -173,7 +178,33 @@ interface OutputSummary {
   secretPatternDetected: boolean
 }
 
+type BranchCreateFailureClass =
+  | 'none'
+  | 'branch_create_region_required'
+  | 'branch_create_size_required'
+  | 'branch_create_region_and_size_required'
+  | 'branch_create_plan_or_billing_unavailable'
+  | 'branch_create_permission_denied'
+  | 'branch_create_quota_or_limit_reached'
+  | 'branch_create_feature_unavailable'
+  | 'branch_create_project_ref_invalid'
+  | 'branch_create_branch_name_invalid'
+  | 'branch_create_cli_version_issue'
+  | 'branch_create_unknown'
+
+type BranchCreateRetryStrategy =
+  | 'not_needed'
+  | 'retry_same_command_if_transient'
+  | 'retry_with_region_if_region_required'
+  | 'retry_with_size_if_size_required'
+  | 'retry_with_region_and_size_if_both_required'
+  | 'blocked_pending_plan_or_billing_review'
+  | 'blocked_pending_permission_review'
+  | 'blocked_pending_branching_feature_review'
+  | 'blocked_pending_operator_review'
+
 const COMMAND_STDOUT = new WeakMap<CommandResult, string>()
+const COMMAND_STDERR = new WeakMap<CommandResult, string>()
 
 interface Reports {
   sourceOfTruthOwnershipAudit: JsonRecord
@@ -184,6 +215,10 @@ interface Reports {
   cliTransportReport: JsonRecord
   existingBranchCheckReport: JsonRecord
   branchCreationReport: JsonRecord
+  branchCreateFailureDiagnosticsReport: JsonRecord
+  branchCliHelpReport: JsonRecord
+  branchCreateRetryStrategyReport: JsonRecord
+  branchCreateRetryReport: JsonRecord
   branchHealthReport: JsonRecord
   migrationTransportReport: JsonRecord
   secretReferencePlan: JsonRecord
@@ -217,6 +252,7 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
       supabaseChangelog: 'https://supabase.com/changelog',
       checkedAt: '2026-06-10',
       branchCreateFlags: ['--persistent', '--project-ref'],
+      optionalDiagnosticRetryFlags: ['--region', '--size'],
       forbiddenBranchDataCloneFlag: 'with_data_clone_flag_forbidden',
       dbPushFlags: ['--db-url', '--dry-run'],
       accessTokenSecretDiscovery: 'metadata_only_gcloud_secret_manager',
@@ -237,8 +273,10 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
       'gcloud secrets describe SUPABASE_ACCESS_TOKEN --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
       'gcloud secrets versions access latest --secret=[SELECTED_ACCESS_TOKEN_SECRET_REF] --project=reeditpro',
       'npm exec --yes --package supabase@latest -- supabase --version',
+      'npm exec --yes --package supabase@latest -- supabase branches create --help',
       'supabase branches list --project-ref [PARENT_PROJECT_REF]',
       'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
+      'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF] [OPTIONAL_SAFE_REGION_SIZE_FLAGS]',
       'supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL] --dry-run',
       'supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL]',
       'supabase migration list --db-url [REDACTED_CLEAN_BRANCH_DB_URL]',
@@ -275,6 +313,14 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
   const cliTransportReport = existing.cliTransportReport ?? buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   const existingBranchCheckReport = existing.existingBranchCheckReport ?? buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
   const branchCreationReport = existing.branchCreationReport ?? buildSkippedBranchCreationReport()
+  const branchCreateFailureDiagnosticsReport = existing.branchCreateFailureDiagnosticsReport ??
+    buildSkippedBranchCreateFailureDiagnosticsReport(branchCreationReport, cliTransportReport)
+  const branchCliHelpReport = existing.branchCliHelpReport ??
+    buildSkippedBranchCliHelpReport()
+  const branchCreateRetryStrategyReport = existing.branchCreateRetryStrategyReport ??
+    buildBranchCreateRetryStrategyReport(branchCreateFailureDiagnosticsReport, branchCliHelpReport, { diagnoseCreate: false })
+  const branchCreateRetryReport = existing.branchCreateRetryReport ??
+    buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   const branchHealthReport = existing.branchHealthReport ?? buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
   const migrationTransportReport = existing.migrationTransportReport ?? buildMigrationTransportReport()
   const secretReferencePlan = existing.secretReferencePlan ??
@@ -296,6 +342,10 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
+    branchCreateFailureDiagnosticsReport,
+    branchCliHelpReport,
+    branchCreateRetryStrategyReport,
+    branchCreateRetryReport,
     branchHealthReport,
     migrationTransportReport,
     secretReferencePlan,
@@ -324,6 +374,10 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
+    branchCreateFailureDiagnosticsReport,
+    branchCliHelpReport,
+    branchCreateRetryStrategyReport,
+    branchCreateRetryReport,
     branchHealthReport,
     migrationTransportReport,
     secretReferencePlan,
@@ -341,6 +395,7 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
 
 export async function executeSupabaseCleanStagingBranchExecution(input: {
   keepTemp: boolean
+  diagnoseCreate: boolean
 }) {
   void input.keepTemp
   const accessTokenSecretDiscoveryReport = await buildAccessTokenSecretDiscoveryReport()
@@ -349,6 +404,14 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
   let cliTransportReport = buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   let existingBranchCheckReport = buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
   let branchCreationReport = buildSkippedBranchCreationReport()
+  let branchCreateFailureDiagnosticsReport = buildSkippedBranchCreateFailureDiagnosticsReport(branchCreationReport, cliTransportReport)
+  let branchCliHelpReport = buildSkippedBranchCliHelpReport()
+  let branchCreateRetryStrategyReport = buildBranchCreateRetryStrategyReport(
+    branchCreateFailureDiagnosticsReport,
+    branchCliHelpReport,
+    { diagnoseCreate: input.diagnoseCreate },
+  )
+  let branchCreateRetryReport = buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   let branchHealthReport = buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
   let migrationTransportReport = buildMigrationTransportReport()
   let secretReferencePlan = buildSecretReferencePlan(accessTokenSecretDiscoveryReport, migrationTransportReport)
@@ -358,6 +421,9 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
 
   if (precheckReport.status === 'passed') {
     cliTransportReport = await buildCliTransportReport()
+    if (cliTransportReport.status === 'passed') {
+      branchCliHelpReport = await buildBranchCliHelpReport(cliTransportReport)
+    }
   }
 
   const cliAvailable = cliTransportReport.status === 'passed'
@@ -368,7 +434,31 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
       branchCreationReport = buildBranchReuseReport(existingBranch)
     } else if (existingBranchCheckReport.status === 'passed') {
       branchCreationReport = await createCleanBranch()
+      branchCreateFailureDiagnosticsReport = buildBranchCreateFailureDiagnosticsReport(
+        branchCreationReport,
+        cliTransportReport,
+        branchCliHelpReport,
+      )
+      branchCreateRetryStrategyReport = buildBranchCreateRetryStrategyReport(
+        branchCreateFailureDiagnosticsReport,
+        branchCliHelpReport,
+        { diagnoseCreate: input.diagnoseCreate },
+      )
+      branchCreateRetryReport = await buildBranchCreateRetryReport(branchCreateRetryStrategyReport)
+      if (branchCreateRetryReport.status === 'passed') {
+        branchCreationReport = branchCreateRetryReport
+      }
     }
+  }
+
+  if (branchCreationReport.status === 'passed' && branchCreateFailureDiagnosticsReport.status === 'skipped') {
+    branchCreateFailureDiagnosticsReport = buildBranchCreateNotNeededDiagnosticsReport(branchCreationReport, cliTransportReport)
+    branchCreateRetryStrategyReport = buildBranchCreateRetryStrategyReport(
+      branchCreateFailureDiagnosticsReport,
+      branchCliHelpReport,
+      { diagnoseCreate: input.diagnoseCreate },
+    )
+    branchCreateRetryReport = buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   }
 
   if (branchCreationReport.status === 'passed') {
@@ -401,6 +491,10 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
+    branchCreateFailureDiagnosticsReport,
+    branchCliHelpReport,
+    branchCreateRetryStrategyReport,
+    branchCreateRetryReport,
     branchHealthReport,
     migrationTransportReport,
     secretReferencePlan,
@@ -418,6 +512,10 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
+    branchCreateFailureDiagnosticsReport,
+    branchCliHelpReport,
+    branchCreateRetryStrategyReport,
+    branchCreateRetryReport,
     branchHealthReport,
     migrationTransportReport,
     secretReferencePlan,
@@ -462,6 +560,13 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
     buildSkippedReport('clean_staging_branch_access_token_injection_report', ['supabase_access_token_unavailable'])
   const cliTransportReport = existing.cliTransportReport ?? buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   const existingBranchCheckReport = existing.existingBranchCheckReport ?? buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
+  const branchCreateFailureDiagnosticsReport = existing.branchCreateFailureDiagnosticsReport ??
+    buildSkippedBranchCreateFailureDiagnosticsReport(branchCreationReport, cliTransportReport)
+  const branchCliHelpReport = existing.branchCliHelpReport ?? buildSkippedBranchCliHelpReport()
+  const branchCreateRetryStrategyReport = existing.branchCreateRetryStrategyReport ??
+    buildBranchCreateRetryStrategyReport(branchCreateFailureDiagnosticsReport, branchCliHelpReport, { diagnoseCreate: false })
+  const branchCreateRetryReport = existing.branchCreateRetryReport ??
+    buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   const migrationTransportReport = existing.migrationTransportReport ?? buildMigrationTransportReport()
   const secretReferencePlan = existing.secretReferencePlan ??
     buildSecretReferencePlan(accessTokenSecretDiscoveryReport, migrationTransportReport)
@@ -476,6 +581,10 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
+    branchCreateFailureDiagnosticsReport,
+    branchCliHelpReport,
+    branchCreateRetryStrategyReport,
+    branchCreateRetryReport,
     branchHealthReport,
     migrationTransportReport,
     secretReferencePlan,
@@ -493,6 +602,10 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
+    branchCreateFailureDiagnosticsReport,
+    branchCliHelpReport,
+    branchCreateRetryStrategyReport,
+    branchCreateRetryReport,
     branchHealthReport,
     migrationTransportReport,
     secretReferencePlan,
@@ -528,6 +641,10 @@ export async function writeSupabaseCleanStagingBranchExecutionArtifacts(reports:
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_cli_transport_report.json'), reports.cliTransportReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_existing_check_report.json'), reports.existingBranchCheckReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_creation_report.json'), reports.branchCreationReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_create_failure_diagnostics_report.json'), reports.branchCreateFailureDiagnosticsReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_cli_help_report.json'), reports.branchCliHelpReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_create_retry_strategy_report.json'), reports.branchCreateRetryStrategyReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_create_retry_report.json'), reports.branchCreateRetryReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_health_report.json'), reports.branchHealthReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_migration_transport_report.json'), reports.migrationTransportReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_secret_reference_plan.json'), reports.secretReferencePlan)
@@ -561,6 +678,10 @@ export function readSupabaseCleanStagingBranchExecutionSummary(): JsonRecord {
     branchAction: reports.branchCreationReport.branchAction,
     branchName: CLEAN_STAGING_BRANCH_NAME,
     branchStatus: reports.branchHealthReport.branchStatus,
+    branchCreateFailureClass: reports.branchCreateFailureDiagnosticsReport.failureClass,
+    branchCreateDeterministicRetryPossible: reports.branchCreateFailureDiagnosticsReport.deterministicRetryPossible,
+    branchCreateRetryStrategy: reports.branchCreateRetryStrategyReport.retryStrategy,
+    branchCreateRetryStatus: reports.branchCreateRetryReport.status,
     accessTokenSecretDiscovery: reports.accessTokenSecretDiscoveryReport.status,
     accessTokenInjection: reports.accessTokenInjectionReport.status,
     withProductionData: false,
@@ -642,6 +763,7 @@ function buildPrecheckReport(): JsonRecord {
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC') blockers.push('temp_cli_exec_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION') blockers.push('access_token_secret_injection_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED') blockers.push('preinjected_access_token_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS') blockers.push('clean_branch_create_retry_not_confirmed')
   }
   if (forbiddenSet.length > 0) blockers.push('forbidden_confirmation_set')
   if (!process.env.SUPABASE_ACCESS_TOKEN) blockers.push('supabase_access_token_unavailable')
@@ -662,6 +784,7 @@ function buildPrecheckReport(): JsonRecord {
     supabaseAccessTokenPrinted: false,
     accessTokenSecretInjectionConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION === 'true',
     preinjectedAccessTokenAllowed: process.env.REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED === 'true',
+    branchCreateRetryAfterDiagnosticsConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS === 'true',
     forbiddenConfirmationsSet: forbiddenSet,
     localMigrationDirExists: existsSync(MIGRATION_DIR),
     targetRegistryMigrationPresent: existsSync(path.join(MIGRATION_DIR, TARGET_REGISTRY_MIGRATION_FILE)),
@@ -942,11 +1065,13 @@ function buildSecretReferencePlan(
 
 async function buildCliTransportReport(): Promise<JsonRecord> {
   const result = await runSupabaseCli(['--version'])
+  const cliVersion = commandOutputText(result).trim().split(/\r?\n/)[0] ?? 'unknown'
   return {
     phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
     runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
     status: result.status,
     strategy: 'temp_npm_exec_supabase_cli',
+    cliVersion: cliVersion.length > 0 ? cliVersion : 'unknown',
     npmCache: TEMP_NPM_CACHE,
     npmPrefix: TEMP_NPM_PREFIX,
     cacheInsideRepo: TEMP_NPM_CACHE.includes(process.cwd()),
@@ -999,7 +1124,12 @@ async function buildExistingBranchCheckReport(): Promise<JsonRecord> {
   }
 }
 
-async function createCleanBranch(): Promise<JsonRecord> {
+async function createCleanBranch(options: {
+  retryAttempt?: boolean
+  retryStrategy?: BranchCreateRetryStrategy
+  region?: string | null
+  size?: string | null
+} = {}): Promise<JsonRecord> {
   const args = [
     '-o',
     'json',
@@ -1010,6 +1140,8 @@ async function createCleanBranch(): Promise<JsonRecord> {
     '--project-ref',
     CLEAN_STAGING_PARENT_PROJECT_REF,
   ]
+  if (options.region) args.push('--region', options.region)
+  if (options.size) args.push('--size', options.size)
   const result = await runSupabaseCli(args, { failureBlocker: 'clean_staging_branch_create_failed' })
   const parsed = parseJsonOutput(result)
   const branch = extractBranchFromUnknown(parsed)
@@ -1027,6 +1159,10 @@ async function createCleanBranch(): Promise<JsonRecord> {
     status: blockers.length === 0 ? 'passed' : 'blocked',
     branchAction: blockers.length === 0 ? 'created' : 'blocked',
     commandClass: 'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
+    retryAttempt: options.retryAttempt === true,
+    retryStrategy: options.retryStrategy ?? null,
+    regionProvided: Boolean(options.region),
+    sizeProvided: Boolean(options.size),
     commandResult: result,
     parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
     branchName: CLEAN_STAGING_BRANCH_NAME,
@@ -1038,6 +1174,268 @@ async function createCleanBranch(): Promise<JsonRecord> {
     productionAffected: false,
     secretsPrintedOrCommitted: false,
     blockers: collectUnique(blockers),
+  }
+}
+
+async function buildBranchCliHelpReport(cliTransportReport: JsonRecord): Promise<JsonRecord> {
+  const result = await runSupabaseCli(['branches', 'create', '--help'])
+  const helpText = commandOutputText(result)
+  const supportedFlags = {
+    projectRef: helpText.includes(dashFlag('project-ref')),
+    persistent: helpText.includes(dashFlag('persistent')),
+    region: helpText.includes(dashFlag('region')),
+    size: helpText.includes(dashFlag('size')),
+    dataClone: helpText.includes(dashFlag(['with', 'data'].join('-'))),
+  }
+  const regionChoices = extractChoiceList(helpText, 'region')
+  const sizeChoices = extractChoiceList(helpText, 'size')
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: result.status,
+    mode: 'clean_staging_branch_cli_help',
+    cliVersion: maybeString(cliTransportReport.cliVersion) ?? 'unknown',
+    commandResult: result,
+    rawHelpStored: false,
+    supportedFlags,
+    regionChoices,
+    sizeChoices,
+    dataCloneAllowed: false,
+    withData: false,
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers: result.blockers,
+  }
+}
+
+function buildBranchCreateFailureDiagnosticsReport(
+  branchCreationReport: JsonRecord,
+  cliTransportReport: JsonRecord,
+  branchCliHelpReport: JsonRecord,
+): JsonRecord {
+  const commandResult = asRecord(branchCreationReport.commandResult) as unknown as CommandResult
+  const output = commandOutputText(commandResult)
+  const classification = classifyBranchCreateFailure(branchCreationReport, output)
+  const safeValues = getApprovedBranchRetryValues(branchCliHelpReport)
+  const deterministicRetryPossible = determineBranchCreateDeterministicRetryPossible(classification, safeValues)
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: branchCreationReport.status === 'passed' ? 'passed' : 'blocked',
+    mode: 'clean_staging_branch_create_failure_diagnostics',
+    commandClass: 'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
+    commandResult: summarizeCommandResult(commandResult),
+    cliVersion: maybeString(cliTransportReport.cliVersion) ?? 'unknown',
+    tokenPresent: Boolean(process.env.SUPABASE_ACCESS_TOKEN),
+    tokenPrinted: false,
+    tokenCommitted: false,
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    persistent: true,
+    withData: false,
+    productionAffected: false,
+    rawOutputStored: false,
+    sanitizedFailureSignals: classification.signals,
+    failureClass: classification.failureClass,
+    transientSignalDetected: classification.transientSignalDetected,
+    deterministicRetryPossible,
+    approvedRegion: safeValues.region,
+    approvedRegionSource: safeValues.regionSource,
+    approvedSize: safeValues.size,
+    approvedSizeSource: safeValues.sizeSource,
+    requiredFix: buildBranchCreateRequiredFix(classification.failureClass, safeValues),
+    blockers: branchCreationReport.status === 'passed'
+      ? []
+      : collectUnique(classification.blockers),
+  }
+}
+
+function buildBranchCreateNotNeededDiagnosticsReport(
+  branchCreationReport: JsonRecord,
+  cliTransportReport: JsonRecord,
+): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: 'passed',
+    mode: 'clean_staging_branch_create_not_needed',
+    commandClass: 'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
+    cliVersion: maybeString(cliTransportReport.cliVersion) ?? 'unknown',
+    tokenPresent: Boolean(process.env.SUPABASE_ACCESS_TOKEN),
+    tokenPrinted: false,
+    tokenCommitted: false,
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    persistent: true,
+    withData: false,
+    productionAffected: false,
+    rawOutputStored: false,
+    failureClass: 'none' satisfies BranchCreateFailureClass,
+    transientSignalDetected: false,
+    deterministicRetryPossible: false,
+    requiredFix: 'none',
+    branchAction: branchCreationReport.branchAction,
+    blockers: [],
+  }
+}
+
+function buildBranchCreateRetryStrategyReport(
+  diagnosticsReport: JsonRecord,
+  branchCliHelpReport: JsonRecord,
+  options: { diagnoseCreate: boolean },
+): JsonRecord {
+  const failureClass = asString(diagnosticsReport.failureClass, 'branch_create_unknown') as BranchCreateFailureClass
+  const safeValues = getApprovedBranchRetryValues(branchCliHelpReport)
+  const retryConfirmed = process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS === 'true'
+  let retryStrategy: BranchCreateRetryStrategy = 'blocked_pending_operator_review'
+  if (failureClass === 'none') retryStrategy = 'not_needed'
+  else if (diagnosticsReport.transientSignalDetected === true) retryStrategy = 'retry_same_command_if_transient'
+  else if (failureClass === 'branch_create_region_required' && safeValues.region) retryStrategy = 'retry_with_region_if_region_required'
+  else if (failureClass === 'branch_create_size_required' && safeValues.size) retryStrategy = 'retry_with_size_if_size_required'
+  else if (failureClass === 'branch_create_region_and_size_required' && safeValues.region && safeValues.size) {
+    retryStrategy = 'retry_with_region_and_size_if_both_required'
+  } else if (failureClass === 'branch_create_plan_or_billing_unavailable') retryStrategy = 'blocked_pending_plan_or_billing_review'
+  else if (failureClass === 'branch_create_permission_denied') retryStrategy = 'blocked_pending_permission_review'
+  else if (failureClass === 'branch_create_feature_unavailable') retryStrategy = 'blocked_pending_branching_feature_review'
+
+  const deterministicRetryPossible = retryStrategy.startsWith('retry_') &&
+    retryConfirmed &&
+    options.diagnoseCreate
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (retryStrategy !== 'not_needed' && !retryConfirmed) blockers.push('clean_branch_create_retry_not_confirmed')
+  if (retryStrategy === 'retry_with_region_if_region_required' && !safeValues.region) blockers.push('branch_region_or_size_required')
+  if (retryStrategy === 'retry_with_size_if_size_required' && !safeValues.size) blockers.push('branch_region_or_size_required')
+  if (retryStrategy === 'retry_with_region_and_size_if_both_required' && (!safeValues.region || !safeValues.size)) {
+    blockers.push('branch_region_or_size_required')
+  }
+  if (!retryStrategy.startsWith('retry_') && retryStrategy !== 'not_needed') {
+    blockers.push(...failureClassToBlockers(failureClass))
+  }
+  if (retryStrategy.startsWith('retry_') && (!retryConfirmed || !options.diagnoseCreate)) {
+    blockers.push('clean_branch_create_retry_not_confirmed')
+  }
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: retryStrategy === 'not_needed' || deterministicRetryPossible ? 'passed' : 'blocked',
+    mode: 'clean_staging_branch_create_retry_strategy',
+    failureClass,
+    retryStrategy,
+    deterministicRetryPossible,
+    retryConfirmed,
+    diagnoseCreateFlagPresent: options.diagnoseCreate,
+    approvedRegion: safeValues.region,
+    approvedRegionSource: safeValues.regionSource,
+    approvedSize: safeValues.size,
+    approvedSizeSource: safeValues.sizeSource,
+    withData: false,
+    dataCloneAllowed: false,
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers: collectUnique(blockers),
+  }
+}
+
+async function buildBranchCreateRetryReport(strategyReport: JsonRecord): Promise<JsonRecord> {
+  const retryStrategy = asString(strategyReport.retryStrategy, 'blocked_pending_operator_review') as BranchCreateRetryStrategy
+  const deterministicRetryPossible = strategyReport.deterministicRetryPossible === true
+  if (retryStrategy === 'not_needed') return buildSkippedBranchCreateRetryReport(strategyReport)
+  if (!deterministicRetryPossible) return buildSkippedBranchCreateRetryReport(strategyReport)
+
+  const beforeRetry = await buildExistingBranchCheckReport()
+  const existingBranch = asRecord(beforeRetry.cleanBranch)
+  if (beforeRetry.status === 'passed' && existingBranch.exists === true) {
+    return {
+      ...buildBranchReuseReport(existingBranch),
+      mode: 'clean_staging_branch_create_retry_existing_branch_found',
+      retryAttempt: true,
+      retryStrategy,
+      beforeRetryExistingCheck: beforeRetry,
+    }
+  }
+
+  const result = await createCleanBranch({
+    retryAttempt: true,
+    retryStrategy,
+    region: maybeString(strategyReport.approvedRegion),
+    size: maybeString(strategyReport.approvedSize),
+  })
+  return {
+    ...result,
+    mode: 'clean_staging_branch_create_retry',
+    retryAttempt: true,
+    retryStrategy,
+    beforeRetryExistingCheck: beforeRetry,
+  }
+}
+
+function buildSkippedBranchCreateFailureDiagnosticsReport(
+  branchCreationReport: JsonRecord,
+  cliTransportReport: JsonRecord,
+): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: 'skipped',
+    mode: 'clean_staging_branch_create_failure_diagnostics_not_attempted',
+    commandClass: 'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
+    cliVersion: maybeString(cliTransportReport.cliVersion) ?? 'unknown',
+    tokenPresent: Boolean(process.env.SUPABASE_ACCESS_TOKEN),
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    persistent: true,
+    withData: false,
+    productionAffected: false,
+    rawOutputStored: false,
+    failureClass: branchCreationReport.status === 'passed' ? 'none' : 'branch_create_unknown',
+    deterministicRetryPossible: false,
+    requiredFix: 'diagnostics_not_attempted',
+    blockers: branchCreationReport.status === 'passed' ? [] : ['branch_create_unknown'],
+  }
+}
+
+function buildSkippedBranchCliHelpReport(): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: 'skipped',
+    mode: 'clean_staging_branch_cli_help_not_attempted',
+    rawHelpStored: false,
+    supportedFlags: {
+      projectRef: false,
+      persistent: false,
+      region: false,
+      size: false,
+      dataClone: false,
+    },
+    regionChoices: [],
+    sizeChoices: [],
+    dataCloneAllowed: false,
+    withData: false,
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers: ['temp_npm_supabase_cli_unavailable'],
+  }
+}
+
+function buildSkippedBranchCreateRetryReport(strategyReport: JsonRecord): JsonRecord {
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: 'skipped',
+    mode: 'clean_staging_branch_create_retry_not_run',
+    retryAttempt: false,
+    retryStrategy: strategyReport.retryStrategy ?? 'blocked_pending_operator_review',
+    deterministicRetryPossible: strategyReport.deterministicRetryPossible === true,
+    branchAction: 'not_run',
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    persistent: true,
+    withData: false,
+    withProductionData: false,
+    productionAffected: false,
+    secretsPrintedOrCommitted: false,
+    blockers: asStringArray(strategyReport.blockers),
   }
 }
 
@@ -1422,6 +1820,7 @@ async function runGcloudMetadataCommand(args: string[]): Promise<CommandResult> 
         blockers: collectUnique(blockers),
       }
       COMMAND_STDOUT.set(result, stdout)
+      COMMAND_STDERR.set(result, stderr)
       resolve(result)
     })
   })
@@ -1513,6 +1912,7 @@ async function runSupabaseCli(args: string[], options: {
         blockers: collectUnique(blockers),
       }
       COMMAND_STDOUT.set(result, stdout)
+      COMMAND_STDERR.set(result, stderr)
       resolve(result)
     })
   })
@@ -1618,6 +2018,219 @@ function extractMigrationIds(parsed: unknown): string[] {
   return Array.from(new Set(matches)).sort()
 }
 
+function summarizeCommandResult(result: CommandResult): JsonRecord {
+  return {
+    status: result.status,
+    command: result.command,
+    args: result.args,
+    exitCode: result.exitCode,
+    stdoutSummary: result.stdoutSummary,
+    stderrSummary: result.stderrSummary,
+    parsedJson: result.parsedJson,
+    blockers: result.blockers,
+  }
+}
+
+function commandOutputText(result: CommandResult): string {
+  return [
+    COMMAND_STDOUT.get(result) ?? '',
+    COMMAND_STDERR.get(result) ?? '',
+  ].join('\n')
+}
+
+function dashFlag(name: string): string {
+  return `--${name}`
+}
+
+function extractChoiceList(helpText: string, flagName: string): string[] {
+  const line = helpText
+    .split(/\r?\n/)
+    .find((candidate) => candidate.includes(dashFlag(flagName)) && candidate.includes('choices:'))
+  if (!line) return []
+  const choices = line.match(/choices:\s*([^)]+)/)?.[1] ?? ''
+  return choices.split(',').map((choice) => choice.trim()).filter(Boolean)
+}
+
+function classifyBranchCreateFailure(
+  branchCreationReport: JsonRecord,
+  outputText: string,
+): {
+  failureClass: BranchCreateFailureClass
+  transientSignalDetected: boolean
+  signals: JsonRecord
+  blockers: SupabaseCleanStagingBranchExecutionBlocker[]
+} {
+  if (branchCreationReport.status === 'passed') {
+    return {
+      failureClass: 'none',
+      transientSignalDetected: false,
+      signals: {},
+      blockers: [],
+    }
+  }
+  const lower = outputText.toLowerCase()
+  const hasRegion = /\bregion\b/.test(lower)
+  const hasSize = /\b(size|instance)\b/.test(lower)
+  const hasRequired = /\b(required|missing|must|select|specify|provide)\b/.test(lower)
+  const signals = {
+    regionMentioned: hasRegion,
+    sizeMentioned: hasSize,
+    requiredMentioned: hasRequired,
+    billingOrPlanMentioned: /\b(billing|plan|paid|subscription|upgrade)\b/.test(lower),
+    permissionMentioned: /\b(permission|unauthorized|forbidden|denied)\b|401|403/.test(lower),
+    quotaOrLimitMentioned: /\b(quota|limit|maximum|too many)\b/.test(lower),
+    branchFeatureMentioned: /\b(branching|preview branch|branches)\b/.test(lower) &&
+      /\b(unavailable|disabled|not enabled|not available)\b/.test(lower),
+    projectRefMentioned: /\b(project-ref|project ref|project)\b/.test(lower) &&
+      /\b(invalid|not found|unknown)\b/.test(lower),
+    branchNameMentioned: /\b(branch name|name)\b/.test(lower) &&
+      /\b(invalid|not allowed|malformed)\b/.test(lower),
+    cliVersionMentioned: /\b(unknown flag|invalid flag|unrecognized|unsupported|version)\b/.test(lower),
+    transientMentioned: /\b(timeout|timed out|temporary|temporarily|try again|network)\b|5\d\d/.test(lower),
+    outputAvailable: outputText.trim().length > 0,
+  }
+  let failureClass: BranchCreateFailureClass = 'branch_create_unknown'
+  if (hasRegion && hasSize && hasRequired) failureClass = 'branch_create_region_and_size_required'
+  else if (hasRegion && hasRequired) failureClass = 'branch_create_region_required'
+  else if (hasSize && hasRequired) failureClass = 'branch_create_size_required'
+  else if (signals.billingOrPlanMentioned === true) failureClass = 'branch_create_plan_or_billing_unavailable'
+  else if (signals.permissionMentioned === true) failureClass = 'branch_create_permission_denied'
+  else if (signals.quotaOrLimitMentioned === true) failureClass = 'branch_create_quota_or_limit_reached'
+  else if (signals.branchFeatureMentioned === true) failureClass = 'branch_create_feature_unavailable'
+  else if (signals.projectRefMentioned === true) failureClass = 'branch_create_project_ref_invalid'
+  else if (signals.branchNameMentioned === true) failureClass = 'branch_create_branch_name_invalid'
+  else if (signals.cliVersionMentioned === true) failureClass = 'branch_create_cli_version_issue'
+  return {
+    failureClass,
+    transientSignalDetected: signals.transientMentioned === true,
+    signals,
+    blockers: failureClassToBlockers(failureClass),
+  }
+}
+
+function failureClassToBlockers(failureClass: BranchCreateFailureClass): SupabaseCleanStagingBranchExecutionBlocker[] {
+  if (failureClass === 'none') return []
+  if (
+    failureClass === 'branch_create_region_required' ||
+    failureClass === 'branch_create_size_required' ||
+    failureClass === 'branch_create_region_and_size_required'
+  ) return ['branch_region_or_size_required']
+  if (failureClass === 'branch_create_plan_or_billing_unavailable') return ['branch_create_plan_or_billing_unavailable']
+  if (failureClass === 'branch_create_permission_denied') return ['branch_create_permission_denied']
+  if (failureClass === 'branch_create_quota_or_limit_reached') return ['branch_create_quota_or_limit_reached']
+  if (failureClass === 'branch_create_feature_unavailable') return ['branch_create_feature_unavailable']
+  if (failureClass === 'branch_create_project_ref_invalid') return ['branch_create_project_ref_invalid']
+  if (failureClass === 'branch_create_branch_name_invalid') return ['branch_create_branch_name_invalid']
+  if (failureClass === 'branch_create_cli_version_issue') return ['branch_create_cli_version_issue']
+  return ['branch_create_unknown']
+}
+
+function determineBranchCreateDeterministicRetryPossible(
+  classification: { failureClass: BranchCreateFailureClass; transientSignalDetected: boolean },
+  safeValues: { region: string | null; size: string | null },
+): boolean {
+  if (classification.transientSignalDetected) return true
+  if (classification.failureClass === 'branch_create_region_required') return Boolean(safeValues.region)
+  if (classification.failureClass === 'branch_create_size_required') return Boolean(safeValues.size)
+  if (classification.failureClass === 'branch_create_region_and_size_required') {
+    return Boolean(safeValues.region && safeValues.size)
+  }
+  return false
+}
+
+function buildBranchCreateRequiredFix(
+  failureClass: BranchCreateFailureClass,
+  safeValues: { region: string | null; size: string | null },
+): string {
+  if (failureClass === 'branch_create_region_required') {
+    return safeValues.region ? 'retry_with_approved_region' : 'approved_region_required_before_retry'
+  }
+  if (failureClass === 'branch_create_size_required') {
+    return safeValues.size ? 'retry_with_approved_size' : 'approved_size_required_before_retry'
+  }
+  if (failureClass === 'branch_create_region_and_size_required') {
+    return safeValues.region && safeValues.size
+      ? 'retry_with_approved_region_and_size'
+      : 'approved_region_and_size_required_before_retry'
+  }
+  if (failureClass === 'branch_create_plan_or_billing_unavailable') return 'plan_or_billing_review_required'
+  if (failureClass === 'branch_create_permission_denied') return 'permission_review_required'
+  if (failureClass === 'branch_create_quota_or_limit_reached') return 'quota_or_limit_review_required'
+  if (failureClass === 'branch_create_feature_unavailable') return 'branching_feature_review_required'
+  if (failureClass === 'branch_create_project_ref_invalid') return 'project_reference_review_required'
+  if (failureClass === 'branch_create_branch_name_invalid') return 'branch_name_review_required'
+  if (failureClass === 'branch_create_cli_version_issue') return 'cli_version_review_required'
+  if (failureClass === 'none') return 'none'
+  return 'manual_operator_review_required'
+}
+
+function getApprovedBranchRetryValues(branchCliHelpReport: JsonRecord): {
+  region: string | null
+  regionSource: string | null
+  size: string | null
+  sizeSource: string | null
+} {
+  const docs = [
+    'docs/supabase-approved-clean-staging-target-reference.md',
+    'docs/supabase-clean-staging-branch-execution.md',
+  ]
+  const jsonFiles = [
+    path.join(SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_REPORT_DIR, 'clean_staging_target_reference.json'),
+    path.join(PR280_REPORT_DIR, 'clean_staging_target_approval_decision.json'),
+  ]
+  const regionChoices = new Set(asStringArray(branchCliHelpReport.regionChoices))
+  const sizeChoices = new Set(asStringArray(branchCliHelpReport.sizeChoices))
+  const region = findApprovedRetryValue({
+    docs,
+    jsonFiles,
+    docMarker: 'approved_clean_staging_branch_region',
+    jsonKeys: ['approvedCleanStagingBranchRegion', 'cleanStagingBranchRegion', 'branchRegion'],
+    choices: regionChoices,
+  })
+  const size = findApprovedRetryValue({
+    docs,
+    jsonFiles,
+    docMarker: 'approved_clean_staging_branch_size',
+    jsonKeys: ['approvedCleanStagingBranchSize', 'cleanStagingBranchSize', 'branchSize'],
+    choices: sizeChoices,
+  })
+  return {
+    region: region.value,
+    regionSource: region.source,
+    size: size.value,
+    sizeSource: size.source,
+  }
+}
+
+function findApprovedRetryValue(input: {
+  docs: string[]
+  jsonFiles: string[]
+  docMarker: string
+  jsonKeys: string[]
+  choices: Set<string>
+}): { value: string | null; source: string | null } {
+  for (const doc of input.docs) {
+    if (!existsSync(doc)) continue
+    const text = readFileSync(doc, 'utf8')
+    const match = text.match(new RegExp(`${input.docMarker}:\\s*([A-Za-z0-9_-]+)`))
+    const value = match?.[1] ?? null
+    if (value && approvedRetryChoiceAllowed(value, input.choices)) return { value, source: doc }
+  }
+  for (const jsonFile of input.jsonFiles) {
+    const report = readJsonArtifact(jsonFile)
+    if (!report) continue
+    for (const key of input.jsonKeys) {
+      const value = maybeString(report[key])
+      if (value && approvedRetryChoiceAllowed(value, input.choices)) return { value, source: jsonFile }
+    }
+  }
+  return { value: null, source: null }
+}
+
+function approvedRetryChoiceAllowed(value: string, choices: Set<string>): boolean {
+  return /^[a-z0-9_-]+$/.test(value) && (choices.size === 0 || choices.has(value))
+}
+
 function getCleanBranchDbUrl(): { present: false; name: null; value: '' } | { present: true; name: string; value: string } {
   for (const name of CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES) {
     const value = process.env[name]
@@ -1641,6 +2254,10 @@ function loadExistingExecutionReports(): Partial<Reports> {
     cliTransportReport: read('clean_staging_branch_cli_transport_report.json') ?? undefined,
     existingBranchCheckReport: read('clean_staging_branch_existing_check_report.json') ?? undefined,
     branchCreationReport: read('clean_staging_branch_creation_report.json') ?? undefined,
+    branchCreateFailureDiagnosticsReport: read('clean_staging_branch_create_failure_diagnostics_report.json') ?? undefined,
+    branchCliHelpReport: read('clean_staging_branch_cli_help_report.json') ?? undefined,
+    branchCreateRetryStrategyReport: read('clean_staging_branch_create_retry_strategy_report.json') ?? undefined,
+    branchCreateRetryReport: read('clean_staging_branch_create_retry_report.json') ?? undefined,
     branchHealthReport: read('clean_staging_branch_health_report.json') ?? undefined,
     migrationTransportReport: read('clean_staging_branch_migration_transport_report.json') ?? undefined,
     secretReferencePlan: read('clean_staging_branch_secret_reference_plan.json') ?? undefined,
@@ -1678,6 +2295,9 @@ Branch: \`${CLEAN_STAGING_BRANCH_NAME}\`
 ## Execution
 
 - Branch/project creation: \`${reports.branchCreationReport.branchAction ?? 'not_run'}\`
+- Branch create failure class: \`${reports.branchCreateFailureDiagnosticsReport.failureClass ?? 'not_attempted'}\`
+- Branch create retry strategy: \`${reports.branchCreateRetryStrategyReport.retryStrategy ?? 'not_attempted'}\`
+- Branch create retry result: \`${reports.branchCreateRetryReport.status}\`
 - Access-token secret discovery: \`${reports.accessTokenSecretDiscoveryReport.status}\`
 - Access-token injection: \`${reports.accessTokenInjectionReport.status}\`
 - Migration transport: \`${reports.migrationTransportReport.status}\`
@@ -1745,6 +2365,10 @@ Track B write: not run
 
 Clean branch migration transport: \`${reports.migrationTransportReport.status}\`
 
+Branch create diagnostics: \`${reports.branchCreateFailureDiagnosticsReport.failureClass ?? 'not_attempted'}\`
+
+Branch create retry: \`${reports.branchCreateRetryReport.status}\`
+
 After clean schema/RLS verification passes, use a separate PR #198 Track B backfill execution prompt against the clean staging target. Production remains blocked.
 `
 }
@@ -1759,6 +2383,10 @@ Required clean target reference: \`docs/activation-supabase-clean-staging-branch
 Current clean branch readiness: \`${reports.readinessReport.status}\`
 
 Current migration transport: \`${reports.migrationTransportReport.status}\`
+
+Current branch create diagnostics: \`${reports.branchCreateFailureDiagnosticsReport.failureClass ?? 'not_attempted'}\`
+
+Current branch create retry: \`${reports.branchCreateRetryReport.status}\`
 
 Run PR #198 preflight/diff/report first. Do not write Track B rows until a separate guarded backfill execution phase sets the required Track B confirmations.
 `

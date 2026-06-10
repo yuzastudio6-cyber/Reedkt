@@ -4,6 +4,7 @@
   "status": "blocked",
   "activeBlockers": [
     "clean_staging_branch_create_failed",
+    "branch_create_plan_or_billing_unavailable",
     "clean_staging_branch_health_unavailable",
     "clean_branch_migration_apply_transport_unavailable",
     "clean_branch_schema_rls_verify_failed",

@@ -3,6 +3,7 @@
   "runId": "supabase-clean-staging-branch-execution-20260610",
   "status": "passed",
   "strategy": "temp_npm_exec_supabase_cli",
+  "cliVersion": "2.105.0",
   "npmCache": "/tmp/reeditpro-supabase-cli-cache",
   "npmPrefix": "/tmp/reeditpro-supabase-cli-prefix",
   "cacheInsideRepo": false,

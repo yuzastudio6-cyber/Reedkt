@@ -15,6 +15,10 @@
     "clean_staging_branch_cli_transport_report.json",
     "clean_staging_branch_existing_check_report.json",
     "clean_staging_branch_creation_report.json",
+    "clean_staging_branch_create_failure_diagnostics_report.json",
+    "clean_staging_branch_cli_help_report.json",
+    "clean_staging_branch_create_retry_strategy_report.json",
+    "clean_staging_branch_create_retry_report.json",
     "clean_staging_branch_health_report.json",
     "clean_staging_branch_migration_transport_report.json",
     "clean_staging_branch_secret_reference_plan.json",
@@ -58,6 +62,10 @@
       "--persistent",
       "--project-ref"
     ],
+    "optionalDiagnosticRetryFlags": [
+      "--region",
+      "--size"
+    ],
     "forbiddenBranchDataCloneFlag": "with_data_clone_flag_forbidden",
     "dbPushFlags": [
       "--db-url",
@@ -84,7 +92,8 @@
     "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY",
     "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
     "REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION",
-    "REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED"
+    "REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS"
   ],
   "forbiddenConfirmations": [
     "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",
@@ -106,8 +115,10 @@
     "gcloud secrets describe SUPABASE_ACCESS_TOKEN --project=reeditpro --format=json(name,labels,replication,createTime,annotations)",
     "gcloud secrets versions access latest --secret=[SELECTED_ACCESS_TOKEN_SECRET_REF] --project=reeditpro",
     "npm exec --yes --package supabase@latest -- supabase --version",
+    "npm exec --yes --package supabase@latest -- supabase branches create --help",
     "supabase branches list --project-ref [PARENT_PROJECT_REF]",
     "supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]",
+    "supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF] [OPTIONAL_SAFE_REGION_SIZE_FLAGS]",
     "supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL] --dry-run",
     "supabase db push --db-url [REDACTED_CLEAN_BRANCH_DB_URL]",
     "supabase migration list --db-url [REDACTED_CLEAN_BRANCH_DB_URL]"

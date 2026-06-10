@@ -15,6 +15,7 @@
   "supabaseAccessTokenPrinted": false,
   "accessTokenSecretInjectionConfirmed": true,
   "preinjectedAccessTokenAllowed": true,
+  "branchCreateRetryAfterDiagnosticsConfirmed": true,
   "forbiddenConfirmationsSet": [],
   "localMigrationDirExists": true,
   "targetRegistryMigrationPresent": true,

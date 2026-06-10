@@ -9,6 +9,9 @@ Branch: `reeditpro-internal-staging-clean`
 ## Execution
 
 - Branch/project creation: `blocked`
+- Branch create failure class: `branch_create_plan_or_billing_unavailable`
+- Branch create retry strategy: `blocked_pending_plan_or_billing_review`
+- Branch create retry result: `skipped`
 - Access-token secret discovery: `passed`
 - Access-token injection: `passed`
 - Migration transport: `blocked`

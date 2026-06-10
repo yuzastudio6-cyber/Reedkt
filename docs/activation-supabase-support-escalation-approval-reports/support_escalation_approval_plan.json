@@ -1,0 +1,112 @@
+{
+  "phase": "supabase-support-escalation-approval",
+  "runId": "supabase-support-escalation-approval-20260610",
+  "branch": "codex/rp-foundation-supabase-support-escalation-approval",
+  "baseBranch": "codex/rp-foundation-supabase-reset-retry-failure-diagnostics",
+  "prTitle": "[foundation] Supabase support escalation approval",
+  "worktree": "/private/tmp/reeditpro-supabase-support-escalation-approval",
+  "reportDir": "docs/activation-supabase-support-escalation-approval-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "support_escalation_approval_plan.json",
+    "support_escalation_evidence_inventory.json",
+    "support_escalation_redacted_packet.json",
+    "support_escalation_redaction_review.json",
+    "support_escalation_submission_option_matrix.json",
+    "support_escalation_operator_checklist.json",
+    "support_escalation_approval_decision.json",
+    "support_escalation_blocker_report.json",
+    "support_escalation_readiness_report.json",
+    "support_escalation_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-support-escalation-approval.md",
+    "docs/supabase-support-redacted-reset-failure-packet.md",
+    "docs/supabase-support-escalation-operator-checklist.md",
+    "docs/supabase-support-escalation-approval-decision.md",
+    "docs/implementation-prompts/prompt-supabase-support-ticket-submission.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePrs": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    252,
+    259,
+    262,
+    265,
+    269,
+    271
+  ],
+  "docsBasis": {
+    "cliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "databaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "changelog": "https://supabase.com/changelog",
+    "checkedAt": "2026-06-10",
+    "globalCreateTicketFlagObserved": true,
+    "cliCreateTicketApprovedInThisPhase": false,
+    "migrationWorkflowRemainsRequiredForFutureSchemaChanges": true
+  },
+  "approvedStagingTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "allowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_SUPPORT_ESCALATION_APPROVAL_PACKET",
+    "REEDITPRO_CONFIRM_SUPABASE_SUPPORT_PACKET_REDACTION_REVIEW"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_SUPPORT_TICKET_SUBMISSION",
+    "REEDITPRO_CONFIRM_SUPABASE_CLI_CREATE_TICKET",
+    "REEDITPRO_CONFIRM_SUPABASE_CLI_DEBUG_RESET_LOGS",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_PUSH",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SUPABASE_REMOTE_SQL",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_TOOL_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME",
+    "REEDITPRO_CONFIRM_PUBLIC_ARTIFACT_OUTPUT",
+    "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING"
+  ],
+  "allowedActions": [
+    "read_committed_safe_reports",
+    "build_redacted_support_packet_metadata",
+    "review_redaction_policy",
+    "approve_future_manual_support_ticket_only",
+    "write_safe_metadata_reports_and_docs"
+  ],
+  "blockedActions": [
+    "support_ticket_submission",
+    "cli_create_ticket",
+    "debug_reset_log_collection",
+    "reset_retry",
+    "db_push",
+    "migration_repair",
+    "schema_deploy",
+    "track_b_backfill_write",
+    "production_supabase",
+    "direct_ddl_dml",
+    "secret_payload_access_or_printing",
+    "provider_calls",
+    "route_tool_worker_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ],
+  "defaultDecision": "blocked_pending_support_owner_approval"
+}

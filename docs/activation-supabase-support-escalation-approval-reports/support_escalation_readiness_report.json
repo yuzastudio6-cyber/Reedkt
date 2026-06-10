@@ -1,0 +1,25 @@
+{
+  "phase": "supabase-support-escalation-approval",
+  "runId": "supabase-support-escalation-approval-20260610",
+  "status": "ready_for_future_manual_support_ticket_submission",
+  "decision": "approved_for_future_manual_supabase_support_ticket",
+  "approvalStatus": "future_manual_support_ticket_approved_not_submitted",
+  "activeBlockers": [
+    "support_ticket_submission_requires_separate_phase",
+    "cli_create_ticket_not_approved_in_this_phase"
+  ],
+  "futureManualSupportTicketApproved": true,
+  "cliCreateTicketApproved": false,
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "secretsPrintedOrCommitted": false,
+  "nextRecommendedPhase": "Separate manual Supabase support ticket submission phase using the approved redacted packet."
+}

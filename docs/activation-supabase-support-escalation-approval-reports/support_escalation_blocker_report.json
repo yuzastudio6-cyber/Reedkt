@@ -1,0 +1,32 @@
+{
+  "phase": "supabase-support-escalation-approval",
+  "runId": "supabase-support-escalation-approval-20260610",
+  "status": "approved_with_future_phase_blockers",
+  "activeBlockers": [
+    "support_ticket_submission_requires_separate_phase",
+    "cli_create_ticket_not_approved_in_this_phase"
+  ],
+  "supportSubmissionBlockers": [
+    "support_ticket_submission_requires_separate_phase",
+    "cli_create_ticket_not_approved_in_this_phase"
+  ],
+  "executionBlockers": [
+    "reset_retry_not_allowed",
+    "db_push_not_allowed",
+    "migration_repair_not_allowed",
+    "schema_deploy_not_allowed",
+    "track_b_backfill_write_not_allowed",
+    "production_not_allowed"
+  ],
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "secretsPrintedOrCommitted": false
+}

@@ -4,7 +4,7 @@ Branch: `codex/rp-tracka-gd-handoff-1-private-preview-composition-plan`
 
 Base: `origin/codex/rp-tracka-gd-handoff-0-creative-graphics-review`
 
-PR: pending.
+PR: [#264](https://github.com/yuzastudio6-cyber/Reedkt/pull/264).
 
 Production capability enabled: `none; Track A private preview composition plan only`
 

@@ -1,0 +1,43 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "status": "blocked",
+  "source": "docs/activation-supabase-staging-reset-retry-execution-reports/staging_reset_retry_execution_report.json",
+  "sanitizedCommandClass": "supabase_db_reset_via_temp_npm_exec",
+  "selectedStrategy": "temp_npm_exec_supabase_cli",
+  "approvedCommandShape": "npm exec --yes --package supabase@latest -- supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed",
+  "rejectedOperationShape": "db reset ... --no-seed --yes",
+  "exitCode": 1,
+  "stdoutSummary": {
+    "byteLength": 0,
+    "secretPatternDetected": false,
+    "rawOutputCommitted": false
+  },
+  "stderrSummary": {
+    "byteLength": 66,
+    "secretPatternDetected": false,
+    "rawOutputCommitted": false
+  },
+  "failureClassification": "reset_retry_command_failed_exact_cause_not_proven",
+  "exactFailureCauseProven": false,
+  "safeFixProven": false,
+  "pointsToSupabaseCliOrPlatformIssue": true,
+  "supportPacketRecommended": true,
+  "resetRetryApprovedInThisPhase": false,
+  "resetRetryRunInThisPhase": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "directDdlDmlRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "blockers": [
+    "staging_reset_retry_failed",
+    "reset_retry_failure_cause_not_proven",
+    "support_packet_required_before_next_mutation",
+    "staging_sql_may_have_run"
+  ]
+}

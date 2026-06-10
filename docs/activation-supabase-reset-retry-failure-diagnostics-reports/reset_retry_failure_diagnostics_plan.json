@@ -1,0 +1,85 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "branch": "codex/rp-foundation-supabase-reset-retry-failure-diagnostics",
+  "baseBranch": "codex/rp-foundation-supabase-staging-reset-retry-execution",
+  "prTitle": "[foundation] Supabase reset retry failure diagnostics",
+  "worktree": "/private/tmp/reeditpro-supabase-reset-retry-failure-diagnostics",
+  "reportDir": "docs/activation-supabase-reset-retry-failure-diagnostics-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "reset_retry_failure_diagnostics_plan.json",
+    "reset_retry_failure_evidence_inventory.json",
+    "reset_retry_post_failure_state_report.json",
+    "reset_retry_cli_failure_analysis_report.json",
+    "reset_retry_migration_state_review.json",
+    "reset_retry_recovery_option_matrix.json",
+    "reset_retry_supabase_support_packet.json",
+    "reset_retry_recovery_decision.json",
+    "reset_retry_failure_blocker_report.json",
+    "reset_retry_failure_readiness_report.json",
+    "reset_retry_failure_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-reset-retry-failure-diagnostics.md",
+    "docs/supabase-reset-retry-post-failure-state.md",
+    "docs/supabase-reset-retry-support-packet.md",
+    "docs/supabase-reset-retry-recovery-decision.md",
+    "docs/implementation-prompts/prompt-supabase-reset-failure-recovery-next-step.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "approvedStagingTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "sourcePrs": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    252,
+    259,
+    262,
+    265,
+    269
+  ],
+  "docsBasis": {
+    "cliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "databaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "changelog": "https://supabase.com/changelog",
+    "checkedAt": "2026-06-10",
+    "blockingBreakingChangeFound": false,
+    "publicTableGrantChangeRelevantToFutureRlsVerification": true
+  },
+  "allowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_FAILURE_DIAGNOSTICS",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT"
+  ],
+  "allowedActions": [
+    "read_committed_safe_reports",
+    "inspect_local_migration_filenames",
+    "optional_readonly_catalog_and_migration_metadata_inspection",
+    "classify_reset_retry_failure",
+    "build_supabase_support_packet_metadata",
+    "write_safe_reports_and_docs"
+  ],
+  "blockedActions": [
+    "reset_retry",
+    "db_push",
+    "migration_repair",
+    "schema_deploy",
+    "track_b_backfill_write",
+    "production_supabase",
+    "direct_ddl_dml",
+    "secret_printing",
+    "provider_calls",
+    "route_tool_worker_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ],
+  "defaultDecision": "recovery_path_manual_operator_review_required"
+}

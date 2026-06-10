@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "status": "blocked",
+  "diagnosticsComplete": true,
+  "decision": "recovery_path_supabase_support_packet",
+  "supportPacketReady": true,
+  "recoveryExecutionAllowed": false,
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false,
+  "nextRecommendedPhase": "Supabase support/escalation approval using the safe support packet, then a separate recovery execution decision.",
+  "blockers": [
+    "staging_reset_retry_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed",
+    "registry_migration_not_applied",
+    "registry_schema_absent_after_reset_retry_failure",
+    "reset_retry_failure_cause_not_proven",
+    "support_packet_required_before_next_mutation",
+    "staging_sql_may_have_run",
+    "future_recovery_execution_approval_required"
+  ]
+}

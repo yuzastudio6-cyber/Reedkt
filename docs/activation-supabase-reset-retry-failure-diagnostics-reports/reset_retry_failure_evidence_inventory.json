@@ -1,0 +1,216 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "status": "blocked",
+  "pr269": {
+    "resetExecutionReportPresent": true,
+    "resetStatus": "blocked",
+    "selectedStrategy": "temp_npm_exec_supabase_cli",
+    "resetAttempted": true,
+    "resetPerformed": false,
+    "stagingSqlMayHaveRun": true,
+    "resetCommandExitCode": 1,
+    "resetCommandErrorCategory": "command_failed",
+    "resetCommandStdoutBytes": 0,
+    "resetCommandStderrBytes": 66,
+    "resetCommandStdoutSecretPatternDetected": false,
+    "resetCommandStderrSecretPatternDetected": false,
+    "noSeedFlagUsed": true,
+    "seedFilesIncluded": false,
+    "commandShapeApproved": true,
+    "rejectedYesFlagOmitted": true,
+    "dbUrlPrinted": false,
+    "credentialPayloadsPrinted": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "secretGuard": {
+    "status": "passed",
+    "secretRefUsed": "SUPABASE_DB_URL",
+    "dbUrlEnvPresent": true,
+    "dbUrlTargetMatchedApprovedStaging": true,
+    "payloadAccessStatus": "succeeded",
+    "payloadPrinted": false,
+    "payloadCommitted": false,
+    "productionTargetSelected": false
+  },
+  "backupExport": {
+    "status": "passed",
+    "backupExportPerformed": true,
+    "backupFileCreated": true,
+    "backupPayloadCommitted": false,
+    "rowDataDumpPerformed": false,
+    "storageObjectBackupPerformed": false,
+    "payloadPrinted": false,
+    "dbUrlPrinted": false
+  },
+  "postVerify": {
+    "status": "blocked",
+    "verificationPerformed": true,
+    "migrationHistoryVerified": false,
+    "remoteMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006"
+    ],
+    "missingLocalIdsAfterReset": [
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001"
+    ],
+    "registryMigrationApplied": false,
+    "dbUrlPrinted": false
+  },
+  "schemaRlsVerify": {
+    "status": "blocked",
+    "verificationPerformed": true,
+    "schemaRlsVerified": false,
+    "requiredTables": [
+      "activation_milestones",
+      "activation_phase_runs",
+      "activation_tool_readiness",
+      "activation_pr_evidence",
+      "activation_artifact_manifests",
+      "activation_blockers",
+      "activation_allowed_scopes",
+      "activation_blocked_scopes",
+      "activation_next_phases",
+      "activation_human_approvals",
+      "activation_sync_audit_log"
+    ],
+    "tableCountFound": 0,
+    "missingTables": [
+      "activation_milestones",
+      "activation_phase_runs",
+      "activation_tool_readiness",
+      "activation_pr_evidence",
+      "activation_artifact_manifests",
+      "activation_blockers",
+      "activation_allowed_scopes",
+      "activation_blocked_scopes",
+      "activation_next_phases",
+      "activation_human_approvals",
+      "activation_sync_audit_log"
+    ],
+    "rlsDisabledTables": [],
+    "broadGrantCount": 0,
+    "publicAnonAuthenticatedRevoked": true,
+    "serviceRoleOnlyExpected": true
+  },
+  "upstreamEvidence": {
+    "pr265RetryApproval": {
+      "present": true,
+      "status": "approved_for_future_execution_only",
+      "decision": "approved_for_future_retry_reset_after_cli_command_fix",
+      "blockers": []
+    },
+    "pr262FailureTriage": {
+      "present": true,
+      "status": "blocked",
+      "decision": "recovery_path_manual_operator_review_required",
+      "blockers": [
+        "manual_operator_review_required",
+        "future_recovery_execution_approval_required"
+      ]
+    },
+    "pr259ResetExecution": {
+      "present": true,
+      "status": "blocked",
+      "decision": "unknown",
+      "blockers": [
+        "staging_reset_execute_not_confirmed",
+        "staging_db_reset_not_confirmed",
+        "staging_owner_data_loss_acceptance_not_confirmed",
+        "staging_backup_snapshot_packet_not_confirmed",
+        "staging_schema_mutation_not_confirmed",
+        "staging_reset_failed",
+        "staging_post_reset_migration_history_verify_failed",
+        "staging_post_reset_schema_rls_verify_failed"
+      ]
+    },
+    "pr252DataImpactBackup": {
+      "present": true,
+      "status": "approved_for_future_execution_only",
+      "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+      "blockers": []
+    },
+    "pr247SchemaParity": {
+      "present": true,
+      "status": "blocked",
+      "decision": "blocked_pending_staging_reset_approval",
+      "blockers": []
+    },
+    "pr241RemoteEquivalence": {
+      "present": true,
+      "status": "blocked",
+      "decision": "blocked_pending_remote_history_evidence",
+      "blockers": [
+        "remote_schema_equivalence_not_proven"
+      ]
+    },
+    "pr223DeployTransport": {
+      "present": true,
+      "status": "blocked",
+      "decision": "unknown",
+      "blockers": [
+        "staging_schema_dry_run_failed",
+        "blocked_pending_migration_history_repair_approval",
+        "staging_schema_deploy_not_run",
+        "staging_schema_verification_not_run",
+        "staging_rls_verification_failed"
+      ]
+    },
+    "pr200RegistrySchema": {
+      "present": false,
+      "status": "missing"
+    },
+    "pr198TrackBBackfill": {
+      "present": true,
+      "status": "blocked",
+      "decision": "unknown",
+      "blockers": [
+        "staging_supabase_credentials_unavailable"
+      ]
+    }
+  },
+  "readiness": {
+    "status": "blocked",
+    "blockers": [
+      "staging_reset_failed",
+      "staging_post_reset_migration_history_verify_failed",
+      "staging_post_reset_schema_rls_verify_failed"
+    ],
+    "nextRecommendedPhase": "Resolve the exact retry execution blocker before Track B backfill or production work."
+  },
+  "resetRetryDiagnosticsOnly": true,
+  "resetRetryRunInThisPhase": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "blockers": [
+    "staging_reset_retry_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed",
+    "registry_migration_not_applied",
+    "registry_schema_absent_after_reset_retry_failure"
+  ]
+}

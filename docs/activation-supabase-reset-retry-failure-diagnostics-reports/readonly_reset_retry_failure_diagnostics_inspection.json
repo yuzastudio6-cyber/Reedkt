@@ -1,0 +1,111 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "status": "passed",
+  "inspectionPerformed": true,
+  "secretRefUsed": "SUPABASE_DB_URL",
+  "payloadAccessStatus": "succeeded",
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "dbUrlEnvPresent": true,
+  "selectedDbUrlEnvName": "REEDITPRO_STAGING_SUPABASE_DB_URL",
+  "dbUrlTargetMatchedApprovedStaging": true,
+  "dbUrlTargetValidation": {
+    "status": "passed",
+    "dbUrlProvided": true,
+    "dbUrlParsedInMemory": true,
+    "dbUrlValuePrinted": false,
+    "dbUrlValueCommitted": false,
+    "hostnamePrinted": false,
+    "usernamePrinted": false,
+    "passwordPrinted": false,
+    "approvedStagingProjectRefMatched": true,
+    "dbUrlTargetMatchedApprovedStaging": true,
+    "productionTargetSelected": false,
+    "blockers": []
+  },
+  "psqlAvailable": true,
+  "psqlPathSource": "PATH",
+  "command": {
+    "status": "passed",
+    "command": "psql",
+    "args": [
+      "[REDACTED_STAGING_DB_URL]",
+      "-X",
+      "-qAt",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-c",
+      "[REDACTED_READONLY_CATALOG_QUERY]"
+    ],
+    "stdoutSummary": {
+      "byteLength": 195,
+      "lineCount": 2,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    }
+  },
+  "queryAllowlist": [
+    "supabase_migrations.schema_migrations",
+    "information_schema.tables",
+    "pg_catalog.pg_class",
+    "pg_catalog.pg_namespace",
+    "pg_policies",
+    "information_schema.role_table_grants"
+  ],
+  "remoteMigrationIds": [
+    "202605130001",
+    "202605130002",
+    "202605130003",
+    "202605130004",
+    "202605130005",
+    "202605130006"
+  ],
+  "remoteMigrationCount": 6,
+  "registryMigrationApplied": false,
+  "activationTables": [],
+  "activationTableCount": 0,
+  "requiredRegistryTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "missingRegistryTables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "rlsEnabledTables": [],
+  "broadGrantCount": 0,
+  "storageBucketNamesRead": false,
+  "rowContentsRead": false,
+  "limitedCountsRead": false,
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "blockers": [],
+  "preservedFromLatestReport": true
+}

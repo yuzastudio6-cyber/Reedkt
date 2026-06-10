@@ -1,0 +1,59 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "status": "blocked",
+  "resetAttempted": true,
+  "stateClassifier": "unchanged_failed_state",
+  "failureClassification": "reset_retry_command_failed_exact_cause_not_proven",
+  "registryMigrationApplied": false,
+  "selectedDefault": "supabase_support_packet",
+  "options": [
+    {
+      "option": "supabase_support_packet",
+      "status": "recommended",
+      "reason": "Reset retry reached staging through the approved command shape, failed with a sanitized nonzero command result, and exact root cause is not proven.",
+      "supportPacketBuilt": true,
+      "requiresFutureMutationApproval": false
+    },
+    {
+      "option": "manual_operator_review",
+      "status": "available",
+      "reason": "Use when readonly state is unavailable or support response is needed before selecting a recovery mutation.",
+      "requiresFutureMutationApproval": true
+    },
+    {
+      "option": "restore_backup_then_manual_review",
+      "status": "not_selected",
+      "reason": "Backup metadata exists, but restore sufficiency and scope are not approved in this diagnostics phase.",
+      "restoreRunInThisPhase": false,
+      "requiresFutureMutationApproval": true
+    },
+    {
+      "option": "new_staging_project_or_branch",
+      "status": "candidate_if_existing_staging_recovery_remains_ambiguous",
+      "reason": "A fresh staging target may avoid compounding unknown reset state, but needs a separate approval packet and target proof.",
+      "requiresFutureMutationApproval": true
+    },
+    {
+      "option": "ordered_missing_migration_apply",
+      "status": "not_approved",
+      "reason": "Would mutate staging schema and must be separately reviewed; this phase cannot run schema deploy or direct DDL/DML.",
+      "requiresFutureMutationApproval": true
+    },
+    {
+      "option": "reject_due_staging_data_risk",
+      "status": "conditional",
+      "reason": "Use only if future inspection shows unacceptable staging data/dependency risk.",
+      "requiresFutureMutationApproval": true
+    }
+  ],
+  "resetRetryApproved": false,
+  "dbPushApproved": false,
+  "migrationRepairApproved": false,
+  "schemaDeployApproved": false,
+  "trackBBackfillApproved": false,
+  "productionAffected": false,
+  "blockers": [
+    "future_recovery_execution_approval_required"
+  ]
+}

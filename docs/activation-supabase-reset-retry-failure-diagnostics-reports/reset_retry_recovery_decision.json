@@ -1,0 +1,33 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "status": "blocked",
+  "decision": "recovery_path_supabase_support_packet",
+  "decisionReason": "Readonly metadata indicates the failed state is readable and not further mutated beyond the committed retry-failure evidence, but the CLI reset failure cause is not proven.",
+  "selectedOption": "supabase_support_packet",
+  "sourcePr269ResetAttempted": true,
+  "stagingSqlMayHaveRun": true,
+  "cliFailureClassification": "reset_retry_command_failed_exact_cause_not_proven",
+  "migrationHistoryStatus": "blocked",
+  "resetRetryExecutionAllowedInThisPhase": false,
+  "dbPushAllowedInThisPhase": false,
+  "migrationRepairAllowedInThisPhase": false,
+  "schemaDeployAllowedInThisPhase": false,
+  "trackBBackfillAllowedInThisPhase": false,
+  "productionAllowed": false,
+  "supportPacketBuilt": true,
+  "nextRecommendedPhase": "Supabase support/escalation approval using the safe support packet, then a separate recovery execution decision.",
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "future_recovery_execution_approval_required",
+    "reset_retry_failure_cause_not_proven",
+    "support_packet_required_before_next_mutation"
+  ]
+}

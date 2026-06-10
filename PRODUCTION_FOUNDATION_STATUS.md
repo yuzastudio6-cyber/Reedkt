@@ -643,3 +643,37 @@ Authoritative TRACKA-GD-HANDOFF-3-Retry files:
 - `docs/prompt-tracka-gd-handoff-3-retry-validation-results.md`
 
 Next milestone: `TRACKA-GD-HANDOFF-4 - Private Preview QA Review`.
+
+## TRACKA-GD-HANDOFF-4 Private Preview QA Review
+
+- QA result: `private_preview_qa_passed_with_warnings`
+- Readiness: `ready_with_warnings_for_controlled_private_sample_plan`
+- Capability: `none; Track A creative graphics private preview QA review only`
+- Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Internal beta: blocked
+- External beta: blocked
+- Production: blocked
+- Paid production: blocked
+- Final render/export: blocked
+- Uploads/storage transfer: blocked
+- Public artifacts: blocked
+- Worker/provider/model execution: blocked
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Authoritative TRACKA-GD-HANDOFF-4 files:
+
+- `docs/track-a/creative-graphics-private-preview-qa-review.md`
+- `docs/track-a/creative-graphics-private-preview-qa-acceptance-matrix.md`
+- `docs/track-a/creative-graphics-private-preview-warning-blocker-register.md`
+- `docs/track-a/creative-graphics-controlled-private-sample-readiness.md`
+- `docs/track-a/creative-graphics-private-preview-qa-cleanup-review.md`
+- `docs/prompt-tracka-gd-handoff-4-validation-results.md`
+
+Next milestone: `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`.

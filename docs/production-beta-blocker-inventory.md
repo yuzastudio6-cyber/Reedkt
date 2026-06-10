@@ -282,3 +282,34 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - SQL executed: `none`
 - Migration deployed: `no`
 - Recommended next prompt: `TRACKA-GD-HANDOFF-4 - Private Preview QA Review`
+
+## TRACKA-GD-HANDOFF-4 Blocker Update
+
+QA result: `private_preview_qa_passed_with_warnings`
+
+Readiness: `ready_with_warnings_for_controlled_private_sample_plan`
+
+Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Current blockers retained:
+
+- future human/private-sample review for safe-zone fit and text readability;
+- future approved plan snapshot binding;
+- future private GCS path, manifest, checksum, and Supabase artifact row source-of-truth binding;
+- final render/export;
+- public artifacts;
+- uploads/storage transfer;
+- signed URLs;
+- worker/provider/model execution;
+- Supabase mutation and SQL;
+- GCP and Secret Manager access;
+- internal beta, external beta, production, and paid production.
+
+Production capability enabled: `none; Track A creative graphics private preview QA review only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next recommended prompt: `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`.

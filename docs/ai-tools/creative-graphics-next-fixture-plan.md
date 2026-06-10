@@ -232,3 +232,20 @@ Recommended next prompt: `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Compo
 - Migration deployed: `no`
 
 Recommended next prompt: `TRACKA-GD-HANDOFF-3 - Controlled Private Preview Composition Execution`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.
+
+## TRACKA-GD-HANDOFF-4 Next Fixture Note
+
+QA result: `private_preview_qa_passed_with_warnings`
+
+Readiness: `ready_with_warnings_for_controlled_private_sample_plan`
+
+The next Track A step is `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning` for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+
+`svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, and `three_js_visuals` remain excluded or blocked from this Track A sample-planning lane.
+
+Production capability enabled: `none; Track A creative graphics private preview QA review only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

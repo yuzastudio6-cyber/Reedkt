@@ -1,0 +1,65 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "passed",
+  "checklist": [
+    {
+      "name": "unchanged_failed_state_reviewed",
+      "passed": true
+    },
+    {
+      "name": "backup_export_reviewed",
+      "passed": true
+    },
+    {
+      "name": "owner_data_loss_acceptance_reviewed",
+      "passed": true
+    },
+    {
+      "name": "retry_command_reviewed",
+      "passed": true
+    },
+    {
+      "name": "production_excluded",
+      "passed": true
+    },
+    {
+      "name": "track_b_backfill_separate",
+      "passed": true
+    },
+    {
+      "name": "secrets_redacted",
+      "passed": true
+    },
+    {
+      "name": "post_retry_verification_required",
+      "passed": true
+    },
+    {
+      "name": "rollback_escalation_reviewed",
+      "passed": true
+    },
+    {
+      "name": "manual_operator_approval_confirmed",
+      "passed": true
+    }
+  ],
+  "approvalPacketConfirmed": true,
+  "manualOperatorReviewConfirmed": true,
+  "forbiddenConfirmationsSet": [],
+  "resetRetryRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "secretPolicy": {
+    "secretRefUsed": "none",
+    "payloadAccessRequired": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false,
+    "dbUrlPrinted": false,
+    "passwordPrinted": false,
+    "serviceKeysPrinted": false,
+    "cliAuthTokensPrinted": false
+  },
+  "blockers": []
+}

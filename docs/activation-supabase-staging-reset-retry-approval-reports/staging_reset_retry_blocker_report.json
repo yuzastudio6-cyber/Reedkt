@@ -1,0 +1,24 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "passed",
+  "activeBlockers": [],
+  "stillBlockedScopes": [
+    "staging_reset_retry_execution",
+    "schema_deploy",
+    "migration_repair",
+    "direct_ddl_dml",
+    "track_b_backfill_write",
+    "production_supabase",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "track_a",
+    "beta_unlock",
+    "production_unlock"
+  ],
+  "resetRetryAllowedInThisPhase": false,
+  "productionAffected": false
+}

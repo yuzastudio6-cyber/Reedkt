@@ -1,0 +1,22 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "passed",
+  "backupExportFromPr259": {
+    "status": "passed",
+    "backupExportPerformed": true,
+    "backupFileCreated": true,
+    "backupPayloadCommitted": false,
+    "backupPayloadPrinted": false,
+    "credentialPayloadsPrinted": false
+  },
+  "acceptedForApprovalPacket": true,
+  "futureRetryMustVerifyBackupAvailability": true,
+  "futureRetryShouldRerunBackupOrValidatePrivateTempArtifact": true,
+  "durablePrivateStorageRecommendedBeforeRetry": true,
+  "restoreReadiness": "not_executed_restore_scope_requires_future_execution_packet_check",
+  "retryMayProceedWithoutRestoreOnlyIfUnchangedFailedStateStillPasses": true,
+  "resetRetryRun": false,
+  "productionAffected": false,
+  "blockers": []
+}

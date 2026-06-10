@@ -1,0 +1,23 @@
+export type SupabaseStagingResetRetryApprovalDecision =
+  | 'approved_for_future_retry_reset_after_cli_command_fix'
+  | 'approved_for_future_retry_reset_after_preview_fix'
+  | 'blocked_pending_operator_review'
+  | 'blocked_pending_backup_restore_review'
+  | 'blocked_pending_supabase_cli_or_support_review'
+  | 'rejected_due_staging_data_risk'
+
+export type SupabaseStagingResetRetryApprovalBlocker =
+  | 'pr262_readonly_inspection_not_passed'
+  | 'pr262_state_not_unchanged_failed_state'
+  | 'pr259_backup_export_not_passed'
+  | 'pr259_backup_payload_committed_or_printed'
+  | 'pr252_owner_acceptance_not_approved'
+  | 'retry_command_fix_not_explicit'
+  | 'retry_preview_fix_required'
+  | 'manual_operator_review_not_confirmed'
+  | 'approval_packet_not_confirmed'
+  | 'production_exclusion_not_proven'
+  | 'track_b_backfill_separation_not_proven'
+  | 'reset_failure_requires_supabase_cli_or_support_review'
+  | 'staging_data_risk_unacceptable'
+  | 'forbidden_confirmation_set'

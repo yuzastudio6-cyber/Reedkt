@@ -102,6 +102,23 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-5 Readiness Update
+
+Planning result: `controlled_private_sample_plan_ready_with_warnings`
+
+Decision state: `ready_with_warnings_for_tracka_gd_handoff_6`
+
+Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Handoff-6 may execute a controlled private sample only if a future prompt explicitly approves that narrow local/private path. Handoff-5 does not approve execution.
+
+Production capability enabled: `none; Track A creative graphics controlled private sample planning only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-3-Retry Readiness Update
 
 Retry result: `private_preview_local_passed`

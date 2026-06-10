@@ -215,3 +215,20 @@ Recommended next prompt: `TRACKA-GD-HANDOFF-3 - Controlled Private Preview Compo
 - Migration deployed: `no`
 
 Next prompt: `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`.
+
+## TRACKA-GD-HANDOFF-5 Sequence Update
+
+`TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`
+
+- Status: `controlled_private_sample_plan_ready_with_warnings`
+- Decision state: `ready_with_warnings_for_tracka_gd_handoff_6`
+- Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Capability: `none; Track A creative graphics controlled private sample planning only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Next prompt: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`.

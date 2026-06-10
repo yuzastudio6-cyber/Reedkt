@@ -236,3 +236,22 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-5 Readiness Note
+
+Track A sample planning status: `controlled_private_sample_plan_ready_with_warnings`
+
+Decision state: `ready_with_warnings_for_tracka_gd_handoff_6`
+
+Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Readiness impact: improves Track A controlled private sample planning only. Generated/local fixture status remains partial, and final render/export, public artifacts, uploads/storage transfer, signed URLs, worker/provider/model execution, Supabase mutation, SQL, GCP, Secret Manager, internal beta, external beta, production, and paid production remain blocked.
+
+Production capability enabled: `none; Track A creative graphics controlled private sample planning only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

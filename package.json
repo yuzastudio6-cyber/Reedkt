@@ -47,6 +47,7 @@
     "smoke:provider-gateway-sound-fixture-boundary-acceptance": "tsx server/smoke/provider-gateway-sound-fixture-boundary-acceptance-smoke.ts",
     "smoke:observability-sound-fixture-evidence-acceptance": "tsx server/smoke/observability-sound-fixture-evidence-acceptance-smoke.ts",
     "smoke:billing-sound-fixture-credit-placeholder-acceptance": "tsx server/smoke/billing-sound-fixture-credit-placeholder-acceptance-smoke.ts",
+    "smoke:track-a-sound-final-composition-handoff-acceptance": "tsx server/smoke/track-a-sound-final-composition-handoff-acceptance-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

@@ -4,7 +4,7 @@ Prompt: `TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution`
 
 Branch: `codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution`
 
-PR: pending
+PR: [#291](https://github.com/yuzastudio6-cyber/Reedkt/pull/291)
 
 Base: `origin/codex/rp-tracka-gd-handoff-5-controlled-private-sample-planning`
 

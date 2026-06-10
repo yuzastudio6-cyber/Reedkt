@@ -4,7 +4,7 @@ Status: `implemented_local_validation_passed`
 
 Branch: `codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution`
 
-PR: pending
+PR: [#291](https://github.com/yuzastudio6-cyber/Reedkt/pull/291)
 
 Capability: `none; Track A creative graphics controlled private sample execution only`
 

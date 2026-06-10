@@ -24,7 +24,9 @@ Status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / gen
    - Review `@resvg/resvg-js@2.6.2` native import only, record `local_darwin_native_blocker` after Linux CI import evidence passes, and preserve `generated_local_fixture_not_executed`.
 10. `Prompt GD-7-Retry - Creative Graphics Controlled Local Fixture Execution`
    - Retry Group A local synthetic fixture generation after GD-8/GD-8A and record `generated_local_fixture_partially_passed`.
-11. `Prompt GD-6A - Execution Approval Gate Hardening`
+11. `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`
+   - Review GD-7-Retry local/private fixture evidence and record `tracka_handoff_ready_with_warnings` without private preview generation.
+12. `Prompt GD-6A - Execution Approval Gate Hardening`
    - Use only if a future static gate diagnostic finds missing files, unsafe claims, or schema mismatch.
 
 ## Current Recommendation
@@ -74,3 +76,22 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Recommended next prompt: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.
+
+## TRACKA-GD-HANDOFF-0 Sequence Addendum
+
+Status: `tracka_handoff_ready_with_warnings`
+
+TRACKA-GD-HANDOFF-0 reviews the five executed GD-7-Retry SVG fixtures for future Track A private preview composition planning.
+
+Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`.
+
+Skipped or blocked: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`.
+
+Production capability enabled: `none; Track A creative graphics handoff review only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Recommended next prompt: `TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific blocker lanes.

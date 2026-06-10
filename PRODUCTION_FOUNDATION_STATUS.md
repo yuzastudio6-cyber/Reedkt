@@ -409,3 +409,40 @@ Authoritative GD-7-Retry files:
 - `docs/prompt-gd-7-retry-validation-results.md`
 
 Next milestone: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.
+
+## TRACKA-GD-HANDOFF-0 Creative Graphics Handoff Review
+
+- Status: `tracka_handoff_ready_with_warnings`
+- Runtime unlock status: `generated_local_fixture_partially_passed / tracka_handoff_ready_with_warnings / private_preview_not_executed`
+- Production capability enabled: `none; Track A creative graphics handoff review only`
+- Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Not applicable skipped: `svg_js_vector_graphics`; reason `node_dom_runtime_unavailable_no_dependency_mutation`
+- Blocked: `resvg_js_svg_rasterization`; reason `local_darwin_native_blocker`
+- Track A private preview composition: not executed
+- Track A final render/export: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Worker execution: none
+- Provider/model calls: none
+- Browser capture: none
+- Media processing: none
+- Google Cloud access: none
+- Secret Manager access: none
+- Storage transfer: none
+- Signed URLs: none
+- Public artifacts: none
+- Production/beta unlock: none
+
+Authoritative TRACKA-GD-HANDOFF-0 files:
+
+- `docs/track-a/creative-graphics-handoff-review.md`
+- `docs/track-a/creative-graphics-fixture-acceptance-matrix.md`
+- `docs/track-a/creative-graphics-private-preview-readiness.md`
+- `docs/track-a/creative-graphics-missing-metadata-checklist.md`
+- `docs/track-a/creative-graphics-next-handoff-prompt.md`
+- `docs/prompt-tracka-gd-handoff-0-validation-results.md`
+
+Next milestone: `TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific blocker lanes.

@@ -203,3 +203,25 @@ Prompt GD-7-Retry: Creative Graphics Controlled Local Fixture Execution.
 ## Next Milestone After GD-7-Retry
 
 `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.
+
+## TRACKA-GD-HANDOFF-0 Milestone
+
+Prompt TRACKA-GD-HANDOFF-0: Creative Graphics Handoff Review.
+
+- Status: `tracka_handoff_ready_with_warnings`
+- Capability: `none; Track A creative graphics handoff review only`
+- Runtime unlock status: `generated_local_fixture_partially_passed / tracka_handoff_ready_with_warnings / private_preview_not_executed`
+- Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Skipped: `svg_js_vector_graphics`
+- Blocked: `resvg_js_svg_rasterization`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Track A private preview composition remains unexecuted.
+- Track A final render/export remains blocked until a future approved Track A prompt.
+
+## Next Milestone After TRACKA-GD-HANDOFF-0
+
+`TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific blocker lanes.

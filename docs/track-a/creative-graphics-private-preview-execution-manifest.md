@@ -78,3 +78,23 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-3 Manifest Status Addendum
+
+Handoff-3 result: `blocked_pending_source_artifacts`
+
+No private preview local output manifest was created because the accepted GD-7-Retry SVG source files were missing from the clean worktree.
+
+Accepted fixtures checked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Source of truth policy remains `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`.
+
+Signed URLs are not source of truth.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

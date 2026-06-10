@@ -272,3 +272,29 @@ Prompt TRACKA-GD-HANDOFF-2: Controlled Private Preview Composition Execution Pac
 ## Next Milestone After TRACKA-GD-HANDOFF-2
 
 `TRACKA-GD-HANDOFF-3 - Controlled Private Preview Composition Execution`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.
+
+## TRACKA-GD-HANDOFF-3 Milestone
+
+Prompt TRACKA-GD-HANDOFF-3: Controlled Private Preview Execution.
+
+- Status: `blocked_pending_source_artifacts`
+- Capability: `none; Track A controlled private preview execution only`
+- Accepted fixtures checked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Source status: `evidence_only_source_missing`
+- Checksum status: `not_checked_source_missing`
+- Preview composer created: no
+- Preview composer run: no
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Track A private preview local output remains absent.
+- Track A final render/export remains blocked until a future approved Track A prompt.
+
+## Next Milestone After TRACKA-GD-HANDOFF-3
+
+`TRACKA-GD-HANDOFF-3A - Source Artifact Preservation Fix`.

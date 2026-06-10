@@ -47,6 +47,7 @@ const requiredChecks = [
   'tracka:creative-graphics:handoff:diagnostics',
   'tracka:creative-graphics:private-preview-plan:diagnostics',
   'tracka:creative-graphics:private-preview-execution-packet:diagnostics',
+  'tracka:creative-graphics:private-preview-execution:diagnostics',
 ];
 
 const results = [];

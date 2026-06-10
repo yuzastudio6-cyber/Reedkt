@@ -4,7 +4,7 @@ Prompt: `TRACKA-GD-HANDOFF-4 - Private Preview QA Review`
 
 Branch: `codex/rp-tracka-gd-handoff-4-private-preview-qa-review`
 
-PR: pending
+PR: [#285](https://github.com/yuzastudio6-cyber/Reedkt/pull/285)
 
 Base: `origin/codex/rp-tracka-gd-handoff-3-retry-controlled-private-preview-execution`
 

@@ -4,7 +4,7 @@ Status: `implemented_local_validation_passed_with_local_build_environment_blocke
 
 Branch: `codex/rp-tracka-gd-handoff-4-private-preview-qa-review`
 
-PR: pending
+PR: [#285](https://github.com/yuzastudio6-cyber/Reedkt/pull/285)
 
 Capability: `none; Track A creative graphics private preview QA review only`
 

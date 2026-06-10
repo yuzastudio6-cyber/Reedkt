@@ -70,6 +70,51 @@ assert(reports.recoveryDecision.migrationRepairApproved === false, 'Migration re
 assert(reports.recoveryDecision.trackBBackfillApproved === false, 'Track B backfill must not be approved.')
 assert(reports.recoveryDecision.productionAffected === false, 'Production must not be affected.')
 assert(backupArtifacts.backupPayloadCommitted === false, 'Backup payload must not be committed.')
+assert(
+  ['unknown', 'unchanged_failed_state', 'partially_mutated'].includes(String(reports.postFailureStagingState.stateClassifier)),
+  'Post-failure state classifier must use the supported vocabulary.',
+)
+assert('secretRefUsed' in asRecord(reports.readonlyInspection), 'Readonly inspection must record redacted secret ref metadata.')
+assert(
+  ['succeeded', 'failed', 'not_attempted'].includes(String(reports.readonlyInspection.payloadAccessStatus)),
+  'Readonly inspection must record safe payload access status.',
+)
+assert(reports.readonlyInspection.payloadPrinted === false, 'Readonly inspection must state payloadPrinted=false.')
+assert(reports.readonlyInspection.payloadCommitted === false, 'Readonly inspection must state payloadCommitted=false.')
+
+for (const alias of [
+  'staging_reset_post_failure_state_report.json',
+  'staging_reset_failure_classification_report.json',
+  'staging_reset_recovery_decision.json',
+  'staging_reset_failure_blocker_report.json',
+]) {
+  assert(
+    SUPABASE_STAGING_RESET_FAILURE_TRIAGE_EXPECTED_REPORTS.includes(alias as never),
+    `Alias report missing from expected report manifest: ${alias}`,
+  )
+  assert(
+    existsSync(path.join(SUPABASE_STAGING_RESET_FAILURE_TRIAGE_REPORT_DIR, alias)),
+    `Missing prompt-compatible alias report: ${alias}`,
+  )
+}
+
+const committedReadonlyReportPath = path.join(
+  SUPABASE_STAGING_RESET_FAILURE_TRIAGE_REPORT_DIR,
+  'readonly_staging_failure_triage_inspection.json',
+)
+if (existsSync(committedReadonlyReportPath)) {
+  const committedReadonly = JSON.parse(readFileSync(committedReadonlyReportPath, 'utf8')) as Record<string, unknown>
+  if (committedReadonly.status === 'passed') {
+    assert(
+      reports.readonlyInspection.status === 'passed',
+      'Default report generation must preserve the latest passed readonly inspection report.',
+    )
+    assert(
+      reports.readonlyInspection.preservedFromLatestReport === true,
+      'Preserved readonly inspection must be marked as preservedFromLatestReport.',
+    )
+  }
+}
 
 const moduleText = readAllFiles('server/activation/supabase-staging-reset-failure-triage')
   .map(({ text }) => text)

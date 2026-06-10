@@ -29,6 +29,12 @@ export type SupabaseStagingResetFailureTriageBlocker =
   | 'staging_db_url_unparseable'
   | 'psql_unavailable_for_failure_triage'
   | 'readonly_failure_triage_query_failed'
+  | 'post_failure_state_unknown'
+  | 'post_failure_state_partially_mutated'
+  | 'migration_history_changed_after_failed_reset'
+  | 'registry_schema_partially_present_after_failed_reset'
+  | 'reset_failure_cause_not_fixable'
+  | 'supabase_cli_or_platform_issue_unresolved'
   | 'forbidden_confirmation_set'
 
 export type SupabaseStagingResetFailureRecoveryOption =

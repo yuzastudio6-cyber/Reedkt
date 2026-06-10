@@ -1,15 +1,190 @@
 {
   "phase": "supabase-staging-reset-failure-triage",
   "runId": "supabase-staging-reset-failure-triage-20260609",
-  "status": "not_attempted",
-  "inspectionPerformed": false,
-  "reason": "readonly_staging_inspection_optional_and_not_requested_for_default_reports",
-  "dbUrlEnvPresent": false,
+  "status": "passed",
+  "inspectionPerformed": true,
+  "mode": "readonly_staging_failure_triage_catalog_inspection",
+  "approvedDbUrlEnvNames": [
+    "REEDITPRO_STAGING_SUPABASE_DB_URL",
+    "SUPABASE_STAGING_DB_URL",
+    "STAGING_SUPABASE_DB_URL"
+  ],
+  "secretRefUsed": "SUPABASE_DB_URL",
+  "payloadAccessStatus": "succeeded",
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "dbUrlEnvPresent": true,
   "dbUrlValuePrinted": false,
   "credentialPayloadsPrinted": false,
   "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "dbUrlEnvName": "REEDITPRO_STAGING_SUPABASE_DB_URL",
+  "dbUrlTargetMatchedApprovedStaging": true,
+  "hostnamePrinted": false,
+  "usernamePrinted": false,
+  "passwordPrinted": false,
+  "psqlAvailable": true,
+  "psqlVersionChecked": true,
+  "psqlVersionSummary": "psql (PostgreSQL) 18.4 (Postgres.app)",
+  "forbiddenConfirmationsSet": [],
   "productionTouched": false,
   "directDdlDmlRun": false,
   "mutationRun": false,
-  "blockers": []
+  "queryReports": [
+    {
+      "queryName": "migrationHistory",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_FAILURE_TRIAGE_QUERY]"
+      ],
+      "sqlClass": "readonly_catalog_or_migration_history_select",
+      "stdoutSummary": {
+        "byteLength": 180,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "registryTables",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_FAILURE_TRIAGE_QUERY]"
+      ],
+      "sqlClass": "readonly_catalog_or_migration_history_select",
+      "stdoutSummary": {
+        "byteLength": 2,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "registryRls",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_FAILURE_TRIAGE_QUERY]"
+      ],
+      "sqlClass": "readonly_catalog_or_migration_history_select",
+      "stdoutSummary": {
+        "byteLength": 2,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "registryGrants",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_FAILURE_TRIAGE_QUERY]"
+      ],
+      "sqlClass": "readonly_catalog_or_migration_history_select",
+      "stdoutSummary": {
+        "byteLength": 2,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    }
+  ],
+  "catalog": {
+    "migrationHistory": [
+      {
+        "version": "202605130001"
+      },
+      {
+        "version": "202605130002"
+      },
+      {
+        "version": "202605130003"
+      },
+      {
+        "version": "202605130004"
+      },
+      {
+        "version": "202605130005"
+      },
+      {
+        "version": "202605130006"
+      }
+    ],
+    "registryTables": [],
+    "registryRls": [],
+    "registryGrants": []
+  },
+  "migrationHistoryCount": 6,
+  "registryTableCount": 0,
+  "registryRlsRows": 0,
+  "registryGrantRows": 0,
+  "rowContentsRead": false,
+  "countOnlyOrCatalogMetadataOnly": true,
+  "blockers": [],
+  "preservedFromLatestReport": true,
+  "preservedByNonExecuteReport": true,
+  "preservationReason": "default report generation preserves the latest explicit readonly inspection instead of overwriting it to not_attempted"
 }

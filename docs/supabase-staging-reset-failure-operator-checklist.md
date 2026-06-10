@@ -7,6 +7,8 @@ Before any future recovery execution:
 - Confirm backup/export artifact sufficiency and restore scope before considering a restore-based path.
 - Choose exactly one future recovery strategy and approve it in a separate execution prompt.
 - Keep Track B backfill writes blocked until migration history and registry schema/RLS verification pass.
+- Use the latest read-only classifier `unchanged_failed_state` to select the next phase.
+- Do not retry reset unless a separate approval packet proves the failure cause is safely fixed and backup/restore sufficiency is still acceptable.
 
 Current blockers:
 

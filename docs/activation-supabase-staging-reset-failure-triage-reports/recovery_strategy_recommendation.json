@@ -7,6 +7,7 @@
   "rationale": [
     "PR #259 reset failed after reaching the Supabase CLI.",
     "Committed post-failure verification shows registry migration and registry tables are still absent.",
+    "Current post-failure state classifier: unchanged_failed_state.",
     "The PR #259 backup exists only as private temp metadata backup and is not committed.",
     "No future reset retry, restore, ordered apply, or migration repair is safe without a separate approval phase."
   ],
@@ -15,14 +16,14 @@
     {
       "option": "retry_reset_after_fix",
       "status": "not_approved",
-      "reason": "Exact reset failure cause is not proven and staging may have been partially touched.",
+      "reason": "Exact reset failure cause is not proven as a safe fixable CLI/transport issue.",
       "requiresFutureApproval": true,
       "resetRetryRunInThisPhase": false
     },
     {
       "option": "restore_backup_then_retry",
       "status": "not_approved",
-      "reason": "PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven.",
+      "reason": "PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven for this triage phase.",
       "requiresFutureApproval": true,
       "restoreRunInThisPhase": false
     },

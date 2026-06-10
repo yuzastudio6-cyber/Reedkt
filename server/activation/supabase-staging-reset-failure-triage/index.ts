@@ -38,14 +38,18 @@ export const SUPABASE_STAGING_RESET_FAILURE_TRIAGE_EXPECTED_REPORTS = [
   'backup_export_artifact_status.json',
   'reset_failure_command_evidence.json',
   'post_failure_staging_state_assessment.json',
+  'staging_reset_post_failure_state_report.json',
   'migration_history_delta_after_failed_reset.json',
   'registry_schema_rls_state_after_failed_reset.json',
   'readonly_staging_failure_triage_inspection.json',
   'partial_reset_risk_classification.json',
+  'staging_reset_failure_classification_report.json',
   'recovery_option_matrix.json',
   'recovery_strategy_recommendation.json',
   'recovery_decision.json',
+  'staging_reset_recovery_decision.json',
   'recovery_blocker_report.json',
+  'staging_reset_failure_blocker_report.json',
   'recovery_readiness_report.json',
   'recovery_private_artifact_manifest.json',
 ] as const
@@ -176,7 +180,7 @@ export function buildSupabaseStagingResetFailureTriageReports(input: {
   const registrySchemaRlsState = buildRegistrySchemaRlsState(evidenceInventory)
   const readonlyInspection = input.executeReadonly
     ? runReadonlyStagingFailureTriageInspection()
-    : buildReadonlyInspectionNotAttempted()
+    : loadLatestReadonlyInspectionReport() ?? buildReadonlyInspectionNotAttempted()
   const postFailureStagingState = buildPostFailureStagingState(
     evidenceInventory,
     migrationHistoryDelta,
@@ -231,14 +235,18 @@ export async function writeSupabaseStagingResetFailureTriageArtifacts(reports: R
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'backup_export_artifact_status.json'), reports.backupExportArtifactStatus)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'reset_failure_command_evidence.json'), reports.resetFailureCommandEvidence)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'post_failure_staging_state_assessment.json'), reports.postFailureStagingState)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'staging_reset_post_failure_state_report.json'), reports.postFailureStagingState)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'migration_history_delta_after_failed_reset.json'), reports.migrationHistoryDelta)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'registry_schema_rls_state_after_failed_reset.json'), reports.registrySchemaRlsState)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'readonly_staging_failure_triage_inspection.json'), reports.readonlyInspection)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'partial_reset_risk_classification.json'), reports.partialResetRisk)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'staging_reset_failure_classification_report.json'), reports.partialResetRisk)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'recovery_option_matrix.json'), reports.recoveryOptionMatrix)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'recovery_strategy_recommendation.json'), reports.recoveryStrategyRecommendation)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'recovery_decision.json'), reports.recoveryDecision)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'staging_reset_recovery_decision.json'), reports.recoveryDecision)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'recovery_blocker_report.json'), reports.blockerReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'staging_reset_failure_blocker_report.json'), reports.blockerReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'recovery_readiness_report.json'), reports.readinessReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'recovery_private_artifact_manifest.json'), reports.privateArtifactManifest)
   await writeVlmRuntimeTextArtifact('docs/supabase-staging-reset-failure-triage.md', renderTriageMarkdown(reports))
@@ -291,6 +299,11 @@ export function readSupabaseStagingResetFailureTriageSummary() {
     registryMigrationApplied: reports.migrationHistoryDelta.registryMigrationApplied,
     registryTablesFound: reports.registrySchemaRlsState.tableCountFound,
     partialResetRisk: reports.partialResetRisk.riskLevel,
+    postFailureStateClassifier: reports.postFailureStagingState.stateClassifier,
+    readonlyInspectionStatus: reports.readonlyInspection.status,
+    readonlyInspectionPreserved: reports.readonlyInspection.preservedFromLatestReport === true,
+    secretRefUsed: reports.readonlyInspection.secretRefUsed,
+    payloadAccessStatus: reports.readonlyInspection.payloadAccessStatus,
     nextRecommendedPhase: reports.readinessReport.nextRecommendedPhase,
     resetRetryRun: false,
     schemaDeployRun: false,
@@ -564,6 +577,16 @@ function buildPostFailureStagingState(
   registrySchemaRlsState: JsonRecord,
   readonlyInspection: JsonRecord,
 ): JsonRecord {
+  const classifier = classifyPostFailureState(migrationHistoryDelta, readonlyInspection)
+  const blockers = collectUniqueBlockers(
+    [
+      'staging_reset_failed',
+      'staging_post_reset_migration_history_verify_failed',
+      'staging_post_reset_schema_rls_verify_failed',
+      'manual_operator_review_required',
+    ],
+    classifier.blockers,
+  )
   return {
     phase: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_PHASE,
     runId: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_RUN_ID,
@@ -578,19 +601,14 @@ function buildPostFailureStagingState(
     registryTablesMissing: asStringArray(registrySchemaRlsState.missingTables),
     optionalReadonlyInspectionStatus: asString(readonlyInspection.status, 'not_attempted'),
     optionalReadonlyInspectionPerformed: readonlyInspection.inspectionPerformed === true,
-    stateConfidence: readonlyInspection.status === 'passed'
-      ? 'medium_from_pr259_and_current_readonly_metadata'
-      : 'medium_low_from_committed_pr259_post_verify_only',
+    stateClassifier: classifier.stateClassifier,
+    stateConfidence: classifier.confidence,
+    readonlyComparison: classifier.comparison,
+    readonlyEvidenceSummary: classifier.evidenceSummary,
     clearForFurtherMutation: false,
-    mutationBlockReason:
-      'staging reset reached the CLI, failed, and registry schema remains absent; recovery requires separate human review',
+    mutationBlockReason: classifier.mutationBlockReason,
     productionAffected: false,
-    blockers: [
-      'staging_reset_failed',
-      'staging_post_reset_migration_history_verify_failed',
-      'staging_post_reset_schema_rls_verify_failed',
-      'manual_operator_review_required',
-    ] satisfies SupabaseStagingResetFailureTriageBlocker[],
+    blockers,
   }
 }
 
@@ -601,6 +619,7 @@ function buildPartialResetRiskClassification(
 ): JsonRecord {
   const stagingSqlMayHaveRun = asRecord(evidence.pr259).stagingSqlMayHaveRun === true
   const registryAbsent = asNumber(postFailureState.registryTablesFound, 0) === 0
+  const stateClassifier = asString(postFailureState.stateClassifier, 'unknown')
   const blockers: SupabaseStagingResetFailureTriageBlocker[] = [
     'reset_failure_cause_not_proven',
     'manual_operator_review_required',
@@ -608,19 +627,33 @@ function buildPartialResetRiskClassification(
   ]
   if (stagingSqlMayHaveRun) blockers.push('staging_sql_may_have_run')
   if (registryAbsent) blockers.push('registry_schema_absent_after_failed_reset')
+  if (stateClassifier === 'unknown') blockers.push('post_failure_state_unknown')
+  if (stateClassifier === 'partially_mutated') blockers.push('post_failure_state_partially_mutated')
   return {
     phase: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_PHASE,
     runId: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_RUN_ID,
     status: 'blocked',
-    riskLevel: stagingSqlMayHaveRun ? 'medium_high' : 'medium',
-    classification: stagingSqlMayHaveRun
-      ? 'possible_partial_or_failed_staging_reset_requires_manual_review'
-      : 'failed_reset_evidence_incomplete_requires_manual_review',
+    riskLevel: stateClassifier === 'partially_mutated'
+      ? 'high'
+      : stagingSqlMayHaveRun
+        ? 'medium_high'
+        : 'medium',
+    classification: stateClassifier === 'unchanged_failed_state'
+      ? 'unchanged_failed_state_registry_absent_manual_review_required'
+      : stateClassifier === 'partially_mutated'
+        ? 'partial_or_conflicting_post_failure_state_manual_review_required'
+        : 'post_failure_state_unknown_manual_review_required',
+    stateClassifier,
+    readonlyComparison: asRecord(postFailureState.readonlyComparison),
+    failureCauseClassification: classifyResetFailureCause().classification,
+    failureCauseFixableByTransportRepair: classifyResetFailureCause().fixableByTransportRepair,
+    pointsToUnresolvedSupabaseCliOrPlatformIssue: classifyResetFailureCause().pointsToSupabaseCliOrPlatformIssue,
     evidenceBasis: [
       'PR #259 reset command exited nonzero',
       'PR #259 recorded stagingSqlMayHaveRun true',
       'post-reset migration history verification failed',
       'activation registry migration and tables remain absent',
+      `post-failure state classifier: ${stateClassifier}`,
     ],
     readonlyInspectionStatus: asString(readonlyInspection.status, 'not_attempted'),
     recoveryCanProceedAutomatically: false,
@@ -634,18 +667,31 @@ function buildPartialResetRiskClassification(
 }
 
 function buildRecoveryOptionMatrix(evidence: JsonRecord, risk: JsonRecord): JsonRecord {
+  const stateClassifier = asString(risk.stateClassifier, 'unknown')
+  const failureCause = classifyResetFailureCause()
+  const retryStatus = stateClassifier === 'unchanged_failed_state' && failureCause.fixableByTransportRepair
+    ? 'candidate_requires_separate_execution_approval'
+    : 'not_approved'
+  const supportStatus = stateClassifier === 'unchanged_failed_state' && failureCause.pointsToSupabaseCliOrPlatformIssue
+    ? 'conditional_recommended'
+    : 'conditional'
+  const restoreStatus = stateClassifier === 'partially_mutated'
+    ? 'candidate_only_if_backup_restore_sufficiency_is_separately_proven'
+    : 'not_approved'
   const options: Array<JsonRecord & { option: SupabaseStagingResetFailureRecoveryOption }> = [
     {
       option: 'retry_reset_after_fix',
-      status: 'not_approved',
-      reason: 'Exact reset failure cause is not proven and staging may have been partially touched.',
+      status: retryStatus,
+      reason: retryStatus === 'not_approved'
+        ? 'Exact reset failure cause is not proven as a safe fixable CLI/transport issue.'
+        : 'Current readonly state appears unchanged, but execution still requires a separate recovery approval phase.',
       requiresFutureApproval: true,
       resetRetryRunInThisPhase: false,
     },
     {
       option: 'restore_backup_then_retry',
-      status: 'not_approved',
-      reason: 'PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven.',
+      status: restoreStatus,
+      reason: 'PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven for this triage phase.',
       requiresFutureApproval: true,
       restoreRunInThisPhase: false,
     },
@@ -659,13 +705,13 @@ function buildRecoveryOptionMatrix(evidence: JsonRecord, risk: JsonRecord): Json
     {
       option: 'manual_operator_review',
       status: 'recommended_default',
-      reason: 'Failure reached the reset CLI and committed evidence does not prove a safe automated recovery action.',
+      reason: 'Failure reached the reset CLI and current evidence still does not prove a safe automated recovery action.',
       requiresFutureApproval: true,
       selected: true,
     },
     {
       option: 'supabase_support_or_cli_issue',
-      status: 'conditional',
+      status: supportStatus,
       reason: 'Use only if redacted logs or readonly evidence identifies a CLI/platform issue.',
       requiresFutureApproval: true,
     },
@@ -682,6 +728,8 @@ function buildRecoveryOptionMatrix(evidence: JsonRecord, risk: JsonRecord): Json
     status: 'blocked',
     decisionDefault: 'recovery_path_manual_operator_review_required',
     riskClassification: asString(risk.classification, 'unknown'),
+    stateClassifier,
+    failureCauseClassification: failureCause.classification,
     resetAttemptedInPr259: asRecord(evidence.pr259).resetAttempted === true,
     stagingSqlMayHaveRun: asRecord(evidence.pr259).stagingSqlMayHaveRun === true,
     options,
@@ -696,15 +744,25 @@ function buildRecoveryOptionMatrix(evidence: JsonRecord, risk: JsonRecord): Json
 }
 
 function buildRecoveryStrategyRecommendation(optionMatrix: JsonRecord, risk: JsonRecord): JsonRecord {
+  const stateClassifier = asString(risk.stateClassifier, 'unknown')
+  const failureCause = classifyResetFailureCause()
+  const decision = selectRecoveryDecision(stateClassifier, failureCause)
+  const selectedRecommendation =
+    decision === 'recovery_path_retry_reset_after_fix'
+      ? 'future_retry_reset_after_fix_requires_separate_execution_approval'
+      : decision === 'recovery_path_blocked_pending_supabase_support_or_cli_issue'
+        ? 'supabase_support_or_cli_issue_review_before_recovery_mutation'
+        : 'manual_operator_review_before_any_recovery_mutation'
   return {
     phase: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_PHASE,
     runId: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_RUN_ID,
     status: 'blocked',
-    selectedRecommendation: 'manual_operator_review_before_any_recovery_mutation',
-    decision: 'recovery_path_manual_operator_review_required',
+    selectedRecommendation,
+    decision,
     rationale: [
       'PR #259 reset failed after reaching the Supabase CLI.',
       'Committed post-failure verification shows registry migration and registry tables are still absent.',
+      `Current post-failure state classifier: ${stateClassifier}.`,
       'The PR #259 backup exists only as private temp metadata backup and is not committed.',
       'No future reset retry, restore, ordered apply, or migration repair is safe without a separate approval phase.',
     ],
@@ -722,11 +780,12 @@ function buildRecoveryStrategyRecommendation(optionMatrix: JsonRecord, risk: Jso
 }
 
 function buildRecoveryDecision(recommendation: JsonRecord, risk: JsonRecord): JsonRecord {
+  const decision = asString(recommendation.decision, 'recovery_path_manual_operator_review_required')
   return {
     phase: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_PHASE,
     runId: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_RUN_ID,
     status: 'blocked',
-    decision: 'recovery_path_manual_operator_review_required',
+    decision,
     approvalStatus: 'not_approved_for_recovery_execution',
     recoveryExecutionAllowedInThisPhase: false,
     resetRetryApproved: false,
@@ -738,6 +797,8 @@ function buildRecoveryDecision(recommendation: JsonRecord, risk: JsonRecord): Js
     productionApproved: false,
     selectedRecommendation: recommendation.selectedRecommendation,
     partialResetRisk: asString(risk.riskLevel, 'unknown'),
+    stateClassifier: asString(risk.stateClassifier, 'unknown'),
+    failureCauseClassification: asString(risk.failureCauseClassification, 'unknown'),
     requiredBeforeFutureRecovery: [
       'redacted reset failure log review',
       'operator confirmation of staging state after failed reset',
@@ -793,6 +854,7 @@ function buildBlockerReport(blockers: SupabaseStagingResetFailureTriageBlocker[]
 }
 
 function buildReadinessReport(decision: JsonRecord, risk: JsonRecord, blocker: JsonRecord): JsonRecord {
+  const decisionValue = asString(decision.decision, 'recovery_path_manual_operator_review_required')
   return {
     phase: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_PHASE,
     runId: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_RUN_ID,
@@ -811,8 +873,11 @@ function buildReadinessReport(decision: JsonRecord, risk: JsonRecord, blocker: J
     directDdlDmlRun: false,
     secretsPrintedOrCommitted: false,
     blockers: asStringArray(blocker.activeBlockers),
-    nextRecommendedPhase:
-      'Separate human-approved staging reset recovery execution packet after operator review of failure cause and backup sufficiency.',
+    nextRecommendedPhase: decisionValue === 'recovery_path_retry_reset_after_fix'
+      ? 'Separate human-approved reset retry execution packet after redacted CLI/transport fix evidence and backup sufficiency review.'
+      : decisionValue === 'recovery_path_blocked_pending_supabase_support_or_cli_issue'
+        ? 'Supabase CLI/platform issue review packet before any recovery mutation.'
+        : 'Separate human-approved staging reset recovery execution packet after operator review of failure cause and backup sufficiency.',
   }
 }
 
@@ -838,14 +903,31 @@ function buildPrivateArtifactManifest(): JsonRecord {
   }
 }
 
+function loadLatestReadonlyInspectionReport(): JsonRecord | null {
+  const report = readJsonArtifact(path.join(
+    SUPABASE_STAGING_RESET_FAILURE_TRIAGE_REPORT_DIR,
+    'readonly_staging_failure_triage_inspection.json',
+  ))
+  if (!report || asString(report.status, 'not_attempted') === 'not_attempted') return null
+  return {
+    ...report,
+    ...getSecretHandlingMetadata(report),
+    preservedFromLatestReport: true,
+    preservedByNonExecuteReport: true,
+    preservationReason:
+      'default report generation preserves the latest explicit readonly inspection instead of overwriting it to not_attempted',
+  }
+}
+
 function buildReadonlyInspectionNotAttempted(): JsonRecord {
+  const secretHandling = getSecretHandlingMetadata()
   return {
     phase: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_PHASE,
     runId: SUPABASE_STAGING_RESET_FAILURE_TRIAGE_RUN_ID,
     status: 'not_attempted',
     inspectionPerformed: false,
     reason: 'readonly_staging_inspection_optional_and_not_requested_for_default_reports',
-    dbUrlEnvPresent: APPROVED_DB_URL_ENV_NAMES.some((name) => Boolean(process.env[name])),
+    ...secretHandling,
     dbUrlValuePrinted: false,
     credentialPayloadsPrinted: false,
     secretPayloadPrinted: false,
@@ -857,6 +939,7 @@ function buildReadonlyInspectionNotAttempted(): JsonRecord {
 }
 
 function runReadonlyStagingFailureTriageInspection(): JsonRecord {
+  const secretHandling = getSecretHandlingMetadata()
   const forbiddenConfirmationsSet = FORBIDDEN_CONFIRMATIONS.filter((name) => process.env[name] === 'true')
   const confirmationBlockers: SupabaseStagingResetFailureTriageBlocker[] = []
   if (process.env[SUPABASE_STAGING_RESET_FAILURE_TRIAGE_CONFIRMATION] !== 'true') {
@@ -883,6 +966,7 @@ function runReadonlyStagingFailureTriageInspection(): JsonRecord {
     inspectionPerformed: blockers.length === 0,
     mode: 'readonly_staging_failure_triage_catalog_inspection',
     approvedDbUrlEnvNames: APPROVED_DB_URL_ENV_NAMES,
+    ...secretHandling,
     dbUrlEnvPresent: dbUrlCheck.present,
     dbUrlEnvName: dbUrlCheck.envName,
     dbUrlTargetMatchedApprovedStaging: dbUrlCheck.targetMatched,
@@ -892,6 +976,8 @@ function runReadonlyStagingFailureTriageInspection(): JsonRecord {
     passwordPrinted: false,
     credentialPayloadsPrinted: false,
     secretPayloadPrinted: false,
+    payloadPrinted: false,
+    payloadCommitted: false,
     secretPayloadCommitted: false,
     psqlAvailable: psqlCheck.available,
     psqlVersionChecked: psqlCheck.versionChecked,
@@ -1080,12 +1166,206 @@ function emptyReadonlyCatalog() {
   }
 }
 
+function getSecretHandlingMetadata(existing: JsonRecord = {}): JsonRecord {
+  const dbUrlEnvPresent = APPROVED_DB_URL_ENV_NAMES.some((name) => Boolean(process.env[name]))
+  const rawStatus = process.env.REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_PAYLOAD_ACCESS_STATUS
+  const payloadAccessStatus = rawStatus === 'succeeded' || rawStatus === 'failed' || rawStatus === 'not_attempted'
+    ? rawStatus
+    : asString(existing.payloadAccessStatus, 'not_attempted')
+  const rawSecretRef = process.env.REEDITPRO_STAGING_SUPABASE_DB_URL_SECRET_REF
+  const secretRefUsed = rawSecretRef === 'SUPABASE_DB_URL'
+    ? 'SUPABASE_DB_URL'
+    : asString(existing.secretRefUsed, rawSecretRef ? '[UNAPPROVED_SECRET_REF_REDACTED]' : 'not_used')
+  return {
+    secretRefUsed,
+    payloadAccessStatus,
+    payloadPrinted: false,
+    payloadCommitted: false,
+    dbUrlEnvPresent: dbUrlEnvPresent || existing.dbUrlEnvPresent === true,
+    dbUrlValuePrinted: false,
+    credentialPayloadsPrinted: false,
+    secretPayloadPrinted: false,
+    secretPayloadCommitted: false,
+  }
+}
+
+function classifyPostFailureState(migrationHistoryDelta: JsonRecord, readonlyInspection: JsonRecord) {
+  const readonlyStatus = asString(readonlyInspection.status, 'not_attempted')
+  const catalog = asRecord(readonlyInspection.catalog)
+  const blockers: SupabaseStagingResetFailureTriageBlocker[] = []
+  const pr259RemoteMigrationIds = asStringArray(migrationHistoryDelta.remoteMigrationIds)
+  const currentMigrationIds = extractCatalogMigrationVersions(catalog.migrationHistory)
+  const currentRegistryTables = extractCatalogTableNames(catalog.registryTables)
+  const requiredRegistryTablesPresent = SUPABASE_MILESTONE_REGISTRY_TABLES.filter((table) =>
+    currentRegistryTables.includes(table),
+  )
+  const registryRlsRows = asArray(catalog.registryRls)
+  const registryGrantRows = asArray(catalog.registryGrants)
+  const migrationHistoryMatchesPr259 =
+    readonlyStatus === 'passed' && arraysEqual(pr259RemoteMigrationIds, currentMigrationIds)
+  const currentRequiredRegistryTableCount = requiredRegistryTablesPresent.length
+  const registryTablesRemainAbsent = currentRequiredRegistryTableCount === 0
+  const partiallyPresentRegistryTables =
+    currentRequiredRegistryTableCount > 0 && currentRequiredRegistryTableCount < SUPABASE_MILESTONE_REGISTRY_TABLES.length
+  const registryStateConflictsWithPr259 =
+    currentRequiredRegistryTableCount > 0 ||
+    registryRlsRows.length > 0 ||
+    registryGrantRows.length > 0 ||
+    !migrationHistoryMatchesPr259
+
+  if (readonlyStatus !== 'passed') {
+    blockers.push('post_failure_state_unknown')
+    return {
+      stateClassifier: 'unknown',
+      confidence: 'low_until_readonly_inspection_passes',
+      mutationBlockReason:
+        'current post-failure staging state is unknown because read-only inspection is missing or blocked',
+      comparison: {
+        readonlyStatus,
+        migrationHistoryMatchesPr259: false,
+        currentMigrationCount: currentMigrationIds.length,
+        pr259RemoteMigrationCount: pr259RemoteMigrationIds.length,
+        currentRequiredRegistryTableCount,
+        registryTablesRemainAbsent,
+      },
+      evidenceSummary: {
+        currentMigrationIds,
+        pr259RemoteMigrationIds,
+        requiredRegistryTablesPresent,
+        registryRlsRowCount: registryRlsRows.length,
+        registryGrantRowCount: registryGrantRows.length,
+      },
+      blockers: collectUniqueBlockers(blockers, extractBlockers(readonlyInspection)),
+    }
+  }
+
+  if (migrationHistoryMatchesPr259 && registryTablesRemainAbsent && registryRlsRows.length === 0 && registryGrantRows.length === 0) {
+    return {
+      stateClassifier: 'unchanged_failed_state',
+      confidence: 'medium_high_from_current_readonly_catalog_metadata',
+      mutationBlockReason:
+        'current read-only catalog metadata matches PR #259 failed-state evidence and registry tables remain absent',
+      comparison: {
+        readonlyStatus,
+        migrationHistoryMatchesPr259,
+        currentMigrationCount: currentMigrationIds.length,
+        pr259RemoteMigrationCount: pr259RemoteMigrationIds.length,
+        currentRequiredRegistryTableCount,
+        registryTablesRemainAbsent,
+      },
+      evidenceSummary: {
+        currentMigrationIds,
+        pr259RemoteMigrationIds,
+        requiredRegistryTablesPresent,
+        registryRlsRowCount: registryRlsRows.length,
+        registryGrantRowCount: registryGrantRows.length,
+      },
+      blockers: [] as SupabaseStagingResetFailureTriageBlocker[],
+    }
+  }
+
+  if (!migrationHistoryMatchesPr259) blockers.push('migration_history_changed_after_failed_reset')
+  if (partiallyPresentRegistryTables) blockers.push('registry_schema_partially_present_after_failed_reset')
+  if (registryStateConflictsWithPr259) blockers.push('post_failure_state_partially_mutated')
+  return {
+    stateClassifier: 'partially_mutated',
+    confidence: 'medium_from_current_readonly_catalog_metadata',
+    mutationBlockReason:
+      'current read-only catalog metadata conflicts with PR #259 failed-state evidence or shows partial registry state',
+    comparison: {
+      readonlyStatus,
+      migrationHistoryMatchesPr259,
+      currentMigrationCount: currentMigrationIds.length,
+      pr259RemoteMigrationCount: pr259RemoteMigrationIds.length,
+      currentRequiredRegistryTableCount,
+      registryTablesRemainAbsent,
+      partiallyPresentRegistryTables,
+    },
+    evidenceSummary: {
+      currentMigrationIds,
+      pr259RemoteMigrationIds,
+      requiredRegistryTablesPresent,
+      registryRlsRowCount: registryRlsRows.length,
+      registryGrantRowCount: registryGrantRows.length,
+    },
+    blockers: collectUniqueBlockers(blockers),
+  }
+}
+
+function classifyResetFailureCause() {
+  const execution = readJsonArtifact(path.join(PR259_REPORT_DIR, 'staging_reset_execution_report.json'))
+  const resetCommand = asRecord(execution?.resetCommand)
+  const errorCategory = asString(resetCommand.errorCategory, 'unknown_or_missing')
+  const commandStatus = asString(resetCommand.status, 'unknown_or_missing')
+  const knownFixableTransportCategories = [
+    'bad_cpu_type',
+    'cli_unavailable',
+    'npx_cli_unavailable',
+    'temp_npm_exec_supabase_cli_unavailable',
+    'transport_preflight_failed',
+  ]
+  const knownSupabaseCliOrPlatformCategories = [
+    'supabase_cli_issue',
+    'supabase_platform_issue',
+    'migration_engine_issue',
+  ]
+  const fixableByTransportRepair = knownFixableTransportCategories.includes(errorCategory)
+  const pointsToSupabaseCliOrPlatformIssue = knownSupabaseCliOrPlatformCategories.includes(errorCategory)
+  return {
+    classification: fixableByTransportRepair
+      ? 'safe_fixable_cli_transport_issue'
+      : pointsToSupabaseCliOrPlatformIssue
+        ? 'unresolved_supabase_cli_or_platform_issue'
+        : 'reset_failure_cause_not_proven',
+    commandStatus,
+    errorCategory,
+    fixableByTransportRepair,
+    pointsToSupabaseCliOrPlatformIssue,
+  }
+}
+
+function selectRecoveryDecision(
+  stateClassifier: string,
+  failureCause: ReturnType<typeof classifyResetFailureCause>,
+) {
+  if (stateClassifier === 'unchanged_failed_state' && failureCause.fixableByTransportRepair) {
+    return 'recovery_path_retry_reset_after_fix'
+  }
+  if (failureCause.pointsToSupabaseCliOrPlatformIssue) {
+    return 'recovery_path_blocked_pending_supabase_support_or_cli_issue'
+  }
+  return 'recovery_path_manual_operator_review_required'
+}
+
+function extractCatalogMigrationVersions(value: unknown) {
+  return asArray(value)
+    .map((row) => asString(row.version, ''))
+    .filter(Boolean)
+    .sort()
+}
+
+function extractCatalogTableNames(value: unknown) {
+  return asArray(value)
+    .map((row) => asString(row.table, ''))
+    .filter(Boolean)
+    .sort()
+}
+
+function arraysEqual(left: string[], right: string[]) {
+  if (left.length !== right.length) return false
+  return left.every((value, index) => value === right[index])
+}
+
 function renderTriageMarkdown(reports: ReportBundle): string {
   return `# Supabase Staging Reset Failure Triage
 
 Decision: \`${reports.recoveryDecision.decision}\`
 
 PR #259 reset evidence is preserved as the source of truth. The reset command was attempted, the command exited nonzero, and \`stagingSqlMayHaveRun\` is recorded as \`true\`. Post-failure verification still shows the milestone registry migration is not applied and the activation registry tables are absent.
+
+Current read-only inspection status: \`${reports.readonlyInspection.status}\`
+
+Post-failure state classifier: \`${reports.postFailureStagingState.stateClassifier}\`
 
 This packet is triage/reporting only. It does not retry reset, deploy schema, repair migration history, write Track B rows, run direct SQL/DDL/DML, touch production, print secrets, run providers/tools/workers/routes/media, touch Track A, or unlock beta/production.
 
@@ -1103,6 +1383,9 @@ function renderDecisionMarkdown(reports: ReportBundle): string {
 - Decision: \`${reports.recoveryDecision.decision}\`
 - Approval status: \`${reports.recoveryDecision.approvalStatus}\`
 - Partial reset risk: \`${reports.partialResetRisk.riskLevel}\`
+- Read-only inspection status: \`${reports.readonlyInspection.status}\`
+- Post-failure state classifier: \`${reports.recoveryDecision.stateClassifier}\`
+- Failure cause classification: \`${reports.recoveryDecision.failureCauseClassification}\`
 - Recovery execution allowed in this phase: \`${reports.recoveryDecision.recoveryExecutionAllowedInThisPhase}\`
 - Reset retry approved: \`${reports.recoveryDecision.resetRetryApproved}\`
 - Migration repair approved: \`${reports.recoveryDecision.migrationRepairApproved}\`
@@ -1124,6 +1407,8 @@ Before any future recovery execution:
 - Confirm backup/export artifact sufficiency and restore scope before considering a restore-based path.
 - Choose exactly one future recovery strategy and approve it in a separate execution prompt.
 - Keep Track B backfill writes blocked until migration history and registry schema/RLS verification pass.
+- Use the latest read-only classifier \`${reports.postFailureStagingState.stateClassifier}\` to select the next phase.
+- Do not retry reset unless a separate approval packet proves the failure cause is safely fixed and backup/restore sufficiency is still acceptable.
 
 Current blockers:
 
@@ -1137,6 +1422,12 @@ function renderRecoveryExecutionPrompt(reports: ReportBundle): string {
 Use this prompt only after the reset failure triage packet is reviewed and a human/operator approves one exact recovery strategy.
 
 Current triage decision: \`${reports.recoveryDecision.decision}\`.
+Current read-only inspection status: \`${reports.readonlyInspection.status}\`.
+Current post-failure state classifier: \`${reports.postFailureStagingState.stateClassifier}\`.
+
+Remaining evidence gaps:
+
+${asStringArray(reports.blockerReport.activeBlockers).map((blocker) => `- \`${blocker}\``).join('\n')}
 
 Do not run this prompt unless the future approval names the selected recovery path, confirms backup/restore sufficiency, proves the approved staging target, and defines post-recovery verification. Track B backfill remains a later separate phase after migration history and registry schema/RLS verification pass.
 

@@ -3,21 +3,23 @@
   "runId": "supabase-staging-reset-failure-triage-20260609",
   "status": "blocked",
   "decisionDefault": "recovery_path_manual_operator_review_required",
-  "riskClassification": "possible_partial_or_failed_staging_reset_requires_manual_review",
+  "riskClassification": "unchanged_failed_state_registry_absent_manual_review_required",
+  "stateClassifier": "unchanged_failed_state",
+  "failureCauseClassification": "reset_failure_cause_not_proven",
   "resetAttemptedInPr259": true,
   "stagingSqlMayHaveRun": true,
   "options": [
     {
       "option": "retry_reset_after_fix",
       "status": "not_approved",
-      "reason": "Exact reset failure cause is not proven and staging may have been partially touched.",
+      "reason": "Exact reset failure cause is not proven as a safe fixable CLI/transport issue.",
       "requiresFutureApproval": true,
       "resetRetryRunInThisPhase": false
     },
     {
       "option": "restore_backup_then_retry",
       "status": "not_approved",
-      "reason": "PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven.",
+      "reason": "PR #259 backup is private temp schema/migration-history metadata; restore sufficiency is not proven for this triage phase.",
       "requiresFutureApproval": true,
       "restoreRunInThisPhase": false
     },
@@ -31,7 +33,7 @@
     {
       "option": "manual_operator_review",
       "status": "recommended_default",
-      "reason": "Failure reached the reset CLI and committed evidence does not prove a safe automated recovery action.",
+      "reason": "Failure reached the reset CLI and current evidence still does not prove a safe automated recovery action.",
       "requiresFutureApproval": true,
       "selected": true
     },

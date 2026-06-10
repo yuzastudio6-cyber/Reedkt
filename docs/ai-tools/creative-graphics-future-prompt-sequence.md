@@ -114,6 +114,29 @@ Recommended next prompt: `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Compo
 TRACKA-GD-HANDOFF-2 creates the controlled private preview execution packet for the five accepted-with-warnings GD-7-Retry SVG fixtures.
 
 - Status: `private_preview_execution_packet_ready`
+
+## TRACKA-GD-HANDOFF-3 - Controlled Private Preview Execution
+
+Status: `blocked_pending_source_artifacts`
+
+Accepted fixtures checked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Source status: `evidence_only_source_missing`
+
+Preview composer created: no
+
+Preview composer run: no
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Production capability enabled: `none; Track A controlled private preview execution only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next prompt: `TRACKA-GD-HANDOFF-3A - Source Artifact Preservation Fix`
 - Decision state: `ready_for_tracka_gd_handoff_3_controlled_private_preview_execution`
 - Private preview status: `private_preview_not_executed`
 - Accepted fixtures locked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`

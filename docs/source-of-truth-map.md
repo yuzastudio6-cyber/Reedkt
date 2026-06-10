@@ -25,6 +25,34 @@ Status terms:
 - SQL executed: `none`
 - Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-3 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Handoff-3 source availability | `docs/track-a/creative-graphics-private-preview-source-availability.md` |
+| Handoff-3 execution evidence | `docs/track-a/creative-graphics-private-preview-execution-evidence.md` |
+| Handoff-3 QA evidence | `docs/track-a/creative-graphics-private-preview-qa-evidence.md` |
+| Handoff-3 cleanup evidence | `docs/track-a/creative-graphics-private-preview-cleanup-evidence.md` |
+| Validation results | `docs/prompt-tracka-gd-handoff-3-validation-results.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-private-preview-execution-diagnostics.mjs` |
+
+TRACKA-GD-HANDOFF-3 status terms:
+
+- Result: `blocked_pending_source_artifacts`
+- Accepted fixtures checked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Source status: `evidence_only_source_missing`
+- Checksum status: `not_checked_source_missing`
+- Preview composer created: no
+- Preview composer run: no
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-2 Sources
 
 | Topic | Authoritative source |

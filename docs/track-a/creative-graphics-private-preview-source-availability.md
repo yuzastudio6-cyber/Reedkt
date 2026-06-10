@@ -1,0 +1,55 @@
+# Creative Graphics Private Preview Source Availability
+
+Prompt: `TRACKA-GD-HANDOFF-3`
+
+Result: `blocked_pending_source_artifacts`
+
+Production capability enabled: `none; Track A controlled private preview execution only`
+
+## Source Check Summary
+
+Handoff-3 inspected the Handoff-2 source lockfile and the GD-7-Retry evidence docs before any preview work. The committed evidence docs exist, but the clean Handoff-3 worktree does not contain `.local-artifacts/`. The accepted SVG source files are ignored local artifacts and were not present for checksum verification.
+
+Because at least one accepted source artifact is missing, Handoff-3 did not create a preview composer and did not run private preview composition.
+
+## Accepted Fixture Source Status
+
+| Fixture | Evidence docs | Expected source artifact | Expected SHA-256 | Worktree source status | Checksum status | Handoff-3 action |
+| --- | --- | --- | --- | --- | --- | --- |
+| `satori_social_cards` | present | `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/satori_social_cards.svg` | `a141b7d996c475d97c8dd65ff5f79b875b755159e0bc437b06a1e93fc4afd5f6` | `evidence_only_source_missing` | `not_checked_source_missing` | blocked |
+| `d3_dataviz` | present | `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/d3_dataviz.svg` | `5e3013b1a32164b1e0d211a94432efb49ccf8c769838e20ea5ebb3e4e8c63ace` | `evidence_only_source_missing` | `not_checked_source_missing` | blocked |
+| `echarts_dataviz` | present | `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/echarts_dataviz.svg` | `ee9781e8d1cd2c269b1ca67df505e691b9214cbfdefe43804e9bfbb56a6485a4` | `evidence_only_source_missing` | `not_checked_source_missing` | blocked |
+| `vega_lite_dataviz` | present | `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/vega_lite_dataviz.svg` | `c9c35623828fc21b882a10bb67dc368819c205550044e7728c453cb3108d5672` | `evidence_only_source_missing` | `not_checked_source_missing` | blocked |
+| `viz_graphviz_diagrams` | present | `.local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-09T15-28-41-955Z/viz_graphviz_diagrams.svg` | `bc57f8104346cf724893efa195e6c235b477233b688434967621e6357600ac45` | `evidence_only_source_missing` | `not_checked_source_missing` | blocked |
+
+## Excluded Context
+
+- `svg_js_vector_graphics`: excluded from Handoff-3 because GD-7-Retry skipped it with `node_dom_runtime_unavailable_no_dependency_mutation`.
+- `resvg_js_svg_rasterization`: excluded from Handoff-3 because GD-7-Retry/GD-8A recorded `local_darwin_native_blocker`.
+- Group B remains excluded: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`.
+- Group C remains excluded: `pixijs_canvas_graphics`, `three_js_visuals`.
+
+## Source Of Truth
+
+Required future source of truth remains:
+
+`Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+
+Signed URLs are not source of truth.
+
+## Boundary Status
+
+Private preview result: `blocked_pending_source_artifacts`
+
+Preview composer created: no
+
+Preview composer run: no
+
+Local output manifest created: no
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+

@@ -58,6 +58,23 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-3A Preservation Addendum
+
+Source artifact status: `source_artifacts_preserved`
+
+Private preview blocker status: `private_preview_blocker_resolved`
+
+Handoff-3A does not itself grant or perform Track A private preview composition. It only preserves committed synthetic source artifacts so a future Handoff-3 retry can perform source checks without depending on ignored `.local-artifacts/`.
+
+Next allowed prompt: `TRACKA-GD-HANDOFF-3-Retry - Controlled Private Preview Execution`
+
+Capability: `none; source artifact preservation for Track A private preview only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-3 Result Addendum
 
 Decision after source inspection: `blocked_pending_source_artifacts`

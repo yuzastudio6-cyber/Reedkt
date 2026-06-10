@@ -18,6 +18,7 @@ on:
       - codex/rp-tracka-gd-handoff-0-creative-graphics-review
       - codex/rp-tracka-gd-handoff-1-private-preview-composition-plan
       - codex/rp-tracka-gd-handoff-2-controlled-private-preview-execution-packet
+      - codex/rp-tracka-gd-handoff-3-controlled-private-preview-execution
 
 jobs:
   foundation-validation:

@@ -1,0 +1,209 @@
+{
+  "prompt": "TRACKA-GD-HANDOFF-3A",
+  "status": "source_artifacts_preserved",
+  "privatePreviewBlockerStatus": "private_preview_blocker_resolved",
+  "productionCapabilityEnabled": "none; source artifact preservation for Track A private preview only",
+  "sourceOfTruthPolicy": "Supabase row + private GCS path + manifest + checksum + approved plan snapshot",
+  "signedUrlsAreSourceOfTruth": false,
+  "runId": "gd7-retry-2026-06-10T17-30-49-891Z",
+  "sourceArtifactStatus": "repo_preserved_synthetic_fixture_source",
+  "acceptedFixtures": [
+    "satori_social_cards",
+    "d3_dataviz",
+    "echarts_dataviz",
+    "vega_lite_dataviz",
+    "viz_graphviz_diagrams"
+  ],
+  "preservedArtifacts": [
+    {
+      "fixtureId": "satori_social_cards",
+      "sourceWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "targetWorkstream": "TRACK_A_RENDER_EXPORT",
+      "artifactFiles": [
+        "docs/track-a/creative-graphics-source-artifacts/satori_social_cards/satori_social_cards.svg",
+        "docs/track-a/creative-graphics-source-artifacts/satori_social_cards/satori_social_cards.source-metadata.json"
+      ],
+      "localRepoPath": "docs/track-a/creative-graphics-source-artifacts/satori_social_cards/satori_social_cards.svg",
+      "originalLocalPath": ".local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-10T17-30-49-891Z/satori_social_cards.svg",
+      "artifactType": "svg",
+      "checksumSha256": "a141b7d996c475d97c8dd65ff5f79b875b755159e0bc437b06a1e93fc4afd5f6",
+      "dimensions": {
+        "width": 640,
+        "height": 360
+      },
+      "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+      "privateGcsPathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+      "supabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+      "sourceOfTruthStatus": "repo_preserved_synthetic_fixture_source",
+      "futurePersistenceRequired": true,
+      "blockedUses": [
+        "public_artifact",
+        "signed_url_source_of_truth",
+        "gcs_upload",
+        "supabase_mutation",
+        "sql_execution",
+        "track_a_final_render_export",
+        "worker_execution",
+        "provider_model_calls",
+        "browser_capture",
+        "media_processing",
+        "production_beta_unlock"
+      ]
+    },
+    {
+      "fixtureId": "d3_dataviz",
+      "sourceWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "targetWorkstream": "TRACK_A_RENDER_EXPORT",
+      "artifactFiles": [
+        "docs/track-a/creative-graphics-source-artifacts/d3_dataviz/d3_dataviz.svg",
+        "docs/track-a/creative-graphics-source-artifacts/d3_dataviz/d3_dataviz.source-metadata.json"
+      ],
+      "localRepoPath": "docs/track-a/creative-graphics-source-artifacts/d3_dataviz/d3_dataviz.svg",
+      "originalLocalPath": ".local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-10T17-30-49-891Z/d3_dataviz.svg",
+      "artifactType": "svg",
+      "checksumSha256": "5e3013b1a32164b1e0d211a94432efb49ccf8c769838e20ea5ebb3e4e8c63ace",
+      "dimensions": {
+        "width": 640,
+        "height": 360
+      },
+      "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+      "privateGcsPathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+      "supabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+      "sourceOfTruthStatus": "repo_preserved_synthetic_fixture_source",
+      "futurePersistenceRequired": true,
+      "blockedUses": [
+        "public_artifact",
+        "signed_url_source_of_truth",
+        "gcs_upload",
+        "supabase_mutation",
+        "sql_execution",
+        "track_a_final_render_export",
+        "worker_execution",
+        "provider_model_calls",
+        "browser_capture",
+        "media_processing",
+        "production_beta_unlock"
+      ]
+    },
+    {
+      "fixtureId": "echarts_dataviz",
+      "sourceWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "targetWorkstream": "TRACK_A_RENDER_EXPORT",
+      "artifactFiles": [
+        "docs/track-a/creative-graphics-source-artifacts/echarts_dataviz/echarts_dataviz.svg",
+        "docs/track-a/creative-graphics-source-artifacts/echarts_dataviz/echarts_dataviz.source-metadata.json"
+      ],
+      "localRepoPath": "docs/track-a/creative-graphics-source-artifacts/echarts_dataviz/echarts_dataviz.svg",
+      "originalLocalPath": ".local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-10T17-30-49-891Z/echarts_dataviz.svg",
+      "artifactType": "svg",
+      "checksumSha256": "ee9781e8d1cd2c269b1ca67df505e691b9214cbfdefe43804e9bfbb56a6485a4",
+      "dimensions": {
+        "width": 640,
+        "height": 360
+      },
+      "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+      "privateGcsPathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+      "supabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+      "sourceOfTruthStatus": "repo_preserved_synthetic_fixture_source",
+      "futurePersistenceRequired": true,
+      "blockedUses": [
+        "public_artifact",
+        "signed_url_source_of_truth",
+        "gcs_upload",
+        "supabase_mutation",
+        "sql_execution",
+        "track_a_final_render_export",
+        "worker_execution",
+        "provider_model_calls",
+        "browser_capture",
+        "media_processing",
+        "production_beta_unlock"
+      ]
+    },
+    {
+      "fixtureId": "vega_lite_dataviz",
+      "sourceWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "targetWorkstream": "TRACK_A_RENDER_EXPORT",
+      "artifactFiles": [
+        "docs/track-a/creative-graphics-source-artifacts/vega_lite_dataviz/vega_lite_dataviz.svg",
+        "docs/track-a/creative-graphics-source-artifacts/vega_lite_dataviz/vega_lite_dataviz.source-metadata.json"
+      ],
+      "localRepoPath": "docs/track-a/creative-graphics-source-artifacts/vega_lite_dataviz/vega_lite_dataviz.svg",
+      "originalLocalPath": ".local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-10T17-30-49-891Z/vega_lite_dataviz.svg",
+      "artifactType": "svg",
+      "checksumSha256": "c9c35623828fc21b882a10bb67dc368819c205550044e7728c453cb3108d5672",
+      "dimensions": {
+        "width": 640,
+        "height": 360
+      },
+      "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+      "privateGcsPathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+      "supabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+      "sourceOfTruthStatus": "repo_preserved_synthetic_fixture_source",
+      "futurePersistenceRequired": true,
+      "blockedUses": [
+        "public_artifact",
+        "signed_url_source_of_truth",
+        "gcs_upload",
+        "supabase_mutation",
+        "sql_execution",
+        "track_a_final_render_export",
+        "worker_execution",
+        "provider_model_calls",
+        "browser_capture",
+        "media_processing",
+        "production_beta_unlock"
+      ]
+    },
+    {
+      "fixtureId": "viz_graphviz_diagrams",
+      "sourceWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "targetWorkstream": "TRACK_A_RENDER_EXPORT",
+      "artifactFiles": [
+        "docs/track-a/creative-graphics-source-artifacts/viz_graphviz_diagrams/viz_graphviz_diagrams.svg",
+        "docs/track-a/creative-graphics-source-artifacts/viz_graphviz_diagrams/viz_graphviz_diagrams.source-metadata.json"
+      ],
+      "localRepoPath": "docs/track-a/creative-graphics-source-artifacts/viz_graphviz_diagrams/viz_graphviz_diagrams.svg",
+      "originalLocalPath": ".local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-10T17-30-49-891Z/viz_graphviz_diagrams.svg",
+      "artifactType": "svg",
+      "checksumSha256": "bc57f8104346cf724893efa195e6c235b477233b688434967621e6357600ac45",
+      "dimensions": {
+        "width": 640,
+        "height": 360
+      },
+      "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+      "privateGcsPathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+      "supabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+      "sourceOfTruthStatus": "repo_preserved_synthetic_fixture_source",
+      "futurePersistenceRequired": true,
+      "blockedUses": [
+        "public_artifact",
+        "signed_url_source_of_truth",
+        "gcs_upload",
+        "supabase_mutation",
+        "sql_execution",
+        "track_a_final_render_export",
+        "worker_execution",
+        "provider_model_calls",
+        "browser_capture",
+        "media_processing",
+        "production_beta_unlock"
+      ]
+    }
+  ],
+  "missingFixtures": [],
+  "excludedFixtures": [
+    "svg_js_vector_graphics",
+    "resvg_js_svg_rasterization",
+    "anime_js_motion",
+    "lottie_web_overlays",
+    "remotion_graphics",
+    "pixijs_canvas_graphics",
+    "three_js_visuals"
+  ],
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no"
+}

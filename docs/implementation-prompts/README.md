@@ -19,6 +19,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-1-private-preview-composition-plan` | [#264](https://github.com/yuzastudio6-cyber/Reedkt/pull/264) | `none; Track A private preview composition plan only` |
 | TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-2-controlled-private-preview-execution-packet` | [#267](https://github.com/yuzastudio6-cyber/Reedkt/pull/267) | `none; Track A controlled private preview execution packet only` |
 | TRACKA-GD-HANDOFF-3 - Controlled Private Preview Execution | implemented_local_validation_passed_with_source_artifacts_blocked_and_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-3-controlled-private-preview-execution` | [#272](https://github.com/yuzastudio6-cyber/Reedkt/pull/272) | `none; Track A controlled private preview execution only` |
+| TRACKA-GD-HANDOFF-3A - Source Artifact Preservation Fix | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-3a-source-artifact-preservation-fix` | pending | `none; source artifact preservation for Track A private preview only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -101,3 +102,9 @@ TRACKA-GD-HANDOFF-3 excluded fixtures/tools remain `svg_js_vector_graphics`, `re
 TRACKA-GD-HANDOFF-3 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
 
 Next recommended prompt after TRACKA-GD-HANDOFF-3: `TRACKA-GD-HANDOFF-3A - Source Artifact Preservation Fix`.
+
+TRACKA-GD-HANDOFF-3A result: `source_artifacts_preserved`. Private preview blocker status: `private_preview_blocker_resolved`. Preserved fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`. Missing accepted fixtures: none.
+
+TRACKA-GD-HANDOFF-3A capability: `none; source artifact preservation for Track A private preview only`. Track A preview composer: not run. Final render/export: none. Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
+
+Next recommended prompt after TRACKA-GD-HANDOFF-3A: `TRACKA-GD-HANDOFF-3-Retry - Controlled Private Preview Execution`.

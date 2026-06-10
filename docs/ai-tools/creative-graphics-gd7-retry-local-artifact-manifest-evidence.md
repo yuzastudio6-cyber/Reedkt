@@ -44,3 +44,27 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-3A Preserved Manifest Addendum
+
+Run ID: `gd7-retry-2026-06-10T17-30-49-891Z`
+
+Source artifact status: `source_artifacts_preserved`
+
+Preserved source artifact manifest: `docs/track-a/creative-graphics-source-artifacts/source-artifact-manifest.json`
+
+Preserved checksum manifest: `docs/track-a/creative-graphics-source-artifacts/source-artifact-checksums.json`
+
+Preserved fixture source files:
+
+- `docs/track-a/creative-graphics-source-artifacts/satori_social_cards/satori_social_cards.svg`
+- `docs/track-a/creative-graphics-source-artifacts/d3_dataviz/d3_dataviz.svg`
+- `docs/track-a/creative-graphics-source-artifacts/echarts_dataviz/echarts_dataviz.svg`
+- `docs/track-a/creative-graphics-source-artifacts/vega_lite_dataviz/vega_lite_dataviz.svg`
+- `docs/track-a/creative-graphics-source-artifacts/viz_graphviz_diagrams/viz_graphviz_diagrams.svg`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

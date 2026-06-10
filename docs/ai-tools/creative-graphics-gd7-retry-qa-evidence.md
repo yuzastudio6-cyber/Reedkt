@@ -43,3 +43,15 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-3A QA Preservation Addendum
+
+Source artifact status: `source_artifacts_preserved`
+
+Private preview blocker status: `private_preview_blocker_resolved`
+
+The Handoff-3A preservation rerun did not change GD-7-Retry QA scope. It preserved the five previously accepted local SVG fixture sources and did not perform Track A preview composition or final render/export.
+
+Preserved fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`

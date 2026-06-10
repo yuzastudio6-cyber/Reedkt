@@ -298,3 +298,26 @@ Prompt TRACKA-GD-HANDOFF-3: Controlled Private Preview Execution.
 ## Next Milestone After TRACKA-GD-HANDOFF-3
 
 `TRACKA-GD-HANDOFF-3A - Source Artifact Preservation Fix`.
+
+## TRACKA-GD-HANDOFF-3A Milestone
+
+Prompt TRACKA-GD-HANDOFF-3A: Source Artifact Preservation Fix.
+
+- Status: `source_artifacts_preserved`
+- Private preview blocker status: `private_preview_blocker_resolved`
+- Capability: `none; source artifact preservation for Track A private preview only`
+- GD-7-Retry runner rerun: yes
+- Run ID: `gd7-retry-2026-06-10T17-30-49-891Z`
+- Preserved fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Missing accepted fixtures: none
+- Track A preview composer: not run
+- Final render/export: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+## Next Milestone After TRACKA-GD-HANDOFF-3A
+
+`TRACKA-GD-HANDOFF-3-Retry - Controlled Private Preview Execution`.

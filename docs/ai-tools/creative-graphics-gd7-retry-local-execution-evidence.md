@@ -55,3 +55,26 @@ Migration deployed: `no`
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, render/export execution, worker execution, browser capture, media processing, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, production/beta unlock, human approval grant, staging execution approval, raw prompt execution, or broad service-role handler was enabled.
 
 Recommended next prompt: `Prompt TRACKA-GD-HANDOFF-0 - Track A Creative Graphics Handoff Review`; use `Prompt GD-8B - resvg Alternative Runtime Review` if rasterization remains required on Darwin-local execution paths.
+
+## TRACKA-GD-HANDOFF-3A Preservation Rerun
+
+Run ID: `gd7-retry-2026-06-10T17-30-49-891Z`
+
+Runtime status: `generated_local_fixture_partially_passed`
+
+Source artifact status: `source_artifacts_preserved`
+
+Private preview blocker status: `private_preview_blocker_resolved`
+
+Executed tools preserved for Track A source handoff: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Skipped/blocker tools remain unchanged: `svg_js_vector_graphics` with `node_dom_runtime_unavailable_no_dependency_mutation`; `resvg_js_svg_rasterization` with `local_darwin_native_blocker`.
+
+Track A preview composition: not run
+
+Capability: `none; source artifact preservation for Track A private preview only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

@@ -111,6 +111,15 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 6. Proceed to Phase 53B only as owner acceptance intake after owner chats respond, or pause pending owner repo audits.
 7. Do not execute tools, workers, models, providers, media processing, web search, browser capture, map rendering, Docker, Cloud Run, SQL migrations, schema/RLS changes, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After PROVIDER-0
+
+1. Review `activation:provider-gateway-models-audit:report`, `activation:provider-gateway-models-audit:iam-plan`, `activation:provider-gateway-models:summary`, and `docs/provider-gateway/*`.
+2. Confirm Qwen maps internally to `qwen_3_7_max` and provider ID `qwen3.7-max`, with `qwen3.7-max-2026-06-08` / `qwen3.7-max-2026-05-20` as snapshot candidates.
+3. Confirm DeepSeek maps internally to `deepseek_v4_pro` and `deepseek_v4_flash`, with provider IDs `deepseek-v4-pro` and `deepseek-v4-flash`.
+4. Confirm Qwen and DeepSeek provider keys are future backend-only Secret Manager references and PROVIDER-0 did not create, read, print, or persist any provider secret values.
+5. Confirm DeepSeek cannot directly execute code and Qwen cannot directly execute workers/tools; provider tool calls are model output only until ReeditPro validates them into approved-plan snapshot candidates.
+6. Proceed to PROVIDER-1 only as provider registry and secret metadata fixtures. Do not call DeepSeek, Qwen, or any provider; do not read provider secret values; do not execute tools, workers, models, schema/RLS/Data API changes, production, external beta, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

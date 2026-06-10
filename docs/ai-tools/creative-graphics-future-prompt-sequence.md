@@ -103,6 +103,30 @@ TRACKA-GD-HANDOFF-1 creates the private preview composition plan for the five ac
 
 - Status: `private_preview_composition_plan_ready_with_warnings`
 - Private preview status: `private_preview_not_executed`
+
+## TRACKA-GD-HANDOFF-3-Retry
+
+Status: `private_preview_local_passed`
+
+Runtime status: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed`
+
+Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Local manifest summary: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff-3-retry-2026-06-10T19-08-02-950Z/private-preview-manifest.json`
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+
+Signed URLs are not source of truth.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next prompt: `TRACKA-GD-HANDOFF-4 - Private Preview QA Review`
 - Accepted fixtures planned: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
 - Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
 - Production capability enabled: `none; Track A private preview composition plan only`

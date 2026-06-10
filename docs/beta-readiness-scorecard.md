@@ -196,6 +196,25 @@ TRACKA-GD-HANDOFF-0 improves Track A handoff clarity only. It does not raise pro
 
 - Handoff result: `tracka_handoff_ready_with_warnings`
 - Runtime unlock status: `generated_local_fixture_partially_passed / tracka_handoff_ready_with_warnings / private_preview_not_executed`
+
+## TRACKA-GD-HANDOFF-3-Retry Scorecard Note
+
+- Retry result: `private_preview_local_passed`
+- Runtime status: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed`
+- Static/private preview confidence: improved for local/private composition review only
+- Production beta readiness: remains blocked
+- Internal beta readiness: remains blocked
+- Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Local manifest summary: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff-3-retry-2026-06-10T19-08-02-950Z/private-preview-manifest.json`
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth.
+- Production capability enabled: `none; controlled local/private Track A preview execution only if executed`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
 - Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
 - Skipped/blocker fixtures: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`
 - Track A handoff readiness: `18%` for local/private SVG evidence review only

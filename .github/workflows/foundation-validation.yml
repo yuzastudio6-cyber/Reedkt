@@ -19,6 +19,7 @@ on:
       - codex/rp-tracka-gd-handoff-1-private-preview-composition-plan
       - codex/rp-tracka-gd-handoff-2-controlled-private-preview-execution-packet
       - codex/rp-tracka-gd-handoff-3-controlled-private-preview-execution
+      - codex/rp-tracka-gd-handoff-3a-source-artifact-preservation-fix
 
 jobs:
   foundation-validation:

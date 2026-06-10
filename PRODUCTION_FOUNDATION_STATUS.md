@@ -607,3 +607,39 @@ Authoritative TRACKA-GD-HANDOFF-3A files:
 - `docs/prompt-tracka-gd-handoff-3a-validation-results.md`
 
 Next milestone: `TRACKA-GD-HANDOFF-3-Retry - Controlled Private Preview Execution`.
+
+## TRACKA-GD-HANDOFF-3-Retry Controlled Private Preview Execution
+
+- Retry result: `private_preview_local_passed`
+- Runtime status: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed`
+- Capability: `none; controlled local/private Track A preview execution only if executed`
+- Source verification: all five accepted fixtures are `source_verified`
+- Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Local output root: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff-3-retry-2026-06-10T19-08-02-950Z`
+- Local manifest summary: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff-3-retry-2026-06-10T19-08-02-950Z/private-preview-manifest.json`
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth.
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Final render/export: none
+- Uploads/storage transfer: none
+- Signed URLs: none
+- Public artifacts: none
+- Worker/provider/model/tool execution: none
+- Browser capture/Docker/Cloud Run: none
+- Google Cloud/Secret Manager access: none
+- Production/beta unlock: none
+
+Authoritative TRACKA-GD-HANDOFF-3-Retry files:
+
+- `docs/track-a/creative-graphics-private-preview-source-verification.md`
+- `docs/track-a/creative-graphics-private-preview-retry-execution-evidence.md`
+- `docs/track-a/creative-graphics-private-preview-retry-qa-evidence.md`
+- `docs/track-a/creative-graphics-private-preview-retry-cleanup-evidence.md`
+- `docs/prompt-tracka-gd-handoff-3-retry-validation-results.md`
+
+Next milestone: `TRACKA-GD-HANDOFF-4 - Private Preview QA Review`.

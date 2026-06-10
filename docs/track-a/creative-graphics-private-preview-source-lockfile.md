@@ -47,6 +47,26 @@ Migration deployed: `no`
 
 Preservation status: `source_artifacts_preserved`
 
+## TRACKA-GD-HANDOFF-3-Retry Lockfile Use
+
+Retry result: `private_preview_local_passed`
+
+The retry consumed the committed source artifact manifest and checksum manifest for `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, and `viz_graphviz_diagrams`.
+
+Source verification status: `source_verified`
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+
+Signed URLs are not source of truth.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 Private preview blocker status: `private_preview_blocker_resolved`
 
 The source lock now has committed synthetic source artifacts for the accepted fixtures:

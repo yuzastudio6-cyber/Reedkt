@@ -193,3 +193,17 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Migration deployed: `no`
 - Production capability enabled: `none; Track A creative graphics handoff review only`
 - Recommended next prompt: `TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan for Accepted Creative Graphics Fixtures`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific blocker lanes.
+
+## TRACKA-GD-HANDOFF-1 Remaining Blockers
+
+- TRACKA-GD-HANDOFF-1 creates a private preview composition plan, but it does not execute private preview generation.
+- Accepted fixtures still require approved plan snapshot binding, confirmed output frame, safe-zone review, readability review, source data/graph validation, private artifact manifest references, checksum binding, and cleanup/rollback ownership before Handoff-2.
+- `svg_js_vector_graphics` remains excluded with `node_dom_runtime_unavailable_no_dependency_mutation`.
+- `resvg_js_svg_rasterization` remains excluded with `local_darwin_native_blocker`.
+- Group B and Group C remain outside this private preview plan.
+- Production capability enabled: `none; Track A private preview composition plan only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`

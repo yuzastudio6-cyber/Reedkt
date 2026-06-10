@@ -15,6 +15,7 @@ on:
       - codex/rp-gd-8-ai-tools-creative-graphics-package-runtime-enablement
       - codex/rp-gd-8a-ai-tools-creative-graphics-package-runtime-fixes
       - codex/rp-gd-7-retry-ai-tools-creative-graphics-controlled-local-fixture-execution
+      - codex/rp-tracka-gd-handoff-0-creative-graphics-review
 
 jobs:
   foundation-validation:

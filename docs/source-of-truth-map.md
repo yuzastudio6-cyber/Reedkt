@@ -25,6 +25,32 @@ Status terms:
 - SQL executed: `none`
 - Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-1 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Private preview composition plan | `docs/track-a/creative-graphics-private-preview-composition-plan.md` |
+| Accepted fixture layout/timing plan | `docs/track-a/creative-graphics-accepted-fixture-layout-timing-plan.md` |
+| Private preview manifest template | `docs/track-a/creative-graphics-private-preview-manifest-template.md` |
+| Track A QA checklist | `docs/track-a/creative-graphics-private-preview-qa-checklist.md` |
+| Missing metadata remediation plan | `docs/track-a/creative-graphics-private-preview-missing-metadata-remediation-plan.md` |
+| Private preview gate packet | `docs/track-a/creative-graphics-private-preview-execution-gate-packet.md` |
+| Handoff-2 allowed/blocked scope | `docs/track-a/creative-graphics-handoff-2-allowed-blocked-scope.md` |
+| Validation results | `docs/prompt-tracka-gd-handoff-1-validation-results.md` |
+
+TRACKA-GD-HANDOFF-1 status terms:
+
+- Composition plan status: `private_preview_composition_plan_ready_with_warnings`
+- Private preview status: `private_preview_not_executed`
+- Accepted fixtures planned: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
+- Production capability enabled: `none; Track A private preview composition plan only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
 ## GD-1 Sources
 
 | Topic | Authoritative source |

@@ -52,6 +52,7 @@
     "smoke:sound-supabase-local-sql-scope-acceptance": "tsx server/smoke/sound-supabase-local-sql-scope-acceptance-smoke.ts",
     "smoke:supabase-sound-final-owner-evidence-rollup": "tsx server/smoke/supabase-sound-final-owner-evidence-rollup-smoke.ts",
     "smoke:supabase-sound-local-throwaway-validation-result": "tsx server/smoke/supabase-sound-local-throwaway-validation-result-smoke.ts",
+    "smoke:supabase-sound-local-throwaway-db-setup-plan": "tsx server/smoke/supabase-sound-local-throwaway-db-setup-plan-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

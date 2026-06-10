@@ -1,0 +1,124 @@
+{
+  "phase": "supabase-support-ticket-submission",
+  "runId": "supabase-support-ticket-submission-20260610",
+  "status": "passed",
+  "pr274": {
+    "approvalDecisionPath": "docs/activation-supabase-support-escalation-approval-reports/support_escalation_approval_decision.json",
+    "redactedPacketPath": "docs/activation-supabase-support-escalation-approval-reports/support_escalation_redacted_packet.json",
+    "decision": "approved_for_future_manual_supabase_support_ticket",
+    "approvalStatus": "future_manual_support_ticket_approved_not_submitted",
+    "supportTicketSubmitted": false,
+    "cliCreateTicketRun": false,
+    "redactionStatus": "passed",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging",
+    "commandShape": "npm exec --yes --package supabase@latest -- supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed",
+    "selectedStrategy": "temp_npm_exec_supabase_cli",
+    "sanitizedFailureClass": "reset_retry_command_failed_exact_cause_not_proven",
+    "stagingSqlMayHaveRun": true,
+    "localMigrationCount": 22,
+    "remoteMigrationCount": 6,
+    "targetRegistryMigrationId": "202606050001",
+    "targetRegistryMigrationApplied": false,
+    "dbUrlIncluded": false,
+    "accessTokenIncluded": false,
+    "supportTicketSubmittedInPriorPhase": false,
+    "productionAffected": false,
+    "trackBBackfillRowsWritten": false
+  },
+  "pr271": {
+    "diagnosticsDecision": "recovery_path_supabase_support_packet",
+    "supportPacketStatus": "ready_for_human_review",
+    "exactFailureCauseProven": false,
+    "postFailureStateClassifier": "unchanged_failed_state",
+    "supportPacketRecommended": true
+  },
+  "pr269": {
+    "resetRetryStatus": "blocked",
+    "resetAttempted": true,
+    "stagingSqlMayHaveRun": true,
+    "selectedStrategy": "temp_npm_exec_supabase_cli"
+  },
+  "pr259": {
+    "firstResetStatus": "blocked",
+    "resetAttempted": true,
+    "stagingSqlMayHaveRun": true
+  },
+  "upstreamEvidence": {
+    "pr265RetryApproval": {
+      "path": "docs/activation-supabase-staging-reset-retry-approval-reports/staging_reset_retry_approval_decision.json",
+      "present": true,
+      "status": "approved_for_future_execution_only",
+      "decision": "approved_for_future_retry_reset_after_cli_command_fix",
+      "approvalStatus": "future_retry_reset_approved_not_executed",
+      "nextRecommendedPhase": "not_recorded"
+    },
+    "pr262FailureTriage": {
+      "path": "docs/activation-supabase-staging-reset-failure-triage-reports/staging_reset_recovery_decision.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "recovery_path_manual_operator_review_required",
+      "approvalStatus": "not_approved_for_recovery_execution",
+      "nextRecommendedPhase": "not_recorded"
+    },
+    "pr252DataImpactBackup": {
+      "path": "docs/activation-supabase-staging-data-impact-backup-reports/staging_data_impact_backup_approval_decision.json",
+      "present": true,
+      "status": "approved_for_future_execution_only",
+      "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+      "approvalStatus": "future_reset_reapply_approved_not_executed",
+      "nextRecommendedPhase": "not_recorded"
+    },
+    "pr247SchemaParity": {
+      "path": "docs/activation-supabase-schema-parity-remediation-reports/schema_parity_decision.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "blocked_pending_staging_reset_approval",
+      "approvalStatus": "not_approved_for_execution",
+      "nextRecommendedPhase": "not_recorded"
+    },
+    "pr241RemoteEquivalence": {
+      "path": "docs/activation-supabase-remote-schema-equivalence-reports/migration_history_repair_approval_after_equivalence_review.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "blocked_pending_remote_history_evidence",
+      "approvalStatus": "not_recorded",
+      "nextRecommendedPhase": "not_recorded"
+    },
+    "pr223DeployTransport": {
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_readiness_report.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "not_recorded",
+      "approvalStatus": "not_recorded",
+      "nextRecommendedPhase": "Open a separate migration-history repair approval packet before any deploy retry."
+    },
+    "pr200RegistrySchema": {
+      "path": "docs/activation-supabase-milestone-registry-schema-reports/schema_readiness_report.json",
+      "present": false,
+      "status": "missing"
+    },
+    "pr198TrackBBackfill": {
+      "path": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+      "present": true,
+      "status": "blocked",
+      "decision": "not_recorded",
+      "approvalStatus": "not_recorded",
+      "nextRecommendedPhase": "not_recorded"
+    }
+  },
+  "productionExclusion": true,
+  "trackBBackfillBlocked": true,
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "debugResetRun": false,
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "sqlExecuted": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

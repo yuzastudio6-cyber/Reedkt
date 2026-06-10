@@ -1,0 +1,21 @@
+{
+  "phase": "supabase-support-ticket-submission",
+  "runId": "supabase-support-ticket-submission-20260610",
+  "status": "ready",
+  "decision": "support_ticket_ready_for_manual_operator_submission",
+  "operatorSteps": [
+    "Open Supabase dashboard support in an authenticated browser session.",
+    "Use the title and manualSubmissionText from support_ticket_manual_submission_packet.json.",
+    "Attach only safe report references if the portal allows references; do not attach private payloads or logs.",
+    "Do not include DB URLs, passwords, keys, tokens, private backup payloads, signed URLs, private media URLs, row contents, or production data.",
+    "After submission, record the ticket reference in a separate support-response/recovery-decision phase."
+  ],
+  "copyPasteTitle": "Supabase staging db reset failed twice with migration history/schema not restored",
+  "copyPasteBody": "Title: Supabase staging db reset failed twice with migration history/schema not restored\n\nSummary:\nWe are requesting guidance for a staging-only Supabase recovery path. The approved staging project had two guarded reset attempts fail. After failure diagnostics, migration history and the activation milestone registry schema remained absent. Track B milestone backfill and production were not touched.\n\nEnvironment:\n- Project ref: wmyyttnynmteqgcdishd\n- Environment: staging\n- Production affected: false\n\nCommand class used:\n- supabase db reset --db-url [REDACTED] --no-seed\n\nCLI strategy:\n- temp npm Supabase CLI\n\nObserved behavior:\n- First guarded staging reset attempt failed.\n- Guarded staging reset retry failed.\n- Migration history and activation milestone registry schema remained absent after verification.\n- Track B staging backfill was not run.\n- Production was not touched.\n\nExpected behavior:\n- Staging reset should safely reapply local migrations or Supabase should advise a supported migration-safe recovery path.\n\nQuestions:\n1. Is remote db reset with --db-url supported for this staging environment?\n2. Is the observed failure a known CLI or platform issue?\n3. Should we use a different migration-safe recovery path?\n4. Is creating a new staging branch or project recommended?\n5. What safe next step avoids direct untracked SQL?\n\nSafe references:\n- PR #274 support escalation approval packet\n- PR #271 reset retry failure diagnostics\n- PR #269 reset retry execution attempt\n- PR #259 first reset execution attempt\n- PR #198 Track B backfill remains blocked",
+  "supportTicketSubmitted": false,
+  "ticketReference": null,
+  "cliCreateTicketRun": false,
+  "debugResetRun": false,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false
+}

@@ -1,0 +1,23 @@
+{
+  "phase": "supabase-support-ticket-submission",
+  "runId": "supabase-support-ticket-submission-20260610",
+  "status": "operator_submission_ready",
+  "decision": "support_ticket_ready_for_manual_operator_submission",
+  "submissionMode": "operator_manual",
+  "activeBlockers": [
+    "support_ticket_submission_requires_operator_portal_action"
+  ],
+  "supportTicketSubmitted": false,
+  "ticketReference": null,
+  "cliCreateTicketRun": false,
+  "debugResetRun": false,
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "sqlExecuted": false,
+  "secretsPrintedOrCommitted": false,
+  "nextRecommendedPhase": "Operator submits the generated manual packet, then runs support-response recovery decision prompt with the ticket reference."
+}

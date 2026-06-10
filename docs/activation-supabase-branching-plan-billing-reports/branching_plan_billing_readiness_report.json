@@ -1,0 +1,27 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "status": "blocked",
+  "decision": "blocked_pending_operator_billing_action",
+  "approvalStatus": "not_approved_for_branch_create_rerun",
+  "activeBlockers": [
+    "operator_billing_action_missing",
+    "operator_cost_owner_approval_missing"
+  ],
+  "cleanStagingBranchCreateAllowedInThisPhase": false,
+  "billingMutationAllowedInThisPhase": false,
+  "planUpgradeAllowedInThisPhase": false,
+  "migrationDeployAllowedInThisPhase": false,
+  "trackBBackfillAllowedInThisPhase": false,
+  "branchCreated": false,
+  "billingMutationRun": false,
+  "planUpgradeRun": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "supportTicketSubmitted": false,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "nextRecommendedPhase": "Complete the operator billing/branching dashboard action and record repo-safe approval evidence before rerunning PR #283."
+}

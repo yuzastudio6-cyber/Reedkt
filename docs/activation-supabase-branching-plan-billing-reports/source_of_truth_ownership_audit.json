@@ -1,0 +1,138 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "mode": "branching_plan_billing_review_packet",
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/cross-chat",
+      "present": false,
+      "type": "file"
+    }
+  ],
+  "reportPaths": [
+    {
+      "path": "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_create_failure_diagnostics_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_create_retry_strategy_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_readiness_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_approval_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-milestone-registry-schema-reports/schema_readiness_report.json",
+      "present": false
+    }
+  ],
+  "localMigrationInventory": {
+    "migrationDir": "supabase/migrations",
+    "localMigrationCount": 22,
+    "localMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001"
+    ],
+    "targetRegistryMigrationFile": "202606050001_activation_milestone_registry_schema_rls.sql",
+    "targetRegistryMigrationPresent": true
+  },
+  "status": "blocked",
+  "blockers": [
+    "pr283_branch_create_plan_or_billing_evidence_missing"
+  ],
+  "branchCreated": false,
+  "billingMutationRun": false,
+  "planUpgradeRun": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "secretPayloadAccessed": false,
+  "secretsPrintedOrCommitted": false
+}

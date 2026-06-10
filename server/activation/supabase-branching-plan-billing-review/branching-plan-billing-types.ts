@@ -1,0 +1,23 @@
+export type SupabaseBranchingPlanBillingDecision =
+  | 'approved_for_future_branch_create_after_billing_enablement'
+  | 'blocked_pending_operator_billing_action'
+  | 'blocked_pending_branching_plan_upgrade'
+  | 'blocked_pending_cost_owner_approval'
+  | 'blocked_pending_org_owner_permission'
+  | 'blocked_pending_support_or_dashboard_review'
+  | 'rejected_due_unacceptable_cost_risk'
+
+export type SupabaseBranchingPlanBillingBlocker =
+  | 'pr283_branch_create_plan_or_billing_evidence_missing'
+  | 'pr280_clean_staging_target_approval_missing'
+  | 'pr198_trackb_backfill_preflight_missing'
+  | 'pr200_registry_migration_missing'
+  | 'branching_plan_billing_review_not_confirmed'
+  | 'branching_cost_review_not_confirmed'
+  | 'operator_billing_action_missing'
+  | 'operator_cost_owner_approval_missing'
+  | 'org_owner_permission_missing'
+  | 'support_or_dashboard_review_required'
+  | 'unacceptable_cost_risk'
+  | 'forbidden_confirmation_set'
+  | 'sensitive_payload_pattern_detected'

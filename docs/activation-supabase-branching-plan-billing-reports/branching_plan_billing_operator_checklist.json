@@ -1,0 +1,47 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "status": "operator_action_required",
+  "checklist": [
+    "Open the Supabase dashboard for the organization that owns project wmyyttnynmteqgcdishd.",
+    "Confirm Branching is available for the plan and account.",
+    "Confirm persistent branch usage is acceptable for internal staging and QA.",
+    "Confirm cost owner accepts default Micro branch starting-rate exposure and unknown usage items.",
+    "Record repo-safe approval evidence before rerunning the PR #283 clean branch execution.",
+    "Keep the branch data-less; do not use with-data cloning.",
+    "Keep Track B backfill writes separate until clean branch schema/RLS verification passes."
+  ],
+  "allowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_PLAN_BILLING_REVIEW",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_REVIEW"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_PERSISTENT_BRANCH_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_ACCEPTANCE",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",
+    "REEDITPRO_CONFIRM_SUPABASE_BILLING_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_PLAN_UPGRADE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_PUSH",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SUPABASE_CLI_CREATE_TICKET",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "operatorBillingActionRecorded": false,
+  "branchCreated": false,
+  "billingMutationRun": false,
+  "planUpgradeRun": false,
+  "sqlExecuted": false,
+  "productionAffected": false
+}

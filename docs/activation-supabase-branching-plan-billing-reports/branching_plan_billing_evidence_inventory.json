@@ -1,0 +1,68 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "status": "passed_with_operator_action_missing",
+  "pr283": {
+    "diagnosticsPath": "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_create_failure_diagnostics_report.json",
+    "retryStrategyPath": "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_create_retry_strategy_report.json",
+    "readinessPath": "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_readiness_report.json",
+    "targetProjectRef": "wmyyttnynmteqgcdishd",
+    "targetBranchName": "reeditpro-internal-staging-clean",
+    "persistent": true,
+    "withData": false,
+    "failureClass": "branch_create_plan_or_billing_unavailable",
+    "deterministicRetryPossible": false,
+    "retryStrategy": "blocked_pending_plan_or_billing_review",
+    "branchCreated": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "trackBBackfillRowsWritten": false,
+    "productionAffected": false
+  },
+  "pr280": {
+    "decisionPath": "docs/activation-supabase-clean-staging-target-approval-reports/clean_staging_target_approval_decision.json",
+    "decision": "approved_for_future_clean_supabase_staging_branch",
+    "approvalStatus": "future_clean_staging_branch_approved_not_created",
+    "recommendedTarget": "clean_supabase_staging_branch"
+  },
+  "pr198": {
+    "preflightPath": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+    "preflightStatus": "blocked",
+    "trackBBackfillRowsWritten": false
+  },
+  "pr200": {
+    "targetRegistryMigrationId": "202606050001",
+    "targetRegistryMigrationFile": "202606050001_activation_milestone_registry_schema_rls.sql",
+    "migrationPresent": true,
+    "localMigrationCount": 22
+  },
+  "operatorBillingApprovalEvidence": {
+    "sourcePath": "docs/supabase-branching-plan-billing-operator-action.md",
+    "present": false,
+    "operatorBillingActionRecorded": false,
+    "costOwnerApprovalRecorded": false,
+    "orgOwnerPermissionRecorded": false,
+    "unacceptableCostRisk": false,
+    "blocker": "operator_billing_action_missing"
+  },
+  "sourceFactsAccepted": {
+    "targetProjectRef": "wmyyttnynmteqgcdishd",
+    "targetBranchName": "reeditpro-internal-staging-clean",
+    "persistent": true,
+    "withData": false,
+    "failureClass": "branch_create_plan_or_billing_unavailable",
+    "deterministicRetryPossible": false,
+    "branchCreated": false,
+    "billingMutationRun": false,
+    "planUpgradeRun": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "migrationRepairRun": false,
+    "trackBBackfillRowsWritten": false,
+    "productionAffected": false
+  },
+  "blockers": [
+    "operator_billing_action_missing",
+    "operator_cost_owner_approval_missing"
+  ]
+}

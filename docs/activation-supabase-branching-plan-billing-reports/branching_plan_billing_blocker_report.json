@@ -1,0 +1,32 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "status": "blocked",
+  "decision": "blocked_pending_operator_billing_action",
+  "activeBlockers": [
+    "operator_billing_action_missing",
+    "operator_cost_owner_approval_missing"
+  ],
+  "blockedScopes": [
+    "supabase_branch_creation",
+    "billing_mutation_or_plan_upgrade",
+    "sql_or_ddl_dml",
+    "schema_migration_deploy",
+    "migration_history_repair",
+    "track_b_backfill_write",
+    "support_ticket_submission",
+    "production_supabase",
+    "secret_payload_access_or_printing",
+    "provider_calls",
+    "worker_tool_route_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ],
+  "branchCreated": false,
+  "billingMutationRun": false,
+  "planUpgradeRun": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "productionAffected": false
+}

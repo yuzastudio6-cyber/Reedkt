@@ -23,6 +23,7 @@ on:
       - codex/rp-tracka-gd-handoff-3-retry-controlled-private-preview-execution
       - codex/rp-tracka-gd-handoff-4-private-preview-qa-review
       - codex/rp-tracka-gd-handoff-5-controlled-private-sample-planning
+      - codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution
 
 jobs:
   foundation-validation:

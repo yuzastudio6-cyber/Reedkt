@@ -514,3 +514,30 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-7 Source Of Truth Addendum
+
+Controlled private sample QA result: `controlled_private_sample_qa_passed_with_warnings`.
+
+Lane readiness decision: `ready_with_warnings_for_cross_workstream_internal_beta_gate_review`.
+
+Authoritative Handoff-7 docs:
+
+| Topic | Authoritative source |
+| --- | --- |
+| Controlled private sample QA review | `docs/track-a/creative-graphics-controlled-private-sample-qa-review.md` |
+| QA acceptance matrix | `docs/track-a/creative-graphics-controlled-private-sample-qa-acceptance-matrix.md` |
+| Warning disposition | `docs/track-a/creative-graphics-controlled-private-sample-warning-disposition.md` |
+| Internal beta readiness review | `docs/track-a/creative-graphics-internal-beta-readiness-review.md` |
+| Cross-workstream dependencies | `docs/track-a/creative-graphics-cross-workstream-dependencies.md` |
+| Cleanup review | `docs/track-a/creative-graphics-controlled-private-sample-cleanup-review.md` |
+| Next gate prompt | `docs/track-a/creative-graphics-next-internal-beta-gate-prompt.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-controlled-private-sample-qa-diagnostics.mjs` |
+
+The source of truth policy remains `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`; signed URLs are not source of truth.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

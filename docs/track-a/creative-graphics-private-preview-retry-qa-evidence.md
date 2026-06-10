@@ -34,3 +34,20 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-4 QA Review Addendum
+
+Handoff-4 reviewed this Handoff-3-Retry QA evidence and classified the private preview QA review as `private_preview_qa_passed_with_warnings`.
+
+Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Readiness: `ready_with_warnings_for_controlled_private_sample_plan`
+
+Future review is still required for safe-zone fit, text readability, data/graph correctness, source-of-truth binding, and final render/export readiness.
+
+Production capability enabled: `none; Track A creative graphics private preview QA review only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

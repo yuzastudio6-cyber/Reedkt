@@ -445,3 +445,29 @@ TRACKA-GD-HANDOFF-3-Retry status terms:
 - SQL executed: `none`
 - Migration deployed: `no`
 - Next recommended prompt: `TRACKA-GD-HANDOFF-4 - Private Preview QA Review`
+
+## TRACKA-GD-HANDOFF-4 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Private preview QA review | `docs/track-a/creative-graphics-private-preview-qa-review.md` |
+| QA acceptance matrix | `docs/track-a/creative-graphics-private-preview-qa-acceptance-matrix.md` |
+| Warning/blocker register | `docs/track-a/creative-graphics-private-preview-warning-blocker-register.md` |
+| Controlled private sample readiness | `docs/track-a/creative-graphics-controlled-private-sample-readiness.md` |
+| QA cleanup review | `docs/track-a/creative-graphics-private-preview-qa-cleanup-review.md` |
+| QA diagnostic | `scripts/validation/tracka-creative-graphics-private-preview-qa-diagnostics.mjs` |
+| Validation results | `docs/prompt-tracka-gd-handoff-4-validation-results.md` |
+
+TRACKA-GD-HANDOFF-4 status terms:
+
+- QA result: `private_preview_qa_passed_with_warnings`
+- Readiness: `ready_with_warnings_for_controlled_private_sample_plan`
+- Accepted with warnings: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Production capability enabled: `none; Track A creative graphics private preview QA review only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Next recommended prompt: `TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning`

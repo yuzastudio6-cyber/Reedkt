@@ -79,6 +79,29 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-4 Readiness Update
+
+QA result: `private_preview_qa_passed_with_warnings`
+
+Controlled private sample readiness: `ready_with_warnings_for_controlled_private_sample_plan`
+
+Accepted fixtures remain `accepted_with_warnings`: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Handoff-5 may plan a controlled private sample with warnings. It may not execute final render/export, create public artifacts, upload storage objects, create signed URLs, execute workers/providers/models, mutate Supabase, run SQL, call GCP, call Secret Manager, or unlock beta/production.
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+
+Signed URLs are not source of truth.
+
+Production capability enabled: `none; Track A creative graphics private preview QA review only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-3-Retry Readiness Update
 
 Retry result: `private_preview_local_passed`

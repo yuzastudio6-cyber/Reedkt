@@ -20,6 +20,7 @@ on:
       - codex/rp-tracka-gd-handoff-2-controlled-private-preview-execution-packet
       - codex/rp-tracka-gd-handoff-3-controlled-private-preview-execution
       - codex/rp-tracka-gd-handoff-3a-source-artifact-preservation-fix
+      - codex/rp-tracka-gd-handoff-3-retry-controlled-private-preview-execution
 
 jobs:
   foundation-validation:

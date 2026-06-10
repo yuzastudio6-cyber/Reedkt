@@ -146,6 +146,31 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-3A Follow-Up
+
+Result: `source_artifacts_preserved`
+
+Private preview blocker status: `private_preview_blocker_resolved`
+
+Use `TRACKA-GD-HANDOFF-3-Retry - Controlled Private Preview Execution` next. The accepted source artifacts are now committed under `docs/track-a/creative-graphics-source-artifacts/`.
+
+Accepted preserved fixtures:
+
+- `satori_social_cards`
+- `d3_dataviz`
+- `echarts_dataviz`
+- `vega_lite_dataviz`
+- `viz_graphviz_diagrams`
+
+Excluded fixtures/tools remain outside the retry unless separately approved: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, and Group C.
+
+Capability: `none; source artifact preservation for Track A private preview only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-3 Result Addendum
 
 Result: `blocked_pending_source_artifacts`

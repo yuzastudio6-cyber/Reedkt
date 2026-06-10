@@ -42,3 +42,33 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-3A Preserved Source Lock
+
+Preservation status: `source_artifacts_preserved`
+
+Private preview blocker status: `private_preview_blocker_resolved`
+
+The source lock now has committed synthetic source artifacts for the accepted fixtures:
+
+- `docs/track-a/creative-graphics-source-artifacts/satori_social_cards/satori_social_cards.svg`
+- `docs/track-a/creative-graphics-source-artifacts/d3_dataviz/d3_dataviz.svg`
+- `docs/track-a/creative-graphics-source-artifacts/echarts_dataviz/echarts_dataviz.svg`
+- `docs/track-a/creative-graphics-source-artifacts/vega_lite_dataviz/vega_lite_dataviz.svg`
+- `docs/track-a/creative-graphics-source-artifacts/viz_graphviz_diagrams/viz_graphviz_diagrams.svg`
+
+Authoritative manifests:
+
+- `docs/track-a/creative-graphics-source-artifacts/source-artifact-manifest.json`
+- `docs/track-a/creative-graphics-source-artifacts/source-artifact-checksums.json`
+
+Source of truth policy remains `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`.
+
+Signed URLs are not source of truth.
+
+Capability: `none; source artifact preservation for Track A private preview only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

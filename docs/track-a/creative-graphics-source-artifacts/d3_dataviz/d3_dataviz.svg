@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="d3_dataviz synthetic GD-7 retry fixture">
+  <rect width="640" height="360" fill="#f7f7f2"/>
+  <rect x="36" y="42" width="572" height="276" rx="0" fill="#ffffff" stroke="#202124" stroke-width="2"/>
+  <text x="60" y="88" font-family="Arial, sans-serif" font-size="24" fill="#202124">GD-7 retry synthetic fixture</text>
+  <text x="60" y="122" font-family="Arial, sans-serif" font-size="16" fill="#3c4043">d3_dataviz</text>
+  <line x1="84" y1="284" x2="548" y2="284" stroke="#5f6368" stroke-width="2"/>
+  <line x1="84" y1="146" x2="84" y2="284" stroke="#5f6368" stroke-width="2"/>
+  <rect x="123.7037037037037" y="204.8" width="100.39506172839508" height="79.19999999999999" fill="#2f6fed"/>
+  <text x="173.90123456790124" y="308" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#202124">Plan</text>
+  <text x="173.90123456790124" y="196.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#202124">12</text>
+  <rect x="255.80246913580248" y="158.60000000000002" width="100.39506172839508" height="125.39999999999998" fill="#2f6fed"/>
+  <text x="306" y="308" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#202124">Render</text>
+  <text x="306" y="150.60000000000002" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#202124">19</text>
+  <rect x="387.90123456790127" y="237.79999999999998" width="100.39506172839508" height="46.20000000000002" fill="#2f6fed"/>
+  <text x="438.0987654320988" y="308" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#202124">QA</text>
+  <text x="438.0987654320988" y="229.79999999999998" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#202124">7</text>
+</svg>

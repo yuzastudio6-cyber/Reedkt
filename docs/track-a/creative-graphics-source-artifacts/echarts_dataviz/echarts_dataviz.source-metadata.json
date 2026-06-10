@@ -1,0 +1,38 @@
+{
+  "fixtureId": "echarts_dataviz",
+  "sourceWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "targetWorkstream": "TRACK_A_RENDER_EXPORT",
+  "runId": "gd7-retry-2026-06-10T17-30-49-891Z",
+  "originalLocalPath": ".local-artifacts/ai-tools/gd-7-retry/gd7-retry-2026-06-10T17-30-49-891Z/echarts_dataviz.svg",
+  "committedPath": "docs/track-a/creative-graphics-source-artifacts/echarts_dataviz/echarts_dataviz.svg",
+  "artifactType": "svg",
+  "checksumSha256": "ee9781e8d1cd2c269b1ca67df505e691b9214cbfdefe43804e9bfbb56a6485a4",
+  "dimensions": {
+    "width": 640,
+    "height": 360
+  },
+  "approvedPlanSnapshotPlaceholder": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER>",
+  "privateGcsPathPlaceholder": "<PRIVATE_GCS_PATH_PLACEHOLDER>",
+  "supabaseArtifactRecordPlaceholder": "<SUPABASE_ARTIFACT_RECORD_PLACEHOLDER>",
+  "sourceOfTruthStatus": "repo_preserved_synthetic_fixture_source",
+  "futurePersistenceRequired": true,
+  "publicArtifactCreated": false,
+  "signedUrlCreated": false,
+  "gcsUploadPerformed": false,
+  "supabaseMutationPerformed": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "blockedUses": [
+    "public_artifact",
+    "signed_url_source_of_truth",
+    "gcs_upload",
+    "supabase_mutation",
+    "sql_execution",
+    "track_a_final_render_export",
+    "worker_execution",
+    "provider_model_calls",
+    "browser_capture",
+    "media_processing",
+    "production_beta_unlock"
+  ]
+}

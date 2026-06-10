@@ -24,6 +24,7 @@
     "tracka:creative-graphics:private-preview-plan:diagnostics": "node scripts/validation/tracka-creative-graphics-private-preview-plan-diagnostics.mjs",
     "tracka:creative-graphics:private-preview-execution-packet:diagnostics": "node scripts/validation/tracka-creative-graphics-private-preview-execution-packet-diagnostics.mjs",
     "tracka:creative-graphics:private-preview-execution:diagnostics": "node scripts/validation/tracka-creative-graphics-private-preview-execution-diagnostics.mjs",
+    "tracka:creative-graphics:source-artifacts:diagnostics": "node scripts/validation/tracka-creative-graphics-source-artifact-preservation-diagnostics.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
     "build:remotion-worker:mock": "npm run typecheck:server && vite build --config vite.remotion-worker.config.ts",

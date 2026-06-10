@@ -4,7 +4,7 @@ Branch: `codex/rp-tracka-gd-handoff-0-creative-graphics-review`
 
 Base: `origin/codex/rp-gd-7-retry-ai-tools-creative-graphics-controlled-local-fixture-execution`
 
-PR: pending.
+PR: [#263](https://github.com/yuzastudio6-cyber/Reedkt/pull/263).
 
 Production capability enabled: `none; Track A creative graphics handoff review only`
 

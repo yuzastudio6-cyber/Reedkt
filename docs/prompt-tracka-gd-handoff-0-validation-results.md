@@ -6,7 +6,7 @@ Branch: `codex/rp-tracka-gd-handoff-0-creative-graphics-review`
 
 Base: `origin/codex/rp-gd-7-retry-ai-tools-creative-graphics-controlled-local-fixture-execution`
 
-PR: pending.
+PR: [#263](https://github.com/yuzastudio6-cyber/Reedkt/pull/263).
 
 Production capability enabled: `none; Track A creative graphics handoff review only`
 
@@ -110,7 +110,7 @@ Group C blocked: `pixijs_canvas_graphics`, `three_js_visuals`.
 
 ## GitHub Foundation Validation
 
-GitHub Foundation Validation: pending PR creation.
+GitHub Foundation Validation: pending on PR [#263](https://github.com/yuzastudio6-cyber/Reedkt/pull/263).
 
 ## Boundary Status
 

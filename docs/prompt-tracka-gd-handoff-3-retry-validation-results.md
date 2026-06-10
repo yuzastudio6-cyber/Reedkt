@@ -6,7 +6,7 @@ Branch: `codex/rp-tracka-gd-handoff-3-retry-controlled-private-preview-execution
 
 Base: `origin/codex/rp-tracka-gd-handoff-3a-source-artifact-preservation-fix`
 
-PR: pending
+PR: [#281](https://github.com/yuzastudio6-cyber/Reedkt/pull/281)
 
 Production capability enabled: `none; controlled local/private Track A preview execution only if executed`
 
@@ -49,7 +49,7 @@ Cleanup evidence: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff
 
 ## GitHub Foundation Validation
 
-Status: pending PR creation.
+Status: pending.
 
 ## Boundary Status
 

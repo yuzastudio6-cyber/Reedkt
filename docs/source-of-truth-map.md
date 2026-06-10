@@ -25,6 +25,35 @@ Status terms:
 - SQL executed: `none`
 - Migration deployed: `no`
 
+## TRACKA-GD-HANDOFF-2 Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Controlled private preview execution packet | `docs/track-a/creative-graphics-controlled-private-preview-execution-packet.md` |
+| Private preview source lockfile | `docs/track-a/creative-graphics-private-preview-source-lockfile.md` |
+| Future command template | `docs/track-a/creative-graphics-private-preview-future-command-template.md` |
+| Execution manifest template | `docs/track-a/creative-graphics-private-preview-execution-manifest.md` |
+| QA packet | `docs/track-a/creative-graphics-private-preview-execution-qa-packet.md` |
+| Cleanup rollback packet | `docs/track-a/creative-graphics-private-preview-cleanup-rollback-packet.md` |
+| Go/no-go record | `docs/track-a/creative-graphics-private-preview-go-no-go-record.md` |
+| Validation results | `docs/prompt-tracka-gd-handoff-2-validation-results.md` |
+
+TRACKA-GD-HANDOFF-2 status terms:
+
+- Packet status: `private_preview_execution_packet_ready`
+- Decision state: `ready_for_tracka_gd_handoff_3_controlled_private_preview_execution`
+- Private preview status: `private_preview_not_executed`
+- Accepted fixtures locked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Production capability enabled: `none; Track A controlled private preview execution packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-1 Sources
 
 | Topic | Authoritative source |

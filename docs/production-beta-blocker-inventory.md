@@ -207,3 +207,23 @@ This activation-base blocker inventory was added for Prompt GD-0.
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-2 Remaining Blockers
+
+- TRACKA-GD-HANDOFF-2 creates the controlled private preview execution packet, but it does not execute private preview generation.
+- Decision state is `ready_for_tracka_gd_handoff_3_controlled_private_preview_execution`; Handoff-2 execution approval now remains false.
+- Future execution prompt required: true.
+- Accepted fixtures locked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`.
+- `svg_js_vector_graphics` remains excluded with `node_dom_runtime_unavailable_no_dependency_mutation`.
+- `resvg_js_svg_rasterization` remains excluded with `local_darwin_native_blocker`.
+- Group B and Group C remain outside this private preview packet.
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`.
+- Signed URLs are not source of truth.
+- Worker execution, provider/model calls, tool execution, browser capture, media processing, Docker/Cloud Run, Supabase mutation, SQL, Google Cloud, Secret Manager, storage transfer, public artifacts, signed URLs, dependency mutation, and production/beta unlock remain blocked.
+- Production capability enabled: `none; Track A controlled private preview execution packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Recommended next prompt: `TRACKA-GD-HANDOFF-3 - Controlled Private Preview Composition Execution`

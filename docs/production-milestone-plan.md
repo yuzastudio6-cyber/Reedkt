@@ -246,3 +246,29 @@ Prompt TRACKA-GD-HANDOFF-1: Private Preview Composition Plan for Accepted Creati
 ## Next Milestone After TRACKA-GD-HANDOFF-1
 
 `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.
+
+## TRACKA-GD-HANDOFF-2 Milestone
+
+Prompt TRACKA-GD-HANDOFF-2: Controlled Private Preview Composition Execution Packet.
+
+- Status: `private_preview_execution_packet_ready`
+- Decision state: `ready_for_tracka_gd_handoff_3_controlled_private_preview_execution`
+- Capability: `none; Track A controlled private preview execution packet only`
+- Private preview status: `private_preview_not_executed`
+- Accepted fixtures locked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Handoff-2 execution approval now: false
+- Future execution prompt required: true
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Track A private preview generation remains unexecuted.
+- Track A final render/export remains blocked until a future approved Track A prompt.
+
+## Next Milestone After TRACKA-GD-HANDOFF-2
+
+`TRACKA-GD-HANDOFF-3 - Controlled Private Preview Composition Execution`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.

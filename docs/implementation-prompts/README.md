@@ -17,6 +17,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | GD-7-Retry - Creative Graphics Controlled Local Fixture Execution | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-gd-7-retry-ai-tools-creative-graphics-controlled-local-fixture-execution` | [#260](https://github.com/yuzastudio6-cyber/Reedkt/pull/260) | `none; controlled local creative graphics fixture execution only` |
 | TRACKA-GD-HANDOFF-0 - Creative Graphics Handoff Review | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-0-creative-graphics-review` | [#263](https://github.com/yuzastudio6-cyber/Reedkt/pull/263) | `none; Track A creative graphics handoff review only` |
 | TRACKA-GD-HANDOFF-1 - Private Preview Composition Plan | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-1-private-preview-composition-plan` | [#264](https://github.com/yuzastudio6-cyber/Reedkt/pull/264) | `none; Track A private preview composition plan only` |
+| TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-2-controlled-private-preview-execution-packet` | pending | `none; Track A controlled private preview execution packet only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -81,3 +82,13 @@ TRACKA-GD-HANDOFF-1 private preview status: `private_preview_not_executed`.
 TRACKA-GD-HANDOFF-1 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
 
 Next recommended prompt after TRACKA-GD-HANDOFF-1: `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.
+
+TRACKA-GD-HANDOFF-2 packet status: `private_preview_execution_packet_ready`. Decision state: `ready_for_tracka_gd_handoff_3_controlled_private_preview_execution`. Accepted fixtures locked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`. Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, and Group C.
+
+TRACKA-GD-HANDOFF-2 private preview status: `private_preview_not_executed`. Handoff-2 execution approval now: false. Future execution prompt required: true.
+
+TRACKA-GD-HANDOFF-2 source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`; Signed URLs are not source of truth.
+
+TRACKA-GD-HANDOFF-2 Supabase update required: `docs/status only`; Supabase update status: `docs_only`; Supabase environment touched: `none`; SQL executed: `none`; Migration deployed: `no`.
+
+Next recommended prompt after TRACKA-GD-HANDOFF-2: `TRACKA-GD-HANDOFF-3 - Controlled Private Preview Composition Execution`; use `GD-7A`, `GD-9`, or `GD-8B` for the specific fixture/runtime blocker lanes.

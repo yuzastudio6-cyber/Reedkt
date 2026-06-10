@@ -108,3 +108,25 @@ TRACKA-GD-HANDOFF-1 creates the private preview composition plan for the five ac
 - Production capability enabled: `none; Track A private preview composition plan only`
 
 Recommended next prompt: `TRACKA-GD-HANDOFF-2 - Controlled Private Preview Composition Execution Packet`.
+
+## TRACKA-GD-HANDOFF-2 Sequence Addendum
+
+TRACKA-GD-HANDOFF-2 creates the controlled private preview execution packet for the five accepted-with-warnings GD-7-Retry SVG fixtures.
+
+- Status: `private_preview_execution_packet_ready`
+- Decision state: `ready_for_tracka_gd_handoff_3_controlled_private_preview_execution`
+- Private preview status: `private_preview_not_executed`
+- Accepted fixtures locked: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, Group C
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Handoff-2 execution approval now: false
+- Future execution prompt required: true
+- Production capability enabled: `none; Track A controlled private preview execution packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Recommended next prompt: `TRACKA-GD-HANDOFF-3 - Controlled Private Preview Composition Execution`.

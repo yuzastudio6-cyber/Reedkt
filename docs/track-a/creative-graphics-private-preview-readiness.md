@@ -78,3 +78,36 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-2 Readiness Update
+
+Status: `private_preview_execution_packet_ready`
+
+Decision state: `ready_for_tracka_gd_handoff_3_controlled_private_preview_execution`
+
+Private preview generation remains `private_preview_not_executed`.
+
+The Handoff-2 packet locks the five accepted fixtures for future Handoff-3 private preview execution planning:
+
+- `satori_social_cards`
+- `d3_dataviz`
+- `echarts_dataviz`
+- `vega_lite_dataviz`
+- `viz_graphviz_diagrams`
+
+The packet keeps `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, Group B, and Group C excluded.
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+
+Signed URLs are not source of truth.
+
+Handoff-2 execution approval now: false
+
+Future execution prompt required: true
+
+Production capability enabled: `none; Track A controlled private preview execution packet only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

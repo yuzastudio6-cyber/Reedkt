@@ -6,7 +6,7 @@ Branch: `codex/rp-tracka-gd-handoff-3-controlled-private-preview-execution`
 
 Base: `origin/codex/rp-tracka-gd-handoff-2-controlled-private-preview-execution-packet`
 
-PR: pending
+PR: [#272](https://github.com/yuzastudio6-cyber/Reedkt/pull/272)
 
 Production capability enabled: `none; Track A controlled private preview execution only`
 

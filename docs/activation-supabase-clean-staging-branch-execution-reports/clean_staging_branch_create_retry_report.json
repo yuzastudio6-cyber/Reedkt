@@ -4,7 +4,7 @@
   "status": "skipped",
   "mode": "clean_staging_branch_create_retry_not_run",
   "retryAttempt": false,
-  "retryStrategy": "blocked_pending_plan_or_billing_review",
+  "retryStrategy": "not_needed",
   "deterministicRetryPossible": false,
   "branchAction": "not_run",
   "parentProjectRef": "wmyyttnynmteqgcdishd",
@@ -14,7 +14,5 @@
   "withProductionData": false,
   "productionAffected": false,
   "secretsPrintedOrCommitted": false,
-  "blockers": [
-    "branch_create_plan_or_billing_unavailable"
-  ]
+  "blockers": []
 }

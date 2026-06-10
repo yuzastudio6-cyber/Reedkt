@@ -8,6 +8,7 @@
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_precheck_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_access_token_secret_discovery_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_access_token_injection_report.json",
+    "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_billing_enablement_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_cli_transport_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_existing_check_report.json",
     "docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_branch_creation_report.json",

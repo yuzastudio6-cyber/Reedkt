@@ -21,8 +21,8 @@
     ],
     "exitCode": 0,
     "stdoutSummary": {
-      "byteLength": 439,
-      "lineCount": 15,
+      "byteLength": 903,
+      "lineCount": 28,
       "secretPatternDetected": false
     },
     "stderrSummary": {
@@ -36,9 +36,15 @@
   "parentProjectRef": "wmyyttnynmteqgcdishd",
   "branchName": "reeditpro-internal-staging-clean",
   "branchListParsed": true,
-  "branchCount": 1,
+  "branchCount": 2,
   "cleanBranch": {
-    "exists": false
+    "exists": true,
+    "name": "reeditpro-internal-staging-clean",
+    "branchRef": "fnjiylwirntrqdcwpbho",
+    "status": "FUNCTIONS_DEPLOYED",
+    "persistent": true,
+    "withProductionData": false,
+    "metadataSafe": true
   },
   "secretsPrintedOrCommitted": false,
   "productionAffected": false,

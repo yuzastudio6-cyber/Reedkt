@@ -12,6 +12,7 @@
     "clean_staging_branch_precheck_report.json",
     "clean_staging_branch_access_token_secret_discovery_report.json",
     "clean_staging_branch_access_token_injection_report.json",
+    "clean_staging_branch_billing_enablement_report.json",
     "clean_staging_branch_cli_transport_report.json",
     "clean_staging_branch_existing_check_report.json",
     "clean_staging_branch_creation_report.json",
@@ -51,7 +52,8 @@
     269,
     271,
     276,
-    280
+    280,
+    292
   ],
   "docsBasis": {
     "supabaseCliReference": "https://supabase.com/docs/reference/cli/introduction",
@@ -71,7 +73,8 @@
       "--db-url",
       "--dry-run"
     ],
-    "accessTokenSecretDiscovery": "metadata_only_gcloud_secret_manager"
+    "accessTokenSecretDiscovery": "metadata_only_gcloud_secret_manager",
+    "branchingPlanBillingReview": "https://github.com/yuzastudio6-cyber/Reedkt/pull/292"
   },
   "cleanBranchTarget": {
     "parentProjectName": "Reeditpro",
@@ -93,7 +96,9 @@
     "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
     "REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION",
     "REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED",
-    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS"
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_PLAN_BILLING_REVIEW",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_REVIEW"
   ],
   "forbiddenConfirmations": [
     "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",

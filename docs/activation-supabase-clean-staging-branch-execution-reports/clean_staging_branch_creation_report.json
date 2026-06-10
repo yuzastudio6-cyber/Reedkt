@@ -1,58 +1,16 @@
 {
   "phase": "supabase-clean-staging-branch-execution",
   "runId": "supabase-clean-staging-branch-execution-20260610",
-  "status": "blocked",
-  "branchAction": "blocked",
-  "commandClass": "supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]",
-  "retryAttempt": false,
-  "retryStrategy": null,
-  "regionProvided": false,
-  "sizeProvided": false,
-  "commandResult": {
-    "status": "blocked",
-    "command": "npm",
-    "args": [
-      "exec",
-      "--yes",
-      "--package",
-      "supabase@latest",
-      "--",
-      "supabase",
-      "-o",
-      "json",
-      "branches",
-      "create",
-      "reeditpro-internal-staging-clean",
-      "--persistent",
-      "--project-ref",
-      "wmyyttnynmteqgcdishd"
-    ],
-    "exitCode": 1,
-    "stdoutSummary": {
-      "byteLength": 0,
-      "lineCount": 0,
-      "secretPatternDetected": false
-    },
-    "stderrSummary": {
-      "byteLength": 328,
-      "lineCount": 3,
-      "secretPatternDetected": false
-    },
-    "parsedJson": false,
-    "blockers": [
-      "clean_staging_branch_create_failed"
-    ]
-  },
+  "status": "passed",
+  "branchAction": "reused",
   "parentProjectRef": "wmyyttnynmteqgcdishd",
   "branchName": "reeditpro-internal-staging-clean",
-  "branchRef": null,
-  "branchStatus": "unknown",
+  "branchRef": "fnjiylwirntrqdcwpbho",
+  "branchStatus": "FUNCTIONS_DEPLOYED",
   "persistent": true,
   "withData": false,
   "withProductionData": false,
   "productionAffected": false,
   "secretsPrintedOrCommitted": false,
-  "blockers": [
-    "clean_staging_branch_create_failed"
-  ]
+  "blockers": []
 }

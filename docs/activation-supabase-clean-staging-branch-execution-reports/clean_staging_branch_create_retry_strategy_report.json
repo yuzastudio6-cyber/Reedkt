@@ -1,13 +1,17 @@
 {
   "phase": "supabase-clean-staging-branch-execution",
   "runId": "supabase-clean-staging-branch-execution-20260610",
-  "status": "blocked",
+  "status": "passed",
   "mode": "clean_staging_branch_create_retry_strategy",
-  "failureClass": "branch_create_plan_or_billing_unavailable",
-  "retryStrategy": "blocked_pending_plan_or_billing_review",
+  "failureClass": "none",
+  "retryStrategy": "not_needed",
   "deterministicRetryPossible": false,
   "retryConfirmed": true,
   "diagnoseCreateFlagPresent": true,
+  "branchingPlanBillingResolved": true,
+  "billingEnablementStatus": "passed",
+  "billingEnablementSourcePr": 292,
+  "orgPlan": "Pro",
   "approvedRegion": null,
   "approvedRegionSource": null,
   "approvedSize": null,
@@ -16,7 +20,5 @@
   "dataCloneAllowed": false,
   "productionAffected": false,
   "secretsPrintedOrCommitted": false,
-  "blockers": [
-    "branch_create_plan_or_billing_unavailable"
-  ]
+  "blockers": []
 }

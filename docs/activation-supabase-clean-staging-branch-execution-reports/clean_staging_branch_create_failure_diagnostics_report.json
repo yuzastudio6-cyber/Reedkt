@@ -1,44 +1,9 @@
 {
   "phase": "supabase-clean-staging-branch-execution",
   "runId": "supabase-clean-staging-branch-execution-20260610",
-  "status": "blocked",
-  "mode": "clean_staging_branch_create_failure_diagnostics",
+  "status": "passed",
+  "mode": "clean_staging_branch_create_not_needed",
   "commandClass": "supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]",
-  "commandResult": {
-    "status": "blocked",
-    "command": "npm",
-    "args": [
-      "exec",
-      "--yes",
-      "--package",
-      "supabase@latest",
-      "--",
-      "supabase",
-      "-o",
-      "json",
-      "branches",
-      "create",
-      "reeditpro-internal-staging-clean",
-      "--persistent",
-      "--project-ref",
-      "wmyyttnynmteqgcdishd"
-    ],
-    "exitCode": 1,
-    "stdoutSummary": {
-      "byteLength": 0,
-      "lineCount": 0,
-      "secretPatternDetected": false
-    },
-    "stderrSummary": {
-      "byteLength": 328,
-      "lineCount": 3,
-      "secretPatternDetected": false
-    },
-    "parsedJson": false,
-    "blockers": [
-      "clean_staging_branch_create_failed"
-    ]
-  },
   "cliVersion": "2.105.0",
   "tokenPresent": true,
   "tokenPrinted": false,
@@ -49,29 +14,10 @@
   "withData": false,
   "productionAffected": false,
   "rawOutputStored": false,
-  "sanitizedFailureSignals": {
-    "regionMentioned": false,
-    "sizeMentioned": false,
-    "requiredMentioned": false,
-    "billingOrPlanMentioned": true,
-    "permissionMentioned": false,
-    "quotaOrLimitMentioned": false,
-    "branchFeatureMentioned": false,
-    "projectRefMentioned": false,
-    "branchNameMentioned": false,
-    "cliVersionMentioned": false,
-    "transientMentioned": false,
-    "outputAvailable": true
-  },
-  "failureClass": "branch_create_plan_or_billing_unavailable",
+  "failureClass": "none",
   "transientSignalDetected": false,
   "deterministicRetryPossible": false,
-  "approvedRegion": null,
-  "approvedRegionSource": null,
-  "approvedSize": null,
-  "approvedSizeSource": null,
-  "requiredFix": "plan_or_billing_review_required",
-  "blockers": [
-    "branch_create_plan_or_billing_unavailable"
-  ]
+  "requiredFix": "none",
+  "branchAction": "reused",
+  "blockers": []
 }

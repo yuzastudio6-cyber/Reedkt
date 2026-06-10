@@ -38,6 +38,11 @@ export const CLEAN_STAGING_ENVIRONMENT = 'clean_staging'
 export const TARGET_REGISTRY_MIGRATION_ID = '202606050001'
 export const TARGET_REGISTRY_MIGRATION_FILE =
   '202606050001_activation_milestone_registry_schema_rls.sql'
+export const SUPABASE_BRANCHING_PLAN_BILLING_REVIEW_PR = 292
+export const SUPABASE_BRANCHING_PLAN_BILLING_REVIEW_URL =
+  'https://github.com/yuzastudio6-cyber/Reedkt/pull/292'
+export const SUPABASE_BRANCHING_PLAN_BILLING_REVIEW_BRANCH =
+  'codex/rp-foundation-supabase-branching-plan-billing-review'
 
 export const SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_EXECUTE',
@@ -51,6 +56,8 @@ export const SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION',
   'REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED',
   'REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS',
+  'REEDITPRO_CONFIRM_SUPABASE_BRANCHING_PLAN_BILLING_REVIEW',
+  'REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_REVIEW',
 ] as const
 
 export const SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS = [
@@ -85,6 +92,7 @@ export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS = [
   'clean_staging_branch_precheck_report.json',
   'clean_staging_branch_access_token_secret_discovery_report.json',
   'clean_staging_branch_access_token_injection_report.json',
+  'clean_staging_branch_billing_enablement_report.json',
   'clean_staging_branch_cli_transport_report.json',
   'clean_staging_branch_existing_check_report.json',
   'clean_staging_branch_creation_report.json',
@@ -144,6 +152,16 @@ const MIGRATION_DIR = path.join('supabase', 'migrations')
 const TEMP_NPM_CACHE = '/tmp/reeditpro-supabase-cli-cache'
 const TEMP_NPM_PREFIX = '/tmp/reeditpro-supabase-cli-prefix'
 const SECRET_MANAGER_PROJECT_ID = 'reeditpro'
+const CLEAN_STAGING_BRANCH_HEALTHY_STATUSES = [
+  'ACTIVE',
+  'ACTIVE_HEALTHY',
+  'DEPLOYED',
+  'FUNCTIONS_DEPLOYED',
+  'HEALTHY',
+  'MIGRATIONS_DEPLOYED',
+  'READY',
+  'RUNNING',
+] as const
 
 const SENSITIVE_PATTERNS = [
   ['postgres', '://'].join(''),
@@ -195,6 +213,7 @@ type BranchCreateFailureClass =
 type BranchCreateRetryStrategy =
   | 'not_needed'
   | 'retry_same_command_if_transient'
+  | 'retry_same_command_after_plan_billing_enablement'
   | 'retry_with_region_if_region_required'
   | 'retry_with_size_if_size_required'
   | 'retry_with_region_and_size_if_both_required'
@@ -212,6 +231,7 @@ interface Reports {
   precheckReport: JsonRecord
   accessTokenSecretDiscoveryReport: JsonRecord
   accessTokenInjectionReport: JsonRecord
+  billingEnablementReport: JsonRecord
   cliTransportReport: JsonRecord
   existingBranchCheckReport: JsonRecord
   branchCreationReport: JsonRecord
@@ -245,7 +265,7 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
     expectedReports: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS,
     docs: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_DOCS,
     workstreamOwner: 'SUPABASE_RLS_STORAGE_DATABASE',
-    sourcePrs: [198, 200, 223, 241, 247, 252, 269, 271, 276, 280],
+    sourcePrs: [198, 200, 223, 241, 247, 252, 269, 271, 276, 280, 292],
     docsBasis: {
       supabaseCliReference: 'https://supabase.com/docs/reference/cli/introduction',
       supabaseDatabaseMigrations: 'https://supabase.com/docs/guides/deployment/database-migrations',
@@ -256,6 +276,7 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
       forbiddenBranchDataCloneFlag: 'with_data_clone_flag_forbidden',
       dbPushFlags: ['--db-url', '--dry-run'],
       accessTokenSecretDiscovery: 'metadata_only_gcloud_secret_manager',
+      branchingPlanBillingReview: SUPABASE_BRANCHING_PLAN_BILLING_REVIEW_URL,
     },
     cleanBranchTarget: {
       parentProjectName: CLEAN_STAGING_PARENT_PROJECT_NAME,
@@ -305,11 +326,12 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
   const existing = loadExistingExecutionReports()
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
   const plan = getSupabaseCleanStagingBranchExecutionPlan()
-  const precheckReport = existing.precheckReport ?? buildPrecheckReport()
   const accessTokenSecretDiscoveryReport = existing.accessTokenSecretDiscoveryReport ??
     buildSkippedReport('clean_staging_branch_access_token_secret_discovery_report', ['secret_manager_metadata_discovery_unavailable'])
   const accessTokenInjectionReport = existing.accessTokenInjectionReport ??
     buildSkippedReport('clean_staging_branch_access_token_injection_report', ['supabase_access_token_unavailable'])
+  const billingEnablementReport = existing.billingEnablementReport ?? buildBillingEnablementReport()
+  const precheckReport = existing.precheckReport ?? buildPrecheckReport(billingEnablementReport)
   const cliTransportReport = existing.cliTransportReport ?? buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   const existingBranchCheckReport = existing.existingBranchCheckReport ?? buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
   const branchCreationReport = existing.branchCreationReport ?? buildSkippedBranchCreationReport()
@@ -318,7 +340,11 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
   const branchCliHelpReport = existing.branchCliHelpReport ??
     buildSkippedBranchCliHelpReport()
   const branchCreateRetryStrategyReport = existing.branchCreateRetryStrategyReport ??
-    buildBranchCreateRetryStrategyReport(branchCreateFailureDiagnosticsReport, branchCliHelpReport, { diagnoseCreate: false })
+    buildBranchCreateRetryStrategyReport(
+      branchCreateFailureDiagnosticsReport,
+      branchCliHelpReport,
+      { diagnoseCreate: false, billingEnablementReport },
+    )
   const branchCreateRetryReport = existing.branchCreateRetryReport ??
     buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   const branchHealthReport = existing.branchHealthReport ?? buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
@@ -339,6 +365,7 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
     precheckReport,
     accessTokenSecretDiscoveryReport,
     accessTokenInjectionReport,
+    billingEnablementReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
@@ -371,6 +398,7 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
     precheckReport,
     accessTokenSecretDiscoveryReport,
     accessTokenInjectionReport,
+    billingEnablementReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
@@ -400,7 +428,8 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
   void input.keepTemp
   const accessTokenSecretDiscoveryReport = await buildAccessTokenSecretDiscoveryReport()
   const accessTokenInjectionReport = await buildAccessTokenInjectionReport(accessTokenSecretDiscoveryReport)
-  const precheckReport = buildPrecheckReport()
+  const billingEnablementReport = buildBillingEnablementReport()
+  const precheckReport = buildPrecheckReport(billingEnablementReport)
   let cliTransportReport = buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   let existingBranchCheckReport = buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
   let branchCreationReport = buildSkippedBranchCreationReport()
@@ -409,7 +438,7 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
   let branchCreateRetryStrategyReport = buildBranchCreateRetryStrategyReport(
     branchCreateFailureDiagnosticsReport,
     branchCliHelpReport,
-    { diagnoseCreate: input.diagnoseCreate },
+    { diagnoseCreate: input.diagnoseCreate, billingEnablementReport },
   )
   let branchCreateRetryReport = buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   let branchHealthReport = buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
@@ -442,7 +471,7 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
       branchCreateRetryStrategyReport = buildBranchCreateRetryStrategyReport(
         branchCreateFailureDiagnosticsReport,
         branchCliHelpReport,
-        { diagnoseCreate: input.diagnoseCreate },
+        { diagnoseCreate: input.diagnoseCreate, billingEnablementReport },
       )
       branchCreateRetryReport = await buildBranchCreateRetryReport(branchCreateRetryStrategyReport)
       if (branchCreateRetryReport.status === 'passed') {
@@ -456,7 +485,7 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
     branchCreateRetryStrategyReport = buildBranchCreateRetryStrategyReport(
       branchCreateFailureDiagnosticsReport,
       branchCliHelpReport,
-      { diagnoseCreate: input.diagnoseCreate },
+      { diagnoseCreate: input.diagnoseCreate, billingEnablementReport },
     )
     branchCreateRetryReport = buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   }
@@ -488,6 +517,7 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
     precheckReport,
     accessTokenSecretDiscoveryReport,
     accessTokenInjectionReport,
+    billingEnablementReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
@@ -509,6 +539,7 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
     precheckReport,
     accessTokenSecretDiscoveryReport,
     accessTokenInjectionReport,
+    billingEnablementReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
@@ -553,7 +584,8 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
   const targetReferenceReport = buildTargetReferenceReport(branchCreationReport, branchHealthReport)
   const trackB = buildSupabaseTrackBBackfillReports()
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
-  const precheckReport = existing.precheckReport ?? buildPrecheckReport()
+  const billingEnablementReport = existing.billingEnablementReport ?? buildBillingEnablementReport()
+  const precheckReport = existing.precheckReport ?? buildPrecheckReport(billingEnablementReport)
   const accessTokenSecretDiscoveryReport = existing.accessTokenSecretDiscoveryReport ??
     buildSkippedReport('clean_staging_branch_access_token_secret_discovery_report', ['secret_manager_metadata_discovery_unavailable'])
   const accessTokenInjectionReport = existing.accessTokenInjectionReport ??
@@ -564,7 +596,11 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
     buildSkippedBranchCreateFailureDiagnosticsReport(branchCreationReport, cliTransportReport)
   const branchCliHelpReport = existing.branchCliHelpReport ?? buildSkippedBranchCliHelpReport()
   const branchCreateRetryStrategyReport = existing.branchCreateRetryStrategyReport ??
-    buildBranchCreateRetryStrategyReport(branchCreateFailureDiagnosticsReport, branchCliHelpReport, { diagnoseCreate: false })
+    buildBranchCreateRetryStrategyReport(
+      branchCreateFailureDiagnosticsReport,
+      branchCliHelpReport,
+      { diagnoseCreate: false, billingEnablementReport },
+    )
   const branchCreateRetryReport = existing.branchCreateRetryReport ??
     buildSkippedBranchCreateRetryReport(branchCreateRetryStrategyReport)
   const migrationTransportReport = existing.migrationTransportReport ?? buildMigrationTransportReport()
@@ -578,6 +614,7 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
     precheckReport,
     accessTokenSecretDiscoveryReport,
     accessTokenInjectionReport,
+    billingEnablementReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
@@ -599,6 +636,7 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
     precheckReport,
     accessTokenSecretDiscoveryReport,
     accessTokenInjectionReport,
+    billingEnablementReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
@@ -638,6 +676,7 @@ export async function writeSupabaseCleanStagingBranchExecutionArtifacts(reports:
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_precheck_report.json'), reports.precheckReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_access_token_secret_discovery_report.json'), reports.accessTokenSecretDiscoveryReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_access_token_injection_report.json'), reports.accessTokenInjectionReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_billing_enablement_report.json'), reports.billingEnablementReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_cli_transport_report.json'), reports.cliTransportReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_existing_check_report.json'), reports.existingBranchCheckReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_creation_report.json'), reports.branchCreationReport)
@@ -684,6 +723,8 @@ export function readSupabaseCleanStagingBranchExecutionSummary(): JsonRecord {
     branchCreateRetryStatus: reports.branchCreateRetryReport.status,
     accessTokenSecretDiscovery: reports.accessTokenSecretDiscoveryReport.status,
     accessTokenInjection: reports.accessTokenInjectionReport.status,
+    branchingPlanBilling: reports.billingEnablementReport.status,
+    branchingPlanBillingResolved: reports.billingEnablementReport.branchingPlanBillingResolved === true,
     withProductionData: false,
     migrationTransport: reports.migrationTransportReport.status,
     migrationApply: reports.migrationApplyReport.status,
@@ -744,7 +785,54 @@ function buildSourceOfTruthOwnershipAudit(): JsonRecord {
   }
 }
 
-function buildPrecheckReport(): JsonRecord {
+function buildBillingEnablementReport(): JsonRecord {
+  const planReviewConfirmed = process.env.REEDITPRO_CONFIRM_SUPABASE_BRANCHING_PLAN_BILLING_REVIEW === 'true'
+  const costReviewConfirmed = process.env.REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_REVIEW === 'true'
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (!planReviewConfirmed) blockers.push('branching_plan_billing_review_not_confirmed')
+  if (!costReviewConfirmed) blockers.push('branching_cost_review_not_confirmed')
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    mode: 'clean_staging_branch_billing_enablement',
+    sourcePr: SUPABASE_BRANCHING_PLAN_BILLING_REVIEW_PR,
+    sourcePrUrl: SUPABASE_BRANCHING_PLAN_BILLING_REVIEW_URL,
+    sourceBranch: SUPABASE_BRANCHING_PLAN_BILLING_REVIEW_BRANCH,
+    sourceDecisionBeforeOperatorAction: 'blocked_pending_operator_billing_action',
+    operatorAssertionSource: 'user_prompt_current_turn',
+    operatorPlanAction: 'supabase_org_upgraded_to_pro',
+    connectorMetadataPlan: 'Pro',
+    orgPlan: 'Pro',
+    branchingPlanBillingResolved: blockers.length === 0,
+    branchCostAccepted: costReviewConfirmed,
+    acceptedBranchHourlyUsd: '0.01344',
+    targetProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    persistent: true,
+    withData: false,
+    productionAffected: false,
+    billingMutationRunByCodex: false,
+    planUpgradeRunByCodex: false,
+    branchCreatedInThisReport: false,
+    sqlExecuted: false,
+    migrationDeployed: false,
+    trackBBackfillRowsWritten: false,
+    secretsPrintedOrCommitted: false,
+    docsBasis: {
+      supabaseBranching: 'https://supabase.com/docs/guides/deployment/branching',
+      supabaseBranchingUsage: 'https://supabase.com/docs/guides/platform/manage-your-usage/branching',
+      checkedAt: '2026-06-10',
+    },
+    confirmations: {
+      branchingPlanBillingReview: planReviewConfirmed,
+      branchingCostReview: costReviewConfirmed,
+    },
+    blockers: collectUnique(blockers),
+  }
+}
+
+function buildPrecheckReport(billingEnablementReport: JsonRecord): JsonRecord {
   const approval = readJsonArtifact(path.join(PR280_REPORT_DIR, 'clean_staging_target_approval_decision.json'))
   const forbiddenSet = SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS.filter((name) => process.env[name] === 'true')
   const missingRequired = SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS.filter((name) => process.env[name] !== 'true')
@@ -764,9 +852,14 @@ function buildPrecheckReport(): JsonRecord {
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION') blockers.push('access_token_secret_injection_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_PREINJECTED_ACCESS_TOKEN_ALLOWED') blockers.push('preinjected_access_token_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS') blockers.push('clean_branch_create_retry_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_BRANCHING_PLAN_BILLING_REVIEW') blockers.push('branching_plan_billing_review_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_REVIEW') blockers.push('branching_cost_review_not_confirmed')
   }
   if (forbiddenSet.length > 0) blockers.push('forbidden_confirmation_set')
   if (!process.env.SUPABASE_ACCESS_TOKEN) blockers.push('supabase_access_token_unavailable')
+  if (billingEnablementReport.status !== 'passed' || billingEnablementReport.branchingPlanBillingResolved !== true) {
+    blockers.push('branching_plan_billing_evidence_missing')
+  }
   return {
     phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
     runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
@@ -777,6 +870,11 @@ function buildPrecheckReport(): JsonRecord {
     branchNameSafe: /^[a-z0-9-]+$/.test(CLEAN_STAGING_BRANCH_NAME),
     persistentBranchConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_PERSISTENT_BRANCH_CREATE === 'true',
     branchingCostAccepted: process.env.REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_ACCEPTANCE === 'true',
+    branchingPlanBillingReviewConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_BRANCHING_PLAN_BILLING_REVIEW === 'true',
+    branchingCostReviewConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_REVIEW === 'true',
+    billingEnablementStatus: asString(billingEnablementReport.status, 'missing'),
+    branchingPlanBillingResolved: billingEnablementReport.branchingPlanBillingResolved === true,
+    orgPlan: asString(billingEnablementReport.orgPlan, 'unknown'),
     noProductionDataConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_NO_PRODUCTION_DATA === 'true',
     migrationApplyConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY === 'true',
     schemaVerifyConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY === 'true',
@@ -1282,11 +1380,13 @@ function buildBranchCreateNotNeededDiagnosticsReport(
 function buildBranchCreateRetryStrategyReport(
   diagnosticsReport: JsonRecord,
   branchCliHelpReport: JsonRecord,
-  options: { diagnoseCreate: boolean },
+  options: { diagnoseCreate: boolean; billingEnablementReport?: JsonRecord },
 ): JsonRecord {
   const failureClass = asString(diagnosticsReport.failureClass, 'branch_create_unknown') as BranchCreateFailureClass
   const safeValues = getApprovedBranchRetryValues(branchCliHelpReport)
   const retryConfirmed = process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_BRANCH_CREATE_RETRY_AFTER_DIAGNOSTICS === 'true'
+  const billingResolved = options.billingEnablementReport?.status === 'passed' &&
+    options.billingEnablementReport?.branchingPlanBillingResolved === true
   let retryStrategy: BranchCreateRetryStrategy = 'blocked_pending_operator_review'
   if (failureClass === 'none') retryStrategy = 'not_needed'
   else if (diagnosticsReport.transientSignalDetected === true) retryStrategy = 'retry_same_command_if_transient'
@@ -1294,7 +1394,11 @@ function buildBranchCreateRetryStrategyReport(
   else if (failureClass === 'branch_create_size_required' && safeValues.size) retryStrategy = 'retry_with_size_if_size_required'
   else if (failureClass === 'branch_create_region_and_size_required' && safeValues.region && safeValues.size) {
     retryStrategy = 'retry_with_region_and_size_if_both_required'
-  } else if (failureClass === 'branch_create_plan_or_billing_unavailable') retryStrategy = 'blocked_pending_plan_or_billing_review'
+  } else if (failureClass === 'branch_create_plan_or_billing_unavailable') {
+    retryStrategy = billingResolved
+      ? 'retry_same_command_after_plan_billing_enablement'
+      : 'blocked_pending_plan_or_billing_review'
+  }
   else if (failureClass === 'branch_create_permission_denied') retryStrategy = 'blocked_pending_permission_review'
   else if (failureClass === 'branch_create_feature_unavailable') retryStrategy = 'blocked_pending_branching_feature_review'
 
@@ -1324,6 +1428,10 @@ function buildBranchCreateRetryStrategyReport(
     deterministicRetryPossible,
     retryConfirmed,
     diagnoseCreateFlagPresent: options.diagnoseCreate,
+    branchingPlanBillingResolved: billingResolved,
+    billingEnablementStatus: asString(options.billingEnablementReport?.status, 'missing'),
+    billingEnablementSourcePr: options.billingEnablementReport?.sourcePr ?? null,
+    orgPlan: asString(options.billingEnablementReport?.orgPlan, 'unknown'),
     approvedRegion: safeValues.region,
     approvedRegionSource: safeValues.regionSource,
     approvedSize: safeValues.size,
@@ -1462,7 +1570,10 @@ async function buildBranchHealthReport(creationReport: JsonRecord): Promise<Json
   const existing = await buildExistingBranchCheckReport()
   const cleanBranch = asRecord(existing.cleanBranch)
   const status = asString(cleanBranch.status, asString(creationReport.branchStatus, 'unknown'))
-  const healthy = existing.status === 'passed' && cleanBranch.exists === true && !['failed', 'deleted'].includes(status)
+  const normalizedStatus = status.toUpperCase()
+  const healthy = existing.status === 'passed' &&
+    cleanBranch.exists === true &&
+    CLEAN_STAGING_BRANCH_HEALTHY_STATUSES.includes(normalizedStatus as typeof CLEAN_STAGING_BRANCH_HEALTHY_STATUSES[number])
   return {
     phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
     runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
@@ -1470,6 +1581,7 @@ async function buildBranchHealthReport(creationReport: JsonRecord): Promise<Json
     branchName: CLEAN_STAGING_BRANCH_NAME,
     branchRef: asString(cleanBranch.branchRef, asString(creationReport.branchRef, 'unknown')),
     branchStatus: status,
+    acceptedHealthyStatuses: CLEAN_STAGING_BRANCH_HEALTHY_STATUSES,
     branchAction: creationReport.branchAction,
     branchExists: cleanBranch.exists === true,
     branchHealthy: healthy,
@@ -1714,7 +1826,7 @@ function buildReadinessReport(input: {
   const verified = input.migrationApplyReport.status === 'passed' &&
     input.schemaRlsVerifyReport.status === 'passed' &&
     input.migrationHistoryVerifyReport.status === 'passed'
-  const branchReady = input.branchCreationReport.status === 'passed' || input.branchHealthReport.status === 'passed'
+  const branchReady = input.branchHealthReport.status === 'passed'
   return {
     phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
     runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
@@ -2245,12 +2357,14 @@ function loadExistingExecutionReports(): Partial<Reports> {
     if (!report) return null
     if (report.status === 'skipped') return null
     if (Array.isArray(report.blockers) && report.blockers.includes('clean_staging_branch_execute_not_confirmed')) return null
+    if (file === 'clean_staging_branch_precheck_report.json' && report.branchingPlanBillingResolved !== true) return null
     return report
   }
   return {
     precheckReport: read('clean_staging_branch_precheck_report.json') ?? undefined,
     accessTokenSecretDiscoveryReport: read('clean_staging_branch_access_token_secret_discovery_report.json') ?? undefined,
     accessTokenInjectionReport: read('clean_staging_branch_access_token_injection_report.json') ?? undefined,
+    billingEnablementReport: read('clean_staging_branch_billing_enablement_report.json') ?? undefined,
     cliTransportReport: read('clean_staging_branch_cli_transport_report.json') ?? undefined,
     existingBranchCheckReport: read('clean_staging_branch_existing_check_report.json') ?? undefined,
     branchCreationReport: read('clean_staging_branch_creation_report.json') ?? undefined,
@@ -2298,6 +2412,9 @@ Branch: \`${CLEAN_STAGING_BRANCH_NAME}\`
 - Branch create failure class: \`${reports.branchCreateFailureDiagnosticsReport.failureClass ?? 'not_attempted'}\`
 - Branch create retry strategy: \`${reports.branchCreateRetryStrategyReport.retryStrategy ?? 'not_attempted'}\`
 - Branch create retry result: \`${reports.branchCreateRetryReport.status}\`
+- Branching plan/billing evidence: \`${reports.billingEnablementReport.status}\`
+- Branching plan/billing resolved: \`${String(reports.billingEnablementReport.branchingPlanBillingResolved === true)}\`
+- Org plan evidence: \`${reports.billingEnablementReport.orgPlan ?? 'unknown'}\`
 - Access-token secret discovery: \`${reports.accessTokenSecretDiscoveryReport.status}\`
 - Access-token injection: \`${reports.accessTokenInjectionReport.status}\`
 - Migration transport: \`${reports.migrationTransportReport.status}\`
@@ -2369,6 +2486,8 @@ Branch create diagnostics: \`${reports.branchCreateFailureDiagnosticsReport.fail
 
 Branch create retry: \`${reports.branchCreateRetryReport.status}\`
 
+Branching plan/billing evidence: \`${reports.billingEnablementReport.status}\`
+
 After clean schema/RLS verification passes, use a separate PR #198 Track B backfill execution prompt against the clean staging target. Production remains blocked.
 `
 }
@@ -2387,6 +2506,8 @@ Current migration transport: \`${reports.migrationTransportReport.status}\`
 Current branch create diagnostics: \`${reports.branchCreateFailureDiagnosticsReport.failureClass ?? 'not_attempted'}\`
 
 Current branch create retry: \`${reports.branchCreateRetryReport.status}\`
+
+Current branching plan/billing evidence: \`${reports.billingEnablementReport.status}\`
 
 Run PR #198 preflight/diff/report first. Do not write Track B rows until a separate guarded backfill execution phase sets the required Track B confirmations.
 `

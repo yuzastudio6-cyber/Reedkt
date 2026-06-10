@@ -58,6 +58,16 @@ for (const doc of SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_DOCS) {
 const reports = buildSupabaseCleanStagingBranchExecutionReports()
 assert(reports.precheckReport.pr280Decision === 'approved_for_future_clean_supabase_staging_branch', 'PR #280 approval evidence missing.')
 assert(reports.precheckReport.branchWithData === false, 'Branch must not be created with production data.')
+assert(reports.billingEnablementReport.orgPlan === 'Pro', 'Branching billing enablement must record Pro plan evidence.')
+assert(
+  reports.billingEnablementReport.branchingPlanBillingResolved === true ||
+    reports.billingEnablementReport.status === 'blocked',
+  'Branching billing evidence must either pass as resolved or block safely.',
+)
+assert(reports.billingEnablementReport.withData === false, 'Billing report must preserve data-less branch target.')
+assert(reports.billingEnablementReport.productionAffected === false, 'Billing report must not affect production.')
+assert(reports.billingEnablementReport.billingMutationRunByCodex === false, 'Codex must not mutate billing.')
+assert(reports.billingEnablementReport.planUpgradeRunByCodex === false, 'Codex must not upgrade plans.')
 assert(reports.branchCreationReport.withData === false, 'Branch creation report must record withData=false.')
 assert(reports.branchCreateFailureDiagnosticsReport.withData === false, 'Branch diagnostics must record withData=false.')
 assert(reports.branchCreateFailureDiagnosticsReport.rawOutputStored === false, 'Branch diagnostics must not store raw CLI output.')

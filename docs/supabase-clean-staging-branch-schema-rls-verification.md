@@ -2,7 +2,7 @@
 
 Migration history verification: `skipped`
 
-Schema/RLS verification: `blocked`
+Schema/RLS verification: `skipped`
 
 Target registry migration: `202606050001`
 

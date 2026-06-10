@@ -1,0 +1,19 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "status": "blocked",
+  "mode": "supabase_access_token_secret_injection",
+  "secretRefUsed": null,
+  "payloadAccessStatus": "not_attempted",
+  "payloadAccessCommandRun": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "tokenValuePrinted": false,
+  "tokenValueCommitted": false,
+  "envVarPresent": false,
+  "envVarName": "SUPABASE_ACCESS_TOKEN",
+  "blockers": [
+    "secret_manager_metadata_discovery_unavailable",
+    "supabase_access_token_secret_reference_missing"
+  ]
+}

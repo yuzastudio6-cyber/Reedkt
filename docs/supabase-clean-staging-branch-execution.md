@@ -9,6 +9,9 @@ Branch: `reeditpro-internal-staging-clean`
 ## Execution
 
 - Branch/project creation: `not_run`
+- Access-token secret discovery: `blocked`
+- Access-token injection: `blocked`
+- Migration transport: `blocked`
 - Current broken staging reset: not run
 - Migration repair: not run
 - Track B backfill write: not run

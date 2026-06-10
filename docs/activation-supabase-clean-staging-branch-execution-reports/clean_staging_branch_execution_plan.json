@@ -10,10 +10,14 @@
     "source_of_truth_ownership_audit.json",
     "clean_staging_branch_execution_plan.json",
     "clean_staging_branch_precheck_report.json",
+    "clean_staging_branch_access_token_secret_discovery_report.json",
+    "clean_staging_branch_access_token_injection_report.json",
     "clean_staging_branch_cli_transport_report.json",
     "clean_staging_branch_existing_check_report.json",
     "clean_staging_branch_creation_report.json",
     "clean_staging_branch_health_report.json",
+    "clean_staging_branch_migration_transport_report.json",
+    "clean_staging_branch_secret_reference_plan.json",
     "clean_staging_branch_migration_apply_report.json",
     "clean_staging_branch_schema_rls_verify_report.json",
     "clean_staging_branch_migration_history_verify_report.json",
@@ -58,7 +62,8 @@
     "dbPushFlags": [
       "--db-url",
       "--dry-run"
-    ]
+    ],
+    "accessTokenSecretDiscovery": "metadata_only_gcloud_secret_manager"
   },
   "cleanBranchTarget": {
     "parentProjectName": "Reeditpro",
@@ -77,7 +82,8 @@
     "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_NO_PRODUCTION_DATA",
     "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY",
     "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY",
-    "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC"
+    "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
+    "REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION"
   ],
   "forbiddenConfirmations": [
     "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",
@@ -95,6 +101,9 @@
     "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
   ],
   "allowedCommandClasses": [
+    "gcloud config get-value project",
+    "gcloud secrets list --project=reeditpro --format=json(name,labels,replication,createTime,annotations)",
+    "gcloud secrets versions access latest --secret=[SELECTED_ACCESS_TOKEN_SECRET_REF] --project=reeditpro",
     "npm exec --yes --package supabase@latest -- supabase --version",
     "supabase branches list --project-ref [PARENT_PROJECT_REF]",
     "supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]",
@@ -110,5 +119,17 @@
     "track_b_backfill_write",
     "provider_worker_tool_route_media_execution",
     "production_supabase"
-  ]
+  ],
+  "accessTokenSecretPolicy": {
+    "project": "reeditpro",
+    "candidateRefs": [
+      "SUPABASE_ACCESS_TOKEN",
+      "SUPABASE_MANAGEMENT_ACCESS_TOKEN",
+      "REEDITPRO_SUPABASE_ACCESS_TOKEN",
+      "REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN"
+    ],
+    "payloadAccessRequires": "REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION=true",
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  }
 }

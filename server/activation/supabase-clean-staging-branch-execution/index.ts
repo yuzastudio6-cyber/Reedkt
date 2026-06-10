@@ -48,6 +48,7 @@ export const SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY',
   'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY',
   'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC',
+  'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION',
 ] as const
 
 export const SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS = [
@@ -72,14 +73,25 @@ export const CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES = [
   'SUPABASE_CLEAN_STAGING_DB_URL',
 ] as const
 
+export const SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS = [
+  'SUPABASE_ACCESS_TOKEN',
+  'SUPABASE_MANAGEMENT_ACCESS_TOKEN',
+  'REEDITPRO_SUPABASE_ACCESS_TOKEN',
+  'REEDITPRO_STAGING_SUPABASE_ACCESS_TOKEN',
+] as const
+
 export const SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_EXPECTED_REPORTS = [
   'source_of_truth_ownership_audit.json',
   'clean_staging_branch_execution_plan.json',
   'clean_staging_branch_precheck_report.json',
+  'clean_staging_branch_access_token_secret_discovery_report.json',
+  'clean_staging_branch_access_token_injection_report.json',
   'clean_staging_branch_cli_transport_report.json',
   'clean_staging_branch_existing_check_report.json',
   'clean_staging_branch_creation_report.json',
   'clean_staging_branch_health_report.json',
+  'clean_staging_branch_migration_transport_report.json',
+  'clean_staging_branch_secret_reference_plan.json',
   'clean_staging_branch_migration_apply_report.json',
   'clean_staging_branch_schema_rls_verify_report.json',
   'clean_staging_branch_migration_history_verify_report.json',
@@ -128,6 +140,7 @@ const PR198_REPORT_DIR = 'docs/activation-supabase-trackb-backfill-reports'
 const MIGRATION_DIR = path.join('supabase', 'migrations')
 const TEMP_NPM_CACHE = '/tmp/reeditpro-supabase-cli-cache'
 const TEMP_NPM_PREFIX = '/tmp/reeditpro-supabase-cli-prefix'
+const SECRET_MANAGER_PROJECT_ID = 'reeditpro'
 
 const SENSITIVE_PATTERNS = [
   ['postgres', '://'].join(''),
@@ -168,10 +181,14 @@ interface Reports {
   sourceOfTruthOwnershipAudit: JsonRecord
   plan: JsonRecord
   precheckReport: JsonRecord
+  accessTokenSecretDiscoveryReport: JsonRecord
+  accessTokenInjectionReport: JsonRecord
   cliTransportReport: JsonRecord
   existingBranchCheckReport: JsonRecord
   branchCreationReport: JsonRecord
   branchHealthReport: JsonRecord
+  migrationTransportReport: JsonRecord
+  secretReferencePlan: JsonRecord
   migrationApplyReport: JsonRecord
   schemaRlsVerifyReport: JsonRecord
   migrationHistoryVerifyReport: JsonRecord
@@ -204,6 +221,7 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
       branchCreateFlags: ['--persistent', '--project-ref'],
       forbiddenBranchDataCloneFlag: 'with_data_clone_flag_forbidden',
       dbPushFlags: ['--db-url', '--dry-run'],
+      accessTokenSecretDiscovery: 'metadata_only_gcloud_secret_manager',
     },
     cleanBranchTarget: {
       parentProjectName: CLEAN_STAGING_PARENT_PROJECT_NAME,
@@ -217,6 +235,9 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
     requiredConfirmations: SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS,
     forbiddenConfirmations: SUPABASE_CLEAN_STAGING_BRANCH_FORBIDDEN_CONFIRMATIONS,
     allowedCommandClasses: [
+      'gcloud config get-value project',
+      'gcloud secrets list --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
+      'gcloud secrets versions access latest --secret=[SELECTED_ACCESS_TOKEN_SECRET_REF] --project=reeditpro',
       'npm exec --yes --package supabase@latest -- supabase --version',
       'supabase branches list --project-ref [PARENT_PROJECT_REF]',
       'supabase branches create [BRANCH_NAME] --persistent --project-ref [PARENT_PROJECT_REF]',
@@ -233,6 +254,13 @@ export function getSupabaseCleanStagingBranchExecutionPlan(): JsonRecord {
       'provider_worker_tool_route_media_execution',
       'production_supabase',
     ],
+    accessTokenSecretPolicy: {
+      project: SECRET_MANAGER_PROJECT_ID,
+      candidateRefs: SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS,
+      payloadAccessRequires: 'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION=true',
+      payloadPrinted: false,
+      payloadCommitted: false,
+    },
   }
 }
 
@@ -241,10 +269,17 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
   const plan = getSupabaseCleanStagingBranchExecutionPlan()
   const precheckReport = existing.precheckReport ?? buildPrecheckReport()
+  const accessTokenSecretDiscoveryReport = existing.accessTokenSecretDiscoveryReport ??
+    buildSkippedReport('clean_staging_branch_access_token_secret_discovery_report', ['secret_manager_metadata_discovery_unavailable'])
+  const accessTokenInjectionReport = existing.accessTokenInjectionReport ??
+    buildSkippedReport('clean_staging_branch_access_token_injection_report', ['supabase_access_token_unavailable'])
   const cliTransportReport = existing.cliTransportReport ?? buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   const existingBranchCheckReport = existing.existingBranchCheckReport ?? buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
   const branchCreationReport = existing.branchCreationReport ?? buildSkippedBranchCreationReport()
   const branchHealthReport = existing.branchHealthReport ?? buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
+  const migrationTransportReport = existing.migrationTransportReport ?? buildMigrationTransportReport()
+  const secretReferencePlan = existing.secretReferencePlan ??
+    buildSecretReferencePlan(accessTokenSecretDiscoveryReport, migrationTransportReport)
   const migrationApplyReport = existing.migrationApplyReport ?? buildSkippedReport('clean_staging_branch_migration_apply_report', ['clean_branch_migration_apply_transport_unavailable'])
   const schemaRlsVerifyReport = existing.schemaRlsVerifyReport ?? buildSkippedReport('clean_staging_branch_schema_rls_verify_report', ['clean_branch_schema_rls_verify_unavailable'])
   const migrationHistoryVerifyReport = existing.migrationHistoryVerifyReport ?? buildSkippedReport('clean_staging_branch_migration_history_verify_report', ['clean_branch_migration_history_verify_failed'])
@@ -257,10 +292,14 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
   const blockers = collectBlockers([
     sourceOfTruthOwnershipAudit,
     precheckReport,
+    accessTokenSecretDiscoveryReport,
+    accessTokenInjectionReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
     branchHealthReport,
+    migrationTransportReport,
+    secretReferencePlan,
     migrationApplyReport,
     schemaRlsVerifyReport,
     migrationHistoryVerifyReport,
@@ -281,10 +320,14 @@ export function buildSupabaseCleanStagingBranchExecutionReports(): Reports {
     sourceOfTruthOwnershipAudit,
     plan,
     precheckReport,
+    accessTokenSecretDiscoveryReport,
+    accessTokenInjectionReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
     branchHealthReport,
+    migrationTransportReport,
+    secretReferencePlan,
     migrationApplyReport,
     schemaRlsVerifyReport,
     migrationHistoryVerifyReport,
@@ -301,11 +344,15 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
   keepTemp: boolean
 }) {
   void input.keepTemp
+  const accessTokenSecretDiscoveryReport = await buildAccessTokenSecretDiscoveryReport()
+  const accessTokenInjectionReport = await buildAccessTokenInjectionReport(accessTokenSecretDiscoveryReport)
   const precheckReport = buildPrecheckReport()
   let cliTransportReport = buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   let existingBranchCheckReport = buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
   let branchCreationReport = buildSkippedBranchCreationReport()
   let branchHealthReport = buildSkippedReport('clean_staging_branch_health_report', ['clean_staging_branch_health_unavailable'])
+  let migrationTransportReport = buildMigrationTransportReport()
+  let secretReferencePlan = buildSecretReferencePlan(accessTokenSecretDiscoveryReport, migrationTransportReport)
   let migrationApplyReport = buildSkippedReport('clean_staging_branch_migration_apply_report', ['clean_branch_migration_apply_transport_unavailable'])
   let schemaRlsVerifyReport = buildSkippedReport('clean_staging_branch_schema_rls_verify_report', ['clean_branch_schema_rls_verify_unavailable'])
   let migrationHistoryVerifyReport = buildSkippedReport('clean_staging_branch_migration_history_verify_report', ['clean_branch_migration_history_verify_failed'])
@@ -330,7 +377,11 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
   }
 
   if (branchHealthReport.status === 'passed') {
-    migrationApplyReport = await applyMigrationsToCleanBranch()
+    migrationTransportReport = buildMigrationTransportReport()
+    secretReferencePlan = buildSecretReferencePlan(accessTokenSecretDiscoveryReport, migrationTransportReport)
+    if (migrationTransportReport.status === 'passed') {
+      migrationApplyReport = await applyMigrationsToCleanBranch()
+    }
   }
 
   if (migrationApplyReport.status === 'passed') {
@@ -346,10 +397,14 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
   const blockers = collectBlockers([
     sourceOfTruthOwnershipAudit,
     precheckReport,
+    accessTokenSecretDiscoveryReport,
+    accessTokenInjectionReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
     branchHealthReport,
+    migrationTransportReport,
+    secretReferencePlan,
     migrationApplyReport,
     schemaRlsVerifyReport,
     migrationHistoryVerifyReport,
@@ -359,10 +414,14 @@ export async function executeSupabaseCleanStagingBranchExecution(input: {
     sourceOfTruthOwnershipAudit,
     plan: getSupabaseCleanStagingBranchExecutionPlan(),
     precheckReport,
+    accessTokenSecretDiscoveryReport,
+    accessTokenInjectionReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
     branchHealthReport,
+    migrationTransportReport,
+    secretReferencePlan,
     migrationApplyReport,
     schemaRlsVerifyReport,
     migrationHistoryVerifyReport,
@@ -398,18 +457,29 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
   const trackB = buildSupabaseTrackBBackfillReports()
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
   const precheckReport = existing.precheckReport ?? buildPrecheckReport()
+  const accessTokenSecretDiscoveryReport = existing.accessTokenSecretDiscoveryReport ??
+    buildSkippedReport('clean_staging_branch_access_token_secret_discovery_report', ['secret_manager_metadata_discovery_unavailable'])
+  const accessTokenInjectionReport = existing.accessTokenInjectionReport ??
+    buildSkippedReport('clean_staging_branch_access_token_injection_report', ['supabase_access_token_unavailable'])
   const cliTransportReport = existing.cliTransportReport ?? buildSkippedReport('clean_staging_branch_cli_transport_report', ['temp_npm_supabase_cli_unavailable'])
   const existingBranchCheckReport = existing.existingBranchCheckReport ?? buildSkippedReport('clean_staging_branch_existing_check_report', ['clean_staging_branch_list_failed'])
+  const migrationTransportReport = existing.migrationTransportReport ?? buildMigrationTransportReport()
+  const secretReferencePlan = existing.secretReferencePlan ??
+    buildSecretReferencePlan(accessTokenSecretDiscoveryReport, migrationTransportReport)
   const migrationApplyReport = existing.migrationApplyReport ?? buildSkippedReport('clean_staging_branch_migration_apply_report', ['clean_branch_migration_apply_transport_unavailable'])
   const trackBBackfillPreflightReport = decorateTrackBPreflightReport(trackB.stagingSupabaseBackfillPreflightReport as JsonRecord)
   const trackBBackfillDiffReport = decorateTrackBDiffReport(trackB.diffReport as JsonRecord)
   const blockers = collectBlockers([
     sourceOfTruthOwnershipAudit,
     precheckReport,
+    accessTokenSecretDiscoveryReport,
+    accessTokenInjectionReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
     branchHealthReport,
+    migrationTransportReport,
+    secretReferencePlan,
     migrationApplyReport,
     schemaRlsVerifyReport,
     migrationHistoryVerifyReport,
@@ -419,10 +489,14 @@ export async function executeSupabaseCleanStagingBranchExecutionVerify() {
     sourceOfTruthOwnershipAudit,
     plan: getSupabaseCleanStagingBranchExecutionPlan(),
     precheckReport,
+    accessTokenSecretDiscoveryReport,
+    accessTokenInjectionReport,
     cliTransportReport,
     existingBranchCheckReport,
     branchCreationReport,
     branchHealthReport,
+    migrationTransportReport,
+    secretReferencePlan,
     migrationApplyReport,
     schemaRlsVerifyReport,
     migrationHistoryVerifyReport,
@@ -450,10 +524,14 @@ export async function writeSupabaseCleanStagingBranchExecutionArtifacts(reports:
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'source_of_truth_ownership_audit.json'), reports.sourceOfTruthOwnershipAudit)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_execution_plan.json'), reports.plan)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_precheck_report.json'), reports.precheckReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_access_token_secret_discovery_report.json'), reports.accessTokenSecretDiscoveryReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_access_token_injection_report.json'), reports.accessTokenInjectionReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_cli_transport_report.json'), reports.cliTransportReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_existing_check_report.json'), reports.existingBranchCheckReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_creation_report.json'), reports.branchCreationReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_health_report.json'), reports.branchHealthReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_migration_transport_report.json'), reports.migrationTransportReport)
+  await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_secret_reference_plan.json'), reports.secretReferencePlan)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_migration_apply_report.json'), reports.migrationApplyReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_schema_rls_verify_report.json'), reports.schemaRlsVerifyReport)
   await writeVlmRuntimeJsonArtifact(path.join(dir, 'clean_staging_branch_migration_history_verify_report.json'), reports.migrationHistoryVerifyReport)
@@ -484,7 +562,10 @@ export function readSupabaseCleanStagingBranchExecutionSummary(): JsonRecord {
     branchAction: reports.branchCreationReport.branchAction,
     branchName: CLEAN_STAGING_BRANCH_NAME,
     branchStatus: reports.branchHealthReport.branchStatus,
+    accessTokenSecretDiscovery: reports.accessTokenSecretDiscoveryReport.status,
+    accessTokenInjection: reports.accessTokenInjectionReport.status,
     withProductionData: false,
+    migrationTransport: reports.migrationTransportReport.status,
     migrationApply: reports.migrationApplyReport.status,
     schemaRlsVerify: reports.schemaRlsVerifyReport.status,
     migrationHistoryVerify: reports.migrationHistoryVerifyReport.status,
@@ -560,6 +641,7 @@ function buildPrecheckReport(): JsonRecord {
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY') blockers.push('clean_staging_migration_apply_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY') blockers.push('clean_staging_schema_verify_not_confirmed')
     if (missing === 'REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC') blockers.push('temp_cli_exec_not_confirmed')
+    if (missing === 'REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION') blockers.push('access_token_secret_injection_not_confirmed')
   }
   if (forbiddenSet.length > 0) blockers.push('forbidden_confirmation_set')
   if (!process.env.SUPABASE_ACCESS_TOKEN) blockers.push('supabase_access_token_unavailable')
@@ -578,12 +660,210 @@ function buildPrecheckReport(): JsonRecord {
     schemaVerifyConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY === 'true',
     supabaseAccessTokenPresent: Boolean(process.env.SUPABASE_ACCESS_TOKEN),
     supabaseAccessTokenPrinted: false,
+    accessTokenSecretInjectionConfirmed: process.env.REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION === 'true',
     forbiddenConfirmationsSet: forbiddenSet,
     localMigrationDirExists: existsSync(MIGRATION_DIR),
     targetRegistryMigrationPresent: existsSync(path.join(MIGRATION_DIR, TARGET_REGISTRY_MIGRATION_FILE)),
     trackBBackfillBlockedInThisPhase: true,
     productionExcluded: true,
     branchWithData: false,
+    blockers: collectUnique(blockers),
+  }
+}
+
+async function buildAccessTokenSecretDiscoveryReport(): Promise<JsonRecord> {
+  const projectCommand = await runGcloudMetadataCommand(['config', 'get-value', 'project'])
+  const listCommand = await runGcloudMetadataCommand([
+    'secrets',
+    'list',
+    `--project=${SECRET_MANAGER_PROJECT_ID}`,
+    '--format=json(name,labels,replication,createTime,annotations)',
+  ])
+  const activeProject = asString(COMMAND_STDOUT.get(projectCommand)?.trim(), 'unknown')
+  const secrets = listCommand.status === 'passed'
+    ? extractSecretMetadata(parseJsonOutput(listCommand))
+    : []
+  const candidates = buildAccessTokenSecretCandidates(secrets)
+  const selected = candidates.find((candidate) => candidate.selected === true)
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (projectCommand.status !== 'passed' || listCommand.status !== 'passed') {
+    blockers.push('secret_manager_metadata_discovery_unavailable')
+  }
+  if (!selected) blockers.push('supabase_access_token_secret_reference_missing')
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    mode: 'metadata_only_supabase_access_token_secret_discovery',
+    project: SECRET_MANAGER_PROJECT_ID,
+    activeGcloudProject: activeProject,
+    activeProjectMatchesExpected: activeProject === SECRET_MANAGER_PROJECT_ID,
+    allowedCommands: [
+      'gcloud config get-value project',
+      'gcloud secrets list --project=reeditpro --format=json(name,labels,replication,createTime,annotations)',
+    ],
+    forbiddenPayloadOperations: ['gcloud secrets versions access'],
+    candidateSecretRefs: SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS,
+    discoveredSecretCount: secrets.length,
+    candidateTokenSecretRefs: candidates,
+    selectedTokenSecretRef: selected?.secretName ?? null,
+    selectedTokenSecretConfidence: selected?.confidence ?? null,
+    payloadAccessAttempted: false,
+    payloadAccessCommandRun: false,
+    payloadViewed: false,
+    payloadPrinted: false,
+    payloadCommitted: false,
+    tokenValuePrinted: false,
+    tokenValueCommitted: false,
+    dbUrlPrinted: false,
+    secretValuesPrinted: false,
+    credentialPayloadsPrinted: false,
+    metadataCommands: {
+      project: projectCommand,
+      list: listCommand,
+    },
+    blockers: collectUnique(blockers),
+  }
+}
+
+async function buildAccessTokenInjectionReport(discoveryReport: JsonRecord): Promise<JsonRecord> {
+  const selectedSecretRef = maybeString(discoveryReport.selectedTokenSecretRef)
+  const confirmationPresent = process.env.REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION === 'true'
+  const existingTokenPresent = Boolean(process.env.SUPABASE_ACCESS_TOKEN)
+  if (existingTokenPresent) {
+    return {
+      phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+      runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+      status: 'passed',
+      mode: 'current_process_supabase_access_token_already_present',
+      secretRefUsed: process.env.REEDITPRO_SUPABASE_ACCESS_TOKEN_SECRET_REF ?? selectedSecretRef ?? 'current_process_env',
+      payloadAccessStatus: 'not_attempted',
+      payloadAccessCommandRun: false,
+      payloadPrinted: false,
+      payloadCommitted: false,
+      tokenValuePrinted: false,
+      tokenValueCommitted: false,
+      envVarPresent: true,
+      envVarName: 'SUPABASE_ACCESS_TOKEN',
+      blockers: [],
+    }
+  }
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (!confirmationPresent) blockers.push('access_token_secret_injection_not_confirmed')
+  if (discoveryReport.status !== 'passed') blockers.push('secret_manager_metadata_discovery_unavailable')
+  if (!selectedSecretRef) blockers.push('supabase_access_token_secret_reference_missing')
+  if (blockers.length > 0 || !selectedSecretRef) {
+    return {
+      phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+      runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+      status: 'blocked',
+      mode: 'supabase_access_token_secret_injection',
+      secretRefUsed: selectedSecretRef,
+      payloadAccessStatus: 'not_attempted',
+      payloadAccessCommandRun: false,
+      payloadPrinted: false,
+      payloadCommitted: false,
+      tokenValuePrinted: false,
+      tokenValueCommitted: false,
+      envVarPresent: false,
+      envVarName: 'SUPABASE_ACCESS_TOKEN',
+      blockers: collectUnique(blockers),
+    }
+  }
+  const access = await accessSecretPayload(selectedSecretRef)
+  if (!access.value) {
+    const blocker: SupabaseCleanStagingBranchExecutionBlocker = access.status === 'invalid'
+      ? 'supabase_access_token_secret_payload_invalid'
+      : 'supabase_access_token_secret_payload_access_denied'
+    return {
+      phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+      runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+      status: 'blocked',
+      mode: 'supabase_access_token_secret_injection',
+      secretRefUsed: selectedSecretRef,
+      payloadAccessStatus: access.status,
+      payloadAccessCommandRun: true,
+      payloadPrinted: false,
+      payloadCommitted: false,
+      tokenValuePrinted: false,
+      tokenValueCommitted: false,
+      envVarPresent: false,
+      envVarName: 'SUPABASE_ACCESS_TOKEN',
+      stderrSummary: access.stderrSummary,
+      blockers: [blocker],
+    }
+  }
+  process.env.SUPABASE_ACCESS_TOKEN = access.value
+  process.env.REEDITPRO_SUPABASE_ACCESS_TOKEN_SECRET_REF = selectedSecretRef
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: 'passed',
+    mode: 'supabase_access_token_secret_injection',
+    secretRefUsed: selectedSecretRef,
+    payloadAccessStatus: 'succeeded',
+    payloadAccessCommandRun: true,
+    payloadPrinted: false,
+    payloadCommitted: false,
+    tokenValuePrinted: false,
+    tokenValueCommitted: false,
+    envVarPresent: true,
+    envVarName: 'SUPABASE_ACCESS_TOKEN',
+    blockers: [],
+  }
+}
+
+function buildMigrationTransportReport(): JsonRecord {
+  const dbUrlInfo = getCleanBranchDbUrl()
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: dbUrlInfo.present ? 'passed' : 'blocked',
+    mode: 'clean_staging_branch_migration_transport',
+    migrationWorkflow: 'supabase_db_push_redacted_db_url',
+    branchName: CLEAN_STAGING_BRANCH_NAME,
+    parentProjectRef: CLEAN_STAGING_PARENT_PROJECT_REF,
+    acceptedDbUrlEnvNames: CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES,
+    selectedDbUrlEnvName: dbUrlInfo.present ? dbUrlInfo.name : null,
+    dbUrlEnvPresent: dbUrlInfo.present,
+    dbUrlPrinted: false,
+    dbUrlCommitted: false,
+    directSqlAllowed: false,
+    seedIncluded: false,
+    migrationRepairAllowed: false,
+    trackBBackfillWrite: false,
+    blockers: dbUrlInfo.present ? [] : ['clean_branch_migration_apply_transport_unavailable'],
+  }
+}
+
+function buildSecretReferencePlan(
+  accessTokenDiscoveryReport: JsonRecord,
+  migrationTransportReport: JsonRecord,
+): JsonRecord {
+  const tokenSecretRef = maybeString(accessTokenDiscoveryReport.selectedTokenSecretRef)
+  const cleanDbUrlPresent = migrationTransportReport.dbUrlEnvPresent === true
+  const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+  if (!tokenSecretRef) blockers.push('supabase_access_token_secret_reference_missing')
+  if (!cleanDbUrlPresent) blockers.push('clean_branch_migration_apply_transport_unavailable')
+  return {
+    phase: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_PHASE,
+    runId: SUPABASE_CLEAN_STAGING_BRANCH_EXECUTION_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : 'blocked',
+    mode: 'clean_staging_branch_secret_reference_plan',
+    recommendedAccessTokenSecretRefEnv: 'REEDITPRO_SUPABASE_ACCESS_TOKEN_SECRET_REF',
+    recommendedAccessTokenSecretRef: tokenSecretRef,
+    recommendedCleanBranchDbUrlEnv: 'REEDITPRO_CLEAN_STAGING_SUPABASE_DB_URL',
+    acceptedCleanBranchDbUrlEnvNames: CLEAN_STAGING_BRANCH_DB_URL_ENV_NAMES,
+    cleanBranchDbUrlEnvPresent: cleanDbUrlPresent,
+    payloadsIncluded: false,
+    payloadPrinted: false,
+    payloadCommitted: false,
+    tokenPrinted: false,
+    dbUrlPrinted: false,
+    serviceRoleKeyPrinted: false,
+    anonKeyPrinted: false,
+    productionAffected: false,
+    trackBBackfillWrite: false,
     blockers: collectUnique(blockers),
   }
 }
@@ -1044,6 +1324,81 @@ function buildSkippedReport(name: string, blockers: SupabaseCleanStagingBranchEx
   }
 }
 
+async function runGcloudMetadataCommand(args: string[]): Promise<CommandResult> {
+  return await new Promise((resolve) => {
+    execFile('gcloud', args, {
+      cwd: process.cwd(),
+      timeout: 30000,
+      maxBuffer: 1024 * 1024 * 2,
+    }, (error, stdout, stderr) => {
+      const exitCode = typeof (error as { code?: unknown } | null)?.code === 'number'
+        ? (error as { code: number }).code
+        : error ? 1 : 0
+      const blockers: SupabaseCleanStagingBranchExecutionBlocker[] = []
+      if (exitCode !== 0) blockers.push('secret_manager_metadata_discovery_unavailable')
+      if (summarizeOutput(stdout).secretPatternDetected || summarizeOutput(stderr).secretPatternDetected) {
+        blockers.push('sensitive_payload_pattern_detected')
+      }
+      const result: CommandResult = {
+        status: exitCode === 0 && blockers.length === 0 ? 'passed' : 'blocked',
+        command: 'gcloud',
+        args,
+        exitCode,
+        stdoutSummary: summarizeOutput(stdout),
+        stderrSummary: summarizeOutput(stderr),
+        parsedJson: args.some((arg) => arg.startsWith('--format=json')),
+        blockers: collectUnique(blockers),
+      }
+      COMMAND_STDOUT.set(result, stdout)
+      resolve(result)
+    })
+  })
+}
+
+async function accessSecretPayload(secretRef: string): Promise<{
+  status: 'succeeded' | 'failed' | 'invalid'
+  value: string | null
+  stderrSummary: OutputSummary
+}> {
+  return await new Promise((resolve) => {
+    execFile('gcloud', [
+      'secrets',
+      'versions',
+      'access',
+      'latest',
+      `--secret=${secretRef}`,
+      `--project=${SECRET_MANAGER_PROJECT_ID}`,
+    ], {
+      cwd: process.cwd(),
+      timeout: 30000,
+      maxBuffer: 1024 * 1024,
+    }, (error, stdout, stderr) => {
+      if (error) {
+        resolve({
+          status: 'failed',
+          value: null,
+          stderrSummary: summarizeOutput(stderr),
+        })
+        return
+      }
+      const value = stdout.trim()
+      if (value.length < 20 || /\s/.test(value)) {
+        resolve({
+          status: 'invalid',
+          value: null,
+          stderrSummary: summarizeOutput(stderr),
+        })
+        return
+      }
+      resolve({
+        status: 'succeeded',
+        value,
+        stderrSummary: summarizeOutput(stderr),
+      })
+    })
+  })
+}
+
 async function runSupabaseCli(args: string[], options: { redactArgs?: boolean } = {}): Promise<CommandResult> {
   mkdirSync(TEMP_NPM_CACHE, { recursive: true })
   mkdirSync(TEMP_NPM_PREFIX, { recursive: true })
@@ -1098,6 +1453,67 @@ function parseJsonOutput(result: CommandResult): unknown | null {
   }
 }
 
+function extractSecretMetadata(parsed: unknown): Array<{ secretName: string; labels: JsonRecord }> {
+  const values = Array.isArray(parsed) ? parsed : []
+  return values.map((value) => {
+    const record = asRecord(value)
+    return {
+      secretName: extractSecretName(asString(record.name, '')),
+      labels: asRecord(record.labels),
+    }
+  }).filter((secret) => secret.secretName.length > 0)
+}
+
+function buildAccessTokenSecretCandidates(
+  secrets: Array<{ secretName: string; labels: JsonRecord }>,
+): JsonRecord[] {
+  const secretByName = new Map(secrets.map((secret) => [secret.secretName, secret]))
+  const exactCandidates: JsonRecord[] = []
+  SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS.forEach((secretName, index) => {
+    const secret = secretByName.get(secretName)
+    if (!secret) return
+    const environmentLabel = maybeString(secret.labels.env ?? secret.labels.environment)
+    exactCandidates.push({
+      secretName,
+      candidateType: 'supabase_management_access_token',
+      confidence: environmentLabel === 'staging' || environmentLabel === CLEAN_STAGING_ENVIRONMENT ? 'high' : 'medium',
+      candidateOrder: index,
+      environmentLabel,
+      selected: false,
+      payloadViewed: false,
+      secretValuesPrinted: false,
+      reason: environmentLabel
+        ? 'Exact candidate token secret ref was present with environment metadata.'
+        : 'Exact candidate token secret ref was present without environment metadata.',
+    })
+  })
+  const selectedName = exactCandidates[0]?.secretName
+  const exactCandidateNames = new Set<string>(SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS)
+  const fuzzyCandidates = secrets
+    .filter((secret) => !exactCandidateNames.has(secret.secretName as typeof SUPABASE_ACCESS_TOKEN_SECRET_CANDIDATE_REFS[number]))
+    .filter((secret) => /supabase/i.test(secret.secretName) && /token|access|management/i.test(secret.secretName))
+    .map((secret) => ({
+      secretName: secret.secretName,
+      candidateType: 'supabase_access_token_name_match_not_selected',
+      confidence: 'low',
+      environmentLabel: maybeString(secret.labels.env ?? secret.labels.environment),
+      selected: false,
+      payloadViewed: false,
+      secretValuesPrinted: false,
+      reason: 'Name resembles a Supabase access-token ref, but it is not one of the approved exact candidate refs for payload injection.',
+    }))
+  return [...exactCandidates, ...fuzzyCandidates].map((candidate) => ({
+    ...candidate,
+    selected: candidate.secretName === selectedName,
+  }))
+}
+
+function extractSecretName(resourceName: string): string {
+  return resourceName.includes('/secrets/')
+    ? resourceName.split('/secrets/')[1] ?? ''
+    : resourceName
+}
+
 function extractBranches(parsed: unknown): Array<{ name: string; ref: string | null; status: string; persistent: boolean | null; withData: boolean | null }> {
   const values = Array.isArray(parsed) ? parsed : Array.isArray(asRecord(parsed).branches) ? asRecord(parsed).branches as unknown[] : []
   return values.map((value) => {
@@ -1145,10 +1561,14 @@ function loadExistingExecutionReports(): Partial<Reports> {
   }
   return {
     precheckReport: read('clean_staging_branch_precheck_report.json') ?? undefined,
+    accessTokenSecretDiscoveryReport: read('clean_staging_branch_access_token_secret_discovery_report.json') ?? undefined,
+    accessTokenInjectionReport: read('clean_staging_branch_access_token_injection_report.json') ?? undefined,
     cliTransportReport: read('clean_staging_branch_cli_transport_report.json') ?? undefined,
     existingBranchCheckReport: read('clean_staging_branch_existing_check_report.json') ?? undefined,
     branchCreationReport: read('clean_staging_branch_creation_report.json') ?? undefined,
     branchHealthReport: read('clean_staging_branch_health_report.json') ?? undefined,
+    migrationTransportReport: read('clean_staging_branch_migration_transport_report.json') ?? undefined,
+    secretReferencePlan: read('clean_staging_branch_secret_reference_plan.json') ?? undefined,
     migrationApplyReport: read('clean_staging_branch_migration_apply_report.json') ?? undefined,
     schemaRlsVerifyReport: read('clean_staging_branch_schema_rls_verify_report.json') ?? undefined,
     migrationHistoryVerifyReport: read('clean_staging_branch_migration_history_verify_report.json') ?? undefined,
@@ -1183,6 +1603,9 @@ Branch: \`${CLEAN_STAGING_BRANCH_NAME}\`
 ## Execution
 
 - Branch/project creation: \`${reports.branchCreationReport.branchAction ?? 'not_run'}\`
+- Access-token secret discovery: \`${reports.accessTokenSecretDiscoveryReport.status}\`
+- Access-token injection: \`${reports.accessTokenInjectionReport.status}\`
+- Migration transport: \`${reports.migrationTransportReport.status}\`
 - Current broken staging reset: not run
 - Migration repair: not run
 - Track B backfill write: not run
@@ -1201,7 +1624,9 @@ function renderSecretPolicyDoc(): string {
 
 This phase may use \`SUPABASE_ACCESS_TOKEN\` and a clean-branch DB URL from process env only. Values must never be printed, reported, committed, or copied into docs.
 
-Allowed report fields are presence booleans, env var names, branch name/ref safe metadata, and redacted command classes. DB URLs, passwords, service-role keys, anon keys, access tokens, signed URLs, and private payloads are forbidden.
+Allowed report fields are secret reference names, payload access status, presence booleans, env var names, branch name/ref safe metadata, and redacted command classes. DB URLs, passwords, service-role keys, anon keys, access token values, signed URLs, and private payloads are forbidden.
+
+Token payload access requires \`REEDITPRO_CONFIRM_SUPABASE_ACCESS_TOKEN_SECRET_INJECTION=true\` and stores the token only in the current process as \`SUPABASE_ACCESS_TOKEN\`.
 `
 }
 
@@ -1243,6 +1668,8 @@ Track B preflight: \`${reports.trackBBackfillPreflightReport.status}\`
 
 Track B write: not run
 
+Clean branch migration transport: \`${reports.migrationTransportReport.status}\`
+
 After clean schema/RLS verification passes, use a separate PR #198 Track B backfill execution prompt against the clean staging target. Production remains blocked.
 `
 }
@@ -1255,6 +1682,8 @@ Use this prompt only after the clean staging branch execution reports show schem
 Required clean target reference: \`docs/activation-supabase-clean-staging-branch-execution-reports/clean_staging_target_reference.json\`
 
 Current clean branch readiness: \`${reports.readinessReport.status}\`
+
+Current migration transport: \`${reports.migrationTransportReport.status}\`
 
 Run PR #198 preflight/diff/report first. Do not write Track B rows until a separate guarded backfill execution phase sets the required Track B confirmations.
 `

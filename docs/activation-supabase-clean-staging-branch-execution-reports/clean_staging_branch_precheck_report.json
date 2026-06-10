@@ -13,6 +13,7 @@
   "schemaVerifyConfirmed": true,
   "supabaseAccessTokenPresent": false,
   "supabaseAccessTokenPrinted": false,
+  "accessTokenSecretInjectionConfirmed": true,
   "forbiddenConfirmationsSet": [],
   "localMigrationDirExists": true,
   "targetRegistryMigrationPresent": true,

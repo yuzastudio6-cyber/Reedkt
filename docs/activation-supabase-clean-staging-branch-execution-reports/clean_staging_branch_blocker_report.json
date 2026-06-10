@@ -4,11 +4,13 @@
   "status": "blocked",
   "activeBlockers": [
     "supabase_access_token_unavailable",
+    "secret_manager_metadata_discovery_unavailable",
+    "supabase_access_token_secret_reference_missing",
     "temp_npm_supabase_cli_unavailable",
     "clean_staging_branch_list_failed",
     "clean_staging_branch_health_unavailable",
     "clean_branch_migration_apply_transport_unavailable",
-    "clean_branch_schema_rls_verify_failed",
+    "clean_branch_schema_rls_verify_unavailable",
     "clean_branch_migration_history_verify_failed",
     "staging_supabase_credentials_unavailable"
   ],

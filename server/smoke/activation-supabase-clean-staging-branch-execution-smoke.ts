@@ -61,6 +61,11 @@ assert(reports.precheckReport.branchWithData === false, 'Branch must not be crea
 assert(reports.branchCreationReport.withData === false, 'Branch creation report must record withData=false.')
 assert(reports.branchCreationReport.productionAffected === false, 'Production must not be affected.')
 assert(reports.migrationApplyReport.productionAffected !== true, 'Migration apply must not affect production.')
+assert(reports.accessTokenSecretDiscoveryReport.payloadPrinted === false, 'Access-token discovery must not print payloads.')
+assert(reports.accessTokenInjectionReport.payloadPrinted === false, 'Access-token injection report must not print payloads.')
+assert(reports.accessTokenInjectionReport.payloadCommitted === false, 'Access-token injection report must not commit payloads.')
+assert(reports.migrationTransportReport.dbUrlPrinted === false, 'Migration transport report must not print DB URLs.')
+assert(reports.secretReferencePlan.payloadsIncluded === false, 'Secret reference plan must not include payloads.')
 assert(reports.trackBBackfillPreflightReport.trackBBackfillRowsWritten === false, 'Track B write must remain false.')
 assert(reports.readinessReport.withProductionData === false, 'Readiness must record no production data clone.')
 

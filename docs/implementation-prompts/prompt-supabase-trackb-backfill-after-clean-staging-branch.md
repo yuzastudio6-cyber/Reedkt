@@ -6,4 +6,6 @@ Required clean target reference: `docs/activation-supabase-clean-staging-branch-
 
 Current clean branch readiness: `blocked`
 
+Current migration transport: `blocked`
+
 Run PR #198 preflight/diff/report first. Do not write Track B rows until a separate guarded backfill execution phase sets the required Track B confirmations.

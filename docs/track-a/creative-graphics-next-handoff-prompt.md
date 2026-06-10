@@ -214,6 +214,29 @@ Decision state: `ready_for_tracka_gd_handoff_3_controlled_private_preview_execut
 
 Private preview status: `private_preview_not_executed`
 
+## TRACKA-GD-HANDOFF-3-Retry Next Prompt Update
+
+Result: `private_preview_local_passed`
+
+Use `TRACKA-GD-HANDOFF-4 - Private Preview QA Review` next. The retry verified the five accepted source artifacts and recorded local/private output summaries without final render/export, upload, signed URL creation, public artifact creation, worker/provider/model execution, Supabase mutation, SQL, GCP, or Secret Manager access.
+
+Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+
+Excluded fixtures/tools remain: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+
+Local manifest summary: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff-3-retry-2026-06-10T19-08-02-950Z/private-preview-manifest.json`
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+
+Signed URLs are not source of truth.
+
+Production capability enabled: `none; controlled local/private Track A preview execution only if executed`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 Use `TRACKA-GD-HANDOFF-3 - Controlled Private Preview Composition Execution` only after this packet remains valid and Handoff-3 grants its own execution approval.
 
 Accepted fixtures locked for the packet:

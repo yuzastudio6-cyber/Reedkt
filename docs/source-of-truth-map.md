@@ -414,3 +414,34 @@ TRACKA-GD-HANDOFF-0 status terms:
 - Supabase environment touched: `none`
 - SQL executed: `none`
 - Migration deployed: `no`
+
+## TRACKA-GD-HANDOFF-3-Retry Sources
+
+| Topic | Authoritative source |
+| --- | --- |
+| Source verification | `docs/track-a/creative-graphics-private-preview-source-verification.md` |
+| Retry execution evidence | `docs/track-a/creative-graphics-private-preview-retry-execution-evidence.md` |
+| Retry QA evidence | `docs/track-a/creative-graphics-private-preview-retry-qa-evidence.md` |
+| Retry cleanup evidence | `docs/track-a/creative-graphics-private-preview-retry-cleanup-evidence.md` |
+| Composer | `scripts/track-a/compose-creative-graphics-private-preview.mjs` |
+| Retry diagnostic | `scripts/validation/tracka-creative-graphics-private-preview-retry-diagnostics.mjs` |
+| Validation results | `docs/prompt-tracka-gd-handoff-3-retry-validation-results.md` |
+
+TRACKA-GD-HANDOFF-3-Retry status terms:
+
+- Retry result: `private_preview_local_passed`
+- Runtime status: `generated_local_fixture_partially_passed / source_artifacts_preserved / private_preview_local_passed`
+- Accepted fixtures: `satori_social_cards`, `d3_dataviz`, `echarts_dataviz`, `vega_lite_dataviz`, `viz_graphviz_diagrams`
+- Source status: `source_verified`
+- Excluded fixtures/tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Local output root: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff-3-retry-2026-06-10T19-08-02-950Z`
+- Local manifest summary: `.local-artifacts/track-a/gd-private-preview/tracka-gd-handoff-3-retry-2026-06-10T19-08-02-950Z/private-preview-manifest.json`
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth.
+- Production capability enabled: `none; controlled local/private Track A preview execution only if executed`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Next recommended prompt: `TRACKA-GD-HANDOFF-4 - Private Preview QA Review`

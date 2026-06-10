@@ -66,6 +66,45 @@ const expectedArtifacts = new Map([
   ],
 ]);
 
+const preservedArtifacts = new Map([
+  [
+    'satori_social_cards',
+    {
+      relativePath: 'docs/track-a/creative-graphics-source-artifacts/satori_social_cards/satori_social_cards.svg',
+      sha256: 'a141b7d996c475d97c8dd65ff5f79b875b755159e0bc437b06a1e93fc4afd5f6',
+    },
+  ],
+  [
+    'd3_dataviz',
+    {
+      relativePath: 'docs/track-a/creative-graphics-source-artifacts/d3_dataviz/d3_dataviz.svg',
+      sha256: '5e3013b1a32164b1e0d211a94432efb49ccf8c769838e20ea5ebb3e4e8c63ace',
+    },
+  ],
+  [
+    'echarts_dataviz',
+    {
+      relativePath: 'docs/track-a/creative-graphics-source-artifacts/echarts_dataviz/echarts_dataviz.svg',
+      sha256: 'ee9781e8d1cd2c269b1ca67df505e691b9214cbfdefe43804e9bfbb56a6485a4',
+    },
+  ],
+  [
+    'vega_lite_dataviz',
+    {
+      relativePath: 'docs/track-a/creative-graphics-source-artifacts/vega_lite_dataviz/vega_lite_dataviz.svg',
+      sha256: 'c9c35623828fc21b882a10bb67dc368819c205550044e7728c453cb3108d5672',
+    },
+  ],
+  [
+    'viz_graphviz_diagrams',
+    {
+      relativePath:
+        'docs/track-a/creative-graphics-source-artifacts/viz_graphviz_diagrams/viz_graphviz_diagrams.svg',
+      sha256: 'bc57f8104346cf724893efa195e6c235b477233b688434967621e6357600ac45',
+    },
+  ],
+]);
+
 const requiredDocs = [
   'docs/track-a/creative-graphics-private-preview-source-availability.md',
   'docs/track-a/creative-graphics-private-preview-execution-evidence.md',
@@ -216,8 +255,18 @@ for (const fixture of excludedFixtures) {
 }
 
 const missingArtifacts = [...expectedArtifacts.entries()]
-  .filter(([, artifact]) => !existsSync(path.join(repoRoot, artifact.relativePath)))
-  .map(([fixture, artifact]) => ({ fixture, relativePath: artifact.relativePath }));
+  .filter(([fixture, artifact]) => {
+    const legacyExists = existsSync(path.join(repoRoot, artifact.relativePath));
+    const preservedArtifact = preservedArtifacts.get(fixture);
+    const preservedExists = preservedArtifact
+      ? existsSync(path.join(repoRoot, preservedArtifact.relativePath))
+      : false;
+    return !legacyExists && !preservedExists;
+  })
+  .map(([fixture, artifact]) => ({
+    fixture,
+    relativePath: preservedArtifacts.get(fixture)?.relativePath ?? artifact.relativePath,
+  }));
 
 const allAcceptedArtifactsPresent = missingArtifacts.length === 0;
 const passClaimed = combinedText.includes('private_preview_local_passed');

@@ -1,0 +1,25 @@
+{
+  "phase": "product-internal-testing-scope-freeze",
+  "runId": "product-internal-testing-scope-freeze-20260611",
+  "status": "blocked",
+  "decision": "blocked_pending_operator_signoff",
+  "activeBlockers": [
+    "operator_signoff_missing"
+  ],
+  "signoffPresent": false,
+  "allowedScopeFrozen": true,
+  "blockedScopeFrozen": true,
+  "runbookReadyForOperatorReview": true,
+  "supabaseUpdateRequired": "none_metadata_readiness_only",
+  "supabaseUpdateStatus": "track_b_clean_staging_milestone_sync_completed",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "runtimeToolsWorkersRoutes": false,
+  "providers": false,
+  "publicArtifacts": false,
+  "production": false,
+  "supabaseWrites": false,
+  "secretsPrintedOrCommitted": false,
+  "nextRecommendedPhase": "Resolve operator signoff before launch rehearsal."
+}

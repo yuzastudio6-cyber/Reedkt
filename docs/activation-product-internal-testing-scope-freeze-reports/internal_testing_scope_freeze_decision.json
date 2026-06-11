@@ -1,0 +1,20 @@
+{
+  "phase": "product-internal-testing-scope-freeze",
+  "runId": "product-internal-testing-scope-freeze-20260611",
+  "decision": "blocked_pending_operator_signoff",
+  "status": "blocked",
+  "approvedForFutureRestrictedInternalTestingLaunchRehearsal": false,
+  "operatorSignoffPresent": false,
+  "internalTestingExecutionStarted": false,
+  "externalBetaAllowed": false,
+  "paidProductionAllowed": false,
+  "productionAllowed": false,
+  "publicArtifactsAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "supabaseWritesAllowedInThisPhase": false,
+  "blockers": [
+    "operator_signoff_missing"
+  ],
+  "nextRecommendedPhase": "Resolve operator signoff before launch rehearsal."
+}

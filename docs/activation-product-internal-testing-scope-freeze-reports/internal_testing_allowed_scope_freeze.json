@@ -1,0 +1,32 @@
+{
+  "phase": "product-internal-testing-scope-freeze",
+  "runId": "product-internal-testing-scope-freeze-20260611",
+  "status": "frozen",
+  "sourceDecision": "restricted_internal_testing_candidate",
+  "sourceReadinessStatus": "passed",
+  "allowedScope": [
+    "readiness_dashboards_and_reports",
+    "supabase_clean_staging_milestone_registry_review",
+    "track_b_readiness_capability_route_metadata_review",
+    "completed_generated_controlled_evidence_review",
+    "noop_route_dry_run_evidence_review",
+    "metadata_only_duckdb_polars_route_dry_run_evidence_review",
+    "audio_timing_deepfilternet_signalsmith_evidence_review",
+    "media_data_opencv_pyav_pyscenedetect_sharp_duckdb_polars_evidence_review",
+    "desktop_hybrid_planning_simulation_evidence_review"
+  ],
+  "sourceAllowedScope": [
+    "metadata_readiness_dashboards",
+    "track_b_readiness_review",
+    "clean_staging_milestone_registry_review",
+    "approved_noop_metadata_route_simulation_review",
+    "duckdb_polars_metadata_reporting_evidence_review",
+    "completed_phase_evidence_review"
+  ],
+  "internalTestingExecutionAllowedInThisPhase": false,
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "publicArtifactsAllowed": false,
+  "productionAllowed": false,
+  "supabaseWritesAllowed": false
+}

@@ -1,0 +1,36 @@
+{
+  "phase": "product-internal-testing-scope-freeze",
+  "runId": "product-internal-testing-scope-freeze-20260611",
+  "status": "safe_metadata_only",
+  "reportDir": "docs/activation-product-internal-testing-scope-freeze-reports",
+  "reports": [
+    "source_of_truth_ownership_audit.json",
+    "internal_testing_scope_freeze_plan.json",
+    "internal_testing_allowed_scope_freeze.json",
+    "internal_testing_blocked_scope_freeze.json",
+    "internal_testing_operator_signoff_packet.json",
+    "internal_testing_runbook_checklist.json",
+    "internal_testing_scope_freeze_decision.json",
+    "internal_testing_scope_freeze_blocker_report.json",
+    "internal_testing_scope_freeze_readiness_report.json",
+    "internal_testing_scope_freeze_private_artifact_manifest.json"
+  ],
+  "committedArtifactsAllowed": [
+    "json_reports",
+    "markdown_docs",
+    "server_only_typescript",
+    "package_scripts"
+  ],
+  "excludedArtifacts": [
+    "secrets",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "private_payloads",
+    "media_payloads",
+    "node_modules",
+    "caches",
+    "build_output"
+  ]
+}

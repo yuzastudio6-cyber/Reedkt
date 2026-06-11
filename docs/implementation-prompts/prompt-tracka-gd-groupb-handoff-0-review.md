@@ -12,7 +12,7 @@ Handoff result: `tracka_groupb_handoff_ready_with_warnings`
 
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-tracka-gd-groupb-handoff-0-review`
 - Branch: `codex/rp-tracka-gd-groupb-handoff-0-review`
-- PR: pending
+- PR: [#305](https://github.com/yuzastudio6-cyber/Reedkt/pull/305)
 - Source decision state: `group_b_partially_passed`
 - Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
 - Fully accepted fixtures: none

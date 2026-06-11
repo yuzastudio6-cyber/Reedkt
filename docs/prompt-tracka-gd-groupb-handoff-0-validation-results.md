@@ -6,7 +6,7 @@ Branch: `codex/rp-tracka-gd-groupb-handoff-0-review`
 
 Base: `origin/codex/rp-gd-10-group-b-controlled-local-fixture-execution`
 
-PR: pending
+PR: [#305](https://github.com/yuzastudio6-cyber/Reedkt/pull/305)
 
 ## Result
 

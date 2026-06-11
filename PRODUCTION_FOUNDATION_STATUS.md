@@ -888,7 +888,7 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 ## TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review
 
 - Branch: `codex/rp-tracka-gd-groupb-handoff-0-review`
-- PR: pending
+- PR: [#305](https://github.com/yuzastudio6-cyber/Reedkt/pull/305)
 - Base: `origin/codex/rp-gd-10-group-b-controlled-local-fixture-execution`
 - Handoff result: `tracka_groupb_handoff_ready_with_warnings`
 - Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`

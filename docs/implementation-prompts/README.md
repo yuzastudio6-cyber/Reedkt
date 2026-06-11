@@ -27,7 +27,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness` | [PR #294](https://github.com/yuzastudio6-cyber/Reedkt/pull/294) | `none; Track A creative graphics controlled private sample QA/readiness review only` |
 | GD-9 - Group B Package Runtime Review and Fixture Gate | implemented_pr_open | `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate` | [PR #300](https://github.com/yuzastudio6-cyber/Reedkt/pull/300) | `none; Group B creative graphics package runtime review and fixture gate only` |
 | GD-10 - Group B Controlled Local Fixture Execution | implemented_pr_open | `codex/rp-gd-10-group-b-controlled-local-fixture-execution` | [PR #304](https://github.com/yuzastudio6-cyber/Reedkt/pull/304) | `none; Group B controlled local fixture execution only` |
-| TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review | implemented_pending_pr | `codex/rp-tracka-gd-groupb-handoff-0-review` | pending | `none; Track A Group B creative graphics handoff review only` |
+| TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review | implemented_pr_open | `codex/rp-tracka-gd-groupb-handoff-0-review` | [PR #305](https://github.com/yuzastudio6-cyber/Reedkt/pull/305) | `none; Track A Group B creative graphics handoff review only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -210,7 +210,7 @@ Next recommended prompt after TRACKA-GD-HANDOFF-7: `CROSS-BETA-0 - Cross-Workstr
 ## TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review
 
 - Branch: `codex/rp-tracka-gd-groupb-handoff-0-review`
-- PR: pending
+- PR: [#305](https://github.com/yuzastudio6-cyber/Reedkt/pull/305)
 - Handoff result: `tracka_groupb_handoff_ready_with_warnings`
 - Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`
 - Fully accepted fixtures: none

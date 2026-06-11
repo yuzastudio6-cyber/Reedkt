@@ -427,3 +427,19 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## CROSS-BETA-0 Milestone Note
+
+CROSS-BETA-0 records `blocked_pending_workstream_gates`.
+
+The milestone accepts the Handoff-7 creative graphics Track A lane with warnings and records Phase 50G map/geospatial evidence as ready with warnings pending owner confirmation. It blocks full internal beta because AI Tools Group B/Group C/resvg coverage, Track B, Sound/Music/Audio, Worker Runtime Jobs, Provider Gateway Models, Supabase RLS/Storage/Database, Observability/Audit/Cost, Compliance/Security, Frontend/Product UX, and Billing/Stripe/Credits gates remain blocked or evidence-missing.
+
+Full internal beta, external beta, production, paid production, public delivery, signed URL delivery, storage upload, Supabase mutation, worker execution, provider/model calls, raw prompt execution, and final delivery renderer/exporter work remain blocked.
+
+Next recommended milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS-BETA-1 - Internal Beta Execution Packet` is deferred until owner gates resolve.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

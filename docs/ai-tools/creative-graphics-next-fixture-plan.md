@@ -295,3 +295,15 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## CROSS-BETA-0 Next Fixture Note
+
+CROSS-BETA-0 decision state: `blocked_pending_workstream_gates`.
+
+Next fixture-related prompt remains `GD-9 - Group B Package Runtime Review and Fixture Gate`. The accepted Track A creative graphics lane is ready with warnings for review, but broader AI Tools coverage is blocked until Group B, Group C, `svg_js_vector_graphics`, and `resvg_js_svg_rasterization` are resolved.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

@@ -58,6 +58,20 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## CROSS-BETA-0 Sequence Addendum
+
+Completed cross-workstream review state: `blocked_pending_workstream_gates`.
+
+Next recommended prompt: `GD-9 - Group B Package Runtime Review and Fixture Gate`.
+
+`CROSS-BETA-1 - Internal Beta Execution Packet` remains deferred until owner gates resolve across the blocked and evidence-missing workstreams.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-7 Sequence Update
 
 Completed sequence state: `controlled_private_sample_qa_passed_with_warnings`.

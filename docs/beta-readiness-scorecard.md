@@ -293,3 +293,21 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## CROSS-BETA-0 Scorecard Note
+
+CROSS-BETA-0 result: `blocked_pending_workstream_gates`.
+
+Readiness impact: improves cross-workstream clarity only. The accepted creative graphics Track A lane and map/geospatial historical evidence are ready with warnings for review, but full internal beta remains blocked by owner-gate gaps across AI Tools, Track B, Sound/Music/Audio, Worker Runtime Jobs, Provider Gateway Models, Supabase RLS/Storage/Database, Observability/Audit/Cost, Compliance/Security, Frontend/Product UX, and Billing/Stripe/Credits.
+
+- Full internal beta readiness: blocked
+- External beta readiness: blocked
+- Production beta readiness: `1%`
+- Production capability enabled: `none; cross-workstream internal beta gate review packet only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Next recommended prompt: `GD-9 - Group B Package Runtime Review and Fixture Gate`.

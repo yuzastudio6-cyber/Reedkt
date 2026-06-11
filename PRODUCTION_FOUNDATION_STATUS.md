@@ -791,3 +791,38 @@ Authoritative TRACKA-GD-HANDOFF-7 files:
 - `docs/prompt-tracka-gd-handoff-7-validation-results.md`
 
 Next milestone: `CROSS-BETA-0 - Cross-Workstream Internal Beta Gate Review`.
+
+## CROSS-BETA-0 Cross-Workstream Internal Beta Gate Review
+
+- Decision state: `blocked_pending_workstream_gates`
+- Production capability enabled: `none; cross-workstream internal beta gate review packet only`
+- Accepted with warnings: `TRACK_A_RENDER_EXPORT` for the creative graphics lane, `MAP_GEOSPATIAL` pending owner confirmation
+- Blocked or evidence-missing workstreams: `AI_TOOLS_CREATIVE_GRAPHICS`, `SOUND_MUSIC_AUDIO`, `TRACK_B_MEDIA_PROCESSING`, `WORKER_RUNTIME_JOBS`, `PROVIDER_GATEWAY_MODELS`, `SUPABASE_RLS_STORAGE_DATABASE`, `OBSERVABILITY_AUDIT_COST`, `COMPLIANCE_SECURITY`, `FRONTEND_PRODUCT_UX`, `BILLING_STRIPE_CREDITS`
+- Full internal beta gate: blocked
+- External beta gate: blocked
+- Production gate: blocked
+- Public artifact gate: blocked
+- Signed URL gate: blocked
+- Raw prompt execution gate: blocked
+- Supabase mutation gate: blocked
+- Worker execution gate: blocked
+- Provider/model call gate: blocked
+- Final render/export gate: blocked
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+Authoritative CROSS-BETA-0 files:
+
+- `docs/internal-beta/cross-workstream-internal-beta-gate-review.md`
+- `docs/internal-beta/cross-workstream-readiness-matrix.md`
+- `docs/internal-beta/accepted-lane-evidence-register.md`
+- `docs/internal-beta/internal-beta-blocker-register.md`
+- `docs/internal-beta/internal-beta-no-go-scope-register.md`
+- `docs/internal-beta/internal-beta-next-prompt-queue.md`
+- `docs/internal-beta/internal-beta-gate-decision-record.md`
+- `docs/prompt-cross-beta-0-validation-results.md`
+
+Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS-BETA-1 - Internal Beta Execution Packet` remains deferred until owner gates resolve.

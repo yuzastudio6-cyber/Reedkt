@@ -24,6 +24,7 @@ on:
       - codex/rp-tracka-gd-handoff-4-private-preview-qa-review
       - codex/rp-tracka-gd-handoff-5-controlled-private-sample-planning
       - codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution
+      - codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness
 
 jobs:
   foundation-validation:

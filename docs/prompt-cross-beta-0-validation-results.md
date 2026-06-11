@@ -6,6 +6,8 @@ Branch: `codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review`
 
 Base: `origin/codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness`
 
+PR: `https://github.com/yuzastudio6-cyber/Reedkt/pull/297`
+
 Production capability enabled: `none; cross-workstream internal beta gate review packet only`
 
 ## Result

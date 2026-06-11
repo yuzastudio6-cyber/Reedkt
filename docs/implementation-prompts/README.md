@@ -153,7 +153,7 @@ Next recommended prompt after TRACKA-GD-HANDOFF-7: `CROSS-BETA-0 - Cross-Workstr
 ## CROSS-BETA-0 - Cross-Workstream Internal Beta Gate Review
 
 - Branch: `codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review`
-- PR: pending
+- PR: `https://github.com/yuzastudio6-cyber/Reedkt/pull/297`
 - Base: `origin/codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness`
 - Decision state: `blocked_pending_workstream_gates`
 - Capability: `none; cross-workstream internal beta gate review packet only`

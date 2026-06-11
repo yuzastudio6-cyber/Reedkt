@@ -456,6 +456,40 @@ Migration deployed: `no`
 
 Next recommended prompt: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`.
 
+## TRACKA-GD-GROUPB-HANDOFF-0 Blocker Inventory Addendum
+
+Handoff result: `tracka_groupb_handoff_ready_with_warnings`
+
+Partially mitigated blocker: Track A Group B handoff review.
+
+Accepted with warnings:
+
+- `anime_js_motion`: synthetic timing evidence accepted with warnings.
+- `lottie_web_overlays`: `manifest_only` evidence accepted with warnings; browser/player behavior remains blocked.
+- `remotion_graphics`: `manifest_only` evidence accepted with warnings; render/export remains blocked.
+
+Fully accepted fixtures: none
+
+Rejected/blocked fixtures: none
+
+Remaining blockers:
+
+- Group B private preview execution is not approved.
+- Internal beta approved: false.
+- CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+Capability: `none; Track A Group B creative graphics handoff review only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
 Resolved for cross-workstream review only:
 
 - Track A creative graphics lane can be reviewed with warnings.

@@ -27,6 +27,7 @@ on:
       - codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness
       - codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review
       - codex/rp-gd-9-group-b-package-runtime-review-fixture-gate
+      - codex/rp-gd-10-group-b-controlled-local-fixture-execution
 
 jobs:
   foundation-validation:

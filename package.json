@@ -34,6 +34,7 @@
     "internal-beta:cross-workstream-gate:diagnostics": "npm run --silent cross-beta:internal-gate:diagnostics",
     "ai-tools:creative-graphics:group-b-runtime-gate:diagnostics": "node scripts/validation/ai-tools-creative-graphics-group-b-runtime-gate-diagnostics.mjs",
     "ai-tools:creative-graphics:group-b-local-fixtures:diagnostics": "node scripts/validation/ai-tools-creative-graphics-group-b-local-fixtures-diagnostics.mjs",
+    "tracka:creative-graphics:group-b-handoff:diagnostics": "node scripts/validation/tracka-creative-graphics-group-b-handoff-diagnostics.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",
     "build:remotion-worker:mock": "npm run typecheck:server && vite build --config vite.remotion-worker.config.ts",

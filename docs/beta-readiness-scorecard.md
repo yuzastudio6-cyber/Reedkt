@@ -347,6 +347,32 @@ GD-10 improves Group B fixture evidence only. It does not unlock internal beta, 
 - Migration deployed: `no`
 
 Readiness impact: narrows the Group B blocker to Track A review and broader workstream blockers. CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+## TRACKA-GD-GROUPB-HANDOFF-0 Readiness Addendum
+
+Handoff result: `tracka_groupb_handoff_ready_with_warnings`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`
+
+Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+
+Fully accepted fixtures: none
+
+Rejected/blocked fixtures: none
+
+Readiness impact: improves Track A planning confidence for Group B only. Full internal beta remains blocked by CROSS-BETA-0 workstream gates.
+
+Capability: `none; Track A Group B creative graphics handoff review only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`
 Supabase environment touched: `none`

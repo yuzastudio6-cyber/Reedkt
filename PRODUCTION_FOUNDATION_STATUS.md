@@ -851,3 +851,36 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 - Implementation record: `docs/implementation-prompts/prompt-gd-9-group-b-package-runtime-review-fixture-gate.md`
 - Validation results: `docs/prompt-gd-9-validation-results.md`
 - Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`
+
+## GD-10 - Group B Controlled Local Fixture Execution
+
+- Branch: `codex/rp-gd-10-group-b-controlled-local-fixture-execution`
+- PR: pending
+- Base: `origin/codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
+- Decision state: `group_b_partially_passed`
+- Runtime unlock status: `group_b_partially_passed`
+- Capability: `none; Group B controlled local fixture execution only`
+- Runtime probe run: yes
+- Group B runner created: yes
+- Group B runner run: yes
+- `anime_js_motion`: executed; `anime_js_motion.motion-timing.json`
+- `lottie_web_overlays`: `manifest_only`; `lottie_web_overlays.manifest-only.json`
+- `remotion_graphics`: `manifest_only`; `remotion_graphics.manifest-only.json`
+- Tools executed: `anime_js_motion`
+- Tools manifest-only: `lottie_web_overlays`, `remotion_graphics`
+- Tools skipped/blocked: none
+- QA evidence created: yes
+- Observability evidence created: yes
+- Cleanup evidence created: yes
+- Go/no-go record created: yes
+- Group B Track A handoff approved now: false
+- Internal beta approved: false
+- CROSS-BETA-0 remains `blocked_pending_workstream_gates`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Implementation record: `docs/implementation-prompts/prompt-gd-10-group-b-controlled-local-fixture-execution.md`
+- Validation results: `docs/prompt-gd-10-validation-results.md`
+- Next recommended prompt: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`

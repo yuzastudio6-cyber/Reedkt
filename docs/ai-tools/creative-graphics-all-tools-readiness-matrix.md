@@ -111,6 +111,32 @@ Decision state: `group_b_partially_ready_for_gd10`
 Runtime review status: `group_b_runtime_import_review_passed`
 Fixture gate status: `group_b_fixture_gate_created`
 Group B fixture execution: none
+
+## GD-10 Group B Readiness Update
+
+Decision state: `group_b_partially_passed`
+
+| Tool ID | GD-10 readiness | Evidence |
+| --- | --- | --- |
+| `anime_js_motion` | local synthetic timing evidence produced | `anime_js_motion.motion-timing.json` |
+| `lottie_web_overlays` | `manifest_only` evidence produced | `lottie_web_overlays.manifest-only.json` |
+| `remotion_graphics` | `manifest_only` evidence produced | `remotion_graphics.manifest-only.json` |
+
+Group B Track A handoff approved now: false
+
+Internal beta approved: false
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
 Remotion render/export: none
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`

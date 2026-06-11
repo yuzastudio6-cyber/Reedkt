@@ -412,6 +412,28 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-10 Group B Controlled Local Fixture Milestone
+
+Decision state: `group_b_partially_passed`
+
+GD-10 executes only the approved Group B local scope and records sanitized local evidence summaries:
+
+- `anime_js_motion`: executed; `anime_js_motion.motion-timing.json`
+- `lottie_web_overlays`: `manifest_only`; `lottie_web_overlays.manifest-only.json`
+- `remotion_graphics`: `manifest_only`; `remotion_graphics.manifest-only.json`
+- Tools executed: `anime_js_motion`
+- Tools manifest-only: `lottie_web_overlays`, `remotion_graphics`
+- Group B Track A handoff approved now: false
+- Internal beta approved: false
+- Capability: `none; Group B controlled local fixture execution only`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+
+CROSS-BETA-0 remains `blocked_pending_workstream_gates`. Next recommended milestone: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`.
+
 ## GD-9 Group B Creative Graphics Milestone
 
 Decision state: `group_b_partially_ready_for_gd10`

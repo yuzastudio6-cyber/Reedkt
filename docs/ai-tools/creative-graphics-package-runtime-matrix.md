@@ -85,3 +85,29 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`
+
+## GD-10 Group B Runtime Result Addendum
+
+Decision state: `group_b_partially_passed`
+
+| Tool ID | Package | GD-10 result | Evidence |
+| --- | --- | --- | --- |
+| `anime_js_motion` | `animejs@4.4.1` | executed | `anime_js_motion.motion-timing.json` |
+| `lottie_web_overlays` | `lottie-web@5.13.0` | `manifest_only` | `lottie_web_overlays.manifest-only.json` |
+| `remotion_graphics` | `remotion@4.0.474` | `manifest_only` | `remotion_graphics.manifest-only.json` |
+
+Group B Track A handoff approved now: false
+
+Internal beta approved: false
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`

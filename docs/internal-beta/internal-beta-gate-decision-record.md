@@ -44,6 +44,29 @@ Decision state: `blocked_pending_workstream_gates`
 }
 ```
 
+## GD-10 Gate Decision Addendum
+
+```json
+{
+  "prompt": "GD-10",
+  "decisionState": "group_b_partially_passed",
+  "fullInternalBetaApprovedNow": false,
+  "futureExecutionPromptRequired": true,
+  "groupBTrackAHandoffApprovedNow": false,
+  "internalBetaApproved": false,
+  "animeJsMotion": "anime_js_motion.motion-timing.json",
+  "lottieWebOverlays": "lottie_web_overlays.manifest-only.json",
+  "remotionGraphics": "remotion_graphics.manifest-only.json",
+  "capabilityEnabled": "none; Group B controlled local fixture execution only",
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no",
+  "nextRecommendedPrompt": "TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review"
+}
+```
+
 ## Rationale
 
 The Track A creative graphics lane is ready with warnings for review, not full internal beta. The map/geospatial lane has historical readiness evidence with warnings. The remaining owner gates are blocked or evidence-missing, so a full internal beta execution packet would be premature.
@@ -53,4 +76,3 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
-

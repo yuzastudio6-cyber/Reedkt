@@ -322,6 +322,34 @@ Allowed future GD-10 lanes:
 Required future boundaries:
 
 - Group B fixture execution is not approved in GD-9.
+
+## GD-10 Next Fixture Plan Update
+
+Decision state: `group_b_partially_passed`
+
+GD-10 completed the approved Group B controlled local fixture scope:
+
+- `anime_js_motion`: executed; `anime_js_motion.motion-timing.json`
+- `lottie_web_overlays`: `manifest_only`; `lottie_web_overlays.manifest-only.json`
+- `remotion_graphics`: `manifest_only`; `remotion_graphics.manifest-only.json`
+
+Group B Track A handoff approved now: false
+
+Internal beta approved: false
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
+Next fixture-related prompt: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`.
 - Remotion render/export remains blocked and Track A-owned.
 - Lottie player/browser behavior requires adapter review.
 - All future evidence must remain synthetic, local/private, and placeholder-bound.

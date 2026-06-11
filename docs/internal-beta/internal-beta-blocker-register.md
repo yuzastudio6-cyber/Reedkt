@@ -49,6 +49,31 @@ Remaining blockers:
 Runtime review status: `group_b_runtime_import_review_passed`
 Fixture gate status: `group_b_fixture_gate_created`
 Group B fixture execution: none
+
+## GD-10 Blocker Register Update
+
+Decision state: `group_b_partially_passed`
+
+GD-10 reduces the Group B blocker by adding local controlled evidence, but it does not clear the `AI_TOOLS_CREATIVE_GRAPHICS` internal beta blocker.
+
+- `anime_js_motion`: executed; `anime_js_motion.motion-timing.json`
+- `lottie_web_overlays`: `manifest_only`; `lottie_web_overlays.manifest-only.json`
+- `remotion_graphics`: `manifest_only`; `remotion_graphics.manifest-only.json`
+- Group B Track A handoff approved now: false
+- Internal beta approved: false
+- CROSS-BETA remains `blocked_pending_workstream_gates`
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
 Remotion render/export: none
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`

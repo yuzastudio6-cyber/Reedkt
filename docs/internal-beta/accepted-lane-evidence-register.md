@@ -38,6 +38,36 @@ Evidence accepted for GD-9 scope only:
 Evidence not accepted:
 
 - Group B fixture execution evidence.
+
+## GD-10 Group B Evidence Register Addendum
+
+Decision state: `group_b_partially_passed`
+
+Evidence accepted for GD-10 scope only:
+
+- `anime_js_motion`: executed; `anime_js_motion.motion-timing.json`
+- `lottie_web_overlays`: `manifest_only`; `lottie_web_overlays.manifest-only.json`
+- `remotion_graphics`: `manifest_only`; `remotion_graphics.manifest-only.json`
+- QA evidence, observability evidence, cleanup evidence, artifact manifest evidence, and go/no-go record.
+
+Evidence not accepted for internal beta unlock:
+
+- Group B Track A handoff approved now: false
+- Internal beta approved: false
+- Remotion final render/export.
+- Lottie browser/player behavior.
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
 - Remotion render/export evidence.
 - Internal beta approval evidence.
 

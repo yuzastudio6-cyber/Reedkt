@@ -97,6 +97,34 @@ Migration deployed: `no`
 
 Recommended next prompt: `GD-10 - Group B Controlled Local Fixture Execution`; use `GD-9A - Group B Runtime Gate Fixes` if diagnostics or CI fail.
 
+## GD-10 Group B Sequence Addendum
+
+Status: `group_b_partially_passed`
+
+GD-10 completed the controlled local Group B fixture scope:
+
+- `anime_js_motion`: executed; `anime_js_motion.motion-timing.json`
+- `lottie_web_overlays`: `manifest_only`; `lottie_web_overlays.manifest-only.json`
+- `remotion_graphics`: `manifest_only`; `remotion_graphics.manifest-only.json`
+
+Group B Track A handoff approved now: false
+
+Internal beta approved: false
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
+Recommended next prompt: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`; use `GD-10A - Group B Fixture Fixes` if diagnostics or CI fail.
+
 ## TRACKA-GD-HANDOFF-7 Sequence Update
 
 Completed sequence state: `controlled_private_sample_qa_passed_with_warnings`.

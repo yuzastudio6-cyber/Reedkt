@@ -24,6 +24,34 @@ Decision state: `group_b_partially_ready_for_gd10`
 - Generated artifacts in GD-9: none
 - Dependency mutation in GD-9: none
 
+## GD-10 Fixture Result Addendum
+
+Decision state: `group_b_partially_passed`
+
+| Tool ID | GD-10 fixture result | Evidence file |
+| --- | --- | --- |
+| `anime_js_motion` | executed | `anime_js_motion.motion-timing.json` |
+| `lottie_web_overlays` | `manifest_only` | `lottie_web_overlays.manifest-only.json` |
+| `remotion_graphics` | `manifest_only` | `remotion_graphics.manifest-only.json` |
+
+Group B Track A handoff approved now: false
+
+Internal beta approved: false
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
+Next prompt: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`.
+
 ## Supabase And Production Status
 
 - Supabase update required: `docs/status only`
@@ -34,4 +62,3 @@ Decision state: `group_b_partially_ready_for_gd10`
 - Internal beta approved: `false`
 - External beta approved: `false`
 - Production approved: `false`
-

@@ -41,3 +41,31 @@ Group B fixture execution is not approved in GD-9. The future GD-10 prompt may u
 - Migration deployed: `no`
 
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, AI tool execution, worker execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, production/beta unlock, dependency mutation, human approval grant, staging execution approval, raw prompt execution, final render/export, Group B fixture execution, or broad service-role handler was enabled.
+
+## GD-10 Runtime Evidence Addendum
+
+Decision state: `group_b_partially_passed`
+
+GD-10 used the GD-9 import findings to run the approved controlled local Group B scope:
+
+| Tool ID | GD-10 result | Evidence summary |
+| --- | --- | --- |
+| `anime_js_motion` | executed | `anime_js_motion.motion-timing.json` |
+| `lottie_web_overlays` | `manifest_only` | `lottie_web_overlays.manifest-only.json` |
+| `remotion_graphics` | `manifest_only` | `remotion_graphics.manifest-only.json` |
+
+Group B Track A handoff approved now: false
+
+Internal beta approved: false
+
+Capability: `none; Group B controlled local fixture execution only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`

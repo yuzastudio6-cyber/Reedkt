@@ -548,6 +548,43 @@ Evidence summary:
 - Migration deployed: `no`
 - Next source-of-truth handoff: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`
 
+## TRACKA-GD-GROUPB-HANDOFF-0 Source Of Truth Addendum
+
+Handoff result: `tracka_groupb_handoff_ready_with_warnings`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`
+
+Authoritative sources:
+
+| Topic | Authoritative source |
+| --- | --- |
+| Group B handoff review | `docs/track-a/creative-graphics-group-b-handoff-review.md` |
+| Acceptance matrix | `docs/track-a/creative-graphics-group-b-fixture-acceptance-matrix.md` |
+| Private preview readiness | `docs/track-a/creative-graphics-group-b-private-preview-readiness.md` |
+| Missing metadata checklist | `docs/track-a/creative-graphics-group-b-missing-metadata-checklist.md` |
+| Next handoff prompt | `docs/track-a/creative-graphics-group-b-next-handoff-prompt.md` |
+| Validation results | `docs/prompt-tracka-gd-groupb-handoff-0-validation-results.md` |
+| Implementation record | `docs/implementation-prompts/prompt-tracka-gd-groupb-handoff-0-review.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-group-b-handoff-diagnostics.mjs` |
+
+Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+
+Fully accepted fixtures: none
+
+Rejected/blocked fixtures: none
+
+Capability: `none; Track A Group B creative graphics handoff review only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
 ## GD-9 Source Of Truth Addendum
 
 Decision state: `group_b_partially_ready_for_gd10`

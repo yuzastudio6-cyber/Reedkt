@@ -350,6 +350,36 @@ SQL executed: `none`
 Migration deployed: `no`
 
 Next fixture-related prompt: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`.
+
+## TRACKA-GD-GROUPB-HANDOFF-0 Next Fixture Plan Update
+
+Handoff result: `tracka_groupb_handoff_ready_with_warnings`
+
+Group B fixture evidence is ready with warnings for a future Track A private preview composition plan:
+
+- `anime_js_motion`: `accepted_with_warnings`
+- `lottie_web_overlays`: `accepted_with_warnings`
+- `remotion_graphics`: `accepted_with_warnings`
+
+Fully accepted fixtures: none
+
+Rejected/blocked fixtures: none
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`
+
+Capability: `none; Track A Group B creative graphics handoff review only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
+Next fixture-related prompt: `TRACKA-GD-GROUPB-HANDOFF-1 - Private Preview Composition Plan for Group B Creative Graphics Fixtures`.
 - Remotion render/export remains blocked and Track A-owned.
 - Lottie player/browser behavior requires adapter review.
 - All future evidence must remain synthetic, local/private, and placeholder-bound.

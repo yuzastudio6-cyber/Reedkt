@@ -57,6 +57,7 @@ const requiredChecks = [
   'cross-beta:internal-gate:diagnostics',
   'ai-tools:creative-graphics:group-b-runtime-gate:diagnostics',
   'ai-tools:creative-graphics:group-b-local-fixtures:diagnostics',
+  'tracka:creative-graphics:group-b-handoff:diagnostics',
 ];
 
 const results = [];

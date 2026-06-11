@@ -434,6 +434,34 @@ GD-10 executes only the approved Group B local scope and records sanitized local
 
 CROSS-BETA-0 remains `blocked_pending_workstream_gates`. Next recommended milestone: `TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review`.
 
+## TRACKA-GD-GROUPB-HANDOFF-0 Milestone Note
+
+TRACKA-GD-GROUPB-HANDOFF-0 records `tracka_groupb_handoff_ready_with_warnings`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`.
+
+Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`.
+
+Fully accepted fixtures: none.
+
+Rejected/blocked fixtures: none.
+
+This milestone advances Track A planning readiness only. It does not execute Group B tools, render Lottie, render/export Remotion, run Track A render/export, upload artifacts, create signed URLs, approve internal beta, approve external beta, or approve production.
+
+Capability: `none; Track A Group B creative graphics handoff review only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
+Next recommended milestone: `TRACKA-GD-GROUPB-HANDOFF-1 - Private Preview Composition Plan for Group B Creative Graphics Fixtures`.
+
 ## GD-9 Group B Creative Graphics Milestone
 
 Decision state: `group_b_partially_ready_for_gd10`

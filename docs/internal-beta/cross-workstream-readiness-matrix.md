@@ -31,6 +31,36 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-0 Group B Update
+
+Handoff result: `tracka_groupb_handoff_ready_with_warnings`
+
+`AI_TOOLS_CREATIVE_GRAPHICS` remains blocked for full internal beta, but Track A has reviewed Group B evidence for planning readiness:
+
+| Tool ID | Track A result | Internal beta impact |
+| --- | --- | --- |
+| `anime_js_motion` | `accepted_with_warnings` | Planning evidence improved; internal beta still blocked. |
+| `lottie_web_overlays` | `accepted_with_warnings` | Manifest-only planning evidence improved; browser/player behavior still blocked. |
+| `remotion_graphics` | `accepted_with_warnings` | Manifest-only planning evidence improved; final render/export still blocked. |
+
+Fully accepted fixtures: none
+
+Rejected/blocked fixtures: none
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`
+
+Capability: `none; Track A Group B creative graphics handoff review only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
 ## GD-9 Group B Update
 
 Decision state: `group_b_partially_ready_for_gd10`

@@ -33,6 +33,34 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-0 Blocker Register Update
+
+Handoff result: `tracka_groupb_handoff_ready_with_warnings`
+
+Group B Track A planning blocker is partially mitigated:
+
+- `anime_js_motion`: `accepted_with_warnings`
+- `lottie_web_overlays`: `accepted_with_warnings`
+- `remotion_graphics`: `accepted_with_warnings`
+
+Fully accepted fixtures: none
+
+Rejected/blocked fixtures: none
+
+Remaining blocker: private preview execution is not approved, Lottie browser/player behavior is not approved, Remotion render/export is not approved, and CROSS-BETA remains `blocked_pending_workstream_gates`.
+
+Capability: `none; Track A Group B creative graphics handoff review only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
 ## GD-9 Blocker Register Update
 
 Decision state: `group_b_partially_ready_for_gd10`

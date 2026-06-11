@@ -855,7 +855,7 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 ## GD-10 - Group B Controlled Local Fixture Execution
 
 - Branch: `codex/rp-gd-10-group-b-controlled-local-fixture-execution`
-- PR: pending
+- PR: [#304](https://github.com/yuzastudio6-cyber/Reedkt/pull/304)
 - Base: `origin/codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
 - Decision state: `group_b_partially_passed`
 - Runtime unlock status: `group_b_partially_passed`

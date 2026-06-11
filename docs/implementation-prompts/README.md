@@ -26,7 +26,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution | implemented_pending_validation | `codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution` | [PR #291](https://github.com/yuzastudio6-cyber/Reedkt/pull/291) | `none; Track A creative graphics controlled private sample execution only` |
 | TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness` | [PR #294](https://github.com/yuzastudio6-cyber/Reedkt/pull/294) | `none; Track A creative graphics controlled private sample QA/readiness review only` |
 | GD-9 - Group B Package Runtime Review and Fixture Gate | implemented_pr_open | `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate` | [PR #300](https://github.com/yuzastudio6-cyber/Reedkt/pull/300) | `none; Group B creative graphics package runtime review and fixture gate only` |
-| GD-10 - Group B Controlled Local Fixture Execution | implemented_pending_pr | `codex/rp-gd-10-group-b-controlled-local-fixture-execution` | pending | `none; Group B controlled local fixture execution only` |
+| GD-10 - Group B Controlled Local Fixture Execution | implemented_pr_open | `codex/rp-gd-10-group-b-controlled-local-fixture-execution` | [PR #304](https://github.com/yuzastudio6-cyber/Reedkt/pull/304) | `none; Group B controlled local fixture execution only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -188,7 +188,7 @@ Next recommended prompt after TRACKA-GD-HANDOFF-7: `CROSS-BETA-0 - Cross-Workstr
 ## GD-10 - Group B Controlled Local Fixture Execution
 
 - Branch: `codex/rp-gd-10-group-b-controlled-local-fixture-execution`
-- PR: pending
+- PR: [#304](https://github.com/yuzastudio6-cyber/Reedkt/pull/304)
 - Decision state: `group_b_partially_passed`
 - Runtime probe run: yes
 - Group B runner created: yes

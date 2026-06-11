@@ -6,7 +6,7 @@ Branch: `codex/rp-gd-10-group-b-controlled-local-fixture-execution`
 
 Base: `origin/codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
 
-PR: pending
+PR: [#304](https://github.com/yuzastudio6-cyber/Reedkt/pull/304)
 
 ## Result
 

@@ -394,3 +394,33 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## CROSS-BETA-0 Blocker Inventory Addendum
+
+CROSS-BETA-0 decision state: `blocked_pending_workstream_gates`.
+
+Resolved for cross-workstream review only:
+
+- Track A creative graphics lane can be reviewed with warnings.
+- Phase 50G map/geospatial evidence can be reviewed with warnings pending owner confirmation.
+
+Still blocked or evidence-missing:
+
+- AI Tools creative graphics Group B, Group C, and resvg/SVG rasterization coverage;
+- Track A final render/export;
+- Sound/Music/Audio owner gate evidence;
+- Track B media processing owner gate evidence;
+- Worker Runtime Jobs owner gate evidence;
+- Provider Gateway Models owner gate evidence;
+- Supabase RLS/Storage/Database current owner gate evidence, including later Supabase 20-26 prompt records absent on this base;
+- Observability/Audit/Cost owner gate evidence;
+- Compliance/Security owner gate evidence;
+- Frontend/Product UX owner gate evidence;
+- Billing/Stripe/Credits owner gate evidence;
+- internal beta unlock, external beta unlock, production unlock, public artifacts, signed URLs, uploads/storage transfer, Supabase mutation, SQL, worker execution, provider/model calls, and raw prompt execution.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

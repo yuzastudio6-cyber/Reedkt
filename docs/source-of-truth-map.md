@@ -541,3 +541,28 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## CROSS-BETA-0 Source Of Truth Addendum
+
+CROSS-BETA-0 decision state: `blocked_pending_workstream_gates`.
+
+Authoritative sources:
+
+| Topic | Authoritative source |
+| --- | --- |
+| Cross-workstream gate review | `docs/internal-beta/cross-workstream-internal-beta-gate-review.md` |
+| Workstream readiness matrix | `docs/internal-beta/cross-workstream-readiness-matrix.md` |
+| Accepted lane evidence | `docs/internal-beta/accepted-lane-evidence-register.md` |
+| Blocker register | `docs/internal-beta/internal-beta-blocker-register.md` |
+| No-go scope | `docs/internal-beta/internal-beta-no-go-scope-register.md` |
+| Next prompt queue | `docs/internal-beta/internal-beta-next-prompt-queue.md` |
+| Decision record | `docs/internal-beta/internal-beta-gate-decision-record.md` |
+| Diagnostic | `scripts/validation/cross-beta-internal-gate-diagnostics.mjs` |
+
+Accepted lane evidence includes Handoff-7/Handoff-6 creative graphics, Phase 53A runtime unlock roadmap evidence, Phase 52G controlled internal test go/no-go evidence, and Phase 50G map/geospatial evidence. Current later Supabase 20-26 evidence is absent on this base and remains a blocker for `SUPABASE_RLS_STORAGE_DATABASE`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

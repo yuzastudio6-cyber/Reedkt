@@ -61,6 +61,7 @@
     "smoke:supabase-sound-local-harness-validation-result": "tsx server/smoke/supabase-sound-local-harness-validation-result-smoke.ts",
     "smoke:supabase-sound-local-harness-setup-fix": "tsx server/smoke/supabase-sound-local-harness-setup-fix-smoke.ts",
     "smoke:supabase-sound-local-harness-config-plan": "tsx server/smoke/supabase-sound-local-harness-config-plan-smoke.ts",
+    "smoke:supabase-sound-local-harness-config-create": "tsx server/smoke/supabase-sound-local-harness-config-create-smoke.ts",
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",

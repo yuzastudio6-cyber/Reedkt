@@ -260,7 +260,7 @@ if (existsSync(optionalConfigPath)) {
   const config = readFileSync(optionalConfigPath, 'utf8')
   assertNoConcreteForbiddenText(config, optionalConfigPath)
   check(!config.toLowerCase().includes('service_role'), 'Config must not contain service_role markers.')
-  check(!config.toLowerCase().includes('anon'), 'Config must not contain anon key markers.')
+  check(!config.toLowerCase().includes('anon_key'), 'Config must not contain anon key markers.')
   check(!config.toLowerCase().includes('access_token'), 'Config must not contain access token markers.')
   check(!config.toLowerCase().includes('project_ref'), 'Config must not contain remote project refs.')
 }

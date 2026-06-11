@@ -412,6 +412,29 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Group B Creative Graphics Milestone
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+GD-9 completes a docs/status-only runtime review and future fixture gate for Group B creative graphics:
+
+- `anime_js_motion`: `package_runtime_probe_passed`; `approved_for_gd10_controlled_local_fixture_execution`
+- `lottie_web_overlays`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+- `remotion_graphics`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Capability: `none; Group B creative graphics package runtime review and fixture gate only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`.
+
 ## TRACKA-GD-HANDOFF-7 Milestone Note
 
 TRACKA-GD-HANDOFF-7 records `controlled_private_sample_qa_passed_with_warnings` for the five accepted creative graphics fixtures.

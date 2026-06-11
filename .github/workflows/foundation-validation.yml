@@ -25,6 +25,7 @@ on:
       - codex/rp-tracka-gd-handoff-5-controlled-private-sample-planning
       - codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution
       - codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness
+      - codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review
 
 jobs:
   foundation-validation:

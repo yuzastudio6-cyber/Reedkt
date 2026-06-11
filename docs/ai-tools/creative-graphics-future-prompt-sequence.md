@@ -72,6 +72,31 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Group B Sequence Addendum
+
+Status: `group_b_partially_ready_for_gd10`
+
+GD-9 reviewed Group B import-only runtime evidence and created the future GD-10 gate.
+
+- `anime_js_motion`: `package_runtime_probe_passed`; `approved_for_gd10_controlled_local_fixture_execution`
+- `lottie_web_overlays`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+- `remotion_graphics`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Dependency mutation: none
+Beta/production unlock: none
+GD-9 capability: `none; Group B creative graphics package runtime review and fixture gate only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Recommended next prompt: `GD-10 - Group B Controlled Local Fixture Execution`; use `GD-9A - Group B Runtime Gate Fixes` if diagnostics or CI fail.
+
 ## TRACKA-GD-HANDOFF-7 Sequence Update
 
 Completed sequence state: `controlled_private_sample_qa_passed_with_warnings`.

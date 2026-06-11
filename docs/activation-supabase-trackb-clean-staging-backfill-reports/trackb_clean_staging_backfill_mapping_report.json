@@ -1,0 +1,87 @@
+{
+  "phase": "supabase-trackb-clean-staging-backfill",
+  "runId": "supabase-trackb-clean-staging-backfill-20260611",
+  "status": "passed",
+  "sourceExportValidated": true,
+  "targetProjectRef": "fnjiylwirntrqdcwpbho",
+  "tables": [
+    "activation_milestones",
+    "activation_phase_runs",
+    "activation_tool_readiness",
+    "activation_pr_evidence",
+    "activation_artifact_manifests",
+    "activation_blockers",
+    "activation_allowed_scopes",
+    "activation_blocked_scopes",
+    "activation_next_phases",
+    "activation_human_approvals",
+    "activation_sync_audit_log"
+  ],
+  "uniqueKeys": {
+    "activation_milestones": [
+      "phase_id",
+      "track",
+      "family",
+      "milestone_name"
+    ],
+    "activation_phase_runs": [
+      "phase_id",
+      "run_id"
+    ],
+    "activation_tool_readiness": [
+      "track",
+      "tool_id",
+      "phase_id"
+    ],
+    "activation_pr_evidence": [
+      "phase_id",
+      "pr_number",
+      "source_report_path"
+    ],
+    "activation_artifact_manifests": [
+      "phase_id",
+      "artifact_prefix",
+      "source_report_path"
+    ],
+    "activation_blockers": [
+      "phase_id",
+      "blocker_code",
+      "blocked_scope"
+    ],
+    "activation_allowed_scopes": [
+      "phase_id",
+      "allowed_scope"
+    ],
+    "activation_blocked_scopes": [
+      "phase_id",
+      "blocked_scope"
+    ],
+    "activation_next_phases": [
+      "phase_id",
+      "next_phase"
+    ],
+    "activation_human_approvals": [
+      "approval_key"
+    ],
+    "activation_sync_audit_log": [
+      "sync_key"
+    ]
+  },
+  "rowCountsByTable": {
+    "activation_milestones": 30,
+    "activation_phase_runs": 30,
+    "activation_tool_readiness": 18,
+    "activation_pr_evidence": 30,
+    "activation_artifact_manifests": 29,
+    "activation_blockers": 30,
+    "activation_allowed_scopes": 30,
+    "activation_blocked_scopes": 30,
+    "activation_next_phases": 30,
+    "activation_human_approvals": 1,
+    "activation_sync_audit_log": 1
+  },
+  "totalRowsPlanned": 259,
+  "canonicalToolIdsCovered": true,
+  "safeMetadataOnly": true,
+  "blockers": []
+}

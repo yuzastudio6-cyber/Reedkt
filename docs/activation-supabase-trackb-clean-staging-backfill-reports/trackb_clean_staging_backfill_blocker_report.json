@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-trackb-clean-staging-backfill",
+  "runId": "supabase-trackb-clean-staging-backfill-20260611",
+  "status": "passed",
+  "activeBlockers": [],
+  "resolvedPriorBlockers": [
+    "staging_supabase_credentials_unavailable",
+    "trackb_backfill_clean_branch_target_not_wired"
+  ],
+  "stillBlockedScopes": [
+    "production_supabase_write",
+    "broken_original_staging_write",
+    "migration_deployment",
+    "migration_repair",
+    "track_b_runtime_execution",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "provider_calls",
+    "track_a",
+    "external_beta",
+    "paid_production",
+    "production"
+  ]
+}

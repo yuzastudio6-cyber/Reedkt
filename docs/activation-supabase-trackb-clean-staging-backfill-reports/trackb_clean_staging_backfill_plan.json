@@ -1,0 +1,69 @@
+{
+  "phase": "supabase-trackb-clean-staging-backfill",
+  "runId": "supabase-trackb-clean-staging-backfill-20260611",
+  "branch": "codex/rp-foundation-supabase-trackb-clean-staging-backfill",
+  "baseBranch": "codex/rp-foundation-supabase-clean-staging-branch-execution",
+  "prTitle": "[foundation] Supabase Track B clean staging backfill",
+  "reportDir": "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "trackb_clean_staging_backfill_plan.json",
+    "trackb_export_validation_report.json",
+    "clean_staging_target_preflight_report.json",
+    "trackb_clean_staging_backfill_mapping_report.json",
+    "trackb_clean_staging_backfill_diff_report.json",
+    "trackb_clean_staging_backfill_write_report.json",
+    "trackb_clean_staging_backfill_verification_report.json",
+    "trackb_clean_staging_backfill_audit_report.json",
+    "trackb_clean_staging_backfill_blocker_report.json",
+    "trackb_clean_staging_backfill_readiness_report.json",
+    "trackb_clean_staging_backfill_private_artifact_manifest.json"
+  ],
+  "cleanStagingTarget": {
+    "projectRef": "fnjiylwirntrqdcwpbho",
+    "branchName": "reeditpro-internal-staging-clean",
+    "parentProjectRef": "wmyyttnynmteqgcdishd",
+    "environment": "clean_staging"
+  },
+  "inputExportPath": "docs/activation-track-b-readiness-rollup-reports/track_b_supabase_milestone_export.json",
+  "inputExportSchemaPath": "docs/activation-track-b-readiness-rollup-reports/track_b_supabase_milestone_export.schema.json",
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_CLEAN_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_TARGET_PROOF",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_SUPABASE_EXPORT_READ",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_BACKFILL_DIFF_REVIEW"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "allowedMutation": "metadata_only_idempotent_upsert_into_clean_staging_activation_registry",
+  "docsBasis": [
+    "https://supabase.com/docs/reference/cli/supabase-db-push",
+    "https://supabase.com/docs/guides/deployment/database-migrations",
+    "https://supabase.com/changelog.md"
+  ],
+  "productionAffected": false,
+  "brokenOriginalStagingAffected": false,
+  "migrationDeployment": false,
+  "migrationRepair": false,
+  "trackBRuntimeExecution": false,
+  "providerCalls": false,
+  "mediaProcessing": false,
+  "trackA": "not_touched",
+  "nextRecommendedPhase": "Product-wide internal readiness aggregation after Track B clean-staging backfill evidence is reviewed."
+}

@@ -12,6 +12,8 @@ import type {
   TrackBSupabaseMilestoneExport,
 } from './supabase-trackb-backfill-types'
 
+export * from './trackb-clean-staging'
+
 export const SUPABASE_TRACKB_BACKFILL_PHASE = 'supabase-trackb-milestone-staging-backfill'
 export const SUPABASE_TRACKB_BACKFILL_RUN_ID = 'supabase-trackb-milestone-staging-backfill-20260605'
 export const SUPABASE_TRACKB_BACKFILL_BRANCH = 'codex/rp-foundation-supabase-trackb-milestone-staging-backfill'

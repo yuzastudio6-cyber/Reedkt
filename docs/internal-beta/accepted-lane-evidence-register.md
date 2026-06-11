@@ -26,3 +26,23 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Group B Evidence Register Addendum
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+Evidence accepted for GD-9 scope only:
+
+- Import-only probe evidence for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`.
+- GD-9 docs defining `group_b_runtime_import_review_passed` and `group_b_fixture_gate_created`.
+
+Evidence not accepted:
+
+- Group B fixture execution evidence.
+- Remotion render/export evidence.
+- Internal beta approval evidence.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

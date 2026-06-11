@@ -312,6 +312,29 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Group B Blocker Inventory Addendum
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+Partially mitigated blocker: Group B package runtime review.
+
+Remaining blockers:
+
+- `anime_js_motion`: future GD-10 controlled local synthetic fixture evidence required.
+- `lottie_web_overlays`: browser/player adapter review required; GD-10 is manifest-only.
+- `remotion_graphics`: final render/export remains Track A-owned and blocked; GD-10 is manifest-only.
+- CROSS-BETA-0 still blocks full internal beta due unresolved workstream gates.
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-7 Blocker Update
 
 Handoff-7 result: `controlled_private_sample_qa_passed_with_warnings`.

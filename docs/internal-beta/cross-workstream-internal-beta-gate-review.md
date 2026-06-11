@@ -68,7 +68,27 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Group B Review Addendum
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+GD-9 partially advances `AI_TOOLS_CREATIVE_GRAPHICS` Group B evidence for a future GD-10 prompt, but CROSS-BETA remains `blocked_pending_workstream_gates`.
+
+- `anime_js_motion`: `package_runtime_probe_passed`; `approved_for_gd10_controlled_local_fixture_execution`
+- `lottie_web_overlays`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+- `remotion_graphics`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Full internal beta approved now: false
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## No-Scope Statement
 
 No runtime, tools, workers, providers/models, render/export, media processing, browser capture, Docker/Cloud Run, Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, uploads, signed URL creation, public artifact creation, dependency mutation, internal beta unlock, external beta unlock, production unlock, human approval grant, staging execution approval, raw prompt execution, or broad service-role handler was enabled.
-

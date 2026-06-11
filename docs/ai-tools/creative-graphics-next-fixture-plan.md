@@ -307,3 +307,29 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+## GD-9 Group B Next Fixture Plan
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+Next fixture prompt: `GD-10 - Group B Controlled Local Fixture Execution`.
+
+Allowed future GD-10 lanes:
+
+- `anime_js_motion`: `approved_for_gd10_controlled_local_fixture_execution`
+- `lottie_web_overlays`: `approved_for_gd10_manifest_only_fixture`
+- `remotion_graphics`: `approved_for_gd10_manifest_only_fixture`
+
+Required future boundaries:
+
+- Group B fixture execution is not approved in GD-9.
+- Remotion render/export remains blocked and Track A-owned.
+- Lottie player/browser behavior requires adapter review.
+- All future evidence must remain synthetic, local/private, and placeholder-bound.
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

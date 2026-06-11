@@ -515,6 +515,32 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Source Of Truth Addendum
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+Authoritative GD-9 docs:
+
+- `docs/ai-tools/creative-graphics-group-b-runtime-review.md`
+- `docs/ai-tools/creative-graphics-group-b-fixture-gate.md`
+- `docs/ai-tools/creative-graphics-group-b-gd10-allowed-scope.md`
+- `docs/ai-tools/creative-graphics-group-b-gd10-blocked-scope.md`
+- `docs/ai-tools/creative-graphics-group-b-qa-evidence-requirements.md`
+- `docs/ai-tools/creative-graphics-group-b-warning-blocker-register.md`
+- `docs/ai-tools/creative-graphics-group-b-gate-decision-record.md`
+- `docs/prompt-gd-9-validation-results.md`
+- `docs/implementation-prompts/prompt-gd-9-group-b-package-runtime-review-fixture-gate.md`
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-7 Source Of Truth Addendum
 
 Controlled private sample QA result: `controlled_private_sample_qa_passed_with_warnings`.

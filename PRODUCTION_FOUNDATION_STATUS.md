@@ -826,3 +826,28 @@ Authoritative CROSS-BETA-0 files:
 - `docs/prompt-cross-beta-0-validation-results.md`
 
 Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS-BETA-1 - Internal Beta Execution Packet` remains deferred until owner gates resolve.
+
+## GD-9 - Group B Creative Graphics Package Runtime Review and Fixture Gate
+
+- Branch: `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
+- PR: pending
+- Base: `origin/codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review`
+- Decision state: `group_b_partially_ready_for_gd10`
+- Runtime review status: `group_b_runtime_import_review_passed`
+- Fixture gate status: `group_b_fixture_gate_created`
+- Capability: `none; Group B creative graphics package runtime review and fixture gate only`
+- `anime_js_motion`: `package_runtime_probe_passed`; `approved_for_gd10_controlled_local_fixture_execution`
+- `lottie_web_overlays`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+- `remotion_graphics`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+- Group B fixture execution: none
+- Remotion render/export: none
+- Dependency mutation: none
+- Beta/production unlock: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Implementation record: `docs/implementation-prompts/prompt-gd-9-group-b-package-runtime-review-fixture-gate.md`
+- Validation results: `docs/prompt-gd-9-validation-results.md`
+- Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`

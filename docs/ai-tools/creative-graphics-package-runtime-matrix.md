@@ -61,3 +61,27 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## GD-9 Group B Runtime Gate Addendum
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+| Tool ID | Package | GD-9 import status | GD-9 classification | GD-10 next action |
+| --- | --- | --- | --- | --- |
+| `anime_js_motion` | `animejs@4.4.1` | `package_runtime_probe_passed` | `approved_for_gd10_controlled_local_fixture_execution` | Future controlled local synthetic motion/timing evidence only. |
+| `lottie_web_overlays` | `lottie-web@5.13.0` | `package_runtime_probe_passed` | `approved_for_gd10_manifest_only_fixture` | Future manifest-only fixture evidence; browser/player adapter review remains required. |
+| `remotion_graphics` | `remotion@4.0.474` | `package_runtime_probe_passed` | `approved_for_gd10_manifest_only_fixture` | Future manifest-only fixture evidence; Remotion final render/export remains Track A-owned and blocked. |
+
+GD-9 runtime review status: `group_b_runtime_import_review_passed`
+GD-9 fixture gate status: `group_b_fixture_gate_created`
+GD-9 capability: `none; Group B creative graphics package runtime review and fixture gate only`
+Group B fixture execution: none
+Remotion render/export: none
+Dependency mutation: none
+Beta/production unlock: none
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`

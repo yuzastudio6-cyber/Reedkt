@@ -33,3 +33,25 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Blocker Register Update
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+GD-9 reduces the Group B package-review blocker but does not clear the `AI_TOOLS_CREATIVE_GRAPHICS` internal beta blocker.
+
+Remaining blockers:
+
+- `lottie_web_overlays`: `approved_for_gd10_manifest_only_fixture`; browser/player adapter review remains required.
+- `remotion_graphics`: `approved_for_gd10_manifest_only_fixture`; final render/export remains Track A-owned and blocked.
+- `anime_js_motion`: `approved_for_gd10_controlled_local_fixture_execution`; future GD-10 evidence is still required.
+- `resvg_js_svg_rasterization`, Group C, worker/provider paths, final render/export, Supabase, and other cross-workstream gates remain unresolved.
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

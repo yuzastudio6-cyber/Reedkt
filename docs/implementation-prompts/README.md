@@ -25,6 +25,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | TRACKA-GD-HANDOFF-5 - Controlled Private Sample Planning | implemented_local_validation_passed | `codex/rp-tracka-gd-handoff-5-controlled-private-sample-planning` | [PR #288](https://github.com/yuzastudio6-cyber/Reedkt/pull/288) | `none; Track A creative graphics controlled private sample planning only` |
 | TRACKA-GD-HANDOFF-6 - Controlled Private Sample Execution | implemented_pending_validation | `codex/rp-tracka-gd-handoff-6-controlled-private-sample-execution` | [PR #291](https://github.com/yuzastudio6-cyber/Reedkt/pull/291) | `none; Track A creative graphics controlled private sample execution only` |
 | TRACKA-GD-HANDOFF-7 - Controlled Private Sample QA and Internal Beta Readiness Review | implemented_local_validation_passed_with_local_build_environment_blocked | `codex/rp-tracka-gd-handoff-7-controlled-private-sample-qa-internal-beta-readiness` | [PR #294](https://github.com/yuzastudio6-cyber/Reedkt/pull/294) | `none; Track A creative graphics controlled private sample QA/readiness review only` |
+| GD-9 - Group B Package Runtime Review and Fixture Gate | implemented_pending_validation | `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate` | pending | `none; Group B creative graphics package runtime review and fixture gate only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -166,3 +167,19 @@ Next recommended prompt after TRACKA-GD-HANDOFF-7: `CROSS-BETA-0 - Cross-Workstr
 - Implementation record: `docs/implementation-prompts/prompt-cross-beta-0-cross-workstream-internal-beta-gate-review.md`
 - Validation results: `docs/prompt-cross-beta-0-validation-results.md`
 - Next recommended prompt: `GD-9 - Group B Package Runtime Review and Fixture Gate`
+
+## GD-9 - Group B Package Runtime Review and Fixture Gate
+
+- Branch: `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
+- PR: pending
+- Decision state: `group_b_partially_ready_for_gd10`
+- Runtime review status: `group_b_runtime_import_review_passed`
+- Fixture gate status: `group_b_fixture_gate_created`
+- Group B fixture execution: none
+- Remotion render/export: none
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`

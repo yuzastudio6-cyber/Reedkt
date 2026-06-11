@@ -35,3 +35,26 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## GD-9 Queue Update
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`.
+
+Fallback prompt: `GD-9A - Group B Runtime Gate Fixes`.
+
+GD-10 should use the GD-9 classifications:
+
+- `anime_js_motion`: `approved_for_gd10_controlled_local_fixture_execution`
+- `lottie_web_overlays`: `approved_for_gd10_manifest_only_fixture`
+- `remotion_graphics`: `approved_for_gd10_manifest_only_fixture`
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

@@ -303,3 +303,25 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+## GD-9 Group B Runtime Gate Addendum
+
+Decision state: `group_b_partially_ready_for_gd10`
+
+Group B readiness improves from package-review needed to partially ready for a future GD-10 prompt:
+
+- `anime_js_motion`: `package_runtime_probe_passed`; `approved_for_gd10_controlled_local_fixture_execution`
+- `lottie_web_overlays`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+- `remotion_graphics`: `package_runtime_probe_passed`; `approved_for_gd10_manifest_only_fixture`
+
+Runtime review status: `group_b_runtime_import_review_passed`
+Fixture gate status: `group_b_fixture_gate_created`
+Group B fixture execution: none
+Remotion render/export: none
+Internal beta remains blocked at cross-workstream level.
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next recommended prompt: `GD-10 - Group B Controlled Local Fixture Execution`.

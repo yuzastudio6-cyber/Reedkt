@@ -37,6 +37,9 @@ export const PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_EXPECTED_REPORTS = [
   'internal_testing_allowed_scope_freeze.json',
   'internal_testing_blocked_scope_freeze.json',
   'internal_testing_operator_signoff_packet.json',
+  'internal_testing_operator_acceptance_scope_validation.json',
+  'internal_testing_operator_acceptance_artifact.json',
+  'internal_testing_operator_signoff_decision_update.json',
   'internal_testing_runbook_checklist.json',
   'internal_testing_scope_freeze_decision.json',
   'internal_testing_scope_freeze_blocker_report.json',
@@ -49,6 +52,9 @@ export const PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_OPERATOR_SIGNOFF_PACKET',
   'REEDITPRO_CONFIRM_READINESS_METADATA_AGGREGATION',
 ] as const
+
+export const PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_OPERATOR_ACCEPTANCE_CONFIRMATION =
+  'REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_OPERATOR_ACCEPTANCE'
 
 export const PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_FORBIDDEN_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_INTERNAL_TESTING_EXECUTION',
@@ -126,6 +132,24 @@ function asNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' ? value : fallback
 }
 
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
+function sameStringSet(a: unknown, b: unknown): boolean {
+  const first = asStringArray(a).slice().sort()
+  const second = asStringArray(b).slice().sort()
+  return first.length === second.length && first.every((item, index) => item === second[index])
+}
+
+function readExistingOperatorAcceptanceArtifact(): Record<string, unknown> | undefined {
+  const artifact = readJson(path.join(
+    PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_REPORT_DIR,
+    'internal_testing_operator_acceptance_artifact.json',
+  ))
+  return artifact?.status === 'approved' ? artifact : undefined
+}
+
 export function getProductInternalTestingScopeFreezePlan() {
   return {
     phase: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_PHASE,
@@ -138,7 +162,8 @@ export function getProductInternalTestingScopeFreezePlan() {
     expectedReports: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_EXPECTED_REPORTS,
     requiredConfirmations: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_REQUIRED_CONFIRMATIONS,
     forbiddenConfirmations: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_FORBIDDEN_CONFIRMATIONS,
-    optionalOperatorAcceptanceConfirmation: 'REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_OPERATOR_ACCEPTANCE',
+    operatorAcceptanceConfirmation: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_OPERATOR_ACCEPTANCE_CONFIRMATION,
+    operatorAcceptanceMode: '--accept-operator-scope',
     sourcePrs: {
       internalBetaReadinessAggregation: 299,
       trackBCleanStagingBackfill: 298,
@@ -163,13 +188,38 @@ export function getProductInternalTestingScopeFreezePlan() {
   }
 }
 
-export function buildProductInternalTestingScopeFreezeReports(): ProductInternalTestingScopeFreezeReports {
+export function buildProductInternalTestingScopeFreezeReports(options: {
+  acceptOperatorScope?: boolean
+} = {}): ProductInternalTestingScopeFreezeReports {
   const sourceOfTruthOwnershipAudit = buildSourceOfTruthOwnershipAudit()
   const allowedScopeFreeze = buildAllowedScopeFreeze()
   const blockedScopeFreeze = buildBlockedScopeFreeze()
   const runbookChecklist = buildRunbookChecklist()
-  const operatorSignoffPacket = buildOperatorSignoffPacket(allowedScopeFreeze, blockedScopeFreeze, runbookChecklist)
-  const decision = buildDecision(allowedScopeFreeze, blockedScopeFreeze, operatorSignoffPacket, runbookChecklist)
+  const operatorAcceptanceArtifact = buildOperatorAcceptanceArtifact(options, allowedScopeFreeze, blockedScopeFreeze, runbookChecklist)
+  const operatorAcceptanceScopeValidation = buildOperatorAcceptanceScopeValidation(
+    allowedScopeFreeze,
+    blockedScopeFreeze,
+    operatorAcceptanceArtifact,
+  )
+  const operatorSignoffPacket = buildOperatorSignoffPacket(
+    allowedScopeFreeze,
+    blockedScopeFreeze,
+    runbookChecklist,
+    operatorAcceptanceArtifact,
+    operatorAcceptanceScopeValidation,
+  )
+  const decision = buildDecision(
+    allowedScopeFreeze,
+    blockedScopeFreeze,
+    operatorSignoffPacket,
+    runbookChecklist,
+    operatorAcceptanceScopeValidation,
+  )
+  const operatorSignoffDecisionUpdate = buildOperatorSignoffDecisionUpdate(
+    decision,
+    operatorAcceptanceArtifact,
+    operatorAcceptanceScopeValidation,
+  )
   const blockerReport = buildBlockerReport(decision)
   const readinessReport = buildReadinessReport(decision, blockerReport)
 
@@ -179,6 +229,9 @@ export function buildProductInternalTestingScopeFreezeReports(): ProductInternal
     allowedScopeFreeze,
     blockedScopeFreeze,
     operatorSignoffPacket,
+    operatorAcceptanceScopeValidation,
+    operatorAcceptanceArtifact,
+    operatorSignoffDecisionUpdate,
     runbookChecklist,
     decision,
     blockerReport,
@@ -196,6 +249,9 @@ export async function writeProductInternalTestingScopeFreezeArtifacts(
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_allowed_scope_freeze.json'), reports.allowedScopeFreeze)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_blocked_scope_freeze.json'), reports.blockedScopeFreeze)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_operator_signoff_packet.json'), reports.operatorSignoffPacket)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_operator_acceptance_scope_validation.json'), reports.operatorAcceptanceScopeValidation)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_operator_acceptance_artifact.json'), reports.operatorAcceptanceArtifact)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_operator_signoff_decision_update.json'), reports.operatorSignoffDecisionUpdate)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_runbook_checklist.json'), reports.runbookChecklist)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_scope_freeze_decision.json'), reports.decision)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'internal_testing_scope_freeze_blocker_report.json'), reports.blockerReport)
@@ -205,6 +261,7 @@ export async function writeProductInternalTestingScopeFreezeArtifacts(
   await writeVlmRuntimeTextArtifact('docs/internal-testing-allowed-scope-freeze.md', renderAllowedScopeMarkdown(reports))
   await writeVlmRuntimeTextArtifact('docs/internal-testing-blocked-scope-freeze.md', renderBlockedScopeMarkdown(reports))
   await writeVlmRuntimeTextArtifact('docs/internal-testing-operator-signoff-packet.md', renderOperatorSignoffMarkdown(reports))
+  await writeVlmRuntimeTextArtifact('docs/internal-testing-operator-acceptance.md', renderOperatorAcceptanceMarkdown(reports))
   await writeVlmRuntimeTextArtifact('docs/internal-testing-runbook-checklist.md', renderRunbookMarkdown(reports))
   await writeVlmRuntimeTextArtifact('docs/internal-testing-scope-freeze-decision.md', renderDecisionMarkdown(reports))
   await writeVlmRuntimeTextArtifact(
@@ -222,19 +279,26 @@ export async function executeProductInternalTestingScopeFreeze(options: {
   execute?: boolean
   metadataOnly?: boolean
   keepTemp?: boolean
+  acceptOperatorScope?: boolean
 } = {}): Promise<{ exitCode: number }> {
   if (!options.execute || !options.metadataOnly) {
     await writeProductInternalTestingScopeFreezeArtifacts()
     return { exitCode: 0 }
   }
 
-  const missing = PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_REQUIRED_CONFIRMATIONS.filter(
+  const requiredConfirmations = [
+    ...PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_REQUIRED_CONFIRMATIONS,
+    ...(options.acceptOperatorScope ? [PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_OPERATOR_ACCEPTANCE_CONFIRMATION] : []),
+  ]
+  const missing = requiredConfirmations.filter(
     (name) => process.env[name] !== 'true',
   )
   const forbidden = PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_FORBIDDEN_CONFIRMATIONS.filter(
     (name) => process.env[name] === 'true',
   )
-  const reports = buildProductInternalTestingScopeFreezeReports()
+  const reports = buildProductInternalTestingScopeFreezeReports({
+    acceptOperatorScope: missing.length === 0 && forbidden.length === 0 && options.acceptOperatorScope === true,
+  })
   if (missing.length > 0 || forbidden.length > 0) {
     await writeProductInternalTestingScopeFreezeArtifacts({
       ...reports,
@@ -256,7 +320,9 @@ export async function executeProductInternalTestingScopeFreeze(options: {
       readinessReport: {
         ...reports.readinessReport,
         status: 'blocked',
-        decision: 'blocked_pending_operator_signoff',
+        decision: options.acceptOperatorScope
+          ? 'blocked_pending_operator_signoff'
+          : reports.readinessReport.decision,
         activeBlockers: [
           ...missing.map((name) => `missing_confirmation:${name}`),
           ...forbidden.map((name) => `forbidden_confirmation:${name}`),
@@ -373,19 +439,127 @@ function buildRunbookChecklist() {
   }
 }
 
-function buildOperatorSignoffPacket(
+function buildOperatorAcceptanceArtifact(
+  options: { acceptOperatorScope?: boolean },
   allowedScope: Record<string, unknown>,
   blockedScope: Record<string, unknown>,
   runbook: Record<string, unknown>,
 ) {
-  const pr299Decision = readJson(path.join(PR299_REPORT_DIR, 'internal_beta_go_no_go_decision.json'))
-  const pr299Sync = readJson(path.join(PR299_REPORT_DIR, 'trackb_clean_staging_sync_verification.json'))
-  const operatorAcceptanceEnvPresent =
-    process.env.REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_OPERATOR_ACCEPTANCE === 'true'
+  const existing = options.acceptOperatorScope ? undefined : readExistingOperatorAcceptanceArtifact()
+  if (existing) return existing
+
+  const acceptanceConfirmationPresent =
+    process.env[PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_OPERATOR_ACCEPTANCE_CONFIRMATION] === 'true'
+  const approved = options.acceptOperatorScope === true && acceptanceConfirmationPresent
+
   return {
     phase: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_PHASE,
     runId: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_RUN_ID,
-    status: 'pending_operator_signoff',
+    status: approved ? 'approved' : 'missing_operator_acceptance',
+    acceptedByRole: approved ? 'operator/product_owner' : 'not_recorded',
+    signoffSource: approved ? 'pasted_prompt_operator_acceptance' : 'missing_repo_safe_operator_acceptance_artifact',
+    acceptedScope: approved ? 'restricted_internal_testing_metadata_readiness_review' : 'not_recorded',
+    allowedScopeSummary: approved ? allowedScope.allowedScope : [],
+    blockedScopeSummary: approved ? blockedScope.blockedScope : [],
+    rollbackStopConditionsAccepted: approved ? runbook.stopConditions : [],
+    supportRunbookOwnerAccepted: approved ? runbook.supportOwner : 'not_recorded',
+    productionExcluded: true,
+    externalBetaExcluded: true,
+    paidProductionExcluded: true,
+    publicArtifactsExcluded: true,
+    rawPromptExecutionExcluded: true,
+    signedUrlsAsSourceOfTruthExcluded: true,
+    runtimeToolWorkerProviderExecutionExcluded: true,
+    supabaseWritesExcludedInThisPhase: true,
+    internalTestingExecutionStarted: false,
+    productionAffected: false,
+    supabaseWrites: false,
+    secretValuesIncluded: false,
+    secretsPrintedOrCommitted: false,
+    acceptanceConfirmationPresent,
+    acceptanceCommandMode: approved ? '--accept-operator-scope' : 'not_executed',
+  }
+}
+
+function buildOperatorAcceptanceScopeValidation(
+  allowedScope: Record<string, unknown>,
+  blockedScope: Record<string, unknown>,
+  operatorAcceptanceArtifact: Record<string, unknown>,
+) {
+  const artifactApproved = operatorAcceptanceArtifact.status === 'approved'
+  const acceptedScopeMatchesFrozenScope =
+    artifactApproved && sameStringSet(operatorAcceptanceArtifact.allowedScopeSummary, allowedScope.allowedScope)
+  const blockedScopeUnchanged =
+    artifactApproved && sameStringSet(operatorAcceptanceArtifact.blockedScopeSummary, blockedScope.blockedScope)
+  const noUnlockIntroduced =
+    operatorAcceptanceArtifact.productionExcluded === true &&
+    operatorAcceptanceArtifact.externalBetaExcluded === true &&
+    operatorAcceptanceArtifact.paidProductionExcluded === true &&
+    operatorAcceptanceArtifact.publicArtifactsExcluded === true &&
+    operatorAcceptanceArtifact.rawPromptExecutionExcluded === true &&
+    operatorAcceptanceArtifact.signedUrlsAsSourceOfTruthExcluded === true &&
+    operatorAcceptanceArtifact.runtimeToolWorkerProviderExecutionExcluded === true &&
+    operatorAcceptanceArtifact.supabaseWritesExcludedInThisPhase === true
+  const validationPassed =
+    artifactApproved &&
+    acceptedScopeMatchesFrozenScope &&
+    blockedScopeUnchanged &&
+    noUnlockIntroduced &&
+    operatorAcceptanceArtifact.secretValuesIncluded === false &&
+    operatorAcceptanceArtifact.secretsPrintedOrCommitted === false
+
+  return {
+    phase: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_PHASE,
+    runId: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_RUN_ID,
+    status: validationPassed ? 'passed' : 'blocked',
+    acceptanceArtifactPresent: artifactApproved,
+    acceptedByRole: operatorAcceptanceArtifact.acceptedByRole ?? 'not_recorded',
+    acceptedScope: operatorAcceptanceArtifact.acceptedScope ?? 'not_recorded',
+    acceptedScopeMatchesFrozenScope,
+    blockedScopeUnchanged,
+    noUnlockIntroduced,
+    productionExcluded: operatorAcceptanceArtifact.productionExcluded === true,
+    externalBetaExcluded: operatorAcceptanceArtifact.externalBetaExcluded === true,
+    paidProductionExcluded: operatorAcceptanceArtifact.paidProductionExcluded === true,
+    publicArtifactsExcluded: operatorAcceptanceArtifact.publicArtifactsExcluded === true,
+    rawPromptExecutionExcluded: operatorAcceptanceArtifact.rawPromptExecutionExcluded === true,
+    signedUrlsAsSourceOfTruthExcluded: operatorAcceptanceArtifact.signedUrlsAsSourceOfTruthExcluded === true,
+    runtimeToolWorkerProviderExecutionExcluded:
+      operatorAcceptanceArtifact.runtimeToolWorkerProviderExecutionExcluded === true,
+    supabaseWritesExcludedInThisPhase: operatorAcceptanceArtifact.supabaseWritesExcludedInThisPhase === true,
+    internalTestingExecutionStarted: false,
+    productionAffected: false,
+    supabaseWrites: false,
+    secretsPrintedOrCommitted: false,
+    blockers: validationPassed
+      ? []
+      : [
+          ...(artifactApproved ? [] : ['operator_signoff_missing']),
+          ...(acceptedScopeMatchesFrozenScope ? [] : ['accepted_scope_does_not_match_frozen_scope']),
+          ...(blockedScopeUnchanged ? [] : ['blocked_scope_changed_or_missing']),
+          ...(noUnlockIntroduced ? [] : ['operator_acceptance_would_unlock_blocked_scope']),
+        ],
+  }
+}
+
+function buildOperatorSignoffPacket(
+  allowedScope: Record<string, unknown>,
+  blockedScope: Record<string, unknown>,
+  runbook: Record<string, unknown>,
+  operatorAcceptanceArtifact: Record<string, unknown>,
+  operatorAcceptanceScopeValidation: Record<string, unknown>,
+) {
+  const pr299Decision = readJson(path.join(PR299_REPORT_DIR, 'internal_beta_go_no_go_decision.json'))
+  const pr299Sync = readJson(path.join(PR299_REPORT_DIR, 'trackb_clean_staging_sync_verification.json'))
+  const operatorAcceptanceEnvPresent =
+    process.env[PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_OPERATOR_ACCEPTANCE_CONFIRMATION] === 'true'
+  const signoffPresent =
+    operatorAcceptanceArtifact.status === 'approved' &&
+    operatorAcceptanceScopeValidation.status === 'passed'
+  return {
+    phase: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_PHASE,
+    runId: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_RUN_ID,
+    status: signoffPresent ? 'operator_signoff_recorded' : 'pending_operator_signoff',
     decisionCandidateFromPr299: pr299Decision?.decision ?? 'missing',
     trackBCleanStagingSyncStatus: pr299Sync?.syncStatus ?? 'missing',
     trackBRowsVerified: asNumber(pr299Sync?.rowsVerifiedTotal),
@@ -395,9 +569,12 @@ function buildOperatorSignoffPacket(
     rollbackStopConditions: runbook.stopConditions,
     supportRunbookOwner: runbook.supportOwner,
     signoffRequiredBeforeExecution: true,
-    operatorAcceptanceConfirmationPresent: operatorAcceptanceEnvPresent,
-    signoffPresent: false,
-    signoffSource: 'missing_repo_safe_operator_acceptance_artifact',
+    operatorAcceptanceConfirmationPresent:
+      operatorAcceptanceEnvPresent || operatorAcceptanceArtifact.acceptanceConfirmationPresent === true,
+    signoffPresent,
+    signoffSource: signoffPresent
+      ? operatorAcceptanceArtifact.signoffSource
+      : 'missing_repo_safe_operator_acceptance_artifact',
     internalTestingExecutionStarted: false,
     productionAffected: false,
     supabaseWrites: false,
@@ -410,6 +587,7 @@ function buildDecision(
   blockedScope: Record<string, unknown>,
   operatorSignoff: Record<string, unknown>,
   runbook: Record<string, unknown>,
+  operatorAcceptanceScopeValidation: Record<string, unknown>,
 ) {
   const pr299Decision = readJson(path.join(PR299_REPORT_DIR, 'internal_beta_go_no_go_decision.json'))
   const pr299Sync = readJson(path.join(PR299_REPORT_DIR, 'trackb_clean_staging_sync_verification.json'))
@@ -419,13 +597,21 @@ function buildDecision(
   if (allowedScope.status !== 'frozen') blockers.push('allowed_scope_not_frozen')
   if (blockedScope.status !== 'frozen') blockers.push('blocked_scope_not_frozen')
   if (runbook.status !== 'ready_for_operator_review') blockers.push('support_runbook_not_ready')
-  if (operatorSignoff.signoffPresent !== true) blockers.push('operator_signoff_missing')
+  if (operatorSignoff.signoffPresent !== true) {
+    blockers.push(
+      operatorAcceptanceScopeValidation.acceptanceArtifactPresent === true
+        ? 'operator_acceptance_scope_validation_failed'
+        : 'operator_signoff_missing',
+    )
+  }
 
   const decision: ProductInternalTestingScopeFreezeDecision =
     blockers.includes('operator_signoff_missing') && blockers.length === 1
       ? 'blocked_pending_operator_signoff'
       : blockers.includes('support_runbook_not_ready')
         ? 'blocked_pending_support_runbook'
+        : blockers.includes('operator_acceptance_scope_validation_failed')
+          ? 'blocked_pending_scope_review'
         : blockers.length > 0
           ? 'blocked_pending_scope_review'
           : 'approved_for_future_restricted_internal_testing_launch_rehearsal'
@@ -450,6 +636,36 @@ function buildDecision(
     nextRecommendedPhase: decision.startsWith('approved')
       ? 'PRODUCT_INTERNAL_BETA_AGGREGATION - restricted internal testing launch rehearsal.'
       : 'Resolve operator signoff before launch rehearsal.',
+  }
+}
+
+function buildOperatorSignoffDecisionUpdate(
+  decision: Record<string, unknown>,
+  operatorAcceptanceArtifact: Record<string, unknown>,
+  operatorAcceptanceScopeValidation: Record<string, unknown>,
+) {
+  return {
+    phase: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_PHASE,
+    runId: PRODUCT_INTERNAL_TESTING_SCOPE_FREEZE_RUN_ID,
+    status: decision.status,
+    decision: decision.decision,
+    approvalStatus:
+      decision.decision === 'approved_for_future_restricted_internal_testing_launch_rehearsal'
+        ? 'future_restricted_internal_testing_launch_rehearsal_approved_not_executed'
+        : 'not_approved_for_execution',
+    operatorAcceptanceArtifactStatus: operatorAcceptanceArtifact.status,
+    operatorAcceptanceScopeValidationStatus: operatorAcceptanceScopeValidation.status,
+    signoffPresent: decision.operatorSignoffPresent,
+    internalTestingExecutionStarted: false,
+    productionAllowed: false,
+    externalBetaAllowed: false,
+    paidProductionAllowed: false,
+    publicArtifactsAllowed: false,
+    runtimeExecutionAllowed: false,
+    providerCallsAllowed: false,
+    supabaseWritesAllowedInThisPhase: false,
+    secretsPrintedOrCommitted: false,
+    nextRecommendedPhase: decision.nextRecommendedPhase,
   }
 }
 
@@ -549,10 +765,33 @@ function renderOperatorSignoffMarkdown(reports: ProductInternalTestingScopeFreez
     '# Internal Testing Operator Signoff Packet',
     '',
     `Signoff present: \`${reports.operatorSignoffPacket.signoffPresent}\`.`,
+    `Signoff source: \`${reports.operatorSignoffPacket.signoffSource}\`.`,
     `Decision candidate from PR #299: \`${reports.operatorSignoffPacket.decisionCandidateFromPr299}\`.`,
     `Track B clean-staging sync: \`${reports.operatorSignoffPacket.trackBCleanStagingSyncStatus}\`.`,
     '',
-    'Operator signoff remains required before any launch rehearsal.',
+    reports.operatorSignoffPacket.signoffPresent
+      ? 'Operator signoff has been recorded for a future restricted internal testing launch rehearsal. This phase does not start that rehearsal.'
+      : 'Operator signoff remains required before any launch rehearsal.',
+  ].join('\n')
+}
+
+function renderOperatorAcceptanceMarkdown(reports: ProductInternalTestingScopeFreezeReports) {
+  const artifact = reports.operatorAcceptanceArtifact
+  const validation = reports.operatorAcceptanceScopeValidation
+  return [
+    '# Internal Testing Operator Acceptance',
+    '',
+    `Acceptance status: \`${artifact.status}\`.`,
+    `Accepted by role: \`${artifact.acceptedByRole}\`.`,
+    `Accepted scope: \`${artifact.acceptedScope}\`.`,
+    `Scope validation: \`${validation.status}\`.`,
+    '',
+    'The operator/product-owner acceptance applies only to the frozen restricted internal testing metadata/readiness review scope. Production, external beta, paid production, public artifacts, signed URLs as source of truth, raw prompt execution, runtime/tool/worker/provider execution, broad media, Track A runtime, and Supabase writes remain excluded.',
+    '',
+    `Internal testing execution started: \`${artifact.internalTestingExecutionStarted}\`.`,
+    `Supabase writes in this phase: \`${artifact.supabaseWrites}\`.`,
+    `Production affected: \`${artifact.productionAffected}\`.`,
+    `Secrets printed or committed: \`${artifact.secretsPrintedOrCommitted}\`.`,
   ].join('\n')
 }
 
@@ -575,8 +814,9 @@ function renderDecisionMarkdown(reports: ProductInternalTestingScopeFreezeReport
     '# Internal Testing Scope Freeze Decision',
     '',
     `Decision: \`${reports.decision.decision}\`.`,
+    `Approval status: \`${reports.operatorSignoffDecisionUpdate.approvalStatus}\`.`,
     '',
-    'External beta, paid production, production, public artifacts, providers, workers, route/tool runtime, broad media, raw prompts, signed URLs, Supabase production writes, and Track A runtime remain blocked.',
+    'External beta, paid production, production, public artifacts, providers, workers, route/tool runtime, broad media, raw prompts, signed URLs as source of truth, Supabase writes, and Track A runtime remain blocked. This phase approves only a future restricted internal testing launch rehearsal and does not start it.',
   ].join('\n')
 }
 
@@ -586,6 +826,6 @@ function renderNextPromptMarkdown(reports: ProductInternalTestingScopeFreezeRepo
     '',
     `Current scope-freeze decision: \`${reports.decision.decision}\`.`,
     '',
-    'This next phase is separate. It may rehearse metadata/readiness-only internal testing scope only after operator signoff is resolved. Do not run real runtime execution unless already separately allowed. Do not call providers, create public artifacts, touch production, execute raw prompts, create signed URLs, or use signed URLs as source of truth.',
+    'This next phase is separate and may rehearse metadata/readiness-only internal testing scope only after operator signoff is recorded. Do not run real runtime execution. Do not call providers. Do not create public artifacts. Do not touch production. Do not execute raw prompts. Do not create signed URLs or use signed URLs as source of truth. Do not mutate Supabase; allow only read-only metadata review if explicitly approved in that future phase.',
   ].join('\n')
 }

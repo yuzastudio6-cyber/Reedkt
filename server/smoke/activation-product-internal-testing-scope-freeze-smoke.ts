@@ -44,6 +44,7 @@ for (const doc of [
   'docs/internal-testing-allowed-scope-freeze.md',
   'docs/internal-testing-blocked-scope-freeze.md',
   'docs/internal-testing-operator-signoff-packet.md',
+  'docs/internal-testing-operator-acceptance.md',
   'docs/internal-testing-runbook-checklist.md',
   'docs/internal-testing-scope-freeze-decision.md',
   'docs/implementation-prompts/prompt-product-restricted-internal-testing-launch-rehearsal.md',
@@ -96,6 +97,7 @@ const signoff = reports.operatorSignoffPacket as {
   decisionCandidateFromPr299?: string
   trackBCleanStagingSyncStatus?: string
   signoffPresent?: boolean
+  signoffSource?: string
   internalTestingExecutionStarted?: boolean
   productionAffected?: boolean
   supabaseWrites?: boolean
@@ -103,14 +105,64 @@ const signoff = reports.operatorSignoffPacket as {
 }
 assert(signoff.decisionCandidateFromPr299 === 'restricted_internal_testing_candidate', 'PR #299 decision candidate must be loaded.')
 assert(signoff.trackBCleanStagingSyncStatus === 'completed', 'Track B clean-staging sync must be completed.')
-assert(signoff.signoffPresent === false, 'Operator signoff must remain absent by default.')
 assert(signoff.internalTestingExecutionStarted === false, 'Internal testing execution must not start.')
 assert(signoff.productionAffected === false, 'Production must not be affected.')
 assert(signoff.supabaseWrites === false, 'Supabase writes must not run.')
 assert(signoff.secretsPrintedOrCommitted === false, 'Secrets must not be printed or committed.')
 
+const acceptanceArtifact = reports.operatorAcceptanceArtifact as {
+  status?: string
+  acceptedByRole?: string
+  acceptedScope?: string
+  productionExcluded?: boolean
+  externalBetaExcluded?: boolean
+  paidProductionExcluded?: boolean
+  publicArtifactsExcluded?: boolean
+  rawPromptExecutionExcluded?: boolean
+  signedUrlsAsSourceOfTruthExcluded?: boolean
+  runtimeToolWorkerProviderExecutionExcluded?: boolean
+  supabaseWritesExcludedInThisPhase?: boolean
+  internalTestingExecutionStarted?: boolean
+  productionAffected?: boolean
+  supabaseWrites?: boolean
+  secretValuesIncluded?: boolean
+  secretsPrintedOrCommitted?: boolean
+}
+const acceptanceValidation = reports.operatorAcceptanceScopeValidation as {
+  status?: string
+  acceptanceArtifactPresent?: boolean
+  acceptedScopeMatchesFrozenScope?: boolean
+  blockedScopeUnchanged?: boolean
+  noUnlockIntroduced?: boolean
+  internalTestingExecutionStarted?: boolean
+  productionAffected?: boolean
+  supabaseWrites?: boolean
+  secretsPrintedOrCommitted?: boolean
+}
+assert(['approved', 'missing_operator_acceptance'].includes(String(acceptanceArtifact.status)), 'Acceptance artifact status must be explicit.')
+assert(acceptanceArtifact.productionExcluded === true, 'Operator acceptance must exclude production.')
+assert(acceptanceArtifact.externalBetaExcluded === true, 'Operator acceptance must exclude external beta.')
+assert(acceptanceArtifact.paidProductionExcluded === true, 'Operator acceptance must exclude paid production.')
+assert(acceptanceArtifact.publicArtifactsExcluded === true, 'Operator acceptance must exclude public artifacts.')
+assert(acceptanceArtifact.rawPromptExecutionExcluded === true, 'Operator acceptance must exclude raw prompt execution.')
+assert(acceptanceArtifact.signedUrlsAsSourceOfTruthExcluded === true, 'Operator acceptance must exclude signed URL source of truth.')
+assert(acceptanceArtifact.runtimeToolWorkerProviderExecutionExcluded === true, 'Operator acceptance must exclude runtime/tool/worker/provider execution.')
+assert(acceptanceArtifact.supabaseWritesExcludedInThisPhase === true, 'Operator acceptance must exclude Supabase writes in this phase.')
+assert(acceptanceArtifact.internalTestingExecutionStarted === false, 'Acceptance artifact must not start internal testing.')
+assert(acceptanceArtifact.productionAffected === false, 'Acceptance artifact must not affect production.')
+assert(acceptanceArtifact.supabaseWrites === false, 'Acceptance artifact must not run Supabase writes.')
+assert(acceptanceArtifact.secretValuesIncluded === false, 'Acceptance artifact must not include secret values.')
+assert(acceptanceArtifact.secretsPrintedOrCommitted === false, 'Acceptance artifact must not print or commit secrets.')
+assert(acceptanceValidation.internalTestingExecutionStarted === false, 'Acceptance validation must not start internal testing.')
+assert(acceptanceValidation.productionAffected === false, 'Acceptance validation must not affect production.')
+assert(acceptanceValidation.supabaseWrites === false, 'Acceptance validation must not run Supabase writes.')
+assert(acceptanceValidation.secretsPrintedOrCommitted === false, 'Acceptance validation must not print or commit secrets.')
+
 const decision = reports.decision as {
   decision?: string
+  status?: string
+  approvedForFutureRestrictedInternalTestingLaunchRehearsal?: boolean
+  operatorSignoffPresent?: boolean
   externalBetaAllowed?: boolean
   paidProductionAllowed?: boolean
   productionAllowed?: boolean
@@ -119,7 +171,25 @@ const decision = reports.decision as {
   providerCallsAllowed?: boolean
   supabaseWritesAllowedInThisPhase?: boolean
 }
-assert(decision.decision === 'blocked_pending_operator_signoff', 'Decision must block pending operator signoff by default.')
+if (decision.decision === 'approved_for_future_restricted_internal_testing_launch_rehearsal') {
+  assert(decision.status === 'passed', 'Approved decision must have passed status.')
+  assert(decision.approvedForFutureRestrictedInternalTestingLaunchRehearsal === true, 'Approved decision must set future rehearsal approval.')
+  assert(decision.operatorSignoffPresent === true, 'Approved decision requires operator signoff.')
+  assert(signoff.signoffPresent === true, 'Approved decision requires signoff packet to record signoff.')
+  assert(signoff.signoffSource === 'pasted_prompt_operator_acceptance', 'Approved signoff must come from the repo-safe prompt acceptance artifact.')
+  assert(acceptanceArtifact.status === 'approved', 'Approved decision requires approved acceptance artifact.')
+  assert(acceptanceArtifact.acceptedByRole === 'operator/product_owner', 'Approved acceptance must record operator/product owner role.')
+  assert(acceptanceArtifact.acceptedScope === 'restricted_internal_testing_metadata_readiness_review', 'Approved acceptance must record restricted metadata/readiness scope.')
+  assert(acceptanceValidation.status === 'passed', 'Approved decision requires passed acceptance validation.')
+  assert(acceptanceValidation.acceptanceArtifactPresent === true, 'Approved decision requires acceptance artifact.')
+  assert(acceptanceValidation.acceptedScopeMatchesFrozenScope === true, 'Approved decision requires accepted scope to match frozen scope.')
+  assert(acceptanceValidation.blockedScopeUnchanged === true, 'Approved decision requires blocked scope to remain unchanged.')
+  assert(acceptanceValidation.noUnlockIntroduced === true, 'Approved decision must not introduce an unlock.')
+} else {
+  assert(decision.decision === 'blocked_pending_operator_signoff', 'Decision must block pending operator signoff until acceptance is recorded.')
+  assert(decision.operatorSignoffPresent === false, 'Blocked decision must not record operator signoff.')
+  assert(signoff.signoffPresent === false, 'Blocked decision must not record signoff in packet.')
+}
 assert(decision.externalBetaAllowed === false, 'External beta must stay blocked.')
 assert(decision.paidProductionAllowed === false, 'Paid production must stay blocked.')
 assert(decision.productionAllowed === false, 'Production must stay blocked.')
@@ -136,6 +206,7 @@ const corpus = [
     'docs/internal-testing-allowed-scope-freeze.md',
     'docs/internal-testing-blocked-scope-freeze.md',
     'docs/internal-testing-operator-signoff-packet.md',
+    'docs/internal-testing-operator-acceptance.md',
     'docs/internal-testing-runbook-checklist.md',
     'docs/internal-testing-scope-freeze-decision.md',
     'docs/implementation-prompts/prompt-product-restricted-internal-testing-launch-rehearsal.md',
@@ -171,6 +242,7 @@ const reportDocText = [
     'docs/internal-testing-allowed-scope-freeze.md',
     'docs/internal-testing-blocked-scope-freeze.md',
     'docs/internal-testing-operator-signoff-packet.md',
+    'docs/internal-testing-operator-acceptance.md',
     'docs/internal-testing-runbook-checklist.md',
     'docs/internal-testing-scope-freeze-decision.md',
     'docs/implementation-prompts/prompt-product-restricted-internal-testing-launch-rehearsal.md',
@@ -200,7 +272,7 @@ console.log(JSON.stringify({
   decision: decision.decision,
   allowedScopeFrozen: true,
   blockedScopeFrozen: true,
-  signoffPresent: false,
+  signoffPresent: signoff.signoffPresent,
   productionAffected: false,
   externalBetaAllowed: false,
   paidProductionAllowed: false,

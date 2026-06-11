@@ -1,12 +1,10 @@
 {
   "phase": "product-internal-testing-scope-freeze",
   "runId": "product-internal-testing-scope-freeze-20260611",
-  "status": "blocked",
-  "decision": "blocked_pending_operator_signoff",
-  "activeBlockers": [
-    "operator_signoff_missing"
-  ],
-  "signoffPresent": false,
+  "status": "passed",
+  "decision": "approved_for_future_restricted_internal_testing_launch_rehearsal",
+  "activeBlockers": [],
+  "signoffPresent": true,
   "allowedScopeFrozen": true,
   "blockedScopeFrozen": true,
   "runbookReadyForOperatorReview": true,
@@ -21,5 +19,5 @@
   "production": false,
   "supabaseWrites": false,
   "secretsPrintedOrCommitted": false,
-  "nextRecommendedPhase": "Resolve operator signoff before launch rehearsal."
+  "nextRecommendedPhase": "PRODUCT_INTERNAL_BETA_AGGREGATION - restricted internal testing launch rehearsal."
 }

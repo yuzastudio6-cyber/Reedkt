@@ -12,6 +12,9 @@ export interface ProductInternalTestingScopeFreezeReports {
   allowedScopeFreeze: Record<string, unknown>
   blockedScopeFreeze: Record<string, unknown>
   operatorSignoffPacket: Record<string, unknown>
+  operatorAcceptanceScopeValidation: Record<string, unknown>
+  operatorAcceptanceArtifact: Record<string, unknown>
+  operatorSignoffDecisionUpdate: Record<string, unknown>
   runbookChecklist: Record<string, unknown>
   decision: Record<string, unknown>
   blockerReport: Record<string, unknown>

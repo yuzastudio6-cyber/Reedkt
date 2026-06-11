@@ -17,6 +17,7 @@ const result = await executeProductInternalTestingScopeFreeze({
   execute: true,
   metadataOnly: process.argv.includes('--metadata-only'),
   keepTemp: process.argv.includes('--keep-temp'),
+  acceptOperatorScope: process.argv.includes('--accept-operator-scope'),
 })
 
 console.log(JSON.stringify(readProductInternalTestingScopeFreezeSummary(), null, 2))

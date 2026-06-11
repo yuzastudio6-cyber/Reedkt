@@ -1,10 +1,8 @@
 {
   "phase": "product-internal-testing-scope-freeze",
   "runId": "product-internal-testing-scope-freeze-20260611",
-  "status": "blocked",
-  "activeBlockers": [
-    "operator_signoff_missing"
-  ],
+  "status": "passed",
+  "activeBlockers": [],
   "blockedScope": [
     "production",
     "external_beta",

@@ -12,6 +12,9 @@
     "internal_testing_allowed_scope_freeze.json",
     "internal_testing_blocked_scope_freeze.json",
     "internal_testing_operator_signoff_packet.json",
+    "internal_testing_operator_acceptance_scope_validation.json",
+    "internal_testing_operator_acceptance_artifact.json",
+    "internal_testing_operator_signoff_decision_update.json",
     "internal_testing_runbook_checklist.json",
     "internal_testing_scope_freeze_decision.json",
     "internal_testing_scope_freeze_blocker_report.json",
@@ -41,7 +44,8 @@
     "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
     "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT"
   ],
-  "optionalOperatorAcceptanceConfirmation": "REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_OPERATOR_ACCEPTANCE",
+  "operatorAcceptanceConfirmation": "REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_OPERATOR_ACCEPTANCE",
+  "operatorAcceptanceMode": "--accept-operator-scope",
   "sourcePrs": {
     "internalBetaReadinessAggregation": 299,
     "trackBCleanStagingBackfill": 298,

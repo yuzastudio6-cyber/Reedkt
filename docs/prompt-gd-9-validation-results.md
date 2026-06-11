@@ -6,7 +6,7 @@ Branch: `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
 
 Base: `origin/codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review`
 
-PR: pending
+PR: [#300](https://github.com/yuzastudio6-cyber/Reedkt/pull/300)
 
 ## Result
 

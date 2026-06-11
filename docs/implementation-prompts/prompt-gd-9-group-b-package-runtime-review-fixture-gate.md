@@ -22,7 +22,7 @@ It does not approve Group B fixture execution now. It does not approve Remotion 
 
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-gd-9-group-b-package-runtime-review-fixture-gate`
 - Branch: `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
-- PR: pending
+- PR: [#300](https://github.com/yuzastudio6-cyber/Reedkt/pull/300)
 - Probe run: `gd8-2026-06-11T02-01-11-738Z`
 - Group B import outcome: passed for `animejs`, `lottie-web`, and `remotion`
 - Decision state: `group_b_partially_ready_for_gd10`

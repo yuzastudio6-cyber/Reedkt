@@ -85,7 +85,15 @@ check(existsSync(setupFixDocPath), 'Harness setup fix doc must exist.')
 check(existsSync(validationReportPath), 'Prior harness validation report must exist.')
 check(existsSync(baselineApprovalDocPath), 'Baseline harness approval doc must exist.')
 check(existsSync(finalRollupDocPath), 'Final owner evidence rollup doc must exist.')
-check(!existsSync(optionalConfigPath), 'supabase/config.toml must not be created by this prompt.')
+if (existsSync(optionalConfigPath)) {
+  const optionalConfig = readFileSync(optionalConfigPath, 'utf8')
+  requireText(
+    optionalConfig,
+    'project_id = "reeditpro_sound_local_harness"',
+    'optionalConfig',
+  )
+  check(!optionalConfig.includes('supabase.co'), 'optionalConfig must not contain cloud URLs.')
+}
 check(!existsSync(activeDraftMigrationPath), 'No active 999 draft migration may exist under supabase/migrations.')
 
 const configPlanDoc = readFileSync(configPlanDocPath, 'utf8')

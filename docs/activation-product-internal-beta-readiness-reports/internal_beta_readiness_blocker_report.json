@@ -1,0 +1,31 @@
+{
+  "phase": "product-internal-beta-readiness-aggregation",
+  "runId": "product-internal-beta-readiness-aggregation-20260611",
+  "status": "passed",
+  "activeBlockers": [],
+  "trackBCleanStagingSync": "completed",
+  "blockedScopesPreserved": [
+    "production",
+    "external_beta",
+    "paid_production",
+    "provider_calls",
+    "live_tool_execution",
+    "worker_execution",
+    "route_execution",
+    "public_artifacts",
+    "signed_urls_as_source_of_truth",
+    "broad_media_processing",
+    "vlm_qwen_runtime",
+    "demucs_runtime",
+    "raw_prompt_execution",
+    "supabase_production_promotion",
+    "track_a_runtime"
+  ],
+  "productionAffected": false,
+  "externalBetaUnlocked": false,
+  "paidProductionUnlocked": false,
+  "publicArtifactsCreated": false,
+  "providerCalls": false,
+  "runtimeExecution": false,
+  "secretsPrintedOrCommitted": false
+}

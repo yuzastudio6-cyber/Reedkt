@@ -1,0 +1,54 @@
+{
+  "phase": "product-internal-beta-readiness-aggregation",
+  "runId": "product-internal-beta-readiness-aggregation-20260611",
+  "status": "owner_map_recorded",
+  "owners": [
+    {
+      "ownerId": "SUPABASE_RLS_STORAGE_DATABASE",
+      "ownership": "Supabase schema/RLS/storage/migration/milestone sync",
+      "status": "clean_staging_metadata_synced"
+    },
+    {
+      "ownerId": "TRACK_B_MEDIA_PROCESSING",
+      "ownership": "Track B tool readiness and exports",
+      "status": "restricted_internal_candidate"
+    },
+    {
+      "ownerId": "WORKER_RUNTIME_JOBS",
+      "ownership": "Worker execution gates",
+      "status": "blocked_pending_separate_approval"
+    },
+    {
+      "ownerId": "PROVIDER_GATEWAY",
+      "ownership": "Provider execution gates",
+      "status": "blocked_pending_separate_approval"
+    },
+    {
+      "ownerId": "MODEL_ORCHESTRATION",
+      "ownership": "Qwen/VLM/provider model orchestration",
+      "status": "qwen_vlm_runtime_excluded"
+    },
+    {
+      "ownerId": "OBSERVABILITY_AUDIT_COST",
+      "ownership": "Audit/cost/abuse signals",
+      "status": "metadata_review_only"
+    },
+    {
+      "ownerId": "PUBLIC_ARTIFACT_DELIVERY",
+      "ownership": "Public artifact and signed URL policy",
+      "status": "blocked_pending_separate_approval"
+    },
+    {
+      "ownerId": "FRONTEND_PRODUCT_UX",
+      "ownership": "Internal testing UX and operator scope signoff",
+      "status": "next_owner_for_scope_freeze"
+    },
+    {
+      "ownerId": "TRACK_A_VISUAL_VIDEO_PIPELINE",
+      "ownership": "Track A visual/video runtime",
+      "status": "not_touched"
+    }
+  ],
+  "nextOwner": "FRONTEND_PRODUCT_UX",
+  "nextPrompt": "docs/implementation-prompts/prompt-product-internal-testing-scope-freeze.md"
+}

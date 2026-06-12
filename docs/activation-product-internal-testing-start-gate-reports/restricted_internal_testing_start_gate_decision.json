@@ -1,0 +1,21 @@
+{
+  "phase": "product-internal-testing-start-gate",
+  "runId": "product-internal-testing-start-gate-20260612",
+  "decision": "approved_for_restricted_internal_testing_start",
+  "status": "passed",
+  "approvedForRestrictedInternalTestingStart": true,
+  "session0Started": false,
+  "internalTestingExecutionStarted": false,
+  "startGateApprovedInThisPhase": true,
+  "externalBetaAllowed": false,
+  "paidProductionAllowed": false,
+  "productionAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "rawPromptExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "supabaseWritesAllowedInThisPhase": false,
+  "blockers": [],
+  "nextRecommendedPhase": "PRODUCT_INTERNAL_BETA_AGGREGATION - restricted internal testing session 0."
+}

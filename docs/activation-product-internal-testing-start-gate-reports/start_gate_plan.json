@@ -1,0 +1,70 @@
+{
+  "phase": "product-internal-testing-start-gate",
+  "runId": "product-internal-testing-start-gate-20260612",
+  "branch": "codex/rp-product-restricted-internal-testing-start-gate",
+  "baseBranch": "codex/rp-product-restricted-internal-testing-launch-rehearsal",
+  "prTitle": "[product] Restricted internal testing start gate",
+  "mode": "metadata_readiness_final_start_gate_only",
+  "reportDir": "docs/activation-product-internal-testing-start-gate-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "start_gate_plan.json",
+    "start_gate_evidence_validation.json",
+    "restricted_internal_testing_start_packet.json",
+    "start_gate_blocked_scope_assertion.json",
+    "restricted_internal_testing_start_gate_decision.json",
+    "start_gate_blocker_report.json",
+    "start_gate_readiness_report.json",
+    "start_gate_private_artifact_manifest.json"
+  ],
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_START_GATE",
+    "REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_LAUNCH_REHEARSAL",
+    "REEDITPRO_CONFIRM_INTERNAL_TESTING_SCOPE_FREEZE",
+    "REEDITPRO_CONFIRM_OPERATOR_SIGNOFF_PACKET",
+    "REEDITPRO_CONFIRM_READINESS_METADATA_AGGREGATION",
+    "REEDITPRO_CONFIRM_RESTRICTED_INTERNAL_TESTING_OPERATOR_ACCEPTANCE"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_INTERNAL_TESTING_EXECUTION",
+    "REEDITPRO_CONFIRM_PRODUCT_INTERNAL_BETA_UNLOCK",
+    "REEDITPRO_CONFIRM_EXTERNAL_BETA_UNLOCK",
+    "REEDITPRO_CONFIRM_PAID_PRODUCTION_UNLOCK",
+    "REEDITPRO_CONFIRM_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME",
+    "REEDITPRO_CONFIRM_PUBLIC_ARTIFACTS",
+    "REEDITPRO_CONFIRM_SIGNED_URL_DELIVERY",
+    "REEDITPRO_CONFIRM_RAW_PROMPT_EXECUTION",
+    "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT"
+  ],
+  "sourcePrs": {
+    "launchRehearsal": 306,
+    "scopeFreezeAndSignoff": 302,
+    "internalBetaReadinessAggregation": 299,
+    "trackBCleanStagingBackfill": 298,
+    "cleanStagingSchemaRlsVerification": 283,
+    "trackBReadinessRollupExport": 196
+  },
+  "docsBasis": [
+    "https://supabase.com/docs/reference/cli/supabase-db-push",
+    "https://supabase.com/docs/guides/deployment/database-migrations",
+    "https://supabase.com/changelog.md"
+  ],
+  "noSupabaseWrites": true,
+  "noSql": true,
+  "noRuntimeExecution": true,
+  "noWorkerExecution": true,
+  "noProviderCalls": true,
+  "noPublicArtifacts": true,
+  "noProductionUnlock": true,
+  "noExternalBetaUnlock": true,
+  "noPaidProductionUnlock": true,
+  "session0Started": false,
+  "nextRecommendedPhase": "PRODUCT_INTERNAL_BETA_AGGREGATION - restricted internal testing session 0."
+}

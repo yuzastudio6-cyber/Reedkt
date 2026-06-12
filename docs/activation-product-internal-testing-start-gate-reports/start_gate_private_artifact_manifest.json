@@ -1,0 +1,36 @@
+{
+  "phase": "product-internal-testing-start-gate",
+  "runId": "product-internal-testing-start-gate-20260612",
+  "status": "safe_metadata_only",
+  "reportDir": "docs/activation-product-internal-testing-start-gate-reports",
+  "reports": [
+    "source_of_truth_ownership_audit.json",
+    "start_gate_plan.json",
+    "start_gate_evidence_validation.json",
+    "restricted_internal_testing_start_packet.json",
+    "start_gate_blocked_scope_assertion.json",
+    "restricted_internal_testing_start_gate_decision.json",
+    "start_gate_blocker_report.json",
+    "start_gate_readiness_report.json",
+    "start_gate_private_artifact_manifest.json"
+  ],
+  "committedArtifactsAllowed": [
+    "json_reports",
+    "markdown_docs",
+    "server_only_typescript",
+    "package_scripts"
+  ],
+  "excludedArtifacts": [
+    "secrets",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "private_payloads",
+    "media_payloads",
+    "signed_urls",
+    "node_modules",
+    "caches",
+    "build_output"
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "phase": "product-internal-testing-start-gate",
+  "runId": "product-internal-testing-start-gate-20260612",
+  "status": "ready",
+  "startGateMode": "metadata_readiness_only",
+  "startGateMayApprove": "restricted_internal_testing_start",
+  "session0Started": false,
+  "internalTestingExecutionStarted": false,
+  "allowedScope": [
+    "readiness_dashboards_and_reports",
+    "supabase_clean_staging_milestone_registry_review",
+    "track_b_readiness_capability_route_metadata_review",
+    "completed_generated_controlled_evidence_review",
+    "noop_route_dry_run_evidence_review",
+    "metadata_only_duckdb_polars_route_dry_run_evidence_review",
+    "audio_timing_deepfilternet_signalsmith_evidence_review",
+    "media_data_opencv_pyav_pyscenedetect_sharp_duckdb_polars_evidence_review",
+    "desktop_hybrid_planning_simulation_evidence_review"
+  ],
+  "blockedScope": [
+    "production",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "public_output",
+    "signed_urls_as_source_of_truth",
+    "raw_prompt_execution",
+    "live_worker_execution",
+    "live_tool_route_execution",
+    "provider_calls",
+    "broad_media",
+    "arbitrary_media",
+    "vlm_qwen_runtime",
+    "demucs_runtime",
+    "track_a_runtime",
+    "direct_supabase_production_writes"
+  ],
+  "testerFlowSummary": [
+    "review readiness reports and dashboards",
+    "review Track B clean-staging registry metadata",
+    "review allowed and blocked scope",
+    "review evidence artifacts",
+    "file issues through approved intake",
+    "stop on blocked-scope attempts"
+  ],
+  "issueIntakePath": "docs/activation-product-internal-testing-launch-rehearsal-reports/launch_rehearsal_issue_intake.json",
+  "stopConditionsPath": "docs/activation-product-internal-testing-launch-rehearsal-reports/launch_rehearsal_stop_conditions.json",
+  "ownerMap": [
+    {
+      "area": "supabase_milestone_sync",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE"
+    },
+    {
+      "area": "track_b_readiness",
+      "owner": "TRACK_B_MEDIA_PROCESSING"
+    },
+    {
+      "area": "docs_runbook",
+      "owner": "FRONTEND_PRODUCT_UX"
+    },
+    {
+      "area": "security_or_secret_exposure",
+      "owner": "OBSERVABILITY_AUDIT_COST"
+    },
+    {
+      "area": "runtime_provider_tool_worker_route_attempt",
+      "owner": "WORKER_RUNTIME_JOBS/PROVIDER_GATEWAY"
+    },
+    {
+      "area": "public_artifact_or_signed_url_policy",
+      "owner": "PUBLIC_ARTIFACT_DELIVERY"
+    },
+    {
+      "area": "production_external_beta_paid_production_unlock_attempt",
+      "owner": "PRODUCT_INTERNAL_BETA_AGGREGATION"
+    }
+  ],
+  "supportRunbookOwner": "FRONTEND_PRODUCT_UX",
+  "supabaseMilestoneSyncStatus": "completed",
+  "cleanStagingProjectRef": "fnjiylwirntrqdcwpbho",
+  "trackBRowsVerified": 259,
+  "canonicalTrackBToolsVerified": 18,
+  "testerMayDo": [
+    "review_readiness_dashboards_and_reports",
+    "review_clean_staging_milestone_registry_metadata",
+    "review_track_b_capability_and_route_metadata",
+    "review_completed_evidence_artifacts",
+    "submit_issues_through_approved_issue_intake",
+    "stop_and_escalate_on_any_blocked_scope_attempt"
+  ],
+  "testerMustNotDo": [
+    "start_internal_testing_session_0_in_this_phase",
+    "execute_tools_workers_routes_or_providers",
+    "process_broad_or_arbitrary_media",
+    "create_public_artifacts_or_public_output",
+    "use_signed_urls_as_source_of_truth",
+    "execute_raw_prompts_as_worker_input",
+    "mutate_supabase_or_production",
+    "unlock_external_beta_paid_production_or_production"
+  ],
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "trackBBackfillWrite": false,
+  "runtimeExecution": false,
+  "providerCalls": false,
+  "publicArtifacts": false,
+  "signedUrlSourceOfTruth": false,
+  "rawPromptExecution": false,
+  "production": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretsPrintedOrCommitted": false
+}

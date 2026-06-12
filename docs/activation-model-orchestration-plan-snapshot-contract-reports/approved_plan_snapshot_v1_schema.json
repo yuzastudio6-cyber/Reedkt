@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/approved_plan_snapshot_v1.json",
+  "title": "Approved Plan Snapshot V1",
+  "schemaId": "approved_plan_snapshot_v1",
+  "schemaVersion": "v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "approvedSnapshotId",
+    "candidateRef",
+    "approvalRecordRef",
+    "sourceOfTruthRefs",
+    "immutablePlanVersion",
+    "workerHandoffStatus",
+    "safety"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "approved_plan_snapshot_v1"
+    },
+    "approvedSnapshotId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidateRef": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approvalRecordRef": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceOfTruthRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "immutablePlanVersion": {
+      "const": true
+    },
+    "workerHandoffStatus": {
+      "enum": [
+        "not_allowed_in_this_phase",
+        "future_worker_phase_requires_separate_approval"
+      ]
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providerCallsAllowed",
+        "workerExecutionAllowed",
+        "toolExecutionAllowed",
+        "routeExecutionAllowed",
+        "rawPromptForwardingAllowed",
+        "publicArtifactsAllowed",
+        "signedUrlsAsSourceOfTruthAllowed",
+        "directMutationAllowed",
+        "productionMutationAllowed"
+      ],
+      "properties": {
+        "providerCallsAllowed": {
+          "const": false
+        },
+        "workerExecutionAllowed": {
+          "const": false
+        },
+        "toolExecutionAllowed": {
+          "const": false
+        },
+        "routeExecutionAllowed": {
+          "const": false
+        },
+        "rawPromptForwardingAllowed": {
+          "const": false
+        },
+        "publicArtifactsAllowed": {
+          "const": false
+        },
+        "signedUrlsAsSourceOfTruthAllowed": {
+          "const": false
+        },
+        "directMutationAllowed": {
+          "const": false
+        },
+        "productionMutationAllowed": {
+          "const": false
+        }
+      }
+    }
+  },
+  "failClosedOnValidationError": true,
+  "runtimeExecutionAllowedInThisPhase": false
+}

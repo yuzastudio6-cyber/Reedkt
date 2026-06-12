@@ -1,0 +1,145 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract",
+  "runId": "model-orchestration-plan-snapshot-contract-20260612",
+  "ownerWorkstream": "MODEL_ORCHESTRATION",
+  "relatedWorkstreams": [
+    "PRODUCT_INTERNAL_BETA_AGGREGATION",
+    "SUPABASE_RLS_STORAGE_DATABASE",
+    "TRACK_B_MEDIA_PROCESSING",
+    "PROVIDER_GATEWAY",
+    "WORKER_RUNTIME_JOBS",
+    "PUBLIC_ARTIFACT_DELIVERY"
+  ],
+  "explicitlyNotOwned": [
+    "provider_api_execution",
+    "secret_payload_access",
+    "worker_execution",
+    "tool_execution",
+    "route_execution",
+    "media_processing",
+    "supabase_write",
+    "production_deploy",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "signed_url_delivery"
+  ],
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true
+    },
+    {
+      "path": "model-routing-policy.md",
+      "present": true
+    },
+    {
+      "path": "provider-prompt-architecture.md",
+      "present": true
+    },
+    {
+      "path": "approved-plan-snapshot-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false
+    },
+    {
+      "path": "docs/provider-gateway-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/tool-call-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/tool-readiness-worker-runtime-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": true
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": true
+    },
+    {
+      "path": "docs/restricted-internal-testing-session-0-decision.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-dry-run-approval-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-deepseek-audit-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-product-internal-testing-session-0-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-track-b-tool-route-manifest-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-track-b-capability-manifests-reports",
+      "present": true
+    },
+    {
+      "path": "docs/implementation-prompts/prompt-model-orchestration-plan-snapshot-contract.md",
+      "present": true
+    }
+  ],
+  "pr322Decision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
+  "pr322Status": "blocked",
+  "pr320Decision": "not_attempted",
+  "pr320Status": "not_attempted",
+  "pr311Session0Decision": "restricted_internal_testing_session_0_passed",
+  "pr298TrackBStatus": "passed",
+  "missingSourceDocsAreAuditFacts": true,
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

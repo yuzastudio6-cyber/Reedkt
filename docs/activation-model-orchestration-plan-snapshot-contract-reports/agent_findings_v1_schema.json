@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/agent_findings_v1.json",
+  "title": "Agent Findings V1",
+  "schemaId": "agent_findings_v1",
+  "schemaVersion": "v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "findingId",
+    "sourceEvidenceRefs",
+    "summary",
+    "observations",
+    "risks",
+    "safety"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "agent_findings_v1"
+    },
+    "findingId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceEvidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "minItems": 1
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providerCallsAllowed",
+        "workerExecutionAllowed",
+        "toolExecutionAllowed",
+        "routeExecutionAllowed",
+        "rawPromptForwardingAllowed",
+        "publicArtifactsAllowed",
+        "signedUrlsAsSourceOfTruthAllowed",
+        "directMutationAllowed",
+        "productionMutationAllowed"
+      ],
+      "properties": {
+        "providerCallsAllowed": {
+          "const": false
+        },
+        "workerExecutionAllowed": {
+          "const": false
+        },
+        "toolExecutionAllowed": {
+          "const": false
+        },
+        "routeExecutionAllowed": {
+          "const": false
+        },
+        "rawPromptForwardingAllowed": {
+          "const": false
+        },
+        "publicArtifactsAllowed": {
+          "const": false
+        },
+        "signedUrlsAsSourceOfTruthAllowed": {
+          "const": false
+        },
+        "directMutationAllowed": {
+          "const": false
+        },
+        "productionMutationAllowed": {
+          "const": false
+        }
+      }
+    }
+  },
+  "failClosedOnValidationError": true,
+  "runtimeExecutionAllowedInThisPhase": false
+}

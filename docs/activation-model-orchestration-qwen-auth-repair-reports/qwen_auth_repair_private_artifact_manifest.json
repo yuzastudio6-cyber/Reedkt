@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T162802",
+  "runId": "modeldryrun1-20260612T180646",
   "reportDir": "docs/activation-model-orchestration-qwen-auth-repair-reports",
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
@@ -9,6 +9,7 @@
     "qwen_secret_access_report.json",
     "qwen_auth_baseurl_probe_report.json",
     "qwen_repaired_provider_dry_run_report.json",
+    "qwen_green_evidence_canonicalization_report.json",
     "qwen_auth_repair_decision.json",
     "qwen_auth_repair_blocker_report.json",
     "qwen_auth_repair_readiness_report.json",

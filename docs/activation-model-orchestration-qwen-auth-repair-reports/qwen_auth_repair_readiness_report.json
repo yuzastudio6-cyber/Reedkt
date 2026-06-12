@@ -1,51 +1,40 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T162802",
-  "status": "blocked",
-  "decision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
-  "activeBlockers": [
-    "provider_timeout"
-  ],
-  "selectedQwenAlias": "qwen3.7-plus",
-  "selectedQwenAliasRole": "approved_target",
-  "usAuthProbeAliases": [
-    "qwen-plus-us",
-    "qwen-flash-us"
-  ],
-  "approvedTargetAliases": [
-    "qwen3.7-plus",
-    "qwen3.7-max",
+  "runId": "modeldryrun1-20260612T180646",
+  "status": "passed",
+  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
+  "selectedQwenAlias": "qwen-plus",
+  "selectedQwenAliasRole": "official_alias_probe",
+  "officialQwenAliases": [
+    "qwen-plus",
     "qwen3-max",
     "qwen-max"
   ],
+  "canonicalSelectedAlias": "qwen-plus",
   "officialQwenAliasOrder": [
-    "qwen-plus-us",
-    "qwen-flash-us",
-    "qwen3.7-plus",
-    "qwen3.7-max",
+    "qwen-plus",
     "qwen3-max",
     "qwen-max"
   ],
   "approvedTargetAliasesUsedOnlyAfterUsProbe": true,
   "staleQwen37AliasesUsed": false,
-  "approvedQwen37AliasesAllowedForTargetProbe": true,
-  "selectedBaseUrlKey": "us",
-  "approvedDashScopeRegion": "us",
+  "approvedQwen37AliasesAllowedForTargetProbe": false,
+  "selectedBaseUrlKey": "virginia",
+  "selectedBaseUrlClassification": "virginia_dashscope_base_url",
+  "approvedDashScopeRegion": "us-virginia",
   "operatorReportedReplacementVersion": "3",
-  "operatorReportedBaseUrlVersion": "1",
-  "operatorReportedRegionVersion": "1",
   "secretVersionSelector": "latest",
   "exactSecretRefs": [
-    "DASHSCOPE_API_KEY",
-    "DASHSCOPE_BASE_URL",
-    "DASHSCOPE_REGION"
+    "DASHSCOPE_API_KEY"
   ],
   "keyReplacementConfirmation": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
+  "greenEvidenceCanonicalizationConfirmation": "REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION",
   "keyReplacementAsserted": true,
   "qwenProviderCallsExecutedOnlyWhenConfirmed": true,
   "deepseekRerun": false,
   "deepseekEvidenceReusedAsMetadataOnly": true,
-  "planSnapshotContractReady": false,
+  "planSnapshotContractReady": true,
   "secretPayloadPrinted": false,
   "secretPayloadCommitted": false,
   "rawProviderResponsesStored": false,

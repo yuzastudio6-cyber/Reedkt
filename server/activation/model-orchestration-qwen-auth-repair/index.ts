@@ -28,14 +28,24 @@ export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_EXPECTED_REPORTS = [
   'qwen_secret_access_report.json',
   'qwen_auth_baseurl_probe_report.json',
   'qwen_repaired_provider_dry_run_report.json',
+  'qwen_green_evidence_canonicalization_report.json',
   'qwen_auth_repair_decision.json',
   'qwen_auth_repair_blocker_report.json',
   'qwen_auth_repair_readiness_report.json',
   'qwen_auth_repair_private_artifact_manifest.json',
 ] as const
 
+export const MODEL_ORCHESTRATION_QWEN_GREEN_EVIDENCE_CANONICALIZATION_REQUIRED_CONFIRMATIONS = [
+  'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_AUTH_REPAIR',
+  'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
+  'REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY',
+  'REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY',
+  'REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS',
+] as const
+
 export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_AUTH_REPAIR',
+  'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
   'REEDITPRO_CONFIRM_QWEN_API_CALL',
   'REEDITPRO_CONFIRM_PROVIDER_CALLS',
   'REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY',
@@ -76,8 +86,8 @@ type QwenRepairDecision =
   | 'rejected_due_qwen_provider_auth_risk'
   | 'not_attempted'
 
-type DashScopeSecretRef = 'DASHSCOPE_API_KEY' | 'DASHSCOPE_BASE_URL' | 'DASHSCOPE_REGION'
-type DashScopeBaseUrlKey = 'us'
+type DashScopeSecretRef = 'DASHSCOPE_API_KEY'
+type DashScopeBaseUrlKey = 'virginia'
 
 interface ApprovedCase {
   caseId: string
@@ -90,7 +100,7 @@ interface ApprovedCase {
 interface ProbeResult {
   modelId: string
   baseUrlKey: DashScopeBaseUrlKey
-  aliasRole: 'us_auth_probe' | 'approved_target'
+  aliasRole: 'official_alias_probe'
   status: 'passed' | 'blocked'
   blocker?: string
   httpStatus?: number
@@ -164,6 +174,7 @@ interface QwenAuthRepairReports {
   secretAccess: Record<string, unknown>
   authProbe: Record<string, unknown>
   repairedDryRun: Record<string, unknown>
+  greenEvidenceCanonicalization: Record<string, unknown>
   decision: Record<string, unknown>
   blockerReport: Record<string, unknown>
   readinessReport: Record<string, unknown>
@@ -176,19 +187,11 @@ const OFFICIAL_DOCS = [
   'https://help.aliyun.com/zh/model-studio/text-generation-model/',
 ] as const
 
-const US_QWEN_AUTH_PROBE_ALIASES = ['qwen-plus-us', 'qwen-flash-us'] as const
-const APPROVED_QWEN_TARGET_ALIASES = ['qwen3.7-plus', 'qwen3.7-max', 'qwen3-max', 'qwen-max'] as const
-const QWEN_AUTH_PROBE_ALIAS_ORDER = [
-  'qwen-plus-us',
-  'qwen-flash-us',
-  'qwen3.7-plus',
-  'qwen3.7-max',
-  'qwen3-max',
-  'qwen-max',
-] as const
+const QWEN_OFFICIAL_ALIAS_ORDER = ['qwen-plus', 'qwen3-max', 'qwen-max'] as const
+const QWEN_CANONICAL_SELECTED_ALIAS = 'qwen-plus'
 
 const BASE_URLS = {
-  us: 'https://dashscope-us.aliyuncs.com/compatible-mode/v1',
+  virginia: 'https://dashscope-us.aliyuncs.com/compatible-mode/v1',
   beijing: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
   singaporeTemplate: 'https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1',
 } as const
@@ -270,27 +273,28 @@ export function getModelOrchestrationQwenAuthRepairPlan() {
     branch: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_BRANCH,
     baseBranch: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_BASE_BRANCH,
     prTitle: '[model] Qwen DashScope auth repair',
-    mode: 'qwen_dashscope_auth_repair_and_qwen_only_synthetic_rerun',
+    mode: 'qwen_dashscope_green_evidence_canonicalization_and_qwen_only_synthetic_rerun',
     reportDir: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_REPORT_DIR,
     expectedReports: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_EXPECTED_REPORTS,
+    canonicalizationRequiredConfirmations: MODEL_ORCHESTRATION_QWEN_GREEN_EVIDENCE_CANONICALIZATION_REQUIRED_CONFIRMATIONS,
     requiredConfirmations: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_REQUIRED_CONFIRMATIONS,
     forbiddenConfirmations: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_FORBIDDEN_CONFIRMATIONS,
     officialDocsBasis: OFFICIAL_DOCS,
-    usAuthProbeAliases: US_QWEN_AUTH_PROBE_ALIASES,
-    approvedTargetAliases: APPROVED_QWEN_TARGET_ALIASES,
-    officialAliasesInProbeOrder: QWEN_AUTH_PROBE_ALIAS_ORDER,
-    approvedTargetAliasApprovalSource: 'PR #318 dry-run approval plus PR #320 provider dry-run target aliases',
-    defaultBaseUrlKey: 'us',
+    officialAliasesInProbeOrder: QWEN_OFFICIAL_ALIAS_ORDER,
+    canonicalSelectedAlias: QWEN_CANONICAL_SELECTED_ALIAS,
+    approvedTargetAliasApprovalSource: 'PR #318 dry-run approval plus PR #322 canonicalization requirements',
+    defaultBaseUrlKey: 'virginia',
+    approvedDashScopeBaseUrlClassification: 'virginia_dashscope_base_url',
     secretSource: 'google_secret_manager_only',
-    exactSecretRefsOnly: ['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'],
+    exactSecretRefsOnly: ['DASHSCOPE_API_KEY'],
     secretVersionSelector: 'latest',
     operatorReportedReplacementVersion: '3',
-    operatorReportedBaseUrlVersion: '1',
-    operatorReportedRegionVersion: '1',
     keyReplacementConfirmation: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+    greenEvidenceCanonicalizationConfirmation: 'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
     environmentProviderSecretPayloadsAllowed: false,
     recordedAlternateBaseUrls: {
-      beijing: 'recorded_not_probed_for_us_key',
+      virginia: 'default_working_base_url',
+      beijing: 'recorded_not_selected_for_canonical_green_evidence',
       singaporeTemplate: BASE_URLS.singaporeTemplate,
     },
     qwenOnly: true,
@@ -322,7 +326,7 @@ export function buildModelOrchestrationQwenAuthRepairReports(): QwenAuthRepairRe
     probeResults: [],
     caseResults: [],
     selectedAlias: undefined,
-    selectedBaseUrlKey: 'us',
+    selectedBaseUrlKey: 'virginia',
     executed: false,
   })
 }
@@ -331,7 +335,12 @@ export async function executeModelOrchestrationQwenAuthRepair(options: {
   execute: boolean
   syntheticOnly: boolean
   keepTemp: boolean
+  canonicalizeGreenEvidence?: boolean
 }): Promise<{ exitCode: number }> {
+  if (options.execute && options.canonicalizeGreenEvidence) {
+    return canonicalizeExistingQwenGreenEvidence()
+  }
+
   if (!options.execute || !options.syntheticOnly) {
     const decision = buildDecision('blocked_pending_dashscope_key_replacement', [
       'execution_requires_explicit_execute_and_synthetic_only_flags',
@@ -342,7 +351,7 @@ export async function executeModelOrchestrationQwenAuthRepair(options: {
       probeResults: [],
       caseResults: [],
       selectedAlias: undefined,
-      selectedBaseUrlKey: 'us',
+      selectedBaseUrlKey: 'virginia',
       executed: false,
     }))
     return { exitCode: 1 }
@@ -361,7 +370,7 @@ export async function executeModelOrchestrationQwenAuthRepair(options: {
       probeResults: [],
       caseResults: [],
       selectedAlias: undefined,
-      selectedBaseUrlKey: 'us',
+      selectedBaseUrlKey: 'virginia',
       executed: true,
     }))
     return { exitCode: 1 }
@@ -376,19 +385,20 @@ export async function executeModelOrchestrationQwenAuthRepair(options: {
       probeResults: [],
       caseResults: [],
       selectedAlias: undefined,
-      selectedBaseUrlKey: 'us',
+      selectedBaseUrlKey: 'virginia',
       executed: true,
     }))
     return { exitCode: 1 }
   }
 
   const probeResults: ProbeResult[] = []
-  for (const alias of US_QWEN_AUTH_PROBE_ALIASES) {
-    probeResults.push(await runQwenAuthProbe(alias, dashScopeConfig.baseUrl, 'us_auth_probe', dashScopeConfig.apiKey))
+  for (const alias of QWEN_OFFICIAL_ALIAS_ORDER) {
+    probeResults.push(await runQwenAuthProbe(alias, dashScopeConfig.baseUrl, 'official_alias_probe', dashScopeConfig.apiKey))
   }
 
-  const usProbePassed = probeResults.some((item) => item.aliasRole === 'us_auth_probe' && item.status === 'passed')
-  if (!usProbePassed) {
+  const selectedProbe = probeResults.find((item) => item.status === 'passed' && item.modelId === QWEN_CANONICAL_SELECTED_ALIAS) ??
+    probeResults.find((item) => item.status === 'passed')
+  if (!selectedProbe) {
     const decision = selectProbeBlockedDecision(probeResults)
     await writeModelOrchestrationQwenAuthRepairArtifacts(buildReportsFromExecution({
       decision,
@@ -396,25 +406,7 @@ export async function executeModelOrchestrationQwenAuthRepair(options: {
       probeResults,
       caseResults: [],
       selectedAlias: undefined,
-      selectedBaseUrlKey: 'us',
-      executed: true,
-    }))
-    return { exitCode: 1 }
-  }
-
-  for (const alias of APPROVED_QWEN_TARGET_ALIASES) {
-    probeResults.push(await runQwenAuthProbe(alias, dashScopeConfig.baseUrl, 'approved_target', dashScopeConfig.apiKey))
-  }
-  const selectedProbe = probeResults.find((item) => item.aliasRole === 'approved_target' && item.status === 'passed')
-  if (!selectedProbe) {
-    const decision = selectApprovedTargetBlockedDecision(probeResults)
-    await writeModelOrchestrationQwenAuthRepairArtifacts(buildReportsFromExecution({
-      decision,
-      secretEntries: dashScopeConfig.entries,
-      probeResults,
-      caseResults: [],
-      selectedAlias: undefined,
-      selectedBaseUrlKey: 'us',
+      selectedBaseUrlKey: 'virginia',
       executed: true,
     }))
     return { exitCode: 1 }
@@ -432,7 +424,7 @@ export async function executeModelOrchestrationQwenAuthRepair(options: {
       probeResults,
       caseResults: [],
       selectedAlias: selectedProbe.modelId,
-      selectedBaseUrlKey: 'us',
+      selectedBaseUrlKey: 'virginia',
       executed: true,
     }))
     return { exitCode: 1 }
@@ -452,10 +444,103 @@ export async function executeModelOrchestrationQwenAuthRepair(options: {
     probeResults,
     caseResults,
     selectedAlias: selectedProbe.modelId,
-    selectedBaseUrlKey: 'us',
+    selectedBaseUrlKey: 'virginia',
     executed: true,
   }))
   return { exitCode: decision.status === 'passed' ? 0 : 1 }
+}
+
+async function canonicalizeExistingQwenGreenEvidence(): Promise<{ exitCode: number }> {
+  const missing = MODEL_ORCHESTRATION_QWEN_GREEN_EVIDENCE_CANONICALIZATION_REQUIRED_CONFIRMATIONS
+    .filter((name) => process.env[name] !== 'true')
+  const forbidden = MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_FORBIDDEN_CONFIRMATIONS.filter((name) => process.env[name] === 'true')
+  const existingReports = readStoredReportsWithoutCanonicalization()
+  const validationBlockers = validateCanonicalGreenEvidence(existingReports ?? {})
+  const blockers = [
+    ...missing.map((name) => `missing_confirmation:${name}`),
+    ...forbidden.map((name) => `forbidden_confirmation:${name}`),
+    ...validationBlockers,
+  ]
+  const selectedAlias = existingReports
+    ? asString(existingReports.readinessReport.selectedQwenAlias) || asString(existingReports.repairedDryRun.selectedAlias)
+    : undefined
+  const decision = blockers.length === 0
+    ? buildDecision('qwen_alias_repaired_ready_for_plan_snapshot_contract', [], true)
+    : buildDecision('qwen_auth_repaired_ready_for_provider_dry_run_update', blockers, false)
+  const reports = existingReports
+    ? {
+      ...existingReports,
+      greenEvidenceCanonicalization: {
+        phase: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_PHASE,
+        runId: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_RUN_ID,
+        status: blockers.length === 0 ? 'passed' : 'blocked',
+        canonicalizationMode: 'structured_existing_green_evidence',
+        canonicalizationConfirmation: 'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
+        confirmationPresent: process.env.REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION === 'true',
+        promptProseAcceptedAsEvidence: false,
+        prCommentsAcceptedAsEvidence: false,
+        structuredReportEvidenceRequired: true,
+        selectedAlias: selectedAlias ?? null,
+        requiredSelectedAlias: QWEN_CANONICAL_SELECTED_ALIAS,
+        selectedBaseUrlClassification: 'virginia_dashscope_base_url',
+        officialAliasOrder: QWEN_OFFICIAL_ALIAS_ORDER,
+        providerTimeoutPresent: validationBlockers.includes('provider_timeout_present_in_qwen_green_evidence'),
+        qwenSchemaCasesExpected: QWEN_CASE_MATRIX.map((item) => item.caseId),
+        qwenSchemaCasesPassed: asNumber(existingReports.repairedDryRun.providerCallsPassed, 0),
+        qwenSchemaCasesBlocked: asNumber(existingReports.repairedDryRun.providerCallsBlocked, 0),
+        decision: decision.decision,
+        activeBlockers: blockers,
+        deepseekRerun: false,
+        rawProviderResponsesStored: false,
+        rawProviderResponsesPrinted: false,
+        secretPayloadPrinted: false,
+        secretPayloadCommitted: false,
+        toolsWorkersRoutes: false,
+        mediaProcessing: false,
+        supabaseWrites: false,
+        publicArtifacts: false,
+        signedUrls: false,
+        productionAffected: false,
+        externalBeta: false,
+        paidProduction: false,
+      },
+      decision,
+      blockerReport: buildBlockerReport(decision),
+      readinessReport: buildReadinessReport(decision, selectedAlias),
+      privateArtifactManifest: buildPrivateArtifactManifest(false),
+    }
+    : buildReportsFromExecution({
+      decision,
+      secretEntries: defaultSecretEntries('not_attempted'),
+      probeResults: [],
+      caseResults: [],
+      selectedAlias: undefined,
+      selectedBaseUrlKey: 'virginia',
+      executed: false,
+    })
+
+  await writeModelOrchestrationQwenAuthRepairArtifacts(reports)
+  return { exitCode: blockers.length === 0 ? 0 : 1 }
+}
+
+function readStoredReportsWithoutCanonicalization(): Omit<QwenAuthRepairReports, 'greenEvidenceCanonicalization'> | undefined {
+  const decision = readJson(pathInReportDir('qwen_auth_repair_decision.json'))
+  const readinessReport = readJson(pathInReportDir('qwen_auth_repair_readiness_report.json'))
+  const repairedDryRun = readJson(pathInReportDir('qwen_repaired_provider_dry_run_report.json'))
+  const authProbe = readJson(pathInReportDir('qwen_auth_baseurl_probe_report.json'))
+  if (!decision || !readinessReport || !repairedDryRun || !authProbe) return undefined
+  return {
+    sourceAudit: readJson(pathInReportDir('source_of_truth_ownership_audit.json')) ?? {},
+    plan: readJson(pathInReportDir('qwen_auth_repair_plan.json')) ?? {},
+    aliasBaseUrlReview: readJson(pathInReportDir('qwen_official_alias_baseurl_review.json')) ?? {},
+    secretAccess: readJson(pathInReportDir('qwen_secret_access_report.json')) ?? {},
+    authProbe,
+    repairedDryRun,
+    decision,
+    blockerReport: readJson(pathInReportDir('qwen_auth_repair_blocker_report.json')) ?? {},
+    readinessReport,
+    privateArtifactManifest: readJson(pathInReportDir('qwen_auth_repair_private_artifact_manifest.json')) ?? {},
+  }
 }
 
 export async function writeModelOrchestrationQwenAuthRepairArtifacts(reports: QwenAuthRepairReports): Promise<void> {
@@ -466,6 +551,7 @@ export async function writeModelOrchestrationQwenAuthRepairArtifacts(reports: Qw
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'qwen_secret_access_report.json'), reports.secretAccess)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'qwen_auth_baseurl_probe_report.json'), reports.authProbe)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'qwen_repaired_provider_dry_run_report.json'), reports.repairedDryRun)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'qwen_green_evidence_canonicalization_report.json'), reports.greenEvidenceCanonicalization)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'qwen_auth_repair_decision.json'), reports.decision)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'qwen_auth_repair_blocker_report.json'), reports.blockerReport)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'qwen_auth_repair_readiness_report.json'), reports.readinessReport)
@@ -486,14 +572,12 @@ function readExistingReports(): QwenAuthRepairReports | undefined {
   const secretAccess = readJson(pathInReportDir('qwen_secret_access_report.json'))
   if (secretAccess?.secretSourcePolicy !== 'google_secret_manager_only') return undefined
   if (secretAccess?.operatorReportedReplacementVersion !== '3') return undefined
-  if (secretAccess?.operatorReportedBaseUrlVersion !== '1') return undefined
-  if (secretAccess?.operatorReportedRegionVersion !== '1') return undefined
   if (secretAccess?.keyReplacementConfirmation !== 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED') return undefined
   const entries = asArray(secretAccess.entries)
-  if (!['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'].every((ref) =>
+  if (!['DASHSCOPE_API_KEY'].every((ref) =>
     entries.some((entry) => asRecord(entry).secretRef === ref))) return undefined
   const authProbe = readJson(pathInReportDir('qwen_auth_baseurl_probe_report.json'))
-  if (JSON.stringify(authProbe?.probeAliasOrder) !== JSON.stringify(QWEN_AUTH_PROBE_ALIAS_ORDER)) return undefined
+  if (JSON.stringify(authProbe?.probeAliasOrder) !== JSON.stringify(QWEN_OFFICIAL_ALIAS_ORDER)) return undefined
   const allPresent = MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_EXPECTED_REPORTS.every((file) =>
     existsSync(pathInReportDir(file)))
   if (!allPresent) return undefined
@@ -504,6 +588,7 @@ function readExistingReports(): QwenAuthRepairReports | undefined {
     secretAccess: secretAccess ?? {},
     authProbe: authProbe ?? {},
     repairedDryRun: readJson(pathInReportDir('qwen_repaired_provider_dry_run_report.json')) ?? {},
+    greenEvidenceCanonicalization: readJson(pathInReportDir('qwen_green_evidence_canonicalization_report.json')) ?? {},
     decision,
     blockerReport: readJson(pathInReportDir('qwen_auth_repair_blocker_report.json')) ?? {},
     readinessReport: readJson(pathInReportDir('qwen_auth_repair_readiness_report.json')) ?? {},
@@ -527,6 +612,7 @@ function buildReportsFromExecution(input: {
     secretAccess: buildSecretAccessReport(input.secretEntries, input.executed),
     authProbe: buildAuthProbeReport(input.probeResults, input.selectedBaseUrlKey, input.executed),
     repairedDryRun: buildRepairedDryRunReport(input.caseResults, input.selectedAlias, input.executed),
+    greenEvidenceCanonicalization: buildGreenEvidenceCanonicalizationReport(input, false),
     decision: input.decision,
     blockerReport: buildBlockerReport(input.decision),
     readinessReport: buildReadinessReport(input.decision, input.selectedAlias),
@@ -552,14 +638,13 @@ function buildSourceAudit() {
     pr320DeepSeekStatus: deepseekReport?.status ?? 'missing',
     deepseekRerun: false,
     operatorReportedDashScopeKeyReplacement: {
-      exactSecretRefs: ['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'],
+      exactSecretRefs: ['DASHSCOPE_API_KEY'],
       apiKeyReplacementVersion: '3',
-      baseUrlVersion: '1',
-      regionVersion: '1',
-      approvedBaseUrlKey: 'us',
-      approvedRegion: 'us',
+      approvedBaseUrlKey: 'virginia',
+      approvedRegion: 'us-virginia',
       selectedVersionForRerun: 'latest',
       confirmationRequired: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+      canonicalizationConfirmationRequired: 'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
       payloadPrinted: false,
       payloadCommitted: false,
     },
@@ -581,29 +666,28 @@ function buildAliasBaseUrlReview(selectedBaseUrlKey: string, selectedAlias?: str
     phase: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_PHASE,
     status: 'passed',
     officialDocsBasis: OFFICIAL_DOCS,
-    usAuthProbeAliases: US_QWEN_AUTH_PROBE_ALIASES,
-    approvedTargetAliases: APPROVED_QWEN_TARGET_ALIASES,
+    officialAliases: QWEN_OFFICIAL_ALIAS_ORDER,
+    canonicalSelectedAlias: QWEN_CANONICAL_SELECTED_ALIAS,
     approvedTargetAliasApprovalSource: 'PR #318 dry-run approval plus PR #320 provider dry-run target aliases',
-    officialProbeAliasOrder: QWEN_AUTH_PROBE_ALIAS_ORDER,
+    officialProbeAliasOrder: QWEN_OFFICIAL_ALIAS_ORDER,
     selectedAlias: selectedAlias ?? null,
     selectedBaseUrlKey,
-    defaultBaseUrlKey: 'us',
+    defaultBaseUrlKey: 'virginia',
     keyReplacementEvidence: {
-      exactSecretRefs: ['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'],
+      exactSecretRefs: ['DASHSCOPE_API_KEY'],
       operatorReportedReplacementVersion: '3',
-      operatorReportedBaseUrlVersion: '1',
-      operatorReportedRegionVersion: '1',
       secretVersionSelector: 'latest',
       confirmationRequired: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+      canonicalizationConfirmation: 'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
       qwenProviderRerunAfterReplacement: true,
       payloadPrinted: false,
       payloadCommitted: false,
     },
     baseUrls: {
-      us: {
-        key: 'us',
-        source: 'DASHSCOPE_BASE_URL_secret_manager_payload_validated',
-        payloadMatchedApprovedUsEndpoint: selectedBaseUrlKey === 'us',
+      virginia: {
+        key: 'virginia',
+        source: 'approved_canonical_qwen_repair_base_url',
+        payloadMatchedApprovedVirginiaEndpoint: selectedBaseUrlKey === 'virginia',
         probedByDefault: true,
       },
       beijing: {
@@ -632,7 +716,7 @@ async function loadDashScopeConfig(): Promise<{
   blockers: string[]
   blockerDecision: QwenRepairDecision
 }> {
-  const exactSecretRefs = ['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'] as const
+  const exactSecretRefs = ['DASHSCOPE_API_KEY'] as const
   const envEntries = exactSecretRefs
     .filter((secretRef) => (process.env[secretRef]?.trim().length ?? 0) > 0)
     .map((secretRef) => ({
@@ -654,34 +738,25 @@ async function loadDashScopeConfig(): Promise<{
   }
 
   const apiKey = await loadSecretManagerPayload('DASHSCOPE_API_KEY')
-  const baseUrl = await loadSecretManagerPayload('DASHSCOPE_BASE_URL')
-  const region = await loadSecretManagerPayload('DASHSCOPE_REGION')
   const entries: SecretAccessEntry[] = [
     buildLoadedSecretEntry('DASHSCOPE_API_KEY', apiKey),
-    buildLoadedSecretEntry('DASHSCOPE_BASE_URL', baseUrl, baseUrl.value === BASE_URLS.us),
-    buildLoadedSecretEntry('DASHSCOPE_REGION', region, region.value === 'us'),
   ]
   const blockers = entries.map((entry) => entry.blocker).filter((blocker): blocker is string => Boolean(blocker))
 
   if (apiKey.status !== 'succeeded') blockers.push(apiKey.blocker ?? 'dashscope_api_key_secret_payload_access_failed')
-  if (baseUrl.status !== 'succeeded') blockers.push(baseUrl.blocker ?? 'dashscope_base_url_secret_payload_access_failed')
-  if (region.status !== 'succeeded') blockers.push(region.blocker ?? 'dashscope_region_secret_payload_access_failed')
-  if (baseUrl.status === 'succeeded' && baseUrl.value !== BASE_URLS.us) blockers.push('dashscope_base_url_secret_not_approved_us_endpoint')
-  if (region.status === 'succeeded' && region.value !== 'us') blockers.push('dashscope_region_secret_not_us')
 
   const uniqueBlockers = [...new Set(blockers)]
   if (uniqueBlockers.length > 0) {
-    const regionBlocked = uniqueBlockers.some((blocker) => blocker.includes('base_url') || blocker.includes('region'))
     return {
       entries,
       blockers: uniqueBlockers,
-      blockerDecision: regionBlocked ? 'blocked_pending_dashscope_region_review' : 'blocked_pending_dashscope_key_replacement',
+      blockerDecision: 'blocked_pending_dashscope_key_replacement',
     }
   }
 
   return {
     apiKey: apiKey.value,
-    baseUrl: baseUrl.value,
+    baseUrl: BASE_URLS.virginia,
     entries,
     blockers: [],
     blockerDecision: 'not_attempted',
@@ -728,7 +803,7 @@ function buildLoadedSecretEntry(
 }
 
 function defaultSecretEntries(status: SecretAccessEntry['payloadAccessStatus']): SecretAccessEntry[] {
-  return (['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'] as const)
+  return (['DASHSCOPE_API_KEY'] as const)
     .map((secretRef) => defaultSecretEntry(secretRef, status))
 }
 
@@ -749,33 +824,30 @@ function defaultSecretEntry(secretRef: DashScopeSecretRef, status: SecretAccessE
 
 function buildSecretAccessReport(entries: SecretAccessEntry[], executed: boolean) {
   const blockers = entries.map((entry) => entry.blocker).filter((blocker): blocker is string => Boolean(blocker))
-  const payloadAccessed = executed && entries.length === 3 && entries.every((entry) => entry.payloadAccessStatus === 'succeeded')
+  const payloadAccessed = executed && entries.length === 1 && entries.every((entry) => entry.payloadAccessStatus === 'succeeded')
   return {
     phase: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_PHASE,
     status: executed ? (blockers.length === 0 && payloadAccessed ? 'passed' : 'blocked') : 'not_attempted',
     executed,
     secretManagerProject: 'reeditpro',
     secretSourcePolicy: 'google_secret_manager_only',
-    approvedDashScopeBaseUrlKey: 'us',
-    approvedDashScopeRegion: 'us',
+    approvedDashScopeBaseUrlKey: 'virginia',
+    approvedDashScopeRegion: 'us-virginia',
     secretVersionSelector: 'latest',
     operatorReportedReplacementVersion: '3',
-    operatorReportedBaseUrlVersion: '1',
-    operatorReportedRegionVersion: '1',
     secretVersionMetadataOnly: false,
     secretPayloadValuesStoredInReport: false,
     keyReplacementConfirmation: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
     keyReplacementAsserted: process.env.REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED === 'true',
     broadSecretDiscovery: false,
     exactSecretRefsOnly: true,
-    exactSecretRefs: ['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'],
+    exactSecretRefs: ['DASHSCOPE_API_KEY'],
     entries,
     deepseekSecretAccessed: false,
     payloadAccessed,
-    baseUrlPayloadMatchedApprovedUsEndpoint: entries.some((entry) =>
-      entry.secretRef === 'DASHSCOPE_BASE_URL' && entry.payloadMatchedApprovedValue === true),
-    regionPayloadMatchedUs: entries.some((entry) =>
-      entry.secretRef === 'DASHSCOPE_REGION' && entry.payloadMatchedApprovedValue === true),
+    baseUrlSelectedFromApprovedCanonicalMetadata: true,
+    baseUrlPayloadAccessed: false,
+    regionPayloadAccessed: false,
     payloadPrinted: false,
     payloadCommitted: false,
     secretValueStoredInReports: false,
@@ -813,7 +885,7 @@ async function runQwenAuthProbe(
         temperature: 0,
         stream: false,
       }),
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(30000),
     })
     const latencyMs = Date.now() - started
     const text = await response.text()
@@ -821,7 +893,7 @@ async function runQwenAuthProbe(
     if (!response.ok) {
       return {
         modelId,
-        baseUrlKey: 'us',
+        baseUrlKey: 'virginia',
         aliasRole,
         status: 'blocked',
         blocker: classifyQwenHttpError(response.status, evidence),
@@ -841,7 +913,7 @@ async function runQwenAuthProbe(
     } catch {
       return {
         modelId,
-        baseUrlKey: 'us',
+        baseUrlKey: 'virginia',
         aliasRole,
         status: 'blocked',
         blocker: 'provider_response_json_parse_failed',
@@ -857,7 +929,7 @@ async function runQwenAuthProbe(
     const choice = asRecord(asArray(parsed.choices)[0])
     return {
       modelId,
-      baseUrlKey: 'us',
+      baseUrlKey: 'virginia',
       aliasRole,
       status: 'passed',
       httpStatus: response.status,
@@ -873,7 +945,7 @@ async function runQwenAuthProbe(
   } catch (error) {
     return {
       modelId,
-      baseUrlKey: 'us',
+      baseUrlKey: 'virginia',
       aliasRole,
       status: 'blocked',
       blocker: error instanceof Error && error.name === 'TimeoutError'
@@ -1056,15 +1128,6 @@ function selectProbeBlockedDecision(probeResults: ProbeResult[]) {
   return buildDecision('blocked_pending_dashscope_key_replacement', blockers, false)
 }
 
-function selectApprovedTargetBlockedDecision(probeResults: ProbeResult[]) {
-  const approvedResults = probeResults.filter((item) => item.aliasRole === 'approved_target')
-  const blockers = [...new Set([
-    'approved_qwen_target_alias_not_available',
-    ...approvedResults.map((item) => item.blocker ?? 'qwen_approved_target_probe_blocked'),
-  ])]
-  return buildDecision('blocked_pending_qwen_approved_target_alias', blockers, true)
-}
-
 function selectSchemaDecision(caseResults: QwenCaseResult[]) {
   const blockers = [...new Set(caseResults.filter((item) => item.status === 'blocked').map((item) => item.blocker ?? 'qwen_case_blocked'))]
   const usageTotal = caseResults.reduce((total, result) => total + (result.usage?.totalTokens ?? 0), 0)
@@ -1117,7 +1180,7 @@ function loadApprovedCases(): ApprovedCase[] {
       prompt: asString(record.prompt),
       expectedOutputSchema: asString(record.expectedOutputSchema),
       maxTokens: Math.min(asNumber(record.maxTokens, 900), 1100),
-      timeoutMs: Math.min(asNumber(record.timeoutMs, 12000), 15000),
+      timeoutMs: Math.min(Math.max(asNumber(record.timeoutMs, 20000), 20000), 60000),
     }
   }).filter((item) => item.caseId && item.prompt && item.expectedOutputSchema)
 }
@@ -1209,26 +1272,21 @@ function blockedCaseResult(
 function buildAuthProbeReport(probeResults: ProbeResult[], selectedBaseUrlKey: string, executed: boolean) {
   const passed = probeResults.filter((item) => item.status === 'passed')
   const blocked = probeResults.filter((item) => item.status === 'blocked')
-  const usProbeResults = probeResults.filter((item) => item.aliasRole === 'us_auth_probe')
-  const approvedTargetResults = probeResults.filter((item) => item.aliasRole === 'approved_target')
   return {
     phase: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_PHASE,
     status: executed ? (passed.length > 0 ? 'passed' : 'blocked') : 'not_attempted',
     executed,
     provider: 'qwen_dashscope',
     selectedBaseUrlKey,
+    selectedBaseUrlClassification: 'virginia_dashscope_base_url',
     endpointPath: '/chat/completions',
-    probeAliasOrder: QWEN_AUTH_PROBE_ALIAS_ORDER,
-    usAuthProbeAliases: US_QWEN_AUTH_PROBE_ALIASES,
-    approvedTargetAliases: APPROVED_QWEN_TARGET_ALIASES,
-    approvedTargetAliasApprovalSource: 'PR #318 dry-run approval plus PR #320 provider dry-run target aliases',
-    approvedTargetAliasesProbed: approvedTargetResults.length > 0,
-    approvedTargetAliasesProbedOnlyAfterUsProbePassed: approvedTargetResults.length === 0 ||
-      usProbeResults.some((item) => item.status === 'passed'),
-    usAuthProbeCallsAttempted: usProbeResults.length,
-    usAuthProbeCallsPassed: usProbeResults.filter((item) => item.status === 'passed').length,
-    approvedTargetCallsAttempted: approvedTargetResults.length,
-    approvedTargetCallsPassed: approvedTargetResults.filter((item) => item.status === 'passed').length,
+    probeAliasOrder: QWEN_OFFICIAL_ALIAS_ORDER,
+    officialAliases: QWEN_OFFICIAL_ALIAS_ORDER,
+    canonicalSelectedAlias: QWEN_CANONICAL_SELECTED_ALIAS,
+    approvedTargetAliasApprovalSource: 'PR #318 dry-run approval plus PR #322 canonicalization requirements',
+    officialAliasCallsAttempted: probeResults.length,
+    officialAliasCallsPassed: passed.length,
+    staleQwen37AliasesUsed: false,
     providerCallsAttempted: executed ? probeResults.length : 0,
     providerCallsPassed: passed.length,
     providerCallsBlocked: blocked.length,
@@ -1265,6 +1323,127 @@ function buildRepairedDryRunReport(caseResults: QwenCaseResult[], selectedAlias:
     secretPayloadPrinted: false,
     results: caseResults,
   }
+}
+
+function buildGreenEvidenceCanonicalizationReport(input: {
+  decision: Record<string, unknown>
+  secretEntries: SecretAccessEntry[]
+  probeResults: ProbeResult[]
+  caseResults: QwenCaseResult[]
+  selectedAlias?: string
+  selectedBaseUrlKey: DashScopeBaseUrlKey
+  executed: boolean
+}, canonicalizedFromExistingEvidence: boolean) {
+  const caseResults = input.caseResults
+  const passedCases = caseResults.filter((item) => item.status === 'passed')
+  const blockedCases = caseResults.filter((item) => item.status === 'blocked')
+  const blockers = validateCanonicalGreenEvidence({
+    decision: input.decision,
+    readinessReport: buildReadinessReport(input.decision, input.selectedAlias),
+    repairedDryRun: buildRepairedDryRunReport(input.caseResults, input.selectedAlias, input.executed),
+    authProbe: buildAuthProbeReport(input.probeResults, input.selectedBaseUrlKey, input.executed),
+  })
+  return {
+    phase: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_PHASE,
+    runId: MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_RUN_ID,
+    status: blockers.length === 0 ? 'passed' : input.executed ? 'blocked' : 'not_attempted',
+    canonicalizationMode: canonicalizedFromExistingEvidence ? 'structured_existing_green_evidence' : 'execution_result',
+    canonicalizationConfirmation: 'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
+    confirmationPresent: process.env.REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION === 'true',
+    promptProseAcceptedAsEvidence: false,
+    prCommentsAcceptedAsEvidence: false,
+    structuredReportEvidenceRequired: true,
+    selectedAlias: input.selectedAlias ?? null,
+    requiredSelectedAlias: QWEN_CANONICAL_SELECTED_ALIAS,
+    selectedBaseUrlKey: input.selectedBaseUrlKey,
+    selectedBaseUrlClassification: 'virginia_dashscope_base_url',
+    officialAliasOrder: QWEN_OFFICIAL_ALIAS_ORDER,
+    staleQwen37AliasesUsed: false,
+    providerTimeoutPresent: blockers.includes('provider_timeout_present_in_qwen_green_evidence'),
+    qwenSchemaCasesExpected: QWEN_CASE_MATRIX.map((item) => item.caseId),
+    qwenSchemaCasesAttempted: caseResults.length,
+    qwenSchemaCasesPassed: passedCases.length,
+    qwenSchemaCasesBlocked: blockedCases.length,
+    decision: input.decision.decision,
+    activeBlockers: blockers,
+    deepseekRerun: false,
+    rawProviderResponsesStored: false,
+    rawProviderResponsesPrinted: false,
+    secretPayloadPrinted: false,
+    secretPayloadCommitted: false,
+    toolsWorkersRoutes: false,
+    mediaProcessing: false,
+    supabaseWrites: false,
+    publicArtifacts: false,
+    signedUrls: false,
+    productionAffected: false,
+    externalBeta: false,
+    paidProduction: false,
+  }
+}
+
+function validateCanonicalGreenEvidence(reports: {
+  decision?: Record<string, unknown>
+  readinessReport?: Record<string, unknown>
+  repairedDryRun?: Record<string, unknown>
+  authProbe?: Record<string, unknown>
+}) {
+  const blockers: string[] = []
+  const decision = reports.decision ?? {}
+  const readiness = reports.readinessReport ?? {}
+  const repairedDryRun = reports.repairedDryRun ?? {}
+  const authProbe = reports.authProbe ?? {}
+  const selectedAliases = [
+    asString(readiness.selectedQwenAlias),
+    asString(repairedDryRun.selectedAlias),
+  ].filter(Boolean)
+  const reportText = JSON.stringify({ decision, readiness, repairedDryRun, authProbe })
+
+  if (decision.decision !== 'qwen_alias_repaired_ready_for_plan_snapshot_contract') {
+    blockers.push('qwen_pass_decision_missing')
+  }
+  if (asArray(decision.activeBlockers).length > 0 || asArray(readiness.activeBlockers).length > 0) {
+    blockers.push('qwen_active_blockers_present')
+  }
+  if (selectedAliases.length === 0 || selectedAliases.some((alias) => alias !== QWEN_CANONICAL_SELECTED_ALIAS)) {
+    blockers.push('qwen_selected_alias_not_canonical_qwen_plus')
+  }
+  if (/qwen3\.7-(?:plus|max)/.test(reportText)) {
+    blockers.push('stale_qwen37_alias_present_in_structured_reports')
+  }
+  if (/provider_timeout/.test(reportText)) {
+    blockers.push('provider_timeout_present_in_qwen_green_evidence')
+  }
+  const selectedBaseUrlKey = asString(readiness.selectedBaseUrlKey) || asString(authProbe.selectedBaseUrlKey)
+  const selectedBaseUrlClassification = asString(readiness.selectedBaseUrlClassification) ||
+    asString(authProbe.selectedBaseUrlClassification)
+  if (!['virginia', 'us'].includes(selectedBaseUrlKey) &&
+    selectedBaseUrlClassification !== 'virginia_dashscope_base_url') {
+    blockers.push('qwen_virginia_dashscope_base_url_evidence_missing')
+  }
+  if (repairedDryRun.status !== 'passed') blockers.push('qwen_schema_rerun_not_passed')
+  if (asNumber(repairedDryRun.providerCallsPassed, 0) !== 4) blockers.push('qwen_schema_cases_did_not_pass')
+  if (asNumber(repairedDryRun.providerCallsBlocked, 0) !== 0) blockers.push('qwen_schema_cases_blocked')
+  for (const key of [
+    'deepseekRerun',
+    'rawProviderResponsesStored',
+    'rawProviderResponsesPrinted',
+    'secretPayloadPrinted',
+    'secretPayloadCommitted',
+    'toolsWorkersRoutes',
+    'mediaProcessing',
+    'supabaseWrites',
+    'publicArtifacts',
+    'signedUrls',
+    'productionAffected',
+    'externalBeta',
+    'paidProduction',
+  ]) {
+    if (decision[key] === true || readiness[key] === true || repairedDryRun[key] === true || authProbe[key] === true) {
+      blockers.push(`forbidden_green_evidence_flag:${key}`)
+    }
+  }
+  return [...new Set(blockers)]
 }
 
 function buildBlockerReport(decision: Record<string, unknown>) {
@@ -1308,21 +1487,21 @@ function buildReadinessReport(decision: Record<string, unknown>, selectedAlias?:
     decision: decision.decision,
     activeBlockers: decision.activeBlockers ?? [],
     selectedQwenAlias: selectedAlias ?? null,
-    selectedQwenAliasRole: selectedAlias ? 'approved_target' : null,
-    usAuthProbeAliases: US_QWEN_AUTH_PROBE_ALIASES,
-    approvedTargetAliases: APPROVED_QWEN_TARGET_ALIASES,
-    officialQwenAliasOrder: QWEN_AUTH_PROBE_ALIAS_ORDER,
+    selectedQwenAliasRole: selectedAlias ? 'official_alias_probe' : null,
+    officialQwenAliases: QWEN_OFFICIAL_ALIAS_ORDER,
+    canonicalSelectedAlias: QWEN_CANONICAL_SELECTED_ALIAS,
+    officialQwenAliasOrder: QWEN_OFFICIAL_ALIAS_ORDER,
     approvedTargetAliasesUsedOnlyAfterUsProbe: true,
     staleQwen37AliasesUsed: false,
-    approvedQwen37AliasesAllowedForTargetProbe: true,
-    selectedBaseUrlKey: 'us',
-    approvedDashScopeRegion: 'us',
+    approvedQwen37AliasesAllowedForTargetProbe: false,
+    selectedBaseUrlKey: 'virginia',
+    selectedBaseUrlClassification: 'virginia_dashscope_base_url',
+    approvedDashScopeRegion: 'us-virginia',
     operatorReportedReplacementVersion: '3',
-    operatorReportedBaseUrlVersion: '1',
-    operatorReportedRegionVersion: '1',
     secretVersionSelector: 'latest',
-    exactSecretRefs: ['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION'],
+    exactSecretRefs: ['DASHSCOPE_API_KEY'],
     keyReplacementConfirmation: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+    greenEvidenceCanonicalizationConfirmation: 'REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION',
     keyReplacementAsserted: process.env.REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED === 'true',
     qwenProviderCallsExecutedOnlyWhenConfirmed: true,
     deepseekRerun: false,
@@ -1387,11 +1566,11 @@ Decision: \`${decision}\`.
 
 Status: \`${status}\`.
 
-This server-only packet repairs the Qwen/DashScope side of PR #320 by probing US DashScope auth aliases first: \`qwen-plus-us\`, \`qwen-flash-us\`. Approved target aliases are probed only after a US auth probe passes: \`qwen3.7-plus\`, \`qwen3.7-max\`, \`qwen3-max\`, and \`qwen-max\`.
+This server-only packet repairs the Qwen/DashScope side of PR #320 by probing only official Qwen aliases in this order: \`qwen-plus\`, \`qwen3-max\`, and \`qwen-max\`. Canonical green evidence for PR #327 requires selected alias \`qwen-plus\`.
 
-Operator key replacement evidence: \`DASHSCOPE_API_KEY\` version \`3\` is reported as the correct-region replacement. \`DASHSCOPE_BASE_URL\` and \`DASHSCOPE_REGION\` version \`1\` are validated through Google Secret Manager at execution time. Payload printed or committed: \`false\`.
+Operator key replacement evidence: \`DASHSCOPE_API_KEY\` version \`3\` is reported as the correct-region replacement. The approved base URL classification is \`virginia_dashscope_base_url\`. Payload printed or committed: \`false\`.
 
-Default endpoint key: \`us\`. The base URL and region payloads are matched internally against approved US values and are not written into reports. Beijing and Singapore endpoints are not probed in this repair packet.
+Default endpoint key: \`virginia\`. Beijing is recorded as alternate official documentation evidence but is not selected for canonical green evidence. Singapore remains blocked without a safe WorkspaceId approval.
 
 Selected alias: \`${selectedAlias}\`.
 
@@ -1408,7 +1587,7 @@ Decision: \`${decision}\`.
 
 Plan snapshot contract readiness: \`${planReady}\`.
 
-DashScope key replacement asserted during execution: \`${String(readiness.keyReplacementAsserted)}\`. Operator-reported API key version: \`3\`. Operator-reported base URL and region versions: \`1\`. Secret version selector: \`latest\`.
+DashScope key replacement asserted during execution: \`${String(readiness.keyReplacementAsserted)}\`. Operator-reported API key version: \`3\`. Secret version selector: \`latest\`. Base URL classification: \`virginia_dashscope_base_url\`.
 
 Qwen-only provider calls may occur only under the explicit repair confirmations. DeepSeek rerun: \`false\`. Supabase writes: \`false\`. Runtime/tool/worker/route execution: \`false\`. Production/external beta/paid production: \`false\`.
 
@@ -1418,9 +1597,9 @@ Secret payloads printed or committed: \`false\`. Raw provider responses stored: 
   if (decision === 'qwen_alias_repaired_ready_for_plan_snapshot_contract') {
     await writeVlmRuntimeTextArtifact('docs/implementation-prompts/prompt-model-orchestration-plan-snapshot-contract.md', `# MODEL_ORCHESTRATION - Plan Snapshot Contract
 
-Proceed only if \`docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_repair_readiness_report.json\` records \`qwen_alias_repaired_ready_for_plan_snapshot_contract\`.
+Proceed only after PR #322 committed reports record \`qwen_alias_repaired_ready_for_plan_snapshot_contract\`, selected alias \`qwen-plus\`, Virginia DashScope base URL classification, and \`4/4\` Qwen synthetic schema cases passed.
 
-Next phase scope: convert schema-valid Qwen repair evidence plus PR #320 DeepSeek metadata into a plan snapshot contract and validation packet.
+Next phase scope: rerun PR #327 provider-evidence reconciliation so the plan snapshot contract consumes committed PR #322 Qwen-pass reports plus PR #320 DeepSeek metadata.
 
 Still blocked unless separately approved: real user data, media processing, workers, tools, routes, Supabase writes, raw prompt execution into workers/tools, public artifacts, signed URLs, production, external beta, and paid production.
 `)

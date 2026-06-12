@@ -1,10 +1,10 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T162802",
+  "runId": "modeldryrun1-20260612T180646",
   "branch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
   "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
   "prTitle": "[model] Qwen DashScope auth repair",
-  "mode": "qwen_dashscope_auth_repair_and_qwen_only_synthetic_rerun",
+  "mode": "qwen_dashscope_green_evidence_canonicalization_and_qwen_only_synthetic_rerun",
   "reportDir": "docs/activation-model-orchestration-qwen-auth-repair-reports",
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
@@ -13,13 +13,22 @@
     "qwen_secret_access_report.json",
     "qwen_auth_baseurl_probe_report.json",
     "qwen_repaired_provider_dry_run_report.json",
+    "qwen_green_evidence_canonicalization_report.json",
     "qwen_auth_repair_decision.json",
     "qwen_auth_repair_blocker_report.json",
     "qwen_auth_repair_readiness_report.json",
     "qwen_auth_repair_private_artifact_manifest.json"
   ],
+  "canonicalizationRequiredConfirmations": [
+    "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_AUTH_REPAIR",
+    "REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION",
+    "REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY",
+    "REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY",
+    "REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS"
+  ],
   "requiredConfirmations": [
     "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_AUTH_REPAIR",
+    "REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION",
     "REEDITPRO_CONFIRM_QWEN_API_CALL",
     "REEDITPRO_CONFIRM_PROVIDER_CALLS",
     "REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY",
@@ -51,40 +60,27 @@
     "https://www.alibabacloud.com/help/en/model-studio/models",
     "https://help.aliyun.com/zh/model-studio/text-generation-model/"
   ],
-  "usAuthProbeAliases": [
-    "qwen-plus-us",
-    "qwen-flash-us"
-  ],
-  "approvedTargetAliases": [
-    "qwen3.7-plus",
-    "qwen3.7-max",
-    "qwen3-max",
-    "qwen-max"
-  ],
   "officialAliasesInProbeOrder": [
-    "qwen-plus-us",
-    "qwen-flash-us",
-    "qwen3.7-plus",
-    "qwen3.7-max",
+    "qwen-plus",
     "qwen3-max",
     "qwen-max"
   ],
-  "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #320 provider dry-run target aliases",
-  "defaultBaseUrlKey": "us",
+  "canonicalSelectedAlias": "qwen-plus",
+  "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #322 canonicalization requirements",
+  "defaultBaseUrlKey": "virginia",
+  "approvedDashScopeBaseUrlClassification": "virginia_dashscope_base_url",
   "secretSource": "google_secret_manager_only",
   "exactSecretRefsOnly": [
-    "DASHSCOPE_API_KEY",
-    "DASHSCOPE_BASE_URL",
-    "DASHSCOPE_REGION"
+    "DASHSCOPE_API_KEY"
   ],
   "secretVersionSelector": "latest",
   "operatorReportedReplacementVersion": "3",
-  "operatorReportedBaseUrlVersion": "1",
-  "operatorReportedRegionVersion": "1",
   "keyReplacementConfirmation": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
+  "greenEvidenceCanonicalizationConfirmation": "REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION",
   "environmentProviderSecretPayloadsAllowed": false,
   "recordedAlternateBaseUrls": {
-    "beijing": "recorded_not_probed_for_us_key",
+    "virginia": "default_working_base_url",
+    "beijing": "recorded_not_selected_for_canonical_green_evidence",
     "singaporeTemplate": "https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
   },
   "qwenOnly": true,

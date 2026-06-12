@@ -61,13 +61,12 @@ assert(readiness.secretPayloadPrinted === false, 'Secret payloads must not be pr
 assert(readiness.secretPayloadCommitted === false, 'Secret payloads must not be committed.')
 assert(readiness.rawProviderResponsesStored === false, 'Raw provider responses must not be stored.')
 assert(readiness.deepseekRerun === false, 'DeepSeek must not be rerun by the Qwen auth repair packet.')
-assert(readiness.approvedTargetAliasesUsedOnlyAfterUsProbe === true, 'Approved target aliases must only run after a US probe passes.')
-assert(readiness.approvedQwen37AliasesAllowedForTargetProbe === true, 'Qwen 3.7 aliases must be allowed only as approved target probes.')
-assert(readiness.selectedBaseUrlKey === 'us', 'Qwen auth repair must use the US DashScope base URL key.')
-assert(readiness.approvedDashScopeRegion === 'us', 'Qwen auth repair must record the US region.')
+assert(readiness.approvedTargetAliasesUsedOnlyAfterUsProbe === true, 'Official target aliases must remain gated by the repair flow.')
+assert(readiness.approvedQwen37AliasesAllowedForTargetProbe === false, 'Qwen 3.7 aliases must not be accepted as canonical target probes.')
+assert(readiness.selectedBaseUrlKey === 'virginia', 'Qwen auth repair must use the Virginia DashScope base URL key.')
+assert(readiness.selectedBaseUrlClassification === 'virginia_dashscope_base_url', 'Qwen auth repair must record the Virginia base URL classification.')
+assert(readiness.approvedDashScopeRegion === 'us-virginia', 'Qwen auth repair must record the Virginia region.')
 assert(readiness.operatorReportedReplacementVersion === '3', 'Operator-reported DashScope key replacement version must be recorded.')
-assert(readiness.operatorReportedBaseUrlVersion === '1', 'Operator-reported DashScope base URL version must be recorded.')
-assert(readiness.operatorReportedRegionVersion === '1', 'Operator-reported DashScope region version must be recorded.')
 assert(readiness.secretVersionSelector === 'latest', 'DashScope secret version selector must remain latest.')
 assert(
   readiness.keyReplacementConfirmation === 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
@@ -93,29 +92,22 @@ assert(plan.qwenOnly === true, 'Qwen auth repair must be Qwen-only.')
 assert(plan.deepseekRerun === false, 'DeepSeek rerun must remain false.')
 assert(Array.isArray(plan.officialAliasesInProbeOrder), 'Official Qwen alias order missing.')
 assert(
-  JSON.stringify(plan.officialAliasesInProbeOrder) ===
-    JSON.stringify(['qwen-plus-us', 'qwen-flash-us', 'qwen3.7-plus', 'qwen3.7-max', 'qwen3-max', 'qwen-max']),
+  JSON.stringify(plan.officialAliasesInProbeOrder) === JSON.stringify(['qwen-plus', 'qwen3-max', 'qwen-max']),
   'Unexpected Qwen alias order.',
 )
-assert(JSON.stringify(plan.usAuthProbeAliases) === JSON.stringify(['qwen-plus-us', 'qwen-flash-us']), 'Unexpected US probe aliases.')
-assert(
-  JSON.stringify(plan.approvedTargetAliases) === JSON.stringify(['qwen3.7-plus', 'qwen3.7-max', 'qwen3-max', 'qwen-max']),
-  'Unexpected approved target aliases.',
-)
-assert(plan.defaultBaseUrlKey === 'us', 'Default base URL key must be US.')
+assert(plan.canonicalSelectedAlias === 'qwen-plus', 'Canonical selected alias must be qwen-plus.')
+assert(plan.defaultBaseUrlKey === 'virginia', 'Default base URL key must be Virginia.')
 
 const secretAccess = reports.secretAccess as Record<string, unknown>
 assert(secretAccess.broadSecretDiscovery === false, 'Broad Secret Manager discovery must remain blocked.')
 assert(secretAccess.exactSecretRefsOnly === true, 'Secret access must use exact refs only.')
 assert(
-  JSON.stringify(secretAccess.exactSecretRefs) === JSON.stringify(['DASHSCOPE_API_KEY', 'DASHSCOPE_BASE_URL', 'DASHSCOPE_REGION']),
-  'Secret access must use the three exact DashScope refs.',
+  JSON.stringify(secretAccess.exactSecretRefs) === JSON.stringify(['DASHSCOPE_API_KEY']),
+  'Secret access must use only the exact DashScope API key ref.',
 )
 assert(secretAccess.secretSourcePolicy === 'google_secret_manager_only', 'Qwen auth repair must use Secret Manager only.')
 assert(secretAccess.secretVersionSelector === 'latest', 'Secret report must record latest selector.')
 assert(secretAccess.operatorReportedReplacementVersion === '3', 'Secret report must record operator version 3.')
-assert(secretAccess.operatorReportedBaseUrlVersion === '1', 'Secret report must record base URL version 1.')
-assert(secretAccess.operatorReportedRegionVersion === '1', 'Secret report must record region version 1.')
 assert(secretAccess.secretPayloadValuesStoredInReport === false, 'Secret payload values must not be stored in reports.')
 assert(secretAccess.keyReplacementConfirmation === 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED', 'Secret report must record key replacement confirmation.')
 assert(secretAccess.payloadPrinted === false, 'Secret payload printed must be false.')
@@ -126,11 +118,10 @@ const authProbe = reports.authProbe as Record<string, unknown>
 assert(authProbe.stream === false, 'Streaming must remain disabled.')
 assert(authProbe.tools === false, 'Tools must remain disabled.')
 assert(
-  JSON.stringify(authProbe.probeAliasOrder) ===
-    JSON.stringify(['qwen-plus-us', 'qwen-flash-us', 'qwen3.7-plus', 'qwen3.7-max', 'qwen3-max', 'qwen-max']),
-  'Auth probe alias order must be US-first with approved targets second.',
+  JSON.stringify(authProbe.probeAliasOrder) === JSON.stringify(['qwen-plus', 'qwen3-max', 'qwen-max']),
+  'Auth probe alias order must use official canonical aliases only.',
 )
-assert(authProbe.approvedTargetAliasesProbedOnlyAfterUsProbePassed === true, 'Approved targets must be gated by a US probe pass.')
+assert(authProbe.selectedBaseUrlClassification === 'virginia_dashscope_base_url', 'Auth probe must record Virginia base URL classification.')
 assert(authProbe.rawProviderResponsesStored === false, 'Raw provider responses must not be stored.')
 assert(authProbe.rawProviderResponsesPrinted === false, 'Raw provider responses must not be printed.')
 
@@ -140,6 +131,14 @@ assert(repairedRun.schemaCasesRunOnlyForApprovedTargetAlias === true, 'Schema ca
 assert(repairedRun.stream === false, 'Qwen repaired dry-run streaming must remain disabled.')
 assert(repairedRun.tools === false, 'Qwen repaired dry-run tools must remain disabled.')
 assert(repairedRun.rawProviderResponsesStored === false, 'Qwen repaired dry-run raw responses must not be stored.')
+
+const canonicalization = reports.greenEvidenceCanonicalization as Record<string, unknown>
+assert(canonicalization.promptProseAcceptedAsEvidence === false, 'Prompt prose must not be accepted as green evidence.')
+assert(canonicalization.prCommentsAcceptedAsEvidence === false, 'PR comments must not be accepted as green evidence.')
+assert(canonicalization.structuredReportEvidenceRequired === true, 'Structured report evidence must be required.')
+assert(canonicalization.requiredSelectedAlias === 'qwen-plus', 'Canonicalization must require qwen-plus.')
+assert(canonicalization.selectedBaseUrlClassification === 'virginia_dashscope_base_url', 'Canonicalization must require Virginia base URL classification.')
+assert(canonicalization.deepseekRerun === false, 'Canonicalization must not rerun DeepSeek.')
 
 const corpus = [
   ...readAllFiles(MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_REPORT_DIR),

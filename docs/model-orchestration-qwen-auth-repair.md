@@ -1,16 +1,16 @@
 # Model Orchestration Qwen DashScope Auth Repair
 
-Decision: `qwen_auth_repaired_ready_for_provider_dry_run_update`.
+Decision: `qwen_alias_repaired_ready_for_plan_snapshot_contract`.
 
-Status: `blocked`.
+Status: `passed`.
 
-This server-only packet repairs the Qwen/DashScope side of PR #320 by probing US DashScope auth aliases first: `qwen-plus-us`, `qwen-flash-us`. Approved target aliases are probed only after a US auth probe passes: `qwen3.7-plus`, `qwen3.7-max`, `qwen3-max`, and `qwen-max`.
+This server-only packet repairs the Qwen/DashScope side of PR #320 by probing only official Qwen aliases in this order: `qwen-plus`, `qwen3-max`, and `qwen-max`. Canonical green evidence for PR #327 requires selected alias `qwen-plus`.
 
-Operator key replacement evidence: `DASHSCOPE_API_KEY` version `3` is reported as the correct-region replacement. `DASHSCOPE_BASE_URL` and `DASHSCOPE_REGION` version `1` are validated through Google Secret Manager at execution time. Payload printed or committed: `false`.
+Operator key replacement evidence: `DASHSCOPE_API_KEY` version `3` is reported as the correct-region replacement. The approved base URL classification is `virginia_dashscope_base_url`. Payload printed or committed: `false`.
 
-Default endpoint key: `us`. The base URL and region payloads are matched internally against approved US values and are not written into reports. Beijing and Singapore endpoints are not probed in this repair packet.
+Default endpoint key: `virginia`. Beijing is recorded as alternate official documentation evidence but is not selected for canonical green evidence. Singapore remains blocked without a safe WorkspaceId approval.
 
-Selected alias: `qwen3.7-plus`.
+Selected alias: `qwen-plus`.
 
 DeepSeek is not rerun in this phase. PR #320 DeepSeek evidence is reused as metadata only.
 

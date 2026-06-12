@@ -1,11 +1,9 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T162802",
-  "status": "blocked",
-  "decision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
-  "activeBlockers": [
-    "provider_timeout"
-  ],
+  "runId": "modeldryrun1-20260612T180646",
+  "status": "passed",
+  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "qwenAuthRepaired": true,
   "qwenOnlyProviderCallsAllowedInThisPhase": true,
   "deepseekRerun": false,
@@ -22,5 +20,5 @@
   "productionAffected": false,
   "externalBeta": false,
   "paidProduction": false,
-  "nextRecommendedPhase": "Resolve the exact DashScope key, service, model, region, or schema blocker before another Qwen dry-run."
+  "nextRecommendedPhase": "MODEL_ORCHESTRATION - plan snapshot contract"
 }

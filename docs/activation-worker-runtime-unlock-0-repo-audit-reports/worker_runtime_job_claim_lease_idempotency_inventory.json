@@ -1,0 +1,37 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "claimModel": {
+    "sources": ["src/backend/runtime/worker-lease-service.ts", "server/workers/worker-claim-runner.ts", "server/services/worker-claim-service.ts"],
+    "mockClaimBlocksDuplicateActiveLease": true,
+    "realClaimRequiresBackendTransaction": true,
+    "jobClaimMutationPerformedInThisAudit": false
+  },
+  "leaseModel": {
+    "supportsMockHeartbeatRenewReleaseCompleteFailCancel": true,
+    "defaultLeaseMinutes": {
+      "normal": 5,
+      "renderProviderStyle": 30
+    },
+    "staleRecoveryMockOnly": true,
+    "remoteHeartbeatMutationBlocked": true
+  },
+  "retryModel": {
+    "sources": ["src/backend/services/job-retry-runtime-service.ts", "docs/job-failure-retry-recovery.md"],
+    "classification": "mock_and_policy_foundation",
+    "providerStyleRetryNeedsExternalIdempotency": true
+  },
+  "idempotencyModel": {
+    "source": "src/backend/runtime/idempotency-service.ts",
+    "jobKeysSupported": true,
+    "providerKeysSupported": true,
+    "mockConflictDetectionSupported": true,
+    "productionTransactionalStoreMissing": true
+  },
+  "blockedGaps": [
+    "No Supabase owner-approved mutation in this lane.",
+    "No service-role transactional job claim path enabled.",
+    "No Cloud Run/Pub/Sub dispatch path enabled.",
+    "No production idempotency table enforcement in this prompt."
+  ]
+}

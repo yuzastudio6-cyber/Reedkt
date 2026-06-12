@@ -1,0 +1,37 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed",
+  "contractsReviewed": [
+    "approved_plan_snapshot_reference",
+    "worker_payload_schema",
+    "worker_result_schema",
+    "worker_event_schema",
+    "artifact_scope_references",
+    "checksum_and_provenance_requirements",
+    "qa_audit_cost_fields"
+  ],
+  "approvedPlanSnapshotReference": {
+    "source": "src/backend/cloud/approved-plan-snapshot-contracts.ts",
+    "requiresSnapshotHash": true,
+    "requiresCreditEstimate": true,
+    "requiresRequiredPayloadFields": true,
+    "workersExecuteApprovedSnapshotsNotRawChat": true
+  },
+  "workerPayloadBoundary": {
+    "source": "src/backend/cloud/worker-job-contracts.ts",
+    "requiresJobWorkspaceProjectIds": true,
+    "requiresApprovedPlanSnapshotId": true,
+    "requiresIdempotencyKey": true,
+    "rejectsPromptOnlyExecutionFields": true,
+    "rejectsSignedUrlsAsSourceOfTruth": true,
+    "rejectsSecretLikeValues": true
+  },
+  "missingForRealExecution": [
+    "Supabase owner-approved persistence path for approved snapshots and worker/job mutation",
+    "deployed backend/service-role transaction layer",
+    "Cloud Run or queue dispatch owner approval",
+    "production observability/cost/billing transaction enforcement"
+  ],
+  "contractReadyForDryRunPlanning": true,
+  "contractReadyForWorkerExecution": false
+}

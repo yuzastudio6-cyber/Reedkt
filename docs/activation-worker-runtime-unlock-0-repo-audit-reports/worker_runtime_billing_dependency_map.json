@@ -1,0 +1,20 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "sources": [
+    "docs/credit-runtime-approval-gate.md",
+    "docs/credit-reservation-spend-refund-flow.md",
+    "src/backend/services/credit-reservation-runtime-service.ts",
+    "src/backend/services/credit-ledger-runtime-service.ts"
+  ],
+  "billingRuntimeEnabled": false,
+  "stripeRuntimeEnabled": false,
+  "creditReservationRequiredForExpensiveWorkers": true,
+  "creditSpendOrReservationInThisAudit": false,
+  "blockedUntil": [
+    "backend-only credit reservation transaction",
+    "append-only ledger enforcement",
+    "Stripe/payment owner approval",
+    "approved worker dry-run plan"
+  ]
+}

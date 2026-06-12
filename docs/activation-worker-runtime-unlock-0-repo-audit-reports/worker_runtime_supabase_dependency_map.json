@@ -1,0 +1,33 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "supabaseUpdateRequired": "no",
+  "supabaseUpdateStatus": "no mutation, no SQL, no migration",
+  "supabaseEnvironmentTouched": "no",
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "dependenciesReviewed": [
+    "job_batches",
+    "jobs",
+    "job_dependencies",
+    "job_events",
+    "worker_runtime_configs",
+    "worker_heartbeats",
+    "worker_leases",
+    "backend_runtime_messages",
+    "job_claim_attempts",
+    "approved_plan_snapshots"
+  ],
+  "sourceFiles": [
+    "supabase/migrations/202605130005_job_orchestration_agent_runs.sql",
+    "supabase/migrations/202605200002_worker_leases_runtime_transport.sql",
+    "database/migration-drafts/010_production_worker_runtime_orchestration.draft.sql",
+    "database/test-sql/007_production_worker_runtime_orchestration_tests.sql"
+  ],
+  "blockers": [
+    "Supabase worker/job persistence and runtime config mutation remain blocked until Supabase owner approval.",
+    "Approved plan snapshot persistence remains blocked.",
+    "No RLS/storage mutation is in scope."
+  ],
+  "nextSupabaseAction": "none in this prompt"
+}

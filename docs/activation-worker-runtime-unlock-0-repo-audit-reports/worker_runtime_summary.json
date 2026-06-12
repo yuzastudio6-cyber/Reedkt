@@ -1,0 +1,43 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "runId": "worker-runtime-unlock-0-repo-audit-20260612",
+  "status": "passed_with_warnings",
+  "decision": "worker_runtime_repo_audit_passed_with_warnings_ready_for_dry_run_plan",
+  "auditAttempted": true,
+  "workerRuntimeReadyForDryRunPlanning": true,
+  "workerRuntimeExecutionReady": false,
+  "supabasePersistenceReady": false,
+  "productionClaimed": false,
+  "externalBetaClaimed": false,
+  "paidProductionClaimed": false,
+  "sourceOfTruthConflictsFound": false,
+  "reportsCreated": 17,
+  "diagnosticScript": "scripts/validation/worker-runtime-unlock-0-repo-audit-diagnostics.mjs",
+  "nextRecommendedPrompt": "WORKER-RUNTIME-UNLOCK-1: worker runtime dry-run plan, no execution",
+  "crossChatImpact": {
+    "workstreamUpdated": "WORKER_RUNTIME_JOBS",
+    "otherWorkstreamsNoExecution": [
+      "MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT",
+      "MODEL_ORCHESTRATION_QWEN_DEEPSEEK",
+      "PROVIDER_GATEWAY_MODELS",
+      "SUPABASE_RLS_STORAGE_DATABASE",
+      "TOOL_ROUTE_EXECUTION",
+      "OBSERVABILITY_AUDIT_COST",
+      "BILLING_STRIPE_CREDITS",
+      "TRACK_A_RENDER_EXPORT",
+      "TRACK_B_MEDIA_PROCESSING",
+      "SOUND_MUSIC_AUDIO",
+      "DEMUCS_AUDIO_RUNTIME",
+      "COMPLIANCE_SECURITY"
+    ],
+    "contractsChanged": "metadata audit evidence only",
+    "handoffNeeded": "worker runtime dry-run planning owner",
+    "duplicateRisk": "mitigated by source-of-truth register"
+  },
+  "supabaseMilestoneSync": {
+    "status": "not_applicable",
+    "reason": "no Supabase update required in this prompt",
+    "evidence": "PR #335 contract readiness plus worker runtime repo audit",
+    "nextAction": "none"
+  }
+}

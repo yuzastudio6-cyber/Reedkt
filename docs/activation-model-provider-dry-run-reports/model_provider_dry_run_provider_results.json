@@ -1,0 +1,42 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "blocked",
+  "providerCallsAttempted": 2,
+  "providerCallsPassed": 1,
+  "rawProviderResponsesCommitted": false,
+  "results": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_planning",
+      "providerId": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "status": "blocked",
+      "httpStatus": 401,
+      "latencyMs": 1283,
+      "finishReason": null,
+      "promptTokens": null,
+      "completionTokens": null,
+      "totalTokens": null,
+      "rawContentPresentProcessLocalOnly": false,
+      "rawContentCommitted": false,
+      "blocker": "provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error"
+    },
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "providerId": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 9556,
+      "finishReason": "stop",
+      "promptTokens": 316,
+      "completionTokens": 744,
+      "totalTokens": 1060,
+      "rawContentPresentProcessLocalOnly": true,
+      "rawContentCommitted": false,
+      "blocker": null
+    }
+  ],
+  "blockers": [
+    "modeldryrun1_qwen_head_agent_planning:provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error"
+  ]
+}

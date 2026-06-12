@@ -1,0 +1,10 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "passed",
+  "promptsSyntheticOnly": true,
+  "userDataAllowed": false,
+  "rawMediaAllowed": false,
+  "signedUrlsAllowed": false,
+  "privateUrlsAllowed": false,
+  "blockers": []
+}

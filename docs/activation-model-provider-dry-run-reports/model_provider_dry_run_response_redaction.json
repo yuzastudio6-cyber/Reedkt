@@ -1,0 +1,21 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "passed",
+  "rawProviderResponsesCommitted": false,
+  "normalizedSyntheticResponsesOnly": true,
+  "results": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_planning",
+      "status": "passed",
+      "blockers": [],
+      "warnings": []
+    },
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "status": "passed",
+      "blockers": [],
+      "warnings": []
+    }
+  ],
+  "blockers": []
+}

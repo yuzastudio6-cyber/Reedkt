@@ -2,6 +2,14 @@
 
 This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is available. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
 
+## After MODEL-DRYRUN-1
+
+1. Review `docs/activation-phase-model-provider-dry-run-results.md` and `docs/activation-model-provider-dry-run-reports/model_provider_dry_run_readiness_report.json`.
+2. Confirm Secret Manager resolution passed without printed or committed payloads.
+3. Confirm DeepSeek `deepseek-v4-flash` synthetic response metadata passed while Qwen/DashScope `qwen3.7-plus` is blocked by provider HTTP 401.
+4. Repair or rotate the `DASHSCOPE_API_KEY` Secret Manager value before rerunning the provider dry-run.
+5. Do not proceed to provider integration, private artifact upload, Supabase milestone sync, internal beta, external beta, production, tools, workers, routes, or media processing until MODEL-DRYRUN-1A or a later approved follow-up resolves the Qwen blocker.
+
 ## After Phase 18
 
 1. Review the Phase 18 audit, readiness state, and activation roadmap.

@@ -1,0 +1,70 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "passed",
+  "syntheticOnly": true,
+  "userDataAllowed": false,
+  "rawMediaAllowed": false,
+  "caseCount": 2,
+  "cases": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_planning",
+      "providerId": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "schemaId": "agent_findings_v1",
+      "purpose": "Qwen head-agent planning and decision metadata only.",
+      "maxTokens": 900,
+      "timeoutMs": 15000,
+      "blockedActions": [
+        "real_user_data",
+        "raw_media",
+        "signed_urls",
+        "private_urls",
+        "provider_chaining",
+        "tool_execution",
+        "worker_execution",
+        "route_execution",
+        "browser_capture",
+        "web_search",
+        "map_rendering",
+        "media_processing",
+        "public_artifacts",
+        "raw_prompt_execution",
+        "production",
+        "external_beta"
+      ],
+      "promptClass": "synthetic_non_sensitive",
+      "systemPromptShaOnly": true,
+      "userPromptShaOnly": true
+    },
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "providerId": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "schemaId": "coding_spec_proposal_v1",
+      "purpose": "DeepSeek coding/spec proposal metadata only.",
+      "maxTokens": 900,
+      "timeoutMs": 15000,
+      "blockedActions": [
+        "real_user_data",
+        "raw_media",
+        "signed_urls",
+        "private_urls",
+        "provider_chaining",
+        "tool_execution",
+        "worker_execution",
+        "route_execution",
+        "browser_capture",
+        "web_search",
+        "map_rendering",
+        "media_processing",
+        "public_artifacts",
+        "raw_prompt_execution",
+        "production",
+        "external_beta"
+      ],
+      "promptClass": "synthetic_non_sensitive",
+      "systemPromptShaOnly": true,
+      "userPromptShaOnly": true
+    }
+  ]
+}

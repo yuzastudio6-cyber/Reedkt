@@ -1,0 +1,11 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "skipped",
+  "syncStatus": "approved_path_unavailable",
+  "approvedPathDiscovered": false,
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no",
+  "unrelatedRowsTouched": false,
+  "blocker": "approved_modeldryrun1_supabase_milestone_sync_path_not_found_on_base_branch"
+}

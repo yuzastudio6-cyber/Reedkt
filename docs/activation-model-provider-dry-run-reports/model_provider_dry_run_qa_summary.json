@@ -1,0 +1,21 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "blocked",
+  "executeMode": true,
+  "syntheticOnly": true,
+  "requestRedactionStatus": "passed",
+  "schemaValidationStatus": "blocked",
+  "responseRedactionStatus": "passed",
+  "privateArtifactStatus": "pending",
+  "supabaseMilestoneSyncStatus": "skipped",
+  "rawProviderResponsesCommitted": false,
+  "secretPayloadsCommitted": false,
+  "unsafeClaimsDetected": false,
+  "blockers": [
+    "modeldryrun1_qwen_head_agent_planning:schema:provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error",
+    "artifact_status:pending"
+  ],
+  "warnings": [
+    "supabase_milestone_sync_unavailable_optional_partial_status"
+  ]
+}

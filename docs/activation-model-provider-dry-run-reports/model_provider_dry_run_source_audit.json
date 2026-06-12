@@ -1,0 +1,69 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "runId": "modeldryrun1-20260612T154825Z",
+  "branch": "codex/rp-model-orchestration-qwen-deepseek-synthetic-provider-dry-run",
+  "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
+  "prTitle": "[model] Qwen DeepSeek synthetic provider dry run",
+  "pr318": {
+    "title": "[model] Qwen DeepSeek dry-run approval packet",
+    "headBranch": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
+    "recordedHead": "64a52452893c47d7a5972134243af313a2b76ac9",
+    "approvalPacketSource": "docs/activation-model-orchestration-dry-run-approval-reports"
+  },
+  "sourcePaths": [
+    {
+      "path": "model-routing-policy.md",
+      "present": true
+    },
+    {
+      "path": "provider-prompt-architecture.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-approval.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-approval-decision.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-schema-contract.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-audit-redaction-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-dry-run-approval-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-deepseek-audit-reports",
+      "present": true
+    }
+  ],
+  "approvalDecision": "approved_for_future_qwen_deepseek_provider_dry_run",
+  "approvalStatus": "future_provider_dry_run_approved_not_executed",
+  "approvalReadinessStatus": "passed",
+  "providerCandidateReviewStatus": "passed",
+  "syntheticCaseCount": 8,
+  "dryRunAuthorization": "approved_for_modeldryrun1_execution_gated",
+  "liveSyntheticProviderCallAuthorization": true,
+  "qwenDefaultModel": "qwen3.7-plus",
+  "deepseekDefaultModel": "deepseek-v4-flash",
+  "escalationModelsApprovedForThisRun": false,
+  "blockers": [],
+  "noScope": {
+    "userDataAllowed": false,
+    "rawMediaAllowed": false,
+    "providerChainingAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "supabaseSqlAllowed": false,
+    "productionAllowed": false,
+    "externalBetaAllowed": false
+  }
+}

@@ -22,7 +22,7 @@ This register highlights parallel or duplicate lanes that require owner review b
 
 - Risk status: `parallel_or_duplicate_review_required`
 - Canonical PRs: #341, #342, #346
-- Observed PRs: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #340, #343, #344, #345
+- Observed PRs: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #340, #343, #344, #345, #351
 - Recommended action: review canonical lane first; hold duplicate or parallel candidates until owners confirm supersession
 - Reason: Worker runtime repo audit, approval, and no-op dry-run form a parent stack; draft worker alternatives need review before any worker lane is merged.
 

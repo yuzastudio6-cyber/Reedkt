@@ -1,6 +1,6 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
-  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "runId": "github-merge-hygiene-2026-06-12T204457332Z",
+  "generatedAt": "2026-06-12T20:45:16.207Z",
   "decision": "merge_hygiene_blockers_require_human_review",
   "blockers": [
     {
@@ -11,7 +11,7 @@
     {
       "blocker": "draft_prs_present",
       "status": "active",
-      "count": 20,
+      "count": 21,
       "reason": "Draft PRs are never merge-now."
     },
     {

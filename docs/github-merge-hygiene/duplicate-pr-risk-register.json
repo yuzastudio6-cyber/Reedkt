@@ -1,6 +1,6 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
-  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "runId": "github-merge-hygiene-2026-06-12T204457332Z",
+  "generatedAt": "2026-06-12T20:45:16.207Z",
   "decision": "duplicate_parallel_lanes_require_owner_review",
   "entries": [
     {
@@ -385,7 +385,8 @@
         340,
         343,
         344,
-        345
+        345,
+        351
       ],
       "canonicalObservedPrNumbers": [],
       "riskStatus": "parallel_or_duplicate_review_required",
@@ -729,6 +730,16 @@
           "mergeStateStatus": "CLEAN",
           "baseRefName": "codex/rp-worker-0-worker-runtime-unlock-repo-audit",
           "headRefName": "codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan",
+          "classification": "draft_hold"
+        },
+        {
+          "number": 351,
+          "title": "[worker] Runtime dry-run contract review",
+          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/351",
+          "isDraft": true,
+          "mergeStateStatus": "CLEAN",
+          "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+          "headRefName": "codex/rp-worker-runtime-unlock-2-dry-run-contract-review",
           "classification": "draft_hold"
         }
       ]

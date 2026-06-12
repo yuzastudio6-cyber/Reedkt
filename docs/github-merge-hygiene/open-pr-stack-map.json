@@ -1,17 +1,17 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
-  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "runId": "github-merge-hygiene-2026-06-12T204457332Z",
+  "generatedAt": "2026-06-12T20:45:16.207Z",
   "repo": "yuzastudio6-cyber/Reedkt",
   "selectedBaseBranch": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
   "defaultBranchObserved": "codex/reeditpro-web-ui-shell",
   "openPrListLimitHit": true,
   "openLimit200Count": 200,
   "openPrListHigherLimitUsed": 1000,
-  "openPrCount": 345,
-  "draftPrCount": 20,
+  "openPrCount": 347,
+  "draftPrCount": 21,
   "mergeStateCounts": {
     "DIRTY": 1,
-    "CLEAN": 343,
+    "CLEAN": 345,
     "UNSTABLE": 1
   },
   "workstreamCounts": {
@@ -24,17 +24,17 @@
     "SUPABASE_RLS_STORAGE_DATABASE": 60,
     "TRACK_A_CREATIVE_GRAPHICS": 28,
     "MODEL_ORCHESTRATION_PLAN_SNAPSHOT": 3,
-    "WORKER_RUNTIME_JOBS": 9,
+    "WORKER_RUNTIME_JOBS": 10,
     "TRACK_B_MEDIA_PROCESSING": 11,
     "AI_TOOLS": 2,
     "TOOL_ROUTE_DRY_RUN": 1,
     "RELEASE": 1,
-    "CROSS_CHAT_COORDINATION": 1
+    "CROSS_CHAT_COORDINATION": 2
   },
   "classificationCounts": {
-    "draft_hold": 20,
+    "draft_hold": 21,
     "duplicate_risk": 137,
-    "parallel_candidate": 157,
+    "parallel_candidate": 158,
     "unknown": 2,
     "blocked_hold": 1,
     "canonical": 28
@@ -2108,6 +2108,18 @@
       "childPrNumber": 348,
       "childBaseRefName": "codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan",
       "parentHeadRefName": "codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan"
+    },
+    {
+      "parentPrNumber": 222,
+      "childPrNumber": 350,
+      "childBaseRefName": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
+      "parentHeadRefName": "codex/rp-activation-52h-cross-workstream-handoff-tracking"
+    },
+    {
+      "parentPrNumber": 337,
+      "childPrNumber": 351,
+      "childBaseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+      "parentHeadRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation"
     }
   ],
   "pullRequests": [
@@ -6452,7 +6464,8 @@
       "workstream": "ACTIVATION",
       "parentPrNumber": 219,
       "childPrNumbers": [
-        228
+        228,
+        350
       ],
       "riskGroups": [],
       "classification": "canonical",
@@ -8801,7 +8814,9 @@
       "updatedAt": "2026-06-12T20:26:13Z",
       "workstream": "MODEL_ORCHESTRATION_PROVIDER_GATEWAY",
       "parentPrNumber": 327,
-      "childPrNumbers": [],
+      "childPrNumbers": [
+        351
+      ],
       "riskGroups": [
         "plan_snapshot_contracts"
       ],
@@ -8982,6 +8997,42 @@
       "childPrNumbers": [],
       "riskGroups": [],
       "classification": "unknown",
+      "mergeNowRecommendation": "do_not_merge_without_parent_chain_review"
+    },
+    {
+      "number": 350,
+      "title": "[coordination] GitHub merge hygiene open PR stack audit",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/350",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
+      "headRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "updatedAt": "2026-06-12T20:37:58Z",
+      "workstream": "CROSS_CHAT_COORDINATION",
+      "parentPrNumber": 222,
+      "childPrNumbers": [],
+      "riskGroups": [],
+      "classification": "parallel_candidate",
+      "mergeNowRecommendation": "do_not_merge_without_parent_chain_review"
+    },
+    {
+      "number": 351,
+      "title": "[worker] Runtime dry-run contract review",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/351",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+      "headRefName": "codex/rp-worker-runtime-unlock-2-dry-run-contract-review",
+      "updatedAt": "2026-06-12T20:43:43Z",
+      "workstream": "WORKER_RUNTIME_JOBS",
+      "parentPrNumber": 337,
+      "childPrNumbers": [],
+      "riskGroups": [
+        "worker_runtime_audits_dry_runs"
+      ],
+      "classification": "draft_hold",
       "mergeNowRecommendation": "do_not_merge_without_parent_chain_review"
     }
   ],

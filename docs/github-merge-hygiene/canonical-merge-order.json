@@ -1,6 +1,6 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
-  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "runId": "github-merge-hygiene-2026-06-12T204457332Z",
+  "generatedAt": "2026-06-12T20:45:16.207Z",
   "decision": "human_review_required_parent_before_child",
   "notes": [
     "This is a recommended review order, not an automatic merge order.",

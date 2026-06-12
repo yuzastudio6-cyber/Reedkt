@@ -1,6 +1,6 @@
 # Open PR Stack Map
 
-Generated: `2026-06-12T20:37:06.052Z`
+Generated: `2026-06-12T20:45:16.207Z`
 
 Repository: `yuzastudio6-cyber/Reedkt`
 
@@ -18,8 +18,8 @@ Open PR metadata:
 - Initial open PR command returned 200 PRs.
 - `openPrListLimitHit`: `true`
 - Higher limit used: `1000`
-- Audited open PR count: 345
-- Draft PR count: 20
+- Audited open PR count: 347
+- Draft PR count: 21
 - Non-clean merge-state PR count: 2
 - Closed sample count: 4
 - Closed sample currently only PR #31: `false`
@@ -36,23 +36,23 @@ Open PR metadata:
 | TRACK_A_CREATIVE_GRAPHICS | 28 |
 | PRODUCT_INTERNAL_TESTING | 14 |
 | TRACK_B_MEDIA_PROCESSING | 11 |
-| WORKER_RUNTIME_JOBS | 9 |
+| WORKER_RUNTIME_JOBS | 10 |
 | MODEL_ORCHESTRATION_PLAN_SNAPSHOT | 3 |
 | AI_TOOLS | 2 |
+| CROSS_CHAT_COORDINATION | 2 |
 | CODEX | 1 |
 | TOOL_ROUTE_DRY_RUN | 1 |
 | RELEASE | 1 |
-| CROSS_CHAT_COORDINATION | 1 |
 
 
 ## Classifications
 
 | Classification | Open PRs |
 | --- | --- |
-| parallel_candidate | 157 |
+| parallel_candidate | 158 |
 | duplicate_risk | 137 |
 | canonical | 28 |
-| draft_hold | 20 |
+| draft_hold | 21 |
 | unknown | 2 |
 | blocked_hold | 1 |
 
@@ -167,6 +167,7 @@ Open PR metadata:
 | #344 | [worker] WORKER-0 worker runtime unlock repo audit | `codex/rp-plan-snapshot-0-approved-plan-snapshot-contract` | `codex/rp-worker-0-worker-runtime-unlock-repo-audit` |
 | #345 | [worker] WORKER-1 worker runtime contract hardening and dry-run plan | `codex/rp-worker-0-worker-runtime-unlock-repo-audit` | `codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan` |
 | #348 | [release] MERGE-0 milestone PR stack audit and merge readiness packet | `codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan` | `codex/rp-merge-0-milestone-pr-stack-audit` |
+| #351 | [worker] Runtime dry-run contract review | `codex/rp-model-orchestration-plan-snapshot-dry-run-validation` | `codex/rp-worker-runtime-unlock-2-dry-run-contract-review` |
 
 
 ## PR #346

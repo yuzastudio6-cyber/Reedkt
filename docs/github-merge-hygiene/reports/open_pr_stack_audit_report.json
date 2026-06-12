@@ -1,6 +1,6 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
-  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "runId": "github-merge-hygiene-2026-06-12T204457332Z",
+  "generatedAt": "2026-06-12T20:45:16.207Z",
   "auditStatus": "passed",
   "decision": "open_pr_stack_audit_completed_ready_for_human_merge_order_review",
   "repo": "yuzastudio6-cyber/Reedkt",
@@ -39,17 +39,17 @@
   "openPrListLimitHit": true,
   "openLimit200Count": 200,
   "openPrListHigherLimitUsed": 1000,
-  "openPrCount": 345,
-  "draftPrCount": 20,
+  "openPrCount": 347,
+  "draftPrCount": 21,
   "mergeStateCounts": {
     "DIRTY": 1,
-    "CLEAN": 343,
+    "CLEAN": 345,
     "UNSTABLE": 1
   },
   "classificationCounts": {
-    "draft_hold": 20,
+    "draft_hold": 21,
     "duplicate_risk": 137,
-    "parallel_candidate": 157,
+    "parallel_candidate": 158,
     "unknown": 2,
     "blocked_hold": 1,
     "canonical": 28

@@ -1,11 +1,11 @@
 # Current Handoff
 
-Generated: `2026-06-12T20:37:06.052Z`
+Generated: `2026-06-12T20:45:16.207Z`
 
 Current merge-hygiene status:
 
-- Open PRs audited: 345
-- Draft PRs: 20
+- Open PRs audited: 347
+- Draft PRs: 21
 - All observed merge states clean: `false`
 - Open PR list limit hit on first pass: `true`
 - Closed sample currently only PR #31: `false`

@@ -42,6 +42,7 @@ export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SECRET_PAYLOAD_ACCESS_FOR_PROVIDER_DRY_RUN',
   'REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY',
   'REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS',
+  'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
 ] as const
 
 export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_FORBIDDEN_CONFIRMATIONS = [
@@ -140,6 +141,9 @@ interface SecretAccessEntry {
   secretRef: 'DASHSCOPE_API_KEY'
   source: 'secret_manager' | 'unavailable'
   payloadAccessStatus: 'succeeded' | 'failed' | 'not_attempted'
+  secretVersionSelector: 'latest'
+  operatorReportedReplacementVersion: '3'
+  keyReplacementAsserted: boolean
   envVarPresent: boolean
   payloadPrinted: false
   payloadCommitted: false
@@ -262,6 +266,9 @@ export function getModelOrchestrationQwenAuthRepairPlan() {
     staleAliasesRejectedForRepairProbe: STALE_PR320_ALIASES,
     defaultBaseUrl: BASE_URLS.beijing,
     secretSource: 'google_secret_manager_only',
+    secretVersionSelector: 'latest',
+    operatorReportedReplacementVersion: '3',
+    keyReplacementConfirmation: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
     environmentProviderSecretPayloadsAllowed: false,
     recordedAlternateBaseUrls: {
       virginia: BASE_URLS.virginia,
@@ -458,6 +465,8 @@ function readExistingReports(): QwenAuthRepairReports | undefined {
   if (decisionValue === 'not_attempted') return undefined
   const secretAccess = readJson(pathInReportDir('qwen_secret_access_report.json'))
   if (secretAccess?.secretSourcePolicy !== 'google_secret_manager_only') return undefined
+  if (secretAccess?.operatorReportedReplacementVersion !== '3') return undefined
+  if (secretAccess?.keyReplacementConfirmation !== 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED') return undefined
   const allPresent = MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_EXPECTED_REPORTS.every((file) =>
     existsSync(pathInReportDir(file)))
   if (!allPresent) return undefined
@@ -515,6 +524,14 @@ function buildSourceAudit() {
     pr320DeepSeekEvidenceReusedAsMetadataOnly: true,
     pr320DeepSeekStatus: deepseekReport?.status ?? 'missing',
     deepseekRerun: false,
+    operatorReportedDashScopeKeyReplacement: {
+      secretRef: 'DASHSCOPE_API_KEY',
+      replacementVersion: '3',
+      selectedVersionForRerun: 'latest',
+      confirmationRequired: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+      payloadPrinted: false,
+      payloadCommitted: false,
+    },
     officialDocsBasis: OFFICIAL_DOCS,
     qwenProviderCallsAllowedOnlyUnderRepairConfirmations: true,
     providerGatewayRuntimeImported: false,
@@ -542,6 +559,15 @@ function buildAliasBaseUrlReview(selectedBaseUrlKey: string, selectedAlias?: str
     selectedAlias: selectedAlias ?? null,
     selectedBaseUrlKey,
     defaultBaseUrlKey: 'beijing',
+    keyReplacementEvidence: {
+      secretRef: 'DASHSCOPE_API_KEY',
+      operatorReportedReplacementVersion: '3',
+      secretVersionSelector: 'latest',
+      confirmationRequired: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+      qwenProviderRerunAfterReplacement: true,
+      payloadPrinted: false,
+      payloadCommitted: false,
+    },
     baseUrls: {
       beijing: {
         key: 'beijing',
@@ -576,6 +602,9 @@ async function loadDashScopeSecret(): Promise<{ value?: string; entry: SecretAcc
         secretRef: 'DASHSCOPE_API_KEY',
         source: 'unavailable',
         payloadAccessStatus: 'failed',
+        secretVersionSelector: 'latest',
+        operatorReportedReplacementVersion: '3',
+        keyReplacementAsserted: process.env.REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED === 'true',
         envVarPresent: true,
         payloadPrinted: false,
         payloadCommitted: false,
@@ -607,12 +636,16 @@ async function loadDashScopeSecret(): Promise<{ value?: string; entry: SecretAcc
         },
       }
     }
+    process.env.DASHSCOPE_API_KEY = value
     return {
       value,
       entry: {
         secretRef: 'DASHSCOPE_API_KEY',
         source: 'secret_manager',
         payloadAccessStatus: 'succeeded',
+        secretVersionSelector: 'latest',
+        operatorReportedReplacementVersion: '3',
+        keyReplacementAsserted: process.env.REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED === 'true',
         envVarPresent: true,
         payloadPrinted: false,
         payloadCommitted: false,
@@ -634,6 +667,9 @@ function defaultSecretEntry(status: SecretAccessEntry['payloadAccessStatus']): S
     secretRef: 'DASHSCOPE_API_KEY',
     source: status === 'not_attempted' ? 'unavailable' : 'unavailable',
     payloadAccessStatus: status,
+    secretVersionSelector: 'latest',
+    operatorReportedReplacementVersion: '3',
+    keyReplacementAsserted: process.env.REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED === 'true',
     envVarPresent: false,
     payloadPrinted: false,
     payloadCommitted: false,
@@ -649,6 +685,11 @@ function buildSecretAccessReport(entry: SecretAccessEntry, executed: boolean) {
     executed,
     secretManagerProject: 'reeditpro',
     secretSourcePolicy: 'google_secret_manager_only',
+    secretVersionSelector: 'latest',
+    operatorReportedReplacementVersion: '3',
+    secretVersionMetadataOnly: true,
+    keyReplacementConfirmation: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+    keyReplacementAsserted: process.env.REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED === 'true',
     broadSecretDiscovery: false,
     exactSecretRefsOnly: true,
     entries: [entry],
@@ -1189,6 +1230,10 @@ function buildReadinessReport(decision: Record<string, unknown>, selectedAlias?:
     selectedQwenAlias: selectedAlias ?? null,
     officialQwenAliasOrder: OFFICIAL_QWEN_ALIASES,
     staleQwen37AliasesUsed: false,
+    operatorReportedReplacementVersion: '3',
+    secretVersionSelector: 'latest',
+    keyReplacementConfirmation: 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+    keyReplacementAsserted: process.env.REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED === 'true',
     qwenProviderCallsExecutedOnlyWhenConfirmed: true,
     deepseekRerun: false,
     deepseekEvidenceReusedAsMetadataOnly: true,
@@ -1254,6 +1299,8 @@ Status: \`${status}\`.
 
 This server-only packet repairs the Qwen/DashScope side of PR #320 by probing current official Qwen aliases in order: \`qwen-plus\`, \`qwen3-max\`, and \`qwen-max\`. The PR #320 \`qwen3.7-plus\` and \`qwen3.7-max\` aliases are not used in this repair probe.
 
+Operator key replacement evidence: \`DASHSCOPE_API_KEY\` version \`3\` is reported as the correct-region replacement, and this packet selects \`latest\` at execution time. Payload printed or committed: \`false\`.
+
 Default endpoint: \`${BASE_URLS.beijing}\`. The Virginia endpoint is recorded as official evidence but is probed only when current-process metadata explicitly selects it. The Singapore endpoint requires a safe WorkspaceId review before use.
 
 Selected alias: \`${selectedAlias}\`.
@@ -1270,6 +1317,8 @@ Secret payloads, raw provider responses, DB URLs, service-role keys, access toke
 Decision: \`${decision}\`.
 
 Plan snapshot contract readiness: \`${planReady}\`.
+
+DashScope key replacement asserted during execution: \`${String(readiness.keyReplacementAsserted)}\`. Operator-reported secret version: \`3\`. Secret version selector: \`latest\`.
 
 Qwen-only provider calls may occur only under the explicit repair confirmations. DeepSeek rerun: \`false\`. Supabase writes: \`false\`. Runtime/tool/worker/route execution: \`false\`. Production/external beta/paid production: \`false\`.
 

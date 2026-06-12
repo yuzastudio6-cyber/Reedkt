@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T153356",
+  "runId": "modeldryrun1-20260612T160627",
   "branch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
   "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
   "prTitle": "[model] Qwen DashScope auth repair",
@@ -25,7 +25,8 @@
     "REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY",
     "REEDITPRO_CONFIRM_SECRET_PAYLOAD_ACCESS_FOR_PROVIDER_DRY_RUN",
     "REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY",
-    "REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS"
+    "REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS",
+    "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED"
   ],
   "forbiddenConfirmations": [
     "REEDITPRO_CONFIRM_DEEPSEEK_API_CALL",
@@ -61,6 +62,9 @@
   ],
   "defaultBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
   "secretSource": "google_secret_manager_only",
+  "secretVersionSelector": "latest",
+  "operatorReportedReplacementVersion": "3",
+  "keyReplacementConfirmation": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
   "environmentProviderSecretPayloadsAllowed": false,
   "recordedAlternateBaseUrls": {
     "virginia": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",

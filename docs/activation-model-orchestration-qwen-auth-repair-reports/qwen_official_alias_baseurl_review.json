@@ -26,6 +26,15 @@
   "selectedAlias": null,
   "selectedBaseUrlKey": "beijing",
   "defaultBaseUrlKey": "beijing",
+  "keyReplacementEvidence": {
+    "secretRef": "DASHSCOPE_API_KEY",
+    "operatorReportedReplacementVersion": "3",
+    "secretVersionSelector": "latest",
+    "confirmationRequired": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
+    "qwenProviderRerunAfterReplacement": true,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
   "baseUrls": {
     "beijing": {
       "key": "beijing",

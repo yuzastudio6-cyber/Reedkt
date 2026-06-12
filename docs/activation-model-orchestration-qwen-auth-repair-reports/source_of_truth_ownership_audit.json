@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T153356",
+  "runId": "modeldryrun1-20260612T160627",
   "ownerWorkstream": "MODEL_ORCHESTRATION",
   "sourceEvidence": "PR #320 provider dry-run reports plus current official DashScope and Alibaba Model Studio docs",
   "sourcePaths": [
@@ -56,6 +56,14 @@
   "pr320DeepSeekEvidenceReusedAsMetadataOnly": true,
   "pr320DeepSeekStatus": "not_attempted",
   "deepseekRerun": false,
+  "operatorReportedDashScopeKeyReplacement": {
+    "secretRef": "DASHSCOPE_API_KEY",
+    "replacementVersion": "3",
+    "selectedVersionForRerun": "latest",
+    "confirmationRequired": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
   "officialDocsBasis": [
     "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
     "https://www.alibabacloud.com/help/en/model-studio/models",

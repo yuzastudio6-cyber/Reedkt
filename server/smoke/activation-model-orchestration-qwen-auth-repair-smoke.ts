@@ -62,6 +62,12 @@ assert(readiness.secretPayloadCommitted === false, 'Secret payloads must not be 
 assert(readiness.rawProviderResponsesStored === false, 'Raw provider responses must not be stored.')
 assert(readiness.deepseekRerun === false, 'DeepSeek must not be rerun by the Qwen auth repair packet.')
 assert(readiness.staleQwen37AliasesUsed === false, 'Qwen 3.7 aliases must not be used in repair probes.')
+assert(readiness.operatorReportedReplacementVersion === '3', 'Operator-reported DashScope key replacement version must be recorded.')
+assert(readiness.secretVersionSelector === 'latest', 'DashScope secret version selector must remain latest.')
+assert(
+  readiness.keyReplacementConfirmation === 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED',
+  'DashScope key replacement confirmation must be recorded.',
+)
 
 for (const [key, expected] of Object.entries({
   toolsWorkersRoutes: false,
@@ -87,6 +93,9 @@ const secretAccess = reports.secretAccess as Record<string, unknown>
 assert(secretAccess.broadSecretDiscovery === false, 'Broad Secret Manager discovery must remain blocked.')
 assert(secretAccess.exactSecretRefsOnly === true, 'Secret access must use exact refs only.')
 assert(secretAccess.secretSourcePolicy === 'google_secret_manager_only', 'Qwen auth repair must use Secret Manager only.')
+assert(secretAccess.secretVersionSelector === 'latest', 'Secret report must record latest selector.')
+assert(secretAccess.operatorReportedReplacementVersion === '3', 'Secret report must record operator version 3.')
+assert(secretAccess.keyReplacementConfirmation === 'REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED', 'Secret report must record key replacement confirmation.')
 assert(secretAccess.payloadPrinted === false, 'Secret payload printed must be false.')
 assert(secretAccess.payloadCommitted === false, 'Secret payload committed must be false.')
 assert(secretAccess.deepseekSecretAccessed === false, 'DeepSeek secret must not be accessed in Qwen repair.')

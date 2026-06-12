@@ -1,0 +1,27 @@
+{
+  "phase": "supabase-support-ticket-submission",
+  "runId": "supabase-support-ticket-submission-20260610",
+  "status": "ready_for_manual_operator_submission",
+  "decision": "support_ticket_ready_for_manual_operator_submission",
+  "submissionMode": "operator_manual",
+  "preservedFromLatestReadyPacket": true,
+  "supportPortalAccessAvailable": false,
+  "supportPortalAccessConfirmed": false,
+  "supportTicketSubmitted": false,
+  "ticketReference": null,
+  "redactionValidated": true,
+  "operatorManualSubmissionRequired": true,
+  "cliCreateTicketRun": false,
+  "debugResetRun": false,
+  "resetRetryRun": false,
+  "dbPushRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "sqlExecuted": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "support_ticket_submission_requires_operator_portal_action"
+  ]
+}

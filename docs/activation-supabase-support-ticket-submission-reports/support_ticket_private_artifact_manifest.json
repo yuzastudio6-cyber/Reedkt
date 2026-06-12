@@ -1,0 +1,32 @@
+{
+  "phase": "supabase-support-ticket-submission",
+  "runId": "supabase-support-ticket-submission-20260610",
+  "reportDir": "docs/activation-supabase-support-ticket-submission-reports",
+  "committedArtifacts": [
+    "docs/activation-supabase-support-ticket-submission-reports/source_of_truth_ownership_audit.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_submission_plan.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_submission_evidence_inventory.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_redaction_validation_report.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_manual_submission_packet.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_submission_readiness_report.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_submission_audit_report.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_operator_submission_instructions.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_blocker_report.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_readiness_report.json",
+    "docs/activation-supabase-support-ticket-submission-reports/support_ticket_private_artifact_manifest.json",
+    "docs/supabase-support-ticket-submission.md",
+    "docs/supabase-support-ticket-manual-submission-packet.md",
+    "docs/supabase-support-ticket-redaction-policy.md",
+    "docs/supabase-support-ticket-next-response-handling.md",
+    "docs/implementation-prompts/prompt-supabase-support-response-recovery-decision.md"
+  ],
+  "privateUploadRequired": false,
+  "privateDataPayloadsCommitted": false,
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "dbUrlCommitted": false,
+  "keyMaterialCommitted": false,
+  "backupPayloadCommitted": false,
+  "mediaPayloadCommitted": false,
+  "productionAffected": false
+}

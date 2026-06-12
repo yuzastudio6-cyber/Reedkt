@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-support-ticket-submission",
+  "runId": "supabase-support-ticket-submission-20260610",
+  "status": "passed",
+  "reviewedArtifact": "docs/activation-supabase-support-ticket-submission-reports/support_ticket_manual_submission_packet.json",
+  "rules": [
+    "no_database_url_values",
+    "no_passwords",
+    "no_service_keys",
+    "no_access_tokens",
+    "no_private_backup_payloads",
+    "no_signed_urls",
+    "no_provider_keys",
+    "no_private_media_urls",
+    "no_production_target",
+    "no_private_row_data",
+    "no_raw_logs"
+  ],
+  "matchedSensitivePatternCount": 0,
+  "matchedSensitivePatterns": [],
+  "booleanFailures": [],
+  "safeToSubmit": true,
+  "productionTargetSelected": false,
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "debugResetRun": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

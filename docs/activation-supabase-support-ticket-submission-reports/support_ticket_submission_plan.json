@@ -1,0 +1,110 @@
+{
+  "phase": "supabase-support-ticket-submission",
+  "runId": "supabase-support-ticket-submission-20260610",
+  "branch": "codex/rp-foundation-supabase-support-ticket-submission",
+  "baseBranch": "codex/rp-foundation-supabase-support-escalation-approval",
+  "prTitle": "[foundation] Supabase support ticket submission",
+  "worktree": "/private/tmp/reeditpro-supabase-support-ticket-submission",
+  "reportDir": "docs/activation-supabase-support-ticket-submission-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "support_ticket_submission_plan.json",
+    "support_ticket_submission_evidence_inventory.json",
+    "support_ticket_redaction_validation_report.json",
+    "support_ticket_manual_submission_packet.json",
+    "support_ticket_submission_readiness_report.json",
+    "support_ticket_submission_audit_report.json",
+    "support_ticket_operator_submission_instructions.json",
+    "support_ticket_blocker_report.json",
+    "support_ticket_readiness_report.json",
+    "support_ticket_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-support-ticket-submission.md",
+    "docs/supabase-support-ticket-manual-submission-packet.md",
+    "docs/supabase-support-ticket-redaction-policy.md",
+    "docs/supabase-support-ticket-next-response-handling.md",
+    "docs/implementation-prompts/prompt-supabase-support-response-recovery-decision.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePrs": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    252,
+    259,
+    262,
+    265,
+    269,
+    271,
+    274
+  ],
+  "docsBasis": {
+    "cliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "databaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "changelog": "https://supabase.com/changelog",
+    "checkedAt": "2026-06-10",
+    "cliCreateTicketFlagObserved": true,
+    "cliDebugFlagObserved": true,
+    "cliCreateTicketApprovedInThisPhase": false,
+    "cliDebugApprovedInThisPhase": false
+  },
+  "approvedStagingTarget": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "environment": "staging"
+  },
+  "allowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_MANUAL_SUPPORT_TICKET_SUBMISSION",
+    "REEDITPRO_CONFIRM_SUPABASE_SUPPORT_PACKET_REDACTION_REVIEW",
+    "REEDITPRO_CONFIRM_SUPABASE_SUPPORT_PORTAL_ACCESS_AVAILABLE only if portal/session is actually available"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_CLI_CREATE_TICKET",
+    "REEDITPRO_CONFIRM_SUPABASE_DEBUG_LOG_COLLECTION",
+    "REEDITPRO_CONFIRM_SUPABASE_SUPPORT_TICKET_CREATE_VIA_CLI",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_PUSH",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "allowedActions": [
+    "read_committed_safe_reports",
+    "validate_redacted_packet",
+    "build_manual_support_ticket_content",
+    "write_operator_submission_instructions",
+    "write_safe_reports_and_docs"
+  ],
+  "blockedActions": [
+    "cli_create_ticket",
+    "debug_reset_log_collection",
+    "reset_retry",
+    "db_push",
+    "migration_repair",
+    "schema_deploy",
+    "track_b_backfill_write",
+    "production_supabase",
+    "direct_ddl_dml",
+    "secret_payload_access_or_printing",
+    "provider_calls",
+    "route_tool_worker_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ],
+  "defaultDecision": "support_ticket_ready_for_manual_operator_submission"
+}

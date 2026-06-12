@@ -1,0 +1,43 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "runId": "modeldryrun1-20260612T180646",
+  "reportDir": "docs/activation-model-orchestration-qwen-auth-repair-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "qwen_auth_repair_plan.json",
+    "qwen_official_alias_baseurl_review.json",
+    "qwen_secret_access_report.json",
+    "qwen_auth_baseurl_probe_report.json",
+    "qwen_repaired_provider_dry_run_report.json",
+    "qwen_green_evidence_canonicalization_report.json",
+    "qwen_auth_repair_decision.json",
+    "qwen_auth_repair_blocker_report.json",
+    "qwen_auth_repair_readiness_report.json",
+    "qwen_auth_repair_private_artifact_manifest.json"
+  ],
+  "committedArtifactClasses": [
+    "safe_json_reports",
+    "safe_markdown_docs",
+    "server_only_qwen_repair_code"
+  ],
+  "excludedArtifactClasses": [
+    "api_keys",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "secret_payloads",
+    "signed_urls",
+    "raw_provider_responses",
+    "private_payloads",
+    "media_payloads",
+    "node_modules",
+    "caches",
+    "build_outputs"
+  ],
+  "executed": true,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "rawProviderResponsesStored": false,
+  "supabaseWrites": false
+}

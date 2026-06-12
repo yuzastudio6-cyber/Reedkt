@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "model-orchestration-provider-dry-run-20260612",
+  "runId": "modeldryrun1-20260612T163026",
   "ownerWorkstream": "MODEL_ORCHESTRATION",
   "sourceEvidence": "PR #318 committed dry-run approval reports and official provider docs",
   "sourcePaths": [
@@ -72,6 +72,14 @@
   "providerGatewayRuntimeImported": false,
   "productionRouteImported": false,
   "supabaseWrites": false,
+  "supabaseMilestoneSync": {
+    "requested": false,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  },
   "toolsWorkersRoutes": false,
   "mediaProcessing": false,
   "publicArtifacts": false,

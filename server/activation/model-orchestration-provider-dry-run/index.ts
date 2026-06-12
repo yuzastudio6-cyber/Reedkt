@@ -1,5 +1,7 @@
 import { execFile } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import {
@@ -10,7 +12,8 @@ import {
 const execFileAsync = promisify(execFile)
 
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE = 'model-orchestration-provider-dry-run'
-export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID = 'model-orchestration-provider-dry-run-20260612'
+export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID =
+  process.env.REEDITPRO_MODEL_DRY_RUN_ID ?? process.env.REEDITPRO_MODELDRYRUN1_RUN_ID ?? buildModelDryRunRunId()
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_BRANCH =
   'codex/rp-model-orchestration-qwen-deepseek-provider-dry-run'
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_BASE_BRANCH =
@@ -19,6 +22,9 @@ export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REPORT_DIR =
   'docs/activation-model-orchestration-provider-dry-run-reports'
 export const MODEL_ORCHESTRATION_DRY_RUN_APPROVAL_REPORT_DIR =
   'docs/activation-model-orchestration-dry-run-approval-reports'
+export const MODEL_DRY_RUN_PRIVATE_GENERATED_BUCKET = 'reeditpro-staging-reeditpro-generated-assets'
+export const MODEL_DRY_RUN_PRIVATE_QA_BUCKET = 'reeditpro-staging-reeditpro-qa-artifacts'
+export const MODEL_DRY_RUN_PRIVATE_OBJECT_PREFIX = 'activation-model-orchestration/model-dry-run-1'
 
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_EXPECTED_REPORTS = [
   'source_of_truth_ownership_audit.json',
@@ -120,7 +126,7 @@ interface ProviderCaseResult {
 interface SecretAccessEntry {
   secretRef: 'DASHSCOPE_API_KEY' | 'DEEPSEEK_API_KEY'
   provider: ProviderName
-  source: 'environment' | 'secret_manager' | 'unavailable'
+  source: 'secret_manager' | 'unavailable'
   payloadAccessStatus: 'succeeded' | 'failed' | 'not_attempted'
   envVarPresent: boolean
   payloadPrinted: false
@@ -198,6 +204,18 @@ const BLOCKED_SCOPES = [
   'paid_production',
 ] as const
 
+function buildModelDryRunRunId() {
+  return `modeldryrun1-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, '')}`
+}
+
+export function getModelDryRunGeneratedArtifactPrefix(runId = MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID) {
+  return `gs://${MODEL_DRY_RUN_PRIVATE_GENERATED_BUCKET}/${MODEL_DRY_RUN_PRIVATE_OBJECT_PREFIX}/${runId}/`
+}
+
+export function getModelDryRunQaArtifactPrefix(runId = MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID) {
+  return `gs://${MODEL_DRY_RUN_PRIVATE_QA_BUCKET}/${MODEL_DRY_RUN_PRIVATE_OBJECT_PREFIX}/${runId}/`
+}
+
 const SCHEMA_REQUIRED_FIELDS: Record<string, string[]> = {
   agent_findings_v1: ['caseId', 'findings', 'confidence', 'risks', 'blockedActions'],
   edit_intents_v1: ['caseId', 'intentSummary', 'segments', 'planningRequirements', 'approvalGates'],
@@ -250,6 +268,10 @@ export function getModelOrchestrationProviderDryRunPlan() {
     officialDocsBasis: OFFICIAL_DOCS,
     qwenEndpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
     deepseekEndpoint: 'https://api.deepseek.com/chat/completions',
+    secretSource: 'google_secret_manager_only',
+    environmentProviderSecretPayloadsAllowed: false,
+    privateGeneratedArtifactPrefix: getModelDryRunGeneratedArtifactPrefix(),
+    privateQaArtifactPrefix: getModelDryRunQaArtifactPrefix(),
     providerCallsAllowedOnlyWithExecuteAndConfirmations: true,
     syntheticPromptsOnly: true,
     stream: false,
@@ -265,6 +287,7 @@ export function getModelOrchestrationProviderDryRunPlan() {
     production: false,
     externalBeta: false,
     paidProduction: false,
+    supabaseMilestoneSync: buildSupabaseMilestoneSyncStatus(false),
   }
 }
 
@@ -319,7 +342,7 @@ export async function executeModelOrchestrationProviderDryRun(options: {
     const decision = buildDecision('blocked_pending_schema_contract_fix', [
       ...missingCases.map((item) => `missing_approved_case:${item.caseId}`),
     ])
-    await writeModelOrchestrationProviderDryRunArtifacts(buildReportsFromDecision(decision, [], [], false, false))
+    await writeModelOrchestrationProviderDryRunArtifacts(buildReportsFromDecision(decision, [], [], true, false), { uploadPrivateArtifacts: true })
     return { exitCode: 1 }
   }
 
@@ -330,7 +353,7 @@ export async function executeModelOrchestrationProviderDryRun(options: {
       .map((entry) => entry.blocker ?? 'secret_unavailable'))
     const reports = buildReportsFromDecision(decision, [], secretLoad.entries, false, false)
     reports.loadedCases = buildLoadedCasesReport(cases, true)
-    await writeModelOrchestrationProviderDryRunArtifacts(reports)
+    await writeModelOrchestrationProviderDryRunArtifacts(reports, { uploadPrivateArtifacts: true })
     return { exitCode: 1 }
   }
 
@@ -346,11 +369,17 @@ export async function executeModelOrchestrationProviderDryRun(options: {
   const decision = selectExecutionDecision(results, invalidFixturePassed)
   const reports = buildReportsFromDecision(decision, results, secretLoad.entries, true, invalidFixturePassed)
   reports.loadedCases = buildLoadedCasesReport(cases, true)
-  await writeModelOrchestrationProviderDryRunArtifacts(reports)
+  await writeModelOrchestrationProviderDryRunArtifacts(reports, { uploadPrivateArtifacts: true })
   return { exitCode: decision.status === 'passed' ? 0 : 1 }
 }
 
-export async function writeModelOrchestrationProviderDryRunArtifacts(reports: ProviderDryRunReports): Promise<void> {
+export async function writeModelOrchestrationProviderDryRunArtifacts(
+  reports: ProviderDryRunReports,
+  options: { uploadPrivateArtifacts?: boolean } = {},
+): Promise<void> {
+  if (options.uploadPrivateArtifacts) {
+    attachPrivateArtifactUpload(reports, await uploadProviderDryRunPrivateArtifacts(reports))
+  }
   const reportDir = MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REPORT_DIR
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'source_of_truth_ownership_audit.json'), reports.sourceOfTruthOwnershipAudit)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'provider_dry_run_plan.json'), reports.plan)
@@ -377,6 +406,8 @@ function readExistingReports(): ProviderDryRunReports | undefined {
   if (!decision) return undefined
   const decisionValue = asString(decision.decision)
   if (decisionValue === 'not_attempted') return undefined
+  const secretAccess = readJson(pathInReportDir('provider_secret_access_report.json'))
+  if (secretAccess?.secretSourcePolicy !== 'google_secret_manager_only') return undefined
   const allPresent = MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_EXPECTED_REPORTS.every((file) =>
     existsSync(pathInReportDir(file)))
   if (!allPresent) return undefined
@@ -384,7 +415,7 @@ function readExistingReports(): ProviderDryRunReports | undefined {
   return {
     sourceOfTruthOwnershipAudit: readJson(pathInReportDir('source_of_truth_ownership_audit.json')) ?? {},
     plan: readJson(pathInReportDir('provider_dry_run_plan.json')) ?? {},
-    secretAccess: readJson(pathInReportDir('provider_secret_access_report.json')) ?? {},
+    secretAccess: secretAccess ?? {},
     loadedCases: readJson(pathInReportDir('provider_dry_run_loaded_cases_report.json')) ?? {},
     qwenRun: readJson(pathInReportDir('qwen_provider_dry_run_report.json')) ?? {},
     deepseekRun: readJson(pathInReportDir('deepseek_provider_dry_run_report.json')) ?? {},
@@ -438,6 +469,7 @@ function buildSourceOfTruthOwnershipAudit() {
     providerGatewayRuntimeImported: false,
     productionRouteImported: false,
     supabaseWrites: false,
+    supabaseMilestoneSync: buildSupabaseMilestoneSyncStatus(true),
     toolsWorkersRoutes: false,
     mediaProcessing: false,
     publicArtifacts: false,
@@ -516,16 +548,16 @@ async function loadSecret(secretRef: SecretAccessEntry['secretRef'], provider: P
   const envValue = process.env[secretRef]
   if (envValue && envValue.trim().length > 0) {
     return {
-      value: envValue.trim(),
       entry: {
         secretRef,
         provider,
-        source: 'environment',
-        payloadAccessStatus: 'succeeded',
+        source: 'unavailable',
+        payloadAccessStatus: 'failed',
         envVarPresent: true,
         payloadPrinted: false,
         payloadCommitted: false,
         secretValueStoredInReports: false,
+        blocker: `${secretRef.toLowerCase()}_env_payload_present_secret_manager_required`,
       },
     }
   }
@@ -559,7 +591,6 @@ async function loadSecret(secretRef: SecretAccessEntry['secretRef'], provider: P
         },
       }
     }
-    process.env[secretRef] = value
     return {
       value,
       entry: {
@@ -623,6 +654,7 @@ function buildSecretAccessReport(entries: SecretAccessEntry[], executed: boolean
     status: executed ? (blockers.length === 0 ? 'passed' : 'blocked') : 'not_attempted',
     executed,
     secretManagerProject: 'reeditpro',
+    secretSourcePolicy: 'google_secret_manager_only',
     broadSecretDiscovery: false,
     exactSecretRefsOnly: true,
     entries: normalizedEntries,
@@ -1006,7 +1038,8 @@ function buildDecision(decision: ProviderDecision, activeBlockers: string[]) {
     status: passed ? 'passed' : decision === 'not_attempted' ? 'not_attempted' : 'blocked',
     decision,
     activeBlockers,
-    providerCallsAttempted: passed || activeBlockers.some((item) => item.startsWith('provider_') || item.includes('model_alias') || item.includes('schema')),
+    providerCallsAttempted: decision !== 'not_attempted' &&
+      (passed || activeBlockers.some((item) => item.startsWith('provider_') || item.includes('model_alias') || item.includes('schema'))),
     qwenApiCallAllowedInThisPhase: true,
     deepseekApiCallAllowedInThisPhase: true,
     rawProviderResponsesStored: false,
@@ -1016,6 +1049,7 @@ function buildDecision(decision: ProviderDecision, activeBlockers: string[]) {
     toolsWorkersRoutes: false,
     mediaProcessing: false,
     supabaseWrites: false,
+    supabaseMilestoneSync: buildSupabaseMilestoneSyncStatus(true),
     rawPromptExecutionIntoWorkersOrTools: false,
     publicArtifacts: false,
     signedUrls: false,
@@ -1038,6 +1072,7 @@ function buildBlockerReport(decision: Record<string, unknown>) {
     toolsWorkersRoutes: false,
     mediaProcessing: false,
     supabaseWrites: false,
+    supabaseMilestoneSync: buildSupabaseMilestoneSyncStatus(true),
     rawPromptExecutionIntoWorkersOrTools: false,
     publicArtifacts: false,
     signedUrls: false,
@@ -1075,6 +1110,7 @@ function buildReadinessReport(decision: Record<string, unknown>) {
     toolsWorkersRoutes: false,
     mediaProcessing: false,
     supabaseWrites: false,
+    supabaseMilestoneSync: buildSupabaseMilestoneSyncStatus(true),
     rawPromptExecutionIntoWorkersOrTools: false,
     publicArtifacts: false,
     signedUrls: false,
@@ -1089,6 +1125,8 @@ function buildPrivateArtifactManifest(executed: boolean) {
     phase: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE,
     runId: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID,
     reportDir: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REPORT_DIR,
+    generatedArtifactPrefix: getModelDryRunGeneratedArtifactPrefix(),
+    qaArtifactPrefix: getModelDryRunQaArtifactPrefix(),
     expectedReports: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_EXPECTED_REPORTS,
     committedArtifactClasses: ['safe_json_reports', 'safe_markdown_docs', 'server_only_dry_run_code'],
     excludedArtifactClasses: [
@@ -1111,6 +1149,171 @@ function buildPrivateArtifactManifest(executed: boolean) {
     payloadCommitted: false,
     rawProviderResponsesStored: false,
     supabaseWrites: false,
+    supabaseMilestoneSync: buildSupabaseMilestoneSyncStatus(executed),
+  }
+}
+
+function buildSupabaseMilestoneSyncStatus(executed: boolean) {
+  const syncLayerPresent = existsSync('server/activation/supabase-milestone-sync')
+  return {
+    requested: process.env.REEDITPRO_CONFIRM_SUPABASE_MILESTONE_SYNC === 'true',
+    status: syncLayerPresent ? (executed ? 'available_not_invoked_by_provider_dry_run_stack' : 'not_attempted') : 'not_attempted_current_branch_missing_sync_layer',
+    syncLayerPresent,
+    sqlExecuted: false,
+    migrationDeployed: false,
+    unrelatedRowsWritten: false,
+  }
+}
+
+function attachPrivateArtifactUpload(reports: ProviderDryRunReports, upload: Record<string, unknown>) {
+  reports.privateArtifactManifest = {
+    ...reports.privateArtifactManifest,
+    privateArtifactUpload: upload,
+  }
+  reports.readinessReport = {
+    ...reports.readinessReport,
+    privateArtifactUploadStatus: upload['status'],
+    privateGeneratedArtifactPrefix: getModelDryRunGeneratedArtifactPrefix(),
+    privateQaArtifactPrefix: getModelDryRunQaArtifactPrefix(),
+  }
+  reports.decision = {
+    ...reports.decision,
+    privateArtifactUploadStatus: upload['status'],
+  }
+  reports.blockerReport = {
+    ...reports.blockerReport,
+    privateArtifactUploadStatus: upload['status'],
+  }
+}
+
+async function uploadProviderDryRunPrivateArtifacts(reports: ProviderDryRunReports): Promise<Record<string, unknown>> {
+  const generatedPrefix = `${MODEL_DRY_RUN_PRIVATE_OBJECT_PREFIX}/${MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID}`
+  const generatedArtifacts = [
+    { object: 'audit/repo-ownership-audit.json', value: reports.sourceOfTruthOwnershipAudit },
+    { object: 'policy/model-provider-dry-run-policy.json', value: reports.plan },
+    { object: 'cases/synthetic-dry-run-cases.json', value: reports.loadedCases },
+    { object: 'requests/sanitized-provider-request-metadata.json', value: reports.loadedCases },
+    { object: 'responses/normalized-provider-responses.json', value: { qwen: reports.qwenRun, deepseek: reports.deepseekRun } },
+    { object: 'validation/schema-validation-results.json', value: { comparison: reports.comparison, failClosed: reports.failClosed } },
+    { object: 'validation/redaction-validation-results.json', value: buildRedactionValidationArtifact(reports) },
+    { object: 'cost/provider-cost-usage-summary.json', value: reports.comparison },
+    { object: 'manifest/model-provider-dry-run-manifest.json', value: reports.privateArtifactManifest },
+    { object: 'supabase/model-dry-run-1-milestone-sync-input.json', value: buildSupabaseMilestoneSyncInput(reports) },
+    { object: 'supabase/model-dry-run-1-milestone-sync-result.json', value: buildSupabaseMilestoneSyncStatus(true) },
+  ]
+  const qaArtifacts = [
+    { object: 'qa/model-provider-dry-run-qa.json', value: buildQaArtifact(reports) },
+    { object: 'reports/model-provider-dry-run-report.json', value: reports },
+  ]
+
+  const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'reeditpro-modeldryrun1-'))
+  const uploaded: Array<Record<string, unknown>> = []
+  try {
+    for (const artifact of generatedArtifacts) {
+      uploaded.push(await uploadJsonArtifact(tmpDir, MODEL_DRY_RUN_PRIVATE_GENERATED_BUCKET, generatedPrefix, artifact.object, artifact.value))
+    }
+    for (const artifact of qaArtifacts) {
+      uploaded.push(await uploadJsonArtifact(tmpDir, MODEL_DRY_RUN_PRIVATE_QA_BUCKET, generatedPrefix, artifact.object, artifact.value))
+    }
+    return {
+      status: 'uploaded',
+      generatedPrefix: getModelDryRunGeneratedArtifactPrefix(),
+      qaPrefix: getModelDryRunQaArtifactPrefix(),
+      artifacts: uploaded,
+      publicArtifacts: false,
+      signedUrls: false,
+      rawProviderResponsesStored: false,
+    }
+  } catch (error) {
+    return {
+      status: 'blocked_private_artifact_upload_failed',
+      generatedPrefix: getModelDryRunGeneratedArtifactPrefix(),
+      qaPrefix: getModelDryRunQaArtifactPrefix(),
+      blocker: error instanceof Error ? error.message : 'private_artifact_upload_failed',
+      artifacts: uploaded,
+      publicArtifacts: false,
+      signedUrls: false,
+      rawProviderResponsesStored: false,
+    }
+  } finally {
+    await rm(tmpDir, { recursive: true, force: true })
+  }
+}
+
+async function uploadJsonArtifact(
+  tmpDir: string,
+  bucket: string,
+  objectPrefix: string,
+  object: string,
+  value: unknown,
+) {
+  const localPath = path.join(tmpDir, object)
+  await mkdir(path.dirname(localPath), { recursive: true })
+  await writeFile(localPath, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+  const destination = `gs://${bucket}/${objectPrefix}/${object}`
+  await execFileAsync('gcloud', ['storage', 'cp', '--quiet', localPath, destination], {
+    timeout: 30000,
+    maxBuffer: 1024 * 1024,
+    env: { ...process.env },
+  })
+  return {
+    bucket,
+    object: `${objectPrefix}/${object}`,
+    gcsUri: destination,
+    private: true,
+  }
+}
+
+function buildRedactionValidationArtifact(reports: ProviderDryRunReports) {
+  return {
+    phase: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE,
+    runId: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID,
+    status: 'passed',
+    secretPayloadPrinted: false,
+    secretPayloadCommitted: false,
+    secretValueStoredInReports: false,
+    rawProviderResponsesStored: false,
+    rawProviderResponsesPrinted: false,
+    publicArtifacts: false,
+    signedUrls: false,
+    forbiddenPatternsAccepted: false,
+    secretAccess: reports.secretAccess,
+  }
+}
+
+function buildSupabaseMilestoneSyncInput(reports: ProviderDryRunReports) {
+  return {
+    phaseId: 'MODEL_DRYRUN_1',
+    runId: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID,
+    status: reports.readinessReport.status,
+    decision: reports.readinessReport.decision,
+    generatedArtifactPrefix: getModelDryRunGeneratedArtifactPrefix(),
+    qaArtifactPrefix: getModelDryRunQaArtifactPrefix(),
+    sqlExecuted: false,
+    migrationDeployed: false,
+    rawProviderResponsesStored: false,
+    supabaseMilestoneSync: buildSupabaseMilestoneSyncStatus(true),
+  }
+}
+
+function buildQaArtifact(reports: ProviderDryRunReports) {
+  return {
+    phase: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE,
+    runId: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID,
+    status: reports.readinessReport.status,
+    gates: {
+      source_of_truth_repo_audit: reports.sourceOfTruthOwnershipAudit,
+      dry_run_approval_evidence: reports.loadedCases,
+      provider_secret_policy: reports.secretAccess,
+      schema_validation: reports.comparison,
+      response_redaction: buildRedactionValidationArtifact(reports),
+      cost_usage_recorded: reports.comparison,
+      fail_closed_policy: reports.failClosed,
+      no_runtime_execution: true,
+      supabase_milestone_sync: buildSupabaseMilestoneSyncStatus(true),
+      blocked_features: BLOCKED_SCOPES,
+    },
+    passed: reports.readinessReport.decision === 'provider_dry_run_passed_ready_for_plan_snapshot_contract',
   }
 }
 

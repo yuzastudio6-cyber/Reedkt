@@ -1,0 +1,51 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "runId": "modeldryrun1-20260612T180646",
+  "status": "passed",
+  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
+  "selectedQwenAlias": "qwen-plus",
+  "selectedQwenAliasRole": "official_alias_probe",
+  "officialQwenAliases": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "canonicalSelectedAlias": "qwen-plus",
+  "officialQwenAliasOrder": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "approvedTargetAliasesUsedOnlyAfterUsProbe": true,
+  "staleQwen37AliasesUsed": false,
+  "approvedQwen37AliasesAllowedForTargetProbe": false,
+  "selectedBaseUrlKey": "virginia",
+  "selectedBaseUrlClassification": "virginia_dashscope_base_url",
+  "approvedDashScopeRegion": "us-virginia",
+  "operatorReportedReplacementVersion": "3",
+  "secretVersionSelector": "latest",
+  "exactSecretRefs": [
+    "DASHSCOPE_API_KEY"
+  ],
+  "keyReplacementConfirmation": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
+  "greenEvidenceCanonicalizationConfirmation": "REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION",
+  "keyReplacementAsserted": true,
+  "qwenProviderCallsExecutedOnlyWhenConfirmed": true,
+  "deepseekRerun": false,
+  "deepseekEvidenceReusedAsMetadataOnly": true,
+  "planSnapshotContractReady": true,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "supabaseWrites": false,
+  "rawPromptExecutionIntoWorkersOrTools": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "production": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

@@ -1,0 +1,59 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "status": "passed",
+  "officialDocsBasis": [
+    "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
+    "https://www.alibabacloud.com/help/en/model-studio/models",
+    "https://help.aliyun.com/zh/model-studio/text-generation-model/"
+  ],
+  "officialAliases": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "canonicalSelectedAlias": "qwen-plus",
+  "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #320 provider dry-run target aliases",
+  "officialProbeAliasOrder": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "selectedAlias": "qwen-plus",
+  "selectedBaseUrlKey": "virginia",
+  "defaultBaseUrlKey": "virginia",
+  "keyReplacementEvidence": {
+    "exactSecretRefs": [
+      "DASHSCOPE_API_KEY"
+    ],
+    "operatorReportedReplacementVersion": "3",
+    "secretVersionSelector": "latest",
+    "confirmationRequired": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
+    "canonicalizationConfirmation": "REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION",
+    "qwenProviderRerunAfterReplacement": true,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "baseUrls": {
+    "virginia": {
+      "key": "virginia",
+      "source": "approved_canonical_qwen_repair_base_url",
+      "payloadMatchedApprovedVirginiaEndpoint": true,
+      "probedByDefault": true
+    },
+    "beijing": {
+      "key": "beijing",
+      "probed": false,
+      "reason": "US DashScope key repair selected by Secret Manager region metadata"
+    },
+    "singapore": {
+      "key": "singapore",
+      "probed": false,
+      "blockerWithoutSafeWorkspaceId": "blocked_pending_workspace_id_review"
+    }
+  },
+  "secretPayloadValuesStoredInReport": false,
+  "qwenOnly": true,
+  "deepseekRerun": false,
+  "rawProviderResponsesStored": false,
+  "secretPayloadPrinted": false
+}

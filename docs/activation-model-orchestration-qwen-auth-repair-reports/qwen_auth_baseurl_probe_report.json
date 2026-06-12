@@ -1,0 +1,108 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "status": "passed",
+  "executed": true,
+  "provider": "qwen_dashscope",
+  "selectedBaseUrlKey": "virginia",
+  "selectedBaseUrlClassification": "virginia_dashscope_base_url",
+  "endpointPath": "/chat/completions",
+  "probeAliasOrder": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "officialAliases": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "canonicalSelectedAlias": "qwen-plus",
+  "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #322 canonicalization requirements",
+  "officialAliasCallsAttempted": 3,
+  "officialAliasCallsPassed": 2,
+  "staleQwen37AliasesUsed": false,
+  "providerCallsAttempted": 3,
+  "providerCallsPassed": 2,
+  "providerCallsBlocked": 1,
+  "stream": false,
+  "tools": false,
+  "search": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "secretPayloadPrinted": false,
+  "results": [
+    {
+      "modelId": "qwen-plus",
+      "baseUrlKey": "virginia",
+      "aliasRole": "official_alias_probe",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 1291,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 88,
+        "completionTokens": 27,
+        "totalTokens": 115
+      },
+      "responseContentCharacters": 118,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "modelId": "qwen3-max",
+      "baseUrlKey": "virginia",
+      "aliasRole": "official_alias_probe",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 1284,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 88,
+        "completionTokens": 27,
+        "totalTokens": 115
+      },
+      "responseContentCharacters": 118,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "modelId": "qwen-max",
+      "baseUrlKey": "virginia",
+      "aliasRole": "official_alias_probe",
+      "status": "blocked",
+      "blocker": "qwen_model_alias_unavailable",
+      "httpStatus": 404,
+      "latencyMs": 99,
+      "responseContentCharacters": 213,
+      "sanitizedEvidence": {
+        "authKeywordDetected": false,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    }
+  ]
+}

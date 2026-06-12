@@ -1,11 +1,10 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
-  "status": "not_attempted",
-  "decision": "not_attempted",
-  "activeBlockers": [
-    "provider_dry_run_not_executed"
-  ],
+  "phase": "model-orchestration-qwen-auth-repair",
+  "status": "passed",
+  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "blockedScopes": [
+    "deepseek_rerun",
     "tools_workers_routes",
     "media_processing",
     "supabase_writes",
@@ -16,17 +15,10 @@
     "external_beta",
     "paid_production"
   ],
+  "deepseekRerun": false,
   "toolsWorkersRoutes": false,
   "mediaProcessing": false,
   "supabaseWrites": false,
-  "supabaseMilestoneSync": {
-    "requested": false,
-    "status": "not_attempted_current_branch_missing_sync_layer",
-    "syncLayerPresent": false,
-    "sqlExecuted": false,
-    "migrationDeployed": false,
-    "unrelatedRowsWritten": false
-  },
   "rawPromptExecutionIntoWorkersOrTools": false,
   "publicArtifacts": false,
   "signedUrls": false,

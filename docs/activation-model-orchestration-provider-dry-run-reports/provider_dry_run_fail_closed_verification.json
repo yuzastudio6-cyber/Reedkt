@@ -1,7 +1,7 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "status": "passed",
-  "executed": true,
+  "status": "not_attempted",
+  "executed": false,
   "invalidJsonFixture": {
     "caseId": "synthetic_schema_invalid_response_failure",
     "providerCall": false,

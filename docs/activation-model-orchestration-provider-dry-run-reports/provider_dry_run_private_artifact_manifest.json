@@ -1,7 +1,9 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "model-orchestration-provider-dry-run-20260612",
+  "runId": "modeldryrun1-20260612T163026",
   "reportDir": "docs/activation-model-orchestration-provider-dry-run-reports",
+  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
+  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
     "provider_dry_run_plan.json",
@@ -36,9 +38,17 @@
     "caches",
     "build_outputs"
   ],
-  "executed": true,
+  "executed": false,
   "payloadPrinted": false,
   "payloadCommitted": false,
   "rawProviderResponsesStored": false,
-  "supabaseWrites": false
+  "supabaseWrites": false,
+  "supabaseMilestoneSync": {
+    "requested": false,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  }
 }

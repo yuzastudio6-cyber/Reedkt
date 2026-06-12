@@ -29,7 +29,7 @@ This activation-base tracker was created by Prompt GD-0 because the Phase 53A ba
 | GD-10 - Group B Controlled Local Fixture Execution | implemented_pr_open | `codex/rp-gd-10-group-b-controlled-local-fixture-execution` | [PR #304](https://github.com/yuzastudio6-cyber/Reedkt/pull/304) | `none; Group B controlled local fixture execution only` |
 | TRACKA-GD-GROUPB-HANDOFF-0 - Track A Group B Creative Graphics Handoff Review | implemented_pr_open | `codex/rp-tracka-gd-groupb-handoff-0-review` | [PR #305](https://github.com/yuzastudio6-cyber/Reedkt/pull/305) | `none; Track A Group B creative graphics handoff review only` |
 | TRACKA-GD-GROUPB-HANDOFF-1 - Group B Private Preview Composition Plan | implemented_pr_open | `codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan` | [PR #310](https://github.com/yuzastudio6-cyber/Reedkt/pull/310) | `none; Track A Group B creative graphics private preview composition plan only` |
-| TRACKA-GD-GROUPB-HANDOFF-2 - Group B Private Preview Execution Packet | implemented_local_pending_validation | `codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet` | pending | `none; Track A Group B creative graphics private preview execution packet only` |
+| TRACKA-GD-GROUPB-HANDOFF-2 - Group B Private Preview Execution Packet | implemented_pr_open | `codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet` | [PR #312](https://github.com/yuzastudio6-cyber/Reedkt/pull/312) | `none; Track A Group B creative graphics private preview execution packet only` |
 
 GD-5 runtime unlock status: `repo_audit_passed / manifest_draft / dry_run_fixture_spec_created / generated_local_fixture_candidate_prepared / static_gate_passed_with_warnings / execution_plan_ready / execution_not_approved / generated_local_fixture_not_executed`
 
@@ -253,7 +253,7 @@ Next recommended prompt after TRACKA-GD-HANDOFF-7: `CROSS-BETA-0 - Cross-Workstr
 ## TRACKA-GD-GROUPB-HANDOFF-2 - Group B Private Preview Execution Packet
 
 - Branch: `codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet`
-- PR: pending
+- PR: [#312](https://github.com/yuzastudio6-cyber/Reedkt/pull/312)
 - Base: `origin/codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan`
 - Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`
 - Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`

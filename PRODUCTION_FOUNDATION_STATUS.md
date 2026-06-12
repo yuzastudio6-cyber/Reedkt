@@ -936,7 +936,7 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 ## TRACKA-GD-GROUPB-HANDOFF-2 - Group B Private Preview Execution Packet
 
 - Branch: `codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet`
-- PR: pending
+- PR: [#312](https://github.com/yuzastudio6-cyber/Reedkt/pull/312)
 - Base: `origin/codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan`
 - Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`
 - Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`

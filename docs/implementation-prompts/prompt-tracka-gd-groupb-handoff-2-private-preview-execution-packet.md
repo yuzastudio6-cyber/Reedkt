@@ -1,12 +1,12 @@
 # TRACKA-GD-GROUPB-HANDOFF-2 Private Preview Execution Packet
 
-Status: implemented locally; PR pending
+Status: implemented; PR open
 
 Branch: `codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet`
 
 Base: `origin/codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan`
 
-PR: pending
+PR: [#312](https://github.com/yuzastudio6-cyber/Reedkt/pull/312)
 
 Capability: `none; Track A Group B creative graphics private preview execution packet only`
 

@@ -1,0 +1,65 @@
+{
+  "phase": "product-internal-beta-readiness-aggregation",
+  "runId": "product-internal-beta-readiness-aggregation-20260611",
+  "branch": "codex/rp-product-internal-beta-readiness-aggregation",
+  "baseBranch": "codex/rp-foundation-supabase-trackb-clean-staging-backfill",
+  "prTitle": "[product] Internal beta readiness aggregation after Track B backfill",
+  "mode": "metadata_readiness_aggregation_only",
+  "reportDir": "docs/activation-product-internal-beta-readiness-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "internal_beta_readiness_plan.json",
+    "trackb_clean_staging_sync_verification.json",
+    "internal_beta_workstream_inventory.json",
+    "restricted_internal_testing_scope.json",
+    "internal_beta_blocker_inventory.json",
+    "internal_beta_owner_map.json",
+    "internal_beta_go_no_go_decision.json",
+    "internal_beta_readiness_blocker_report.json",
+    "internal_beta_readiness_summary.json",
+    "internal_beta_private_artifact_manifest.json"
+  ],
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_PRODUCT_INTERNAL_BETA_AGGREGATION",
+    "REEDITPRO_CONFIRM_READINESS_METADATA_AGGREGATION",
+    "REEDITPRO_CONFIRM_CLEAN_STAGING_METADATA_READ"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_PRODUCT_INTERNAL_BETA_UNLOCK",
+    "REEDITPRO_CONFIRM_EXTERNAL_BETA_UNLOCK",
+    "REEDITPRO_CONFIRM_PAID_PRODUCTION_UNLOCK",
+    "REEDITPRO_CONFIRM_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME",
+    "REEDITPRO_CONFIRM_PUBLIC_ARTIFACTS",
+    "REEDITPRO_CONFIRM_SIGNED_URL_DELIVERY",
+    "REEDITPRO_CONFIRM_RAW_PROMPT_EXECUTION",
+    "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT"
+  ],
+  "sourcePrs": {
+    "trackBCleanStagingBackfill": 298,
+    "cleanStagingSchemaRls": 283,
+    "trackBReadinessRollupExport": 196,
+    "trackBCapabilityManifests": 161,
+    "trackBRouteManifest": 164
+  },
+  "docsBasis": [
+    "https://supabase.com/docs/reference/cli/supabase-db-push",
+    "https://supabase.com/docs/guides/deployment/database-migrations",
+    "https://supabase.com/changelog.md"
+  ],
+  "noSupabaseWrites": true,
+  "noRuntimeExecution": true,
+  "noWorkerExecution": true,
+  "noProviderCalls": true,
+  "noPublicArtifacts": true,
+  "noProductionUnlock": true,
+  "noExternalBetaUnlock": true,
+  "noPaidProductionUnlock": true,
+  "nextRecommendedPhase": "PRODUCT_INTERNAL_BETA_AGGREGATION - Internal testing scope freeze and operator signoff."
+}

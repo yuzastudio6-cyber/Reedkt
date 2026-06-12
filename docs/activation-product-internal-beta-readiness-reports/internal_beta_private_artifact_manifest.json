@@ -1,0 +1,37 @@
+{
+  "phase": "product-internal-beta-readiness-aggregation",
+  "runId": "product-internal-beta-readiness-aggregation-20260611",
+  "status": "safe_metadata_only",
+  "reportDir": "docs/activation-product-internal-beta-readiness-reports",
+  "reports": [
+    "source_of_truth_ownership_audit.json",
+    "internal_beta_readiness_plan.json",
+    "trackb_clean_staging_sync_verification.json",
+    "internal_beta_workstream_inventory.json",
+    "restricted_internal_testing_scope.json",
+    "internal_beta_blocker_inventory.json",
+    "internal_beta_owner_map.json",
+    "internal_beta_go_no_go_decision.json",
+    "internal_beta_readiness_blocker_report.json",
+    "internal_beta_readiness_summary.json",
+    "internal_beta_private_artifact_manifest.json"
+  ],
+  "committedArtifactsAllowed": [
+    "json_reports",
+    "markdown_docs",
+    "server_only_typescript",
+    "package_scripts"
+  ],
+  "excludedArtifacts": [
+    "secrets",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "private_payloads",
+    "media_payloads",
+    "node_modules",
+    "caches",
+    "build_output"
+  ]
+}

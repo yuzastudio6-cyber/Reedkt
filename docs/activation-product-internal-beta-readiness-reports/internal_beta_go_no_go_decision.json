@@ -1,0 +1,17 @@
+{
+  "phase": "product-internal-beta-readiness-aggregation",
+  "runId": "product-internal-beta-readiness-aggregation-20260611",
+  "decision": "restricted_internal_testing_candidate",
+  "status": "passed",
+  "goNoGoRecommendation": "restricted_internal_testing_candidate",
+  "restrictedInternalTestingCandidate": true,
+  "externalBetaAllowed": false,
+  "paidProductionAllowed": false,
+  "productionAllowed": false,
+  "publicArtifactsAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "supabaseWritesAllowedInThisPhase": false,
+  "blockers": [],
+  "nextRecommendedPhase": "PRODUCT_INTERNAL_BETA_AGGREGATION - Internal testing scope freeze and operator signoff."
+}

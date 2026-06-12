@@ -1,0 +1,104 @@
+{
+  "phase": "product-internal-beta-readiness-aggregation",
+  "runId": "product-internal-beta-readiness-aggregation-20260611",
+  "status": "blocked_scopes_preserved",
+  "blockers": [
+    {
+      "id": "production",
+      "status": "blocked",
+      "blocksExternalBeta": true,
+      "requiredNextPhase": "separate production promotion approval"
+    },
+    {
+      "id": "external_beta",
+      "status": "blocked",
+      "blocksExternalBeta": true,
+      "requiredNextPhase": "separate external beta approval"
+    },
+    {
+      "id": "paid_production",
+      "status": "blocked",
+      "blocksExternalBeta": true,
+      "requiredNextPhase": "separate paid production approval"
+    },
+    {
+      "id": "provider_calls",
+      "status": "blocked",
+      "blocksExternalBeta": true,
+      "requiredNextPhase": "provider gateway gate"
+    },
+    {
+      "id": "live_tool_execution",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate owner approval"
+    },
+    {
+      "id": "worker_execution",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "worker runtime gate"
+    },
+    {
+      "id": "route_execution",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate owner approval"
+    },
+    {
+      "id": "public_artifacts",
+      "status": "blocked",
+      "blocksExternalBeta": true,
+      "requiredNextPhase": "public artifact delivery gate"
+    },
+    {
+      "id": "signed_urls_as_source_of_truth",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "public artifact delivery gate"
+    },
+    {
+      "id": "broad_media_processing",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate owner approval"
+    },
+    {
+      "id": "vlm_qwen_runtime",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate owner approval"
+    },
+    {
+      "id": "demucs_runtime",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate owner approval"
+    },
+    {
+      "id": "raw_prompt_execution",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate owner approval"
+    },
+    {
+      "id": "supabase_production_promotion",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate production promotion approval"
+    },
+    {
+      "id": "track_a_runtime",
+      "status": "blocked",
+      "blocksExternalBeta": false,
+      "requiredNextPhase": "separate owner approval"
+    }
+  ],
+  "productionBlocked": true,
+  "externalBetaBlocked": true,
+  "paidProductionBlocked": true,
+  "runtimeExecutionBlocked": true,
+  "providerCallsBlocked": true,
+  "publicArtifactsBlocked": true,
+  "supabaseProductionPromotionBlocked": true
+}

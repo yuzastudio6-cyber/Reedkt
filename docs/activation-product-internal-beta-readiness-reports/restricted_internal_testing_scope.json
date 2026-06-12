@@ -1,0 +1,43 @@
+{
+  "phase": "product-internal-beta-readiness-aggregation",
+  "runId": "product-internal-beta-readiness-aggregation-20260611",
+  "status": "restricted_scope_defined",
+  "allowedScope": [
+    "metadata_readiness_dashboards",
+    "track_b_readiness_review",
+    "clean_staging_milestone_registry_review",
+    "approved_noop_metadata_route_simulation_review",
+    "duckdb_polars_metadata_reporting_evidence_review",
+    "completed_phase_evidence_review"
+  ],
+  "blockedScope": [
+    "production",
+    "external_beta",
+    "paid_production",
+    "provider_calls",
+    "live_tool_execution",
+    "worker_execution",
+    "route_execution",
+    "public_artifacts",
+    "signed_urls_as_source_of_truth",
+    "broad_media_processing",
+    "vlm_qwen_runtime",
+    "demucs_runtime",
+    "raw_prompt_execution",
+    "supabase_production_promotion",
+    "track_a_runtime"
+  ],
+  "internalTestingCandidate": true,
+  "productBetaUnlocked": false,
+  "productionAllowed": false,
+  "externalBetaUnlocked": false,
+  "paidProductionUnlocked": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "rawPromptExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "workerExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "broadMediaProcessingAllowed": false
+}

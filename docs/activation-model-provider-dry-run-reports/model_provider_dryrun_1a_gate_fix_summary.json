@@ -1,0 +1,45 @@
+{
+  "phase": "MODEL_DRYRUN_1A",
+  "status": "blocked",
+  "decision": "blocked_pending_dashscope_secret_rotation_by_owner",
+  "baseBranch": "origin/codex/rp-model-orchestration-qwen-deepseek-synthetic-provider-dry-run",
+  "branch": "codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixes",
+  "sourceOfTruthRead": true,
+  "providerConfigReviewed": true,
+  "repoSideFixApplied": false,
+  "secretManagerMetadataReviewed": true,
+  "secretManagerPayloadFetchedBy1aDiagnostics": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "dashscopeMetadata": {
+    "secretName": "DASHSCOPE_API_KEY",
+    "enabledVersionsObserved": 3,
+    "latestEnabledVersionObserved": "3",
+    "latestEnabledVersionCreateTime": "2026-06-12T15:55:42Z",
+    "resourcePathsCommitted": false
+  },
+  "deepseekMetadata": {
+    "secretName": "DEEPSEEK_API_KEY",
+    "enabledVersionsObserved": 1,
+    "resourcePathsCommitted": false
+  },
+  "retry": {
+    "runId": "modeldryrun1-20260612T161750Z",
+    "executed": true,
+    "justification": "latest_enabled_dashscope_secret_version_after_modeldryrun1_failure",
+    "providerCallsAttempted": 2,
+    "providerCallsPassed": 1,
+    "qwenStatus": "blocked_http_401",
+    "deepseekStatus": "passed",
+    "rawProviderResponsesCommitted": false
+  },
+  "supabaseUpdateRequired": "optional approved milestone sync only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no",
+  "privateArtifactUpload": "not_attempted_provider_gate_blocked",
+  "productionUnlocked": false,
+  "externalBetaUnlocked": false,
+  "nextRecommendedPrompt": "MODEL-DRYRUN-1B - Provider Dry-Run Retry"
+}

@@ -36,6 +36,18 @@ Production capability enabled: `none; Qwen/DeepSeek synthetic provider dry-run e
 
 - `modeldryrun1_qwen_head_agent_planning:provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error`
 
+## MODEL-DRYRUN-1A Follow-Up
+
+Status: `blocked_pending_dashscope_secret_rotation_by_owner`
+
+MODEL-DRYRUN-1A performed a safe provider config review and metadata-only Secret Manager check. The latest enabled `DASHSCOPE_API_KEY` version observed was version `3`, created at `2026-06-12T15:55:42Z`, after the original failed run id `modeldryrun1-20260612T154825Z`.
+
+Because that newer enabled version satisfied the retry gate, the approved synthetic provider dry-run was rerun with run id `modeldryrun1-20260612T161750Z`. Qwen/DashScope still failed closed with HTTP `401`, while DeepSeek passed again. No repo-side provider client fix was applied because the DashScope endpoint/auth/request shape matched current OpenAI-compatible guidance for the configured China-region endpoint.
+
+Final MODEL-DRYRUN-1A decision: `blocked_pending_dashscope_secret_rotation_by_owner`.
+
+Recommended next prompt: `MODEL-DRYRUN-1B - Provider Dry-Run Retry` after owner-side DashScope secret/account/model-region repair.
+
 ## Warnings
 
 - None recorded.
@@ -57,11 +69,16 @@ Production capability enabled: `none; Qwen/DeepSeek synthetic provider dry-run e
 - `docs/activation-model-provider-dry-run-reports/model_provider_dry_run_supabase_milestone_sync.json`
 - `docs/activation-model-provider-dry-run-reports/model_provider_dry_run_qa_summary.json`
 - `docs/activation-model-provider-dry-run-reports/model_provider_dry_run_readiness_report.json`
+- `docs/activation-model-provider-dry-run-reports/model_provider_dryrun_1a_gate_fix_summary.json`
 
 ## Base Gaps
 
 - `scripts/validation/run-foundation-validation.mjs`: absent on this base branch; recorded as a base gap, not fabricated.
 - `docs/implementation-prompts/README.md`: absent on this base branch; recorded as a base gap, not fabricated.
+- `.github/workflows/`: absent on this base branch; recorded as a base gap, not fabricated.
+- `PRODUCTION_FOUNDATION_STATUS.md`: absent on this base branch; recorded as a base gap, not fabricated.
+- `docs/source-of-truth-map.md`: absent on this base branch; recorded as a base gap, not fabricated.
+- `docs/production-milestone-plan.md`: absent on this base branch; recorded as a base gap, not fabricated.
 
 ## No-Scope Statement
 

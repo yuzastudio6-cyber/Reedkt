@@ -28,6 +28,12 @@
       "requiredNextPhase": "provider gateway gate"
     },
     {
+      "id": "model_provider_dryrun_1a_qwen_dashscope",
+      "status": "blocked_pending_dashscope_secret_rotation_by_owner",
+      "blocksExternalBeta": true,
+      "requiredNextPhase": "MODEL-DRYRUN-1B - Provider Dry-Run Retry after owner-side DashScope secret/account/model-region repair"
+    },
+    {
       "id": "live_tool_execution",
       "status": "blocked",
       "blocksExternalBeta": false,

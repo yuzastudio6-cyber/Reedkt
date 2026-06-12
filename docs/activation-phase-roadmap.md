@@ -4,6 +4,8 @@ Phase 18 starts the post-M17 activation track. Milestones 0-17 built the dry-run
 
 This roadmap is not launch approval. Production-ready, external beta, paid production, and broad real user media remain blocked until the later gates explicitly pass. Codex must not approve broad model use, run providers, deploy GPU, download unapproved model weights, add secrets, or process arbitrary real media.
 
+MODEL-DRYRUN-1 follows the Qwen/DeepSeek dry-run approval packet. It adds a server-side synthetic provider dry-run harness, static/report commands, Secret Manager-only secret resolution, schema/redaction/cost validation, and fail-closed reporting. The gated execution attempt resolved both Secret Manager references and completed the DeepSeek `deepseek-v4-flash` synthetic case, but Qwen/DashScope `qwen3.7-plus` returned provider HTTP 401, so the phase is blocked as `blocked_provider_call_failed`. No private artifact upload, Supabase milestone sync, SQL, migration, production, external beta, real media, worker, route, or tool execution was enabled.
+
 The Supabase staging schema deploy after approved target reference phase consumes PR #212's approved non-secret staging project reference (`Reeditpro` / `wmyyttnynmteqgcdishd` / `staging`) and reruns the guarded activation milestone registry schema/RLS deploy wrapper only when staging target proof, confirmations, credentials, and a migration-safe deploy path pass. Track B backfill writes, production Supabase, direct SQL, providers, route/tool/worker execution, beta/production unlock, and Track A remain blocked. The next phase after verified staging schema/RLS is the separate PR #198 guarded Track B staging backfill rerun.
 
 ## Phases 18-39E

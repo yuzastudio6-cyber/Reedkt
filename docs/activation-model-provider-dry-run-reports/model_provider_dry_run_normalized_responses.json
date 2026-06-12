@@ -1,0 +1,47 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "blocked",
+  "rawProviderResponsesCommitted": false,
+  "normalizedResponseCount": 2,
+  "responses": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_planning",
+      "providerId": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "schemaId": "agent_findings_v1",
+      "status": "blocked",
+      "blocker": "provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error",
+      "normalizedKeys": [],
+      "executionAllowed": false,
+      "rawProviderResponseIncluded": false
+    },
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "providerId": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "schemaId": "coding_spec_proposal_v1",
+      "status": "passed",
+      "normalizedKeys": [
+        "blockedActions",
+        "blockers",
+        "caseId",
+        "executionAllowed",
+        "implementationNotes",
+        "proposalSummary",
+        "publicArtifactsAllowed",
+        "rawPromptExecutionAllowed",
+        "riskLevel",
+        "routeExecutionAllowed",
+        "signedUrlsAllowed",
+        "testsSuggested",
+        "toolExecutionAllowed",
+        "workerExecutionAllowed"
+      ],
+      "executionAllowed": false,
+      "rawProviderResponseIncluded": false
+    }
+  ],
+  "blockers": [
+    "modeldryrun1_qwen_head_agent_planning:provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error"
+  ]
+}

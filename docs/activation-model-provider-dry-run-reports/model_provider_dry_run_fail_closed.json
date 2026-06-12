@@ -1,0 +1,31 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "blocked",
+  "executeMode": true,
+  "failClosedTriggers": [
+    "missing_live_synthetic_provider_authorization",
+    "missing_confirmation_env",
+    "secret_manager_access_failure",
+    "provider_http_error",
+    "provider_timeout",
+    "invalid_json_response",
+    "schema_mismatch",
+    "redaction_violation",
+    "cost_usage_missing",
+    "private_artifact_upload_failure",
+    "supabase_sync_path_unavailable_partial_only"
+  ],
+  "gates": {
+    "sourceAuthorization": true,
+    "envPassed": true,
+    "requestRedactionPassed": true,
+    "secretsPassed": true,
+    "providerCallsPassed": false,
+    "schemaPassed": false,
+    "responseRedactionPassed": true,
+    "artifactsPassed": false
+  },
+  "blockers": [
+    "modeldryrun1_qwen_head_agent_planning:provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error"
+  ]
+}

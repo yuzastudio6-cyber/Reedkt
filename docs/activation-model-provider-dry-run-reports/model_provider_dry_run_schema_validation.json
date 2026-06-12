@@ -1,0 +1,24 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "blocked",
+  "validationErrorsFailClosed": true,
+  "results": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_planning",
+      "status": "blocked",
+      "blockers": [
+        "provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error"
+      ],
+      "warnings": []
+    },
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "status": "passed",
+      "blockers": [],
+      "warnings": []
+    }
+  ],
+  "blockers": [
+    "modeldryrun1_qwen_head_agent_planning:provider_http_error:401:Incorrect API key provided. For details, see: https://help.aliyun.com/zh/model-studio/error-code#apikey-error"
+  ]
+}

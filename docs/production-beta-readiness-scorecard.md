@@ -4,6 +4,8 @@ M17 scorecards classify readiness, worker security, tool security, model-weight 
 
 The default scorecard is blocked. Internal dry-run testing can be allowed only when E2E dry-run passed and security/cost docs exist. External beta, real user media beta, and paid production remain blocked.
 
+MODEL-DRYRUN-1 does not improve beta readiness. It proves the DeepSeek synthetic provider path can return schema-compatible metadata, but the Qwen/DashScope path is blocked by provider HTTP 401 after Secret Manager resolution. Internal beta, external beta, paid production, production, tools, workers, routes, media processing, public artifacts, signed URLs, SQL, migrations, and Supabase mutation remain blocked.
+
 The Supabase staging schema deploy after approved target reference path may deploy and verify only the activation milestone registry schema/RLS migration in staging after PR #212 target proof, confirmations, staging credentials, and a migration-safe deploy path pass. It does not authorize Track B backfill writes, production Supabase, direct SQL, provider calls, route/tool/worker execution, public output, beta, production, or Track A.
 
 Phase 44I-A Track B capability manifests exist as a restricted internal testing baseline only. They do not unlock product-wide internal beta, external beta, paid production, production, broad media, arbitrary media, public output, public artifacts, provider calls, runtime execution, or Track A. DeepFilterNet, Signalsmith Stretch, PaddleOCR, PaddlePaddle, OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, and Polars are listed as restricted internal-ready manifest entries. Demucs, Qwen3-VL, and vLLM remain excluded/blocked, and hybrid compute/cost routing tools remain not started.

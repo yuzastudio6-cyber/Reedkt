@@ -1,0 +1,36 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "status": "blocked",
+  "pricingTableApproved": false,
+  "estimatedUsdRecordedAsUpperBoundOnly": true,
+  "configuredUpperBoundUsd": 2,
+  "maxProviderCallsApproved": 2,
+  "providerCallsAttempted": 2,
+  "totalTokens": 1060,
+  "byCase": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_planning",
+      "providerId": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "status": "blocked",
+      "latencyMs": 1283,
+      "promptTokens": null,
+      "completionTokens": null,
+      "totalTokens": null,
+      "costUsdExact": null,
+      "costClassification": "usage_metadata_recorded_without_exact_pricing"
+    },
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "providerId": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "status": "passed",
+      "latencyMs": 9556,
+      "promptTokens": 316,
+      "completionTokens": 744,
+      "totalTokens": 1060,
+      "costUsdExact": null,
+      "costClassification": "usage_metadata_recorded_without_exact_pricing"
+    }
+  ]
+}

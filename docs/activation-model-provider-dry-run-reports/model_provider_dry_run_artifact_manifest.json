@@ -1,0 +1,30 @@
+{
+  "phase": "MODEL_DRYRUN_1",
+  "runId": "modeldryrun1-20260612T154825Z",
+  "status": "pending",
+  "privateArtifactsRequiredInExecuteMode": true,
+  "committedReports": [
+    "model_provider_dry_run_source_audit.json",
+    "model_provider_dry_run_policy.json",
+    "model_provider_dry_run_synthetic_cases.json",
+    "model_provider_dry_run_request_redaction.json",
+    "model_provider_dry_run_secret_resolution.json",
+    "model_provider_dry_run_provider_results.json",
+    "model_provider_dry_run_normalized_responses.json",
+    "model_provider_dry_run_schema_validation.json",
+    "model_provider_dry_run_response_redaction.json",
+    "model_provider_dry_run_cost_usage.json",
+    "model_provider_dry_run_fail_closed.json",
+    "model_provider_dry_run_artifact_manifest.json",
+    "model_provider_dry_run_supabase_milestone_sync.json",
+    "model_provider_dry_run_qa_summary.json",
+    "model_provider_dry_run_readiness_report.json"
+  ],
+  "localPrivateArtifactRoot": ".local-artifacts/activation-model-provider-dry-run",
+  "generatedAssetsPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1",
+  "qaArtifactsPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1",
+  "rawProviderResponsesCommitted": false,
+  "secretPayloadsCommitted": false,
+  "publicArtifactsCreated": false,
+  "blocker": null
+}

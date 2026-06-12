@@ -608,6 +608,28 @@ export function buildWorkerRuntimeDryRunApprovalReports(): WorkerRuntimeDryRunAp
   }
 }
 
+async function updateReadinessDocs(decision: string) {
+  const scorecardPath = 'docs/beta-readiness-scorecard.md'
+  if (existsSync(scorecardPath)) {
+    const current = readFileSync(scorecardPath, 'utf8')
+    const line = `Worker runtime dry-run approval status: ${decision}. Approval is metadata-only; worker/tool/route/provider execution, Docker, Cloud Run, Cloud Build, Supabase writes, media processing, public artifacts, signed URLs, external beta, paid production, and production remain blocked.`
+    const next = current.includes('Worker runtime dry-run approval status:')
+      ? current.replace(/\n*Worker runtime dry-run approval status:.*(?:\n|$)/, `\n\n${line}\n`)
+      : `${current.trimEnd()}\n\n${line}\n`
+    await writeVlmRuntimeTextArtifact(scorecardPath, next)
+  }
+
+  const blockerPath = 'docs/production-beta-blocker-inventory.md'
+  if (existsSync(blockerPath)) {
+    const current = readFileSync(blockerPath, 'utf8')
+    const line = `Worker runtime dry-run approval does not remove production beta blockers; current decision is \`${decision}\`.`
+    const next = current.includes('Worker runtime dry-run approval does not remove production beta blockers;')
+      ? current.replace(/\n*Worker runtime dry-run approval does not remove production beta blockers;.*(?:\n|$)/, `\n\n${line}\n`)
+      : `${current.trimEnd()}\n\n${line}\n`
+    await writeVlmRuntimeTextArtifact(blockerPath, next)
+  }
+}
+
 export async function writeWorkerRuntimeDryRunApprovalArtifacts(reports: WorkerRuntimeDryRunApprovalReports) {
   const reportMap: Record<typeof WORKER_RUNTIME_DRY_RUN_APPROVAL_EXPECTED_REPORTS[number], Record<string, unknown>> = {
     'source_of_truth_ownership_audit.json': reports.sourceAudit,
@@ -677,6 +699,8 @@ Scope: separate execution phase for no-op metadata worker dry-run only. Use synt
 
 Do not execute real workers, tools, routes, providers, media processing, Supabase writes, Docker, Cloud Run, Cloud Build, public artifacts, signed URLs, production, external beta, or paid production unless separately approved by the owning workstream.
 `)
+
+  await updateReadinessDocs(decision)
 }
 
 function forbiddenConfirmationsPresent() {

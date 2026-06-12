@@ -397,6 +397,43 @@ SQL executed: `none`
 
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-4 Readiness Addendum
+
+QA result: `group_b_private_preview_qa_passed_with_warnings`
+
+Readiness: `ready_with_warnings_for_group_b_controlled_private_sample_plan`
+
+Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_local_passed_with_warnings / group_b_private_preview_qa_passed_with_warnings`
+
+Readiness impact: improves Group B Track A QA confidence only. Full internal beta remains blocked by CROSS-BETA-0 workstream gates.
+
+Group B private sample execution is not approved.
+Group B private preview execution is not approved in this QA review.
+Internal beta is not approved.
+External beta is not approved.
+Production is not approved.
+Final render/export is not approved.
+Remotion final render is not approved.
+Lottie browser/player behavior is not approved.
+Public artifacts are not approved.
+Signed URLs are not approved.
+Supabase mutation is not approved.
+Worker execution is not approved.
+Provider/model calls are not approved.
+
+Capability: `none; Track A Group B creative graphics private preview QA review only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+Signed URLs are not source of truth
+
 ## TRACKA-GD-GROUPB-HANDOFF-1 Readiness Addendum
 
 Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`

@@ -1,0 +1,41 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "runId": "model-orchestration-qwen-deepseek-audit-20260612",
+  "reportDir": "docs/activation-model-orchestration-qwen-deepseek-audit-reports",
+  "committedArtifactClasses": [
+    "safe_json_reports",
+    "safe_markdown_docs",
+    "server_only_audit_code"
+  ],
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "model_orchestration_audit_plan.json",
+    "provider_official_evidence_inventory.json",
+    "secret_reference_inventory.json",
+    "provider_contract_inventory.json",
+    "agent_brain_architecture_recommendation.json",
+    "raw_prompt_worker_execution_blocker_policy.json",
+    "model_orchestration_risk_blocker_inventory.json",
+    "model_orchestration_next_phase_recommendation.json",
+    "model_orchestration_audit_blocker_report.json",
+    "model_orchestration_audit_readiness_report.json",
+    "model_orchestration_private_artifact_manifest.json"
+  ],
+  "excludedArtifactClasses": [
+    "api_keys",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "secret_payloads",
+    "signed_urls",
+    "private_payloads",
+    "media_payloads",
+    "node_modules",
+    "caches",
+    "build_outputs"
+  ],
+  "payloadAccessed": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false
+}

@@ -1,0 +1,29 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "status": "passed",
+  "decision": "repo_audit_passed_ready_for_dry_run_approval",
+  "activeBlockers": [],
+  "futureRuntimeBlockers": [
+    "provider_api_terms_pricing_review_required",
+    "secret_payload_injection_policy_required",
+    "cost_capacity_review_required",
+    "schema_reliability_fixture_required",
+    "supabase_model_orchestration_milestone_sync_not_started",
+    "audit_observability_contract_required",
+    "production_external_beta_paid_production_blocked"
+  ],
+  "providerCalls": false,
+  "qwenApiCall": false,
+  "deepseekApiCall": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "runtimeToolsWorkersRoutes": false,
+  "rawPromptExecution": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "supabaseWrites": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

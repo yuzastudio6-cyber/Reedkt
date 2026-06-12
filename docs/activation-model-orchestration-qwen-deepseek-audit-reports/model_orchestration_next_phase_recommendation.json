@@ -1,0 +1,16 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "decision": "repo_audit_passed_ready_for_dry_run_approval",
+  "status": "passed",
+  "nextRecommendedPhase": "MODEL_ORCHESTRATION - Qwen/DeepSeek dry-run approval packet",
+  "dryRunApprovalPacketRequirements": [
+    "provider request fixtures only",
+    "structured output schema review",
+    "token and cost budget review",
+    "provider gateway dry-run contract",
+    "no worker/tool/route execution",
+    "no Supabase writes"
+  ],
+  "providerCallsApproved": false,
+  "runtimeExecutionApproved": false
+}

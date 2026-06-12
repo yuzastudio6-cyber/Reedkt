@@ -1,0 +1,86 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "status": "passed",
+  "officialSources": [
+    {
+      "url": "https://www.alibabacloud.com/help/en/model-studio/models",
+      "sourceType": "official_documentation"
+    },
+    {
+      "url": "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
+      "sourceType": "official_documentation"
+    },
+    {
+      "url": "https://help.aliyun.com/zh/model-studio/text-generation-model/",
+      "sourceType": "official_documentation"
+    },
+    {
+      "url": "https://api-docs.deepseek.com/",
+      "sourceType": "official_documentation"
+    },
+    {
+      "url": "https://api-docs.deepseek.com/api/list-models",
+      "sourceType": "official_documentation"
+    },
+    {
+      "url": "https://api-docs.deepseek.com/api/create-chat-completion",
+      "sourceType": "official_documentation"
+    }
+  ],
+  "qwen": {
+    "provider": "Alibaba Cloud Model Studio / DashScope",
+    "openAiCompatibleBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "authEnvName": "DASHSCOPE_API_KEY",
+    "officialModelCandidatesCaptured": [
+      {
+        "modelId": "qwen3.7-plus",
+        "role": "first_dry_run_candidate",
+        "providerCallMade": false
+      },
+      {
+        "modelId": "qwen3.7-max",
+        "role": "escalation_candidate",
+        "providerCallMade": false
+      }
+    ],
+    "verifiedOfficialIds": [
+      "qwen3.7-plus",
+      "qwen3.7-max"
+    ],
+    "unverifiedNamesNotHardcoded": [
+      "Qwen 3.7-Max"
+    ],
+    "qwen37OfficiallyVerified": true,
+    "qwen37MaxOfficiallyVerified": true,
+    "qwen37MaxSnapshotEvidenceCaptured": [
+      "qwen3.7-max-2026-06-08",
+      "qwen3.7-max-2026-05-20"
+    ],
+    "apiCallMade": false
+  },
+  "deepseek": {
+    "provider": "DeepSeek API",
+    "openAiCompatibleBaseUrl": "https://api.deepseek.com",
+    "authEnvName": "DEEPSEEK_API_KEY",
+    "officialModelCandidatesCaptured": [
+      {
+        "modelId": "deepseek-v4-flash",
+        "role": "first_fallback_coding_reasoning_candidate",
+        "providerCallMade": false
+      },
+      {
+        "modelId": "deepseek-v4-pro",
+        "role": "escalation_coding_reasoning_candidate",
+        "providerCallMade": false
+      }
+    ],
+    "deprecatedCompatibilityAliases": [
+      "deepseek-chat",
+      "deepseek-reasoner"
+    ],
+    "responseFormatJsonObjectSupported": true,
+    "apiCallMade": false
+  },
+  "noProviderCalls": true,
+  "noSecretPayloadAccess": true
+}

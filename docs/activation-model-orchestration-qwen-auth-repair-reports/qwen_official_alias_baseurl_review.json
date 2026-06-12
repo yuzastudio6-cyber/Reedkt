@@ -6,48 +6,38 @@
     "https://www.alibabacloud.com/help/en/model-studio/models",
     "https://help.aliyun.com/zh/model-studio/text-generation-model/"
   ],
-  "usAuthProbeAliases": [
-    "qwen-plus-us",
-    "qwen-flash-us"
-  ],
-  "approvedTargetAliases": [
-    "qwen3.7-plus",
-    "qwen3.7-max",
+  "officialAliases": [
+    "qwen-plus",
     "qwen3-max",
     "qwen-max"
   ],
+  "canonicalSelectedAlias": "qwen-plus",
   "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #320 provider dry-run target aliases",
   "officialProbeAliasOrder": [
-    "qwen-plus-us",
-    "qwen-flash-us",
-    "qwen3.7-plus",
-    "qwen3.7-max",
+    "qwen-plus",
     "qwen3-max",
     "qwen-max"
   ],
-  "selectedAlias": "qwen3.7-plus",
-  "selectedBaseUrlKey": "us",
-  "defaultBaseUrlKey": "us",
+  "selectedAlias": "qwen-plus",
+  "selectedBaseUrlKey": "virginia",
+  "defaultBaseUrlKey": "virginia",
   "keyReplacementEvidence": {
     "exactSecretRefs": [
-      "DASHSCOPE_API_KEY",
-      "DASHSCOPE_BASE_URL",
-      "DASHSCOPE_REGION"
+      "DASHSCOPE_API_KEY"
     ],
     "operatorReportedReplacementVersion": "3",
-    "operatorReportedBaseUrlVersion": "1",
-    "operatorReportedRegionVersion": "1",
     "secretVersionSelector": "latest",
     "confirmationRequired": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
+    "canonicalizationConfirmation": "REEDITPRO_CONFIRM_QWEN_GREEN_EVIDENCE_CANONICALIZATION",
     "qwenProviderRerunAfterReplacement": true,
     "payloadPrinted": false,
     "payloadCommitted": false
   },
   "baseUrls": {
-    "us": {
-      "key": "us",
-      "source": "DASHSCOPE_BASE_URL_secret_manager_payload_validated",
-      "payloadMatchedApprovedUsEndpoint": true,
+    "virginia": {
+      "key": "virginia",
+      "source": "approved_canonical_qwen_repair_base_url",
+      "payloadMatchedApprovedVirginiaEndpoint": true,
       "probedByDefault": true
     },
     "beijing": {

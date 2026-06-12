@@ -1,15 +1,15 @@
 # Production Beta Blocker Inventory
 
-Active blockers remain:
-- production deployment
-- external beta
-- paid production
-- provider calls
-- worker/tool/route execution
-- public artifacts and signed URL source-of-truth flows
-- raw prompt execution
-- Supabase production writes
-- model orchestration runtime calls
+Session 0 owned blocker inventory.
+
+- `external_beta`: blocked
+- `paid_production`: blocked
+- `production`: blocked
+- `public_artifacts`: blocked
+- `runtime_tool_worker_provider_execution`: blocked
+- `supabase_production_writes`: blocked
+
+Active Session 0 blockers: `0`.
 
 Qwen/DeepSeek repo audit does not remove these blockers.
 

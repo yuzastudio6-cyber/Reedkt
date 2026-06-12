@@ -17,6 +17,7 @@ const result = await executeModelOrchestrationQwenAuthRepair({
   execute: true,
   syntheticOnly: process.argv.includes('--synthetic-only'),
   keepTemp: process.argv.includes('--keep-temp'),
+  canonicalizeGreenEvidence: process.argv.includes('--canonicalize-green-evidence'),
 })
 
 console.log(JSON.stringify(readModelOrchestrationQwenAuthRepairSummary(), null, 2))

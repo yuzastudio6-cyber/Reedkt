@@ -69,6 +69,28 @@ SQL executed: `none`
 
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-2 Readiness Follow-Up
+
+Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`
+
+Group B private preview execution packet is ready with warnings for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`. Group B private preview execution remains not approved and not executed.
+
+Source evidence lockfile: `docs/track-a/creative-graphics-group-b-source-evidence-lockfile.md`
+
+Capability: `none; Track A Group B creative graphics private preview execution packet only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`
+
 ## TRACKA-GD-GROUPB-HANDOFF-1 Readiness Follow-Up
 
 Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`

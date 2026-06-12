@@ -122,3 +122,26 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-GROUPB-HANDOFF-2 Blocker Register Update
+
+Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`
+
+Handoff-2 reduces Group B planning risk by adding an execution packet, but it does not clear the `AI_TOOLS_CREATIVE_GRAPHICS` or Track A full internal beta blocker.
+
+- `anime_js_motion`: packet-ready with warnings as timing source evidence.
+- `lottie_web_overlays`: packet-ready with warnings as manifest-only overlay evidence.
+- `remotion_graphics`: packet-ready with warnings as manifest-only composition evidence.
+- Group B private preview execution approved now: false
+- Internal beta approved: false
+- CROSS-BETA remains `blocked_pending_workstream_gates`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`
+
+Capability: `none; Track A Group B creative graphics private preview execution packet only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

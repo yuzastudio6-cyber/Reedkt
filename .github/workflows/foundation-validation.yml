@@ -29,6 +29,7 @@ on:
       - codex/rp-gd-9-group-b-package-runtime-review-fixture-gate
       - codex/rp-gd-10-group-b-controlled-local-fixture-execution
       - codex/rp-tracka-gd-groupb-handoff-0-review
+      - codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan
 
 jobs:
   foundation-validation:

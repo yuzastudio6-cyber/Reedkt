@@ -1,6 +1,6 @@
 # PROVIDER-1 DeepSeek/Qwen API Approval Policy Results
 
-Status: blocked pending gcloud reauthentication
+Status: guarded execution blocked at Supabase milestone registry readiness
 
 Branch: `codex/rp-provider-1-deepseek-qwen-api-approval-policy`
 
@@ -8,32 +8,39 @@ PR: `#307`
 
 Base: `codex/rp-provider-0-provider-gateway-models-repo-audit`
 
-Static report run ID: `provider1-20260612T000000`
-
-Guarded execution run ID: not allocated; execution stopped before artifact upload
-or Supabase milestone sync because gcloud could not refresh credentials in
-non-interactive mode.
+Run ID: `provider1-20260612T131945`
 
 ## Execution
 
-PROVIDER-1 remains a policy-only Provider Gateway approval phase. Guarded
-execution was not run because metadata preflight failed before any write-capable
-step:
+Guarded PROVIDER-1 execution ran with staging confirmation gates after gcloud
+auth, Secret Manager metadata, and private GCS bucket metadata checks passed.
+The execution uploaded Provider-1 private JSON artifacts, resolved Supabase
+milestone credentials from Google Secret Manager without printing or storing
+secret values, and then stopped before any Supabase milestone write because the
+Phase 51D milestone registry tables were not visible through service-role
+zero-row REST probes.
 
-- Active gcloud account: `aiediting@reeditpro.com`.
-- Active gcloud project: `reeditpro`.
-- `gcloud projects describe reeditpro` failed with non-interactive token
-  refresh / reauthentication failure.
-- Secret Manager metadata checks for `SUPABASE_URL` and
-  `SUPABASE_SERVICE_ROLE_KEY` failed for the same gcloud reauthentication
-  reason.
-- Required local execution env gates were not set in the shell:
-  `GCP_PROJECT_ID`, `GCP_REGION`, `REEDITPRO_ENV`,
-  `REEDITPRO_CONFIRM_PROVIDER_MODEL_APPROVAL_POLICY`,
-  `REEDITPRO_CONFIRM_SUPABASE_MILESTONE_SYNC`, `SUPABASE_URL`, and
-  `SUPABASE_SERVICE_ROLE_KEY`.
+Execution status: `blocked`
 
-No secret values were accessed, printed, stored, or written to artifacts.
+QA status: `blocked`
+
+PROVIDER-2 execution readiness: `blocked`
+
+Supabase milestone sync: `not_attempted`
+
+Schema blockers:
+
+- `activation_runs`: table missing from `public` schema cache.
+- `activation_artifacts`: table missing from `public` schema cache.
+- `activation_qa_gates`: table missing from `public` schema cache.
+- `readiness_snapshots`: table missing from `public` schema cache.
+- `tool_capabilities`: table missing from `public` schema cache.
+- `feature_gates`: table missing from `public` schema cache.
+
+No SQL, migration, schema/RLS change, provider call, model inference, worker
+execution, tool execution, media processing, public artifact, signed URL source
+of truth, production unlock, external beta unlock, paid production unlock, or
+broad media unlock occurred.
 
 ## Policy Summary
 
@@ -60,8 +67,9 @@ Secret policy:
 - Provider key payloads remain backend-only and out of PROVIDER-1.
 - Provider secret reference metadata is recorded only for DeepSeek and Qwen
   DashScope semantics.
-- `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` may be resolved only by the
-  Phase 51D backend/Secret Manager path during confirmed execution.
+- `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` were resolved only through the
+  backend Google Secret Manager path for Phase 51D readiness checks. Values were
+  not printed, stored, or written to repo artifacts.
 
 Data policy:
 
@@ -84,29 +92,42 @@ Cost and routing policy:
 Storage policy:
 
 - Private GCS is the only artifact source of truth.
+- Public artifacts and signed URLs as source of truth remain blocked.
 - The requested risk artifact path is
   `risk/provider-risk-register.json`.
-- Public artifacts and signed URLs as source of truth remain blocked.
 
 ## Artifacts
 
-No guarded artifacts were uploaded because execution stopped during gcloud
-metadata preflight.
+Generated-assets bucket:
 
-Expected private artifact roots after gcloud reauthentication:
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/audit/repo-ownership-audit.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/evidence/deepseek-v4-approval-evidence.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/evidence/qwen37-max-approval-evidence.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/policy/provider-secret-policy.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/policy/provider-data-policy.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/policy/provider-cost-policy.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/policy/provider-routing-policy.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/policy/provider-storage-policy.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/risk/provider-risk-register.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/roadmap/provider-next-phase-plan.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/manifest/provider-model-approval-manifest.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/supabase/provider1-milestone-sync-input.json`
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/provider1-20260612T131945/supabase/provider1-milestone-sync-result.json`
 
-- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/<runId>/`
-- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-provider-gateway/provider1/<runId>/`
+QA bucket:
 
-Expected generated artifacts include the Provider-1 audit, DeepSeek evidence,
-Qwen evidence, secret/data/cost/routing/storage policies, risk register,
-next-phase roadmap, manifest, Supabase sync input, and Supabase sync result.
-
-Expected QA artifacts include Provider-1 QA and `reports/provider1-report.json`.
+- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-provider-gateway/provider1/provider1-20260612T131945/qa/provider-model-approval-policy-qa.json`
+- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-provider-gateway/provider1/provider1-20260612T131945/reports/provider1-report.json`
 
 ## QA And Validation
 
-Passed:
+Provider-1 QA gates passed for provider evidence, model identity, DeepSeek
+policy, Qwen policy, secret policy, data policy, cost policy, routing policy,
+storage policy, and blocked features. The mandatory
+`supabase_milestone_sync` gate is blocked because the milestone registry tables
+are missing or unavailable through the service-role REST schema cache.
+
+Validation passed:
 
 - `npm run smoke:activation-provider-model-approval-policy`
 - `npm run activation:provider-model-approval-policy:report`
@@ -131,23 +152,39 @@ Expected / non-blocking:
 
 ## Supabase Milestone Sync
 
-Status: not attempted.
+Status: `not_attempted`
 
-Reason: gcloud reauthentication failed before Secret Manager metadata checks,
-private GCS upload, Supabase credential resolution, registry schema probes, or
-Phase 51D write/readback could safely run.
+Input validation: passed.
 
-Allowed future action: rerun the guarded Provider-1 command only after a valid
-non-interactive gcloud account is available for `reeditpro`. Supabase writes
-must remain limited to Phase 51D activation milestone registry metadata and
-private `gs://` references.
+Milestone bundle validation: passed.
+
+Registry schema verification: blocked.
+
+Milestone write/readback: not attempted because required registry tables were
+not visible.
+
+Supabase access method: Phase 51D sync layer with backend-only Secret Manager
+credential resolution and service-role zero-row registry probes.
+
+Supabase update classification:
+
+- Supabase update required: staging update candidate.
+- Supabase update status: blocked pending milestone registry schema/table
+  availability.
+- Supabase environment touched: staging credential resolution and read-only
+  registry probes only.
+- SQL executed: false.
+- Migration deployed: false.
+- Schema/RLS/Data API changes: false.
+- Rows written: none.
+- Storage artifacts: private Provider-1 GCS JSON artifacts only.
 
 ## PROVIDER-2 Readiness
 
 Static policy readiness: `ready_for_provider_fixture_adapters_normalizers`.
 
-Execution readiness: blocked pending guarded Provider-1 execution, private
-artifact upload, and Phase 51D milestone sync/readback.
+Execution readiness: blocked pending Phase 51D milestone registry availability
+and a successful PROVIDER-1 milestone write/readback.
 
 ## Safety Audit
 
@@ -160,5 +197,6 @@ paid production unlock, broad media unlock, or package-lock mutation occurred.
 
 ## Human Action Required
 
-Refresh or select a valid non-interactive gcloud account for project
-`reeditpro`, then rerun the guarded Provider-1 execution command.
+Make the Phase 51D milestone registry tables available in staging through the
+approved Supabase migration/schema readiness process, then rerun guarded
+PROVIDER-1 execution. This PROVIDER-1 phase must not apply the migration itself.

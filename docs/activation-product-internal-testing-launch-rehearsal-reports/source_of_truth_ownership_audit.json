@@ -1,0 +1,123 @@
+{
+  "phase": "product-internal-testing-launch-rehearsal",
+  "runId": "product-internal-testing-launch-rehearsal-20260611",
+  "workstreamOwner": "PRODUCT_INTERNAL_BETA_AGGREGATION",
+  "relatedWorkstreams": [
+    "SUPABASE_RLS_STORAGE_DATABASE",
+    "TRACK_B_MEDIA_PROCESSING",
+    "WORKER_RUNTIME_JOBS",
+    "PROVIDER_GATEWAY",
+    "MODEL_ORCHESTRATION",
+    "OBSERVABILITY_AUDIT_COST",
+    "PUBLIC_ARTIFACT_DELIVERY",
+    "FRONTEND_PRODUCT_UX"
+  ],
+  "explicitlyNotOwned": [
+    "track_b_runtime_tool_execution",
+    "track_a_visual_video_runtime",
+    "provider_model_execution",
+    "worker_execution",
+    "production_deploy",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "signed_url_delivery",
+    "raw_prompt_execution"
+  ],
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/cross-chat",
+      "present": false,
+      "kind": "missing_audit_fact"
+    },
+    {
+      "path": "docs/activation-product-internal-testing-scope-freeze-reports",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "docs/activation-product-internal-beta-readiness-reports",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "docs/activation-supabase-clean-staging-branch-execution-reports",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "docs/activation-track-b-readiness-rollup-reports",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "docs/activation-track-b-capability-manifests-reports",
+      "present": true,
+      "kind": "repo_safe_source"
+    },
+    {
+      "path": "docs/activation-track-b-tool-route-manifest-reports",
+      "present": true,
+      "kind": "repo_safe_source"
+    }
+  ],
+  "duplicateWorkAvoided": [
+    "no_new_scope_freeze_module",
+    "no_new_internal_beta_readiness_module",
+    "no_new_track_b_export",
+    "no_new_supabase_backfill",
+    "no_runtime_execution",
+    "no_supabase_mutation"
+  ],
+  "secretsPrintedOrCommitted": false
+}

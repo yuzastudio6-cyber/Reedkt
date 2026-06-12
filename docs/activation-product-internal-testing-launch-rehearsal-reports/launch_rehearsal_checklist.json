@@ -1,0 +1,70 @@
+{
+  "phase": "product-internal-testing-launch-rehearsal",
+  "runId": "product-internal-testing-launch-rehearsal-20260611",
+  "status": "passed",
+  "checks": [
+    {
+      "id": "track_b_clean_staging_sync_completed",
+      "passed": true
+    },
+    {
+      "id": "allowed_scope_reviewed",
+      "passed": true
+    },
+    {
+      "id": "blocked_scope_reviewed",
+      "passed": true
+    },
+    {
+      "id": "operator_acceptance_reviewed",
+      "passed": true
+    },
+    {
+      "id": "runbook_reviewed",
+      "passed": true
+    },
+    {
+      "id": "tester_flow_reviewed",
+      "passed": true
+    },
+    {
+      "id": "issue_intake_reviewed",
+      "passed": true
+    },
+    {
+      "id": "stop_conditions_reviewed",
+      "passed": true
+    },
+    {
+      "id": "owner_map_reviewed",
+      "passed": true
+    },
+    {
+      "id": "no_runtime_execution",
+      "passed": true
+    },
+    {
+      "id": "no_provider_calls",
+      "passed": true
+    },
+    {
+      "id": "no_production",
+      "passed": true
+    },
+    {
+      "id": "no_public_artifacts",
+      "passed": true
+    },
+    {
+      "id": "no_secrets_printed",
+      "passed": true
+    }
+  ],
+  "internalTestingExecutionStarted": false,
+  "runtimeExecution": false,
+  "providerCalls": false,
+  "publicArtifacts": false,
+  "production": false,
+  "supabaseWrites": false,
+  "secretsPrintedOrCommitted": false
+}

@@ -1,0 +1,38 @@
+{
+  "phase": "product-internal-testing-launch-rehearsal",
+  "runId": "product-internal-testing-launch-rehearsal-20260611",
+  "status": "safe_metadata_only",
+  "reportDir": "docs/activation-product-internal-testing-launch-rehearsal-reports",
+  "reports": [
+    "source_of_truth_ownership_audit.json",
+    "launch_rehearsal_plan.json",
+    "launch_rehearsal_scope_signoff_validation.json",
+    "launch_rehearsal_tester_flow.json",
+    "launch_rehearsal_issue_intake.json",
+    "launch_rehearsal_stop_conditions.json",
+    "launch_rehearsal_checklist.json",
+    "launch_rehearsal_decision.json",
+    "launch_rehearsal_blocker_report.json",
+    "launch_rehearsal_readiness_report.json",
+    "launch_rehearsal_private_artifact_manifest.json"
+  ],
+  "committedArtifactsAllowed": [
+    "json_reports",
+    "markdown_docs",
+    "server_only_typescript",
+    "package_scripts"
+  ],
+  "excludedArtifacts": [
+    "secrets",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "private_payloads",
+    "media_payloads",
+    "signed_urls",
+    "node_modules",
+    "caches",
+    "build_output"
+  ]
+}

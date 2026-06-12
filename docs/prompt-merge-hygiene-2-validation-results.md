@@ -61,9 +61,15 @@ Status: `local_validation_passed`
 
 ## PR And CI
 
-- PR URL: `pending`
+- PR URL: https://github.com/yuzastudio6-cyber/Reedkt/pull/357
 - PR mode: `draft`
-- GitHub checks: `pending`
+- PR state: `OPEN`
+- PR mergeability: `MERGEABLE`
+- PR merge state: `CLEAN`
+- PR base: `codex/rp-merge-hygiene-1a-owner-approved-parent-first-merge-execution`
+- PR head: `codex/rp-merge-hygiene-2-downstream-branch-rebase-retarget-plan`
+- GitHub checks: `no_check_rollup_returned`
+- PR status captured at: `2026-06-12T22:08:00Z`
 
 ## Base Gaps
 

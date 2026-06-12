@@ -11,7 +11,12 @@ MERGE-HYGIENE-2 is a downstream branch/PR cleanup plan only. It must not rebase,
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-merge-hygiene-2-downstream-branch-rebase-retarget-plan`
 - Branch: `codex/rp-merge-hygiene-2-downstream-branch-rebase-retarget-plan`
 - PR title: `[coordination] MERGE-HYGIENE-2 downstream branch rebase retarget plan`
-- PR URL: `pending`
+- PR URL: https://github.com/yuzastudio6-cyber/Reedkt/pull/357
+- PR mode: `draft`
+- PR state: `OPEN`
+- PR mergeability: `MERGEABLE`
+- PR merge state: `CLEAN`
+- GitHub checks: `no_check_rollup_returned`
 - Queue status: `queue_created_not_executed`
 - PR merge executed: `false`
 - PR close executed: `false`

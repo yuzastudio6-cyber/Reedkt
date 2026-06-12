@@ -1,0 +1,53 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "status": "blocked",
+  "decision": "blocked_pending_operator_billing_action",
+  "approvalStatus": "not_approved_for_branch_create_rerun",
+  "reason": "PR #283 reached a plan/billing branch-create blocker, but no repo-safe operator billing/branching action is recorded.",
+  "target": {
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "branchName": "reeditpro-internal-staging-clean",
+    "persistent": true,
+    "withData": false
+  },
+  "confirmations": {
+    "branchingPlanBillingReview": true,
+    "branchingCostReview": true,
+    "preservedFromLatestReviewedPacket": true,
+    "forbiddenConfirmationsSet": []
+  },
+  "operatorBillingActionRecorded": false,
+  "costOwnerApprovalRecorded": false,
+  "orgOwnerPermissionRecorded": false,
+  "costEstimateStatus": "reviewed_from_official_docs_operator_action_required",
+  "futureExecutionGates": [
+    "operator_confirms_supabase_branching_enabled_or_billing_action_completed",
+    "cost_owner_accepts_persistent_branch_cost_and_usage_unknowns",
+    "org_owner_permission_confirmed_if_required",
+    "rerun_pr283_clean_staging_branch_execution_with_data_less_persistent_branch_only",
+    "verify_clean_branch_schema_rls_migration_history_before_track_b_backfill",
+    "run_track_b_backfill_only_in_later_separate_guarded_phase"
+  ],
+  "branchCreated": false,
+  "billingMutationRun": false,
+  "planUpgradeRun": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRowsWritten": false,
+  "supportTicketSubmitted": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretPayloadAccessed": false,
+  "secretsPrintedOrCommitted": false,
+  "providerCalls": false,
+  "workerToolRouteExecution": false,
+  "mediaProcessing": false,
+  "trackA": "not_touched",
+  "blockers": [
+    "operator_billing_action_missing",
+    "operator_cost_owner_approval_missing"
+  ]
+}

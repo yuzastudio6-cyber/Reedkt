@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "reportDir": "docs/activation-supabase-branching-plan-billing-reports",
+  "committedArtifacts": [
+    "docs/activation-supabase-branching-plan-billing-reports/source_of_truth_ownership_audit.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_review_plan.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_evidence_inventory.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_cost_estimate.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_operator_checklist.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_decision.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_blocker_report.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_readiness_report.json",
+    "docs/activation-supabase-branching-plan-billing-reports/branching_plan_billing_private_artifact_manifest.json",
+    "docs/supabase-branching-plan-billing-decision.md",
+    "docs/supabase-branching-plan-billing-operator-checklist.md",
+    "docs/implementation-prompts/prompt-supabase-clean-staging-branch-rerun-after-billing.md"
+  ],
+  "privateUploadRequired": false,
+  "privateDataPayloadsCommitted": false,
+  "dbUrlCommitted": false,
+  "keyMaterialCommitted": false,
+  "tokenCommitted": false,
+  "backupPayloadCommitted": false,
+  "mediaPayloadCommitted": false,
+  "branchCreated": false,
+  "billingMutationRun": false,
+  "productionAffected": false
+}

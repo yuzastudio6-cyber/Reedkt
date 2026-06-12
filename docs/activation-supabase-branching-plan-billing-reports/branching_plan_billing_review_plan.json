@@ -1,0 +1,95 @@
+{
+  "phase": "supabase-branching-plan-billing-review",
+  "runId": "supabase-branching-plan-billing-review-20260610",
+  "branch": "codex/rp-foundation-supabase-branching-plan-billing-review",
+  "baseBranch": "codex/rp-foundation-supabase-clean-staging-branch-execution",
+  "prTitle": "[foundation] Supabase branching plan billing review",
+  "worktree": "/private/tmp/reeditpro-supabase-branching-plan-billing-review",
+  "reportDir": "docs/activation-supabase-branching-plan-billing-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "branching_plan_billing_review_plan.json",
+    "branching_plan_billing_evidence_inventory.json",
+    "branching_plan_billing_cost_estimate.json",
+    "branching_plan_billing_operator_checklist.json",
+    "branching_plan_billing_decision.json",
+    "branching_plan_billing_blocker_report.json",
+    "branching_plan_billing_readiness_report.json",
+    "branching_plan_billing_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-branching-plan-billing-decision.md",
+    "docs/supabase-branching-plan-billing-operator-checklist.md",
+    "docs/implementation-prompts/prompt-supabase-clean-staging-branch-rerun-after-billing.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePrs": [
+    198,
+    200,
+    280,
+    283
+  ],
+  "docsBasis": {
+    "supabaseBranching": "https://supabase.com/docs/guides/deployment/branching",
+    "supabaseBranchingUsage": "https://supabase.com/docs/guides/platform/manage-your-usage/branching",
+    "supabaseCliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "supabaseDbPush": "https://supabase.com/docs/reference/cli/supabase-db-push",
+    "checkedAt": "2026-06-10"
+  },
+  "target": {
+    "projectName": "Reeditpro",
+    "projectRef": "wmyyttnynmteqgcdishd",
+    "branchName": "reeditpro-internal-staging-clean",
+    "persistent": true,
+    "withData": false
+  },
+  "allowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_PLAN_BILLING_REVIEW",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_REVIEW"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_BRANCH_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_PERSISTENT_BRANCH_CREATE",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCHING_COST_ACCEPTANCE",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_MIGRATION_APPLY",
+    "REEDITPRO_CONFIRM_SUPABASE_CLEAN_STAGING_SCHEMA_VERIFY",
+    "REEDITPRO_CONFIRM_SUPABASE_BRANCH_WITH_DATA",
+    "REEDITPRO_CONFIRM_SUPABASE_BILLING_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_PLAN_UPGRADE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_PUSH",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SUPABASE_CLI_CREATE_TICKET",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "defaultDecision": "blocked_pending_operator_billing_action",
+  "allowedActions": [
+    "read_committed_safe_reports",
+    "review_official_supabase_branching_cost_docs",
+    "write_safe_metadata_reports_and_docs"
+  ],
+  "blockedActions": [
+    "supabase_branch_creation",
+    "billing_mutation_or_plan_upgrade",
+    "sql_or_ddl_dml",
+    "schema_migration_deploy",
+    "migration_history_repair",
+    "track_b_backfill_write",
+    "support_ticket_submission",
+    "production_supabase",
+    "secret_payload_access_or_printing",
+    "provider_calls",
+    "worker_tool_route_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ]
+}

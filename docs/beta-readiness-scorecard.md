@@ -27,6 +27,14 @@ Scores are honest readiness estimates after Prompt 24C evidence collection follo
 | Stripe/billing | 30% | 0% | 0% | Blocked | Pricing docs and credit contract. | No Stripe or transactional credits. | Billing milestone after ledger. |
 | Actual execution path | 20% | 0% | 0% | Blocked | Fail-closed contracts. | Workers/providers/tools/render/media all blocked. | Runtime activation milestones. |
 
+## XCHAT-0 Update
+
+XCHAT-0 adds cross-chat ownership and integration coordination only. It records AI Tools / Creative Graphics ownership, map/geospatial boundaries, Track A/Track B/Supabase/provider/worker/billing/deployment boundaries, prompt checklists, final response standards, and static diagnostics. It may improve source-of-truth hygiene, but it does not raise executable beta readiness or production beta readiness.
+
+Supabase update status: `docs_only`.
+
+Production capability enabled: none.
+
 ## Prompt 26C Update
 
 Prompt 26C advisor draft remediation packet raises documentation/planning readiness only. It adds draft-only packets and `.sql.md` sketches for RLS no-policy tables, SECURITY DEFINER exposure, mutable search path functions, and FK index candidates. It does not add active migrations, execute SQL, apply advisor remediation, supply accepted redacted evidence, verify Secret Manager access, grant human approval, or touch staging/remote/production Supabase.

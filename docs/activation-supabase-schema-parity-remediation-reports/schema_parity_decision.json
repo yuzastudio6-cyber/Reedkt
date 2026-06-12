@@ -1,0 +1,22 @@
+{
+  "phase": "supabase-schema-parity-remediation-strategy",
+  "runId": "supabase-schema-parity-remediation-strategy-20260609",
+  "status": "blocked",
+  "decision": "blocked_pending_staging_reset_approval",
+  "approvalStatus": "not_approved_for_execution",
+  "selectedStrategy": "staging_reset_and_reapply_migrations",
+  "missingEffects": 11,
+  "risk": "high",
+  "repairOnlyStatus": "rejected",
+  "remediationExecutionApproved": false,
+  "stagingSchemaDeployApproved": false,
+  "trackBBackfillApproved": false,
+  "productionAffected": false,
+  "rationale": "The remote schema is missing broad foundational migration effects. A reset/reapply approval packet is safer than repair-only or ad-hoc deploy because it can review staging data preservation, dry-run the canonical migration chain, and avoid hiding real drift.",
+  "nextSupabaseAction": "Separate staging reset/schema parity remediation approval packet before any execution.",
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

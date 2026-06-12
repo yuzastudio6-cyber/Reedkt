@@ -1,0 +1,33 @@
+{
+  "phase": "supabase-schema-parity-remediation-strategy",
+  "runId": "supabase-schema-parity-remediation-strategy-20260609",
+  "status": "blocked",
+  "decision": "blocked_pending_staging_reset_approval",
+  "activeBlockers": [
+    "remote_schema_equivalence_not_proven",
+    "missing_effects_include_data_changing_migrations",
+    "missing_effects_include_rls_or_storage_policy_changes",
+    "migration_history_repair_only_rejected",
+    "ordered_missing_migration_apply_not_approved",
+    "idempotent_remediation_migration_not_approved",
+    "staging_reset_approval_required"
+  ],
+  "risk": "high",
+  "blockedScopes": [
+    "remediation_execution_until_separate_approved_phase",
+    "migration_history_repair",
+    "staging_schema_deploy",
+    "track_b_staging_backfill",
+    "production_supabase",
+    "direct_sql",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock"
+  ],
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

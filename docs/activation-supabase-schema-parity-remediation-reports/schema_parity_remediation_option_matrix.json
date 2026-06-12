@@ -1,0 +1,119 @@
+{
+  "phase": "supabase-schema-parity-remediation-strategy",
+  "runId": "supabase-schema-parity-remediation-strategy-20260609",
+  "status": "blocked",
+  "evaluatedOptionCount": 5,
+  "nonEquivalentMigrationCount": 11,
+  "options": [
+    {
+      "optionId": "ordered_missing_migration_apply",
+      "status": "not_approved_pending_human_review",
+      "recommendation": "May preserve canonical migration order, but cannot be approved in this packet because the missing set includes foundational schema, RLS, storage policy, and data-affecting statements.",
+      "safety": "not_safe_to_execute_now",
+      "migrationHistoryImpact": "requires separate dry-run and execution evidence",
+      "dataImpact": "unknown_until_human_review",
+      "schemaImpact": "would alter staging schema in future execution phase",
+      "productionRisk": "none_in_this_packet_production_blocked",
+      "rollbackDifficulty": "high",
+      "prerequisites": [
+        "human review of all 11 missing migrations",
+        "migration-safe dry-run against staging",
+        "rollback/failure owner",
+        "confirmation that no Track B backfill runs in the same phase"
+      ],
+      "recommended": false,
+      "migrationRepairRun": false,
+      "schemaDeployRun": false,
+      "trackBBackfillRun": false,
+      "productionAffected": false
+    },
+    {
+      "optionId": "idempotent_schema_parity_remediation_migration",
+      "status": "not_approved_pending_human_review",
+      "recommendation": "Could be safe only if a future phase scopes every missing effect and proves idempotency; this packet does not generate or apply that migration.",
+      "safety": "not_safe_to_execute_now",
+      "migrationHistoryImpact": "requires separate dry-run and execution evidence",
+      "dataImpact": "unknown_until_human_review",
+      "schemaImpact": "would alter staging schema in future execution phase",
+      "productionRisk": "none_in_this_packet_production_blocked",
+      "rollbackDifficulty": "high",
+      "prerequisites": [
+        "human-reviewed object inventory",
+        "explicit idempotency proof",
+        "local and staging dry-run evidence",
+        "separate execution approval"
+      ],
+      "recommended": false,
+      "migrationRepairRun": false,
+      "schemaDeployRun": false,
+      "trackBBackfillRun": false,
+      "productionAffected": false
+    },
+    {
+      "optionId": "staging_reset_and_reapply_migrations",
+      "status": "recommended_next_approval_path",
+      "recommendation": "Broad foundational drift makes a reset-and-reapply approval packet safer than repair-only or ad-hoc remediation.",
+      "safety": "conditional_after_human_approval",
+      "migrationHistoryImpact": "can rebuild migration history through canonical migration chain after reset approval",
+      "dataImpact": "potential staging data loss unless preservation/export is approved",
+      "schemaImpact": "would alter staging schema in future execution phase",
+      "productionRisk": "none_in_this_packet_production_blocked",
+      "rollbackDifficulty": "high",
+      "prerequisites": [
+        "human staging reset approval",
+        "staging data preservation/export decision",
+        "migration chain dry-run",
+        "post-reset PR #223/#198 rerun plan"
+      ],
+      "recommended": true,
+      "migrationRepairRun": false,
+      "schemaDeployRun": false,
+      "trackBBackfillRun": false,
+      "productionAffected": false
+    },
+    {
+      "optionId": "migration_history_repair_only",
+      "status": "rejected",
+      "recommendation": "Rejected because PR #241 proves 11 migration effects are absent remotely; repairing history without applying effects would hide real drift.",
+      "safety": "not_safe_to_execute_now",
+      "migrationHistoryImpact": "would mutate history without applying absent schema effects",
+      "dataImpact": "unknown_until_human_review",
+      "schemaImpact": "would alter staging schema in future execution phase",
+      "productionRisk": "none_in_this_packet_production_blocked",
+      "rollbackDifficulty": "high",
+      "prerequisites": [
+        "all 12 missing migrations equivalent at medium/high confidence"
+      ],
+      "recommended": false,
+      "migrationRepairRun": false,
+      "schemaDeployRun": false,
+      "trackBBackfillRun": false,
+      "productionAffected": false
+    },
+    {
+      "optionId": "do_nothing",
+      "status": "rejected",
+      "recommendation": "Rejected because milestone sync, schema deploy, and Track B backfill remain blocked.",
+      "safety": "not_safe_to_execute_now",
+      "migrationHistoryImpact": "requires separate dry-run and execution evidence",
+      "dataImpact": "unknown_until_human_review",
+      "schemaImpact": "none_leaves_drift",
+      "productionRisk": "none_in_this_packet_production_blocked",
+      "rollbackDifficulty": "high",
+      "prerequisites": [
+        "none"
+      ],
+      "recommended": false,
+      "migrationRepairRun": false,
+      "schemaDeployRun": false,
+      "trackBBackfillRun": false,
+      "productionAffected": false
+    }
+  ],
+  "selectedOption": "staging_reset_and_reapply_migrations",
+  "selectedOptionStatus": "recommended_next_approval_path",
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

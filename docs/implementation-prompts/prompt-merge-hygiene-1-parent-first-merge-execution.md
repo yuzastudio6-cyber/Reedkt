@@ -11,7 +11,9 @@ Owner approval token `OWNER_APPROVES_PARENT_FIRST_PR_MERGE_EXECUTION=true` is ab
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-merge-hygiene-1-parent-first-merge-execution-packet`
 - Branch: `codex/rp-merge-hygiene-1-parent-first-merge-execution-packet`
 - PR title: `[coordination] MERGE-HYGIENE-1 parent-first merge execution packet`
-- PR URL: `pending`
+- PR URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/352`
+- PR mode: `draft`
+- PR check rollup: `no_check_rollup_entries`
 - Decision state: `merge_execution_packet_only`
 - Owner approved merge execution: `false`
 - Merged any PR: `false`

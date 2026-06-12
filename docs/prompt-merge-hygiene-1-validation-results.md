@@ -51,9 +51,10 @@ The implementation re-inspected GitHub with read-only PR list/view data. Current
 
 ## PR And CI
 
-- PR URL: `pending`
+- PR URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/352`
 - PR mode: `draft`
-- GitHub checks: `pending`
+- GitHub checks: `no_check_rollup_entries`
+- GitHub mergeability: `MERGEABLE`
 
 ## Base Gaps
 

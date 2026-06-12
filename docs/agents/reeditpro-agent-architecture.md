@@ -18,3 +18,7 @@ Phase 52C is the first deterministic multi-agent dry-run on this architecture. I
 Phase 52D bridges those findings and intents into candidate-only approved-plan snapshot records and cross-track handoff packets. It still does not execute tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, Docker, Cloud Run, production, external beta, paid production, or broad media.
 
 Phase 52F reconciles system readiness across workstreams and creates a controlled internal test plan on existing evidence only. It emits readiness records, blocker inventory, risk register, and owner handoff packets, but it does not authorize agents, coordinators, or workers to execute tools directly.
+
+Phase 52G turns that readiness into a controlled internal test go/no-go packet and owner handoff prompt set. It allows owner response intake and non-executing planning only; agents still do not execute tools, workers, models, providers, media, search, browser capture, or maps.
+
+Phase 52H adds the owner-response intake ledger for all 12 workstreams. It lets owner chats record accepted scope, blocked scope, next prompts, risks, and Supabase update classification, but it still does not authorize agents or owners to execute tools directly.

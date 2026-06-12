@@ -1,0 +1,146 @@
+{
+  "phase": "worker-runtime-dry-run-approval-after-repo-audit",
+  "status": "passed",
+  "artifacts": [
+    {
+      "name": "source_of_truth_ownership_audit.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/source_of_truth_ownership_audit.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_approval_plan.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_plan.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_evidence_inventory.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_evidence_inventory.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "approved_plan_snapshot_dry_run_fixtures.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/approved_plan_snapshot_dry_run_fixtures.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_scope_policy.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_scope_policy.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_artifact_scope_guardrails.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_artifact_scope_guardrails.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_queue_job_sidecar_policy.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_queue_job_sidecar_policy.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_observability_cost_failure_guardrails.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_observability_cost_failure_guardrails.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_fail_closed_policy.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_fail_closed_policy.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_approval_decision.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_decision.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_approval_blocker_report.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_blocker_report.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_approval_readiness_report.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_readiness_report.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_dry_run_approval_private_artifact_manifest.json",
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_private_artifact_manifest.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    }
+  ],
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false
+}

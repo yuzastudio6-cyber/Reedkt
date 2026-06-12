@@ -1,0 +1,242 @@
+{
+  "phase": "worker-runtime-noop-dry-run-execution",
+  "runId": "worker-runtime-noop-dry-run-execution-20260612",
+  "status": "passed",
+  "sourceApprovalPr": 342,
+  "owner": "WORKER_RUNTIME_JOBS",
+  "sourceOfTruthConflictsFound": false,
+  "evidence": [
+    {
+      "pr": 342,
+      "name": "worker runtime dry-run approval packet",
+      "expectedDecision": "approved_for_future_worker_noop_dry_run_execution",
+      "actualDecision": "approved_for_future_worker_noop_dry_run_execution",
+      "accepted": true
+    },
+    {
+      "pr": 341,
+      "name": "worker runtime repo audit",
+      "expectedDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "actualDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "accepted": true
+    },
+    {
+      "pr": 335,
+      "name": "plan snapshot contract readiness/fix handoff",
+      "expectedDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "actualDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "accepted": true
+    },
+    {
+      "pr": 337,
+      "name": "plan snapshot dry-run validation",
+      "expectedDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "actualDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "accepted": true
+    },
+    {
+      "pr": 327,
+      "name": "original plan snapshot contract packet",
+      "expectedDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "actualDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "accepted": true
+    },
+    {
+      "pr": 329,
+      "name": "Qwen synthetic provider evidence",
+      "expectedDecision": "qwen_4_of_4_preserved_as_metadata_source",
+      "actualDecision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+      "providerCallsPassed": 4,
+      "accepted": true
+    },
+    {
+      "pr": 320,
+      "name": "DeepSeek provider evidence",
+      "expectedDecision": "deepseek_3_of_3_preserved_or_contract_accepted",
+      "actualDecision": "passed_remote_pr320",
+      "providerCallsPassed": 3,
+      "accepted": true,
+      "note": "Only sanitized metadata is copied into this packet; provider raw output is not copied."
+    },
+    {
+      "pr": 318,
+      "name": "model orchestration dry-run approval",
+      "expectedDecision": "approved_for_future_qwen_deepseek_provider_dry_run",
+      "actualDecision": "approved_for_future_qwen_deepseek_provider_dry_run",
+      "accepted": true
+    },
+    {
+      "pr": 311,
+      "name": "restricted internal testing session 0",
+      "expectedDecision": "restricted_internal_testing_session_0_passed",
+      "actualDecision": "restricted_internal_testing_session_0_passed",
+      "accepted": true
+    },
+    {
+      "pr": 298,
+      "name": "Supabase Track B clean staging sync",
+      "expectedDecision": "track_b_clean_staging_metadata_backfill_verified",
+      "actualDecision": "track_b_clean_staging_metadata_backfill_verified",
+      "accepted": true
+    }
+  ],
+  "supportingEvidence": [
+    {
+      "path": "docs/activation-track-b-tool-route-manifest-reports",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-track-b-capability-manifests-reports",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-phase-44l-route-dry-run-approval-reports",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-phase-44m-noop-route-dry-run-execution-reports",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports",
+      "present": true,
+      "required": true
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false,
+      "required": false
+    }
+  ],
+  "reportDirectories": {
+    "approval": {
+      "present": true,
+      "totalFiles": 13,
+      "representativeFiles": [
+        "approved_plan_snapshot_dry_run_fixtures.json",
+        "source_of_truth_ownership_audit.json",
+        "worker_dry_run_approval_blocker_report.json",
+        "worker_dry_run_approval_decision.json",
+        "worker_dry_run_approval_plan.json",
+        "worker_dry_run_approval_private_artifact_manifest.json",
+        "worker_dry_run_approval_readiness_report.json",
+        "worker_dry_run_artifact_scope_guardrails.json",
+        "worker_dry_run_evidence_inventory.json",
+        "worker_dry_run_fail_closed_policy.json",
+        "worker_dry_run_observability_cost_failure_guardrails.json",
+        "worker_dry_run_queue_job_sidecar_policy.json",
+        "worker_dry_run_scope_policy.json"
+      ]
+    },
+    "repoAudit": {
+      "present": true,
+      "totalFiles": 13,
+      "representativeFiles": [
+        "approved_plan_snapshot_intake_review.json",
+        "artifact_scope_source_of_truth_review.json",
+        "source_of_truth_ownership_audit.json",
+        "worker_execution_blocker_policy.json",
+        "worker_job_queue_inventory.json",
+        "worker_observability_cost_failure_review.json",
+        "worker_runtime_gap_map.json",
+        "worker_runtime_repo_audit_blocker_report.json",
+        "worker_runtime_repo_audit_decision.json",
+        "worker_runtime_repo_audit_plan.json",
+        "worker_runtime_repo_audit_private_artifact_manifest.json",
+        "worker_runtime_repo_audit_readiness_report.json",
+        "worker_secret_reference_inventory.json"
+      ]
+    },
+    "planSnapshotContract": {
+      "present": true,
+      "totalFiles": 15,
+      "representativeFiles": [
+        "agent_findings_v1_schema.json",
+        "approval_gate_and_worker_handoff_policy.json",
+        "approved_plan_snapshot_v1_schema.json",
+        "edit_intents_v1_schema.json",
+        "plan_snapshot_candidate_v1_schema.json",
+        "plan_snapshot_contract_blocker_report.json",
+        "plan_snapshot_contract_decision.json",
+        "plan_snapshot_contract_fixtures.json",
+        "plan_snapshot_contract_plan.json",
+        "plan_snapshot_contract_private_artifact_manifest.json",
+        "plan_snapshot_contract_readiness_report.json",
+        "plan_snapshot_contract_validation_report.json",
+        "plan_snapshot_evidence_inventory.json",
+        "provider_dry_run_evidence_reconciliation.json",
+        "source_of_truth_ownership_audit.json"
+      ]
+    },
+    "planSnapshotDryRun": {
+      "present": true,
+      "totalFiles": 13,
+      "representativeFiles": [
+        "agent_findings_to_edit_intents_validation_report.json",
+        "edit_intents_to_plan_candidate_validation_report.json",
+        "plan_candidate_approval_gate_validation_report.json",
+        "plan_snapshot_dry_run_blocker_report.json",
+        "plan_snapshot_dry_run_decision.json",
+        "plan_snapshot_dry_run_evidence_inventory.json",
+        "plan_snapshot_dry_run_fail_closed_report.json",
+        "plan_snapshot_dry_run_plan.json",
+        "plan_snapshot_dry_run_private_artifact_manifest.json",
+        "plan_snapshot_dry_run_readiness_report.json",
+        "plan_snapshot_dry_run_summary_report.json",
+        "source_of_truth_ownership_audit.json",
+        "synthetic_agent_findings_fixtures.json"
+      ]
+    }
+  },
+  "copiedRawProviderOutput": false,
+  "copiedSecretPayloads": false,
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false
+}

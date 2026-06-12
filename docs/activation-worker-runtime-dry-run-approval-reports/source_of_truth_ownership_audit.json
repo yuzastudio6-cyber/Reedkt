@@ -1,0 +1,257 @@
+{
+  "phase": "worker-runtime-dry-run-approval-after-repo-audit",
+  "status": "passed",
+  "owner": "WORKER_RUNTIME_JOBS",
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false
+    },
+    {
+      "path": "docs/tool-readiness-worker-runtime-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/tool-call-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/provider-gateway-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/model-orchestration-approved-plan-snapshot-schema.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-approval-gate-worker-handoff-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/worker-runtime-repo-audit.md",
+      "present": true
+    },
+    {
+      "path": "docs/worker-runtime-approved-plan-snapshot-intake.md",
+      "present": true
+    },
+    {
+      "path": "docs/worker-runtime-artifact-scope-source-of-truth.md",
+      "present": true
+    },
+    {
+      "path": "docs/worker-runtime-execution-blocker-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/worker-runtime-repo-audit-decision.md",
+      "present": true
+    },
+    {
+      "path": "docs/implementation-prompts/prompt-worker-runtime-dry-run-approval-after-repo-audit.md",
+      "present": true
+    },
+    {
+      "path": "docs/internal-testing-allowed-scope-freeze.md",
+      "present": true
+    },
+    {
+      "path": "docs/internal-testing-blocked-scope-freeze.md",
+      "present": true
+    },
+    {
+      "path": "docs/restricted-internal-testing-session-0-decision.md",
+      "present": true
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": true
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-repo-audit-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-dry-run-approval-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-track-b-tool-route-manifest-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-track-b-capability-manifests-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44l-route-dry-run-approval-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44m-noop-route-dry-run-execution-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+      "present": true
+    }
+  ],
+  "prEvidence": [
+    {
+      "pr": 341,
+      "name": "worker runtime repo audit",
+      "expectedDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "actualDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "present": true,
+      "accepted": true
+    },
+    {
+      "pr": 337,
+      "name": "plan snapshot dry-run validation",
+      "expectedDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "actualDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "present": true,
+      "accepted": true
+    },
+    {
+      "pr": 327,
+      "name": "plan snapshot contract",
+      "expectedDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "actualDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "present": true,
+      "accepted": true
+    },
+    {
+      "pr": 320,
+      "name": "Qwen and DeepSeek provider dry-run evidence",
+      "present": true,
+      "accepted": true,
+      "note": "Provider execution is historical source evidence only and is not invoked by this packet."
+    },
+    {
+      "pr": 318,
+      "name": "model orchestration dry-run approval packet",
+      "present": true,
+      "accepted": true
+    },
+    {
+      "pr": 311,
+      "name": "restricted internal testing session 0",
+      "present": true,
+      "accepted": true
+    },
+    {
+      "pr": 298,
+      "name": "Track B clean staging backfill",
+      "present": true,
+      "accepted": true
+    }
+  ],
+  "integrationEvidence": [
+    {
+      "path": "docs/activation-track-b-tool-route-manifest-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-track-b-capability-manifests-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44l-route-dry-run-approval-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44m-noop-route-dry-run-execution-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports",
+      "present": true
+    }
+  ],
+  "sourceOfTruthConflictsFound": false,
+  "missingOptionalDocsAreRecordedNotMutated": true,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false
+}

@@ -1,0 +1,74 @@
+{
+  "phase": "product-internal-testing-launch-rehearsal",
+  "runId": "product-internal-testing-launch-rehearsal-20260611",
+  "status": "ready",
+  "severityLevels": [
+    {
+      "id": "sev0_stop",
+      "meaning": "Stop rehearsal immediately; possible secret, production, public artifact, or runtime execution breach."
+    },
+    {
+      "id": "sev1_blocker",
+      "meaning": "Blocks restricted internal testing start gate."
+    },
+    {
+      "id": "sev2_major",
+      "meaning": "Needs owner review before start gate but does not indicate execution breach."
+    },
+    {
+      "id": "sev3_minor",
+      "meaning": "Documentation or metadata cleanup follow-up."
+    }
+  ],
+  "blockerCategories": [
+    "supabase_milestone_sync_issue",
+    "track_b_readiness_issue",
+    "docs_runbook_issue",
+    "security_or_secret_exposure_issue",
+    "runtime_provider_tool_worker_route_execution_attempt",
+    "public_artifact_or_signed_url_policy_issue",
+    "production_external_beta_or_paid_production_unlock_attempt"
+  ],
+  "ownerRouting": [
+    {
+      "category": "supabase_milestone_sync_issue",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE"
+    },
+    {
+      "category": "track_b_readiness_issue",
+      "owner": "TRACK_B_MEDIA_PROCESSING"
+    },
+    {
+      "category": "docs_runbook_issue",
+      "owner": "FRONTEND_PRODUCT_UX"
+    },
+    {
+      "category": "security_or_secret_exposure_issue",
+      "owner": "OBSERVABILITY_AUDIT_COST"
+    },
+    {
+      "category": "runtime_provider_tool_worker_route_execution_attempt",
+      "owner": "WORKER_RUNTIME_JOBS/PROVIDER_GATEWAY"
+    },
+    {
+      "category": "public_artifact_or_signed_url_policy_issue",
+      "owner": "PUBLIC_ARTIFACT_DELIVERY"
+    },
+    {
+      "category": "production_external_beta_or_paid_production_unlock_attempt",
+      "owner": "PRODUCT_INTERNAL_BETA_AGGREGATION"
+    }
+  ],
+  "requiredFields": [
+    "severity",
+    "category",
+    "owner",
+    "report_path",
+    "evidence_summary",
+    "blocked_scope_check",
+    "recommended_next_action"
+  ],
+  "rowOrPrivatePayloadsAllowed": false,
+  "secretsAllowed": false,
+  "statusReadyForRehearsal": true
+}

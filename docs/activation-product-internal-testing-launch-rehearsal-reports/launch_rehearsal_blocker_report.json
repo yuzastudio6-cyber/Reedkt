@@ -1,0 +1,22 @@
+{
+  "phase": "product-internal-testing-launch-rehearsal",
+  "runId": "product-internal-testing-launch-rehearsal-20260611",
+  "status": "passed",
+  "activeBlockers": [],
+  "blockedScopesPreserved": [
+    "external_beta",
+    "paid_production",
+    "production",
+    "public_artifacts",
+    "broad_media",
+    "runtime_tool_worker_provider_execution",
+    "supabase_writes"
+  ],
+  "internalTestingExecution": false,
+  "runtimeExecution": false,
+  "providerCalls": false,
+  "publicArtifacts": false,
+  "production": false,
+  "supabaseWrites": false,
+  "secretsPrintedOrCommitted": false
+}

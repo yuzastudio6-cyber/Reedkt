@@ -1,0 +1,63 @@
+{
+  "phase": "product-internal-testing-launch-rehearsal",
+  "runId": "product-internal-testing-launch-rehearsal-20260611",
+  "status": "rehearsed",
+  "rehearsalMode": "metadata_readiness_only",
+  "testerFlowSteps": [
+    "open_internal_readiness_review_dashboard_or_docs",
+    "review_track_b_capability_readiness_metadata",
+    "review_supabase_clean_staging_milestone_sync_status",
+    "review_allowed_and_blocked_scope",
+    "review_completed_evidence_artifacts",
+    "report_issues_through_approved_issue_intake"
+  ],
+  "allowedReviewScope": [
+    "readiness_dashboards_and_reports",
+    "supabase_clean_staging_milestone_registry_review",
+    "track_b_readiness_capability_route_metadata_review",
+    "completed_generated_controlled_evidence_review",
+    "noop_route_dry_run_evidence_review",
+    "metadata_only_duckdb_polars_route_dry_run_evidence_review",
+    "audio_timing_deepfilternet_signalsmith_evidence_review",
+    "media_data_opencv_pyav_pyscenedetect_sharp_duckdb_polars_evidence_review",
+    "desktop_hybrid_planning_simulation_evidence_review"
+  ],
+  "blockedActions": [
+    "execute_tools_workers_or_providers",
+    "process_media",
+    "create_public_artifacts",
+    "use_signed_urls_as_source_of_truth",
+    "run_raw_prompts",
+    "mutate_supabase",
+    "unlock_production_external_beta_or_paid_production"
+  ],
+  "testerMustNotExecuteToolsWorkersProviders": true,
+  "testerMustNotProcessMedia": true,
+  "testerMustNotCreatePublicArtifacts": true,
+  "testerMustNotUseSignedUrlsAsSourceOfTruth": true,
+  "blockedScope": [
+    "production",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "public_output",
+    "signed_urls_as_source_of_truth",
+    "raw_prompt_execution",
+    "live_worker_execution",
+    "live_tool_route_execution",
+    "provider_calls",
+    "broad_media",
+    "arbitrary_media",
+    "vlm_qwen_runtime",
+    "demucs_runtime",
+    "track_a_runtime",
+    "direct_supabase_production_writes"
+  ],
+  "internalTestingExecutionStarted": false,
+  "runtimeExecution": false,
+  "providerCalls": false,
+  "publicArtifacts": false,
+  "production": false,
+  "supabaseWrites": false,
+  "secretsPrintedOrCommitted": false
+}

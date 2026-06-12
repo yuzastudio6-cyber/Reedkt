@@ -1,5 +1,12 @@
 # Activation Next Phase Runbook
 
+## After WORKER-1
+
+1. Review `docs/activation-phase-worker-1-approved-plan-snapshot-dry-run-results.md` and confirm WORKER-1 run `worker1-20260612T193823` remains `worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit`.
+2. Run TOOL-ROUTE-0 with `activation:tool-route-execution-unlock-audit` before any route dry-run planning.
+3. Proceed to TOOL-ROUTE-1 route dry-run planning only if `docs/activation-phase-tool-route-0-execution-unlock-audit-results.md` records `tool_route_execution_unlock_audit_passed_ready_for_route_dry_run_planning`.
+4. Keep tools, workers, routes, providers/models, media, browser/map/web, Supabase mutation, SQL, migrations, schema/RLS changes, Google Cloud APIs, Secret Manager APIs, GCS/storage transfer, public artifacts, signed URLs, raw prompt execution, production, external beta, paid production, broad media, Stripe/credits, final render, and export blocked in TOOL-ROUTE-0.
+
 ## After WORKER-0
 
 1. Review `docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md` and confirm WORKER-0 run `worker0-20260612T191022` remains `worker_runtime_repo_audit_passed_ready_for_worker1_dry_run`.

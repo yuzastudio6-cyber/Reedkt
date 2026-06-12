@@ -16,5 +16,8 @@ MODEL-DRYRUN-2 final state: `provider_dry_run_passed`.
 MODEL-DRYRUN-2A status: `provider_dry_run_passed`.
 MODEL-DRYRUN-2A resolved blocker: `provider_cost_or_token_guardrail_exceeded`.
 MODEL-DRYRUN-2A fix validated: Qwen `enable_thinking: false` with `maxTotalTokens=7200` unchanged and `2871` total tokens reported.
+PLAN-SNAPSHOT-0 status: `ready_for_owner_review`.
+PLAN-SNAPSHOT-0 source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`.
+Full internal beta remains `blocked_pending_workstream_gates`.
 
 Provider dry-run evidence does not unlock production, external beta, paid production, public artifacts, signed URLs, real user data, media processing, workers, tools, routes, Supabase writes, or raw prompt execution into workers/tools.

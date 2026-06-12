@@ -1,7 +1,78 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T204457332Z",
-  "generatedAt": "2026-06-12T20:45:16.207Z",
+  "runId": "github-merge-hygiene-2026-06-12T212905596Z",
+  "generatedAt": "2026-06-12T21:29:24.241Z",
   "decision": "duplicate_parallel_lanes_require_owner_review",
+  "draftDriftReview": {
+    "runId": "github-merge-hygiene-2026-06-12T212905596Z",
+    "generatedAt": "2026-06-12T21:29:24.241Z",
+    "decision": "accepted_draft_drift_to_352",
+    "expectedDraftPrNumber": 351,
+    "actualDraftPrNumber": 352,
+    "expectedDraftPr": {
+      "exists": true,
+      "number": 351,
+      "title": "[worker] Runtime dry-run contract review",
+      "state": "MERGED",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+      "headRefName": "codex/rp-worker-runtime-unlock-2-dry-run-contract-review",
+      "headRefOid": "970805e1208e5abec8de523a83b972206d4b975b",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/351",
+      "updatedAt": "2026-06-12T20:52:57Z"
+    },
+    "actualDraftPr": {
+      "exists": true,
+      "number": 352,
+      "title": "[coordination] MERGE-HYGIENE-1 parent-first merge execution packet",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-merge-hygiene-0-milestone-pr-stack-audit",
+      "headRefName": "codex/rp-merge-hygiene-1-parent-first-merge-execution-packet",
+      "headRefOid": "8878557165d482fc66f4d4d4e3fdc58e3bf4d231",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/352",
+      "updatedAt": "2026-06-12T21:00:52Z"
+    },
+    "acceptanceCriteria": {
+      "expectedDraft351Exists": true,
+      "expectedDraft351Merged": true,
+      "actualDraft352Exists": true,
+      "actualDraft352Open": true,
+      "actualDraft352IsDraft": true,
+      "actualDraft352Clean": true,
+      "actualDraft352LooksLikeMergeHygieneExecutionPacket": true,
+      "driftAcceptanceConfirmationPresent": true
+    },
+    "blockers": [],
+    "driftInterpretation": {
+      "draftSetReplacementAccepted": true,
+      "supersedesExpectedDraftInApprovalPlan": true,
+      "supersessionType": "draft_set_replacement_not_same_workstream",
+      "note": "PR #351 is treated as merged evidence. PR #352 is treated as the current draft merge-hygiene execution packet replacing #351 in the live draft set only when every acceptance criterion passes."
+    },
+    "executionStatus": {
+      "pullRequestsMerged": false,
+      "pullRequestsClosed": false,
+      "pullRequestsRebased": false,
+      "pullRequestsRetargeted": false,
+      "runtimePathsExecuted": false,
+      "supabaseMutation": false,
+      "providerCalls": false,
+      "publicArtifactsCreated": false,
+      "signedUrlsIssued": false,
+      "productionUnlocked": false,
+      "externalBetaUnlocked": false,
+      "paidProductionUnlocked": false,
+      "rawPromptExecution": false
+    },
+    "supabaseClassification": {
+      "updateRequired": "no",
+      "environmentTouched": "none",
+      "sql": "none",
+      "migrationDeployed": "no"
+    }
+  },
   "entries": [
     {
       "id": "model_provider_dry_runs",
@@ -28,7 +99,6 @@
         328,
         329,
         330,
-        331,
         332,
         333,
         336
@@ -183,16 +253,6 @@
           "classification": "duplicate_risk"
         },
         {
-          "number": 331,
-          "title": "[model] Qwen DeepSeek full synthetic provider dry run",
-          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/331",
-          "isDraft": false,
-          "mergeStateStatus": "CLEAN",
-          "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
-          "headRefName": "codex/rp-model-orchestration-qwen-deepseek-full-synthetic-provider-dry-run",
-          "classification": "duplicate_risk"
-        },
-        {
           "number": 332,
           "title": "[model] Plan snapshot contract source mismatch after provider dry-run",
           "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/332",
@@ -207,7 +267,7 @@
           "title": "[model] MODEL-DRYRUN-2 calibrated Qwen DeepSeek synthetic provider dry run",
           "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/333",
           "isDraft": true,
-          "mergeStateStatus": "CLEAN",
+          "mergeStateStatus": "DIRTY",
           "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
           "headRefName": "codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-provider-dry-run",
           "classification": "draft_hold"
@@ -237,11 +297,9 @@
         211,
         327,
         332,
-        334,
         335,
         337,
-        339,
-        343
+        339
       ],
       "canonicalObservedPrNumbers": [
         327,
@@ -291,16 +349,6 @@
           "classification": "draft_hold"
         },
         {
-          "number": 334,
-          "title": "[plan] Provider output approved-plan snapshot contract",
-          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/334",
-          "isDraft": false,
-          "mergeStateStatus": "CLEAN",
-          "baseRefName": "codex/rp-model-orchestration-qwen-deepseek-full-synthetic-provider-dry-run",
-          "headRefName": "codex/rp-plan-snapshot-1-provider-output-contract",
-          "classification": "duplicate_risk"
-        },
-        {
           "number": 335,
           "title": "[model] Plan snapshot contract readiness fix",
           "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/335",
@@ -329,16 +377,6 @@
           "baseRefName": "codex/rp-model-dryrun-2a-provider-token-guardrail-fixes",
           "headRefName": "codex/rp-plan-snapshot-0-approved-plan-snapshot-contract",
           "classification": "draft_hold"
-        },
-        {
-          "number": 343,
-          "title": "[worker] Approved plan snapshot dry run",
-          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/343",
-          "isDraft": false,
-          "mergeStateStatus": "CLEAN",
-          "baseRefName": "codex/rp-worker-0-worker-runtime-jobs-repo-audit",
-          "headRefName": "codex/rp-worker-1-approved-plan-snapshot-dry-run",
-          "classification": "duplicate_risk"
         }
       ]
     },
@@ -382,11 +420,9 @@
         258,
         300,
         338,
-        340,
-        343,
         344,
         345,
-        351
+        353
       ],
       "canonicalObservedPrNumbers": [],
       "riskStatus": "parallel_or_duplicate_review_required",
@@ -693,26 +729,6 @@
           "classification": "draft_hold"
         },
         {
-          "number": 340,
-          "title": "[worker] Worker Runtime Jobs repo audit",
-          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/340",
-          "isDraft": false,
-          "mergeStateStatus": "CLEAN",
-          "baseRefName": "codex/rp-plan-snapshot-1-provider-output-contract",
-          "headRefName": "codex/rp-worker-0-worker-runtime-jobs-repo-audit",
-          "classification": "duplicate_risk"
-        },
-        {
-          "number": 343,
-          "title": "[worker] Approved plan snapshot dry run",
-          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/343",
-          "isDraft": false,
-          "mergeStateStatus": "CLEAN",
-          "baseRefName": "codex/rp-worker-0-worker-runtime-jobs-repo-audit",
-          "headRefName": "codex/rp-worker-1-approved-plan-snapshot-dry-run",
-          "classification": "duplicate_risk"
-        },
-        {
           "number": 344,
           "title": "[worker] WORKER-0 worker runtime unlock repo audit",
           "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/344",
@@ -733,13 +749,13 @@
           "classification": "draft_hold"
         },
         {
-          "number": 351,
-          "title": "[worker] Runtime dry-run contract review",
-          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/351",
+          "number": 353,
+          "title": "[worker] Runtime fixture hardening",
+          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/353",
           "isDraft": true,
           "mergeStateStatus": "CLEAN",
           "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
-          "headRefName": "codex/rp-worker-runtime-unlock-2-dry-run-contract-review",
+          "headRefName": "codex/rp-worker-runtime-unlock-3-fixture-hardening",
           "classification": "draft_hold"
         }
       ]

@@ -1,9 +1,10 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T210227518Z",
-  "generatedAt": "2026-06-12T21:02:45.066Z",
+  "runId": "github-merge-hygiene-2026-06-12T212905596Z",
+  "generatedAt": "2026-06-12T21:29:24.241Z",
   "decision": "blocked_pending_human_merge_order_review",
   "mergeExecutionApprovedForFuturePhase": false,
   "mergeExecutionStarted": false,
+  "draftDriftDecision": "accepted_draft_drift_to_352",
   "approvedFutureMergePrNumbers": [
     205,
     222,
@@ -56,11 +57,13 @@
       344,
       345,
       348,
-      352
+      352,
+      353
     ],
     "dirtyOrUnstablePrs": {
       "1": "DIRTY",
-      "94": "UNSTABLE"
+      "94": "UNSTABLE",
+      "333": "DIRTY"
     },
     "duplicateRiskPrNumbers": [
       2,
@@ -195,11 +198,7 @@
       324,
       325,
       328,
-      330,
-      331,
-      334,
-      340,
-      343
+      330
     ],
     "nonCanonicalPrNumbers": [
       1,
@@ -505,27 +504,25 @@
       328,
       329,
       330,
-      331,
       332,
       333,
-      334,
       335,
       336,
       338,
       339,
-      340,
-      343,
       344,
       345,
       348,
       349,
       350,
-      352
+      352,
+      353
     ],
     "alreadyMergedEvidencePrNumbers": [
       341,
       342,
-      346
+      346,
+      351
     ],
     "approvalCarrierPrNumber": 350
   },

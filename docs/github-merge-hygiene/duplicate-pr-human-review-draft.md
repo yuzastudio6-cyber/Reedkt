@@ -8,27 +8,27 @@ No duplicate or parallel PR is closed, rebased, or merged by this packet.
 
 - Canonical recommendation: #314, #318, #320, #322
 - PRs to keep: #314, #318, #320, #322
-- PRs to review: #62, #64, #307, #323, #324, #325, #326, #328, #329, #330, #331, #332, #333, #336
-- Likely superseded pending human confirmation: #62, #64, #307, #323, #324, #325, #326, #328, #329, #330, #331, #332, #333, #336
-- Not approved for merge yet: #62, #64, #307, #323, #324, #325, #326, #328, #329, #330, #331, #332, #333, #336
+- PRs to review: #62, #64, #307, #323, #324, #325, #326, #328, #329, #330, #332, #333, #336
+- Likely superseded pending human confirmation: #62, #64, #307, #323, #324, #325, #326, #328, #329, #330, #332, #333, #336
+- Not approved for merge yet: #62, #64, #307, #323, #324, #325, #326, #328, #329, #330, #332, #333, #336
 - Recommended action: keep canonical/merged evidence; review or close/rebase parallel PRs only after the canonical parent chain lands
 
 ## Plan snapshot contracts and dry-run validation
 
 - Canonical recommendation: #327, #337
 - PRs to keep: #327, #337
-- PRs to review: #84, #211, #332, #334, #335, #339, #343
-- Likely superseded pending human confirmation: #84, #211, #332, #334, #335, #339, #343
-- Not approved for merge yet: #84, #211, #332, #334, #335, #339, #343
+- PRs to review: #84, #211, #332, #335, #339
+- Likely superseded pending human confirmation: #84, #211, #332, #335, #339
+- Not approved for merge yet: #84, #211, #332, #335, #339
 - Recommended action: keep canonical/merged evidence; review or close/rebase parallel PRs only after the canonical parent chain lands
 
 ## Worker runtime audits and no-op dry-runs
 
 - Canonical recommendation: #341, #342, #346
 - PRs to keep: none
-- PRs to review: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #340, #343, #344, #345
-- Likely superseded pending human confirmation: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #340, #343, #344, #345
-- Not approved for merge yet: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #340, #343, #344, #345
+- PRs to review: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #344, #345, #353
+- Likely superseded pending human confirmation: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #344, #345, #353
+- Not approved for merge yet: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #344, #345, #353
 - Recommended action: keep canonical/merged evidence; review or close/rebase parallel PRs only after the canonical parent chain lands
 
 ## Track A creative graphics and visual runtime unlocks

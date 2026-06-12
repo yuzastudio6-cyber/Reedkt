@@ -1,10 +1,18 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T210227518Z",
-  "generatedAt": "2026-06-12T21:02:45.066Z",
+  "runId": "github-merge-hygiene-2026-06-12T212905596Z",
+  "generatedAt": "2026-06-12T21:29:24.241Z",
   "decision": "merge_execution_approval_blocked",
+  "draftDriftDecision": "accepted_draft_drift_to_352",
   "activeApprovalBlockers": [
     {
-      "blocker": "draft_pr_set_changed_since_approval_plan",
+      "blocker": "open_pr_count_changed_since_approval_plan",
+      "status": "active",
+      "expected": 347,
+      "actual": 343,
+      "decision": "blocked_pending_human_merge_order_review"
+    },
+    {
+      "blocker": "draft_pr_set_changed_after_drift_acceptance",
       "status": "active",
       "expected": [
         1,
@@ -27,7 +35,7 @@
         344,
         345,
         348,
-        351
+        352
       ],
       "actual": [
         1,
@@ -50,7 +58,34 @@
         344,
         345,
         348,
-        352
+        352,
+        353
+      ],
+      "draftDriftDecision": "accepted_draft_drift_to_352",
+      "decision": "blocked_pending_human_merge_order_review"
+    },
+    {
+      "blocker": "dirty_or_unstable_pr_set_changed_since_approval_plan",
+      "status": "active",
+      "expected": {
+        "1": "DIRTY",
+        "94": "UNSTABLE"
+      },
+      "actual": {
+        "1": "DIRTY",
+        "94": "UNSTABLE",
+        "333": "DIRTY"
+      },
+      "decision": "blocked_pending_dirty_or_unstable_pr_review"
+    },
+    {
+      "blocker": "approved_future_merge_set_not_clean_canonical",
+      "status": "active",
+      "problems": [
+        {
+          "number": 347,
+          "issue": "missing_from_open_pr_snapshot"
+        }
       ],
       "decision": "blocked_pending_human_merge_order_review"
     }
@@ -77,11 +112,13 @@
       344,
       345,
       348,
-      352
+      352,
+      353
     ],
     "dirtyOrUnstablePrs": {
       "1": "DIRTY",
-      "94": "UNSTABLE"
+      "94": "UNSTABLE",
+      "333": "DIRTY"
     },
     "duplicateRiskPrNumbers": [
       2,
@@ -216,11 +253,7 @@
       324,
       325,
       328,
-      330,
-      331,
-      334,
-      340,
-      343
+      330
     ],
     "nonCanonicalPrNumbers": [
       1,
@@ -526,27 +559,25 @@
       328,
       329,
       330,
-      331,
       332,
       333,
-      334,
       335,
       336,
       338,
       339,
-      340,
-      343,
       344,
       345,
       348,
       349,
       350,
-      352
+      352,
+      353
     ],
     "alreadyMergedEvidencePrNumbers": [
       341,
       342,
-      346
+      346,
+      351
     ],
     "approvalCarrierPrNumber": 350
   }

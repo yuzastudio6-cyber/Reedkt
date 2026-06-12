@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T21:02:45.066Z",
+  "generatedAt": "2026-06-12T21:29:24.241Z",
   "decision": "validation_exception_accepted_for_future_parent_chain_merge_execution",
   "typecheckServerExpectedFailure": true,
   "buildServerExpectedFailure": true,

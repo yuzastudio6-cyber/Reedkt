@@ -2,11 +2,23 @@
 
 This register highlights parallel or duplicate lanes that require owner review before merge. It does not close, merge, rebase, or supersede any PR.
 
+## Draft Drift
+
+- Decision: `accepted_draft_drift_to_352`
+- Expected draft: #351
+- Actual draft: #352
+- Draft-set replacement accepted: `true`
+- PR #351 state: `MERGED`
+- PR #352 state: `OPEN`
+- PR #352 draft: `true`
+- PR #352 merge state: `CLEAN`
+
+
 ## Model provider dry-runs and Qwen/DeepSeek repairs
 
 - Risk status: `parallel_or_duplicate_review_required`
 - Canonical PRs: #314, #318, #320, #322
-- Observed PRs: #62, #64, #307, #314, #318, #320, #322, #323, #324, #325, #326, #328, #329, #330, #331, #332, #333, #336
+- Observed PRs: #62, #64, #307, #314, #318, #320, #322, #323, #324, #325, #326, #328, #329, #330, #332, #333, #336
 - Recommended action: review canonical lane first; hold duplicate or parallel candidates until owners confirm supersession
 - Reason: Multiple provider dry-run, Qwen repair, and token-fix branches can supersede each other unless PR #314 -> #318 -> #320 -> #322 is reviewed as the canonical lane.
 
@@ -14,7 +26,7 @@ This register highlights parallel or duplicate lanes that require owner review b
 
 - Risk status: `parallel_or_duplicate_review_required`
 - Canonical PRs: #327, #337
-- Observed PRs: #84, #211, #327, #332, #334, #335, #337, #339, #343
+- Observed PRs: #84, #211, #327, #332, #335, #337, #339
 - Recommended action: review canonical lane first; hold duplicate or parallel candidates until owners confirm supersession
 - Reason: Plan-snapshot contract and validation PRs depend on committed provider evidence; parallel contract-fix PRs should not merge ahead of the canonical evidence chain.
 
@@ -22,7 +34,7 @@ This register highlights parallel or duplicate lanes that require owner review b
 
 - Risk status: `parallel_or_duplicate_review_required`
 - Canonical PRs: #341, #342, #346
-- Observed PRs: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #340, #343, #344, #345, #351
+- Observed PRs: #11, #15, #24, #29, #39, #46, #51, #56, #58, #65, #66, #81, #85, #87, #88, #92, #99, #100, #103, #104, #110, #140, #181, #189, #228, #253, #255, #258, #300, #338, #344, #345, #353
 - Recommended action: review canonical lane first; hold duplicate or parallel candidates until owners confirm supersession
 - Reason: Worker runtime repo audit, approval, and no-op dry-run form a parent stack; draft worker alternatives need review before any worker lane is merged.
 

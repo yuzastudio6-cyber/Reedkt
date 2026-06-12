@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T21:02:46.366Z",
+  "generatedAt": "2026-06-12T21:29:27.205Z",
   "decision": "duplicate_parallel_prs_require_human_review_before_any_noncanonical_merge",
   "entries": [
     {
@@ -29,7 +29,6 @@
         328,
         329,
         330,
-        331,
         332,
         333,
         336
@@ -45,7 +44,6 @@
         328,
         329,
         330,
-        331,
         332,
         333,
         336
@@ -61,7 +59,6 @@
         328,
         329,
         330,
-        331,
         332,
         333,
         336
@@ -85,28 +82,22 @@
         84,
         211,
         332,
-        334,
         335,
-        339,
-        343
+        339
       ],
       "prsLikelySupersededPendingHumanConfirmation": [
         84,
         211,
         332,
-        334,
         335,
-        339,
-        343
+        339
       ],
       "prsNotApprovedForMergeYet": [
         84,
         211,
         332,
-        334,
         335,
-        339,
-        343
+        339
       ],
       "recommendedAction": "keep canonical/merged evidence; review or close/rebase parallel PRs only after the canonical parent chain lands",
       "reason": "Plan-snapshot contract and validation PRs depend on committed provider evidence; parallel contract-fix PRs should not merge ahead of the canonical evidence chain."
@@ -152,10 +143,9 @@
         258,
         300,
         338,
-        340,
-        343,
         344,
-        345
+        345,
+        353
       ],
       "prsLikelySupersededPendingHumanConfirmation": [
         11,
@@ -188,10 +178,9 @@
         258,
         300,
         338,
-        340,
-        343,
         344,
-        345
+        345,
+        353
       ],
       "prsNotApprovedForMergeYet": [
         11,
@@ -224,10 +213,9 @@
         258,
         300,
         338,
-        340,
-        343,
         344,
-        345
+        345,
+        353
       ],
       "recommendedAction": "keep canonical/merged evidence; review or close/rebase parallel PRs only after the canonical parent chain lands",
       "reason": "Worker runtime repo audit, approval, and no-op dry-run form a parent stack; draft worker alternatives need review before any worker lane is merged."

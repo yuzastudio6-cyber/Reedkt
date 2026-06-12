@@ -24,6 +24,8 @@ const openFields = [
 const closedFields = ["number", "title", "state", "mergedAt", "baseRefName", "headRefName", "url"];
 
 const approvalRequiredFiles = [
+  "docs/github-merge-hygiene/draft-pr-drift-review.json",
+  "docs/github-merge-hygiene/draft-pr-drift-review.md",
   "docs/github-merge-hygiene/human-merge-order-approval-packet.json",
   "docs/github-merge-hygiene/human-merge-order-approval-packet.md",
   "docs/github-merge-hygiene/validation-exception-policy.json",
@@ -65,6 +67,9 @@ const approvalWriteConfirmed =
   process.env.REEDITPRO_CONFIRM_HUMAN_MERGE_ORDER_APPROVAL_PACKET === "true" &&
   process.env.REEDITPRO_CONFIRM_CROSS_CHAT_HANDOFF_UPDATE === "true" &&
   process.env.REEDITPRO_CONFIRM_VALIDATION_EXCEPTION_REVIEW === "true";
+
+const draftPrDriftAcceptanceConfirmed =
+  process.env.REEDITPRO_CONFIRM_DRAFT_PR_DRIFT_ACCEPTANCE === "true";
 
 const forbiddenUnlockPatterns = [
   /production\s+(?:is\s+)?(?:unlocked|enabled|approved|allowed)\s*:?\s*true/i,
@@ -142,7 +147,7 @@ const approvedFutureMergePrNumbers = [
   347,
 ];
 
-const expectedDraftPrNumbers = [
+const originalExpectedDraftPrNumbers = [
   1,
   308,
   312,
@@ -166,12 +171,17 @@ const expectedDraftPrNumbers = [
   351,
 ];
 
+const driftAcceptedExpectedDraftPrNumbers = originalExpectedDraftPrNumbers
+  .filter((number) => number !== 351)
+  .concat(352)
+  .sort((a, b) => a - b);
+
 const expectedNonCleanMergeStates = {
   1: "DIRTY",
   94: "UNSTABLE",
 };
 
-const alreadyMergedEvidencePrNumbers = [341, 342, 346];
+const alreadyMergedEvidencePrNumbers = [341, 342, 346, 351];
 
 const allowedApprovalDecisions = [
   "approved_for_future_parent_chain_merge_execution",
@@ -524,6 +534,114 @@ function pr205Summary(pr) {
   };
 }
 
+function safeFetchPr(number) {
+  try {
+    return { ok: true, pr: fetchPr(number), error: null };
+  } catch (error) {
+    return {
+      ok: false,
+      pr: null,
+      error: error instanceof Error ? error.message.split("\n")[0] : "unknown_error",
+    };
+  }
+}
+
+function draftDriftPrSummary(result) {
+  if (!result.ok || !result.pr) {
+    return {
+      exists: false,
+      error: result.error || "not_found_or_unavailable",
+    };
+  }
+  return {
+    exists: true,
+    number: result.pr.number,
+    title: result.pr.title,
+    state: result.pr.state,
+    isDraft: result.pr.isDraft,
+    mergeStateStatus: result.pr.mergeStateStatus,
+    baseRefName: result.pr.baseRefName,
+    headRefName: result.pr.headRefName,
+    headRefOid: result.pr.headRefOid,
+    url: result.pr.url,
+    updatedAt: result.pr.updatedAt,
+  };
+}
+
+function buildDraftPrDriftReview(generatedAt) {
+  const expectedResult = safeFetchPr(351);
+  const actualResult = safeFetchPr(352);
+  const expected = draftDriftPrSummary(expectedResult);
+  const actual = draftDriftPrSummary(actualResult);
+  const actualText = actual.exists ? `${actual.title} ${actual.headRefName}` : "";
+  const actualLooksLikeMergeExecutionPacket =
+    /merge[-_ ]?hygiene/i.test(actualText) &&
+    /(?:parent[-_ ]?first|merge[-_ ]?execution|execution[-_ ]?packet)/i.test(actualText);
+  const acceptanceCriteria = {
+    expectedDraft351Exists: expected.exists,
+    expectedDraft351Merged: expected.state === "MERGED",
+    actualDraft352Exists: actual.exists,
+    actualDraft352Open: actual.state === "OPEN",
+    actualDraft352IsDraft: actual.isDraft === true,
+    actualDraft352Clean: actual.mergeStateStatus === "CLEAN",
+    actualDraft352LooksLikeMergeHygieneExecutionPacket: actualLooksLikeMergeExecutionPacket,
+    driftAcceptanceConfirmationPresent: draftPrDriftAcceptanceConfirmed,
+  };
+  const blockers = [];
+  if (!draftPrDriftAcceptanceConfirmed) {
+    blockers.push("draft_pr_drift_acceptance_confirmation_missing");
+  }
+  if (!expected.exists) blockers.push("expected_draft_pr_351_unavailable");
+  if (expected.exists && expected.state !== "MERGED") blockers.push("expected_draft_pr_351_not_merged");
+  if (!actual.exists) blockers.push("actual_draft_pr_352_unavailable");
+  if (actual.exists && actual.state !== "OPEN") blockers.push("actual_draft_pr_352_not_open");
+  if (actual.exists && actual.isDraft !== true) blockers.push("actual_draft_pr_352_not_draft");
+  if (actual.exists && actual.mergeStateStatus !== "CLEAN") blockers.push("actual_draft_pr_352_not_clean");
+  if (actual.exists && !actualLooksLikeMergeExecutionPacket) {
+    blockers.push("actual_draft_pr_352_not_merge_hygiene_execution_packet");
+  }
+  const accepted = blockers.length === 0;
+  return {
+    runId,
+    generatedAt,
+    decision: accepted ? "accepted_draft_drift_to_352" : "blocked_pending_draft_pr_review",
+    expectedDraftPrNumber: 351,
+    actualDraftPrNumber: 352,
+    expectedDraftPr: expected,
+    actualDraftPr: actual,
+    acceptanceCriteria,
+    blockers,
+    driftInterpretation: {
+      draftSetReplacementAccepted: accepted,
+      supersedesExpectedDraftInApprovalPlan: accepted,
+      supersessionType: "draft_set_replacement_not_same_workstream",
+      note:
+        "PR #351 is treated as merged evidence. PR #352 is treated as the current draft merge-hygiene execution packet replacing #351 in the live draft set only when every acceptance criterion passes.",
+    },
+    executionStatus: {
+      pullRequestsMerged: false,
+      pullRequestsClosed: false,
+      pullRequestsRebased: false,
+      pullRequestsRetargeted: false,
+      runtimePathsExecuted: false,
+      supabaseMutation: false,
+      providerCalls: false,
+      publicArtifactsCreated: false,
+      signedUrlsIssued: false,
+      productionUnlocked: false,
+      externalBetaUnlocked: false,
+      paidProductionUnlocked: false,
+      rawPromptExecution: false,
+    },
+    supabaseClassification: {
+      updateRequired: "no",
+      environmentTouched: "none",
+      sql: "none",
+      migrationDeployed: "no",
+    },
+  };
+}
+
 function markdownTable(rows, columns) {
   if (rows.length === 0) return "_None._\n";
   const header = `| ${columns.map((column) => column.label).join(" | ")} |`;
@@ -654,11 +772,26 @@ ${markdownTable(audit.canonicalOrder, [
 `;
 }
 
-function renderDuplicateMd(audit) {
+function renderDuplicateMd(audit, draftDriftReview = null) {
+  const driftSection = draftDriftReview
+    ? `## Draft Drift
+
+- Decision: \`${draftDriftReview.decision}\`
+- Expected draft: #${draftDriftReview.expectedDraftPrNumber}
+- Actual draft: #${draftDriftReview.actualDraftPrNumber}
+- Draft-set replacement accepted: \`${draftDriftReview.driftInterpretation.draftSetReplacementAccepted}\`
+- PR #351 state: \`${draftDriftReview.expectedDraftPr.state || "unavailable"}\`
+- PR #352 state: \`${draftDriftReview.actualDraftPr.state || "unavailable"}\`
+- PR #352 draft: \`${draftDriftReview.actualDraftPr.isDraft}\`
+- PR #352 merge state: \`${draftDriftReview.actualDraftPr.mergeStateStatus || "unavailable"}\`
+
+`
+    : "";
   return `# Duplicate PR Risk Register
 
 This register highlights parallel or duplicate lanes that require owner review before merge. It does not close, merge, rebase, or supersede any PR.
 
+${driftSection}
 ${audit.duplicateRiskEntries
   .map(
     (entry) => `## ${entry.label}
@@ -671,6 +804,46 @@ ${audit.duplicateRiskEntries
 `,
   )
   .join("\n")}
+`;
+}
+
+function renderDraftDriftReviewMd(review) {
+  const expected = review.expectedDraftPr;
+  const actual = review.actualDraftPr;
+  return `# Draft PR Drift Review
+
+Decision: \`${review.decision}\`
+
+This review resolves the merge-order approval packet's expected draft PR drift without merging, closing, rebasing, retargeting, or executing any runtime path.
+
+## Drift
+
+- Expected draft PR: #${review.expectedDraftPrNumber}
+- Actual draft PR: #${review.actualDraftPrNumber}
+- PR #351 exists: \`${expected.exists}\`
+- PR #351 state: \`${expected.state || "unavailable"}\`
+- PR #352 exists: \`${actual.exists}\`
+- PR #352 title: ${actual.title || "unavailable"}
+- PR #352 base: \`${actual.baseRefName || "unavailable"}\`
+- PR #352 head: \`${actual.headRefName || "unavailable"}\`
+- PR #352 draft: \`${actual.isDraft}\`
+- PR #352 merge state: \`${actual.mergeStateStatus || "unavailable"}\`
+- Draft-set replacement accepted: \`${review.driftInterpretation.draftSetReplacementAccepted}\`
+- Supersession type: \`${review.driftInterpretation.supersessionType}\`
+
+## Acceptance Criteria
+
+${Object.entries(review.acceptanceCriteria)
+  .map(([key, value]) => `- ${key}: \`${value}\``)
+  .join("\n")}
+
+## Blockers
+
+${review.blockers.length ? review.blockers.map((blocker) => `- \`${blocker}\``).join("\n") : "_None._"}
+
+## Safety
+
+No PR merge, close, rebase, retarget, runtime execution, provider call, Supabase write, public artifact, signed URL delivery, production, external beta, paid production, or raw prompt execution is approved by this review.
 `;
 }
 
@@ -885,6 +1058,11 @@ function buildMergeApprovalPacket(metadata, audit) {
   const openByNumber = new Map(audit.stackMap.map((pr) => [pr.number, pr]));
   const approvedPrs = approvedFutureMergePrNumbers.map((number) => openByNumber.get(number)).filter(Boolean);
   const draftPrNumbers = sortedNumbers(audit.draftPrs.map((pr) => pr.number));
+  const draftDriftReview = buildDraftPrDriftReview(metadata.generatedAt);
+  const expectedDraftPrNumbers =
+    draftDriftReview.decision === "accepted_draft_drift_to_352"
+      ? driftAcceptedExpectedDraftPrNumbers
+      : originalExpectedDraftPrNumbers;
   const nonCleanMergeStates = Object.fromEntries(
     audit.nonCleanPrs.map((pr) => [String(pr.number), pr.mergeStateStatus]).sort(([a], [b]) => Number(a) - Number(b)),
   );
@@ -910,12 +1088,27 @@ function buildMergeApprovalPacket(metadata, audit) {
       decision: "blocked_pending_human_merge_order_review",
     });
   }
+  if (draftDriftReview.decision !== "accepted_draft_drift_to_352") {
+    blockers.push({
+      blocker: "draft_pr_drift_review_not_accepted",
+      status: "active",
+      expectedDraftPrNumber: 351,
+      actualDraftPrNumber: 352,
+      draftDriftDecision: draftDriftReview.decision,
+      draftDriftBlockers: draftDriftReview.blockers,
+      decision: "blocked_pending_human_merge_order_review",
+    });
+  }
   if (!sameNumberSet(draftPrNumbers, expectedDraftPrNumbers)) {
     blockers.push({
-      blocker: "draft_pr_set_changed_since_approval_plan",
+      blocker:
+        draftDriftReview.decision === "accepted_draft_drift_to_352"
+          ? "draft_pr_set_changed_after_drift_acceptance"
+          : "draft_pr_set_changed_since_approval_plan",
       status: "active",
       expected: expectedDraftPrNumbers,
       actual: draftPrNumbers,
+      draftDriftDecision: draftDriftReview.decision,
       decision: "blocked_pending_human_merge_order_review",
     });
   }
@@ -974,6 +1167,7 @@ function buildMergeApprovalPacket(metadata, audit) {
     sourceOpenPrCount: metadata.openPrCount,
     sourceDraftPrCount: draftPrNumbers.length,
     sourceMergeStateCounts: countsBy(audit.stackMap, "mergeStateStatus"),
+    draftDriftReview,
     approvedFutureMergePrNumbers,
     approvedFutureMergeStacks,
     approvedFutureMergePrs: approvedPrs.map((pr) => ({
@@ -1029,6 +1223,17 @@ function renderApprovalPacketMd(packet) {
 Decision: \`${packet.decision}\`
 
 This packet approves only a future parent-chain merge execution phase. It does not merge, close, rebase, retarget, or unlock runtime/product scopes.
+
+## Draft Drift Review
+
+- Decision: \`${packet.draftDriftReview.decision}\`
+- Expected draft PR: #${packet.draftDriftReview.expectedDraftPrNumber}
+- Actual draft PR: #${packet.draftDriftReview.actualDraftPrNumber}
+- PR #351 state: \`${packet.draftDriftReview.expectedDraftPr.state || "unavailable"}\`
+- PR #352 title: ${packet.draftDriftReview.actualDraftPr.title || "unavailable"}
+- PR #352 base/head: \`${packet.draftDriftReview.actualDraftPr.baseRefName || "unavailable"}\` -> \`${packet.draftDriftReview.actualDraftPr.headRefName || "unavailable"}\`
+- PR #352 draft/merge state: \`${packet.draftDriftReview.actualDraftPr.isDraft}\` / \`${packet.draftDriftReview.actualDraftPr.mergeStateStatus || "unavailable"}\`
+- Draft-set replacement accepted: \`${packet.draftDriftReview.driftInterpretation.draftSetReplacementAccepted}\`
 
 ## ${mergeSetHeading}
 
@@ -1124,6 +1329,9 @@ Current merge-hygiene approval status:
 - Open PRs in source snapshot: ${packet.sourceOpenPrCount}
 - Draft PRs in source snapshot: ${packet.sourceDraftPrCount}
 - PR #346 is merged and excluded from future merge targets.
+- Draft drift review: \`${packet.draftDriftReview.decision}\`
+- PR #351 is recorded as \`${packet.draftDriftReview.expectedDraftPr.state || "unavailable"}\`.
+- PR #352 is recorded as \`${packet.draftDriftReview.actualDraftPr.state || "unavailable"}\`, draft=\`${packet.draftDriftReview.actualDraftPr.isDraft}\`, merge state \`${packet.draftDriftReview.actualDraftPr.mergeStateStatus || "unavailable"}\`.
 - Merge execution still requires a separate parent-chain execution prompt.
 - Future owners must check current merge status before building on any PR.
 
@@ -1141,8 +1349,9 @@ Before starting or continuing a workstream:
 1. Read \`docs/github-merge-hygiene/human-merge-order-approval-packet.md\`.
 2. Read \`docs/github-merge-hygiene/validation-exception-policy.md\`.
 3. Read \`docs/github-merge-hygiene/duplicate-pr-human-review-draft.md\`.
-4. Check live GitHub merge status before building on a PR.
-5. Follow \`docs/github-merge-hygiene/post-major-milestone-merge-rule.md\`.
+4. Read \`docs/github-merge-hygiene/draft-pr-drift-review.md\`.
+5. Check live GitHub merge status before building on a PR.
+6. Follow \`docs/github-merge-hygiene/post-major-milestone-merge-rule.md\`.
 
 This packet does not authorize PR merges by itself; it authorizes only a future parent-chain merge execution phase for the exact approved set.
 `;
@@ -1196,12 +1405,20 @@ Rules:
 
 function generateApprovalArtifacts(metadata, audit) {
   const packet = buildMergeApprovalPacket(metadata, audit);
+  const duplicateRiskRegister = {
+    runId,
+    generatedAt: packet.generatedAt,
+    decision: "duplicate_parallel_lanes_require_owner_review",
+    draftDriftReview: packet.draftDriftReview,
+    entries: audit.duplicateRiskEntries,
+  };
   const readiness = {
     runId,
     generatedAt: packet.generatedAt,
     decision: packet.decision,
     mergeExecutionApprovedForFuturePhase: packet.decision === "approved_for_future_parent_chain_merge_execution",
     mergeExecutionStarted: false,
+    draftDriftDecision: packet.draftDriftReview.decision,
     approvedFutureMergePrNumbers: packet.approvedFutureMergePrNumbers,
     blockedFromFutureMerge: packet.blockedFromFutureMerge,
     requiredNextAction:
@@ -1225,10 +1442,15 @@ function generateApprovalArtifacts(metadata, audit) {
     decision: packet.decision === "approved_for_future_parent_chain_merge_execution"
       ? "no_active_approval_blockers"
       : "merge_execution_approval_blocked",
+    draftDriftDecision: packet.draftDriftReview.decision,
     activeApprovalBlockers: packet.blockers,
     controlledBlockedMergeSets: packet.blockedFromFutureMerge,
   };
 
+  jsonWrite("docs/github-merge-hygiene/draft-pr-drift-review.json", packet.draftDriftReview);
+  textWrite("docs/github-merge-hygiene/draft-pr-drift-review.md", renderDraftDriftReviewMd(packet.draftDriftReview));
+  jsonWrite("docs/github-merge-hygiene/duplicate-pr-risk-register.json", duplicateRiskRegister);
+  textWrite("docs/github-merge-hygiene/duplicate-pr-risk-register.md", renderDuplicateMd(audit, packet.draftDriftReview));
   jsonWrite("docs/github-merge-hygiene/human-merge-order-approval-packet.json", packet);
   textWrite("docs/github-merge-hygiene/human-merge-order-approval-packet.md", renderApprovalPacketMd(packet));
   jsonWrite("docs/github-merge-hygiene/validation-exception-policy.json", packet.validationExceptionPolicy);
@@ -1239,6 +1461,7 @@ function generateApprovalArtifacts(metadata, audit) {
     runId,
     generatedAt: packet.generatedAt,
     decision: packet.decision,
+    draftDriftDecision: packet.draftDriftReview.decision,
     approvedFutureMergePrNumbers: packet.approvedFutureMergePrNumbers,
     blockers: packet.blockers,
     executionStatus: packet.executionStatus,
@@ -1471,6 +1694,9 @@ function validateArtifacts() {
   let approvalPrSet = [];
   let validationExceptionAccepted = false;
   let mergeExecutionStarted = null;
+  let draftDriftDecision = "missing";
+  let draftDriftAccepted = false;
+  let draftDriftActualPr = null;
   try {
     const auditReport = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/reports/open_pr_stack_audit_report.json"), "utf8"));
     reportStatus = auditReport.auditStatus;
@@ -1495,6 +1721,14 @@ function validateArtifacts() {
   } catch {
     // Missing policy is handled by the missing file check.
   }
+  try {
+    const driftReview = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/draft-pr-drift-review.json"), "utf8"));
+    draftDriftDecision = driftReview.decision;
+    draftDriftAccepted = driftReview.driftInterpretation?.draftSetReplacementAccepted === true;
+    draftDriftActualPr = driftReview.actualDraftPr || null;
+  } catch {
+    // Missing review is handled by the missing file check.
+  }
 
   const failures = [];
   if (missing.length > 0) failures.push(`missing required files: ${missing.join(", ")}`);
@@ -1514,6 +1748,17 @@ function validateArtifacts() {
     failures.push(`approval PR set mismatch: ${approvalPrSet.join(",")}`);
   }
   if (!validationExceptionAccepted) failures.push("validation exception policy is not accepted for future merge execution");
+  if (draftDriftDecision !== "accepted_draft_drift_to_352" || !draftDriftAccepted) {
+    failures.push(`draft PR drift review is not accepted: ${draftDriftDecision}`);
+  }
+  if (
+    draftDriftActualPr?.number !== 352 ||
+    draftDriftActualPr?.state !== "OPEN" ||
+    draftDriftActualPr?.isDraft !== true ||
+    draftDriftActualPr?.mergeStateStatus !== "CLEAN"
+  ) {
+    failures.push("draft PR drift review must record PR #352 as open/draft/clean");
+  }
   if (mergeExecutionStarted !== false) failures.push("approval report must record no PR merges in this phase");
 
   if (failures.length > 0) {
@@ -1521,7 +1766,7 @@ function validateArtifacts() {
     process.exit(1);
   }
   console.log(
-    `[github-merge-hygiene] diagnostics passed: required files present, decision=${decision}, approval=${approvalDecision}, pr346State=${pr346State}, openPrListLimitHit=${openPrListLimitHit}`,
+    `[github-merge-hygiene] diagnostics passed: required files present, decision=${decision}, approval=${approvalDecision}, draftDrift=${draftDriftDecision}, pr346State=${pr346State}, openPrListLimitHit=${openPrListLimitHit}`,
   );
 }
 

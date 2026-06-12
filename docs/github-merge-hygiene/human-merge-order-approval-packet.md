@@ -4,6 +4,17 @@ Decision: `blocked_pending_human_merge_order_review`
 
 This packet approves only a future parent-chain merge execution phase. It does not merge, close, rebase, retarget, or unlock runtime/product scopes.
 
+## Draft Drift Review
+
+- Decision: `accepted_draft_drift_to_352`
+- Expected draft PR: #351
+- Actual draft PR: #352
+- PR #351 state: `MERGED`
+- PR #352 title: [coordination] MERGE-HYGIENE-1 parent-first merge execution packet
+- PR #352 base/head: `codex/rp-merge-hygiene-0-milestone-pr-stack-audit` -> `codex/rp-merge-hygiene-1-parent-first-merge-execution-packet`
+- PR #352 draft/merge state: `true` / `CLEAN`
+- Draft-set replacement accepted: `true`
+
 ## Candidate Future Merge PRs - Held Until Blocker Resolution
 
 | PR | Title | Base | Head | Merge state |
@@ -35,7 +46,6 @@ This packet approves only a future parent-chain merge execution phase. It does n
 | #322 | [model] Qwen DashScope auth repair | `codex/rp-model-orchestration-qwen-deepseek-provider-dry-run` | `codex/rp-model-orchestration-qwen-dashscope-auth-repair` | CLEAN |
 | #327 | [model] Plan snapshot contract | `codex/rp-model-orchestration-qwen-dashscope-auth-repair` | `codex/rp-model-orchestration-plan-snapshot-contract` | CLEAN |
 | #337 | [model] Plan snapshot dry-run validation | `codex/rp-model-orchestration-plan-snapshot-contract` | `codex/rp-model-orchestration-plan-snapshot-dry-run-validation` | CLEAN |
-| #347 | [tool-route] Execution unlock audit | `codex/rp-worker-1-approved-plan-snapshot-dry-run` | `codex/rp-tool-route-0-execution-unlock-audit` | CLEAN |
 
 
 ## Approved Stacks
@@ -51,10 +61,10 @@ This packet approves only a future parent-chain merge execution phase. It does n
 
 ## Blocked From Merge
 
-- Draft PRs: #1, #308, #312, #313, #316, #317, #319, #321, #323, #326, #329, #332, #333, #335, #336, #338, #339, #344, #345, #348, #352
-- Dirty or unstable PRs: #1 DIRTY, #94 UNSTABLE
-- Duplicate-risk PRs: 137
-- Already merged evidence PRs excluded from future merge targets: #341, #342, #346
+- Draft PRs: #1, #308, #312, #313, #316, #317, #319, #321, #323, #326, #329, #332, #333, #335, #336, #338, #339, #344, #345, #348, #352, #353
+- Dirty or unstable PRs: #1 DIRTY, #94 UNSTABLE, #333 DIRTY
+- Duplicate-risk PRs: 133
+- Already merged evidence PRs excluded from future merge targets: #341, #342, #346, #351
 - PR #350 is the approval packet carrier and is not part of the future merge target set.
 
 ## Validation Exception Policy

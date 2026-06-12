@@ -1,0 +1,71 @@
+{
+  "runId": "github-merge-hygiene-2026-06-12T212905596Z",
+  "generatedAt": "2026-06-12T21:29:24.241Z",
+  "decision": "accepted_draft_drift_to_352",
+  "expectedDraftPrNumber": 351,
+  "actualDraftPrNumber": 352,
+  "expectedDraftPr": {
+    "exists": true,
+    "number": 351,
+    "title": "[worker] Runtime dry-run contract review",
+    "state": "MERGED",
+    "isDraft": false,
+    "mergeStateStatus": "UNKNOWN",
+    "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+    "headRefName": "codex/rp-worker-runtime-unlock-2-dry-run-contract-review",
+    "headRefOid": "970805e1208e5abec8de523a83b972206d4b975b",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/351",
+    "updatedAt": "2026-06-12T20:52:57Z"
+  },
+  "actualDraftPr": {
+    "exists": true,
+    "number": 352,
+    "title": "[coordination] MERGE-HYGIENE-1 parent-first merge execution packet",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "baseRefName": "codex/rp-merge-hygiene-0-milestone-pr-stack-audit",
+    "headRefName": "codex/rp-merge-hygiene-1-parent-first-merge-execution-packet",
+    "headRefOid": "8878557165d482fc66f4d4d4e3fdc58e3bf4d231",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/352",
+    "updatedAt": "2026-06-12T21:00:52Z"
+  },
+  "acceptanceCriteria": {
+    "expectedDraft351Exists": true,
+    "expectedDraft351Merged": true,
+    "actualDraft352Exists": true,
+    "actualDraft352Open": true,
+    "actualDraft352IsDraft": true,
+    "actualDraft352Clean": true,
+    "actualDraft352LooksLikeMergeHygieneExecutionPacket": true,
+    "driftAcceptanceConfirmationPresent": true
+  },
+  "blockers": [],
+  "driftInterpretation": {
+    "draftSetReplacementAccepted": true,
+    "supersedesExpectedDraftInApprovalPlan": true,
+    "supersessionType": "draft_set_replacement_not_same_workstream",
+    "note": "PR #351 is treated as merged evidence. PR #352 is treated as the current draft merge-hygiene execution packet replacing #351 in the live draft set only when every acceptance criterion passes."
+  },
+  "executionStatus": {
+    "pullRequestsMerged": false,
+    "pullRequestsClosed": false,
+    "pullRequestsRebased": false,
+    "pullRequestsRetargeted": false,
+    "runtimePathsExecuted": false,
+    "supabaseMutation": false,
+    "providerCalls": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsIssued": false,
+    "productionUnlocked": false,
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false,
+    "rawPromptExecution": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  }
+}

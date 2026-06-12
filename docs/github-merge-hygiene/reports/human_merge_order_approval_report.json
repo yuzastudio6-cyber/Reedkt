@@ -1,7 +1,8 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T210227518Z",
-  "generatedAt": "2026-06-12T21:02:45.066Z",
+  "runId": "github-merge-hygiene-2026-06-12T212905596Z",
+  "generatedAt": "2026-06-12T21:29:24.241Z",
   "decision": "blocked_pending_human_merge_order_review",
+  "draftDriftDecision": "accepted_draft_drift_to_352",
   "approvedFutureMergePrNumbers": [
     205,
     222,
@@ -34,7 +35,14 @@
   ],
   "blockers": [
     {
-      "blocker": "draft_pr_set_changed_since_approval_plan",
+      "blocker": "open_pr_count_changed_since_approval_plan",
+      "status": "active",
+      "expected": 347,
+      "actual": 343,
+      "decision": "blocked_pending_human_merge_order_review"
+    },
+    {
+      "blocker": "draft_pr_set_changed_after_drift_acceptance",
       "status": "active",
       "expected": [
         1,
@@ -57,7 +65,7 @@
         344,
         345,
         348,
-        351
+        352
       ],
       "actual": [
         1,
@@ -80,7 +88,34 @@
         344,
         345,
         348,
-        352
+        352,
+        353
+      ],
+      "draftDriftDecision": "accepted_draft_drift_to_352",
+      "decision": "blocked_pending_human_merge_order_review"
+    },
+    {
+      "blocker": "dirty_or_unstable_pr_set_changed_since_approval_plan",
+      "status": "active",
+      "expected": {
+        "1": "DIRTY",
+        "94": "UNSTABLE"
+      },
+      "actual": {
+        "1": "DIRTY",
+        "94": "UNSTABLE",
+        "333": "DIRTY"
+      },
+      "decision": "blocked_pending_dirty_or_unstable_pr_review"
+    },
+    {
+      "blocker": "approved_future_merge_set_not_clean_canonical",
+      "status": "active",
+      "problems": [
+        {
+          "number": 347,
+          "issue": "missing_from_open_pr_snapshot"
+        }
       ],
       "decision": "blocked_pending_human_merge_order_review"
     }

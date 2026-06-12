@@ -1,0 +1,52 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "source": "docs/activation-supabase-staging-reset-execution-reports/staging_reset_execution_report.json",
+  "resetAttempted": true,
+  "resetPerformed": false,
+  "stagingSqlMayHaveRun": true,
+  "selectedStrategy": "temp_npm_exec_supabase_cli",
+  "noSeedFlagUsed": true,
+  "seedFilesIncluded": false,
+  "command": {
+    "status": "blocked",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "db",
+      "reset",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--no-seed",
+      "--yes"
+    ],
+    "exitCode": 1,
+    "stdoutSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 162763,
+      "lineCount": 2133,
+      "secretPatternDetected": false
+    },
+    "errorCategory": "command_failed"
+  },
+  "rawStdoutCommitted": false,
+  "rawStderrCommitted": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "resetRetryApproved": false,
+  "blockers": [
+    "staging_reset_failed",
+    "staging_sql_may_have_run",
+    "reset_failure_cause_not_proven"
+  ]
+}

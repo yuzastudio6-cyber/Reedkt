@@ -1,0 +1,40 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "riskLevel": "medium_high",
+  "classification": "unchanged_failed_state_registry_absent_manual_review_required",
+  "stateClassifier": "unchanged_failed_state",
+  "readonlyComparison": {
+    "readonlyStatus": "passed",
+    "migrationHistoryMatchesPr259": true,
+    "currentMigrationCount": 6,
+    "pr259RemoteMigrationCount": 6,
+    "currentRequiredRegistryTableCount": 0,
+    "registryTablesRemainAbsent": true
+  },
+  "failureCauseClassification": "reset_failure_cause_not_proven",
+  "failureCauseFixableByTransportRepair": false,
+  "pointsToUnresolvedSupabaseCliOrPlatformIssue": false,
+  "evidenceBasis": [
+    "PR #259 reset command exited nonzero",
+    "PR #259 recorded stagingSqlMayHaveRun true",
+    "post-reset migration history verification failed",
+    "activation registry migration and tables remain absent",
+    "post-failure state classifier: unchanged_failed_state"
+  ],
+  "readonlyInspectionStatus": "passed",
+  "recoveryCanProceedAutomatically": false,
+  "resetRetrySafeWithoutReview": false,
+  "migrationRepairSafeWithoutReview": false,
+  "schemaDeploySafeWithoutReview": false,
+  "trackBBackfillSafeWithoutReview": false,
+  "productionAffected": false,
+  "blockers": [
+    "reset_failure_cause_not_proven",
+    "manual_operator_review_required",
+    "future_recovery_execution_approval_required",
+    "staging_sql_may_have_run",
+    "registry_schema_absent_after_failed_reset"
+  ]
+}

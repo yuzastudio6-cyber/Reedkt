@@ -1,0 +1,19 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "backup_metadata_available",
+  "backupExportPerformedInPr259": true,
+  "backupType": "private_temp_schema_dump_and_migration_history_metadata",
+  "backupDestination": "redacted_temp_directory_outside_repo",
+  "backupFileCreated": true,
+  "backupFileByteLength": 713237,
+  "backupPayloadCommitted": false,
+  "backupPayloadPrinted": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "restoreScopeProven": false,
+  "restoreCanBeApprovedInThisPhase": false,
+  "restoreRequiresSeparateExecutionApproval": true,
+  "evidenceResetAttempted": true,
+  "blockers": []
+}

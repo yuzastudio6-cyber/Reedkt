@@ -1,0 +1,39 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "committed_safe_metadata_only",
+  "reportDir": "docs/activation-supabase-staging-reset-failure-triage-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "post_failure_source_evidence_inventory.json",
+    "backup_export_artifact_status.json",
+    "reset_failure_command_evidence.json",
+    "post_failure_staging_state_assessment.json",
+    "staging_reset_post_failure_state_report.json",
+    "migration_history_delta_after_failed_reset.json",
+    "registry_schema_rls_state_after_failed_reset.json",
+    "readonly_staging_failure_triage_inspection.json",
+    "partial_reset_risk_classification.json",
+    "staging_reset_failure_classification_report.json",
+    "recovery_option_matrix.json",
+    "recovery_strategy_recommendation.json",
+    "recovery_decision.json",
+    "staging_reset_recovery_decision.json",
+    "recovery_blocker_report.json",
+    "staging_reset_failure_blocker_report.json",
+    "recovery_readiness_report.json",
+    "recovery_private_artifact_manifest.json"
+  ],
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "backupArtifacts": {
+    "source": "pr259_redacted_metadata_only",
+    "backupPayloadCommitted": false,
+    "backupPayloadPrinted": false,
+    "backupLocationCommitted": false
+  },
+  "dbUrlCommitted": false,
+  "secretsCommitted": false,
+  "stagingDataBackfillWritten": false,
+  "productionAffected": false
+}

@@ -1,0 +1,30 @@
+{
+  "phase": "supabase-staging-reset-failure-triage",
+  "runId": "supabase-staging-reset-failure-triage-20260609",
+  "status": "blocked",
+  "decision": "recovery_path_manual_operator_review_required",
+  "approvalStatus": "not_approved_for_recovery_execution",
+  "partialResetRisk": "medium_high",
+  "stagingResetFailureTriaged": true,
+  "recoveryExecutionReady": false,
+  "resetRetryAllowed": false,
+  "restoreAllowed": false,
+  "schemaDeployAllowed": false,
+  "migrationRepairAllowed": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "staging_reset_failed",
+    "staging_sql_may_have_run",
+    "reset_failure_cause_not_proven",
+    "staging_post_reset_migration_history_verify_failed",
+    "registry_migration_not_applied",
+    "staging_post_reset_schema_rls_verify_failed",
+    "registry_schema_absent_after_failed_reset",
+    "manual_operator_review_required",
+    "future_recovery_execution_approval_required"
+  ],
+  "nextRecommendedPhase": "Separate human-approved staging reset recovery execution packet after operator review of failure cause and backup sufficiency."
+}

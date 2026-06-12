@@ -1,0 +1,15 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract-ready",
+  "runId": "model-orchestration-plan-snapshot-contract-ready-20260612",
+  "status": "blocked",
+  "approvedPlanSnapshotPolicyPresent": true,
+  "rawChatExecutionBlockedByPolicy": true,
+  "providerOutputCannotExecuteRuntimePaths": true,
+  "findingsIntentsCandidatesCannotExecuteRuntimePaths": true,
+  "approvalGatePolicyReportPresent": false,
+  "approvedPlanSnapshotPersistenceReady": false,
+  "approvalGateReady": false,
+  "blockers": [
+    "pr327_approval_gate_policy_report_missing_from_current_branch"
+  ]
+}

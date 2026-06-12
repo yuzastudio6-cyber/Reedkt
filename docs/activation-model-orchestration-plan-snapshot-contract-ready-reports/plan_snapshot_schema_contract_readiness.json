@@ -1,0 +1,40 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract-ready",
+  "runId": "model-orchestration-plan-snapshot-contract-ready-20260612",
+  "status": "blocked",
+  "schemaContractsFromPr318Present": true,
+  "requiredSchemas": {
+    "agent_findings_v1": true,
+    "edit_intents_v1": true,
+    "plan_snapshot_candidate_v1": true,
+    "approved_plan_snapshot_v1": false
+  },
+  "pr327PacketFileInventory": {
+    "expectedFiles": [
+      "docs/model-orchestration-plan-snapshot-contract.md",
+      "docs/model-orchestration-plan-snapshot-contract-decision.md",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/agent_findings_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/edit_intents_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_candidate_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/approved_plan_snapshot_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_fixtures.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/approval_gate_and_worker_handoff_policy.json"
+    ],
+    "presentFiles": [],
+    "missingFiles": [
+      "docs/model-orchestration-plan-snapshot-contract.md",
+      "docs/model-orchestration-plan-snapshot-contract-decision.md",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/agent_findings_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/edit_intents_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_candidate_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/approved_plan_snapshot_v1_schema.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_fixtures.json",
+      "docs/activation-model-orchestration-plan-snapshot-contract-reports/approval_gate_and_worker_handoff_policy.json"
+    ],
+    "allExpectedFilesPresent": false
+  },
+  "schemaContractReady": false,
+  "blockers": [
+    "approved_plan_snapshot_v1_schema_missing_until_pr327_packet_lineage_is_integrated"
+  ]
+}

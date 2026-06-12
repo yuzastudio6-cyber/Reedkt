@@ -1,0 +1,24 @@
+{
+  "phase": "product-internal-testing-session-0",
+  "runId": "product-internal-testing-session-0-20260612",
+  "status": "no_session_0_issues_found",
+  "issueCategories": [
+    "readiness_doc_gap",
+    "blocker_scope_gap",
+    "owner_assignment_gap",
+    "supabase_milestone_issue",
+    "track_b_metadata_issue",
+    "secret_security_concern",
+    "attempted_runtime_scope_violation",
+    "support_runbook_gap"
+  ],
+  "activeIssueCount": 0,
+  "activeIssues": [],
+  "zeroIssuesFound": true,
+  "rowOrPrivatePayloadsAllowed": false,
+  "secretsAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "publicArtifactsAllowed": false,
+  "productionAllowed": false
+}

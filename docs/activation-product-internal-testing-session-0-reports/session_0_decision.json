@@ -1,0 +1,21 @@
+{
+  "phase": "product-internal-testing-session-0",
+  "runId": "product-internal-testing-session-0-20260612",
+  "decision": "restricted_internal_testing_session_0_passed",
+  "status": "passed",
+  "session0Started": true,
+  "session0Mode": "metadata_readiness_review_only",
+  "session0Passed": true,
+  "internalTestingExecutionStarted": false,
+  "externalBetaAllowed": false,
+  "paidProductionAllowed": false,
+  "productionAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "rawPromptExecutionAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "supabaseWritesAllowedInThisPhase": false,
+  "blockers": [],
+  "nextRecommendedPhase": "PRODUCT_INTERNAL_BETA_AGGREGATION - restricted internal testing session 1."
+}

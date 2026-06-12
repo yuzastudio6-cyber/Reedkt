@@ -1,0 +1,87 @@
+{
+  "phase": "product-internal-testing-session-0",
+  "runId": "product-internal-testing-session-0-20260612",
+  "status": "passed",
+  "sourceReports": {
+    "toolStatusRollup": "docs/activation-track-b-readiness-rollup-reports/track_b_tool_status_rollup.json",
+    "capabilitySummary": "docs/activation-track-b-capability-manifests-reports/track_b_readiness_summary.json",
+    "routeIntegration": "docs/activation-track-b-tool-route-manifest-reports/track_b_route_integration_report.json",
+    "cleanStagingSync": "docs/activation-product-internal-beta-readiness-reports/trackb_clean_staging_sync_verification.json"
+  },
+  "canonicalToolCount": 18,
+  "expectedToolIds": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "demucs",
+    "paddleocr",
+    "paddlepaddle",
+    "qwen3_vl",
+    "vllm",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "missingToolIds": [],
+  "restrictedInternalReadyTools": [
+    "deepfilternet",
+    "signalsmith_stretch",
+    "paddleocr",
+    "paddlepaddle",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "web_capability_profiler",
+    "desktop_capability_profiler",
+    "local_worker_sidecar_planning",
+    "cost_estimator",
+    "tool_route_manifest_integration"
+  ],
+  "restrictedInternalReadyToolCount": 15,
+  "blockedExcludedRuntimeLanes": [
+    {
+      "toolId": "demucs",
+      "currentStatus": "blocked_pending_training_data_provenance",
+      "internalReady": false,
+      "initialInternalTestingIncluded": false,
+      "runtimeLaneBlocked": true,
+      "nextOwnerPrompt": "training data provenance and runtime unlock owner review"
+    },
+    {
+      "toolId": "qwen3_vl",
+      "currentStatus": "excluded_for_initial_internal_testing",
+      "internalReady": false,
+      "initialInternalTestingIncluded": false,
+      "runtimeLaneBlocked": true,
+      "nextOwnerPrompt": "VLM/Qwen/vLLM runtime unlock owner review"
+    },
+    {
+      "toolId": "vllm",
+      "currentStatus": "excluded_for_initial_internal_testing",
+      "internalReady": false,
+      "initialInternalTestingIncluded": false,
+      "runtimeLaneBlocked": true,
+      "nextOwnerPrompt": "VLM/Qwen/vLLM runtime unlock owner review"
+    }
+  ],
+  "demucsRuntimeBlocked": true,
+  "qwenVlmRuntimeBlocked": true,
+  "vllmRuntimeBlocked": true,
+  "completedSupabaseSync": true,
+  "rowsVerifiedTotal": 259,
+  "noRuntimeExecution": true,
+  "noToolExecution": true,
+  "noWorkerExecution": true,
+  "noProviderCalls": true,
+  "blockers": []
+}

@@ -1,0 +1,56 @@
+{
+  "phase": "product-internal-testing-session-0",
+  "runId": "product-internal-testing-session-0-20260612",
+  "status": "passed",
+  "stopConditions": [
+    {
+      "id": "secret_exposure",
+      "occurred": false
+    },
+    {
+      "id": "production_write",
+      "occurred": false
+    },
+    {
+      "id": "external_beta_exposure",
+      "occurred": false
+    },
+    {
+      "id": "public_artifact",
+      "occurred": false
+    },
+    {
+      "id": "signed_url_source_of_truth_use",
+      "occurred": false
+    },
+    {
+      "id": "raw_prompt_execution_as_worker_input",
+      "occurred": false
+    },
+    {
+      "id": "provider_call",
+      "occurred": false
+    },
+    {
+      "id": "worker_tool_runtime_execution_outside_scope",
+      "occurred": false
+    },
+    {
+      "id": "supabase_production_mutation",
+      "occurred": false
+    },
+    {
+      "id": "broad_media_processing",
+      "occurred": false
+    }
+  ],
+  "noStopConditionsOccurred": true,
+  "stopAction": "Stop Session 0, preserve blocked scopes, and route to the owner-specific blocker follow-up.",
+  "runtimeExecution": false,
+  "providerCalls": false,
+  "publicArtifacts": false,
+  "production": false,
+  "supabaseWrites": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

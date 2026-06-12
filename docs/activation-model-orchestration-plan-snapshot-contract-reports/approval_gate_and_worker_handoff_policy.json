@@ -1,0 +1,48 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract",
+  "status": "passed",
+  "providerOutputCanExecute": false,
+  "agentFindingsCanExecute": false,
+  "editIntentsCanExecute": false,
+  "planSnapshotCandidateCanExecute": false,
+  "approvedPlanSnapshotExecutesInThisPhase": false,
+  "futureWorkerExecutionRequiresSeparateApproval": true,
+  "rawPromptToWorkerAllowed": false,
+  "providerResponseToMutationAllowed": false,
+  "providerResponseToPublicArtifactAllowed": false,
+  "providerResponseToSignedUrlSourceOfTruthAllowed": false,
+  "sourceOfTruthPolicy": {
+    "requiredRefs": [
+      "supabase_row_refs",
+      "private_gcs_or_storage_manifest_refs",
+      "checksum_refs",
+      "approved_plan_snapshot_refs"
+    ],
+    "signedUrlsAreSourceOfTruth": false,
+    "publicArtifactsAreSourceOfTruth": false,
+    "rawProviderResponsesAreSourceOfTruth": false
+  },
+  "workerHandoffPolicy": [
+    "Provider evidence may feed only normalized findings.",
+    "Agent findings and edit intents are reviewable planning records only.",
+    "Plan snapshot candidates require human approval and credit/scope gates before becoming approved snapshots.",
+    "Approved snapshots remain immutable inputs for future worker phases, but this packet does not authorize those phases."
+  ],
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

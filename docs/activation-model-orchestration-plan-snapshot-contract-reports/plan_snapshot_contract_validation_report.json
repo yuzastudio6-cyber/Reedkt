@@ -1,0 +1,206 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract",
+  "status": "passed",
+  "validFixturesPassed": true,
+  "invalidFixturesFailedClosed": true,
+  "allExpectationsMatched": true,
+  "executionFlagsBlocked": true,
+  "sourceOfTruthPolicyValidated": true,
+  "fixtureResults": [
+    {
+      "fixtureId": "valid_simple_edit_intent",
+      "schemaId": "edit_intents_v1",
+      "expectedValid": true,
+      "actualValid": true,
+      "outcomeMatchedExpectation": true,
+      "missing": [],
+      "unsafeFlags": [],
+      "blockedContentFlags": [],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "valid_multi_step_timeline_planning",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": true,
+      "actualValid": true,
+      "outcomeMatchedExpectation": true,
+      "missing": [],
+      "unsafeFlags": [],
+      "blockedContentFlags": [],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "valid_tool_route_metadata_recommendation",
+      "schemaId": "agent_findings_v1",
+      "expectedValid": true,
+      "actualValid": true,
+      "outcomeMatchedExpectation": true,
+      "missing": [],
+      "unsafeFlags": [],
+      "blockedContentFlags": [],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "invalid_raw_worker_execution",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": false,
+      "actualValid": false,
+      "outcomeMatchedExpectation": true,
+      "missing": [
+        "candidateId",
+        "intentRefs",
+        "candidateSummary",
+        "timelinePlan",
+        "toolRouteMetadata",
+        "sourceOfTruthRefs",
+        "approvalGate"
+      ],
+      "unsafeFlags": [
+        "workerExecutionAllowed",
+        "rawPromptForwardingAllowed"
+      ],
+      "blockedContentFlags": [
+        "workerPayload"
+      ],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "invalid_public_artifact_request",
+      "schemaId": "approved_plan_snapshot_v1",
+      "expectedValid": false,
+      "actualValid": false,
+      "outcomeMatchedExpectation": true,
+      "missing": [
+        "candidateRef",
+        "approvalRecordRef",
+        "sourceOfTruthRefs",
+        "immutablePlanVersion",
+        "workerHandoffStatus"
+      ],
+      "unsafeFlags": [
+        "publicArtifactsAllowed"
+      ],
+      "blockedContentFlags": [
+        "publicArtifact"
+      ],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "invalid_signed_url_source_of_truth",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": false,
+      "actualValid": false,
+      "outcomeMatchedExpectation": true,
+      "missing": [
+        "candidateId",
+        "intentRefs",
+        "candidateSummary",
+        "timelinePlan",
+        "toolRouteMetadata",
+        "approvalGate"
+      ],
+      "unsafeFlags": [
+        "signedUrlsAsSourceOfTruthAllowed"
+      ],
+      "blockedContentFlags": [],
+      "signedUrlAsTruth": true
+    },
+    {
+      "fixtureId": "invalid_missing_schema_fields",
+      "schemaId": "agent_findings_v1",
+      "expectedValid": false,
+      "actualValid": false,
+      "outcomeMatchedExpectation": true,
+      "missing": [
+        "findingId",
+        "sourceEvidenceRefs",
+        "observations",
+        "risks"
+      ],
+      "unsafeFlags": [],
+      "blockedContentFlags": [],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "invalid_broad_media_runtime",
+      "schemaId": "edit_intents_v1",
+      "expectedValid": false,
+      "actualValid": false,
+      "outcomeMatchedExpectation": true,
+      "missing": [
+        "findingRefs",
+        "intentSummary",
+        "segments",
+        "approvalRequirements"
+      ],
+      "unsafeFlags": [
+        "toolExecutionAllowed"
+      ],
+      "blockedContentFlags": [
+        "broadMediaProcessing"
+      ],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "invalid_production_mutation",
+      "schemaId": "approved_plan_snapshot_v1",
+      "expectedValid": false,
+      "actualValid": false,
+      "outcomeMatchedExpectation": true,
+      "missing": [
+        "candidateRef",
+        "approvalRecordRef",
+        "sourceOfTruthRefs",
+        "immutablePlanVersion",
+        "workerHandoffStatus"
+      ],
+      "unsafeFlags": [
+        "productionMutationAllowed"
+      ],
+      "blockedContentFlags": [
+        "productionMutation"
+      ],
+      "signedUrlAsTruth": false
+    },
+    {
+      "fixtureId": "invalid_demucs_vlm_runtime",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": false,
+      "actualValid": false,
+      "outcomeMatchedExpectation": true,
+      "missing": [
+        "intentRefs",
+        "candidateSummary",
+        "timelinePlan",
+        "toolRouteMetadata",
+        "sourceOfTruthRefs",
+        "approvalGate"
+      ],
+      "unsafeFlags": [
+        "toolExecutionAllowed"
+      ],
+      "blockedContentFlags": [
+        "demucsRuntime",
+        "vlmRuntime"
+      ],
+      "signedUrlAsTruth": false
+    }
+  ],
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

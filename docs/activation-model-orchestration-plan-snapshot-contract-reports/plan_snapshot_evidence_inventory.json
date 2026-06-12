@@ -1,0 +1,122 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract",
+  "status": "passed",
+  "providerEvidencePassed": true,
+  "providerEvidenceBlockers": [],
+  "providerEvidenceReconciliationReport": "docs/activation-model-orchestration-plan-snapshot-contract-reports/provider_dry_run_evidence_reconciliation.json",
+  "qwenRepairedStatusFromPr322": "passed",
+  "qwenSelectedAlias": "qwen-plus",
+  "qwenWorkingBaseUrl": "virginia_dashscope_base_url",
+  "deepseekPassedStatusFromPr320": "passed",
+  "deepseekAliases": [
+    "deepseek-v4-flash",
+    "deepseek-v4-flash",
+    "deepseek-v4-pro"
+  ],
+  "staleEvidence": {
+    "pr327WasReadingStaleEvidence": true,
+    "pr327LocalDeepseekSnapshotStale": true,
+    "pr327LocalQwenSnapshotStale": false,
+    "staleEvidenceClassification": "local_pr320_deepseek_snapshot_stale_remote_pr320_passed"
+  },
+  "sourceReports": [
+    {
+      "pr": 322,
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_repair_decision.json",
+      "present": true,
+      "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+      "status": "passed",
+      "activeBlockers": [],
+      "localContractReady": true
+    },
+    {
+      "pr": 322,
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
+      "present": true,
+      "status": "passed",
+      "providerCallsAttempted": 4,
+      "providerCallsPassed": 4,
+      "providerCallsBlocked": 0
+    },
+    {
+      "pr": 320,
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_decision.json",
+      "present": true,
+      "decision": "not_attempted",
+      "status": "not_attempted",
+      "activeBlockers": [
+        "provider_dry_run_not_executed"
+      ],
+      "localProviderDryRunPassed": false
+    },
+    {
+      "pr": 320,
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/deepseek_provider_dry_run_report.json",
+      "present": true,
+      "status": "not_attempted",
+      "providerCallsAttempted": 0,
+      "providerCallsPassed": 0,
+      "localDeepseekPassed": false
+    },
+    {
+      "pr": 318,
+      "path": "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_approval_decision.json",
+      "present": true,
+      "decision": "approved_for_future_qwen_deepseek_provider_dry_run",
+      "status": "passed"
+    },
+    {
+      "pr": 314,
+      "path": "docs/activation-model-orchestration-qwen-deepseek-audit-reports/model_orchestration_audit_readiness_report.json",
+      "present": true,
+      "decision": "repo_audit_passed_ready_for_dry_run_approval",
+      "status": "passed"
+    }
+  ],
+  "secretRefs": [
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "DEEPSEEK_API_KEY",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "SUPABASE_ACCESS_TOKEN",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "SUPABASE_DB_URL",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    }
+  ],
+  "providerCallsInThisPhase": false,
+  "sourceEvidenceOnly": true,
+  "missingDocsRecordedAsAuditFacts": true,
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

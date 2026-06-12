@@ -8,9 +8,9 @@
   "qwen37MaxUsedInModelDryRun2": false,
   "totalProviderCalls": 7,
   "maxTotalProviderCalls": 8,
-  "totalTokensReported": 7842,
+  "totalTokensReported": 2871,
   "maxTotalTokens": 7200,
-  "costGuardrailStatus": "blocked_pending_cost_review",
+  "costGuardrailStatus": "passed_by_call_and_token_caps",
   "rawProviderResponseStored": false,
   "unsafeOutputCount": 0,
   "blockedCases": []

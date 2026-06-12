@@ -19,6 +19,7 @@
       "maxTokens": 650,
       "timeoutMs": 45000,
       "modelDryRun2CalibrationApplied": true,
+      "modelDryRun2aThinkingDisabled": true,
       "stream": false,
       "promptCharacterCount": 98,
       "promptTextStored": false
@@ -31,6 +32,7 @@
       "maxTokens": 650,
       "timeoutMs": 45000,
       "modelDryRun2CalibrationApplied": true,
+      "modelDryRun2aThinkingDisabled": true,
       "stream": false,
       "promptCharacterCount": 81,
       "promptTextStored": false
@@ -43,6 +45,7 @@
       "maxTokens": 650,
       "timeoutMs": 45000,
       "modelDryRun2CalibrationApplied": true,
+      "modelDryRun2aThinkingDisabled": true,
       "stream": false,
       "promptCharacterCount": 101,
       "promptTextStored": false
@@ -55,6 +58,7 @@
       "maxTokens": 650,
       "timeoutMs": 45000,
       "modelDryRun2CalibrationApplied": true,
+      "modelDryRun2aThinkingDisabled": true,
       "stream": false,
       "promptCharacterCount": 97,
       "promptTextStored": false
@@ -67,6 +71,7 @@
       "maxTokens": 800,
       "timeoutMs": 10000,
       "modelDryRun2CalibrationApplied": false,
+      "modelDryRun2aThinkingDisabled": "not_applicable",
       "stream": false,
       "promptCharacterCount": 73,
       "promptTextStored": false
@@ -79,6 +84,7 @@
       "maxTokens": 700,
       "timeoutMs": 10000,
       "modelDryRun2CalibrationApplied": false,
+      "modelDryRun2aThinkingDisabled": "not_applicable",
       "stream": false,
       "promptCharacterCount": 85,
       "promptTextStored": false
@@ -91,6 +97,7 @@
       "maxTokens": 1000,
       "timeoutMs": 12000,
       "modelDryRun2CalibrationApplied": false,
+      "modelDryRun2aThinkingDisabled": "not_applicable",
       "stream": false,
       "promptCharacterCount": 96,
       "promptTextStored": false

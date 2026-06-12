@@ -1,10 +1,8 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "status": "blocked",
-  "decision": "blocked_pending_cost_review",
-  "activeBlockers": [
-    "provider_cost_or_token_guardrail_exceeded"
-  ],
+  "status": "passed",
+  "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "blockedScopes": [
     "tools_workers_routes",
     "media_processing",
@@ -34,5 +32,6 @@
   "externalBeta": false,
   "paidProduction": false,
   "secretPayloadPrinted": false,
-  "rawProviderResponsesStored": false
+  "rawProviderResponsesStored": false,
+  "privateArtifactUploadStatus": "uploaded"
 }

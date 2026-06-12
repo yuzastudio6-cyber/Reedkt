@@ -1,8 +1,8 @@
 # MODEL-DRYRUN-2 Source Of Truth Read
 
-Status: `blocked`.
+Status: `passed`.
 
-Final state: `blocked_provider_call_failed`.
+Final state: `provider_dry_run_passed`.
 
 Read sources:
 - PR #318 approval reports under `docs/activation-model-orchestration-dry-run-approval-reports/`.

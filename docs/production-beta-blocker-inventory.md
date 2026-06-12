@@ -11,7 +11,10 @@ Session 0 owned blocker inventory with model orchestration provider dry-run stat
 - `raw_prompt_execution`: blocked
 - `supabase_production_writes`: blocked
 
-Model orchestration provider dry-run decision: `blocked_pending_cost_review`.
-MODEL-DRYRUN-2 final state: `blocked_provider_call_failed`.
+Model orchestration provider dry-run decision: `provider_dry_run_passed_ready_for_plan_snapshot_contract`.
+MODEL-DRYRUN-2 final state: `provider_dry_run_passed`.
+MODEL-DRYRUN-2A status: `provider_dry_run_passed`.
+MODEL-DRYRUN-2A resolved blocker: `provider_cost_or_token_guardrail_exceeded`.
+MODEL-DRYRUN-2A fix validated: Qwen `enable_thinking: false` with `maxTotalTokens=7200` unchanged and `2871` total tokens reported.
 
 Provider dry-run evidence does not unlock production, external beta, paid production, public artifacts, signed URLs, real user data, media processing, workers, tools, routes, Supabase writes, or raw prompt execution into workers/tools.

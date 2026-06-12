@@ -30,6 +30,7 @@ export const MODEL_DRY_RUN_APPROVED_DASHSCOPE_REGION = 'us'
 export const MODEL_DRY_RUN_CALIBRATED_QWEN_MODEL = 'qwen3.7-plus'
 export const MODEL_DRY_RUN_CALIBRATED_QWEN_TIMEOUT_MS = 45000
 export const MODEL_DRY_RUN_CALIBRATED_QWEN_MAX_OUTPUT_TOKENS = 650
+export const MODEL_DRY_RUN_QWEN_ENABLE_THINKING = false
 
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_EXPECTED_REPORTS = [
   'source_of_truth_ownership_audit.json',
@@ -296,6 +297,8 @@ export function getModelOrchestrationProviderDryRunPlan() {
       timeoutMs: MODEL_DRY_RUN_CALIBRATED_QWEN_TIMEOUT_MS,
       maxOutputTokens: MODEL_DRY_RUN_CALIBRATED_QWEN_MAX_OUTPUT_TOKENS,
       source: 'MODEL-TIMEOUT-1 qwen_schema_timeout_calibrated_ready_for_model_dryrun',
+      enableThinking: MODEL_DRY_RUN_QWEN_ENABLE_THINKING,
+      tokenGuardrailFix: 'MODEL-DRYRUN-2A disables Qwen hybrid thinking while preserving maxTotalTokens=7200',
     },
     qwenBaseUrlSecretRef: 'DASHSCOPE_BASE_URL',
     qwenRegionSecretRef: 'DASHSCOPE_REGION',
@@ -311,6 +314,7 @@ export function getModelOrchestrationProviderDryRunPlan() {
     syntheticPromptsOnly: true,
     stream: false,
     qwen37MaxUsedInModelDryRun2: false,
+    qwenEnableThinking: MODEL_DRY_RUN_QWEN_ENABLE_THINKING,
     tools: false,
     search: false,
     hiddenReasoningCapture: false,
@@ -574,6 +578,7 @@ function buildLoadedCasesReport(cases: ApprovedCase[], executed: boolean) {
         maxTokens: calibrated?.maxTokens ?? 'missing',
         timeoutMs: calibrated?.timeoutMs ?? 'missing',
         modelDryRun2CalibrationApplied: plan.provider === 'qwen_dashscope',
+        modelDryRun2aThinkingDisabled: plan.provider === 'qwen_dashscope' ? MODEL_DRY_RUN_QWEN_ENABLE_THINKING === false : 'not_applicable',
         stream: false,
         promptCharacterCount: source?.prompt.length ?? 0,
         promptTextStored: false,
@@ -926,7 +931,10 @@ function buildProviderRequestBody(plan: CasePlan, currentCase: ApprovedCase) {
     }
   }
 
-  return base
+  return {
+    ...base,
+    enable_thinking: MODEL_DRY_RUN_QWEN_ENABLE_THINKING,
+  }
 }
 
 function classifyProviderHttpError(status: number, text: string) {
@@ -1278,6 +1286,7 @@ function buildModelDryRun2Summary(
       timeoutMs: MODEL_DRY_RUN_CALIBRATED_QWEN_TIMEOUT_MS,
       maxOutputTokens: MODEL_DRY_RUN_CALIBRATED_QWEN_MAX_OUTPUT_TOKENS,
       stream: false,
+      enableThinking: MODEL_DRY_RUN_QWEN_ENABLE_THINKING,
       qwen37MaxUsed: false,
     },
     dashscopeConfig: {

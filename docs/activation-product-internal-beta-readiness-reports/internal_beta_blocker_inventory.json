@@ -34,6 +34,12 @@
       "requiredNextPhase": "MODEL-DRYRUN-1B - Provider Dry-Run Retry after owner-side DashScope secret/account/model-region repair"
     },
     {
+      "id": "model_provider_dryrun_1b_qwen_dashscope",
+      "status": "blocked_pending_dashscope_secret_rotation_by_owner",
+      "blocksExternalBeta": true,
+      "requiredNextPhase": "MODEL-DRYRUN-1C - DashScope Secret Repair Follow-Up after a new safe enabled DashScope Secret Manager version exists"
+    },
+    {
       "id": "live_tool_execution",
       "status": "blocked",
       "blocksExternalBeta": false,

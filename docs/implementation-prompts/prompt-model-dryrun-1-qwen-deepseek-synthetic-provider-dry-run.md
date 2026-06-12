@@ -10,6 +10,8 @@ Decision: `blocked_provider_call_failed`
 
 MODEL-DRYRUN-1A follow-up decision: `blocked_pending_dashscope_secret_rotation_by_owner`
 
+MODEL-DRYRUN-1B follow-up decision: `blocked_pending_dashscope_secret_rotation_by_owner`
+
 Files inspected included `model-routing-policy.md`, `provider-prompt-architecture.md`, PR #318 approval reports, Qwen/DeepSeek audit reports, package scripts, activation CLIs, and existing smoke/report conventions.
 
 Created package:
@@ -25,6 +27,12 @@ MODEL-DRYRUN-1A follow-up:
 - Approved synthetic provider retry ran and still failed Qwen/DashScope with HTTP `401`.
 - DeepSeek passed again.
 - Final follow-up state is `blocked_pending_dashscope_secret_rotation_by_owner`.
+
+MODEL-DRYRUN-1B follow-up:
+
+- Secret Manager metadata-only comparison found no new enabled `DASHSCOPE_API_KEY` version after MODEL-DRYRUN-1A.
+- Approved synthetic provider retry did not run because no new repair signal existed.
+- Final follow-up state remains `blocked_pending_dashscope_secret_rotation_by_owner`.
 
 Base gaps recorded:
 

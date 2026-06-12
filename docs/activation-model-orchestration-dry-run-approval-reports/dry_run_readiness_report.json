@@ -1,0 +1,37 @@
+{
+  "phase": "model-orchestration-dry-run-approval",
+  "runId": "model-orchestration-dry-run-approval-20260612",
+  "status": "passed",
+  "decision": "approved_for_future_qwen_deepseek_provider_dry_run",
+  "providerCandidates": {
+    "qwenDefault": "qwen3.7-plus",
+    "qwenEscalation": "qwen3.7-max",
+    "deepseekDefault": "deepseek-v4-flash",
+    "deepseekEscalation": "deepseek-v4-pro"
+  },
+  "secretRefs": [
+    "DASHSCOPE_API_KEY",
+    "DEEPSEEK_API_KEY"
+  ],
+  "syntheticCaseCount": 8,
+  "schemaContractCount": 5,
+  "costGuardrails": "passed",
+  "failClosedPolicy": "passed",
+  "rawPromptBlockerPolicy": "passed",
+  "supabaseUpdateRequired": "no_write_approval_metadata_only",
+  "supabaseUpdateStatus": "track_b_clean_staging_milestone_sync_completed_model_orchestration_dry_run_not_synced",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "runtimeToolsWorkersRoutes": false,
+  "rawPromptExecution": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "production": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

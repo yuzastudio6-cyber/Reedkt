@@ -7,4 +7,9 @@ External beta allowed: `false`.
 Paid production allowed: `false`.
 Production allowed: `false`.
 
-This scorecard does not unlock external beta, paid production, public artifacts, runtime execution, or Supabase writes.
+Model orchestration Qwen/DeepSeek dry-run approval: `approved_for_future_qwen_deepseek_provider_dry_run`.
+Provider calls in this phase: `false`.
+Runtime/tool/worker/route execution: `false`.
+Supabase writes: `false`.
+
+This scorecard does not unlock external beta, paid production, public artifacts, runtime execution, provider calls, signed URLs, raw prompt execution, or Supabase writes.

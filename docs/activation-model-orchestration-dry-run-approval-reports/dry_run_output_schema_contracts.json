@@ -1,0 +1,123 @@
+{
+  "phase": "model-orchestration-dry-run-approval",
+  "status": "passed",
+  "schemas": [
+    {
+      "schemaId": "agent_findings_v1",
+      "version": "v1",
+      "requiredFields": [
+        "caseId",
+        "findings",
+        "confidence",
+        "risks",
+        "blockedActions"
+      ],
+      "validationRules": [
+        "findings must be synthetic metadata only",
+        "risks must include blocker labels when unsafe execution is requested",
+        "workerExecutionAllowed must be false",
+        "toolExecutionAllowed must be false",
+        "publicArtifactsAllowed must be false",
+        "signedUrlsAllowed must be false",
+        "rawPromptForwardingAllowed must be false",
+        "directMutationAllowed must be false"
+      ],
+      "failClosedOnValidationError": true
+    },
+    {
+      "schemaId": "edit_intents_v1",
+      "version": "v1",
+      "requiredFields": [
+        "caseId",
+        "intentSummary",
+        "segments",
+        "planningRequirements",
+        "approvalGates"
+      ],
+      "validationRules": [
+        "segments must be planning records, not worker instructions",
+        "approvalGates must mention approved plan snapshot before execution",
+        "workerExecutionAllowed must be false",
+        "toolExecutionAllowed must be false",
+        "publicArtifactsAllowed must be false",
+        "signedUrlsAllowed must be false",
+        "rawPromptForwardingAllowed must be false",
+        "directMutationAllowed must be false"
+      ],
+      "failClosedOnValidationError": true
+    },
+    {
+      "schemaId": "plan_snapshot_candidate_v1",
+      "version": "v1",
+      "requiredFields": [
+        "caseId",
+        "candidateSummary",
+        "toolRouteHints",
+        "creditRiskNotes",
+        "requiredApprovals"
+      ],
+      "validationRules": [
+        "candidate must not be an approved snapshot",
+        "toolRouteHints must remain metadata labels only",
+        "workerExecutionAllowed must be false",
+        "toolExecutionAllowed must be false",
+        "publicArtifactsAllowed must be false",
+        "signedUrlsAllowed must be false",
+        "rawPromptForwardingAllowed must be false",
+        "directMutationAllowed must be false"
+      ],
+      "failClosedOnValidationError": true
+    },
+    {
+      "schemaId": "blocker_classification_v1",
+      "version": "v1",
+      "requiredFields": [
+        "caseId",
+        "decision",
+        "blockers",
+        "unsafeRequestedActions",
+        "safeNextStep"
+      ],
+      "validationRules": [
+        "decision must be blocked or safe_metadata_only",
+        "blockers must be explicit when requested action is unsafe",
+        "workerExecutionAllowed must be false",
+        "toolExecutionAllowed must be false",
+        "publicArtifactsAllowed must be false",
+        "signedUrlsAllowed must be false",
+        "rawPromptForwardingAllowed must be false",
+        "directMutationAllowed must be false"
+      ],
+      "failClosedOnValidationError": true
+    },
+    {
+      "schemaId": "provider_fallback_assessment_v1",
+      "version": "v1",
+      "requiredFields": [
+        "caseId",
+        "primaryCandidate",
+        "fallbackCandidate",
+        "comparisonReasons",
+        "dryRunLimits"
+      ],
+      "validationRules": [
+        "candidate IDs must match official PR #314 evidence",
+        "fallback assessment must not execute either provider",
+        "workerExecutionAllowed must be false",
+        "toolExecutionAllowed must be false",
+        "publicArtifactsAllowed must be false",
+        "signedUrlsAllowed must be false",
+        "rawPromptForwardingAllowed must be false",
+        "directMutationAllowed must be false"
+      ],
+      "failClosedOnValidationError": true
+    }
+  ],
+  "validationErrorsFailClosed": true,
+  "rawPromptForwardingAllowed": false,
+  "workerExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "directMutationAllowed": false
+}

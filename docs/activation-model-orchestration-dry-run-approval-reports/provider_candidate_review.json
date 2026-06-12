@@ -1,0 +1,57 @@
+{
+  "phase": "model-orchestration-dry-run-approval",
+  "status": "passed",
+  "sourceEvidence": "docs/activation-model-orchestration-qwen-deepseek-audit-reports/provider_official_evidence_inventory.json",
+  "qwenDashScope": {
+    "provider": "Alibaba Cloud Model Studio / DashScope",
+    "openAiCompatibleBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "defaultDryRunModelId": "qwen3.7-plus",
+    "escalationModelId": "qwen3.7-max",
+    "officialCandidateIds": [
+      "qwen3.7-plus",
+      "qwen3.7-max"
+    ],
+    "authSecretRef": "DASHSCOPE_API_KEY",
+    "payloadAccessed": false,
+    "providerCalls": false
+  },
+  "deepseek": {
+    "provider": "DeepSeek API",
+    "openAiCompatibleBaseUrl": "https://api.deepseek.com",
+    "defaultDryRunModelId": "deepseek-v4-flash",
+    "escalationModelId": "deepseek-v4-pro",
+    "deprecatedCompatibilityAliases": [
+      "deepseek-chat",
+      "deepseek-reasoner"
+    ],
+    "officialCandidateIds": [
+      "deepseek-v4-flash",
+      "deepseek-v4-pro"
+    ],
+    "authSecretRef": "DEEPSEEK_API_KEY",
+    "payloadAccessed": false,
+    "providerCalls": false
+  },
+  "secretRefs": [
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "intendedProvider": "qwen_dashscope",
+      "intendedUse": "future_synthetic_qwen_provider_dry_run_only",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "DEEPSEEK_API_KEY",
+      "intendedProvider": "deepseek",
+      "intendedUse": "future_synthetic_deepseek_provider_dry_run_only",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    }
+  ],
+  "modelAliasDeterministic": true,
+  "unresolvedModelAliasBlockers": [],
+  "providerCalls": false,
+  "secretPayloadAccess": false
+}

@@ -1,0 +1,43 @@
+{
+  "phase": "model-orchestration-dry-run-approval",
+  "runId": "model-orchestration-dry-run-approval-20260612",
+  "reportDir": "docs/activation-model-orchestration-dry-run-approval-reports",
+  "committedArtifactClasses": [
+    "safe_json_reports",
+    "safe_markdown_docs",
+    "server_only_approval_code"
+  ],
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "dry_run_approval_plan.json",
+    "provider_candidate_review.json",
+    "dry_run_synthetic_cases.json",
+    "dry_run_output_schema_contracts.json",
+    "dry_run_cost_guardrails.json",
+    "dry_run_audit_redaction_policy.json",
+    "dry_run_fail_closed_policy.json",
+    "dry_run_approval_decision.json",
+    "dry_run_blocker_report.json",
+    "dry_run_readiness_report.json",
+    "dry_run_private_artifact_manifest.json"
+  ],
+  "excludedArtifactClasses": [
+    "api_keys",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "secret_payloads",
+    "signed_urls",
+    "private_payloads",
+    "media_payloads",
+    "node_modules",
+    "caches",
+    "build_outputs"
+  ],
+  "payloadAccessed": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "providerCalls": false,
+  "supabaseWrites": false
+}

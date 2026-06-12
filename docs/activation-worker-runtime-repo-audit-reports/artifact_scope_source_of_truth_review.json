@@ -1,0 +1,42 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "sourceOfTruthRequirements": [
+    "supabase_row_ref",
+    "private_gcs_path_ref",
+    "private_artifact_manifest_id",
+    "checksum_ref",
+    "approved_plan_snapshot_ref"
+  ],
+  "forbiddenSourceOfTruthRefs": [
+    "signed_url",
+    "public_artifact_url",
+    "raw_provider_response",
+    "unversioned_local_temp_path",
+    "raw_prompt_text"
+  ],
+  "futureWorkerReadWriteBoundary": "workers_can_only_read_or_write_explicit_approved_private_artifact_scopes_after_separate_approval",
+  "signedUrlsAsSourceOfTruth": false,
+  "publicArtifactsAllowed": false,
+  "privatePayloadsCommitted": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

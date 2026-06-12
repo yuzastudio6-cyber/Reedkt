@@ -6,7 +6,7 @@ Branch: `codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan`
 
 Base: `origin/codex/rp-tracka-gd-groupb-handoff-0-review`
 
-PR: pending
+PR: [#310](https://github.com/yuzastudio6-cyber/Reedkt/pull/310)
 
 Capability: `none; Track A Group B creative graphics private preview composition plan only`
 

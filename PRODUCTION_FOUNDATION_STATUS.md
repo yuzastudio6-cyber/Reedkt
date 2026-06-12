@@ -830,7 +830,7 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 ## GD-9 - Group B Creative Graphics Package Runtime Review and Fixture Gate
 
 - Branch: `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
-- PR: pending
+- PR: [#300](https://github.com/yuzastudio6-cyber/Reedkt/pull/300)
 - Base: `origin/codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review`
 - Decision state: `group_b_partially_ready_for_gd10`
 - Runtime review status: `group_b_runtime_import_review_passed`
@@ -912,7 +912,7 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 ## TRACKA-GD-GROUPB-HANDOFF-1 - Group B Private Preview Composition Plan
 
 - Branch: `codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan`
-- PR: pending
+- PR: [#310](https://github.com/yuzastudio6-cyber/Reedkt/pull/310)
 - Base: `origin/codex/rp-tracka-gd-groupb-handoff-0-review`
 - Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`
 - Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_not_executed`

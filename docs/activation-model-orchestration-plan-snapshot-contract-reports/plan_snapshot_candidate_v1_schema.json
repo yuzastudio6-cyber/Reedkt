@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reeditpro.local/schemas/plan_snapshot_candidate_v1.json",
+  "title": "Plan Snapshot Candidate V1",
+  "schemaId": "plan_snapshot_candidate_v1",
+  "schemaVersion": "v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "candidateId",
+    "intentRefs",
+    "candidateSummary",
+    "timelinePlan",
+    "toolRouteMetadata",
+    "sourceOfTruthRefs",
+    "approvalGate",
+    "safety"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "plan_snapshot_candidate_v1"
+    },
+    "candidateId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intentRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "candidateSummary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timelinePlan": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "minItems": 1
+    },
+    "toolRouteMetadata": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "sourceOfTruthRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "approvalGate": {
+      "type": "object"
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providerCallsAllowed",
+        "workerExecutionAllowed",
+        "toolExecutionAllowed",
+        "routeExecutionAllowed",
+        "rawPromptForwardingAllowed",
+        "publicArtifactsAllowed",
+        "signedUrlsAsSourceOfTruthAllowed",
+        "directMutationAllowed",
+        "productionMutationAllowed"
+      ],
+      "properties": {
+        "providerCallsAllowed": {
+          "const": false
+        },
+        "workerExecutionAllowed": {
+          "const": false
+        },
+        "toolExecutionAllowed": {
+          "const": false
+        },
+        "routeExecutionAllowed": {
+          "const": false
+        },
+        "rawPromptForwardingAllowed": {
+          "const": false
+        },
+        "publicArtifactsAllowed": {
+          "const": false
+        },
+        "signedUrlsAsSourceOfTruthAllowed": {
+          "const": false
+        },
+        "directMutationAllowed": {
+          "const": false
+        },
+        "productionMutationAllowed": {
+          "const": false
+        }
+      }
+    }
+  },
+  "failClosedOnValidationError": true,
+  "runtimeExecutionAllowedInThisPhase": false
+}

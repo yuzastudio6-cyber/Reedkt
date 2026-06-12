@@ -1,6 +1,6 @@
 {
-  "phase": "model-orchestration-plan-snapshot-contract-ready",
-  "runId": "model-orchestration-plan-snapshot-contract-ready-20260612",
+  "phase": "model-orchestration-plan-snapshot-contract-fix",
+  "runId": "model-orchestration-plan-snapshot-contract-fix-20260612",
   "status": "passed",
   "workerExecutionReady": false,
   "workerRuntimeAuditRequired": true,

@@ -1,12 +1,12 @@
 # Model Orchestration Plan Snapshot Contract Ready Result
 
-Decision: `blocked_pending_contract_merge_source_mismatch`.
+Decision: `ready_for_plan_snapshot_contract_handoff`.
 
-Status: `blocked`.
+Status: `ready`.
 
 Contract readiness update attempted: `true`.
 
-Contract ready for handoff: `false`.
+Contract ready for handoff: `true`.
 
 Provider evidence blocker resolved: `true`.
 
@@ -14,19 +14,27 @@ Qwen PR #329 evidence accepted: `true`.
 
 DeepSeek PR #320 evidence accepted: `true`.
 
-PR #327 contract packet present on current branch: `false`.
+PR #327 contract packet present on current branch: `true`.
 
 Cherry-pick aborted because conflicts occurred outside the allowed package/plan-snapshot paths: `true`.
 
 Disallowed conflict files: `docs/beta-readiness-scorecard.md, docs/production-beta-blocker-inventory.md`.
 
-Schema contract ready: `false`.
+PR #332 source mismatch reviewed: `true`.
 
-Fail-closed fixture ready: `false`.
+Source mismatch resolved by selective packet integration: `true`.
 
-Approval gate ready: `false`.
+Full PR #327 cherry-pick performed in this prompt: `false`.
 
-Worker handoff ready: `false`.
+Disallowed readiness files touched: `false`.
+
+Schema contract ready: `true`.
+
+Fail-closed fixture ready: `true`.
+
+Approval gate ready: `true`.
+
+Worker handoff ready: `true`.
 
 Supabase persistence ready: `false`.
 
@@ -36,4 +44,4 @@ Production, external beta, or paid production ready: `false`.
 
 No provider calls, secret payload access, Supabase writes, SQL, migrations, workers, tools, routes, media processing, public artifacts, signed URLs, generated assets, credit spend/reservation, Demucs runtime, Track A runtime, or beta/production unlocks occurred in this prompt.
 
-Recommended next prompt: `MODEL-ORCHESTRATION-PLAN-SNAPSHOT-CONTRACT-FIX: fix plan snapshot contract readiness blockers, no workers/tools/routes`.
+Recommended next prompt: `WORKER-RUNTIME-UNLOCK-0: worker runtime unlock repo audit, no execution`.

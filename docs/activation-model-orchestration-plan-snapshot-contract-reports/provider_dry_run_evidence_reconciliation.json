@@ -1,0 +1,172 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract",
+  "status": "blocked",
+  "reconciliationAttempted": true,
+  "githubMetadataAvailable": true,
+  "githubErrors": [],
+  "sourcePrs": [
+    {
+      "pr": 327,
+      "number": 327,
+      "title": "[model] Plan snapshot contract",
+      "state": "OPEN",
+      "baseRefName": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+      "headRefName": "codex/rp-model-orchestration-plan-snapshot-contract",
+      "mergeStateStatus": "CLEAN",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/327",
+      "latestCommitSha": "e01cda89be2a3d5a76cc33e194ca1d9b432f76db"
+    },
+    {
+      "pr": 322,
+      "number": 322,
+      "title": "[model] Qwen DashScope auth repair",
+      "state": "OPEN",
+      "baseRefName": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
+      "headRefName": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+      "mergeStateStatus": "CLEAN",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/322",
+      "latestCommitSha": "fbe11f3931b7f0306d9897c6d8b404bd555f9a16"
+    },
+    {
+      "pr": 320,
+      "number": 320,
+      "title": "[model] Qwen DeepSeek provider dry-run",
+      "state": "OPEN",
+      "baseRefName": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
+      "headRefName": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
+      "mergeStateStatus": "CLEAN",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/320",
+      "latestCommitSha": "6fa75c385481a6fbbaeac42e969fbb9b37c16147"
+    }
+  ],
+  "sourcePaths": [
+    {
+      "pr": 322,
+      "branch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+      "paths": [
+        "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_repair_decision.json",
+        "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_repair_readiness_report.json",
+        "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
+        "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_baseurl_probe_report.json",
+        "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_official_alias_baseurl_review.json"
+      ]
+    },
+    {
+      "pr": 320,
+      "branch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
+      "paths": [
+        "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_decision.json",
+        "docs/activation-model-orchestration-provider-dry-run-reports/deepseek_provider_dry_run_report.json"
+      ]
+    }
+  ],
+  "localEvidence": {
+    "pr327LocalQwenDecision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
+    "pr327LocalQwenStatus": "blocked",
+    "pr327LocalQwenProviderCallsPassed": 0,
+    "pr327LocalProviderDecision": "not_attempted",
+    "pr327LocalDeepseekStatus": "not_attempted",
+    "pr327LocalDeepseekProviderCallsPassed": 0
+  },
+  "staleEvidence": {
+    "pr327WasReadingStaleEvidence": true,
+    "pr327LocalDeepseekSnapshotStale": true,
+    "pr327LocalQwenSnapshotStale": false,
+    "staleEvidenceClassification": "local_pr320_deepseek_snapshot_stale_remote_pr320_passed"
+  },
+  "qwenEvidence": {
+    "sourcePr": 322,
+    "remoteDecision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
+    "remoteStatus": "blocked",
+    "activeBlockers": [
+      "provider_timeout"
+    ],
+    "selectedAlias": "qwen3.7-plus",
+    "expectedSelectedAlias": "qwen-plus",
+    "aliasMatchedExpected": false,
+    "selectedBaseUrlKey": "us",
+    "workingBaseUrlClassification": "virginia_dashscope_base_url",
+    "expectedWorkingBaseUrlClassification": "virginia_dashscope_base_url",
+    "schemaCasesExpected": [
+      "synthetic_edit_intent_extraction",
+      "synthetic_timeline_planning",
+      "synthetic_tool_route_metadata_recommendation",
+      "synthetic_provider_fallback_comparison"
+    ],
+    "schemaCasesPassed": [],
+    "allSchemaCasesPassed": false,
+    "providerTimeoutPresent": true,
+    "unsafeResultFlagsPresent": false,
+    "qwenEvidencePassed": false
+  },
+  "deepseekEvidence": {
+    "sourcePr": 320,
+    "remoteDecision": "blocked_pending_provider_error_review",
+    "remoteProviderDecisionStatus": "blocked",
+    "remoteDeepseekStatus": "passed",
+    "providerCallsPassed": 3,
+    "modelIdsPassed": [
+      "deepseek-v4-flash",
+      "deepseek-v4-flash",
+      "deepseek-v4-pro"
+    ],
+    "requiredModelIds": [
+      "deepseek-v4-flash",
+      "deepseek-v4-pro"
+    ],
+    "unsafeResultFlagsPresent": false,
+    "deepseekEvidencePassed": true
+  },
+  "finalReconciledQwenStatus": "blocked",
+  "finalReconciledDeepSeekStatus": "passed_remote_pr320",
+  "reconciledProviderEvidenceReady": false,
+  "providerEvidenceBlockers": [
+    "pr322_qwen_pass_evidence_missing",
+    "pr322_qwen_schema_rerun_provider_timeout",
+    "pr322_qwen_schema_cases_did_not_pass"
+  ],
+  "proseOnlyProviderPassClaimsAccepted": false,
+  "secretRefs": [
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "DEEPSEEK_API_KEY",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "SUPABASE_ACCESS_TOKEN",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "SUPABASE_DB_URL",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    }
+  ],
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

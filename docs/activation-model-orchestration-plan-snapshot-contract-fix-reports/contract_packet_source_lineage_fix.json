@@ -1,0 +1,14 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract-fix",
+  "runId": "model-orchestration-plan-snapshot-contract-fix-20260612",
+  "status": "ready",
+  "pr332SourceMismatchReviewed": true,
+  "pr332PriorDecision": "blocked_pending_contract_merge_source_mismatch",
+  "pr332PriorSourceLineageStatus": "blocked_source_mismatch",
+  "fullPr327CherryPickPerformed": false,
+  "selectivePacketIntegrationPerformed": true,
+  "pr327PacketSource": "origin/codex/rp-model-orchestration-plan-snapshot-contract",
+  "disallowedFilesUntouched": true,
+  "disallowedChangedFiles": [],
+  "sourceMismatchResolved": true
+}

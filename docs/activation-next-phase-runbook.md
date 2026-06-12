@@ -91,6 +91,16 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 6. Proceed to Phase 52H only as cross-workstream handoff tracking / owner response intake, or pause for owners to execute their handoff prompts in their own scopes.
 7. Do not execute candidate snapshots, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After Phase 52H
+
+1. Review `activation:cross-workstream-handoff-tracking:report`, `activation:cross-workstream-handoff-tracking:iam-plan`, `activation:cross-workstream-handoff:summary`, `docs/cross-chat/*`, and the private Phase 52H artifacts.
+2. Confirm the owner-response schema includes response identity, workstream, owner chat, Phase 52G handoff reference, owner decision, accepted/blocked scope, next prompt, evidence refs, blockers, risks, contracts changed, Supabase update classification, blocked-feature booleans, and timestamps.
+3. Confirm the tracking ledger covers all 12 workstreams, with AI Tools, Sound/Music/Audio, Provider Gateway, Worker Runtime, Compliance, Observability, Frontend UX, and Billing pending, and map/geospatial, Track A, Track B, and Supabase accepted/partial with blockers.
+4. Confirm prompt packet references point to private Phase 52G `gs://` artifacts and no owner prompt execution occurred.
+5. Confirm one Phase 52H Supabase milestone sync record wrote/read back through the Phase 51D path and stores only private `gs://` references plus structured metadata.
+6. Proceed to Phase 52I only as owner-response intake update or pause pending owner responses.
+7. Do not execute owner prompts, tools, workers, models, providers, media processing, web search, browser capture, map rendering, migrations, schema changes, historical backfill, Docker, Cloud Run, production, external beta, paid production, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

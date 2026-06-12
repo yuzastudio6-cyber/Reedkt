@@ -464,7 +464,12 @@
     "activation:controlled-internal-test-go-no-go:report": "tsx server/cli/activation-controlled-internal-test-go-no-go-report.ts",
     "activation:controlled-internal-test-go-no-go:iam-plan": "tsx server/cli/activation-controlled-internal-test-go-no-go-iam-plan.ts",
     "activation:controlled-internal-test:summary": "tsx server/cli/activation-controlled-internal-test-summary.ts",
-    "smoke:activation-controlled-internal-test-go-no-go": "tsx server/smoke/activation-controlled-internal-test-go-no-go-smoke.ts"
+    "smoke:activation-controlled-internal-test-go-no-go": "tsx server/smoke/activation-controlled-internal-test-go-no-go-smoke.ts",
+    "activation:cross-workstream-handoff-tracking": "tsx server/cli/activation-cross-workstream-handoff-tracking.ts",
+    "activation:cross-workstream-handoff-tracking:report": "tsx server/cli/activation-cross-workstream-handoff-tracking-report.ts",
+    "activation:cross-workstream-handoff-tracking:iam-plan": "tsx server/cli/activation-cross-workstream-handoff-tracking-iam-plan.ts",
+    "activation:cross-workstream-handoff:summary": "tsx server/cli/activation-cross-workstream-handoff-summary.ts",
+    "smoke:activation-cross-workstream-handoff-tracking": "tsx server/smoke/activation-cross-workstream-handoff-tracking-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

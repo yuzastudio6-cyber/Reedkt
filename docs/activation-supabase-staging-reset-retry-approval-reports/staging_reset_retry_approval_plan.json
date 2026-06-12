@@ -1,0 +1,94 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "branch": "codex/rp-foundation-supabase-staging-reset-retry-approval",
+  "baseBranch": "codex/rp-foundation-supabase-staging-reset-failure-triage",
+  "prTitle": "[foundation] Supabase staging reset retry approval",
+  "worktree": "/private/tmp/reeditpro-supabase-staging-reset-retry-approval",
+  "reportDir": "docs/activation-supabase-staging-reset-retry-approval-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "staging_reset_retry_approval_plan.json",
+    "staging_reset_retry_evidence_inventory.json",
+    "staging_reset_retry_risk_review.json",
+    "staging_reset_retry_command_review.json",
+    "staging_reset_retry_backup_review.json",
+    "staging_reset_retry_operator_checklist.json",
+    "staging_reset_retry_approval_decision.json",
+    "staging_reset_retry_blocker_report.json",
+    "staging_reset_retry_readiness_report.json",
+    "staging_reset_retry_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-staging-reset-retry-approval-decision.md",
+    "docs/supabase-staging-reset-retry-operator-checklist.md",
+    "docs/implementation-prompts/prompt-supabase-staging-reset-retry-execution.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePrs": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    248,
+    252,
+    259,
+    262
+  ],
+  "docsBasis": {
+    "cliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "databaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "changelog": "https://supabase.com/changelog.md",
+    "checkedAt": "2026-06-10",
+    "dbResetFlagsObserved": [
+      "--db-url",
+      "--no-seed"
+    ],
+    "previousUnlistedFlagRejected": "--yes"
+  },
+  "allowedActions": [
+    "read_committed_safe_reports",
+    "review_backup_export_metadata",
+    "review_reset_failure_classification",
+    "review_future_retry_command_shape",
+    "write_safe_metadata_reports"
+  ],
+  "blockedActions": [
+    "staging_reset_retry_execution",
+    "supabase_db_push",
+    "supabase_migration_repair",
+    "direct_ddl_dml",
+    "schema_deploy",
+    "track_b_backfill_write",
+    "production_supabase",
+    "secret_payload_access",
+    "secret_printing",
+    "provider_calls",
+    "route_tool_worker_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ],
+  "confirmationsForApprovalPacketExecution": [
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_APPROVAL_PACKET",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_MANUAL_OPERATOR_REVIEW"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+    "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "defaultDecision": "blocked_pending_operator_review"
+}

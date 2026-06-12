@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "committed_safe_metadata_only",
+  "reportDir": "docs/activation-supabase-staging-reset-retry-approval-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "staging_reset_retry_approval_plan.json",
+    "staging_reset_retry_evidence_inventory.json",
+    "staging_reset_retry_risk_review.json",
+    "staging_reset_retry_command_review.json",
+    "staging_reset_retry_backup_review.json",
+    "staging_reset_retry_operator_checklist.json",
+    "staging_reset_retry_approval_decision.json",
+    "staging_reset_retry_blocker_report.json",
+    "staging_reset_retry_readiness_report.json",
+    "staging_reset_retry_private_artifact_manifest.json"
+  ],
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "backupPayloadCommitted": false,
+  "privatePayloadCommitted": false,
+  "dbUrlCommitted": false,
+  "secretsCommitted": false,
+  "mediaPayloadCommitted": false,
+  "stagingResetRetryRun": false,
+  "stagingDataBackfillWritten": false,
+  "productionAffected": false
+}

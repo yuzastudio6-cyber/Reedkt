@@ -1,0 +1,50 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "passed",
+  "commandReviewMode": "approval_only_no_execution",
+  "allowedTransportPrefix": [
+    "npm",
+    "exec",
+    "--yes",
+    "--package",
+    "supabase@latest",
+    "--",
+    "supabase"
+  ],
+  "futureRetryOperation": [
+    "db",
+    "reset",
+    "--db-url",
+    "[REDACTED_STAGING_DB_URL]",
+    "--no-seed"
+  ],
+  "futureRetryCommandShape": "npm exec --yes --package supabase@latest -- supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed",
+  "rejectedPreviousOperation": [
+    "db",
+    "reset",
+    "--db-url",
+    "[REDACTED_STAGING_DB_URL]",
+    "--no-seed",
+    "--yes"
+  ],
+  "rejectedPreviousReason": "Current Supabase CLI docs list db reset --db-url and --no-seed; --yes is not listed for db reset and is removed from the future retry command shape.",
+  "resetDryRunSupported": false,
+  "previewRequiredBeforeRetry": true,
+  "previewMode": "command_plan_preview_plus_backup_and_migration_inventory",
+  "debugAllowed": false,
+  "debugPolicy": "Debug output remains blocked unless a later execution prompt defines redaction and proves no secret-bearing output will be committed.",
+  "dbUrlRedactionRequired": true,
+  "targetMismatchStopRequired": true,
+  "postRetryVerificationRequired": [
+    "migration_history_verify",
+    "registry_schema_rls_verify",
+    "pr198_backfill_preflight_and_diff_only"
+  ],
+  "resetRetryRun": false,
+  "schemaDeployRun": false,
+  "migrationRepairRun": false,
+  "directDdlDmlRun": false,
+  "productionAffected": false,
+  "blockers": []
+}

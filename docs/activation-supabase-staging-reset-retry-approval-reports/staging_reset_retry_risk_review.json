@@ -1,0 +1,16 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "passed",
+  "retryRisk": "medium_high_but_accepted_for_future_retry_after_command_fix",
+  "unchangedFailedStateAccepted": true,
+  "backupEvidenceAccepted": true,
+  "ownerDataLossAcceptanceValid": true,
+  "partialResetRiskStillPresent": true,
+  "failureCauseFullyProven": false,
+  "retryCouldWorsenStagingState": true,
+  "retryAllowedInThisPhase": false,
+  "futureRetryRequiresSeparateExecutionPhase": true,
+  "productionExcluded": true,
+  "blockers": []
+}

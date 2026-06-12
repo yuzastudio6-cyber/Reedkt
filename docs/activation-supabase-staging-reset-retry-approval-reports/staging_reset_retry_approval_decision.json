@@ -1,0 +1,37 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "approved_for_future_execution_only",
+  "decision": "approved_for_future_retry_reset_after_cli_command_fix",
+  "approvalStatus": "future_retry_reset_approved_not_executed",
+  "approvedFutureCommandShape": "npm exec --yes --package supabase@latest -- supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed",
+  "approvalBasis": [
+    "PR #262 read-only inspection passed and classified staging as unchanged_failed_state.",
+    "PR #259 backup/export metadata passed and no backup payload is committed.",
+    "PR #252 owner/data-loss acceptance remains approved for future reset/reapply.",
+    "Future retry command removes the unlisted --yes db reset flag and remains no-seed, redacted, and staging-only."
+  ],
+  "resetRetryExecutionAllowedInThisPhase": false,
+  "resetRetryRun": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "schemaDeployRun": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretRefUsed": "none",
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "secretsPrintedOrCommitted": false,
+  "requiredBeforeFutureRetryExecution": [
+    "separate reset retry execution prompt",
+    "current-shell staging target proof",
+    "secure DB URL process-env injection without printing",
+    "private backup/export rerun or verified artifact availability",
+    "command-plan preview using the fixed command shape",
+    "post-retry migration history and registry schema/RLS verification",
+    "PR #198 preflight/diff/report only; no Track B write confirmations"
+  ],
+  "blockers": []
+}

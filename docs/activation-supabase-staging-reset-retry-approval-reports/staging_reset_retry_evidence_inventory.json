@@ -1,0 +1,82 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "passed",
+  "pr262": {
+    "readonlyInspectionStatus": "passed",
+    "readonlyInspectionPerformed": true,
+    "stateClassifier": "unchanged_failed_state",
+    "recoveryDecision": "recovery_path_manual_operator_review_required",
+    "partialResetRisk": "medium_high",
+    "resetRetryApprovedInPr262": false,
+    "resetRetryRunInPr262": false,
+    "blockers": [
+      "manual_operator_review_required",
+      "future_recovery_execution_approval_required"
+    ]
+  },
+  "pr259": {
+    "resetExecutionStatus": "blocked",
+    "resetAttempted": true,
+    "resetPerformed": false,
+    "stagingSqlMayHaveRun": true,
+    "resetCommandStatus": "blocked",
+    "resetCommandErrorCategory": "command_failed",
+    "previousOperation": [
+      "--yes",
+      "db",
+      "reset",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--no-seed",
+      "--yes"
+    ],
+    "backupExportStatus": "passed",
+    "backupExportPerformed": true,
+    "backupFileCreated": true,
+    "backupPayloadCommitted": false,
+    "backupPayloadPrinted": false,
+    "credentialPayloadsPrinted": false
+  },
+  "pr252": {
+    "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+    "approvalStatus": "future_reset_reapply_approved_not_executed",
+    "status": "approved_for_future_execution_only"
+  },
+  "upstream": {
+    "pr248Decision": "blocked_pending_staging_data_impact_review",
+    "pr247Decision": "blocked_pending_staging_reset_approval",
+    "pr241Decision": "blocked_pending_remote_history_evidence",
+    "pr241Blockers": [
+      "remote_schema_equivalence_not_proven"
+    ],
+    "pr223Status": "blocked",
+    "pr198Status": "blocked",
+    "pr198Blockers": [
+      "staging_supabase_credentials_unavailable"
+    ]
+  },
+  "productionExclusion": {
+    "productionAffected": false,
+    "productionSupabaseRun": false,
+    "productionWrite": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false
+  },
+  "trackBSeparation": {
+    "trackBBackfillRowsWritten": false,
+    "trackBBackfillFutureSeparatePhase": true,
+    "trackBToolExecution": false
+  },
+  "secretPolicy": {
+    "secretRefUsed": "none",
+    "payloadAccessRequired": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false,
+    "dbUrlPrinted": false,
+    "passwordPrinted": false,
+    "serviceKeysPrinted": false,
+    "cliAuthTokensPrinted": false
+  },
+  "blockers": []
+}

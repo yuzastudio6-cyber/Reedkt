@@ -1,0 +1,20 @@
+{
+  "phase": "supabase-staging-reset-retry-approval",
+  "runId": "supabase-staging-reset-retry-approval-20260610",
+  "status": "approved_for_future_execution_only",
+  "decision": "approved_for_future_retry_reset_after_cli_command_fix",
+  "approvalStatus": "future_retry_reset_approved_not_executed",
+  "approvalPacketComplete": true,
+  "retryExecutionReadyInThisPhase": false,
+  "resetRetryRun": false,
+  "schemaDeployRun": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [],
+  "nextRecommendedPhase": "Separate guarded staging reset retry execution phase using the fixed command shape."
+}

@@ -1,0 +1,40 @@
+{
+  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
+  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "decision": "merge_hygiene_blockers_require_human_review",
+  "blockers": [
+    {
+      "blocker": "human_merge_order_review_required",
+      "status": "active",
+      "reason": "The audit recommends parent-before-child order but does not authorize merges."
+    },
+    {
+      "blocker": "draft_prs_present",
+      "status": "active",
+      "count": 20,
+      "reason": "Draft PRs are never merge-now."
+    },
+    {
+      "blocker": "duplicate_parallel_lanes_present",
+      "status": "active",
+      "lanes": [
+        "model_provider_dry_runs",
+        "plan_snapshot_contracts",
+        "worker_runtime_audits_dry_runs",
+        "track_a_creative_graphics",
+        "supabase_sound_harness"
+      ],
+      "reason": "Parallel lanes require owner selection before merge."
+    },
+    {
+      "blocker": "open_pr_list_limit_hit_on_initial_fetch",
+      "status": "observed_resolved_by_higher_limit_fetch",
+      "reason": "The first open PR list returned exactly 200 PRs; a higher limit was used for the audit."
+    },
+    {
+      "blocker": "pr346_status_changed_after_prompt_snapshot",
+      "status": "observed_resolved_by_merge_requires_stack_reinspection",
+      "reason": "PR #346 no longer matches the prompt's open/draft observation; downstream lanes require reinspection before merge."
+    }
+  ]
+}

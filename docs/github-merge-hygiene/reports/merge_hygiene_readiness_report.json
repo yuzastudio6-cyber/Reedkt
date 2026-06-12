@@ -1,0 +1,24 @@
+{
+  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
+  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "auditReadyForHumanReview": true,
+  "mergeReadyNow": false,
+  "decision": "open_pr_stack_audit_completed_ready_for_human_merge_order_review",
+  "blockersActive": [
+    "human_merge_order_review_required",
+    "draft_prs_present",
+    "duplicate_parallel_lanes_present"
+  ],
+  "requiredNextAction": "human_review_canonical_merge_order_then_merge_parent_prs_first",
+  "safetyStatus": {
+    "productionUnlocked": false,
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false,
+    "runtimeExecutionUnlocked": false,
+    "workerToolProviderExecutionUnlocked": false,
+    "supabaseWritesUnlocked": false,
+    "publicArtifactsUnlocked": false,
+    "signedUrlsAsSourceOfTruthUnlocked": false,
+    "rawPromptExecutionUnlocked": false
+  }
+}

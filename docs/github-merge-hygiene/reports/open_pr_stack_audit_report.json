@@ -1,0 +1,135 @@
+{
+  "runId": "github-merge-hygiene-2026-06-12T203644453Z",
+  "generatedAt": "2026-06-12T20:37:06.052Z",
+  "auditStatus": "passed",
+  "decision": "open_pr_stack_audit_completed_ready_for_human_merge_order_review",
+  "repo": "yuzastudio6-cyber/Reedkt",
+  "branch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "baseBranch": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
+  "defaultBranchObserved": "codex/reeditpro-web-ui-shell",
+  "baseSelectionEvidence": {
+    "selectedBaseBranch": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
+    "selectedBaseReason": "An explicit cross-workstream handoff tracking branch exists and contains docs/cross-chat coordination artifacts.",
+    "defaultBranchObserved": "codex/reeditpro-web-ui-shell",
+    "pr205": {
+      "number": 205,
+      "title": "[foundation] XCHAT-0 cross-chat ownership registry",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-foundation-26c-supabase-advisor-draft-remediation-packet",
+      "headRefName": "codex/rp-foundation-xchat-0-cross-chat-ownership-registry",
+      "headRefOid": "bbc357b7ddb4f56117252f72e5909f3f7f399098",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/205",
+      "updatedAt": "2026-06-05T14:33:31Z"
+    },
+    "pr222": {
+      "number": 222,
+      "title": "[activation] Phase 52H cross workstream handoff tracking",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-activation-52g-controlled-internal-test-go-no-go-handoff-dispatch",
+      "headRefName": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
+      "headRefOid": "03680b3b5795c9c63d6b25b0a45d2e35a4774f36",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/222",
+      "updatedAt": "2026-06-06T13:07:28Z"
+    }
+  },
+  "openPrListLimitHit": true,
+  "openLimit200Count": 200,
+  "openPrListHigherLimitUsed": 1000,
+  "openPrCount": 345,
+  "draftPrCount": 20,
+  "mergeStateCounts": {
+    "DIRTY": 1,
+    "CLEAN": 343,
+    "UNSTABLE": 1
+  },
+  "classificationCounts": {
+    "draft_hold": 20,
+    "duplicate_risk": 137,
+    "parallel_candidate": 157,
+    "unknown": 2,
+    "blocked_hold": 1,
+    "canonical": 28
+  },
+  "closedSample": {
+    "count": 4,
+    "onlyPr31": false,
+    "pullRequests": [
+      {
+        "baseRefName": "codex/rp-worker-runtime-dry-run-approval-after-repo-audit",
+        "headRefName": "codex/rp-worker-runtime-noop-dry-run-execution",
+        "mergedAt": "2026-06-12T20:25:38Z",
+        "number": 346,
+        "state": "MERGED",
+        "title": "[worker] Runtime no-op dry-run execution",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/346"
+      },
+      {
+        "baseRefName": "codex/rp-worker-runtime-repo-audit-after-plan-snapshot",
+        "headRefName": "codex/rp-worker-runtime-dry-run-approval-after-repo-audit",
+        "mergedAt": "2026-06-12T20:25:59Z",
+        "number": 342,
+        "state": "MERGED",
+        "title": "[worker] Runtime dry-run approval packet",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/342"
+      },
+      {
+        "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+        "headRefName": "codex/rp-worker-runtime-repo-audit-after-plan-snapshot",
+        "mergedAt": "2026-06-12T20:26:11Z",
+        "number": 341,
+        "state": "MERGED",
+        "title": "[worker] Runtime repo audit after plan snapshot dry-run",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/341"
+      },
+      {
+        "baseRefName": "codex/rp-activation-34d-real-video-enhancement-sample",
+        "headRefName": "codex/rp-activation-34e-film-slowmotion-review-gate",
+        "mergedAt": null,
+        "number": 31,
+        "state": "CLOSED",
+        "title": "[activation] Phase 34E FILM slow-motion review gate",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/31"
+      }
+    ]
+  },
+  "pr346": {
+    "number": 346,
+    "title": "[worker] Runtime no-op dry-run execution",
+    "state": "MERGED",
+    "isDraft": false,
+    "mergeStateStatus": "UNKNOWN",
+    "baseRefName": "codex/rp-worker-runtime-dry-run-approval-after-repo-audit",
+    "headRefName": "codex/rp-worker-runtime-noop-dry-run-execution",
+    "headRefOid": "3da7775fa9de9289e682021645c58e42015404b8",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/346",
+    "updatedAt": "2026-06-12T20:25:38Z"
+  },
+  "pr346PromptExpectation": {
+    "expectedOpenDraftCleanNotMerged": true,
+    "currentMetadataMatchesExpectation": false,
+    "note": "PR #346 is not open in current metadata; the prompt's open/draft/not-merged observation is stale."
+  },
+  "executionStatus": {
+    "pullRequestsMerged": false,
+    "pullRequestsClosed": false,
+    "pullRequestsRebased": false,
+    "runtimePathsExecuted": false,
+    "supabaseMutation": false,
+    "providerCalls": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsIssued": false,
+    "productionUnlocked": false,
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  }
+}

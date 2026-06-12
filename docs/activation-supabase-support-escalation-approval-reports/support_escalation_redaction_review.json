@@ -1,0 +1,31 @@
+{
+  "phase": "supabase-support-escalation-approval",
+  "runId": "supabase-support-escalation-approval-20260610",
+  "status": "passed",
+  "reviewedArtifact": "docs/activation-supabase-support-escalation-approval-reports/support_escalation_redacted_packet.json",
+  "redactionRules": [
+    "no_database_url_values",
+    "no_database_passwords",
+    "no_service_role_keys",
+    "no_anon_keys",
+    "no_access_tokens",
+    "no_signed_urls",
+    "no_provider_keys",
+    "no_private_backup_payloads",
+    "no_private_media_urls",
+    "no_row_contents",
+    "no_production_target"
+  ],
+  "matchedSensitivePatternCount": 0,
+  "matchedSensitivePatterns": [],
+  "booleanFailures": [],
+  "safeMetadataOnly": true,
+  "stagingOnly": true,
+  "productionTargetSelected": false,
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

@@ -1,0 +1,183 @@
+{
+  "phase": "supabase-support-escalation-approval",
+  "runId": "supabase-support-escalation-approval-20260610",
+  "mode": "support_escalation_approval_packet_only",
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/cross-chat",
+      "present": false,
+      "type": "file"
+    }
+  ],
+  "reportPaths": [
+    {
+      "path": "docs/activation-supabase-reset-retry-failure-diagnostics-reports/reset_retry_supabase_support_packet.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-reset-retry-failure-diagnostics-reports/reset_retry_recovery_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-reset-retry-failure-diagnostics-reports/reset_retry_cli_failure_analysis_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-reset-retry-failure-diagnostics-reports/reset_retry_post_failure_state_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-reset-retry-failure-diagnostics-reports/reset_retry_migration_state_review.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-reset-retry-execution-reports/staging_reset_retry_execution_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-reset-retry-approval-reports/staging_reset_retry_approval_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-reset-failure-triage-reports/staging_reset_recovery_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-reset-execution-reports/staging_reset_execution_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-data-impact-backup-reports/staging_data_impact_backup_approval_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-schema-parity-remediation-reports/schema_parity_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-remote-schema-equivalence-reports/remote_schema_equivalence_comparison_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_readiness_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-milestone-registry-schema-reports/schema_readiness_report.json",
+      "present": false
+    },
+    {
+      "path": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+      "present": true
+    }
+  ],
+  "localMigrationInventory": {
+    "migrationDir": "supabase/migrations",
+    "localMigrationCount": 22,
+    "localMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001"
+    ],
+    "targetRegistryMigrationFile": "202606050001_activation_milestone_registry_schema_rls.sql",
+    "targetRegistryMigrationPresent": true
+  },
+  "status": "passed",
+  "blockers": [],
+  "sourceFacts": {
+    "pr271BaseHead": "a9fa107",
+    "pr269ResetRetryAttempted": true,
+    "stagingSqlMayHaveRun": true,
+    "supportPacketRecommendedByPr271": true,
+    "productionAffected": false,
+    "trackBBackfillRowsWritten": false
+  },
+  "duplicateWorkAvoided": [
+    "no_support_ticket_submission",
+    "no_cli_create_ticket_invocation",
+    "no_reset_retry_path",
+    "no_db_push_path",
+    "no_migration_repair_path",
+    "no_schema_deploy_path",
+    "no_track_b_backfill_write_path"
+  ],
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false
+}

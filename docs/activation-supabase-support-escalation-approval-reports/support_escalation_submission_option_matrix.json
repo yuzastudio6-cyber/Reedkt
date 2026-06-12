@@ -1,0 +1,43 @@
+{
+  "phase": "supabase-support-escalation-approval",
+  "runId": "supabase-support-escalation-approval-20260610",
+  "status": "passed",
+  "recommendedOption": "manual_supabase_dashboard_support_ticket",
+  "options": [
+    {
+      "option": "manual_supabase_dashboard_support_ticket",
+      "status": "recommended_for_future_phase",
+      "recommended": true,
+      "reason": "Manual dashboard submission can attach only the approved redacted packet after a separate submission phase.",
+      "executionInThisPhase": false
+    },
+    {
+      "option": "supabase_cli_create_ticket",
+      "status": "blocked_pending_separate_cli_ticket_approval",
+      "recommended": false,
+      "reason": "The CLI global create-ticket flag is observed but not approved or invoked in this packet.",
+      "executionInThisPhase": false
+    },
+    {
+      "option": "supabase_cli_github_issue",
+      "status": "optional_future_alternative",
+      "recommended": false,
+      "reason": "Could be chosen by a support owner later, using the same redacted packet.",
+      "executionInThisPhase": false
+    },
+    {
+      "option": "internal_manual_review_only",
+      "status": "fallback",
+      "recommended": false,
+      "reason": "Fallback path if support owner or redaction approval is withheld.",
+      "executionInThisPhase": false
+    }
+  ],
+  "manualSupportTicketApprovedForFuturePhase": true,
+  "cliCreateTicketApproved": false,
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "blockers": [
+    "support_ticket_submission_requires_separate_phase"
+  ]
+}

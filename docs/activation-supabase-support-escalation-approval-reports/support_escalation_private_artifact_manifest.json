@@ -1,0 +1,32 @@
+{
+  "phase": "supabase-support-escalation-approval",
+  "runId": "supabase-support-escalation-approval-20260610",
+  "reportDir": "docs/activation-supabase-support-escalation-approval-reports",
+  "committedArtifacts": [
+    "docs/activation-supabase-support-escalation-approval-reports/source_of_truth_ownership_audit.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_approval_plan.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_evidence_inventory.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_redacted_packet.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_redaction_review.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_submission_option_matrix.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_operator_checklist.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_approval_decision.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_blocker_report.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_readiness_report.json",
+    "docs/activation-supabase-support-escalation-approval-reports/support_escalation_private_artifact_manifest.json",
+    "docs/supabase-support-escalation-approval.md",
+    "docs/supabase-support-redacted-reset-failure-packet.md",
+    "docs/supabase-support-escalation-operator-checklist.md",
+    "docs/supabase-support-escalation-approval-decision.md",
+    "docs/implementation-prompts/prompt-supabase-support-ticket-submission.md"
+  ],
+  "privateUploadRequired": false,
+  "privateDataPayloadsCommitted": false,
+  "supportTicketSubmitted": false,
+  "cliCreateTicketRun": false,
+  "dbUrlCommitted": false,
+  "keyMaterialCommitted": false,
+  "backupPayloadCommitted": false,
+  "mediaPayloadCommitted": false,
+  "productionAffected": false
+}

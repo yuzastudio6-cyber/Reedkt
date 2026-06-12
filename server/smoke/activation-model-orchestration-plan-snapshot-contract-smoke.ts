@@ -69,6 +69,18 @@ assert(
   evidence.providerEvidenceBlockers.includes('pr322_qwen_schema_rerun_provider_timeout'),
   'Expected PR #322 provider timeout blocker missing.',
 )
+assert(
+  Array.isArray(evidence.providerEvidenceBlockers) &&
+  !evidence.providerEvidenceBlockers.includes('pr320_deepseek_provider_dry_run_not_passed'),
+  'Remote PR #320 DeepSeek evidence should reconcile as passed.',
+)
+
+const reconciliation = reports.providerEvidenceReconciliation as Record<string, unknown>
+assert(reconciliation.status === 'blocked', 'Reconciliation must remain blocked while Qwen evidence is missing.')
+assert(reconciliation.finalReconciledQwenStatus === 'blocked', 'Qwen must remain blocked with current PR #322 evidence.')
+assert(reconciliation.finalReconciledDeepSeekStatus === 'passed_remote_pr320', 'DeepSeek should pass from remote PR #320 evidence.')
+assert((reconciliation.staleEvidence as Record<string, unknown>).pr327LocalDeepseekSnapshotStale === true, 'Local PR #327 DeepSeek snapshot should be classified as stale.')
+assert(reconciliation.proseOnlyProviderPassClaimsAccepted === false, 'Prose-only provider pass claims must not be accepted.')
 
 const validation = reports.validationReport as Record<string, unknown>
 assert(validation.status === 'passed', 'Schema fixture validation should pass.')

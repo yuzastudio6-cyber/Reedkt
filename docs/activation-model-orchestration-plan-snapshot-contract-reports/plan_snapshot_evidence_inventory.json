@@ -3,12 +3,26 @@
   "status": "blocked",
   "providerEvidencePassed": false,
   "providerEvidenceBlockers": [
-    "pr322_qwen_provider_evidence_not_ready",
+    "pr322_qwen_pass_evidence_missing",
     "pr322_qwen_schema_rerun_provider_timeout",
-    "pr322_qwen_schema_cases_did_not_pass",
-    "pr320_provider_dry_run_not_passed",
-    "pr320_deepseek_provider_dry_run_not_passed"
+    "pr322_qwen_schema_cases_did_not_pass"
   ],
+  "providerEvidenceReconciliationReport": "docs/activation-model-orchestration-plan-snapshot-contract-reports/provider_dry_run_evidence_reconciliation.json",
+  "qwenRepairedStatusFromPr322": "blocked",
+  "qwenSelectedAlias": "qwen3.7-plus",
+  "qwenWorkingBaseUrl": "virginia_dashscope_base_url",
+  "deepseekPassedStatusFromPr320": "passed",
+  "deepseekAliases": [
+    "deepseek-v4-flash",
+    "deepseek-v4-flash",
+    "deepseek-v4-pro"
+  ],
+  "staleEvidence": {
+    "pr327WasReadingStaleEvidence": true,
+    "pr327LocalDeepseekSnapshotStale": true,
+    "pr327LocalQwenSnapshotStale": false,
+    "staleEvidenceClassification": "local_pr320_deepseek_snapshot_stale_remote_pr320_passed"
+  },
   "sourceReports": [
     {
       "pr": 322,
@@ -18,7 +32,8 @@
       "status": "blocked",
       "activeBlockers": [
         "provider_timeout"
-      ]
+      ],
+      "localContractReady": false
     },
     {
       "pr": 322,
@@ -37,7 +52,8 @@
       "status": "not_attempted",
       "activeBlockers": [
         "provider_dry_run_not_executed"
-      ]
+      ],
+      "localProviderDryRunPassed": false
     },
     {
       "pr": 320,
@@ -45,7 +61,8 @@
       "present": true,
       "status": "not_attempted",
       "providerCallsAttempted": 0,
-      "providerCallsPassed": 0
+      "providerCallsPassed": 0,
+      "localDeepseekPassed": false
     },
     {
       "pr": 318,

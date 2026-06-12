@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 import {
   writeVlmRuntimeJsonArtifact,
@@ -23,10 +24,12 @@ const QWEN_AUTH_REPAIR_REPORT_DIR = 'docs/activation-model-orchestration-qwen-au
 const PROVIDER_DRY_RUN_REPORT_DIR = 'docs/activation-model-orchestration-provider-dry-run-reports'
 const DRY_RUN_APPROVAL_REPORT_DIR = 'docs/activation-model-orchestration-dry-run-approval-reports'
 const AUDIT_REPORT_DIR = 'docs/activation-model-orchestration-qwen-deepseek-audit-reports'
+const GITHUB_REPO = 'yuzastudio6-cyber/Reedkt'
 
 export const MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_EXPECTED_REPORTS = [
   'source_of_truth_ownership_audit.json',
   'plan_snapshot_contract_plan.json',
+  'provider_dry_run_evidence_reconciliation.json',
   'plan_snapshot_evidence_inventory.json',
   'agent_findings_v1_schema.json',
   'edit_intents_v1_schema.json',
@@ -49,6 +52,9 @@ export const MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_REQUIRED_CONFIRMATIONS =
   'REEDITPRO_CONFIRM_WORKER_HANDOFF_BLOCKER_POLICY',
   'REEDITPRO_CONFIRM_SECRET_REFERENCE_METADATA_ONLY',
 ] as const
+
+export const MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_RECONCILIATION_CONFIRMATION =
+  'REEDITPRO_CONFIRM_MODEL_ORCHESTRATION_PROVIDER_EVIDENCE_RECONCILIATION'
 
 export const MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_FORBIDDEN_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_PROVIDER_CALLS',
@@ -153,6 +159,88 @@ function pathStatus(filePath: string) {
   return { path: filePath, present: existsSync(filePath) }
 }
 
+function runGh(args: string[]): string {
+  return execFileSync('gh', args, {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      GH_PAGER: 'cat',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim()
+}
+
+function readPrMetadata(prNumber: number): Record<string, unknown> {
+  const text = runGh([
+    'pr',
+    'view',
+    String(prNumber),
+    '--repo',
+    GITHUB_REPO,
+    '--json',
+    'number,title,state,baseRefName,headRefName,mergeStateStatus,url,commits',
+  ])
+  const parsed = JSON.parse(text) as Record<string, unknown>
+  const commits = asArray(parsed.commits).map(asRecord)
+  const latest = commits.at(-1)
+
+  return {
+    number: parsed.number,
+    title: parsed.title,
+    state: parsed.state,
+    baseRefName: parsed.baseRefName,
+    headRefName: parsed.headRefName,
+    mergeStateStatus: parsed.mergeStateStatus,
+    url: parsed.url,
+    latestCommitSha: latest?.oid ?? 'missing',
+  }
+}
+
+function readGithubBranchJson(ref: string, filePath: string): Record<string, unknown> | undefined {
+  const content = runGh([
+    'api',
+    `repos/${GITHUB_REPO}/contents/${filePath}?ref=${encodeURIComponent(ref)}`,
+    '--jq',
+    '.content',
+  ])
+  return JSON.parse(Buffer.from(content.replace(/\s/g, ''), 'base64').toString('utf8')) as Record<string, unknown>
+}
+
+function getPrHead(meta: Record<string, unknown>, fallback: string) {
+  const head = asString(meta.headRefName)
+  return head || fallback
+}
+
+function extractResultModels(report: Record<string, unknown>) {
+  return asArray(report.results)
+    .map(asRecord)
+    .filter((result) => result.status === 'passed')
+    .map((result) => asString(result.modelId))
+}
+
+function reportHasUnsafeResultFlag(report: Record<string, unknown>) {
+  return asArray(report.results)
+    .map(asRecord)
+    .some((result) => [
+      'rawProviderResponseStored',
+      'rawProviderResponsePrinted',
+      'secretPayloadPrinted',
+      'workerExecutionAllowed',
+      'toolExecutionAllowed',
+      'routeExecutionAllowed',
+      'publicArtifactsAllowed',
+      'signedUrlsAllowed',
+      'rawPromptForwardingAllowed',
+      'directMutationAllowed',
+      'productionMutationAllowed',
+    ].some((field) => result[field] === true))
+}
+
+function providerTimeoutPresent(decision: Record<string, unknown>, rerun: Record<string, unknown>) {
+  return asArray(decision.activeBlockers).includes('provider_timeout') ||
+    asArray(rerun.results).map(asRecord).some((result) => result.blocker === 'provider_timeout')
+}
+
 export function getModelOrchestrationPlanSnapshotContractPlan() {
   return {
     phase: MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_PHASE,
@@ -164,7 +252,9 @@ export function getModelOrchestrationPlanSnapshotContractPlan() {
     reportDir: MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_REPORT_DIR,
     expectedReports: MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_EXPECTED_REPORTS,
     requiredConfirmations: MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_REQUIRED_CONFIRMATIONS,
+    reconciliationConfirmation: MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_RECONCILIATION_CONFIRMATION,
     forbiddenConfirmations: MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_FORBIDDEN_CONFIRMATIONS,
+    reconciliationModeFlag: '--reconcile-provider-evidence',
     contractFlow: [
       'provider_evidence',
       'agent_findings_v1',
@@ -180,7 +270,8 @@ export function getModelOrchestrationPlanSnapshotContractPlan() {
 }
 
 export function buildModelOrchestrationPlanSnapshotContractReports(): ModelOrchestrationPlanSnapshotContractReports {
-  const evidenceInventory = buildEvidenceInventory()
+  const providerEvidenceReconciliation = buildProviderEvidenceReconciliation()
+  const evidenceInventory = buildEvidenceInventory(providerEvidenceReconciliation)
   const agentFindingsSchema = buildAgentFindingsSchema()
   const editIntentsSchema = buildEditIntentsSchema()
   const planSnapshotCandidateSchema = buildPlanSnapshotCandidateSchema()
@@ -198,6 +289,7 @@ export function buildModelOrchestrationPlanSnapshotContractReports(): ModelOrche
   return {
     sourceOfTruthOwnershipAudit: buildSourceOfTruthOwnershipAudit(),
     contractPlan: getModelOrchestrationPlanSnapshotContractPlan(),
+    providerEvidenceReconciliation,
     evidenceInventory,
     agentFindingsSchema,
     editIntentsSchema,
@@ -219,6 +311,7 @@ export async function writeModelOrchestrationPlanSnapshotContractArtifacts(
   const reportDir = MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_REPORT_DIR
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'source_of_truth_ownership_audit.json'), reports.sourceOfTruthOwnershipAudit)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'plan_snapshot_contract_plan.json'), reports.contractPlan)
+  await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'provider_dry_run_evidence_reconciliation.json'), reports.providerEvidenceReconciliation)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'plan_snapshot_evidence_inventory.json'), reports.evidenceInventory)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'agent_findings_v1_schema.json'), reports.agentFindingsSchema)
   await writeVlmRuntimeJsonArtifact(path.join(reportDir, 'edit_intents_v1_schema.json'), reports.editIntentsSchema)
@@ -238,20 +331,25 @@ export async function executeModelOrchestrationPlanSnapshotContract(options: {
   execute: boolean
   metadataOnly: boolean
   keepTemp: boolean
+  reconcileProviderEvidence?: boolean
 }): Promise<{ exitCode: number }> {
   if (!options.execute || !options.metadataOnly) return { exitCode: 1 }
 
   const missing = MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_REQUIRED_CONFIRMATIONS.filter((name) => process.env[name] !== 'true')
+  const reconcileMissing = options.reconcileProviderEvidence && process.env[MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_RECONCILIATION_CONFIRMATION] !== 'true'
+    ? [`missing_confirmation:${MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_RECONCILIATION_CONFIRMATION}`]
+    : []
   const forbidden = MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_FORBIDDEN_CONFIRMATIONS.filter((name) => process.env[name] === 'true')
   const reports = buildModelOrchestrationPlanSnapshotContractReports()
 
-  if (missing.length > 0 || forbidden.length > 0) {
+  if (missing.length > 0 || reconcileMissing.length > 0 || forbidden.length > 0) {
     reports.decision = {
       ...reports.decision,
       status: 'blocked',
       decision: 'blocked_pending_raw_prompt_safety_review',
       activeBlockers: [
         ...missing.map((name) => `missing_confirmation:${name}`),
+        ...reconcileMissing,
         ...forbidden.map((name) => `forbidden_confirmation:${name}`),
       ],
     }
@@ -314,7 +412,195 @@ function buildSourceOfTruthOwnershipAudit() {
   }
 }
 
-function buildEvidenceInventory() {
+function buildProviderEvidenceReconciliation() {
+  const localQwenDecision = readJson(path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_repair_decision.json')) ?? {}
+  const localQwenRerun = readJson(path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_repaired_provider_dry_run_report.json')) ?? {}
+  const localProviderDecision = readJson(path.join(PROVIDER_DRY_RUN_REPORT_DIR, 'provider_dry_run_decision.json')) ?? {}
+  const localDeepseekReport = readJson(path.join(PROVIDER_DRY_RUN_REPORT_DIR, 'deepseek_provider_dry_run_report.json')) ?? {}
+  const githubErrors: string[] = []
+
+  let pr322: Record<string, unknown> = {}
+  let pr320: Record<string, unknown> = {}
+  let pr327: Record<string, unknown> = {}
+  let remoteQwenDecision: Record<string, unknown> = {}
+  let remoteQwenReadiness: Record<string, unknown> = {}
+  let remoteQwenRerun: Record<string, unknown> = {}
+  let remoteQwenBaseurl: Record<string, unknown> = {}
+  let remoteQwenAliasReview: Record<string, unknown> = {}
+  let remoteProviderDecision: Record<string, unknown> = {}
+  let remoteDeepseekReport: Record<string, unknown> = {}
+
+  try {
+    pr322 = readPrMetadata(322)
+    pr320 = readPrMetadata(320)
+    pr327 = readPrMetadata(327)
+    const pr322Head = getPrHead(pr322, MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_BASE_BRANCH)
+    const pr320Head = getPrHead(pr320, 'codex/rp-model-orchestration-qwen-deepseek-provider-dry-run')
+
+    remoteQwenDecision = readGithubBranchJson(pr322Head, path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_repair_decision.json')) ?? {}
+    remoteQwenReadiness = readGithubBranchJson(pr322Head, path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_repair_readiness_report.json')) ?? {}
+    remoteQwenRerun = readGithubBranchJson(pr322Head, path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_repaired_provider_dry_run_report.json')) ?? {}
+    remoteQwenBaseurl = readGithubBranchJson(pr322Head, path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_baseurl_probe_report.json')) ?? {}
+    remoteQwenAliasReview = readGithubBranchJson(pr322Head, path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_official_alias_baseurl_review.json')) ?? {}
+    remoteProviderDecision = readGithubBranchJson(pr320Head, path.join(PROVIDER_DRY_RUN_REPORT_DIR, 'provider_dry_run_decision.json')) ?? {}
+    remoteDeepseekReport = readGithubBranchJson(pr320Head, path.join(PROVIDER_DRY_RUN_REPORT_DIR, 'deepseek_provider_dry_run_report.json')) ?? {}
+  } catch (error) {
+    githubErrors.push(error instanceof Error ? error.message : String(error))
+  }
+
+  const githubMetadataAvailable = githubErrors.length === 0
+  const qwenBlockers = asArray(remoteQwenDecision.activeBlockers).map(String)
+  const qwenResults = asArray(remoteQwenRerun.results).map(asRecord)
+  const expectedQwenCases = [
+    'synthetic_edit_intent_extraction',
+    'synthetic_timeline_planning',
+    'synthetic_tool_route_metadata_recommendation',
+    'synthetic_provider_fallback_comparison',
+  ]
+  const qwenPassedCases = qwenResults
+    .filter((result) => result.status === 'passed')
+    .map((result) => asString(result.caseId))
+  const qwenAllCasesPassed = expectedQwenCases.every((caseId) => qwenPassedCases.includes(caseId))
+  const selectedAlias = asString(remoteQwenRerun.selectedAlias || remoteQwenReadiness.selectedQwenAlias || remoteQwenAliasReview.selectedAlias)
+  const selectedBaseUrlKey = asString(remoteQwenBaseurl.selectedBaseUrlKey || remoteQwenReadiness.selectedBaseUrlKey || remoteQwenAliasReview.selectedBaseUrlKey)
+  const qwenUsesVirginiaBaseUrl = ['us', 'virginia'].includes(selectedBaseUrlKey)
+  const qwenTimeout = providerTimeoutPresent(remoteQwenDecision, remoteQwenRerun)
+  const qwenPassed =
+    githubMetadataAvailable &&
+    remoteQwenDecision.status === 'passed' &&
+    remoteQwenDecision.decision === 'qwen_alias_repaired_ready_for_plan_snapshot_contract' &&
+    qwenBlockers.length === 0 &&
+    remoteQwenRerun.status === 'passed' &&
+    Number(remoteQwenRerun.providerCallsPassed ?? 0) >= expectedQwenCases.length &&
+    qwenAllCasesPassed &&
+    selectedAlias === 'qwen-plus' &&
+    qwenUsesVirginiaBaseUrl &&
+    !reportHasUnsafeResultFlag(remoteQwenRerun)
+
+  const deepseekModels = extractResultModels(remoteDeepseekReport)
+  const deepseekPassed =
+    githubMetadataAvailable &&
+    remoteDeepseekReport.status === 'passed' &&
+    remoteDeepseekReport.executed === true &&
+    Number(remoteDeepseekReport.providerCallsPassed ?? 0) >= 3 &&
+    deepseekModels.includes('deepseek-v4-flash') &&
+    deepseekModels.includes('deepseek-v4-pro') &&
+    !reportHasUnsafeResultFlag(remoteDeepseekReport)
+
+  const localDeepseekStale =
+    localDeepseekReport.status !== 'passed' &&
+    remoteDeepseekReport.status === 'passed'
+  const localQwenStale =
+    localQwenDecision.decision !== remoteQwenDecision.decision ||
+    localQwenRerun.status !== remoteQwenRerun.status ||
+    localQwenRerun.providerCallsPassed !== remoteQwenRerun.providerCallsPassed
+  const providerEvidenceBlockers = [
+    ...(!githubMetadataAvailable ? ['github_provider_evidence_metadata_unavailable'] : []),
+    ...(!qwenPassed ? ['pr322_qwen_pass_evidence_missing'] : []),
+    ...(qwenTimeout ? ['pr322_qwen_schema_rerun_provider_timeout'] : []),
+    ...(!qwenAllCasesPassed ? ['pr322_qwen_schema_cases_did_not_pass'] : []),
+    ...(!deepseekPassed ? ['pr320_deepseek_provider_dry_run_not_passed'] : []),
+  ]
+  const reconciledProviderEvidenceReady = qwenPassed && deepseekPassed
+
+  return {
+    phase: MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_PHASE,
+    status: reconciledProviderEvidenceReady ? 'passed' : 'blocked',
+    reconciliationAttempted: true,
+    githubMetadataAvailable,
+    githubErrors: githubErrors.map((message) => ({
+      type: 'metadata_read_failed',
+      message: message.slice(0, 240),
+    })),
+    sourcePrs: [
+      { pr: 327, ...pr327 },
+      { pr: 322, ...pr322 },
+      { pr: 320, ...pr320 },
+    ],
+    sourcePaths: [
+      {
+        pr: 322,
+        branch: pr322.headRefName ?? MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_BASE_BRANCH,
+        paths: [
+          path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_repair_decision.json'),
+          path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_repair_readiness_report.json'),
+          path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_repaired_provider_dry_run_report.json'),
+          path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_baseurl_probe_report.json'),
+          path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_official_alias_baseurl_review.json'),
+        ],
+      },
+      {
+        pr: 320,
+        branch: pr320.headRefName ?? 'codex/rp-model-orchestration-qwen-deepseek-provider-dry-run',
+        paths: [
+          path.join(PROVIDER_DRY_RUN_REPORT_DIR, 'provider_dry_run_decision.json'),
+          path.join(PROVIDER_DRY_RUN_REPORT_DIR, 'deepseek_provider_dry_run_report.json'),
+        ],
+      },
+    ],
+    localEvidence: {
+      pr327LocalQwenDecision: localQwenDecision.decision ?? 'missing',
+      pr327LocalQwenStatus: localQwenDecision.status ?? 'missing',
+      pr327LocalQwenProviderCallsPassed: localQwenRerun.providerCallsPassed ?? 0,
+      pr327LocalProviderDecision: localProviderDecision.decision ?? 'missing',
+      pr327LocalDeepseekStatus: localDeepseekReport.status ?? 'missing',
+      pr327LocalDeepseekProviderCallsPassed: localDeepseekReport.providerCallsPassed ?? 0,
+    },
+    staleEvidence: {
+      pr327WasReadingStaleEvidence: localDeepseekStale || localQwenStale,
+      pr327LocalDeepseekSnapshotStale: localDeepseekStale,
+      pr327LocalQwenSnapshotStale: localQwenStale,
+      staleEvidenceClassification: localDeepseekStale
+        ? 'local_pr320_deepseek_snapshot_stale_remote_pr320_passed'
+        : localQwenStale
+          ? 'local_pr322_qwen_snapshot_differs_from_remote'
+          : 'no_remote_stale_evidence_detected',
+    },
+    qwenEvidence: {
+      sourcePr: 322,
+      remoteDecision: remoteQwenDecision.decision ?? 'missing',
+      remoteStatus: remoteQwenDecision.status ?? 'missing',
+      activeBlockers: qwenBlockers,
+      selectedAlias,
+      expectedSelectedAlias: 'qwen-plus',
+      aliasMatchedExpected: selectedAlias === 'qwen-plus',
+      selectedBaseUrlKey,
+      workingBaseUrlClassification: qwenUsesVirginiaBaseUrl ? 'virginia_dashscope_base_url' : 'not_virginia_dashscope_base_url',
+      expectedWorkingBaseUrlClassification: 'virginia_dashscope_base_url',
+      schemaCasesExpected: expectedQwenCases,
+      schemaCasesPassed: qwenPassedCases,
+      allSchemaCasesPassed: qwenAllCasesPassed,
+      providerTimeoutPresent: qwenTimeout,
+      unsafeResultFlagsPresent: reportHasUnsafeResultFlag(remoteQwenRerun),
+      qwenEvidencePassed: qwenPassed,
+    },
+    deepseekEvidence: {
+      sourcePr: 320,
+      remoteDecision: remoteProviderDecision.decision ?? 'missing',
+      remoteProviderDecisionStatus: remoteProviderDecision.status ?? 'missing',
+      remoteDeepseekStatus: remoteDeepseekReport.status ?? 'missing',
+      providerCallsPassed: remoteDeepseekReport.providerCallsPassed ?? 0,
+      modelIdsPassed: deepseekModels,
+      requiredModelIds: ['deepseek-v4-flash', 'deepseek-v4-pro'],
+      unsafeResultFlagsPresent: reportHasUnsafeResultFlag(remoteDeepseekReport),
+      deepseekEvidencePassed: deepseekPassed,
+    },
+    finalReconciledQwenStatus: qwenPassed ? 'passed' : 'blocked',
+    finalReconciledDeepSeekStatus: deepseekPassed ? 'passed_remote_pr320' : 'blocked',
+    reconciledProviderEvidenceReady,
+    providerEvidenceBlockers: [...new Set(providerEvidenceBlockers)],
+    proseOnlyProviderPassClaimsAccepted: false,
+    secretRefs: SECRET_REFS.map((name) => ({
+      name,
+      payloadAccessed: false,
+      payloadPrinted: false,
+      payloadCommitted: false,
+    })),
+    ...RUNTIME_FALSE_FLAGS,
+  }
+}
+
+function buildEvidenceInventory(providerEvidenceReconciliation: Record<string, unknown>) {
   const qwenDecision = readJson(path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_repair_decision.json'))
   const qwenReadiness = readJson(path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_auth_repair_readiness_report.json'))
   const qwenRerun = readJson(path.join(QWEN_AUTH_REPAIR_REPORT_DIR, 'qwen_repaired_provider_dry_run_report.json'))
@@ -326,27 +612,21 @@ function buildEvidenceInventory() {
 
   const qwenBlockers = asArray(qwenDecision?.activeBlockers).map(String)
   const providerBlockers = asArray(providerDecision?.activeBlockers).map(String)
-  const qwenProviderCasesPassed = Number(qwenRerun?.providerCallsPassed ?? 0)
-  const qwenProviderCasesAttempted = Number(qwenRerun?.providerCallsAttempted ?? 0)
-  const qwenContractReady =
+  const localQwenContractReady =
     qwenDecision?.decision === 'qwen_alias_repaired_ready_for_plan_snapshot_contract' &&
     qwenReadiness?.planSnapshotContractReady === true &&
     qwenBlockers.length === 0
-  const providerDryRunPassed =
+  const localProviderDryRunPassed =
     providerDecision?.decision === 'provider_dry_run_passed_ready_for_plan_snapshot_contract' &&
     providerReadiness?.planSnapshotContractReady === true &&
     providerBlockers.length === 0
-  const deepseekPassed =
+  const localDeepseekPassed =
     deepseekReport?.status === 'passed' &&
     Number(deepseekReport?.providerCallsPassed ?? 0) > 0
-  const providerEvidencePassed = qwenContractReady && providerDryRunPassed && deepseekPassed
+  const providerEvidencePassed = providerEvidenceReconciliation.reconciledProviderEvidenceReady === true
 
   const providerEvidenceBlockers = [
-    ...(!qwenContractReady ? ['pr322_qwen_provider_evidence_not_ready'] : []),
-    ...(qwenBlockers.includes('provider_timeout') ? ['pr322_qwen_schema_rerun_provider_timeout'] : []),
-    ...(qwenProviderCasesAttempted > 0 && qwenProviderCasesPassed === 0 ? ['pr322_qwen_schema_cases_did_not_pass'] : []),
-    ...(!providerDryRunPassed ? ['pr320_provider_dry_run_not_passed'] : []),
-    ...(!deepseekPassed ? ['pr320_deepseek_provider_dry_run_not_passed'] : []),
+    ...asArray(providerEvidenceReconciliation.providerEvidenceBlockers).map(String),
   ]
 
   return {
@@ -354,6 +634,13 @@ function buildEvidenceInventory() {
     status: providerEvidencePassed ? 'passed' : 'blocked',
     providerEvidencePassed,
     providerEvidenceBlockers: [...new Set(providerEvidenceBlockers)],
+    providerEvidenceReconciliationReport: path.join(MODEL_ORCHESTRATION_PLAN_SNAPSHOT_CONTRACT_REPORT_DIR, 'provider_dry_run_evidence_reconciliation.json'),
+    qwenRepairedStatusFromPr322: asRecord(providerEvidenceReconciliation.qwenEvidence).qwenEvidencePassed === true ? 'passed' : 'blocked',
+    qwenSelectedAlias: asRecord(providerEvidenceReconciliation.qwenEvidence).selectedAlias ?? 'missing',
+    qwenWorkingBaseUrl: asRecord(providerEvidenceReconciliation.qwenEvidence).workingBaseUrlClassification ?? 'missing',
+    deepseekPassedStatusFromPr320: asRecord(providerEvidenceReconciliation.deepseekEvidence).deepseekEvidencePassed === true ? 'passed' : 'blocked',
+    deepseekAliases: asRecord(providerEvidenceReconciliation.deepseekEvidence).modelIdsPassed ?? [],
+    staleEvidence: providerEvidenceReconciliation.staleEvidence ?? {},
     sourceReports: [
       {
         pr: 322,
@@ -362,6 +649,7 @@ function buildEvidenceInventory() {
         decision: qwenDecision?.decision ?? 'missing',
         status: qwenDecision?.status ?? 'missing',
         activeBlockers: qwenBlockers,
+        localContractReady: localQwenContractReady,
       },
       {
         pr: 322,
@@ -379,6 +667,7 @@ function buildEvidenceInventory() {
         decision: providerDecision?.decision ?? 'missing',
         status: providerDecision?.status ?? 'missing',
         activeBlockers: providerBlockers,
+        localProviderDryRunPassed,
       },
       {
         pr: 320,
@@ -387,6 +676,7 @@ function buildEvidenceInventory() {
         status: deepseekReport?.status ?? 'missing',
         providerCallsAttempted: deepseekReport?.providerCallsAttempted ?? 0,
         providerCallsPassed: deepseekReport?.providerCallsPassed ?? 0,
+        localDeepseekPassed,
       },
       {
         pr: 318,
@@ -897,6 +1187,16 @@ function buildPrivateArtifactManifest() {
 async function writeDocs(reports: ModelOrchestrationPlanSnapshotContractReports) {
   const decision = asString(reports.decision.decision)
   const blockerLines = asArray(reports.decision.activeBlockers).map((blocker) => `- ${String(blocker)}`).join('\n') || '- none'
+  const reconciliation = reports.providerEvidenceReconciliation
+  const qwenStatus = asString(reconciliation.finalReconciledQwenStatus) || 'unknown'
+  const deepseekStatus = asString(reconciliation.finalReconciledDeepSeekStatus) || 'unknown'
+  const staleEvidence = asRecord(reconciliation.staleEvidence)
+  const staleLine = staleEvidence.pr327WasReadingStaleEvidence === true
+    ? 'PR #327 was reading stale local provider evidence for at least one upstream report.'
+    : 'No stale local provider evidence was detected beyond the current committed blockers.'
+  const decisionSummary = decision === 'plan_snapshot_contract_passed_ready_for_dry_run_validation'
+    ? 'The schema, fixture, handoff, and provider evidence gates pass.'
+    : 'The schema and fixture portions are present, and invalid fixtures fail closed. The packet does not pass because committed provider evidence is not ready.'
 
   await writeVlmRuntimeTextArtifact('docs/model-orchestration-plan-snapshot-contract.md', `# Model Orchestration Plan Snapshot Contract
 
@@ -910,7 +1210,13 @@ This packet defines the metadata-only handoff from provider evidence into review
 4. approval gate
 5. \`approved_plan_snapshot_v1\`
 
-Provider output, findings, intents, and candidates cannot execute workers, tools, routes, Supabase writes, public artifacts, signed URLs, or production mutations. The current evidence gate remains blocked because PR #322 records Qwen schema rerun provider timeouts and PR #320 provider dry-run evidence is not passed.
+Provider output, findings, intents, and candidates cannot execute workers, tools, routes, Supabase writes, public artifacts, signed URLs, or production mutations.
+
+Provider evidence reconciliation:
+
+- Qwen: \`${qwenStatus}\`
+- DeepSeek: \`${deepseekStatus}\`
+- Stale evidence: ${staleLine}
 `)
 
   await writeVlmRuntimeTextArtifact('docs/model-orchestration-agent-findings-schema.md', `# Agent Findings Schema
@@ -950,15 +1256,35 @@ Active blockers:
 
 ${blockerLines}
 
-The schema and fixture portions are present, and invalid fixtures fail closed. The packet does not pass because committed provider evidence is not ready.
+${decisionSummary}
+
+Reconciled evidence:
+
+- Qwen: \`${qwenStatus}\`
+- DeepSeek: \`${deepseekStatus}\`
+- Stale evidence: ${staleLine}
 `)
 
-  await writeVlmRuntimeTextArtifact('docs/implementation-prompts/prompt-model-orchestration-plan-snapshot-dry-run-validation.md', `# Model Orchestration Plan Snapshot Dry-Run Validation
+  const nextPromptBody = decision === 'plan_snapshot_contract_passed_ready_for_dry_run_validation'
+    ? `# Model Orchestration Plan Snapshot Dry-Run Validation
 
 Run this only after provider evidence reports pass and this contract decision becomes \`plan_snapshot_contract_passed_ready_for_dry_run_validation\`.
 
 Keep the phase metadata-only: no provider calls, secret payload access, Supabase writes, workers, tools, routes, media processing, public artifacts, signed URLs, production, external beta, or paid production unless a later prompt explicitly authorizes a separate phase.
-`)
+`
+    : `# Model Orchestration Provider Evidence Repair Handoff
+
+The plan snapshot dry-run validation phase remains blocked until committed provider evidence passes.
+
+Current reconciled evidence:
+
+- Qwen: \`${qwenStatus}\`
+- DeepSeek: \`${deepseekStatus}\`
+
+Next action: repair or rerun the exact Qwen provider evidence blocker, commit safe reports to PR #322, then rerun this PR #327 reconciliation. Do not call providers, access secrets, execute workers/tools/routes, mutate Supabase, create public artifacts, create signed URLs, or unlock production from this handoff.
+`
+
+  await writeVlmRuntimeTextArtifact('docs/implementation-prompts/prompt-model-orchestration-plan-snapshot-dry-run-validation.md', nextPromptBody)
 
   await writeReadinessMetadataDocs(decision)
 }
@@ -967,20 +1293,20 @@ async function writeReadinessMetadataDocs(decision: string) {
   const scorecardPath = 'docs/beta-readiness-scorecard.md'
   if (existsSync(scorecardPath)) {
     const current = readFileSync(scorecardPath, 'utf8')
-    const line = `\nModel orchestration plan snapshot contract status: ${decision}. Contract generation is metadata-only; provider calls, runtime execution, Supabase writes, external beta, paid production, and production remain blocked.\n`
+    const line = `Model orchestration plan snapshot contract status: ${decision}. Contract generation is metadata-only; provider calls, runtime execution, Supabase writes, external beta, paid production, and production remain blocked.`
     const next = current.includes('Model orchestration plan snapshot contract status:')
-      ? current.replace(/Model orchestration plan snapshot contract status:.*(?:\n|$)/, line.trimEnd() + '\n')
-      : current.trimEnd() + '\n' + line
+      ? current.replace(/\n*Model orchestration plan snapshot contract status:.*(?:\n|$)/, `\n\n${line}\n`)
+      : `${current.trimEnd()}\n\n${line}\n`
     await writeVlmRuntimeTextArtifact(scorecardPath, next)
   }
 
   const blockerPath = 'docs/production-beta-blocker-inventory.md'
   if (existsSync(blockerPath)) {
     const current = readFileSync(blockerPath, 'utf8')
-    const line = `\nPlan snapshot contract does not remove production beta blockers; current decision is \`${decision}\`.\n`
+    const line = `Plan snapshot contract does not remove production beta blockers; current decision is \`${decision}\`.`
     const next = current.includes('Plan snapshot contract does not remove production beta blockers;')
-      ? current.replace(/Plan snapshot contract does not remove production beta blockers;.*(?:\n|$)/, line.trimEnd() + '\n')
-      : current.trimEnd() + '\n' + line
+      ? current.replace(/\n*Plan snapshot contract does not remove production beta blockers;.*(?:\n|$)/, `\n\n${line}\n`)
+      : `${current.trimEnd()}\n\n${line}\n`
     await writeVlmRuntimeTextArtifact(blockerPath, next)
   }
 }

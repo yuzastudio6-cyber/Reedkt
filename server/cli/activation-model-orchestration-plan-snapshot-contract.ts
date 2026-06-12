@@ -17,6 +17,7 @@ const result = await executeModelOrchestrationPlanSnapshotContract({
   execute: true,
   metadataOnly: process.argv.includes('--metadata-only'),
   keepTemp: process.argv.includes('--keep-temp'),
+  reconcileProviderEvidence: process.argv.includes('--reconcile-provider-evidence'),
 })
 
 console.log(JSON.stringify(readModelOrchestrationPlanSnapshotContractSummary(), null, 2))

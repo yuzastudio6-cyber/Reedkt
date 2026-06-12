@@ -9,6 +9,7 @@
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
     "plan_snapshot_contract_plan.json",
+    "provider_dry_run_evidence_reconciliation.json",
     "plan_snapshot_evidence_inventory.json",
     "agent_findings_v1_schema.json",
     "edit_intents_v1_schema.json",
@@ -30,6 +31,7 @@
     "REEDITPRO_CONFIRM_WORKER_HANDOFF_BLOCKER_POLICY",
     "REEDITPRO_CONFIRM_SECRET_REFERENCE_METADATA_ONLY"
   ],
+  "reconciliationConfirmation": "REEDITPRO_CONFIRM_MODEL_ORCHESTRATION_PROVIDER_EVIDENCE_RECONCILIATION",
   "forbiddenConfirmations": [
     "REEDITPRO_CONFIRM_PROVIDER_CALLS",
     "REEDITPRO_CONFIRM_QWEN_API_CALL",
@@ -50,6 +52,7 @@
     "REEDITPRO_CONFIRM_TRACK_A_RUNTIME",
     "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING"
   ],
+  "reconciliationModeFlag": "--reconcile-provider-evidence",
   "contractFlow": [
     "provider_evidence",
     "agent_findings_v1",

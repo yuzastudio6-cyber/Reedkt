@@ -3,13 +3,11 @@
   "status": "blocked",
   "decision": "blocked_pending_provider_dry_run_evidence",
   "activeBlockers": [
-    "pr322_qwen_provider_evidence_not_ready",
+    "pr322_qwen_pass_evidence_missing",
     "pr322_qwen_schema_rerun_provider_timeout",
-    "pr322_qwen_schema_cases_did_not_pass",
-    "pr320_provider_dry_run_not_passed",
-    "pr320_deepseek_provider_dry_run_not_passed"
+    "pr322_qwen_schema_cases_did_not_pass"
   ],
-  "blockerCount": 5,
+  "blockerCount": 3,
   "blockedUntil": "Qwen provider schema rerun no longer times out and provider evidence reports pass.",
   "providerCalls": false,
   "secretPayloadAccess": false,

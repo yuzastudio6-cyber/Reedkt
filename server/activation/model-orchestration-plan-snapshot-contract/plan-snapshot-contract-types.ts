@@ -11,6 +11,7 @@ export type ModelOrchestrationPlanSnapshotContractDecision =
 export interface ModelOrchestrationPlanSnapshotContractReports {
   sourceOfTruthOwnershipAudit: Record<string, unknown>
   contractPlan: Record<string, unknown>
+  providerEvidenceReconciliation: Record<string, unknown>
   evidenceInventory: Record<string, unknown>
   agentFindingsSchema: Record<string, unknown>
   editIntentsSchema: Record<string, unknown>

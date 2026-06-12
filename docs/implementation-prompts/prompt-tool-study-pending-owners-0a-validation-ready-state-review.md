@@ -14,6 +14,11 @@ Add validation review docs, readiness matrix, gap register, mark-ready recommend
 - Branch: `codex/tool-study-pending-owners-0a-validation-ready-state-review`
 - Base: `origin/codex/tool-study-pending-owners-0`
 - PR title: `[tool] TOOL-STUDY-PENDING-OWNERS-0A owner study validation ready-state review`
+- PR URL: https://github.com/yuzastudio6-cyber/Reedkt/pull/363
+- PR state: `OPEN`
+- PR mode: `draft`
+- PR mergeability: `MERGEABLE / CLEAN`
+- GitHub checks: `no_check_rollup_returned`
 - Decision state: `ready_with_warnings_to_mark_pr_360_ready_for_review`
 - Mark-ready action taken: `false`
 - Production capability enabled: `none; pending owner tool-study validation and ready-state review only`

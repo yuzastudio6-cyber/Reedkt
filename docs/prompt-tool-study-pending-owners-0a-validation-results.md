@@ -78,9 +78,15 @@ Status: `local_validation_passed`
 
 ## PR And CI
 
-- PR URL: `pending`
+- PR URL: https://github.com/yuzastudio6-cyber/Reedkt/pull/363
 - PR mode: `draft`
-- GitHub checks: `pending`
+- PR state: `OPEN`
+- PR mergeability: `MERGEABLE`
+- PR merge state: `CLEAN`
+- PR base: `codex/tool-study-pending-owners-0`
+- PR head: `codex/tool-study-pending-owners-0a-validation-ready-state-review`
+- GitHub checks: `no_check_rollup_returned`
+- PR status captured at: `2026-06-12T23:34:37Z`
 
 ## Internal Beta And Tool-Route Blockers
 

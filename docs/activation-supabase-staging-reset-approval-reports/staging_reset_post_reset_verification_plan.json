@@ -1,0 +1,19 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "planned_not_run",
+  "requiredVerification": [
+    "migration_history_verification",
+    "schema_rls_verification",
+    "activation_milestone_registry_table_verification",
+    "pr_198_backfill_preflight_and_diff_only",
+    "production_untouched_verification",
+    "secret_redaction_verification"
+  ],
+  "trackBBackfillInResetPhase": false,
+  "trackBBackfillRequiresSeparateApproval": true,
+  "stagingResetRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

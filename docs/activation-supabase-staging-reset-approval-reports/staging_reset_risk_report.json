@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "blocked",
+  "overallRisk": "high",
+  "riskDimensions": {
+    "dataLoss": "high_until_data_impact_review_passes",
+    "authUserDisruption": "medium_high_until_auth_record_review_passes",
+    "privateArtifactReferenceLoss": "medium_high_until_reference_review_passes",
+    "migrationFailure": "medium_high_until_dry_run_passes",
+    "rollbackDifficulty": "high_until_backup_snapshot_plan_passes",
+    "productionConfusion": "low_with_target_proof_required_again",
+    "secretExposure": "low_in_this_packet_no_secret_payload_access",
+    "trackBBackfillDelay": "medium_backfill_remains_separate"
+  },
+  "blockers": [
+    "staging_data_impact_not_reviewed",
+    "staging_backup_snapshot_plan_missing",
+    "migration_order_dry_run_required"
+  ],
+  "unacceptableStagingResetRisk": false,
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

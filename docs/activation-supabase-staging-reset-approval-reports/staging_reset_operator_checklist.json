@@ -1,0 +1,22 @@
+{
+  "phase": "supabase-staging-reset-approval-packet",
+  "runId": "supabase-staging-reset-approval-packet-20260609",
+  "status": "blocked",
+  "checklist": [
+    "staging target confirmed",
+    "production excluded",
+    "data impact reviewed",
+    "backup/snapshot plan reviewed",
+    "migration order reviewed",
+    "dry-run required before reset/reapply execution",
+    "reset execution command approved in separate phase",
+    "post-reset verification checklist reviewed",
+    "rollback plan reviewed",
+    "Track B backfill remains separate",
+    "no secrets printed",
+    "human approval required"
+  ],
+  "completionRequiredBeforeExecution": true,
+  "stagingResetRun": false,
+  "productionAffected": false
+}

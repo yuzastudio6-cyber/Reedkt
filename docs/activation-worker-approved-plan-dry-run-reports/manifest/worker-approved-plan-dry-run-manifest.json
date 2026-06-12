@@ -1,0 +1,144 @@
+{
+  "phase": "WORKER_1",
+  "runId": "worker1-20260612T193823",
+  "reportDir": "docs/activation-worker-approved-plan-dry-run-reports",
+  "branch": "codex/rp-worker-1-approved-plan-snapshot-dry-run",
+  "baseBranch": "codex/rp-worker-0-worker-runtime-jobs-repo-audit",
+  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/",
+  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker1/worker1-20260612T193823/",
+  "expectedGeneratedArtifacts": [
+    "audit/repo-ownership-audit.json",
+    "evidence/plan-snapshot-evidence-context.json",
+    "dry-run/worker-job-batch-plan.json",
+    "dry-run/worker-job-dependency-plan.json",
+    "dry-run/simulated-claim-lease-result.json",
+    "validation/artifact-scope-validation.json",
+    "validation/blocked-route-validation.json",
+    "event-log/worker-event-log-plan.json",
+    "gaps/worker-dry-run-gap-map.json",
+    "roadmap/worker-dry-run-next-phase-plan.json",
+    "manifest/worker-approved-plan-dry-run-manifest.json"
+  ],
+  "expectedQaArtifacts": [
+    "qa/worker-approved-plan-dry-run-qa.json",
+    "reports/worker-approved-plan-dry-run-report.json"
+  ],
+  "privateArtifactUpload": {
+    "status": "uploaded",
+    "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/",
+    "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker1/worker1-20260612T193823/",
+    "artifacts": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/audit/repo-ownership-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/audit/repo-ownership-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/evidence/plan-snapshot-evidence-context.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/evidence/plan-snapshot-evidence-context.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/dry-run/worker-job-batch-plan.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/dry-run/worker-job-batch-plan.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/dry-run/worker-job-dependency-plan.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/dry-run/worker-job-dependency-plan.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/dry-run/simulated-claim-lease-result.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/dry-run/simulated-claim-lease-result.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/validation/artifact-scope-validation.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/validation/artifact-scope-validation.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/validation/blocked-route-validation.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/validation/blocked-route-validation.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/event-log/worker-event-log-plan.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/event-log/worker-event-log-plan.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/gaps/worker-dry-run-gap-map.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/gaps/worker-dry-run-gap-map.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/roadmap/worker-dry-run-next-phase-plan.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/roadmap/worker-dry-run-next-phase-plan.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/manifest/worker-approved-plan-dry-run-manifest.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/manifest/worker-approved-plan-dry-run-manifest.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/qa/worker-approved-plan-dry-run-qa.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker1/worker1-20260612T193823/qa/worker-approved-plan-dry-run-qa.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-worker-runtime/worker1/worker1-20260612T193823/reports/worker-approved-plan-dry-run-report.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker1/worker1-20260612T193823/reports/worker-approved-plan-dry-run-report.json",
+        "private": true
+      }
+    ],
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPromptPayloadsStored": false,
+    "rawProviderResponsesStored": false,
+    "secretPayloadsStored": false
+  },
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "syncLayerDirectoryPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  },
+  "safetyFlags": {
+    "workerExecution": false,
+    "toolExecution": false,
+    "providerCalls": false,
+    "routeExecution": false,
+    "runtimeExecution": false,
+    "mediaProcessing": false,
+    "browserMapWeb": false,
+    "sqlMigrationsSchemaRls": false,
+    "supabaseProductRows": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPrompts": false,
+    "rawProviderResponses": false,
+    "production": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "broadMedia": false
+  }
+}

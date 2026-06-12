@@ -1,0 +1,102 @@
+{
+  "phase": "WORKER_1",
+  "owner": "WORKER_RUNTIME_JOBS",
+  "runId": "worker1-20260612T193823",
+  "status": "passed",
+  "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+  "branch": "codex/rp-worker-1-approved-plan-snapshot-dry-run",
+  "baseBranch": "codex/rp-worker-0-worker-runtime-jobs-repo-audit",
+  "prTitle": "[worker] Approved plan snapshot dry run",
+  "worker0Evidence": {
+    "runId": "worker0-20260612T191022",
+    "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+    "status": "passed",
+    "worker1Readiness": "ready for approved-plan snapshot dry-run",
+    "privateArtifactUploadStatus": "uploaded"
+  },
+  "planSnapshotEvidence": {
+    "runId": "plansnapshot1-20260612T182758",
+    "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+    "status": "passed",
+    "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+    "executionStatus": "candidate_only",
+    "approvedForRuntime": false
+  },
+  "modelDryRunEvidence": {
+    "runId": "modeldryrun1-20260612T174538",
+    "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+    "status": "passed",
+    "planSnapshotContractReady": true
+  },
+  "dryRunJobBatchPlan": {
+    "batchId": "worker1-batch-worker1-20260612T193823",
+    "sourcePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+    "jobCount": 7,
+    "dependencyCount": 10,
+    "dryRunOnly": true,
+    "workerExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "approvedForRuntime": false
+  },
+  "simulatedClaimLease": {
+    "status": "passed",
+    "claimAttempted": false,
+    "simulatedClaim": true,
+    "blockerForRealRuntime": "blocked_until_future_transactional_backend_runtime"
+  },
+  "artifactScopeValidation": {
+    "status": "passed",
+    "privateGsPrefixesOnly": true,
+    "noPublicArtifacts": true,
+    "noSignedUrlSourceOfTruth": true
+  },
+  "blockedRouteValidation": {
+    "status": "passed",
+    "blockedRouteCount": 12,
+    "allExecutionBlocked": true
+  },
+  "eventLogPlan": {
+    "status": "passed",
+    "eventCount": 11,
+    "agentRunCount": 7,
+    "persistToDatabase": false
+  },
+  "workerDryRunGapMap": {
+    "status": "passed",
+    "gapCount": 5,
+    "toolRoute0Readiness": "ready for tool-route execution unlock audit"
+  },
+  "toolRoute0Readiness": "ready for tool-route execution unlock audit",
+  "privateArtifactUploadStatus": "uploaded",
+  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/",
+  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker1/worker1-20260612T193823/",
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "syncLayerDirectoryPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  },
+  "safetyFlags": {
+    "workerExecution": false,
+    "toolExecution": false,
+    "providerCalls": false,
+    "routeExecution": false,
+    "runtimeExecution": false,
+    "mediaProcessing": false,
+    "browserMapWeb": false,
+    "sqlMigrationsSchemaRls": false,
+    "supabaseProductRows": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPrompts": false,
+    "rawProviderResponses": false,
+    "production": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "broadMedia": false
+  },
+  "activeBlockers": []
+}

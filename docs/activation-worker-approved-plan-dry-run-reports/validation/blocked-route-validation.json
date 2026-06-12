@@ -1,0 +1,80 @@
+{
+  "phase": "WORKER_1",
+  "status": "passed",
+  "blockedRoutes": [
+    {
+      "routeId": "track_a_runtime",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "executionAllowed": false,
+      "blockedReason": "Track A render/export implementation is out of WORKER-1 scope."
+    },
+    {
+      "routeId": "track_b_runtime",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "executionAllowed": false,
+      "blockedReason": "Track B media/model runtime is out of WORKER-1 scope."
+    },
+    {
+      "routeId": "ai_tools_runtime",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "executionAllowed": false,
+      "blockedReason": "Tool-owner studies and route unlock audits must precede tool execution."
+    },
+    {
+      "routeId": "map_rendering",
+      "owner": "MAP_GEOSPATIAL",
+      "executionAllowed": false,
+      "blockedReason": "Map rendering remains owner-gated and non-executing."
+    },
+    {
+      "routeId": "web_search_execution",
+      "owner": "COMPLIANCE_SECURITY",
+      "executionAllowed": false,
+      "blockedReason": "Web search execution remains blocked in WORKER-1."
+    },
+    {
+      "routeId": "browser_capture",
+      "owner": "COMPLIANCE_SECURITY",
+      "executionAllowed": false,
+      "blockedReason": "Browser capture remains blocked in WORKER-1."
+    },
+    {
+      "routeId": "provider_calls",
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "executionAllowed": false,
+      "blockedReason": "Provider calls are not part of Worker Runtime dry-run."
+    },
+    {
+      "routeId": "media_processing",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "executionAllowed": false,
+      "blockedReason": "Media processing is not approved by this dry-run."
+    },
+    {
+      "routeId": "route_execution",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "executionAllowed": false,
+      "blockedReason": "WORKER-1 validates routes as blocked metadata only."
+    },
+    {
+      "routeId": "public_artifact_delivery",
+      "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+      "executionAllowed": false,
+      "blockedReason": "Public artifacts remain blocked."
+    },
+    {
+      "routeId": "signed_url_creation_or_source_of_truth",
+      "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+      "executionAllowed": false,
+      "blockedReason": "Signed URLs remain blocked as source of truth."
+    },
+    {
+      "routeId": "raw_prompt_execution",
+      "owner": "COMPLIANCE_SECURITY",
+      "executionAllowed": false,
+      "blockedReason": "Workers must execute approved snapshots, not raw prompts."
+    }
+  ],
+  "allExecutionBlocked": true,
+  "activeBlockers": []
+}

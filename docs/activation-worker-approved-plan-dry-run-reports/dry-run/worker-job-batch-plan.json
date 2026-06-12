@@ -1,0 +1,504 @@
+{
+  "phase": "WORKER_1",
+  "batchId": "worker1-batch-worker1-20260612T193823",
+  "sourcePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "jobs": [
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "jobType": "snapshot_intake_validation",
+      "ownerRoute": "WORKER_RUNTIME_JOBS",
+      "sourceRefs": [
+        "candidate-approved-plan-plansnapshot1-20260612T182758"
+      ],
+      "dependencyIds": [],
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false,
+      "status": "planned_not_executed"
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "jobType": "selected_intent_route_review",
+      "ownerRoute": "COORDINATOR_PRODUCER_QA",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_caption_recommendation",
+        "route:caption_recommendation"
+      ],
+      "dependencyIds": [
+        "worker1-job-worker1-20260612T193823-snapshot-intake"
+      ],
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false,
+      "status": "planned_not_executed"
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "jobType": "selected_intent_route_review",
+      "ownerRoute": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_chart_card_metadata",
+        "route:chart_card_metadata"
+      ],
+      "dependencyIds": [
+        "worker1-job-worker1-20260612T193823-snapshot-intake"
+      ],
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false,
+      "status": "planned_not_executed"
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "jobType": "selected_intent_route_review",
+      "ownerRoute": "MAP_GEOSPATIAL",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_map_card_metadata",
+        "route:map_card_metadata"
+      ],
+      "dependencyIds": [
+        "worker1-job-worker1-20260612T193823-snapshot-intake"
+      ],
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false,
+      "status": "planned_not_executed"
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "jobType": "selected_intent_route_review",
+      "ownerRoute": "MODEL_ORCHESTRATION",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_timeline_metadata_planning",
+        "route:timeline_metadata_planning"
+      ],
+      "dependencyIds": [
+        "worker1-job-worker1-20260612T193823-snapshot-intake"
+      ],
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false,
+      "status": "planned_not_executed"
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "jobType": "implementation_proposal_review",
+      "ownerRoute": "MODEL_ORCHESTRATION",
+      "sourceRefs": [
+        "plansnapshot1_deepseek_proposal_1",
+        "plansnapshot1_deepseek_proposal_2",
+        "plansnapshot1_deepseek_proposal_3",
+        "plansnapshot1_deepseek_proposal_4"
+      ],
+      "dependencyIds": [
+        "worker1-job-worker1-20260612T193823-snapshot-intake"
+      ],
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false,
+      "status": "planned_not_executed"
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "jobType": "artifact_blocked_route_event_validation",
+      "ownerRoute": "COMPLIANCE_SECURITY",
+      "sourceRefs": [
+        "artifact_scope_validation",
+        "blocked_route_validation",
+        "worker_event_log_plan"
+      ],
+      "dependencyIds": [
+        "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+        "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+        "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+        "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+        "worker1-job-worker1-20260612T193823-deepseek-proposal-review"
+      ],
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false,
+      "status": "planned_not_executed"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-proposal-after-intake",
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Implementation proposal review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_deepseek_proposal_review",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    }
+  ],
+  "eventLogPlan": [
+    {
+      "eventId": "worker1-event-worker1-20260612T193823-batch-planned",
+      "eventType": "dry_run_batch_planned",
+      "message": "Worker approved-plan dry-run batch planned without execution.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_snapshot_intake-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job snapshot_intake_validation planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_deepseek_proposal_review-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job implementation_proposal_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_artifact_route_event_validation-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job artifact_blocked_route_event_validation planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    }
+  ],
+  "agentRunPlan": [
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_snapshot_intake",
+      "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_deepseek_proposal_review",
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_artifact_route_event_validation",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    }
+  ],
+  "artifactScopes": [
+    {
+      "scopeId": "worker1-generated-worker1-20260612T193823",
+      "ownerRoute": "WORKER_RUNTIME_JOBS",
+      "gcsPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/",
+      "privateOnly": true,
+      "checksumRequired": true,
+      "manifestRequired": true,
+      "cleanupRollbackRequired": true,
+      "signedUrlSourceOfTruthAllowed": false,
+      "publicArtifactAllowed": false
+    },
+    {
+      "scopeId": "worker1-qa-worker1-20260612T193823",
+      "ownerRoute": "OBSERVABILITY_AUDIT_COST",
+      "gcsPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker1/worker1-20260612T193823/",
+      "privateOnly": true,
+      "checksumRequired": true,
+      "manifestRequired": true,
+      "cleanupRollbackRequired": true,
+      "signedUrlSourceOfTruthAllowed": false,
+      "publicArtifactAllowed": false
+    }
+  ],
+  "ownerRoutes": [
+    {
+      "owner": "MODEL_ORCHESTRATION",
+      "routePurpose": "Review provider-derived planning intent labels and candidate snapshot structure.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "COORDINATOR_PRODUCER_QA",
+      "routePurpose": "Review professional editing QA requirements and user-approval gate implications.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "WORKER_RUNTIME_JOBS",
+      "routePurpose": "Audit future worker-runtime contract boundaries before any execution implementation.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "routePurpose": "Review render/export implications as handoff metadata only.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "routePurpose": "Review media-processing implications as handoff metadata only.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "routePurpose": "Review chart/card/graphics route labels before any tool strategy work.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "routePurpose": "Review map route labels before any map/geospatial tool strategy work.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "routePurpose": "Review sound/music/audio implications before any audio planning work.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "routePurpose": "Review provider policy boundaries and future provider route approval requirements.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "routePurpose": "Review future approved-plan persistence needs; no SQL or row writes in this phase.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "COMPLIANCE_SECURITY",
+      "routePurpose": "Review privacy, redaction, source-of-truth, and signed URL blockers.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "OBSERVABILITY_AUDIT_COST",
+      "routePurpose": "Review traceability, cost limits, and audit fields before runtime work.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "FRONTEND_PRODUCT_UX",
+      "routePurpose": "Review candidate snapshot UX exposure boundaries before product UI work.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "BILLING_STRIPE_CREDITS",
+      "routePurpose": "Review credit-estimate and reservation implications; no billing action authorized.",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+      "routePurpose": "Keep public artifacts and signed URL source-of-truth blocked pending future policy.",
+      "status": "blocked_future_policy",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    }
+  ],
+  "blockedRoutes": [
+    "track_a_runtime",
+    "track_b_runtime",
+    "ai_tools_runtime",
+    "map_rendering",
+    "web_search_execution",
+    "browser_capture",
+    "provider_calls",
+    "media_processing",
+    "route_execution",
+    "public_artifact_delivery",
+    "signed_url_creation_or_source_of_truth",
+    "raw_prompt_execution"
+  ],
+  "rollbackPlan": [
+    "Discard local/private dry-run artifacts if any QA gate fails.",
+    "Do not mutate approved snapshots, job rows, worker claims, or Supabase product rows.",
+    "Require a new WORKER-1 run before TOOL-ROUTE-0 if source evidence changes."
+  ],
+  "idempotencyKey": "worker1:worker1-20260612T193823:candidate-approved-plan-plansnapshot1-20260612T182758",
+  "dryRunOnly": true,
+  "workerExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "routeExecutionAllowed": false,
+  "approvedForRuntime": false
+}

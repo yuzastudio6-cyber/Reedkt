@@ -1,10 +1,20 @@
 {
-  "mode": "proof_only",
+  "mode": "guarded_restore",
+  "executeRequested": true,
   "requiredConfirmations": [
     "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE",
     "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL"
   ],
-  "confirmationsPresent": false,
+  "requiredExecutionEnv": {
+    "GCP_PROJECT_ID": "reeditpro",
+    "GCP_REGION": "us-central1",
+    "REEDITPRO_ENV": "staging",
+    "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE": "true",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL": "true"
+  },
+  "confirmationsPresent": true,
+  "executionGuardPassed": true,
+  "confirmedSecretSourceRequired": "google_secret_manager",
   "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
   "applyOnlyThisMigration": true,
   "dbPushOverFullMigrationDirectoryAllowed": false,
@@ -20,5 +30,5 @@
     "tool_capabilities",
     "feature_gates"
   ],
-  "nextAction": "set_confirmation_gates_before_sql_or_gcs_execution"
+  "nextAction": "verify_postgrest_visibility"
 }

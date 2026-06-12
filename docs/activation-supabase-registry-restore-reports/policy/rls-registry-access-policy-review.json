@@ -1,65 +1,64 @@
 {
-  "status": "not_attempted",
-  "checkedWithSql": false,
+  "status": "passed",
+  "checkedWithSql": true,
   "tables": [
     {
-      "tableName": "activation_runs",
-      "exists": false,
-      "rlsEnabled": false,
-      "anonUnsafeAccess": false,
-      "authenticatedUnsafeAccess": false,
-      "publicUnsafeAccess": false,
-      "serviceRoleAccess": false
-    },
-    {
+      "exists": true,
       "tableName": "activation_artifacts",
-      "exists": false,
-      "rlsEnabled": false,
+      "rlsEnabled": true,
       "anonUnsafeAccess": false,
-      "authenticatedUnsafeAccess": false,
+      "serviceRoleAccess": true,
       "publicUnsafeAccess": false,
-      "serviceRoleAccess": false
+      "authenticatedUnsafeAccess": false
     },
     {
+      "exists": true,
       "tableName": "activation_qa_gates",
-      "exists": false,
-      "rlsEnabled": false,
+      "rlsEnabled": true,
       "anonUnsafeAccess": false,
-      "authenticatedUnsafeAccess": false,
+      "serviceRoleAccess": true,
       "publicUnsafeAccess": false,
-      "serviceRoleAccess": false
+      "authenticatedUnsafeAccess": false
     },
     {
-      "tableName": "readiness_snapshots",
-      "exists": false,
-      "rlsEnabled": false,
+      "exists": true,
+      "tableName": "activation_runs",
+      "rlsEnabled": true,
       "anonUnsafeAccess": false,
-      "authenticatedUnsafeAccess": false,
+      "serviceRoleAccess": true,
       "publicUnsafeAccess": false,
-      "serviceRoleAccess": false
+      "authenticatedUnsafeAccess": false
     },
     {
-      "tableName": "tool_capabilities",
-      "exists": false,
-      "rlsEnabled": false,
-      "anonUnsafeAccess": false,
-      "authenticatedUnsafeAccess": false,
-      "publicUnsafeAccess": false,
-      "serviceRoleAccess": false
-    },
-    {
+      "exists": true,
       "tableName": "feature_gates",
-      "exists": false,
-      "rlsEnabled": false,
+      "rlsEnabled": true,
       "anonUnsafeAccess": false,
-      "authenticatedUnsafeAccess": false,
+      "serviceRoleAccess": true,
       "publicUnsafeAccess": false,
-      "serviceRoleAccess": false
+      "authenticatedUnsafeAccess": false
+    },
+    {
+      "exists": true,
+      "tableName": "readiness_snapshots",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
+    },
+    {
+      "exists": true,
+      "tableName": "tool_capabilities",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
     }
   ],
-  "allTablesPresent": false,
-  "rlsEnabledOnAllTables": false,
+  "allTablesPresent": true,
+  "rlsEnabledOnAllTables": true,
   "unsafeAnonAuthenticatedOrPublicAccess": false,
-  "serviceRoleAccessOnAllTables": false,
-  "blocker": "SQL confirmation gates are absent; catalog SQL was not attempted."
+  "serviceRoleAccessOnAllTables": true
 }

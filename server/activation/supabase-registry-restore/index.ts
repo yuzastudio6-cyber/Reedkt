@@ -10,8 +10,8 @@ import {
   createSupabaseMilestoneServiceClient,
   inspectSupabaseMilestoneRegistryTables,
   psqlAvailable,
-  resolveSupabaseMilestoneCredentials,
-  resolveSupabaseMilestoneDbUrl,
+  type SupabaseMilestoneCredentialResolution,
+  type SupabaseMilestoneDbUrlResolution,
 } from '../supabase-milestone-registry/supabase-milestone-client'
 import {
   supabaseMilestoneRegistryConfig,
@@ -46,6 +46,13 @@ export const SUPABASE_REGISTRY_RESTORE_REQUIRED_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE',
   'REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL',
 ] as const
+export const SUPABASE_REGISTRY_RESTORE_REQUIRED_EXECUTION_ENV = {
+  GCP_PROJECT_ID: 'reeditpro',
+  GCP_REGION: 'us-central1',
+  REEDITPRO_ENV: 'staging',
+  REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE: 'true',
+  REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL: 'true',
+} as const
 
 export const SUPABASE_REGISTRY_RESTORE_BLOCKED_FEATURES = [
   'production',
@@ -67,6 +74,7 @@ export const SUPABASE_REGISTRY_RESTORE_EXPECTED_LOCAL_ARTIFACTS = [
   'audit/schema-cache-visibility.json',
   'policy/rls-registry-access-policy-review.json',
   'restore/registry-restore-plan.json',
+  'restore/registry-restore-result.json',
   'verification/postgrest-registry-visibility.json',
   'handoff/provider1-unblock-handoff.json',
   'qa/supabase-registry-restore-qa.json',
@@ -145,11 +153,29 @@ interface RestoreResultReport {
 }
 
 interface ProviderHandoffReport {
-  status: 'provider1_unblocked' | 'blocked'
+  status: 'ready_to_rerun_PROVIDER_1_milestone_sync' | 'blocked'
   provider1Pr: 'https://github.com/yuzastudio6-cyber/Reedkt/pull/307'
   canRerunProvider1MilestoneSync: boolean
   blockers: string[]
   nextOwner: 'PROVIDER_GATEWAY_MODELS' | 'SUPABASE_RLS_STORAGE_DATABASE'
+}
+
+interface ExecutionGuardReport {
+  status: GateStatus
+  executeRequested: boolean
+  executionAttempted: boolean
+  requiredEnv: typeof SUPABASE_REGISTRY_RESTORE_REQUIRED_EXECUTION_ENV
+  checks: Array<{
+    name: keyof typeof SUPABASE_REGISTRY_RESTORE_REQUIRED_EXECUTION_ENV | '--execute'
+    expected: string | true
+    actual: string | null | boolean
+    passed: boolean
+  }>
+  secretPayloadResolutionAllowed: boolean
+  sqlAllowed: boolean
+  gcsUploadAllowed: boolean
+  requiredSecretSource: 'google_secret_manager'
+  blockers: string[]
 }
 
 interface QaReport {
@@ -185,6 +211,7 @@ export interface SupabaseRegistryRestoreReport {
   schemaCacheVisibility: Record<string, unknown>
   rlsSecurityReview: RegistryCatalogReport
   restorePlan: Record<string, unknown>
+  executionGuard: ExecutionGuardReport
   restoreResult: RestoreResultReport
   postgrestVisibility: SupabaseRegistrySchemaVerification
   provider1UnblockHandoff: ProviderHandoffReport
@@ -215,9 +242,11 @@ export function supabaseRegistryRestoreArtifactPrefix(runId: string): string {
 export async function runSupabaseRegistryRestore(input: {
   runId?: string
   writeLocalArtifacts?: boolean
+  execute?: boolean
 } = {}) {
   const runId = input.runId ?? process.env.REEDITPRO_SUPABASE_REGISTRY1_RUN_ID ?? makeSupabaseRegistryRestoreRunId()
-  const restoreConfirmed = confirmationsPresent()
+  const executionGuard = buildExecutionGuardReport(input.execute === true)
+  const restoreConfirmed = executionGuard.status === 'passed'
   const warnings: string[] = []
   const blockers: string[] = []
 
@@ -234,28 +263,44 @@ export async function runSupabaseRegistryRestore(input: {
   const migrationSafety = buildMigrationSafetyReport()
   if (migrationSafety.status === 'blocked') blockers.push(...migrationSafety.blockers)
 
+  const preExecutionBlockers = [...blockers]
+  const confirmedExecutionAllowed = restoreConfirmed && preExecutionBlockers.length === 0
+
   let registryTableStatus = notAttemptedCatalogReport(
-    restoreConfirmed ? 'DB URL has not been resolved yet.' : 'SQL confirmation gates are absent; catalog SQL was not attempted.',
+    restoreConfirmed ? 'DB URL has not been resolved yet.' : 'Confirmed execution guard did not pass; catalog SQL was not attempted.',
   )
   let migrationHistoryStatus = notAttemptedMigrationHistory(
-    restoreConfirmed ? 'DB URL has not been resolved yet.' : 'SQL confirmation gates are absent; migration history SQL was not attempted.',
+    restoreConfirmed ? 'DB URL has not been resolved yet.' : 'Confirmed execution guard did not pass; migration history SQL was not attempted.',
   )
   let postgrestVisibility = notAttemptedPostgrestVisibility(
-    restoreConfirmed ? 'Supabase service-role credentials have not been resolved yet.' : 'Proof-only mode does not read service-role secret payloads.',
+    restoreConfirmed ? 'Supabase service-role credentials have not been resolved yet.' : 'Proof-only or blocked guard mode does not read service-role secret payloads.',
   )
   let restoreResult: RestoreResultReport = {
     status: restoreConfirmed ? 'blocked' : 'not_attempted',
     sqlExecuted: false,
     migrationApplied: false,
     migrationFile: supabaseMilestoneRegistryConfig.migrationFile,
-    blocker: restoreConfirmed ? 'Restore preflight has not completed.' : 'Proof-only mode does not execute SQL or migrations.',
+    blocker: restoreConfirmed ? 'Restore preflight has not completed.' : 'Confirmed execution guard did not pass; SQL and migrations were not attempted.',
     warnings: [],
   }
 
   if (!restoreConfirmed) {
-    blockers.push('blocked_pending_supabase_registry_restore_confirmation')
-    warnings.push('Proof-only mode completed because REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE and REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL are not both true.')
-  } else if (blockers.length === 0) {
+    if (executionGuard.executionAttempted) {
+      restoreResult = {
+        status: 'blocked',
+        sqlExecuted: false,
+        migrationApplied: false,
+        migrationFile: supabaseMilestoneRegistryConfig.migrationFile,
+        blocker: 'Confirmed restore execution was requested, but --execute and the exact staging environment guard were not all present.',
+        warnings: [],
+      }
+      blockers.push(...executionGuard.blockers)
+      warnings.push('Confirmed restore was blocked before secret payload resolution, SQL, migration apply, or GCS upload because the execution guard did not pass.')
+    } else {
+      blockers.push('blocked_pending_supabase_registry_restore_confirmation')
+      warnings.push('Proof-only mode completed because --execute and the confirmed staging restore environment were not supplied.')
+    }
+  } else if (confirmedExecutionAllowed) {
     const confirmedResult = await runConfirmedRestore(approvedStagingTarget.approvedStagingProjectRef)
     registryTableStatus = confirmedResult.registryTableStatus
     migrationHistoryStatus = confirmedResult.migrationHistoryStatus
@@ -263,6 +308,15 @@ export async function runSupabaseRegistryRestore(input: {
     restoreResult = confirmedResult.restoreResult
     blockers.push(...confirmedResult.blockers)
     warnings.push(...confirmedResult.warnings)
+  } else {
+    restoreResult = {
+      status: 'blocked',
+      sqlExecuted: false,
+      migrationApplied: false,
+      migrationFile: supabaseMilestoneRegistryConfig.migrationFile,
+      blocker: 'Confirmed execution guard passed, but metadata/static preflight blockers prevented secret payload resolution, SQL, migration apply, and GCS upload.',
+      warnings: [],
+    }
   }
 
   const schemaCacheVisibility = buildSchemaCacheVisibility(postgrestVisibility, registryTableStatus)
@@ -277,6 +331,7 @@ export async function runSupabaseRegistryRestore(input: {
     postgrestVisibility,
     restoreResult,
     provider1UnblockHandoff,
+    executionGuard,
     restoreConfirmed,
   })
   blockers.push(...qa.blockers)
@@ -298,7 +353,8 @@ export async function runSupabaseRegistryRestore(input: {
     migrationHistoryStatus,
     schemaCacheVisibility,
     rlsSecurityReview: registryTableStatus,
-    restorePlan: buildRestorePlan(restoreConfirmed, registryTableStatus),
+    restorePlan: buildRestorePlan(executionGuard, registryTableStatus),
+    executionGuard,
     restoreResult,
     postgrestVisibility,
     provider1UnblockHandoff,
@@ -314,7 +370,7 @@ export async function runSupabaseRegistryRestore(input: {
     warnings: unique(warnings),
   }
 
-  if (restoreConfirmed && bucketMetadata.status !== 'blocked') {
+  if (confirmedExecutionAllowed && bucketMetadata.status !== 'blocked') {
     const uploadBlockers = await uploadPrivateArtifacts(report)
     report.gcsUploaded = uploadBlockers.length === 0
     report.blockers = unique([...report.blockers, ...uploadBlockers])
@@ -360,7 +416,7 @@ async function runConfirmedRestore(approvedProjectRef: string | null): Promise<{
 }> {
   const blockers: string[] = []
   const warnings: string[] = []
-  const credentialResolution = await resolveSupabaseMilestoneCredentials()
+  const credentialResolution = await resolveConfirmedSecretManagerCredentials()
   warnings.push(...credentialResolution.warnings)
   if (!credentialResolution.configured) blockers.push(...credentialResolution.blockers)
 
@@ -369,7 +425,7 @@ async function runConfirmedRestore(approvedProjectRef: string | null): Promise<{
     blockers.push(`Supabase URL project ref mismatch: expected ${approvedProjectRef}, got ${resolvedProjectRef}.`)
   }
 
-  const dbUrlResolution = await resolveSupabaseMilestoneDbUrl()
+  const dbUrlResolution = await resolveConfirmedSecretManagerDbUrl()
   warnings.push(...dbUrlResolution.warnings)
   if (!dbUrlResolution.configured || !dbUrlResolution.dbUrl) blockers.push(...dbUrlResolution.blockers)
 
@@ -456,6 +512,136 @@ async function runConfirmedRestore(approvedProjectRef: string | null): Promise<{
 
 function confirmationsPresent(): boolean {
   return SUPABASE_REGISTRY_RESTORE_REQUIRED_CONFIRMATIONS.every((name) => process.env[name] === 'true')
+}
+
+function buildExecutionGuardReport(executeRequested: boolean): ExecutionGuardReport {
+  const requiredEnv = SUPABASE_REGISTRY_RESTORE_REQUIRED_EXECUTION_ENV
+  const envChecks = Object.entries(requiredEnv).map(([name, expected]) => {
+    const actual = process.env[name] ?? null
+    return {
+      name: name as keyof typeof SUPABASE_REGISTRY_RESTORE_REQUIRED_EXECUTION_ENV,
+      expected,
+      actual,
+      passed: actual === expected,
+    }
+  })
+  const checks: ExecutionGuardReport['checks'] = [
+    {
+      name: '--execute',
+      expected: true,
+      actual: executeRequested,
+      passed: executeRequested,
+    },
+    ...envChecks,
+  ]
+  const blockers = checks
+    .filter((check) => !check.passed)
+    .map((check) => check.name === '--execute'
+      ? 'blocked_pending_restore_execute_flag'
+      : `blocked_pending_restore_env:${check.name}`)
+  const executionAttempted = executeRequested
+    || confirmationsPresent()
+    || Object.keys(requiredEnv).some((name) => Boolean(process.env[name]))
+  const passed = blockers.length === 0
+  return {
+    status: passed ? 'passed' : 'blocked',
+    executeRequested,
+    executionAttempted,
+    requiredEnv,
+    checks,
+    secretPayloadResolutionAllowed: passed,
+    sqlAllowed: passed,
+    gcsUploadAllowed: passed,
+    requiredSecretSource: 'google_secret_manager',
+    blockers,
+  }
+}
+
+async function resolveConfirmedSecretManagerCredentials(): Promise<SupabaseMilestoneCredentialResolution> {
+  try {
+    const [rawSupabaseUrl, serviceRoleKey] = await Promise.all([
+      accessSecretManagerValue('SUPABASE_URL'),
+      accessSecretManagerValue('SUPABASE_SERVICE_ROLE_KEY'),
+    ])
+    if (!rawSupabaseUrl || !serviceRoleKey) {
+      return missingSecretManagerCredentials('Secret Manager returned an empty SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY value.')
+    }
+    const normalized = normalizeSupabaseProjectUrl(rawSupabaseUrl)
+    return {
+      configured: true,
+      source: 'google_secret_manager',
+      supabaseUrl: normalized.url,
+      serviceRoleKey,
+      secretValuePrinted: false,
+      secretValueStored: false,
+      blockers: [],
+      warnings: [
+        'Confirmed restore credentials resolved only from Google Secret Manager without printing or storing secret values.',
+        ...normalized.warnings,
+      ],
+    }
+  } catch (error) {
+    return missingSecretManagerCredentials(`Unable to resolve confirmed Secret Manager credentials: ${sanitizeError(error instanceof Error ? error.message : String(error))}`)
+  }
+}
+
+async function resolveConfirmedSecretManagerDbUrl(): Promise<SupabaseMilestoneDbUrlResolution> {
+  try {
+    const dbUrl = await accessSecretManagerValue('SUPABASE_DB_URL')
+    if (!dbUrl) {
+      return missingSecretManagerDbUrl('Secret Manager returned an empty SUPABASE_DB_URL value.')
+    }
+    return {
+      configured: true,
+      source: 'google_secret_manager',
+      dbUrl,
+      secretValuePrinted: false,
+      secretValueStored: false,
+      blockers: [],
+      warnings: ['Confirmed restore DB URL resolved only from SUPABASE_DB_URL in Google Secret Manager without printing or storing the value.'],
+    }
+  } catch (error) {
+    return missingSecretManagerDbUrl(`Unable to resolve confirmed SUPABASE_DB_URL from Secret Manager: ${sanitizeError(error instanceof Error ? error.message : String(error))}`)
+  }
+}
+
+async function accessSecretManagerValue(secretName: 'SUPABASE_URL' | 'SUPABASE_SERVICE_ROLE_KEY' | 'SUPABASE_DB_URL'): Promise<string> {
+  try {
+    const { stdout } = await execFile('gcloud', [
+      'secrets',
+      'versions',
+      'access',
+      'latest',
+      `--secret=${secretName}`,
+      '--project=reeditpro',
+    ], { maxBuffer: 8 * 1024 * 1024 })
+    return stdout.trim()
+  } catch (error) {
+    const err = error as { message?: string; stdout?: string; stderr?: string }
+    throw new Error(sanitizeError(err.stderr || err.message || String(error)), { cause: error })
+  }
+}
+
+function missingSecretManagerCredentials(message: string): SupabaseMilestoneCredentialResolution {
+  return {
+    configured: false,
+    source: 'missing',
+    secretValuePrinted: false,
+    secretValueStored: false,
+    blockers: [message],
+    warnings: ['Confirmed registry restore requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from Google Secret Manager.'],
+  }
+}
+
+function missingSecretManagerDbUrl(message: string): SupabaseMilestoneDbUrlResolution {
+  return {
+    configured: false,
+    source: 'unavailable',
+    secretValuePrinted: false,
+    secretValueStored: false,
+    blockers: [message],
+    warnings: ['Confirmed registry restore requires SUPABASE_DB_URL from Google Secret Manager.'],
+  }
 }
 
 async function buildGcpMetadataReport(): Promise<Record<string, unknown>> {
@@ -586,7 +772,13 @@ left join pg_class c on c.relnamespace = n.oid and c.relname = e.table_name and 
 }
 
 async function queryMigrationHistory(dbUrl: string): Promise<MigrationHistoryReport> {
-  const sql = "select exists (select 1 from supabase_migrations.schema_migrations where version = '202606040001')::text;"
+  const sql = `
+select case
+  when to_regclass('supabase_migrations.schema_migrations') is null then 'missing_table'
+  when exists (select 1 from supabase_migrations.schema_migrations where version = '202606040001') then 'present'
+  else 'missing_version'
+end;
+`
   const result = await runPsql(dbUrl, ['-t', '-A', '-q', '-c', sql])
   if (!result.ok) {
     return {
@@ -597,13 +789,14 @@ async function queryMigrationHistory(dbUrl: string): Promise<MigrationHistoryRep
       blocker: result.error,
     }
   }
-  const present = result.stdout.trim() === 't' || result.stdout.trim() === 'true'
+  const status = result.stdout.trim()
+  const present = status === 'present'
   return {
     status: present ? 'passed' : 'warning',
     migrationId: '202606040001',
     checkedWithSql: true,
     historyPresent: present,
-    blocker: present ? undefined : 'Migration history did not include 202606040001 after verification.',
+    blocker: present ? undefined : `Migration history did not include 202606040001 after verification (${status || 'unknown'}).`,
   }
 }
 
@@ -670,11 +863,17 @@ function buildSchemaCacheVisibility(
   }
 }
 
-function buildRestorePlan(restoreConfirmed: boolean, registryTableStatus: RegistryCatalogReport) {
+function buildRestorePlan(executionGuard: ExecutionGuardReport, registryTableStatus: RegistryCatalogReport) {
   return {
-    mode: restoreConfirmed ? 'guarded_restore' : 'proof_only',
+    mode: executionGuard.status === 'passed'
+      ? 'guarded_restore'
+      : executionGuard.executionAttempted ? 'blocked_pending_execution_guard' : 'proof_only',
+    executeRequested: executionGuard.executeRequested,
     requiredConfirmations: SUPABASE_REGISTRY_RESTORE_REQUIRED_CONFIRMATIONS,
-    confirmationsPresent: restoreConfirmed,
+    requiredExecutionEnv: SUPABASE_REGISTRY_RESTORE_REQUIRED_EXECUTION_ENV,
+    confirmationsPresent: confirmationsPresent(),
+    executionGuardPassed: executionGuard.status === 'passed',
+    confirmedSecretSourceRequired: 'google_secret_manager',
     migrationFile: supabaseMilestoneRegistryConfig.migrationFile,
     applyOnlyThisMigration: true,
     dbPushOverFullMigrationDirectoryAllowed: false,
@@ -683,9 +882,9 @@ function buildRestorePlan(restoreConfirmed: boolean, registryTableStatus: Regist
     providerCallsAllowed: false,
     publicArtifactsAllowed: false,
     expectedTables: supabaseMilestoneRegistryTableNames,
-    nextAction: restoreConfirmed
+    nextAction: executionGuard.status === 'passed'
       ? registryTableStatus.allTablesPresent ? 'verify_postgrest_visibility' : 'apply_existing_registry_migration_if_catalog_missing'
-      : 'set_confirmation_gates_before_sql_or_gcs_execution',
+      : executionGuard.executionAttempted ? 'rerun_with_execute_and_exact_staging_env' : 'set_confirmation_gates_before_sql_or_gcs_execution',
   }
 }
 
@@ -700,7 +899,7 @@ function buildProvider1Handoff(
     && postgrestVisibility.allTablesPresent
     && blockers.length === 0
   return {
-    status: unblocked ? 'provider1_unblocked' : 'blocked',
+    status: unblocked ? 'ready_to_rerun_PROVIDER_1_milestone_sync' : 'blocked',
     provider1Pr: 'https://github.com/yuzastudio6-cyber/Reedkt/pull/307',
     canRerunProvider1MilestoneSync: unblocked,
     blockers: unblocked ? [] : unique([
@@ -722,17 +921,21 @@ function buildQaReport(input: {
   postgrestVisibility: SupabaseRegistrySchemaVerification
   restoreResult: RestoreResultReport
   provider1UnblockHandoff: ProviderHandoffReport
+  executionGuard: ExecutionGuardReport
   restoreConfirmed: boolean
 }): QaReport {
+  const restoreSafetyStatus: GateStatus = input.executionGuard.executionAttempted && input.executionGuard.status === 'blocked'
+    ? 'blocked'
+    : input.restoreConfirmed ? input.restoreResult.status : 'passed'
   const gates = [
     gate('approved_staging_target_verified', input.approvedStagingTarget.status, true, 'Approved staging target reference must resolve to Reeditpro / wmyyttnynmteqgcdishd / staging.'),
     gate('secret_metadata_only', input.secretMetadata.status, true, 'Secret Manager metadata is checked without printing values; proof-only mode does not read payloads.'),
     gate('registry_table_status', input.registryTableStatus.status, true, 'Six Phase 51D registry tables must exist in the approved staging target.'),
-    gate('migration_history_status', input.migrationHistoryStatus.status, false, 'Migration history should include the registry migration when a migration-safe transport is available.'),
+    gate('migration_history_status', input.migrationHistoryStatus.status, true, 'Migration history should include the registry migration when a migration-safe transport is available; warning is acceptable for direct psql restore when table/RLS/PostgREST checks pass.'),
     gate('rls_safety', input.registryTableStatus.status, true, 'Registry tables must have RLS enabled, no unsafe public/anon/authenticated access, and service-role access.'),
     gate('postgrest_visibility', mapPostgrestStatus(input.postgrestVisibility.status), true, 'Service-role zero-row PostgREST probes must see the six registry tables.'),
-    gate('restore_safety', input.restoreConfirmed ? input.restoreResult.status : 'passed', true, 'SQL and GCS writes remain blocked unless both restore confirmations are present.'),
-    gate('provider1_unblock_status', input.provider1UnblockHandoff.status === 'provider1_unblocked' ? 'passed' : 'blocked', true, 'Provider-1 remains blocked until table/RLS/PostgREST checks pass.'),
+    gate('restore_safety', restoreSafetyStatus, true, 'SQL and GCS writes remain blocked unless --execute and the exact confirmed staging restore environment are present.'),
+    gate('provider1_unblock_status', input.provider1UnblockHandoff.status === 'ready_to_rerun_PROVIDER_1_milestone_sync' ? 'passed' : 'blocked', true, 'Provider-1 remains blocked until table/RLS/PostgREST checks pass.'),
     gate('blocked_features', 'passed', true, 'Production, beta, broad media, provider calls, workers/tools/models, public artifacts, and unrelated SQL remain blocked.'),
   ]
   const blockers = gates.filter((item) => item.mandatory && item.status === 'blocked').map((item) => item.gateId)
@@ -753,8 +956,8 @@ function computeExecution(
   qa: QaReport,
   handoff: ProviderHandoffReport,
 ): RestoreExecution {
-  if (!restoreConfirmed) return 'proof_only_completed'
-  if (qa.status === 'passed' && handoff.status === 'provider1_unblocked') return 'restore_completed'
+  if (!restoreConfirmed && !qa.gates.some((gate) => gate.gateId === 'restore_safety' && gate.status === 'blocked')) return 'proof_only_completed'
+  if (qa.status === 'passed' && handoff.status === 'ready_to_rerun_PROVIDER_1_milestone_sync') return 'restore_completed'
   return 'blocked'
 }
 
@@ -795,7 +998,7 @@ function buildArtifactValueMap(report: SupabaseRegistryRestoreReport): Array<[st
     ['handoff/provider1-unblock-handoff.json', report.provider1UnblockHandoff],
     ['qa/supabase-registry-restore-qa.json', report.qa],
   ]
-  if (report.restoreResult.sqlExecuted) values.push(['restore/registry-restore-result.json', report.restoreResult])
+  values.push(['restore/registry-restore-result.json', report.restoreResult])
   values.push(['reports/supabase-registry-restore-report.json', report])
   return values
 }
@@ -864,6 +1067,23 @@ function extractProjectRef(supabaseUrl: string): string | null {
     return projectRef || null
   } catch {
     return null
+  }
+}
+
+function normalizeSupabaseProjectUrl(rawUrl: string): { url: string; warnings: string[] } {
+  try {
+    const parsed = new URL(rawUrl)
+    const normalized = `${parsed.protocol}//${parsed.host}`
+    const warnings: string[] = []
+    if (parsed.pathname !== '/' && parsed.pathname !== '') {
+      warnings.push('Secret Manager SUPABASE_URL contained a path and was normalized to the project origin before creating the server-only client.')
+    }
+    return { url: normalized, warnings }
+  } catch {
+    return {
+      url: rawUrl,
+      warnings: ['Secret Manager SUPABASE_URL could not be parsed for path normalization; the raw backend-only value was passed to the client without printing it.'],
+    }
   }
 }
 
@@ -964,7 +1184,7 @@ ${report.blockedFeatures.map((feature) => `- \`${feature}\``).join('\n')}
 
 ${report.execution === 'proof_only_completed'
     ? 'Set `REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE=true` and `REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL=true` in a fresh shell before running guarded staging SQL restore.'
-    : report.provider1UnblockHandoff.status === 'provider1_unblocked'
+    : report.provider1UnblockHandoff.status === 'ready_to_rerun_PROVIDER_1_milestone_sync'
       ? 'Hand back to PROVIDER_GATEWAY_MODELS to rerun Provider-1 milestone sync.'
       : 'Resolve the listed Supabase registry blockers before rerunning guarded restore.'}
 `

@@ -1,54 +1,48 @@
 {
-  "status": "not_attempted",
+  "status": "completed",
   "tables": [
     {
       "tableName": "activation_runs",
-      "exists": false,
-      "readCountStatus": "not_attempted",
-      "count": null,
-      "blocker": "Proof-only mode does not read service-role secret payloads."
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
     },
     {
       "tableName": "activation_artifacts",
-      "exists": false,
-      "readCountStatus": "not_attempted",
-      "count": null,
-      "blocker": "Proof-only mode does not read service-role secret payloads."
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
     },
     {
       "tableName": "activation_qa_gates",
-      "exists": false,
-      "readCountStatus": "not_attempted",
-      "count": null,
-      "blocker": "Proof-only mode does not read service-role secret payloads."
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
     },
     {
       "tableName": "readiness_snapshots",
-      "exists": false,
-      "readCountStatus": "not_attempted",
-      "count": null,
-      "blocker": "Proof-only mode does not read service-role secret payloads."
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
     },
     {
       "tableName": "tool_capabilities",
-      "exists": false,
-      "readCountStatus": "not_attempted",
-      "count": null,
-      "blocker": "Proof-only mode does not read service-role secret payloads."
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
     },
     {
       "tableName": "feature_gates",
-      "exists": false,
-      "readCountStatus": "not_attempted",
-      "count": null,
-      "blocker": "Proof-only mode does not read service-role secret payloads."
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
     }
   ],
-  "allTablesPresent": false,
-  "serviceRoleRestUsed": false,
+  "allTablesPresent": true,
+  "serviceRoleRestUsed": true,
   "ddlUsedThroughRest": false,
-  "blockers": [
-    "Proof-only mode does not read service-role secret payloads."
-  ],
-  "warnings": []
+  "blockers": [],
+  "warnings": [
+    "Schema verification used zero-row probes and did not return row payloads."
+  ]
 }

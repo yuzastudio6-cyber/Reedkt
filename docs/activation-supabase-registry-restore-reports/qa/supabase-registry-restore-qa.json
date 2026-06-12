@@ -1,5 +1,5 @@
 {
-  "status": "blocked",
+  "status": "passed",
   "gates": [
     {
       "gateId": "approved_staging_target_verified",
@@ -15,25 +15,25 @@
     },
     {
       "gateId": "registry_table_status",
-      "status": "not_attempted",
+      "status": "passed",
       "mandatory": true,
       "summary": "Six Phase 51D registry tables must exist in the approved staging target."
     },
     {
       "gateId": "migration_history_status",
-      "status": "not_attempted",
-      "mandatory": false,
-      "summary": "Migration history should include the registry migration when a migration-safe transport is available."
+      "status": "warning",
+      "mandatory": true,
+      "summary": "Migration history should include the registry migration when a migration-safe transport is available; warning is acceptable for direct psql restore when table/RLS/PostgREST checks pass."
     },
     {
       "gateId": "rls_safety",
-      "status": "not_attempted",
+      "status": "passed",
       "mandatory": true,
       "summary": "Registry tables must have RLS enabled, no unsafe public/anon/authenticated access, and service-role access."
     },
     {
       "gateId": "postgrest_visibility",
-      "status": "not_attempted",
+      "status": "passed",
       "mandatory": true,
       "summary": "Service-role zero-row PostgREST probes must see the six registry tables."
     },
@@ -41,11 +41,11 @@
       "gateId": "restore_safety",
       "status": "passed",
       "mandatory": true,
-      "summary": "SQL and GCS writes remain blocked unless both restore confirmations are present."
+      "summary": "SQL and GCS writes remain blocked unless --execute and the exact confirmed staging restore environment are present."
     },
     {
       "gateId": "provider1_unblock_status",
-      "status": "blocked",
+      "status": "passed",
       "mandatory": true,
       "summary": "Provider-1 remains blocked until table/RLS/PostgREST checks pass."
     },
@@ -56,7 +56,5 @@
       "summary": "Production, beta, broad media, provider calls, workers/tools/models, public artifacts, and unrelated SQL remain blocked."
     }
   ],
-  "blockers": [
-    "provider1_unblock_status"
-  ]
+  "blockers": []
 }

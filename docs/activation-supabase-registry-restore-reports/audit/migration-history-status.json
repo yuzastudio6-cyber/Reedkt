@@ -1,7 +1,7 @@
 {
-  "status": "not_attempted",
+  "status": "warning",
   "migrationId": "202606040001",
-  "checkedWithSql": false,
-  "historyPresent": null,
-  "blocker": "SQL confirmation gates are absent; migration history SQL was not attempted."
+  "checkedWithSql": true,
+  "historyPresent": false,
+  "blocker": "Migration history did not include 202606040001 after verification (missing_version)."
 }

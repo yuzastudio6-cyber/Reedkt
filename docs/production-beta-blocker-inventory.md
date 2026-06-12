@@ -20,3 +20,5 @@ Plan snapshot dry-run validation does not remove production beta blockers; curre
 Worker runtime repo audit does not remove production beta blockers; current decision is `repo_audit_passed_ready_for_worker_dry_run_approval`.
 
 Worker runtime dry-run approval does not remove production beta blockers; current decision is `approved_for_future_worker_noop_dry_run_execution`.
+
+TOOL-STUDY-PENDING-OWNERS-0A does not remove production beta blockers; current decision is `ready_with_warnings_to_mark_pr_360_ready_for_review`. Tool-route execution unlock remains blocked until PR #360 is owner-accepted and a later tool-route execution unlock audit is completed.

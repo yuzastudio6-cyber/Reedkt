@@ -1,0 +1,25 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "status": "passed",
+  "branchName": "reeditpro-internal-staging-clean",
+  "branchRef": "fnjiylwirntrqdcwpbho",
+  "branchStatus": "FUNCTIONS_DEPLOYED",
+  "acceptedHealthyStatuses": [
+    "ACTIVE",
+    "ACTIVE_HEALTHY",
+    "DEPLOYED",
+    "FUNCTIONS_DEPLOYED",
+    "HEALTHY",
+    "MIGRATIONS_DEPLOYED",
+    "READY",
+    "RUNNING"
+  ],
+  "branchAction": "reused",
+  "branchExists": true,
+  "branchHealthy": true,
+  "withProductionData": false,
+  "secretsPrintedOrCommitted": false,
+  "productionAffected": false,
+  "blockers": []
+}

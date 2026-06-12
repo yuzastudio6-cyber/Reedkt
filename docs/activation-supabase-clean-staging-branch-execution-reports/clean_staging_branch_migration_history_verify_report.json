@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "report": "clean_staging_branch_migration_history_verify_report",
+  "status": "passed",
+  "mode": "supabase_plugin_list_migrations",
+  "targetProjectRef": "fnjiylwirntrqdcwpbho",
+  "branchName": "reeditpro-internal-staging-clean",
+  "branchProjectRef": "fnjiylwirntrqdcwpbho",
+  "migrationHistoryReadOnly": true,
+  "migrationIds": [
+    "20260610235210"
+  ],
+  "committedTargetRegistryMigrationId": "202606050001",
+  "observedRegistryMigrationVersion": "20260610235210",
+  "targetRegistryMigrationName": "activation_milestone_registry_schema_rls",
+  "observedRegistryMigrationName": "activation_milestone_registry_schema_rls",
+  "committedMigrationFile": "202606050001_activation_milestone_registry_schema_rls.sql",
+  "targetRegistryMigrationVersionPresent": false,
+  "targetRegistryMigrationNamePresent": true,
+  "targetRegistryMigrationPresent": true,
+  "pluginGeneratedMigrationVersion": true,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

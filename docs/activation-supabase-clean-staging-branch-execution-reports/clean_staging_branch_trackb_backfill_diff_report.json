@@ -1,0 +1,27 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+  "status": "blocked",
+  "diffMode": "blocked_before_staging_diff",
+  "sourceExportValidated": true,
+  "plannedTable": "public.activation_phase_runs",
+  "plannedRows": 30,
+  "plannedUniqueKey": [
+    "phase_id",
+    "run_id"
+  ],
+  "remoteStagingReadPerformed": false,
+  "remoteSqlRun": false,
+  "rowsToInsertOrUpdate": [],
+  "blockers": [
+    "staging_supabase_credentials_unavailable",
+    "trackb_backfill_clean_branch_target_not_wired"
+  ],
+  "sourcePhase": "supabase-trackb-milestone-staging-backfill",
+  "cleanStagingBranchName": "reeditpro-internal-staging-clean",
+  "cleanStagingBranchProjectRef": "fnjiylwirntrqdcwpbho",
+  "cleanBranchTargetWired": false,
+  "writePathRun": false,
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false
+}

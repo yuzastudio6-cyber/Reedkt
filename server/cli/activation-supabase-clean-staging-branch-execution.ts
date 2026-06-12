@@ -1,0 +1,33 @@
+import {
+  SUPABASE_CLEAN_STAGING_BRANCH_SCHEMA_MIGRATION_REQUIRED_CONFIRMATIONS,
+  SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS,
+  executeSupabaseCleanStagingBranchExecution,
+  readSupabaseCleanStagingBranchExecutionSummary,
+} from '../activation/supabase-clean-staging-branch-execution'
+
+const applyMilestoneRegistry = process.argv.includes('--apply-milestone-registry')
+
+if (!process.argv.includes('--execute')) {
+  console.log(JSON.stringify({
+    status: 'skipped',
+    reason: 'supabase_clean_staging_branch_execution_requires_execute_flag',
+    requiredConfirmations: applyMilestoneRegistry
+      ? SUPABASE_CLEAN_STAGING_BRANCH_SCHEMA_MIGRATION_REQUIRED_CONFIRMATIONS
+      : SUPABASE_CLEAN_STAGING_BRANCH_REQUIRED_CONFIRMATIONS,
+    branchOrProjectCreation: false,
+    sqlExecuted: false,
+    migrationDeployed: false,
+    trackBBackfillRowsWritten: false,
+    productionAffected: false,
+  }, null, 2))
+  process.exit(0)
+}
+
+const result = await executeSupabaseCleanStagingBranchExecution({
+  keepTemp: process.argv.includes('--keep-temp'),
+  diagnoseCreate: process.argv.includes('--diagnose-create'),
+  applyMilestoneRegistry,
+})
+
+console.log(JSON.stringify(readSupabaseCleanStagingBranchExecutionSummary(), null, 2))
+process.exit(result.exitCode)

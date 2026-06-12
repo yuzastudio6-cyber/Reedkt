@@ -1,0 +1,17 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "status": "passed",
+  "mode": "supabase_plugin_apply_migration",
+  "migrationWorkflow": "supabase_plugin_apply_migration_and_readonly_catalog_verify",
+  "targetProjectRef": "fnjiylwirntrqdcwpbho",
+  "branchName": "reeditpro-internal-staging-clean",
+  "dbUrlEnvPresent": false,
+  "dbUrlPrinted": false,
+  "dbUrlCommitted": false,
+  "directSqlAllowed": false,
+  "seedIncluded": false,
+  "migrationRepairAllowed": false,
+  "trackBBackfillWrite": false,
+  "blockers": []
+}

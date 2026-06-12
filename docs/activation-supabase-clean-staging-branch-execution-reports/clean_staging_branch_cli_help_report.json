@@ -1,0 +1,89 @@
+{
+  "phase": "supabase-clean-staging-branch-execution",
+  "runId": "supabase-clean-staging-branch-execution-20260610",
+  "status": "passed",
+  "mode": "clean_staging_branch_cli_help",
+  "cliVersion": "2.105.0",
+  "commandResult": {
+    "status": "passed",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "branches",
+      "create",
+      "--help"
+    ],
+    "exitCode": 0,
+    "stdoutSummary": {
+      "byteLength": 2365,
+      "lineCount": 33,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "parsedJson": false,
+    "blockers": []
+  },
+  "rawHelpStored": false,
+  "supportedFlags": {
+    "projectRef": true,
+    "persistent": true,
+    "region": true,
+    "size": true,
+    "dataClone": true
+  },
+  "regionChoices": [
+    "ap-east-1",
+    "ap-northeast-1",
+    "ap-northeast-2",
+    "ap-south-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-central-2",
+    "eu-north-1",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-west-3",
+    "sa-east-1",
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2"
+  ],
+  "sizeChoices": [
+    "large",
+    "medium",
+    "micro",
+    "12xlarge",
+    "16xlarge",
+    "24xlarge",
+    "24xlarge_high_memory",
+    "24xlarge_optimized_cpu",
+    "24xlarge_optimized_memory",
+    "2xlarge",
+    "48xlarge",
+    "48xlarge_high_memory",
+    "48xlarge_optimized_cpu",
+    "48xlarge_optimized_memory",
+    "4xlarge",
+    "8xlarge",
+    "nano",
+    "small",
+    "xlarge"
+  ],
+  "dataCloneAllowed": false,
+  "withData": false,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

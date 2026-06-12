@@ -8,6 +8,8 @@ Base branch: `origin/codex/rp-model-dryrun-2a-provider-token-guardrail-fixes`.
 
 Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/339
 
+GitHub status: draft PR with empty `statusCheckRollup` at inspection.
+
 ## Prompt
 
 Create a clean stacked branch from `origin/codex/rp-model-dryrun-2a-provider-token-guardrail-fixes` and add an approved plan snapshot contract package. Preserve MODEL-DRYRUN-2A as passed evidence while keeping workers, tools, routes, providers, Supabase mutation, storage transfer, signed URLs, public artifacts, beta, and production blocked.

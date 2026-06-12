@@ -10,6 +10,8 @@ Base head inspected: `bb17eefc6bf23cddf0ecef3e8097563dea80ff5d`.
 
 Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/339
 
+GitHub status: draft PR with empty `statusCheckRollup` at inspection.
+
 ## Source Reads
 
 - `approved-plan-snapshot-policy.md`
@@ -76,6 +78,7 @@ Local validation completed:
 - `npm run build:server`: passed
 - changed-file secret scan: passed across 17 changed files
 - final `git diff --check`: passed after validation doc update
+- GitHub PR status check rollup: empty/no checks reported
 
 Supabase update required: `docs/status only`.
 

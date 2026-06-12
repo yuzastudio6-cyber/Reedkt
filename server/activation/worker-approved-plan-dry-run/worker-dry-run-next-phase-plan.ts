@@ -1,0 +1,48 @@
+import type {
+  WorkerDryRunGapMap,
+  WorkerDryRunNextPhasePlan,
+} from './worker-approved-plan-dry-run-types'
+
+export function buildWorkerDryRunNextPhasePlan(gapMap: WorkerDryRunGapMap): WorkerDryRunNextPhasePlan {
+  return {
+    phase: 'TOOL_ROUTE_0',
+    title: 'Tool-route execution unlock audit',
+    readiness: gapMap.toolRoute0Readiness,
+    allowedActions: [
+      'audit_approved_worker_dry_run_route_mapping',
+      'inspect_tool_capability_registry_if_present',
+      'inspect_tool_study_0_outputs_if_present',
+      'produce_route_unlock_gap_map',
+      'record_owner_acceptance_requirements_for_each_route_family',
+    ],
+    blockedActions: [
+      'tool_execution',
+      'route_execution',
+      'worker_execution',
+      'provider_calls',
+      'media_processing',
+      'browser_capture',
+      'map_rendering',
+      'web_search_execution',
+      'sql_migration_schema_rls_change',
+      'supabase_product_row_write',
+      'public_artifact_creation',
+      'signed_url_creation_or_source_of_truth',
+      'production_external_beta_paid_production_unlock',
+      'raw_prompt_execution',
+    ],
+    requiredInputs: [
+      'WORKER-1 approved-plan snapshot dry-run report',
+      'PLAN-SNAPSHOT-1 candidate-only snapshot evidence',
+      'WORKER-0 repo audit and gap map',
+      'tool owner study/capability routing evidence when present',
+    ],
+    successCriteria: [
+      'route families are mapped to owning workstreams',
+      'each route family has explicit owner acceptance or blocker',
+      'no route/tool execution occurs',
+      'future unlock blockers remain bounded and visible',
+    ],
+    ownerAcceptanceRequired: true,
+  }
+}

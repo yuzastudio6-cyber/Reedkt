@@ -1,0 +1,117 @@
+{
+  "phase": "model-orchestration-qwen-timeout-calibration",
+  "runId": "qwentimeout1-20260612T165931",
+  "reportDir": "docs/activation-qwen-timeout-calibration-reports",
+  "expectedArtifacts": [
+    "audit/repo-ownership-audit.json",
+    "policy/qwen-timeout-calibration-policy.json",
+    "secrets/qwen-timeout-secret-access.json",
+    "cases/qwen-timeout-calibration-cases.json",
+    "results/qwen-timeout-calibration-results.json",
+    "analysis/qwen-timeout-result-analysis.json",
+    "recommendation/qwen-model-timeout-target-recommendation.json",
+    "manifest/qwen-timeout-calibration-manifest.json",
+    "qa/qwen-timeout-calibration-qa.json",
+    "reports/qwen-timeout-calibration-report.json"
+  ],
+  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+  "privateArtifactUpload": {
+    "status": "uploaded",
+    "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+    "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+    "artifacts": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/audit/repo-ownership-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/audit/repo-ownership-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/policy/qwen-timeout-calibration-policy.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/policy/qwen-timeout-calibration-policy.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/secrets/qwen-timeout-secret-access.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/secrets/qwen-timeout-secret-access.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/cases/qwen-timeout-calibration-cases.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/cases/qwen-timeout-calibration-cases.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/results/qwen-timeout-calibration-results.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/results/qwen-timeout-calibration-results.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/analysis/qwen-timeout-result-analysis.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/analysis/qwen-timeout-result-analysis.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/recommendation/qwen-model-timeout-target-recommendation.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/recommendation/qwen-model-timeout-target-recommendation.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/manifest/qwen-timeout-calibration-manifest.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/manifest/qwen-timeout-calibration-manifest.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/qa/qwen-timeout-calibration-qa.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/qa/qwen-timeout-calibration-qa.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/reports/qwen-timeout-calibration-report.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/reports/qwen-timeout-calibration-report.json",
+        "private": true
+      }
+    ],
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawProviderResponsesStored": false
+  },
+  "committedArtifactClasses": [
+    "safe_json_reports",
+    "safe_markdown_docs",
+    "server_only_qwen_timeout_calibration_code"
+  ],
+  "excludedArtifactClasses": [
+    "api_keys",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "secret_payloads",
+    "signed_urls",
+    "raw_provider_responses",
+    "raw_prompts",
+    "private_payloads",
+    "media_payloads",
+    "node_modules",
+    "caches",
+    "build_outputs"
+  ],
+  "executed": true,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "rawProviderResponsesStored": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false
+}

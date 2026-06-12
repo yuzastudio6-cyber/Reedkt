@@ -1,0 +1,457 @@
+{
+  "phase": "TOOL_ROUTE_0",
+  "status": "passed",
+  "prompts": [
+    {
+      "owner": "WEB_SEARCH_CAPTURE",
+      "path": "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+      "title": "TOOL-STUDY-0 Web Search Capture Capability Routing Contract",
+      "ownedTools": [
+        "SearXNG/private search policy",
+        "Brave fallback policy",
+        "Playwright capture",
+        "Readability extraction",
+        "Sharp screenshot preparation"
+      ],
+      "explicitlyNotOwned": [
+        "map rendering",
+        "provider/model planning",
+        "Track A export",
+        "Track B media processing",
+        "Supabase writes",
+        "billing"
+      ],
+      "relatedWorkstreams": [
+        "COMPLIANCE_SECURITY",
+        "OBSERVABILITY_AUDIT_COST",
+        "FRONTEND_PRODUCT_UX"
+      ],
+      "allowedScope": [
+        "docs/diagnostics only",
+        "read committed TOOL-ROUTE-0 and WORKER-1 evidence",
+        "map future search/capture capabilities and blockers"
+      ],
+      "blockedScope": [
+        "tool execution",
+        "worker execution",
+        "route execution",
+        "provider/model calls",
+        "media processing",
+        "browser capture",
+        "map rendering",
+        "web search execution",
+        "Supabase mutation",
+        "SQL/migrations/schema/RLS changes",
+        "Google Cloud API calls",
+        "Secret Manager API calls",
+        "GCS upload/storage transfer",
+        "public artifacts",
+        "signed URLs",
+        "raw prompt execution",
+        "production/external beta/paid production/broad media unlock"
+      ],
+      "requiredDocs": [
+        "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+        "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+        "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+        "open-source-tool-registry.md",
+        "tool-settings-catalog.md",
+        "tool-strategy-planner.md",
+        "docs/activation-phase-49h-web-search-capture-internal-readiness.md if present"
+      ],
+      "diagnostics": [
+        "verify no web request execution path is introduced",
+        "verify browser capture remains blocked",
+        "verify owner handoff lists privacy/source limitations"
+      ],
+      "validation": [
+        "run local report/smoke only",
+        "scan changed files for signed URL and raw prompt material"
+      ],
+      "finalResponseFormat": [
+        "owner",
+        "capability routing status",
+        "blocked capabilities",
+        "required next study evidence",
+        "no-scope statement"
+      ],
+      "body": "# TOOL-STUDY-0 Web Search Capture Capability Routing Contract\n\nOwner: `WEB_SEARCH_CAPTURE`\n\n## Owned Tools\n\n- SearXNG/private search policy\n- Brave fallback policy\n- Playwright capture\n- Readability extraction\n- Sharp screenshot preparation\n\n## Explicitly Not Owned\n\n- map rendering\n- provider/model planning\n- Track A export\n- Track B media processing\n- Supabase writes\n- billing\n\n## Related Workstreams\n\n- COMPLIANCE_SECURITY\n- OBSERVABILITY_AUDIT_COST\n- FRONTEND_PRODUCT_UX\n\n## Allowed Scope\n\n- docs/diagnostics only\n- read committed TOOL-ROUTE-0 and WORKER-1 evidence\n- map future search/capture capabilities and blockers\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- docs/activation-phase-49h-web-search-capture-internal-readiness.md if present\n\n## Diagnostics\n\n- verify no web request execution path is introduced\n- verify browser capture remains blocked\n- verify owner handoff lists privacy/source limitations\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for signed URL and raw prompt material\n\n## Final Response Format\n\n- owner\n- capability routing status\n- blocked capabilities\n- required next study evidence\n- no-scope statement\n"
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "path": "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+      "title": "TOOL-STUDY-0 Map Geospatial Capability Routing Contract",
+      "ownedTools": [
+        "MapLibre",
+        "Turf",
+        "deck.gl planning",
+        "CesiumJS planning"
+      ],
+      "explicitlyNotOwned": [
+        "web search execution",
+        "browser capture",
+        "Track B media processing",
+        "provider/model calls",
+        "Supabase mutation"
+      ],
+      "relatedWorkstreams": [
+        "WEB_SEARCH_CAPTURE",
+        "AI_TOOLS_CREATIVE_GRAPHICS",
+        "COMPLIANCE_SECURITY",
+        "FRONTEND_PRODUCT_UX"
+      ],
+      "allowedScope": [
+        "docs/diagnostics only",
+        "map future map/geospatial route families",
+        "record map safety/readability prerequisites"
+      ],
+      "blockedScope": [
+        "tool execution",
+        "worker execution",
+        "route execution",
+        "provider/model calls",
+        "media processing",
+        "browser capture",
+        "map rendering",
+        "web search execution",
+        "Supabase mutation",
+        "SQL/migrations/schema/RLS changes",
+        "Google Cloud API calls",
+        "Secret Manager API calls",
+        "GCS upload/storage transfer",
+        "public artifacts",
+        "signed URLs",
+        "raw prompt execution",
+        "production/external beta/paid production/broad media unlock"
+      ],
+      "requiredDocs": [
+        "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+        "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+        "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+        "open-source-tool-registry.md",
+        "tool-settings-catalog.md",
+        "tool-strategy-planner.md",
+        "map-location-animation-planning.md",
+        "map-animation-settings-catalog.md"
+      ],
+      "diagnostics": [
+        "verify no map rendering or tile/network fetch runs",
+        "verify exact geography claims stay owner-reviewed"
+      ],
+      "validation": [
+        "run local report/smoke only",
+        "scan changed files for runtime or API-call claims"
+      ],
+      "finalResponseFormat": [
+        "owner",
+        "route families",
+        "tool capability contract gaps",
+        "map execution blockers",
+        "no-scope statement"
+      ],
+      "body": "# TOOL-STUDY-0 Map Geospatial Capability Routing Contract\n\nOwner: `MAP_GEOSPATIAL`\n\n## Owned Tools\n\n- MapLibre\n- Turf\n- deck.gl planning\n- CesiumJS planning\n\n## Explicitly Not Owned\n\n- web search execution\n- browser capture\n- Track B media processing\n- provider/model calls\n- Supabase mutation\n\n## Related Workstreams\n\n- WEB_SEARCH_CAPTURE\n- AI_TOOLS_CREATIVE_GRAPHICS\n- COMPLIANCE_SECURITY\n- FRONTEND_PRODUCT_UX\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map future map/geospatial route families\n- record map safety/readability prerequisites\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- map-location-animation-planning.md\n- map-animation-settings-catalog.md\n\n## Diagnostics\n\n- verify no map rendering or tile/network fetch runs\n- verify exact geography claims stay owner-reviewed\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for runtime or API-call claims\n\n## Final Response Format\n\n- owner\n- route families\n- tool capability contract gaps\n- map execution blockers\n- no-scope statement\n"
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "path": "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+      "title": "TOOL-STUDY-0 AI Tools Creative Graphics Capability Routing Contract",
+      "ownedTools": [
+        "D3",
+        "ECharts",
+        "Vega-Lite planning",
+        "Sharp/libvips graphics prep",
+        "Remotion graphics handoff"
+      ],
+      "explicitlyNotOwned": [
+        "map rendering",
+        "web capture",
+        "provider/model calls",
+        "Track A final render",
+        "Track B media processing"
+      ],
+      "relatedWorkstreams": [
+        "TRACK_A_RENDER_EXPORT",
+        "MAP_GEOSPATIAL",
+        "FRONTEND_PRODUCT_UX",
+        "COMPLIANCE_SECURITY"
+      ],
+      "allowedScope": [
+        "docs/diagnostics only",
+        "route chart/card/diagram capability families",
+        "record controlled graphics QA prerequisites"
+      ],
+      "blockedScope": [
+        "tool execution",
+        "worker execution",
+        "route execution",
+        "provider/model calls",
+        "media processing",
+        "browser capture",
+        "map rendering",
+        "web search execution",
+        "Supabase mutation",
+        "SQL/migrations/schema/RLS changes",
+        "Google Cloud API calls",
+        "Secret Manager API calls",
+        "GCS upload/storage transfer",
+        "public artifacts",
+        "signed URLs",
+        "raw prompt execution",
+        "production/external beta/paid production/broad media unlock"
+      ],
+      "requiredDocs": [
+        "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+        "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+        "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+        "open-source-tool-registry.md",
+        "tool-settings-catalog.md",
+        "tool-strategy-planner.md",
+        "chart-diagram-planning.md",
+        "chart-diagram-settings-catalog.md"
+      ],
+      "diagnostics": [
+        "verify no chart or graphics renderer runs",
+        "verify exact text/data claims stay controlled and source-reviewed"
+      ],
+      "validation": [
+        "run local report/smoke only",
+        "scan changed files for execution claims"
+      ],
+      "finalResponseFormat": [
+        "owner",
+        "graphics capability families",
+        "required tool studies",
+        "execution blockers",
+        "no-scope statement"
+      ],
+      "body": "# TOOL-STUDY-0 AI Tools Creative Graphics Capability Routing Contract\n\nOwner: `AI_TOOLS_CREATIVE_GRAPHICS`\n\n## Owned Tools\n\n- D3\n- ECharts\n- Vega-Lite planning\n- Sharp/libvips graphics prep\n- Remotion graphics handoff\n\n## Explicitly Not Owned\n\n- map rendering\n- web capture\n- provider/model calls\n- Track A final render\n- Track B media processing\n\n## Related Workstreams\n\n- TRACK_A_RENDER_EXPORT\n- MAP_GEOSPATIAL\n- FRONTEND_PRODUCT_UX\n- COMPLIANCE_SECURITY\n\n## Allowed Scope\n\n- docs/diagnostics only\n- route chart/card/diagram capability families\n- record controlled graphics QA prerequisites\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- chart-diagram-planning.md\n- chart-diagram-settings-catalog.md\n\n## Diagnostics\n\n- verify no chart or graphics renderer runs\n- verify exact text/data claims stay controlled and source-reviewed\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for execution claims\n\n## Final Response Format\n\n- owner\n- graphics capability families\n- required tool studies\n- execution blockers\n- no-scope statement\n"
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "path": "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+      "title": "TOOL-STUDY-0 Track A Render Export Capability Routing Contract",
+      "ownedTools": [
+        "Remotion render/export boundary",
+        "FFmpeg final mux/export planning",
+        "OpenTimelineIO render handoff",
+        "libass caption burn-in planning"
+      ],
+      "explicitlyNotOwned": [
+        "Track B media analysis",
+        "map data source validation",
+        "web capture",
+        "provider/model calls",
+        "billing mutation"
+      ],
+      "relatedWorkstreams": [
+        "WORKER_RUNTIME_JOBS",
+        "AI_TOOLS_CREATIVE_GRAPHICS",
+        "OBSERVABILITY_AUDIT_COST",
+        "COMPLIANCE_SECURITY"
+      ],
+      "allowedScope": [
+        "docs/diagnostics only",
+        "map future render/export route prerequisites",
+        "record approved snapshot and artifact-scope requirements"
+      ],
+      "blockedScope": [
+        "tool execution",
+        "worker execution",
+        "route execution",
+        "provider/model calls",
+        "media processing",
+        "browser capture",
+        "map rendering",
+        "web search execution",
+        "Supabase mutation",
+        "SQL/migrations/schema/RLS changes",
+        "Google Cloud API calls",
+        "Secret Manager API calls",
+        "GCS upload/storage transfer",
+        "public artifacts",
+        "signed URLs",
+        "raw prompt execution",
+        "production/external beta/paid production/broad media unlock"
+      ],
+      "requiredDocs": [
+        "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+        "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+        "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+        "open-source-tool-registry.md",
+        "tool-settings-catalog.md",
+        "tool-strategy-planner.md",
+        "remotion-renderer-plan.md",
+        "render-strategy-planner.md"
+      ],
+      "diagnostics": [
+        "verify no render/export command is introduced",
+        "verify final render/export remains blocked"
+      ],
+      "validation": [
+        "run local report/smoke only",
+        "scan changed files for final export enablement"
+      ],
+      "finalResponseFormat": [
+        "owner",
+        "render/export route status",
+        "required capability contracts",
+        "blocked runtime scope",
+        "no-scope statement"
+      ],
+      "body": "# TOOL-STUDY-0 Track A Render Export Capability Routing Contract\n\nOwner: `TRACK_A_RENDER_EXPORT`\n\n## Owned Tools\n\n- Remotion render/export boundary\n- FFmpeg final mux/export planning\n- OpenTimelineIO render handoff\n- libass caption burn-in planning\n\n## Explicitly Not Owned\n\n- Track B media analysis\n- map data source validation\n- web capture\n- provider/model calls\n- billing mutation\n\n## Related Workstreams\n\n- WORKER_RUNTIME_JOBS\n- AI_TOOLS_CREATIVE_GRAPHICS\n- OBSERVABILITY_AUDIT_COST\n- COMPLIANCE_SECURITY\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map future render/export route prerequisites\n- record approved snapshot and artifact-scope requirements\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- remotion-renderer-plan.md\n- render-strategy-planner.md\n\n## Diagnostics\n\n- verify no render/export command is introduced\n- verify final render/export remains blocked\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for final export enablement\n\n## Final Response Format\n\n- owner\n- render/export route status\n- required capability contracts\n- blocked runtime scope\n- no-scope statement\n"
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "path": "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+      "title": "TOOL-STUDY-0 Track B Media Processing Capability Routing Contract",
+      "ownedTools": [
+        "FFmpeg/ffprobe metadata planning",
+        "OpenCV",
+        "PyAV",
+        "PySceneDetect",
+        "DeepFilterNet",
+        "Signalsmith Stretch",
+        "DuckDB/Polars metadata planning"
+      ],
+      "explicitlyNotOwned": [
+        "Track A final render/export",
+        "map rendering",
+        "web search execution",
+        "provider/model calls",
+        "Supabase schema changes"
+      ],
+      "relatedWorkstreams": [
+        "SOUND_MUSIC_AUDIO",
+        "WORKER_RUNTIME_JOBS",
+        "OBSERVABILITY_AUDIT_COST",
+        "COMPLIANCE_SECURITY"
+      ],
+      "allowedScope": [
+        "docs/diagnostics only",
+        "map Track B route manifests to TOOL-STUDY-0 prerequisites",
+        "record media-runtime blockers"
+      ],
+      "blockedScope": [
+        "tool execution",
+        "worker execution",
+        "route execution",
+        "provider/model calls",
+        "media processing",
+        "browser capture",
+        "map rendering",
+        "web search execution",
+        "Supabase mutation",
+        "SQL/migrations/schema/RLS changes",
+        "Google Cloud API calls",
+        "Secret Manager API calls",
+        "GCS upload/storage transfer",
+        "public artifacts",
+        "signed URLs",
+        "raw prompt execution",
+        "production/external beta/paid production/broad media unlock"
+      ],
+      "requiredDocs": [
+        "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+        "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+        "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+        "open-source-tool-registry.md",
+        "tool-settings-catalog.md",
+        "tool-strategy-planner.md",
+        "docs/track-b-tool-route-manifest.md",
+        "docs/track-b-tool-readiness-summary.md"
+      ],
+      "diagnostics": [
+        "verify no media files are read or processed",
+        "verify no sidecar/tool runtime executes"
+      ],
+      "validation": [
+        "run local report/smoke only",
+        "scan changed files for media-processing claims"
+      ],
+      "finalResponseFormat": [
+        "owner",
+        "Track B route families",
+        "tool study gaps",
+        "runtime blockers",
+        "no-scope statement"
+      ],
+      "body": "# TOOL-STUDY-0 Track B Media Processing Capability Routing Contract\n\nOwner: `TRACK_B_MEDIA_PROCESSING`\n\n## Owned Tools\n\n- FFmpeg/ffprobe metadata planning\n- OpenCV\n- PyAV\n- PySceneDetect\n- DeepFilterNet\n- Signalsmith Stretch\n- DuckDB/Polars metadata planning\n\n## Explicitly Not Owned\n\n- Track A final render/export\n- map rendering\n- web search execution\n- provider/model calls\n- Supabase schema changes\n\n## Related Workstreams\n\n- SOUND_MUSIC_AUDIO\n- WORKER_RUNTIME_JOBS\n- OBSERVABILITY_AUDIT_COST\n- COMPLIANCE_SECURITY\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map Track B route manifests to TOOL-STUDY-0 prerequisites\n- record media-runtime blockers\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- docs/track-b-tool-route-manifest.md\n- docs/track-b-tool-readiness-summary.md\n\n## Diagnostics\n\n- verify no media files are read or processed\n- verify no sidecar/tool runtime executes\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for media-processing claims\n\n## Final Response Format\n\n- owner\n- Track B route families\n- tool study gaps\n- runtime blockers\n- no-scope statement\n"
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "path": "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md",
+      "title": "TOOL-STUDY-0 Sound Music Audio Capability Routing Contract",
+      "ownedTools": [
+        "AudioFlux planning",
+        "Signalsmith Stretch planning",
+        "SoundSync SFX/audio route planning",
+        "loudness/ducking metadata planning"
+      ],
+      "explicitlyNotOwned": [
+        "provider music/SFX calls",
+        "Track A final export",
+        "web capture",
+        "map rendering",
+        "Supabase writes"
+      ],
+      "relatedWorkstreams": [
+        "TRACK_B_MEDIA_PROCESSING",
+        "BILLING_STRIPE_CREDITS",
+        "COMPLIANCE_SECURITY",
+        "OBSERVABILITY_AUDIT_COST"
+      ],
+      "allowedScope": [
+        "docs/diagnostics only",
+        "map sound/music/audio capability prerequisites",
+        "record audio privacy/cost/runtime blockers"
+      ],
+      "blockedScope": [
+        "tool execution",
+        "worker execution",
+        "route execution",
+        "provider/model calls",
+        "media processing",
+        "browser capture",
+        "map rendering",
+        "web search execution",
+        "Supabase mutation",
+        "SQL/migrations/schema/RLS changes",
+        "Google Cloud API calls",
+        "Secret Manager API calls",
+        "GCS upload/storage transfer",
+        "public artifacts",
+        "signed URLs",
+        "raw prompt execution",
+        "production/external beta/paid production/broad media unlock"
+      ],
+      "requiredDocs": [
+        "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+        "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+        "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+        "open-source-tool-registry.md",
+        "tool-settings-catalog.md",
+        "tool-strategy-planner.md",
+        "soundsync-audio-pipeline-planning.md",
+        "audio-settings-catalog.md"
+      ],
+      "diagnostics": [
+        "verify no audio analysis or generation runs",
+        "verify no provider SFX/music call path is introduced"
+      ],
+      "validation": [
+        "run local report/smoke only",
+        "scan changed files for audio execution claims"
+      ],
+      "finalResponseFormat": [
+        "owner",
+        "audio capability families",
+        "tool study blockers",
+        "provider/runtime boundaries",
+        "no-scope statement"
+      ],
+      "body": "# TOOL-STUDY-0 Sound Music Audio Capability Routing Contract\n\nOwner: `SOUND_MUSIC_AUDIO`\n\n## Owned Tools\n\n- AudioFlux planning\n- Signalsmith Stretch planning\n- SoundSync SFX/audio route planning\n- loudness/ducking metadata planning\n\n## Explicitly Not Owned\n\n- provider music/SFX calls\n- Track A final export\n- web capture\n- map rendering\n- Supabase writes\n\n## Related Workstreams\n\n- TRACK_B_MEDIA_PROCESSING\n- BILLING_STRIPE_CREDITS\n- COMPLIANCE_SECURITY\n- OBSERVABILITY_AUDIT_COST\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map sound/music/audio capability prerequisites\n- record audio privacy/cost/runtime blockers\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- soundsync-audio-pipeline-planning.md\n- audio-settings-catalog.md\n\n## Diagnostics\n\n- verify no audio analysis or generation runs\n- verify no provider SFX/music call path is introduced\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for audio execution claims\n\n## Final Response Format\n\n- owner\n- audio capability families\n- tool study blockers\n- provider/runtime boundaries\n- no-scope statement\n"
+    }
+  ],
+  "promptCount": 6,
+  "activeBlockers": []
+}

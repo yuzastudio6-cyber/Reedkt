@@ -1,10 +1,12 @@
 # Model Orchestration Qwen/DeepSeek Provider Dry-Run
 
-Decision: `not_attempted`.
+Decision: `provider_dry_run_passed_ready_for_plan_snapshot_contract`.
 
-Status: `not_attempted`.
+Status: `passed`.
 
-This phase executes only synthetic, non-sensitive provider dry-run cases approved by PR #318. Qwen/DashScope calls use the OpenAI-compatible chat completions endpoint, and DeepSeek calls use its OpenAI-compatible chat completions endpoint with JSON-object response formatting.
+This phase executes only two synthetic, non-sensitive provider dry-run cases approved by PR #318 and gated by PR #330 timeout calibration. Qwen/DashScope uses the US OpenAI-compatible chat completions endpoint from Google Secret Manager, and DeepSeek uses its OpenAI-compatible chat completions endpoint with JSON-object response formatting.
+
+Qwen default: `qwen3.7-plus` with `45000ms` timeout and `650` max output tokens. DeepSeek default: `deepseek-v4-flash`. Escalation models are policy-only in this phase and are not called.
 
 Still blocked: tools, workers, routes, media processing, Supabase writes, raw prompt execution into workers or tools, public artifacts, signed URLs, production, external beta, and paid production.
 

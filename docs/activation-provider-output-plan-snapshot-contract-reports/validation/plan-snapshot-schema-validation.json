@@ -1,0 +1,10 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "status": "passed",
+  "requiredFieldsPresent": true,
+  "qwenSchemaAccepted": true,
+  "deepseekSchemaAccepted": true,
+  "sourceProviderRunIdAccepted": true,
+  "ownerRoutesComplete": true,
+  "activeBlockers": []
+}

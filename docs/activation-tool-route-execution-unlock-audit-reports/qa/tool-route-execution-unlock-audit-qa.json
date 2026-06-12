@@ -1,0 +1,1302 @@
+{
+  "phase": "TOOL_ROUTE_0",
+  "runId": "toolroute0-20260612T201155",
+  "status": "passed",
+  "decision": "tool_route_execution_unlock_audit_passed_ready_for_route_dry_run_planning",
+  "gates": {
+    "source_of_truth_repo_audit": {
+      "phase": "TOOL_ROUTE_0",
+      "status": "passed",
+      "sourceEvidence": {
+        "worker1": {
+          "runId": "worker1-20260612T193823",
+          "status": "passed",
+          "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+          "readiness": "ready for tool-route execution unlock audit"
+        },
+        "worker0": {
+          "runId": "worker0-20260612T191022",
+          "status": "passed",
+          "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+          "readiness": "ready for approved-plan snapshot dry-run",
+          "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758"
+        },
+        "planSnapshot1": {
+          "runId": "plansnapshot1-20260612T182758",
+          "status": "passed",
+          "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+          "readiness": "candidate_only_not_runtime_approved",
+          "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758"
+        },
+        "modelDryRun1": {
+          "runId": "modeldryrun1-20260612T174538",
+          "status": "passed",
+          "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+          "readiness": "ready_for_plan_snapshot_contract"
+        }
+      },
+      "sourceFiles": [
+        {
+          "path": "docs/activation-worker-approved-plan-dry-run-reports/summary/worker-approved-plan-dry-run-summary.json",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-1 summary evidence."
+        },
+        {
+          "path": "docs/activation-worker-approved-plan-dry-run-reports/reports/worker-approved-plan-dry-run-report.json",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-1 report evidence."
+        },
+        {
+          "path": "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-1 deterministic job batch plan."
+        },
+        {
+          "path": "docs/activation-worker-approved-plan-dry-run-reports/validation/blocked-route-validation.json",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-1 blocked route validation."
+        },
+        {
+          "path": "docs/activation-phase-worker-1-approved-plan-snapshot-dry-run-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-1 results document."
+        },
+        {
+          "path": "docs/activation-worker-runtime-jobs-audit-reports/summary/worker-runtime-jobs-audit-summary.json",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-0 source readiness evidence."
+        },
+        {
+          "path": "docs/activation-provider-output-plan-snapshot-contract-reports/summary/provider-output-plan-snapshot-contract-summary.json",
+          "exists": true,
+          "required": true,
+          "purpose": "PLAN-SNAPSHOT-1 source readiness evidence."
+        },
+        {
+          "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+          "exists": true,
+          "required": true,
+          "purpose": "PLAN-SNAPSHOT-1 candidate snapshot."
+        },
+        {
+          "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+          "exists": true,
+          "required": true,
+          "purpose": "MODEL-DRYRUN-1 source readiness evidence."
+        }
+      ],
+      "absentOptionalTrees": [
+        {
+          "path": "docs/runtime-unlock",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/cross-chat",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/agents",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/tool-studies",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/tool-call-foundation.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/tool-readiness-worker-runtime-foundation.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/worker-claim-execution-contract-hardening.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/provider-gateway-foundation.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/supabase-milestone-sync-policy.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        },
+        {
+          "path": "docs/supabase-success-milestone-reporting-standard.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+        }
+      ],
+      "currentBranch": "codex/rp-tool-route-0-execution-unlock-audit",
+      "baseBranch": "codex/rp-worker-1-approved-plan-snapshot-dry-run",
+      "prStack": [
+        {
+          "pr": 343,
+          "title": "[worker] Approved plan snapshot dry run",
+          "expectedRunId": "worker1-20260612T193823"
+        },
+        {
+          "pr": 340,
+          "title": "[worker] Worker Runtime Jobs repo audit",
+          "expectedRunId": "worker0-20260612T191022"
+        },
+        {
+          "pr": 334,
+          "title": "[plan] Provider output approved-plan snapshot contract",
+          "expectedRunId": "plansnapshot1-20260612T182758"
+        },
+        {
+          "pr": 331,
+          "title": "[model] Qwen DeepSeek full synthetic provider dry run",
+          "expectedRunId": "modeldryrun1-20260612T174538"
+        }
+      ],
+      "supabaseUpdateClassification": {
+        "updateRequired": "docs/status only",
+        "updateStatus": "docs_only",
+        "environmentTouched": "none",
+        "sqlExecuted": "none",
+        "migrationDeployed": "no",
+        "evidenceDocs": [
+          "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+          "docs/activation-tool-route-execution-unlock-audit-reports/reports/tool-route-execution-unlock-audit-report.json"
+        ],
+        "blockers": [],
+        "nextSupabaseAction": "none"
+      },
+      "activeBlockers": []
+    },
+    "worker1_evidence": {
+      "runId": "worker1-20260612T193823",
+      "status": "passed",
+      "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+      "readiness": "ready for tool-route execution unlock audit"
+    },
+    "route_family_map": {
+      "phase": "TOOL_ROUTE_0",
+      "status": "passed",
+      "families": [
+        {
+          "familyId": "provider_model_planning",
+          "label": "Provider/model planning route",
+          "owner": "PROVIDER_GATEWAY_MODELS",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+            "worker1-job-worker1-20260612T193823-deepseek-proposal-review"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "track_a_render_export",
+          "label": "Track A render/export route",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "track_b_media_audio_model",
+          "label": "Track B media/audio/model route",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "ai_tools_creative_graphics",
+          "label": "AI Tools creative graphics route",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "map_geospatial",
+          "label": "Map/geospatial route",
+          "owner": "MAP_GEOSPATIAL",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "web_search_capture",
+          "label": "Web search/capture route",
+          "owner": "WEB_SEARCH_CAPTURE",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "sound_music_audio",
+          "label": "Sound/music/audio route",
+          "owner": "SOUND_MUSIC_AUDIO",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "supabase_metadata_storage",
+          "label": "Supabase metadata/storage route",
+          "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-artifact-route-event-validation"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "public_artifact_signed_url_delivery",
+          "label": "Public artifact/signed URL delivery route",
+          "owner": "COMPLIANCE_SECURITY",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-artifact-route-event-validation"
+          ],
+          "toolStudy0Required": false,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "billing_credits",
+          "label": "Billing/credits route",
+          "owner": "BILLING_STRIPE_CREDITS",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-artifact-route-event-validation"
+          ],
+          "toolStudy0Required": false,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "observability_audit_cost",
+          "label": "Observability/audit/cost route",
+          "owner": "OBSERVABILITY_AUDIT_COST",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake",
+            "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+            "worker1-job-worker1-20260612T193823-artifact-route-event-validation"
+          ],
+          "toolStudy0Required": false,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "compliance_security",
+          "label": "Compliance/security route",
+          "owner": "COMPLIANCE_SECURITY",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake",
+            "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+            "worker1-job-worker1-20260612T193823-deepseek-proposal-review"
+          ],
+          "toolStudy0Required": false,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "worker_runtime_jobs",
+          "label": "Worker runtime jobs route",
+          "owner": "WORKER_RUNTIME_JOBS",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake",
+            "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+            "worker1-job-worker1-20260612T193823-deepseek-proposal-review"
+          ],
+          "toolStudy0Required": true,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        },
+        {
+          "familyId": "frontend_product_ux",
+          "label": "Frontend/product UX route",
+          "owner": "FRONTEND_PRODUCT_UX",
+          "sourceEvidence": [
+            "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+            "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+            "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata"
+          ],
+          "toolStudy0Required": false,
+          "capabilityRoutingRequiredBeforeExecution": true,
+          "ownerAcceptanceRequired": true,
+          "routeExecutionAllowed": false,
+          "runtimeReady": false,
+          "currentStatus": "mapped_review_only"
+        }
+      ],
+      "routeFamilyCount": 14,
+      "allFamiliesMapped": true,
+      "activeBlockers": []
+    },
+    "tool_study_prerequisite_map": {
+      "phase": "TOOL_ROUTE_0",
+      "status": "passed",
+      "prerequisites": [
+        {
+          "owner": "WEB_SEARCH_CAPTURE",
+          "routeFamilyIds": [
+            "web_search_capture"
+          ],
+          "status": "prompt_created_for_tool_study_0",
+          "promptPath": "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "MAP_GEOSPATIAL",
+          "routeFamilyIds": [
+            "map_geospatial"
+          ],
+          "status": "prompt_created_for_tool_study_0",
+          "promptPath": "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "routeFamilyIds": [
+            "ai_tools_creative_graphics"
+          ],
+          "status": "prompt_created_for_tool_study_0",
+          "promptPath": "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "routeFamilyIds": [
+            "track_a_render_export"
+          ],
+          "status": "prompt_created_for_tool_study_0",
+          "promptPath": "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "routeFamilyIds": [
+            "track_b_media_audio_model"
+          ],
+          "status": "prompt_created_for_tool_study_0",
+          "promptPath": "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "SOUND_MUSIC_AUDIO",
+          "routeFamilyIds": [
+            "sound_music_audio"
+          ],
+          "status": "prompt_created_for_tool_study_0",
+          "promptPath": "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "PROVIDER_GATEWAY_MODELS",
+          "routeFamilyIds": [
+            "provider_model_planning"
+          ],
+          "status": "prerequisite_recorded_no_file_requested",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "WORKER_RUNTIME_JOBS",
+          "routeFamilyIds": [
+            "worker_runtime_jobs"
+          ],
+          "status": "prerequisite_recorded_no_file_requested",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        },
+        {
+          "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+          "routeFamilyIds": [
+            "supabase_metadata_storage"
+          ],
+          "status": "prerequisite_recorded_no_file_requested",
+          "executionAllowedBeforeToolStudy": false,
+          "requiredBeforeExecution": true
+        }
+      ],
+      "missingToolStudyCount": 3,
+      "promptCreatedCount": 6,
+      "activeBlockers": []
+    },
+    "blocked_route_register": {
+      "phase": "TOOL_ROUTE_0",
+      "status": "passed",
+      "blockedUses": [
+        {
+          "blockedUseId": "real_worker_execution",
+          "owner": "WORKER_RUNTIME_JOBS",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "WORKER-1 simulated claims only; real workers require future transactional backend runtime approval."
+        },
+        {
+          "blockedUseId": "tool_execution",
+          "owner": "tool-owning workstreams",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "TOOL-STUDY-0 capability routing contracts must precede tool execution."
+        },
+        {
+          "blockedUseId": "provider_model_calls",
+          "owner": "PROVIDER_GATEWAY_MODELS",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Provider/model calls are out of TOOL-ROUTE-0 scope."
+        },
+        {
+          "blockedUseId": "track_a_runtime",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Track A render/export runtime requires a separate owner phase."
+        },
+        {
+          "blockedUseId": "track_b_runtime",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Track B media/audio/model runtime remains owner-gated."
+        },
+        {
+          "blockedUseId": "ai_tools_runtime",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Graphics tool runtime requires TOOL-STUDY-0 and owner acceptance."
+        },
+        {
+          "blockedUseId": "map_rendering",
+          "owner": "MAP_GEOSPATIAL",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Map rendering is not executed by this audit."
+        },
+        {
+          "blockedUseId": "web_search_execution",
+          "owner": "WEB_SEARCH_CAPTURE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Web search execution remains blocked pending owner study."
+        },
+        {
+          "blockedUseId": "browser_capture",
+          "owner": "WEB_SEARCH_CAPTURE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Browser capture remains blocked pending owner study."
+        },
+        {
+          "blockedUseId": "media_processing",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Media processing is not run in TOOL-ROUTE-0."
+        },
+        {
+          "blockedUseId": "public_artifacts",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Public artifact creation remains blocked."
+        },
+        {
+          "blockedUseId": "signed_urls_source_of_truth",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Signed URLs cannot become source of truth."
+        },
+        {
+          "blockedUseId": "raw_prompt_execution",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Workers must execute approved snapshots, not raw prompts."
+        },
+        {
+          "blockedUseId": "supabase_mutation",
+          "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "No Supabase rows, schema, storage, or migration mutations are authorized."
+        },
+        {
+          "blockedUseId": "sql_migrations",
+          "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "SQL and migrations are out of scope."
+        },
+        {
+          "blockedUseId": "google_cloud_api_calls",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "TOOL-ROUTE-0 is local docs/diagnostics only."
+        },
+        {
+          "blockedUseId": "secret_manager_api_calls",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "No secret payload or metadata access is required."
+        },
+        {
+          "blockedUseId": "gcs_storage_transfer",
+          "owner": "OBSERVABILITY_AUDIT_COST",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "No GCS upload or storage transfer is authorized."
+        },
+        {
+          "blockedUseId": "production_external_beta_paid_production_broad_media",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Production, beta, paid production, and broad media remain blocked."
+        }
+      ],
+      "allExecutionBlocked": true,
+      "activeBlockers": []
+    },
+    "owner_tool_study_prompts": {
+      "phase": "TOOL_ROUTE_0",
+      "status": "passed",
+      "prompts": [
+        {
+          "owner": "WEB_SEARCH_CAPTURE",
+          "path": "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+          "title": "TOOL-STUDY-0 Web Search Capture Capability Routing Contract",
+          "ownedTools": [
+            "SearXNG/private search policy",
+            "Brave fallback policy",
+            "Playwright capture",
+            "Readability extraction",
+            "Sharp screenshot preparation"
+          ],
+          "explicitlyNotOwned": [
+            "map rendering",
+            "provider/model planning",
+            "Track A export",
+            "Track B media processing",
+            "Supabase writes",
+            "billing"
+          ],
+          "relatedWorkstreams": [
+            "COMPLIANCE_SECURITY",
+            "OBSERVABILITY_AUDIT_COST",
+            "FRONTEND_PRODUCT_UX"
+          ],
+          "allowedScope": [
+            "docs/diagnostics only",
+            "read committed TOOL-ROUTE-0 and WORKER-1 evidence",
+            "map future search/capture capabilities and blockers"
+          ],
+          "blockedScope": [
+            "tool execution",
+            "worker execution",
+            "route execution",
+            "provider/model calls",
+            "media processing",
+            "browser capture",
+            "map rendering",
+            "web search execution",
+            "Supabase mutation",
+            "SQL/migrations/schema/RLS changes",
+            "Google Cloud API calls",
+            "Secret Manager API calls",
+            "GCS upload/storage transfer",
+            "public artifacts",
+            "signed URLs",
+            "raw prompt execution",
+            "production/external beta/paid production/broad media unlock"
+          ],
+          "requiredDocs": [
+            "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+            "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+            "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+            "open-source-tool-registry.md",
+            "tool-settings-catalog.md",
+            "tool-strategy-planner.md",
+            "docs/activation-phase-49h-web-search-capture-internal-readiness.md if present"
+          ],
+          "diagnostics": [
+            "verify no web request execution path is introduced",
+            "verify browser capture remains blocked",
+            "verify owner handoff lists privacy/source limitations"
+          ],
+          "validation": [
+            "run local report/smoke only",
+            "scan changed files for signed URL and raw prompt material"
+          ],
+          "finalResponseFormat": [
+            "owner",
+            "capability routing status",
+            "blocked capabilities",
+            "required next study evidence",
+            "no-scope statement"
+          ],
+          "body": "# TOOL-STUDY-0 Web Search Capture Capability Routing Contract\n\nOwner: `WEB_SEARCH_CAPTURE`\n\n## Owned Tools\n\n- SearXNG/private search policy\n- Brave fallback policy\n- Playwright capture\n- Readability extraction\n- Sharp screenshot preparation\n\n## Explicitly Not Owned\n\n- map rendering\n- provider/model planning\n- Track A export\n- Track B media processing\n- Supabase writes\n- billing\n\n## Related Workstreams\n\n- COMPLIANCE_SECURITY\n- OBSERVABILITY_AUDIT_COST\n- FRONTEND_PRODUCT_UX\n\n## Allowed Scope\n\n- docs/diagnostics only\n- read committed TOOL-ROUTE-0 and WORKER-1 evidence\n- map future search/capture capabilities and blockers\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- docs/activation-phase-49h-web-search-capture-internal-readiness.md if present\n\n## Diagnostics\n\n- verify no web request execution path is introduced\n- verify browser capture remains blocked\n- verify owner handoff lists privacy/source limitations\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for signed URL and raw prompt material\n\n## Final Response Format\n\n- owner\n- capability routing status\n- blocked capabilities\n- required next study evidence\n- no-scope statement\n"
+        },
+        {
+          "owner": "MAP_GEOSPATIAL",
+          "path": "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+          "title": "TOOL-STUDY-0 Map Geospatial Capability Routing Contract",
+          "ownedTools": [
+            "MapLibre",
+            "Turf",
+            "deck.gl planning",
+            "CesiumJS planning"
+          ],
+          "explicitlyNotOwned": [
+            "web search execution",
+            "browser capture",
+            "Track B media processing",
+            "provider/model calls",
+            "Supabase mutation"
+          ],
+          "relatedWorkstreams": [
+            "WEB_SEARCH_CAPTURE",
+            "AI_TOOLS_CREATIVE_GRAPHICS",
+            "COMPLIANCE_SECURITY",
+            "FRONTEND_PRODUCT_UX"
+          ],
+          "allowedScope": [
+            "docs/diagnostics only",
+            "map future map/geospatial route families",
+            "record map safety/readability prerequisites"
+          ],
+          "blockedScope": [
+            "tool execution",
+            "worker execution",
+            "route execution",
+            "provider/model calls",
+            "media processing",
+            "browser capture",
+            "map rendering",
+            "web search execution",
+            "Supabase mutation",
+            "SQL/migrations/schema/RLS changes",
+            "Google Cloud API calls",
+            "Secret Manager API calls",
+            "GCS upload/storage transfer",
+            "public artifacts",
+            "signed URLs",
+            "raw prompt execution",
+            "production/external beta/paid production/broad media unlock"
+          ],
+          "requiredDocs": [
+            "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+            "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+            "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+            "open-source-tool-registry.md",
+            "tool-settings-catalog.md",
+            "tool-strategy-planner.md",
+            "map-location-animation-planning.md",
+            "map-animation-settings-catalog.md"
+          ],
+          "diagnostics": [
+            "verify no map rendering or tile/network fetch runs",
+            "verify exact geography claims stay owner-reviewed"
+          ],
+          "validation": [
+            "run local report/smoke only",
+            "scan changed files for runtime or API-call claims"
+          ],
+          "finalResponseFormat": [
+            "owner",
+            "route families",
+            "tool capability contract gaps",
+            "map execution blockers",
+            "no-scope statement"
+          ],
+          "body": "# TOOL-STUDY-0 Map Geospatial Capability Routing Contract\n\nOwner: `MAP_GEOSPATIAL`\n\n## Owned Tools\n\n- MapLibre\n- Turf\n- deck.gl planning\n- CesiumJS planning\n\n## Explicitly Not Owned\n\n- web search execution\n- browser capture\n- Track B media processing\n- provider/model calls\n- Supabase mutation\n\n## Related Workstreams\n\n- WEB_SEARCH_CAPTURE\n- AI_TOOLS_CREATIVE_GRAPHICS\n- COMPLIANCE_SECURITY\n- FRONTEND_PRODUCT_UX\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map future map/geospatial route families\n- record map safety/readability prerequisites\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- map-location-animation-planning.md\n- map-animation-settings-catalog.md\n\n## Diagnostics\n\n- verify no map rendering or tile/network fetch runs\n- verify exact geography claims stay owner-reviewed\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for runtime or API-call claims\n\n## Final Response Format\n\n- owner\n- route families\n- tool capability contract gaps\n- map execution blockers\n- no-scope statement\n"
+        },
+        {
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "path": "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+          "title": "TOOL-STUDY-0 AI Tools Creative Graphics Capability Routing Contract",
+          "ownedTools": [
+            "D3",
+            "ECharts",
+            "Vega-Lite planning",
+            "Sharp/libvips graphics prep",
+            "Remotion graphics handoff"
+          ],
+          "explicitlyNotOwned": [
+            "map rendering",
+            "web capture",
+            "provider/model calls",
+            "Track A final render",
+            "Track B media processing"
+          ],
+          "relatedWorkstreams": [
+            "TRACK_A_RENDER_EXPORT",
+            "MAP_GEOSPATIAL",
+            "FRONTEND_PRODUCT_UX",
+            "COMPLIANCE_SECURITY"
+          ],
+          "allowedScope": [
+            "docs/diagnostics only",
+            "route chart/card/diagram capability families",
+            "record controlled graphics QA prerequisites"
+          ],
+          "blockedScope": [
+            "tool execution",
+            "worker execution",
+            "route execution",
+            "provider/model calls",
+            "media processing",
+            "browser capture",
+            "map rendering",
+            "web search execution",
+            "Supabase mutation",
+            "SQL/migrations/schema/RLS changes",
+            "Google Cloud API calls",
+            "Secret Manager API calls",
+            "GCS upload/storage transfer",
+            "public artifacts",
+            "signed URLs",
+            "raw prompt execution",
+            "production/external beta/paid production/broad media unlock"
+          ],
+          "requiredDocs": [
+            "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+            "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+            "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+            "open-source-tool-registry.md",
+            "tool-settings-catalog.md",
+            "tool-strategy-planner.md",
+            "chart-diagram-planning.md",
+            "chart-diagram-settings-catalog.md"
+          ],
+          "diagnostics": [
+            "verify no chart or graphics renderer runs",
+            "verify exact text/data claims stay controlled and source-reviewed"
+          ],
+          "validation": [
+            "run local report/smoke only",
+            "scan changed files for execution claims"
+          ],
+          "finalResponseFormat": [
+            "owner",
+            "graphics capability families",
+            "required tool studies",
+            "execution blockers",
+            "no-scope statement"
+          ],
+          "body": "# TOOL-STUDY-0 AI Tools Creative Graphics Capability Routing Contract\n\nOwner: `AI_TOOLS_CREATIVE_GRAPHICS`\n\n## Owned Tools\n\n- D3\n- ECharts\n- Vega-Lite planning\n- Sharp/libvips graphics prep\n- Remotion graphics handoff\n\n## Explicitly Not Owned\n\n- map rendering\n- web capture\n- provider/model calls\n- Track A final render\n- Track B media processing\n\n## Related Workstreams\n\n- TRACK_A_RENDER_EXPORT\n- MAP_GEOSPATIAL\n- FRONTEND_PRODUCT_UX\n- COMPLIANCE_SECURITY\n\n## Allowed Scope\n\n- docs/diagnostics only\n- route chart/card/diagram capability families\n- record controlled graphics QA prerequisites\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- chart-diagram-planning.md\n- chart-diagram-settings-catalog.md\n\n## Diagnostics\n\n- verify no chart or graphics renderer runs\n- verify exact text/data claims stay controlled and source-reviewed\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for execution claims\n\n## Final Response Format\n\n- owner\n- graphics capability families\n- required tool studies\n- execution blockers\n- no-scope statement\n"
+        },
+        {
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "path": "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+          "title": "TOOL-STUDY-0 Track A Render Export Capability Routing Contract",
+          "ownedTools": [
+            "Remotion render/export boundary",
+            "FFmpeg final mux/export planning",
+            "OpenTimelineIO render handoff",
+            "libass caption burn-in planning"
+          ],
+          "explicitlyNotOwned": [
+            "Track B media analysis",
+            "map data source validation",
+            "web capture",
+            "provider/model calls",
+            "billing mutation"
+          ],
+          "relatedWorkstreams": [
+            "WORKER_RUNTIME_JOBS",
+            "AI_TOOLS_CREATIVE_GRAPHICS",
+            "OBSERVABILITY_AUDIT_COST",
+            "COMPLIANCE_SECURITY"
+          ],
+          "allowedScope": [
+            "docs/diagnostics only",
+            "map future render/export route prerequisites",
+            "record approved snapshot and artifact-scope requirements"
+          ],
+          "blockedScope": [
+            "tool execution",
+            "worker execution",
+            "route execution",
+            "provider/model calls",
+            "media processing",
+            "browser capture",
+            "map rendering",
+            "web search execution",
+            "Supabase mutation",
+            "SQL/migrations/schema/RLS changes",
+            "Google Cloud API calls",
+            "Secret Manager API calls",
+            "GCS upload/storage transfer",
+            "public artifacts",
+            "signed URLs",
+            "raw prompt execution",
+            "production/external beta/paid production/broad media unlock"
+          ],
+          "requiredDocs": [
+            "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+            "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+            "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+            "open-source-tool-registry.md",
+            "tool-settings-catalog.md",
+            "tool-strategy-planner.md",
+            "remotion-renderer-plan.md",
+            "render-strategy-planner.md"
+          ],
+          "diagnostics": [
+            "verify no render/export command is introduced",
+            "verify final render/export remains blocked"
+          ],
+          "validation": [
+            "run local report/smoke only",
+            "scan changed files for final export enablement"
+          ],
+          "finalResponseFormat": [
+            "owner",
+            "render/export route status",
+            "required capability contracts",
+            "blocked runtime scope",
+            "no-scope statement"
+          ],
+          "body": "# TOOL-STUDY-0 Track A Render Export Capability Routing Contract\n\nOwner: `TRACK_A_RENDER_EXPORT`\n\n## Owned Tools\n\n- Remotion render/export boundary\n- FFmpeg final mux/export planning\n- OpenTimelineIO render handoff\n- libass caption burn-in planning\n\n## Explicitly Not Owned\n\n- Track B media analysis\n- map data source validation\n- web capture\n- provider/model calls\n- billing mutation\n\n## Related Workstreams\n\n- WORKER_RUNTIME_JOBS\n- AI_TOOLS_CREATIVE_GRAPHICS\n- OBSERVABILITY_AUDIT_COST\n- COMPLIANCE_SECURITY\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map future render/export route prerequisites\n- record approved snapshot and artifact-scope requirements\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- remotion-renderer-plan.md\n- render-strategy-planner.md\n\n## Diagnostics\n\n- verify no render/export command is introduced\n- verify final render/export remains blocked\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for final export enablement\n\n## Final Response Format\n\n- owner\n- render/export route status\n- required capability contracts\n- blocked runtime scope\n- no-scope statement\n"
+        },
+        {
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "path": "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+          "title": "TOOL-STUDY-0 Track B Media Processing Capability Routing Contract",
+          "ownedTools": [
+            "FFmpeg/ffprobe metadata planning",
+            "OpenCV",
+            "PyAV",
+            "PySceneDetect",
+            "DeepFilterNet",
+            "Signalsmith Stretch",
+            "DuckDB/Polars metadata planning"
+          ],
+          "explicitlyNotOwned": [
+            "Track A final render/export",
+            "map rendering",
+            "web search execution",
+            "provider/model calls",
+            "Supabase schema changes"
+          ],
+          "relatedWorkstreams": [
+            "SOUND_MUSIC_AUDIO",
+            "WORKER_RUNTIME_JOBS",
+            "OBSERVABILITY_AUDIT_COST",
+            "COMPLIANCE_SECURITY"
+          ],
+          "allowedScope": [
+            "docs/diagnostics only",
+            "map Track B route manifests to TOOL-STUDY-0 prerequisites",
+            "record media-runtime blockers"
+          ],
+          "blockedScope": [
+            "tool execution",
+            "worker execution",
+            "route execution",
+            "provider/model calls",
+            "media processing",
+            "browser capture",
+            "map rendering",
+            "web search execution",
+            "Supabase mutation",
+            "SQL/migrations/schema/RLS changes",
+            "Google Cloud API calls",
+            "Secret Manager API calls",
+            "GCS upload/storage transfer",
+            "public artifacts",
+            "signed URLs",
+            "raw prompt execution",
+            "production/external beta/paid production/broad media unlock"
+          ],
+          "requiredDocs": [
+            "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+            "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+            "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+            "open-source-tool-registry.md",
+            "tool-settings-catalog.md",
+            "tool-strategy-planner.md",
+            "docs/track-b-tool-route-manifest.md",
+            "docs/track-b-tool-readiness-summary.md"
+          ],
+          "diagnostics": [
+            "verify no media files are read or processed",
+            "verify no sidecar/tool runtime executes"
+          ],
+          "validation": [
+            "run local report/smoke only",
+            "scan changed files for media-processing claims"
+          ],
+          "finalResponseFormat": [
+            "owner",
+            "Track B route families",
+            "tool study gaps",
+            "runtime blockers",
+            "no-scope statement"
+          ],
+          "body": "# TOOL-STUDY-0 Track B Media Processing Capability Routing Contract\n\nOwner: `TRACK_B_MEDIA_PROCESSING`\n\n## Owned Tools\n\n- FFmpeg/ffprobe metadata planning\n- OpenCV\n- PyAV\n- PySceneDetect\n- DeepFilterNet\n- Signalsmith Stretch\n- DuckDB/Polars metadata planning\n\n## Explicitly Not Owned\n\n- Track A final render/export\n- map rendering\n- web search execution\n- provider/model calls\n- Supabase schema changes\n\n## Related Workstreams\n\n- SOUND_MUSIC_AUDIO\n- WORKER_RUNTIME_JOBS\n- OBSERVABILITY_AUDIT_COST\n- COMPLIANCE_SECURITY\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map Track B route manifests to TOOL-STUDY-0 prerequisites\n- record media-runtime blockers\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- docs/track-b-tool-route-manifest.md\n- docs/track-b-tool-readiness-summary.md\n\n## Diagnostics\n\n- verify no media files are read or processed\n- verify no sidecar/tool runtime executes\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for media-processing claims\n\n## Final Response Format\n\n- owner\n- Track B route families\n- tool study gaps\n- runtime blockers\n- no-scope statement\n"
+        },
+        {
+          "owner": "SOUND_MUSIC_AUDIO",
+          "path": "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md",
+          "title": "TOOL-STUDY-0 Sound Music Audio Capability Routing Contract",
+          "ownedTools": [
+            "AudioFlux planning",
+            "Signalsmith Stretch planning",
+            "SoundSync SFX/audio route planning",
+            "loudness/ducking metadata planning"
+          ],
+          "explicitlyNotOwned": [
+            "provider music/SFX calls",
+            "Track A final export",
+            "web capture",
+            "map rendering",
+            "Supabase writes"
+          ],
+          "relatedWorkstreams": [
+            "TRACK_B_MEDIA_PROCESSING",
+            "BILLING_STRIPE_CREDITS",
+            "COMPLIANCE_SECURITY",
+            "OBSERVABILITY_AUDIT_COST"
+          ],
+          "allowedScope": [
+            "docs/diagnostics only",
+            "map sound/music/audio capability prerequisites",
+            "record audio privacy/cost/runtime blockers"
+          ],
+          "blockedScope": [
+            "tool execution",
+            "worker execution",
+            "route execution",
+            "provider/model calls",
+            "media processing",
+            "browser capture",
+            "map rendering",
+            "web search execution",
+            "Supabase mutation",
+            "SQL/migrations/schema/RLS changes",
+            "Google Cloud API calls",
+            "Secret Manager API calls",
+            "GCS upload/storage transfer",
+            "public artifacts",
+            "signed URLs",
+            "raw prompt execution",
+            "production/external beta/paid production/broad media unlock"
+          ],
+          "requiredDocs": [
+            "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+            "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+            "docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json",
+            "open-source-tool-registry.md",
+            "tool-settings-catalog.md",
+            "tool-strategy-planner.md",
+            "soundsync-audio-pipeline-planning.md",
+            "audio-settings-catalog.md"
+          ],
+          "diagnostics": [
+            "verify no audio analysis or generation runs",
+            "verify no provider SFX/music call path is introduced"
+          ],
+          "validation": [
+            "run local report/smoke only",
+            "scan changed files for audio execution claims"
+          ],
+          "finalResponseFormat": [
+            "owner",
+            "audio capability families",
+            "tool study blockers",
+            "provider/runtime boundaries",
+            "no-scope statement"
+          ],
+          "body": "# TOOL-STUDY-0 Sound Music Audio Capability Routing Contract\n\nOwner: `SOUND_MUSIC_AUDIO`\n\n## Owned Tools\n\n- AudioFlux planning\n- Signalsmith Stretch planning\n- SoundSync SFX/audio route planning\n- loudness/ducking metadata planning\n\n## Explicitly Not Owned\n\n- provider music/SFX calls\n- Track A final export\n- web capture\n- map rendering\n- Supabase writes\n\n## Related Workstreams\n\n- TRACK_B_MEDIA_PROCESSING\n- BILLING_STRIPE_CREDITS\n- COMPLIANCE_SECURITY\n- OBSERVABILITY_AUDIT_COST\n\n## Allowed Scope\n\n- docs/diagnostics only\n- map sound/music/audio capability prerequisites\n- record audio privacy/cost/runtime blockers\n\n## Blocked Scope\n\n- tool execution\n- worker execution\n- route execution\n- provider/model calls\n- media processing\n- browser capture\n- map rendering\n- web search execution\n- Supabase mutation\n- SQL/migrations/schema/RLS changes\n- Google Cloud API calls\n- Secret Manager API calls\n- GCS upload/storage transfer\n- public artifacts\n- signed URLs\n- raw prompt execution\n- production/external beta/paid production/broad media unlock\n\n## Required Docs And Files\n\n- docs/activation-phase-tool-route-0-execution-unlock-audit-results.md\n- docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json\n- docs/activation-worker-approved-plan-dry-run-reports/evidence/plan-snapshot-evidence-context.json\n- open-source-tool-registry.md\n- tool-settings-catalog.md\n- tool-strategy-planner.md\n- soundsync-audio-pipeline-planning.md\n- audio-settings-catalog.md\n\n## Diagnostics\n\n- verify no audio analysis or generation runs\n- verify no provider SFX/music call path is introduced\n\n## Validation\n\n- run local report/smoke only\n- scan changed files for audio execution claims\n\n## Final Response Format\n\n- owner\n- audio capability families\n- tool study blockers\n- provider/runtime boundaries\n- no-scope statement\n"
+        }
+      ],
+      "promptCount": 6,
+      "activeBlockers": []
+    },
+    "diagnostics": {
+      "status": "passed",
+      "command": "npm run --silent tool-route:execution-unlock-audit:diagnostics"
+    },
+    "no_runtime_execution": {
+      "toolExecution": false,
+      "workerExecution": false,
+      "routeExecution": false,
+      "providerModelCalls": false,
+      "mediaProcessing": false,
+      "browserMapWeb": false,
+      "supabaseMutation": false,
+      "sqlMigrationsSchemaRls": false,
+      "googleCloudApiCalls": false,
+      "secretManagerApiCalls": false,
+      "gcsStorageTransfer": false,
+      "publicArtifacts": false,
+      "signedUrls": false,
+      "rawPromptExecution": false,
+      "production": false,
+      "externalBeta": false,
+      "paidProduction": false,
+      "broadMedia": false,
+      "stripeCredits": false,
+      "dependencyMutation": false,
+      "finalRenderExport": false
+    },
+    "blocked_features": {
+      "phase": "TOOL_ROUTE_0",
+      "status": "passed",
+      "blockedUses": [
+        {
+          "blockedUseId": "real_worker_execution",
+          "owner": "WORKER_RUNTIME_JOBS",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "WORKER-1 simulated claims only; real workers require future transactional backend runtime approval."
+        },
+        {
+          "blockedUseId": "tool_execution",
+          "owner": "tool-owning workstreams",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "TOOL-STUDY-0 capability routing contracts must precede tool execution."
+        },
+        {
+          "blockedUseId": "provider_model_calls",
+          "owner": "PROVIDER_GATEWAY_MODELS",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Provider/model calls are out of TOOL-ROUTE-0 scope."
+        },
+        {
+          "blockedUseId": "track_a_runtime",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Track A render/export runtime requires a separate owner phase."
+        },
+        {
+          "blockedUseId": "track_b_runtime",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Track B media/audio/model runtime remains owner-gated."
+        },
+        {
+          "blockedUseId": "ai_tools_runtime",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Graphics tool runtime requires TOOL-STUDY-0 and owner acceptance."
+        },
+        {
+          "blockedUseId": "map_rendering",
+          "owner": "MAP_GEOSPATIAL",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Map rendering is not executed by this audit."
+        },
+        {
+          "blockedUseId": "web_search_execution",
+          "owner": "WEB_SEARCH_CAPTURE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Web search execution remains blocked pending owner study."
+        },
+        {
+          "blockedUseId": "browser_capture",
+          "owner": "WEB_SEARCH_CAPTURE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Browser capture remains blocked pending owner study."
+        },
+        {
+          "blockedUseId": "media_processing",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Media processing is not run in TOOL-ROUTE-0."
+        },
+        {
+          "blockedUseId": "public_artifacts",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Public artifact creation remains blocked."
+        },
+        {
+          "blockedUseId": "signed_urls_source_of_truth",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Signed URLs cannot become source of truth."
+        },
+        {
+          "blockedUseId": "raw_prompt_execution",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Workers must execute approved snapshots, not raw prompts."
+        },
+        {
+          "blockedUseId": "supabase_mutation",
+          "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "No Supabase rows, schema, storage, or migration mutations are authorized."
+        },
+        {
+          "blockedUseId": "sql_migrations",
+          "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "SQL and migrations are out of scope."
+        },
+        {
+          "blockedUseId": "google_cloud_api_calls",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "TOOL-ROUTE-0 is local docs/diagnostics only."
+        },
+        {
+          "blockedUseId": "secret_manager_api_calls",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "No secret payload or metadata access is required."
+        },
+        {
+          "blockedUseId": "gcs_storage_transfer",
+          "owner": "OBSERVABILITY_AUDIT_COST",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "No GCS upload or storage transfer is authorized."
+        },
+        {
+          "blockedUseId": "production_external_beta_paid_production_broad_media",
+          "owner": "COMPLIANCE_SECURITY",
+          "blocked": true,
+          "executionAllowed": false,
+          "reason": "Production, beta, paid production, and broad media remain blocked."
+        }
+      ],
+      "allExecutionBlocked": true,
+      "activeBlockers": []
+    }
+  },
+  "safetyFlags": {
+    "toolExecution": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "providerModelCalls": false,
+    "mediaProcessing": false,
+    "browserMapWeb": false,
+    "supabaseMutation": false,
+    "sqlMigrationsSchemaRls": false,
+    "googleCloudApiCalls": false,
+    "secretManagerApiCalls": false,
+    "gcsStorageTransfer": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPromptExecution": false,
+    "production": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "broadMedia": false,
+    "stripeCredits": false,
+    "dependencyMutation": false,
+    "finalRenderExport": false
+  },
+  "passed": true
+}

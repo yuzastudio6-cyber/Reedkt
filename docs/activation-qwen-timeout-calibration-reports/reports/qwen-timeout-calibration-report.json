@@ -1,0 +1,1159 @@
+{
+  "phase": "model-orchestration-qwen-timeout-calibration",
+  "runId": "qwentimeout1-20260612T165931",
+  "status": "passed",
+  "decision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+  "activeBlockers": [],
+  "sourceAudit": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+    "baseBranch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+    "prTitle": "[model] Qwen schema timeout target calibration",
+    "ownerWorkstream": "PROVIDER_GATEWAY_MODELS",
+    "sourceEvidence": "PR #322 Qwen auth repair plus PR #318 dry-run approval packet",
+    "sourcePaths": [
+      {
+        "path": "docs/activation-phase-model-provider-dry-run-results.md",
+        "present": true
+      },
+      {
+        "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_repair_readiness_report.json",
+        "present": true
+      },
+      {
+        "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
+        "present": true
+      },
+      {
+        "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_baseurl_probe_report.json",
+        "present": true
+      },
+      {
+        "path": "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_synthetic_cases.json",
+        "present": true
+      },
+      {
+        "path": "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_readiness_report.json",
+        "present": true
+      },
+      {
+        "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_decision.json",
+        "present": true
+      },
+      {
+        "path": "docs/activation-model-orchestration-provider-dry-run-reports/qwen_provider_dry_run_report.json",
+        "present": true
+      },
+      {
+        "path": "docs/model-orchestration-qwen-auth-repair.md",
+        "present": true
+      },
+      {
+        "path": "docs/model-orchestration-provider-dry-run.md",
+        "present": true
+      }
+    ],
+    "qwenAuthRepairRunId": "modeldryrun1-20260612T162802",
+    "qwenAuthRepairDecision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
+    "qwenAuthRepairStatus": "blocked",
+    "selectedQwenAlias": "qwen3.7-plus",
+    "expectedPrimaryTarget": "qwen3.7-plus",
+    "activeBlockers": [
+      "provider_timeout"
+    ],
+    "previousSchemaCaseTimeouts": [
+      {
+        "caseId": "synthetic_edit_intent_extraction",
+        "modelId": "qwen3.7-plus",
+        "blocker": "provider_timeout",
+        "latencyMs": 12005,
+        "rawProviderResponseStored": false,
+        "secretPayloadPrinted": false
+      },
+      {
+        "caseId": "synthetic_timeline_planning",
+        "modelId": "qwen3.7-plus",
+        "blocker": "provider_timeout",
+        "latencyMs": 12007,
+        "rawProviderResponseStored": false,
+        "secretPayloadPrinted": false
+      },
+      {
+        "caseId": "synthetic_tool_route_metadata_recommendation",
+        "modelId": "qwen3.7-plus",
+        "blocker": "provider_timeout",
+        "latencyMs": 12005,
+        "rawProviderResponseStored": false,
+        "secretPayloadPrinted": false
+      },
+      {
+        "caseId": "synthetic_provider_fallback_comparison",
+        "modelId": "qwen3.7-plus",
+        "blocker": "provider_timeout",
+        "latencyMs": 15005,
+        "rawProviderResponseStored": false,
+        "secretPayloadPrinted": false
+      }
+    ],
+    "previousTimedOutCaseCount": 4,
+    "previousAuthProbeStatus": {
+      "status": "passed",
+      "usAuthProbeCallsPassed": 2,
+      "approvedTargetCallsPassed": 3,
+      "qwenMaxKnownUnavailable": "qwen-max"
+    },
+    "providerDryRunDecision": "not_attempted",
+    "deepseekCallsInThisPhase": false,
+    "fullProviderDryRunInThisPhase": false,
+    "supabaseWrites": false,
+    "sqlMigrationsSchemaRls": false,
+    "toolsWorkersRoutes": false,
+    "mediaProcessing": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "productionAffected": false,
+    "cwdEvidence": "/private/tmp/reeditpro-model-dryrun1-worktree"
+  },
+  "policy": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+    "baseBranch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+    "prTitle": "[model] Qwen schema timeout target calibration",
+    "patchType": "Qwen schema-case timeout/model target calibration for synthetic provider dry-run",
+    "requiredEnvironment": {
+      "GCP_PROJECT_ID": "reeditpro",
+      "GCP_REGION": "us-central1",
+      "REEDITPRO_ENV": "staging"
+    },
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_QWEN_SCHEMA_TIMEOUT_CALIBRATION"
+    ],
+    "forbiddenConfirmations": [
+      "REEDITPRO_CONFIRM_DEEPSEEK_API_CALL",
+      "REEDITPRO_CONFIRM_MODEL_ORCHESTRATION_PROVIDER_DRY_RUN",
+      "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+      "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+      "REEDITPRO_CONFIRM_ROUTE_EXECUTION",
+      "REEDITPRO_CONFIRM_MEDIA_PROCESSING",
+      "REEDITPRO_CONFIRM_SUPABASE_METADATA_WRITE",
+      "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+      "REEDITPRO_CONFIRM_RAW_PROMPT_EXECUTION",
+      "REEDITPRO_CONFIRM_PUBLIC_ARTIFACTS",
+      "REEDITPRO_CONFIRM_SIGNED_URL_DELIVERY",
+      "REEDITPRO_CONFIRM_PRODUCTION_WRITE",
+      "REEDITPRO_CONFIRM_EXTERNAL_BETA_UNLOCK",
+      "REEDITPRO_CONFIRM_PAID_PRODUCTION_UNLOCK",
+      "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT"
+    ],
+    "exactSecretRefsOnly": [
+      "DASHSCOPE_API_KEY",
+      "DASHSCOPE_BASE_URL",
+      "DASHSCOPE_REGION"
+    ],
+    "secretSourcePolicy": "google_secret_manager_only",
+    "approvedBaseUrlKey": "us",
+    "approvedDashScopeRegion": "us",
+    "primaryModel": "qwen3.7-plus",
+    "escalationModel": "qwen3.7-max",
+    "knownUnavailableModel": "qwen-max",
+    "qwenMaxRetested": false,
+    "failureClasses": [
+      "provider_timeout",
+      "first_byte_timeout",
+      "stream_timeout",
+      "schema_invalid",
+      "model_alias_unavailable",
+      "auth_regression",
+      "region_mismatch",
+      "output_too_large",
+      "prompt_too_large"
+    ],
+    "blockedScopes": [
+      "full_qwen_deepseek_provider_dry_run",
+      "deepseek_calls",
+      "provider_chains",
+      "tools_workers_routes",
+      "media_processing",
+      "browser_capture",
+      "map_rendering",
+      "raw_prompt_execution",
+      "supabase_writes",
+      "sql_migrations_schema_rls",
+      "public_artifacts",
+      "signed_urls",
+      "production",
+      "external_beta",
+      "paid_production"
+    ],
+    "deepseekCalls": false,
+    "fullProviderDryRun": false,
+    "syntheticPromptsOnly": true,
+    "rawProviderResponsesStored": false,
+    "secretPayloadsPrintedOrCommitted": false,
+    "supabaseWrites": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "production": false,
+    "externalBeta": false,
+    "paidProduction": false
+  },
+  "secretAccess": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "status": "passed",
+    "executed": true,
+    "secretSourcePolicy": "google_secret_manager_only",
+    "exactSecretRefsOnly": true,
+    "exactSecretRefs": [
+      "DASHSCOPE_API_KEY",
+      "DASHSCOPE_BASE_URL",
+      "DASHSCOPE_REGION"
+    ],
+    "secretVersionSelector": "latest",
+    "approvedDashScopeBaseUrlKey": "us",
+    "approvedDashScopeRegion": "us",
+    "broadSecretDiscovery": false,
+    "secretPayloadValuesStoredInReport": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false,
+    "deepseekSecretAccessed": false,
+    "entries": [
+      {
+        "secretRef": "DASHSCOPE_API_KEY",
+        "source": "secret_manager",
+        "payloadAccessStatus": "succeeded",
+        "secretVersionSelector": "latest",
+        "envVarPresent": false,
+        "payloadPrinted": false,
+        "payloadCommitted": false,
+        "secretValueStoredInReports": false
+      },
+      {
+        "secretRef": "DASHSCOPE_BASE_URL",
+        "source": "secret_manager",
+        "payloadAccessStatus": "succeeded",
+        "secretVersionSelector": "latest",
+        "envVarPresent": false,
+        "payloadPrinted": false,
+        "payloadCommitted": false,
+        "secretValueStoredInReports": false,
+        "payloadMatchedApprovedValue": true
+      },
+      {
+        "secretRef": "DASHSCOPE_REGION",
+        "source": "secret_manager",
+        "payloadAccessStatus": "succeeded",
+        "secretVersionSelector": "latest",
+        "envVarPresent": false,
+        "payloadPrinted": false,
+        "payloadCommitted": false,
+        "secretValueStoredInReports": false,
+        "payloadMatchedApprovedValue": true
+      }
+    ],
+    "baseUrlPayloadMatchedApprovedUsEndpoint": true,
+    "regionPayloadMatchedUs": true
+  },
+  "cases": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "sourceCaseCount": 4,
+    "sourceCases": [
+      {
+        "caseId": "synthetic_edit_intent_extraction",
+        "prompt": "Synthetic creator asks for a 45-second product explainer with clearer pacing and concise captions.",
+        "expectedOutputSchema": "agent_findings_v1",
+        "maxTokens": 900,
+        "timeoutMs": 12000
+      },
+      {
+        "caseId": "synthetic_timeline_planning",
+        "prompt": "Synthetic onboarding video needs a three-part timeline: hook, demonstration, CTA.",
+        "expectedOutputSchema": "edit_intents_v1",
+        "maxTokens": 1100,
+        "timeoutMs": 12000
+      },
+      {
+        "caseId": "synthetic_tool_route_metadata_recommendation",
+        "prompt": "Synthetic case asks whether captions, chart card, or map card should be recommended as metadata only.",
+        "expectedOutputSchema": "plan_snapshot_candidate_v1",
+        "maxTokens": 1000,
+        "timeoutMs": 12000
+      },
+      {
+        "caseId": "synthetic_provider_fallback_comparison",
+        "prompt": "Synthetic evaluator compares Qwen and DeepSeek roles for planning quality and reasoning fallback.",
+        "expectedOutputSchema": "provider_fallback_assessment_v1",
+        "maxTokens": 1200,
+        "timeoutMs": 15000
+      }
+    ],
+    "calibrationCaseCount": 8,
+    "calibrationCases": [
+      {
+        "caseId": "minimal_non_stream_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "stage": "minimal_non_stream",
+        "mode": "non_streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "prompt": "Return one compact JSON object only. Use synthetic timeout calibration metadata only. Required caseId is qwen_timeout_minimal. Set every execution, mutation, public artifact, signed URL, and raw prompt forwarding safety boolean to false.",
+        "requiredTopLevelFields": [
+          "caseId",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 20000,
+        "maxOutputTokens": 180,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      },
+      {
+        "caseId": "minimal_stream_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "stage": "minimal_stream",
+        "mode": "streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "prompt": "Return one compact JSON object only. Use synthetic timeout calibration metadata only. Required caseId is qwen_timeout_minimal. Set every execution, mutation, public artifact, signed URL, and raw prompt forwarding safety boolean to false.",
+        "requiredTopLevelFields": [
+          "caseId",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 30000,
+        "firstByteTimeoutMs": 12000,
+        "maxOutputTokens": 180,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      },
+      {
+        "caseId": "reduced_synthetic_edit_intent_extraction_qwen3_7_plus",
+        "sourceCaseId": "synthetic_edit_intent_extraction",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "agent_findings_v1",
+        "prompt": "Approved synthetic source case: synthetic_edit_intent_extraction.\nSynthetic input summary: Synthetic creator asks for a 45-second product explainer with clearer pacing and concise captions.\nReturn JSON only for schema agent_findings_v1.\nRequired top-level fields: caseId, findings, confidence, risks, blockedActions, wor...",
+        "requiredTopLevelFields": [
+          "caseId",
+          "findings",
+          "confidence",
+          "risks",
+          "blockedActions",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 45000,
+        "maxOutputTokens": 650,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      },
+      {
+        "caseId": "reduced_synthetic_timeline_planning_qwen3_7_plus",
+        "sourceCaseId": "synthetic_timeline_planning",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "edit_intents_v1",
+        "prompt": "Approved synthetic source case: synthetic_timeline_planning.\nSynthetic input summary: Synthetic onboarding video needs a three-part timeline: hook, demonstration, CTA.\nReturn JSON only for schema edit_intents_v1.\nRequired top-level fields: caseId, intentSummary, segments, planningRequirements, approvalGates, workerExec...",
+        "requiredTopLevelFields": [
+          "caseId",
+          "intentSummary",
+          "segments",
+          "planningRequirements",
+          "approvalGates",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 45000,
+        "maxOutputTokens": 650,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      },
+      {
+        "caseId": "reduced_synthetic_tool_route_metadata_recommendation_qwen3_7_plus",
+        "sourceCaseId": "synthetic_tool_route_metadata_recommendation",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "plan_snapshot_candidate_v1",
+        "prompt": "Approved synthetic source case: synthetic_tool_route_metadata_recommendation.\nSynthetic input summary: Synthetic case asks whether captions, chart card, or map card should be recommended as metadata only.\nReturn JSON only for schema plan_snapshot_candidate_v1.\nRequired top-level fields: caseId, candidateSummary, toolRo...",
+        "requiredTopLevelFields": [
+          "caseId",
+          "candidateSummary",
+          "toolRouteHints",
+          "creditRiskNotes",
+          "requiredApprovals",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 45000,
+        "maxOutputTokens": 650,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      },
+      {
+        "caseId": "reduced_synthetic_provider_fallback_comparison_qwen3_7_plus",
+        "sourceCaseId": "synthetic_provider_fallback_comparison",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "provider_fallback_assessment_v1",
+        "prompt": "Approved synthetic source case: synthetic_provider_fallback_comparison.\nSynthetic input summary: Synthetic evaluator compares Qwen and DeepSeek roles for planning quality and reasoning fallback.\nReturn JSON only for schema provider_fallback_assessment_v1.\nRequired top-level fields: caseId, primaryCandidate, fallbackCan...",
+        "requiredTopLevelFields": [
+          "caseId",
+          "primaryCandidate",
+          "fallbackCandidate",
+          "comparisonReasons",
+          "dryRunLimits",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 45000,
+        "maxOutputTokens": 650,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      },
+      {
+        "caseId": "minimal_non_stream_qwen3_7_max",
+        "modelId": "qwen3.7-max",
+        "stage": "minimal_non_stream",
+        "mode": "non_streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "prompt": "Return one compact JSON object only. Use synthetic timeout calibration metadata only. Required caseId is qwen_timeout_minimal. Set every execution, mutation, public artifact, signed URL, and raw prompt forwarding safety boolean to false.",
+        "requiredTopLevelFields": [
+          "caseId",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 20000,
+        "maxOutputTokens": 180,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      },
+      {
+        "caseId": "minimal_stream_qwen3_7_max",
+        "modelId": "qwen3.7-max",
+        "stage": "minimal_stream",
+        "mode": "streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "prompt": "Return one compact JSON object only. Use synthetic timeout calibration metadata only. Required caseId is qwen_timeout_minimal. Set every execution, mutation, public artifact, signed URL, and raw prompt forwarding safety boolean to false.",
+        "requiredTopLevelFields": [
+          "caseId",
+          "workerExecutionAllowed",
+          "toolExecutionAllowed",
+          "routeExecutionAllowed",
+          "publicArtifactsAllowed",
+          "signedUrlsAllowed",
+          "rawPromptForwardingAllowed",
+          "directMutationAllowed",
+          "productionMutationAllowed"
+        ],
+        "timeoutMs": 30000,
+        "firstByteTimeoutMs": 12000,
+        "maxOutputTokens": 180,
+        "syntheticOnly": true,
+        "rawPromptExecutionAllowed": false
+      }
+    ],
+    "qwenMaxRetested": false,
+    "deepseekCases": 0
+  },
+  "results": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "provider": "qwen_dashscope",
+    "providerCallsAttempted": 8,
+    "providerCallsPassed": 4,
+    "providerCallsBlocked": 4,
+    "rawProviderResponsesStored": false,
+    "rawProviderResponsesPrinted": false,
+    "secretPayloadPrinted": false,
+    "deepseekCalls": false,
+    "fullProviderDryRun": false,
+    "results": [
+      {
+        "caseId": "minimal_non_stream_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "stage": "minimal_non_stream",
+        "mode": "non_streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "status": "blocked",
+        "blocker": "schema_invalid",
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false,
+        "httpStatus": 200,
+        "latencyMs": 19367,
+        "finishReason": "stop",
+        "responseContentCharacters": 221,
+        "usage": {
+          "promptTokens": 132,
+          "completionTokens": 1006,
+          "totalTokens": 1138
+        }
+      },
+      {
+        "caseId": "minimal_stream_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "stage": "minimal_stream",
+        "mode": "streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "status": "blocked",
+        "blocker": "schema_invalid",
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false,
+        "httpStatus": 200,
+        "latencyMs": 19010,
+        "firstByteLatencyMs": 17745,
+        "finishReason": "stop",
+        "usage": {
+          "promptTokens": 124,
+          "completionTokens": 983,
+          "totalTokens": 1107
+        },
+        "responseContentCharacters": 276
+      },
+      {
+        "caseId": "reduced_synthetic_edit_intent_extraction_qwen3_7_plus",
+        "sourceCaseId": "synthetic_edit_intent_extraction",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "agent_findings_v1",
+        "status": "passed",
+        "httpStatus": 200,
+        "latencyMs": 23258,
+        "finishReason": "stop",
+        "usage": {
+          "promptTokens": 214,
+          "completionTokens": 1080,
+          "totalTokens": 1294
+        },
+        "responseContentCharacters": 641,
+        "normalizedOutput": {
+          "caseId": "synthetic_edit_intent_extraction",
+          "findings": [
+            "User requests a 45-second product explainer with improved pacing and concise captions."
+          ],
+          "confidence": 0.95,
+          "risks": [
+            "Potential pacing mismatch if audio length exceeds 45 seconds."
+          ],
+          "blockedActions": [
+            "Production video rendering",
+            "External asset fetching"
+          ],
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false,
+          "schemaId": "agent_findings_v1"
+        },
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false
+      },
+      {
+        "caseId": "reduced_synthetic_timeline_planning_qwen3_7_plus",
+        "sourceCaseId": "synthetic_timeline_planning",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "edit_intents_v1",
+        "status": "passed",
+        "httpStatus": 200,
+        "latencyMs": 22248,
+        "finishReason": "stop",
+        "usage": {
+          "promptTokens": 215,
+          "completionTokens": 1162,
+          "totalTokens": 1377
+        },
+        "responseContentCharacters": 605,
+        "normalizedOutput": {
+          "caseId": "synthetic_timeline_planning",
+          "intentSummary": "Generate a three-part timeline for a synthetic onboarding video.",
+          "segments": [
+            "hook",
+            "demonstration",
+            "CTA"
+          ],
+          "planningRequirements": "Define duration and key visual cues for each segment.",
+          "approvalGates": [
+            "timeline_review"
+          ],
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false,
+          "schemaId": "edit_intents_v1"
+        },
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false
+      },
+      {
+        "caseId": "reduced_synthetic_tool_route_metadata_recommendation_qwen3_7_plus",
+        "sourceCaseId": "synthetic_tool_route_metadata_recommendation",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "plan_snapshot_candidate_v1",
+        "status": "passed",
+        "httpStatus": 200,
+        "latencyMs": 20726,
+        "finishReason": "stop",
+        "usage": {
+          "promptTokens": 222,
+          "completionTokens": 1097,
+          "totalTokens": 1319
+        },
+        "responseContentCharacters": 668,
+        "normalizedOutput": {
+          "caseId": "synthetic_tool_route_metadata_recommendation",
+          "candidateSummary": "Evaluates metadata-only recommendations for captions, chart cards, or map cards.",
+          "toolRouteHints": [
+            "metadata_recommendation",
+            "ui_component_selection"
+          ],
+          "creditRiskNotes": "No credit risk as this is a metadata-only schema evaluation.",
+          "requiredApprovals": [
+            "schema_review"
+          ],
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false,
+          "schemaId": "plan_snapshot_candidate_v1"
+        },
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false
+      },
+      {
+        "caseId": "reduced_synthetic_provider_fallback_comparison_qwen3_7_plus",
+        "sourceCaseId": "synthetic_provider_fallback_comparison",
+        "modelId": "qwen3.7-plus",
+        "stage": "reduced_schema",
+        "mode": "non_streaming",
+        "schemaId": "provider_fallback_assessment_v1",
+        "status": "passed",
+        "httpStatus": 200,
+        "latencyMs": 19749,
+        "finishReason": "stop",
+        "usage": {
+          "promptTokens": 219,
+          "completionTokens": 1028,
+          "totalTokens": 1247
+        },
+        "responseContentCharacters": 604,
+        "normalizedOutput": {
+          "caseId": "synthetic_provider_fallback_comparison",
+          "primaryCandidate": "Qwen",
+          "fallbackCandidate": "DeepSeek",
+          "comparisonReasons": [
+            "Evaluates planning quality differences.",
+            "Assesses reasoning fallback capabilities."
+          ],
+          "dryRunLimits": "Timeout calibration restricted to synthetic metadata only.",
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false,
+          "schemaId": "provider_fallback_assessment_v1"
+        },
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false
+      },
+      {
+        "caseId": "minimal_non_stream_qwen3_7_max",
+        "modelId": "qwen3.7-max",
+        "stage": "minimal_non_stream",
+        "mode": "non_streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "status": "blocked",
+        "blocker": "provider_timeout",
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false,
+        "latencyMs": 20004
+      },
+      {
+        "caseId": "minimal_stream_qwen3_7_max",
+        "modelId": "qwen3.7-max",
+        "stage": "minimal_stream",
+        "mode": "streaming",
+        "schemaId": "qwen_timeout_minimal_v1",
+        "status": "blocked",
+        "blocker": "schema_invalid",
+        "rawProviderResponseStored": false,
+        "rawProviderResponsePrinted": false,
+        "secretPayloadPrinted": false,
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "productionMutationAllowed": false,
+        "httpStatus": 200,
+        "latencyMs": 17561,
+        "firstByteLatencyMs": 16379,
+        "finishReason": "stop",
+        "usage": {
+          "promptTokens": 124,
+          "completionTokens": 913,
+          "totalTokens": 1037
+        },
+        "responseContentCharacters": 239
+      }
+    ]
+  },
+  "analysis": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "status": "passed",
+    "activeBlockers": [],
+    "providerCallsAttempted": 8,
+    "providerCallsPassed": 4,
+    "providerCallsBlocked": 4,
+    "qwen37PlusReducedCasesPassed": 4,
+    "qwen37MaxEscalationCalls": 2,
+    "fallbackSanityCalls": 0,
+    "failureCounts": {},
+    "latencyMs": [
+      {
+        "caseId": "minimal_non_stream_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "mode": "non_streaming",
+        "status": "blocked",
+        "latencyMs": 19367
+      },
+      {
+        "caseId": "minimal_stream_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "mode": "streaming",
+        "status": "blocked",
+        "latencyMs": 19010,
+        "firstByteLatencyMs": 17745
+      },
+      {
+        "caseId": "reduced_synthetic_edit_intent_extraction_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "mode": "non_streaming",
+        "status": "passed",
+        "latencyMs": 23258
+      },
+      {
+        "caseId": "reduced_synthetic_timeline_planning_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "mode": "non_streaming",
+        "status": "passed",
+        "latencyMs": 22248
+      },
+      {
+        "caseId": "reduced_synthetic_tool_route_metadata_recommendation_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "mode": "non_streaming",
+        "status": "passed",
+        "latencyMs": 20726
+      },
+      {
+        "caseId": "reduced_synthetic_provider_fallback_comparison_qwen3_7_plus",
+        "modelId": "qwen3.7-plus",
+        "mode": "non_streaming",
+        "status": "passed",
+        "latencyMs": 19749
+      },
+      {
+        "caseId": "minimal_non_stream_qwen3_7_max",
+        "modelId": "qwen3.7-max",
+        "mode": "non_streaming",
+        "status": "blocked",
+        "latencyMs": 20004
+      },
+      {
+        "caseId": "minimal_stream_qwen3_7_max",
+        "modelId": "qwen3.7-max",
+        "mode": "streaming",
+        "status": "blocked",
+        "latencyMs": 17561,
+        "firstByteLatencyMs": 16379
+      }
+    ],
+    "rawProviderResponsesStored": false,
+    "secretPayloadPrinted": false,
+    "supabaseMilestoneSync": {
+      "requested": false,
+      "status": "not_attempted_current_branch_missing_sync_layer",
+      "syncLayerPresent": false,
+      "sqlExecuted": false,
+      "migrationDeployed": false,
+      "unrelatedRowsWritten": false
+    }
+  },
+  "recommendation": {
+    "selectedHeadAgentModel": "qwen3.7-plus",
+    "selectedCalibrationMode": "non_streaming",
+    "recommendedTimeoutMs": 45000,
+    "recommendedMaxOutputTokens": 650,
+    "fullDryRunReadiness": "ready",
+    "reason": "qwen3.7-plus completed all four reduced approved schema cases."
+  },
+  "qa": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "status": "passed",
+    "gates": {
+      "qwen_auth_repair_evidence": true,
+      "secret_manager_only": true,
+      "synthetic_only": true,
+      "timeout_calibration_cases": true,
+      "qwen3_7_plus_calibration": true,
+      "streaming_or_timeout_strategy": true,
+      "schema_case_result": true,
+      "model_target_recommendation": true,
+      "no_deepseek_call": true,
+      "no_runtime_execution": true,
+      "blocked_features": [
+        "full_qwen_deepseek_provider_dry_run",
+        "deepseek_calls",
+        "provider_chains",
+        "tools_workers_routes",
+        "media_processing",
+        "browser_capture",
+        "map_rendering",
+        "raw_prompt_execution",
+        "supabase_writes",
+        "sql_migrations_schema_rls",
+        "public_artifacts",
+        "signed_urls",
+        "production",
+        "external_beta",
+        "paid_production"
+      ],
+      "no_secret_patterns": true,
+      "private_artifacts": "uploaded"
+    },
+    "passed": true,
+    "secretPayloadPrinted": false,
+    "rawProviderResponsesStored": false,
+    "deepseekCalls": false,
+    "fullProviderDryRun": false,
+    "supabaseWrites": false
+  },
+  "manifest": {
+    "phase": "model-orchestration-qwen-timeout-calibration",
+    "runId": "qwentimeout1-20260612T165931",
+    "reportDir": "docs/activation-qwen-timeout-calibration-reports",
+    "expectedArtifacts": [
+      "audit/repo-ownership-audit.json",
+      "policy/qwen-timeout-calibration-policy.json",
+      "secrets/qwen-timeout-secret-access.json",
+      "cases/qwen-timeout-calibration-cases.json",
+      "results/qwen-timeout-calibration-results.json",
+      "analysis/qwen-timeout-result-analysis.json",
+      "recommendation/qwen-model-timeout-target-recommendation.json",
+      "manifest/qwen-timeout-calibration-manifest.json",
+      "qa/qwen-timeout-calibration-qa.json",
+      "reports/qwen-timeout-calibration-report.json"
+    ],
+    "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+    "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+    "privateArtifactUpload": {
+      "status": "uploaded",
+      "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+      "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+      "artifacts": [
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/audit/repo-ownership-audit.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/audit/repo-ownership-audit.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/policy/qwen-timeout-calibration-policy.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/policy/qwen-timeout-calibration-policy.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/secrets/qwen-timeout-secret-access.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/secrets/qwen-timeout-secret-access.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/cases/qwen-timeout-calibration-cases.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/cases/qwen-timeout-calibration-cases.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/results/qwen-timeout-calibration-results.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/results/qwen-timeout-calibration-results.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/analysis/qwen-timeout-result-analysis.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/analysis/qwen-timeout-result-analysis.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/recommendation/qwen-model-timeout-target-recommendation.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/recommendation/qwen-model-timeout-target-recommendation.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-generated-assets",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/manifest/qwen-timeout-calibration-manifest.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/manifest/qwen-timeout-calibration-manifest.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/qa/qwen-timeout-calibration-qa.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/qa/qwen-timeout-calibration-qa.json",
+          "private": true
+        },
+        {
+          "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+          "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/reports/qwen-timeout-calibration-report.json",
+          "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/reports/qwen-timeout-calibration-report.json",
+          "private": true
+        }
+      ],
+      "publicArtifacts": false,
+      "signedUrls": false,
+      "rawProviderResponsesStored": false
+    },
+    "committedArtifactClasses": [
+      "safe_json_reports",
+      "safe_markdown_docs",
+      "server_only_qwen_timeout_calibration_code"
+    ],
+    "excludedArtifactClasses": [
+      "api_keys",
+      "db_urls",
+      "service_role_keys",
+      "anon_keys",
+      "access_tokens",
+      "secret_payloads",
+      "signed_urls",
+      "raw_provider_responses",
+      "raw_prompts",
+      "private_payloads",
+      "media_payloads",
+      "node_modules",
+      "caches",
+      "build_outputs"
+    ],
+    "executed": true,
+    "payloadPrinted": false,
+    "payloadCommitted": false,
+    "rawProviderResponsesStored": false,
+    "supabaseWrites": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false
+  },
+  "privateArtifactUpload": {
+    "status": "uploaded",
+    "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+    "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/",
+    "artifacts": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/audit/repo-ownership-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/audit/repo-ownership-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/policy/qwen-timeout-calibration-policy.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/policy/qwen-timeout-calibration-policy.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/secrets/qwen-timeout-secret-access.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/secrets/qwen-timeout-secret-access.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/cases/qwen-timeout-calibration-cases.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/cases/qwen-timeout-calibration-cases.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/results/qwen-timeout-calibration-results.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/results/qwen-timeout-calibration-results.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/analysis/qwen-timeout-result-analysis.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/analysis/qwen-timeout-result-analysis.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/recommendation/qwen-model-timeout-target-recommendation.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/recommendation/qwen-model-timeout-target-recommendation.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/manifest/qwen-timeout-calibration-manifest.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/manifest/qwen-timeout-calibration-manifest.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/qa/qwen-timeout-calibration-qa.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/qa/qwen-timeout-calibration-qa.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/reports/qwen-timeout-calibration-report.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/qwen-timeout-calibration/qwentimeout1-20260612T165931/reports/qwen-timeout-calibration-report.json",
+        "private": true
+      }
+    ],
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawProviderResponsesStored": false
+  },
+  "deepseekCalls": false,
+  "fullQwenDeepSeekProviderDryRun": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "productionExternalBetaBroadMedia": "blocked"
+}

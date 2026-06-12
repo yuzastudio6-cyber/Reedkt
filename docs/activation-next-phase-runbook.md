@@ -1,5 +1,33 @@
 # Activation Next Phase Runbook
 
+## After WORKER-1
+
+1. Review `docs/activation-phase-worker-1-approved-plan-snapshot-dry-run-results.md` and confirm WORKER-1 run `worker1-20260612T193823` remains `worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit`.
+2. Run TOOL-ROUTE-0 with `activation:tool-route-execution-unlock-audit` before any route dry-run planning.
+3. Proceed to TOOL-ROUTE-1 route dry-run planning only if `docs/activation-phase-tool-route-0-execution-unlock-audit-results.md` records `tool_route_execution_unlock_audit_passed_ready_for_route_dry_run_planning`.
+4. Keep tools, workers, routes, providers/models, media, browser/map/web, Supabase mutation, SQL, migrations, schema/RLS changes, Google Cloud APIs, Secret Manager APIs, GCS/storage transfer, public artifacts, signed URLs, raw prompt execution, production, external beta, paid production, broad media, Stripe/credits, final render, and export blocked in TOOL-ROUTE-0.
+
+## After WORKER-0
+
+1. Review `docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md` and confirm WORKER-0 run `worker0-20260612T191022` remains `worker_runtime_repo_audit_passed_ready_for_worker1_dry_run`.
+2. Run WORKER-1 with `activation:worker-approved-plan-dry-run` before any tool-route execution unlock audit.
+3. Proceed to TOOL-ROUTE-0 only if `docs/activation-phase-worker-1-approved-plan-snapshot-dry-run-results.md` records `worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit`.
+4. Keep real workers, tools, providers, routes, media, browser/map/web, SQL, migrations, schema/RLS changes, Supabase product-row writes, public artifacts, signed URLs, raw prompt execution, production, external beta, paid production, and broad media blocked in WORKER-1.
+
+## After PLAN-SNAPSHOT-1
+
+1. Review `docs/activation-phase-provider-output-plan-snapshot-contract-results.md` and confirm PLAN-SNAPSHOT-1 run `plansnapshot1-20260612T182758` remains `candidate_only` and not runtime-approved.
+2. Run WORKER-0 with `activation:worker-runtime-jobs-audit` before any approved-plan snapshot worker dry-run.
+3. Proceed to WORKER-1 only if `docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md` records `worker_runtime_repo_audit_passed_ready_for_worker1_dry_run`.
+4. Keep workers, tools, routes, provider calls, runtime execution, media, browser/map/web, SQL, migrations, schema/RLS changes, Supabase product-row writes, public artifacts, signed URLs, production, external beta, and broad media blocked in WORKER-0.
+
+## After PR #322 Qwen Auth Repair
+
+1. Review `docs/activation-phase-model-provider-dry-run-results.md` and confirm Qwen auth repair run `modeldryrun1-20260612T162802` remains the source of truth.
+2. Run MODEL-TIMEOUT-1 with `activation:qwen-timeout-calibration` before attempting the full Qwen/DeepSeek provider dry-run.
+3. Proceed to MODEL-DRYRUN-1 only if `docs/activation-qwen-timeout-calibration-reports/readiness/qwen-timeout-calibration-readiness-report.json` records `fullModelDryRunReadiness=ready`.
+4. Keep DeepSeek calls, the full provider dry-run, tools, workers, routes, Supabase writes, SQL, migrations, schema/RLS changes, media, public artifacts, signed URLs, production, external beta, and paid production blocked in the timeout calibration phase.
+
 This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is available. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
 
 ## After Phase 18

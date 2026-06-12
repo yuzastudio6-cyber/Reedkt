@@ -1,0 +1,8 @@
+{
+  "selectedHeadAgentModel": "qwen3.7-plus",
+  "selectedCalibrationMode": "non_streaming",
+  "recommendedTimeoutMs": 45000,
+  "recommendedMaxOutputTokens": 650,
+  "fullDryRunReadiness": "ready",
+  "reason": "qwen3.7-plus completed all four reduced approved schema cases."
+}

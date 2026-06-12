@@ -1,8 +1,8 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
+  "phase": "MODEL_DRYRUN_1",
+  "runId": "modeldryrun1-20260612T174538",
   "ownerWorkstream": "MODEL_ORCHESTRATION",
-  "sourceEvidence": "PR #318 committed dry-run approval reports and official provider docs",
+  "sourceEvidence": "PR #318 committed dry-run approval reports, PR #330 Qwen timeout calibration evidence, and official provider docs",
   "sourcePaths": [
     {
       "path": "README.md",
@@ -41,6 +41,14 @@
       "present": true
     },
     {
+      "path": "docs/model-orchestration/qwen-timeout-calibration-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration/qwen-timeout-calibration-runbook.md",
+      "present": true
+    },
+    {
       "path": "docs/model-orchestration-raw-prompt-blocker-policy.md",
       "present": true
     },
@@ -50,6 +58,10 @@
     },
     {
       "path": "docs/activation-model-orchestration-qwen-deepseek-audit-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-qwen-timeout-calibration-reports",
       "present": true
     },
     {
@@ -64,6 +76,17 @@
   "pr318ReadinessStatus": "passed",
   "pr318Decision": "approved_for_future_qwen_deepseek_provider_dry_run",
   "expectedPr318Decision": "approved_for_future_qwen_deepseek_provider_dry_run",
+  "pr330QwenTimeoutEvidence": {
+    "sourceRunId": "qwentimeout1-20260612T165931",
+    "sourceDecision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+    "expectedDecision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+    "selectedHeadAgentModel": "qwen3.7-plus",
+    "selectedCalibrationMode": "non_streaming",
+    "recommendedTimeoutMs": 45000,
+    "recommendedMaxOutputTokens": 650,
+    "fullModelDryRunReadiness": "ready",
+    "evidenceAuthoritative": true
+  },
   "officialDocsBasis": [
     "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
     "https://api-docs.deepseek.com/",
@@ -73,7 +96,7 @@
   "productionRouteImported": false,
   "supabaseWrites": false,
   "supabaseMilestoneSync": {
-    "requested": false,
+    "requested": true,
     "status": "not_attempted_current_branch_missing_sync_layer",
     "syncLayerPresent": false,
     "sqlExecuted": false,

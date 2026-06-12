@@ -7,7 +7,7 @@ import {
 if (!process.argv.includes('--execute')) {
   console.log(JSON.stringify({
     status: 'skipped',
-    reason: 'execution_requires_explicit_execute_flag_synthetic_only_flag_and_provider_confirmations',
+    reason: 'execution_requires_explicit_execute_flag_and_provider_confirmations',
     requiredConfirmations: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REQUIRED_CONFIRMATIONS,
   }, null, 2))
   process.exit(0)
@@ -15,7 +15,7 @@ if (!process.argv.includes('--execute')) {
 
 const result = await executeModelOrchestrationProviderDryRun({
   execute: true,
-  syntheticOnly: process.argv.includes('--synthetic-only'),
+  syntheticOnly: true,
   keepTemp: process.argv.includes('--keep-temp'),
 })
 

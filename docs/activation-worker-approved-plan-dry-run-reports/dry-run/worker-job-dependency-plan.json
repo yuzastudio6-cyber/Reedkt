@@ -1,0 +1,78 @@
+{
+  "phase": "WORKER_1",
+  "batchId": "worker1-batch-worker1-20260612T193823",
+  "dependencies": [
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-proposal-after-intake",
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "reason": "Implementation proposal review depends on candidate snapshot intake validation.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    },
+    {
+      "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_deepseek_proposal_review",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "dependsOnJobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+      "dryRunOnly": true
+    }
+  ],
+  "dependencyCount": 10,
+  "allDependenciesDryRunOnly": true
+}

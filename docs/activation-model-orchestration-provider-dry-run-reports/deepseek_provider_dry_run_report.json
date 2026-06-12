@@ -1,10 +1,10 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
+  "phase": "MODEL_DRYRUN_1",
   "provider": "deepseek",
-  "status": "not_attempted",
-  "executed": false,
-  "providerCallsAttempted": 0,
-  "providerCallsPassed": 0,
+  "status": "passed",
+  "executed": true,
+  "providerCallsAttempted": 1,
+  "providerCallsPassed": 1,
   "providerCallsBlocked": 0,
   "endpoint": "https://api.deepseek.com/chat/completions",
   "stream": false,
@@ -14,5 +14,62 @@
   "rawProviderResponsesStored": false,
   "rawProviderResponsesPrinted": false,
   "secretPayloadPrinted": false,
-  "results": []
+  "results": [
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "schemaId": "agent_findings_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 1553,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 338,
+        "completionTokens": 244,
+        "totalTokens": 582
+      },
+      "responseContentCharacters": 966,
+      "normalizedOutput": {
+        "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+        "findings": [
+          "Schema validation: All required fields present and conform to schemaId agent_findings_v1.",
+          "Redaction validation: No sensitive data detected in synthetic input.",
+          "Cost evidence: No cost data required for dry-run; zero cost assumed.",
+          "Plan snapshot readiness: Snapshot can be generated from current metadata without execution."
+        ],
+        "confidence": 0.95,
+        "risks": [
+          "Low risk: Schema changes may invalidate future dry-runs.",
+          "Low risk: Redaction rules may need update for new data types."
+        ],
+        "blockedActions": [
+          "workerExecution",
+          "toolExecution",
+          "publicArtifacts",
+          "signedUrls",
+          "rawPromptForwarding",
+          "directMutation"
+        ],
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "agent_findings_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    }
+  ]
 }

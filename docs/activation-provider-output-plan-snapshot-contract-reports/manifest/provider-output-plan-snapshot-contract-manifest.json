@@ -1,0 +1,127 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "runId": "plansnapshot1-20260612T182758",
+  "reportDir": "docs/activation-provider-output-plan-snapshot-contract-reports",
+  "branch": "codex/rp-plan-snapshot-1-provider-output-contract",
+  "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-full-synthetic-provider-dry-run",
+  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+  "sourceProviderRunId": "modeldryrun1-20260612T174538",
+  "sourceDecision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "committedArtifactClasses": [
+    "safe_json_reports",
+    "safe_markdown_docs",
+    "server_only_activation_code"
+  ],
+  "excludedArtifactClasses": [
+    "provider_keys",
+    "db_urls",
+    "service_role_keys",
+    "jwt_tokens",
+    "bearer_tokens",
+    "stripe_keys",
+    "signed_urls",
+    "raw_provider_responses",
+    "raw_prompts",
+    "secret_payloads",
+    "media_payloads",
+    "node_modules",
+    "build_outputs"
+  ],
+  "privateArtifactUpload": {
+    "status": "uploaded",
+    "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+    "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+    "artifacts": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/audit/repo-ownership-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/audit/repo-ownership-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/evidence/provider-output-evidence-context.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/evidence/provider-output-evidence-context.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/plans/candidate-approved-plan-snapshot.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/plans/candidate-approved-plan-snapshot.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/validation/plan-snapshot-schema-validation.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/validation/plan-snapshot-schema-validation.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/validation/execution-block-validation.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/validation/execution-block-validation.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/routing/owner-route-map.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/routing/owner-route-map.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/handoff/worker-runtime-handoff.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/handoff/worker-runtime-handoff.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/handoff/owner-review-handoff.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/handoff/owner-review-handoff.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/manifest/provider-output-plan-snapshot-contract-manifest.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/manifest/provider-output-plan-snapshot-contract-manifest.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/qa/provider-output-plan-snapshot-contract-qa.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/qa/provider-output-plan-snapshot-contract-qa.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/reports/provider-output-plan-snapshot-contract-report.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/reports/provider-output-plan-snapshot-contract-report.json",
+        "private": true
+      }
+    ],
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPromptPayloadsStored": false,
+    "rawProviderResponsesStored": false,
+    "secretPayloadsStored": false
+  },
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false,
+    "syncLayerDirectoryPresent": false
+  },
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "rawProviderResponsesStored": false,
+  "rawPromptPayloadsStored": false,
+  "secretPayloadsStored": false,
+  "providerCallsExecuted": false,
+  "workersToolsRoutesExecuted": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false
+}

@@ -1,0 +1,150 @@
+{
+  "phase": "TOOL_ROUTE_0",
+  "status": "passed",
+  "sourceWorkerRunId": "worker1-20260612T193823",
+  "sourceBatchId": "worker1-batch-worker1-20260612T193823",
+  "sourcePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "dryRunOnly": true,
+  "approvedForRuntime": false,
+  "routeReviews": [
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "jobType": "snapshot_intake_validation",
+      "sourceRefs": [
+        "candidate-approved-plan-plansnapshot1-20260612T182758"
+      ],
+      "worker1OwnerRoute": "WORKER_RUNTIME_JOBS",
+      "routeLabel": "snapshot_intake_validation",
+      "primaryRouteFamilyId": "worker_runtime_jobs",
+      "relatedRouteFamilyIds": [
+        "worker_runtime_jobs",
+        "compliance_security",
+        "observability_audit_cost"
+      ],
+      "executionAllowed": false,
+      "toolStudyRequiredBeforeExecution": true,
+      "ownerAcceptanceRequired": true
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "jobType": "selected_intent_route_review",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_caption_recommendation",
+        "route:caption_recommendation"
+      ],
+      "worker1OwnerRoute": "COORDINATOR_PRODUCER_QA",
+      "routeLabel": "route:caption_recommendation",
+      "primaryRouteFamilyId": "compliance_security",
+      "relatedRouteFamilyIds": [
+        "compliance_security",
+        "frontend_product_ux",
+        "observability_audit_cost"
+      ],
+      "executionAllowed": false,
+      "toolStudyRequiredBeforeExecution": false,
+      "ownerAcceptanceRequired": true
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "jobType": "selected_intent_route_review",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_chart_card_metadata",
+        "route:chart_card_metadata"
+      ],
+      "worker1OwnerRoute": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "routeLabel": "route:chart_card_metadata",
+      "primaryRouteFamilyId": "ai_tools_creative_graphics",
+      "relatedRouteFamilyIds": [
+        "ai_tools_creative_graphics",
+        "frontend_product_ux",
+        "track_a_render_export"
+      ],
+      "executionAllowed": false,
+      "toolStudyRequiredBeforeExecution": true,
+      "ownerAcceptanceRequired": true
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "jobType": "selected_intent_route_review",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_map_card_metadata",
+        "route:map_card_metadata"
+      ],
+      "worker1OwnerRoute": "MAP_GEOSPATIAL",
+      "routeLabel": "route:map_card_metadata",
+      "primaryRouteFamilyId": "map_geospatial",
+      "relatedRouteFamilyIds": [
+        "map_geospatial",
+        "web_search_capture",
+        "frontend_product_ux"
+      ],
+      "executionAllowed": false,
+      "toolStudyRequiredBeforeExecution": true,
+      "ownerAcceptanceRequired": true
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "jobType": "selected_intent_route_review",
+      "sourceRefs": [
+        "plansnapshot1_intent_route_timeline_metadata_planning",
+        "route:timeline_metadata_planning"
+      ],
+      "worker1OwnerRoute": "MODEL_ORCHESTRATION",
+      "routeLabel": "route:timeline_metadata_planning",
+      "primaryRouteFamilyId": "provider_model_planning",
+      "relatedRouteFamilyIds": [
+        "provider_model_planning",
+        "worker_runtime_jobs",
+        "track_b_media_audio_model",
+        "sound_music_audio"
+      ],
+      "executionAllowed": false,
+      "toolStudyRequiredBeforeExecution": true,
+      "ownerAcceptanceRequired": true
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "jobType": "implementation_proposal_review",
+      "sourceRefs": [
+        "plansnapshot1_deepseek_proposal_1",
+        "plansnapshot1_deepseek_proposal_2",
+        "plansnapshot1_deepseek_proposal_3",
+        "plansnapshot1_deepseek_proposal_4"
+      ],
+      "worker1OwnerRoute": "MODEL_ORCHESTRATION",
+      "routeLabel": "implementation_proposal_review",
+      "primaryRouteFamilyId": "provider_model_planning",
+      "relatedRouteFamilyIds": [
+        "provider_model_planning",
+        "worker_runtime_jobs",
+        "compliance_security"
+      ],
+      "executionAllowed": false,
+      "toolStudyRequiredBeforeExecution": true,
+      "ownerAcceptanceRequired": true
+    },
+    {
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "jobType": "artifact_blocked_route_event_validation",
+      "sourceRefs": [
+        "artifact_scope_validation",
+        "blocked_route_validation",
+        "worker_event_log_plan"
+      ],
+      "worker1OwnerRoute": "COMPLIANCE_SECURITY",
+      "routeLabel": "artifact_blocked_route_event_validation",
+      "primaryRouteFamilyId": "observability_audit_cost",
+      "relatedRouteFamilyIds": [
+        "observability_audit_cost",
+        "public_artifact_signed_url_delivery",
+        "supabase_metadata_storage",
+        "billing_credits"
+      ],
+      "executionAllowed": false,
+      "toolStudyRequiredBeforeExecution": false,
+      "ownerAcceptanceRequired": true
+    }
+  ],
+  "dependencyCount": 10,
+  "activeBlockers": []
+}

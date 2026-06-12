@@ -1,0 +1,54 @@
+{
+  "phase": "WORKER_0",
+  "status": "passed",
+  "sourcePr": 334,
+  "sourceRunId": "plansnapshot1-20260612T182758",
+  "sourceDecision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+  "sourceEvidenceStatus": "passed",
+  "planSnapshotExecutionStatus": "candidate_only",
+  "planSnapshotApprovedForRuntime": false,
+  "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "ownerRouteCount": 15,
+  "evidenceFiles": [
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/summary/provider-output-plan-snapshot-contract-summary.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 summary with run, decision, and candidate-only status."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 report artifact."
+    },
+    {
+      "path": "docs/activation-phase-provider-output-plan-snapshot-contract-results.md",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 results document."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "exists": true,
+      "required": true,
+      "purpose": "Candidate approved-plan snapshot contract artifact."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/handoff/worker-runtime-handoff.json",
+      "exists": true,
+      "required": true,
+      "purpose": "Worker Runtime review handoff artifact."
+    }
+  ],
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false,
+    "syncLayerDirectoryPresent": false
+  },
+  "activeBlockers": []
+}

@@ -1,0 +1,21 @@
+# Tool Route Blocked Use Register
+
+- `real_worker_execution`: owner `WORKER_RUNTIME_JOBS`; blocked `true`; execution allowed `false`.
+- `tool_execution`: owner `tool-owning workstreams`; blocked `true`; execution allowed `false`.
+- `provider_model_calls`: owner `PROVIDER_GATEWAY_MODELS`; blocked `true`; execution allowed `false`.
+- `track_a_runtime`: owner `TRACK_A_RENDER_EXPORT`; blocked `true`; execution allowed `false`.
+- `track_b_runtime`: owner `TRACK_B_MEDIA_PROCESSING`; blocked `true`; execution allowed `false`.
+- `ai_tools_runtime`: owner `AI_TOOLS_CREATIVE_GRAPHICS`; blocked `true`; execution allowed `false`.
+- `map_rendering`: owner `MAP_GEOSPATIAL`; blocked `true`; execution allowed `false`.
+- `web_search_execution`: owner `WEB_SEARCH_CAPTURE`; blocked `true`; execution allowed `false`.
+- `browser_capture`: owner `WEB_SEARCH_CAPTURE`; blocked `true`; execution allowed `false`.
+- `media_processing`: owner `TRACK_B_MEDIA_PROCESSING`; blocked `true`; execution allowed `false`.
+- `public_artifacts`: owner `COMPLIANCE_SECURITY`; blocked `true`; execution allowed `false`.
+- `signed_urls_source_of_truth`: owner `COMPLIANCE_SECURITY`; blocked `true`; execution allowed `false`.
+- `raw_prompt_execution`: owner `COMPLIANCE_SECURITY`; blocked `true`; execution allowed `false`.
+- `supabase_mutation`: owner `SUPABASE_RLS_STORAGE_DATABASE`; blocked `true`; execution allowed `false`.
+- `sql_migrations`: owner `SUPABASE_RLS_STORAGE_DATABASE`; blocked `true`; execution allowed `false`.
+- `google_cloud_api_calls`: owner `COMPLIANCE_SECURITY`; blocked `true`; execution allowed `false`.
+- `secret_manager_api_calls`: owner `COMPLIANCE_SECURITY`; blocked `true`; execution allowed `false`.
+- `gcs_storage_transfer`: owner `OBSERVABILITY_AUDIT_COST`; blocked `true`; execution allowed `false`.
+- `production_external_beta_paid_production_broad_media`: owner `COMPLIANCE_SECURITY`; blocked `true`; execution allowed `false`.

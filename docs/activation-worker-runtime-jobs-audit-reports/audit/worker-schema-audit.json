@@ -1,0 +1,197 @@
+{
+  "phase": "WORKER_0",
+  "status": "passed",
+  "migrations": [
+    {
+      "path": "supabase/migrations/202605130005_job_orchestration_agent_runs.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Local migration source used for WORKER-0 schema readiness audit only."
+    },
+    {
+      "path": "supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Local migration source used for WORKER-0 schema readiness audit only."
+    },
+    {
+      "path": "supabase/migrations/202605200002_worker_leases_runtime_transport.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Local migration source used for WORKER-0 schema readiness audit only."
+    },
+    {
+      "path": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Local migration source used for WORKER-0 schema readiness audit only."
+    }
+  ],
+  "requiredTables": [
+    {
+      "name": "approved_plan_snapshots",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "job_batches",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "jobs",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "job_dependencies",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "job_events",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "agent_runs",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "agent_outputs",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "worker_runtime_configs",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "worker_heartbeats",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "event_log",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "worker_leases",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "backend_runtime_messages",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "job_claim_attempts",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "storage_object_records",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "signed_url_events",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "worker_job_claims",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "tool_runtime_checks",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "provider_request_attempts",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "provider_webhook_events",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    }
+  ],
+  "requiredFunctions": [
+    {
+      "name": "can_run_job",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "can_create_approved_plan_snapshot",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "active_worker_claim_exists",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    },
+    {
+      "name": "can_claim_worker_job",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true
+    }
+  ],
+  "rlsAndGrantSignals": [
+    {
+      "name": "row_level_security_enabled",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true,
+      "notes": "WORKER-0 audits presence only; it does not execute SQL or inspect live staging policies."
+    },
+    {
+      "name": "service_role_grants",
+      "status": "present",
+      "source": "local Supabase migration files",
+      "required": true,
+      "notes": "Future Worker Runtime execution remains service-role/backend only."
+    },
+    {
+      "name": "public_artifact_access_not_selected",
+      "status": "present",
+      "source": "WORKER-0 policy",
+      "required": true,
+      "notes": "Signed URLs and public artifacts are explicitly excluded as source of truth."
+    }
+  ],
+  "workerSchemaReadiness": "present_for_audit",
+  "activeBlockers": []
+}

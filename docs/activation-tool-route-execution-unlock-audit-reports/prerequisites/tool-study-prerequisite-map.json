@@ -1,0 +1,96 @@
+{
+  "phase": "TOOL_ROUTE_0",
+  "status": "passed",
+  "prerequisites": [
+    {
+      "owner": "WEB_SEARCH_CAPTURE",
+      "routeFamilyIds": [
+        "web_search_capture"
+      ],
+      "status": "prompt_created_for_tool_study_0",
+      "promptPath": "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "routeFamilyIds": [
+        "map_geospatial"
+      ],
+      "status": "prompt_created_for_tool_study_0",
+      "promptPath": "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "routeFamilyIds": [
+        "ai_tools_creative_graphics"
+      ],
+      "status": "prompt_created_for_tool_study_0",
+      "promptPath": "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "routeFamilyIds": [
+        "track_a_render_export"
+      ],
+      "status": "prompt_created_for_tool_study_0",
+      "promptPath": "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "routeFamilyIds": [
+        "track_b_media_audio_model"
+      ],
+      "status": "prompt_created_for_tool_study_0",
+      "promptPath": "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "routeFamilyIds": [
+        "sound_music_audio"
+      ],
+      "status": "prompt_created_for_tool_study_0",
+      "promptPath": "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "routeFamilyIds": [
+        "provider_model_planning"
+      ],
+      "status": "prerequisite_recorded_no_file_requested",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "WORKER_RUNTIME_JOBS",
+      "routeFamilyIds": [
+        "worker_runtime_jobs"
+      ],
+      "status": "prerequisite_recorded_no_file_requested",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    },
+    {
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "routeFamilyIds": [
+        "supabase_metadata_storage"
+      ],
+      "status": "prerequisite_recorded_no_file_requested",
+      "executionAllowedBeforeToolStudy": false,
+      "requiredBeforeExecution": true
+    }
+  ],
+  "missingToolStudyCount": 3,
+  "promptCreatedCount": 6,
+  "activeBlockers": []
+}

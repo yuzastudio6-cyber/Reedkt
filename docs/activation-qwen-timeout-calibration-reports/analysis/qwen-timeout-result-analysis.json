@@ -1,0 +1,83 @@
+{
+  "phase": "model-orchestration-qwen-timeout-calibration",
+  "runId": "qwentimeout1-20260612T165931",
+  "status": "passed",
+  "activeBlockers": [],
+  "providerCallsAttempted": 8,
+  "providerCallsPassed": 4,
+  "providerCallsBlocked": 4,
+  "qwen37PlusReducedCasesPassed": 4,
+  "qwen37MaxEscalationCalls": 2,
+  "fallbackSanityCalls": 0,
+  "failureCounts": {},
+  "latencyMs": [
+    {
+      "caseId": "minimal_non_stream_qwen3_7_plus",
+      "modelId": "qwen3.7-plus",
+      "mode": "non_streaming",
+      "status": "blocked",
+      "latencyMs": 19367
+    },
+    {
+      "caseId": "minimal_stream_qwen3_7_plus",
+      "modelId": "qwen3.7-plus",
+      "mode": "streaming",
+      "status": "blocked",
+      "latencyMs": 19010,
+      "firstByteLatencyMs": 17745
+    },
+    {
+      "caseId": "reduced_synthetic_edit_intent_extraction_qwen3_7_plus",
+      "modelId": "qwen3.7-plus",
+      "mode": "non_streaming",
+      "status": "passed",
+      "latencyMs": 23258
+    },
+    {
+      "caseId": "reduced_synthetic_timeline_planning_qwen3_7_plus",
+      "modelId": "qwen3.7-plus",
+      "mode": "non_streaming",
+      "status": "passed",
+      "latencyMs": 22248
+    },
+    {
+      "caseId": "reduced_synthetic_tool_route_metadata_recommendation_qwen3_7_plus",
+      "modelId": "qwen3.7-plus",
+      "mode": "non_streaming",
+      "status": "passed",
+      "latencyMs": 20726
+    },
+    {
+      "caseId": "reduced_synthetic_provider_fallback_comparison_qwen3_7_plus",
+      "modelId": "qwen3.7-plus",
+      "mode": "non_streaming",
+      "status": "passed",
+      "latencyMs": 19749
+    },
+    {
+      "caseId": "minimal_non_stream_qwen3_7_max",
+      "modelId": "qwen3.7-max",
+      "mode": "non_streaming",
+      "status": "blocked",
+      "latencyMs": 20004
+    },
+    {
+      "caseId": "minimal_stream_qwen3_7_max",
+      "modelId": "qwen3.7-max",
+      "mode": "streaming",
+      "status": "blocked",
+      "latencyMs": 17561,
+      "firstByteLatencyMs": 16379
+    }
+  ],
+  "rawProviderResponsesStored": false,
+  "secretPayloadPrinted": false,
+  "supabaseMilestoneSync": {
+    "requested": false,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  }
+}

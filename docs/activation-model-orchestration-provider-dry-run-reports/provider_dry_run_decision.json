@@ -1,12 +1,10 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
-  "status": "not_attempted",
-  "decision": "not_attempted",
-  "activeBlockers": [
-    "provider_dry_run_not_executed"
-  ],
-  "providerCallsAttempted": false,
+  "phase": "MODEL_DRYRUN_1",
+  "runId": "modeldryrun1-20260612T174538",
+  "status": "passed",
+  "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
+  "providerCallsAttempted": true,
   "qwenApiCallAllowedInThisPhase": true,
   "deepseekApiCallAllowedInThisPhase": true,
   "rawProviderResponsesStored": false,
@@ -17,7 +15,7 @@
   "mediaProcessing": false,
   "supabaseWrites": false,
   "supabaseMilestoneSync": {
-    "requested": false,
+    "requested": true,
     "status": "not_attempted_current_branch_missing_sync_layer",
     "syncLayerPresent": false,
     "sqlExecuted": false,
@@ -30,5 +28,6 @@
   "productionAffected": false,
   "externalBeta": false,
   "paidProduction": false,
-  "nextRecommendedPhase": "Resolve the exact secret/model/schema/provider blocker before another dry-run."
+  "nextRecommendedPhase": "MODEL_ORCHESTRATION - plan snapshot contract",
+  "privateArtifactUploadStatus": "uploaded"
 }

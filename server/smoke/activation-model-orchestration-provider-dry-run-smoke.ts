@@ -86,13 +86,17 @@ for (const [key, expected] of Object.entries({
 const loadedCases = reports.loadedCases as Record<string, unknown>
 assert(loadedCases.syntheticOnly === true, 'Loaded cases must be synthetic only.')
 assert(loadedCases.rawPromptStoredInReports === false, 'Raw prompts must not be stored in provider reports.')
-assert(loadedCases.providerCallCaseCount === 7, 'Provider dry-run must include seven provider-call cases.')
+assert(loadedCases.providerCallCaseCount === 2, 'Provider dry-run must include exactly two provider-call cases.')
+assert(loadedCases.maxProviderCalls === 2, 'Provider dry-run must cap calls at two.')
 assert(loadedCases.localValidationFixtureCaseCount === 1, 'Provider dry-run must include one local validation fixture.')
 
 const secretAccess = reports.secretAccess as Record<string, unknown>
 assert(secretAccess.broadSecretDiscovery === false, 'Broad Secret Manager discovery must remain blocked.')
 assert(secretAccess.exactSecretRefsOnly === true, 'Secret access must use exact refs only.')
 assert(secretAccess.secretSourcePolicy === 'google_secret_manager_only', 'Provider dry-run must use Secret Manager only.')
+assert(secretAccess.dashscopeBaseUrlKey === 'us', 'DashScope report must record the US base URL key only.')
+assert(secretAccess.dashscopeBaseUrlPayloadStored === false, 'DashScope base URL payload must not be stored.')
+assert(secretAccess.dashscopeRegionPayloadStored === false, 'DashScope region payload must not be stored.')
 assert(secretAccess.payloadPrinted === false, 'Secret payload printed must be false.')
 assert(secretAccess.payloadCommitted === false, 'Secret payload committed must be false.')
 
@@ -151,7 +155,7 @@ for (const { file, text } of corpus) {
 
 console.log(JSON.stringify({
   status: 'passed',
-  phase: 'model-orchestration-provider-dry-run',
+  phase: 'MODEL_DRYRUN_1',
   decision: readiness.decision,
   rawProviderResponsesStored: false,
   secretPayloadPrinted: false,

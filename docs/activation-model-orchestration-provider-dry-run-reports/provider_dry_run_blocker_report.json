@@ -1,10 +1,8 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
-  "status": "not_attempted",
-  "decision": "not_attempted",
-  "activeBlockers": [
-    "provider_dry_run_not_executed"
-  ],
+  "phase": "MODEL_DRYRUN_1",
+  "status": "passed",
+  "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "blockedScopes": [
     "tools_workers_routes",
     "media_processing",
@@ -20,7 +18,7 @@
   "mediaProcessing": false,
   "supabaseWrites": false,
   "supabaseMilestoneSync": {
-    "requested": false,
+    "requested": true,
     "status": "not_attempted_current_branch_missing_sync_layer",
     "syncLayerPresent": false,
     "sqlExecuted": false,
@@ -34,5 +32,6 @@
   "externalBeta": false,
   "paidProduction": false,
   "secretPayloadPrinted": false,
-  "rawProviderResponsesStored": false
+  "rawProviderResponsesStored": false,
+  "privateArtifactUploadStatus": "uploaded"
 }

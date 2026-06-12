@@ -1,0 +1,19 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "status": "passed",
+  "allExecutionFlagsFalse": true,
+  "approvedForRuntime": false,
+  "workerExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "providerExecutionAllowed": false,
+  "rawPromptExecution": false,
+  "publicArtifactAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "productionReadyAllowed": false,
+  "externalBetaAllowed": false,
+  "broadMediaAllowed": false,
+  "shellCommandExecutionInstructions": false,
+  "providerToolWorkerRouteRequests": false,
+  "activeBlockers": []
+}

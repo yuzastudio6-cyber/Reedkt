@@ -1,0 +1,35 @@
+# Tool Route Next Phase Plan
+
+Next phase: `TOOL_ROUTE_1`
+
+Readiness: `ready for route dry-run planning`
+
+Required before execution:
+
+- TOOL-STUDY-0 capability routing contracts for each tool-owning route family
+- owner acceptance for route input/output boundaries
+- approved plan snapshot runtime validation
+- transactional worker claim/lease backend approval
+- private artifact source-of-truth and checksum policy
+- cost/audit/abuse monitoring handoff
+- separate explicit route dry-run confirmation phase
+
+Blocked scope:
+
+- tool execution
+- worker execution
+- route execution
+- provider/model calls
+- media processing
+- browser capture
+- map rendering
+- web search execution
+- Supabase mutation
+- SQL/migrations/schema/RLS changes
+- Google Cloud API calls
+- Secret Manager API calls
+- GCS upload/storage transfer
+- public artifacts
+- signed URLs
+- raw prompt execution
+- production/external beta/paid production/broad media unlock

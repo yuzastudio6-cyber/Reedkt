@@ -1,0 +1,85 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "branch": "codex/rp-plan-snapshot-1-provider-output-contract",
+  "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-full-synthetic-provider-dry-run",
+  "prTitle": "[plan] Provider output approved-plan snapshot contract",
+  "ownerWorkstream": "PLAN_SNAPSHOT_CONTRACT",
+  "sourceEvidence": "Committed MODEL-DRYRUN-1 sanitized reports from PR #331 only",
+  "sourceProviderRunId": "modeldryrun1-20260612T174538",
+  "expectedSourceProviderRunId": "modeldryrun1-20260612T174538",
+  "sourceDecision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "expectedSourceDecision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "sourcePlanSnapshotContractReady": true,
+  "sourcePaths": [
+    {
+      "path": "approved-plan-snapshot-policy.md",
+      "present": true
+    },
+    {
+      "path": "model-routing-policy.md",
+      "present": true
+    },
+    {
+      "path": "intent-led-edit-planning.md",
+      "present": true
+    },
+    {
+      "path": "provider-prompt-architecture.md",
+      "present": true
+    },
+    {
+      "path": "edit-planning-database-architecture.md",
+      "present": true
+    },
+    {
+      "path": "editing-agent-execution-architecture.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-model-provider-dry-run-results.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/qwen_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/deepseek_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_private_artifact_manifest.json",
+      "present": true
+    }
+  ],
+  "qwenSchema": "plan_snapshot_candidate_v1",
+  "deepseekSchema": "agent_findings_v1",
+  "rawProviderResponsesStored": false,
+  "rawPromptPayloadsStored": false,
+  "secretPayloadsStored": false,
+  "providerRuntimeImported": false,
+  "providerCallsAllowed": false,
+  "toolExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "mediaProcessingAllowed": false,
+  "sqlOrMigrationAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "productionAffected": false,
+  "externalBetaAffected": false,
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false,
+    "syncLayerDirectoryPresent": false
+  },
+  "activeBlockers": []
+}

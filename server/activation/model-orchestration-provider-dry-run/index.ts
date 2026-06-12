@@ -11,17 +11,19 @@ import {
 
 const execFileAsync = promisify(execFile)
 
-export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE = 'model-orchestration-provider-dry-run'
+export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE = 'MODEL_DRYRUN_1'
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID =
   process.env.REEDITPRO_MODEL_DRY_RUN_ID ?? process.env.REEDITPRO_MODELDRYRUN1_RUN_ID ?? buildModelDryRunRunId()
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_BRANCH =
-  'codex/rp-model-orchestration-qwen-deepseek-provider-dry-run'
+  'codex/rp-model-orchestration-qwen-deepseek-full-synthetic-provider-dry-run'
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_BASE_BRANCH =
-  'codex/rp-model-orchestration-qwen-deepseek-dry-run-approval'
+  'codex/rp-model-orchestration-qwen-schema-timeout-target-calibration'
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REPORT_DIR =
   'docs/activation-model-orchestration-provider-dry-run-reports'
 export const MODEL_ORCHESTRATION_DRY_RUN_APPROVAL_REPORT_DIR =
   'docs/activation-model-orchestration-dry-run-approval-reports'
+export const MODEL_ORCHESTRATION_QWEN_TIMEOUT_REPORT_DIR =
+  'docs/activation-qwen-timeout-calibration-reports'
 export const MODEL_DRY_RUN_PRIVATE_GENERATED_BUCKET = 'reeditpro-staging-reeditpro-generated-assets'
 export const MODEL_DRY_RUN_PRIVATE_QA_BUCKET = 'reeditpro-staging-reeditpro-qa-artifacts'
 export const MODEL_DRY_RUN_PRIVATE_OBJECT_PREFIX = 'activation-model-orchestration/model-dry-run-1'
@@ -42,15 +44,34 @@ export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_EXPECTED_REPORTS = [
 ] as const
 
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REQUIRED_CONFIRMATIONS = [
-  'REEDITPRO_CONFIRM_MODEL_ORCHESTRATION_PROVIDER_DRY_RUN',
-  'REEDITPRO_CONFIRM_QWEN_API_CALL',
-  'REEDITPRO_CONFIRM_DEEPSEEK_API_CALL',
-  'REEDITPRO_CONFIRM_PROVIDER_CALLS',
-  'REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY',
-  'REEDITPRO_CONFIRM_SECRET_PAYLOAD_ACCESS_FOR_PROVIDER_DRY_RUN',
-  'REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY',
-  'REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS',
+  'REEDITPRO_CONFIRM_QWEN_DEEPSEEK_PROVIDER_DRY_RUN',
+  'REEDITPRO_CONFIRM_SUPABASE_MILESTONE_SYNC',
 ] as const
+
+export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REQUIRED_ENV = {
+  GCP_PROJECT_ID: 'reeditpro',
+  GCP_REGION: 'us-central1',
+  REEDITPRO_ENV: 'staging',
+} as const
+
+const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PAYLOAD_ENV_VARS = [
+  'DASHSCOPE_API_KEY',
+  'DASHSCOPE_BASE_URL',
+  'DASHSCOPE_REGION',
+  'DEEPSEEK_API_KEY',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_DB_URL',
+  'DATABASE_URL',
+] as const
+
+const APPROVED_DASHSCOPE_BASE_URL = 'https://dashscope-us.aliyuncs.com/compatible-mode/v1'
+const APPROVED_DASHSCOPE_REGION = 'us'
+const QWEN_RECOMMENDED_TIMEOUT_MS = 45000
+const QWEN_RECOMMENDED_MAX_OUTPUT_TOKENS = 650
+const DEEPSEEK_FULL_DRY_RUN_TIMEOUT_MS = 15000
+const MAX_PROVIDER_CALLS = 2
+const MAX_TOTAL_REPORTED_TOKENS = 7200
 
 export const MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_FORBIDDEN_CONFIRMATIONS = [
   'REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION',
@@ -89,8 +110,14 @@ interface ApprovedCase {
 
 interface CasePlan {
   caseId: string
+  sourceCaseId: string
   provider: ProviderName
   modelId: string
+  expectedOutputSchema: string
+  prompt: string
+  maxTokens: number
+  timeoutMs: number
+  phaseRole: 'qwen_head_agent_planning' | 'deepseek_coding_spec_proposal'
 }
 
 interface ProviderCaseResult {
@@ -124,11 +151,14 @@ interface ProviderCaseResult {
 }
 
 interface SecretAccessEntry {
-  secretRef: 'DASHSCOPE_API_KEY' | 'DEEPSEEK_API_KEY'
+  secretRef: 'DASHSCOPE_API_KEY' | 'DASHSCOPE_BASE_URL' | 'DASHSCOPE_REGION' | 'DEEPSEEK_API_KEY'
   provider: ProviderName
   source: 'secret_manager' | 'unavailable'
   payloadAccessStatus: 'succeeded' | 'failed' | 'not_attempted'
   envVarPresent: boolean
+  baseUrlKey?: 'us'
+  baseUrlMatchesApprovedEndpoint?: boolean
+  regionMatchesApprovedRegion?: boolean
   payloadPrinted: false
   payloadCommitted: false
   secretValueStoredInReports: false
@@ -160,9 +190,12 @@ const SOURCE_PATHS = [
   'docs/model-orchestration-dry-run-audit-redaction-policy.md',
   'docs/model-orchestration-dry-run-approval-decision.md',
   'docs/model-orchestration-qwen-deepseek-audit.md',
+  'docs/model-orchestration/qwen-timeout-calibration-policy.md',
+  'docs/model-orchestration/qwen-timeout-calibration-runbook.md',
   'docs/model-orchestration-raw-prompt-blocker-policy.md',
   'docs/activation-model-orchestration-dry-run-approval-reports',
   'docs/activation-model-orchestration-qwen-deepseek-audit-reports',
+  'docs/activation-qwen-timeout-calibration-reports',
   'docs/activation-product-internal-testing-session-0-reports',
   'docs/activation-supabase-trackb-clean-staging-backfill-reports',
 ] as const
@@ -174,13 +207,40 @@ const OFFICIAL_DOCS = [
 ] as const
 
 const CASE_MATRIX: CasePlan[] = [
-  { provider: 'qwen_dashscope', modelId: 'qwen3.7-plus', caseId: 'synthetic_edit_intent_extraction' },
-  { provider: 'qwen_dashscope', modelId: 'qwen3.7-plus', caseId: 'synthetic_timeline_planning' },
-  { provider: 'qwen_dashscope', modelId: 'qwen3.7-plus', caseId: 'synthetic_tool_route_metadata_recommendation' },
-  { provider: 'qwen_dashscope', modelId: 'qwen3.7-max', caseId: 'synthetic_provider_fallback_comparison' },
-  { provider: 'deepseek', modelId: 'deepseek-v4-flash', caseId: 'synthetic_blocker_classification' },
-  { provider: 'deepseek', modelId: 'deepseek-v4-flash', caseId: 'synthetic_rejected_raw_prompt_to_worker' },
-  { provider: 'deepseek', modelId: 'deepseek-v4-pro', caseId: 'synthetic_cost_scope_risk_explanation' },
+  {
+    provider: 'qwen_dashscope',
+    modelId: 'qwen3.7-plus',
+    caseId: 'modeldryrun1_qwen_head_agent_plan_snapshot',
+    sourceCaseId: 'synthetic_tool_route_metadata_recommendation',
+    expectedOutputSchema: 'plan_snapshot_candidate_v1',
+    maxTokens: QWEN_RECOMMENDED_MAX_OUTPUT_TOKENS,
+    timeoutMs: QWEN_RECOMMENDED_TIMEOUT_MS,
+    phaseRole: 'qwen_head_agent_planning',
+    prompt: [
+      'Synthetic safe video evidence manifest only: uploadedOrderSummary has three non-sensitive clips,',
+      'timelineSummary requests metadata-only planning, and evidenceSummary asks whether captions, chart cards,',
+      'or map cards should be recommended as non-executable route labels.',
+      'Return structured head-agent planning metadata only: candidate summary, safe route labels,',
+      'blocked decisions, professional edit scoring notes, owner route requests as labels only,',
+      'credit risk notes, and required approval gates.',
+    ].join(' '),
+  },
+  {
+    provider: 'deepseek',
+    modelId: 'deepseek-v4-flash',
+    caseId: 'modeldryrun1_deepseek_coding_spec_proposal',
+    sourceCaseId: 'synthetic_edit_intent_extraction',
+    expectedOutputSchema: 'agent_findings_v1',
+    maxTokens: 900,
+    timeoutMs: DEEPSEEK_FULL_DRY_RUN_TIMEOUT_MS,
+    phaseRole: 'deepseek_coding_spec_proposal',
+    prompt: [
+      'Synthetic safe coding/spec task only: propose metadata-only implementation findings for a',
+      'provider dry-run policy packet that records schema validation, redaction validation, cost evidence,',
+      'and plan snapshot readiness without executing code, workers, tools, routes, providers, media, SQL,',
+      'or production paths. Include tests suggested and risk level as findings and risks only.',
+    ].join(' '),
+  },
 ]
 
 const SAFETY_FIELDS = [
@@ -253,27 +313,70 @@ function pathInReportDir(file: typeof MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_EXPEC
   return path.join(MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REPORT_DIR, file)
 }
 
+function validateExecutionGuards() {
+  const blockers: string[] = []
+  for (const [name, expected] of Object.entries(MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REQUIRED_ENV)) {
+    if (process.env[name] !== expected) blockers.push(`environment_mismatch:${name}`)
+  }
+  for (const name of MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PAYLOAD_ENV_VARS) {
+    if ((process.env[name] ?? '').trim().length > 0) blockers.push(`payload_env_present_secret_manager_required:${name}`)
+  }
+  return blockers
+}
+
+function buildQwenTimeoutEvidence() {
+  const readiness = readJson(path.join(MODEL_ORCHESTRATION_QWEN_TIMEOUT_REPORT_DIR, 'readiness/qwen-timeout-calibration-readiness-report.json'))
+  const recommendation = readJson(path.join(MODEL_ORCHESTRATION_QWEN_TIMEOUT_REPORT_DIR, 'recommendation/qwen-model-timeout-target-recommendation.json'))
+  return {
+    sourceRunId: readiness?.runId ?? 'missing',
+    sourceDecision: readiness?.decision ?? 'missing',
+    expectedDecision: 'qwen_schema_timeout_calibrated_ready_for_model_dryrun',
+    selectedHeadAgentModel: readiness?.selectedHeadAgentModel ?? recommendation?.selectedHeadAgentModel ?? 'missing',
+    selectedCalibrationMode: readiness?.selectedCalibrationMode ?? recommendation?.selectedCalibrationMode ?? 'missing',
+    recommendedTimeoutMs: readiness?.recommendedTimeoutMs ?? recommendation?.recommendedTimeoutMs ?? QWEN_RECOMMENDED_TIMEOUT_MS,
+    recommendedMaxOutputTokens: readiness?.recommendedMaxOutputTokens ?? recommendation?.recommendedMaxOutputTokens ?? QWEN_RECOMMENDED_MAX_OUTPUT_TOKENS,
+    fullModelDryRunReadiness: readiness?.fullModelDryRunReadiness ?? recommendation?.fullDryRunReadiness ?? 'missing',
+    evidenceAuthoritative: readiness?.runId === 'qwentimeout1-20260612T165931' &&
+      readiness?.decision === 'qwen_schema_timeout_calibrated_ready_for_model_dryrun',
+  }
+}
+
 export function getModelOrchestrationProviderDryRunPlan() {
   return {
     phase: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE,
     runId: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID,
     branch: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_BRANCH,
     baseBranch: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_BASE_BRANCH,
-    prTitle: '[model] Qwen DeepSeek provider dry-run',
-    mode: 'synthetic_provider_dry_run_execution',
+    prTitle: '[model] Qwen DeepSeek full synthetic provider dry run',
+    mode: 'qwen_deepseek_full_synthetic_provider_dry_run',
     reportDir: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REPORT_DIR,
     expectedReports: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_EXPECTED_REPORTS,
     requiredConfirmations: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REQUIRED_CONFIRMATIONS,
+    requiredEnvironment: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REQUIRED_ENV,
     forbiddenConfirmations: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_FORBIDDEN_CONFIRMATIONS,
     officialDocsBasis: OFFICIAL_DOCS,
-    qwenEndpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    qwenEndpoint: 'secret_manager:DASHSCOPE_BASE_URL/chat/completions',
+    qwenEndpointRegionKey: 'us',
     deepseekEndpoint: 'https://api.deepseek.com/chat/completions',
     secretSource: 'google_secret_manager_only',
+    exactSecretRefs: [
+      'DASHSCOPE_API_KEY',
+      'DASHSCOPE_BASE_URL',
+      'DASHSCOPE_REGION',
+      'DEEPSEEK_API_KEY',
+    ],
     environmentProviderSecretPayloadsAllowed: false,
     privateGeneratedArtifactPrefix: getModelDryRunGeneratedArtifactPrefix(),
     privateQaArtifactPrefix: getModelDryRunQaArtifactPrefix(),
     providerCallsAllowedOnlyWithExecuteAndConfirmations: true,
     syntheticPromptsOnly: true,
+    providerCallCaseCount: CASE_MATRIX.length,
+    maxProviderCalls: MAX_PROVIDER_CALLS,
+    qwenDefaultModel: 'qwen3.7-plus',
+    qwenEscalationModelPolicyOnly: 'qwen3.7-max',
+    deepseekDefaultModel: 'deepseek-v4-flash',
+    deepseekEscalationModelPolicyOnly: 'deepseek-v4-pro',
+    qwenTimeoutEvidence: buildQwenTimeoutEvidence(),
     stream: false,
     tools: false,
     search: false,
@@ -317,18 +420,20 @@ export async function executeModelOrchestrationProviderDryRun(options: {
   syntheticOnly: boolean
   keepTemp: boolean
 }): Promise<{ exitCode: number }> {
-  if (!options.execute || !options.syntheticOnly) {
+  if (!options.execute) {
     const decision = buildDecision('blocked_pending_provider_error_review', [
-      'execution_requires_explicit_execute_and_synthetic_only_flags',
+      'execution_requires_explicit_execute_flag',
     ])
     await writeModelOrchestrationProviderDryRunArtifacts(buildReportsFromDecision(decision, [], [], false, false))
     return { exitCode: 1 }
   }
 
+  const guardBlockers = validateExecutionGuards()
   const missing = MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_REQUIRED_CONFIRMATIONS.filter((name) => process.env[name] !== 'true')
   const forbidden = MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_FORBIDDEN_CONFIRMATIONS.filter((name) => process.env[name] === 'true')
-  if (missing.length > 0 || forbidden.length > 0) {
+  if (guardBlockers.length > 0 || missing.length > 0 || forbidden.length > 0) {
     const decision = buildDecision('blocked_pending_provider_error_review', [
+      ...guardBlockers,
       ...missing.map((name) => `missing_confirmation:${name}`),
       ...forbidden.map((name) => `forbidden_confirmation:${name}`),
     ])
@@ -337,20 +442,24 @@ export async function executeModelOrchestrationProviderDryRun(options: {
   }
 
   const cases = loadApprovedCases()
-  const missingCases = CASE_MATRIX.filter((plan) => !cases.some((item) => item.caseId === plan.caseId))
+  const missingCases = CASE_MATRIX.filter((plan) => !cases.some((item) =>
+    item.caseId === plan.sourceCaseId && item.expectedOutputSchema === plan.expectedOutputSchema))
   if (missingCases.length > 0) {
     const decision = buildDecision('blocked_pending_schema_contract_fix', [
-      ...missingCases.map((item) => `missing_approved_case:${item.caseId}`),
+      ...missingCases.map((item) => `missing_approved_source_case:${item.sourceCaseId}:${item.expectedOutputSchema}`),
     ])
     await writeModelOrchestrationProviderDryRunArtifacts(buildReportsFromDecision(decision, [], [], true, false), { uploadPrivateArtifacts: true })
     return { exitCode: 1 }
   }
 
   const secretLoad = await loadProviderSecrets()
-  if (!secretLoad.qwenKey || !secretLoad.deepseekKey) {
-    const decision = buildDecision('blocked_pending_secret_access', secretLoad.entries
+  if (!secretLoad.qwenKey || !secretLoad.qwenBaseUrl || !secretLoad.deepseekKey) {
+    const decision = buildDecision('blocked_pending_secret_access', [
+      ...secretLoad.executionBlockers,
+      ...secretLoad.entries
       .filter((entry) => entry.blocker)
-      .map((entry) => entry.blocker ?? 'secret_unavailable'))
+      .map((entry) => entry.blocker ?? 'secret_unavailable'),
+    ])
     const reports = buildReportsFromDecision(decision, [], secretLoad.entries, false, false)
     reports.loadedCases = buildLoadedCasesReport(cases, true)
     await writeModelOrchestrationProviderDryRunArtifacts(reports, { uploadPrivateArtifacts: true })
@@ -359,10 +468,9 @@ export async function executeModelOrchestrationProviderDryRun(options: {
 
   const results: ProviderCaseResult[] = []
   for (const plan of CASE_MATRIX) {
-    const currentCase = cases.find((item) => item.caseId === plan.caseId)
-    if (!currentCase) continue
+    const currentCase = buildExecutionCase(plan)
     const apiKey = plan.provider === 'qwen_dashscope' ? secretLoad.qwenKey : secretLoad.deepseekKey
-    results.push(await runProviderCase(plan, currentCase, apiKey))
+    results.push(await runProviderCase(plan, currentCase, apiKey, secretLoad.qwenBaseUrl))
   }
 
   const invalidFixturePassed = runInvalidSchemaFixture()
@@ -370,6 +478,8 @@ export async function executeModelOrchestrationProviderDryRun(options: {
   const reports = buildReportsFromDecision(decision, results, secretLoad.entries, true, invalidFixturePassed)
   reports.loadedCases = buildLoadedCasesReport(cases, true)
   await writeModelOrchestrationProviderDryRunArtifacts(reports, { uploadPrivateArtifacts: true })
+  const uploadStatus = asString(asRecord(reports.privateArtifactManifest.privateArtifactUpload).status)
+  if (uploadStatus && uploadStatus !== 'uploaded') return { exitCode: 1 }
   return { exitCode: decision.status === 'passed' ? 0 : 1 }
 }
 
@@ -455,16 +565,18 @@ function buildReportsFromDecision(
 function buildSourceOfTruthOwnershipAudit() {
   const approvalReadiness = readJson(path.join(MODEL_ORCHESTRATION_DRY_RUN_APPROVAL_REPORT_DIR, 'dry_run_readiness_report.json'))
   const approvalDecision = readJson(path.join(MODEL_ORCHESTRATION_DRY_RUN_APPROVAL_REPORT_DIR, 'dry_run_approval_decision.json'))
+  const qwenTimeoutEvidence = buildQwenTimeoutEvidence()
 
   return {
     phase: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE,
     runId: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID,
     ownerWorkstream: 'MODEL_ORCHESTRATION',
-    sourceEvidence: 'PR #318 committed dry-run approval reports and official provider docs',
+    sourceEvidence: 'PR #318 committed dry-run approval reports, PR #330 Qwen timeout calibration evidence, and official provider docs',
     sourcePaths: SOURCE_PATHS.map(pathStatus),
     pr318ReadinessStatus: approvalReadiness?.status ?? 'missing',
     pr318Decision: approvalReadiness?.decision ?? approvalDecision?.decision ?? 'missing',
     expectedPr318Decision: 'approved_for_future_qwen_deepseek_provider_dry_run',
+    pr330QwenTimeoutEvidence: qwenTimeoutEvidence,
     officialDocsBasis: OFFICIAL_DOCS,
     providerGatewayRuntimeImported: false,
     productionRouteImported: false,
@@ -487,34 +599,55 @@ function loadApprovedCases(): ApprovedCase[] {
       prompt: asString(record.prompt),
       expectedOutputSchema: asString(record.expectedOutputSchema),
       maxTokens: asNumber(record.maxTokens, 800),
-      timeoutMs: Math.min(asNumber(record.timeoutMs, 10000), 15000),
+      timeoutMs: asNumber(record.timeoutMs, 10000),
     }
   }).filter((item) => item.caseId && item.prompt && item.expectedOutputSchema)
 }
 
+function buildExecutionCase(plan: CasePlan): ApprovedCase {
+  return {
+    caseId: plan.caseId,
+    prompt: plan.prompt,
+    expectedOutputSchema: plan.expectedOutputSchema,
+    maxTokens: plan.maxTokens,
+    timeoutMs: plan.timeoutMs,
+  }
+}
+
 function buildLoadedCasesReport(cases: ApprovedCase[], executed: boolean) {
+  const missingSources = CASE_MATRIX.filter((plan) => !cases.some((item) =>
+    item.caseId === plan.sourceCaseId && item.expectedOutputSchema === plan.expectedOutputSchema))
   return {
     phase: MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_PHASE,
-    status: cases.length >= 8 ? 'passed' : 'blocked',
+    status: cases.length >= 8 && missingSources.length === 0 ? 'passed' : 'blocked',
     executed,
     sourcePath: path.join(MODEL_ORCHESTRATION_DRY_RUN_APPROVAL_REPORT_DIR, 'dry_run_synthetic_cases.json'),
     loadedCaseCount: cases.length,
     providerCallCaseCount: CASE_MATRIX.length,
+    maxProviderCalls: MAX_PROVIDER_CALLS,
     localValidationFixtureCaseCount: 1,
     syntheticOnly: true,
     containsUserData: false,
     containsMedia: false,
     rawPromptStoredInReports: false,
+    missingSourceCases: missingSources.map((plan) => ({
+      sourceCaseId: plan.sourceCaseId,
+      expectedOutputSchema: plan.expectedOutputSchema,
+    })),
     cases: CASE_MATRIX.map((plan) => {
-      const source = cases.find((item) => item.caseId === plan.caseId)
+      const source = cases.find((item) => item.caseId === plan.sourceCaseId)
       return {
         caseId: plan.caseId,
+        sourceCaseId: plan.sourceCaseId,
         provider: plan.provider,
         modelId: plan.modelId,
-        expectedOutputSchema: source?.expectedOutputSchema ?? 'missing',
-        maxTokens: source?.maxTokens ?? 'missing',
-        timeoutMs: source?.timeoutMs ?? 'missing',
-        promptCharacterCount: source?.prompt.length ?? 0,
+        phaseRole: plan.phaseRole,
+        expectedOutputSchema: plan.expectedOutputSchema,
+        sourceExpectedOutputSchema: source?.expectedOutputSchema ?? 'missing',
+        maxTokens: plan.maxTokens,
+        timeoutMs: plan.timeoutMs,
+        sourcePromptCharacterCount: source?.prompt.length ?? 0,
+        executionPromptCharacterCount: plan.prompt.length,
         promptTextStored: false,
       }
     }),
@@ -529,15 +662,43 @@ function buildLoadedCasesReport(cases: ApprovedCase[], executed: boolean) {
 
 async function loadProviderSecrets(): Promise<{
   qwenKey?: string
+  qwenBaseUrl?: string
   deepseekKey?: string
   entries: SecretAccessEntry[]
+  executionBlockers: string[]
 }> {
+  const executionBlockers = validateExecutionGuards().filter((item) =>
+    item.startsWith('payload_env_present_secret_manager_required'))
+  if (executionBlockers.length > 0) {
+    return {
+      entries: buildDefaultSecretEntries('failed', executionBlockers[0]),
+      executionBlockers,
+    }
+  }
+
   const qwen = await loadSecret('DASHSCOPE_API_KEY', 'qwen_dashscope')
+  const qwenBaseUrl = await loadSecret('DASHSCOPE_BASE_URL', 'qwen_dashscope')
+  const qwenRegion = await loadSecret('DASHSCOPE_REGION', 'qwen_dashscope')
   const deepseek = await loadSecret('DEEPSEEK_API_KEY', 'deepseek')
+  const baseUrlValid = qwenBaseUrl.value === APPROVED_DASHSCOPE_BASE_URL
+  const regionValid = qwenRegion.value === APPROVED_DASHSCOPE_REGION
+  qwenBaseUrl.entry = {
+    ...qwenBaseUrl.entry,
+    baseUrlKey: baseUrlValid ? 'us' : undefined,
+    baseUrlMatchesApprovedEndpoint: baseUrlValid,
+    blocker: qwenBaseUrl.entry.blocker ?? (baseUrlValid ? undefined : 'dashscope_base_url_secret_payload_mismatch'),
+  }
+  qwenRegion.entry = {
+    ...qwenRegion.entry,
+    regionMatchesApprovedRegion: regionValid,
+    blocker: qwenRegion.entry.blocker ?? (regionValid ? undefined : 'dashscope_region_secret_payload_mismatch'),
+  }
   return {
     qwenKey: qwen.value,
+    qwenBaseUrl: baseUrlValid && regionValid ? qwenBaseUrl.value : undefined,
     deepseekKey: deepseek.value,
-    entries: [qwen.entry, deepseek.entry],
+    entries: [qwen.entry, qwenBaseUrl.entry, qwenRegion.entry, deepseek.entry],
+    executionBlockers: [],
   }
 }
 
@@ -598,7 +759,7 @@ async function loadSecret(secretRef: SecretAccessEntry['secretRef'], provider: P
         provider,
         source: 'secret_manager',
         payloadAccessStatus: 'succeeded',
-        envVarPresent: true,
+        envVarPresent: false,
         payloadPrinted: false,
         payloadCommitted: false,
         secretValueStoredInReports: false,
@@ -621,29 +782,63 @@ async function loadSecret(secretRef: SecretAccessEntry['secretRef'], provider: P
   }
 }
 
-function buildSecretAccessReport(entries: SecretAccessEntry[], executed: boolean) {
-  const normalizedEntries = entries.length > 0 ? entries : ([
+function buildDefaultSecretEntries(
+  status: SecretAccessEntry['payloadAccessStatus'] = 'not_attempted',
+  blocker?: string,
+): SecretAccessEntry[] {
+  return [
     {
       secretRef: 'DASHSCOPE_API_KEY',
       provider: 'qwen_dashscope',
       source: 'unavailable',
-      payloadAccessStatus: 'not_attempted',
+      payloadAccessStatus: status,
       envVarPresent: false,
       payloadPrinted: false,
       payloadCommitted: false,
       secretValueStoredInReports: false,
+      blocker,
+    },
+    {
+      secretRef: 'DASHSCOPE_BASE_URL',
+      provider: 'qwen_dashscope',
+      source: 'unavailable',
+      payloadAccessStatus: status,
+      envVarPresent: false,
+      baseUrlKey: 'us',
+      baseUrlMatchesApprovedEndpoint: false,
+      payloadPrinted: false,
+      payloadCommitted: false,
+      secretValueStoredInReports: false,
+      blocker,
+    },
+    {
+      secretRef: 'DASHSCOPE_REGION',
+      provider: 'qwen_dashscope',
+      source: 'unavailable',
+      payloadAccessStatus: status,
+      envVarPresent: false,
+      regionMatchesApprovedRegion: false,
+      payloadPrinted: false,
+      payloadCommitted: false,
+      secretValueStoredInReports: false,
+      blocker,
     },
     {
       secretRef: 'DEEPSEEK_API_KEY',
       provider: 'deepseek',
       source: 'unavailable',
-      payloadAccessStatus: 'not_attempted',
+      payloadAccessStatus: status,
       envVarPresent: false,
       payloadPrinted: false,
       payloadCommitted: false,
       secretValueStoredInReports: false,
+      blocker,
     },
-  ] satisfies SecretAccessEntry[])
+  ]
+}
+
+function buildSecretAccessReport(entries: SecretAccessEntry[], executed: boolean) {
+  const normalizedEntries = entries.length > 0 ? entries : buildDefaultSecretEntries()
 
   const blockers = normalizedEntries
     .filter((entry) => entry.payloadAccessStatus === 'failed' || entry.blocker)
@@ -657,6 +852,15 @@ function buildSecretAccessReport(entries: SecretAccessEntry[], executed: boolean
     secretSourcePolicy: 'google_secret_manager_only',
     broadSecretDiscovery: false,
     exactSecretRefsOnly: true,
+    exactSecretRefs: [
+      'DASHSCOPE_API_KEY',
+      'DASHSCOPE_BASE_URL',
+      'DASHSCOPE_REGION',
+      'DEEPSEEK_API_KEY',
+    ],
+    dashscopeBaseUrlKey: 'us',
+    dashscopeBaseUrlPayloadStored: false,
+    dashscopeRegionPayloadStored: false,
     entries: normalizedEntries,
     payloadAccessed: executed && blockers.length === 0,
     payloadPrinted: false,
@@ -666,11 +870,22 @@ function buildSecretAccessReport(entries: SecretAccessEntry[], executed: boolean
   }
 }
 
-async function runProviderCase(plan: CasePlan, currentCase: ApprovedCase, apiKey: string): Promise<ProviderCaseResult> {
+async function runProviderCase(
+  plan: CasePlan,
+  currentCase: ApprovedCase,
+  apiKey: string,
+  qwenBaseUrl: string,
+): Promise<ProviderCaseResult> {
   const started = Date.now()
   try {
     const body = buildProviderRequestBody(plan, currentCase)
-    const response = await fetch(providerUrl(plan.provider), {
+    const requestValidation = validateProviderRequestMetadata(plan, currentCase, body)
+    if (!requestValidation.ok) {
+      return blockedResult(plan, currentCase, requestValidation.blocker, {
+        latencyMs: Date.now() - started,
+      })
+    }
+    const response = await fetch(providerUrl(plan.provider, qwenBaseUrl), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -761,15 +976,19 @@ async function runProviderCase(plan: CasePlan, currentCase: ApprovedCase, apiKey
   }
 }
 
-function providerUrl(provider: ProviderName) {
+function providerUrl(provider: ProviderName, qwenBaseUrl: string) {
   return provider === 'qwen_dashscope'
-    ? 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
+    ? `${qwenBaseUrl.replace(/\/+$/, '')}/chat/completions`
     : 'https://api.deepseek.com/chat/completions'
 }
 
 function buildProviderRequestBody(plan: CasePlan, currentCase: ApprovedCase) {
+  const roleInstruction = plan.phaseRole === 'qwen_head_agent_planning'
+    ? 'Qwen role: head-agent planning/decision schema candidate only. Produce route labels and approval gates, not executable actions.'
+    : 'DeepSeek role: coding/spec proposal specialist only. Produce findings, suggested tests, and risk notes, not executable code or commands.'
   const systemPrompt = [
     'You are a schema-only planning dry-run evaluator for ReeditPro.',
+    roleInstruction,
     'Return one JSON object only. Do not include markdown or explanations outside JSON.',
     'Use only synthetic metadata. Do not ask to run workers, tools, routes, media processing, Supabase, public artifacts, signed URLs, production, external beta, or paid production.',
     'Do not reveal hidden reasoning. Keep all safety booleans false.',
@@ -782,6 +1001,8 @@ function buildProviderRequestBody(plan: CasePlan, currentCase: ApprovedCase) {
   ]
   const userPrompt = [
     `caseId: ${currentCase.caseId}`,
+    `sourceCaseId: ${plan.sourceCaseId}`,
+    `phaseRole: ${plan.phaseRole}`,
     `schemaId: ${currentCase.expectedOutputSchema}`,
     `syntheticInput: ${currentCase.prompt}`,
     `requiredTopLevelFields: ${required.join(', ')}`,
@@ -808,6 +1029,21 @@ function buildProviderRequestBody(plan: CasePlan, currentCase: ApprovedCase) {
   }
 
   return base
+}
+
+function validateProviderRequestMetadata(plan: CasePlan, currentCase: ApprovedCase, body: Record<string, unknown>): {
+  ok: true
+} | {
+  ok: false
+  blocker: string
+} {
+  if (!['qwen3.7-plus', 'deepseek-v4-flash'].includes(plan.modelId)) {
+    return { ok: false, blocker: 'unapproved_primary_model_for_full_dry_run' }
+  }
+  if (currentCase.prompt.length > 1600) return { ok: false, blocker: 'synthetic_prompt_too_large' }
+  const text = JSON.stringify(body)
+  if (hasForbiddenRequestPattern(text)) return { ok: false, blocker: 'sanitized_request_metadata_forbidden_pattern' }
+  return { ok: true }
 }
 
 function classifyProviderHttpError(status: number, text: string) {
@@ -868,11 +1104,30 @@ function hasForbiddenOutputPattern(text: string) {
     /postgres(?:ql)?:\/\//i,
     /service[_-]?role/i,
     /api[_-]?key/i,
+    /\bbearer\s+[a-z0-9._-]+/i,
     /access[_-]?token/i,
+    /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/,
+    /sk-[A-Za-z0-9]{20,}/,
+    /x-goog-signature=/i,
+    /gs:\/\//i,
     /https?:\/\//i,
-    /execute\s+(worker|tool|route)/i,
-    /run\s+(worker|tool|route)/i,
+    /execute\s+(worker|tool|route|provider|code)/i,
+    /run\s+(worker|tool|route|provider|code)/i,
+    /call\s+(worker|tool|route|provider)/i,
     /production\s+(write|deploy|mutation)/i,
+  ].some((pattern) => pattern.test(text))
+}
+
+function hasForbiddenRequestPattern(text: string) {
+  return [
+    /postgres(?:ql)?:\/\//i,
+    /service[_-]?role/i,
+    /\bbearer\s+[a-z0-9._-]+/i,
+    /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/,
+    /sk-[A-Za-z0-9]{20,}/,
+    /x-goog-signature=/i,
+    /gs:\/\//i,
+    /https?:\/\//i,
   ].some((pattern) => pattern.test(text))
 }
 
@@ -923,8 +1178,9 @@ function buildProviderRunReport(provider: ProviderName, results: ProviderCaseRes
     providerCallsPassed: passed.length,
     providerCallsBlocked: blocked.length,
     endpoint: provider === 'qwen_dashscope'
-      ? 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
+      ? 'secret_manager:DASHSCOPE_BASE_URL/chat/completions'
       : 'https://api.deepseek.com/chat/completions',
+    endpointRegionKey: provider === 'qwen_dashscope' ? 'us' : undefined,
     stream: false,
     tools: false,
     search: false,
@@ -949,12 +1205,19 @@ function buildComparisonReport(results: ProviderCaseResult[], executed: boolean)
     qwenCandidatePassed: qwenPassed,
     deepseekCandidatePassed: deepseekPassed,
     officialAliasesOnly: results.every((result) =>
-      ['qwen3.7-plus', 'qwen3.7-max', 'deepseek-v4-flash', 'deepseek-v4-pro'].includes(result.modelId)),
+      ['qwen3.7-plus', 'deepseek-v4-flash'].includes(result.modelId)),
     totalProviderCalls: totalCalls,
-    maxTotalProviderCalls: 8,
+    maxTotalProviderCalls: MAX_PROVIDER_CALLS,
     totalTokensReported: usageTotal,
-    maxTotalTokens: 7200,
-    costGuardrailStatus: totalCalls <= 8 && usageTotal <= 7200 ? 'passed_by_call_and_token_caps' : 'blocked_pending_cost_review',
+    maxTotalTokens: MAX_TOTAL_REPORTED_TOKENS,
+    costGuardrailStatus: totalCalls <= MAX_PROVIDER_CALLS && usageTotal <= MAX_TOTAL_REPORTED_TOKENS ? 'passed_by_call_and_token_caps' : 'blocked_pending_cost_review',
+    providerUsageReturned: results.map((result) => ({
+      caseId: result.caseId,
+      provider: result.provider,
+      modelId: result.modelId,
+      usageStatus: result.usage ? 'reported_by_provider' : 'usage_not_returned',
+      usage: result.usage,
+    })),
     rawProviderResponseStored: false,
     unsafeOutputCount: blocked.filter((result) => result.blocker?.startsWith('unsafe_output')).length,
     blockedCases: blocked.map((result) => ({
@@ -1011,7 +1274,7 @@ function selectExecutionDecision(results: ProviderCaseResult[], invalidFixturePa
   if (!qwenPassed || !deepseekPassed) blockers.add('provider_family_schema_valid_output_missing')
   for (const result of blocked) blockers.add(result.blocker ?? 'provider_case_blocked')
   if (!invalidFixturePassed) blockers.add('invalid_json_fail_closed_fixture_failed')
-  if (results.length > 8 || usageTotal > 7200) blockers.add('provider_cost_or_token_guardrail_exceeded')
+  if (results.length > MAX_PROVIDER_CALLS || usageTotal > MAX_TOTAL_REPORTED_TOKENS) blockers.add('provider_cost_or_token_guardrail_exceeded')
 
   if (blockers.size === 0) {
     return buildDecision('provider_dry_run_passed_ready_for_plan_snapshot_contract', [])
@@ -1094,12 +1357,15 @@ function buildReadinessReport(decision: Record<string, unknown>) {
     activeBlockers: decision.activeBlockers ?? [],
     providerCandidates: {
       qwenDefault: 'qwen3.7-plus',
-      qwenEscalation: 'qwen3.7-max',
+      qwenEscalationPolicyOnly: 'qwen3.7-max',
       deepseekDefault: 'deepseek-v4-flash',
-      deepseekEscalation: 'deepseek-v4-pro',
+      deepseekEscalationPolicyOnly: 'deepseek-v4-pro',
     },
+    qwenTimeoutEvidence: buildQwenTimeoutEvidence(),
     providerCallsAttempted,
     providerCallsExecuted: providerCallsAttempted,
+    providerCallCaseCount: CASE_MATRIX.length,
+    maxProviderCalls: MAX_PROVIDER_CALLS,
     qwenApiCallsAllowedOnlyForSyntheticDryRun: true,
     deepseekApiCallsAllowedOnlyForSyntheticDryRun: true,
     planSnapshotContractReady: decision.decision === 'provider_dry_run_passed_ready_for_plan_snapshot_contract',
@@ -1166,6 +1432,19 @@ function buildSupabaseMilestoneSyncStatus(executed: boolean) {
 }
 
 function attachPrivateArtifactUpload(reports: ProviderDryRunReports, upload: Record<string, unknown>) {
+  const uploadStatus = asString(upload.status)
+  if (uploadStatus !== 'uploaded') {
+    const blockers = [
+      ...asArray(reports.decision.activeBlockers).map(String),
+      'private_artifact_upload_failed',
+    ]
+    reports.decision = {
+      ...buildDecision('blocked_pending_provider_error_review', blockers),
+      providerCallsAttempted: true,
+    }
+    reports.readinessReport = buildReadinessReport(reports.decision)
+    reports.blockerReport = buildBlockerReport(reports.decision)
+  }
   reports.privateArtifactManifest = {
     ...reports.privateArtifactManifest,
     privateArtifactUpload: upload,
@@ -1188,6 +1467,7 @@ function attachPrivateArtifactUpload(reports: ProviderDryRunReports, upload: Rec
 
 async function uploadProviderDryRunPrivateArtifacts(reports: ProviderDryRunReports): Promise<Record<string, unknown>> {
   const generatedPrefix = `${MODEL_DRY_RUN_PRIVATE_OBJECT_PREFIX}/${MODEL_ORCHESTRATION_PROVIDER_DRY_RUN_RUN_ID}`
+  const supabaseSyncLayerPresent = existsSync('server/activation/supabase-milestone-sync')
   const generatedArtifacts = [
     { object: 'audit/repo-ownership-audit.json', value: reports.sourceOfTruthOwnershipAudit },
     { object: 'policy/model-provider-dry-run-policy.json', value: reports.plan },
@@ -1198,8 +1478,10 @@ async function uploadProviderDryRunPrivateArtifacts(reports: ProviderDryRunRepor
     { object: 'validation/redaction-validation-results.json', value: buildRedactionValidationArtifact(reports) },
     { object: 'cost/provider-cost-usage-summary.json', value: reports.comparison },
     { object: 'manifest/model-provider-dry-run-manifest.json', value: reports.privateArtifactManifest },
-    { object: 'supabase/model-dry-run-1-milestone-sync-input.json', value: buildSupabaseMilestoneSyncInput(reports) },
-    { object: 'supabase/model-dry-run-1-milestone-sync-result.json', value: buildSupabaseMilestoneSyncStatus(true) },
+    ...(supabaseSyncLayerPresent ? [
+      { object: 'supabase/model-dry-run-1-milestone-sync-input.json', value: buildSupabaseMilestoneSyncInput(reports) },
+      { object: 'supabase/model-dry-run-1-milestone-sync-result.json', value: buildSupabaseMilestoneSyncStatus(true) },
+    ] : []),
   ]
   const qaArtifacts = [
     { object: 'qa/model-provider-dry-run-qa.json', value: buildQaArtifact(reports) },
@@ -1327,7 +1609,9 @@ Decision: \`${decision}\`.
 
 Status: \`${status}\`.
 
-This phase executes only synthetic, non-sensitive provider dry-run cases approved by PR #318. Qwen/DashScope calls use the OpenAI-compatible chat completions endpoint, and DeepSeek calls use its OpenAI-compatible chat completions endpoint with JSON-object response formatting.
+This phase executes only two synthetic, non-sensitive provider dry-run cases approved by PR #318 and gated by PR #330 timeout calibration. Qwen/DashScope uses the US OpenAI-compatible chat completions endpoint from Google Secret Manager, and DeepSeek uses its OpenAI-compatible chat completions endpoint with JSON-object response formatting.
+
+Qwen default: \`qwen3.7-plus\` with \`45000ms\` timeout and \`650\` max output tokens. DeepSeek default: \`deepseek-v4-flash\`. Escalation models are policy-only in this phase and are not called.
 
 Still blocked: tools, workers, routes, media processing, Supabase writes, raw prompt execution into workers or tools, public artifacts, signed URLs, production, external beta, and paid production.
 
@@ -1340,14 +1624,14 @@ Decision: \`${decision}\`.
 
 Provider calls executed only under explicit synthetic dry-run confirmations. Plan snapshot contract readiness: \`${String(reports.readinessReport.planSnapshotContractReady)}\`.
 
-Secret payloads printed or committed: \`false\`. Raw provider responses stored: \`false\`. Supabase writes: \`false\`. Runtime/tool/worker/route execution: \`false\`. Production/external beta/paid production: \`false\`.
+Secret payloads printed or committed: \`false\`. DashScope base URL and region payloads stored: \`false\`. Raw provider responses stored: \`false\`. Supabase writes: \`false\`. Runtime/tool/worker/route execution: \`false\`. Production/external beta/paid production: \`false\`.
 `)
 
   await writeVlmRuntimeTextArtifact('docs/model-orchestration-provider-dry-run-redaction.md', `# Model Orchestration Provider Dry-Run Redaction
 
 Allowed committed fields are safe metadata: case ID, provider, model ID, schema ID, status, blocker code, latency, token usage when returned, normalized schema-valid JSON, and fail-closed status.
 
-Blocked committed fields: raw provider responses, request bodies with secrets, API keys, DB URLs, service-role keys, anon keys, access tokens, signed URLs, private payloads, media payloads, raw prompt forwarding payloads, hidden reasoning, and public artifact payloads.
+Blocked committed fields: raw provider responses, raw provider request bodies, API keys, DB URLs, service-role keys, anon keys, access tokens, signed URLs, private payloads, media payloads, raw prompt forwarding payloads, hidden reasoning, DashScope base URL payloads, DashScope region payloads, and public artifact payloads.
 `)
 
   await writeVlmRuntimeTextArtifact('docs/model-orchestration-provider-dry-run-fail-closed.md', `# Model Orchestration Provider Dry-Run Fail-Closed Policy

@@ -10,6 +10,8 @@ Base branch: `codex/rp-model-orchestration-qwen-deepseek-dry-run-approval`
 
 PR title: `[model] Qwen DeepSeek synthetic provider dry run`
 
+PR: [#324](https://github.com/yuzastudio6-cyber/Reedkt/pull/324)
+
 Production capability enabled: `none; Qwen/DeepSeek synthetic provider dry-run execution only`
 
 ## Scope

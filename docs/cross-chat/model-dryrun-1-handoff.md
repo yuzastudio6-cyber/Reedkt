@@ -4,6 +4,8 @@ Owner lane: model orchestration provider dry-run.
 
 Status: `blocked_provider_call_failed`.
 
+PR: [#324](https://github.com/yuzastudio6-cyber/Reedkt/pull/324)
+
 Handoff summary:
 
 - Secret Manager resolution passed for `DASHSCOPE_API_KEY` and `DEEPSEEK_API_KEY` without printing or committing payloads.

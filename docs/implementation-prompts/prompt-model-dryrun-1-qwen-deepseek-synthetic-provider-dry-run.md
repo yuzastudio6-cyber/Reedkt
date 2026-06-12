@@ -4,6 +4,8 @@ Implementation branch: `codex/rp-model-orchestration-qwen-deepseek-synthetic-pro
 
 Base branch: `codex/rp-model-orchestration-qwen-deepseek-dry-run-approval`
 
+PR: [#324](https://github.com/yuzastudio6-cyber/Reedkt/pull/324)
+
 Status: `blocked`
 
 Decision: `blocked_provider_call_failed`

@@ -1,0 +1,60 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract-ready",
+  "runId": "model-orchestration-plan-snapshot-contract-ready-20260612",
+  "status": "passed",
+  "sourceLineageStatus": "blocked_source_mismatch",
+  "reconciliationAttempted": true,
+  "pr327ContractPacketExpected": true,
+  "pr327ContractPacketPresentOnCurrentBranch": false,
+  "pr327ContractPacketAvailableOnOriginBranch": true,
+  "sourceBranch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run-rerun",
+  "targetBranch": "codex/rp-model-orchestration-plan-snapshot-contract-ready",
+  "attemptedPacketCommits": [
+    "e01cda89",
+    "0101af14"
+  ],
+  "firstCherryPickAttempted": true,
+  "firstCherryPickAborted": true,
+  "cherryPickConflictFiles": [
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md",
+    "package.json"
+  ],
+  "disallowedCherryPickConflictFiles": [
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md"
+  ],
+  "packageJsonConflictAllowed": true,
+  "qwenEvidence": {
+    "sourcePr": 329,
+    "status": "passed",
+    "decision": "qwen_rerun_passed_provider_dry_run_ready_for_plan_snapshot_contract",
+    "endpoint": "https://dashscope-us.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "aliases": [
+      "qwen-flash-us",
+      "qwen-plus-us"
+    ],
+    "providerCallsPassed": 4,
+    "providerCallsBlocked": 0,
+    "historicalAliasesUsed": [],
+    "evidenceAccepted": true
+  },
+  "deepseekEvidence": {
+    "sourcePr": 320,
+    "status": "passed",
+    "preservedByPr329": "passed",
+    "deepseekRerunAttempted": false,
+    "providerCallsPassed": 3,
+    "evidenceAccepted": true
+  },
+  "redactionAndNoRuntimeEvidence": {
+    "rawProviderOutputPersisted": false,
+    "rawProviderOutputPrinted": false,
+    "modelGeneratedContentStored": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false,
+    "providerRuntimeGatesPassed": true
+  },
+  "providerEvidenceBlockerResolved": true,
+  "contractPacketSourceMismatchBlocksReadiness": true
+}

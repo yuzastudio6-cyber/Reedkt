@@ -1,0 +1,14 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract-ready",
+  "runId": "model-orchestration-plan-snapshot-contract-ready-20260612",
+  "status": "blocked",
+  "supabaseUpdateRequired": false,
+  "supabaseEnvironmentTouched": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "supabaseRowsCreated": false,
+  "approvedPlanSnapshotPersisted": false,
+  "supabasePersistenceReady": false,
+  "blocker": "Supabase plan snapshot persistence remains blocked until a separate owner approves mutation and RLS/storage path.",
+  "nextSupabasePrompt": "MODEL-ORCHESTRATION-PLAN-SNAPSHOT-PERSISTENCE-0: Supabase plan snapshot persistence audit, no mutation"
+}

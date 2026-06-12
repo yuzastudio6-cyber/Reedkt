@@ -60,6 +60,7 @@
     "smoke:supabase-sound-local-baseline-harness-approval": "tsx server/smoke/supabase-sound-local-baseline-harness-approval-smoke.ts",
     "smoke:supabase-sound-local-harness-validation-result": "tsx server/smoke/supabase-sound-local-harness-validation-result-smoke.ts",
     "smoke:supabase-sound-local-harness-validation-2-result": "tsx server/smoke/supabase-sound-local-harness-validation-2-result-smoke.ts",
+    "smoke:supabase-sound-local-harness-validation-3-result": "tsx server/smoke/supabase-sound-local-harness-validation-3-result-smoke.ts",
     "smoke:supabase-sound-local-harness-setup-fix": "tsx server/smoke/supabase-sound-local-harness-setup-fix-smoke.ts",
     "smoke:supabase-sound-local-harness-config-plan": "tsx server/smoke/supabase-sound-local-harness-config-plan-smoke.ts",
     "smoke:supabase-sound-local-harness-config-create": "tsx server/smoke/supabase-sound-local-harness-config-create-smoke.ts",

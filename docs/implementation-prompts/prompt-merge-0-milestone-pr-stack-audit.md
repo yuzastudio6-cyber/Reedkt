@@ -48,6 +48,7 @@ Local validation completed:
 - Changed-file secret scan: passed.
 - Final `git diff --check`: passed.
 - `foundation:validate` and `foundation:validate:with-build`: not present on this base; foundation runner absence recorded as a base gap.
+- GitHub PR check status: no checks reported in `statusCheckRollup`; `.github/workflows/` is absent on this base and recorded as a base gap.
 
 No PR merge, branch deletion, worker, route, tool, provider, Supabase, SQL, Docker, Cloud Run, media, upload, signed URL, public artifact, beta, or production command was run.
 

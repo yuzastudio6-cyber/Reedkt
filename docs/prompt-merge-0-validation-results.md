@@ -63,6 +63,7 @@ Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/348.
 - Final `git diff --check`: passed.
 - `npm run foundation:validate`: not present on this base; `scripts/validation/run-foundation-validation.mjs` is recorded as a base gap.
 - `npm run foundation:validate:with-build`: not present on this base; `.github/workflows/` and foundation runner are recorded as base gaps.
+- GitHub PR check status: no checks reported in `statusCheckRollup`; `.github/workflows/` is absent on this base and recorded as a base gap.
 
 Not run by design: PR merge, branch delete, workers, tools, routes, providers/models, media processing, browser capture, Docker/Cloud Run, Supabase/SQL, GCS upload, signed URLs, public artifacts, deployment, internal beta, external beta, and production commands.
 

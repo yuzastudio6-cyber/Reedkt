@@ -1,0 +1,159 @@
+{
+  "phase": "WORKER_1",
+  "status": "passed",
+  "worker0": {
+    "runId": "worker0-20260612T191022",
+    "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+    "status": "passed",
+    "worker1Readiness": "ready for approved-plan snapshot dry-run",
+    "privateArtifactUploadStatus": "uploaded"
+  },
+  "planSnapshot1": {
+    "runId": "plansnapshot1-20260612T182758",
+    "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+    "status": "passed",
+    "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+    "executionStatus": "candidate_only",
+    "approvedForRuntime": false
+  },
+  "modelDryRun1": {
+    "runId": "modeldryrun1-20260612T174538",
+    "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+    "status": "passed",
+    "planSnapshotContractReady": true
+  },
+  "sourceFiles": [
+    {
+      "path": "docs/activation-worker-runtime-jobs-audit-reports/summary/worker-runtime-jobs-audit-summary.json",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-0 summary evidence."
+    },
+    {
+      "path": "docs/activation-worker-runtime-jobs-audit-reports/reports/worker-runtime-jobs-audit-report.json",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-0 report evidence."
+    },
+    {
+      "path": "docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-0 results document."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/summary/provider-output-plan-snapshot-contract-summary.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 summary evidence."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 candidate snapshot JSON."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 report evidence."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/handoff/worker-runtime-handoff.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 Worker Runtime handoff evidence."
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_decision.json",
+      "exists": true,
+      "required": true,
+      "purpose": "MODEL-DRYRUN-1 decision evidence."
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+      "exists": true,
+      "required": true,
+      "purpose": "MODEL-DRYRUN-1 readiness evidence."
+    }
+  ],
+  "absentOptionalTrees": [
+    {
+      "path": "docs/runtime-unlock",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/cross-chat",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/agents",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/tool-studies",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "server/activation/approved-plan-snapshot-validation",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "server/activation/supabase-milestone-sync",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/tool-call-foundation.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/worker-claim-execution-contract-hardening.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/tool-readiness-worker-runtime-foundation.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional upstream compatibility/source tree checked for presence."
+    }
+  ],
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "syncLayerDirectoryPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  },
+  "activeBlockers": []
+}

@@ -1,0 +1,12 @@
+{
+  "phase": "WORKER_1",
+  "status": "passed",
+  "privateGsPrefixesOnly": true,
+  "noPublicArtifacts": true,
+  "noSignedUrlSourceOfTruth": true,
+  "manifestRequired": true,
+  "checksumRequired": true,
+  "cleanupRollbackRequired": true,
+  "ownerRouteRequired": true,
+  "activeBlockers": []
+}

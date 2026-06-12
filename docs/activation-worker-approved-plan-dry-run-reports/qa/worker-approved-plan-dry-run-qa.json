@@ -1,0 +1,1127 @@
+{
+  "phase": "WORKER_1",
+  "runId": "worker1-20260612T193823",
+  "status": "passed",
+  "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+  "gates": {
+    "source_of_truth_repo_audit": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "worker0": {
+        "runId": "worker0-20260612T191022",
+        "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+        "status": "passed",
+        "worker1Readiness": "ready for approved-plan snapshot dry-run",
+        "privateArtifactUploadStatus": "uploaded"
+      },
+      "planSnapshot1": {
+        "runId": "plansnapshot1-20260612T182758",
+        "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+        "status": "passed",
+        "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+        "executionStatus": "candidate_only",
+        "approvedForRuntime": false
+      },
+      "modelDryRun1": {
+        "runId": "modeldryrun1-20260612T174538",
+        "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+        "status": "passed",
+        "planSnapshotContractReady": true
+      },
+      "sourceFiles": [
+        {
+          "path": "docs/activation-worker-runtime-jobs-audit-reports/summary/worker-runtime-jobs-audit-summary.json",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-0 summary evidence."
+        },
+        {
+          "path": "docs/activation-worker-runtime-jobs-audit-reports/reports/worker-runtime-jobs-audit-report.json",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-0 report evidence."
+        },
+        {
+          "path": "docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WORKER-0 results document."
+        },
+        {
+          "path": "docs/activation-provider-output-plan-snapshot-contract-reports/summary/provider-output-plan-snapshot-contract-summary.json",
+          "exists": true,
+          "required": true,
+          "purpose": "PLAN-SNAPSHOT-1 summary evidence."
+        },
+        {
+          "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+          "exists": true,
+          "required": true,
+          "purpose": "PLAN-SNAPSHOT-1 candidate snapshot JSON."
+        },
+        {
+          "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json",
+          "exists": true,
+          "required": true,
+          "purpose": "PLAN-SNAPSHOT-1 report evidence."
+        },
+        {
+          "path": "docs/activation-provider-output-plan-snapshot-contract-reports/handoff/worker-runtime-handoff.json",
+          "exists": true,
+          "required": true,
+          "purpose": "PLAN-SNAPSHOT-1 Worker Runtime handoff evidence."
+        },
+        {
+          "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_decision.json",
+          "exists": true,
+          "required": true,
+          "purpose": "MODEL-DRYRUN-1 decision evidence."
+        },
+        {
+          "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+          "exists": true,
+          "required": true,
+          "purpose": "MODEL-DRYRUN-1 readiness evidence."
+        }
+      ],
+      "absentOptionalTrees": [
+        {
+          "path": "docs/runtime-unlock",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/cross-chat",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/agents",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/tool-studies",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "server/activation/approved-plan-snapshot-validation",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "server/activation/supabase-milestone-sync",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/tool-call-foundation.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/worker-claim-execution-contract-hardening.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/tool-readiness-worker-runtime-foundation.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/supabase-milestone-sync-policy.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        },
+        {
+          "path": "docs/supabase-success-milestone-reporting-standard.md",
+          "exists": false,
+          "required": false,
+          "purpose": "Optional upstream compatibility/source tree checked for presence."
+        }
+      ],
+      "supabaseMilestoneSync": {
+        "requested": true,
+        "status": "not_attempted_current_branch_missing_sync_layer",
+        "syncLayerPresent": false,
+        "syncLayerDirectoryPresent": false,
+        "sqlExecuted": false,
+        "migrationDeployed": false,
+        "unrelatedRowsWritten": false
+      },
+      "activeBlockers": []
+    },
+    "worker0_evidence": {
+      "runId": "worker0-20260612T191022",
+      "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+      "status": "passed",
+      "worker1Readiness": "ready for approved-plan snapshot dry-run",
+      "privateArtifactUploadStatus": "uploaded"
+    },
+    "plan_snapshot_1_evidence": {
+      "runId": "plansnapshot1-20260612T182758",
+      "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+      "status": "passed",
+      "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+      "executionStatus": "candidate_only",
+      "approvedForRuntime": false
+    },
+    "approved_plan_snapshot_dry_run_validation": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "acceptedForDryRunOnly": true,
+      "realWorkerValidationInvoked": false,
+      "requiredFieldsPresent": true,
+      "executionFlagsAllFalse": true,
+      "activeBlockers": []
+    },
+    "worker_job_plan": {
+      "phase": "WORKER_1",
+      "batchId": "worker1-batch-worker1-20260612T193823",
+      "sourcePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+      "jobs": [
+        {
+          "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "jobType": "snapshot_intake_validation",
+          "ownerRoute": "WORKER_RUNTIME_JOBS",
+          "sourceRefs": [
+            "candidate-approved-plan-plansnapshot1-20260612T182758"
+          ],
+          "dependencyIds": [],
+          "dryRunOnly": true,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "approvedForRuntime": false,
+          "status": "planned_not_executed"
+        },
+        {
+          "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+          "jobType": "selected_intent_route_review",
+          "ownerRoute": "COORDINATOR_PRODUCER_QA",
+          "sourceRefs": [
+            "plansnapshot1_intent_route_caption_recommendation",
+            "route:caption_recommendation"
+          ],
+          "dependencyIds": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake"
+          ],
+          "dryRunOnly": true,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "approvedForRuntime": false,
+          "status": "planned_not_executed"
+        },
+        {
+          "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+          "jobType": "selected_intent_route_review",
+          "ownerRoute": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "sourceRefs": [
+            "plansnapshot1_intent_route_chart_card_metadata",
+            "route:chart_card_metadata"
+          ],
+          "dependencyIds": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake"
+          ],
+          "dryRunOnly": true,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "approvedForRuntime": false,
+          "status": "planned_not_executed"
+        },
+        {
+          "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+          "jobType": "selected_intent_route_review",
+          "ownerRoute": "MAP_GEOSPATIAL",
+          "sourceRefs": [
+            "plansnapshot1_intent_route_map_card_metadata",
+            "route:map_card_metadata"
+          ],
+          "dependencyIds": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake"
+          ],
+          "dryRunOnly": true,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "approvedForRuntime": false,
+          "status": "planned_not_executed"
+        },
+        {
+          "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+          "jobType": "selected_intent_route_review",
+          "ownerRoute": "MODEL_ORCHESTRATION",
+          "sourceRefs": [
+            "plansnapshot1_intent_route_timeline_metadata_planning",
+            "route:timeline_metadata_planning"
+          ],
+          "dependencyIds": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake"
+          ],
+          "dryRunOnly": true,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "approvedForRuntime": false,
+          "status": "planned_not_executed"
+        },
+        {
+          "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+          "jobType": "implementation_proposal_review",
+          "ownerRoute": "MODEL_ORCHESTRATION",
+          "sourceRefs": [
+            "plansnapshot1_deepseek_proposal_1",
+            "plansnapshot1_deepseek_proposal_2",
+            "plansnapshot1_deepseek_proposal_3",
+            "plansnapshot1_deepseek_proposal_4"
+          ],
+          "dependencyIds": [
+            "worker1-job-worker1-20260612T193823-snapshot-intake"
+          ],
+          "dryRunOnly": true,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "approvedForRuntime": false,
+          "status": "planned_not_executed"
+        },
+        {
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "jobType": "artifact_blocked_route_event_validation",
+          "ownerRoute": "COMPLIANCE_SECURITY",
+          "sourceRefs": [
+            "artifact_scope_validation",
+            "blocked_route_validation",
+            "worker_event_log_plan"
+          ],
+          "dependencyIds": [
+            "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+            "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+            "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+            "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+            "worker1-job-worker1-20260612T193823-deepseek-proposal-review"
+          ],
+          "dryRunOnly": true,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "approvedForRuntime": false,
+          "status": "planned_not_executed"
+        }
+      ],
+      "dependencies": [
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+          "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+          "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "reason": "Selected-intent route review depends on candidate snapshot intake validation.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-proposal-after-intake",
+          "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "reason": "Implementation proposal review depends on candidate snapshot intake validation.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+          "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+          "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+          "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+          "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+          "dryRunOnly": true
+        },
+        {
+          "dependencyId": "worker1-dependency-worker1-20260612T193823-validation-after-worker1_job_worker1_20260612t193823_deepseek_proposal_review",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "dependsOnJobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+          "reason": "Final artifact, blocked-route, and event-log validation depends on every review job.",
+          "dryRunOnly": true
+        }
+      ],
+      "eventLogPlan": [
+        {
+          "eventId": "worker1-event-worker1-20260612T193823-batch-planned",
+          "eventType": "dry_run_batch_planned",
+          "message": "Worker approved-plan dry-run batch planned without execution.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_snapshot_intake-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job snapshot_intake_validation planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_deepseek_proposal_review-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job implementation_proposal_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_artifact_route_event_validation-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job artifact_blocked_route_event_validation planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        }
+      ],
+      "agentRunPlan": [
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_snapshot_intake",
+          "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+          "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+          "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_deepseek_proposal_review",
+          "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_artifact_route_event_validation",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        }
+      ],
+      "artifactScopes": [
+        {
+          "scopeId": "worker1-generated-worker1-20260612T193823",
+          "ownerRoute": "WORKER_RUNTIME_JOBS",
+          "gcsPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker1/worker1-20260612T193823/",
+          "privateOnly": true,
+          "checksumRequired": true,
+          "manifestRequired": true,
+          "cleanupRollbackRequired": true,
+          "signedUrlSourceOfTruthAllowed": false,
+          "publicArtifactAllowed": false
+        },
+        {
+          "scopeId": "worker1-qa-worker1-20260612T193823",
+          "ownerRoute": "OBSERVABILITY_AUDIT_COST",
+          "gcsPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker1/worker1-20260612T193823/",
+          "privateOnly": true,
+          "checksumRequired": true,
+          "manifestRequired": true,
+          "cleanupRollbackRequired": true,
+          "signedUrlSourceOfTruthAllowed": false,
+          "publicArtifactAllowed": false
+        }
+      ],
+      "ownerRoutes": [
+        {
+          "owner": "MODEL_ORCHESTRATION",
+          "routePurpose": "Review provider-derived planning intent labels and candidate snapshot structure.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "COORDINATOR_PRODUCER_QA",
+          "routePurpose": "Review professional editing QA requirements and user-approval gate implications.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "WORKER_RUNTIME_JOBS",
+          "routePurpose": "Audit future worker-runtime contract boundaries before any execution implementation.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "routePurpose": "Review render/export implications as handoff metadata only.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "routePurpose": "Review media-processing implications as handoff metadata only.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "routePurpose": "Review chart/card/graphics route labels before any tool strategy work.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "MAP_GEOSPATIAL",
+          "routePurpose": "Review map route labels before any map/geospatial tool strategy work.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "SOUND_MUSIC_AUDIO",
+          "routePurpose": "Review sound/music/audio implications before any audio planning work.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "PROVIDER_GATEWAY_MODELS",
+          "routePurpose": "Review provider policy boundaries and future provider route approval requirements.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+          "routePurpose": "Review future approved-plan persistence needs; no SQL or row writes in this phase.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "COMPLIANCE_SECURITY",
+          "routePurpose": "Review privacy, redaction, source-of-truth, and signed URL blockers.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "OBSERVABILITY_AUDIT_COST",
+          "routePurpose": "Review traceability, cost limits, and audit fields before runtime work.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "FRONTEND_PRODUCT_UX",
+          "routePurpose": "Review candidate snapshot UX exposure boundaries before product UI work.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "BILLING_STRIPE_CREDITS",
+          "routePurpose": "Review credit-estimate and reservation implications; no billing action authorized.",
+          "status": "handoff_required",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        },
+        {
+          "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+          "routePurpose": "Keep public artifacts and signed URL source-of-truth blocked pending future policy.",
+          "status": "blocked_future_policy",
+          "executionAllowed": false,
+          "runtimeReady": false,
+          "requiredBeforeRuntimeApproval": true
+        }
+      ],
+      "blockedRoutes": [
+        "track_a_runtime",
+        "track_b_runtime",
+        "ai_tools_runtime",
+        "map_rendering",
+        "web_search_execution",
+        "browser_capture",
+        "provider_calls",
+        "media_processing",
+        "route_execution",
+        "public_artifact_delivery",
+        "signed_url_creation_or_source_of_truth",
+        "raw_prompt_execution"
+      ],
+      "rollbackPlan": [
+        "Discard local/private dry-run artifacts if any QA gate fails.",
+        "Do not mutate approved snapshots, job rows, worker claims, or Supabase product rows.",
+        "Require a new WORKER-1 run before TOOL-ROUTE-0 if source evidence changes."
+      ],
+      "idempotencyKey": "worker1:worker1-20260612T193823:candidate-approved-plan-plansnapshot1-20260612T182758",
+      "dryRunOnly": true,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "approvedForRuntime": false
+    },
+    "simulated_claim_lease": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "claimAttempted": false,
+      "simulatedClaim": true,
+      "leaseDurationRecommendation": "15 minutes",
+      "heartbeatRecommendation": "60 seconds",
+      "requeuePolicy": "Requeue only in future runtime after transactional claim/RPC support and retry budget approval.",
+      "staleLeasePolicy": "Mark stale leases in future runtime after heartbeat enforcement is implemented; WORKER-1 records JSON only.",
+      "workerIdentityRequirement": "Future workers must use service-owned worker identity tied to approved plan snapshot and idempotency key.",
+      "serviceAccountRequirement": "Future runtime requires approved service-role backend or service account; no credential payload is accessed in WORKER-1.",
+      "transactionalRpcRequired": true,
+      "blockerForRealRuntime": "blocked_until_future_transactional_backend_runtime",
+      "activeBlockers": []
+    },
+    "artifact_scope_validation": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "privateGsPrefixesOnly": true,
+      "noPublicArtifacts": true,
+      "noSignedUrlSourceOfTruth": true,
+      "manifestRequired": true,
+      "checksumRequired": true,
+      "cleanupRollbackRequired": true,
+      "ownerRouteRequired": true,
+      "activeBlockers": []
+    },
+    "blocked_route_validation": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "blockedRoutes": [
+        {
+          "routeId": "track_a_runtime",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "executionAllowed": false,
+          "blockedReason": "Track A render/export implementation is out of WORKER-1 scope."
+        },
+        {
+          "routeId": "track_b_runtime",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "executionAllowed": false,
+          "blockedReason": "Track B media/model runtime is out of WORKER-1 scope."
+        },
+        {
+          "routeId": "ai_tools_runtime",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "executionAllowed": false,
+          "blockedReason": "Tool-owner studies and route unlock audits must precede tool execution."
+        },
+        {
+          "routeId": "map_rendering",
+          "owner": "MAP_GEOSPATIAL",
+          "executionAllowed": false,
+          "blockedReason": "Map rendering remains owner-gated and non-executing."
+        },
+        {
+          "routeId": "web_search_execution",
+          "owner": "COMPLIANCE_SECURITY",
+          "executionAllowed": false,
+          "blockedReason": "Web search execution remains blocked in WORKER-1."
+        },
+        {
+          "routeId": "browser_capture",
+          "owner": "COMPLIANCE_SECURITY",
+          "executionAllowed": false,
+          "blockedReason": "Browser capture remains blocked in WORKER-1."
+        },
+        {
+          "routeId": "provider_calls",
+          "owner": "PROVIDER_GATEWAY_MODELS",
+          "executionAllowed": false,
+          "blockedReason": "Provider calls are not part of Worker Runtime dry-run."
+        },
+        {
+          "routeId": "media_processing",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "executionAllowed": false,
+          "blockedReason": "Media processing is not approved by this dry-run."
+        },
+        {
+          "routeId": "route_execution",
+          "owner": "WORKER_RUNTIME_JOBS",
+          "executionAllowed": false,
+          "blockedReason": "WORKER-1 validates routes as blocked metadata only."
+        },
+        {
+          "routeId": "public_artifact_delivery",
+          "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+          "executionAllowed": false,
+          "blockedReason": "Public artifacts remain blocked."
+        },
+        {
+          "routeId": "signed_url_creation_or_source_of_truth",
+          "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+          "executionAllowed": false,
+          "blockedReason": "Signed URLs remain blocked as source of truth."
+        },
+        {
+          "routeId": "raw_prompt_execution",
+          "owner": "COMPLIANCE_SECURITY",
+          "executionAllowed": false,
+          "blockedReason": "Workers must execute approved snapshots, not raw prompts."
+        }
+      ],
+      "allExecutionBlocked": true,
+      "activeBlockers": []
+    },
+    "event_log_plan": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "batchId": "worker1-batch-worker1-20260612T193823",
+      "eventLogPlan": [
+        {
+          "eventId": "worker1-event-worker1-20260612T193823-batch-planned",
+          "eventType": "dry_run_batch_planned",
+          "message": "Worker approved-plan dry-run batch planned without execution.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_snapshot_intake-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job snapshot_intake_validation planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job selected_intent_route_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_deepseek_proposal_review-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job implementation_proposal_review planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-event-worker1_job_worker1_20260612t193823_artifact_route_event_validation-planned",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "eventType": "dry_run_job_planned",
+          "message": "Dry-run job artifact_blocked_route_event_validation planned and not executed.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-batch-worker1-20260612T193823-claim-lease-simulated",
+          "eventType": "dry_run_claim_lease_simulated",
+          "message": "Claim/lease simulated only; real blocker blocked_until_future_transactional_backend_runtime.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-batch-worker1-20260612T193823-blocked-routes-validated",
+          "eventType": "dry_run_blocked_routes_validated",
+          "message": "Blocked route/tool/provider/runtime execution validation planned without execution.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        },
+        {
+          "eventId": "worker1-batch-worker1-20260612T193823-complete",
+          "eventType": "dry_run_complete",
+          "message": "Worker approved-plan snapshot dry-run evidence completed locally/private only.",
+          "persistToDatabase": false,
+          "dryRunOnly": true
+        }
+      ],
+      "agentRunPlan": [
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_snapshot_intake",
+          "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+          "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+          "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+          "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_deepseek_proposal_review",
+          "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        },
+        {
+          "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_artifact_route_event_validation",
+          "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+          "agentType": "worker_runtime_dry_run_validator",
+          "status": "planned_not_executed",
+          "dryRunOnly": true
+        }
+      ],
+      "persistToDatabase": false,
+      "activeBlockers": []
+    },
+    "worker_dry_run_gap_map": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "toolRoute0Readiness": "ready for tool-route execution unlock audit",
+      "gaps": [
+        {
+          "id": "transactional_worker_claim_rpc",
+          "area": "claim_lease",
+          "severity": "future_blocker",
+          "status": "must_resolve_before_real_runtime",
+          "description": "Real worker claims remain blocked until transactional RPC/backend runtime is approved.",
+          "nextPhaseHandling": "TOOL-ROUTE-0 must audit routes only and must not attempt worker claims."
+        },
+        {
+          "id": "tool_owner_studies_required",
+          "area": "tool_routes",
+          "severity": "dry_run_constraint",
+          "status": "bounded_for_tool_route_0_audit",
+          "description": "Tool execution requires tool-owner studies/capability routing and owner acceptance.",
+          "nextPhaseHandling": "TOOL-ROUTE-0 audits mapping and gaps without executing tools or routes."
+        },
+        {
+          "id": "supabase_milestone_sync_absent",
+          "area": "supabase",
+          "severity": "documentation",
+          "status": "documented",
+          "description": "The current branch lacks server/activation/supabase-milestone-sync.",
+          "nextPhaseHandling": "Record milestone sync as not attempted unless a later branch imports the approved layer."
+        },
+        {
+          "id": "event_log_persistence_not_attempted",
+          "area": "event_log",
+          "severity": "dry_run_constraint",
+          "status": "bounded_for_tool_route_0_audit",
+          "description": "Event-log entries are local/private plan evidence only and are not written to job_events or event_log.",
+          "nextPhaseHandling": "Future runtime must define service-role event persistence before real execution."
+        },
+        {
+          "id": "public_artifact_signed_url_policy_blocked",
+          "area": "artifact_scope",
+          "severity": "future_blocker",
+          "status": "must_resolve_before_real_runtime",
+          "description": "Public artifacts and signed URL source-of-truth flows remain blocked.",
+          "nextPhaseHandling": "TOOL-ROUTE-0 keeps private gs:// refs only."
+        }
+      ],
+      "activeBlockers": []
+    },
+    "tool_route_0_prompt_created": {
+      "status": "passed",
+      "path": "docs/implementation-prompts/prompt-tool-route-0-execution-unlock-audit.md"
+    },
+    "no_runtime_execution": {
+      "workerExecution": false,
+      "toolExecution": false,
+      "providerCalls": false,
+      "routeExecution": false,
+      "runtimeExecution": false,
+      "mediaProcessing": false,
+      "browserMapWeb": false,
+      "sqlMigrationsSchemaRls": false,
+      "supabaseProductRows": false,
+      "publicArtifacts": false,
+      "signedUrls": false,
+      "rawPrompts": false,
+      "rawProviderResponses": false,
+      "production": false,
+      "externalBeta": false,
+      "paidProduction": false,
+      "broadMedia": false
+    },
+    "blocked_features": {
+      "phase": "WORKER_1",
+      "status": "passed",
+      "blockedRoutes": [
+        {
+          "routeId": "track_a_runtime",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "executionAllowed": false,
+          "blockedReason": "Track A render/export implementation is out of WORKER-1 scope."
+        },
+        {
+          "routeId": "track_b_runtime",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "executionAllowed": false,
+          "blockedReason": "Track B media/model runtime is out of WORKER-1 scope."
+        },
+        {
+          "routeId": "ai_tools_runtime",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "executionAllowed": false,
+          "blockedReason": "Tool-owner studies and route unlock audits must precede tool execution."
+        },
+        {
+          "routeId": "map_rendering",
+          "owner": "MAP_GEOSPATIAL",
+          "executionAllowed": false,
+          "blockedReason": "Map rendering remains owner-gated and non-executing."
+        },
+        {
+          "routeId": "web_search_execution",
+          "owner": "COMPLIANCE_SECURITY",
+          "executionAllowed": false,
+          "blockedReason": "Web search execution remains blocked in WORKER-1."
+        },
+        {
+          "routeId": "browser_capture",
+          "owner": "COMPLIANCE_SECURITY",
+          "executionAllowed": false,
+          "blockedReason": "Browser capture remains blocked in WORKER-1."
+        },
+        {
+          "routeId": "provider_calls",
+          "owner": "PROVIDER_GATEWAY_MODELS",
+          "executionAllowed": false,
+          "blockedReason": "Provider calls are not part of Worker Runtime dry-run."
+        },
+        {
+          "routeId": "media_processing",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "executionAllowed": false,
+          "blockedReason": "Media processing is not approved by this dry-run."
+        },
+        {
+          "routeId": "route_execution",
+          "owner": "WORKER_RUNTIME_JOBS",
+          "executionAllowed": false,
+          "blockedReason": "WORKER-1 validates routes as blocked metadata only."
+        },
+        {
+          "routeId": "public_artifact_delivery",
+          "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+          "executionAllowed": false,
+          "blockedReason": "Public artifacts remain blocked."
+        },
+        {
+          "routeId": "signed_url_creation_or_source_of_truth",
+          "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+          "executionAllowed": false,
+          "blockedReason": "Signed URLs remain blocked as source of truth."
+        },
+        {
+          "routeId": "raw_prompt_execution",
+          "owner": "COMPLIANCE_SECURITY",
+          "executionAllowed": false,
+          "blockedReason": "Workers must execute approved snapshots, not raw prompts."
+        }
+      ],
+      "allExecutionBlocked": true,
+      "activeBlockers": []
+    },
+    "private_artifact_upload_status": "uploaded",
+    "supabase_milestone_sync": {
+      "requested": true,
+      "status": "not_attempted_current_branch_missing_sync_layer",
+      "syncLayerPresent": false,
+      "syncLayerDirectoryPresent": false,
+      "sqlExecuted": false,
+      "migrationDeployed": false,
+      "unrelatedRowsWritten": false
+    }
+  },
+  "safetyFlags": {
+    "workerExecution": false,
+    "toolExecution": false,
+    "providerCalls": false,
+    "routeExecution": false,
+    "runtimeExecution": false,
+    "mediaProcessing": false,
+    "browserMapWeb": false,
+    "sqlMigrationsSchemaRls": false,
+    "supabaseProductRows": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPrompts": false,
+    "rawProviderResponses": false,
+    "production": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "broadMedia": false
+  },
+  "passed": true
+}

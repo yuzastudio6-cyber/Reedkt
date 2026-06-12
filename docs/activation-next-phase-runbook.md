@@ -1,5 +1,12 @@
 # Activation Next Phase Runbook
 
+## After WORKER-0
+
+1. Review `docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md` and confirm WORKER-0 run `worker0-20260612T191022` remains `worker_runtime_repo_audit_passed_ready_for_worker1_dry_run`.
+2. Run WORKER-1 with `activation:worker-approved-plan-dry-run` before any tool-route execution unlock audit.
+3. Proceed to TOOL-ROUTE-0 only if `docs/activation-phase-worker-1-approved-plan-snapshot-dry-run-results.md` records `worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit`.
+4. Keep real workers, tools, providers, routes, media, browser/map/web, SQL, migrations, schema/RLS changes, Supabase product-row writes, public artifacts, signed URLs, raw prompt execution, production, external beta, paid production, and broad media blocked in WORKER-1.
+
 ## After PLAN-SNAPSHOT-1
 
 1. Review `docs/activation-phase-provider-output-plan-snapshot-contract-results.md` and confirm PLAN-SNAPSHOT-1 run `plansnapshot1-20260612T182758` remains `candidate_only` and not runtime-approved.

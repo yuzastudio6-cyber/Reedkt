@@ -1,0 +1,408 @@
+{
+  "phase": "WORKER_1",
+  "sourceWorker0RunId": "worker0-20260612T191022",
+  "sourcePlanSnapshotRunId": "plansnapshot1-20260612T182758",
+  "sourceModelDryRunId": "modeldryrun1-20260612T174538",
+  "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "candidateSnapshot": {
+    "planId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+    "executionStatus": "candidate_only",
+    "approvedForRuntime": false,
+    "workerExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "publicArtifactAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "rawPromptExecution": false,
+    "productionReadyAllowed": false,
+    "externalBetaAllowed": false,
+    "broadMediaAllowed": false,
+    "selectedIntents": [
+      {
+        "intentId": "plansnapshot1_intent_route_caption_recommendation",
+        "routeLabel": "route:caption_recommendation",
+        "ownerRoute": "COORDINATOR_PRODUCER_QA",
+        "executionAllowed": false,
+        "routeExecutionAllowed": false,
+        "ownerReviewRequired": true
+      },
+      {
+        "intentId": "plansnapshot1_intent_route_chart_card_metadata",
+        "routeLabel": "route:chart_card_metadata",
+        "ownerRoute": "AI_TOOLS_CREATIVE_GRAPHICS",
+        "executionAllowed": false,
+        "routeExecutionAllowed": false,
+        "ownerReviewRequired": true
+      },
+      {
+        "intentId": "plansnapshot1_intent_route_map_card_metadata",
+        "routeLabel": "route:map_card_metadata",
+        "ownerRoute": "MAP_GEOSPATIAL",
+        "executionAllowed": false,
+        "routeExecutionAllowed": false,
+        "ownerReviewRequired": true
+      },
+      {
+        "intentId": "plansnapshot1_intent_route_timeline_metadata_planning",
+        "routeLabel": "route:timeline_metadata_planning",
+        "ownerRoute": "MODEL_ORCHESTRATION",
+        "executionAllowed": false,
+        "routeExecutionAllowed": false,
+        "ownerReviewRequired": true
+      }
+    ],
+    "implementationProposalRefs": [
+      {
+        "proposalId": "plansnapshot1_deepseek_proposal_1",
+        "ownerRoute": "MODEL_ORCHESTRATION",
+        "executionAllowed": false,
+        "ownerReviewRequired": true,
+        "riskLevel": "low"
+      },
+      {
+        "proposalId": "plansnapshot1_deepseek_proposal_2",
+        "ownerRoute": "MODEL_ORCHESTRATION",
+        "executionAllowed": false,
+        "ownerReviewRequired": true,
+        "riskLevel": "low"
+      },
+      {
+        "proposalId": "plansnapshot1_deepseek_proposal_3",
+        "ownerRoute": "MODEL_ORCHESTRATION",
+        "executionAllowed": false,
+        "ownerReviewRequired": true,
+        "riskLevel": "low"
+      },
+      {
+        "proposalId": "plansnapshot1_deepseek_proposal_4",
+        "ownerRoute": "MODEL_ORCHESTRATION",
+        "executionAllowed": false,
+        "ownerReviewRequired": true,
+        "riskLevel": "low"
+      }
+    ],
+    "ownerRoutes": [
+      {
+        "owner": "MODEL_ORCHESTRATION",
+        "routePurpose": "Review provider-derived planning intent labels and candidate snapshot structure.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "COORDINATOR_PRODUCER_QA",
+        "routePurpose": "Review professional editing QA requirements and user-approval gate implications.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "WORKER_RUNTIME_JOBS",
+        "routePurpose": "Audit future worker-runtime contract boundaries before any execution implementation.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "TRACK_A_RENDER_EXPORT",
+        "routePurpose": "Review render/export implications as handoff metadata only.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "TRACK_B_MEDIA_PROCESSING",
+        "routePurpose": "Review media-processing implications as handoff metadata only.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+        "routePurpose": "Review chart/card/graphics route labels before any tool strategy work.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "MAP_GEOSPATIAL",
+        "routePurpose": "Review map route labels before any map/geospatial tool strategy work.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "SOUND_MUSIC_AUDIO",
+        "routePurpose": "Review sound/music/audio implications before any audio planning work.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "PROVIDER_GATEWAY_MODELS",
+        "routePurpose": "Review provider policy boundaries and future provider route approval requirements.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+        "routePurpose": "Review future approved-plan persistence needs; no SQL or row writes in this phase.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "COMPLIANCE_SECURITY",
+        "routePurpose": "Review privacy, redaction, source-of-truth, and signed URL blockers.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "OBSERVABILITY_AUDIT_COST",
+        "routePurpose": "Review traceability, cost limits, and audit fields before runtime work.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "FRONTEND_PRODUCT_UX",
+        "routePurpose": "Review candidate snapshot UX exposure boundaries before product UI work.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "BILLING_STRIPE_CREDITS",
+        "routePurpose": "Review credit-estimate and reservation implications; no billing action authorized.",
+        "status": "handoff_required",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      },
+      {
+        "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+        "routePurpose": "Keep public artifacts and signed URL source-of-truth blocked pending future policy.",
+        "status": "blocked_future_policy",
+        "executionAllowed": false,
+        "runtimeReady": false,
+        "requiredBeforeRuntimeApproval": true
+      }
+    ],
+    "artifactPolicy": {
+      "privateGeneratedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+      "privateQaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptStored": false,
+      "rawProviderResponseStored": false,
+      "secretPayloadStored": false
+    },
+    "rollbackPolicy": [
+      "Discard the candidate snapshot if any owner route rejects the contract.",
+      "Regenerate a new candidate from committed sanitized evidence only after a new approved dry-run or policy update.",
+      "Do not mutate an approved plan version from this candidate evidence."
+    ],
+    "blockedActions": [
+      "qwen_api_call",
+      "deepseek_api_call",
+      "provider_chaining",
+      "tool_execution",
+      "worker_execution",
+      "route_execution",
+      "raw_prompt_execution",
+      "raw_provider_response_storage",
+      "secret_payload_storage",
+      "media_processing",
+      "browser_capture",
+      "map_rendering",
+      "web_search",
+      "sql_execution",
+      "migration_deploy",
+      "schema_or_rls_change",
+      "supabase_row_write",
+      "docker_or_cloud_run",
+      "public_artifact",
+      "signed_url_source_of_truth",
+      "production_or_external_beta"
+    ]
+  },
+  "sourceAudit": {
+    "phase": "WORKER_1",
+    "status": "passed",
+    "worker0": {
+      "runId": "worker0-20260612T191022",
+      "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+      "status": "passed",
+      "worker1Readiness": "ready for approved-plan snapshot dry-run",
+      "privateArtifactUploadStatus": "uploaded"
+    },
+    "planSnapshot1": {
+      "runId": "plansnapshot1-20260612T182758",
+      "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+      "status": "passed",
+      "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+      "executionStatus": "candidate_only",
+      "approvedForRuntime": false
+    },
+    "modelDryRun1": {
+      "runId": "modeldryrun1-20260612T174538",
+      "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+      "status": "passed",
+      "planSnapshotContractReady": true
+    },
+    "sourceFiles": [
+      {
+        "path": "docs/activation-worker-runtime-jobs-audit-reports/summary/worker-runtime-jobs-audit-summary.json",
+        "exists": true,
+        "required": true,
+        "purpose": "WORKER-0 summary evidence."
+      },
+      {
+        "path": "docs/activation-worker-runtime-jobs-audit-reports/reports/worker-runtime-jobs-audit-report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "WORKER-0 report evidence."
+      },
+      {
+        "path": "docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md",
+        "exists": true,
+        "required": true,
+        "purpose": "WORKER-0 results document."
+      },
+      {
+        "path": "docs/activation-provider-output-plan-snapshot-contract-reports/summary/provider-output-plan-snapshot-contract-summary.json",
+        "exists": true,
+        "required": true,
+        "purpose": "PLAN-SNAPSHOT-1 summary evidence."
+      },
+      {
+        "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+        "exists": true,
+        "required": true,
+        "purpose": "PLAN-SNAPSHOT-1 candidate snapshot JSON."
+      },
+      {
+        "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "PLAN-SNAPSHOT-1 report evidence."
+      },
+      {
+        "path": "docs/activation-provider-output-plan-snapshot-contract-reports/handoff/worker-runtime-handoff.json",
+        "exists": true,
+        "required": true,
+        "purpose": "PLAN-SNAPSHOT-1 Worker Runtime handoff evidence."
+      },
+      {
+        "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_decision.json",
+        "exists": true,
+        "required": true,
+        "purpose": "MODEL-DRYRUN-1 decision evidence."
+      },
+      {
+        "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "MODEL-DRYRUN-1 readiness evidence."
+      }
+    ],
+    "absentOptionalTrees": [
+      {
+        "path": "docs/runtime-unlock",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/cross-chat",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/agents",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/tool-studies",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "server/activation/approved-plan-snapshot-validation",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "server/activation/supabase-milestone-sync",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/tool-call-foundation.md",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/worker-claim-execution-contract-hardening.md",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/tool-readiness-worker-runtime-foundation.md",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/supabase-milestone-sync-policy.md",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      },
+      {
+        "path": "docs/supabase-success-milestone-reporting-standard.md",
+        "exists": false,
+        "required": false,
+        "purpose": "Optional upstream compatibility/source tree checked for presence."
+      }
+    ],
+    "supabaseMilestoneSync": {
+      "requested": true,
+      "status": "not_attempted_current_branch_missing_sync_layer",
+      "syncLayerPresent": false,
+      "syncLayerDirectoryPresent": false,
+      "sqlExecuted": false,
+      "migrationDeployed": false,
+      "unrelatedRowsWritten": false
+    },
+    "activeBlockers": []
+  },
+  "rawPromptPayloadsStored": false,
+  "rawProviderResponsesStored": false,
+  "secretPayloadsStored": false,
+  "activeBlockers": []
+}

@@ -1,0 +1,144 @@
+{
+  "phase": "WORKER_1",
+  "status": "passed",
+  "batchId": "worker1-batch-worker1-20260612T193823",
+  "eventLogPlan": [
+    {
+      "eventId": "worker1-event-worker1-20260612T193823-batch-planned",
+      "eventType": "dry_run_batch_planned",
+      "message": "Worker approved-plan dry-run batch planned without execution.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_snapshot_intake-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job snapshot_intake_validation planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job selected_intent_route_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_deepseek_proposal_review-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job implementation_proposal_review planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-event-worker1_job_worker1_20260612t193823_artifact_route_event_validation-planned",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "eventType": "dry_run_job_planned",
+      "message": "Dry-run job artifact_blocked_route_event_validation planned and not executed.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-batch-worker1-20260612T193823-claim-lease-simulated",
+      "eventType": "dry_run_claim_lease_simulated",
+      "message": "Claim/lease simulated only; real blocker blocked_until_future_transactional_backend_runtime.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-batch-worker1-20260612T193823-blocked-routes-validated",
+      "eventType": "dry_run_blocked_routes_validated",
+      "message": "Blocked route/tool/provider/runtime execution validation planned without execution.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    },
+    {
+      "eventId": "worker1-batch-worker1-20260612T193823-complete",
+      "eventType": "dry_run_complete",
+      "message": "Worker approved-plan snapshot dry-run evidence completed locally/private only.",
+      "persistToDatabase": false,
+      "dryRunOnly": true
+    }
+  ],
+  "agentRunPlan": [
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_snapshot_intake",
+      "jobId": "worker1-job-worker1-20260612T193823-snapshot-intake",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_1_route_caption_recommendation",
+      "jobId": "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_2_route_chart_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_3_route_map_card_metadata",
+      "jobId": "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_route_4_route_timeline_metadata_planning",
+      "jobId": "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_deepseek_proposal_review",
+      "jobId": "worker1-job-worker1-20260612T193823-deepseek-proposal-review",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    },
+    {
+      "agentRunId": "worker1-agent-worker1_job_worker1_20260612t193823_artifact_route_event_validation",
+      "jobId": "worker1-job-worker1-20260612T193823-artifact-route-event-validation",
+      "agentType": "worker_runtime_dry_run_validator",
+      "status": "planned_not_executed",
+      "dryRunOnly": true
+    }
+  ],
+  "persistToDatabase": false,
+  "activeBlockers": []
+}

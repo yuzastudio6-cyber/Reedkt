@@ -235,7 +235,7 @@ async function uploadExecutionArtifacts(localRoot: string, artifactPrefix: strin
   await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/policy/provider-cost-policy.json`, report.costPolicy, 'provider1_cost_policy', 'provider_cost_policy')
   await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/policy/provider-routing-policy.json`, report.routingPolicy, 'provider1_routing_policy', 'provider_routing_policy')
   await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/policy/provider-storage-policy.json`, report.storagePolicy, 'provider1_storage_policy', 'provider_storage_policy')
-  await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/risks/provider-issue-register.json`, report.riskRegister, 'provider1_risk_register', 'provider_risk_register')
+  await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/risk/provider-risk-register.json`, report.riskRegister, 'provider1_risk_register', 'provider_risk_register')
   await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/roadmap/provider-next-phase-plan.json`, report.nextPhasePlan, 'provider1_next_phase_plan', 'provider_next_phase_plan')
   await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/manifest/provider-model-approval-manifest.json`, report.manifest, 'provider1_manifest', 'approval_manifest')
   await upload(providerModelApprovalConfig.generatedAssetsBucket, `${artifactPrefix}/supabase/provider1-milestone-sync-input.json`, report.syncInput, 'provider1_sync_input', 'milestone_sync_input')

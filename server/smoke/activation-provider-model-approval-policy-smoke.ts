@@ -1,4 +1,9 @@
-import { buildProviderModelApprovalReport } from '../activation/provider-model-approval-policy'
+import {
+  buildProvider1SupabaseMilestoneBundle,
+  buildProvider1SupabaseSyncInput,
+  buildProviderModelApprovalReport,
+} from '../activation/provider-model-approval-policy'
+import { validateActivationMilestoneSyncBundle, validateActivationMilestoneSyncInput } from '../activation/supabase-milestone-sync'
 
 const report = buildProviderModelApprovalReport()
 
@@ -30,6 +35,20 @@ assert(report.commandPlan.noProviderCalls && report.commandPlan.noRuntimeExecuti
 assert(report.qa.gates.length >= 11, 'QA gates must be present.')
 assert(report.qa.gates.every((gate) => gate.passed), `QA gate failed: ${report.qa.gates.filter((gate) => !gate.passed).map((gate) => gate.gateId).join(', ')}`)
 assert(report.provider2Readiness === 'ready_for_provider_fixture_adapters_normalizers' || report.provider2Readiness === 'blocked', 'PROVIDER-2 readiness must be valid.')
+
+const syncInput = buildProvider1SupabaseSyncInput(report.runId, report.qa)
+const riskArtifact = syncInput.artifacts.find((artifact) => artifact.artifactId === 'provider1_risk_register')
+assert(riskArtifact?.gcsUri.includes('/risk/provider-risk-register.json'), 'Risk artifact must use the requested provider-risk-register path.')
+const inputValidation = validateActivationMilestoneSyncInput(syncInput)
+assert(inputValidation.ok, `Sync input validation failed: ${inputValidation.blockers.join(', ')}`)
+const milestoneBundle = buildProvider1SupabaseMilestoneBundle(syncInput)
+const bundleValidation = validateActivationMilestoneSyncBundle(milestoneBundle)
+assert(bundleValidation.ok, `Milestone bundle validation failed: ${bundleValidation.blockers.join(', ')}`)
+const unsafeBundleValidation = validateActivationMilestoneSyncBundle({
+  ...milestoneBundle,
+  summary: `${milestoneBundle.summary} sk-123456789012`,
+})
+assert(!unsafeBundleValidation.ok, 'Key-shaped sk- values must still be rejected by milestone validation.')
 
 console.log('PROVIDER-1 provider model approval policy smoke passed.')
 

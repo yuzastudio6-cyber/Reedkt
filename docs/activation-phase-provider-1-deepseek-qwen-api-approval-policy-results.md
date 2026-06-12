@@ -1,56 +1,164 @@
 # PROVIDER-1 DeepSeek/Qwen API Approval Policy Results
 
-Status: planned / static report ready
+Status: blocked pending gcloud reauthentication
 
 Branch: `codex/rp-provider-1-deepseek-qwen-api-approval-policy`
 
+PR: `#307`
+
 Base: `codex/rp-provider-0-provider-gateway-models-repo-audit`
 
-Run ID: static report uses deterministic `provider1-20260612T000000`
+Static report run ID: `provider1-20260612T000000`
 
-## Summary
+Guarded execution run ID: not allocated; execution stopped before artifact upload
+or Supabase milestone sync because gcloud could not refresh credentials in
+non-interactive mode.
 
-PROVIDER-1 adds a policy-only Provider Gateway approval phase for DeepSeek
-V4-Pro/V4-Flash and Qwen3.7-Max. It records official model facts, role
-approvals, secret reference policy, data policy, cost policy, routing policy,
-storage policy, risk register, cross-chat ownership, and the PROVIDER-2 through
-PROVIDER-6 roadmap without making provider calls.
+## Execution
 
-## Decisions
+PROVIDER-1 remains a policy-only Provider Gateway approval phase. Guarded
+execution was not run because metadata preflight failed before any write-capable
+step:
 
-- DeepSeek V4-Pro is approved only as a coding/spec/tool-implementation
-  proposal specialist.
-- DeepSeek V4-Flash is recorded as a future cheaper/simple coding fallback
+- Active gcloud account: `aiediting@reeditpro.com`.
+- Active gcloud project: `reeditpro`.
+- `gcloud projects describe reeditpro` failed with non-interactive token
+  refresh / reauthentication failure.
+- Secret Manager metadata checks for `SUPABASE_URL` and
+  `SUPABASE_SERVICE_ROLE_KEY` failed for the same gcloud reauthentication
+  reason.
+- Required local execution env gates were not set in the shell:
+  `GCP_PROJECT_ID`, `GCP_REGION`, `REEDITPRO_ENV`,
+  `REEDITPRO_CONFIRM_PROVIDER_MODEL_APPROVAL_POLICY`,
+  `REEDITPRO_CONFIRM_SUPABASE_MILESTONE_SYNC`, `SUPABASE_URL`, and
+  `SUPABASE_SERVICE_ROLE_KEY`.
+
+No secret values were accessed, printed, stored, or written to artifacts.
+
+## Policy Summary
+
+DeepSeek policy:
+
+- `deepseek-v4-pro` approved only as a coding/spec/tool-implementation proposal
+  specialist.
+- `deepseek-v4-flash` recorded only as a future cheaper/simple coding fallback
   candidate.
-- Qwen3.7-Max is approved only as a head editing/planning/decision agent
+- Provider calls, code execution, tool execution, provider chaining, and secret
+  handling remain blocked.
+
+Qwen policy:
+
+- `qwen3.7-max` approved only as a head editing/planning/decision agent
   candidate.
-- Provider key payloads stay in Google Secret Manager only; PROVIDER-1 records
-  reference names only.
-- PROVIDER-1 budget is zero and provider calls remain blocked.
+- Snapshots `qwen3.7-max-2026-06-08` and `qwen3.7-max-2026-05-20` remain
+  recorded.
+- Qwen can produce structured findings/intents only; direct worker/tool
+  execution remains blocked.
+
+Secret policy:
+
+- Provider key payloads remain backend-only and out of PROVIDER-1.
+- Provider secret reference metadata is recorded only for DeepSeek and Qwen
+  DashScope semantics.
+- `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` may be resolved only by the
+  Phase 51D backend/Secret Manager path during confirmed execution.
+
+Data policy:
+
+- Qwen is limited to sanitized evidence manifests, shot/timeline summaries, safe
+  edit instructions, professional schemas, and non-sensitive project context.
+- DeepSeek is limited to sanitized coding manifests, safe interfaces, test
+  summaries, fixture data, and spec descriptions.
+- Raw media, signed URLs, secrets, DB URLs, provider keys, Stripe keys, private
+  rows, unredacted sensitive transcripts, and raw provider payload storage are
+  blocked.
+
+Cost and routing policy:
+
+- PROVIDER-1 budget remains zero.
+- Future live validation defaults remain max calls `1`, retry limit `0`,
+  timeout `60000ms`, no automatic fallback, no production paid calls, and
+  sanitized summary storage only.
 - Workers continue to execute approved plan snapshots only.
 
-## Supabase Update Classification
+Storage policy:
 
-- Supabase update required: staging update candidate.
-- Supabase update status: ready_for_staging_review until guarded milestone sync
-  execution and readback complete.
-- Supabase environment touched: staging only if guarded execution runs.
-- SQL executed: false.
-- Migration deployed: false.
-- Schema/RLS/Data API changes: false.
-- Next Supabase action: milestone sync only through Phase 51D contract; no
-  schema/RLS changes.
+- Private GCS is the only artifact source of truth.
+- The requested risk artifact path is
+  `risk/provider-risk-register.json`.
+- Public artifacts and signed URLs as source of truth remain blocked.
 
-## Blocked Scope
+## Artifacts
 
-No DeepSeek calls, Qwen calls, API keys, provider secret values, model
-inference, tool execution, worker execution, media processing, web search,
-browser capture, map rendering, Docker, Cloud Run, Supabase schema/RLS changes,
-production, external beta, paid production, broad media, public artifacts, raw
-prompt execution, or signed URLs as source of truth are enabled.
+No guarded artifacts were uploaded because execution stopped during gcloud
+metadata preflight.
 
-## Next Phase
+Expected private artifact roots after gcloud reauthentication:
 
-PROVIDER-2 is ready only for provider fixture adapters and normalizers if
-PROVIDER-1 QA passes. Real provider calls remain blocked until later controlled
-live validation phases.
+- `gs://reeditpro-staging-reeditpro-generated-assets/activation-provider-gateway/provider1/<runId>/`
+- `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-provider-gateway/provider1/<runId>/`
+
+Expected generated artifacts include the Provider-1 audit, DeepSeek evidence,
+Qwen evidence, secret/data/cost/routing/storage policies, risk register,
+next-phase roadmap, manifest, Supabase sync input, and Supabase sync result.
+
+Expected QA artifacts include Provider-1 QA and `reports/provider1-report.json`.
+
+## QA And Validation
+
+Passed:
+
+- `npm run smoke:activation-provider-model-approval-policy`
+- `npm run activation:provider-model-approval-policy:report`
+- `npm run activation:provider-model-approval-policy:iam-plan`
+- `npm run activation:provider-model-approval:summary`
+- `npm run activation:provider-gateway-models-audit:report`
+- `npm run activation:runtime-unlock-roadmap:report`
+- `npm run activation:supabase-milestone-sync:report`
+- `npm run prod:readiness:summary`
+- `npm run prod:beta:summary`
+- `npm run lint`
+- `npm run build`
+
+Expected / non-blocking:
+
+- `npm run activation:provider-agent-integration-coordination:report || true`
+  still reports the script is absent on this Provider-0 base.
+- `npm run build:server` remains blocked by inherited base issues: missing
+  `sharp`, `jsdom`, `@mozilla/readability`, and `@turf/turf` modules/types,
+  plus existing TS18046 `unknown` errors in readability sanitizer/extraction
+  modules.
+
+## Supabase Milestone Sync
+
+Status: not attempted.
+
+Reason: gcloud reauthentication failed before Secret Manager metadata checks,
+private GCS upload, Supabase credential resolution, registry schema probes, or
+Phase 51D write/readback could safely run.
+
+Allowed future action: rerun the guarded Provider-1 command only after a valid
+non-interactive gcloud account is available for `reeditpro`. Supabase writes
+must remain limited to Phase 51D activation milestone registry metadata and
+private `gs://` references.
+
+## PROVIDER-2 Readiness
+
+Static policy readiness: `ready_for_provider_fixture_adapters_normalizers`.
+
+Execution readiness: blocked pending guarded Provider-1 execution, private
+artifact upload, and Phase 51D milestone sync/readback.
+
+## Safety Audit
+
+No DeepSeek call, Qwen call, provider API key, provider secret payload read,
+provider/model/tool/worker/runtime execution, media processing, web search,
+browser capture, map rendering, Docker/Cloud Run action, SQL migration,
+schema/RLS change, unrelated Supabase row write, public artifact, signed URL
+source-of-truth, raw prompt execution, production unlock, external beta unlock,
+paid production unlock, broad media unlock, or package-lock mutation occurred.
+
+## Human Action Required
+
+Refresh or select a valid non-interactive gcloud account for project
+`reeditpro`, then rerun the guarded Provider-1 execution command.

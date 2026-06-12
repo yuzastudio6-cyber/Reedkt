@@ -49,7 +49,7 @@ export function buildProvider1SupabaseSyncInput(runId: string, qa: ProviderModel
       artifact('provider1_cost_policy', 'provider_cost_policy', `${generatedBase}/policy/provider-cost-policy.json`),
       artifact('provider1_routing_policy', 'provider_routing_policy', `${generatedBase}/policy/provider-routing-policy.json`),
       artifact('provider1_storage_policy', 'provider_storage_policy', `${generatedBase}/policy/provider-storage-policy.json`),
-      artifact('provider1_risk_register', 'provider_risk_register', `${generatedBase}/risks/provider-issue-register.json`),
+      artifact('provider1_risk_register', 'provider_risk_register', `${generatedBase}/risk/provider-risk-register.json`),
       artifact('provider1_next_phase_plan', 'provider_next_phase_plan', `${generatedBase}/roadmap/provider-next-phase-plan.json`),
       artifact('provider1_manifest', 'approval_manifest', `${generatedBase}/manifest/provider-model-approval-manifest.json`),
       artifact('provider1_sync_input', 'milestone_sync_input', `${generatedBase}/supabase/provider1-milestone-sync-input.json`),

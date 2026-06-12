@@ -2,7 +2,7 @@
 
 Status: `passed`
 
-Run ID: `qwentimeout1-20260612T170256`
+Run ID: `qwentimeout1-20260612T165931`
 
 Branch: `codex/rp-model-orchestration-qwen-schema-timeout-target-calibration`
 

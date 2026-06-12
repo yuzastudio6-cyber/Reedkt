@@ -1,0 +1,88 @@
+{
+  "phase": "product-internal-testing-session-0",
+  "runId": "product-internal-testing-session-0-20260612",
+  "status": "passed",
+  "checks": [
+    {
+      "id": "allowed_scope_reviewed",
+      "passed": true
+    },
+    {
+      "id": "blocked_scope_reviewed",
+      "passed": true
+    },
+    {
+      "id": "track_b_clean_staging_milestone_sync_reviewed",
+      "passed": true
+    },
+    {
+      "id": "track_b_capability_manifest_reviewed",
+      "passed": true
+    },
+    {
+      "id": "track_b_route_manifest_reviewed",
+      "passed": true
+    },
+    {
+      "id": "audio_timing_evidence_reviewed",
+      "passed": true
+    },
+    {
+      "id": "media_data_evidence_reviewed",
+      "passed": true
+    },
+    {
+      "id": "hybrid_desktop_metadata_evidence_reviewed",
+      "passed": true
+    },
+    {
+      "id": "issue_intake_reviewed",
+      "passed": true
+    },
+    {
+      "id": "stop_conditions_reviewed",
+      "passed": true
+    },
+    {
+      "id": "no_runtime_execution",
+      "passed": true
+    },
+    {
+      "id": "no_providers",
+      "passed": true
+    },
+    {
+      "id": "no_production",
+      "passed": true
+    },
+    {
+      "id": "no_public_artifacts",
+      "passed": true
+    }
+  ],
+  "requiredChecklistIds": [
+    "allowed_scope_reviewed",
+    "blocked_scope_reviewed",
+    "track_b_clean_staging_milestone_sync_reviewed",
+    "track_b_capability_manifest_reviewed",
+    "track_b_route_manifest_reviewed",
+    "audio_timing_evidence_reviewed",
+    "media_data_evidence_reviewed",
+    "hybrid_desktop_metadata_evidence_reviewed",
+    "issue_intake_reviewed",
+    "stop_conditions_reviewed",
+    "no_runtime_execution",
+    "no_providers",
+    "no_production",
+    "no_public_artifacts"
+  ],
+  "audioTimingEvidencePresent": true,
+  "mediaDataEvidencePresent": true,
+  "session0ReviewMode": "metadata_only",
+  "runtimeExecution": false,
+  "providerCalls": false,
+  "publicArtifacts": false,
+  "production": false,
+  "supabaseWrites": false,
+  "secretsPrintedOrCommitted": false
+}

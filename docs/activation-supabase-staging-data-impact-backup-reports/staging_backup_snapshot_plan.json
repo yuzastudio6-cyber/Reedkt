@@ -1,0 +1,33 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "acceptable_for_future_execution_not_run",
+  "preResetBackupSnapshotOrExportRequired": true,
+  "backupRunInThisPhase": false,
+  "backupExecutionRequiresSeparatePhase": true,
+  "recommendedBackupExportTypes": [
+    "platform_daily_backup_or_pitr_snapshot_if_available",
+    "private_logical_schema_dump_with_supabase_db_dump",
+    "private_logical_data_dump_with_supabase_db_dump_data_only_when_approved",
+    "separate_storage_object_backup_if_storage_objects_or_private_artifact_references_exist"
+  ],
+  "docsBasis": {
+    "databaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "dbDump": "https://supabase.com/docs/reference/cli/supabase-db-dump",
+    "backups": "https://supabase.com/docs/guides/platform/backups"
+  },
+  "backupDestinationPolicy": "private_staging_backup_destination_only_no_public_links_no_repo_committed_payloads",
+  "retentionPolicy": "requires_staging_owner_retention_duration_and_cleanup_acceptance_before_execution",
+  "accessControl": "least_privilege_operator_access_no_frontend_or_public_access",
+  "secretHandling": "DB URLs passwords service keys and access tokens remain process-only and redacted",
+  "restoreTestRecommendation": "perform restore rehearsal or documented restore verification before reset/reapply execution",
+  "storageObjectBackupRequiredIfStorageReferencesExist": true,
+  "limitations": [
+    "this phase does not create a backup",
+    "this phase does not read row contents",
+    "backup destination and retention owner must be confirmed separately"
+  ],
+  "blockers": [],
+  "stagingResetRun": false,
+  "productionAffected": false
+}

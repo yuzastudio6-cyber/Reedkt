@@ -1,0 +1,5087 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "mode": "readonly_staging_metadata_count_inspection",
+  "reviewExecuted": true,
+  "approvedDbUrlEnvNames": [
+    "REEDITPRO_STAGING_SUPABASE_DB_URL",
+    "SUPABASE_STAGING_DB_URL",
+    "STAGING_SUPABASE_DB_URL"
+  ],
+  "dbUrlEnvPresent": true,
+  "dbUrlEnvName": "REEDITPRO_STAGING_SUPABASE_DB_URL",
+  "dbUrlSecretRefUsed": "SUPABASE_DB_URL",
+  "dbUrlSecretPayloadAccessStatus": "succeeded",
+  "dbUrlValuePrinted": false,
+  "dbUrlTargetMatchedApprovedStaging": true,
+  "credentialPayloadsPrinted": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadAccessAttempted": true,
+  "secretPayloadCommitted": false,
+  "psqlAvailable": true,
+  "psqlVersionChecked": true,
+  "psqlVersionSummary": "psql (PostgreSQL) 18.4 (Postgres.app)",
+  "rowContentsRead": false,
+  "countOnly": true,
+  "productionTouched": false,
+  "directDdlDmlRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "forbiddenConfirmationsSet": [],
+  "status": "passed",
+  "inspectedCatalogs": [
+    "information_schema",
+    "pg_catalog",
+    "pg_namespace",
+    "pg_class",
+    "pg_policies",
+    "storage.buckets_metadata",
+    "supabase_migrations.schema_migrations"
+  ],
+  "queryReports": [
+    {
+      "queryName": "schemas",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_METADATA_COUNT_QUERY]"
+      ],
+      "sqlClass": "readonly_metadata_or_count_select",
+      "stdoutSummary": {
+        "byteLength": 104,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "tables",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_METADATA_COUNT_QUERY]"
+      ],
+      "sqlClass": "readonly_metadata_or_count_select",
+      "stdoutSummary": {
+        "byteLength": 10685,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "tableEstimates",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_METADATA_COUNT_QUERY]"
+      ],
+      "sqlClass": "readonly_metadata_or_count_select",
+      "stdoutSummary": {
+        "byteLength": 12451,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "rls",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_METADATA_COUNT_QUERY]"
+      ],
+      "sqlClass": "readonly_metadata_or_count_select",
+      "stdoutSummary": {
+        "byteLength": 12935,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "policies",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_METADATA_COUNT_QUERY]"
+      ],
+      "sqlClass": "readonly_metadata_or_count_select",
+      "stdoutSummary": {
+        "byteLength": 41310,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "storageBuckets",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_METADATA_COUNT_QUERY]"
+      ],
+      "sqlClass": "readonly_metadata_or_count_select",
+      "stdoutSummary": {
+        "byteLength": 2,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "queryName": "migrationHistory",
+      "status": "passed",
+      "exitCode": 0,
+      "command": "psql",
+      "args": [
+        "-X",
+        "-q",
+        "-t",
+        "-A",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-c",
+        "[REDACTED_READONLY_METADATA_COUNT_QUERY]"
+      ],
+      "sqlClass": "readonly_metadata_or_count_select",
+      "stdoutSummary": {
+        "byteLength": 270,
+        "lineCount": 1,
+        "secretPatternDetected": false
+      },
+      "stderrSummary": {
+        "byteLength": 0,
+        "lineCount": 0,
+        "secretPatternDetected": false
+      },
+      "rowContentsRead": false,
+      "dbUrlPrinted": false,
+      "secretPayloadPrinted": false
+    }
+  ],
+  "catalog": {
+    "schemas": [
+      {
+        "schema": "auth"
+      },
+      {
+        "schema": "public"
+      },
+      {
+        "schema": "storage"
+      },
+      {
+        "schema": "supabase_migrations"
+      }
+    ],
+    "tables": [
+      {
+        "schema": "auth",
+        "table": "audit_log_entries",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "custom_oauth_providers",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "flow_state",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "identities",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "instances",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_amr_claims",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_challenges",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_factors",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_authorizations",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_client_states",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_clients",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_consents",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "one_time_tokens",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "refresh_tokens",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "saml_providers",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "saml_relay_states",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "schema_migrations",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "sessions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "sso_domains",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "sso_providers",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "users",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "webauthn_challenges",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "auth",
+        "table": "webauthn_credentials",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "activation_artifacts",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "activation_qa_gates",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "activation_runs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "agent_outputs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "agent_runs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "ambient_sound_plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "api_idempotency_keys",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "approved_plan_snapshots",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "audio_environment_analysis",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "caption_plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "chat_actions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "chat_attachments",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "chat_messages",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "chat_sessions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_approvals",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimate_line_items",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimates",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_grants",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_ledger_entries",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_refunds",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservation_line_items",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservations",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "credit_wallet_balance_view",
+        "type": "VIEW"
+      },
+      {
+        "schema": "public",
+        "table": "credit_wallets",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "cut_decisions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "edit_instructions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_chat_cards",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_segments",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "edit_plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_checks",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_profiles",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "event_log",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "export_variants",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "exports",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "feature_gates",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_timing_maps",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_versions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generated_assets",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generation_events",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_capabilities",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_models",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generation_providers",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_costs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_inputs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "generation_requests",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "inline_chat_cards",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "intent_analyses",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "job_batches",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "job_dependencies",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "job_events",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "job_progress_view",
+        "type": "VIEW"
+      },
+      {
+        "schema": "public",
+        "table": "jobs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "media_assets",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "music_plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "pacing_analysis",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "planning_notes",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "preview_reviews",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "project_latest_preview_view",
+        "type": "VIEW"
+      },
+      {
+        "schema": "public",
+        "table": "projects",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "provider_request_attempts",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "provider_webhook_events",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "qa_report_items",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "qa_reports",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "readiness_snapshots",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "recommended_edit_structures",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "reference_assets",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "render_events",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "render_job_inputs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "render_jobs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "renders",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "review_comments",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "revision_request_items",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "revision_requests",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "signature_routes",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "signed_url_events",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "sound_effect_plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequence_items",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequences",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_map_items",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_maps",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "storage_object_records",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "story_beat_maps",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "story_beats",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_characters",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_symbols",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beats",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_characters",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_generation_specs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_meaning_expansions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plan_examples",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_storyboard_frames",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_symbols",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_timing_anchors",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_transitions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "subscriptions",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "tool_capabilities",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "tool_runtime_checks",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "transition_plans",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "upload_intents",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "user_profiles",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "worker_heartbeats",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "worker_job_claims",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "worker_runtime_configs",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "public",
+        "table": "workspaces",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "buckets",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "buckets_analytics",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "buckets_vectors",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "migrations",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "objects",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "s3_multipart_uploads",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "s3_multipart_uploads_parts",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "storage",
+        "table": "vector_indexes",
+        "type": "BASE TABLE"
+      },
+      {
+        "schema": "supabase_migrations",
+        "table": "schema_migrations",
+        "type": "BASE TABLE"
+      }
+    ],
+    "tableEstimates": [
+      {
+        "schema": "auth",
+        "table": "audit_log_entries",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "custom_oauth_providers",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "flow_state",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "identities",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "instances",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_amr_claims",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_challenges",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_factors",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_authorizations",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_client_states",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_clients",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_consents",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "one_time_tokens",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "refresh_tokens",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "saml_providers",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "saml_relay_states",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "schema_migrations",
+        "kind": "r",
+        "estimatedRows": 76
+      },
+      {
+        "schema": "auth",
+        "table": "sessions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "sso_domains",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "sso_providers",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "users",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "webauthn_challenges",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "auth",
+        "table": "webauthn_credentials",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "activation_artifacts",
+        "kind": "r",
+        "estimatedRows": 205
+      },
+      {
+        "schema": "public",
+        "table": "activation_qa_gates",
+        "kind": "r",
+        "estimatedRows": 124
+      },
+      {
+        "schema": "public",
+        "table": "activation_runs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "agent_outputs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "agent_runs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "ambient_sound_plans",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "api_idempotency_keys",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "approved_plan_snapshots",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "audio_environment_analysis",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "caption_plans",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "chat_actions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "chat_attachments",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "chat_messages",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "chat_sessions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_approvals",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimate_line_items",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimates",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_grants",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_ledger_entries",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_refunds",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservation_line_items",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservations",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "credit_wallets",
+        "kind": "r",
+        "estimatedRows": 0
+      },
+      {
+        "schema": "public",
+        "table": "cut_decisions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "edit_instructions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_chat_cards",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_segments",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "edit_plans",
+        "kind": "r",
+        "estimatedRows": 0
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_checks",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_profiles",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "event_log",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "export_variants",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "exports",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "feature_gates",
+        "kind": "r",
+        "estimatedRows": 38
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_timing_maps",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_versions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "generated_assets",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "generation_events",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_capabilities",
+        "kind": "r",
+        "estimatedRows": 10
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_models",
+        "kind": "r",
+        "estimatedRows": 7
+      },
+      {
+        "schema": "public",
+        "table": "generation_providers",
+        "kind": "r",
+        "estimatedRows": 7
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_costs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_inputs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "generation_requests",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "inline_chat_cards",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "intent_analyses",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "job_batches",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "job_dependencies",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "job_events",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "jobs",
+        "kind": "r",
+        "estimatedRows": 0
+      },
+      {
+        "schema": "public",
+        "table": "media_assets",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "music_plans",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "pacing_analysis",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "planning_notes",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "plans",
+        "kind": "r",
+        "estimatedRows": 3
+      },
+      {
+        "schema": "public",
+        "table": "preview_reviews",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "projects",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "provider_request_attempts",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "provider_webhook_events",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "qa_report_items",
+        "kind": "r",
+        "estimatedRows": 0
+      },
+      {
+        "schema": "public",
+        "table": "qa_reports",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "readiness_snapshots",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "recommended_edit_structures",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "reference_assets",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "render_events",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "render_job_inputs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "render_jobs",
+        "kind": "r",
+        "estimatedRows": 0
+      },
+      {
+        "schema": "public",
+        "table": "renders",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "review_comments",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "revision_request_items",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "revision_requests",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "signature_routes",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "signed_url_events",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "sound_effect_plans",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequence_items",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequences",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_map_items",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_maps",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "storage_object_records",
+        "kind": "r",
+        "estimatedRows": 0
+      },
+      {
+        "schema": "public",
+        "table": "story_beat_maps",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "story_beats",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_characters",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_symbols",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beats",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_characters",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_generation_specs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_meaning_expansions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plan_examples",
+        "kind": "r",
+        "estimatedRows": 1
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plans",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_storyboard_frames",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_symbols",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_timing_anchors",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_transitions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "subscriptions",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "tool_capabilities",
+        "kind": "r",
+        "estimatedRows": 78
+      },
+      {
+        "schema": "public",
+        "table": "tool_runtime_checks",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "transition_plans",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "upload_intents",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "user_profiles",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "worker_heartbeats",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "worker_job_claims",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "worker_runtime_configs",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "public",
+        "table": "workspaces",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "storage",
+        "table": "buckets",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "storage",
+        "table": "buckets_analytics",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "storage",
+        "table": "buckets_vectors",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "storage",
+        "table": "migrations",
+        "kind": "r",
+        "estimatedRows": 61
+      },
+      {
+        "schema": "storage",
+        "table": "objects",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "storage",
+        "table": "s3_multipart_uploads",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "storage",
+        "table": "s3_multipart_uploads_parts",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "storage",
+        "table": "vector_indexes",
+        "kind": "r",
+        "estimatedRows": null
+      },
+      {
+        "schema": "supabase_migrations",
+        "table": "schema_migrations",
+        "kind": "r",
+        "estimatedRows": null
+      }
+    ],
+    "rls": [
+      {
+        "schema": "auth",
+        "table": "audit_log_entries",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "custom_oauth_providers",
+        "rlsEnabled": false,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "flow_state",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "identities",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "instances",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_amr_claims",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_challenges",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "mfa_factors",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_authorizations",
+        "rlsEnabled": false,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_client_states",
+        "rlsEnabled": false,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_clients",
+        "rlsEnabled": false,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "oauth_consents",
+        "rlsEnabled": false,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "one_time_tokens",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "refresh_tokens",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "saml_providers",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "saml_relay_states",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "schema_migrations",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "sessions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "sso_domains",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "sso_providers",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "users",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "webauthn_challenges",
+        "rlsEnabled": false,
+        "rlsForced": false
+      },
+      {
+        "schema": "auth",
+        "table": "webauthn_credentials",
+        "rlsEnabled": false,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "activation_artifacts",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "activation_qa_gates",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "activation_runs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "agent_outputs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "agent_runs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "ambient_sound_plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "api_idempotency_keys",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "approved_plan_snapshots",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "audio_environment_analysis",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "caption_plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "chat_actions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "chat_attachments",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "chat_messages",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "chat_sessions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_approvals",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimate_line_items",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimates",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_grants",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_ledger_entries",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_refunds",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservation_line_items",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservations",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "credit_wallets",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "cut_decisions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "edit_instructions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_chat_cards",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_segments",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "edit_plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_checks",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_profiles",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "event_log",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "export_variants",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "exports",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "feature_gates",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_timing_maps",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_versions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generated_assets",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generation_events",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_capabilities",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_models",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generation_providers",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_costs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_inputs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "generation_requests",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "inline_chat_cards",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "intent_analyses",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "job_batches",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "job_dependencies",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "job_events",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "jobs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "media_assets",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "music_plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "pacing_analysis",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "planning_notes",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "preview_reviews",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "projects",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "provider_request_attempts",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "provider_webhook_events",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "qa_report_items",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "qa_reports",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "readiness_snapshots",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "recommended_edit_structures",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "reference_assets",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "render_events",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "render_job_inputs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "render_jobs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "renders",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "review_comments",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "revision_request_items",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "revision_requests",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "signature_routes",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "signed_url_events",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "sound_effect_plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequence_items",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequences",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_map_items",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_maps",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "storage_object_records",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "story_beat_maps",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "story_beats",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_characters",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_symbols",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beats",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_characters",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_generation_specs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_meaning_expansions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plan_examples",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_storyboard_frames",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_symbols",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_timing_anchors",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_transitions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "subscriptions",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "tool_capabilities",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "tool_runtime_checks",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "transition_plans",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "upload_intents",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "user_profiles",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "worker_heartbeats",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "worker_job_claims",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "worker_runtime_configs",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "public",
+        "table": "workspaces",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "buckets",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "buckets_analytics",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "buckets_vectors",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "migrations",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "objects",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "s3_multipart_uploads",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "s3_multipart_uploads_parts",
+        "rlsEnabled": true,
+        "rlsForced": false
+      },
+      {
+        "schema": "storage",
+        "table": "vector_indexes",
+        "rlsEnabled": true,
+        "rlsForced": false
+      }
+    ],
+    "policies": [
+      {
+        "schema": "public",
+        "table": "agent_outputs",
+        "name": "agent_outputs_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "agent_outputs",
+        "name": "agent_outputs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "agent_runs",
+        "name": "agent_runs_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "agent_runs",
+        "name": "agent_runs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "agent_runs",
+        "name": "agent_runs_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "ambient_sound_plans",
+        "name": "ambient_sound_plans_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "ambient_sound_plans",
+        "name": "ambient_sound_plans_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "ambient_sound_plans",
+        "name": "ambient_sound_plans_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "api_idempotency_keys",
+        "name": "api_idempotency_keys_select_owner",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "approved_plan_snapshots",
+        "name": "Workspace editors can insert approved plan snapshots",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "approved_plan_snapshots",
+        "name": "Workspace members can read approved plan snapshots",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "approved_plan_snapshots",
+        "name": "Workspace owners and admins can update approved plan snapshot s",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "approved_plan_snapshots",
+        "name": "approved_plan_snapshots_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "audio_environment_analysis",
+        "name": "audio_environment_analysis_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "audio_environment_analysis",
+        "name": "audio_environment_analysis_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "audio_environment_analysis",
+        "name": "audio_environment_analysis_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "caption_plans",
+        "name": "caption_plans_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "caption_plans",
+        "name": "caption_plans_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "caption_plans",
+        "name": "caption_plans_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_actions",
+        "name": "chat_actions_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_actions",
+        "name": "chat_actions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_actions",
+        "name": "chat_actions_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_attachments",
+        "name": "chat_attachments_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_attachments",
+        "name": "chat_attachments_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_attachments",
+        "name": "chat_attachments_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_messages",
+        "name": "chat_messages_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_messages",
+        "name": "chat_messages_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_messages",
+        "name": "chat_messages_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_sessions",
+        "name": "chat_sessions_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_sessions",
+        "name": "chat_sessions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "chat_sessions",
+        "name": "chat_sessions_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_approvals",
+        "name": "credit_approvals_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_approvals",
+        "name": "credit_approvals_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_approvals",
+        "name": "credit_approvals_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimate_line_items",
+        "name": "credit_estimate_line_items_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimate_line_items",
+        "name": "credit_estimate_line_items_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimate_line_items",
+        "name": "credit_estimate_line_items_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimates",
+        "name": "credit_estimates_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimates",
+        "name": "credit_estimates_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_estimates",
+        "name": "credit_estimates_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_grants",
+        "name": "credit_grants_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_grants",
+        "name": "credit_grants_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_grants",
+        "name": "credit_grants_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_ledger_entries",
+        "name": "credit_ledger_entries_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_ledger_entries",
+        "name": "credit_ledger_entries_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_refunds",
+        "name": "credit_refunds_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_refunds",
+        "name": "credit_refunds_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_refunds",
+        "name": "credit_refunds_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservation_line_items",
+        "name": "credit_reservation_line_items_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservation_line_items",
+        "name": "credit_reservation_line_items_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservation_line_items",
+        "name": "credit_reservation_line_items_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservations",
+        "name": "credit_reservations_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservations",
+        "name": "credit_reservations_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_reservations",
+        "name": "credit_reservations_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_wallets",
+        "name": "credit_wallets_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_wallets",
+        "name": "credit_wallets_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "credit_wallets",
+        "name": "credit_wallets_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "cut_decisions",
+        "name": "cut_decisions_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "cut_decisions",
+        "name": "cut_decisions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "cut_decisions",
+        "name": "cut_decisions_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_instructions",
+        "name": "edit_instructions_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_instructions",
+        "name": "edit_instructions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_instructions",
+        "name": "edit_instructions_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_chat_cards",
+        "name": "edit_plan_chat_cards_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_chat_cards",
+        "name": "edit_plan_chat_cards_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_chat_cards",
+        "name": "edit_plan_chat_cards_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_segments",
+        "name": "edit_plan_segments_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_segments",
+        "name": "edit_plan_segments_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plan_segments",
+        "name": "edit_plan_segments_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plans",
+        "name": "edit_plans_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plans",
+        "name": "edit_plans_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_plans",
+        "name": "edit_plans_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_checks",
+        "name": "edit_quality_checks_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_checks",
+        "name": "edit_quality_checks_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_checks",
+        "name": "edit_quality_checks_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_profiles",
+        "name": "edit_quality_profiles_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_profiles",
+        "name": "edit_quality_profiles_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "edit_quality_profiles",
+        "name": "edit_quality_profiles_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "event_log",
+        "name": "event_log_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "event_log",
+        "name": "event_log_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "export_variants",
+        "name": "export_variants_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "export_variants",
+        "name": "export_variants_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "export_variants",
+        "name": "export_variants_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "exports",
+        "name": "exports_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "exports",
+        "name": "exports_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "exports",
+        "name": "exports_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "exports",
+        "name": "exports_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_timing_maps",
+        "name": "generated_asset_timing_maps_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_timing_maps",
+        "name": "generated_asset_timing_maps_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_timing_maps",
+        "name": "generated_asset_timing_maps_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_versions",
+        "name": "generated_asset_versions_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_asset_versions",
+        "name": "generated_asset_versions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_assets",
+        "name": "generated_assets_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_assets",
+        "name": "generated_assets_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generated_assets",
+        "name": "generated_assets_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_events",
+        "name": "generation_events_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_events",
+        "name": "generation_events_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_capabilities",
+        "name": "generation_provider_capabilities_select_active_provider",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_provider_models",
+        "name": "generation_provider_models_select_active",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_providers",
+        "name": "generation_providers_select_active",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_costs",
+        "name": "generation_request_costs_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_costs",
+        "name": "generation_request_costs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_costs",
+        "name": "generation_request_costs_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_inputs",
+        "name": "generation_request_inputs_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_request_inputs",
+        "name": "generation_request_inputs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_requests",
+        "name": "generation_requests_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_requests",
+        "name": "generation_requests_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "generation_requests",
+        "name": "generation_requests_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "inline_chat_cards",
+        "name": "inline_chat_cards_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "inline_chat_cards",
+        "name": "inline_chat_cards_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "inline_chat_cards",
+        "name": "inline_chat_cards_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "intent_analyses",
+        "name": "intent_analyses_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "intent_analyses",
+        "name": "intent_analyses_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "intent_analyses",
+        "name": "intent_analyses_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_batches",
+        "name": "job_batches_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_batches",
+        "name": "job_batches_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_batches",
+        "name": "job_batches_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_dependencies",
+        "name": "job_dependencies_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_dependencies",
+        "name": "job_dependencies_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_dependencies",
+        "name": "job_dependencies_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_events",
+        "name": "job_events_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "job_events",
+        "name": "job_events_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "jobs",
+        "name": "jobs_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "jobs",
+        "name": "jobs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "jobs",
+        "name": "jobs_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "media_assets",
+        "name": "media_assets_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "media_assets",
+        "name": "media_assets_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "media_assets",
+        "name": "media_assets_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "media_assets",
+        "name": "media_assets_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "music_plans",
+        "name": "music_plans_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "music_plans",
+        "name": "music_plans_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "music_plans",
+        "name": "music_plans_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "pacing_analysis",
+        "name": "pacing_analysis_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "pacing_analysis",
+        "name": "pacing_analysis_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "pacing_analysis",
+        "name": "pacing_analysis_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "planning_notes",
+        "name": "planning_notes_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "planning_notes",
+        "name": "planning_notes_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "planning_notes",
+        "name": "planning_notes_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "plans",
+        "name": "plans_select_active",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "preview_reviews",
+        "name": "preview_reviews_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "preview_reviews",
+        "name": "preview_reviews_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "preview_reviews",
+        "name": "preview_reviews_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "projects",
+        "name": "projects_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "projects",
+        "name": "projects_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "projects",
+        "name": "projects_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "projects",
+        "name": "projects_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "provider_request_attempts",
+        "name": "provider_request_attempts_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "provider_webhook_events",
+        "name": "provider_webhook_events_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "qa_report_items",
+        "name": "qa_report_items_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "qa_report_items",
+        "name": "qa_report_items_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "qa_report_items",
+        "name": "qa_report_items_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "qa_reports",
+        "name": "qa_reports_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "qa_reports",
+        "name": "qa_reports_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "qa_reports",
+        "name": "qa_reports_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "recommended_edit_structures",
+        "name": "recommended_edit_structures_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "recommended_edit_structures",
+        "name": "recommended_edit_structures_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "recommended_edit_structures",
+        "name": "recommended_edit_structures_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "reference_assets",
+        "name": "reference_assets_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "reference_assets",
+        "name": "reference_assets_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "reference_assets",
+        "name": "reference_assets_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "reference_assets",
+        "name": "reference_assets_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_events",
+        "name": "render_events_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_events",
+        "name": "render_events_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_job_inputs",
+        "name": "render_job_inputs_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_job_inputs",
+        "name": "render_job_inputs_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_job_inputs",
+        "name": "render_job_inputs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_job_inputs",
+        "name": "render_job_inputs_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_jobs",
+        "name": "render_jobs_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_jobs",
+        "name": "render_jobs_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_jobs",
+        "name": "render_jobs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "render_jobs",
+        "name": "render_jobs_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "renders",
+        "name": "renders_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "renders",
+        "name": "renders_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "renders",
+        "name": "renders_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "renders",
+        "name": "renders_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "review_comments",
+        "name": "review_comments_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "review_comments",
+        "name": "review_comments_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "review_comments",
+        "name": "review_comments_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "revision_request_items",
+        "name": "revision_request_items_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "revision_request_items",
+        "name": "revision_request_items_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "revision_request_items",
+        "name": "revision_request_items_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "revision_requests",
+        "name": "revision_requests_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "revision_requests",
+        "name": "revision_requests_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "revision_requests",
+        "name": "revision_requests_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "signature_routes",
+        "name": "signature_routes_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "signature_routes",
+        "name": "signature_routes_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "signature_routes",
+        "name": "signature_routes_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "signed_url_events",
+        "name": "signed_url_events_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "sound_effect_plans",
+        "name": "sound_effect_plans_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "sound_effect_plans",
+        "name": "sound_effect_plans_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "sound_effect_plans",
+        "name": "sound_effect_plans_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequence_items",
+        "name": "source_clip_sequence_items_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequence_items",
+        "name": "source_clip_sequence_items_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequence_items",
+        "name": "source_clip_sequence_items_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequence_items",
+        "name": "source_clip_sequence_items_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequences",
+        "name": "source_clip_sequences_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequences",
+        "name": "source_clip_sequences_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequences",
+        "name": "source_clip_sequences_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_clip_sequences",
+        "name": "source_clip_sequences_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_map_items",
+        "name": "source_sequence_map_items_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_map_items",
+        "name": "source_sequence_map_items_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_map_items",
+        "name": "source_sequence_map_items_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_maps",
+        "name": "source_sequence_maps_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_maps",
+        "name": "source_sequence_maps_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "source_sequence_maps",
+        "name": "source_sequence_maps_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "storage_object_records",
+        "name": "storage_object_records_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "story_beat_maps",
+        "name": "story_beat_maps_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "story_beat_maps",
+        "name": "story_beat_maps_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "story_beat_maps",
+        "name": "story_beat_maps_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "story_beats",
+        "name": "story_beats_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "story_beats",
+        "name": "story_beats_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "story_beats",
+        "name": "story_beats_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_characters",
+        "name": "stroke_motion_beat_characters_delete_editor",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_characters",
+        "name": "stroke_motion_beat_characters_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_characters",
+        "name": "stroke_motion_beat_characters_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_symbols",
+        "name": "stroke_motion_beat_symbols_delete_editor",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_symbols",
+        "name": "stroke_motion_beat_symbols_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beat_symbols",
+        "name": "stroke_motion_beat_symbols_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beats",
+        "name": "stroke_motion_beats_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beats",
+        "name": "stroke_motion_beats_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_beats",
+        "name": "stroke_motion_beats_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_characters",
+        "name": "stroke_motion_characters_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_characters",
+        "name": "stroke_motion_characters_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_characters",
+        "name": "stroke_motion_characters_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_generation_specs",
+        "name": "stroke_motion_generation_specs_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_generation_specs",
+        "name": "stroke_motion_generation_specs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_generation_specs",
+        "name": "stroke_motion_generation_specs_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_meaning_expansions",
+        "name": "stroke_motion_meaning_expansions_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_meaning_expansions",
+        "name": "stroke_motion_meaning_expansions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_meaning_expansions",
+        "name": "stroke_motion_meaning_expansions_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plan_examples",
+        "name": "stroke_motion_plan_examples_select_active",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plans",
+        "name": "stroke_motion_plans_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plans",
+        "name": "stroke_motion_plans_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_plans",
+        "name": "stroke_motion_plans_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_storyboard_frames",
+        "name": "stroke_motion_storyboard_frames_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_storyboard_frames",
+        "name": "stroke_motion_storyboard_frames_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_storyboard_frames",
+        "name": "stroke_motion_storyboard_frames_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_symbols",
+        "name": "stroke_motion_symbols_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_symbols",
+        "name": "stroke_motion_symbols_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_symbols",
+        "name": "stroke_motion_symbols_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_timing_anchors",
+        "name": "stroke_motion_timing_anchors_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_timing_anchors",
+        "name": "stroke_motion_timing_anchors_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_timing_anchors",
+        "name": "stroke_motion_timing_anchors_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_transitions",
+        "name": "stroke_motion_transitions_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_transitions",
+        "name": "stroke_motion_transitions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "stroke_motion_transitions",
+        "name": "stroke_motion_transitions_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "subscriptions",
+        "name": "subscriptions_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "subscriptions",
+        "name": "subscriptions_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "subscriptions",
+        "name": "subscriptions_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "tool_runtime_checks",
+        "name": "tool_runtime_checks_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "transition_plans",
+        "name": "transition_plans_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "transition_plans",
+        "name": "transition_plans_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "transition_plans",
+        "name": "transition_plans_update_editor",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "upload_intents",
+        "name": "upload_intents_insert_editor",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "upload_intents",
+        "name": "upload_intents_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "user_profiles",
+        "name": "user_profiles_insert_own",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "user_profiles",
+        "name": "user_profiles_select_own",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "user_profiles",
+        "name": "user_profiles_update_own",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "worker_heartbeats",
+        "name": "worker_heartbeats_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "worker_heartbeats",
+        "name": "worker_heartbeats_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "worker_heartbeats",
+        "name": "worker_heartbeats_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "worker_job_claims",
+        "name": "worker_job_claims_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "worker_runtime_configs",
+        "name": "worker_runtime_configs_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "worker_runtime_configs",
+        "name": "worker_runtime_configs_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "worker_runtime_configs",
+        "name": "worker_runtime_configs_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "name": "workspace_members_delete_owner_admin",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "name": "workspace_members_insert_initial_owner",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "name": "workspace_members_insert_owner_admin",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "name": "workspace_members_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspace_members",
+        "name": "workspace_members_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspaces",
+        "name": "workspaces_insert_owner",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspaces",
+        "name": "workspaces_select_member",
+        "command": "SELECT",
+        "roles": [
+          "authenticated"
+        ]
+      },
+      {
+        "schema": "public",
+        "table": "workspaces",
+        "name": "workspaces_update_owner_admin",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ]
+      }
+    ],
+    "storageBuckets": [],
+    "migrationHistory": [
+      {
+        "version": "202605130001"
+      },
+      {
+        "version": "202605130002"
+      },
+      {
+        "version": "202605130003"
+      },
+      {
+        "version": "202605130004"
+      },
+      {
+        "version": "202605130005"
+      },
+      {
+        "version": "202605130006"
+      },
+      {
+        "version": "202605130007"
+      },
+      {
+        "version": "202605130008"
+      },
+      {
+        "version": "202605190001"
+      }
+    ]
+  },
+  "blockers": []
+}

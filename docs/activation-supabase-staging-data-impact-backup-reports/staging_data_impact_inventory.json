@@ -1,0 +1,1035 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "reviewed_from_readonly_metadata",
+  "sourceEvidence": {
+    "pr248Decision": "blocked_pending_staging_data_impact_review",
+    "pr247Strategy": "staging_reset_and_reapply_migrations",
+    "pr241Equivalence": "not_equivalent",
+    "pr241NotEquivalentMigrationCount": 11
+  },
+  "liveInspectionStatus": "passed",
+  "schemasPresent": [
+    "auth",
+    "public",
+    "storage",
+    "supabase_migrations"
+  ],
+  "tableCount": 136,
+  "tablesPresent": [
+    "auth.audit_log_entries",
+    "auth.custom_oauth_providers",
+    "auth.flow_state",
+    "auth.identities",
+    "auth.instances",
+    "auth.mfa_amr_claims",
+    "auth.mfa_challenges",
+    "auth.mfa_factors",
+    "auth.oauth_authorizations",
+    "auth.oauth_client_states",
+    "auth.oauth_clients",
+    "auth.oauth_consents",
+    "auth.one_time_tokens",
+    "auth.refresh_tokens",
+    "auth.saml_providers",
+    "auth.saml_relay_states",
+    "auth.schema_migrations",
+    "auth.sessions",
+    "auth.sso_domains",
+    "auth.sso_providers",
+    "auth.users",
+    "auth.webauthn_challenges",
+    "auth.webauthn_credentials",
+    "public.activation_artifacts",
+    "public.activation_qa_gates",
+    "public.activation_runs",
+    "public.agent_outputs",
+    "public.agent_runs",
+    "public.ambient_sound_plans",
+    "public.api_idempotency_keys",
+    "public.approved_plan_snapshots",
+    "public.audio_environment_analysis",
+    "public.caption_plans",
+    "public.chat_actions",
+    "public.chat_attachments",
+    "public.chat_messages",
+    "public.chat_sessions",
+    "public.credit_approvals",
+    "public.credit_estimate_line_items",
+    "public.credit_estimates",
+    "public.credit_grants",
+    "public.credit_ledger_entries",
+    "public.credit_refunds",
+    "public.credit_reservation_line_items",
+    "public.credit_reservations",
+    "public.credit_wallets",
+    "public.cut_decisions",
+    "public.edit_instructions",
+    "public.edit_plan_chat_cards",
+    "public.edit_plan_segments",
+    "public.edit_plans",
+    "public.edit_quality_checks",
+    "public.edit_quality_profiles",
+    "public.event_log",
+    "public.export_variants",
+    "public.exports",
+    "public.feature_gates",
+    "public.generated_asset_timing_maps",
+    "public.generated_asset_versions",
+    "public.generated_assets",
+    "public.generation_events",
+    "public.generation_provider_capabilities",
+    "public.generation_provider_models",
+    "public.generation_providers",
+    "public.generation_request_costs",
+    "public.generation_request_inputs",
+    "public.generation_requests",
+    "public.inline_chat_cards",
+    "public.intent_analyses",
+    "public.job_batches",
+    "public.job_dependencies",
+    "public.job_events",
+    "public.jobs",
+    "public.media_assets",
+    "public.music_plans",
+    "public.pacing_analysis",
+    "public.planning_notes",
+    "public.plans",
+    "public.preview_reviews",
+    "public.projects",
+    "public.provider_request_attempts",
+    "public.provider_webhook_events",
+    "public.qa_report_items",
+    "public.qa_reports",
+    "public.readiness_snapshots",
+    "public.recommended_edit_structures",
+    "public.reference_assets",
+    "public.render_events",
+    "public.render_job_inputs",
+    "public.render_jobs",
+    "public.renders",
+    "public.review_comments",
+    "public.revision_request_items",
+    "public.revision_requests",
+    "public.signature_routes",
+    "public.signed_url_events",
+    "public.sound_effect_plans",
+    "public.source_clip_sequence_items",
+    "public.source_clip_sequences",
+    "public.source_sequence_map_items",
+    "public.source_sequence_maps",
+    "public.storage_object_records",
+    "public.story_beat_maps",
+    "public.story_beats",
+    "public.stroke_motion_beat_characters",
+    "public.stroke_motion_beat_symbols",
+    "public.stroke_motion_beats",
+    "public.stroke_motion_characters",
+    "public.stroke_motion_generation_specs",
+    "public.stroke_motion_meaning_expansions",
+    "public.stroke_motion_plan_examples",
+    "public.stroke_motion_plans",
+    "public.stroke_motion_storyboard_frames",
+    "public.stroke_motion_symbols",
+    "public.stroke_motion_timing_anchors",
+    "public.stroke_motion_transitions",
+    "public.subscriptions",
+    "public.tool_capabilities",
+    "public.tool_runtime_checks",
+    "public.transition_plans",
+    "public.upload_intents",
+    "public.user_profiles",
+    "public.worker_heartbeats",
+    "public.worker_job_claims",
+    "public.worker_runtime_configs",
+    "public.workspace_members",
+    "public.workspaces",
+    "storage.buckets",
+    "storage.buckets_analytics",
+    "storage.buckets_vectors",
+    "storage.migrations",
+    "storage.objects",
+    "storage.s3_multipart_uploads",
+    "storage.s3_multipart_uploads_parts",
+    "storage.vector_indexes",
+    "supabase_migrations.schema_migrations"
+  ],
+  "tableRowEstimates": [
+    {
+      "schema": "auth",
+      "table": "audit_log_entries",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "custom_oauth_providers",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "flow_state",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "identities",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "instances",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "mfa_amr_claims",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "mfa_challenges",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "mfa_factors",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "oauth_authorizations",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "oauth_client_states",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "oauth_clients",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "oauth_consents",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "one_time_tokens",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "refresh_tokens",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "saml_providers",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "saml_relay_states",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "schema_migrations",
+      "kind": "r",
+      "estimatedRows": 76
+    },
+    {
+      "schema": "auth",
+      "table": "sessions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "sso_domains",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "sso_providers",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "users",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "webauthn_challenges",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "auth",
+      "table": "webauthn_credentials",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "activation_artifacts",
+      "kind": "r",
+      "estimatedRows": 205
+    },
+    {
+      "schema": "public",
+      "table": "activation_qa_gates",
+      "kind": "r",
+      "estimatedRows": 124
+    },
+    {
+      "schema": "public",
+      "table": "activation_runs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "agent_outputs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "agent_runs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "ambient_sound_plans",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "api_idempotency_keys",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "approved_plan_snapshots",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "audio_environment_analysis",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "caption_plans",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "chat_actions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "chat_attachments",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "chat_messages",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "chat_sessions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_approvals",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_estimate_line_items",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_estimates",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_grants",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_ledger_entries",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_refunds",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_reservation_line_items",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_reservations",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "credit_wallets",
+      "kind": "r",
+      "estimatedRows": 0
+    },
+    {
+      "schema": "public",
+      "table": "cut_decisions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "edit_instructions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "edit_plan_chat_cards",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "edit_plan_segments",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "edit_plans",
+      "kind": "r",
+      "estimatedRows": 0
+    },
+    {
+      "schema": "public",
+      "table": "edit_quality_checks",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "edit_quality_profiles",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "event_log",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "export_variants",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "exports",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "feature_gates",
+      "kind": "r",
+      "estimatedRows": 38
+    },
+    {
+      "schema": "public",
+      "table": "generated_asset_timing_maps",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "generated_asset_versions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "generated_assets",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "generation_events",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "generation_provider_capabilities",
+      "kind": "r",
+      "estimatedRows": 10
+    },
+    {
+      "schema": "public",
+      "table": "generation_provider_models",
+      "kind": "r",
+      "estimatedRows": 7
+    },
+    {
+      "schema": "public",
+      "table": "generation_providers",
+      "kind": "r",
+      "estimatedRows": 7
+    },
+    {
+      "schema": "public",
+      "table": "generation_request_costs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "generation_request_inputs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "generation_requests",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "inline_chat_cards",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "intent_analyses",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "job_batches",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "job_dependencies",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "job_events",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "jobs",
+      "kind": "r",
+      "estimatedRows": 0
+    },
+    {
+      "schema": "public",
+      "table": "media_assets",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "music_plans",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "pacing_analysis",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "planning_notes",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "plans",
+      "kind": "r",
+      "estimatedRows": 3
+    },
+    {
+      "schema": "public",
+      "table": "preview_reviews",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "projects",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "provider_request_attempts",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "provider_webhook_events",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "qa_report_items",
+      "kind": "r",
+      "estimatedRows": 0
+    },
+    {
+      "schema": "public",
+      "table": "qa_reports",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "readiness_snapshots",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "recommended_edit_structures",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "reference_assets",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "render_events",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "render_job_inputs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "render_jobs",
+      "kind": "r",
+      "estimatedRows": 0
+    },
+    {
+      "schema": "public",
+      "table": "renders",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "review_comments",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "revision_request_items",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "revision_requests",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "signature_routes",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "signed_url_events",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "sound_effect_plans",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "source_clip_sequence_items",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "source_clip_sequences",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "source_sequence_map_items",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "source_sequence_maps",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "storage_object_records",
+      "kind": "r",
+      "estimatedRows": 0
+    },
+    {
+      "schema": "public",
+      "table": "story_beat_maps",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "story_beats",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_beat_characters",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_beat_symbols",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_beats",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_characters",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_generation_specs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_meaning_expansions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_plan_examples",
+      "kind": "r",
+      "estimatedRows": 1
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_plans",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_storyboard_frames",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_symbols",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_timing_anchors",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "stroke_motion_transitions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "tool_capabilities",
+      "kind": "r",
+      "estimatedRows": 78
+    },
+    {
+      "schema": "public",
+      "table": "tool_runtime_checks",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "transition_plans",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "upload_intents",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "user_profiles",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "worker_heartbeats",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "worker_job_claims",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "worker_runtime_configs",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "workspace_members",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "public",
+      "table": "workspaces",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets_analytics",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets_vectors",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "storage",
+      "table": "migrations",
+      "kind": "r",
+      "estimatedRows": 61
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads_parts",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "storage",
+      "table": "vector_indexes",
+      "kind": "r",
+      "estimatedRows": null
+    },
+    {
+      "schema": "supabase_migrations",
+      "table": "schema_migrations",
+      "kind": "r",
+      "estimatedRows": null
+    }
+  ],
+  "categories": {
+    "authUsers": {
+      "present": true,
+      "tables": [
+        "auth.users"
+      ],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    },
+    "workspaceProject": {
+      "present": true,
+      "tables": [
+        "public.projects",
+        "public.workspace_members",
+        "public.workspaces"
+      ],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    },
+    "mediaArtifacts": {
+      "present": true,
+      "tables": [
+        "public.generated_assets",
+        "public.media_assets",
+        "storage.objects"
+      ],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    },
+    "milestoneRegistry": {
+      "present": false,
+      "tables": [],
+      "estimatedRows": 0,
+      "estimateOnly": true
+    }
+  },
+  "storageBuckets": [],
+  "privateArtifactReferenceRisk": "requires_owner_review",
+  "internalTestingDataRisk": "requires_owner_review",
+  "migrationHistoryVersionsObserved": [
+    "202605130001",
+    "202605130002",
+    "202605130003",
+    "202605130004",
+    "202605130005",
+    "202605130006",
+    "202605130007",
+    "202605130008",
+    "202605190001"
+  ],
+  "rowContentsRead": false,
+  "countOnlyOrEstimateOnly": true,
+  "unknowns": [
+    "row contents were not read",
+    "exact business importance of staging records requires owner acceptance",
+    "backup destination and restore test require separate execution phase"
+  ],
+  "blockers": [],
+  "stagingResetRun": false,
+  "productionAffected": false
+}

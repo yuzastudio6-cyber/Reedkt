@@ -1,0 +1,24 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "reviewed_requires_owner_acceptance",
+  "overallRisk": "high",
+  "authUserRisk": "medium_presence_requires_owner_acceptance",
+  "workspaceProjectRisk": "medium_presence_requires_owner_acceptance",
+  "storageArtifactReferenceRisk": "medium_presence_requires_owner_acceptance",
+  "milestoneRegistryRisk": "not_observed_in_metadata",
+  "internalTestingDisruptionRisk": "requires_owner_acceptance",
+  "dataLossRisk": "high_without_backup_and_owner_acceptance",
+  "resetSafety": "not_approved_in_this_phase",
+  "readOnlyInspectionStatus": "passed",
+  "unacceptableRiskDetected": false,
+  "requiredApprovals": [
+    "staging_owner_data_loss_acceptance",
+    "backup_snapshot_execution_approval",
+    "reset_reapply_execution_approval",
+    "post_reset_verification_acceptance"
+  ],
+  "blockers": [],
+  "stagingResetRun": false,
+  "productionAffected": false
+}

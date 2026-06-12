@@ -1,0 +1,12 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "future_execution_approved",
+  "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+  "futureResetApproved": true,
+  "resetExecutionAllowedInThisPhase": false,
+  "blockers": [],
+  "nextRecommendedPhase": "Separate guarded staging reset/reapply execution packet with backup first and verification after reset.",
+  "supabaseMilestoneSync": "blocked until staging schema parity, milestone registry schema/RLS deploy, and Track B backfill pass",
+  "productionAffected": false
+}

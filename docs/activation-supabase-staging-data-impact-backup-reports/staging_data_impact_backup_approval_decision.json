@@ -1,0 +1,21 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "status": "approved_for_future_execution_only",
+  "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+  "approvalStatus": "future_reset_reapply_approved_not_executed",
+  "futureResetApproved": true,
+  "resetExecutionApproved": false,
+  "migrationRepairApproved": false,
+  "schemaDeployApproved": false,
+  "trackBBackfillApproved": false,
+  "productionAffected": false,
+  "rationale": "Data impact, backup/snapshot plan, and owner acceptance are complete for a future reset/reapply phase.",
+  "nextSupabaseAction": "Open separate guarded staging reset/reapply execution phase with backup first and post-reset verification.",
+  "stagingResetRun": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false
+}

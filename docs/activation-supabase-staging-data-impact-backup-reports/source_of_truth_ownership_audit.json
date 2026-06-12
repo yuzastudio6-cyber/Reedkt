@@ -1,0 +1,100 @@
+{
+  "phase": "supabase-staging-data-impact-backup-approval",
+  "runId": "supabase-staging-data-impact-backup-approval-20260609",
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "relatedWorkstreams": {
+    "trackBMediaProcessing": "safe Track B milestone export from PR #196 only",
+    "observabilityAuditCost": "future milestone registry/audit consumer only",
+    "workerRuntimeJobs": "not executed",
+    "productInternalBetaAggregation": "depends on accurate Supabase milestone state later"
+  },
+  "explicitlyNotOwned": [
+    "Track B runtime/tool execution",
+    "Track A visual/video pipeline",
+    "provider/model execution",
+    "frontend UX",
+    "production/external beta unlocks"
+  ],
+  "integrationPoints": [
+    198,
+    200,
+    223,
+    241,
+    247,
+    248
+  ],
+  "sourceOfTruthPaths": [
+    {
+      "path": "README.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true,
+      "type": "file"
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "present": false,
+      "type": "file"
+    },
+    {
+      "path": "docs/cross-chat",
+      "present": false,
+      "type": "file"
+    }
+  ],
+  "duplicateWorkAvoided": [
+    "no_new_reset_strategy",
+    "no_new_deploy_wrapper",
+    "no_new_milestone_registry_schema",
+    "no_reset_execution",
+    "no_schema_deploy",
+    "no_migration_history_repair"
+  ],
+  "supabaseEnvironmentTouched": "none_unless_readonly_staging_metadata_inspection_is_confirmed",
+  "sqlExecuted": "readonly_metadata_count_select_only_if_confirmed",
+  "migrationDeployed": false,
+  "productionAffected": false
+}

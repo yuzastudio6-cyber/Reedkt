@@ -1,0 +1,19 @@
+{
+  "phase": "supabase-clean-staging-target-approval",
+  "runId": "supabase-clean-staging-target-approval-20260610",
+  "status": "planning_review_passed_future_confirmation_required",
+  "branchAvailabilityReviewedForApproval": true,
+  "branchAvailabilityConfirmedNow": false,
+  "branchCostReviewedForApproval": true,
+  "branchCostConfirmedNow": false,
+  "projectFallbackCostHigherRisk": true,
+  "recommendedCostClass": "low_or_account_dependent_for_future_branch",
+  "costRisk": "low_medium_until_future_supabase_cost_confirmation",
+  "approvalPacketCostDecision": "acceptable_for_future_execution_gate",
+  "futureExecutionMustConfirmBranchAvailability": true,
+  "futureExecutionMustConfirmBranchCost": true,
+  "futureExecutionMustNotCreateProjectUnlessBranchUnavailable": true,
+  "productionBillingAffected": false,
+  "branchOrProjectCreated": false,
+  "blockers": []
+}

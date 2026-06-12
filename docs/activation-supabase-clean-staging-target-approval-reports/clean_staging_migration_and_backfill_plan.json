@@ -1,0 +1,23 @@
+{
+  "phase": "supabase-clean-staging-target-approval",
+  "runId": "supabase-clean-staging-target-approval-20260610",
+  "status": "planned_for_future_execution",
+  "localMigrationCount": 22,
+  "targetRegistryMigrationId": "202606050001",
+  "targetRegistryMigrationFile": "202606050001_activation_milestone_registry_schema_rls.sql",
+  "targetRegistryMigrationPresent": true,
+  "futureCleanTargetFlow": [
+    "create_or_select_clean_staging_branch_after_cost_and_availability_confirmation",
+    "apply_local_migrations_with_approved_supabase_workflow_in_future_execution_phase",
+    "verify_migration_history_schema_rls_and_registry_tables",
+    "run_pr198_track_b_backfill_preflight_and_diff",
+    "run_track_b_backfill_write_only_in_later_separate_guarded_phase"
+  ],
+  "cleanTargetMigrationApplyApprovedInThisPhase": false,
+  "schemaDeployRun": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "trackBBackfillSeparatePhaseRequired": true,
+  "directManualSqlAllowed": false,
+  "productionAffected": false
+}

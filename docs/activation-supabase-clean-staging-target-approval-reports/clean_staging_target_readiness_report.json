@@ -1,0 +1,22 @@
+{
+  "phase": "supabase-clean-staging-target-approval",
+  "runId": "supabase-clean-staging-target-approval-20260610",
+  "status": "future_clean_staging_target_approved_not_created",
+  "decision": "approved_for_future_clean_supabase_staging_branch",
+  "approvalStatus": "future_clean_staging_branch_approved_not_created",
+  "recommendedTarget": "clean_supabase_staging_branch",
+  "activeBlockers": [],
+  "resetExecutionAllowedInThisPhase": false,
+  "cleanStagingTargetCreationAllowedInThisPhase": false,
+  "migrationDeployAllowedInThisPhase": false,
+  "trackBBackfillAllowedInThisPhase": false,
+  "branchOrProjectCreated": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "migrationRepairRun": false,
+  "trackBBackfillRowsWritten": false,
+  "supportTicketSubmitted": false,
+  "productionAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "nextRecommendedPhase": "Prompt: Supabase clean staging target execution."
+}

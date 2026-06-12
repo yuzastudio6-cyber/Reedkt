@@ -1,0 +1,37 @@
+{
+  "phase": "supabase-clean-staging-target-approval",
+  "runId": "supabase-clean-staging-target-approval-20260610",
+  "status": "passed",
+  "recommendedTarget": "clean_supabase_staging_branch",
+  "options": [
+    {
+      "option": "existing_staging_repair",
+      "decision": "rejected",
+      "rationale": "Current staging repair is not safe to continue because schema equivalence is not proven, reset attempts failed, and registry migration remains absent.",
+      "futureUse": "only_after_separate_support_or_manual_recovery_decision"
+    },
+    {
+      "option": "clean_supabase_staging_branch",
+      "decision": "recommended",
+      "rationale": "Creates an isolated data-less staging target from a known base for clean migration apply and verification, without preserving broken current staging drift.",
+      "futureUse": "preferred_future_execution_target_after_cost_availability_and_secret_plan_confirmation"
+    },
+    {
+      "option": "clean_supabase_staging_project",
+      "decision": "fallback",
+      "rationale": "Use only if branch availability, branch cost, or branch lifecycle constraints block the preferred staging branch path.",
+      "futureUse": "future_fallback_approval_or_execution_gate"
+    },
+    {
+      "option": "support_ticket_wait",
+      "decision": "not_selected",
+      "rationale": "PR #276 prepared a manual ticket packet, but clean staging approval can proceed as a separate staging-only path while no ticket has been submitted.",
+      "futureUse": "parallel_or_fallback_operator_path"
+    }
+  ],
+  "existingStagingMustBePreserved": false,
+  "currentStagingDataRequiredForInternalTesting": false,
+  "branchOrProjectCreated": false,
+  "productionAffected": false,
+  "trackBBackfillRowsWritten": false
+}

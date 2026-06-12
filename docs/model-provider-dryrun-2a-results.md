@@ -6,7 +6,7 @@ Final state: `provider_dry_run_passed`.
 
 Branch: `codex/rp-model-dryrun-2a-provider-token-guardrail-fixes`.
 
-Pull request: pending.
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/336
 
 Run ID: `modeldryrun2-20260612T183757`.
 

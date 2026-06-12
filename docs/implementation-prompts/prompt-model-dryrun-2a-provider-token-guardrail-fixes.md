@@ -6,7 +6,7 @@ Base branch: `origin/codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-
 
 PR title: `[model] MODEL-DRYRUN-2A provider token guardrail fixes`
 
-Pull request: pending.
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/336
 
 Capability enabled: `none; MODEL-DRYRUN-2A provider token guardrail fixes only`
 
@@ -52,4 +52,4 @@ No worker execution, tool execution, route execution, raw prompt execution, broa
 
 ## Validation Status
 
-Local validation is in progress. PR link and CI status will be recorded after PR creation.
+Local validation passed. PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/336. CI status is pending.

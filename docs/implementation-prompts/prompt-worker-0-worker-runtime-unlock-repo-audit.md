@@ -6,7 +6,7 @@ Branch: `codex/rp-worker-0-worker-runtime-unlock-repo-audit`.
 
 Base branch: `origin/codex/rp-plan-snapshot-0-approved-plan-snapshot-contract`.
 
-Pull request: pending.
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/344
 
 ## Prompt Summary
 

@@ -1,0 +1,23 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "runId": "plansnapshot1-20260612T182758",
+  "status": "passed",
+  "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+  "sourceProviderRunId": "modeldryrun1-20260612T174538",
+  "sourceDecision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "executionStatus": "candidate_only",
+  "approvedForRuntime": false,
+  "workerRuntimeAuditReadiness": "ready_for_worker_runtime_repo_audit",
+  "privateArtifactUploadStatus": "uploaded",
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false,
+    "syncLayerDirectoryPresent": false
+  },
+  "activeBlockers": []
+}

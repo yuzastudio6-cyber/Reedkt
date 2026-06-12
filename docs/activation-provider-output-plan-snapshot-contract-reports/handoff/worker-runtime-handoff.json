@@ -1,0 +1,15 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "status": "ready_for_worker_runtime_repo_audit",
+  "runtimeReady": false,
+  "approvedForRuntime": false,
+  "nextOwner": "WORKER_RUNTIME_JOBS",
+  "allowedAction": "review_candidate_contract_only",
+  "blockedUntil": [
+    "Worker Runtime owner reviews candidate schema and execution blockers.",
+    "Approved plan snapshot persistence contract is implemented in a later backend phase.",
+    "Credit reservation, worker dispatch, provider/tool execution, rendering, and media handling remain separately approved future work."
+  ],
+  "sourceSnapshotPlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "executionAllowed": false
+}

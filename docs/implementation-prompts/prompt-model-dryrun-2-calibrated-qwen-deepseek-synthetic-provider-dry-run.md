@@ -6,6 +6,8 @@ Base branch: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-cal
 
 PR title: `[model] MODEL-DRYRUN-2 calibrated Qwen DeepSeek synthetic provider dry run`
 
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/333
+
 Capability enabled: `none; calibrated Qwen/DeepSeek synthetic provider dry-run retry only`
 
 ## Supplied Prompt Summary

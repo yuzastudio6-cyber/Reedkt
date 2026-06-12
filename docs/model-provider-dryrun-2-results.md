@@ -6,6 +6,8 @@ Final state: `blocked_provider_call_failed`.
 
 Run ID: `modeldryrun2-20260612T180334`.
 
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/333
+
 Qwen/DashScope status: `passed`.
 
 DeepSeek status: `passed`.

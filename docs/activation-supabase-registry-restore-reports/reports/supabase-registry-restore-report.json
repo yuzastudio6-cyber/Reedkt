@@ -1,0 +1,460 @@
+{
+  "phase": "supabase-registry-1-activation-milestone-registry-staging-restoration",
+  "runId": "registry1-20260612T135915",
+  "createdAt": "2026-06-12T13:59:19.503Z",
+  "branch": "codex/rp-supabase-registry-1-activation-milestone-registry-staging-restoration",
+  "baseBranch": "codex/rp-foundation-supabase-staging-schema-deploy-after-target-reference",
+  "execution": "proof_only_completed",
+  "approvedStagingTarget": {
+    "status": "passed",
+    "approvedStagingTargetReferenceFound": true,
+    "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+    "approvedStagingProjectName": "Reeditpro",
+    "approvedEnvironment": "staging",
+    "approvedReferenceSource": "docs/supabase-approved-staging-target-reference.md",
+    "sourceFilesInspected": [
+      {
+        "file": "docs/supabase-approved-staging-target-reference.md",
+        "exists": true,
+        "hasApprovedStatusMarker": true,
+        "hasProjectRefMarker": true,
+        "hasEnvironmentMarker": true
+      },
+      {
+        "file": "docs/supabase-staging-target-proof-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-plugin-staging-target-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      }
+    ],
+    "safeReferencePolicy": {
+      "projectRefIsSafeMetadata": true,
+      "dbUrlIsForbidden": true,
+      "keysTokensPasswordsForbidden": true,
+      "pluginObservationAloneIsNotApproval": true,
+      "runtimeEnvRefAloneIsNotApproval": true
+    },
+    "runtimeProvidedReferenceIgnored": false,
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": []
+  },
+  "gcpMetadata": {
+    "status": "passed",
+    "account": "aiediting@reeditpro.com",
+    "project": "reeditpro",
+    "projectDescribe": "reeditpro",
+    "metadataOnly": true,
+    "blockers": []
+  },
+  "secretMetadata": {
+    "status": "passed",
+    "secrets": [
+      {
+        "name": "SUPABASE_URL",
+        "present": true,
+        "metadataOnly": true
+      },
+      {
+        "name": "SUPABASE_SERVICE_ROLE_KEY",
+        "present": true,
+        "metadataOnly": true
+      },
+      {
+        "name": "SUPABASE_DB_URL",
+        "present": true,
+        "metadataOnly": true
+      }
+    ],
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": []
+  },
+  "bucketMetadata": {
+    "status": "passed",
+    "buckets": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "present": true,
+        "publicPrincipalDetected": false
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "present": true,
+        "publicPrincipalDetected": false
+      }
+    ],
+    "blockers": []
+  },
+  "migrationSafety": {
+    "status": "passed",
+    "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+    "exists": true,
+    "expectedTablesPresent": true,
+    "destructiveStatementsDetected": false,
+    "migrationId": "202606040001",
+    "blockers": [],
+    "warnings": [
+      "Static scan allows drop trigger statements but blocks table/schema/data destructive statements."
+    ]
+  },
+  "registryTableStatus": {
+    "status": "not_attempted",
+    "checkedWithSql": false,
+    "tables": [
+      {
+        "tableName": "activation_runs",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "activation_artifacts",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "activation_qa_gates",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "readiness_snapshots",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "tool_capabilities",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "feature_gates",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      }
+    ],
+    "allTablesPresent": false,
+    "rlsEnabledOnAllTables": false,
+    "unsafeAnonAuthenticatedOrPublicAccess": false,
+    "serviceRoleAccessOnAllTables": false,
+    "blocker": "SQL confirmation gates are absent; catalog SQL was not attempted."
+  },
+  "migrationHistoryStatus": {
+    "status": "not_attempted",
+    "migrationId": "202606040001",
+    "checkedWithSql": false,
+    "historyPresent": null,
+    "blocker": "SQL confirmation gates are absent; migration history SQL was not attempted."
+  },
+  "schemaCacheVisibility": {
+    "status": "not_attempted",
+    "catalogTablesPresent": false,
+    "postgrestAllTablesVisible": false,
+    "serviceRoleRestUsed": false,
+    "blockers": [
+      "Proof-only mode does not read service-role secret payloads."
+    ]
+  },
+  "rlsSecurityReview": {
+    "status": "not_attempted",
+    "checkedWithSql": false,
+    "tables": [
+      {
+        "tableName": "activation_runs",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "activation_artifacts",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "activation_qa_gates",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "readiness_snapshots",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "tool_capabilities",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      },
+      {
+        "tableName": "feature_gates",
+        "exists": false,
+        "rlsEnabled": false,
+        "anonUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false,
+        "publicUnsafeAccess": false,
+        "serviceRoleAccess": false
+      }
+    ],
+    "allTablesPresent": false,
+    "rlsEnabledOnAllTables": false,
+    "unsafeAnonAuthenticatedOrPublicAccess": false,
+    "serviceRoleAccessOnAllTables": false,
+    "blocker": "SQL confirmation gates are absent; catalog SQL was not attempted."
+  },
+  "restorePlan": {
+    "mode": "proof_only",
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE",
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL"
+    ],
+    "confirmationsPresent": false,
+    "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+    "applyOnlyThisMigration": true,
+    "dbPushOverFullMigrationDirectoryAllowed": false,
+    "historicalBackfillAllowed": false,
+    "provider1RerunAllowed": false,
+    "providerCallsAllowed": false,
+    "publicArtifactsAllowed": false,
+    "expectedTables": [
+      "activation_runs",
+      "activation_artifacts",
+      "activation_qa_gates",
+      "readiness_snapshots",
+      "tool_capabilities",
+      "feature_gates"
+    ],
+    "nextAction": "set_confirmation_gates_before_sql_or_gcs_execution"
+  },
+  "restoreResult": {
+    "status": "not_attempted",
+    "sqlExecuted": false,
+    "migrationApplied": false,
+    "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+    "blocker": "Proof-only mode does not execute SQL or migrations.",
+    "warnings": []
+  },
+  "postgrestVisibility": {
+    "status": "not_attempted",
+    "tables": [
+      {
+        "tableName": "activation_runs",
+        "exists": false,
+        "readCountStatus": "not_attempted",
+        "count": null,
+        "blocker": "Proof-only mode does not read service-role secret payloads."
+      },
+      {
+        "tableName": "activation_artifacts",
+        "exists": false,
+        "readCountStatus": "not_attempted",
+        "count": null,
+        "blocker": "Proof-only mode does not read service-role secret payloads."
+      },
+      {
+        "tableName": "activation_qa_gates",
+        "exists": false,
+        "readCountStatus": "not_attempted",
+        "count": null,
+        "blocker": "Proof-only mode does not read service-role secret payloads."
+      },
+      {
+        "tableName": "readiness_snapshots",
+        "exists": false,
+        "readCountStatus": "not_attempted",
+        "count": null,
+        "blocker": "Proof-only mode does not read service-role secret payloads."
+      },
+      {
+        "tableName": "tool_capabilities",
+        "exists": false,
+        "readCountStatus": "not_attempted",
+        "count": null,
+        "blocker": "Proof-only mode does not read service-role secret payloads."
+      },
+      {
+        "tableName": "feature_gates",
+        "exists": false,
+        "readCountStatus": "not_attempted",
+        "count": null,
+        "blocker": "Proof-only mode does not read service-role secret payloads."
+      }
+    ],
+    "allTablesPresent": false,
+    "serviceRoleRestUsed": false,
+    "ddlUsedThroughRest": false,
+    "blockers": [
+      "Proof-only mode does not read service-role secret payloads."
+    ],
+    "warnings": []
+  },
+  "provider1UnblockHandoff": {
+    "status": "blocked",
+    "provider1Pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/307",
+    "canRerunProvider1MilestoneSync": false,
+    "blockers": [
+      "blocked_pending_supabase_registry_restore_confirmation",
+      "SQL confirmation gates are absent; catalog SQL was not attempted.",
+      "Proof-only mode does not read service-role secret payloads."
+    ],
+    "nextOwner": "SUPABASE_RLS_STORAGE_DATABASE"
+  },
+  "qa": {
+    "status": "blocked",
+    "gates": [
+      {
+        "gateId": "approved_staging_target_verified",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Approved staging target reference must resolve to Reeditpro / wmyyttnynmteqgcdishd / staging."
+      },
+      {
+        "gateId": "secret_metadata_only",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Secret Manager metadata is checked without printing values; proof-only mode does not read payloads."
+      },
+      {
+        "gateId": "registry_table_status",
+        "status": "not_attempted",
+        "mandatory": true,
+        "summary": "Six Phase 51D registry tables must exist in the approved staging target."
+      },
+      {
+        "gateId": "migration_history_status",
+        "status": "not_attempted",
+        "mandatory": false,
+        "summary": "Migration history should include the registry migration when a migration-safe transport is available."
+      },
+      {
+        "gateId": "rls_safety",
+        "status": "not_attempted",
+        "mandatory": true,
+        "summary": "Registry tables must have RLS enabled, no unsafe public/anon/authenticated access, and service-role access."
+      },
+      {
+        "gateId": "postgrest_visibility",
+        "status": "not_attempted",
+        "mandatory": true,
+        "summary": "Service-role zero-row PostgREST probes must see the six registry tables."
+      },
+      {
+        "gateId": "restore_safety",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "SQL and GCS writes remain blocked unless both restore confirmations are present."
+      },
+      {
+        "gateId": "provider1_unblock_status",
+        "status": "blocked",
+        "mandatory": true,
+        "summary": "Provider-1 remains blocked until table/RLS/PostgREST checks pass."
+      },
+      {
+        "gateId": "blocked_features",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Production, beta, broad media, provider calls, workers/tools/models, public artifacts, and unrelated SQL remain blocked."
+      }
+    ],
+    "blockers": [
+      "provider1_unblock_status"
+    ]
+  },
+  "artifacts": [],
+  "blockedFeatures": [
+    "production",
+    "external_beta",
+    "broad_media",
+    "unrelated_sql",
+    "schema_reset",
+    "rls_weakening",
+    "unrelated_row_writes",
+    "provider_calls",
+    "worker_tool_model_execution",
+    "public_artifacts"
+  ],
+  "packageLockUnchangedRequired": true,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "supabaseRowsWritten": false,
+  "gcsUploaded": false,
+  "blockers": [
+    "blocked_pending_supabase_registry_restore_confirmation",
+    "provider1_unblock_status"
+  ],
+  "warnings": [
+    "Proof-only mode completed because REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE and REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL are not both true."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "status": "not_attempted",
+  "catalogTablesPresent": false,
+  "postgrestAllTablesVisible": false,
+  "serviceRoleRestUsed": false,
+  "blockers": [
+    "Proof-only mode does not read service-role secret payloads."
+  ]
+}

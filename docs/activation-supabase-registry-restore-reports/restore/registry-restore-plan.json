@@ -1,0 +1,24 @@
+{
+  "mode": "proof_only",
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL"
+  ],
+  "confirmationsPresent": false,
+  "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+  "applyOnlyThisMigration": true,
+  "dbPushOverFullMigrationDirectoryAllowed": false,
+  "historicalBackfillAllowed": false,
+  "provider1RerunAllowed": false,
+  "providerCallsAllowed": false,
+  "publicArtifactsAllowed": false,
+  "expectedTables": [
+    "activation_runs",
+    "activation_artifacts",
+    "activation_qa_gates",
+    "readiness_snapshots",
+    "tool_capabilities",
+    "feature_gates"
+  ],
+  "nextAction": "set_confirmation_gates_before_sql_or_gcs_execution"
+}

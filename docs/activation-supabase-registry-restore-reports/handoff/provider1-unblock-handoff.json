@@ -1,0 +1,11 @@
+{
+  "status": "blocked",
+  "provider1Pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/307",
+  "canRerunProvider1MilestoneSync": false,
+  "blockers": [
+    "blocked_pending_supabase_registry_restore_confirmation",
+    "SQL confirmation gates are absent; catalog SQL was not attempted.",
+    "Proof-only mode does not read service-role secret payloads."
+  ],
+  "nextOwner": "SUPABASE_RLS_STORAGE_DATABASE"
+}

@@ -1,0 +1,7 @@
+{
+  "status": "not_attempted",
+  "migrationId": "202606040001",
+  "checkedWithSql": false,
+  "historyPresent": null,
+  "blocker": "SQL confirmation gates are absent; migration history SQL was not attempted."
+}

@@ -1,0 +1,54 @@
+{
+  "status": "not_attempted",
+  "tables": [
+    {
+      "tableName": "activation_runs",
+      "exists": false,
+      "readCountStatus": "not_attempted",
+      "count": null,
+      "blocker": "Proof-only mode does not read service-role secret payloads."
+    },
+    {
+      "tableName": "activation_artifacts",
+      "exists": false,
+      "readCountStatus": "not_attempted",
+      "count": null,
+      "blocker": "Proof-only mode does not read service-role secret payloads."
+    },
+    {
+      "tableName": "activation_qa_gates",
+      "exists": false,
+      "readCountStatus": "not_attempted",
+      "count": null,
+      "blocker": "Proof-only mode does not read service-role secret payloads."
+    },
+    {
+      "tableName": "readiness_snapshots",
+      "exists": false,
+      "readCountStatus": "not_attempted",
+      "count": null,
+      "blocker": "Proof-only mode does not read service-role secret payloads."
+    },
+    {
+      "tableName": "tool_capabilities",
+      "exists": false,
+      "readCountStatus": "not_attempted",
+      "count": null,
+      "blocker": "Proof-only mode does not read service-role secret payloads."
+    },
+    {
+      "tableName": "feature_gates",
+      "exists": false,
+      "readCountStatus": "not_attempted",
+      "count": null,
+      "blocker": "Proof-only mode does not read service-role secret payloads."
+    }
+  ],
+  "allTablesPresent": false,
+  "serviceRoleRestUsed": false,
+  "ddlUsedThroughRest": false,
+  "blockers": [
+    "Proof-only mode does not read service-role secret payloads."
+  ],
+  "warnings": []
+}

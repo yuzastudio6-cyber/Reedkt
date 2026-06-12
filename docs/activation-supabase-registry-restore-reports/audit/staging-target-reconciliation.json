@@ -1,0 +1,112 @@
+{
+  "approvedStagingTarget": {
+    "status": "passed",
+    "approvedStagingTargetReferenceFound": true,
+    "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+    "approvedStagingProjectName": "Reeditpro",
+    "approvedEnvironment": "staging",
+    "approvedReferenceSource": "docs/supabase-approved-staging-target-reference.md",
+    "sourceFilesInspected": [
+      {
+        "file": "docs/supabase-approved-staging-target-reference.md",
+        "exists": true,
+        "hasApprovedStatusMarker": true,
+        "hasProjectRefMarker": true,
+        "hasEnvironmentMarker": true
+      },
+      {
+        "file": "docs/supabase-staging-target-proof-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-plugin-staging-target-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      }
+    ],
+    "safeReferencePolicy": {
+      "projectRefIsSafeMetadata": true,
+      "dbUrlIsForbidden": true,
+      "keysTokensPasswordsForbidden": true,
+      "pluginObservationAloneIsNotApproval": true,
+      "runtimeEnvRefAloneIsNotApproval": true
+    },
+    "runtimeProvidedReferenceIgnored": false,
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": []
+  },
+  "gcpMetadata": {
+    "status": "passed",
+    "account": "aiediting@reeditpro.com",
+    "project": "reeditpro",
+    "projectDescribe": "reeditpro",
+    "metadataOnly": true,
+    "blockers": []
+  },
+  "secretMetadata": {
+    "status": "passed",
+    "secrets": [
+      {
+        "name": "SUPABASE_URL",
+        "present": true,
+        "metadataOnly": true
+      },
+      {
+        "name": "SUPABASE_SERVICE_ROLE_KEY",
+        "present": true,
+        "metadataOnly": true
+      },
+      {
+        "name": "SUPABASE_DB_URL",
+        "present": true,
+        "metadataOnly": true
+      }
+    ],
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": []
+  },
+  "bucketMetadata": {
+    "status": "passed",
+    "buckets": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "present": true,
+        "publicPrincipalDetected": false
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "present": true,
+        "publicPrincipalDetected": false
+      }
+    ],
+    "blockers": []
+  }
+}

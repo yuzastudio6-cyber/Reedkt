@@ -1,0 +1,23 @@
+{
+  "phase": "supabase-trackb-clean-staging-backfill",
+  "runId": "supabase-trackb-clean-staging-backfill-20260611",
+  "status": "passed",
+  "targetProjectRef": "fnjiylwirntrqdcwpbho",
+  "branchName": "reeditpro-internal-staging-clean",
+  "parentProjectRef": "wmyyttnynmteqgcdishd",
+  "environment": "clean_staging",
+  "targetReferenceStatus": "passed",
+  "schemaRlsStatus": "passed",
+  "activationRegistryTablesPresent": true,
+  "activationRegistryTableCount": 11,
+  "rlsEnabledOnRegistryTables": true,
+  "publicAnonAuthenticatedUnsafeAccess": false,
+  "migrationHistoryStatus": "passed",
+  "committedRegistryMigrationId": "202606050001",
+  "observedRegistryMigrationVersion": "20260610235210",
+  "pluginGeneratedMigrationVersion": true,
+  "productionAffected": false,
+  "brokenOriginalStagingAffected": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

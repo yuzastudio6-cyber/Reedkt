@@ -1,0 +1,26 @@
+{
+  "phase": "supabase-trackb-clean-staging-backfill",
+  "runId": "supabase-trackb-clean-staging-backfill-20260611",
+  "status": "committed_safe_metadata_only",
+  "reportDir": "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "trackb_clean_staging_backfill_plan.json",
+    "trackb_export_validation_report.json",
+    "clean_staging_target_preflight_report.json",
+    "trackb_clean_staging_backfill_mapping_report.json",
+    "trackb_clean_staging_backfill_diff_report.json",
+    "trackb_clean_staging_backfill_write_report.json",
+    "trackb_clean_staging_backfill_verification_report.json",
+    "trackb_clean_staging_backfill_audit_report.json",
+    "trackb_clean_staging_backfill_blocker_report.json",
+    "trackb_clean_staging_backfill_readiness_report.json",
+    "trackb_clean_staging_backfill_private_artifact_manifest.json"
+  ],
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "privatePayloadsCommitted": false,
+  "secretPayloadsCommitted": false,
+  "dbUrlsCommitted": false,
+  "mediaPayloadsCommitted": false
+}

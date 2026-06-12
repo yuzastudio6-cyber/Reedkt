@@ -412,6 +412,26 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Milestone Note
+
+TRACKA-GD-GROUPB-HANDOFF-3 records `group_b_private_preview_local_passed_with_warnings`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_local_passed_with_warnings`.
+
+Group B fixtures covered with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`.
+
+This milestone adds local/private evidence summaries from committed GD-10 evidence only. It does not import Anime.js, start Lottie browser/player behavior, call Remotion renderer/export APIs, unlock internal beta, unlock external beta, unlock production, create public artifacts, create signed URLs, upload storage, mutate Supabase, run SQL, call GCP/Secret Manager, or mutate dependencies.
+
+Capability: `none; Track A Group B creative graphics private preview execution only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next recommended milestone: `TRACKA-GD-GROUPB-HANDOFF-4 - Group B Private Preview QA Review`.
+
 ## TRACKA-GD-GROUPB-HANDOFF-2 Milestone Note
 
 TRACKA-GD-GROUPB-HANDOFF-2 records `ready_with_warnings_for_tracka_gd_groupb_handoff_3`.

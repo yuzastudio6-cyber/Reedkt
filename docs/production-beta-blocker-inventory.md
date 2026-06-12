@@ -312,6 +312,34 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Blocker Inventory Addendum
+
+Result: `group_b_private_preview_local_passed_with_warnings`
+
+Partially mitigated blocker: Group B Track A local/private evidence summary.
+
+Covered with warnings:
+
+- `anime_js_motion`: committed synthetic timing evidence verified.
+- `lottie_web_overlays`: committed manifest-only evidence verified; browser/player behavior remains blocked.
+- `remotion_graphics`: committed manifest-only evidence verified; render/export remains blocked.
+
+Remaining blockers:
+
+- Group B QA review and any future private sample gate.
+- Internal beta approved: false.
+- External beta approved: false.
+- Production approved: false.
+- CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+Capability: `none; Track A Group B creative graphics private preview execution only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-GROUPB-HANDOFF-2 Blocker Inventory Addendum
 
 Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`

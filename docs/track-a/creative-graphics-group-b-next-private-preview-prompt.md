@@ -91,3 +91,27 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-GROUPB-HANDOFF-3 Next Private Preview Prompt Update
+
+Decision state: `group_b_private_preview_local_passed_with_warnings`
+
+## Recommended Next Prompt
+
+`TRACKA-GD-GROUPB-HANDOFF-4 - Group B Private Preview QA Review`
+
+Use when the next step is a static QA review of the Handoff-3 Group B local/private evidence summaries for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`.
+
+## Fix Prompt
+
+`TRACKA-GD-GROUPB-HANDOFF-3A - Group B Private Preview Execution Fix`
+
+Use if diagnostics, CI, or review finds missing Handoff-3 evidence summaries, inconsistent source verification, unsafe claims, or local output checksum mismatch records.
+
+Capability: `none; Track A Group B creative graphics private preview execution only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

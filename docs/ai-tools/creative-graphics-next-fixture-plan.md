@@ -250,6 +250,24 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Next Fixture Addendum
+
+Decision state: `group_b_private_preview_local_passed_with_warnings`
+
+Group B covered fixtures: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+
+Next fixture-related prompt: `TRACKA-GD-GROUPB-HANDOFF-4 - Group B Private Preview QA Review`.
+
+Group B local/private evidence remains warning-bound. Lottie player/browser behavior and Remotion render/export remain blocked.
+
+Capability: `none; Track A Group B creative graphics private preview execution only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-HANDOFF-7 Next Fixture Note
 
 Handoff-7 result: `controlled_private_sample_qa_passed_with_warnings`.

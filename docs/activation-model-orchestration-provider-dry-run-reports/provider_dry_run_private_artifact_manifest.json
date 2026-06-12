@@ -1,0 +1,44 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "runId": "model-orchestration-provider-dry-run-20260612",
+  "reportDir": "docs/activation-model-orchestration-provider-dry-run-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "provider_dry_run_plan.json",
+    "provider_secret_access_report.json",
+    "provider_dry_run_loaded_cases_report.json",
+    "qwen_provider_dry_run_report.json",
+    "deepseek_provider_dry_run_report.json",
+    "provider_dry_run_comparison_report.json",
+    "provider_dry_run_fail_closed_verification.json",
+    "provider_dry_run_decision.json",
+    "provider_dry_run_blocker_report.json",
+    "provider_dry_run_readiness_report.json",
+    "provider_dry_run_private_artifact_manifest.json"
+  ],
+  "committedArtifactClasses": [
+    "safe_json_reports",
+    "safe_markdown_docs",
+    "server_only_dry_run_code"
+  ],
+  "excludedArtifactClasses": [
+    "api_keys",
+    "db_urls",
+    "service_role_keys",
+    "anon_keys",
+    "access_tokens",
+    "secret_payloads",
+    "signed_urls",
+    "raw_provider_responses",
+    "private_payloads",
+    "media_payloads",
+    "node_modules",
+    "caches",
+    "build_outputs"
+  ],
+  "executed": true,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "rawProviderResponsesStored": false,
+  "supabaseWrites": false
+}

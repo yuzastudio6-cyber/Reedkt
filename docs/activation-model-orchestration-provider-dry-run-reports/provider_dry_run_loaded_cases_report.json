@@ -1,0 +1,91 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "status": "passed",
+  "executed": true,
+  "sourcePath": "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_synthetic_cases.json",
+  "loadedCaseCount": 8,
+  "providerCallCaseCount": 7,
+  "localValidationFixtureCaseCount": 1,
+  "syntheticOnly": true,
+  "containsUserData": false,
+  "containsMedia": false,
+  "rawPromptStoredInReports": false,
+  "cases": [
+    {
+      "caseId": "synthetic_edit_intent_extraction",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "expectedOutputSchema": "agent_findings_v1",
+      "maxTokens": 900,
+      "timeoutMs": 12000,
+      "promptCharacterCount": 98,
+      "promptTextStored": false
+    },
+    {
+      "caseId": "synthetic_timeline_planning",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "expectedOutputSchema": "edit_intents_v1",
+      "maxTokens": 1100,
+      "timeoutMs": 12000,
+      "promptCharacterCount": 81,
+      "promptTextStored": false
+    },
+    {
+      "caseId": "synthetic_tool_route_metadata_recommendation",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "expectedOutputSchema": "plan_snapshot_candidate_v1",
+      "maxTokens": 1000,
+      "timeoutMs": 12000,
+      "promptCharacterCount": 101,
+      "promptTextStored": false
+    },
+    {
+      "caseId": "synthetic_provider_fallback_comparison",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-max",
+      "expectedOutputSchema": "provider_fallback_assessment_v1",
+      "maxTokens": 1200,
+      "timeoutMs": 15000,
+      "promptCharacterCount": 97,
+      "promptTextStored": false
+    },
+    {
+      "caseId": "synthetic_blocker_classification",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "expectedOutputSchema": "blocker_classification_v1",
+      "maxTokens": 800,
+      "timeoutMs": 10000,
+      "promptCharacterCount": 73,
+      "promptTextStored": false
+    },
+    {
+      "caseId": "synthetic_rejected_raw_prompt_to_worker",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "expectedOutputSchema": "blocker_classification_v1",
+      "maxTokens": 700,
+      "timeoutMs": 10000,
+      "promptCharacterCount": 85,
+      "promptTextStored": false
+    },
+    {
+      "caseId": "synthetic_cost_scope_risk_explanation",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-pro",
+      "expectedOutputSchema": "blocker_classification_v1",
+      "maxTokens": 1000,
+      "timeoutMs": 12000,
+      "promptCharacterCount": 96,
+      "promptTextStored": false
+    }
+  ],
+  "schemaInvalidFixture": {
+    "caseId": "synthetic_schema_invalid_response_failure",
+    "providerCall": false,
+    "localValidationFixture": true,
+    "promptTextStored": false
+  }
+}

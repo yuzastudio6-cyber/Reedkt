@@ -1,0 +1,27 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "runId": "model-orchestration-provider-dry-run-20260612",
+  "status": "blocked",
+  "decision": "blocked_pending_provider_error_review",
+  "activeBlockers": [
+    "provider_family_schema_valid_output_missing",
+    "provider_auth_or_permission_failed"
+  ],
+  "providerCallsAttempted": true,
+  "qwenApiCallAllowedInThisPhase": true,
+  "deepseekApiCallAllowedInThisPhase": true,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "supabaseWrites": false,
+  "rawPromptExecutionIntoWorkersOrTools": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "nextRecommendedPhase": "Resolve the exact secret/model/schema/provider blocker before another dry-run."
+}

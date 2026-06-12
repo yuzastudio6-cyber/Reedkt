@@ -28,6 +28,7 @@ on:
       - codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review
       - codex/rp-gd-9-group-b-package-runtime-review-fixture-gate
       - codex/rp-gd-10-group-b-controlled-local-fixture-execution
+      - codex/rp-tracka-gd-groupb-handoff-0-review
 
 jobs:
   foundation-validation:

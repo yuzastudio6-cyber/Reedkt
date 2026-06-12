@@ -58,6 +58,7 @@ const requiredChecks = [
   'ai-tools:creative-graphics:group-b-runtime-gate:diagnostics',
   'ai-tools:creative-graphics:group-b-local-fixtures:diagnostics',
   'tracka:creative-graphics:group-b-handoff:diagnostics',
+  'tracka:creative-graphics:group-b-private-preview-plan:diagnostics',
 ];
 
 const results = [];

@@ -1,0 +1,43 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "activeBlockers": [],
+  "acceptedFutureInput": "approved_plan_snapshot_v1",
+  "rejectedInputs": [
+    "raw_chat_prompt",
+    "provider_response",
+    "agent_findings_v1_direct_execution",
+    "edit_intents_v1_direct_execution",
+    "plan_snapshot_candidate_v1_direct_execution",
+    "tool_route_metadata_direct_execution"
+  ],
+  "requiredFutureRefs": [
+    "approved_plan_snapshot_id",
+    "credit_or_cost_gate_ref",
+    "private_artifact_manifest_ref",
+    "source_of_truth_refs",
+    "worker_runtime_dry_run_approval_ref"
+  ],
+  "runtimeExecutionAllowed": false,
+  "realToolExecutionAllowedInFutureDryRunApproval": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

@@ -1,0 +1,71 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "existingSignals": [
+    {
+      "path": "server/observability/worker-event-observability.ts",
+      "present": true
+    },
+    {
+      "path": "server/cost-controls/job-timeout-policy.ts",
+      "present": true
+    },
+    {
+      "path": "server/cost-controls/worker-concurrency-policy.ts",
+      "present": true
+    },
+    {
+      "path": "server/workers/worker-events.ts",
+      "present": true
+    },
+    {
+      "path": "server/workers/worker-result.ts",
+      "present": true
+    },
+    {
+      "path": "server/workers/production/production-worker-retry-policy.ts",
+      "present": true
+    },
+    {
+      "path": "server/workers/production/production-worker-idempotency.ts",
+      "present": true
+    },
+    {
+      "path": "server/workers/production/production-worker-artifact-policy.ts",
+      "present": true
+    }
+  ],
+  "futureRequirements": [
+    "per_run_correlation_id",
+    "approved_plan_snapshot_id",
+    "private_artifact_manifest_ids",
+    "cost_estimate_and_budget_guardrail_refs",
+    "retry_policy",
+    "timeout_policy",
+    "rollback_or_cleanup_policy",
+    "failure_state_reporting",
+    "abuse_and_rate_limit_controls",
+    "human_review_escalation"
+  ],
+  "currentPhaseRecordsOnlyRequirements": true,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

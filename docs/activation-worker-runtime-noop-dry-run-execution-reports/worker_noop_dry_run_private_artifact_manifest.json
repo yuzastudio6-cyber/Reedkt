@@ -1,0 +1,215 @@
+{
+  "phase": "worker-runtime-noop-dry-run-execution",
+  "runId": "worker-runtime-noop-dry-run-execution-20260612",
+  "status": "passed",
+  "artifacts": [
+    {
+      "name": "worker_noop_dry_run_plan.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_plan.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_source_of_truth_audit.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_source_of_truth_audit.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_fixture_inventory.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_fixture_inventory.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_valid_fixture_results.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_valid_fixture_results.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_invalid_fixture_results.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_invalid_fixture_results.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_queue_job_sidecar_guardrails.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_queue_job_sidecar_guardrails.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_artifact_source_ref_guardrails.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_artifact_source_ref_guardrails.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_raw_prompt_rejection.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_raw_prompt_rejection.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_signed_url_public_artifact_rejection.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_signed_url_public_artifact_rejection.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_supabase_no_write_verification.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_supabase_no_write_verification.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_runtime_no_execution_verification.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_runtime_no_execution_verification.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_observability_cost_metadata.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_observability_cost_metadata.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_billing_credit_placeholder_metadata.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_billing_credit_placeholder_metadata.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_fail_closed_events.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_fail_closed_events.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_execution_result.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_execution_result.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_execution_decision.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_execution_decision.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_readiness_report.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_readiness_report.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_private_artifact_manifest.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_private_artifact_manifest.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_noop_dry_run_summary.json",
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_summary.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "containsRawProviderOutput": false,
+      "publicArtifact": false
+    }
+  ],
+  "resultDoc": "docs/worker-runtime-noop-dry-run-execution-result.md",
+  "nextPrompt": "docs/implementation-prompts/prompt-worker-runtime-unlock-2-dry-run-contract-review.md",
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false
+}

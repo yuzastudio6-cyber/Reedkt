@@ -1,0 +1,130 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "artifacts": [
+    {
+      "name": "source_of_truth_ownership_audit.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/source_of_truth_ownership_audit.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_runtime_repo_audit_plan.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_plan.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_job_queue_inventory.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_job_queue_inventory.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "approved_plan_snapshot_intake_review.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/approved_plan_snapshot_intake_review.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "artifact_scope_source_of_truth_review.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/artifact_scope_source_of_truth_review.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_execution_blocker_policy.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_execution_blocker_policy.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_secret_reference_inventory.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_secret_reference_inventory.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_observability_cost_failure_review.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_observability_cost_failure_review.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_runtime_gap_map.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_gap_map.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_runtime_repo_audit_decision.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_decision.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_runtime_repo_audit_blocker_report.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_blocker_report.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_runtime_repo_audit_readiness_report.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_readiness_report.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    },
+    {
+      "name": "worker_runtime_repo_audit_private_artifact_manifest.json",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_private_artifact_manifest.json",
+      "classification": "safe_metadata_report",
+      "containsSecretPayload": false,
+      "containsPrivatePayload": false,
+      "publicArtifact": false
+    }
+  ],
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

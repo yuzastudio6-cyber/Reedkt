@@ -1,0 +1,75 @@
+{
+  "phase": "worker-runtime-noop-dry-run-execution",
+  "runId": "worker-runtime-noop-dry-run-execution-20260612",
+  "status": "passed",
+  "failClosedEventCount": 4,
+  "events": [
+    {
+      "caseId": "invalid_raw_prompt_worker_input",
+      "rejectionReason": "raw_prompt_worker_input",
+      "blockedActions": [
+        "raw_prompt_execution"
+      ],
+      "runtimePrevented": true
+    },
+    {
+      "caseId": "invalid_public_artifact_output_request",
+      "rejectionReason": "public_artifact_output_request",
+      "blockedActions": [
+        "public_artifacts"
+      ],
+      "runtimePrevented": true
+    },
+    {
+      "caseId": "invalid_broad_media_processing_request",
+      "rejectionReason": "broad_media_processing_request",
+      "blockedActions": [
+        "broad_media_processing"
+      ],
+      "runtimePrevented": true
+    },
+    {
+      "caseId": "invalid_production_write_request",
+      "rejectionReason": "production_write_request",
+      "blockedActions": [
+        "production_write"
+      ],
+      "runtimePrevented": true
+    }
+  ],
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false
+}

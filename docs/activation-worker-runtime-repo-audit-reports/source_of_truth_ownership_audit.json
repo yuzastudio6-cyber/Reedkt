@@ -1,0 +1,181 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "owner": "WORKER_RUNTIME_JOBS",
+  "relatedWorkstreams": [
+    "MODEL_ORCHESTRATION",
+    "SUPABASE_RLS_STORAGE_DATABASE",
+    "TRACK_B_MEDIA_PROCESSING",
+    "PROVIDER_GATEWAY",
+    "PRODUCT_INTERNAL_BETA_AGGREGATION",
+    "OBSERVABILITY_AUDIT_COST",
+    "PUBLIC_ARTIFACT_DELIVERY"
+  ],
+  "explicitlyNotOwned": [
+    "model_provider_execution",
+    "track_b_tool_runtime_execution",
+    "track_a_runtime",
+    "production_deploy",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "signed_url_delivery",
+    "raw_prompt_execution",
+    "broad_media_processing"
+  ],
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "present": false
+    },
+    {
+      "path": "editing-agent-execution-architecture.md",
+      "present": true
+    },
+    {
+      "path": "async-edit-work-graph.md",
+      "present": true
+    },
+    {
+      "path": "editing-asset-manifest.md",
+      "present": true
+    },
+    {
+      "path": "approved-plan-snapshot-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "present": false
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "present": false
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "present": false
+    },
+    {
+      "path": "docs/tool-readiness-worker-runtime-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/tool-call-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/provider-gateway-foundation.md",
+      "present": false
+    },
+    {
+      "path": "docs/model-orchestration-plan-snapshot-contract.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-approved-plan-snapshot-schema.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-approval-gate-worker-handoff-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/implementation-prompts/prompt-worker-runtime-jobs-repo-audit-after-plan-snapshot.md",
+      "present": true
+    },
+    {
+      "path": "docs/internal-testing-allowed-scope-freeze.md",
+      "present": true
+    },
+    {
+      "path": "docs/internal-testing-blocked-scope-freeze.md",
+      "present": true
+    },
+    {
+      "path": "docs/restricted-internal-testing-session-0-decision.md",
+      "present": true
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": true
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": true
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "present": false
+    },
+    {
+      "path": "docs/cross-chat",
+      "present": false
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-track-b-tool-route-manifest-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-track-b-capability-manifests-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44k-desktop-beta-readiness-gate-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44m-noop-route-dry-run-execution-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-phase-44o-metadata-route-dry-run-execution-reports",
+      "present": true
+    }
+  ],
+  "missingDocsAreAuditFacts": true,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

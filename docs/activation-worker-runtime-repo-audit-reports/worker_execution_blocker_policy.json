@@ -1,0 +1,43 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "blockedExecutionPaths": [
+    "raw_prompt_execution",
+    "unapproved_plan_snapshot_execution",
+    "provider_response_direct_execution",
+    "tool_route_direct_execution",
+    "broad_media_processing",
+    "public_output_generation",
+    "production_write_or_deploy",
+    "secret_access_from_frontend",
+    "arbitrary_subprocess_or_path",
+    "docker_run_without_separate_approval",
+    "cloud_run_or_cloud_build_without_separate_approval"
+  ],
+  "futureDryRunApprovalMayUseOnly": [
+    "synthetic_approved_plan_snapshot_fixtures",
+    "no_op_worker_contracts",
+    "metadata_only_artifact_scope_validation",
+    "no_real_tool_or_media_execution"
+  ],
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

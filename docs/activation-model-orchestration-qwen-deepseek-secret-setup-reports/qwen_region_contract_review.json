@@ -1,0 +1,53 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-secret-setup",
+  "runId": "model-orchestration-qwen-deepseek-secret-setup-20260612",
+  "status": "passed",
+  "reviewMode": "metadata_only_no_provider_calls_no_secret_payload_access",
+  "operatorExternalUpdateRecorded": true,
+  "operatorExternalUpdateScope": "dashscope_api_key_updated_outside_codex_and_region_changed_to_us",
+  "selectedRegion": "us_virginia",
+  "selectedBaseUrl": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+  "selectedChatCompletionsEndpoint": "https://dashscope-us.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "singaporeBaseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+  "beijingBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "historicalPr320Endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "historicalPr320EndpointRegion": "beijing_or_generic_dashscope_compatible_mode",
+  "regionalApiKeysDiffer": true,
+  "oldEndpointNotSelectedForNextRerun": true,
+  "officialDocsReviewed": [
+    {
+      "label": "Alibaba Cloud Model Studio OpenAI Chat",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions",
+      "factsRecorded": [
+        "us_virginia_base_url",
+        "us_virginia_chat_completions_endpoint",
+        "regional_api_keys_differ"
+      ]
+    },
+    {
+      "label": "Alibaba Cloud Model Studio OpenAI-compatible chat",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+      "factsRecorded": [
+        "us_qwen_plus_alias_family",
+        "us_qwen_flash_alias_family",
+        "international_aliases_separate_from_us_aliases"
+      ]
+    },
+    {
+      "label": "Alibaba Cloud Model Studio model list",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/models",
+      "factsRecorded": [
+        "us_deployment_model_catalog_lists_qwen_flash_us"
+      ]
+    },
+    {
+      "label": "Alibaba Cloud Model Studio sub-workspace model calling",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-calling-in-sub-workspace",
+      "factsRecorded": [
+        "subworkspace_api_keys_can_require_model_call_permissions"
+      ]
+    }
+  ],
+  "providerCallsAttempted": false,
+  "secretPayloadAccessed": false
+}

@@ -1,0 +1,34 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-secret-setup",
+  "runId": "model-orchestration-qwen-deepseek-secret-setup-20260612",
+  "status": "passed",
+  "aliasReviewMode": "metadata_only_official_docs_contract",
+  "usDocumentedAliases": [
+    "qwen-plus-us",
+    "qwen-flash-us"
+  ],
+  "recommendedRerunAliases": [
+    "qwen-plus-us",
+    "qwen-flash-us"
+  ],
+  "defaultRerunModelId": "qwen-plus-us",
+  "alternateRerunModelId": "qwen-flash-us",
+  "historicalPr318ApprovedAliases": [
+    "qwen3.7-max",
+    "qwen3.7-plus"
+  ],
+  "historicalPr320AttemptedAliases": [
+    "qwen3.7-max",
+    "qwen3.7-plus"
+  ],
+  "historicalAliasesListedForUsInCurrentDocs": false,
+  "historicalAliasesReadyForUsRerun": false,
+  "historicalAliasesNotReadyForUsRerun": [
+    "qwen3.7-max",
+    "qwen3.7-plus"
+  ],
+  "aliasesChangedForNextRerunMetadata": true,
+  "modelAliasAvailabilityVerifiedByProvider": false,
+  "modelCallPermissionVerifiedByProvider": false,
+  "doNotInventAliases": true
+}

@@ -1,6 +1,6 @@
 {
   "phase": "MODEL_DRYRUN_1",
-  "runId": "modeldryrun1-20260612T154825Z",
+  "runId": "modeldryrun1-20260612T161750Z",
   "branch": "codex/rp-model-orchestration-qwen-deepseek-synthetic-provider-dry-run",
   "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
   "prTitle": "[model] Qwen DeepSeek synthetic provider dry run",

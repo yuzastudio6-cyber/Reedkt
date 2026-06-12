@@ -6,14 +6,14 @@
   "configuredUpperBoundUsd": 2,
   "maxProviderCallsApproved": 2,
   "providerCallsAttempted": 2,
-  "totalTokens": 1060,
+  "totalTokens": 722,
   "byCase": [
     {
       "caseId": "modeldryrun1_qwen_head_agent_planning",
       "providerId": "qwen_dashscope",
       "modelId": "qwen3.7-plus",
       "status": "blocked",
-      "latencyMs": 1283,
+      "latencyMs": 2891,
       "promptTokens": null,
       "completionTokens": null,
       "totalTokens": null,
@@ -25,10 +25,10 @@
       "providerId": "deepseek",
       "modelId": "deepseek-v4-flash",
       "status": "passed",
-      "latencyMs": 9556,
+      "latencyMs": 6506,
       "promptTokens": 316,
-      "completionTokens": 744,
-      "totalTokens": 1060,
+      "completionTokens": 406,
+      "totalTokens": 722,
       "costUsdExact": null,
       "costClassification": "usage_metadata_recorded_without_exact_pricing"
     }

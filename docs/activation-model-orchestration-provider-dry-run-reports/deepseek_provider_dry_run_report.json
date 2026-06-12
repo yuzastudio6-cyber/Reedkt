@@ -1,0 +1,157 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "provider": "deepseek",
+  "status": "passed",
+  "executed": true,
+  "providerCallsAttempted": 3,
+  "providerCallsPassed": 3,
+  "providerCallsBlocked": 0,
+  "endpoint": "https://api.deepseek.com/chat/completions",
+  "stream": false,
+  "tools": false,
+  "search": false,
+  "hiddenReasoningCapture": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "secretPayloadPrinted": false,
+  "results": [
+    {
+      "caseId": "synthetic_blocker_classification",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "schemaId": "blocker_classification_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 1955,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 225,
+        "completionTokens": 145,
+        "totalTokens": 370
+      },
+      "responseContentCharacters": 582,
+      "normalizedOutput": {
+        "caseId": "synthetic_blocker_classification",
+        "decision": "blocked",
+        "blockers": [
+          {
+            "type": "missing_output_frame",
+            "description": "Synthetic plan is missing confirmed output frame and asks for generation."
+          }
+        ],
+        "unsafeRequestedActions": [],
+        "safeNextStep": "Request user to provide a confirmed output frame or clarify the desired output.",
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "blocker_classification_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    },
+    {
+      "caseId": "synthetic_rejected_raw_prompt_to_worker",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "schemaId": "blocker_classification_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 391,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 233,
+        "completionTokens": 122,
+        "totalTokens": 355
+      },
+      "responseContentCharacters": 430,
+      "normalizedOutput": {
+        "caseId": "synthetic_rejected_raw_prompt_to_worker",
+        "decision": "rejected",
+        "blockers": [
+          "raw_prompt_forwarding_not_allowed"
+        ],
+        "unsafeRequestedActions": [
+          "forward_raw_prompt_to_worker"
+        ],
+        "safeNextStep": "none",
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "blocker_classification_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    },
+    {
+      "caseId": "synthetic_cost_scope_risk_explanation",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-pro",
+      "schemaId": "blocker_classification_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 401,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 238,
+        "completionTokens": 148,
+        "totalTokens": 386
+      },
+      "responseContentCharacters": 527,
+      "normalizedOutput": {
+        "caseId": "synthetic_cost_scope_risk_explanation",
+        "decision": "block",
+        "blockers": [
+          "cost_scope_risk_explanation"
+        ],
+        "unsafeRequestedActions": [
+          "broad_real_motion",
+          "VLM",
+          "provider_fallback"
+        ],
+        "safeNextStep": "Refine request to narrow scope and avoid high-cost or risky operations.",
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "blocker_classification_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    }
+  ]
+}

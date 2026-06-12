@@ -1,0 +1,80 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "runId": "model-orchestration-provider-dry-run-20260612",
+  "ownerWorkstream": "MODEL_ORCHESTRATION",
+  "sourceEvidence": "PR #318 committed dry-run approval reports and official provider docs",
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "present": true
+    },
+    {
+      "path": "AGENTS.md",
+      "present": true
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "present": true
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-approval.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-schema-contract.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-audit-redaction-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-dry-run-approval-decision.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-qwen-deepseek-audit.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-raw-prompt-blocker-policy.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-dry-run-approval-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-deepseek-audit-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-product-internal-testing-session-0-reports",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+      "present": true
+    }
+  ],
+  "pr318ReadinessStatus": "passed",
+  "pr318Decision": "approved_for_future_qwen_deepseek_provider_dry_run",
+  "expectedPr318Decision": "approved_for_future_qwen_deepseek_provider_dry_run",
+  "officialDocsBasis": [
+    "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
+    "https://api-docs.deepseek.com/",
+    "https://api-docs.deepseek.com/api/create-chat-completion"
+  ],
+  "providerGatewayRuntimeImported": false,
+  "productionRouteImported": false,
+  "supabaseWrites": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false
+}

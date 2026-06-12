@@ -1,0 +1,34 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "runId": "model-orchestration-provider-dry-run-20260612",
+  "status": "blocked",
+  "decision": "blocked_pending_provider_error_review",
+  "activeBlockers": [
+    "provider_family_schema_valid_output_missing",
+    "provider_auth_or_permission_failed"
+  ],
+  "providerCandidates": {
+    "qwenDefault": "qwen3.7-plus",
+    "qwenEscalation": "qwen3.7-max",
+    "deepseekDefault": "deepseek-v4-flash",
+    "deepseekEscalation": "deepseek-v4-pro"
+  },
+  "providerCallsAttempted": true,
+  "providerCallsExecuted": true,
+  "qwenApiCallsAllowedOnlyForSyntheticDryRun": true,
+  "deepseekApiCallsAllowedOnlyForSyntheticDryRun": true,
+  "planSnapshotContractReady": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "supabaseWrites": false,
+  "rawPromptExecutionIntoWorkersOrTools": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "production": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

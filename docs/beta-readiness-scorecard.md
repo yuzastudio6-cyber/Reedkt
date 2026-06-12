@@ -1,15 +1,14 @@
 # Beta Readiness Scorecard
 
-Session 0 owned metadata scorecard.
+Session 0 owned metadata scorecard with model orchestration provider dry-run status.
 
 Restricted internal testing session 0: `restricted_internal_testing_session_0_passed`.
 External beta allowed: `false`.
 Paid production allowed: `false`.
 Production allowed: `false`.
 
-Model orchestration Qwen/DeepSeek dry-run approval: `approved_for_future_qwen_deepseek_provider_dry_run`.
-Provider calls in this phase: `false`.
+Model orchestration provider dry-run decision: `blocked_pending_provider_error_review`.
+Plan snapshot contract readiness: `false`.
 Runtime/tool/worker/route execution: `false`.
 Supabase writes: `false`.
-
-This scorecard does not unlock external beta, paid production, public artifacts, runtime execution, provider calls, signed URLs, raw prompt execution, or Supabase writes.
+Public artifacts and signed URLs: `false`.

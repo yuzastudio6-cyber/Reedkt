@@ -1,0 +1,41 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "status": "blocked",
+  "executed": true,
+  "qwenCandidatePassed": false,
+  "deepseekCandidatePassed": true,
+  "officialAliasesOnly": true,
+  "totalProviderCalls": 7,
+  "maxTotalProviderCalls": 8,
+  "totalTokensReported": 1111,
+  "maxTotalTokens": 7200,
+  "costGuardrailStatus": "passed_by_call_and_token_caps",
+  "rawProviderResponseStored": false,
+  "unsafeOutputCount": 0,
+  "blockedCases": [
+    {
+      "caseId": "synthetic_edit_intent_extraction",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "blocker": "provider_auth_or_permission_failed"
+    },
+    {
+      "caseId": "synthetic_timeline_planning",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "blocker": "provider_auth_or_permission_failed"
+    },
+    {
+      "caseId": "synthetic_tool_route_metadata_recommendation",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "blocker": "provider_auth_or_permission_failed"
+    },
+    {
+      "caseId": "synthetic_provider_fallback_comparison",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-max",
+      "blocker": "provider_auth_or_permission_failed"
+    }
+  ]
+}

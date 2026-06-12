@@ -1,0 +1,31 @@
+{
+  "phase": "model-orchestration-provider-dry-run",
+  "status": "blocked",
+  "decision": "blocked_pending_provider_error_review",
+  "activeBlockers": [
+    "provider_family_schema_valid_output_missing",
+    "provider_auth_or_permission_failed"
+  ],
+  "blockedScopes": [
+    "tools_workers_routes",
+    "media_processing",
+    "supabase_writes",
+    "raw_prompt_execution_into_workers_or_tools",
+    "public_artifacts",
+    "signed_urls",
+    "production",
+    "external_beta",
+    "paid_production"
+  ],
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "supabaseWrites": false,
+  "rawPromptExecutionIntoWorkersOrTools": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadPrinted": false,
+  "rawProviderResponsesStored": false
+}

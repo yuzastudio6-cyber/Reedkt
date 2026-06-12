@@ -1,0 +1,28 @@
+{
+  "phase": "product-internal-testing-start-gate",
+  "runId": "product-internal-testing-start-gate-20260612",
+  "status": "passed",
+  "activeBlockers": [],
+  "blockedScopesPreserved": [
+    "production",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "signed_url_source_of_truth",
+    "raw_prompt_execution",
+    "runtime_tool_worker_provider_execution",
+    "broad_arbitrary_media",
+    "vlm_qwen_runtime",
+    "demucs_runtime",
+    "track_a_runtime",
+    "supabase_production_writes"
+  ],
+  "session0Started": false,
+  "internalTestingExecutionStarted": false,
+  "runtimeExecution": false,
+  "providerCalls": false,
+  "publicArtifacts": false,
+  "production": false,
+  "supabaseWrites": false,
+  "secretsPrintedOrCommitted": false
+}

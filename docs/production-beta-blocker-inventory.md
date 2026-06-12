@@ -51,3 +51,18 @@ WORKER-0 records source inventory and boundaries only. WORKER-1 is the recommend
 - `full_internal_beta`: `blocked_pending_workstream_gates`
 
 WORKER-1 records contract hardening and dry-run planning only. WORKER-2 is the recommended next prompt for worker runtime dry-run fixture planning and contract tests.
+
+## MERGE-0 Milestone PR Stack Audit
+
+- `milestone_pr_stack_audit`: `merge_readiness_packet_created`
+- `open_prs_inspected`: `346`
+- `draft_prs`: `21`
+- `missing_checks`: `257`
+- `pr_merge_execution`: blocked; MERGE-1 required
+- `branch_deletion`: blocked
+- `supabase_mutation`: blocked; update required `docs/status only`; status `docs_only`; environment `none`; SQL `none`; migration `no`
+- `internal_beta_unlock`: blocked
+- `external_beta_unlock`: blocked
+- `production_unlock`: blocked
+
+MERGE-0 records the release coordination policy only. Actual PR merging remains blocked until `MERGE-1 - Parent-First Milestone PR Merge Execution`.

@@ -1,0 +1,25 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-secret-setup",
+  "runId": "model-orchestration-qwen-deepseek-secret-setup-20260612",
+  "status": "metadata_ready",
+  "readyForQwenOnlyRerun": true,
+  "rerunScope": "qwen_dashscope_synthetic_provider_dry_run_only",
+  "qwenRerunAttempted": false,
+  "deepseekRerunAttempted": false,
+  "selectedRegion": "us_virginia",
+  "selectedEndpoint": "https://dashscope-us.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "selectedAliases": [
+    "qwen-plus-us",
+    "qwen-flash-us"
+  ],
+  "historicalAliasesExcludedFromUsRerun": [
+    "qwen3.7-max",
+    "qwen3.7-plus"
+  ],
+  "providerSecretValidityVerified": false,
+  "modelCallPermissionVerified": false,
+  "planSnapshotContractReady": false,
+  "requiresSeparateExplicitProviderRerunPrompt": true,
+  "noRuntimeUnlocks": true,
+  "nextRecommendedPrompt": "MODEL-ORCHESTRATION-QWEN-DEEPSEEK-PROVIDER-DRY-RUN-RERUN: rerun approved synthetic Qwen dry-run after secret/region update, no workers/tools/routes"
+}

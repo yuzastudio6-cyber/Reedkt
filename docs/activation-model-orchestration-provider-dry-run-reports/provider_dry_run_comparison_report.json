@@ -1,15 +1,39 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
-  "status": "not_attempted",
-  "executed": false,
-  "qwenCandidatePassed": false,
-  "deepseekCandidatePassed": false,
+  "phase": "MODEL_DRYRUN_1",
+  "status": "passed",
+  "executed": true,
+  "qwenCandidatePassed": true,
+  "deepseekCandidatePassed": true,
   "officialAliasesOnly": true,
-  "totalProviderCalls": 0,
-  "maxTotalProviderCalls": 8,
-  "totalTokensReported": 0,
+  "totalProviderCalls": 2,
+  "maxTotalProviderCalls": 2,
+  "totalTokensReported": 2449,
   "maxTotalTokens": 7200,
   "costGuardrailStatus": "passed_by_call_and_token_caps",
+  "providerUsageReturned": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_plan_snapshot",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "usageStatus": "reported_by_provider",
+      "usage": {
+        "promptTokens": 336,
+        "completionTokens": 1531,
+        "totalTokens": 1867
+      }
+    },
+    {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "provider": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "usageStatus": "reported_by_provider",
+      "usage": {
+        "promptTokens": 338,
+        "completionTokens": 244,
+        "totalTokens": 582
+      }
+    }
+  ],
   "rawProviderResponseStored": false,
   "unsafeOutputCount": 0,
   "blockedCases": []

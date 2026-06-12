@@ -1,10 +1,10 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
-  "branch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
-  "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
-  "prTitle": "[model] Qwen DeepSeek provider dry-run",
-  "mode": "synthetic_provider_dry_run_execution",
+  "phase": "MODEL_DRYRUN_1",
+  "runId": "modeldryrun1-20260612T174538",
+  "branch": "codex/rp-model-orchestration-qwen-deepseek-full-synthetic-provider-dry-run",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "prTitle": "[model] Qwen DeepSeek full synthetic provider dry run",
+  "mode": "qwen_deepseek_full_synthetic_provider_dry_run",
   "reportDir": "docs/activation-model-orchestration-provider-dry-run-reports",
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
@@ -21,15 +21,14 @@
     "provider_dry_run_private_artifact_manifest.json"
   ],
   "requiredConfirmations": [
-    "REEDITPRO_CONFIRM_MODEL_ORCHESTRATION_PROVIDER_DRY_RUN",
-    "REEDITPRO_CONFIRM_QWEN_API_CALL",
-    "REEDITPRO_CONFIRM_DEEPSEEK_API_CALL",
-    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
-    "REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY",
-    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_ACCESS_FOR_PROVIDER_DRY_RUN",
-    "REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY",
-    "REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS"
+    "REEDITPRO_CONFIRM_QWEN_DEEPSEEK_PROVIDER_DRY_RUN",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_SYNC"
   ],
+  "requiredEnvironment": {
+    "GCP_PROJECT_ID": "reeditpro",
+    "GCP_REGION": "us-central1",
+    "REEDITPRO_ENV": "staging"
+  },
   "forbiddenConfirmations": [
     "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
     "REEDITPRO_CONFIRM_WORKER_EXECUTION",
@@ -50,14 +49,38 @@
     "https://api-docs.deepseek.com/",
     "https://api-docs.deepseek.com/api/create-chat-completion"
   ],
-  "qwenEndpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "qwenEndpoint": "secret_manager:DASHSCOPE_BASE_URL/chat/completions",
+  "qwenEndpointRegionKey": "us",
   "deepseekEndpoint": "https://api.deepseek.com/chat/completions",
   "secretSource": "google_secret_manager_only",
+  "exactSecretRefs": [
+    "DASHSCOPE_API_KEY",
+    "DASHSCOPE_BASE_URL",
+    "DASHSCOPE_REGION",
+    "DEEPSEEK_API_KEY"
+  ],
   "environmentProviderSecretPayloadsAllowed": false,
-  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
-  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
+  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T174538/",
+  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T174538/",
   "providerCallsAllowedOnlyWithExecuteAndConfirmations": true,
   "syntheticPromptsOnly": true,
+  "providerCallCaseCount": 2,
+  "maxProviderCalls": 2,
+  "qwenDefaultModel": "qwen3.7-plus",
+  "qwenEscalationModelPolicyOnly": "qwen3.7-max",
+  "deepseekDefaultModel": "deepseek-v4-flash",
+  "deepseekEscalationModelPolicyOnly": "deepseek-v4-pro",
+  "qwenTimeoutEvidence": {
+    "sourceRunId": "qwentimeout1-20260612T165931",
+    "sourceDecision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+    "expectedDecision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+    "selectedHeadAgentModel": "qwen3.7-plus",
+    "selectedCalibrationMode": "non_streaming",
+    "recommendedTimeoutMs": 45000,
+    "recommendedMaxOutputTokens": 650,
+    "fullModelDryRunReadiness": "ready",
+    "evidenceAuthoritative": true
+  },
   "stream": false,
   "tools": false,
   "search": false,
@@ -72,7 +95,7 @@
   "externalBeta": false,
   "paidProduction": false,
   "supabaseMilestoneSync": {
-    "requested": false,
+    "requested": true,
     "status": "not_attempted_current_branch_missing_sync_layer",
     "syncLayerPresent": false,
     "sqlExecuted": false,

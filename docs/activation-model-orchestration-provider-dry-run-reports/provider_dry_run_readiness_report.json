@@ -1,22 +1,33 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
-  "status": "not_attempted",
-  "decision": "not_attempted",
-  "activeBlockers": [
-    "provider_dry_run_not_executed"
-  ],
+  "phase": "MODEL_DRYRUN_1",
+  "runId": "modeldryrun1-20260612T174538",
+  "status": "passed",
+  "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "providerCandidates": {
     "qwenDefault": "qwen3.7-plus",
-    "qwenEscalation": "qwen3.7-max",
+    "qwenEscalationPolicyOnly": "qwen3.7-max",
     "deepseekDefault": "deepseek-v4-flash",
-    "deepseekEscalation": "deepseek-v4-pro"
+    "deepseekEscalationPolicyOnly": "deepseek-v4-pro"
   },
-  "providerCallsAttempted": false,
-  "providerCallsExecuted": false,
+  "qwenTimeoutEvidence": {
+    "sourceRunId": "qwentimeout1-20260612T165931",
+    "sourceDecision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+    "expectedDecision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+    "selectedHeadAgentModel": "qwen3.7-plus",
+    "selectedCalibrationMode": "non_streaming",
+    "recommendedTimeoutMs": 45000,
+    "recommendedMaxOutputTokens": 650,
+    "fullModelDryRunReadiness": "ready",
+    "evidenceAuthoritative": true
+  },
+  "providerCallsAttempted": true,
+  "providerCallsExecuted": true,
+  "providerCallCaseCount": 2,
+  "maxProviderCalls": 2,
   "qwenApiCallsAllowedOnlyForSyntheticDryRun": true,
   "deepseekApiCallsAllowedOnlyForSyntheticDryRun": true,
-  "planSnapshotContractReady": false,
+  "planSnapshotContractReady": true,
   "secretPayloadPrinted": false,
   "secretPayloadCommitted": false,
   "rawProviderResponsesStored": false,
@@ -25,7 +36,7 @@
   "mediaProcessing": false,
   "supabaseWrites": false,
   "supabaseMilestoneSync": {
-    "requested": false,
+    "requested": true,
     "status": "not_attempted_current_branch_missing_sync_layer",
     "syncLayerPresent": false,
     "sqlExecuted": false,
@@ -37,5 +48,8 @@
   "signedUrls": false,
   "production": false,
   "externalBeta": false,
-  "paidProduction": false
+  "paidProduction": false,
+  "privateArtifactUploadStatus": "uploaded",
+  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T174538/",
+  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T174538/"
 }

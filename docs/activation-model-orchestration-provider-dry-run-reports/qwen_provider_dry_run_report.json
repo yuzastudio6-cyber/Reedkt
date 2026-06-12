@@ -1,12 +1,13 @@
 {
-  "phase": "model-orchestration-provider-dry-run",
+  "phase": "MODEL_DRYRUN_1",
   "provider": "qwen_dashscope",
-  "status": "not_attempted",
-  "executed": false,
-  "providerCallsAttempted": 0,
-  "providerCallsPassed": 0,
+  "status": "passed",
+  "executed": true,
+  "providerCallsAttempted": 1,
+  "providerCallsPassed": 1,
   "providerCallsBlocked": 0,
-  "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "endpoint": "secret_manager:DASHSCOPE_BASE_URL/chat/completions",
+  "endpointRegionKey": "us",
   "stream": false,
   "tools": false,
   "search": false,
@@ -14,5 +15,55 @@
   "rawProviderResponsesStored": false,
   "rawProviderResponsesPrinted": false,
   "secretPayloadPrinted": false,
-  "results": []
+  "results": [
+    {
+      "caseId": "modeldryrun1_qwen_head_agent_plan_snapshot",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 29016,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 336,
+        "completionTokens": 1531,
+        "totalTokens": 1867
+      },
+      "responseContentCharacters": 963,
+      "normalizedOutput": {
+        "caseId": "modeldryrun1_qwen_head_agent_plan_snapshot",
+        "candidateSummary": "Metadata-only planning snapshot for synthetic video evidence manifest. Recommends non-executable route labels for captions, chart cards, and map cards based on three non-sensitive clips. No executable actions or media processing requested.",
+        "toolRouteHints": [
+          "route:caption_recommendation",
+          "route:chart_card_metadata",
+          "route:map_card_metadata",
+          "route:timeline_metadata_planning"
+        ],
+        "creditRiskNotes": "No credit risk. Dry-run evaluation only. No paid production, external beta, or resource-consuming operations triggered.",
+        "requiredApprovals": [
+          "approval:head_agent_schema_validation",
+          "approval:synthetic_data_compliance_check"
+        ],
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "plan_snapshot_candidate_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    }
+  ]
 }

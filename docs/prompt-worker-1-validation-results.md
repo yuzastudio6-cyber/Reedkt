@@ -6,7 +6,7 @@ Branch: `codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan`.
 
 Base branch: `origin/codex/rp-worker-0-worker-runtime-unlock-repo-audit`.
 
-Pull request: pending.
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/345.
 
 ## Source-Of-Truth Read Status
 

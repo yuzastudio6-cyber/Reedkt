@@ -11,7 +11,11 @@ Scope is review-only GitHub coordination documentation, static diagnostics, vali
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-merge-hygiene-4-mark-ready-superseded-pr-owner-review-packet`
 - Branch: `codex/rp-merge-hygiene-4-mark-ready-superseded-pr-owner-review-packet`
 - PR title: `[coordination] MERGE-HYGIENE-4 mark ready superseded PR owner review packet`
+- PR URL: https://github.com/yuzastudio6-cyber/Reedkt/pull/362
 - PR mode: `draft`
+- PR state: `OPEN`
+- PR mergeability: `MERGEABLE / CLEAN`
+- GitHub checks: `no_check_rollup_returned`
 - Decision state: `review_packet_only`
 - Packet status: `owner_review_packet_created`
 - Mark-ready candidates: `none_safe_now`

@@ -68,6 +68,7 @@ Local validation completed:
 - `npm run build:server`: passed.
 - Changed-file secret scan: passed.
 - Final `git diff --check`: passed.
+- GitHub PR check status: no checks reported in `statusCheckRollup`; `.github/workflows/` is absent on this base and recorded as a base gap.
 
 No worker, route, tool, provider, Supabase, SQL, Docker, Cloud Run, media, upload, signed URL, public artifact, beta, or production command was run.
 

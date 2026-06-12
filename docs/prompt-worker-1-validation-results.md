@@ -84,6 +84,7 @@ Read before editing:
 - `npm run build:server`: passed.
 - Changed-file secret scan: passed; no secret, signed URL, raw provider response, or private DB URL patterns found in changed files.
 - Final `git diff --check`: passed.
+- GitHub PR check status: no checks reported in `statusCheckRollup`; `.github/workflows/` is absent on this base and recorded as a base gap.
 
 Not run by design: `worker:run`, `worker:probe-media`, worker smoke/runtime scripts, route execution, tools, providers, Supabase/SQL, Docker/Cloud Run, media/browser capture, uploads, signed URLs, public artifacts, deployment, beta, and production commands.
 

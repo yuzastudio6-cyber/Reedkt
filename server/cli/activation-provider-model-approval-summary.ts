@@ -1,0 +1,17 @@
+import { buildProviderModelApprovalReport } from '../activation/provider-model-approval-policy'
+
+const report = buildProviderModelApprovalReport()
+const qwen = report.roleApprovals.find((role) => role.roleId === 'qwen_3_7_max_head_planning_agent')
+const deepSeek = report.roleApprovals.filter((role) => role.provider === 'deepseek').flatMap((role) => role.providerModelIds)
+console.log('Provider model approval summary')
+console.log(`Phase: ${report.phase}`)
+console.log(`Status: ${report.status}`)
+console.log(`DeepSeek targets: ${deepSeek.join(', ')}`)
+console.log(`Qwen targets: ${qwen?.providerModelIds.join(', ') ?? 'none'}`)
+console.log(`Provider calls: ${report.costPolicy.providerCallsBlockedByDefault ? 'blocked' : 'not blocked'}`)
+console.log(`Provider budget: $${report.costPolicy.provider1BudgetUsd}`)
+console.log(`Secret values resolved: ${report.secretPolicy.secretValuesResolvedInProvider1 ? 'yes' : 'no'}`)
+console.log(`Qwen direct worker/tool execution: ${report.routingPolicy.qwenCanExecuteToolsOrWorkers ? 'allowed' : 'blocked'}`)
+console.log(`DeepSeek direct code/tool execution: ${report.routingPolicy.deepSeekCanExecuteCodeOrTools ? 'allowed' : 'blocked'}`)
+console.log(`PROVIDER-2 readiness: ${report.provider2Readiness}`)
+console.log(`Supabase milestone sync: ${report.supabaseSyncResult.status}`)

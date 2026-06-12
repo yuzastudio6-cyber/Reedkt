@@ -1,0 +1,60 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "status": "blocked",
+  "selectedStrategy": "temp_npm_exec_supabase_cli",
+  "resetPerformed": false,
+  "resetAttempted": true,
+  "stagingSqlMayHaveRun": true,
+  "resetCommand": {
+    "status": "blocked",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "db",
+      "reset",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--no-seed"
+    ],
+    "cwd": "process_cwd",
+    "exitCode": 1,
+    "stdoutSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 66,
+      "lineCount": 2,
+      "secretPatternDetected": false
+    },
+    "errorCategory": "command_failed"
+  },
+  "noSeedFlagUsed": true,
+  "seedFilesIncluded": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "migrationRepairRun": false,
+  "trackBBackfillWrite": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "blockers": [
+    "staging_reset_failed"
+  ],
+  "actualRetryExecutionAttempted": true,
+  "trackBBackfillRowsWritten": false,
+  "supabaseDbPushRun": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "resetRetryAttempted": true,
+  "resetRetryPerformed": false,
+  "retryCommandShapeApprovedByPr265": true,
+  "rejectedPreviousOperationFlagOmitted": true,
+  "resetCommandIncludesYesOperationFlag": false
+}

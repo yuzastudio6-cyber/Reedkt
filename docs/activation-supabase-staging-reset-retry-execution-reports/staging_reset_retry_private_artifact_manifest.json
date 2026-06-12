@@ -1,0 +1,35 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "status": "committed_safe_metadata_only",
+  "reportDir": "docs/activation-supabase-staging-reset-retry-execution-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "staging_reset_retry_execution_plan.json",
+    "staging_reset_retry_execution_precheck_report.json",
+    "staging_reset_retry_secret_guard_report.json",
+    "staging_reset_retry_cli_transport_report.json",
+    "staging_reset_retry_backup_export_execution_report.json",
+    "staging_reset_retry_backup_artifact_manifest.json",
+    "staging_reset_retry_command_preview_report.json",
+    "staging_reset_retry_execution_report.json",
+    "staging_reset_retry_post_verify_report.json",
+    "staging_reset_retry_schema_rls_verify_report.json",
+    "staging_reset_retry_trackb_backfill_preflight_report.json",
+    "staging_reset_retry_trackb_backfill_diff_report.json",
+    "staging_reset_retry_blocker_report.json",
+    "staging_reset_retry_readiness_report.json",
+    "staging_reset_retry_private_artifact_manifest.json"
+  ],
+  "backupArtifacts": {
+    "location": "redacted_temp_directory_outside_repo",
+    "committed": false,
+    "printed": false
+  },
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "secretsCommitted": false,
+  "dbUrlCommitted": false,
+  "stagingDataBackfillWritten": false,
+  "productionAffected": false
+}

@@ -1,0 +1,22 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "status": "blocked",
+  "stagingResetRetryComplete": false,
+  "stagingResetRetryRun": false,
+  "migrationHistoryVerified": false,
+  "schemaRlsVerified": false,
+  "trackBBackfillPreflightStatus": "blocked",
+  "trackBBackfillRowsWritten": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "migrationRepairRun": false,
+  "supabaseDbPushRun": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "staging_reset_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed"
+  ],
+  "nextRecommendedPhase": "Resolve the exact retry execution blocker before Track B backfill or production work."
+}

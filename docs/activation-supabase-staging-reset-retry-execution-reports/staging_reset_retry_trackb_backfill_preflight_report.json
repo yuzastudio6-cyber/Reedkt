@@ -1,0 +1,52 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "status": "blocked",
+  "mode": "preflight",
+  "sourcePr198": "https://github.com/yuzastudio6-cyber/Reedkt/pull/198",
+  "writePathRun": false,
+  "stagingMetadataWriteConfirmationSet": false,
+  "trackBBackfillConfirmationSet": false,
+  "productionAffected": false,
+  "providerCalls": "not_run",
+  "routeExecution": "not_run",
+  "workerExecution": "not_run",
+  "trackA": "not_touched",
+  "delegatedReport": {
+    "phase": "supabase-trackb-milestone-staging-backfill",
+    "runId": "supabase-trackb-milestone-staging-backfill-20260605",
+    "status": "blocked",
+    "stagingOnly": true,
+    "productionTargetRejected": true,
+    "stagingTargetReference": "redacted_required_at_execution_time",
+    "credentialNamesAllowed": [
+      "REEDITPRO_STAGING_SUPABASE_URL",
+      "REEDITPRO_STAGING_SUPABASE_SERVICE_ROLE_KEY",
+      "SUPABASE_URL only when REEDITPRO_SUPABASE_TARGET_ENV=staging",
+      "SUPABASE_SERVICE_ROLE_KEY only when REEDITPRO_SUPABASE_TARGET_ENV=staging"
+    ],
+    "credentialPayloadsPrinted": false,
+    "urlProvided": false,
+    "serviceRoleKeyProvided": false,
+    "targetConfirmed": false,
+    "remoteReadPerformed": false,
+    "remoteSqlRun": false,
+    "migrationDeployment": false,
+    "schemaMutation": false,
+    "blockers": [
+      "staging_supabase_credentials_unavailable"
+    ]
+  },
+  "blockers": [
+    "staging_supabase_credentials_unavailable"
+  ],
+  "trackBBackfillWrite": false,
+  "trackBBackfillRowsWritten": false,
+  "migrationRepairRun": false,
+  "directDdlDmlRun": false,
+  "supabaseDbPushRun": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false
+}

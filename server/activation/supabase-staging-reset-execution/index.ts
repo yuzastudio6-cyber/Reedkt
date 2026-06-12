@@ -190,7 +190,7 @@ export function getSupabaseStagingResetExecutionPlan() {
       packageLockMutationAllowed: false,
     },
     resetWorkflow: {
-      command: 'supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed --yes',
+      command: 'supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed',
       resetDryRunSupported: false,
       previewMode: 'command_plan_preview_plus_backup_and_migration_inventory',
       seedBehavior: 'no_seed',
@@ -774,7 +774,7 @@ function buildResetPreviewReport(
     resetCommand: {
       command: 'npm',
       prefixArgs: ['exec', '--yes', '--package', TEMP_SUPABASE_CLI_PACKAGE, '--', 'supabase'],
-      operation: ['db', 'reset', '--db-url', '[REDACTED_STAGING_DB_URL]', '--no-seed', '--yes'],
+      operation: ['db', 'reset', '--db-url', '[REDACTED_STAGING_DB_URL]', '--no-seed'],
       seedBehavior: 'no_seed',
       dbUrlRedacted: true,
     },
@@ -1025,7 +1025,6 @@ async function executeResetCommand(): Promise<JsonRecord> {
       '--db-url',
       dbUrl,
       '--no-seed',
-      '--yes',
     ],
     process.cwd(),
     300000,

@@ -1,0 +1,27 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "status": "blocked",
+  "activeBlockers": [
+    "staging_reset_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed"
+  ],
+  "resetRetryExecutionAllowed": false,
+  "stillBlockedScopes": [
+    "production_supabase",
+    "production_sql",
+    "track_b_backfill_write",
+    "migration_repair",
+    "supabase_db_push",
+    "direct_manual_sql",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "track_a",
+    "beta_unlock",
+    "production_unlock"
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "phase": "supabase-staging-reset-retry-execution",
+  "runId": "supabase-staging-reset-retry-execution-20260610",
+  "status": "passed_at_retry_execution_time",
+  "sourceDecision": {
+    "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+    "approvalStatus": "future_reset_reapply_approved_not_executed",
+    "stagingResetRun": false,
+    "productionAffected": false
+  },
+  "backupPlan": {
+    "status": "acceptable_for_future_execution_not_run",
+    "backupRunInThisPhase": false,
+    "blockers": []
+  },
+  "ownerAcceptance": {
+    "status": "approved_for_future_execution_only",
+    "ownerAcceptanceAccepted": true
+  },
+  "dataImpact": {
+    "status": "reviewed_from_readonly_metadata",
+    "tableCount": 136,
+    "blockers": []
+  },
+  "approvedTargetReference": {
+    "status": "passed",
+    "approvedStagingTargetReferenceFound": true,
+    "approvedStagingProjectName": "Reeditpro",
+    "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+    "approvedEnvironment": "staging",
+    "secretPayloadsPrinted": false
+  },
+  "pluginTargetProof": {
+    "status": "passed",
+    "stagingTargetConfirmed": true,
+    "selectedProject": {
+      "projectRef": "wmyyttnynmteqgcdishd",
+      "projectName": "Reeditpro",
+      "status": "ACTIVE_HEALTHY",
+      "region": "us-west-1",
+      "hostRedacted": true
+    },
+    "credentialPayloadsPrinted": false
+  },
+  "requiredConfirmations": [
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_EXECUTE",
+      "set": false
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+      "set": false
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+      "set": false
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
+      "set": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+      "set": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE",
+      "set": false
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_BACKUP_SNAPSHOT_APPROVAL_PACKET",
+      "set": false
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+      "set": false
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION",
+      "set": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
+      "set": true
+    }
+  ],
+  "backupExportConfirmation": {
+    "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_BACKUP_EXPORT_EXECUTE",
+    "set": false
+  },
+  "forbiddenConfirmationsSet": [],
+  "stagingOnlyTarget": true,
+  "productionAffected": false,
+  "trackBBackfillWrite": false,
+  "migrationRepairRun": false,
+  "directDdlDmlRun": false,
+  "blockers": [],
+  "trackBBackfillRowsWritten": false,
+  "supabaseDbPushRun": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "payloadPrinted": false,
+  "payloadCommitted": false,
+  "pr265Approval": {
+    "decision": "approved_for_future_retry_reset_after_cli_command_fix",
+    "approvalStatus": "future_retry_reset_approved_not_executed",
+    "approvedFutureCommandShape": "npm exec --yes --package supabase@latest -- supabase db reset --db-url [REDACTED_STAGING_DB_URL] --no-seed",
+    "blockers": []
+  },
+  "pr265CommandReview": {
+    "status": "passed",
+    "futureRetryOperation": [
+      "db",
+      "reset",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--no-seed"
+    ],
+    "previousUnlistedFlagRejected": "--yes"
+  },
+  "pr265BackupReview": {
+    "status": "passed",
+    "futureRetryMustVerifyBackupAvailability": true
+  },
+  "retryExecutionConfirmation": {
+    "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_RETRY_EXECUTE",
+    "set": false
+  },
+  "actualRetryExecutionAttempted": true,
+  "confirmationStatePreservedFromExecutionAttempt": true
+}

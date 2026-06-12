@@ -1,0 +1,93 @@
+{
+  "phase": "WORKER_0",
+  "status": "passed",
+  "sourcePlanSnapshotRunId": "plansnapshot1-20260612T182758",
+  "candidateContractCompatibleForReview": true,
+  "runtimeApproved": false,
+  "intakeContracts": [
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 candidate-only approved-plan snapshot evidence."
+    },
+    {
+      "path": "src/backend/cloud/worker-job-contracts.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Frontend/backend cloud worker job payload contract validator."
+    },
+    {
+      "path": "src/backend/cloud/approved-plan-snapshot-contracts.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Approved-plan snapshot contract validator for worker readiness."
+    },
+    {
+      "path": "server/services/approved-snapshot-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Server approved snapshot persistence boundary."
+    }
+  ],
+  "serviceBoundaries": [
+    {
+      "name": "worker_job_contract_requires_approved_snapshot_id",
+      "status": "present",
+      "source": "src/backend/cloud/worker-job-contracts.ts",
+      "required": true
+    },
+    {
+      "name": "worker_job_contract_blocks_raw_prompt_only_execution",
+      "status": "present",
+      "source": "src/backend/cloud/worker-job-contracts.ts",
+      "required": true
+    },
+    {
+      "name": "approved_snapshot_requires_hash_and_approval_fields",
+      "status": "present",
+      "source": "src/backend/cloud/approved-plan-snapshot-contracts.ts",
+      "required": true
+    },
+    {
+      "name": "approved_snapshot_service_is_server_side",
+      "status": "present",
+      "source": "server/services/approved-snapshot-service.ts",
+      "required": true,
+      "notes": "WORKER-0 does not call the service."
+    }
+  ],
+  "requiredWorkerSnapshotFields": [
+    {
+      "name": "execution_status_candidate_only",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    },
+    {
+      "name": "approved_for_runtime_false",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    },
+    {
+      "name": "worker_execution_allowed_false",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    },
+    {
+      "name": "owner_routes_present",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    },
+    {
+      "name": "runtime_limits_present",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    }
+  ],
+  "activeBlockers": []
+}

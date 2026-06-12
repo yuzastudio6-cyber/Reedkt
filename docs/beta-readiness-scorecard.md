@@ -47,3 +47,18 @@ WORKER-1 migration deployed: `no`.
 WORKER-1 worker/tool/route/provider execution approved: `false`.
 WORKER-1 public artifacts and signed URLs approved: `false`.
 WORKER-1 next prompt: `WORKER-2 - Worker Runtime Dry-Run Fixture Plan / Contract Tests`.
+
+## MERGE-0 Milestone PR Stack Audit
+
+MERGE-0 status: `merge_readiness_packet_created`.
+MERGE-0 capability: `none; milestone PR stack audit and merge policy only`.
+MERGE-0 open PRs inspected: `346`.
+MERGE-0 draft PRs: `21`.
+MERGE-0 missing checks: `257`.
+MERGE-0 highest-priority merge chain: model/provider -> MODEL-DRYRUN-2A -> PLAN-SNAPSHOT-0 -> WORKER-0 -> WORKER-1.
+MERGE-0 Supabase update required: `docs/status only`.
+MERGE-0 Supabase update status: `docs_only`.
+MERGE-0 Supabase environment touched: `none`.
+MERGE-0 SQL executed: `none`.
+MERGE-0 migration deployed: `no`.
+MERGE-0 next prompt: `MERGE-1 - Parent-First Milestone PR Merge Execution` or `MERGE-0A - PR Stack Cleanup Fixes`.

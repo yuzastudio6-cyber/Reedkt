@@ -1,0 +1,185 @@
+{
+  "phase": "worker-runtime-fixture-hardening",
+  "runId": "worker-runtime-fixture-hardening-20260612",
+  "status": "passed",
+  "owner": "WORKER_RUNTIME_JOBS",
+  "sourceBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+  "sourceMergeCommit": "5b2e62a6bc9e22ab20a82448265aaeee48431445",
+  "sourcePr351Merged": true,
+  "sourceOfTruthConflictsFound": false,
+  "sourcePaths": [
+    {
+      "path": "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports/worker_runtime_dry_run_contract_review_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports/worker_runtime_fixture_contract_review.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports/worker_runtime_payload_schema_review.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports/worker_runtime_result_schema_review.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports/worker_runtime_invalid_fixture_fail_closed_review.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_execution_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_fixture_inventory.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_valid_fixture_results.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_invalid_fixture_results.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/approved_plan_snapshot_dry_run_fixtures.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-dry-run-reports/plan_snapshot_dry_run_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-product-internal-testing-session-0-reports/session_0_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports/trackb_clean_staging_backfill_readiness_report.json",
+      "present": true
+    }
+  ],
+  "evidence": [
+    {
+      "pr": 351,
+      "name": "worker runtime dry-run contract review",
+      "expectedDecision": "worker_runtime_dry_run_contract_review_passed_ready_for_fixture_hardening",
+      "actualDecision": "worker_runtime_dry_run_contract_review_passed_ready_for_fixture_hardening",
+      "accepted": true
+    },
+    {
+      "pr": 346,
+      "name": "worker no-op dry-run execution",
+      "expectedDecision": "worker_noop_dry_run_passed_ready_for_contract_review",
+      "actualDecision": "worker_noop_dry_run_passed_ready_for_contract_review",
+      "accepted": true
+    },
+    {
+      "pr": 342,
+      "name": "worker dry-run approval packet",
+      "expectedDecision": "approved_for_future_worker_noop_dry_run_execution",
+      "actualDecision": "approved_for_future_worker_noop_dry_run_execution",
+      "accepted": true
+    },
+    {
+      "pr": 341,
+      "name": "worker runtime repo audit after plan snapshot dry-run",
+      "expectedDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "actualDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "accepted": true
+    },
+    {
+      "pr": 337,
+      "name": "plan snapshot dry-run validation",
+      "expectedDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "actualDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "accepted": true
+    },
+    {
+      "pr": 311,
+      "name": "restricted internal testing session 0",
+      "expectedDecision": "restricted_internal_testing_session_0_passed",
+      "actualDecision": "restricted_internal_testing_session_0_passed",
+      "accepted": true
+    },
+    {
+      "pr": 298,
+      "name": "Supabase Track B clean staging sync metadata",
+      "expectedDecision": "track_b_clean_staging_metadata_backfill_verified",
+      "actualDecision": "track_b_clean_staging_metadata_backfill_verified",
+      "accepted": true
+    }
+  ],
+  "sourceReportDirs": {
+    "contractReview": "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports",
+    "noopDryRun": "docs/activation-worker-runtime-noop-dry-run-execution-reports"
+  },
+  "rawProviderOutputCopied": false,
+  "secretPayloadCopied": false,
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "toolExecutionAllowed": false,
+  "routeExecution": false,
+  "routeExecutionAllowed": false,
+  "providerCalls": false,
+  "providerExecutionAllowed": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawPromptForwardingAllowed": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "publicArtifactsAllowed": false,
+  "signedUrls": false,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "productionAffected": false,
+  "productionMutationAllowed": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "generatedAssets": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

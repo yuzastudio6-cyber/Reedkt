@@ -6,9 +6,9 @@ Branch: `codex/rp-tracka-gd-groupb-handoff-3-private-preview-execution`
 
 Base: `origin/codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet`
 
-PR: `pending`
+PR: [#317](https://github.com/yuzastudio6-cyber/Reedkt/pull/317)
 
-PR draft state: `draft_expected_because_base_pr_312_is_draft`
+PR draft state: `draft`
 
 ## Result
 

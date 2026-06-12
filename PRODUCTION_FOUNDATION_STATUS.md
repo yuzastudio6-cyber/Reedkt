@@ -960,7 +960,7 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 ## TRACKA-GD-GROUPB-HANDOFF-3 - Group B Private Preview Execution
 
 - Branch: `codex/rp-tracka-gd-groupb-handoff-3-private-preview-execution`
-- PR: `pending`
+- PR: [#317](https://github.com/yuzastudio6-cyber/Reedkt/pull/317)
 - Base: `origin/codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet`
 - Result: `group_b_private_preview_local_passed_with_warnings`
 - Source verification result: `group_b_source_evidence_verified`

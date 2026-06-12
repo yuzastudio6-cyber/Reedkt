@@ -6,7 +6,7 @@ Branch: `codex/rp-tracka-gd-groupb-handoff-3-private-preview-execution`
 
 Base branch: `origin/codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet`
 
-PR: `pending`
+PR: [#317](https://github.com/yuzastudio6-cyber/Reedkt/pull/317)
 
 Capability enabled: `none; Track A Group B creative graphics private preview execution only`
 

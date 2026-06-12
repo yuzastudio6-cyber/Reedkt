@@ -412,6 +412,23 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-2 Milestone Note
+
+TRACKA-GD-GROUPB-HANDOFF-2 records `ready_with_warnings_for_tracka_gd_groupb_handoff_3`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`.
+
+The milestone prepares the Group B private preview execution packet only for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`. Group B private preview execution, Anime.js execution, Lottie browser/player behavior, Remotion render/export, final render/export, signed URLs, public artifacts, internal beta, external beta, and production remain blocked.
+
+Capability: `none; Track A Group B creative graphics private preview execution packet only`
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Next recommended milestone: `TRACKA-GD-GROUPB-HANDOFF-3 - Group B Private Preview Execution`.
+
 ## TRACKA-GD-GROUPB-HANDOFF-1 Milestone Note
 
 TRACKA-GD-GROUPB-HANDOFF-1 records `ready_with_warnings_for_tracka_gd_groupb_handoff_2`.

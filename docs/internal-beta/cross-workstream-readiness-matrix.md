@@ -129,3 +129,28 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-GROUPB-HANDOFF-2 Matrix Addendum
+
+Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`
+
+`AI_TOOLS_CREATIVE_GRAPHICS` and `TRACK_A_RENDER_EXPORT` receive Group B execution-packet evidence only:
+
+| Tool ID | Handoff-2 packet result | Internal beta impact |
+| --- | --- | --- |
+| `anime_js_motion` | packet-ready with warnings as timing source evidence | evidence packet added; full internal beta still blocked |
+| `lottie_web_overlays` | packet-ready with warnings as manifest-only overlay evidence | browser/player behavior still blocked |
+| `remotion_graphics` | packet-ready with warnings as manifest-only composition evidence | final render/export still blocked |
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`
+
+Capability: `none; Track A Group B creative graphics private preview execution packet only`
+
+Internal beta approved: false
+External beta approved: false
+Production approved: false
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

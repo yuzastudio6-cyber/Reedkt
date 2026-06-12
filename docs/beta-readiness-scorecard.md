@@ -400,3 +400,25 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-GROUPB-HANDOFF-2 Readiness Addendum
+
+Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`
+
+Group B packet fixtures: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+
+Readiness impact: improves Group B Track A execution-packet completeness only. Full internal beta remains blocked by CROSS-BETA-0 workstream gates.
+
+Capability: `none; Track A Group B creative graphics private preview execution packet only`
+
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
+
+Supabase environment touched: `none`
+
+SQL executed: `none`
+
+Migration deployed: `no`

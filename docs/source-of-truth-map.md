@@ -515,6 +515,37 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-2 Source Of Truth Addendum
+
+TRACKA-GD-GROUPB-HANDOFF-2 decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`.
+
+Capability: `none; Track A Group B creative graphics private preview execution packet only`.
+
+Authoritative sources:
+
+| Topic | Authoritative source |
+| --- | --- |
+| Group B execution packet | `docs/track-a/creative-graphics-group-b-private-preview-execution-packet.md` |
+| Source evidence lockfile | `docs/track-a/creative-graphics-group-b-source-evidence-lockfile.md` |
+| Future command template | `docs/track-a/creative-graphics-group-b-private-preview-future-command-template.md` |
+| Execution manifest template | `docs/track-a/creative-graphics-group-b-private-preview-execution-manifest.md` |
+| QA packet | `docs/track-a/creative-graphics-group-b-private-preview-execution-qa-packet.md` |
+| Cleanup rollback packet | `docs/track-a/creative-graphics-group-b-private-preview-cleanup-rollback-packet.md` |
+| Go/no-go record | `docs/track-a/creative-graphics-group-b-private-preview-go-no-go-record.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-group-b-private-preview-execution-packet-diagnostics.mjs` |
+
+Fixtures: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`.
+
+Future source of truth remains `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`; Signed URLs are not source of truth.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-GROUPB-HANDOFF-1 Source Of Truth Addendum
 
 TRACKA-GD-GROUPB-HANDOFF-1 decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`.

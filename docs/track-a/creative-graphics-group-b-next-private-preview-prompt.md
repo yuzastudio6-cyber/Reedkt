@@ -47,3 +47,47 @@ Supabase environment touched: `none`
 SQL executed: `none`
 
 Migration deployed: `no`
+
+## TRACKA-GD-GROUPB-HANDOFF-2 Next Private Preview Prompt Update
+
+Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`
+
+Packet status: `group_b_private_preview_execution_packet_ready_with_warnings`
+
+Runtime chain: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_not_executed`
+
+## Recommended Next Prompt
+
+`TRACKA-GD-GROUPB-HANDOFF-3 - Group B Private Preview Execution`
+
+Use only when a future prompt explicitly approves controlled Group B private preview execution and verifies source evidence, source evidence lockfile, manifest placeholders, approved plan snapshot placeholder, QA packet, and cleanup packet. Group B private preview execution remains not approved in Handoff-2.
+
+Required Handoff-2 packet evidence:
+
+- Group B private preview execution packet.
+- Source evidence lockfile.
+- Future command template.
+- Execution manifest template.
+- QA packet.
+- Cleanup/rollback packet.
+- Go/no-go record with all approval booleans false.
+
+## Fix Prompt
+
+`TRACKA-GD-GROUPB-HANDOFF-2A - Group B Execution Packet Fixes`
+
+Use if diagnostics, CI, or review finds missing docs, missing Group B tool rows, unsafe claims, command-template warning gaps, or inconsistent status terms.
+
+## Parallel Workstream Prompt
+
+`GD-11 - Group C Package Runtime Review and Fixture Gate`
+
+Use when the team wants to continue AI Tools creative graphics work for Group C while Track A Group B private preview remains packet-ready with warnings.
+
+Capability: `none; Track A Group B creative graphics private preview execution packet only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

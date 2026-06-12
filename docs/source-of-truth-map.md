@@ -515,6 +515,34 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Source Of Truth Addendum
+
+Handoff-3 result: `group_b_private_preview_local_passed_with_warnings`
+
+Source verification result: `group_b_source_evidence_verified`
+
+Authoritative sources:
+
+| Topic | Authoritative source |
+| --- | --- |
+| Source verification | `docs/track-a/creative-graphics-group-b-private-preview-source-verification.md` |
+| Local/private evidence summary | `docs/track-a/creative-graphics-group-b-private-preview-execution-evidence.md` |
+| QA evidence summary | `docs/track-a/creative-graphics-group-b-private-preview-qa-evidence.md` |
+| Observability evidence summary | `docs/track-a/creative-graphics-group-b-private-preview-observability-evidence.md` |
+| Cleanup evidence summary | `docs/track-a/creative-graphics-group-b-private-preview-cleanup-evidence.md` |
+| Go/no-go record | `docs/track-a/creative-graphics-group-b-private-preview-go-no-go-record.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-group-b-private-preview-execution-diagnostics.mjs` |
+
+Source of truth policy remains `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`.
+
+Signed URLs are not source of truth.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-GROUPB-HANDOFF-2 Source Of Truth Addendum
 
 TRACKA-GD-GROUPB-HANDOFF-2 decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_3`.

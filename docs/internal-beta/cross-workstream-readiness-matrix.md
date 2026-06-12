@@ -31,6 +31,28 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Matrix Addendum
+
+Decision state: `group_b_private_preview_local_passed_with_warnings`
+
+`TRACK_A_RENDER_EXPORT`: Group B local/private evidence is present with warnings, but Remotion final render/export and Lottie browser/player behavior remain blocked.
+
+`AI_TOOLS_CREATIVE_GRAPHICS`: Group B evidence improved for cross-workstream review only; Group C, full renderer/export coverage, and broader internal beta gates remain blocked.
+
+| Tool ID | Handoff-3 result | Internal beta impact |
+| --- | --- | --- |
+| `anime_js_motion` | `accepted_with_warnings` | evidence confidence improved; full internal beta still blocked |
+| `lottie_web_overlays` | `accepted_with_warnings` | manifest-only evidence improved; browser/player behavior still blocked |
+| `remotion_graphics` | `accepted_with_warnings` | manifest-only evidence improved; final render/export still blocked |
+
+CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-GROUPB-HANDOFF-0 Group B Update
 
 Handoff result: `tracka_groupb_handoff_ready_with_warnings`

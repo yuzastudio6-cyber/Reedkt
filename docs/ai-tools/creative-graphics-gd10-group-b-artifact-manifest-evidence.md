@@ -39,3 +39,18 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Addendum
+
+Handoff-3 source verification reused these committed hashes:
+
+- `anime_js_motion`: `508062df67d2f36cb193599916e6af0218aeab23870a08f3e2c932afc4b61bb9`
+- `lottie_web_overlays`: `179d20b706b4e1cfd28c8844ee13b1c48c61f3f2cedf65ebcaf7f898f4161c83`
+- `remotion_graphics`: `ee4a3e0d71f1f06781f7903f9208da4a65faed90f52f5af237bb46aa2ee7a13b`
+
+Handoff-3 local/private output summaries are recorded in `docs/track-a/creative-graphics-group-b-private-preview-execution-evidence.md`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

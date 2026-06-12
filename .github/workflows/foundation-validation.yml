@@ -30,6 +30,7 @@ on:
       - codex/rp-gd-10-group-b-controlled-local-fixture-execution
       - codex/rp-tracka-gd-groupb-handoff-0-review
       - codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan
+      - codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet
 
 jobs:
   foundation-validation:

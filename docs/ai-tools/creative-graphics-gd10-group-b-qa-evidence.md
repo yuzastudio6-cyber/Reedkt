@@ -32,3 +32,21 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Addendum
+
+Handoff-3 QA result: `group_b_private_preview_qa_passed_with_warnings`.
+
+The warning disposition remains unchanged:
+
+- `anime_js_motion` remains synthetic timing evidence.
+- `lottie_web_overlays` remains manifest-only.
+- `remotion_graphics` remains manifest-only.
+- Internal beta approved: false.
+- External beta approved: false.
+- Production approved: false.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`

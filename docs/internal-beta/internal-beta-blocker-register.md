@@ -33,6 +33,29 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-3 Blocker Register Addendum
+
+Handoff-3 result: `group_b_private_preview_local_passed_with_warnings`.
+
+Resolved for this local/private evidence step:
+
+- Source evidence verification for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`.
+- Sanitized QA, observability, and cleanup summaries.
+
+Still blocked:
+
+- Full internal beta gate.
+- External beta and production gates.
+- Remotion final render/export.
+- Lottie browser/player behavior.
+- Public artifacts, signed URLs, upload/storage transfer, Supabase mutation, SQL, workers, providers/models, GCP, Secret Manager, and dependency mutation.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## TRACKA-GD-GROUPB-HANDOFF-0 Blocker Register Update
 
 Handoff result: `tracka_groupb_handoff_ready_with_warnings`

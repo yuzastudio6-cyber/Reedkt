@@ -22,36 +22,37 @@
       "schemaId": "agent_findings_v1",
       "status": "passed",
       "httpStatus": 200,
-      "latencyMs": 28929,
+      "latencyMs": 5560,
       "finishReason": "stop",
       "usage": {
-        "promptTokens": 213,
-        "completionTokens": 1522,
-        "totalTokens": 1735
+        "promptTokens": 215,
+        "completionTokens": 232,
+        "totalTokens": 447
       },
-      "responseContentCharacters": 774,
+      "responseContentCharacters": 802,
       "normalizedOutput": {
         "caseId": "synthetic_edit_intent_extraction",
         "findings": [
           {
-            "intent": "video_editing",
-            "duration_seconds": 45,
-            "style_requirements": [
-              "clearer_pacing",
-              "concise_captions"
-            ],
-            "content_type": "product_explainer"
+            "type": "intent_detection",
+            "description": "User requests a 45-second product explainer video.",
+            "severity": "info"
+          },
+          {
+            "type": "style_requirement",
+            "description": "Request for clearer pacing and concise captions identified.",
+            "severity": "info"
           }
         ],
         "confidence": 0.92,
-        "risks": [
-          "Pacing adjustments may exceed automated scene detection limits",
-          "Caption generation requires strict character limit enforcement"
-        ],
+        "risks": [],
         "blockedActions": [
-          "direct_media_rendering",
-          "external_api_routing",
-          "supabase_mutation"
+          "worker_execution",
+          "tool_execution",
+          "public_artifact_generation",
+          "signed_url_creation",
+          "raw_prompt_forwarding",
+          "direct_mutation"
         ],
         "workerExecutionAllowed": false,
         "toolExecutionAllowed": false,
@@ -80,43 +81,45 @@
       "schemaId": "edit_intents_v1",
       "status": "passed",
       "httpStatus": 200,
-      "latencyMs": 26729,
+      "latencyMs": 7128,
       "finishReason": "stop",
       "usage": {
-        "promptTokens": 214,
-        "completionTokens": 1439,
-        "totalTokens": 1653
+        "promptTokens": 216,
+        "completionTokens": 322,
+        "totalTokens": 538
       },
-      "responseContentCharacters": 981,
+      "responseContentCharacters": 1176,
       "normalizedOutput": {
         "caseId": "synthetic_timeline_planning",
-        "intentSummary": "Plan a three-part timeline for a synthetic onboarding video consisting of a hook, demonstration, and call-to-action.",
+        "intentSummary": "Plan a three-part synthetic onboarding video timeline consisting of hook, demonstration, and CTA segments.",
         "segments": [
           {
-            "id": "seg_1",
-            "name": "Hook",
-            "durationSeconds": 5
+            "id": "seg_hook",
+            "type": "hook",
+            "durationSeconds": 5,
+            "description": "Engaging opening to capture viewer attention."
           },
           {
-            "id": "seg_2",
-            "name": "Demonstration",
-            "durationSeconds": 20
+            "id": "seg_demo",
+            "type": "demonstration",
+            "durationSeconds": 15,
+            "description": "Core feature walkthrough and value proposition."
           },
           {
-            "id": "seg_3",
-            "name": "CTA",
-            "durationSeconds": 5
+            "id": "seg_cta",
+            "type": "cta",
+            "durationSeconds": 5,
+            "description": "Call to action for user engagement."
           }
         ],
         "planningRequirements": [
-          "Define visual and audio cues for the hook",
-          "Outline step-by-step demonstration flow",
-          "Draft clear call-to-action text and visual overlay"
+          "Ensure smooth transitions between hook, demonstration, and CTA.",
+          "Maintain consistent branding throughout the synthetic video.",
+          "Optimize pacing for short-form consumption."
         ],
         "approvalGates": [
-          "Timeline structure approval",
-          "Segment duration validation",
-          "Content compliance check"
+          "Content accuracy review",
+          "Brand compliance check"
         ],
         "workerExecutionAllowed": false,
         "toolExecutionAllowed": false,
@@ -145,25 +148,24 @@
       "schemaId": "plan_snapshot_candidate_v1",
       "status": "passed",
       "httpStatus": 200,
-      "latencyMs": 23569,
+      "latencyMs": 3909,
       "finishReason": "stop",
       "usage": {
-        "promptTokens": 221,
-        "completionTokens": 1259,
-        "totalTokens": 1480
+        "promptTokens": 223,
+        "completionTokens": 166,
+        "totalTokens": 389
       },
-      "responseContentCharacters": 675,
+      "responseContentCharacters": 666,
       "normalizedOutput": {
         "caseId": "synthetic_tool_route_metadata_recommendation",
-        "candidateSummary": "Evaluating metadata-only recommendations for captions, chart card, and map card based on synthetic input parameters.",
+        "candidateSummary": "Recommend metadata-only schema for captions, chart card, and map card without executing tools or generating artifacts.",
         "toolRouteHints": [
-          "metadata_recommendation_route",
-          "synthetic_evaluation_path"
+          "metadata_schema_validation",
+          "content_type_classification"
         ],
-        "creditRiskNotes": "No credit risk associated with metadata-only synthetic evaluation.",
+        "creditRiskNotes": "No credit impact as no external services or paid production resources are invoked.",
         "requiredApprovals": [
-          "schema_validator",
-          "dry_run_evaluator"
+          "schema_reviewer"
         ],
         "workerExecutionAllowed": false,
         "toolExecutionAllowed": false,
@@ -192,25 +194,27 @@
       "schemaId": "provider_fallback_assessment_v1",
       "status": "passed",
       "httpStatus": 200,
-      "latencyMs": 30594,
+      "latencyMs": 4841,
       "finishReason": "stop",
       "usage": {
-        "promptTokens": 218,
-        "completionTokens": 1629,
-        "totalTokens": 1847
+        "promptTokens": 220,
+        "completionTokens": 181,
+        "totalTokens": 401
       },
-      "responseContentCharacters": 499,
+      "responseContentCharacters": 649,
       "normalizedOutput": {
         "caseId": "synthetic_provider_fallback_comparison",
         "primaryCandidate": "Qwen",
         "fallbackCandidate": "DeepSeek",
         "comparisonReasons": [
-          "Planning quality assessment",
-          "Reasoning fallback evaluation"
+          "Synthetic evaluation of planning structure adherence",
+          "Assessment of reasoning fallback mechanisms under dry-run constraints",
+          "Comparison of schema-only output compliance"
         ],
         "dryRunLimits": {
-          "maxTokens": 1000,
-          "maxIterations": 1
+          "maxSteps": 5,
+          "timeoutMs": 1000,
+          "scope": "schema_validation_only"
         },
         "workerExecutionAllowed": false,
         "toolExecutionAllowed": false,

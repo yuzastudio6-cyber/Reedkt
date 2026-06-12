@@ -1,11 +1,11 @@
 {
   "phase": "MODEL-DRYRUN-2",
-  "runId": "modeldryrun2-20260612T180334",
+  "runId": "modeldryrun2-20260612T183757",
   "branch": "codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-provider-dry-run",
   "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
-  "finalState": "blocked_provider_call_failed",
-  "internalDecision": "blocked_pending_cost_review",
-  "status": "blocked",
+  "finalState": "provider_dry_run_passed",
+  "internalDecision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "status": "passed",
   "executed": true,
   "timeoutCalibrationSource": {
     "decision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
@@ -21,6 +21,7 @@
     "timeoutMs": 45000,
     "maxOutputTokens": 650,
     "stream": false,
+    "enableThinking": false,
     "qwen37MaxUsed": false
   },
   "dashscopeConfig": {
@@ -36,10 +37,8 @@
   "providerCallsAttempted": 7,
   "qwenProviderCallsAttempted": 4,
   "deepseekProviderCallsAttempted": 3,
-  "activeBlockers": [
-    "provider_cost_or_token_guardrail_exceeded"
-  ],
-  "privateArtifactUploadStatus": "not_attempted_provider_dry_run_not_passed",
+  "activeBlockers": [],
+  "privateArtifactUploadStatus": "uploaded",
   "supabaseUpdateRequired": "docs/status only",
   "supabaseUpdateStatus": "docs_only",
   "supabaseEnvironmentTouched": "none",
@@ -63,5 +62,5 @@
   "paidProductionUnlock": false,
   "productionBetaUnlock": false,
   "noScopeStatement": "No worker execution, tool execution, route execution, raw prompt execution, broad provider runtime, media processing, browser capture, Docker/Cloud Run execution, Supabase mutation, SQL execution, storage transfer, signed URL creation, public artifact creation, production deployment, external beta unlock, paid production unlock, Google Cloud Secret Manager payload exposure, secret commit, raw provider response commit, broad service-role handler, or production/beta unlock was enabled.",
-  "nextRecommendedPrompt": "MODEL-DRYRUN-2A - Calibrated Provider Dry-Run Fixes"
+  "nextRecommendedPrompt": "PLAN-SNAPSHOT-0 - Plan Snapshot Contract"
 }

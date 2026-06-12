@@ -1,11 +1,9 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun2-20260612T180334",
-  "status": "blocked",
-  "decision": "blocked_pending_cost_review",
-  "activeBlockers": [
-    "provider_cost_or_token_guardrail_exceeded"
-  ],
+  "runId": "modeldryrun2-20260612T183757",
+  "status": "passed",
+  "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "providerCandidates": {
     "qwenDefault": "qwen3.7-plus",
     "qwenEscalation": "not_used_in_model_dryrun_2",
@@ -22,7 +20,7 @@
   "providerCallsExecuted": true,
   "qwenApiCallsAllowedOnlyForSyntheticDryRun": true,
   "deepseekApiCallsAllowedOnlyForSyntheticDryRun": true,
-  "planSnapshotContractReady": false,
+  "planSnapshotContractReady": true,
   "secretPayloadPrinted": false,
   "secretPayloadCommitted": false,
   "rawProviderResponsesStored": false,
@@ -43,5 +41,8 @@
   "signedUrls": false,
   "production": false,
   "externalBeta": false,
-  "paidProduction": false
+  "paidProduction": false,
+  "privateArtifactUploadStatus": "uploaded",
+  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/",
+  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/"
 }

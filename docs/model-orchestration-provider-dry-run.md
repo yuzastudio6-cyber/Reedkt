@@ -1,8 +1,8 @@
 # MODEL-DRYRUN-2 Calibrated Qwen/DeepSeek Provider Dry-Run
 
-Decision: `blocked_pending_cost_review`.
+Decision: `provider_dry_run_passed_ready_for_plan_snapshot_contract`.
 
-Status: `blocked`.
+Status: `passed`.
 
 MODEL-DRYRUN-2 retries only the approved synthetic provider dry-run after MODEL-TIMEOUT-1. Qwen/DashScope uses the calibrated target `qwen3.7-plus`, `non_streaming`, `45000ms`, and `650` max output tokens. DeepSeek remains the existing approved synthetic control path.
 

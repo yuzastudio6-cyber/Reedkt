@@ -1,11 +1,9 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun2-20260612T180334",
-  "status": "blocked",
-  "decision": "blocked_pending_cost_review",
-  "activeBlockers": [
-    "provider_cost_or_token_guardrail_exceeded"
-  ],
+  "runId": "modeldryrun2-20260612T183757",
+  "status": "passed",
+  "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "providerCallsAttempted": true,
   "qwenApiCallAllowedInThisPhase": true,
   "deepseekApiCallAllowedInThisPhase": true,
@@ -30,5 +28,6 @@
   "productionAffected": false,
   "externalBeta": false,
   "paidProduction": false,
-  "nextRecommendedPhase": "Resolve the exact secret/model/schema/provider blocker before another dry-run."
+  "nextRecommendedPhase": "MODEL_ORCHESTRATION - plan snapshot contract",
+  "privateArtifactUploadStatus": "uploaded"
 }

@@ -1,9 +1,9 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun2-20260612T180334",
+  "runId": "modeldryrun2-20260612T183757",
   "reportDir": "docs/activation-model-orchestration-provider-dry-run-reports",
-  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T180334/",
-  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T180334/",
+  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/",
+  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/",
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
     "provider_dry_run_plan.json",
@@ -50,5 +50,93 @@
     "sqlExecuted": false,
     "migrationDeployed": false,
     "unrelatedRowsWritten": false
+  },
+  "privateArtifactUpload": {
+    "status": "uploaded",
+    "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/",
+    "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/",
+    "artifacts": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/audit/repo-ownership-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/audit/repo-ownership-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/policy/model-provider-dry-run-policy.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/policy/model-provider-dry-run-policy.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/cases/synthetic-dry-run-cases.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/cases/synthetic-dry-run-cases.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/requests/sanitized-provider-request-metadata.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/requests/sanitized-provider-request-metadata.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/responses/normalized-provider-responses.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/responses/normalized-provider-responses.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/validation/schema-validation-results.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/validation/schema-validation-results.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/validation/redaction-validation-results.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/validation/redaction-validation-results.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/cost/provider-cost-usage-summary.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/cost/provider-cost-usage-summary.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/manifest/model-provider-dry-run-manifest.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/manifest/model-provider-dry-run-manifest.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/supabase/model-dry-run-2-milestone-sync-input.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/supabase/model-dry-run-2-milestone-sync-input.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/supabase/model-dry-run-2-milestone-sync-result.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/supabase/model-dry-run-2-milestone-sync-result.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/qa/model-provider-dry-run-qa.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/qa/model-provider-dry-run-qa.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/reports/model-provider-dry-run-report.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T183757/reports/model-provider-dry-run-report.json",
+        "private": true
+      }
+    ],
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawProviderResponsesStored": false
   }
 }

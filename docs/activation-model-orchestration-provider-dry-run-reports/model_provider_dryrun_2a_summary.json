@@ -1,0 +1,93 @@
+{
+  "phase": "MODEL-DRYRUN-2A",
+  "runId": "modeldryrun2-20260612T183757",
+  "branch": "codex/rp-model-dryrun-2a-provider-token-guardrail-fixes",
+  "baseBranch": "origin/codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-provider-dry-run",
+  "finalState": "provider_dry_run_passed",
+  "status": "passed",
+  "executed": true,
+  "sourceEvidence": {
+    "modelDryRun2FinalState": "blocked_provider_call_failed",
+    "modelDryRun2InternalDecision": "blocked_pending_cost_review",
+    "modelDryRun2ActiveBlocker": "provider_cost_or_token_guardrail_exceeded",
+    "qwenDashscopeStatus": "passed",
+    "deepseekStatus": "passed",
+    "providerCallsAttempted": 7,
+    "totalTokensReported": 7842,
+    "maxTotalTokens": 7200
+  },
+  "qwenTokenGuardrailControl": {
+    "modelId": "qwen3.7-plus",
+    "mode": "non_streaming",
+    "timeoutMs": 45000,
+    "maxOutputTokens": 650,
+    "stream": false,
+    "enableThinking": false,
+    "qwen37MaxUsed": false
+  },
+  "retryEvidence": {
+    "qwenDashscopeStatus": "passed",
+    "deepseekStatus": "passed",
+    "providerCallsAttempted": 7,
+    "totalTokensReported": 2871,
+    "maxTotalTokens": 7200,
+    "costGuardrailStatus": "passed_by_call_and_token_caps",
+    "planSnapshotContractReady": true,
+    "privateArtifactUploadStatus": "uploaded"
+  },
+  "tokenGuardrail": {
+    "maxTotalTokens": 7200,
+    "capIncreased": false,
+    "sourceTotalTokens": 7842,
+    "projectedTotalTokensAfterThinkingDisabled": 4593,
+    "projectedMarginTokens": 2607,
+    "requiredMarginTokens": 600,
+    "staticBudgetPreflight": "passed",
+    "actualRetryTotalTokens": 2871,
+    "actualRetryMarginTokens": 4329
+  },
+  "caseMatrix": {
+    "approvedSyntheticProviderCasesPreserved": 7,
+    "qwenCases": 4,
+    "deepseekCases": 3,
+    "deepseekControlPathChanged": false
+  },
+  "officialDocsBasis": [
+    "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+    "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions"
+  ],
+  "baseGaps": [
+    "PRODUCTION_FOUNDATION_STATUS.md",
+    "docs/source-of-truth-map.md",
+    "docs/production-milestone-plan.md",
+    "docs/implementation-prompts/README.md",
+    "docs/cross-chat/",
+    "docs/runtime-unlock/",
+    ".github/workflows/",
+    "scripts/validation/run-foundation-validation.mjs"
+  ],
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no",
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "rawProviderResponseCommitted": false,
+  "rawProviderResponsesStored": false,
+  "privateUrlsCommitted": false,
+  "signedUrlsCreated": false,
+  "publicArtifactsCreated": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "mediaProcessing": false,
+  "browserCapture": false,
+  "dockerCloudRunExecution": false,
+  "productionDeployment": false,
+  "externalBetaUnlock": false,
+  "paidProductionUnlock": false,
+  "productionBetaUnlock": false,
+  "noScopeStatement": "No worker execution, tool execution, route execution, raw prompt execution, broad provider runtime, media processing, browser capture, Docker/Cloud Run execution, Supabase mutation, SQL execution, storage transfer, signed URL creation, public artifact creation, production deployment, external beta unlock, paid production unlock, Google Cloud Secret Manager payload exposure, secret commit, raw provider response commit, broad service-role handler, or production/beta unlock was enabled.",
+  "nextRecommendedPrompt": "PLAN-SNAPSHOT-0 - Plan Snapshot Contract"
+}

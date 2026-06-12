@@ -56,9 +56,10 @@ The implementation re-queried live GitHub state immediately before writing docs:
 
 ## PR And CI
 
-- PR URL: `pending`
+- PR URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/355`
 - PR mode: `draft`
-- GitHub checks: `pending`
+- GitHub checks: `no_check_rollup_entries`
+- GitHub mergeability: `MERGEABLE / CLEAN`
 
 ## Base Gaps
 

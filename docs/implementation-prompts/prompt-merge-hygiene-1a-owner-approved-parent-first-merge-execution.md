@@ -15,7 +15,9 @@ User-selected mode after live-state discovery: `Reconcile Only`.
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-merge-hygiene-1a-owner-approved-parent-first-merge-execution`
 - Branch: `codex/rp-merge-hygiene-1a-owner-approved-parent-first-merge-execution`
 - PR title: `[coordination] MERGE-HYGIENE-1A owner-approved parent-first merge execution`
-- PR URL: `pending`
+- PR URL: `https://github.com/yuzastudio6-cyber/Reedkt/pull/355`
+- PR mode: `draft`
+- PR check rollup: `no_check_rollup_entries`
 - Final mode: `parent_first_merge_reconciled_no_local_merges`
 - Owner approval present: `true`
 - mergedAnyPrLocally: `false`

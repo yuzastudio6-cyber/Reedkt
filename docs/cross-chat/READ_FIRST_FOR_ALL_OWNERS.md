@@ -1,13 +1,13 @@
 # Read First For All Owners
 
-This branch adds the GitHub merge-hygiene stack audit for cross-chat coordination.
+PR #350 now contains the merge-hygiene audit and human merge-order approval packet.
 
-Required owner actions before continuing a workstream:
+Before starting or continuing a workstream:
 
-1. Read `docs/github-merge-hygiene/open-pr-stack-map.md`.
-2. Read `docs/github-merge-hygiene/canonical-merge-order.md`.
-3. Read `docs/github-merge-hygiene/duplicate-pr-risk-register.md`.
-4. Confirm your PR's base branch is still the canonical parent.
-5. Hold draft, duplicate, or parallel PRs until the parent chain is reviewed.
+1. Read `docs/github-merge-hygiene/human-merge-order-approval-packet.md`.
+2. Read `docs/github-merge-hygiene/validation-exception-policy.md`.
+3. Read `docs/github-merge-hygiene/duplicate-pr-human-review-draft.md`.
+4. Check live GitHub merge status before building on a PR.
+5. Follow `docs/github-merge-hygiene/post-major-milestone-merge-rule.md`.
 
-This handoff does not authorize runtime execution, Supabase writes, provider calls, public artifacts, signed URLs, production, external beta, paid production, or raw prompt execution.
+This packet does not authorize PR merges by itself; it authorizes only a future parent-chain merge execution phase for the exact approved set.

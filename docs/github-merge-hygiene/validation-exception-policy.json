@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-06-12T21:02:45.066Z",
+  "decision": "validation_exception_accepted_for_future_parent_chain_merge_execution",
+  "typecheckServerExpectedFailure": true,
+  "buildServerExpectedFailure": true,
+  "acceptedForFutureMergeExecution": true,
+  "preExistingOnPr350Base": true,
+  "failureCategories": [
+    "sharp",
+    "jsdom",
+    "@mozilla/readability",
+    "@turf/turf",
+    "DOM unknown typings"
+  ],
+  "failureSignaturePolicy": {
+    "allowedOnlyWhenMatchingExactCategories": true,
+    "newFailureCategoryBlocksApproval": true,
+    "serverBuildFailureMustBeSameAsTypecheckServer": true
+  },
+  "mergeExecutionImpact": {
+    "blocksFutureParentChainMergeExecution": false,
+    "requiresSeparateRepairPr": true,
+    "repairOwnerWorkstream": "ACTIVATION_RUNTIME_FIXTURE_TOOLCHAIN",
+    "reevaluateWhen": [
+      "before any production, external beta, or paid production unlock",
+      "before treating typecheck:server as a required merge gate",
+      "after package dependency changes",
+      "after server activation runner changes"
+    ]
+  }
+}

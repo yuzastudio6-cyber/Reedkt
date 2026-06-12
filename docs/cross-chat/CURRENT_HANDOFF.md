@@ -1,23 +1,15 @@
 # Current Handoff
 
-Generated: `2026-06-12T20:45:16.207Z`
+Generated: `2026-06-12T21:02:45.066Z`
 
-Current merge-hygiene status:
+Current merge-hygiene approval status:
 
-- Open PRs audited: 347
-- Draft PRs: 21
-- All observed merge states clean: `false`
-- Open PR list limit hit on first pass: `true`
-- Closed sample currently only PR #31: `false`
-- Selected coordination base: `codex/rp-activation-52h-cross-workstream-handoff-tracking`
+- PR #350 merge hygiene audit is complete.
+- Approval decision: `blocked_pending_human_merge_order_review`
+- Open PRs in source snapshot: 347
+- Draft PRs in source snapshot: 21
+- PR #346 is merged and excluded from future merge targets.
+- Merge execution still requires a separate parent-chain execution prompt.
+- Future owners must check current merge status before building on any PR.
 
-Current handoff decision:
-
-- `open_pr_stack_audit_completed_ready_for_human_merge_order_review`
-- Human merge-order review is required before parent PR merges.
-- Draft PRs remain held.
-- Duplicate or parallel workstream lanes require owner selection before merge.
-
-Specific callout:
-
-- PR #346 is no longer open. Live GitHub metadata reports state `MERGED`; the prior open/draft prompt fact is stale.
+Current blocked scopes remain unchanged: no runtime execution, providers, tools, workers, routes, Supabase writes, public artifacts, signed URL delivery, production, external beta, paid production, or raw prompt execution.

@@ -23,6 +23,19 @@ const openFields = [
 ];
 const closedFields = ["number", "title", "state", "mergedAt", "baseRefName", "headRefName", "url"];
 
+const approvalRequiredFiles = [
+  "docs/github-merge-hygiene/human-merge-order-approval-packet.json",
+  "docs/github-merge-hygiene/human-merge-order-approval-packet.md",
+  "docs/github-merge-hygiene/validation-exception-policy.json",
+  "docs/github-merge-hygiene/validation-exception-policy.md",
+  "docs/github-merge-hygiene/duplicate-pr-human-review-draft.json",
+  "docs/github-merge-hygiene/duplicate-pr-human-review-draft.md",
+  "docs/github-merge-hygiene/reports/human_merge_order_approval_report.json",
+  "docs/github-merge-hygiene/reports/merge_execution_readiness_report.json",
+  "docs/github-merge-hygiene/reports/merge_execution_blocker_report.json",
+  "docs/implementation-prompts/prompt-github-merge-execution-parent-chain.md",
+];
+
 const requiredFiles = [
   "docs/github-merge-hygiene/open-pr-stack-map.json",
   "docs/github-merge-hygiene/open-pr-stack-map.md",
@@ -39,12 +52,19 @@ const requiredFiles = [
   "docs/cross-chat/OWNER_MATRIX.md",
   "docs/cross-chat/BLOCKED_SCOPES.md",
   "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+  ...approvalRequiredFiles,
 ];
 
 const writeConfirmed =
   process.env.REEDITPRO_CONFIRM_GITHUB_MERGE_HYGIENE_AUDIT === "true" &&
   process.env.REEDITPRO_CONFIRM_CROSS_CHAT_HANDOFF_UPDATE === "true" &&
   process.env.REEDITPRO_CONFIRM_PR_STACK_ANALYSIS === "true";
+
+const approvalWriteConfirmed =
+  process.env.REEDITPRO_CONFIRM_GITHUB_MERGE_ORDER_REVIEW === "true" &&
+  process.env.REEDITPRO_CONFIRM_HUMAN_MERGE_ORDER_APPROVAL_PACKET === "true" &&
+  process.env.REEDITPRO_CONFIRM_CROSS_CHAT_HANDOFF_UPDATE === "true" &&
+  process.env.REEDITPRO_CONFIRM_VALIDATION_EXCEPTION_REVIEW === "true";
 
 const forbiddenUnlockPatterns = [
   /production\s+(?:is\s+)?(?:unlocked|enabled|approved|allowed)\s*:?\s*true/i,
@@ -89,6 +109,85 @@ const canonicalPrimaryNumbers = [
   342,
   346,
   347,
+];
+
+const approvedFutureMergePrNumbers = [
+  205,
+  222,
+  247,
+  248,
+  252,
+  259,
+  262,
+  265,
+  269,
+  271,
+  274,
+  276,
+  280,
+  283,
+  292,
+  298,
+  299,
+  302,
+  306,
+  309,
+  311,
+  314,
+  318,
+  320,
+  322,
+  327,
+  337,
+  347,
+];
+
+const expectedDraftPrNumbers = [
+  1,
+  308,
+  312,
+  313,
+  316,
+  317,
+  319,
+  321,
+  323,
+  326,
+  329,
+  332,
+  333,
+  335,
+  336,
+  338,
+  339,
+  344,
+  345,
+  348,
+  351,
+];
+
+const expectedNonCleanMergeStates = {
+  1: "DIRTY",
+  94: "UNSTABLE",
+};
+
+const alreadyMergedEvidencePrNumbers = [341, 342, 346];
+
+const allowedApprovalDecisions = [
+  "approved_for_future_parent_chain_merge_execution",
+  "blocked_pending_human_merge_order_review",
+  "blocked_pending_duplicate_pr_review",
+  "blocked_pending_validation_exception_review",
+  "blocked_pending_dirty_or_unstable_pr_review",
+  "rejected_due_source_of_truth_risk",
+];
+
+const approvedFutureMergeStacks = [
+  { id: "cross_chat_foundation", prNumbers: [205, 222] },
+  { id: "supabase_trackb_clean_staging", prNumbers: [247, 248, 252, 259, 262, 265, 269, 271, 274, 276, 280, 283, 292, 298] },
+  { id: "product_internal_testing", prNumbers: [299, 302, 306, 309, 311] },
+  { id: "model_orchestration", prNumbers: [314, 318, 320, 322, 327, 337] },
+  { id: "tool_route_execution_unlock_audit", prNumbers: [347] },
 ];
 
 const duplicateRiskGroups = [
@@ -702,6 +801,458 @@ Current holds:
 `;
 }
 
+function sortedNumbers(values) {
+  return [...values].map(Number).sort((a, b) => a - b);
+}
+
+function sameNumberSet(actual, expected) {
+  const sortedActual = sortedNumbers(actual);
+  const sortedExpected = sortedNumbers(expected);
+  return sortedActual.length === sortedExpected.length && sortedActual.every((value, index) => value === sortedExpected[index]);
+}
+
+function buildValidationExceptionPolicy(generatedAt) {
+  return {
+    generatedAt,
+    decision: "validation_exception_accepted_for_future_parent_chain_merge_execution",
+    typecheckServerExpectedFailure: true,
+    buildServerExpectedFailure: true,
+    acceptedForFutureMergeExecution: true,
+    preExistingOnPr350Base: true,
+    failureCategories: [
+      "sharp",
+      "jsdom",
+      "@mozilla/readability",
+      "@turf/turf",
+      "DOM unknown typings",
+    ],
+    failureSignaturePolicy: {
+      allowedOnlyWhenMatchingExactCategories: true,
+      newFailureCategoryBlocksApproval: true,
+      serverBuildFailureMustBeSameAsTypecheckServer: true,
+    },
+    mergeExecutionImpact: {
+      blocksFutureParentChainMergeExecution: false,
+      requiresSeparateRepairPr: true,
+      repairOwnerWorkstream: "ACTIVATION_RUNTIME_FIXTURE_TOOLCHAIN",
+      reevaluateWhen: [
+        "before any production, external beta, or paid production unlock",
+        "before treating typecheck:server as a required merge gate",
+        "after package dependency changes",
+        "after server activation runner changes",
+      ],
+    },
+  };
+}
+
+function buildDuplicateHumanReviewDraft(audit) {
+  const approvedSet = new Set(approvedFutureMergePrNumbers);
+  const mergedSet = new Set(alreadyMergedEvidencePrNumbers);
+  const entries = audit.duplicateRiskEntries.map((entry) => {
+    const observed = sortedNumbers(entry.observedPrNumbers);
+    const keep = observed.filter((number) => approvedSet.has(number) || mergedSet.has(number));
+    const review = observed.filter((number) => !approvedSet.has(number) && !mergedSet.has(number));
+    const likelySuperseded = review.filter((number) => {
+      const pr = audit.stackMap.find((candidate) => candidate.number === number);
+      return pr?.classification === "duplicate_risk" || pr?.isDraft;
+    });
+    return {
+      id: entry.id,
+      label: entry.label,
+      riskStatus: entry.riskStatus,
+      canonicalRecommendation: entry.canonicalPrNumbers.length
+        ? entry.canonicalPrNumbers
+        : "owner_review_required",
+      prsToKeep: keep,
+      prsToReview: review,
+      prsLikelySupersededPendingHumanConfirmation: likelySuperseded,
+      prsNotApprovedForMergeYet: review,
+      recommendedAction:
+        review.length > 0
+          ? "keep canonical/merged evidence; review or close/rebase parallel PRs only after the canonical parent chain lands"
+          : "keep canonical lane",
+      reason: entry.reason,
+    };
+  });
+  return {
+    generatedAt: new Date().toISOString(),
+    decision: "duplicate_parallel_prs_require_human_review_before_any_noncanonical_merge",
+    entries,
+  };
+}
+
+function buildMergeApprovalPacket(metadata, audit) {
+  const openByNumber = new Map(audit.stackMap.map((pr) => [pr.number, pr]));
+  const approvedPrs = approvedFutureMergePrNumbers.map((number) => openByNumber.get(number)).filter(Boolean);
+  const draftPrNumbers = sortedNumbers(audit.draftPrs.map((pr) => pr.number));
+  const nonCleanMergeStates = Object.fromEntries(
+    audit.nonCleanPrs.map((pr) => [String(pr.number), pr.mergeStateStatus]).sort(([a], [b]) => Number(a) - Number(b)),
+  );
+  const duplicateRiskPrNumbers = sortedNumbers(
+    audit.stackMap
+      .filter((pr) => pr.classification === "duplicate_risk")
+      .map((pr) => pr.number),
+  );
+  const nonCanonicalPrNumbers = sortedNumbers(
+    audit.stackMap
+      .filter((pr) => !approvedFutureMergePrNumbers.includes(pr.number))
+      .map((pr) => pr.number),
+  );
+  const alreadyMergedPrs = alreadyMergedEvidencePrNumbers.map((number) => pr205Summary(fetchPr(number)));
+
+  const blockers = [];
+  if (metadata.openPrCount !== 347) {
+    blockers.push({
+      blocker: "open_pr_count_changed_since_approval_plan",
+      status: "active",
+      expected: 347,
+      actual: metadata.openPrCount,
+      decision: "blocked_pending_human_merge_order_review",
+    });
+  }
+  if (!sameNumberSet(draftPrNumbers, expectedDraftPrNumbers)) {
+    blockers.push({
+      blocker: "draft_pr_set_changed_since_approval_plan",
+      status: "active",
+      expected: expectedDraftPrNumbers,
+      actual: draftPrNumbers,
+      decision: "blocked_pending_human_merge_order_review",
+    });
+  }
+  const expectedNonClean = Object.fromEntries(Object.entries(expectedNonCleanMergeStates).sort(([a], [b]) => Number(a) - Number(b)));
+  if (JSON.stringify(nonCleanMergeStates) !== JSON.stringify(expectedNonClean)) {
+    blockers.push({
+      blocker: "dirty_or_unstable_pr_set_changed_since_approval_plan",
+      status: "active",
+      expected: expectedNonClean,
+      actual: nonCleanMergeStates,
+      decision: "blocked_pending_dirty_or_unstable_pr_review",
+    });
+  }
+  const approvedProblems = approvedFutureMergePrNumbers
+    .map((number) => {
+      const pr = openByNumber.get(number);
+      if (!pr) return { number, issue: "missing_from_open_pr_snapshot" };
+      if (pr.isDraft) return { number, issue: "is_draft" };
+      if (pr.mergeStateStatus !== "CLEAN") return { number, issue: `merge_state_${pr.mergeStateStatus}` };
+      if (pr.classification !== "canonical") return { number, issue: `classification_${pr.classification}` };
+      return null;
+    })
+    .filter(Boolean);
+  if (approvedProblems.length > 0) {
+    blockers.push({
+      blocker: "approved_future_merge_set_not_clean_canonical",
+      status: "active",
+      problems: approvedProblems,
+      decision: "blocked_pending_human_merge_order_review",
+    });
+  }
+  const mergedProblems = alreadyMergedPrs
+    .filter((pr) => pr.state !== "MERGED")
+    .map((pr) => ({ number: pr.number, state: pr.state }));
+  if (mergedProblems.length > 0) {
+    blockers.push({
+      blocker: "merged_evidence_pr_state_mismatch",
+      status: "active",
+      problems: mergedProblems,
+      decision: "blocked_pending_human_merge_order_review",
+    });
+  }
+
+  let decision = "approved_for_future_parent_chain_merge_execution";
+  const firstBlockingDecision = blockers.find((blocker) => blocker.status === "active")?.decision;
+  if (firstBlockingDecision) decision = firstBlockingDecision;
+
+  const validationExceptionPolicy = buildValidationExceptionPolicy(metadata.generatedAt);
+  const duplicateReview = buildDuplicateHumanReviewDraft(audit);
+
+  return {
+    runId,
+    generatedAt: metadata.generatedAt,
+    decision,
+    sourceAuditDecision: "open_pr_stack_audit_completed_ready_for_human_merge_order_review",
+    sourceOpenPrCount: metadata.openPrCount,
+    sourceDraftPrCount: draftPrNumbers.length,
+    sourceMergeStateCounts: countsBy(audit.stackMap, "mergeStateStatus"),
+    approvedFutureMergePrNumbers,
+    approvedFutureMergeStacks,
+    approvedFutureMergePrs: approvedPrs.map((pr) => ({
+      number: pr.number,
+      title: pr.title,
+      url: pr.url,
+      baseRefName: pr.baseRefName,
+      headRefName: pr.headRefName,
+      mergeStateStatus: pr.mergeStateStatus,
+      classification: pr.classification,
+    })),
+    blockedFromFutureMerge: {
+      draftPrNumbers,
+      dirtyOrUnstablePrs: nonCleanMergeStates,
+      duplicateRiskPrNumbers,
+      nonCanonicalPrNumbers,
+      alreadyMergedEvidencePrNumbers,
+      approvalCarrierPrNumber: 350,
+    },
+    alreadyMergedEvidencePrs: alreadyMergedPrs,
+    duplicateReview,
+    validationExceptionPolicy,
+    blockers,
+    executionStatus: {
+      pullRequestsMerged: false,
+      pullRequestsClosed: false,
+      pullRequestsRebased: false,
+      runtimePathsExecuted: false,
+      supabaseMutation: false,
+      providerCalls: false,
+      publicArtifactsCreated: false,
+      signedUrlsIssued: false,
+      productionUnlocked: false,
+      externalBetaUnlocked: false,
+      paidProductionUnlocked: false,
+    },
+    supabaseClassification: {
+      updateRequired: "no",
+      environmentTouched: "none",
+      sql: "none",
+      migrationDeployed: "no",
+    },
+  };
+}
+
+function renderApprovalPacketMd(packet) {
+  const mergeSetHeading =
+    packet.decision === "approved_for_future_parent_chain_merge_execution"
+      ? "Approved Future Merge PRs"
+      : "Candidate Future Merge PRs - Held Until Blocker Resolution";
+  return `# Human Merge Order Approval Packet
+
+Decision: \`${packet.decision}\`
+
+This packet approves only a future parent-chain merge execution phase. It does not merge, close, rebase, retarget, or unlock runtime/product scopes.
+
+## ${mergeSetHeading}
+
+${markdownTable(packet.approvedFutureMergePrs, [
+  { label: "PR", value: (row) => `#${row.number}` },
+  { label: "Title", value: (row) => row.title },
+  { label: "Base", value: (row) => `\`${row.baseRefName}\`` },
+  { label: "Head", value: (row) => `\`${row.headRefName}\`` },
+  { label: "Merge state", value: (row) => row.mergeStateStatus },
+])}
+
+## Approved Stacks
+
+${markdownTable(packet.approvedFutureMergeStacks, [
+  { label: "Stack", value: (row) => row.id },
+  { label: "PRs", value: (row) => row.prNumbers.map((number) => `#${number}`).join(", ") },
+])}
+
+## Blocked From Merge
+
+- Draft PRs: ${packet.blockedFromFutureMerge.draftPrNumbers.map((number) => `#${number}`).join(", ")}
+- Dirty or unstable PRs: ${Object.entries(packet.blockedFromFutureMerge.dirtyOrUnstablePrs).map(([number, status]) => `#${number} ${status}`).join(", ")}
+- Duplicate-risk PRs: ${packet.blockedFromFutureMerge.duplicateRiskPrNumbers.length}
+- Already merged evidence PRs excluded from future merge targets: ${packet.blockedFromFutureMerge.alreadyMergedEvidencePrNumbers.map((number) => `#${number}`).join(", ")}
+- PR #350 is the approval packet carrier and is not part of the future merge target set.
+
+## Validation Exception Policy
+
+The known \`typecheck:server\` and \`build:server\` failures are accepted only for this future parent-chain merge approval if they match the existing activation dependency/type categories in \`validation-exception-policy.md\`. Any new category blocks merge execution approval.
+
+## Safety
+
+No PR merge, close, rebase, runtime execution, provider call, Supabase write, public artifact, signed URL delivery, production, external beta, paid production, or raw prompt execution is approved in this packet.
+`;
+}
+
+function renderValidationExceptionPolicyMd(policy) {
+  return `# Validation Exception Policy
+
+Decision: \`${policy.decision}\`
+
+The following validation failures are treated as pre-existing PR #350 base blockers for future parent-chain merge execution only:
+
+- \`typecheck:server\`
+- \`build:server\`
+
+Accepted failure categories:
+
+${policy.failureCategories.map((category) => `- \`${category}\``).join("\n")}
+
+Policy:
+
+- New failure categories block merge execution approval.
+- \`build:server\` may fail only because it reruns the same \`typecheck:server\` blockers.
+- These failures do not authorize runtime execution, Supabase writes, provider calls, production, external beta, or paid production.
+- A separate repair PR remains required before this server typecheck can become a hard merge gate.
+- Reevaluate after package dependency changes, server activation runner changes, or before any production/runtime unlock.
+`;
+}
+
+function renderDuplicateReviewMd(duplicateReview) {
+  return `# Duplicate PR Human Review Draft
+
+Decision: \`${duplicateReview.decision}\`
+
+No duplicate or parallel PR is closed, rebased, or merged by this packet.
+
+${duplicateReview.entries
+  .map(
+    (entry) => `## ${entry.label}
+
+- Canonical recommendation: ${Array.isArray(entry.canonicalRecommendation) ? entry.canonicalRecommendation.map((number) => `#${number}`).join(", ") : entry.canonicalRecommendation}
+- PRs to keep: ${entry.prsToKeep.length ? entry.prsToKeep.map((number) => `#${number}`).join(", ") : "none"}
+- PRs to review: ${entry.prsToReview.length ? entry.prsToReview.map((number) => `#${number}`).join(", ") : "none"}
+- Likely superseded pending human confirmation: ${entry.prsLikelySupersededPendingHumanConfirmation.length ? entry.prsLikelySupersededPendingHumanConfirmation.map((number) => `#${number}`).join(", ") : "none"}
+- Not approved for merge yet: ${entry.prsNotApprovedForMergeYet.length ? entry.prsNotApprovedForMergeYet.map((number) => `#${number}`).join(", ") : "none"}
+- Recommended action: ${entry.recommendedAction}
+`,
+  )
+  .join("\n")}
+`;
+}
+
+function renderApprovalCurrentHandoff(packet) {
+  return `# Current Handoff
+
+Generated: \`${packet.generatedAt}\`
+
+Current merge-hygiene approval status:
+
+- PR #350 merge hygiene audit is complete.
+- Approval decision: \`${packet.decision}\`
+- Open PRs in source snapshot: ${packet.sourceOpenPrCount}
+- Draft PRs in source snapshot: ${packet.sourceDraftPrCount}
+- PR #346 is merged and excluded from future merge targets.
+- Merge execution still requires a separate parent-chain execution prompt.
+- Future owners must check current merge status before building on any PR.
+
+Current blocked scopes remain unchanged: no runtime execution, providers, tools, workers, routes, Supabase writes, public artifacts, signed URL delivery, production, external beta, paid production, or raw prompt execution.
+`;
+}
+
+function renderApprovalReadFirst() {
+  return `# Read First For All Owners
+
+PR #350 now contains the merge-hygiene audit and human merge-order approval packet.
+
+Before starting or continuing a workstream:
+
+1. Read \`docs/github-merge-hygiene/human-merge-order-approval-packet.md\`.
+2. Read \`docs/github-merge-hygiene/validation-exception-policy.md\`.
+3. Read \`docs/github-merge-hygiene/duplicate-pr-human-review-draft.md\`.
+4. Check live GitHub merge status before building on a PR.
+5. Follow \`docs/github-merge-hygiene/post-major-milestone-merge-rule.md\`.
+
+This packet does not authorize PR merges by itself; it authorizes only a future parent-chain merge execution phase for the exact approved set.
+`;
+}
+
+function renderApprovalNextUnlockLanes(packet) {
+  return `# Next Unlock Lanes
+
+Recommended next phase:
+
+- If \`${packet.decision}\` remains approved, run \`GITHUB_MERGE_HYGIENE - parent-chain merge execution\`.
+- Merge parent PRs first and verify merged commits after each merge.
+- Do not merge drafts, dirty/unstable PRs, duplicate-risk PRs, or non-canonical PRs.
+
+Still blocked:
+
+- runtime execution
+- provider calls
+- worker/tool/route execution
+- Supabase writes
+- production, external beta, and paid production
+- public artifacts and signed URL delivery
+- raw prompt execution
+`;
+}
+
+function renderMergeExecutionPrompt(packet) {
+  const executionStatus =
+    packet.decision === "approved_for_future_parent_chain_merge_execution"
+      ? "This prompt may be used only in a separate execution phase after PR #350 lands."
+      : `Do not use this prompt for merge execution yet. Current approval decision is \`${packet.decision}\`; resolve the blocker report first.`;
+  return `# GitHub Merge Hygiene Parent-Chain Merge Execution
+
+${executionStatus}
+
+Candidate merge targets are exactly:
+
+${packet.approvedFutureMergePrNumbers.map((number) => `- #${number}`).join("\n")}
+
+Rules:
+
+- Merge parent PRs first.
+- Do not merge draft PRs.
+- Do not merge dirty or unstable PRs.
+- Do not merge duplicate-risk PRs unless they are explicitly marked canonical in the approval packet.
+- Verify the target branch contains each merged commit after every merge.
+- Stop on any changed merge state, new conflict, missing parent, or unexpected CI/validation category.
+- Do not execute runtime paths, mutate Supabase, call providers, run workers/tools/routes, process media, create public artifacts, issue signed URLs, deploy production, unlock external beta, unlock paid production, or execute raw prompts.
+`;
+}
+
+function generateApprovalArtifacts(metadata, audit) {
+  const packet = buildMergeApprovalPacket(metadata, audit);
+  const readiness = {
+    runId,
+    generatedAt: packet.generatedAt,
+    decision: packet.decision,
+    mergeExecutionApprovedForFuturePhase: packet.decision === "approved_for_future_parent_chain_merge_execution",
+    mergeExecutionStarted: false,
+    approvedFutureMergePrNumbers: packet.approvedFutureMergePrNumbers,
+    blockedFromFutureMerge: packet.blockedFromFutureMerge,
+    requiredNextAction:
+      packet.decision === "approved_for_future_parent_chain_merge_execution"
+        ? "run_separate_parent_chain_merge_execution_prompt"
+        : "resolve_human_merge_order_or_validation_blockers",
+    safetyStatus: {
+      pullRequestsMerged: false,
+      pullRequestsClosed: false,
+      pullRequestsRebased: false,
+      productionUnlocked: false,
+      externalBetaUnlocked: false,
+      paidProductionUnlocked: false,
+      runtimeExecutionUnlocked: false,
+      supabaseWritesUnlocked: false,
+    },
+  };
+  const blockers = {
+    runId,
+    generatedAt: packet.generatedAt,
+    decision: packet.decision === "approved_for_future_parent_chain_merge_execution"
+      ? "no_active_approval_blockers"
+      : "merge_execution_approval_blocked",
+    activeApprovalBlockers: packet.blockers,
+    controlledBlockedMergeSets: packet.blockedFromFutureMerge,
+  };
+
+  jsonWrite("docs/github-merge-hygiene/human-merge-order-approval-packet.json", packet);
+  textWrite("docs/github-merge-hygiene/human-merge-order-approval-packet.md", renderApprovalPacketMd(packet));
+  jsonWrite("docs/github-merge-hygiene/validation-exception-policy.json", packet.validationExceptionPolicy);
+  textWrite("docs/github-merge-hygiene/validation-exception-policy.md", renderValidationExceptionPolicyMd(packet.validationExceptionPolicy));
+  jsonWrite("docs/github-merge-hygiene/duplicate-pr-human-review-draft.json", packet.duplicateReview);
+  textWrite("docs/github-merge-hygiene/duplicate-pr-human-review-draft.md", renderDuplicateReviewMd(packet.duplicateReview));
+  jsonWrite("docs/github-merge-hygiene/reports/human_merge_order_approval_report.json", {
+    runId,
+    generatedAt: packet.generatedAt,
+    decision: packet.decision,
+    approvedFutureMergePrNumbers: packet.approvedFutureMergePrNumbers,
+    blockers: packet.blockers,
+    executionStatus: packet.executionStatus,
+    supabaseClassification: packet.supabaseClassification,
+  });
+  jsonWrite("docs/github-merge-hygiene/reports/merge_execution_readiness_report.json", readiness);
+  jsonWrite("docs/github-merge-hygiene/reports/merge_execution_blocker_report.json", blockers);
+  textWrite("docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md", renderApprovalReadFirst(packet));
+  textWrite("docs/cross-chat/CURRENT_HANDOFF.md", renderApprovalCurrentHandoff(packet));
+  textWrite("docs/cross-chat/NEXT_UNLOCK_LANES.md", renderApprovalNextUnlockLanes(packet));
+  textWrite("docs/implementation-prompts/prompt-github-merge-execution-parent-chain.md", renderMergeExecutionPrompt(packet));
+  return packet;
+}
+
 function generateArtifacts(metadata, audit) {
   mkdirSync(hygieneDir, { recursive: true });
   mkdirSync(reportsDir, { recursive: true });
@@ -916,6 +1467,10 @@ function validateArtifacts() {
   let pr346State = null;
   let pr346ExpectationMatches = null;
   let openPrListLimitHit = null;
+  let approvalDecision = "missing";
+  let approvalPrSet = [];
+  let validationExceptionAccepted = false;
+  let mergeExecutionStarted = null;
   try {
     const auditReport = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/reports/open_pr_stack_audit_report.json"), "utf8"));
     reportStatus = auditReport.auditStatus;
@@ -925,6 +1480,20 @@ function validateArtifacts() {
     openPrListLimitHit = auditReport.openPrListLimitHit;
   } catch {
     // Missing report is handled by the missing file check.
+  }
+  try {
+    const approvalReport = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/reports/human_merge_order_approval_report.json"), "utf8"));
+    approvalDecision = approvalReport.decision;
+    approvalPrSet = approvalReport.approvedFutureMergePrNumbers || [];
+    mergeExecutionStarted = approvalReport.executionStatus?.pullRequestsMerged ?? null;
+  } catch {
+    // Missing report is handled by the missing file check.
+  }
+  try {
+    const validationPolicy = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/validation-exception-policy.json"), "utf8"));
+    validationExceptionAccepted = validationPolicy.acceptedForFutureMergeExecution === true;
+  } catch {
+    // Missing policy is handled by the missing file check.
   }
 
   const failures = [];
@@ -938,13 +1507,21 @@ function validateArtifacts() {
   if (pr346State === "OPEN" && pr346ExpectationMatches !== true) {
     failures.push("PR #346 is open but does not match the expected draft/clean hold metadata");
   }
+  if (!allowedApprovalDecisions.includes(approvalDecision)) {
+    failures.push(`unexpected merge approval decision ${approvalDecision}`);
+  }
+  if (!sameNumberSet(approvalPrSet, approvedFutureMergePrNumbers)) {
+    failures.push(`approval PR set mismatch: ${approvalPrSet.join(",")}`);
+  }
+  if (!validationExceptionAccepted) failures.push("validation exception policy is not accepted for future merge execution");
+  if (mergeExecutionStarted !== false) failures.push("approval report must record no PR merges in this phase");
 
   if (failures.length > 0) {
     console.error(`[github-merge-hygiene] diagnostics failed: ${failures.join(" | ")}`);
     process.exit(1);
   }
   console.log(
-    `[github-merge-hygiene] diagnostics passed: required files present, decision=${decision}, pr346State=${pr346State}, openPrListLimitHit=${openPrListLimitHit}`,
+    `[github-merge-hygiene] diagnostics passed: required files present, decision=${decision}, approval=${approvalDecision}, pr346State=${pr346State}, openPrListLimitHit=${openPrListLimitHit}`,
   );
 }
 
@@ -956,8 +1533,16 @@ function main() {
     console.log(
       `[github-merge-hygiene] wrote audit artifacts for ${metadata.openPrCount} open PRs; drafts=${audit.draftPrs.length}; openPrListLimitHit=${metadata.openPrListLimitHit}`,
     );
+  }
+  if (approvalWriteConfirmed) {
+    const metadata = buildMetadata();
+    const audit = buildAudit(metadata);
+    const packet = generateApprovalArtifacts(metadata, audit);
+    console.log(
+      `[github-merge-hygiene] wrote merge approval artifacts; decision=${packet.decision}; approvedFutureMergePrs=${packet.approvedFutureMergePrNumbers.length}`,
+    );
   } else {
-    console.log("[github-merge-hygiene] write confirmations not set; validating committed artifacts only");
+    console.log("[github-merge-hygiene] merge approval write confirmations not set");
   }
   validateArtifacts();
 }

@@ -1,0 +1,74 @@
+{
+  "phase": "tool-study-pending-owners-0",
+  "status": "passed",
+  "capabilityCards": [
+    {
+      "ownerId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "capabilities": [
+        "remotion_graphic_composition",
+        "sharp_libvips_graphic_asset_prep_handoff",
+        "d3_echarts_exact_graphics",
+        "lottie_pixijs_three_konva_motion_graphics",
+        "provider_generated_graphic_asset_handoff_blocked"
+      ],
+      "runtimeStatus": "metadata_only_no_execution",
+      "borrowedOwnerHandoffs": [
+        "TRACK_B_MEDIA_PROCESSING for Sharp / libvips runtime",
+        "PROVIDER_GATEWAY_MODELS for future generated assets",
+        "TRACK_A_RENDER_EXPORT for final composition/export"
+      ]
+    },
+    {
+      "ownerId": "TRACK_A_RENDER_EXPORT",
+      "capabilities": [
+        "remotion_command_plan",
+        "ffmpeg_final_export_plan",
+        "libass_caption_render_plan",
+        "timeline_interchange_handoff",
+        "preview_boundary_metadata"
+      ],
+      "runtimeStatus": "metadata_only_no_execution",
+      "borrowedOwnerHandoffs": [
+        "TRACK_B_MEDIA_PROCESSING for source/proxy/media metadata",
+        "SOUND_MUSIC_AUDIO for final audio/loudness handoff",
+        "AI_TOOLS_CREATIVE_GRAPHICS for designed asset metadata"
+      ]
+    },
+    {
+      "ownerId": "TRACK_B_MEDIA_PROCESSING",
+      "capabilities": [
+        "opencv_private_visual_qa",
+        "pyav_media_probe_policy",
+        "pyscenedetect_scene_manifest_policy",
+        "sharp_libvips_private_image_prep",
+        "duckdb_polars_private_reporting"
+      ],
+      "runtimeStatus": "metadata_only_no_execution",
+      "borrowedOwnerHandoffs": [
+        "TRACK_A_RENDER_EXPORT for final export",
+        "AI_TOOLS_CREATIVE_GRAPHICS for graphics consumption",
+        "SOUND_MUSIC_AUDIO for audio-specific planning"
+      ]
+    },
+    {
+      "ownerId": "SOUND_MUSIC_AUDIO",
+      "capabilities": [
+        "ffmpeg_ffprobe_audio_boundary",
+        "audioflux_soundsync_analysis_plan",
+        "signalsmith_stretch_music_fit_plan",
+        "deepfilternet_restricted_audio_evidence",
+        "demucs_provenance_blocked",
+        "future_music_sfx_provider_handoff_blocked"
+      ],
+      "runtimeStatus": "metadata_only_no_execution",
+      "borrowedOwnerHandoffs": [
+        "TRACK_A_RENDER_EXPORT for final mux/export",
+        "TRACK_B_MEDIA_PROCESSING for media-data inputs",
+        "PROVIDER_GATEWAY_MODELS for future music/SFX provider execution"
+      ]
+    }
+  ],
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "providerExecutionAllowed": false
+}

@@ -1,0 +1,42 @@
+{
+  "phase": "tool-study-pending-owners-0",
+  "status": "passed",
+  "handoffRequirements": [
+    {
+      "ownerId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "requiredBeforeRuntime": [
+        "provider_gateway_approval_if_generated_assets_are_needed",
+        "track_b_sharp_runtime_handoff_if_image_processing_is_needed",
+        "track_a_render_export_handoff_for_final_composition"
+      ]
+    },
+    {
+      "ownerId": "TRACK_A_RENDER_EXPORT",
+      "requiredBeforeRuntime": [
+        "approved_render_manifest",
+        "private_artifact_manifest",
+        "export_qa_policy",
+        "storage_delivery_owner_approval"
+      ]
+    },
+    {
+      "ownerId": "TRACK_B_MEDIA_PROCESSING",
+      "requiredBeforeRuntime": [
+        "approved_artifact_scope",
+        "private_media_ref_policy",
+        "tool_route_execution_unlock",
+        "broad_media_rejection_policy"
+      ]
+    },
+    {
+      "ownerId": "SOUND_MUSIC_AUDIO",
+      "requiredBeforeRuntime": [
+        "audio_owner_approval",
+        "private_audio_ref_policy",
+        "provider_gateway_approval_for_music_or_sfx_generation",
+        "demucs_provenance_review_before_any_demucs_runtime"
+      ]
+    }
+  ],
+  "nextRecommendedPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-0: tool-route execution unlock repo audit, no execution"
+}

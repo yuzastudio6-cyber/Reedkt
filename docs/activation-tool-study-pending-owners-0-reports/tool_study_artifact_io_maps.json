@@ -1,0 +1,79 @@
+{
+  "phase": "tool-study-pending-owners-0",
+  "status": "passed",
+  "artifactIoMaps": [
+    {
+      "ownerId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "approvedInputs": [
+        "approved_plan_snapshot_metadata",
+        "private_graphic_asset_ref_placeholder",
+        "manifest_ref_placeholder",
+        "checksum_ref_placeholder"
+      ],
+      "approvedOutputs": [
+        "private_graphics_spec_metadata",
+        "private_asset_prep_metadata"
+      ]
+    },
+    {
+      "ownerId": "TRACK_A_RENDER_EXPORT",
+      "approvedInputs": [
+        "approved_render_manifest_metadata",
+        "private_timeline_ref_placeholder",
+        "private_artifact_manifest_ref_placeholder",
+        "checksum_ref_placeholder"
+      ],
+      "approvedOutputs": [
+        "private_render_command_plan_metadata",
+        "private_export_qa_metadata"
+      ]
+    },
+    {
+      "ownerId": "TRACK_B_MEDIA_PROCESSING",
+      "approvedInputs": [
+        "approved_private_media_metadata",
+        "bounded_frame_ref_placeholder",
+        "private_proxy_ref_placeholder",
+        "checksum_ref_placeholder"
+      ],
+      "approvedOutputs": [
+        "private_media_qa_metadata",
+        "redacted_reporting_metadata"
+      ]
+    },
+    {
+      "ownerId": "SOUND_MUSIC_AUDIO",
+      "approvedInputs": [
+        "approved_private_audio_metadata",
+        "bounded_audio_ref_placeholder",
+        "approved_timing_metadata",
+        "checksum_ref_placeholder"
+      ],
+      "approvedOutputs": [
+        "private_audio_plan_metadata",
+        "private_soundsync_timing_metadata"
+      ]
+    }
+  ],
+  "blockedInputClasses": [
+    "raw_prompt",
+    "arbitrary_file_path",
+    "signed_url_source_of_truth",
+    "public_url",
+    "committed_private_payload",
+    "provider_raw_output",
+    "broad_user_media",
+    "production_target"
+  ],
+  "blockedOutputClasses": [
+    "public_artifact",
+    "signed_url",
+    "raw_provider_output",
+    "committed_media_payload",
+    "committed_audio_payload",
+    "service_role_payload",
+    "production_mutation"
+  ],
+  "publicArtifactsAllowed": false,
+  "signedUrlsAsSourceOfTruthAllowed": false
+}

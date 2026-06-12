@@ -1,0 +1,38 @@
+{
+  "phase": "tool-study-pending-owners-0",
+  "status": "passed",
+  "pendingOwnersStudied": [
+    "AI_TOOLS_CREATIVE_GRAPHICS",
+    "TRACK_A_RENDER_EXPORT",
+    "TRACK_B_MEDIA_PROCESSING",
+    "SOUND_MUSIC_AUDIO"
+  ],
+  "completedOwnersNotDuplicated": [
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL"
+  ],
+  "ownerDocs": [
+    {
+      "ownerId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "docPath": "docs/tool-studies/ai-tools-creative-graphics-tool-study.md",
+      "studyStatus": "metadata_study_complete_no_execution"
+    },
+    {
+      "ownerId": "TRACK_A_RENDER_EXPORT",
+      "docPath": "docs/tool-studies/track-a-render-export-tool-study.md",
+      "studyStatus": "metadata_study_complete_no_execution"
+    },
+    {
+      "ownerId": "TRACK_B_MEDIA_PROCESSING",
+      "docPath": "docs/tool-studies/track-b-media-processing-tool-study.md",
+      "studyStatus": "metadata_study_complete_no_execution"
+    },
+    {
+      "ownerId": "SOUND_MUSIC_AUDIO",
+      "docPath": "docs/tool-studies/sound-music-audio-tool-study.md",
+      "studyStatus": "metadata_study_complete_no_execution"
+    }
+  ],
+  "runtimeExecutionReadyClaimed": false,
+  "toolRouteExecutionReadyClaimed": false
+}

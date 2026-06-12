@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "gates": [
+    {
+      "gateId": "approved_staging_target_verified",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "Approved staging target reference must resolve to Reeditpro / wmyyttnynmteqgcdishd / staging."
+    },
+    {
+      "gateId": "secret_metadata_only",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "Secret Manager metadata is checked without printing values; proof-only mode does not read payloads."
+    },
+    {
+      "gateId": "registry_table_status",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "Six Phase 51D registry tables must exist in the approved staging target."
+    },
+    {
+      "gateId": "migration_history_status",
+      "status": "warning",
+      "mandatory": true,
+      "summary": "Migration history should include the registry migration when a migration-safe transport is available; warning is acceptable for direct psql restore when table/RLS/PostgREST checks pass."
+    },
+    {
+      "gateId": "rls_safety",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "Registry tables must have RLS enabled, no unsafe public/anon/authenticated access, and service-role access."
+    },
+    {
+      "gateId": "postgrest_visibility",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "Service-role zero-row PostgREST probes must see the six registry tables."
+    },
+    {
+      "gateId": "restore_safety",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "SQL and GCS writes remain blocked unless --execute and the exact confirmed staging restore environment are present."
+    },
+    {
+      "gateId": "provider1_unblock_status",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "Provider-1 remains blocked until table/RLS/PostgREST checks pass."
+    },
+    {
+      "gateId": "blocked_features",
+      "status": "passed",
+      "mandatory": true,
+      "summary": "Production, beta, broad media, provider calls, workers/tools/models, public artifacts, and unrelated SQL remain blocked."
+    }
+  ],
+  "blockers": []
+}

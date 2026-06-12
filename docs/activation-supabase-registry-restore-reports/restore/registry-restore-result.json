@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "sqlExecuted": true,
+  "migrationApplied": true,
+  "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+  "warnings": [
+    "Applied only the existing SUPABASE-REGISTRY-1 migration through psql after both confirmation gates were present."
+  ]
+}

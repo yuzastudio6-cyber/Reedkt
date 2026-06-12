@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "tables": [
+    {
+      "tableName": "activation_runs",
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
+    },
+    {
+      "tableName": "activation_artifacts",
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
+    },
+    {
+      "tableName": "activation_qa_gates",
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
+    },
+    {
+      "tableName": "readiness_snapshots",
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
+    },
+    {
+      "tableName": "tool_capabilities",
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
+    },
+    {
+      "tableName": "feature_gates",
+      "exists": true,
+      "readCountStatus": "counted",
+      "count": 0
+    }
+  ],
+  "allTablesPresent": true,
+  "serviceRoleRestUsed": true,
+  "ddlUsedThroughRest": false,
+  "blockers": [],
+  "warnings": [
+    "Schema verification used zero-row probes and did not return row payloads."
+  ]
+}

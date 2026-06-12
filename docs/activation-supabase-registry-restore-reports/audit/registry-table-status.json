@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "checkedWithSql": true,
+  "tables": [
+    {
+      "exists": true,
+      "tableName": "activation_artifacts",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
+    },
+    {
+      "exists": true,
+      "tableName": "activation_qa_gates",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
+    },
+    {
+      "exists": true,
+      "tableName": "activation_runs",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
+    },
+    {
+      "exists": true,
+      "tableName": "feature_gates",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
+    },
+    {
+      "exists": true,
+      "tableName": "readiness_snapshots",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
+    },
+    {
+      "exists": true,
+      "tableName": "tool_capabilities",
+      "rlsEnabled": true,
+      "anonUnsafeAccess": false,
+      "serviceRoleAccess": true,
+      "publicUnsafeAccess": false,
+      "authenticatedUnsafeAccess": false
+    }
+  ],
+  "allTablesPresent": true,
+  "rlsEnabledOnAllTables": true,
+  "unsafeAnonAuthenticatedOrPublicAccess": false,
+  "serviceRoleAccessOnAllTables": true
+}

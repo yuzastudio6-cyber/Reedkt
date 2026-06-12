@@ -1,0 +1,7 @@
+{
+  "status": "warning",
+  "migrationId": "202606040001",
+  "checkedWithSql": true,
+  "historyPresent": false,
+  "blocker": "Migration history did not include 202606040001 after verification (missing_version)."
+}

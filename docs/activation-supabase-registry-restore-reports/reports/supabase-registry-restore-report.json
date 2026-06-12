@@ -1,0 +1,609 @@
+{
+  "phase": "supabase-registry-1-activation-milestone-registry-staging-restoration",
+  "runId": "registry1-20260612T142645",
+  "createdAt": "2026-06-12T14:27:11.261Z",
+  "branch": "codex/rp-supabase-registry-1-activation-milestone-registry-staging-restoration",
+  "baseBranch": "codex/rp-foundation-supabase-staging-schema-deploy-after-target-reference",
+  "execution": "restore_completed",
+  "approvedStagingTarget": {
+    "status": "passed",
+    "approvedStagingTargetReferenceFound": true,
+    "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+    "approvedStagingProjectName": "Reeditpro",
+    "approvedEnvironment": "staging",
+    "approvedReferenceSource": "docs/supabase-approved-staging-target-reference.md",
+    "sourceFilesInspected": [
+      {
+        "file": "docs/supabase-approved-staging-target-reference.md",
+        "exists": true,
+        "hasApprovedStatusMarker": true,
+        "hasProjectRefMarker": true,
+        "hasEnvironmentMarker": true
+      },
+      {
+        "file": "docs/supabase-staging-target-proof-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-plugin-staging-target-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-credential-policy.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/supabase-milestone-registry-staging-deploy-verify.md",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      },
+      {
+        "file": "docs/activation-supabase-plugin-staging-deploy-reports/supabase_plugin_target_preflight_report.json",
+        "exists": true,
+        "hasApprovedStatusMarker": false,
+        "hasProjectRefMarker": false,
+        "hasEnvironmentMarker": false
+      }
+    ],
+    "safeReferencePolicy": {
+      "projectRefIsSafeMetadata": true,
+      "dbUrlIsForbidden": true,
+      "keysTokensPasswordsForbidden": true,
+      "pluginObservationAloneIsNotApproval": true,
+      "runtimeEnvRefAloneIsNotApproval": true
+    },
+    "runtimeProvidedReferenceIgnored": false,
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": []
+  },
+  "gcpMetadata": {
+    "status": "passed",
+    "account": "aiediting@reeditpro.com",
+    "project": "reeditpro",
+    "projectDescribe": "reeditpro",
+    "metadataOnly": true,
+    "blockers": []
+  },
+  "secretMetadata": {
+    "status": "passed",
+    "secrets": [
+      {
+        "name": "SUPABASE_URL",
+        "present": true,
+        "metadataOnly": true
+      },
+      {
+        "name": "SUPABASE_SERVICE_ROLE_KEY",
+        "present": true,
+        "metadataOnly": true
+      },
+      {
+        "name": "SUPABASE_DB_URL",
+        "present": true,
+        "metadataOnly": true
+      }
+    ],
+    "secretPayloadsRead": false,
+    "secretPayloadsPrinted": false,
+    "blockers": []
+  },
+  "bucketMetadata": {
+    "status": "passed",
+    "buckets": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "present": true,
+        "publicPrincipalDetected": false
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "present": true,
+        "publicPrincipalDetected": false
+      }
+    ],
+    "blockers": []
+  },
+  "migrationSafety": {
+    "status": "passed",
+    "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+    "exists": true,
+    "expectedTablesPresent": true,
+    "destructiveStatementsDetected": false,
+    "migrationId": "202606040001",
+    "blockers": [],
+    "warnings": [
+      "Static scan allows drop trigger statements but blocks table/schema/data destructive statements."
+    ]
+  },
+  "registryTableStatus": {
+    "status": "passed",
+    "checkedWithSql": true,
+    "tables": [
+      {
+        "exists": true,
+        "tableName": "activation_artifacts",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "activation_qa_gates",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "activation_runs",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "feature_gates",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "readiness_snapshots",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "tool_capabilities",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      }
+    ],
+    "allTablesPresent": true,
+    "rlsEnabledOnAllTables": true,
+    "unsafeAnonAuthenticatedOrPublicAccess": false,
+    "serviceRoleAccessOnAllTables": true
+  },
+  "migrationHistoryStatus": {
+    "status": "warning",
+    "migrationId": "202606040001",
+    "checkedWithSql": true,
+    "historyPresent": false,
+    "blocker": "Migration history did not include 202606040001 after verification (missing_version)."
+  },
+  "schemaCacheVisibility": {
+    "status": "completed",
+    "catalogTablesPresent": true,
+    "postgrestAllTablesVisible": true,
+    "serviceRoleRestUsed": true,
+    "blockers": []
+  },
+  "rlsSecurityReview": {
+    "status": "passed",
+    "checkedWithSql": true,
+    "tables": [
+      {
+        "exists": true,
+        "tableName": "activation_artifacts",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "activation_qa_gates",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "activation_runs",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "feature_gates",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "readiness_snapshots",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      },
+      {
+        "exists": true,
+        "tableName": "tool_capabilities",
+        "rlsEnabled": true,
+        "anonUnsafeAccess": false,
+        "serviceRoleAccess": true,
+        "publicUnsafeAccess": false,
+        "authenticatedUnsafeAccess": false
+      }
+    ],
+    "allTablesPresent": true,
+    "rlsEnabledOnAllTables": true,
+    "unsafeAnonAuthenticatedOrPublicAccess": false,
+    "serviceRoleAccessOnAllTables": true
+  },
+  "restorePlan": {
+    "mode": "guarded_restore",
+    "executeRequested": true,
+    "requiredConfirmations": [
+      "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE",
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL"
+    ],
+    "requiredExecutionEnv": {
+      "GCP_PROJECT_ID": "reeditpro",
+      "GCP_REGION": "us-central1",
+      "REEDITPRO_ENV": "staging",
+      "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE": "true",
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL": "true"
+    },
+    "confirmationsPresent": true,
+    "executionGuardPassed": true,
+    "confirmedSecretSourceRequired": "google_secret_manager",
+    "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+    "applyOnlyThisMigration": true,
+    "dbPushOverFullMigrationDirectoryAllowed": false,
+    "historicalBackfillAllowed": false,
+    "provider1RerunAllowed": false,
+    "providerCallsAllowed": false,
+    "publicArtifactsAllowed": false,
+    "expectedTables": [
+      "activation_runs",
+      "activation_artifacts",
+      "activation_qa_gates",
+      "readiness_snapshots",
+      "tool_capabilities",
+      "feature_gates"
+    ],
+    "nextAction": "verify_postgrest_visibility"
+  },
+  "executionGuard": {
+    "status": "passed",
+    "executeRequested": true,
+    "executionAttempted": true,
+    "requiredEnv": {
+      "GCP_PROJECT_ID": "reeditpro",
+      "GCP_REGION": "us-central1",
+      "REEDITPRO_ENV": "staging",
+      "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE": "true",
+      "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL": "true"
+    },
+    "checks": [
+      {
+        "name": "--execute",
+        "expected": true,
+        "actual": true,
+        "passed": true
+      },
+      {
+        "name": "GCP_PROJECT_ID",
+        "expected": "reeditpro",
+        "actual": "reeditpro",
+        "passed": true
+      },
+      {
+        "name": "GCP_REGION",
+        "expected": "us-central1",
+        "actual": "us-central1",
+        "passed": true
+      },
+      {
+        "name": "REEDITPRO_ENV",
+        "expected": "staging",
+        "actual": "staging",
+        "passed": true
+      },
+      {
+        "name": "REEDITPRO_CONFIRM_SUPABASE_REGISTRY_RESTORE",
+        "expected": "true",
+        "actual": "true",
+        "passed": true
+      },
+      {
+        "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_SQL",
+        "expected": "true",
+        "actual": "true",
+        "passed": true
+      }
+    ],
+    "secretPayloadResolutionAllowed": true,
+    "sqlAllowed": true,
+    "gcsUploadAllowed": true,
+    "requiredSecretSource": "google_secret_manager",
+    "blockers": []
+  },
+  "restoreResult": {
+    "status": "passed",
+    "sqlExecuted": true,
+    "migrationApplied": true,
+    "migrationFile": "supabase/migrations/202606040001_activation_milestone_registry.sql",
+    "warnings": [
+      "Applied only the existing SUPABASE-REGISTRY-1 migration through psql after both confirmation gates were present."
+    ]
+  },
+  "postgrestVisibility": {
+    "status": "completed",
+    "tables": [
+      {
+        "tableName": "activation_runs",
+        "exists": true,
+        "readCountStatus": "counted",
+        "count": 0
+      },
+      {
+        "tableName": "activation_artifacts",
+        "exists": true,
+        "readCountStatus": "counted",
+        "count": 0
+      },
+      {
+        "tableName": "activation_qa_gates",
+        "exists": true,
+        "readCountStatus": "counted",
+        "count": 0
+      },
+      {
+        "tableName": "readiness_snapshots",
+        "exists": true,
+        "readCountStatus": "counted",
+        "count": 0
+      },
+      {
+        "tableName": "tool_capabilities",
+        "exists": true,
+        "readCountStatus": "counted",
+        "count": 0
+      },
+      {
+        "tableName": "feature_gates",
+        "exists": true,
+        "readCountStatus": "counted",
+        "count": 0
+      }
+    ],
+    "allTablesPresent": true,
+    "serviceRoleRestUsed": true,
+    "ddlUsedThroughRest": false,
+    "blockers": [],
+    "warnings": [
+      "Schema verification used zero-row probes and did not return row payloads."
+    ]
+  },
+  "provider1UnblockHandoff": {
+    "status": "ready_to_rerun_PROVIDER_1_milestone_sync",
+    "provider1Pr": "https://github.com/yuzastudio6-cyber/Reedkt/pull/307",
+    "canRerunProvider1MilestoneSync": true,
+    "blockers": [],
+    "nextOwner": "PROVIDER_GATEWAY_MODELS"
+  },
+  "qa": {
+    "status": "passed",
+    "gates": [
+      {
+        "gateId": "approved_staging_target_verified",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Approved staging target reference must resolve to Reeditpro / wmyyttnynmteqgcdishd / staging."
+      },
+      {
+        "gateId": "secret_metadata_only",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Secret Manager metadata is checked without printing values; proof-only mode does not read payloads."
+      },
+      {
+        "gateId": "registry_table_status",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Six Phase 51D registry tables must exist in the approved staging target."
+      },
+      {
+        "gateId": "migration_history_status",
+        "status": "warning",
+        "mandatory": true,
+        "summary": "Migration history should include the registry migration when a migration-safe transport is available; warning is acceptable for direct psql restore when table/RLS/PostgREST checks pass."
+      },
+      {
+        "gateId": "rls_safety",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Registry tables must have RLS enabled, no unsafe public/anon/authenticated access, and service-role access."
+      },
+      {
+        "gateId": "postgrest_visibility",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Service-role zero-row PostgREST probes must see the six registry tables."
+      },
+      {
+        "gateId": "restore_safety",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "SQL and GCS writes remain blocked unless --execute and the exact confirmed staging restore environment are present."
+      },
+      {
+        "gateId": "provider1_unblock_status",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Provider-1 remains blocked until table/RLS/PostgREST checks pass."
+      },
+      {
+        "gateId": "blocked_features",
+        "status": "passed",
+        "mandatory": true,
+        "summary": "Production, beta, broad media, provider calls, workers/tools/models, public artifacts, and unrelated SQL remain blocked."
+      }
+    ],
+    "blockers": []
+  },
+  "artifacts": [
+    {
+      "id": "audit/staging-target-reconciliation.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/audit/staging-target-reconciliation.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/audit/staging-target-reconciliation.json",
+      "sizeBytes": 3256,
+      "sha256": "a78d44000a3f91fedf1cabe52b5dbeca16cec4aa8aaf97fbd1adc10cf0b000cb"
+    },
+    {
+      "id": "audit/registry-table-status.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/audit/registry-table-status.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/audit/registry-table-status.json",
+      "sizeBytes": 1679,
+      "sha256": "c0477f1b5ffdfdeb277b8a78a1349e3dba4a48387370232dc9a0b68221f80d4a"
+    },
+    {
+      "id": "audit/migration-history-status.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/audit/migration-history-status.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/audit/migration-history-status.json",
+      "sizeBytes": 213,
+      "sha256": "41aad141d9ed16bb00010295d5c5e7840e61d2ca2305d0cb313b4e7b4b4f0377"
+    },
+    {
+      "id": "audit/schema-cache-visibility.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/audit/schema-cache-visibility.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/audit/schema-cache-visibility.json",
+      "sizeBytes": 146,
+      "sha256": "d46c7d04235d5b626e79c709ad69c4cefdb87ae8c7910d33fcfccb61d06644d3"
+    },
+    {
+      "id": "policy/rls-registry-access-policy-review.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/policy/rls-registry-access-policy-review.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/policy/rls-registry-access-policy-review.json",
+      "sizeBytes": 1679,
+      "sha256": "c0477f1b5ffdfdeb277b8a78a1349e3dba4a48387370232dc9a0b68221f80d4a"
+    },
+    {
+      "id": "restore/registry-restore-plan.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/restore/registry-restore-plan.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/restore/registry-restore-plan.json",
+      "sizeBytes": 1098,
+      "sha256": "f5b3186537277fd84ca1d23145f1f9f2acaa5eed5c686c9e55d3dee31c56daad"
+    },
+    {
+      "id": "verification/postgrest-registry-visibility.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/verification/postgrest-registry-visibility.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/verification/postgrest-registry-visibility.json",
+      "sizeBytes": 1024,
+      "sha256": "31f9f080c3d22cf2a3bf8a60e9dddb21c12f595ed521749b712f6e071504eb73"
+    },
+    {
+      "id": "handoff/provider1-unblock-handoff.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/handoff/provider1-unblock-handoff.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/handoff/provider1-unblock-handoff.json",
+      "sizeBytes": 234,
+      "sha256": "a5ef45a1b78b7aeb14b115fe2b4665f140833b74cc6cadf4171620f721aa50ef"
+    },
+    {
+      "id": "qa/supabase-registry-restore-qa.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/qa/supabase-registry-restore-qa.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-supabase/registry-restore/registry1-20260612T142645/qa/supabase-registry-restore-qa.json",
+      "sizeBytes": 2106,
+      "sha256": "be644f06f2b02ee28ce6e25fdd2754eae28cdaa6ce17a8a81ab0620621227f1e"
+    },
+    {
+      "id": "restore/registry-restore-result.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-generated-assets",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/restore/registry-restore-result.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-supabase/registry-restore/registry1-20260612T142645/restore/registry-restore-result.json",
+      "sizeBytes": 305,
+      "sha256": "a6ad3690b0c27b7799b52e585a582c32e3463defe15e3d659533c0caf166f8eb"
+    },
+    {
+      "id": "reports/supabase-registry-restore-report.json",
+      "kind": "private_json",
+      "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+      "object": "activation-supabase/registry-restore/registry1-20260612T142645/reports/supabase-registry-restore-report.json",
+      "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-supabase/registry-restore/registry1-20260612T142645/reports/supabase-registry-restore-report.json",
+      "sizeBytes": 21163,
+      "sha256": "e3ff510c5bc3a43d465159d413e3ebff51c0ab8536d30b5041a9913cd967b7c5"
+    }
+  ],
+  "blockedFeatures": [
+    "production",
+    "external_beta",
+    "broad_media",
+    "unrelated_sql",
+    "schema_reset",
+    "rls_weakening",
+    "unrelated_row_writes",
+    "provider_calls",
+    "worker_tool_model_execution",
+    "public_artifacts"
+  ],
+  "packageLockUnchangedRequired": true,
+  "sqlExecuted": true,
+  "migrationDeployed": true,
+  "supabaseRowsWritten": false,
+  "gcsUploaded": true,
+  "blockers": [],
+  "warnings": [
+    "Confirmed restore credentials resolved only from Google Secret Manager without printing or storing secret values.",
+    "Confirmed restore DB URL resolved only from SUPABASE_DB_URL in Google Secret Manager without printing or storing the value.",
+    "Applied only the existing SUPABASE-REGISTRY-1 migration through psql after both confirmation gates were present."
+  ]
+}

@@ -6,7 +6,7 @@ Branch: `codex/rp-merge-0-milestone-pr-stack-audit`.
 
 Base branch: `origin/codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan`.
 
-Pull request: pending.
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/348.
 
 ## Source-Of-Truth Read Status
 

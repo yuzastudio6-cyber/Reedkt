@@ -1,0 +1,74 @@
+{
+  "phase": "model-orchestration-plan-snapshot-dry-run",
+  "status": "passed",
+  "activeBlockers": [],
+  "pr327ContractDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+  "pr327ContractReady": true,
+  "pr322QwenDecision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "pr322SelectedAlias": "qwen-plus",
+  "pr322QwenSchemaCasesPassed": 4,
+  "pr320RemoteMetadata": {
+    "number": 320,
+    "title": "[model] Qwen DeepSeek provider dry-run",
+    "state": "OPEN",
+    "baseRefName": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
+    "headRefName": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
+    "mergeStateStatus": "CLEAN",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/320",
+    "latestCommitSha": "6fa75c385481a6fbbaeac42e969fbb9b37c16147"
+  },
+  "pr320RemoteMetadataAvailable": true,
+  "pr320RemoteMetadataErrors": [],
+  "pr320LocalDeepSeekStatus": "not_attempted",
+  "pr320DeepSeekStatus": "passed",
+  "pr320DeepSeekProviderCallsPassed": 3,
+  "pr318DryRunApprovalDecision": "approved_for_future_qwen_deepseek_provider_dry_run",
+  "pr314AuditDecision": "repo_audit_passed_ready_for_dry_run_approval",
+  "pr311Session0Decision": "restricted_internal_testing_session_0_passed",
+  "pr298TrackBStatus": "passed",
+  "trackBRouteCapabilityMetadataAvailable": true,
+  "supabaseMilestoneSyncStatus": "track_b_clean_staging_milestone_sync_completed_no_write_in_this_phase",
+  "secretRefs": [
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "DEEPSEEK_API_KEY",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "SUPABASE_ACCESS_TOKEN",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "name": "SUPABASE_DB_URL",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    }
+  ],
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

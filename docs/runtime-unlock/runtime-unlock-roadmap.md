@@ -23,3 +23,12 @@ schema/RLS changes, production, external beta, paid production, or broad media.
 
 GCS remains the private artifact store. Supabase stores only milestone metadata
 and private `gs://` references through the Phase 51D milestone sync path.
+
+## Provider Gateway Models
+
+PROVIDER-0 reaches `repo_audit_passed` for DeepSeek/Qwen Provider Gateway model
+planning. PROVIDER-1 is still policy-only: it approves model/API, secret, data,
+cost, routing, storage, and next-phase fixture policy but does not advance
+DeepSeek or Qwen to live runtime. PROVIDER-2 may add fixture adapters and
+normalizers only. Live validation requires a later explicit phase with budget,
+secret-reference, data, QA, and owner gates.

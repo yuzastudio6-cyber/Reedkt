@@ -260,9 +260,12 @@ function findSecretLookingValue(value: unknown, path = '$'): string | undefined 
       'password=',
       'secret=',
       'apikey=',
-      'sk-',
     ]
     if (secretPatterns.some((pattern) => lower.includes(pattern))) return path
+    const secretKeyPatterns = [
+      /\bsk-[A-Za-z0-9_-]{12,}\b/,
+    ]
+    if (secretKeyPatterns.some((pattern) => pattern.test(value))) return path
   }
   if (!value || typeof value !== 'object') return undefined
   if (Array.isArray(value)) {

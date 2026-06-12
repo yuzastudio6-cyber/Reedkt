@@ -479,7 +479,12 @@
     "activation:provider-gateway-models-audit:report": "tsx server/cli/activation-provider-gateway-models-audit-report.ts",
     "activation:provider-gateway-models-audit:iam-plan": "tsx server/cli/activation-provider-gateway-models-audit-iam-plan.ts",
     "activation:provider-gateway-models:summary": "tsx server/cli/activation-provider-gateway-models-summary.ts",
-    "smoke:activation-provider-gateway-models-audit": "tsx server/smoke/activation-provider-gateway-models-audit-smoke.ts"
+    "smoke:activation-provider-gateway-models-audit": "tsx server/smoke/activation-provider-gateway-models-audit-smoke.ts",
+    "activation:provider-model-approval-policy": "tsx server/cli/activation-provider-model-approval-policy.ts",
+    "activation:provider-model-approval-policy:report": "tsx server/cli/activation-provider-model-approval-policy-report.ts",
+    "activation:provider-model-approval-policy:iam-plan": "tsx server/cli/activation-provider-model-approval-policy-iam-plan.ts",
+    "activation:provider-model-approval:summary": "tsx server/cli/activation-provider-model-approval-summary.ts",
+    "smoke:activation-provider-model-approval-policy": "tsx server/smoke/activation-provider-model-approval-policy-smoke.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.3.3",

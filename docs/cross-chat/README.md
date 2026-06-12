@@ -44,3 +44,14 @@ Raw prompt execution remains permanently blocked as a direct execution path;
 workers must execute approved plan snapshots. Signed URLs remain permanently
 blocked as source of truth and may only become temporary access links in a later
 approved phase.
+
+## Provider Gateway Model Policy
+
+PROVIDER-0 completed the Provider Gateway models repo audit. PROVIDER-1 records
+policy-only approval for DeepSeek V4-Pro/V4-Flash and Qwen3.7-Max through
+Provider Gateway only. Provider Gateway Models owns model/API approval,
+secret-reference metadata, data/cost/routing/storage policy, and next fixture
+phase planning. It does not own Worker Runtime execution, Track A render/export,
+Track B media/model runtime, AI Tools graphics implementation, Supabase
+schema/RLS/migrations, Frontend UX, Billing, Compliance implementation, or
+Observability implementation.

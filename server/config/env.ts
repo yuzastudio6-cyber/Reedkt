@@ -90,6 +90,8 @@ const envSchema = z.object({
   GOOGLE_SECRET_LYRIA_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_MIRELO_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_MMAUDIO_API_KEY_NAME: z.string().optional(),
+  GOOGLE_SECRET_DEEPSEEK_API_KEY_NAME: z.string().optional(),
+  GOOGLE_SECRET_QWEN_DASHSCOPE_API_KEY_NAME: z.string().optional(),
 })
 
 export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): RuntimeEnv {
@@ -160,6 +162,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
       lyria: clean(parsed.GOOGLE_SECRET_LYRIA_API_KEY_NAME),
       mirelo: clean(parsed.GOOGLE_SECRET_MIRELO_API_KEY_NAME),
       mmaudio: clean(parsed.GOOGLE_SECRET_MMAUDIO_API_KEY_NAME),
+      deepseek: clean(parsed.GOOGLE_SECRET_DEEPSEEK_API_KEY_NAME),
+      qwenDashscope: clean(parsed.GOOGLE_SECRET_QWEN_DASHSCOPE_API_KEY_NAME),
     },
     hasSupabaseAdmin,
     hasSupabasePublic,

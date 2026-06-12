@@ -301,6 +301,17 @@ worker/tool execution, schema/RLS/Data API changes, raw prompt execution,
 public artifacts, signed URL source-of-truth, production, external beta, paid
 production, and broad media remain blocked.
 
+PROVIDER-1 adds the DeepSeek/Qwen API approval policy on top of PROVIDER-0. It
+approves `deepseek-v4-pro` only as a coding/spec/tool-implementation proposal
+specialist, records `deepseek-v4-flash` only as a future cheaper fallback
+candidate, and approves `qwen3.7-max` only as a head editing/planning/decision
+agent candidate. It records backend-only Secret Manager reference names, zero
+default budget, one-call future live validation defaults, data/storage/routing
+rules, risk register, and PROVIDER-2 through PROVIDER-6 roadmap. Provider calls,
+secret value reads, direct tool/code/worker execution, raw prompt execution,
+public artifacts, production, external beta, paid production, broad media, SQL
+schema/RLS changes, and signed URL source-of-truth remain blocked.
+
 Map runtime beyond these fixture phases, tile downloads, live
 geocoding/routing, Mapbox, Google Maps, Cesium ion, paid providers, public tile
 hotlinking for beta/production, arbitrary tile endpoints, public artifacts,

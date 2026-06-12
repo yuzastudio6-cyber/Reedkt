@@ -120,6 +120,14 @@ This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is av
 5. Confirm DeepSeek cannot directly execute code and Qwen cannot directly execute workers/tools; provider tool calls are model output only until ReeditPro validates them into approved-plan snapshot candidates.
 6. Proceed to PROVIDER-1 only as provider registry and secret metadata fixtures. Do not call DeepSeek, Qwen, or any provider; do not read provider secret values; do not execute tools, workers, models, schema/RLS/Data API changes, production, external beta, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
 
+## After PROVIDER-1
+
+1. Review `activation:provider-model-approval-policy:report`, `activation:provider-model-approval-policy:iam-plan`, `activation:provider-model-approval:summary`, and `docs/provider-agent-integration/*`.
+2. Confirm DeepSeek V4-Pro is approved only as a coding/spec/tool-implementation proposal specialist and DeepSeek V4-Flash is only a future fallback candidate.
+3. Confirm Qwen3.7-Max is approved only as a head editing/planning/decision agent candidate, with `qwen3.7-max-2026-06-08` and `qwen3.7-max-2026-05-20` recorded as snapshot candidates.
+4. Confirm Provider Gateway records only backend secret reference names, PROVIDER-1 budget is zero, and no provider secret value or provider call occurred.
+5. Proceed to PROVIDER-2 only as provider fixture adapters/normalizers. Do not call DeepSeek, Qwen, or any provider; do not execute tools, workers, models, schema/RLS/Data API changes, production, external beta, broad media, public artifacts, signed URL source-of-truth, or raw prompt execution.
+
 ## After Phase 49J
 
 1. Review `activation:brave-search-fallback-policy:report` and `activation:brave-search-provider:summary`.

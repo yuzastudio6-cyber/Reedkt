@@ -312,6 +312,29 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-1 Blocker Inventory Addendum
+
+Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_not_executed`
+
+Partially mitigated blocker: Track A Group B private preview composition planning.
+
+Remaining blockers:
+
+- Group B private preview execution requires `TRACKA-GD-GROUPB-HANDOFF-2`.
+- Lottie browser/player behavior remains blocked.
+- Remotion render/export remains blocked.
+- Public artifacts, signed URLs, uploads, internal beta, external beta, and production remain blocked.
+
+Capability: `none; Track A Group B creative graphics private preview composition plan only`
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## GD-9 Group B Blocker Inventory Addendum
 
 Decision state: `group_b_partially_ready_for_gd10`

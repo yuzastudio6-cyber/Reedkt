@@ -830,7 +830,7 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 ## GD-9 - Group B Creative Graphics Package Runtime Review and Fixture Gate
 
 - Branch: `codex/rp-gd-9-group-b-package-runtime-review-fixture-gate`
-- PR: pending
+- PR: [#300](https://github.com/yuzastudio6-cyber/Reedkt/pull/300)
 - Base: `origin/codex/rp-cross-beta-0-cross-workstream-internal-beta-gate-review`
 - Decision state: `group_b_partially_ready_for_gd10`
 - Runtime review status: `group_b_runtime_import_review_passed`
@@ -908,3 +908,27 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 - Implementation record: `docs/implementation-prompts/prompt-tracka-gd-groupb-handoff-0-review.md`
 - Validation results: `docs/prompt-tracka-gd-groupb-handoff-0-validation-results.md`
 - Next recommended prompt: `TRACKA-GD-GROUPB-HANDOFF-1 - Private Preview Composition Plan for Group B Creative Graphics Fixtures`
+
+## TRACKA-GD-GROUPB-HANDOFF-1 - Group B Private Preview Composition Plan
+
+- Branch: `codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan`
+- PR: [#310](https://github.com/yuzastudio6-cyber/Reedkt/pull/310)
+- Base: `origin/codex/rp-tracka-gd-groupb-handoff-0-review`
+- Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`
+- Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_not_executed`
+- Capability: `none; Track A Group B creative graphics private preview composition plan only`
+- Fully accepted fixtures: none
+- Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+- Rejected/blocked fixtures: none
+- Group B current execution approval flag: false
+- Remotion render/export: none
+- Lottie browser/player rendering: none
+- CROSS-BETA-0 remains `blocked_pending_workstream_gates`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Implementation record: `docs/implementation-prompts/prompt-tracka-gd-groupb-handoff-1-private-preview-composition-plan.md`
+- Validation results: `docs/prompt-tracka-gd-groupb-handoff-1-validation-results.md`
+- Next recommended prompt: `TRACKA-GD-GROUPB-HANDOFF-2 - Group B Private Preview Execution Packet`

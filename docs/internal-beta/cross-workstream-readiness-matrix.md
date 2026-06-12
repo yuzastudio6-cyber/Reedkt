@@ -49,6 +49,24 @@ Rejected/blocked fixtures: none
 
 Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_not_executed`
 
+## TRACKA-GD-GROUPB-HANDOFF-1 Matrix Addendum
+
+Decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_not_executed`
+
+`TRACK_A_RENDER_EXPORT`: Group B lane planning is ready with warnings for a future packet.
+
+`AI_TOOLS_CREATIVE_GRAPHICS`: Group B source evidence remains accepted with warnings; Group C and unresolved runtime lanes remain outside this Track A prompt.
+
+CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 Capability: `none; Track A Group B creative graphics handoff review only`
 
 Supabase update required: `docs/status only`

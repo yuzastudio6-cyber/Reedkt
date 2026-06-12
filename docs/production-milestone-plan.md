@@ -412,6 +412,30 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-1 Milestone Note
+
+TRACKA-GD-GROUPB-HANDOFF-1 records `ready_with_warnings_for_tracka_gd_groupb_handoff_2`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_not_executed`.
+
+The milestone advances Track A Group B private preview planning only. It does not execute Group B tools, render Lottie, render/export Remotion, generate a preview, upload artifacts, create signed URLs, approve internal beta, approve external beta, or approve production.
+
+Capability: `none; Track A Group B creative graphics private preview composition plan only`
+
+Group B fixtures planned with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`.
+
+Group B current execution approval flag: false.
+
+CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+Next recommended milestone: `TRACKA-GD-GROUPB-HANDOFF-2 - Group B Private Preview Execution Packet`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## GD-10 Group B Controlled Local Fixture Milestone
 
 Decision state: `group_b_partially_passed`

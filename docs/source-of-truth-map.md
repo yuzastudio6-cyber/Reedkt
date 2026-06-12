@@ -515,6 +515,34 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-1 Source Of Truth Addendum
+
+TRACKA-GD-GROUPB-HANDOFF-1 decision state: `ready_with_warnings_for_tracka_gd_groupb_handoff_2`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_not_executed`.
+
+Authoritative sources:
+
+| Topic | Authoritative source |
+| --- | --- |
+| Group B private preview composition plan | `docs/track-a/creative-graphics-group-b-private-preview-composition-plan.md` |
+| Fixture layout/timing plan | `docs/track-a/creative-graphics-group-b-private-preview-fixture-layout-plan.md` |
+| Manifest template | `docs/track-a/creative-graphics-group-b-private-preview-manifest-template.md` |
+| QA plan | `docs/track-a/creative-graphics-group-b-private-preview-qa-plan.md` |
+| Missing metadata remediation | `docs/track-a/creative-graphics-group-b-missing-metadata-remediation.md` |
+| Execution gate | `docs/track-a/creative-graphics-group-b-private-preview-execution-gate.md` |
+| Failure rollback cleanup | `docs/track-a/creative-graphics-group-b-private-preview-failure-rollback-cleanup-plan.md` |
+| Next prompt | `docs/track-a/creative-graphics-group-b-next-private-preview-prompt.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-group-b-private-preview-plan-diagnostics.mjs` |
+
+Source of truth remains `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`; signed URLs are not source of truth.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
 ## GD-10 Source Of Truth Addendum
 
 Decision state: `group_b_partially_passed`

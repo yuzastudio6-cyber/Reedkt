@@ -1,5 +1,12 @@
 # Activation Next Phase Runbook
 
+## After PLAN-SNAPSHOT-1
+
+1. Review `docs/activation-phase-provider-output-plan-snapshot-contract-results.md` and confirm PLAN-SNAPSHOT-1 run `plansnapshot1-20260612T182758` remains `candidate_only` and not runtime-approved.
+2. Run WORKER-0 with `activation:worker-runtime-jobs-audit` before any approved-plan snapshot worker dry-run.
+3. Proceed to WORKER-1 only if `docs/activation-phase-worker-0-worker-runtime-jobs-audit-results.md` records `worker_runtime_repo_audit_passed_ready_for_worker1_dry_run`.
+4. Keep workers, tools, routes, provider calls, runtime execution, media, browser/map/web, SQL, migrations, schema/RLS changes, Supabase product-row writes, public artifacts, signed URLs, production, external beta, and broad media blocked in WORKER-0.
+
 ## After PR #322 Qwen Auth Repair
 
 1. Review `docs/activation-phase-model-provider-dry-run-results.md` and confirm Qwen auth repair run `modeldryrun1-20260612T162802` remains the source of truth.

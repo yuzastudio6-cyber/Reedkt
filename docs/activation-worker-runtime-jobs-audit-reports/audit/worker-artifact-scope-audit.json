@@ -1,0 +1,78 @@
+{
+  "phase": "WORKER_0",
+  "status": "passed",
+  "privateGcsRefsOnly": true,
+  "signedUrlsSourceOfTruth": false,
+  "publicArtifactsAllowed": false,
+  "artifactContracts": [
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 artifact policy and private GCS refs."
+    },
+    {
+      "path": "docs/activation-phase-provider-output-plan-snapshot-contract-results.md",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 artifact result status."
+    },
+    {
+      "path": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Local storage object and signed URL event table definitions."
+    },
+    {
+      "path": "src/backend/cloud/worker-job-contracts.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Worker payload contract that rejects signed URL/source-of-truth leakage."
+    }
+  ],
+  "storageSignals": [
+    {
+      "name": "private_generated_gcs_prefix_present",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    },
+    {
+      "name": "private_qa_gcs_prefix_present",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    },
+    {
+      "name": "storage_object_records_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "required": true
+    },
+    {
+      "name": "signed_url_events_table_present_for_audit_only",
+      "status": "present",
+      "source": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "required": true
+    },
+    {
+      "name": "worker_contract_checks_signed_url_restrictions",
+      "status": "present",
+      "source": "src/backend/cloud/worker-job-contracts.ts",
+      "required": true
+    },
+    {
+      "name": "public_artifacts_not_allowed",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    },
+    {
+      "name": "signed_urls_not_source_of_truth",
+      "status": "present",
+      "source": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "required": true
+    }
+  ],
+  "activeBlockers": []
+}

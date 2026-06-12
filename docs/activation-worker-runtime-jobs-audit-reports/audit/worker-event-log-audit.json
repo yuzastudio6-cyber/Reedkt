@@ -1,0 +1,96 @@
+{
+  "phase": "WORKER_0",
+  "status": "passed",
+  "eventLogReadiness": "present_for_future_dry_run",
+  "eventLogContracts": [
+    {
+      "path": "supabase/migrations/202605130005_job_orchestration_agent_runs.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Job orchestration, job events, agent outputs, worker runtime configs, and event log migration."
+    },
+    {
+      "path": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Runtime readiness migration with claim/storage/signed-url/provider event records."
+    },
+    {
+      "path": "src/backend/services/job-event-runtime-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Job event runtime service source."
+    },
+    {
+      "path": "src/backend/services/job-queue-runtime-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Job queue runtime service source."
+    },
+    {
+      "path": "src/backend/services/job-orchestration-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Job orchestration mock service source."
+    }
+  ],
+  "requiredEventTables": [
+    {
+      "name": "job_events_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605130005_job_orchestration_agent_runs.sql",
+      "required": true
+    },
+    {
+      "name": "agent_runs_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605130005_job_orchestration_agent_runs.sql",
+      "required": true
+    },
+    {
+      "name": "agent_outputs_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605130005_job_orchestration_agent_runs.sql",
+      "required": true
+    },
+    {
+      "name": "event_log_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605130005_job_orchestration_agent_runs.sql",
+      "required": true
+    },
+    {
+      "name": "provider_request_attempts_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "required": true
+    },
+    {
+      "name": "provider_webhook_events_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "required": true
+    }
+  ],
+  "serviceSignals": [
+    {
+      "name": "job_event_service_records_events",
+      "status": "present",
+      "source": "src/backend/services/job-event-runtime-service.ts",
+      "required": true
+    },
+    {
+      "name": "job_queue_service_exposes_queue_boundary",
+      "status": "present",
+      "source": "src/backend/services/job-queue-runtime-service.ts",
+      "required": true
+    },
+    {
+      "name": "job_orchestration_service_is_mock_boundary",
+      "status": "present",
+      "source": "src/backend/services/job-orchestration-service.ts",
+      "required": true
+    }
+  ],
+  "activeBlockers": []
+}

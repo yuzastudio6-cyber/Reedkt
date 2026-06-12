@@ -1,0 +1,145 @@
+{
+  "phase": "WORKER_0",
+  "status": "passed",
+  "claimExecutionStatus": "blocked_until_future_transactional_backend_runtime",
+  "mockLocalBoundaryPresent": true,
+  "serviceRoleBoundaryPresent": true,
+  "transactionRpcRaceWindowTodosPresent": true,
+  "files": [
+    {
+      "path": "server/services/worker-claim-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Server worker claim service boundary; not executed by WORKER-0."
+    },
+    {
+      "path": "src/backend/runtime/worker-lease-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Mock/local worker lease service boundary."
+    },
+    {
+      "path": "src/backend/runtime/worker-lease-recovery-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Mock/local stale lease recovery boundary."
+    },
+    {
+      "path": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Worker job claim and readiness migration source."
+    },
+    {
+      "path": "supabase/migrations/202605200002_worker_leases_runtime_transport.sql",
+      "exists": true,
+      "required": true,
+      "purpose": "Worker lease runtime transport migration source."
+    },
+    {
+      "path": "src/backend/services/job-orchestration-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    },
+    {
+      "path": "src/backend/services/job-queue-runtime-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    },
+    {
+      "path": "src/backend/services/job-gate-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    },
+    {
+      "path": "src/backend/services/job-dependency-runtime-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    },
+    {
+      "path": "src/backend/services/job-event-runtime-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    },
+    {
+      "path": "src/backend/cloud/worker-job-contracts.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    },
+    {
+      "path": "src/backend/cloud/approved-plan-snapshot-contracts.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    },
+    {
+      "path": "server/services/approved-snapshot-service.ts",
+      "exists": true,
+      "required": true,
+      "purpose": "Related worker/job service source audited as static text."
+    }
+  ],
+  "serviceSignals": [
+    {
+      "name": "worker_claim_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "required": true
+    },
+    {
+      "name": "worker_leases_table_present",
+      "status": "present",
+      "source": "supabase/migrations/202605200002_worker_leases_runtime_transport.sql",
+      "required": true
+    },
+    {
+      "name": "can_claim_worker_job_function_present",
+      "status": "present",
+      "source": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "required": true
+    },
+    {
+      "name": "active_worker_claim_exists_function_present",
+      "status": "present",
+      "source": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "required": true
+    },
+    {
+      "name": "server_claim_service_has_service_role_boundary",
+      "status": "present",
+      "source": "server/services/worker-claim-service.ts",
+      "required": true
+    },
+    {
+      "name": "mock_local_lease_boundary_present",
+      "status": "present",
+      "source": "src/backend/runtime/worker-lease-service.ts",
+      "required": true
+    },
+    {
+      "name": "lease_recovery_boundary_present",
+      "status": "present",
+      "source": "src/backend/runtime/worker-lease-recovery-service.ts",
+      "required": true
+    },
+    {
+      "name": "transaction_rpc_race_window_todo_recorded",
+      "status": "present",
+      "source": "server/services/worker-claim-service.ts",
+      "required": true,
+      "notes": "This is a future real-runtime blocker, not a WORKER-0 audit blocker."
+    }
+  ],
+  "futureRuntimeBlockers": [
+    "claim_service_insert_path_needs_transaction_or_rpc_before_real_parallel_claim_execution",
+    "lease_heartbeat_enforcement_needs_backend_service_role_runtime_before_real_worker_dispatch",
+    "real worker execution remains blocked until approved Worker Runtime implementation and service deployment"
+  ],
+  "activeBlockers": []
+}

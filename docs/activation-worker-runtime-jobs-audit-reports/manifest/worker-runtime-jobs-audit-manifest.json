@@ -1,0 +1,129 @@
+{
+  "phase": "WORKER_0",
+  "runId": "worker0-20260612T191022",
+  "reportDir": "docs/activation-worker-runtime-jobs-audit-reports",
+  "branch": "codex/rp-worker-0-worker-runtime-jobs-repo-audit",
+  "baseBranch": "codex/rp-plan-snapshot-1-provider-output-contract",
+  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/",
+  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker0/worker0-20260612T191022/",
+  "expectedGeneratedArtifacts": [
+    "audit/repo-ownership-audit.json",
+    "audit/worker-schema-audit.json",
+    "audit/approved-plan-intake-audit.json",
+    "audit/worker-claim-lease-audit.json",
+    "audit/worker-artifact-scope-audit.json",
+    "audit/worker-event-log-audit.json",
+    "gaps/worker-runtime-gap-map.json",
+    "roadmap/worker-runtime-next-phase-plan.json",
+    "manifest/worker-runtime-jobs-audit-manifest.json"
+  ],
+  "expectedQaArtifacts": [
+    "qa/worker-runtime-jobs-audit-qa.json",
+    "reports/worker-runtime-jobs-audit-report.json"
+  ],
+  "privateArtifactUpload": {
+    "status": "uploaded",
+    "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/",
+    "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker0/worker0-20260612T191022/",
+    "artifacts": [
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/audit/repo-ownership-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/audit/repo-ownership-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-schema-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-schema-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/audit/approved-plan-intake-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/audit/approved-plan-intake-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-claim-lease-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-claim-lease-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-artifact-scope-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-artifact-scope-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-event-log-audit.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/audit/worker-event-log-audit.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/gaps/worker-runtime-gap-map.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/gaps/worker-runtime-gap-map.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/roadmap/worker-runtime-next-phase-plan.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/roadmap/worker-runtime-next-phase-plan.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-generated-assets",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/manifest/worker-runtime-jobs-audit-manifest.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-generated-assets/activation-worker-runtime/worker0/worker0-20260612T191022/manifest/worker-runtime-jobs-audit-manifest.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/qa/worker-runtime-jobs-audit-qa.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker0/worker0-20260612T191022/qa/worker-runtime-jobs-audit-qa.json",
+        "private": true
+      },
+      {
+        "bucket": "reeditpro-staging-reeditpro-qa-artifacts",
+        "object": "activation-worker-runtime/worker0/worker0-20260612T191022/reports/worker-runtime-jobs-audit-report.json",
+        "gcsUri": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-worker-runtime/worker0/worker0-20260612T191022/reports/worker-runtime-jobs-audit-report.json",
+        "private": true
+      }
+    ],
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPromptPayloadsStored": false,
+    "rawProviderResponsesStored": false,
+    "secretPayloadsStored": false
+  },
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false,
+    "syncLayerDirectoryPresent": false
+  },
+  "safetyFlags": {
+    "workerExecution": false,
+    "toolExecution": false,
+    "providerCalls": false,
+    "routeExecution": false,
+    "runtimeExecution": false,
+    "mediaProcessing": false,
+    "browserMapWeb": false,
+    "sqlMigrationsSchemaRls": false,
+    "supabaseProductRows": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPrompts": false,
+    "rawProviderResponses": false,
+    "production": false,
+    "externalBeta": false,
+    "broadMedia": false
+  }
+}

@@ -19,3 +19,17 @@ Full internal beta: `blocked_pending_workstream_gates`.
 Runtime/tool/worker/route execution: `false`.
 Supabase writes: `false`.
 Public artifacts and signed URLs: `false`.
+
+## WORKER-0 Worker Runtime Unlock Audit
+
+WORKER-0 status: `ready_with_warnings_for_worker_1`.
+WORKER-0 capability: `none; worker runtime unlock repo audit only`.
+WORKER-0 source basis: PLAN-SNAPSHOT-0 `ready_for_owner_review`, MODEL-DRYRUN-2A `provider_dry_run_passed`, and full internal beta `blocked_pending_workstream_gates`.
+WORKER-0 Supabase update required: `docs/status only`.
+WORKER-0 Supabase update status: `docs_only`.
+WORKER-0 Supabase environment touched: `none`.
+WORKER-0 SQL executed: `none`.
+WORKER-0 migration deployed: `no`.
+WORKER-0 worker/tool/route/provider execution approved: `false`.
+WORKER-0 public artifacts and signed URLs approved: `false`.
+WORKER-0 next prompt: `WORKER-1 - Worker Runtime Contract Hardening / Dry-Run Plan`.

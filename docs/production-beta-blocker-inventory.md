@@ -21,3 +21,17 @@ PLAN-SNAPSHOT-0 source of truth policy: `Supabase row + private GCS path + manif
 Full internal beta remains `blocked_pending_workstream_gates`.
 
 Provider dry-run evidence does not unlock production, external beta, paid production, public artifacts, signed URLs, real user data, media processing, workers, tools, routes, Supabase writes, or raw prompt execution into workers/tools.
+
+## WORKER-0 Worker Runtime Unlock Audit
+
+- `worker_runtime_unlock_audit`: `ready_with_warnings_for_worker_1`
+- `worker_execution`: blocked
+- `tool_execution`: blocked
+- `route_execution`: blocked
+- `provider_runtime`: blocked
+- `supabase_mutation`: blocked; update required `docs/status only`; status `docs_only`; environment `none`; SQL `none`; migration `no`
+- `public_artifacts`: blocked
+- `signed_urls`: blocked
+- `full_internal_beta`: `blocked_pending_workstream_gates`
+
+WORKER-0 records source inventory and boundaries only. WORKER-1 is the recommended next prompt for worker runtime contract hardening and dry-run planning.

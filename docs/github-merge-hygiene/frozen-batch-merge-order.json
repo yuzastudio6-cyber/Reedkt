@@ -1,6 +1,6 @@
 {
   "runId": "github-merge-hygiene-2026-06-12T215218785Z",
-  "generatedAt": "2026-06-12T21:52:38.671Z",
+  "generatedAt": "2026-06-12T23:27:54.183Z",
   "decision": "frozen_batch_parent_first_order_ready",
   "sourceBatchId": "pr350-frozen-merge-batch-2026-06-12T215238671Z",
   "mergeOnlyApprovedFrozenBatchPrs": true,
@@ -818,7 +818,7 @@
       "title": "[model] Plan snapshot dry-run validation",
       "baseRefName": "codex/rp-model-orchestration-plan-snapshot-contract",
       "headRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
-      "headRefOid": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+      "headRefOid": "381afa79e1074f18fd28a2c555c22f4cd595cb38",
       "parentPrNumber": 327,
       "childPrNumbers": [],
       "approvedForFutureMerge": true,
@@ -828,7 +828,7 @@
         "state must remain OPEN",
         "isDraft must remain false",
         "mergeStateStatus must remain CLEAN",
-        "headRefOid must equal e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+        "headRefOid must equal 381afa79e1074f18fd28a2c555c22f4cd595cb38",
         "baseRefName must match the frozen batch entry unless the prior parent merge intentionally updated it and the batch is regenerated"
       ],
       "stopConditions": [
@@ -839,7 +839,8 @@
         "base branch changed unexpectedly",
         "parent PR not merged first",
         "new validation category appears"
-      ]
+      ],
+      "pr337HeadShaDriftReviewDecision": "accepted_pr_337_new_head_sha"
     }
   ],
   "postMergeVerification": [

@@ -202,7 +202,14 @@
     ],
     "blockers": [],
     "resolved": [
-      "merged_candidate_pr_347"
+      "merged_candidate_pr_347",
+      "pr337_head_sha_drift_accepted"
     ]
+  },
+  "pr337HeadShaDriftReview": {
+    "decision": "accepted_pr_337_new_head_sha",
+    "frozenHeadSha": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+    "liveHeadSha": "381afa79e1074f18fd28a2c555c22f4cd595cb38",
+    "resultingDecision": "approved_for_future_frozen_batch_merge_execution_after_pr_337_sha_update"
   }
 }

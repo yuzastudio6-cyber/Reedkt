@@ -1,6 +1,6 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T215218785Z",
-  "generatedAt": "2026-06-12T21:52:38.671Z",
+  "runId": "github-merge-hygiene-2026-06-12T232754181Z",
+  "generatedAt": "2026-06-12T23:27:54.183Z",
   "decision": "no_active_approval_blockers",
   "draftDriftDecision": "accepted_draft_drift_to_352",
   "frozenBatchDecision": "approved_for_future_frozen_batch_merge_execution",
@@ -499,5 +499,10 @@
       353
     ],
     "approvalCarrierPrNumber": 350
+  },
+  "pr337HeadShaDriftReview": {
+    "decision": "accepted_pr_337_new_head_sha",
+    "frozenHeadSha": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+    "liveHeadSha": "381afa79e1074f18fd28a2c555c22f4cd595cb38"
   }
 }

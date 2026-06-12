@@ -9,7 +9,7 @@ Decision: `live_drift_review_completed_for_frozen_batch`
 - Missing candidate PRs: #347
 - Warnings: `total_open_pr_count_drift`, `new_unrelated_draft_pr_355`, `unrelated_nonclean_pr_1_DIRTY`, `unrelated_nonclean_pr_94_UNSTABLE`, `unrelated_nonclean_pr_333_DIRTY`
 - Blockers: none
-- Resolved: `merged_candidate_pr_347`
+- Resolved: `merged_candidate_pr_347`, `pr337_head_sha_drift_accepted`
 
 ## Watched PRs
 
@@ -29,3 +29,12 @@ Decision: `live_drift_review_completed_for_frozen_batch`
 | #1 | DIRTY | true | warning | Non-clean PR is outside the frozen batch. |
 | #94 | UNSTABLE | false | warning | Non-clean PR is outside the frozen batch. |
 | #333 | DIRTY | true | warning | Non-clean PR is outside the frozen batch. |
+
+
+
+## PR #337 Head SHA Drift Review
+
+- Decision: `accepted_pr_337_new_head_sha`
+- Frozen SHA: `e762d297dc9ea236b8c2c85585ff2fd781ea3e77`
+- Live SHA: `381afa79e1074f18fd28a2c555c22f4cd595cb38`
+- Resulting decision: `approved_for_future_frozen_batch_merge_execution_after_pr_337_sha_update`

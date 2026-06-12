@@ -2,6 +2,13 @@
 
 This prompt may be used only in a separate execution phase after PR #350 lands.
 
+Resume start point: #298.
+
+PR #337 frozen head SHA status:
+
+- Review decision: `accepted_pr_337_new_head_sha`
+- Expected SHA for PR #337: `381afa79e1074f18fd28a2c555c22f4cd595cb38`
+
 Frozen batch merge targets are exactly:
 
 - #205 `bbc357b7ddb4f56117252f72e5909f3f7f399098`
@@ -30,7 +37,7 @@ Frozen batch merge targets are exactly:
 - #320 `6fa75c385481a6fbbaeac42e969fbb9b37c16147`
 - #322 `ce50e3548c4bc493bd2ad903c384088321e5bb71`
 - #327 `6bf552c6ed330cc5843389a5bac20e17c5551c05`
-- #337 `e762d297dc9ea236b8c2c85585ff2fd781ea3e77`
+- #337 `381afa79e1074f18fd28a2c555c22f4cd595cb38`
 
 Rules:
 

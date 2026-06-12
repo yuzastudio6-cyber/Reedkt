@@ -32,7 +32,7 @@ Merge execution is a separate future phase. It may merge only approved PRs liste
 | 24 | #320 | `codex/rp-model-orchestration-qwen-deepseek-dry-run-approval` | `codex/rp-model-orchestration-qwen-deepseek-provider-dry-run` | `6fa75c385481a6fbbaeac42e969fbb9b37c16147` | true |
 | 25 | #322 | `codex/rp-model-orchestration-qwen-deepseek-provider-dry-run` | `codex/rp-model-orchestration-qwen-dashscope-auth-repair` | `ce50e3548c4bc493bd2ad903c384088321e5bb71` | true |
 | 26 | #327 | `codex/rp-model-orchestration-qwen-dashscope-auth-repair` | `codex/rp-model-orchestration-plan-snapshot-contract` | `6bf552c6ed330cc5843389a5bac20e17c5551c05` | true |
-| 27 | #337 | `codex/rp-model-orchestration-plan-snapshot-contract` | `codex/rp-model-orchestration-plan-snapshot-dry-run-validation` | `e762d297dc9ea236b8c2c85585ff2fd781ea3e77` | true |
+| 27 | #337 | `codex/rp-model-orchestration-plan-snapshot-contract` | `codex/rp-model-orchestration-plan-snapshot-dry-run-validation` | `381afa79e1074f18fd28a2c555c22f4cd595cb38` | true |
 
 
 Before each merge, run the entry's verification command and stop if the PR state, draft status, merge state, head SHA, or base branch differs from the frozen batch entry.

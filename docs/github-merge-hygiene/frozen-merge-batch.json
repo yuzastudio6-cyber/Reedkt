@@ -1,6 +1,6 @@
 {
   "runId": "github-merge-hygiene-2026-06-12T215218785Z",
-  "generatedAt": "2026-06-12T21:52:38.671Z",
+  "generatedAt": "2026-06-12T23:27:54.183Z",
   "decision": "approved_for_future_frozen_batch_merge_execution",
   "batchId": "pr350-frozen-merge-batch-2026-06-12T215238671Z",
   "sourcePr": 350,
@@ -707,11 +707,11 @@
       "mergeStateStatus": "CLEAN",
       "baseRefName": "codex/rp-model-orchestration-plan-snapshot-contract",
       "headRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
-      "headRefOid": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
-      "previousFrozenHeadRefOid": null,
+      "headRefOid": "381afa79e1074f18fd28a2c555c22f4cd595cb38",
+      "previousFrozenHeadRefOid": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
       "githubPrViewMetadataAvailable": true,
       "githubPrViewMetadataError": null,
-      "updatedAt": "2026-06-12T21:35:55Z",
+      "updatedAt": "2026-06-12T22:30:42Z",
       "parentPrNumber": 327,
       "childPrNumbers": [],
       "duplicateRiskGroups": [
@@ -720,7 +720,8 @@
       "duplicate": false,
       "canonical": true,
       "approvedForFutureMerge": true,
-      "blocker": null
+      "blocker": null,
+      "pr337HeadShaDriftReviewDecision": "accepted_pr_337_new_head_sha"
     }
   ],
   "blockers": [],
@@ -912,5 +913,10 @@
     "publicArtifactsCreated": false,
     "signedUrlsIssued": false,
     "rawPromptExecution": false
+  },
+  "pr337HeadShaDriftReview": {
+    "decision": "accepted_pr_337_new_head_sha",
+    "frozenHeadSha": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+    "liveHeadSha": "381afa79e1074f18fd28a2c555c22f4cd595cb38"
   }
 }

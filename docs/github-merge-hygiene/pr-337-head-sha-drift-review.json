@@ -1,0 +1,86 @@
+{
+  "runId": "github-merge-hygiene-2026-06-12T232754181Z",
+  "generatedAt": "2026-06-12T23:27:54.183Z",
+  "decision": "accepted_pr_337_new_head_sha",
+  "frozenHeadSha": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+  "liveHeadSha": "381afa79e1074f18fd28a2c555c22f4cd595cb38",
+  "acceptedReplacementHeadSha": "381afa79e1074f18fd28a2c555c22f4cd595cb38",
+  "sourcePr": {
+    "number": 337,
+    "title": "[model] Plan snapshot dry-run validation",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/337",
+    "state": "OPEN",
+    "isDraft": false,
+    "mergeStateStatus": "CLEAN",
+    "baseRefName": "codex/rp-model-orchestration-plan-snapshot-contract",
+    "headRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+    "headRefOid": "381afa79e1074f18fd28a2c555c22f4cd595cb38",
+    "commitCount": 15,
+    "changedFilesCount": 100,
+    "updatedAt": "2026-06-12T22:30:42Z"
+  },
+  "changedFileCategorySummary": {
+    "activation_report_json": 100
+  },
+  "packageLockChanged": false,
+  "changedFilesMetadataOnly": true,
+  "changedFileSafetyScan": {
+    "scannedFileCount": 100,
+    "unavailableFiles": [],
+    "contentProblems": [],
+    "forbiddenRuntimeOrUnlockLanguageFound": false,
+    "credentialLikeValuesFound": false
+  },
+  "planSnapshotDryRunDecision": {
+    "path": "docs/activation-model-orchestration-plan-snapshot-dry-run-reports/plan_snapshot_dry_run_decision.json",
+    "decision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+    "status": "passed",
+    "expectedDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+    "error": null
+  },
+  "acceptanceCriteria": {
+    "prOpen": true,
+    "prNonDraft": true,
+    "prClean": true,
+    "baseBranchMatches": true,
+    "headBranchMatches": true,
+    "liveHeadShaMatchesAcceptedReplacement": true,
+    "titleMatchesMilestone": true,
+    "planSnapshotDecisionPassed": true,
+    "changedFilesMetadataOnly": true,
+    "packageLockUnchanged": true,
+    "safetyScanPassed": true,
+    "driftReviewConfirmationPresent": true,
+    "newHeadShaAcceptanceConfirmationPresent": true
+  },
+  "blockers": [],
+  "frozenBatchUpdate": {
+    "updateAllowed": true,
+    "updatedHeadSha": "381afa79e1074f18fd28a2c555c22f4cd595cb38",
+    "resultingDecision": "approved_for_future_frozen_batch_merge_execution_after_pr_337_sha_update"
+  },
+  "executionStatus": {
+    "pullRequestsMerged": false,
+    "pullRequestsClosed": false,
+    "pullRequestsRebased": false,
+    "pullRequestsRetargeted": false,
+    "branchesDeleted": false,
+    "runtimePathsExecuted": false,
+    "workerToolRouteExecution": false,
+    "supabaseMutation": false,
+    "providerCalls": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsIssued": false,
+    "productionUnlocked": false,
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false,
+    "rawPromptExecution": false,
+    "secretsPrintedOrCommitted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  }
+}

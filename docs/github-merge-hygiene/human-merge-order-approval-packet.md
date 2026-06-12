@@ -1,6 +1,6 @@
 # Human Merge Order Approval Packet
 
-Decision: `approved_for_future_frozen_batch_merge_execution`
+Decision: `approved_for_future_frozen_batch_merge_execution_after_pr_337_sha_update`
 
 This packet approves only a future frozen-batch parent-chain merge execution phase. It does not merge, close, rebase, retarget, or unlock runtime/product scopes.
 
@@ -14,6 +14,14 @@ This packet approves only a future frozen-batch parent-chain merge execution pha
 - PR #352 base/head: `codex/rp-merge-hygiene-0-milestone-pr-stack-audit` -> `codex/rp-merge-hygiene-1-parent-first-merge-execution-packet`
 - PR #352 draft/merge state: `true` / `CLEAN`
 - Draft-set replacement accepted: `true`
+
+## PR #337 SHA Drift Review
+
+- Decision: `accepted_pr_337_new_head_sha`
+- Frozen SHA: `e762d297dc9ea236b8c2c85585ff2fd781ea3e77`
+- Live SHA: `381afa79e1074f18fd28a2c555c22f4cd595cb38`
+- Frozen batch update allowed: `true`
+
 
 ## Frozen Batch
 
@@ -56,7 +64,7 @@ This packet approves only a future frozen-batch parent-chain merge execution pha
 | #320 | [model] Qwen DeepSeek provider dry-run | `codex/rp-model-orchestration-qwen-deepseek-dry-run-approval` | `codex/rp-model-orchestration-qwen-deepseek-provider-dry-run` | CLEAN | `6fa75c385481a6fbbaeac42e969fbb9b37c16147` |
 | #322 | [model] Qwen DashScope auth repair | `codex/rp-model-orchestration-qwen-deepseek-provider-dry-run` | `codex/rp-model-orchestration-qwen-dashscope-auth-repair` | CLEAN | `ce50e3548c4bc493bd2ad903c384088321e5bb71` |
 | #327 | [model] Plan snapshot contract | `codex/rp-model-orchestration-qwen-dashscope-auth-repair` | `codex/rp-model-orchestration-plan-snapshot-contract` | CLEAN | `6bf552c6ed330cc5843389a5bac20e17c5551c05` |
-| #337 | [model] Plan snapshot dry-run validation | `codex/rp-model-orchestration-plan-snapshot-contract` | `codex/rp-model-orchestration-plan-snapshot-dry-run-validation` | CLEAN | `e762d297dc9ea236b8c2c85585ff2fd781ea3e77` |
+| #337 | [model] Plan snapshot dry-run validation | `codex/rp-model-orchestration-plan-snapshot-contract` | `codex/rp-model-orchestration-plan-snapshot-dry-run-validation` | CLEAN | `381afa79e1074f18fd28a2c555c22f4cd595cb38` |
 
 
 ## Approved Stacks

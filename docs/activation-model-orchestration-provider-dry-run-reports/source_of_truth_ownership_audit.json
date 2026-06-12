@@ -1,8 +1,8 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
+  "runId": "modeldryrun2-20260612T180334",
   "ownerWorkstream": "MODEL_ORCHESTRATION",
-  "sourceEvidence": "PR #318 committed dry-run approval reports and official provider docs",
+  "sourceEvidence": "PR #318 committed dry-run approval reports, PR #322 auth repair evidence, MODEL-TIMEOUT-1 calibration evidence, and official provider docs",
   "sourcePaths": [
     {
       "path": "README.md",
@@ -53,6 +53,26 @@
       "present": true
     },
     {
+      "path": "docs/activation-qwen-timeout-calibration-reports/readiness/qwen-timeout-calibration-readiness-report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-qwen-timeout-calibration-reports/recommendation/qwen-model-timeout-target-recommendation.json",
+      "present": true
+    },
+    {
+      "path": "docs/model-provider-dryrun-2-source-of-truth-read.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-provider-dryrun-2-calibrated-target-review.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-provider-dryrun-2-results.md",
+      "present": true
+    },
+    {
       "path": "docs/activation-product-internal-testing-session-0-reports",
       "present": true
     },
@@ -65,10 +85,22 @@
   "pr318Decision": "approved_for_future_qwen_deepseek_provider_dry_run",
   "expectedPr318Decision": "approved_for_future_qwen_deepseek_provider_dry_run",
   "officialDocsBasis": [
-    "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
+    "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+    "https://www.alibabacloud.com/help/en/model-studio/first-api-call-to-qwen",
     "https://api-docs.deepseek.com/",
     "https://api-docs.deepseek.com/api/create-chat-completion"
   ],
+  "modelTimeout1Readiness": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+  "modelTimeout1Recommendation": {
+    "selectedHeadAgentModel": "qwen3.7-plus",
+    "selectedCalibrationMode": "non_streaming",
+    "recommendedTimeoutMs": 45000,
+    "recommendedMaxOutputTokens": 650,
+    "fullDryRunReadiness": "ready",
+    "reason": "qwen3.7-plus completed all four reduced approved schema cases."
+  },
+  "modelDryRun1AEvidenceReadFromRemoteBranch": "origin/codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixes",
+  "modelDryRun1BEvidenceReadFromRemoteBranch": "origin/codex/rp-model-dryrun-1b-qwen-dashscope-owner-secret-rotation-retry",
   "providerGatewayRuntimeImported": false,
   "productionRouteImported": false,
   "supabaseWrites": false,

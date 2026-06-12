@@ -1,19 +1,25 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
-  "status": "not_attempted",
-  "decision": "not_attempted",
+  "runId": "modeldryrun2-20260612T180334",
+  "status": "blocked",
+  "decision": "blocked_pending_cost_review",
   "activeBlockers": [
-    "provider_dry_run_not_executed"
+    "provider_cost_or_token_guardrail_exceeded"
   ],
   "providerCandidates": {
     "qwenDefault": "qwen3.7-plus",
-    "qwenEscalation": "qwen3.7-max",
+    "qwenEscalation": "not_used_in_model_dryrun_2",
     "deepseekDefault": "deepseek-v4-flash",
     "deepseekEscalation": "deepseek-v4-pro"
   },
-  "providerCallsAttempted": false,
-  "providerCallsExecuted": false,
+  "calibratedQwenTarget": {
+    "modelId": "qwen3.7-plus",
+    "mode": "non_streaming",
+    "timeoutMs": 45000,
+    "maxOutputTokens": 650
+  },
+  "providerCallsAttempted": true,
+  "providerCallsExecuted": true,
   "qwenApiCallsAllowedOnlyForSyntheticDryRun": true,
   "deepseekApiCallsAllowedOnlyForSyntheticDryRun": true,
   "planSnapshotContractReady": false,

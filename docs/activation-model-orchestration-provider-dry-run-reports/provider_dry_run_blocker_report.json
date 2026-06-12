@@ -1,9 +1,9 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "status": "not_attempted",
-  "decision": "not_attempted",
+  "status": "blocked",
+  "decision": "blocked_pending_cost_review",
   "activeBlockers": [
-    "provider_dry_run_not_executed"
+    "provider_cost_or_token_guardrail_exceeded"
   ],
   "blockedScopes": [
     "tools_workers_routes",

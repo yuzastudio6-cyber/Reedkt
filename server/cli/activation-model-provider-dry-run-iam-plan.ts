@@ -22,6 +22,8 @@ console.log(JSON.stringify({
     project: 'reeditpro',
     exactSecretRefs: [
       'DASHSCOPE_API_KEY',
+      'DASHSCOPE_BASE_URL',
+      'DASHSCOPE_REGION',
       'DEEPSEEK_API_KEY',
     ],
     broadSecretDiscovery: false,

@@ -1,58 +1,93 @@
-# MODEL-DRYRUN-1 Qwen/DeepSeek Synthetic Provider Dry-Run Results
+# MODEL-DRYRUN-2 Calibrated Qwen/DeepSeek Synthetic Provider Dry-Run Results
 
 Status: `blocked`
 
-Run ID: `modeldryrun1-20260612T162802`
+Final state: `blocked_provider_call_failed`
 
-Branch: `codex/rp-model-orchestration-qwen-dashscope-auth-repair`
+Run ID: `modeldryrun2-20260612T180334`
 
-PR stack:
-- PR #322: `[model] Qwen DashScope auth repair`
-- PR #320: `[model] Qwen DeepSeek provider dry-run`
-- PR #318: `[model] Qwen DeepSeek dry-run approval packet`
+Branch: `codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-provider-dry-run`
+
+Base branch: `origin/codex/rp-model-orchestration-qwen-schema-timeout-target-calibration`
+
+## Source Of Truth
+
+MODEL-TIMEOUT-1 recorded `qwen_schema_timeout_calibrated_ready_for_model_dryrun` and selected `qwen3.7-plus`, `non_streaming`, `45000ms`, and `650` max output tokens as the Qwen target for the next synthetic dry-run.
+
+The retry preserved the PR #318 synthetic dry-run approval packet, the PR #322 DashScope US endpoint/region repair pattern, and the MODEL-TIMEOUT-1 calibration evidence. Existing MODEL-DRYRUN-1A/1B evidence lives on separate model branches and is summarized in `docs/model-provider-dryrun-2-source-of-truth-read.md`.
 
 ## Execution
 
-Guarded Qwen/DashScope auth repair was executed with `DASHSCOPE_API_KEY`, `DASHSCOPE_BASE_URL`, `DASHSCOPE_REGION`, provider key, and Supabase payload environment variables explicitly unset. Provider secret payload resolution was limited to the three exact Google Secret Manager refs.
+The guarded synthetic provider dry-run was executed exactly once with the required confirmations:
 
-Result: `qwen_auth_repaired_ready_for_provider_dry_run_update`
+- `REEDITPRO_CONFIRM_MODEL_ORCHESTRATION_PROVIDER_DRY_RUN=true`
+- `REEDITPRO_CONFIRM_QWEN_API_CALL=true`
+- `REEDITPRO_CONFIRM_DEEPSEEK_API_CALL=true`
+- `REEDITPRO_CONFIRM_PROVIDER_CALLS=true`
+- `REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY=true`
+- `REEDITPRO_CONFIRM_SECRET_PAYLOAD_ACCESS_FOR_PROVIDER_DRY_RUN=true`
+- `REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY=true`
+- `REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS=true`
 
-Active blocker: `provider_timeout`
+Provider key/config environment payloads were absent before execution. Secret payloads were resolved only through the server-side Secret Manager path for the exact refs `DASHSCOPE_API_KEY`, `DASHSCOPE_BASE_URL`, `DASHSCOPE_REGION`, and `DEEPSEEK_API_KEY`.
 
-Secret Manager validation:
-- `DASHSCOPE_API_KEY`: version `3`, payload accessed process-local only.
-- `DASHSCOPE_BASE_URL`: version `1`, matched approved US endpoint internally.
-- `DASHSCOPE_REGION`: version `1`, matched `us` internally.
+DashScope base URL validation passed for the approved US endpoint. DashScope region validation passed for `us`.
 
-US auth probes:
-- `qwen-plus-us`: passed with HTTP `200`
-- `qwen-flash-us`: passed with HTTP `200`
+## Provider Result
 
-Approved target alias probes:
-- `qwen3.7-plus`: passed with HTTP `200`
-- `qwen3.7-max`: passed with HTTP `200`
-- `qwen3-max`: passed with HTTP `200`
-- `qwen-max`: blocked with HTTP `404` / `qwen_model_alias_unavailable`
+Qwen/DashScope: `passed`
 
-Selected approved target alias: `qwen3.7-plus`
+DeepSeek: `passed`
 
-## Dry-Run Status
+Provider calls attempted: `7`
 
-The full Qwen/DeepSeek synthetic provider dry-run was not executed in this pass. DeepSeek was not rerun; existing PR #320 DeepSeek evidence remains metadata only.
+Qwen provider calls attempted: `4`
 
-Qwen schema repair attempted the four approved synthetic cases against `qwen3.7-plus`; all four timed out within the existing bounded timeouts, so plan snapshot readiness remains `false`.
+DeepSeek provider calls attempted: `3`
 
-## Safety
+Qwen model used: `qwen3.7-plus`
+
+Qwen mode: `non_streaming`
+
+Qwen timeout: `45000ms`
+
+Qwen max output tokens: `650`
+
+`qwen3.7-max` used in MODEL-DRYRUN-2: `false`
+
+## Blocker
+
+The dry-run failed closed on the local cost/token guardrail:
+
+- `totalTokensReported`: `7842`
+- `maxTotalTokens`: `7200`
+- active blocker: `provider_cost_or_token_guardrail_exceeded`
+
+No repeat provider call was attempted after this blocker.
+
+## Artifacts
+
+Committed sanitized evidence:
+
+- `docs/activation-model-orchestration-provider-dry-run-reports/model_provider_dryrun_2_summary.json`
+- `docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_comparison_report.json`
+- `docs/activation-model-orchestration-provider-dry-run-reports/qwen_provider_dry_run_report.json`
+- `docs/activation-model-orchestration-provider-dry-run-reports/deepseek_provider_dry_run_report.json`
+- `docs/model-provider-dryrun-2-source-of-truth-read.md`
+- `docs/model-provider-dryrun-2-calibrated-target-review.md`
+- `docs/model-provider-dryrun-2-results.md`
+
+Private artifact upload: `not_attempted_provider_dry_run_not_passed`
+
+Raw provider responses committed: `false`
 
 Secret payloads printed or committed: `false`
 
-Raw provider responses stored or printed: `false`
-
-Tools, workers, routes, provider chaining, browser capture, map rendering, media processing, raw prompt execution, public artifacts, signed URLs, production, external beta, and paid production remain blocked.
-
 ## Supabase
 
-Supabase milestone sync: `not_attempted_current_branch_missing_sync_layer`
+Supabase update required: `docs/status only`
+
+Supabase update status: `docs_only`
 
 Supabase environment touched: `none`
 
@@ -60,35 +95,12 @@ SQL executed: `none`
 
 Migration deployed: `no`
 
-Schema/RLS changes: `none`
-
 ## Validation
 
-Passed:
-- `npm run smoke:activation-model-orchestration-qwen-auth-repair`
-- `npm run activation:model-orchestration-qwen-auth-repair:report`
-- `npm run activation:model-orchestration-qwen-auth-repair:summary`
-- `npm run activation:model-orchestration-provider-dry-run:report`
-- `npm run activation:model-orchestration-provider-dry-run:summary`
-- `npm run activation:model-provider-dry-run:report`
-- `npm run activation:model-provider-dry-run:summary`
-- `npm run activation:model-orchestration-dry-run-approval:report`
-- `npm run activation:model-orchestration-qwen-deepseek-audit:report`
-- `npm run prod:readiness:summary`
-- `npm run prod:beta:summary`
-- `npm run lint`
-- `npm run typecheck:server`
-- `npx tsc -b`
-- `npm run build`
-- `npm run build:server`
-- `git diff --check`
-- `git diff --cached --check`
-- Changed-file credential pattern scan
-
-Validation failures: `0`
-
-Package lock: `unchanged`
+Local validation is recorded in `docs/model-provider-dryrun-2-results.md` and the final PR body.
 
 ## Next Step
 
-Qwen/DashScope auth and approved target access are repaired for the US region. The next blocker is bounded schema-case timeout on `qwen3.7-plus`; resolve with an approved timeout/model/target adjustment before attempting the full Qwen/DeepSeek provider dry-run or plan snapshot contract.
+Recommended next prompt: `MODEL-DRYRUN-2A - Calibrated Provider Dry-Run Fixes`.
+
+No worker execution, tool execution, route execution, raw prompt execution, broad provider runtime, media processing, browser capture, Docker/Cloud Run execution, Supabase mutation, SQL execution, storage transfer, signed URL creation, public artifact creation, production deployment, external beta unlock, paid production unlock, Google Cloud Secret Manager payload exposure, secret commit, raw provider response commit, broad service-role handler, or production/beta unlock was enabled.

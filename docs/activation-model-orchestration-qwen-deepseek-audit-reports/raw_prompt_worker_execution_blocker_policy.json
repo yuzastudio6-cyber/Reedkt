@@ -1,0 +1,31 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "status": "passed",
+  "blockedPaths": [
+    "raw_chat_to_worker_execution",
+    "raw_prompt_to_tool_route_execution",
+    "provider_response_to_direct_mutation",
+    "provider_response_to_public_artifact",
+    "provider_response_to_signed_url_source_of_truth",
+    "provider_response_to_supabase_write",
+    "provider_response_to_track_b_runtime"
+  ],
+  "requiredSafePath": [
+    "user_chat_request",
+    "agent_findings",
+    "edit_intents",
+    "approved_plan_snapshot",
+    "future_worker_execution_after_separate_approval"
+  ],
+  "existingRepoEvidence": [
+    "src/backend/cloud/worker-job-contracts.ts rejects raw prompt-only worker payloads.",
+    "server/workers/production/production-worker-gates.ts rejects raw prompt/chat fields.",
+    "src/backend/cloud/provider-gateway-contracts.ts requires approvedPlanSnapshotId and creditReservationId.",
+    "model-routing-policy.md says routing is planning data until approval."
+  ],
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlSourceOfTruthAllowed": false,
+  "supabaseWritesAllowed": false
+}

@@ -1,0 +1,68 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "status": "passed",
+  "contractPaths": [
+    {
+      "path": "src/backend/cloud/provider-gateway-contracts.ts",
+      "present": true
+    },
+    {
+      "path": "src/backend/providers/gateway/provider-gateway-service.ts",
+      "present": true
+    },
+    {
+      "path": "server/services/provider-gateway-service.ts",
+      "present": true
+    },
+    {
+      "path": "server/routes/provider-gateway-routes.ts",
+      "present": true
+    },
+    {
+      "path": "src/backend/cloud/worker-job-contracts.ts",
+      "present": true
+    },
+    {
+      "path": "src/lib/approved-plan-snapshot.ts",
+      "present": true
+    },
+    {
+      "path": "server/workers/worker-gates.ts",
+      "present": true
+    },
+    {
+      "path": "server/workers/production/production-worker-gates.ts",
+      "present": true
+    },
+    {
+      "path": "docs/google-cloud/RP-GCP-03-provider-gateway-skeleton.md",
+      "present": true
+    },
+    {
+      "path": "docs/production-worker-architecture.md",
+      "present": true
+    },
+    {
+      "path": "docs/track-b-consumer-boundary-policy.md",
+      "present": true
+    }
+  ],
+  "approvedPlanSnapshotRequired": true,
+  "creditReservationRequired": true,
+  "idempotencyRequired": true,
+  "secretInspectionPresent": true,
+  "providerCallsDisabledByDefault": true,
+  "mockOnlyProviderGatewayPresent": true,
+  "workerRawPromptGatePresent": true,
+  "toolRouteManifestIntegration": true,
+  "costEstimatorIntegration": true,
+  "supabaseMilestoneRegistryIntegration": true,
+  "missingContracts": [
+    "model_orchestration_provider_dry_run_contract",
+    "qwen_deepseek_output_schema_contract",
+    "provider_cost_budget_contract",
+    "provider_rate_limit_contract",
+    "supabase_model_orchestration_milestone_sync"
+  ],
+  "noProviderCalls": true
+}

@@ -1,0 +1,34 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "status": "passed",
+  "recommendation": "qwen_primary_deepseek_fallback_requires_dry_run_approval",
+  "candidateDefaultAgentBrain": {
+    "provider": "qwen_dashscope",
+    "modelId": "qwen3.7-plus",
+    "escalationModelId": "qwen3.7-max",
+    "approvedForRuntime": false
+  },
+  "candidateFallbackCodingReasoning": {
+    "provider": "deepseek",
+    "firstModelId": "deepseek-v4-flash",
+    "escalationModelId": "deepseek-v4-pro",
+    "approvedForRuntime": false
+  },
+  "requiredFlow": [
+    "user_chat_request",
+    "agent_findings",
+    "edit_intents",
+    "approved_plan_snapshot",
+    "future_worker_execution"
+  ],
+  "schemaValidationStrategy": [
+    "JSON object output must parse.",
+    "Findings must map to typed edit intent fields.",
+    "Unmapped fields are warnings, not executable instructions.",
+    "Low-confidence or unsafe outputs require human review."
+  ],
+  "providerCallDryRunRequiredBeforeRealApiCall": true,
+  "directWorkerExecutionAllowed": false,
+  "rawPromptExecutionAllowed": false,
+  "providerCallsMade": false
+}

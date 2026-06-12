@@ -1,0 +1,63 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-audit",
+  "runId": "model-orchestration-qwen-deepseek-audit-20260612",
+  "branch": "codex/rp-model-orchestration-qwen-deepseek-repo-audit",
+  "baseBranch": "codex/rp-product-restricted-internal-testing-session-0",
+  "prTitle": "[model] Qwen DeepSeek orchestration repo audit",
+  "mode": "repo_source_of_truth_audit_only",
+  "reportDir": "docs/activation-model-orchestration-qwen-deepseek-audit-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "model_orchestration_audit_plan.json",
+    "provider_official_evidence_inventory.json",
+    "secret_reference_inventory.json",
+    "provider_contract_inventory.json",
+    "agent_brain_architecture_recommendation.json",
+    "raw_prompt_worker_execution_blocker_policy.json",
+    "model_orchestration_risk_blocker_inventory.json",
+    "model_orchestration_next_phase_recommendation.json",
+    "model_orchestration_audit_blocker_report.json",
+    "model_orchestration_audit_readiness_report.json",
+    "model_orchestration_private_artifact_manifest.json"
+  ],
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_MODEL_ORCHESTRATION_REPO_AUDIT",
+    "REEDITPRO_CONFIRM_PROVIDER_DOCS_RESEARCH",
+    "REEDITPRO_CONFIRM_SECRET_REFERENCE_METADATA_ONLY"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_QWEN_API_CALL",
+    "REEDITPRO_CONFIRM_DEEPSEEK_API_CALL",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_RAW_PROMPT_EXECUTION",
+    "REEDITPRO_CONFIRM_PUBLIC_ARTIFACTS",
+    "REEDITPRO_CONFIRM_SIGNED_URL_DELIVERY",
+    "REEDITPRO_CONFIRM_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_EXTERNAL_BETA_UNLOCK",
+    "REEDITPRO_CONFIRM_PAID_PRODUCTION_UNLOCK",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_SUPABASE_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL"
+  ],
+  "officialProviderSources": [
+    "https://www.alibabacloud.com/help/en/model-studio/models",
+    "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
+    "https://help.aliyun.com/zh/model-studio/text-generation-model/",
+    "https://api-docs.deepseek.com/",
+    "https://api-docs.deepseek.com/api/list-models",
+    "https://api-docs.deepseek.com/api/create-chat-completion"
+  ],
+  "supabaseUpdateRequired": "no_write_metadata_audit_only",
+  "supabaseUpdateStatus": "track_b_clean_staging_milestone_sync_completed_model_orchestration_not_synced",
+  "supabaseEnvironmentTouched": "none",
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "runtimeToolsWorkersRoutes": false,
+  "publicArtifacts": false,
+  "production": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "nextRecommendedPhase": "MODEL_ORCHESTRATION - Qwen/DeepSeek dry-run approval packet."
+}

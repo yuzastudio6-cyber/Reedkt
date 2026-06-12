@@ -4,6 +4,8 @@ Implementation branch: `codex/rp-model-dryrun-1b-qwen-dashscope-owner-secret-rot
 
 Base branch: `origin/codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixes`
 
+PR: [#328](https://github.com/yuzastudio6-cyber/Reedkt/pull/328)
+
 Status: `blocked`
 
 Final state: `blocked_pending_dashscope_secret_rotation_by_owner`

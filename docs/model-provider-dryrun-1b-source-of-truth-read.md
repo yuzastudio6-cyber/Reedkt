@@ -8,6 +8,8 @@ Branch: `codex/rp-model-dryrun-1b-qwen-dashscope-owner-secret-rotation-retry`
 
 Base branch: `origin/codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixes`
 
+PR: [#328](https://github.com/yuzastudio6-cyber/Reedkt/pull/328)
+
 Production capability enabled: `none; Qwen/DashScope owner secret rotation retry only`
 
 ## Files Inspected

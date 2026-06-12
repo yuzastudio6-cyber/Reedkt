@@ -1,8 +1,10 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "status": "passed",
-  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
-  "activeBlockers": [],
+  "status": "blocked",
+  "decision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
+  "activeBlockers": [
+    "provider_timeout"
+  ],
   "blockedScopes": [
     "deepseek_rerun",
     "tools_workers_routes",

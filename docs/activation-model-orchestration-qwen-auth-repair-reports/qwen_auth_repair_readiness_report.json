@@ -1,24 +1,51 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T161337",
-  "status": "passed",
-  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
-  "activeBlockers": [],
-  "selectedQwenAlias": "qwen-plus",
-  "officialQwenAliasOrder": [
-    "qwen-plus",
+  "runId": "modeldryrun1-20260612T162802",
+  "status": "blocked",
+  "decision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
+  "activeBlockers": [
+    "provider_timeout"
+  ],
+  "selectedQwenAlias": "qwen3.7-plus",
+  "selectedQwenAliasRole": "approved_target",
+  "usAuthProbeAliases": [
+    "qwen-plus-us",
+    "qwen-flash-us"
+  ],
+  "approvedTargetAliases": [
+    "qwen3.7-plus",
+    "qwen3.7-max",
     "qwen3-max",
     "qwen-max"
   ],
+  "officialQwenAliasOrder": [
+    "qwen-plus-us",
+    "qwen-flash-us",
+    "qwen3.7-plus",
+    "qwen3.7-max",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "approvedTargetAliasesUsedOnlyAfterUsProbe": true,
   "staleQwen37AliasesUsed": false,
+  "approvedQwen37AliasesAllowedForTargetProbe": true,
+  "selectedBaseUrlKey": "us",
+  "approvedDashScopeRegion": "us",
   "operatorReportedReplacementVersion": "3",
+  "operatorReportedBaseUrlVersion": "1",
+  "operatorReportedRegionVersion": "1",
   "secretVersionSelector": "latest",
+  "exactSecretRefs": [
+    "DASHSCOPE_API_KEY",
+    "DASHSCOPE_BASE_URL",
+    "DASHSCOPE_REGION"
+  ],
   "keyReplacementConfirmation": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
   "keyReplacementAsserted": true,
   "qwenProviderCallsExecutedOnlyWhenConfirmed": true,
   "deepseekRerun": false,
   "deepseekEvidenceReusedAsMetadataOnly": true,
-  "planSnapshotContractReady": true,
+  "planSnapshotContractReady": false,
   "secretPayloadPrinted": false,
   "secretPayloadCommitted": false,
   "rawProviderResponsesStored": false,

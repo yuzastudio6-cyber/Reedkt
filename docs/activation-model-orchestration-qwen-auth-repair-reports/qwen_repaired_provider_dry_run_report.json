@@ -1,9 +1,10 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
   "provider": "qwen_dashscope",
-  "status": "passed",
+  "status": "blocked",
   "executed": true,
-  "selectedAlias": "qwen-plus",
+  "selectedAlias": "qwen3.7-plus",
+  "schemaCasesRunOnlyForApprovedTargetAlias": true,
   "qwenOnlySyntheticCases": [
     "synthetic_edit_intent_extraction",
     "synthetic_timeline_planning",
@@ -11,8 +12,8 @@
     "synthetic_provider_fallback_comparison"
   ],
   "providerCallsAttempted": 4,
-  "providerCallsPassed": 4,
-  "providerCallsBlocked": 0,
+  "providerCallsPassed": 0,
+  "providerCallsBlocked": 4,
   "deepseekRerun": false,
   "stream": false,
   "tools": false,
@@ -23,44 +24,10 @@
   "results": [
     {
       "caseId": "synthetic_edit_intent_extraction",
-      "modelId": "qwen-plus",
+      "modelId": "qwen3.7-plus",
       "schemaId": "agent_findings_v1",
-      "status": "passed",
-      "httpStatus": 200,
-      "latencyMs": 4245,
-      "finishReason": "stop",
-      "usage": {
-        "promptTokens": 211,
-        "completionTokens": 167,
-        "totalTokens": 378
-      },
-      "responseContentCharacters": 663,
-      "normalizedOutput": {
-        "caseId": "synthetic_edit_intent_extraction",
-        "findings": {
-          "editType": "pacing_and_caption_optimization",
-          "targetDurationSeconds": 45,
-          "primaryGoals": [
-            "improve pacing clarity",
-            "reduce caption verbosity"
-          ],
-          "mediaContext": "product explainer video",
-          "structuralConstraints": [
-            "no scene cuts beyond original timing",
-            "captions must remain synchronized with audio"
-          ]
-        },
-        "confidence": 0.92,
-        "risks": [],
-        "blockedActions": [],
-        "workerExecutionAllowed": false,
-        "toolExecutionAllowed": false,
-        "publicArtifactsAllowed": false,
-        "signedUrlsAllowed": false,
-        "rawPromptForwardingAllowed": false,
-        "directMutationAllowed": false,
-        "schemaId": "agent_findings_v1"
-      },
+      "status": "blocked",
+      "blocker": "provider_timeout",
       "rawProviderResponseStored": false,
       "rawProviderResponsePrinted": false,
       "secretPayloadPrinted": false,
@@ -71,79 +38,15 @@
       "signedUrlsAllowed": false,
       "rawPromptForwardingAllowed": false,
       "directMutationAllowed": false,
-      "productionMutationAllowed": false
+      "productionMutationAllowed": false,
+      "latencyMs": 12005
     },
     {
       "caseId": "synthetic_timeline_planning",
-      "modelId": "qwen-plus",
+      "modelId": "qwen3.7-plus",
       "schemaId": "edit_intents_v1",
-      "status": "passed",
-      "httpStatus": 200,
-      "latencyMs": 8751,
-      "finishReason": "stop",
-      "usage": {
-        "promptTokens": 212,
-        "completionTokens": 509,
-        "totalTokens": 721
-      },
-      "responseContentCharacters": 2124,
-      "normalizedOutput": {
-        "caseId": "synthetic_timeline_planning",
-        "intentSummary": "Generate a three-part timeline for a synthetic onboarding video: hook (engaging opening), demonstration (core feature walkthrough), and CTA (clear call to action).",
-        "segments": [
-          {
-            "id": "hook",
-            "label": "Hook",
-            "durationSeconds": 15,
-            "purpose": "Capture attention within first 3 seconds; establish relevance and emotional resonance.",
-            "contentGuidance": "Use dynamic visual transition, concise voiceover, and relatable pain point framing."
-          },
-          {
-            "id": "demonstration",
-            "label": "Demonstration",
-            "durationSeconds": 45,
-            "purpose": "Show core functionality in realistic context with step-by-step clarity.",
-            "contentGuidance": "Feature one primary workflow; avoid UI clutter; include subtle audio cues for key actions."
-          },
-          {
-            "id": "cta",
-            "label": "CTA",
-            "durationSeconds": 10,
-            "purpose": "Drive immediate next step with unambiguous instruction and visual reinforcement.",
-            "contentGuidance": "Display single actionable button + voiceover; use brand-aligned color contrast and 2-second hold."
-          }
-        ],
-        "planningRequirements": {
-          "totalDurationSeconds": 70,
-          "maxSegmentCount": 3,
-          "minimumHookEngagementThreshold": 3,
-          "audioScriptLengthCharsMax": 1200,
-          "visualConsistencyRules": [
-            "consistent typography",
-            "brand color palette only",
-            "no stock footage"
-          ]
-        },
-        "approvalGates": [
-          {
-            "gateId": "segment_alignment_review",
-            "description": "Verify all segments map precisely to hook/demonstration/CTA roles and durations.",
-            "requiredApproverRole": "content_strategist"
-          },
-          {
-            "gateId": "accessibility_compliance_check",
-            "description": "Confirm closed captions, color contrast ≥ 4.5:1, and audio description availability.",
-            "requiredApproverRole": "accessibility_specialist"
-          }
-        ],
-        "workerExecutionAllowed": false,
-        "toolExecutionAllowed": false,
-        "publicArtifactsAllowed": false,
-        "signedUrlsAllowed": false,
-        "rawPromptForwardingAllowed": false,
-        "directMutationAllowed": false,
-        "schemaId": "edit_intents_v1"
-      },
+      "status": "blocked",
+      "blocker": "provider_timeout",
       "rawProviderResponseStored": false,
       "rawProviderResponsePrinted": false,
       "secretPayloadPrinted": false,
@@ -154,40 +57,15 @@
       "signedUrlsAllowed": false,
       "rawPromptForwardingAllowed": false,
       "directMutationAllowed": false,
-      "productionMutationAllowed": false
+      "productionMutationAllowed": false,
+      "latencyMs": 12007
     },
     {
       "caseId": "synthetic_tool_route_metadata_recommendation",
-      "modelId": "qwen-plus",
+      "modelId": "qwen3.7-plus",
       "schemaId": "plan_snapshot_candidate_v1",
-      "status": "passed",
-      "httpStatus": 200,
-      "latencyMs": 4134,
-      "finishReason": "stop",
-      "usage": {
-        "promptTokens": 219,
-        "completionTokens": 146,
-        "totalTokens": 365
-      },
-      "responseContentCharacters": 658,
-      "normalizedOutput": {
-        "caseId": "synthetic_tool_route_metadata_recommendation",
-        "candidateSummary": "Recommend captions, chart card, and map card as metadata-only components; no rendering, execution, or artifact generation required.",
-        "toolRouteHints": [
-          "metadata_only",
-          "static_rendering_disabled",
-          "no_interactive_elements"
-        ],
-        "creditRiskNotes": "No financial or credit-related implications; purely presentational metadata selection.",
-        "requiredApprovals": [],
-        "workerExecutionAllowed": false,
-        "toolExecutionAllowed": false,
-        "publicArtifactsAllowed": false,
-        "signedUrlsAllowed": false,
-        "rawPromptForwardingAllowed": false,
-        "directMutationAllowed": false,
-        "schemaId": "plan_snapshot_candidate_v1"
-      },
+      "status": "blocked",
+      "blocker": "provider_timeout",
       "rawProviderResponseStored": false,
       "rawProviderResponsePrinted": false,
       "secretPayloadPrinted": false,
@@ -198,44 +76,15 @@
       "signedUrlsAllowed": false,
       "rawPromptForwardingAllowed": false,
       "directMutationAllowed": false,
-      "productionMutationAllowed": false
+      "productionMutationAllowed": false,
+      "latencyMs": 12005
     },
     {
       "caseId": "synthetic_provider_fallback_comparison",
-      "modelId": "qwen-plus",
+      "modelId": "qwen3.7-plus",
       "schemaId": "provider_fallback_assessment_v1",
-      "status": "passed",
-      "httpStatus": 200,
-      "latencyMs": 3381,
-      "finishReason": "stop",
-      "usage": {
-        "promptTokens": 216,
-        "completionTokens": 177,
-        "totalTokens": 393
-      },
-      "responseContentCharacters": 751,
-      "normalizedOutput": {
-        "caseId": "synthetic_provider_fallback_comparison",
-        "primaryCandidate": "Qwen",
-        "fallbackCandidate": "DeepSeek",
-        "comparisonReasons": [
-          "Qwen demonstrates stronger structured planning alignment with ReeditPro schema constraints",
-          "DeepSeek exhibits higher lexical variance in fallback reasoning paths, increasing ambiguity risk under dry-run conditions",
-          "Qwen's output token distribution better matches synthetic validation heuristics for role-aware planning"
-        ],
-        "dryRunLimits": {
-          "maxSteps": 3,
-          "maxTokens": 1024,
-          "timeoutMs": 2500
-        },
-        "workerExecutionAllowed": false,
-        "toolExecutionAllowed": false,
-        "publicArtifactsAllowed": false,
-        "signedUrlsAllowed": false,
-        "rawPromptForwardingAllowed": false,
-        "directMutationAllowed": false,
-        "schemaId": "provider_fallback_assessment_v1"
-      },
+      "status": "blocked",
+      "blocker": "provider_timeout",
       "rawProviderResponseStored": false,
       "rawProviderResponsePrinted": false,
       "secretPayloadPrinted": false,
@@ -246,7 +95,8 @@
       "signedUrlsAllowed": false,
       "rawPromptForwardingAllowed": false,
       "directMutationAllowed": false,
-      "productionMutationAllowed": false
+      "productionMutationAllowed": false,
+      "latencyMs": 15005
     }
   ]
 }

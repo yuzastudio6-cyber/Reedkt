@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T153455",
+  "runId": "modeldryrun1-20260612T163026",
   "branch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
   "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
   "prTitle": "[model] Qwen DeepSeek provider dry-run",
@@ -54,8 +54,8 @@
   "deepseekEndpoint": "https://api.deepseek.com/chat/completions",
   "secretSource": "google_secret_manager_only",
   "environmentProviderSecretPayloadsAllowed": false,
-  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T153455/",
-  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T153455/",
+  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
+  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
   "providerCallsAllowedOnlyWithExecuteAndConfirmations": true,
   "syntheticPromptsOnly": true,
   "stream": false,

@@ -3,19 +3,35 @@
   "status": "passed",
   "executed": true,
   "provider": "qwen_dashscope",
-  "selectedBaseUrlKey": "virginia",
+  "selectedBaseUrlKey": "us",
   "endpointPath": "/chat/completions",
   "probeAliasOrder": [
-    "qwen-plus",
+    "qwen-plus-us",
+    "qwen-flash-us",
+    "qwen3.7-plus",
+    "qwen3.7-max",
     "qwen3-max",
     "qwen-max"
   ],
-  "staleAliasesNotProbed": [
-    "qwen3.7-plus",
-    "qwen3.7-max"
+  "usAuthProbeAliases": [
+    "qwen-plus-us",
+    "qwen-flash-us"
   ],
-  "providerCallsAttempted": 3,
-  "providerCallsPassed": 2,
+  "approvedTargetAliases": [
+    "qwen3.7-plus",
+    "qwen3.7-max",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #320 provider dry-run target aliases",
+  "approvedTargetAliasesProbed": true,
+  "approvedTargetAliasesProbedOnlyAfterUsProbePassed": true,
+  "usAuthProbeCallsAttempted": 2,
+  "usAuthProbeCallsPassed": 2,
+  "approvedTargetCallsAttempted": 4,
+  "approvedTargetCallsPassed": 3,
+  "providerCallsAttempted": 6,
+  "providerCallsPassed": 5,
   "providerCallsBlocked": 1,
   "stream": false,
   "tools": false,
@@ -25,11 +41,12 @@
   "secretPayloadPrinted": false,
   "results": [
     {
-      "modelId": "qwen-plus",
-      "baseUrlKey": "virginia",
+      "modelId": "qwen-plus-us",
+      "baseUrlKey": "us",
+      "aliasRole": "us_auth_probe",
       "status": "passed",
       "httpStatus": 200,
-      "latencyMs": 5607,
+      "latencyMs": 1085,
       "finishReason": "stop",
       "usage": {
         "promptTokens": 88,
@@ -50,11 +67,90 @@
       "secretPayloadPrinted": false
     },
     {
-      "modelId": "qwen3-max",
-      "baseUrlKey": "virginia",
+      "modelId": "qwen-flash-us",
+      "baseUrlKey": "us",
+      "aliasRole": "us_auth_probe",
       "status": "passed",
       "httpStatus": 200,
-      "latencyMs": 2990,
+      "latencyMs": 215,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 88,
+        "completionTokens": 27,
+        "totalTokens": 115
+      },
+      "responseContentCharacters": 118,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "modelId": "qwen3.7-plus",
+      "baseUrlKey": "us",
+      "aliasRole": "approved_target",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 10568,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 89,
+        "completionTokens": 539,
+        "totalTokens": 628
+      },
+      "responseContentCharacters": 118,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "modelId": "qwen3.7-max",
+      "baseUrlKey": "us",
+      "aliasRole": "approved_target",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 10200,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 89,
+        "completionTokens": 505,
+        "totalTokens": 594
+      },
+      "responseContentCharacters": 118,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "modelId": "qwen3-max",
+      "baseUrlKey": "us",
+      "aliasRole": "approved_target",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 1571,
       "finishReason": "stop",
       "usage": {
         "promptTokens": 88,
@@ -76,11 +172,12 @@
     },
     {
       "modelId": "qwen-max",
-      "baseUrlKey": "virginia",
+      "baseUrlKey": "us",
+      "aliasRole": "approved_target",
       "status": "blocked",
       "blocker": "qwen_model_alias_unavailable",
       "httpStatus": 404,
-      "latencyMs": 146,
+      "latencyMs": 66,
       "responseContentCharacters": 213,
       "sanitizedEvidence": {
         "authKeywordDetected": false,

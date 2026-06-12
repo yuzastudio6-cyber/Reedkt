@@ -1,10 +1,10 @@
 # Model Orchestration Qwen Auth Repair Decision
 
-Decision: `qwen_alias_repaired_ready_for_plan_snapshot_contract`.
+Decision: `qwen_auth_repaired_ready_for_provider_dry_run_update`.
 
-Plan snapshot contract readiness: `true`.
+Plan snapshot contract readiness: `false`.
 
-DashScope key replacement asserted during execution: `true`. Operator-reported secret version: `3`. Secret version selector: `latest`.
+DashScope key replacement asserted during execution: `true`. Operator-reported API key version: `3`. Operator-reported base URL and region versions: `1`. Secret version selector: `latest`.
 
 Qwen-only provider calls may occur only under the explicit repair confirmations. DeepSeek rerun: `false`. Supabase writes: `false`. Runtime/tool/worker/route execution: `false`. Production/external beta/paid production: `false`.
 

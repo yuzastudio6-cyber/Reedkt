@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T161337",
+  "runId": "modeldryrun1-20260612T162802",
   "ownerWorkstream": "MODEL_ORCHESTRATION",
   "sourceEvidence": "PR #320 provider dry-run reports plus current official DashScope and Alibaba Model Studio docs",
   "sourcePaths": [
@@ -57,8 +57,16 @@
   "pr320DeepSeekStatus": "not_attempted",
   "deepseekRerun": false,
   "operatorReportedDashScopeKeyReplacement": {
-    "secretRef": "DASHSCOPE_API_KEY",
-    "replacementVersion": "3",
+    "exactSecretRefs": [
+      "DASHSCOPE_API_KEY",
+      "DASHSCOPE_BASE_URL",
+      "DASHSCOPE_REGION"
+    ],
+    "apiKeyReplacementVersion": "3",
+    "baseUrlVersion": "1",
+    "regionVersion": "1",
+    "approvedBaseUrlKey": "us",
+    "approvedRegion": "us",
     "selectedVersionForRerun": "latest",
     "confirmationRequired": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
     "payloadPrinted": false,

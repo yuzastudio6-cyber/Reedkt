@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T161337",
+  "runId": "modeldryrun1-20260612T162802",
   "branch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
   "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
   "prTitle": "[model] Qwen DashScope auth repair",
@@ -51,23 +51,40 @@
     "https://www.alibabacloud.com/help/en/model-studio/models",
     "https://help.aliyun.com/zh/model-studio/text-generation-model/"
   ],
-  "officialAliasesInProbeOrder": [
-    "qwen-plus",
+  "usAuthProbeAliases": [
+    "qwen-plus-us",
+    "qwen-flash-us"
+  ],
+  "approvedTargetAliases": [
+    "qwen3.7-plus",
+    "qwen3.7-max",
     "qwen3-max",
     "qwen-max"
   ],
-  "staleAliasesRejectedForRepairProbe": [
+  "officialAliasesInProbeOrder": [
+    "qwen-plus-us",
+    "qwen-flash-us",
     "qwen3.7-plus",
-    "qwen3.7-max"
+    "qwen3.7-max",
+    "qwen3-max",
+    "qwen-max"
   ],
-  "defaultBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #320 provider dry-run target aliases",
+  "defaultBaseUrlKey": "us",
   "secretSource": "google_secret_manager_only",
+  "exactSecretRefsOnly": [
+    "DASHSCOPE_API_KEY",
+    "DASHSCOPE_BASE_URL",
+    "DASHSCOPE_REGION"
+  ],
   "secretVersionSelector": "latest",
   "operatorReportedReplacementVersion": "3",
+  "operatorReportedBaseUrlVersion": "1",
+  "operatorReportedRegionVersion": "1",
   "keyReplacementConfirmation": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
   "environmentProviderSecretPayloadsAllowed": false,
   "recordedAlternateBaseUrls": {
-    "virginia": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+    "beijing": "recorded_not_probed_for_us_key",
     "singaporeTemplate": "https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
   },
   "qwenOnly": true,

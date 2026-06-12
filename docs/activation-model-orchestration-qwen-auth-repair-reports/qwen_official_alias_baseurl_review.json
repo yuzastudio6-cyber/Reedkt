@@ -6,29 +6,37 @@
     "https://www.alibabacloud.com/help/en/model-studio/models",
     "https://help.aliyun.com/zh/model-studio/text-generation-model/"
   ],
-  "pr320AliasesRejectedForRepairProbe": [
-    {
-      "modelId": "qwen3.7-plus",
-      "status": "not_used_in_repair",
-      "reason": "current repair packet uses current official aliases only"
-    },
-    {
-      "modelId": "qwen3.7-max",
-      "status": "not_used_in_repair",
-      "reason": "current repair packet uses current official aliases only"
-    }
+  "usAuthProbeAliases": [
+    "qwen-plus-us",
+    "qwen-flash-us"
   ],
-  "officialProbeAliasOrder": [
-    "qwen-plus",
+  "approvedTargetAliases": [
+    "qwen3.7-plus",
+    "qwen3.7-max",
     "qwen3-max",
     "qwen-max"
   ],
-  "selectedAlias": "qwen-plus",
-  "selectedBaseUrlKey": "virginia",
-  "defaultBaseUrlKey": "beijing",
+  "approvedTargetAliasApprovalSource": "PR #318 dry-run approval plus PR #320 provider dry-run target aliases",
+  "officialProbeAliasOrder": [
+    "qwen-plus-us",
+    "qwen-flash-us",
+    "qwen3.7-plus",
+    "qwen3.7-max",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "selectedAlias": "qwen3.7-plus",
+  "selectedBaseUrlKey": "us",
+  "defaultBaseUrlKey": "us",
   "keyReplacementEvidence": {
-    "secretRef": "DASHSCOPE_API_KEY",
+    "exactSecretRefs": [
+      "DASHSCOPE_API_KEY",
+      "DASHSCOPE_BASE_URL",
+      "DASHSCOPE_REGION"
+    ],
     "operatorReportedReplacementVersion": "3",
+    "operatorReportedBaseUrlVersion": "1",
+    "operatorReportedRegionVersion": "1",
     "secretVersionSelector": "latest",
     "confirmationRequired": "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_KEY_REPLACED",
     "qwenProviderRerunAfterReplacement": true,
@@ -36,24 +44,24 @@
     "payloadCommitted": false
   },
   "baseUrls": {
-    "beijing": {
-      "key": "beijing",
-      "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "us": {
+      "key": "us",
+      "source": "DASHSCOPE_BASE_URL_secret_manager_payload_validated",
+      "payloadMatchedApprovedUsEndpoint": true,
       "probedByDefault": true
     },
-    "virginia": {
-      "key": "virginia",
-      "baseUrl": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
-      "probedOnlyWhenCurrentProcessMetadataSelectsIt": true
+    "beijing": {
+      "key": "beijing",
+      "probed": false,
+      "reason": "US DashScope key repair selected by Secret Manager region metadata"
     },
     "singapore": {
       "key": "singapore",
-      "baseUrlTemplate": "https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
       "probed": false,
       "blockerWithoutSafeWorkspaceId": "blocked_pending_workspace_id_review"
     }
   },
-  "noUnofficialQwen37AliasesInProbe": true,
+  "secretPayloadValuesStoredInReport": false,
   "qwenOnly": true,
   "deepseekRerun": false,
   "rawProviderResponsesStored": false,

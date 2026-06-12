@@ -2,7 +2,7 @@
 
 Status: `blocked`
 
-Run ID: `modeldryrun1-20260612T153356`
+Run ID: `modeldryrun1-20260612T162802`
 
 Branch: `codex/rp-model-orchestration-qwen-dashscope-auth-repair`
 
@@ -13,24 +13,34 @@ PR stack:
 
 ## Execution
 
-Guarded Qwen/DashScope auth repair was executed with provider key environment variables explicitly unset and provider secret payload resolution limited to Google Secret Manager.
+Guarded Qwen/DashScope auth repair was executed with `DASHSCOPE_API_KEY`, `DASHSCOPE_BASE_URL`, `DASHSCOPE_REGION`, provider key, and Supabase payload environment variables explicitly unset. Provider secret payload resolution was limited to the three exact Google Secret Manager refs.
 
-Result: `blocked_pending_dashscope_key_replacement`
+Result: `qwen_auth_repaired_ready_for_provider_dry_run_update`
 
-Active blocker: `provider_auth_or_permission_failed`
+Active blocker: `provider_timeout`
 
-Official Qwen aliases probed:
-- `qwen-plus`: blocked with HTTP `401`
-- `qwen3-max`: blocked with HTTP `401`
-- `qwen-max`: blocked with HTTP `401`
+Secret Manager validation:
+- `DASHSCOPE_API_KEY`: version `3`, payload accessed process-local only.
+- `DASHSCOPE_BASE_URL`: version `1`, matched approved US endpoint internally.
+- `DASHSCOPE_REGION`: version `1`, matched `us` internally.
 
-Stale PR #320 aliases `qwen3.7-plus` and `qwen3.7-max` were not probed in the repair packet.
+US auth probes:
+- `qwen-plus-us`: passed with HTTP `200`
+- `qwen-flash-us`: passed with HTTP `200`
+
+Approved target alias probes:
+- `qwen3.7-plus`: passed with HTTP `200`
+- `qwen3.7-max`: passed with HTTP `200`
+- `qwen3-max`: passed with HTTP `200`
+- `qwen-max`: blocked with HTTP `404` / `qwen_model_alias_unavailable`
+
+Selected approved target alias: `qwen3.7-plus`
 
 ## Dry-Run Status
 
-Full Qwen/DeepSeek synthetic provider dry-run was not executed because Qwen/DashScope auth did not pass.
+The full Qwen/DeepSeek synthetic provider dry-run was not executed in this pass. DeepSeek was not rerun; existing PR #320 DeepSeek evidence remains metadata only.
 
-DeepSeek was not rerun in this phase. Existing PR #320 DeepSeek evidence remains metadata only until the Qwen blocker is repaired and the full dry-run can be rerun.
+Qwen schema repair attempted the four approved synthetic cases against `qwen3.7-plus`; all four timed out within the existing bounded timeouts, so plan snapshot readiness remains `false`.
 
 ## Safety
 
@@ -58,14 +68,10 @@ Passed:
 - `npm run smoke:activation-model-orchestration-qwen-auth-repair`
 - `npm run activation:model-orchestration-qwen-auth-repair:report`
 - `npm run activation:model-orchestration-qwen-auth-repair:summary`
-- `npm run smoke:activation-model-orchestration-provider-dry-run`
 - `npm run activation:model-orchestration-provider-dry-run:report`
 - `npm run activation:model-orchestration-provider-dry-run:summary`
-- `npm run activation:model-orchestration-provider-dry-run:iam-plan`
-- `npm run smoke:activation-model-provider-dry-run`
 - `npm run activation:model-provider-dry-run:report`
 - `npm run activation:model-provider-dry-run:summary`
-- `npm run activation:model-provider-dry-run:iam-plan`
 - `npm run activation:model-orchestration-dry-run-approval:report`
 - `npm run activation:model-orchestration-qwen-deepseek-audit:report`
 - `npm run prod:readiness:summary`
@@ -79,8 +85,10 @@ Passed:
 - `git diff --cached --check`
 - Changed-file credential pattern scan
 
+Validation failures: `0`
+
 Package lock: `unchanged`
 
 ## Next Step
 
-Human action required: repair or replace the DashScope key, enable the required Model Studio/Bailian service, grant model access, or correct the approved DashScope region/workspace metadata. After that, rerun PR #322’s Qwen-only repair packet before attempting the full Qwen/DeepSeek provider dry-run.
+Qwen/DashScope auth and approved target access are repaired for the US region. The next blocker is bounded schema-case timeout on `qwen3.7-plus`; resolve with an approved timeout/model/target adjustment before attempting the full Qwen/DeepSeek provider dry-run or plan snapshot contract.

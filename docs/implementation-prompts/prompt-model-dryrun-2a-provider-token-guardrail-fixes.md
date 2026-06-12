@@ -52,4 +52,4 @@ No worker execution, tool execution, route execution, raw prompt execution, broa
 
 ## Validation Status
 
-Local validation passed. PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/336. CI status is pending.
+Local validation passed. PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/336. GitHub `statusCheckRollup` was empty at final inspection, so no GitHub Actions/Foundation Validation result was reported for this draft PR.

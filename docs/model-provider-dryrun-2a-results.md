@@ -65,6 +65,8 @@ Pending after retry:
 - `npm run --silent model-provider:dryrun-2:diagnostics`
 - final changed-file secret scan
 
+GitHub status: PR #336 is draft and GitHub `statusCheckRollup` was empty at final inspection, so no GitHub Actions/Foundation Validation result was reported for this branch.
+
 ## Supabase
 
 Supabase update required: `docs/status only`.

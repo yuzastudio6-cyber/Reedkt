@@ -4,6 +4,7 @@
   "branch": "codex/rp-model-dryrun-2a-provider-token-guardrail-fixes",
   "baseBranch": "origin/codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-provider-dry-run",
   "pullRequest": "https://github.com/yuzastudio6-cyber/Reedkt/pull/336",
+  "githubStatusCheckRollup": "empty_no_checks_reported",
   "finalState": "provider_dry_run_passed",
   "status": "passed",
   "executed": true,

@@ -1,0 +1,16 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "status": "blocked",
+  "decision": "blocked_pending_remote_history_evidence",
+  "approvedForFutureRepair": false,
+  "supabaseUpdateStatus": "evidence_review_only",
+  "supabaseEnvironmentTouched": "staging_readonly_catalog_only_if_confirmed",
+  "sqlExecuted": "read_only_catalog_introspection_only_if_report_status_passed",
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "nextRecommendedPhase": "Resolve exact missing remote schema equivalence evidence before migration-history repair execution.",
+  "supabaseMilestoneSync": "blocked_until_migration_history_repair_staging_schema_deploy_and_track_b_backfill_pass"
+}

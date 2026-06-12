@@ -1,0 +1,29 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "status": "metadata_committed_only",
+  "privateUploadRequired": false,
+  "committedSafeReports": [
+    "source_of_truth_ownership_audit.json",
+    "remote_schema_equivalence_plan.json",
+    "local_missing_migration_intent_inventory.json",
+    "remote_staging_schema_introspection_report.json",
+    "remote_schema_equivalence_comparison_report.json",
+    "migration_history_repair_approval_after_equivalence_review.json",
+    "remote_schema_equivalence_blocker_report.json",
+    "remote_schema_equivalence_readiness_report.json",
+    "remote_schema_equivalence_private_artifact_manifest.json"
+  ],
+  "forbiddenArtifacts": [
+    "db_urls",
+    "service_role_keys",
+    "access_tokens",
+    "secret_payloads",
+    "signed_urls",
+    "table_data",
+    "media_payloads",
+    "model_payloads",
+    "build_outputs",
+    "node_modules"
+  ]
+}

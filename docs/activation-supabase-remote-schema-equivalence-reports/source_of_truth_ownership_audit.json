@@ -1,0 +1,92 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "status": "passed",
+  "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "relatedWorkstreams": [
+    "TRACK_B_MEDIA_PROCESSING",
+    "OBSERVABILITY_AUDIT_COST",
+    "WORKER_RUNTIME_JOBS"
+  ],
+  "explicitlyNotOwned": [
+    "track_b_runtime_tool_execution",
+    "track_a_visual_video_pipeline",
+    "provider_model_execution",
+    "frontend_ux",
+    "product_beta_or_production_unlock"
+  ],
+  "sourcePaths": [
+    {
+      "path": "README.md",
+      "exists": true,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "AGENTS.md",
+      "exists": true,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/source-of-truth-map.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/production-milestone-plan.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/architecture-boundary-matrix.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/implementation-prompts/README.md",
+      "exists": false,
+      "type": "file_or_missing"
+    },
+    {
+      "path": "docs/cross-chat",
+      "exists": false,
+      "type": "file_or_missing"
+    }
+  ],
+  "integrationPoints": [
+    "PR #196 Track B readiness rollup/export",
+    "PR #198 guarded Track B staging backfill module",
+    "PR #200 milestone registry schema/RLS migration",
+    "PR #223 deploy transport and migration-history audit",
+    "PR #238 migration-history repair approval packet"
+  ],
+  "sqlExecuted": false,
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

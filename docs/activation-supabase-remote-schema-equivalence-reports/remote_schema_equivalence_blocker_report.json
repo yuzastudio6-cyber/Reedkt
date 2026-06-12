@@ -1,0 +1,24 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "status": "blocked",
+  "activeBlockers": [
+    "remote_schema_equivalence_not_proven"
+  ],
+  "forbiddenConfirmationSet": false,
+  "stillBlockedScopes": [
+    "migration_repair_execution_until_separate_approved_phase",
+    "staging_schema_deploy",
+    "track_b_staging_backfill",
+    "production_supabase",
+    "direct_ddl_dml",
+    "public_artifacts",
+    "beta_unlock",
+    "production_unlock",
+    "track_a"
+  ],
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

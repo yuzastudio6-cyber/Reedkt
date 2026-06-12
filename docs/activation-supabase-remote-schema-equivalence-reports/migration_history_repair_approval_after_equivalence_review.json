@@ -1,0 +1,35 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "status": "blocked",
+  "decision": "blocked_pending_remote_history_evidence",
+  "approvedForFutureRepair": false,
+  "repairExecutionStillRequiresSeparatePhase": true,
+  "reason": "Remote schema equivalence for all 12 missing migration-history entries is not proven.",
+  "overallEquivalence": "not_equivalent",
+  "confidence": "low",
+  "exactRepairVersions": [
+    "202605180001",
+    "202605180002",
+    "202605180003",
+    "202605180004",
+    "202605180005",
+    "202605180006",
+    "202605180007",
+    "202605180008",
+    "202605190002",
+    "202605200001",
+    "202605200002",
+    "202605210001"
+  ],
+  "futureRepairStatus": "applied",
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": [
+    "remote_schema_equivalence_not_proven"
+  ]
+}

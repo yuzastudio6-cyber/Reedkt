@@ -1,0 +1,3939 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "status": "passed",
+  "sourceReports": [
+    "docs/activation-supabase-migration-history-repair-approval-reports/migration_history_repair_candidate_plan.json",
+    "docs/activation-supabase-migration-history-repair-approval-reports/migration_history_local_remote_comparison.json",
+    "docs/activation-supabase-staging-deploy-transport-reports/staging_local_remote_migration_comparison_report.json"
+  ],
+  "missingMigrationVersions": [
+    "202605180001",
+    "202605180002",
+    "202605180003",
+    "202605180004",
+    "202605180005",
+    "202605180006",
+    "202605180007",
+    "202605180008",
+    "202605190002",
+    "202605200001",
+    "202605200002",
+    "202605210001"
+  ],
+  "missingMigrationCount": 12,
+  "parsedMigrationCount": 12,
+  "migrations": [
+    {
+      "version": "202605180001",
+      "migrationFile": "supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [
+        "public.profiles",
+        "public.workspaces",
+        "public.workspace_members",
+        "public.projects",
+        "public.edit_sessions",
+        "public.chat_messages",
+        "public.user_confirmations"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "profiles",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "profiles",
+          "column": "user_id"
+        },
+        {
+          "schema": "public",
+          "table": "profiles",
+          "column": "display_name"
+        },
+        {
+          "schema": "public",
+          "table": "profiles",
+          "column": "avatar_url"
+        },
+        {
+          "schema": "public",
+          "table": "profiles",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "profiles",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "profiles",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces",
+          "column": "owner_id"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces",
+          "column": "name"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces",
+          "column": "plan_type"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "workspace_members",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "workspace_members",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "workspace_members",
+          "column": "user_id"
+        },
+        {
+          "schema": "public",
+          "table": "workspace_members",
+          "column": "role"
+        },
+        {
+          "schema": "public",
+          "table": "workspace_members",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "owner_id"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "title"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "editing_category"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "current_edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "projects",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "current_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "current_intent_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "source_order_confirmed"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "role"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "content"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "attachments_json"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "related_clip_ids_json"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "user_confirmations",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "user_confirmations",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "user_confirmations",
+          "column": "confirmation_type"
+        },
+        {
+          "schema": "public",
+          "table": "user_confirmations",
+          "column": "confirmed_value_json"
+        },
+        {
+          "schema": "public",
+          "table": "user_confirmations",
+          "column": "confirmed_at"
+        },
+        {
+          "schema": "public",
+          "table": "user_confirmations",
+          "column": "superseded_at"
+        }
+      ],
+      "expectedFunctions": [
+        {
+          "schema": "public",
+          "name": "set_updated_at"
+        }
+      ],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "idx_workspaces_owner_id",
+        "idx_workspace_members_workspace_user",
+        "idx_projects_workspace_id",
+        "idx_projects_owner_id",
+        "idx_edit_sessions_project_id",
+        "idx_chat_messages_session_created",
+        "idx_user_confirmations_session_type"
+      ],
+      "expectedTriggers": [
+        "set_profiles_updated_at",
+        "set_workspaces_updated_at",
+        "set_projects_updated_at",
+        "set_edit_sessions_updated_at"
+      ],
+      "expectedRlsTables": [],
+      "expectedPolicies": [],
+      "expectedExtensions": [
+        "pgcrypto"
+      ],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605180002",
+      "migrationFile": "supabase/migrations/202605180002_reeditpro_media_source_sequence.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [
+        "public.media_assets",
+        "public.uploaded_clips",
+        "public.source_sequence_items",
+        "public.clip_analysis_snapshots"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "asset_type"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "storage_bucket"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "storage_path"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "file_name"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "mime_type"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "duration_seconds"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "width"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "height"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "size_bytes"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "media_asset_id"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "uploaded_order"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "source_role"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "user_notes"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "is_important"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "is_optional"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "uploaded_clip_id"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "source_order"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "confirmed_order"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "user_confirmed"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "notes"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "clip_analysis_snapshots",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "clip_analysis_snapshots",
+          "column": "uploaded_clip_id"
+        },
+        {
+          "schema": "public",
+          "table": "clip_analysis_snapshots",
+          "column": "analysis_version"
+        },
+        {
+          "schema": "public",
+          "table": "clip_analysis_snapshots",
+          "column": "analysis_json"
+        },
+        {
+          "schema": "public",
+          "table": "clip_analysis_snapshots",
+          "column": "created_at"
+        }
+      ],
+      "expectedFunctions": [],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "idx_media_assets_project_status",
+        "idx_uploaded_clips_project_order",
+        "idx_source_sequence_session_confirmed",
+        "idx_source_sequence_project_order",
+        "idx_clip_analysis_clip_version"
+      ],
+      "expectedTriggers": [
+        "set_media_assets_updated_at",
+        "set_uploaded_clips_updated_at",
+        "set_source_sequence_items_updated_at"
+      ],
+      "expectedRlsTables": [],
+      "expectedPolicies": [],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605180003",
+      "migrationFile": "supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [
+        "public.edit_intent_snapshots",
+        "public.edit_settings_snapshots",
+        "public.edit_plan_versions",
+        "public.plan_component_snapshots",
+        "public.edit_plan_segments",
+        "public.edit_operations"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "version"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "editing_category"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "edit_level"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "target_platform"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "aspect_ratio"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "frame_template_type"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "goal_summary"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "compiled_intent_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "professional_editing_directive_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "created_from_message_ids_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "intent_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "settings_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "source_order_confirmed"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "intent_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "version"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "goal_summary"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "plan_summary_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "full_plan_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "credit_estimate_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "approval_required"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "approved_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "approved_by"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "superseded_by_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "plan_component_snapshots",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "plan_component_snapshots",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "plan_component_snapshots",
+          "column": "component_type"
+        },
+        {
+          "schema": "public",
+          "table": "plan_component_snapshots",
+          "column": "component_json"
+        },
+        {
+          "schema": "public",
+          "table": "plan_component_snapshots",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "segment_order"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "role"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "label"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "story_purpose"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "source_clip_ids_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "source_time_range_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "final_time_range_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "segment_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "edit_plan_segment_id"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "operation_type"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "operation_order"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "label"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "instruction"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "parameters_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "reason"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "qa_checks_json"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations",
+          "column": "created_at"
+        }
+      ],
+      "expectedFunctions": [],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "idx_edit_intent_snapshots_project_version",
+        "idx_edit_plan_versions_project_version",
+        "idx_edit_plan_versions_session_status",
+        "idx_plan_component_snapshots_plan_type",
+        "idx_edit_plan_segments_plan_order",
+        "idx_edit_operations_segment_order"
+      ],
+      "expectedTriggers": [
+        "set_edit_plan_versions_updated_at"
+      ],
+      "expectedRlsTables": [],
+      "expectedPolicies": [],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605180004",
+      "migrationFile": "supabase/migrations/202605180004_reeditpro_credits_approval_snapshots.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [
+        "public.credit_estimates",
+        "public.credit_estimate_items",
+        "public.credit_reservations",
+        "public.credit_ledger_entries",
+        "public.refund_records",
+        "public.approval_records",
+        "public.approved_plan_snapshots"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "estimate_version"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "edit_level"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "editing_category"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "total_credits"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "fallback_allowance_credits"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "risk_level"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "estimate_json"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items",
+          "column": "credit_estimate_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items",
+          "column": "label"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items",
+          "column": "credits"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items",
+          "column": "reason"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items",
+          "column": "category"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "credit_estimate_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "approved_plan_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "reserved_credits"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "expires_at"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "released_at"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "credit_reservation_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "approved_plan_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "entry_type"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "credits_delta"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "reason"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "created_by"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "credit_ledger_entry_id"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "credit_reservation_id"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "refund_credits"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "reason"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "credit_estimate_id"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "approval_type"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "approved_by"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "approved_at"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "approved_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "approved_snapshot_summary_json"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records",
+          "column": "audit_metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "credit_estimate_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "approved_by"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "approved_at"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "snapshot_version"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "snapshot_json"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "immutable"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "created_at"
+        }
+      ],
+      "expectedFunctions": [
+        {
+          "schema": "public",
+          "name": "prevent_immutable_approved_snapshot_change"
+        },
+        {
+          "schema": "public",
+          "name": "prevent_credit_ledger_mutation"
+        }
+      ],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "idx_credit_estimates_project_plan",
+        "idx_credit_estimate_items_estimate",
+        "idx_credit_reservations_workspace_project_status",
+        "idx_credit_ledger_workspace_created",
+        "idx_approval_records_project_plan",
+        "idx_approved_snapshots_project_plan",
+        "idx_approved_snapshots_status"
+      ],
+      "expectedTriggers": [
+        "prevent_immutable_approved_snapshot_update",
+        "prevent_immutable_approved_snapshot_delete",
+        "prevent_credit_ledger_update",
+        "prevent_credit_ledger_delete",
+        "set_credit_reservations_updated_at"
+      ],
+      "expectedRlsTables": [],
+      "expectedPolicies": [],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605180005",
+      "migrationFile": "supabase/migrations/202605180005_reeditpro_generation_assets_jobs.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [
+        "public.generation_requests",
+        "public.generation_events",
+        "public.generated_assets",
+        "public.generated_asset_versions",
+        "public.editing_jobs",
+        "public.job_steps",
+        "public.worker_events"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "approved_plan_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "visual_asset_plan_item_id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "provider_model"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "provider_route_json"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "prompt_plan_json"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "credit_reservation_id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "generation_events",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_events",
+          "column": "generation_request_id"
+        },
+        {
+          "schema": "public",
+          "table": "generation_events",
+          "column": "event_type"
+        },
+        {
+          "schema": "public",
+          "table": "generation_events",
+          "column": "event_json"
+        },
+        {
+          "schema": "public",
+          "table": "generation_events",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "generation_request_id"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "asset_type"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "storage_bucket"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "storage_path"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "width"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "height"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "duration_seconds"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "background_color"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "generated_asset_id"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "version"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "storage_bucket"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "storage_path"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "approved_plan_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "job_type"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "worker_runtime_plan_json"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "started_at"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs",
+          "column": "completed_at"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "editing_job_id"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "step_order"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "step_type"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "worker_group"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "input_json"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "output_json"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "error_json"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "started_at"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps",
+          "column": "completed_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_events",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_events",
+          "column": "editing_job_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_events",
+          "column": "job_step_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_events",
+          "column": "event_type"
+        },
+        {
+          "schema": "public",
+          "table": "worker_events",
+          "column": "event_json"
+        },
+        {
+          "schema": "public",
+          "table": "worker_events",
+          "column": "created_at"
+        }
+      ],
+      "expectedFunctions": [],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "idx_generation_requests_project_snapshot",
+        "idx_generation_requests_status",
+        "idx_generation_events_request_created",
+        "idx_generated_assets_project_request",
+        "idx_generated_asset_versions_asset_version",
+        "idx_editing_jobs_project_snapshot",
+        "idx_editing_jobs_status",
+        "idx_job_steps_job_order",
+        "idx_worker_events_job_created"
+      ],
+      "expectedTriggers": [
+        "set_generation_requests_updated_at",
+        "set_generated_assets_updated_at"
+      ],
+      "expectedRlsTables": [],
+      "expectedPolicies": [],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605180006",
+      "migrationFile": "supabase/migrations/202605180006_reeditpro_qa_exports_audit.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [
+        "public.qa_reports",
+        "public.qa_check_results",
+        "public.revision_requests",
+        "public.final_exports",
+        "public.audit_events",
+        "public.production_readiness_snapshots",
+        "public.license_review_snapshots"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "editing_job_id"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "approved_plan_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "summary"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "report_json"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "qa_report_id"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "category"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "label"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "severity"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "fallback_actions_json"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "notes_json"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "edit_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "previous_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "requested_by"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "request_text"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "compiled_revision_intent_json"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "approved_plan_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "renderer_composition_plan_id"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "export_format"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "aspect_ratio"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "storage_bucket"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "storage_path"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "column": "actor_user_id"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "column": "event_type"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "column": "event_json"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "production_readiness_snapshots",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "production_readiness_snapshots",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "production_readiness_snapshots",
+          "column": "edit_plan_version_id"
+        },
+        {
+          "schema": "public",
+          "table": "production_readiness_snapshots",
+          "column": "report_json"
+        },
+        {
+          "schema": "public",
+          "table": "production_readiness_snapshots",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "license_review_snapshots",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "license_review_snapshots",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "license_review_snapshots",
+          "column": "tool_id"
+        },
+        {
+          "schema": "public",
+          "table": "license_review_snapshots",
+          "column": "review_json"
+        },
+        {
+          "schema": "public",
+          "table": "license_review_snapshots",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "license_review_snapshots",
+          "column": "created_at"
+        }
+      ],
+      "expectedFunctions": [
+        {
+          "schema": "public",
+          "name": "prevent_audit_event_mutation"
+        }
+      ],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "idx_qa_reports_project_snapshot",
+        "idx_qa_check_results_report",
+        "idx_final_exports_project_snapshot",
+        "idx_audit_events_project_created",
+        "idx_audit_events_workspace_created",
+        "idx_revision_requests_project_created",
+        "idx_production_readiness_project_plan",
+        "idx_license_review_workspace_tool"
+      ],
+      "expectedTriggers": [
+        "prevent_audit_event_update",
+        "prevent_audit_event_delete"
+      ],
+      "expectedRlsTables": [],
+      "expectedPolicies": [],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605180007",
+      "migrationFile": "supabase/migrations/202605180007_reeditpro_rls_policies.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [
+        "alter_table_drop"
+      ],
+      "policyReplacementStatements": 63,
+      "affectedTables": [
+        "public.profiles",
+        "public.workspaces",
+        "public.workspace_members",
+        "public.projects",
+        "public.edit_sessions",
+        "public.chat_messages",
+        "public.user_confirmations",
+        "public.media_assets",
+        "public.uploaded_clips",
+        "public.source_sequence_items",
+        "public.clip_analysis_snapshots",
+        "public.edit_intent_snapshots",
+        "public.edit_settings_snapshots",
+        "public.edit_plan_versions",
+        "public.plan_component_snapshots",
+        "public.edit_plan_segments",
+        "public.edit_operations",
+        "public.credit_estimates",
+        "public.credit_estimate_items",
+        "public.credit_reservations",
+        "public.credit_ledger_entries",
+        "public.refund_records",
+        "public.approval_records",
+        "public.approved_plan_snapshots",
+        "public.generation_requests",
+        "public.generation_events",
+        "public.generated_assets",
+        "public.generated_asset_versions",
+        "public.editing_jobs",
+        "public.job_steps",
+        "public.worker_events",
+        "public.qa_reports",
+        "public.qa_check_results",
+        "public.revision_requests",
+        "public.final_exports",
+        "public.audit_events",
+        "public.production_readiness_snapshots",
+        "public.license_review_snapshots"
+      ],
+      "expectedColumns": [],
+      "expectedFunctions": [
+        {
+          "schema": "public",
+          "name": "safe_uuid"
+        },
+        {
+          "schema": "public",
+          "name": "is_workspace_member"
+        },
+        {
+          "schema": "public",
+          "name": "is_workspace_owner_or_admin"
+        },
+        {
+          "schema": "public",
+          "name": "is_project_member"
+        },
+        {
+          "schema": "public",
+          "name": "is_project_editor"
+        }
+      ],
+      "expectedTypes": [],
+      "expectedIndexes": [],
+      "expectedTriggers": [],
+      "expectedRlsTables": [
+        {
+          "schema": "public",
+          "table": "profiles"
+        },
+        {
+          "schema": "public",
+          "table": "workspaces"
+        },
+        {
+          "schema": "public",
+          "table": "workspace_members"
+        },
+        {
+          "schema": "public",
+          "table": "projects"
+        },
+        {
+          "schema": "public",
+          "table": "edit_sessions"
+        },
+        {
+          "schema": "public",
+          "table": "chat_messages"
+        },
+        {
+          "schema": "public",
+          "table": "user_confirmations"
+        },
+        {
+          "schema": "public",
+          "table": "media_assets"
+        },
+        {
+          "schema": "public",
+          "table": "uploaded_clips"
+        },
+        {
+          "schema": "public",
+          "table": "source_sequence_items"
+        },
+        {
+          "schema": "public",
+          "table": "clip_analysis_snapshots"
+        },
+        {
+          "schema": "public",
+          "table": "edit_intent_snapshots"
+        },
+        {
+          "schema": "public",
+          "table": "edit_settings_snapshots"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_versions"
+        },
+        {
+          "schema": "public",
+          "table": "plan_component_snapshots"
+        },
+        {
+          "schema": "public",
+          "table": "edit_plan_segments"
+        },
+        {
+          "schema": "public",
+          "table": "edit_operations"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimates"
+        },
+        {
+          "schema": "public",
+          "table": "credit_estimate_items"
+        },
+        {
+          "schema": "public",
+          "table": "credit_reservations"
+        },
+        {
+          "schema": "public",
+          "table": "credit_ledger_entries"
+        },
+        {
+          "schema": "public",
+          "table": "refund_records"
+        },
+        {
+          "schema": "public",
+          "table": "approval_records"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots"
+        },
+        {
+          "schema": "public",
+          "table": "generation_requests"
+        },
+        {
+          "schema": "public",
+          "table": "generation_events"
+        },
+        {
+          "schema": "public",
+          "table": "generated_assets"
+        },
+        {
+          "schema": "public",
+          "table": "generated_asset_versions"
+        },
+        {
+          "schema": "public",
+          "table": "editing_jobs"
+        },
+        {
+          "schema": "public",
+          "table": "job_steps"
+        },
+        {
+          "schema": "public",
+          "table": "worker_events"
+        },
+        {
+          "schema": "public",
+          "table": "qa_reports"
+        },
+        {
+          "schema": "public",
+          "table": "qa_check_results"
+        },
+        {
+          "schema": "public",
+          "table": "revision_requests"
+        },
+        {
+          "schema": "public",
+          "table": "final_exports"
+        },
+        {
+          "schema": "public",
+          "table": "audit_events"
+        },
+        {
+          "schema": "public",
+          "table": "production_readiness_snapshots"
+        },
+        {
+          "schema": "public",
+          "table": "license_review_snapshots"
+        }
+      ],
+      "expectedPolicies": [
+        {
+          "name": "profiles_select_own",
+          "schema": "public",
+          "table": "profiles"
+        },
+        {
+          "name": "profiles_insert_own",
+          "schema": "public",
+          "table": "profiles"
+        },
+        {
+          "name": "profiles_update_own",
+          "schema": "public",
+          "table": "profiles"
+        },
+        {
+          "name": "workspaces_select_member",
+          "schema": "public",
+          "table": "workspaces"
+        },
+        {
+          "name": "workspaces_insert_owner",
+          "schema": "public",
+          "table": "workspaces"
+        },
+        {
+          "name": "workspaces_update_owner_admin",
+          "schema": "public",
+          "table": "workspaces"
+        },
+        {
+          "name": "workspaces_delete_owner_admin",
+          "schema": "public",
+          "table": "workspaces"
+        },
+        {
+          "name": "workspace_members_select_member",
+          "schema": "public",
+          "table": "workspace_members"
+        },
+        {
+          "name": "workspace_members_manage_owner_admin",
+          "schema": "public",
+          "table": "workspace_members"
+        },
+        {
+          "name": "projects_select_member",
+          "schema": "public",
+          "table": "projects"
+        },
+        {
+          "name": "projects_insert_workspace_member",
+          "schema": "public",
+          "table": "projects"
+        },
+        {
+          "name": "projects_update_editor",
+          "schema": "public",
+          "table": "projects"
+        },
+        {
+          "name": "projects_delete_owner_admin",
+          "schema": "public",
+          "table": "projects"
+        },
+        {
+          "name": "edit_sessions_select_project_member",
+          "schema": "public",
+          "table": "edit_sessions"
+        },
+        {
+          "name": "edit_sessions_insert_project_editor",
+          "schema": "public",
+          "table": "edit_sessions"
+        },
+        {
+          "name": "edit_sessions_update_project_editor",
+          "schema": "public",
+          "table": "edit_sessions"
+        },
+        {
+          "name": "chat_messages_select_project_member",
+          "schema": "public",
+          "table": "chat_messages"
+        },
+        {
+          "name": "chat_messages_insert_project_member",
+          "schema": "public",
+          "table": "chat_messages"
+        },
+        {
+          "name": "user_confirmations_select_project_member",
+          "schema": "public",
+          "table": "user_confirmations"
+        },
+        {
+          "name": "user_confirmations_insert_project_member",
+          "schema": "public",
+          "table": "user_confirmations"
+        },
+        {
+          "name": "user_confirmations_update_project_editor",
+          "schema": "public",
+          "table": "user_confirmations"
+        },
+        {
+          "name": "media_assets_select_project_member",
+          "schema": "public",
+          "table": "media_assets"
+        },
+        {
+          "name": "media_assets_insert_project_editor",
+          "schema": "public",
+          "table": "media_assets"
+        },
+        {
+          "name": "media_assets_update_project_editor",
+          "schema": "public",
+          "table": "media_assets"
+        },
+        {
+          "name": "uploaded_clips_select_project_member",
+          "schema": "public",
+          "table": "uploaded_clips"
+        },
+        {
+          "name": "uploaded_clips_insert_project_editor",
+          "schema": "public",
+          "table": "uploaded_clips"
+        },
+        {
+          "name": "uploaded_clips_update_project_editor",
+          "schema": "public",
+          "table": "uploaded_clips"
+        },
+        {
+          "name": "source_sequence_select_project_member",
+          "schema": "public",
+          "table": "source_sequence_items"
+        },
+        {
+          "name": "source_sequence_insert_project_editor",
+          "schema": "public",
+          "table": "source_sequence_items"
+        },
+        {
+          "name": "source_sequence_update_project_editor",
+          "schema": "public",
+          "table": "source_sequence_items"
+        },
+        {
+          "name": "clip_analysis_select_project_member",
+          "schema": "public",
+          "table": "clip_analysis_snapshots"
+        },
+        {
+          "name": "intent_snapshots_select_project_member",
+          "schema": "public",
+          "table": "edit_intent_snapshots"
+        },
+        {
+          "name": "intent_snapshots_insert_project_editor",
+          "schema": "public",
+          "table": "edit_intent_snapshots"
+        },
+        {
+          "name": "settings_snapshots_select_project_member",
+          "schema": "public",
+          "table": "edit_settings_snapshots"
+        },
+        {
+          "name": "settings_snapshots_insert_project_editor",
+          "schema": "public",
+          "table": "edit_settings_snapshots"
+        },
+        {
+          "name": "edit_plan_versions_select_project_member",
+          "schema": "public",
+          "table": "edit_plan_versions"
+        },
+        {
+          "name": "edit_plan_versions_insert_project_editor",
+          "schema": "public",
+          "table": "edit_plan_versions"
+        },
+        {
+          "name": "edit_plan_versions_update_draft_editor",
+          "schema": "public",
+          "table": "edit_plan_versions"
+        },
+        {
+          "name": "plan_components_select_project_member",
+          "schema": "public",
+          "table": "plan_component_snapshots"
+        },
+        {
+          "name": "plan_segments_select_project_member",
+          "schema": "public",
+          "table": "edit_plan_segments"
+        },
+        {
+          "name": "edit_operations_select_project_member",
+          "schema": "public",
+          "table": "edit_operations"
+        },
+        {
+          "name": "credit_estimates_select_project_member",
+          "schema": "public",
+          "table": "credit_estimates"
+        },
+        {
+          "name": "credit_estimate_items_select_project_member",
+          "schema": "public",
+          "table": "credit_estimate_items"
+        },
+        {
+          "name": "credit_reservations_select_workspace_member",
+          "schema": "public",
+          "table": "credit_reservations"
+        },
+        {
+          "name": "credit_ledger_entries_select_workspace_member",
+          "schema": "public",
+          "table": "credit_ledger_entries"
+        },
+        {
+          "name": "refund_records_select_workspace_member",
+          "schema": "public",
+          "table": "refund_records"
+        },
+        {
+          "name": "approval_records_select_project_member",
+          "schema": "public",
+          "table": "approval_records"
+        },
+        {
+          "name": "approved_snapshots_select_project_member",
+          "schema": "public",
+          "table": "approved_plan_snapshots"
+        },
+        {
+          "name": "generation_requests_select_project_member",
+          "schema": "public",
+          "table": "generation_requests"
+        },
+        {
+          "name": "generation_events_select_project_member",
+          "schema": "public",
+          "table": "generation_events"
+        },
+        {
+          "name": "generated_assets_select_project_member",
+          "schema": "public",
+          "table": "generated_assets"
+        },
+        {
+          "name": "generated_asset_versions_select_project_member",
+          "schema": "public",
+          "table": "generated_asset_versions"
+        },
+        {
+          "name": "editing_jobs_select_project_member",
+          "schema": "public",
+          "table": "editing_jobs"
+        },
+        {
+          "name": "job_steps_select_project_member",
+          "schema": "public",
+          "table": "job_steps"
+        },
+        {
+          "name": "worker_events_select_project_member",
+          "schema": "public",
+          "table": "worker_events"
+        },
+        {
+          "name": "qa_reports_select_project_member",
+          "schema": "public",
+          "table": "qa_reports"
+        },
+        {
+          "name": "qa_check_results_select_project_member",
+          "schema": "public",
+          "table": "qa_check_results"
+        },
+        {
+          "name": "revision_requests_select_project_member",
+          "schema": "public",
+          "table": "revision_requests"
+        },
+        {
+          "name": "revision_requests_insert_project_member",
+          "schema": "public",
+          "table": "revision_requests"
+        },
+        {
+          "name": "final_exports_select_project_member",
+          "schema": "public",
+          "table": "final_exports"
+        },
+        {
+          "name": "audit_events_select_member",
+          "schema": "public",
+          "table": "audit_events"
+        },
+        {
+          "name": "production_readiness_select_project_member",
+          "schema": "public",
+          "table": "production_readiness_snapshots"
+        },
+        {
+          "name": "license_review_select_workspace_member",
+          "schema": "public",
+          "table": "license_review_snapshots"
+        }
+      ],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605180008",
+      "migrationFile": "supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 3,
+      "affectedTables": [
+        "storage.objects"
+      ],
+      "expectedColumns": [],
+      "expectedFunctions": [],
+      "expectedTypes": [],
+      "expectedIndexes": [],
+      "expectedTriggers": [],
+      "expectedRlsTables": [],
+      "expectedPolicies": [
+        {
+          "name": "reeditpro_project_members_read_project_objects",
+          "schema": "storage",
+          "table": "objects"
+        },
+        {
+          "name": "reeditpro_project_editors_upload_source_and_thumbnails",
+          "schema": "storage",
+          "table": "objects"
+        },
+        {
+          "name": "reeditpro_project_editors_update_source_and_thumbnails",
+          "schema": "storage",
+          "table": "objects"
+        }
+      ],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [
+        "source-media",
+        "generated-assets",
+        "processed-media",
+        "previews",
+        "exports",
+        "thumbnails",
+        "qa-artifacts",
+        "worker-temp"
+      ],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605190002",
+      "migrationFile": "supabase/migrations/202605190002_storytiming_master_tables.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [],
+      "expectedColumns": [],
+      "expectedFunctions": [
+        {
+          "schema": "public",
+          "name": "set_updated_at"
+        }
+      ],
+      "expectedTypes": [
+        {
+          "schema": "public",
+          "name": "story_timing_source_system"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_map_status"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_track_type"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_anchor_type"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_event_type"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_authority"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_priority"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_sync_mode"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_conflict_type"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_conflict_severity"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_dependency_type"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_adjustment_type"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_qa_check_type"
+        },
+        {
+          "schema": "public",
+          "name": "story_timing_qa_check_status"
+        },
+        {
+          "schema": "public",
+          "name": "render_timing_manifest_status"
+        }
+      ],
+      "expectedIndexes": [],
+      "expectedTriggers": [
+        "master_timing_maps_set_updated_at",
+        "story_timing_segments_set_updated_at",
+        "timing_anchors_set_updated_at",
+        "timing_events_set_updated_at",
+        "timing_dependencies_set_updated_at",
+        "timing_conflicts_set_updated_at",
+        "timing_conflict_resolutions_set_updated_at",
+        "story_timing_qa_checks_set_updated_at",
+        "render_timing_manifests_set_updated_at",
+        "render_timing_manifest_tracks_set_updated_at"
+      ],
+      "expectedRlsTables": [],
+      "expectedPolicies": [],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605200001",
+      "migrationFile": "supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 3,
+      "affectedTables": [
+        "storage.objects"
+      ],
+      "expectedColumns": [],
+      "expectedFunctions": [],
+      "expectedTypes": [],
+      "expectedIndexes": [],
+      "expectedTriggers": [],
+      "expectedRlsTables": [],
+      "expectedPolicies": [
+        {
+          "name": "reeditpro_project_members_read_workspace_project_objects",
+          "schema": "storage",
+          "table": "objects"
+        },
+        {
+          "name": "reeditpro_project_editors_upload_workspace_source_and_thumbnails",
+          "schema": "storage",
+          "table": "objects"
+        },
+        {
+          "name": "reeditpro_project_editors_update_workspace_source_and_thumbnails",
+          "schema": "storage",
+          "table": "objects"
+        }
+      ],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [
+        "source-media",
+        "generated-assets",
+        "processed-media",
+        "previews",
+        "exports",
+        "thumbnails",
+        "qa-artifacts",
+        "worker-temp"
+      ],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605200002",
+      "migrationFile": "supabase/migrations/202605200002_worker_leases_runtime_transport.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [],
+      "policyReplacementStatements": 0,
+      "affectedTables": [
+        "public.worker_leases",
+        "public.backend_runtime_messages",
+        "public.job_claim_attempts"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "edit_plan_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "job_batch_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "job_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "worker_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "worker_kind"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "lease_token"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "claimed_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "heartbeat_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "expires_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "released_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "completed_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "failed_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "claim_attempt_count"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "renewal_count"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "metadata"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_leases",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "request_id"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "job_id"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "job_batch_id"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "edit_plan_id"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "target"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "transport_mode"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "safety_level"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "idempotency_key"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "payload"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "response_payload"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "error_payload"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "expires_at"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "job_id"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "worker_id"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "worker_kind"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "claim_result"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "reason"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts",
+          "column": "metadata"
+        }
+      ],
+      "expectedFunctions": [],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "worker_leases_job_id_idx",
+        "worker_leases_status_idx",
+        "worker_leases_expires_at_idx",
+        "worker_leases_active_job_uidx",
+        "backend_runtime_messages_request_id_idx",
+        "backend_runtime_messages_job_id_idx",
+        "backend_runtime_messages_idempotency_key_uidx",
+        "job_claim_attempts_job_id_idx",
+        "job_claim_attempts_created_at_idx"
+      ],
+      "expectedTriggers": [],
+      "expectedRlsTables": [
+        {
+          "schema": "public",
+          "table": "worker_leases"
+        },
+        {
+          "schema": "public",
+          "table": "backend_runtime_messages"
+        },
+        {
+          "schema": "public",
+          "table": "job_claim_attempts"
+        }
+      ],
+      "expectedPolicies": [
+        {
+          "name": "worker_leases_select_member",
+          "schema": "public",
+          "table": "worker_leases"
+        },
+        {
+          "name": "backend_runtime_messages_select_member",
+          "schema": "public",
+          "table": "backend_runtime_messages"
+        },
+        {
+          "name": "job_claim_attempts_select_member",
+          "schema": "public",
+          "table": "job_claim_attempts"
+        }
+      ],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    },
+    {
+      "version": "202605210001",
+      "migrationFile": "supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql",
+      "status": "parsed",
+      "schemaOnly": false,
+      "changesData": true,
+      "destructiveStatements": [
+        "alter_table_drop"
+      ],
+      "policyReplacementStatements": 10,
+      "affectedTables": [
+        "public.api_idempotency_keys",
+        "public.upload_intents",
+        "public.storage_object_records",
+        "public.signed_url_events",
+        "public.worker_job_claims",
+        "public.tool_runtime_checks",
+        "public.provider_request_attempts",
+        "public.provider_webhook_events",
+        "public.approved_plan_snapshots"
+      ],
+      "expectedColumns": [
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "user_id"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "idempotency_key"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "request_method"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "request_path"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "request_hash"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "response_status"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "response_record_table"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "response_record_id"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "expires_at"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "chat_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "requested_by_user_id"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "upload_purpose"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "target_bucket"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "target_path"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "original_file_name"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "mime_type"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "expected_size_bytes"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "checksum_sha256"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "expires_at"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "finalized_at"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "media_asset_id"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "media_asset_id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "generated_asset_id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "render_id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "qa_report_id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "upload_intent_id"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "bucket_name"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "object_path"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "object_purpose"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "mime_type"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "size_bytes"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "checksum_sha256"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "region"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "status"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "storage_object_record_id"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "upload_intent_id"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "requested_by_user_id"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "url_purpose"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "expires_at"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events",
+          "column": "metadata_json"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "job_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "worker_type"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "worker_instance_id"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "claim_status"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "claimed_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "heartbeat_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "released_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "lease_expires_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "attempt_number"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "idempotency_key"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "worker_type"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "runtime_region"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "tool_name"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "tool_version"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "check_status"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "check_summary"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "binary_path"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "capabilities_json"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "checked_at"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "generation_request_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "job_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "approved_plan_snapshot_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "credit_reservation_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "provider_route"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "provider_model"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "attempt_status"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "idempotency_key"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "request_payload_hash"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "normalized_error_code"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "normalized_error_message"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "started_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "completed_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "project_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "provider_route"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "provider_event_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "generation_request_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "job_id"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "event_status"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "signature_verified"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "received_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "processed_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "event_payload_summary_json"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "created_at"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events",
+          "column": "updated_at"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "workspace_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "chat_session_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "edit_plan_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "credit_approval_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "credit_reservation_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "approved_by_user_id"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "snapshot_status"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "plan_hash"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "credit_hash"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "source_sequence_hash"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "timing_hash"
+        },
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots",
+          "column": "updated_at"
+        }
+      ],
+      "expectedFunctions": [
+        {
+          "schema": "public",
+          "name": "set_updated_at"
+        },
+        {
+          "schema": "public",
+          "name": "can_create_approved_plan_snapshot"
+        },
+        {
+          "schema": "public",
+          "name": "active_worker_claim_exists"
+        },
+        {
+          "schema": "public",
+          "name": "can_claim_worker_job"
+        }
+      ],
+      "expectedTypes": [],
+      "expectedIndexes": [
+        "approved_plan_snapshots_project_idx",
+        "approved_plan_snapshots_edit_plan_idx",
+        "approved_plan_snapshots_credit_estimate_idx",
+        "approved_plan_snapshots_project_plan_credit_idx",
+        "upload_intents_project_chat_status_idx",
+        "storage_object_records_project_purpose_status_idx",
+        "signed_url_events_storage_created_idx",
+        "worker_job_claims_job_status_idx",
+        "worker_job_claims_active_job_uidx",
+        "tool_runtime_checks_workspace_tool_idx",
+        "provider_request_attempts_request_job_idempotency_idx",
+        "provider_request_attempts_workspace_status_idx",
+        "provider_webhook_events_route_event_idx"
+      ],
+      "expectedTriggers": [
+        "set_approved_plan_snapshots_updated_at",
+        "set_api_idempotency_keys_updated_at",
+        "set_upload_intents_updated_at",
+        "set_storage_object_records_updated_at",
+        "set_worker_job_claims_updated_at",
+        "set_tool_runtime_checks_updated_at",
+        "set_provider_request_attempts_updated_at",
+        "set_provider_webhook_events_updated_at"
+      ],
+      "expectedRlsTables": [
+        {
+          "schema": "public",
+          "table": "approved_plan_snapshots"
+        },
+        {
+          "schema": "public",
+          "table": "api_idempotency_keys"
+        },
+        {
+          "schema": "public",
+          "table": "upload_intents"
+        },
+        {
+          "schema": "public",
+          "table": "storage_object_records"
+        },
+        {
+          "schema": "public",
+          "table": "signed_url_events"
+        },
+        {
+          "schema": "public",
+          "table": "worker_job_claims"
+        },
+        {
+          "schema": "public",
+          "table": "tool_runtime_checks"
+        },
+        {
+          "schema": "public",
+          "table": "provider_request_attempts"
+        },
+        {
+          "schema": "public",
+          "table": "provider_webhook_events"
+        }
+      ],
+      "expectedPolicies": [
+        {
+          "name": "approved_plan_snapshots_select_member",
+          "schema": "public",
+          "table": "approved_plan_snapshots"
+        },
+        {
+          "name": "api_idempotency_keys_select_owner",
+          "schema": "public",
+          "table": "api_idempotency_keys"
+        },
+        {
+          "name": "upload_intents_select_member",
+          "schema": "public",
+          "table": "upload_intents"
+        },
+        {
+          "name": "upload_intents_insert_editor",
+          "schema": "public",
+          "table": "upload_intents"
+        },
+        {
+          "name": "storage_object_records_select_member",
+          "schema": "public",
+          "table": "storage_object_records"
+        },
+        {
+          "name": "signed_url_events_select_member",
+          "schema": "public",
+          "table": "signed_url_events"
+        },
+        {
+          "name": "worker_job_claims_select_member",
+          "schema": "public",
+          "table": "worker_job_claims"
+        },
+        {
+          "name": "tool_runtime_checks_select_member",
+          "schema": "public",
+          "table": "tool_runtime_checks"
+        },
+        {
+          "name": "provider_request_attempts_select_member",
+          "schema": "public",
+          "table": "provider_request_attempts"
+        },
+        {
+          "name": "provider_webhook_events_select_member",
+          "schema": "public",
+          "table": "provider_webhook_events"
+        }
+      ],
+      "expectedExtensions": [],
+      "expectedStorageBuckets": [],
+      "confidence": "medium",
+      "blockers": []
+    }
+  ],
+  "blockers": [],
+  "migrationRepairRun": false,
+  "schemaDeployRun": false,
+  "trackBBackfillRun": false,
+  "productionAffected": false
+}

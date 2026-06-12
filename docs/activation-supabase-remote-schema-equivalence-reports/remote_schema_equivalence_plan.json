@@ -1,0 +1,77 @@
+{
+  "phase": "supabase-remote-schema-equivalence-review",
+  "runId": "supabase-remote-schema-equivalence-review-20260608",
+  "branch": "codex/rp-foundation-supabase-remote-schema-equivalence-review",
+  "baseBranch": "codex/rp-foundation-supabase-migration-history-repair-approval",
+  "prTitle": "[foundation] Supabase remote schema equivalence review",
+  "reportDir": "docs/activation-supabase-remote-schema-equivalence-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "remote_schema_equivalence_plan.json",
+    "local_missing_migration_intent_inventory.json",
+    "remote_staging_schema_introspection_report.json",
+    "remote_schema_equivalence_comparison_report.json",
+    "migration_history_repair_approval_after_equivalence_review.json",
+    "remote_schema_equivalence_blocker_report.json",
+    "remote_schema_equivalence_readiness_report.json",
+    "remote_schema_equivalence_private_artifact_manifest.json"
+  ],
+  "docs": [
+    "docs/supabase-migration-history-repair-equivalence-decision.md",
+    "docs/implementation-prompts/prompt-supabase-staging-migration-history-repair-execution.md"
+  ],
+  "workstreamOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "sourcePrs": [
+    196,
+    198,
+    200,
+    223,
+    238
+  ],
+  "docsBasis": {
+    "databaseMigrations": "https://supabase.com/docs/guides/deployment/database-migrations",
+    "cliReference": "https://supabase.com/docs/reference/cli/introduction",
+    "changelog": "https://supabase.com/changelog.md",
+    "changelogCheckedAt": "2026-06-08",
+    "migrationRepairBreakingChangeBlockingThisPacket": false
+  },
+  "allowedConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_REMOTE_SCHEMA_EQUIVALENCE_REVIEW",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_MIGRATION_HISTORY_AUDIT"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_SUPABASE_MIGRATION_REPAIR",
+    "REEDITPRO_CONFIRM_SUPABASE_MILESTONE_REGISTRY_STAGING_SCHEMA_DEPLOY",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+    "REEDITPRO_CONFIRM_SUPABASE_TRACKB_MILESTONE_STAGING_BACKFILL",
+    "REEDITPRO_CONFIRM_SUPABASE_STAGING_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME"
+  ],
+  "allowedActions": [
+    "read_committed_pr_223_reports",
+    "read_committed_pr_238_reports",
+    "read_local_migration_sql",
+    "run_readonly_staging_catalog_introspection_when_confirmed",
+    "write_safe_metadata_reports"
+  ],
+  "blockedActions": [
+    "supabase_migration_repair",
+    "supabase_db_push",
+    "direct_ddl_dml",
+    "track_b_backfill_write",
+    "production_supabase",
+    "secret_printing",
+    "provider_calls",
+    "route_tool_worker_execution",
+    "media_processing",
+    "track_a",
+    "beta_or_production_unlock"
+  ]
+}

@@ -4,7 +4,7 @@ Prompt: `TRACKA-GD-GROUPB-HANDOFF-4`
 
 Branch: `codex/rp-tracka-gd-groupb-handoff-4-private-preview-qa-review`
 
-PR: pending
+PR: [#321](https://github.com/yuzastudio6-cyber/Reedkt/pull/321)
 
 Base: `origin/codex/rp-tracka-gd-groupb-handoff-3-private-preview-execution`
 

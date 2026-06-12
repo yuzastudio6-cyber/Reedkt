@@ -278,7 +278,7 @@ Next recommended prompt after TRACKA-GD-HANDOFF-7: `CROSS-BETA-0 - Cross-Workstr
 ## TRACKA-GD-GROUPB-HANDOFF-4 - Group B Private Preview QA Review
 
 - Branch: `codex/rp-tracka-gd-groupb-handoff-4-private-preview-qa-review`
-- PR: pending
+- PR: [#321](https://github.com/yuzastudio6-cyber/Reedkt/pull/321)
 - Base: `origin/codex/rp-tracka-gd-groupb-handoff-3-private-preview-execution`
 - QA result: `group_b_private_preview_qa_passed_with_warnings`
 - Readiness: `ready_with_warnings_for_group_b_controlled_private_sample_plan`

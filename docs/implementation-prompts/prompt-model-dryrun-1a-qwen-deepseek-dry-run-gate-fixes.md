@@ -10,6 +10,8 @@ Status: `blocked`
 
 Decision: `blocked_pending_dashscope_secret_rotation_by_owner`
 
+MODEL-DRYRUN-1B follow-up decision: `blocked_pending_dashscope_secret_rotation_by_owner`
+
 ## Prompt Summary
 
 MODEL-DRYRUN-1A diagnoses and, only if safe, fixes the Qwen/DashScope provider dry-run gate after MODEL-DRYRUN-1 failed closed with HTTP `401`. It uses committed reports and safe Secret Manager metadata only. It does not expose secret payloads, commit raw provider responses, or broaden provider/runtime scope.
@@ -36,6 +38,14 @@ MODEL-DRYRUN-1A diagnoses and, only if safe, fixes the Qwen/DashScope provider d
 - Approved synthetic provider retry executed: `yes`.
 - Qwen/DashScope retry status: `blocked_http_401`.
 - DeepSeek retry status: `passed`.
+- Final state: `blocked_pending_dashscope_secret_rotation_by_owner`.
+
+## MODEL-DRYRUN-1B Follow-Up
+
+- Source-of-truth reports read: `yes`.
+- Secret Manager metadata reviewed: `yes`.
+- New enabled DashScope version after MODEL-DRYRUN-1A: `no`.
+- Provider retry run: `no`.
 - Final state: `blocked_pending_dashscope_secret_rotation_by_owner`.
 
 ## Validation Results

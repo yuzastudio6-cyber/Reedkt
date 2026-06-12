@@ -4,6 +4,8 @@ Status: `blocked_provider_call_failed`.
 
 MODEL-DRYRUN-1A status: `blocked_pending_dashscope_secret_rotation_by_owner`.
 
+MODEL-DRYRUN-1B status: `blocked_pending_dashscope_secret_rotation_by_owner`.
+
 Runtime unlock impact: no runtime unlock.
 
 MODEL-DRYRUN-1 added a server-side Qwen/DeepSeek synthetic provider dry-run harness and ran the gated execution path after approval, confirmation env values, and Google Secret Manager resolution passed.
@@ -17,4 +19,6 @@ The Qwen blocker prevents provider dry-run completion, private artifact upload, 
 
 MODEL-DRYRUN-1A retried after safe metadata showed a newer enabled `DASHSCOPE_API_KEY` version than the original failed run. The retry still failed closed with the same Qwen/DashScope HTTP 401, so no runtime unlock is granted.
 
-Next recommended prompt: `MODEL-DRYRUN-1B - Provider Dry-Run Retry` after owner-side DashScope secret/account/model-region repair.
+MODEL-DRYRUN-1B found no new enabled DashScope Secret Manager version after MODEL-DRYRUN-1A, so no provider retry ran and no runtime unlock is granted.
+
+Next recommended prompt: `MODEL-DRYRUN-1C - DashScope Secret Repair Follow-Up` after owner-side DashScope secret/account/model-region repair.

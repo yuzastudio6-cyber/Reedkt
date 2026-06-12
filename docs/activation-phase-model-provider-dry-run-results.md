@@ -46,7 +46,15 @@ Because that newer enabled version satisfied the retry gate, the approved synthe
 
 Final MODEL-DRYRUN-1A decision: `blocked_pending_dashscope_secret_rotation_by_owner`.
 
-Recommended next prompt: `MODEL-DRYRUN-1B - Provider Dry-Run Retry` after owner-side DashScope secret/account/model-region repair.
+## MODEL-DRYRUN-1B Follow-Up
+
+Status: `blocked_pending_dashscope_secret_rotation_by_owner`
+
+MODEL-DRYRUN-1B performed a source-of-truth read and metadata-only Secret Manager comparison for `DASHSCOPE_API_KEY`. The latest enabled DashScope version remained version `3`, created at `2026-06-12T15:55:42Z`, matching the MODEL-DRYRUN-1A metadata. Because no new enabled DashScope version was visible and the prompt itself was not treated as owner repair confirmation, no provider retry ran.
+
+Final MODEL-DRYRUN-1B decision: `blocked_pending_dashscope_secret_rotation_by_owner`.
+
+Recommended next prompt: `MODEL-DRYRUN-1C - DashScope Secret Repair Follow-Up` after owner-side DashScope secret/account/model-region repair produces a new safe enabled Secret Manager version.
 
 ## Warnings
 
@@ -70,6 +78,7 @@ Recommended next prompt: `MODEL-DRYRUN-1B - Provider Dry-Run Retry` after owner-
 - `docs/activation-model-provider-dry-run-reports/model_provider_dry_run_qa_summary.json`
 - `docs/activation-model-provider-dry-run-reports/model_provider_dry_run_readiness_report.json`
 - `docs/activation-model-provider-dry-run-reports/model_provider_dryrun_1a_gate_fix_summary.json`
+- `docs/activation-model-provider-dry-run-reports/model_provider_dryrun_1b_owner_rotation_retry_summary.json`
 
 ## Base Gaps
 

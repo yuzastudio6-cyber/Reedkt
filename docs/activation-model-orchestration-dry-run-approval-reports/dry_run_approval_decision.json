@@ -1,0 +1,22 @@
+{
+  "phase": "model-orchestration-dry-run-approval",
+  "runId": "model-orchestration-dry-run-approval-20260612",
+  "status": "passed",
+  "decision": "approved_for_future_qwen_deepseek_provider_dry_run",
+  "approvalStatus": "future_provider_dry_run_approved_not_executed",
+  "activeBlockers": [],
+  "approvedFutureScope": "synthetic_non_sensitive_schema_validated_qwen_deepseek_provider_dry_run_only",
+  "providerCallsInThisPhase": false,
+  "qwenApiCall": false,
+  "deepseekApiCall": false,
+  "secretPayloadAccess": false,
+  "runtimeToolsWorkersRoutes": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "nextRecommendedPhase": "MODEL_ORCHESTRATION - Qwen/DeepSeek provider dry-run execution"
+}

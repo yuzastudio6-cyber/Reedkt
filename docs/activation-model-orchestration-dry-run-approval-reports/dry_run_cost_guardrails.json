@@ -1,0 +1,19 @@
+{
+  "phase": "model-orchestration-dry-run-approval",
+  "status": "passed",
+  "maxCallsPerProvider": {
+    "qwen_dashscope": 4,
+    "deepseek": 4
+  },
+  "maxTotalProviderCalls": 8,
+  "maxEstimatedUsd": 2,
+  "maxTokensPerCall": 1200,
+  "maxTotalTokens": 7200,
+  "timeoutMsPerCall": 15000,
+  "maxRetriesPerCase": 0,
+  "streamingAllowed": false,
+  "rateLimitBehavior": "fail_closed_on_quota_or_rate_error",
+  "retryPolicy": "no_retry_without_separate_budget_approval",
+  "logging": "metadata_only",
+  "providerCallsInThisPhase": false
+}

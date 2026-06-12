@@ -1,0 +1,34 @@
+{
+  "phase": "model-orchestration-dry-run-approval",
+  "status": "passed",
+  "allowedAuditFields": [
+    "caseId",
+    "providerName",
+    "modelId",
+    "schemaId",
+    "schemaValidationStatus",
+    "tokenEstimate",
+    "costEstimate",
+    "latencyMs",
+    "blockedActionCodes"
+  ],
+  "blockedAuditFields": [
+    "rawProviderResponse",
+    "secretPayloads",
+    "apiKeys",
+    "userPrivateData",
+    "projectPrivateData",
+    "mediaPayloads",
+    "signedUrls",
+    "publicArtifactPayloads",
+    "rawPromptForwardingPayloads"
+  ],
+  "requestMetadataAllowed": true,
+  "responseSchemaStatusAllowed": true,
+  "providerModelAliasAllowed": true,
+  "tokenCostEstimateAllowed": true,
+  "rawProviderResponseStorageAllowed": false,
+  "promptsMustBeSynthetic": true,
+  "providerCallsInThisPhase": false,
+  "secretPayloadAccess": false
+}

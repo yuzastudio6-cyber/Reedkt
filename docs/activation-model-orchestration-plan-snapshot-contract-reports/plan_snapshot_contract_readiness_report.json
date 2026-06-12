@@ -1,15 +1,11 @@
 {
   "phase": "model-orchestration-plan-snapshot-contract",
   "runId": "model-orchestration-plan-snapshot-contract-20260612",
-  "status": "blocked",
-  "decision": "blocked_pending_provider_dry_run_evidence",
-  "activeBlockers": [
-    "pr322_qwen_pass_evidence_missing",
-    "pr322_qwen_schema_rerun_provider_timeout",
-    "pr322_qwen_schema_cases_did_not_pass"
-  ],
-  "planSnapshotContractReady": false,
-  "dryRunValidationReady": false,
+  "status": "passed",
+  "decision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+  "activeBlockers": [],
+  "planSnapshotContractReady": true,
+  "dryRunValidationReady": true,
   "providerEvidenceRequiredBeforePass": true,
   "metadataOnly": true,
   "providerCalls": false,

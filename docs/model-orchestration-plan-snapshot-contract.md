@@ -1,6 +1,6 @@
 # Model Orchestration Plan Snapshot Contract
 
-Decision: `blocked_pending_provider_dry_run_evidence`.
+Decision: `plan_snapshot_contract_passed_ready_for_dry_run_validation`.
 
 This packet defines the metadata-only handoff from provider evidence into reviewable planning records:
 
@@ -14,6 +14,6 @@ Provider output, findings, intents, and candidates cannot execute workers, tools
 
 Provider evidence reconciliation:
 
-- Qwen: `blocked`
+- Qwen: `passed`
 - DeepSeek: `passed_remote_pr320`
 - Stale evidence: PR #327 was reading stale local provider evidence for at least one upstream report.

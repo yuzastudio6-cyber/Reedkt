@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-plan-snapshot-contract",
-  "status": "blocked",
+  "status": "passed",
   "reconciliationAttempted": true,
   "githubMetadataAvailable": true,
   "githubErrors": [],
@@ -12,9 +12,9 @@
       "state": "OPEN",
       "baseRefName": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
       "headRefName": "codex/rp-model-orchestration-plan-snapshot-contract",
-      "mergeStateStatus": "CLEAN",
+      "mergeStateStatus": "DIRTY",
       "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/327",
-      "latestCommitSha": "e01cda89be2a3d5a76cc33e194ca1d9b432f76db"
+      "latestCommitSha": "0101af14614acf012b1d3fe137bfc9a4fb525f44"
     },
     {
       "pr": 322,
@@ -25,7 +25,7 @@
       "headRefName": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
       "mergeStateStatus": "CLEAN",
       "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/322",
-      "latestCommitSha": "fbe11f3931b7f0306d9897c6d8b404bd555f9a16"
+      "latestCommitSha": "ce50e3548c4bc493bd2ad903c384088321e5bb71"
     },
     {
       "pr": 320,
@@ -61,9 +61,9 @@
     }
   ],
   "localEvidence": {
-    "pr327LocalQwenDecision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
-    "pr327LocalQwenStatus": "blocked",
-    "pr327LocalQwenProviderCallsPassed": 0,
+    "pr327LocalQwenDecision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+    "pr327LocalQwenStatus": "passed",
+    "pr327LocalQwenProviderCallsPassed": 4,
     "pr327LocalProviderDecision": "not_attempted",
     "pr327LocalDeepseekStatus": "not_attempted",
     "pr327LocalDeepseekProviderCallsPassed": 0
@@ -76,15 +76,13 @@
   },
   "qwenEvidence": {
     "sourcePr": 322,
-    "remoteDecision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
-    "remoteStatus": "blocked",
-    "activeBlockers": [
-      "provider_timeout"
-    ],
-    "selectedAlias": "qwen3.7-plus",
+    "remoteDecision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+    "remoteStatus": "passed",
+    "activeBlockers": [],
+    "selectedAlias": "qwen-plus",
     "expectedSelectedAlias": "qwen-plus",
-    "aliasMatchedExpected": false,
-    "selectedBaseUrlKey": "us",
+    "aliasMatchedExpected": true,
+    "selectedBaseUrlKey": "virginia",
     "workingBaseUrlClassification": "virginia_dashscope_base_url",
     "expectedWorkingBaseUrlClassification": "virginia_dashscope_base_url",
     "schemaCasesExpected": [
@@ -93,11 +91,16 @@
       "synthetic_tool_route_metadata_recommendation",
       "synthetic_provider_fallback_comparison"
     ],
-    "schemaCasesPassed": [],
-    "allSchemaCasesPassed": false,
-    "providerTimeoutPresent": true,
+    "schemaCasesPassed": [
+      "synthetic_edit_intent_extraction",
+      "synthetic_timeline_planning",
+      "synthetic_tool_route_metadata_recommendation",
+      "synthetic_provider_fallback_comparison"
+    ],
+    "allSchemaCasesPassed": true,
+    "providerTimeoutPresent": false,
     "unsafeResultFlagsPresent": false,
-    "qwenEvidencePassed": false
+    "qwenEvidencePassed": true
   },
   "deepseekEvidence": {
     "sourcePr": 320,
@@ -117,14 +120,10 @@
     "unsafeResultFlagsPresent": false,
     "deepseekEvidencePassed": true
   },
-  "finalReconciledQwenStatus": "blocked",
+  "finalReconciledQwenStatus": "passed",
   "finalReconciledDeepSeekStatus": "passed_remote_pr320",
-  "reconciledProviderEvidenceReady": false,
-  "providerEvidenceBlockers": [
-    "pr322_qwen_pass_evidence_missing",
-    "pr322_qwen_schema_rerun_provider_timeout",
-    "pr322_qwen_schema_cases_did_not_pass"
-  ],
+  "reconciledProviderEvidenceReady": true,
+  "providerEvidenceBlockers": [],
   "proseOnlyProviderPassClaimsAccepted": false,
   "secretRefs": [
     {

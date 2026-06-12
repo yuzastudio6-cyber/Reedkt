@@ -1,15 +1,11 @@
 {
   "phase": "model-orchestration-plan-snapshot-contract",
-  "status": "blocked",
-  "providerEvidencePassed": false,
-  "providerEvidenceBlockers": [
-    "pr322_qwen_pass_evidence_missing",
-    "pr322_qwen_schema_rerun_provider_timeout",
-    "pr322_qwen_schema_cases_did_not_pass"
-  ],
+  "status": "passed",
+  "providerEvidencePassed": true,
+  "providerEvidenceBlockers": [],
   "providerEvidenceReconciliationReport": "docs/activation-model-orchestration-plan-snapshot-contract-reports/provider_dry_run_evidence_reconciliation.json",
-  "qwenRepairedStatusFromPr322": "blocked",
-  "qwenSelectedAlias": "qwen3.7-plus",
+  "qwenRepairedStatusFromPr322": "passed",
+  "qwenSelectedAlias": "qwen-plus",
   "qwenWorkingBaseUrl": "virginia_dashscope_base_url",
   "deepseekPassedStatusFromPr320": "passed",
   "deepseekAliases": [
@@ -28,21 +24,19 @@
       "pr": 322,
       "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_repair_decision.json",
       "present": true,
-      "decision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
-      "status": "blocked",
-      "activeBlockers": [
-        "provider_timeout"
-      ],
-      "localContractReady": false
+      "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+      "status": "passed",
+      "activeBlockers": [],
+      "localContractReady": true
     },
     {
       "pr": 322,
       "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
       "present": true,
-      "status": "blocked",
+      "status": "passed",
       "providerCallsAttempted": 4,
-      "providerCallsPassed": 0,
-      "providerCallsBlocked": 4
+      "providerCallsPassed": 4,
+      "providerCallsBlocked": 0
     },
     {
       "pr": 320,

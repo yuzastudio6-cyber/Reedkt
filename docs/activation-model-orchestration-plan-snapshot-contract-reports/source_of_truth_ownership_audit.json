@@ -118,8 +118,8 @@
       "present": true
     }
   ],
-  "pr322Decision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
-  "pr322Status": "blocked",
+  "pr322Decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "pr322Status": "passed",
   "pr320Decision": "not_attempted",
   "pr320Status": "not_attempted",
   "pr311Session0Decision": "restricted_internal_testing_session_0_passed",

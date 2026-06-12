@@ -264,7 +264,7 @@ export function getModelOrchestrationPlanSnapshotContractPlan() {
       'approved_plan_snapshot_v1',
     ],
     evidenceGate: 'PR #322 and PR #320 committed provider reports must show provider dry-run readiness.',
-    expectedCurrentDecision: 'blocked_pending_provider_dry_run_evidence',
+    expectedCurrentDecision: 'plan_snapshot_contract_passed_ready_for_dry_run_validation',
     ...RUNTIME_FALSE_FLAGS,
   }
 }

@@ -1,14 +1,10 @@
 {
   "phase": "model-orchestration-plan-snapshot-contract",
-  "status": "blocked",
-  "decision": "blocked_pending_provider_dry_run_evidence",
-  "activeBlockers": [
-    "pr322_qwen_pass_evidence_missing",
-    "pr322_qwen_schema_rerun_provider_timeout",
-    "pr322_qwen_schema_cases_did_not_pass"
-  ],
-  "blockerCount": 3,
-  "blockedUntil": "Qwen provider schema rerun no longer times out and provider evidence reports pass.",
+  "status": "passed",
+  "decision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+  "activeBlockers": [],
+  "blockerCount": 0,
+  "blockedUntil": "Provider evidence, schema contract, and handoff policy are all passed.",
   "providerCalls": false,
   "secretPayloadAccess": false,
   "secretPayloadPrinted": false,

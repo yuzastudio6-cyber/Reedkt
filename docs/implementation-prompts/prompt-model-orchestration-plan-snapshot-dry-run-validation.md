@@ -1,10 +1,5 @@
-# Model Orchestration Provider Evidence Repair Handoff
+# Model Orchestration Plan Snapshot Dry-Run Validation
 
-The plan snapshot dry-run validation phase remains blocked until committed provider evidence passes.
+Run this only after provider evidence reports pass and this contract decision becomes `plan_snapshot_contract_passed_ready_for_dry_run_validation`.
 
-Current reconciled evidence:
-
-- Qwen: `blocked`
-- DeepSeek: `passed_remote_pr320`
-
-Next action: repair or rerun the exact Qwen provider evidence blocker, commit safe reports to PR #322, then rerun this PR #327 reconciliation. Do not call providers, access secrets, execute workers/tools/routes, mutate Supabase, create public artifacts, create signed URLs, or unlock production from this handoff.
+Keep the phase metadata-only: no provider calls, secret payload access, Supabase writes, workers, tools, routes, media processing, public artifacts, signed URLs, production, external beta, or paid production unless a later prompt explicitly authorizes a separate phase.

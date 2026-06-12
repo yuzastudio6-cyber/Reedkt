@@ -55,19 +55,19 @@ for (const doc of [
 
 const reports = buildModelOrchestrationPlanSnapshotContractReports()
 const readiness = reports.readinessReport as Record<string, unknown>
-assert(readiness.status === 'blocked', 'Current plan snapshot contract must remain blocked until provider evidence passes.')
+assert(readiness.status === 'passed', 'Plan snapshot contract should pass after reconciled PR #322 and PR #320 provider evidence.')
 assert(
-  readiness.decision === 'blocked_pending_provider_dry_run_evidence',
-  'Current contract decision must block on provider dry-run evidence.',
+  readiness.decision === 'plan_snapshot_contract_passed_ready_for_dry_run_validation',
+  'Current contract decision must approve the plan snapshot dry-run validation handoff.',
 )
-assert(readiness.planSnapshotContractReady === false, 'Plan snapshot contract must not be ready with current PR #322 evidence.')
+assert(readiness.planSnapshotContractReady === true, 'Plan snapshot contract should be ready after green provider evidence reconciliation.')
 
 const evidence = reports.evidenceInventory as Record<string, unknown>
-assert(evidence.providerEvidencePassed === false, 'Provider evidence must not pass with current reports.')
+assert(evidence.providerEvidencePassed === true, 'Provider evidence should pass after PR #322 Qwen and PR #320 DeepSeek reconciliation.')
 assert(
   Array.isArray(evidence.providerEvidenceBlockers) &&
-  evidence.providerEvidenceBlockers.includes('pr322_qwen_schema_rerun_provider_timeout'),
-  'Expected PR #322 provider timeout blocker missing.',
+  evidence.providerEvidenceBlockers.length === 0,
+  'Provider evidence blockers must be empty after reconciliation.',
 )
 assert(
   Array.isArray(evidence.providerEvidenceBlockers) &&
@@ -76,10 +76,17 @@ assert(
 )
 
 const reconciliation = reports.providerEvidenceReconciliation as Record<string, unknown>
-assert(reconciliation.status === 'blocked', 'Reconciliation must remain blocked while Qwen evidence is missing.')
-assert(reconciliation.finalReconciledQwenStatus === 'blocked', 'Qwen must remain blocked with current PR #322 evidence.')
+assert(reconciliation.status === 'passed', 'Reconciliation should pass after Qwen and DeepSeek evidence are green.')
+assert(reconciliation.finalReconciledQwenStatus === 'passed', 'Qwen should pass from committed PR #322 evidence.')
 assert(reconciliation.finalReconciledDeepSeekStatus === 'passed_remote_pr320', 'DeepSeek should pass from remote PR #320 evidence.')
-assert((reconciliation.staleEvidence as Record<string, unknown>).pr327LocalDeepseekSnapshotStale === true, 'Local PR #327 DeepSeek snapshot should be classified as stale.')
+assert((reconciliation.qwenEvidence as Record<string, unknown>).selectedAlias === 'qwen-plus', 'Qwen selected alias must remain qwen-plus.')
+assert(
+  (reconciliation.qwenEvidence as Record<string, unknown>).workingBaseUrlClassification === 'virginia_dashscope_base_url',
+  'Qwen working base URL must be classified as Virginia DashScope.',
+)
+assert((reconciliation.qwenEvidence as Record<string, unknown>).allSchemaCasesPassed === true, 'All Qwen schema cases must pass.')
+assert((reconciliation.qwenEvidence as Record<string, unknown>).providerTimeoutPresent === false, 'Qwen provider timeout must be absent.')
+assert((reconciliation.deepseekEvidence as Record<string, unknown>).deepseekEvidencePassed === true, 'DeepSeek evidence must pass.')
 assert(reconciliation.proseOnlyProviderPassClaimsAccepted === false, 'Prose-only provider pass claims must not be accepted.')
 
 const validation = reports.validationReport as Record<string, unknown>

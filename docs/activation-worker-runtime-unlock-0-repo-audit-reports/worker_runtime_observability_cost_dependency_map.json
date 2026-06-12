@@ -1,0 +1,24 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "sources": [
+    "docs/production-observability-plan.md",
+    "docs/production-cost-control-policy.md",
+    "docs/production-gpu-cost-control-policy.md"
+  ],
+  "observabilityNeededForDryRunPlan": [
+    "correlation IDs",
+    "job status/event summary",
+    "blocked gate reason",
+    "cost estimate placeholder",
+    "no secret or raw prompt logging"
+  ],
+  "costControlsNeededBeforeExecution": [
+    "workspace budgets",
+    "worker type concurrency limits",
+    "timeouts and retry caps",
+    "provider/render/GPU kill switches"
+  ],
+  "productionMonitoringDeployed": false,
+  "costSpendEnabled": false
+}

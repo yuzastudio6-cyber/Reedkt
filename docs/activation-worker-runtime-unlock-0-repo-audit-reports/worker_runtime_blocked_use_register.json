@@ -1,0 +1,30 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed",
+  "blockedUses": [
+    "worker_execution",
+    "job_dispatch",
+    "job_claim_lease_mutation",
+    "supabase_writes",
+    "sql_migrations",
+    "provider_calls",
+    "tool_execution",
+    "route_execution",
+    "raw_prompt_execution",
+    "media_processing",
+    "public_artifacts",
+    "signed_urls",
+    "credit_mutation",
+    "stripe_payment",
+    "docker_cloud_run_execution",
+    "demucs_runtime",
+    "track_a_runtime",
+    "track_b_media_export",
+    "internal_beta_unlock",
+    "external_beta_unlock",
+    "production_unlock",
+    "paid_production_unlock"
+  ],
+  "runtimeUnlockLadderPosition": "repo_audit_passed_with_warnings_candidate",
+  "workerRuntimeExecutionReady": false
+}

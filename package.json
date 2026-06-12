@@ -549,6 +549,7 @@
     "activation:model-orchestration-plan-snapshot-contract-fix:report": "tsx server/cli/activation-model-orchestration-plan-snapshot-contract-fix-report.ts",
     "activation:model-orchestration-plan-snapshot-contract-fix:summary": "tsx server/cli/activation-model-orchestration-plan-snapshot-contract-fix-summary.ts",
     "smoke:activation-model-orchestration-plan-snapshot-contract-fix": "tsx server/smoke/activation-model-orchestration-plan-snapshot-contract-fix-smoke.ts",
+    "worker-runtime-unlock-0:diagnostics": "node scripts/validation/worker-runtime-unlock-0-repo-audit-diagnostics.mjs",
     "activation:supabase-milestone-registry-schema:plan": "tsx server/cli/activation-supabase-milestone-registry-schema-plan.ts",
     "activation:supabase-milestone-registry-schema:local-validate": "tsx server/cli/activation-supabase-milestone-registry-schema-local-validate.ts",
     "activation:supabase-milestone-registry-schema:rls-test": "tsx server/cli/activation-supabase-milestone-registry-schema-rls-test.ts",

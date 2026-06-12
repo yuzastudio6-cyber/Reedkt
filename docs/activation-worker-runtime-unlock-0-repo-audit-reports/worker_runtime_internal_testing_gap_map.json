@@ -1,0 +1,29 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "ready": [
+    "metadata handoff from plan snapshot contract",
+    "source-of-truth inventory for worker runtime dry-run planning",
+    "mock-only lease/idempotency/gate evidence"
+  ],
+  "readyWithWarnings": [
+    "worker payload boundary can support dry-run planning but not execution",
+    "job claim and lease helpers are mock-only",
+    "production readiness remains blocked by tooling/model/manual approvals"
+  ],
+  "blocked": [
+    "real worker execution",
+    "real job dispatch",
+    "Supabase job/lease mutation",
+    "Cloud Run/Docker execution",
+    "provider/tool/route/media runtime",
+    "external beta and paid production"
+  ],
+  "missingEvidenceForLater": [
+    "Supabase owner-approved mutation plan",
+    "dry-run fixture packet",
+    "service-role transaction design",
+    "container/tool readiness evidence",
+    "observability and billing transaction enforcement"
+  ]
+}

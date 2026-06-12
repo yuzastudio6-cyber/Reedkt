@@ -1,0 +1,24 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "runId": "worker-runtime-unlock-0-repo-audit-20260612",
+  "status": "passed_with_warnings",
+  "decision": "worker_runtime_repo_audit_passed_with_warnings_ready_for_dry_run_plan",
+  "workerRuntimeReadyForDryRunPlanning": true,
+  "workerRuntimeExecutionReady": false,
+  "sourceOfTruthConflictsFound": false,
+  "activeWarnings": [
+    "real worker/job mutation remains blocked pending Supabase/backend owner approval",
+    "Cloud Run/Docker dispatch remains blocked",
+    "provider/tool/route/media execution remains owner-blocked",
+    "production readiness remains blocked by inherited hard blockers"
+  ],
+  "activeBlockers": [],
+  "nextRecommendedPrompt": "WORKER-RUNTIME-UNLOCK-1: worker runtime dry-run plan, no execution",
+  "supabaseUpdateRequired": "no",
+  "supabaseEnvironmentTouched": "no",
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "productionClaimed": false,
+  "externalBetaClaimed": false,
+  "paidProductionClaimed": false
+}

@@ -1,0 +1,40 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "classification": "mock_and_dry_run_safe_foundation",
+  "workerCodeInventory": [
+    {
+      "area": "server workers",
+      "paths": ["server/workers", "server/workers/worker-claim-runner.ts", "server/workers/worker-gates.ts"],
+      "classification": "dry-run-safe_with_mock_execution_paths",
+      "notes": "Worker claim runner has dry-run gate behavior but can run mock no-op/local handlers in existing smokes; this audit does not execute it."
+    },
+    {
+      "area": "backend runtime",
+      "paths": ["src/backend/runtime/worker-lease-service.ts", "src/backend/runtime/idempotency-service.ts", "src/backend/runtime/worker-runtime-registry.ts"],
+      "classification": "mock-only",
+      "notes": "Lease, heartbeat, stale recovery, idempotency, and registry helpers are in-memory/mock or metadata only."
+    },
+    {
+      "area": "cloud contracts",
+      "paths": ["src/backend/cloud/worker-job-contracts.ts", "src/backend/cloud/approved-plan-snapshot-contracts.ts", "src/backend/cloud/cloud-runtime-contracts.ts"],
+      "classification": "contract_only",
+      "notes": "Contracts reject missing approved snapshots, raw prompt-only fields, signed URL source-of-truth values, and secret-like values."
+    },
+    {
+      "area": "api routes",
+      "paths": ["src/backend/api/routes/job-api-routes.ts", "src/backend/api/mock-api-router.ts"],
+      "classification": "mock-router-only",
+      "notes": "Route metadata includes job, runtime envelope, mock dispatch, and worker lease route IDs; backend-required paths remain blocked by mock router policy."
+    },
+    {
+      "area": "database drafts and migrations",
+      "paths": ["supabase/migrations/202605130005_job_orchestration_agent_runs.sql", "supabase/migrations/202605200002_worker_leases_runtime_transport.sql", "database/migration-drafts/010_production_worker_runtime_orchestration.draft.sql"],
+      "classification": "read_only_audit_input",
+      "notes": "Existing schema/draft files define future job, lease, heartbeat, and runtime transport shapes. This audit creates no migration and runs no SQL."
+    }
+  ],
+  "executableReady": false,
+  "workerExecutionRemainsBlocked": true,
+  "jobDispatchRemainsBlocked": true
+}

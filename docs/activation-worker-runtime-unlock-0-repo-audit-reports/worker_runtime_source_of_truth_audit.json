@@ -1,0 +1,37 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "runId": "worker-runtime-unlock-0-repo-audit-20260612",
+  "status": "passed",
+  "workstreamOwner": "WORKER_RUNTIME_JOBS",
+  "sourceBranch": "codex/rp-model-orchestration-plan-snapshot-contract-fix",
+  "targetBranch": "codex/rp-worker-runtime-unlock-0-repo-audit",
+  "pr335PlanSnapshotContractReviewed": true,
+  "pr335Decision": "ready_for_plan_snapshot_contract_handoff",
+  "pr327ContractPacketPresent": true,
+  "pr329QwenAccepted": true,
+  "pr329QwenProviderCallsPassed": 4,
+  "pr320DeepSeekAccepted": true,
+  "pr320DeepSeekProviderCallsPassed": 3,
+  "pr318DryRunApprovalReviewed": true,
+  "pr315RegistryRestoreDuplicated": false,
+  "pr319SupabaseSoundContinuationAttempted": false,
+  "sourceOfTruthConflictsFound": false,
+  "supabaseChangelogContextChangedPlan": false,
+  "notes": [
+    "Plan snapshot contract is ready for metadata handoff only.",
+    "Supabase persistence, worker execution, tool execution, route execution, providers, media, public artifacts, signed URLs, production, external beta, and paid production remain blocked."
+  ],
+  "filesReviewed": [
+    "docs/model-orchestration-plan-snapshot-contract-fix-result.md",
+    "docs/activation-model-orchestration-plan-snapshot-contract-fix-reports/plan_snapshot_contract_fix_summary.json",
+    "docs/activation-model-orchestration-plan-snapshot-contract-ready-reports/plan_snapshot_contract_ready_summary.json",
+    "docs/activation-model-orchestration-plan-snapshot-contract-reports/approval_gate_and_worker_handoff_policy.json",
+    "docs/activation-model-orchestration-qwen-deepseek-provider-dry-run-rerun-reports/qwen_rerun_summary.json",
+    "docs/activation-model-orchestration-provider-dry-run-reports/deepseek_provider_dry_run_report.json",
+    "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_synthetic_cases.json",
+    "docs/backend-runtime-boundary.md",
+    "docs/worker-lease-runtime.md",
+    "docs/production-worker-runtime-orchestration.md",
+    "docs/production-worker-gates-policy.md"
+  ]
+}

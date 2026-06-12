@@ -1,0 +1,26 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed",
+  "payloadBoundaryReadyForDryRunPlanning": true,
+  "payloadBoundaryReadyForExecution": false,
+  "requiredPayloadReferences": [
+    "jobId",
+    "workspaceId",
+    "projectId",
+    "approvedPlanSnapshotId",
+    "editPlanId",
+    "idempotencyKey",
+    "workerType",
+    "executionMode"
+  ],
+  "blockedPayloadContent": [
+    "raw prompt-only execution fields",
+    "provider key values",
+    "service-role key values",
+    "signed URLs as source-of-truth",
+    "public artifact destinations"
+  ],
+  "sourceOfTruthPath": "Supabase row plus private GCS path plus manifest plus checksum plus approved plan snapshot",
+  "signedUrlsAreSourceOfTruth": false,
+  "publicArtifactsAllowed": false
+}

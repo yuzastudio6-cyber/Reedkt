@@ -1,0 +1,28 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "providerCallsInThisAudit": false,
+  "toolExecutionInThisAudit": false,
+  "routeExecutionInThisAudit": false,
+  "providerDependency": {
+    "qwenSyntheticEvidenceAccepted": true,
+    "deepseekSyntheticEvidenceAccepted": true,
+    "futureProviderGatewayExecutionAuditOwnedElsewhere": true
+  },
+  "toolRouteDependency": {
+    "routeManifestsOwnedElsewhere": true,
+    "toolExecutionUnlockOwnedElsewhere": true,
+    "workerPayloadMustCarryRouteMetadataOnlyBeforeApproval": true
+  },
+  "trackDependencies": {
+    "trackAExportRuntimeOwnedElsewhere": true,
+    "trackBMediaProcessingOwnedElsewhere": true,
+    "demucsRuntimeOwnedElsewhere": true
+  },
+  "blockedUntil": [
+    "provider gateway runtime audit",
+    "tool-route execution unlock",
+    "approved worker dry-run plan",
+    "owner-specific media/render/audio gates"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "phase": "worker-runtime-unlock-0-repo-audit",
+  "status": "passed",
+  "pr335HandoffAccepted": true,
+  "pr335Decision": "ready_for_plan_snapshot_contract_handoff",
+  "metadataHandoffOnly": true,
+  "planSnapshotContractReady": true,
+  "approvedPlanSnapshotPersistenceReady": false,
+  "workerExecutionReady": false,
+  "rawPromptDirectExecutionBlocked": true,
+  "providerOutputDirectExecutionBlocked": true,
+  "workerRuntimeStillNeeds": [
+    "dry-run plan packet",
+    "Supabase owner-approved persistence plan",
+    "backend/service-role transaction design",
+    "non-mutating dry-run validation before any execution lane"
+  ],
+  "nextAllowedPrompt": "WORKER-RUNTIME-UNLOCK-1: worker runtime dry-run plan, no execution"
+}

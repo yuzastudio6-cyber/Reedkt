@@ -8,7 +8,7 @@ Base branch: `origin/codex/rp-model-dryrun-2a-provider-token-guardrail-fixes`.
 
 Base head inspected: `bb17eefc6bf23cddf0ecef3e8097563dea80ff5d`.
 
-Pull request: pending.
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/339
 
 ## Source Reads
 

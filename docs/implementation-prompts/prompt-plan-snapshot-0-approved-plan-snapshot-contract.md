@@ -6,7 +6,7 @@ Branch: `codex/rp-plan-snapshot-0-approved-plan-snapshot-contract`.
 
 Base branch: `origin/codex/rp-model-dryrun-2a-provider-token-guardrail-fixes`.
 
-Pull request: pending.
+Pull request: https://github.com/yuzastudio6-cyber/Reedkt/pull/339
 
 ## Prompt
 

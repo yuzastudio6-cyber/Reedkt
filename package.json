@@ -537,6 +537,7 @@
     "model-provider:dryrun-2:diagnostics": "node scripts/validation/model-provider-dryrun-2-diagnostics.mjs",
     "model-provider:dryrun-token-budget:preflight": "node scripts/validation/model-provider-dryrun-token-budget-preflight.mjs",
     "model-provider:dryrun-2a:diagnostics": "node scripts/validation/model-provider-dryrun-2a-diagnostics.mjs",
+    "plan-snapshot:contract:diagnostics": "node scripts/validation/plan-snapshot-contract-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

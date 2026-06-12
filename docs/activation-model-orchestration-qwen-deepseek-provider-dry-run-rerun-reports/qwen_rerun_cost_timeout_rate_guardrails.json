@@ -1,0 +1,55 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-provider-dry-run-rerun",
+  "status": "passed",
+  "executed": true,
+  "maxQwenProviderCalls": 4,
+  "qwenProviderCallsAttempted": 4,
+  "maxTotalProviderCallsFromApproval": 8,
+  "maxEstimatedUsd": 2,
+  "maxTokensPerCall": 1200,
+  "maxTotalTokens": 7200,
+  "totalTokensReported": 1992,
+  "maxRetriesPerCase": 0,
+  "retryAttempted": false,
+  "streamingAllowed": false,
+  "rateLimitBehavior": "fail_closed_on_quota_or_rate_error",
+  "noCreditSpendOrReservation": true,
+  "caseCaps": [
+    {
+      "caseId": "synthetic_edit_intent_extraction",
+      "modelId": "qwen-flash-us",
+      "maxTokens": 900,
+      "timeoutMs": 12000,
+      "totalTokensReported": 545,
+      "latencyMs": 2965,
+      "status": "passed"
+    },
+    {
+      "caseId": "synthetic_timeline_planning",
+      "modelId": "qwen-plus-us",
+      "maxTokens": 1100,
+      "timeoutMs": 12000,
+      "totalTokensReported": 709,
+      "latencyMs": 4491,
+      "status": "passed"
+    },
+    {
+      "caseId": "synthetic_tool_route_metadata_recommendation",
+      "modelId": "qwen-plus-us",
+      "maxTokens": 1000,
+      "timeoutMs": 12000,
+      "totalTokensReported": 363,
+      "latencyMs": 1471,
+      "status": "passed"
+    },
+    {
+      "caseId": "synthetic_provider_fallback_comparison",
+      "modelId": "qwen-plus-us",
+      "maxTokens": 1200,
+      "timeoutMs": 15000,
+      "totalTokensReported": 375,
+      "latencyMs": 1548,
+      "status": "passed"
+    }
+  ]
+}

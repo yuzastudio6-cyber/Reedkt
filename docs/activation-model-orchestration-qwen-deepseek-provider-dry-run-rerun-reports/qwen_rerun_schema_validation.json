@@ -1,0 +1,49 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-provider-dry-run-rerun",
+  "status": "passed",
+  "executed": true,
+  "schemaContractsSource": "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_output_schema_contracts.json",
+  "schemaContractCount": 5,
+  "validationErrorsFailClosed": true,
+  "caseValidations": [
+    {
+      "caseId": "synthetic_edit_intent_extraction",
+      "schemaId": "agent_findings_v1",
+      "status": "passed",
+      "requiredFieldsPresent": true,
+      "requiredFieldsMissing": [],
+      "safetyBooleansValid": true,
+      "unsafeSafetyFields": []
+    },
+    {
+      "caseId": "synthetic_timeline_planning",
+      "schemaId": "edit_intents_v1",
+      "status": "passed",
+      "requiredFieldsPresent": true,
+      "requiredFieldsMissing": [],
+      "safetyBooleansValid": true,
+      "unsafeSafetyFields": []
+    },
+    {
+      "caseId": "synthetic_tool_route_metadata_recommendation",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "status": "passed",
+      "requiredFieldsPresent": true,
+      "requiredFieldsMissing": [],
+      "safetyBooleansValid": true,
+      "unsafeSafetyFields": []
+    },
+    {
+      "caseId": "synthetic_provider_fallback_comparison",
+      "schemaId": "provider_fallback_assessment_v1",
+      "status": "passed",
+      "requiredFieldsPresent": true,
+      "requiredFieldsMissing": [],
+      "safetyBooleansValid": true,
+      "unsafeSafetyFields": []
+    }
+  ],
+  "passedCount": 4,
+  "blockedCount": 0,
+  "invalidResponsesAccepted": false
+}

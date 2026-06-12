@@ -1,0 +1,25 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-provider-dry-run-rerun",
+  "status": "passed",
+  "executed": true,
+  "failClosedTriggers": [
+    "invalid_json",
+    "schema_mismatch",
+    "provider_timeout",
+    "provider_error",
+    "cost_overrun",
+    "secret_missing",
+    "unsafe_output",
+    "worker_tool_execution_request",
+    "public_artifact_request",
+    "signed_url_request",
+    "production_mutation_suggestion",
+    "raw_prompt_pass_through"
+  ],
+  "blockedCases": [],
+  "activeBlockers": [],
+  "invalidOutputsAccepted": false,
+  "mutationOnFailure": false,
+  "retryOnFailure": false,
+  "rawProviderResponseStored": false
+}

@@ -1,0 +1,48 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-provider-dry-run-rerun",
+  "status": "passed",
+  "executed": true,
+  "metadataOnlyReports": true,
+  "rawProviderOutputPersisted": false,
+  "rawProviderOutputPrinted": false,
+  "modelGeneratedContentStored": false,
+  "secretPayloadAccessedOnlyDuringConfirmedExecution": true,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "secretValueStoredInReports": false,
+  "requestCredentialHeadersStored": false,
+  "dbUrlsStored": false,
+  "signedUrlsStored": false,
+  "publicArtifactsCreated": false,
+  "privateProjectDataUsed": false,
+  "userDataUsed": false,
+  "mediaDataUsed": false,
+  "secretEntries": [
+    {
+      "secretRef": "DASHSCOPE_API_KEY",
+      "provider": "qwen_dashscope",
+      "source": "secret_manager",
+      "payloadAccessStatus": "succeeded",
+      "envVarPresent": true,
+      "payloadPrinted": false,
+      "payloadCommitted": false,
+      "secretValueStoredInReports": false
+    }
+  ],
+  "allowedEvidenceFields": [
+    "caseId",
+    "provider",
+    "modelId",
+    "endpoint",
+    "schemaId",
+    "status",
+    "httpStatus",
+    "latencyMs",
+    "finishReason",
+    "usage",
+    "blocker",
+    "requiredFieldStatus",
+    "safetyBooleanStatus",
+    "nextRecommendedPrompt"
+  ]
+}

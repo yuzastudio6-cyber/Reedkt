@@ -1,0 +1,51 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "runId": "plansnapshot1-20260612T182758",
+  "status": "passed",
+  "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+  "mode": "provider_output_to_approved_plan_snapshot_contract",
+  "branch": "codex/rp-plan-snapshot-1-provider-output-contract",
+  "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-full-synthetic-provider-dry-run",
+  "prTitle": "[plan] Provider output approved-plan snapshot contract",
+  "sourceProviderRunId": "modeldryrun1-20260612T174538",
+  "sourceDecision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "qwen": {
+    "modelId": "qwen3.7-plus",
+    "schemaId": "plan_snapshot_candidate_v1",
+    "mappedIntentCount": 4
+  },
+  "deepseek": {
+    "modelId": "deepseek-v4-flash",
+    "schemaId": "agent_findings_v1",
+    "implementationProposalRefCount": 4
+  },
+  "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "executionStatus": "candidate_only",
+  "approvedForRuntime": false,
+  "workerExecutionAllowed": false,
+  "providerCallsExecuted": false,
+  "toolsWorkersRoutesExecuted": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBetaAffected": false,
+  "broadMediaAffected": false,
+  "rawProviderResponsesStored": false,
+  "rawPromptPayloadsStored": false,
+  "secretPayloadsStored": false,
+  "privateArtifactUploadStatus": "uploaded",
+  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/plan-snapshot-1/plansnapshot1-20260612T182758/",
+  "supabaseMilestoneSync": {
+    "requested": true,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false,
+    "syncLayerDirectoryPresent": false
+  },
+  "activeBlockers": [],
+  "provider2RuntimeReadiness": "not_runtime_ready_candidate_contract_only",
+  "workerRuntimeAuditReadiness": "ready_for_worker_runtime_repo_audit"
+}

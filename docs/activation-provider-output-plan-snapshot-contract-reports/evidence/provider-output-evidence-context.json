@@ -1,0 +1,129 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "sourceProviderRunId": "modeldryrun1-20260612T174538",
+  "sourceDecision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+  "sourcePlanSnapshotContractReady": true,
+  "qwen": {
+    "caseId": "modeldryrun1_qwen_head_agent_plan_snapshot",
+    "provider": "qwen_dashscope",
+    "modelId": "qwen3.7-plus",
+    "schemaId": "plan_snapshot_candidate_v1",
+    "status": "passed",
+    "normalizedOutput": {
+      "caseId": "modeldryrun1_qwen_head_agent_plan_snapshot",
+      "candidateSummary": "Metadata-only planning snapshot for synthetic video evidence manifest. Recommends non-executable route labels for captions, chart cards, and map cards based on three non-sensitive clips. No executable actions or media processing requested.",
+      "toolRouteHints": [
+        "route:caption_recommendation",
+        "route:chart_card_metadata",
+        "route:map_card_metadata",
+        "route:timeline_metadata_planning"
+      ],
+      "creditRiskNotes": "No credit risk. Dry-run evaluation only. No paid production, external beta, or resource-consuming operations triggered.",
+      "requiredApprovals": [
+        "approval:head_agent_schema_validation",
+        "approval:synthetic_data_compliance_check"
+      ],
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "schemaId": "plan_snapshot_candidate_v1"
+    },
+    "usage": {
+      "promptTokens": 336,
+      "completionTokens": 1531,
+      "totalTokens": 1867
+    },
+    "rawProviderResponseStored": false,
+    "rawProviderResponsePrinted": false,
+    "secretPayloadPrinted": false,
+    "workerExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAllowed": false,
+    "rawPromptForwardingAllowed": false,
+    "directMutationAllowed": false,
+    "productionMutationAllowed": false
+  },
+  "deepseek": {
+    "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+    "provider": "deepseek",
+    "modelId": "deepseek-v4-flash",
+    "schemaId": "agent_findings_v1",
+    "status": "passed",
+    "normalizedOutput": {
+      "caseId": "modeldryrun1_deepseek_coding_spec_proposal",
+      "findings": [
+        "Schema validation: All required fields present and conform to schemaId agent_findings_v1.",
+        "Redaction validation: No sensitive data detected in synthetic input.",
+        "Cost evidence: No cost data required for dry-run; zero cost assumed.",
+        "Plan snapshot readiness: Snapshot can be generated from current metadata without execution."
+      ],
+      "confidence": 0.95,
+      "risks": [
+        "Low risk: Schema changes may invalidate future dry-runs.",
+        "Low risk: Redaction rules may need update for new data types."
+      ],
+      "blockedActions": [
+        "workerExecution",
+        "toolExecution",
+        "publicArtifacts",
+        "signedUrls",
+        "rawPromptForwarding",
+        "directMutation"
+      ],
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "schemaId": "agent_findings_v1"
+    },
+    "usage": {
+      "promptTokens": 338,
+      "completionTokens": 244,
+      "totalTokens": 582
+    },
+    "rawProviderResponseStored": false,
+    "rawProviderResponsePrinted": false,
+    "secretPayloadPrinted": false,
+    "workerExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAllowed": false,
+    "rawPromptForwardingAllowed": false,
+    "directMutationAllowed": false,
+    "productionMutationAllowed": false
+  },
+  "sourceArtifactRefs": {
+    "generatedPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T174538/",
+    "qaPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T174538/"
+  },
+  "sourceReports": [
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/qwen_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/deepseek_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_private_artifact_manifest.json",
+      "present": true
+    }
+  ],
+  "rawProviderResponsesStored": false,
+  "rawPromptPayloadsStored": false,
+  "secretPayloadsStored": false,
+  "activeBlockers": []
+}

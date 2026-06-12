@@ -1,0 +1,143 @@
+{
+  "phase": "PLAN_SNAPSHOT_1",
+  "status": "owner_review_required",
+  "runtimeReady": false,
+  "ownerRoutes": [
+    {
+      "owner": "MODEL_ORCHESTRATION",
+      "routePurpose": "Review provider-derived planning intent labels and candidate snapshot structure.",
+      "source": "qwen_plan_candidate",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "COORDINATOR_PRODUCER_QA",
+      "routePurpose": "Review professional editing QA requirements and user-approval gate implications.",
+      "source": "qwen_plan_candidate",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "WORKER_RUNTIME_JOBS",
+      "routePurpose": "Audit future worker-runtime contract boundaries before any execution implementation.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "routePurpose": "Review render/export implications as handoff metadata only.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "routePurpose": "Review media-processing implications as handoff metadata only.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "routePurpose": "Review chart/card/graphics route labels before any tool strategy work.",
+      "source": "qwen_plan_candidate",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "routePurpose": "Review map route labels before any map/geospatial tool strategy work.",
+      "source": "qwen_plan_candidate",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "routePurpose": "Review sound/music/audio implications before any audio planning work.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "routePurpose": "Review provider policy boundaries and future provider route approval requirements.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "routePurpose": "Review future approved-plan persistence needs; no SQL or row writes in this phase.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "COMPLIANCE_SECURITY",
+      "routePurpose": "Review privacy, redaction, source-of-truth, and signed URL blockers.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "OBSERVABILITY_AUDIT_COST",
+      "routePurpose": "Review traceability, cost limits, and audit fields before runtime work.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "FRONTEND_PRODUCT_UX",
+      "routePurpose": "Review candidate snapshot UX exposure boundaries before product UI work.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "BILLING_STRIPE_CREDITS",
+      "routePurpose": "Review credit-estimate and reservation implications; no billing action authorized.",
+      "source": "policy_required_review",
+      "status": "handoff_required",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    },
+    {
+      "owner": "PUBLIC_ARTIFACT_SIGNED_URL_POLICY",
+      "routePurpose": "Keep public artifacts and signed URL source-of-truth blocked pending future policy.",
+      "source": "policy_required_review",
+      "status": "blocked_future_policy",
+      "executionAllowed": false,
+      "runtimeReady": false,
+      "requiredBeforeRuntimeApproval": true
+    }
+  ],
+  "executionAllowed": false
+}

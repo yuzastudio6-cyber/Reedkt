@@ -1,0 +1,21 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-provider-dry-run-rerun",
+  "status": "passed",
+  "decision": "qwen_rerun_passed_provider_dry_run_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
+  "nextRecommendedPrompt": "MODEL-ORCHESTRATION-PLAN-SNAPSHOT-CONTRACT-0: plan snapshot contract after provider dry-run, no workers/tools",
+  "blockedScopes": [
+    "workers_tools_routes",
+    "media_processing",
+    "supabase_writes",
+    "raw_prompt_execution",
+    "public_artifacts",
+    "signed_urls",
+    "generated_assets",
+    "production",
+    "external_beta",
+    "paid_production"
+  ],
+  "noProviderErrorTreatedAsPass": true,
+  "noMutationOnFailure": true
+}

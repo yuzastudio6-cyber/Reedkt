@@ -1,0 +1,19 @@
+{
+  "phase": "model-orchestration-qwen-deepseek-provider-dry-run-rerun",
+  "status": "passed",
+  "source": "PR #320 deepseek_provider_dry_run_report.json",
+  "deepseekRerunAttempted": false,
+  "providerCallsAttemptedInPr320": 3,
+  "providerCallsPassedInPr320": 3,
+  "providerCallsBlockedInPr320": 0,
+  "modelsPreserved": [
+    "deepseek-v4-flash",
+    "deepseek-v4-pro"
+  ],
+  "schemaIdsPreserved": [
+    "blocker_classification_v1"
+  ],
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "secretPayloadPrinted": false
+}

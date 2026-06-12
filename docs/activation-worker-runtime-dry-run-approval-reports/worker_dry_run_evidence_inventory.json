@@ -1,0 +1,185 @@
+{
+  "phase": "worker-runtime-dry-run-approval-after-repo-audit",
+  "status": "passed",
+  "evidence": [
+    {
+      "name": "PR #341 repo audit",
+      "classification": "accepted_source",
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_decision.json"
+    },
+    {
+      "name": "PR #337 plan snapshot dry-run",
+      "classification": "accepted_source",
+      "path": "docs/activation-model-orchestration-plan-snapshot-dry-run-reports/plan_snapshot_dry_run_decision.json"
+    },
+    {
+      "name": "PR #327 plan snapshot contract",
+      "classification": "accepted_source",
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_decision.json"
+    },
+    {
+      "name": "Provider dry-run evidence",
+      "classification": "historical_source_no_provider_calls",
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports"
+    },
+    {
+      "name": "Track B route manifest",
+      "classification": "route_metadata_only",
+      "path": "docs/activation-track-b-tool-route-manifest-reports"
+    },
+    {
+      "name": "Track B capability manifests",
+      "classification": "capability_metadata_only",
+      "path": "docs/activation-track-b-capability-manifests-reports"
+    },
+    {
+      "name": "Phase 44G local sidecar foundation",
+      "classification": "sidecar_metadata_foundation_only",
+      "path": "docs/activation-phase-44g-local-worker-sidecar-foundation-reports"
+    },
+    {
+      "name": "Phase 44J hybrid simulation",
+      "classification": "simulation_evidence_no_execution_here",
+      "path": "docs/activation-phase-44j-hybrid-compute-e2e-simulation-reports"
+    },
+    {
+      "name": "Route dry-run chain",
+      "classification": "route_metadata_chain_no_route_execution_here",
+      "path": "docs/activation-phase-44l-route-dry-run-approval-reports"
+    },
+    {
+      "name": "Supabase Track B clean staging sync",
+      "classification": "completed_elsewhere_no_write_here",
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports"
+    }
+  ],
+  "workerSurfacesReviewed": [
+    {
+      "present": true,
+      "totalFiles": 352,
+      "representativeFiles": [
+        "server/workers/README.md",
+        "server/workers/audio-execution/audio-execution-pipeline-types.ts",
+        "server/workers/audio-execution/audio-execution-pipeline.ts",
+        "server/workers/audio-execution/index.ts",
+        "server/workers/audio/audio-analysis-adapter.ts",
+        "server/workers/audio/audio-artifact-builder.ts",
+        "server/workers/audio/audio-cleanup-execution-runner.ts",
+        "server/workers/audio/audio-cleanup-plan-builder.ts",
+        "server/workers/audio/audio-execution-artifact-writer.ts",
+        "server/workers/audio/audio-execution-plan-builder.ts",
+        "server/workers/audio/audio-execution-policy.ts",
+        "server/workers/audio/audio-execution-qa-builder.ts",
+        "server/workers/audio/audio-execution-result-builder.ts",
+        "server/workers/audio/audio-execution-runner.ts",
+        "server/workers/audio/audio-execution-types.ts",
+        "server/workers/audio/audio-execution-validator.ts",
+        "server/workers/audio/audio-foundation-runner.ts",
+        "server/workers/audio/audio-foundation-types.ts",
+        "server/workers/audio/audio-qa-builder.ts",
+        "server/workers/audio/audio-storage-policy.ts",
+        "server/workers/audio/audio-worker-types.ts",
+        "server/workers/audio/deepfilternet-adapter.ts",
+        "server/workers/audio/demucs-adapter.ts",
+        "server/workers/audio/ffmpeg-audio-adapter.ts",
+        "server/workers/audio/ffmpeg-loudness-execution-runner.ts",
+        "server/workers/audio/ffmpeg-normalization-execution-runner.ts",
+        "server/workers/audio/index.ts",
+        "server/workers/audio/loudness-normalization-policy.ts",
+        "server/workers/audio/music-ducking-execution-plan-builder.ts",
+        "server/workers/audio/music-ducking-plan-builder.ts",
+        "server/workers/audio/music-speech-overlap-policy.ts",
+        "server/workers/audio/rnnoise-adapter.ts",
+        "server/workers/audio/sfx-density-policy.ts",
+        "server/workers/audio/signalsmith-stretch-adapter.ts",
+        "server/workers/audio/soundsync-artifact-writer.ts",
+        "server/workers/audio/soundsync-cue-planner.ts",
+        "server/workers/audio/soundtouch-adapter.ts",
+        "server/workers/audio/voice-cleanup-policy.ts",
+        "server/workers/captions/ass-caption-builder.ts",
+        "server/workers/captions/caption-execution-artifact-writer.ts",
+        "server/workers/captions/caption-execution-policy.ts",
+        "server/workers/captions/caption-execution-runner.ts",
+        "server/workers/captions/caption-file-builder.ts",
+        "server/workers/captions/caption-foundation-runner.ts",
+        "server/workers/captions/caption-preview-artifact-writer.ts",
+        "server/workers/captions/caption-preview-command-runner.ts",
+        "server/workers/captions/caption-qa-result-builder.ts",
+        "server/workers/captions/caption-readability-policy.ts",
+        "server/workers/captions/caption-safe-zone-policy.ts",
+        "server/workers/captions/caption-segment-builder.ts",
+        "server/workers/captions/caption-style-policy.ts",
+        "server/workers/captions/caption-timing-policy.ts",
+        "server/workers/captions/caption-worker-types.ts",
+        "server/workers/captions/index.ts",
+        "server/workers/captions/libass-caption-preview-adapter.ts",
+        "server/workers/captions/srt-caption-builder.ts",
+        "server/workers/captions/webvtt-caption-builder.ts",
+        "server/workers/color-execution/color-execution-pipeline-types.ts",
+        "server/workers/color-execution/color-execution-pipeline.ts",
+        "server/workers/color-execution/index.ts",
+        "server/workers/color/color-analysis-summary-builder.ts",
+        "server/workers/color/color-artifact-writer.ts",
+        "server/workers/color/color-correction-plan-builder.ts",
+        "server/workers/color/color-execution-plan-builder.ts",
+        "server/workers/color/color-execution-policy.ts",
+        "server/workers/color/color-execution-qa-builder.ts",
+        "server/workers/color/color-execution-result-builder.ts",
+        "server/workers/color/color-execution-runner.ts",
+        "server/workers/color/color-execution-types.ts",
+        "server/workers/color/color-execution-validator.ts",
+        "server/workers/color/color-look-transform-plan-builder.ts",
+        "server/workers/color/color-shot-match-plan-builder.ts",
+        "server/workers/color/ffmpeg-color-command-builder.ts",
+        "server/workers/color/ffmpeg-color-preview-runner.ts",
+        "server/workers/color/index.ts",
+        "server/workers/color/opencolorio-adapter.ts",
+        "server/workers/color/openimageio-adapter.ts",
+        "server/workers/deepfilternet-runtime-hardening/README.md",
+        "server/workers/deepfilternet-runtime-hardening/run_deepfilternet_runtime_hardening.py",
+        "server/workers/deepfilternet-runtime/linux_runtime_entrypoint.py"
+      ]
+    },
+    {
+      "present": false,
+      "totalFiles": 0,
+      "representativeFiles": []
+    },
+    {
+      "present": false,
+      "totalFiles": 0,
+      "representativeFiles": []
+    },
+    {
+      "present": true,
+      "totalFiles": 2,
+      "representativeFiles": [
+        "server/activation/local-worker-sidecar-foundation/index.ts",
+        "server/activation/local-worker-sidecar-foundation/local-worker-sidecar-foundation-types.ts"
+      ]
+    }
+  ],
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false
+}

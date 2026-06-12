@@ -1,0 +1,514 @@
+{
+  "phase": "model-orchestration-plan-snapshot-dry-run",
+  "status": "passed",
+  "allValidFindingsConverted": true,
+  "allInvalidFindingsFailedClosed": true,
+  "results": [
+    {
+      "fixtureId": "finding_simple_video_edit",
+      "expectedOutcome": "pass",
+      "status": "passed",
+      "findingValidation": {
+        "fixtureId": "finding_simple_video_edit",
+        "expectedOutcome": "pass",
+        "passed": true,
+        "failClosed": false,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": true,
+      "editIntent": {
+        "schemaVersion": "edit_intents_v1",
+        "intentId": "intent_finding_simple_video_edit",
+        "findingRefs": [
+          "finding_simple_video_edit"
+        ],
+        "intentSummary": "Synthetic explainer needs tighter pacing and clearer captions.",
+        "segments": [
+          {
+            "segmentId": "synthetic_segment_1",
+            "observation": {
+              "segmentId": "seg_001",
+              "recommendation": "tighten_pacing",
+              "metadataOnly": true
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          }
+        ],
+        "blockers": [],
+        "approvalRequirements": [
+          "human_plan_review",
+          "source_of_truth_refs_required",
+          "future_worker_phase_requires_separate_approval"
+        ],
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        }
+      },
+      "editIntentValidation": {
+        "intentId": "intent_finding_simple_video_edit",
+        "passed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "blockersRetained": true,
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true
+      }
+    },
+    {
+      "fixtureId": "finding_timeline_planning",
+      "expectedOutcome": "pass",
+      "status": "passed",
+      "findingValidation": {
+        "fixtureId": "finding_timeline_planning",
+        "expectedOutcome": "pass",
+        "passed": true,
+        "failClosed": false,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": true,
+      "editIntent": {
+        "schemaVersion": "edit_intents_v1",
+        "intentId": "intent_finding_timeline_planning",
+        "findingRefs": [
+          "finding_timeline_planning"
+        ],
+        "intentSummary": "Synthetic timeline can use hook, proof, and CTA review beats.",
+        "segments": [
+          {
+            "segmentId": "synthetic_segment_1",
+            "observation": {
+              "step": "hook"
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          },
+          {
+            "segmentId": "synthetic_segment_2",
+            "observation": {
+              "step": "proof"
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          },
+          {
+            "segmentId": "synthetic_segment_3",
+            "observation": {
+              "step": "cta"
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          }
+        ],
+        "blockers": [],
+        "approvalRequirements": [
+          "human_plan_review",
+          "source_of_truth_refs_required",
+          "future_worker_phase_requires_separate_approval"
+        ],
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        }
+      },
+      "editIntentValidation": {
+        "intentId": "intent_finding_timeline_planning",
+        "passed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "blockersRetained": true,
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true
+      }
+    },
+    {
+      "fixtureId": "finding_tool_route_metadata",
+      "expectedOutcome": "pass",
+      "status": "passed",
+      "findingValidation": {
+        "fixtureId": "finding_tool_route_metadata",
+        "expectedOutcome": "pass",
+        "passed": true,
+        "failClosed": false,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": true,
+      "editIntent": {
+        "schemaVersion": "edit_intents_v1",
+        "intentId": "intent_finding_tool_route_metadata",
+        "findingRefs": [
+          "finding_tool_route_metadata"
+        ],
+        "intentSummary": "Captions and chart-card routes are metadata recommendations only.",
+        "segments": [
+          {
+            "segmentId": "synthetic_segment_1",
+            "observation": {
+              "routeId": "caption_metadata",
+              "execution": false
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          },
+          {
+            "segmentId": "synthetic_segment_2",
+            "observation": {
+              "routeId": "chart_card_metadata",
+              "execution": false
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          }
+        ],
+        "blockers": [],
+        "approvalRequirements": [
+          "human_plan_review",
+          "source_of_truth_refs_required",
+          "future_worker_phase_requires_separate_approval"
+        ],
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        }
+      },
+      "editIntentValidation": {
+        "intentId": "intent_finding_tool_route_metadata",
+        "passed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "blockersRetained": true,
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true
+      }
+    },
+    {
+      "fixtureId": "finding_blocker_classification",
+      "expectedOutcome": "pass",
+      "status": "passed",
+      "findingValidation": {
+        "fixtureId": "finding_blocker_classification",
+        "expectedOutcome": "pass",
+        "passed": true,
+        "failClosed": false,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": true,
+      "editIntent": {
+        "schemaVersion": "edit_intents_v1",
+        "intentId": "intent_finding_blocker_classification",
+        "findingRefs": [
+          "finding_blocker_classification"
+        ],
+        "intentSummary": "Missing confirmed frame remains a planning blocker.",
+        "segments": [
+          {
+            "segmentId": "synthetic_segment_1",
+            "observation": {
+              "kind": "synthetic_observation",
+              "metadataOnly": true
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          }
+        ],
+        "blockers": [
+          "confirmed_output_frame_required"
+        ],
+        "approvalRequirements": [
+          "human_plan_review",
+          "source_of_truth_refs_required",
+          "future_worker_phase_requires_separate_approval"
+        ],
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        }
+      },
+      "editIntentValidation": {
+        "intentId": "intent_finding_blocker_classification",
+        "passed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "blockersRetained": true,
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true
+      }
+    },
+    {
+      "fixtureId": "finding_cost_scope_risk",
+      "expectedOutcome": "pass",
+      "status": "passed",
+      "findingValidation": {
+        "fixtureId": "finding_cost_scope_risk",
+        "expectedOutcome": "pass",
+        "passed": true,
+        "failClosed": false,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": true,
+      "editIntent": {
+        "schemaVersion": "edit_intents_v1",
+        "intentId": "intent_finding_cost_scope_risk",
+        "findingRefs": [
+          "finding_cost_scope_risk"
+        ],
+        "intentSummary": "Broad Real Motion request should stay blocked pending cost/scope review.",
+        "segments": [
+          {
+            "segmentId": "synthetic_segment_1",
+            "observation": {
+              "kind": "synthetic_observation",
+              "metadataOnly": true
+            },
+            "metadataOnly": true,
+            "executionAllowed": false
+          }
+        ],
+        "blockers": [
+          "broad_runtime_scope_blocked"
+        ],
+        "approvalRequirements": [
+          "human_plan_review",
+          "source_of_truth_refs_required",
+          "future_worker_phase_requires_separate_approval"
+        ],
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        }
+      },
+      "editIntentValidation": {
+        "intentId": "intent_finding_cost_scope_risk",
+        "passed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "blockersRetained": true,
+        "approvalRequired": true,
+        "candidateRoutesMetadataOnly": true
+      }
+    },
+    {
+      "fixtureId": "finding_invalid_raw_worker_prompt",
+      "expectedOutcome": "fail_closed",
+      "status": "passed_fail_closed",
+      "findingValidation": {
+        "fixtureId": "finding_invalid_raw_worker_prompt",
+        "expectedOutcome": "fail_closed",
+        "passed": false,
+        "failClosed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [
+          "rawPromptForWorker"
+        ],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": false
+    },
+    {
+      "fixtureId": "finding_invalid_public_artifact",
+      "expectedOutcome": "fail_closed",
+      "status": "passed_fail_closed",
+      "findingValidation": {
+        "fixtureId": "finding_invalid_public_artifact",
+        "expectedOutcome": "fail_closed",
+        "passed": false,
+        "failClosed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [
+          "publicArtifactRequest"
+        ],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": false
+    },
+    {
+      "fixtureId": "finding_invalid_signed_url_truth",
+      "expectedOutcome": "fail_closed",
+      "status": "passed_fail_closed",
+      "findingValidation": {
+        "fixtureId": "finding_invalid_signed_url_truth",
+        "expectedOutcome": "fail_closed",
+        "passed": false,
+        "failClosed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [],
+        "signedUrlTruth": true
+      },
+      "editIntentCreated": false
+    },
+    {
+      "fixtureId": "finding_invalid_production_mutation",
+      "expectedOutcome": "fail_closed",
+      "status": "passed_fail_closed",
+      "findingValidation": {
+        "fixtureId": "finding_invalid_production_mutation",
+        "expectedOutcome": "fail_closed",
+        "passed": false,
+        "failClosed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [
+          "productionMutationRequest"
+        ],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": false
+    },
+    {
+      "fixtureId": "finding_invalid_broad_media_runtime",
+      "expectedOutcome": "fail_closed",
+      "status": "passed_fail_closed",
+      "findingValidation": {
+        "fixtureId": "finding_invalid_broad_media_runtime",
+        "expectedOutcome": "fail_closed",
+        "passed": false,
+        "failClosed": true,
+        "missing": [],
+        "unsafeFlags": [],
+        "unsafeFields": [
+          "broadMediaProcessingRequest",
+          "demucsRuntimeRequest",
+          "vlmRuntimeRequest"
+        ],
+        "signedUrlTruth": false
+      },
+      "editIntentCreated": false
+    }
+  ],
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

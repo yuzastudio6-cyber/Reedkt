@@ -1,0 +1,528 @@
+{
+  "phase": "model-orchestration-plan-snapshot-dry-run",
+  "status": "passed",
+  "fixtureCount": 10,
+  "validFixtureCount": 5,
+  "invalidFixtureCount": 5,
+  "fixtures": [
+    {
+      "fixtureId": "finding_simple_video_edit",
+      "title": "valid simple video edit finding",
+      "category": "valid",
+      "expectedOutcome": "pass",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_simple_video_edit",
+        "sourceEvidenceRefs": [
+          "synthetic:metadata-only",
+          "pr327:plan-snapshot-contract"
+        ],
+        "observations": [
+          {
+            "segmentId": "seg_001",
+            "recommendation": "tighten_pacing",
+            "metadataOnly": true
+          }
+        ],
+        "risks": [],
+        "blockers": [],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Synthetic explainer needs tighter pacing and clearer captions."
+      }
+    },
+    {
+      "fixtureId": "finding_timeline_planning",
+      "title": "valid timeline planning finding",
+      "category": "valid",
+      "expectedOutcome": "pass",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_timeline_planning",
+        "sourceEvidenceRefs": [
+          "synthetic:metadata-only",
+          "pr327:plan-snapshot-contract"
+        ],
+        "observations": [
+          {
+            "step": "hook"
+          },
+          {
+            "step": "proof"
+          },
+          {
+            "step": "cta"
+          }
+        ],
+        "risks": [],
+        "blockers": [],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Synthetic timeline can use hook, proof, and CTA review beats."
+      }
+    },
+    {
+      "fixtureId": "finding_tool_route_metadata",
+      "title": "valid metadata-only tool route recommendation",
+      "category": "valid",
+      "expectedOutcome": "pass",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_tool_route_metadata",
+        "sourceEvidenceRefs": [
+          "synthetic:metadata-only",
+          "pr327:plan-snapshot-contract"
+        ],
+        "observations": [
+          {
+            "routeId": "caption_metadata",
+            "execution": false
+          },
+          {
+            "routeId": "chart_card_metadata",
+            "execution": false
+          }
+        ],
+        "risks": [],
+        "blockers": [],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Captions and chart-card routes are metadata recommendations only."
+      }
+    },
+    {
+      "fixtureId": "finding_blocker_classification",
+      "title": "valid blocker classification finding",
+      "category": "valid",
+      "expectedOutcome": "pass",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_blocker_classification",
+        "sourceEvidenceRefs": [
+          "synthetic:metadata-only",
+          "pr327:plan-snapshot-contract"
+        ],
+        "observations": [
+          {
+            "kind": "synthetic_observation",
+            "metadataOnly": true
+          }
+        ],
+        "risks": [
+          "approval_gate_required"
+        ],
+        "blockers": [
+          "confirmed_output_frame_required"
+        ],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Missing confirmed frame remains a planning blocker."
+      }
+    },
+    {
+      "fixtureId": "finding_cost_scope_risk",
+      "title": "valid cost/scope risk finding",
+      "category": "valid",
+      "expectedOutcome": "pass",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_cost_scope_risk",
+        "sourceEvidenceRefs": [
+          "synthetic:metadata-only",
+          "pr327:plan-snapshot-contract"
+        ],
+        "observations": [
+          {
+            "kind": "synthetic_observation",
+            "metadataOnly": true
+          }
+        ],
+        "risks": [
+          "cost_scope_review_required"
+        ],
+        "blockers": [
+          "broad_runtime_scope_blocked"
+        ],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Broad Real Motion request should stay blocked pending cost/scope review."
+      }
+    },
+    {
+      "fixtureId": "finding_invalid_raw_worker_prompt",
+      "title": "invalid raw prompt tries to run worker",
+      "category": "invalid",
+      "expectedOutcome": "fail_closed",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_invalid_raw_worker_prompt",
+        "sourceEvidenceRefs": [
+          "synthetic:invalid-fixture"
+        ],
+        "observations": [
+          {
+            "kind": "unsafe_request",
+            "metadataOnly": false
+          }
+        ],
+        "risks": [
+          "must_fail_closed"
+        ],
+        "blockers": [
+          "unsafe_fixture"
+        ],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Run this raw prompt in a worker.",
+        "rawPromptForWorker": "synthetic raw prompt",
+        "requestedUnsafePath": "raw_prompt_to_worker"
+      }
+    },
+    {
+      "fixtureId": "finding_invalid_public_artifact",
+      "title": "invalid public artifact request",
+      "category": "invalid",
+      "expectedOutcome": "fail_closed",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_invalid_public_artifact",
+        "sourceEvidenceRefs": [
+          "synthetic:invalid-fixture"
+        ],
+        "observations": [
+          {
+            "kind": "unsafe_request",
+            "metadataOnly": false
+          }
+        ],
+        "risks": [
+          "must_fail_closed"
+        ],
+        "blockers": [
+          "unsafe_fixture"
+        ],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Publish a public preview artifact.",
+        "publicArtifactRequest": true
+      }
+    },
+    {
+      "fixtureId": "finding_invalid_signed_url_truth",
+      "title": "invalid signed URL as source of truth",
+      "category": "invalid",
+      "expectedOutcome": "fail_closed",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_invalid_signed_url_truth",
+        "sourceEvidenceRefs": [
+          "signed_url:redacted-example"
+        ],
+        "observations": [
+          {
+            "kind": "unsafe_request",
+            "metadataOnly": false
+          }
+        ],
+        "risks": [
+          "must_fail_closed"
+        ],
+        "blockers": [
+          "unsafe_fixture"
+        ],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Use a signed URL as source truth."
+      }
+    },
+    {
+      "fixtureId": "finding_invalid_production_mutation",
+      "title": "invalid production mutation suggestion",
+      "category": "invalid",
+      "expectedOutcome": "fail_closed",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_invalid_production_mutation",
+        "sourceEvidenceRefs": [
+          "synthetic:invalid-fixture"
+        ],
+        "observations": [
+          {
+            "kind": "unsafe_request",
+            "metadataOnly": false
+          }
+        ],
+        "risks": [
+          "must_fail_closed"
+        ],
+        "blockers": [
+          "unsafe_fixture"
+        ],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Promote the candidate directly to production.",
+        "productionMutationRequest": true
+      }
+    },
+    {
+      "fixtureId": "finding_invalid_broad_media_runtime",
+      "title": "invalid broad media/runtime request",
+      "category": "invalid",
+      "expectedOutcome": "fail_closed",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_invalid_broad_media_runtime",
+        "sourceEvidenceRefs": [
+          "synthetic:invalid-fixture"
+        ],
+        "observations": [
+          {
+            "kind": "unsafe_request",
+            "metadataOnly": false
+          }
+        ],
+        "risks": [
+          "must_fail_closed"
+        ],
+        "blockers": [
+          "unsafe_fixture"
+        ],
+        "approvalRequired": true,
+        "safety": {
+          "providerCalls": false,
+          "secretPayloadAccess": false,
+          "secretPayloadPrinted": false,
+          "secretPayloadCommitted": false,
+          "supabaseWrites": false,
+          "sqlExecuted": false,
+          "migrationDeployed": false,
+          "workerExecution": false,
+          "toolExecution": false,
+          "routeExecution": false,
+          "rawPromptExecution": false,
+          "mediaProcessing": false,
+          "publicArtifacts": false,
+          "signedUrls": false,
+          "productionAffected": false,
+          "externalBeta": false,
+          "paidProduction": false,
+          "executionBlockedByDefault": true,
+          "providerExecutionAllowed": false,
+          "signedUrlsAsSourceOfTruth": false
+        },
+        "summary": "Run broad media processing with Demucs and VLM lanes.",
+        "broadMediaProcessingRequest": true,
+        "demucsRuntimeRequest": true,
+        "vlmRuntimeRequest": true
+      }
+    }
+  ],
+  "syntheticOnly": true,
+  "noUserPrivateProjectMediaData": true,
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

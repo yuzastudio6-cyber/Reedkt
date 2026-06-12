@@ -1,0 +1,55 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "gaps": [
+    {
+      "gap": "repo_audit_passed",
+      "status": "passed"
+    },
+    {
+      "gap": "blocked_pending_worker_dry_run_approval",
+      "status": "active_next_phase"
+    },
+    {
+      "gap": "blocked_pending_artifact_scope_contract",
+      "status": "cleared_for_audit"
+    },
+    {
+      "gap": "blocked_pending_queue_contract",
+      "status": "future_worker_dry_run_approval_scope"
+    },
+    {
+      "gap": "blocked_pending_observability_contract",
+      "status": "documented_for_future_contract"
+    },
+    {
+      "gap": "blocked_pending_execution_safety_review",
+      "status": "cleared_for_audit"
+    },
+    {
+      "gap": "blocked_pending_cloud_runtime_review",
+      "status": "future_separate_cloud_runtime_phase"
+    }
+  ],
+  "nextRequiredApproval": "worker_runtime_dry_run_approval_packet",
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

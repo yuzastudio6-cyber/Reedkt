@@ -1,0 +1,145 @@
+{
+  "phase": "worker-runtime-fixture-hardening",
+  "runId": "worker-runtime-fixture-hardening-20260612",
+  "status": "passed",
+  "fixtureSchemaVersion": "worker_runtime_hardened_fixture_v1",
+  "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+  "payloadContractSchemaVersion": "worker_runtime_metadata_payload_contract_v1",
+  "resultContractSchemaVersion": "worker_runtime_metadata_result_contract_v1",
+  "validFixtures": [
+    {
+      "caseId": "valid_noop_metadata_review_plan",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1"
+    },
+    {
+      "caseId": "valid_artifact_scope_validation_plan",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1"
+    },
+    {
+      "caseId": "valid_route_resolution_only_plan",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1"
+    },
+    {
+      "caseId": "valid_cost_estimation_only_plan",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1"
+    }
+  ],
+  "invalidFixtures": [
+    {
+      "caseId": "invalid_raw_prompt_worker_input",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "raw_prompt_worker_input"
+    },
+    {
+      "caseId": "invalid_public_artifact_output_request",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "public_artifact_output_request"
+    },
+    {
+      "caseId": "invalid_broad_media_processing_request",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "broad_media_processing_request"
+    },
+    {
+      "caseId": "invalid_production_write_request",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "production_write_request"
+    },
+    {
+      "caseId": "invalid_signed_url_source_of_truth",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "signed_url_source_of_truth"
+    },
+    {
+      "caseId": "invalid_unapproved_artifact_prefix",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "unapproved_artifact_prefix"
+    },
+    {
+      "caseId": "invalid_service_role_key_like_field_name",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "service_role_key_like_field_name"
+    },
+    {
+      "caseId": "invalid_direct_tool_route_execution_field",
+      "schemaVersion": "worker_runtime_hardened_fixture_v1",
+      "planSnapshotSchemaVersion": "approved_plan_snapshot_v1",
+      "approvedPlanSnapshotSchema": "approved_plan_snapshot_v1",
+      "intentionallyInvalidReason": "direct_tool_route_execution_field"
+    }
+  ],
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "toolExecutionAllowed": false,
+  "routeExecution": false,
+  "routeExecutionAllowed": false,
+  "providerCalls": false,
+  "providerExecutionAllowed": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawPromptForwardingAllowed": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "publicArtifactsAllowed": false,
+  "signedUrls": false,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "productionAffected": false,
+  "productionMutationAllowed": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "generatedAssets": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

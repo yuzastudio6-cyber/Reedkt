@@ -1,0 +1,237 @@
+{
+  "phase": "worker-runtime-local-fixture-plan",
+  "runId": "worker-runtime-local-fixture-plan-20260612",
+  "status": "passed",
+  "owner": "WORKER_RUNTIME_JOBS",
+  "branch": "codex/rp-worker-runtime-unlock-4-local-fixture-plan",
+  "baseBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+  "baseSha": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+  "sourcePr353Merged": true,
+  "sourceOfTruthConflictsFound": false,
+  "sourcePaths": [
+    {
+      "path": "docs/activation-worker-runtime-unlock-3-fixture-hardening-reports/worker_runtime_fixture_hardening_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-3-fixture-hardening-reports/worker_runtime_fixture_hardening_summary.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_hardened_valid_fixtures.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_hardened_invalid_fixtures.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_fixture_manifest.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_fixture_checksums.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_fixture_schema_versions.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports/worker_runtime_dry_run_contract_review_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_execution_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-dry-run-reports/plan_snapshot_dry_run_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports/provider_dry_run_evidence_reconciliation.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-product-internal-testing-session-0-reports/session_0_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports/trackb_clean_staging_backfill_readiness_report.json",
+      "present": true
+    }
+  ],
+  "evidence": [
+    {
+      "pr": 353,
+      "name": "worker runtime fixture hardening",
+      "expectedDecision": "worker_runtime_fixture_hardening_passed_ready_for_local_fixture_plan",
+      "actualDecision": "worker_runtime_fixture_hardening_passed_ready_for_local_fixture_plan",
+      "accepted": true
+    },
+    {
+      "pr": 351,
+      "name": "worker runtime dry-run contract review",
+      "expectedDecision": "worker_runtime_dry_run_contract_review_passed_ready_for_fixture_hardening",
+      "actualDecision": "worker_runtime_dry_run_contract_review_passed_ready_for_fixture_hardening",
+      "accepted": true
+    },
+    {
+      "pr": 346,
+      "name": "worker no-op dry-run execution",
+      "expectedDecision": "worker_noop_dry_run_passed_ready_for_contract_review",
+      "actualDecision": "worker_noop_dry_run_passed_ready_for_contract_review",
+      "accepted": true
+    },
+    {
+      "pr": 342,
+      "name": "worker dry-run approval packet",
+      "expectedDecision": "approved_for_future_worker_noop_dry_run_execution",
+      "actualDecision": "approved_for_future_worker_noop_dry_run_execution",
+      "accepted": true
+    },
+    {
+      "pr": 341,
+      "name": "worker runtime repo audit after plan snapshot dry-run",
+      "expectedDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "actualDecision": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "accepted": true
+    },
+    {
+      "pr": 337,
+      "name": "plan snapshot dry-run validation",
+      "expectedDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "actualDecision": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "accepted": true
+    },
+    {
+      "pr": 335,
+      "name": "plan snapshot contract readiness/fix handoff",
+      "expectedDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "actualDecision": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "accepted": true
+    },
+    {
+      "pr": 329,
+      "name": "Qwen DashScope repaired dry-run evidence",
+      "expectedDecision": "4_qwen_calls_passed_as_metadata_evidence",
+      "actualStatus": "passed",
+      "providerCallsPassed": 4,
+      "accepted": true,
+      "copiedRawProviderOutput": false
+    },
+    {
+      "pr": 320,
+      "name": "DeepSeek provider dry-run evidence",
+      "expectedDecision": "3_deepseek_calls_preserved_as_metadata_evidence",
+      "actualStatus": "passed_remote_pr320",
+      "providerCallsPassed": 3,
+      "accepted": true,
+      "copiedRawProviderOutput": false
+    },
+    {
+      "pr": 315,
+      "name": "Supabase registry restoration lane",
+      "expectedDecision": "checked_where_present_not_required_for_worker_fixture_plan",
+      "localEvidencePresent": true,
+      "accepted": true
+    },
+    {
+      "pr": 319,
+      "name": "SOUND/Supabase local harness lane",
+      "expectedDecision": "checked_where_present_not_continued_in_worker_fixture_plan",
+      "localEvidencePresent": false,
+      "accepted": true
+    },
+    {
+      "pr": 311,
+      "name": "restricted internal testing session 0",
+      "expectedDecision": "restricted_internal_testing_session_0_passed",
+      "actualDecision": "restricted_internal_testing_session_0_passed",
+      "accepted": true
+    },
+    {
+      "pr": 298,
+      "name": "Supabase Track B clean staging sync metadata",
+      "expectedDecision": "track_b_clean_staging_metadata_backfill_verified",
+      "actualStatus": "passed",
+      "accepted": true
+    }
+  ],
+  "sourceHardenedFixtureReportDir": "docs/activation-worker-runtime-unlock-3-fixture-hardening-reports",
+  "sourceHardenedFixtureDir": "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures",
+  "rawPromptTextReadAsSource": false,
+  "rawProviderOutputCopied": false,
+  "secretPayloadCopied": false,
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "localFixturesExecuted": false,
+  "localFixtureValidationExecuted": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "toolExecutionAllowed": false,
+  "routeExecution": false,
+  "routeExecutionAllowed": false,
+  "providerCalls": false,
+  "providerExecutionAllowed": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawPromptForwardingAllowed": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "publicArtifactsAllowed": false,
+  "signedUrls": false,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "productionAffected": false,
+  "productionMutationAllowed": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "generatedAssets": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

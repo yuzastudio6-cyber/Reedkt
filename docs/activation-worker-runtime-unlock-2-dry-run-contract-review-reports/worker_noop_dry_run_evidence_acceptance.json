@@ -1,0 +1,200 @@
+{
+  "phase": "worker-runtime-dry-run-contract-review",
+  "runId": "worker-runtime-dry-run-contract-review-20260612",
+  "status": "passed",
+  "githubMergeHygiene": {
+    "pr346State": "MERGED",
+    "pr346Draft": false,
+    "pr346MergeCommit": "9343673744dc52d2e740a545047705dc4d33b5fd",
+    "pr342State": "MERGED",
+    "pr342MergeCommit": "77892aa5572758c08836c9d6c8d8ef9d069d5350",
+    "pr341State": "MERGED",
+    "pr341MergeCommit": "4583001d8e8a22c638d45510fe0e08b8959bfb15",
+    "stackedFromDraftPr346": false,
+    "baseBranchHead": "4583001d8e8a22c638d45510fe0e08b8959bfb15"
+  },
+  "sourcePaths": [
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_execution_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_fixture_inventory.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_valid_fixture_results.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_invalid_fixture_results.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_queue_job_sidecar_guardrails.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_artifact_source_ref_guardrails.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_runtime_no_execution_verification.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_supabase_no_write_verification.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-dry-run-approval-reports/approved_plan_snapshot_dry_run_fixtures.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-dry-run-reports/plan_snapshot_dry_run_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-plan-snapshot-contract-reports/provider_dry_run_evidence_reconciliation.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-plan-snapshot-contract-decision.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-supabase-trackb-clean-staging-backfill-reports/trackb_clean_staging_backfill_readiness_report.json",
+      "present": true
+    }
+  ],
+  "sourceEvidence": [
+    {
+      "pr": 346,
+      "name": "worker no-op dry-run execution",
+      "expected": "worker_noop_dry_run_passed_ready_for_contract_review",
+      "actual": "worker_noop_dry_run_passed_ready_for_contract_review",
+      "accepted": true
+    },
+    {
+      "pr": 342,
+      "name": "worker dry-run approval",
+      "expected": "approved_for_future_worker_noop_dry_run_execution",
+      "actual": "approved_for_future_worker_noop_dry_run_execution",
+      "accepted": true
+    },
+    {
+      "pr": 341,
+      "name": "worker runtime repo audit",
+      "expected": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "actual": "repo_audit_passed_ready_for_worker_dry_run_approval",
+      "accepted": true
+    },
+    {
+      "pr": 337,
+      "name": "plan snapshot dry-run validation",
+      "expected": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "actual": "plan_snapshot_dry_run_passed_ready_for_worker_runtime_repo_audit",
+      "accepted": true
+    },
+    {
+      "pr": 335,
+      "name": "plan snapshot handoff evidence",
+      "expected": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "actual": "plan_snapshot_contract_passed_ready_for_dry_run_validation",
+      "accepted": true
+    },
+    {
+      "pr": 329,
+      "name": "Qwen provider evidence",
+      "expected": "4_of_4_passed_preserved_as_metadata",
+      "actual": "passed",
+      "providerCallsPassed": 4,
+      "accepted": true,
+      "copiedRawProviderOutput": false
+    },
+    {
+      "pr": 320,
+      "name": "DeepSeek provider evidence",
+      "expected": "3_of_3_passed_remote_pr320_preserved",
+      "actual": "passed_remote_pr320",
+      "providerCallsPassed": 3,
+      "accepted": true,
+      "copiedRawProviderOutput": false
+    },
+    {
+      "pr": 315,
+      "name": "Supabase registry restoration",
+      "expected": "do_not_duplicate_registry_lane",
+      "actual": "registry_docs_present",
+      "accepted": true
+    },
+    {
+      "pr": 319,
+      "name": "Supabase/SOUND local harness blocked lane",
+      "expected": "not_continued_in_worker_lane",
+      "actual": "not_continued",
+      "accepted": true
+    }
+  ],
+  "sourceOfTruthConflictsFound": false,
+  "rawProviderOutputCopied": false,
+  "secretPayloadCopied": false,
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

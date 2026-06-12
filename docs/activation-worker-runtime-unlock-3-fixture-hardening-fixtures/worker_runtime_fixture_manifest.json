@@ -1,0 +1,245 @@
+{
+  "phase": "worker-runtime-fixture-hardening",
+  "runId": "worker-runtime-fixture-hardening-20260612",
+  "status": "passed",
+  "manifestSchemaVersion": "worker_runtime_fixture_manifest_v1",
+  "fixtureCount": 12,
+  "validFixtureCount": 4,
+  "invalidFailClosedFixtureCount": 8,
+  "fixtureFiles": [
+    "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_hardened_valid_fixtures.json",
+    "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_hardened_invalid_fixtures.json",
+    "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_fixture_checksums.json",
+    "docs/activation-worker-runtime-unlock-3-fixture-hardening-fixtures/worker_runtime_fixture_schema_versions.json"
+  ],
+  "fixtures": [
+    {
+      "caseId": "valid_noop_metadata_review_plan",
+      "kind": "valid_hardened",
+      "expectedDecision": "accepted_for_future_local_fixture_plan",
+      "checksum": "90d2c55025127703a988f98ed051d6dc682c3d1a42c717de11d8ea3af74107cb",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/valid_noop_metadata_review_plan",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_valid_noop_metadata_review_plan",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/valid_noop_metadata_review_plan",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/valid_noop_metadata_review_plan",
+        "manifest_ref:synthetic_manifest_valid_noop_metadata_review_plan",
+        "checksum_ref:synthetic_checksum_valid_noop_metadata_review_plan"
+      ]
+    },
+    {
+      "caseId": "valid_artifact_scope_validation_plan",
+      "kind": "valid_hardened",
+      "expectedDecision": "accepted_for_future_local_fixture_plan",
+      "checksum": "bc652fb5cb8c90d34becc2d25b37ff04f59f0abf13b06fb010f80034d9525db8",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/valid_artifact_scope_validation_plan",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_valid_artifact_scope_validation_plan",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/valid_artifact_scope_validation_plan",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/valid_artifact_scope_validation_plan",
+        "manifest_ref:synthetic_manifest_valid_artifact_scope_validation_plan",
+        "checksum_ref:synthetic_checksum_valid_artifact_scope_validation_plan"
+      ]
+    },
+    {
+      "caseId": "valid_route_resolution_only_plan",
+      "kind": "valid_hardened",
+      "expectedDecision": "accepted_for_future_local_fixture_plan",
+      "checksum": "69d716c4e2f5be392f7fb7dcd236152df4027b375ab2825adf56508a6f45e72f",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/valid_route_resolution_only_plan",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_valid_route_resolution_only_plan",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/valid_route_resolution_only_plan",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/valid_route_resolution_only_plan",
+        "manifest_ref:synthetic_manifest_valid_route_resolution_only_plan",
+        "checksum_ref:synthetic_checksum_valid_route_resolution_only_plan"
+      ]
+    },
+    {
+      "caseId": "valid_cost_estimation_only_plan",
+      "kind": "valid_hardened",
+      "expectedDecision": "accepted_for_future_local_fixture_plan",
+      "checksum": "8658cf061ff3c4984266a5db63b71e98a23d18bccfa8fd0c52a63c769174a00f",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/valid_cost_estimation_only_plan",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_valid_cost_estimation_only_plan",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/valid_cost_estimation_only_plan",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/valid_cost_estimation_only_plan",
+        "manifest_ref:synthetic_manifest_valid_cost_estimation_only_plan",
+        "checksum_ref:synthetic_checksum_valid_cost_estimation_only_plan"
+      ]
+    },
+    {
+      "caseId": "invalid_raw_prompt_worker_input",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "1fbeeae7dd71316b4117710af9d532130905f5b78a7ae1b8ae15b7c8003f5b1e",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/invalid_raw_prompt_worker_input",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_raw_prompt_worker_input",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/invalid_raw_prompt_worker_input",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/invalid_raw_prompt_worker_input",
+        "manifest_ref:synthetic_manifest_invalid_raw_prompt_worker_input",
+        "checksum_ref:synthetic_checksum_invalid_raw_prompt_worker_input"
+      ]
+    },
+    {
+      "caseId": "invalid_public_artifact_output_request",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "89f982022f8d4f1df10c8ce323abb8eedd19ffa6938cea7a54f93c2dc927591f",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/invalid_public_artifact_output_request",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_public_artifact_output_request",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/invalid_public_artifact_output_request",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/invalid_public_artifact_output_request",
+        "manifest_ref:synthetic_manifest_invalid_public_artifact_output_request",
+        "checksum_ref:synthetic_checksum_invalid_public_artifact_output_request"
+      ]
+    },
+    {
+      "caseId": "invalid_broad_media_processing_request",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "0a780fdbbddeb2f41241121452be741c4c5052f850aad978fe96f3cd98ba7528",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/invalid_broad_media_processing_request",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_broad_media_processing_request",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/invalid_broad_media_processing_request",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/invalid_broad_media_processing_request",
+        "manifest_ref:synthetic_manifest_invalid_broad_media_processing_request",
+        "checksum_ref:synthetic_checksum_invalid_broad_media_processing_request"
+      ]
+    },
+    {
+      "caseId": "invalid_production_write_request",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "98a11f682b4a7c3efa8a97d10c8622a65f3212bb9f96685e207466104d75d56b",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_dry_run/invalid_production_write_request",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_production_write_request",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_dry_run/invalid_production_write_request",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-dry-run/invalid_production_write_request",
+        "manifest_ref:synthetic_manifest_invalid_production_write_request",
+        "checksum_ref:synthetic_checksum_invalid_production_write_request"
+      ]
+    },
+    {
+      "caseId": "invalid_signed_url_source_of_truth",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "9af60c6d9a6669c4be302892797d01e9851a9b80807bd0a4682a0584b2cfb8c5",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_signed_url_source_of_truth",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_signed_url_source_of_truth",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_signed_url_source_of_truth",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-fixture-hardening/invalid_signed_url_source_of_truth",
+        "manifest_ref:synthetic_manifest_invalid_signed_url_source_of_truth",
+        "checksum_ref:synthetic_checksum_invalid_signed_url_source_of_truth"
+      ]
+    },
+    {
+      "caseId": "invalid_unapproved_artifact_prefix",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "2fff0e30c4d024e1814aa0dc3d8427ebf5d8f62ffc257e19584eed98bed83652",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_unapproved_artifact_prefix",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_unapproved_artifact_prefix",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_unapproved_artifact_prefix",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-fixture-hardening/invalid_unapproved_artifact_prefix",
+        "manifest_ref:synthetic_manifest_invalid_unapproved_artifact_prefix",
+        "checksum_ref:synthetic_checksum_invalid_unapproved_artifact_prefix"
+      ]
+    },
+    {
+      "caseId": "invalid_service_role_key_like_field_name",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "393093f328aa2661cc92b7503d29805e3ebcd91feeebcba78adf25ed08f582eb",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_service_role_key_like_field_name",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_service_role_key_like_field_name",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_service_role_key_like_field_name",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-fixture-hardening/invalid_service_role_key_like_field_name",
+        "manifest_ref:synthetic_manifest_invalid_service_role_key_like_field_name",
+        "checksum_ref:synthetic_checksum_invalid_service_role_key_like_field_name"
+      ]
+    },
+    {
+      "caseId": "invalid_direct_tool_route_execution_field",
+      "kind": "invalid_fail_closed_hardened",
+      "expectedDecision": "fail_closed",
+      "checksum": "5866e6dc8e18ac50704e91fa26c4bef92cf2470b789bbe3abada25c3401c26a4",
+      "approvedPlanSnapshotRef": "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_direct_tool_route_execution_field",
+      "approvedPlanSnapshotHash": "checksum_ref:synthetic_checksum_invalid_direct_tool_route_execution_field",
+      "sourceOfTruthRefs": [
+        "supabase_row_ref:synthetic_worker_fixture_hardening/invalid_direct_tool_route_execution_field",
+        "private_gcs_path_ref:synthetic-private-gcs/worker-fixture-hardening/invalid_direct_tool_route_execution_field",
+        "manifest_ref:synthetic_manifest_invalid_direct_tool_route_execution_field",
+        "checksum_ref:synthetic_checksum_invalid_direct_tool_route_execution_field"
+      ]
+    }
+  ],
+  "artifactClassification": "docs_only_sanitized_metadata_fixtures",
+  "containsSecretPayload": false,
+  "containsPrivatePayload": false,
+  "containsRawProviderOutput": false,
+  "containsRealUserData": false,
+  "containsRealMedia": false,
+  "publicArtifact": false,
+  "signedUrl": false,
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "toolExecutionAllowed": false,
+  "routeExecution": false,
+  "routeExecutionAllowed": false,
+  "providerCalls": false,
+  "providerExecutionAllowed": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawPromptForwardingAllowed": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "publicArtifactsAllowed": false,
+  "signedUrls": false,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "productionAffected": false,
+  "productionMutationAllowed": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "generatedAssets": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

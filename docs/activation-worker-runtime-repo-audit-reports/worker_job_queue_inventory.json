@@ -1,0 +1,1306 @@
+{
+  "phase": "worker-runtime-repo-audit-after-plan-snapshot",
+  "status": "passed",
+  "surfaces": [
+    {
+      "surface": "server_workers",
+      "classification": "existing_fail_closed_without_separate_execution_approval",
+      "present": true,
+      "totalFiles": 352,
+      "representativeFiles": [
+        "server/workers/README.md",
+        "server/workers/audio-execution/audio-execution-pipeline-types.ts",
+        "server/workers/audio-execution/audio-execution-pipeline.ts",
+        "server/workers/audio-execution/index.ts",
+        "server/workers/audio/audio-analysis-adapter.ts",
+        "server/workers/audio/audio-artifact-builder.ts",
+        "server/workers/audio/audio-cleanup-execution-runner.ts",
+        "server/workers/audio/audio-cleanup-plan-builder.ts",
+        "server/workers/audio/audio-execution-artifact-writer.ts",
+        "server/workers/audio/audio-execution-plan-builder.ts",
+        "server/workers/audio/audio-execution-policy.ts",
+        "server/workers/audio/audio-execution-qa-builder.ts",
+        "server/workers/audio/audio-execution-result-builder.ts",
+        "server/workers/audio/audio-execution-runner.ts",
+        "server/workers/audio/audio-execution-types.ts",
+        "server/workers/audio/audio-execution-validator.ts",
+        "server/workers/audio/audio-foundation-runner.ts",
+        "server/workers/audio/audio-foundation-types.ts",
+        "server/workers/audio/audio-qa-builder.ts",
+        "server/workers/audio/audio-storage-policy.ts",
+        "server/workers/audio/audio-worker-types.ts",
+        "server/workers/audio/deepfilternet-adapter.ts",
+        "server/workers/audio/demucs-adapter.ts",
+        "server/workers/audio/ffmpeg-audio-adapter.ts",
+        "server/workers/audio/ffmpeg-loudness-execution-runner.ts",
+        "server/workers/audio/ffmpeg-normalization-execution-runner.ts",
+        "server/workers/audio/index.ts",
+        "server/workers/audio/loudness-normalization-policy.ts",
+        "server/workers/audio/music-ducking-execution-plan-builder.ts",
+        "server/workers/audio/music-ducking-plan-builder.ts",
+        "server/workers/audio/music-speech-overlap-policy.ts",
+        "server/workers/audio/rnnoise-adapter.ts",
+        "server/workers/audio/sfx-density-policy.ts",
+        "server/workers/audio/signalsmith-stretch-adapter.ts",
+        "server/workers/audio/soundsync-artifact-writer.ts",
+        "server/workers/audio/soundsync-cue-planner.ts",
+        "server/workers/audio/soundtouch-adapter.ts",
+        "server/workers/audio/voice-cleanup-policy.ts",
+        "server/workers/captions/ass-caption-builder.ts",
+        "server/workers/captions/caption-execution-artifact-writer.ts",
+        "server/workers/captions/caption-execution-policy.ts",
+        "server/workers/captions/caption-execution-runner.ts",
+        "server/workers/captions/caption-file-builder.ts",
+        "server/workers/captions/caption-foundation-runner.ts",
+        "server/workers/captions/caption-preview-artifact-writer.ts",
+        "server/workers/captions/caption-preview-command-runner.ts",
+        "server/workers/captions/caption-qa-result-builder.ts",
+        "server/workers/captions/caption-readability-policy.ts",
+        "server/workers/captions/caption-safe-zone-policy.ts",
+        "server/workers/captions/caption-segment-builder.ts",
+        "server/workers/captions/caption-style-policy.ts",
+        "server/workers/captions/caption-timing-policy.ts",
+        "server/workers/captions/caption-worker-types.ts",
+        "server/workers/captions/index.ts",
+        "server/workers/captions/libass-caption-preview-adapter.ts",
+        "server/workers/captions/srt-caption-builder.ts",
+        "server/workers/captions/webvtt-caption-builder.ts",
+        "server/workers/color-execution/color-execution-pipeline-types.ts",
+        "server/workers/color-execution/color-execution-pipeline.ts",
+        "server/workers/color-execution/index.ts",
+        "server/workers/color/color-analysis-summary-builder.ts",
+        "server/workers/color/color-artifact-writer.ts",
+        "server/workers/color/color-correction-plan-builder.ts",
+        "server/workers/color/color-execution-plan-builder.ts",
+        "server/workers/color/color-execution-policy.ts",
+        "server/workers/color/color-execution-qa-builder.ts",
+        "server/workers/color/color-execution-result-builder.ts",
+        "server/workers/color/color-execution-runner.ts",
+        "server/workers/color/color-execution-types.ts",
+        "server/workers/color/color-execution-validator.ts",
+        "server/workers/color/color-look-transform-plan-builder.ts",
+        "server/workers/color/color-shot-match-plan-builder.ts",
+        "server/workers/color/ffmpeg-color-command-builder.ts",
+        "server/workers/color/ffmpeg-color-preview-runner.ts",
+        "server/workers/color/index.ts",
+        "server/workers/color/opencolorio-adapter.ts",
+        "server/workers/color/openimageio-adapter.ts",
+        "server/workers/deepfilternet-runtime-hardening/README.md",
+        "server/workers/deepfilternet-runtime-hardening/run_deepfilternet_runtime_hardening.py",
+        "server/workers/deepfilternet-runtime/linux_runtime_entrypoint.py",
+        "server/workers/enhancement-slowmotion/enhancement-slowmotion-pipeline-types.ts",
+        "server/workers/enhancement-slowmotion/enhancement-slowmotion-pipeline.ts",
+        "server/workers/enhancement-slowmotion/enhancement-slowmotion-result-builder.ts",
+        "server/workers/enhancement-slowmotion/index.ts",
+        "server/workers/enhancement/enhancement-artifact-writer.ts",
+        "server/workers/enhancement/enhancement-execution-policy.ts",
+        "server/workers/enhancement/enhancement-execution-runner.ts",
+        "server/workers/enhancement/enhancement-execution-types.ts",
+        "server/workers/enhancement/enhancement-execution-validator.ts",
+        "server/workers/enhancement/enhancement-qa-builder.ts",
+        "server/workers/enhancement/enhancement-sample-policy.ts",
+        "server/workers/enhancement/enhancement-task-plan-builder.ts",
+        "server/workers/enhancement/ffmpeg-enhancement-preview-runner.ts",
+        "server/workers/enhancement/index.ts",
+        "server/workers/enhancement/opencv-enhancement-qa-adapter.ts",
+        "server/workers/enhancement/real-esrgan-execution-runner.ts",
+        "server/workers/enhancement/sharp-enhancement-adapter.ts",
+        "server/workers/final-render/final-render-pipeline-types.ts",
+        "server/workers/final-render/final-render-pipeline.ts",
+        "server/workers/final-render/final-render-result-builder.ts",
+        "server/workers/final-render/index.ts",
+        "server/workers/jobs/approved-snapshot-readiness-worker.ts",
+        "server/workers/jobs/basic-render-smoke-fixtures.ts",
+        "server/workers/jobs/basic-render-smoke-types.ts",
+        "server/workers/jobs/basic-render-smoke-worker.ts",
+        "server/workers/jobs/media-probe-worker.ts",
+        "server/workers/jobs/no-op-worker.ts",
+        "server/workers/jobs/source-media-readiness-worker.ts",
+        "server/workers/mask-composition/index.ts",
+        "server/workers/mask-composition/mask-composition-pipeline-types.ts",
+        "server/workers/mask-composition/mask-composition-pipeline.ts",
+        "server/workers/mask-composition/mask-composition-result-builder.ts",
+        "server/workers/masks/background-removal-execution-runner.ts",
+        "server/workers/masks/birefnet-execution-runner.ts",
+        "server/workers/masks/index.ts",
+        "server/workers/masks/kornia-mask-refinement-adapter.ts",
+        "server/workers/masks/mask-artifact-writer.ts",
+        "server/workers/masks/mask-execution-policy.ts",
+        "server/workers/masks/mask-execution-qa-builder.ts",
+        "server/workers/masks/mask-execution-result-builder.ts",
+        "server/workers/masks/mask-execution-runner.ts",
+        "server/workers/masks/mask-execution-types.ts",
+        "server/workers/masks/mask-execution-validator.ts",
+        "server/workers/masks/mask-fallback-policy.ts",
+        "server/workers/masks/mask-task-plan-builder.ts",
+        "server/workers/masks/mask-temporal-smoothing-policy.ts",
+        "server/workers/masks/opencv-mask-refinement-adapter.ts",
+        "server/workers/masks/rembg-adapter.ts",
+        "server/workers/masks/sam2-execution-runner.ts",
+        "server/workers/masks/transparent-background-adapter.ts",
+        "server/workers/media-data-controlled-suite/README.md",
+        "server/workers/media-data-controlled-suite/requirements.media-data-controlled.txt",
+        "server/workers/media-data-controlled-suite/run_controlled_media_data_suite.py",
+        "server/workers/media-data-controlled-suite/run_sharp_controlled.js",
+        "server/workers/media-data-generated-suite/README.md",
+        "server/workers/media-data-generated-suite/requirements.media-data-generated.txt",
+        "server/workers/media-data-generated-suite/run_generated_media_data_suite.py",
+        "server/workers/media-data-generated-suite/run_sharp_generated.js",
+        "server/workers/media-data-reporting-qa/README.md",
+        "server/workers/media-data-reporting-qa/requirements.media-data-reporting.txt",
+        "server/workers/media-data-reporting-qa/run_media_data_reporting_qa.py",
+        "server/workers/media/audio-extract-production-worker.ts",
+        "server/workers/media/ffmpeg-media-adapter.ts",
+        "server/workers/media/ffprobe-media-adapter.ts",
+        "server/workers/media/index.ts",
+        "server/workers/media/keyframe-extract-production-worker.ts",
+        "server/workers/media/media-analysis-foundation-runner.ts",
+        "server/workers/media/media-analysis-report-builder.ts",
+        "server/workers/media/media-artifact-record-builder.ts",
+        "server/workers/media/media-path-safety.ts",
+        "server/workers/media/media-probe-production-worker.ts",
+        "server/workers/media/media-proxy-production-worker.ts",
+        "server/workers/media/media-storage-resolver.ts",
+        "server/workers/media/media-worker-types.ts",
+        "server/workers/media/representative-frame-production-worker.ts",
+        "server/workers/media/test-media-foundation-fixture.ts",
+        "server/workers/ocr-runtime/README.md",
+        "server/workers/ocr-runtime/requirements.ocr-transitive-macos-py312.txt",
+        "server/workers/ocr-runtime/requirements.ocr.txt",
+        "server/workers/ocr-runtime/run-controlled-real-video-ocr-safe-zone.py",
+        "server/workers/ocr-runtime/run-generated-ocr-fixture.py",
+        "server/workers/production-readiness/core-cpu-render-readiness-checks.ts",
+        "server/workers/production-readiness/core-tool-command-checks.ts",
+        "server/workers/production-readiness/core-tool-node-import-checks.ts",
+        "server/workers/production-readiness/core-tool-python-import-checks.ts",
+        "server/workers/production-readiness/core-tool-readiness-report.ts",
+        "server/workers/production-readiness/gpu-ai-readiness-checks.ts",
+        "server/workers/production-readiness/gpu-model-weight-checks.ts",
+        "server/workers/production-readiness/gpu-runtime-env-checks.ts",
+        "server/workers/production-readiness/gpu-tool-python-import-checks.ts",
+        "server/workers/production-readiness/gpu-tool-readiness-report.ts",
+        "server/workers/production-readiness/index.ts",
+        "server/workers/production-readiness/production-tool-readiness-policy.ts",
+        "server/workers/production-readiness/production-tool-readiness-runner.ts",
+        "server/workers/production-readiness/production-tool-readiness-specs.ts",
+        "server/workers/production-readiness/production-tool-readiness-summary.ts",
+        "server/workers/production-readiness/production-tool-readiness-types.ts",
+        "server/workers/production/index.ts",
+        "server/workers/production/production-worker-artifact-policy.ts",
+        "server/workers/production/production-worker-dispatcher.ts"
+      ]
+    },
+    {
+      "surface": "worker_jobs",
+      "classification": "existing_mock_or_readiness_workers",
+      "present": true,
+      "totalFiles": 7,
+      "representativeFiles": [
+        "server/workers/jobs/approved-snapshot-readiness-worker.ts",
+        "server/workers/jobs/basic-render-smoke-fixtures.ts",
+        "server/workers/jobs/basic-render-smoke-types.ts",
+        "server/workers/jobs/basic-render-smoke-worker.ts",
+        "server/workers/jobs/media-probe-worker.ts",
+        "server/workers/jobs/no-op-worker.ts",
+        "server/workers/jobs/source-media-readiness-worker.ts"
+      ]
+    },
+    {
+      "surface": "production_worker_runtime",
+      "classification": "existing_fail_closed_runtime_scaffold",
+      "present": true,
+      "totalFiles": 12,
+      "representativeFiles": [
+        "server/workers/production/index.ts",
+        "server/workers/production/production-worker-artifact-policy.ts",
+        "server/workers/production/production-worker-dispatcher.ts",
+        "server/workers/production/production-worker-events.ts",
+        "server/workers/production/production-worker-gates.ts",
+        "server/workers/production/production-worker-idempotency.ts",
+        "server/workers/production/production-worker-lease-manager.ts",
+        "server/workers/production/production-worker-result-writer.ts",
+        "server/workers/production/production-worker-retry-policy.ts",
+        "server/workers/production/production-worker-router.ts",
+        "server/workers/production/production-worker-runtime.ts",
+        "server/workers/production/production-worker-types.ts"
+      ]
+    },
+    {
+      "surface": "queue_modules",
+      "classification": "missing",
+      "present": false,
+      "totalFiles": 0,
+      "representativeFiles": []
+    },
+    {
+      "surface": "local_sidecar_foundation",
+      "classification": "existing_metadata_foundation",
+      "present": true,
+      "totalFiles": 2,
+      "representativeFiles": [
+        "server/activation/local-worker-sidecar-foundation/index.ts",
+        "server/activation/local-worker-sidecar-foundation/local-worker-sidecar-foundation-types.ts"
+      ]
+    },
+    {
+      "surface": "route_modules",
+      "classification": "existing_route_contracts_no_execution_in_this_phase",
+      "present": true,
+      "totalFiles": 11,
+      "representativeFiles": [
+        "server/routes/approval-routes.ts",
+        "server/routes/chat-routes.ts",
+        "server/routes/credit-routes.ts",
+        "server/routes/health-routes.ts",
+        "server/routes/job-routes.ts",
+        "server/routes/project-routes.ts",
+        "server/routes/provider-gateway-routes.ts",
+        "server/routes/render-routes.ts",
+        "server/routes/route-helpers.ts",
+        "server/routes/upload-routes.ts",
+        "server/routes/worker-routes.ts"
+      ]
+    },
+    {
+      "surface": "cloud_runtime_docs_and_plans",
+      "classification": "existing_planning_only_or_blocked",
+      "present": true,
+      "totalFiles": 21,
+      "representativeFiles": [
+        "docs/google-cloud/RP-GCP-00-runtime-alignment.md",
+        "docs/google-cloud/RP-GCP-01-resource-plan.md",
+        "docs/google-cloud/RP-GCP-02-live-resource-map.md",
+        "docs/google-cloud/RP-GCP-02-production-resource-map.md",
+        "docs/google-cloud/RP-GCP-02-secret-and-env-plan.md",
+        "docs/google-cloud/RP-GCP-03-provider-gateway-skeleton.md",
+        "docs/google-cloud/RP-GCP-03-worker-payload-examples.md",
+        "docs/google-cloud/RP-GCP-04-before-real-integration-checklist.md",
+        "docs/google-cloud/RP-PROVIDER-VERIFY-01-provider-secret-verification.md",
+        "docs/google-cloud/RP-RENDER-01-remotion-worker-skeleton.md",
+        "docs/google-cloud/RP-RENDER-02-remotion-cloud-run-job-container.md",
+        "docs/google-cloud/RP-RENDER-03A-mock-cloud-run-job.md",
+        "docs/google-cloud/production-cloud-run-job-plan.md",
+        "docs/google-cloud/production-gcp-artifact-registry-plan.md",
+        "docs/google-cloud/production-gcp-bucket-plan.md",
+        "docs/google-cloud/production-gcp-foundation.md",
+        "docs/google-cloud/production-gcp-iam-plan.md",
+        "docs/google-cloud/production-gcp-resource-map.md",
+        "docs/google-cloud/production-gcp-secret-plan.md",
+        "docs/google-cloud/production-gcp-setup-runbook.md",
+        "docs/google-cloud/production-gpu-worker-plan.md"
+      ]
+    }
+  ],
+  "packageScriptCount": 164,
+  "packageScripts": [
+    {
+      "name": "activation:birefnet-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:birefnet-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime-hardening",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime-hardening:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime-hardening:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime-hardening:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime-hardening:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime-hardening:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:linux",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:linux-cloud-build",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:linux-cloud-run-job",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:linux-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:linux-report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:linux-smoke",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:deepfilternet-runtime:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:local-worker-sidecar",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:local-worker-sidecar:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:local-worker-sidecar:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:local-worker-sidecar:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:local-worker-sidecar:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:local-worker-sidecar:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:ocr-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:ocr-runtime:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:ocr-runtime:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:ocr-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:real-esrgan-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:real-esrgan-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:sam2-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:sam2-runtime:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:sam2-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:cloud-build",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:cloud-run-job",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:ffmpeg-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:ffmpeg-report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:ffmpeg-smoke",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:qa-prefix-access",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-controlled-runtime:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-stretch-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-stretch-runtime:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-stretch-runtime:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-stretch-runtime:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-stretch-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:signalsmith-stretch-runtime:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:staging:speech-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:staging:speech-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:supabase-runtime-unlock-audit:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:supabase-runtime-unlock-audit:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:supabase-runtime-unlock-audit:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run-approval",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run-approval:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run-approval:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run-approval:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run-approval:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run-approval:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-metadata-route-dry-run:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-noop-route-dry-run",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-noop-route-dry-run:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-noop-route-dry-run:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-noop-route-dry-run:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-noop-route-dry-run:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-noop-route-dry-run:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-route-dry-run-approval",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-route-dry-run-approval:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-route-dry-run-approval:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-route-dry-run-approval:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-route-dry-run-approval:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-route-dry-run-approval:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-tool-route-manifest",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-tool-route-manifest:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-tool-route-manifest:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-tool-route-manifest:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-tool-route-manifest:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:track-b-tool-route-manifest:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-runtime:cloud-run-job",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-runtime:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-runtime:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-runtime:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:auth-preflight",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:auth-preflight:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:auth-preflight:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:auth-rerun",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:auth-rerun:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:cloud-build",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:cloud-build:plan",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:cloud-build:report",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:fixed-kernel",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:fixed-kernel:cloud-build",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:fixed-kernel:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:fixed-kernel:import-smoke",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:fixed-kernel:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:fixed-kernel:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:fixed-kernel:web-research",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:iam-plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:kernel-compat",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:kernel-compat:cloud-build",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:kernel-compat:cost-summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:kernel-compat:import-smoke",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:kernel-compat:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:kernel-compat:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:vlm-sglang-runtime:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:worker-runtime-repo-audit",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:worker-runtime-repo-audit:plan",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:worker-runtime-repo-audit:report",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "activation:worker-runtime-repo-audit:summary",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:remotion-worker:mock",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-birefnet-runtime-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-deepfilternet-runtime-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-demucs-runtime-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-fixture-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-ocr-runtime-worker",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-real-esrgan-runtime-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-real-video-export-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-sam2-runtime-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-speech-runtime-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "build:staging-vlm-runtime-worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "docker:worker:build",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "docker:worker:render-smoke",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "docker:worker:smoke",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "docker:worker:tools",
+      "classification": "fail_closed_or_manual_only",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-birefnet-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-deepfilternet-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-deepfilternet-runtime-hardening",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-local-worker-sidecar",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-ocr-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-real-esrgan-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-sam2-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-signalsmith-controlled-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-signalsmith-stretch-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-staging-speech-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-supabase-runtime-unlock-audit",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-track-b-metadata-route-dry-run",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-track-b-metadata-route-dry-run-approval",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-track-b-noop-route-dry-run",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-track-b-route-dry-run-approval",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-track-b-tool-route-manifest",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-vlm-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-vlm-sglang-runtime",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:activation-worker-runtime-repo-audit",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:prod-runtime-contracts",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:prod-worker-orchestration",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "smoke:worker",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "start:remotion-worker:mock",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "worker:probe-media",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    },
+    {
+      "name": "worker:run",
+      "classification": "metadata_or_validation_script",
+      "rawCommandStored": false,
+      "commandShapeRedacted": true
+    }
+  ],
+  "dockerCloudRunCloudBuild": {
+    "detectedAsScriptsOrDocs": true,
+    "enabledByThisPhase": false,
+    "rawCommandsStored": false
+  },
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false
+}

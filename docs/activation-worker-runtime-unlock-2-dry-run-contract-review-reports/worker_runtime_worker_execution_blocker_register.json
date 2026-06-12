@@ -1,0 +1,190 @@
+{
+  "phase": "worker-runtime-dry-run-contract-review",
+  "runId": "worker-runtime-dry-run-contract-review-20260612",
+  "status": "passed",
+  "blockers": [
+    {
+      "scope": "real_worker_execution",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "job_dispatch",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "queue_enqueue",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "job_claim",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "job_lease",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "sidecar_spawn",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "subprocess_spawn",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "tool_execution",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "route_execution",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "provider_calls",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "raw_prompt_execution",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "raw_provider_output_execution",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "media_processing",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "docker",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "cloud_run",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "cloud_build",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "supabase_writes",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "sql",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "migrations",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "public_artifacts",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "signed_urls",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "generated_assets",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "credit_spend_or_reservation",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "external_beta",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "paid_production",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "production",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    },
+    {
+      "scope": "generated_local_fixture_passed",
+      "blocked": true,
+      "resolution": "requires later explicit owner prompt"
+    }
+  ],
+  "runtimeUnlockLadderCurrentPosition": "dry_run_contract_review_passed",
+  "realWorkerExecutionReady": false,
+  "productionReady": false,
+  "externalBetaReady": false,
+  "paidProductionReady": false,
+  "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, real worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.",
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "providerCalls": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

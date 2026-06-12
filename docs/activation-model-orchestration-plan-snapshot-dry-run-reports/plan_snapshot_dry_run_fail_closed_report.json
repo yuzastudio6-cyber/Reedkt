@@ -1,0 +1,74 @@
+{
+  "phase": "model-orchestration-plan-snapshot-dry-run",
+  "status": "passed",
+  "invalidFixtureCount": 5,
+  "invalidFixturesFailedClosed": true,
+  "failClosedCases": [
+    {
+      "caseId": "invalid_json",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "schema_mismatch",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "missing_required_fields",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "raw_prompt_execution_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "direct_worker_execution_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "direct_tool_execution_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "provider_call_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "public_artifact_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "signed_url_source_of_truth_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "production_mutation_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "broad_media_runtime_request",
+      "status": "passed_fail_closed"
+    },
+    {
+      "caseId": "demucs_vlm_runtime_request",
+      "status": "passed_fail_closed"
+    }
+  ],
+  "unsafeOutputCount": 0,
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

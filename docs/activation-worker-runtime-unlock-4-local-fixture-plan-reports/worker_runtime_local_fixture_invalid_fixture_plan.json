@@ -1,0 +1,157 @@
+{
+  "phase": "worker-runtime-local-fixture-plan",
+  "runId": "worker-runtime-local-fixture-plan-20260612",
+  "status": "passed",
+  "fixturePlanKind": "invalid_fail_closed_hardened_fixture_local_validation_plan",
+  "invalidFailClosedFixtureCount": 8,
+  "requiredReasons": [
+    "raw_prompt_worker_input",
+    "public_artifact_output_request",
+    "broad_media_processing_request",
+    "production_write_request",
+    "signed_url_source_of_truth",
+    "unapproved_artifact_prefix",
+    "service_role_key_like_field_name",
+    "direct_tool_route_execution_field"
+  ],
+  "observedReasons": [
+    "raw_prompt_worker_input",
+    "public_artifact_output_request",
+    "broad_media_processing_request",
+    "production_write_request",
+    "signed_url_source_of_truth",
+    "unapproved_artifact_prefix",
+    "service_role_key_like_field_name",
+    "direct_tool_route_execution_field"
+  ],
+  "plannedInvalidFixtureChecks": [
+    {
+      "caseId": "invalid_raw_prompt_worker_input",
+      "intentionallyInvalidReason": "raw_prompt_worker_input",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "raw_prompt_execution"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    },
+    {
+      "caseId": "invalid_public_artifact_output_request",
+      "intentionallyInvalidReason": "public_artifact_output_request",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "public_artifacts"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    },
+    {
+      "caseId": "invalid_broad_media_processing_request",
+      "intentionallyInvalidReason": "broad_media_processing_request",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "broad_media_processing"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    },
+    {
+      "caseId": "invalid_production_write_request",
+      "intentionallyInvalidReason": "production_write_request",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "production_write"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    },
+    {
+      "caseId": "invalid_signed_url_source_of_truth",
+      "intentionallyInvalidReason": "signed_url_source_of_truth",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "signed_url_source_of_truth"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    },
+    {
+      "caseId": "invalid_unapproved_artifact_prefix",
+      "intentionallyInvalidReason": "unapproved_artifact_prefix",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "unapproved_artifact_prefix"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    },
+    {
+      "caseId": "invalid_service_role_key_like_field_name",
+      "intentionallyInvalidReason": "service_role_key_like_field_name",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "service_role_key_like_field_name"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    },
+    {
+      "caseId": "invalid_direct_tool_route_execution_field",
+      "intentionallyInvalidReason": "direct_tool_route_execution_field",
+      "expectedDecision": "fail_closed",
+      "blockedActions": [
+        "direct_tool_execution_field",
+        "direct_route_execution_field"
+      ],
+      "localFixtureExecutedInUnlock4": false
+    }
+  ],
+  "unsafeFixtureIds": [],
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "localFixturesExecuted": false,
+  "localFixtureValidationExecuted": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "toolExecutionAllowed": false,
+  "routeExecution": false,
+  "routeExecutionAllowed": false,
+  "providerCalls": false,
+  "providerExecutionAllowed": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawPromptForwardingAllowed": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "publicArtifactsAllowed": false,
+  "signedUrls": false,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "productionAffected": false,
+  "productionMutationAllowed": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "generatedAssets": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

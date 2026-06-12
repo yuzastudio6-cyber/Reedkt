@@ -4,6 +4,7 @@
   "decision": "blocked_pending_dashscope_secret_rotation_by_owner",
   "baseBranch": "origin/codex/rp-model-orchestration-qwen-deepseek-synthetic-provider-dry-run",
   "branch": "codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixes",
+  "pullRequest": "https://github.com/yuzastudio6-cyber/Reedkt/pull/325",
   "sourceOfTruthRead": true,
   "providerConfigReviewed": true,
   "repoSideFixApplied": false,

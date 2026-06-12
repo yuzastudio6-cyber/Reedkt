@@ -4,6 +4,8 @@ Implementation branch: `codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixe
 
 Base branch: `origin/codex/rp-model-orchestration-qwen-deepseek-synthetic-provider-dry-run`
 
+PR: [#325](https://github.com/yuzastudio6-cyber/Reedkt/pull/325)
+
 Status: `blocked`
 
 Decision: `blocked_pending_dashscope_secret_rotation_by_owner`

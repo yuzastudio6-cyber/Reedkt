@@ -4,6 +4,12 @@ Status: `blocked`
 
 Decision: `blocked_pending_dashscope_secret_rotation_by_owner`
 
+Branch: `codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixes`
+
+Base branch: `origin/codex/rp-model-orchestration-qwen-deepseek-synthetic-provider-dry-run`
+
+PR: [#325](https://github.com/yuzastudio6-cyber/Reedkt/pull/325)
+
 Runtime status: `qwen_dashscope_blocked_http_401_after_latest_secret_retry`
 
 Production capability enabled: `none; MODEL-DRYRUN-1A Qwen/DeepSeek dry-run gate fixes only`

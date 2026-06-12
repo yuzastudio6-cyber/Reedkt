@@ -8,6 +8,8 @@ Branch: `codex/rp-model-dryrun-1a-qwen-deepseek-dry-run-gate-fixes`
 
 Base branch: `codex/rp-model-orchestration-qwen-deepseek-synthetic-provider-dry-run`
 
+PR: [#325](https://github.com/yuzastudio6-cyber/Reedkt/pull/325)
+
 Production capability enabled: `none; MODEL-DRYRUN-1A Qwen/DeepSeek dry-run gate fixes only`
 
 ## Source Evidence

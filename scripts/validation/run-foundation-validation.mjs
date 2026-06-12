@@ -61,6 +61,7 @@ const requiredChecks = [
   'tracka:creative-graphics:group-b-private-preview-plan:diagnostics',
   'tracka:creative-graphics:group-b-private-preview-execution-packet:diagnostics',
   'tracka:creative-graphics:group-b-private-preview-execution:diagnostics',
+  'tracka:creative-graphics:group-b-private-preview-qa:diagnostics',
 ];
 
 const results = [];

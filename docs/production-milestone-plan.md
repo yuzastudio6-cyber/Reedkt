@@ -412,6 +412,47 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-4 Milestone Note
+
+TRACKA-GD-GROUPB-HANDOFF-4 records `group_b_private_preview_qa_passed_with_warnings`.
+
+Readiness: `ready_with_warnings_for_group_b_controlled_private_sample_plan`.
+
+Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_local_passed_with_warnings / group_b_private_preview_qa_passed_with_warnings`.
+
+The milestone reviews committed Group B Handoff-3 evidence only. It does not execute Group B tools, run Lottie browser/player behavior, run Remotion render/export, generate a preview, upload artifacts, create signed URLs, approve internal beta, approve external beta, or approve production.
+
+Group B private sample execution is not approved.
+Group B private preview execution is not approved in this QA review.
+Internal beta is not approved.
+External beta is not approved.
+Production is not approved.
+Final render/export is not approved.
+Remotion final render is not approved.
+Lottie browser/player behavior is not approved.
+Public artifacts are not approved.
+Signed URLs are not approved.
+Supabase mutation is not approved.
+Worker execution is not approved.
+Provider/model calls are not approved.
+
+Capability: `none; Track A Group B creative graphics private preview QA review only`
+
+CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+Signed URLs are not source of truth
+
+Next recommended milestone: `TRACKA-GD-GROUPB-HANDOFF-5 - Group B Controlled Private Sample Planning`.
+
 ## TRACKA-GD-GROUPB-HANDOFF-3 Milestone Note
 
 TRACKA-GD-GROUPB-HANDOFF-3 records `group_b_private_preview_local_passed_with_warnings`.

@@ -168,3 +168,47 @@ Supabase update status: `docs_only`
 Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
+
+## TRACKA-GD-GROUPB-HANDOFF-4 Blocker Register Addendum
+
+QA result: `group_b_private_preview_qa_passed_with_warnings`
+
+Readiness: `ready_with_warnings_for_group_b_controlled_private_sample_plan`
+
+Group B private preview QA is reviewed with warnings for `anime_js_motion`, `lottie_web_overlays`, and `remotion_graphics`, but full internal beta remains blocked.
+
+Remaining blockers:
+
+- Group B controlled private sample planning and any future execution gate.
+- Lottie browser/player behavior remains blocked.
+- Remotion final render/export remains blocked.
+- Group C `pixijs_canvas_graphics` and `three_js_visuals` remain unreviewed.
+- `svg_js_vector_graphics` and `resvg_js_svg_rasterization` are outside this Group B QA packet.
+- CROSS-BETA-0 remains `blocked_pending_workstream_gates`.
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_local_passed_with_warnings / group_b_private_preview_qa_passed_with_warnings`
+
+Capability: `none; Track A Group B creative graphics private preview QA review only`
+
+Group B private sample execution is not approved.
+Group B private preview execution is not approved in this QA review.
+Internal beta is not approved.
+External beta is not approved.
+Production is not approved.
+Final render/export is not approved.
+Remotion final render is not approved.
+Lottie browser/player behavior is not approved.
+Public artifacts are not approved.
+Signed URLs are not approved.
+Supabase mutation is not approved.
+Worker execution is not approved.
+Provider/model calls are not approved.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+Signed URLs are not source of truth

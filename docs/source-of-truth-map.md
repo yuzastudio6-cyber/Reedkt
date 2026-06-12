@@ -515,6 +515,38 @@ Supabase environment touched: `none`
 SQL executed: `none`
 Migration deployed: `no`
 
+## TRACKA-GD-GROUPB-HANDOFF-4 Source Map
+
+QA result: `group_b_private_preview_qa_passed_with_warnings`
+
+Readiness: `ready_with_warnings_for_group_b_controlled_private_sample_plan`
+
+Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_local_passed_with_warnings / group_b_private_preview_qa_passed_with_warnings`
+
+| Source | File |
+| --- | --- |
+| QA review | `docs/track-a/creative-graphics-group-b-private-preview-qa-review.md` |
+| Acceptance matrix | `docs/track-a/creative-graphics-group-b-private-preview-qa-acceptance-matrix.md` |
+| Warning/blocker register | `docs/track-a/creative-graphics-group-b-private-preview-warning-blocker-register.md` |
+| Controlled private sample readiness | `docs/track-a/creative-graphics-group-b-controlled-private-sample-readiness.md` |
+| Cleanup review | `docs/track-a/creative-graphics-group-b-private-preview-qa-cleanup-review.md` |
+| Next prompt guide | `docs/track-a/creative-graphics-group-b-next-private-sample-prompt.md` |
+| Validation results | `docs/prompt-tracka-gd-groupb-handoff-4-validation-results.md` |
+| Implementation record | `docs/implementation-prompts/prompt-tracka-gd-groupb-handoff-4-private-preview-qa-review.md` |
+| Diagnostic | `scripts/validation/tracka-creative-graphics-group-b-private-preview-qa-diagnostics.mjs` |
+
+Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`.
+
+Excluded/context tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `pixijs_canvas_graphics`, `three_js_visuals`.
+
+Supabase update required: `docs/status only`
+Supabase update status: `docs_only`
+Supabase environment touched: `none`
+SQL executed: `none`
+Migration deployed: `no`
+Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+Signed URLs are not source of truth
+
 ## TRACKA-GD-GROUPB-HANDOFF-3 Source Of Truth Addendum
 
 Handoff-3 result: `group_b_private_preview_local_passed_with_warnings`

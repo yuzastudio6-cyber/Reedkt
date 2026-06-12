@@ -31,6 +31,7 @@ on:
       - codex/rp-tracka-gd-groupb-handoff-0-review
       - codex/rp-tracka-gd-groupb-handoff-1-private-preview-composition-plan
       - codex/rp-tracka-gd-groupb-handoff-2-private-preview-execution-packet
+      - codex/rp-tracka-gd-groupb-handoff-3-private-preview-execution
 
 jobs:
   foundation-validation:

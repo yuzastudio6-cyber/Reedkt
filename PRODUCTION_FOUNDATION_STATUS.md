@@ -984,3 +984,39 @@ Next milestone: `GD-9 - Group B Package Runtime Review and Fixture Gate`; `CROSS
 - Implementation record: `docs/implementation-prompts/prompt-tracka-gd-groupb-handoff-3-private-preview-execution.md`
 - Validation results: `docs/prompt-tracka-gd-groupb-handoff-3-validation-results.md`
 - Next recommended prompt: `TRACKA-GD-GROUPB-HANDOFF-4 - Group B Private Preview QA Review`
+
+## TRACKA-GD-GROUPB-HANDOFF-4 - Group B Private Preview QA Review
+
+- Branch: `codex/rp-tracka-gd-groupb-handoff-4-private-preview-qa-review`
+- PR: [#321](https://github.com/yuzastudio6-cyber/Reedkt/pull/321)
+- Base: `origin/codex/rp-tracka-gd-groupb-handoff-3-private-preview-execution`
+- QA result: `group_b_private_preview_qa_passed_with_warnings`
+- Readiness: `ready_with_warnings_for_group_b_controlled_private_sample_plan`
+- Runtime unlock status: `group_b_partially_passed / tracka_groupb_handoff_ready_with_warnings / group_b_private_preview_plan_ready_with_warnings / group_b_private_preview_execution_packet_ready_with_warnings / group_b_private_preview_local_passed_with_warnings / group_b_private_preview_qa_passed_with_warnings`
+- Capability: `none; Track A Group B creative graphics private preview QA review only`
+- Accepted with warnings: `anime_js_motion`, `lottie_web_overlays`, `remotion_graphics`
+- Excluded/context tools: `svg_js_vector_graphics`, `resvg_js_svg_rasterization`, `pixijs_canvas_graphics`, `three_js_visuals`
+- Group B private sample execution is not approved.
+- Group B private preview execution is not approved in this QA review.
+- Internal beta is not approved.
+- External beta is not approved.
+- Production is not approved.
+- Final render/export is not approved.
+- Remotion final render is not approved.
+- Lottie browser/player behavior is not approved.
+- Public artifacts are not approved.
+- Signed URLs are not approved.
+- Supabase mutation is not approved.
+- Worker execution is not approved.
+- Provider/model calls are not approved.
+- CROSS-BETA-0 remains `blocked_pending_workstream_gates`
+- Supabase update required: `docs/status only`
+- Supabase update status: `docs_only`
+- Supabase environment touched: `none`
+- SQL executed: `none`
+- Migration deployed: `no`
+- Source of truth policy: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`
+- Signed URLs are not source of truth
+- Implementation record: `docs/implementation-prompts/prompt-tracka-gd-groupb-handoff-4-private-preview-qa-review.md`
+- Validation results: `docs/prompt-tracka-gd-groupb-handoff-4-validation-results.md`
+- Next recommended prompt: `TRACKA-GD-GROUPB-HANDOFF-5 - Group B Controlled Private Sample Planning`

@@ -1,0 +1,51 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "blocked",
+  "selectedStrategy": "temp_npm_exec_supabase_cli",
+  "resetPerformed": false,
+  "resetAttempted": true,
+  "resetCommand": {
+    "status": "blocked",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "db",
+      "reset",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--no-seed",
+      "--yes"
+    ],
+    "cwd": "process_cwd",
+    "exitCode": 1,
+    "stdoutSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 162763,
+      "lineCount": 2133,
+      "secretPatternDetected": false
+    },
+    "errorCategory": "command_failed"
+  },
+  "noSeedFlagUsed": true,
+  "seedFilesIncluded": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "migrationRepairRun": false,
+  "trackBBackfillWrite": false,
+  "productionAffected": false,
+  "directDdlDmlRun": false,
+  "blockers": [
+    "staging_reset_failed"
+  ],
+  "stagingSqlMayHaveRun": true
+}

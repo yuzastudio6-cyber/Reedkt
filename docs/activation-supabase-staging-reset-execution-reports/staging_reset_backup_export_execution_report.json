@@ -1,0 +1,85 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "passed",
+  "backupExportPerformed": true,
+  "backupRequiredBeforeReset": true,
+  "backupType": "private_temp_schema_dump_and_migration_history_metadata",
+  "dryRunPerformed": true,
+  "dryRunCommand": {
+    "status": "passed",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "db",
+      "dump",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--dry-run",
+      "--file",
+      "redacted_temp_schema_dump_path",
+      "--schema",
+      "public,auth,storage,supabase_migrations"
+    ],
+    "cwd": "process_cwd",
+    "exitCode": 0,
+    "stdoutSummary": {
+      "byteLength": 2501,
+      "lineCount": 55,
+      "secretPatternDetected": true
+    },
+    "stderrSummary": {
+      "byteLength": 220,
+      "lineCount": 3,
+      "secretPatternDetected": false
+    }
+  },
+  "backupCommand": {
+    "status": "passed",
+    "command": "npm",
+    "args": [
+      "exec",
+      "--yes",
+      "--package",
+      "supabase@latest",
+      "--",
+      "supabase",
+      "db",
+      "dump",
+      "--db-url",
+      "[REDACTED_STAGING_DB_URL]",
+      "--file",
+      "redacted_temp_schema_dump_path",
+      "--schema",
+      "public,auth,storage,supabase_migrations"
+    ],
+    "cwd": "process_cwd",
+    "exitCode": 0,
+    "stdoutSummary": {
+      "byteLength": 0,
+      "lineCount": 0,
+      "secretPatternDetected": false
+    },
+    "stderrSummary": {
+      "byteLength": 2946,
+      "lineCount": 90,
+      "secretPatternDetected": false
+    }
+  },
+  "backupDestination": "redacted_temp_directory_outside_repo",
+  "backupFileCreated": true,
+  "backupFileByteLength": 713237,
+  "backupPayloadCommitted": false,
+  "backupPayloadPrinted": false,
+  "rowDataDumpPerformed": false,
+  "storageObjectBackupPerformed": false,
+  "dbUrlPrinted": false,
+  "credentialPayloadsPrinted": false,
+  "productionAffected": false,
+  "blockers": []
+}

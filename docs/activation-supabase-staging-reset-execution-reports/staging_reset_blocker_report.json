@@ -1,0 +1,41 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "blocked",
+  "activeBlockers": [
+    "staging_reset_execute_not_confirmed",
+    "staging_db_reset_not_confirmed",
+    "staging_owner_data_loss_acceptance_not_confirmed",
+    "staging_backup_snapshot_packet_not_confirmed",
+    "staging_schema_mutation_not_confirmed",
+    "staging_reset_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed"
+  ],
+  "resetExecutionAllowed": false,
+  "expectedSafeBlockers": [
+    "staging_db_url_secret_reference_missing",
+    "staging_db_url_secret_payload_access_denied",
+    "temp_cli_exec_not_confirmed",
+    "staging_backup_export_not_confirmed",
+    "staging_backup_export_failed",
+    "staging_reset_failed",
+    "staging_post_reset_migration_history_verify_failed",
+    "staging_post_reset_schema_rls_verify_failed"
+  ],
+  "stillBlockedScopes": [
+    "production_supabase",
+    "production_sql",
+    "track_b_backfill_write",
+    "migration_repair",
+    "direct_manual_sql",
+    "provider_calls",
+    "route_execution",
+    "worker_execution",
+    "tool_execution",
+    "media_processing",
+    "track_a",
+    "beta_unlock",
+    "production_unlock"
+  ]
+}

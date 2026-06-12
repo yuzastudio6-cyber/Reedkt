@@ -1,0 +1,20 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "private_temp_backup_created_not_committed",
+  "backupRoot": "redacted_temp_directory_outside_repo",
+  "backupFiles": [
+    {
+      "class": "schema_dump",
+      "path": "redacted_temp_schema_dump_path",
+      "committed": false,
+      "printed": false
+    }
+  ],
+  "privateUploadRequired": false,
+  "privateUploadPerformed": false,
+  "backupPayloadCommitted": false,
+  "backupPayloadPrinted": false,
+  "dbUrlCommitted": false,
+  "secretsCommitted": false
+}

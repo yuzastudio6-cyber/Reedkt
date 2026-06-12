@@ -1,0 +1,130 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "passed",
+  "sourceFiles": [
+    {
+      "file": "README.md",
+      "exists": true
+    },
+    {
+      "file": "AGENTS.md",
+      "exists": true
+    },
+    {
+      "file": "PRODUCTION_FOUNDATION_STATUS.md",
+      "exists": false
+    },
+    {
+      "file": "docs/source-of-truth-map.md",
+      "exists": false
+    },
+    {
+      "file": "docs/production-milestone-plan.md",
+      "exists": false
+    },
+    {
+      "file": "docs/beta-readiness-scorecard.md",
+      "exists": false
+    },
+    {
+      "file": "docs/production-beta-blocker-inventory.md",
+      "exists": false
+    },
+    {
+      "file": "docs/supabase-staging-data-impact-backup-approval-decision.md",
+      "exists": true
+    },
+    {
+      "file": "docs/supabase-staging-owner-data-loss-acceptance.md",
+      "exists": true
+    },
+    {
+      "file": "docs/supabase-staging-reset-owner-approval-decision.md",
+      "exists": true
+    },
+    {
+      "file": "docs/implementation-prompts/prompt-supabase-staging-reset-and-reapply-execution.md",
+      "exists": true
+    }
+  ],
+  "reportFiles": [
+    {
+      "file": "docs/activation-supabase-staging-data-impact-backup-reports/staging_data_impact_backup_approval_decision.json",
+      "exists": true
+    },
+    {
+      "file": "docs/activation-supabase-staging-data-impact-backup-reports/staging_backup_snapshot_plan.json",
+      "exists": true
+    },
+    {
+      "file": "docs/activation-supabase-staging-data-impact-backup-reports/staging_owner_data_loss_acceptance_decision_update.json",
+      "exists": true
+    },
+    {
+      "file": "docs/activation-supabase-staging-data-impact-backup-reports/staging_data_impact_inventory.json",
+      "exists": true
+    },
+    {
+      "file": "docs/activation-supabase-schema-parity-remediation-reports/schema_parity_decision.json",
+      "exists": true
+    },
+    {
+      "file": "docs/activation-supabase-remote-schema-equivalence-reports/migration_history_repair_approval_after_equivalence_review.json",
+      "exists": true
+    },
+    {
+      "file": "docs/activation-supabase-staging-deploy-transport-reports/staging_deploy_transport_readiness_report.json",
+      "exists": true
+    },
+    {
+      "file": "docs/activation-supabase-trackb-backfill-reports/staging_supabase_backfill_preflight_report.json",
+      "exists": true
+    }
+  ],
+  "missingNonBlockingSourceFiles": [
+    "PRODUCTION_FOUNDATION_STATUS.md",
+    "docs/source-of-truth-map.md",
+    "docs/production-milestone-plan.md",
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md"
+  ],
+  "migration": {
+    "path": "supabase/migrations/202606050001_activation_milestone_registry_schema_rls.sql",
+    "exists": true,
+    "localMigrationCount": 22,
+    "localMigrationIds": [
+      "202605130001",
+      "202605130002",
+      "202605130003",
+      "202605130004",
+      "202605130005",
+      "202605130006",
+      "202605130007",
+      "202605130008",
+      "202605180001",
+      "202605180002",
+      "202605180003",
+      "202605180004",
+      "202605180005",
+      "202605180006",
+      "202605180007",
+      "202605180008",
+      "202605190001",
+      "202605190002",
+      "202605200001",
+      "202605200002",
+      "202605210001",
+      "202606050001"
+    ]
+  },
+  "ownership": {
+    "pr252": "staging data-impact, backup planning, and owner acceptance approval",
+    "thisPhase": "guarded staging reset/reapply execution and post-reset verification",
+    "pr198": "future Track B staging metadata backfill only after reset verification"
+  },
+  "productionAffected": false,
+  "trackBBackfillWrite": false,
+  "secretsPrintedOrCommitted": false,
+  "blockers": []
+}

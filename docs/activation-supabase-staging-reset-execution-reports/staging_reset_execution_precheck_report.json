@@ -1,0 +1,109 @@
+{
+  "phase": "supabase-staging-reset-reapply-execution",
+  "runId": "supabase-staging-reset-reapply-execution-20260609",
+  "status": "blocked",
+  "sourceDecision": {
+    "decision": "approved_for_future_staging_reset_and_reapply_migrations",
+    "approvalStatus": "future_reset_reapply_approved_not_executed",
+    "stagingResetRun": false,
+    "productionAffected": false
+  },
+  "backupPlan": {
+    "status": "acceptable_for_future_execution_not_run",
+    "backupRunInThisPhase": false,
+    "blockers": []
+  },
+  "ownerAcceptance": {
+    "status": "approved_for_future_execution_only",
+    "ownerAcceptanceAccepted": true
+  },
+  "dataImpact": {
+    "status": "reviewed_from_readonly_metadata",
+    "tableCount": 136,
+    "blockers": []
+  },
+  "approvedTargetReference": {
+    "status": "passed",
+    "approvedStagingTargetReferenceFound": true,
+    "approvedStagingProjectName": "Reeditpro",
+    "approvedStagingProjectRef": "wmyyttnynmteqgcdishd",
+    "approvedEnvironment": "staging",
+    "secretPayloadsPrinted": false
+  },
+  "pluginTargetProof": {
+    "status": "passed",
+    "stagingTargetConfirmed": true,
+    "selectedProject": {
+      "projectRef": "wmyyttnynmteqgcdishd",
+      "projectName": "Reeditpro",
+      "status": "ACTIVE_HEALTHY",
+      "region": "us-west-1",
+      "hostRedacted": true
+    },
+    "credentialPayloadsPrinted": false
+  },
+  "requiredConfirmations": [
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_RESET_EXECUTE",
+      "set": false,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_DB_RESET",
+      "set": false,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_TARGET_PROOF",
+      "set": true,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_PLUGIN_STAGING_TARGET_CHECK",
+      "set": true,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_OWNER_DATA_LOSS_ACCEPTANCE",
+      "set": false,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_BACKUP_SNAPSHOT_APPROVAL_PACKET",
+      "set": false,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_MUTATION",
+      "set": false,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_SCHEMA_READONLY_INSPECTION",
+      "set": true,
+      "requiredForThisPrecheck": true
+    },
+    {
+      "name": "REEDITPRO_CONFIRM_SUPABASE_TEMP_CLI_EXEC",
+      "set": true,
+      "requiredForThisPrecheck": true
+    }
+  ],
+  "backupExportConfirmation": {
+    "name": "REEDITPRO_CONFIRM_SUPABASE_STAGING_BACKUP_EXPORT_EXECUTE",
+    "set": false
+  },
+  "forbiddenConfirmationsSet": [],
+  "stagingOnlyTarget": true,
+  "productionAffected": false,
+  "trackBBackfillWrite": false,
+  "migrationRepairRun": false,
+  "directDdlDmlRun": false,
+  "blockers": [
+    "staging_reset_execute_not_confirmed",
+    "staging_db_reset_not_confirmed",
+    "staging_owner_data_loss_acceptance_not_confirmed",
+    "staging_backup_snapshot_packet_not_confirmed",
+    "staging_schema_mutation_not_confirmed"
+  ]
+}

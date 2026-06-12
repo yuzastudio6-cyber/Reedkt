@@ -1,0 +1,52 @@
+{
+  "phase": "product-internal-testing-scope-freeze",
+  "runId": "product-internal-testing-scope-freeze-20260611",
+  "status": "ready_for_operator_review",
+  "testersAndScope": "Internal operators may review metadata/readiness reports only after future signoff.",
+  "canBeViewed": [
+    "readiness_dashboards_and_reports",
+    "supabase_clean_staging_milestone_registry_review",
+    "track_b_readiness_capability_route_metadata_review",
+    "completed_generated_controlled_evidence_review",
+    "noop_route_dry_run_evidence_review",
+    "metadata_only_duckdb_polars_route_dry_run_evidence_review",
+    "audio_timing_deepfilternet_signalsmith_evidence_review",
+    "media_data_opencv_pyav_pyscenedetect_sharp_duckdb_polars_evidence_review",
+    "desktop_hybrid_planning_simulation_evidence_review"
+  ],
+  "cannotBeExecuted": [
+    "production",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "public_output",
+    "signed_urls_as_source_of_truth",
+    "raw_prompt_execution",
+    "live_worker_execution",
+    "live_tool_route_execution",
+    "provider_calls",
+    "broad_media",
+    "arbitrary_media",
+    "vlm_qwen_runtime",
+    "demucs_runtime",
+    "track_a_runtime",
+    "direct_supabase_production_writes"
+  ],
+  "issueReporting": [
+    "Record report path, owner, blocker id, and reproduction notes.",
+    "Escalate Supabase milestone sync issues to SUPABASE_RLS_STORAGE_DATABASE.",
+    "Escalate runtime/tool/provider scope issues to the owning workstream before any execution."
+  ],
+  "stopConditions": [
+    "Any secret, DB URL, access token, signed URL, raw prompt, private payload, or media payload appears.",
+    "Any production, external beta, paid production, provider, worker, route, tool, public artifact, or Supabase write path becomes enabled.",
+    "Track B clean-staging sync evidence becomes stale, missing, or contradictory."
+  ],
+  "rollbackPolicy": "Revert the scope-freeze metadata packet or mark the launch rehearsal blocked; no runtime cleanup is required because this phase performs no execution.",
+  "supportOwner": "FRONTEND_PRODUCT_UX",
+  "supabaseCleanStagingTarget": "fnjiylwirntrqdcwpbho",
+  "noPublicArtifacts": true,
+  "noProduction": true,
+  "noExternalUsers": true,
+  "secretsPrintedOrCommitted": false
+}

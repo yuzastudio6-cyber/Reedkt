@@ -1,0 +1,18 @@
+{
+  "phase": "product-internal-testing-scope-freeze",
+  "runId": "product-internal-testing-scope-freeze-20260611",
+  "decision": "approved_for_future_restricted_internal_testing_launch_rehearsal",
+  "status": "passed",
+  "approvedForFutureRestrictedInternalTestingLaunchRehearsal": true,
+  "operatorSignoffPresent": true,
+  "internalTestingExecutionStarted": false,
+  "externalBetaAllowed": false,
+  "paidProductionAllowed": false,
+  "productionAllowed": false,
+  "publicArtifactsAllowed": false,
+  "runtimeExecutionAllowed": false,
+  "providerCallsAllowed": false,
+  "supabaseWritesAllowedInThisPhase": false,
+  "blockers": [],
+  "nextRecommendedPhase": "PRODUCT_INTERNAL_BETA_AGGREGATION - restricted internal testing launch rehearsal."
+}

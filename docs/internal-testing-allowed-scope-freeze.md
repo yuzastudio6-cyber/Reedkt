@@ -1,0 +1,11 @@
+# Internal Testing Allowed Scope Freeze
+
+- `readiness_dashboards_and_reports`
+- `supabase_clean_staging_milestone_registry_review`
+- `track_b_readiness_capability_route_metadata_review`
+- `completed_generated_controlled_evidence_review`
+- `noop_route_dry_run_evidence_review`
+- `metadata_only_duckdb_polars_route_dry_run_evidence_review`
+- `audio_timing_deepfilternet_signalsmith_evidence_review`
+- `media_data_opencv_pyav_pyscenedetect_sharp_duckdb_polars_evidence_review`
+- `desktop_hybrid_planning_simulation_evidence_review`

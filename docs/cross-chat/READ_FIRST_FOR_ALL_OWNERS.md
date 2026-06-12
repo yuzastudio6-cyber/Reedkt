@@ -8,7 +8,9 @@ Before starting or continuing a workstream:
 2. Read `docs/github-merge-hygiene/validation-exception-policy.md`.
 3. Read `docs/github-merge-hygiene/duplicate-pr-human-review-draft.md`.
 4. Read `docs/github-merge-hygiene/draft-pr-drift-review.md`.
-5. Check live GitHub merge status before building on a PR.
-6. Follow `docs/github-merge-hygiene/post-major-milestone-merge-rule.md`.
+5. Read `docs/github-merge-hygiene/frozen-merge-batch.md`.
+6. Read `docs/github-merge-hygiene/live-pr-drift-tolerance-policy.md`.
+7. Check live GitHub merge status before building on a PR.
+8. Follow `docs/github-merge-hygiene/post-major-milestone-merge-rule.md`.
 
-This packet does not authorize PR merges by itself; it authorizes only a future parent-chain merge execution phase for the exact approved set.
+This packet does not authorize PR merges by itself; it authorizes only a future frozen-batch parent-chain merge execution phase for the exact approved set.

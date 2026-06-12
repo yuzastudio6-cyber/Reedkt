@@ -18,6 +18,7 @@ const openFields = [
   "mergeStateStatus",
   "baseRefName",
   "headRefName",
+  "headRefOid",
   "updatedAt",
   "url",
 ];
@@ -26,6 +27,14 @@ const closedFields = ["number", "title", "state", "mergedAt", "baseRefName", "he
 const approvalRequiredFiles = [
   "docs/github-merge-hygiene/draft-pr-drift-review.json",
   "docs/github-merge-hygiene/draft-pr-drift-review.md",
+  "docs/github-merge-hygiene/live-pr-drift-tolerance-policy.json",
+  "docs/github-merge-hygiene/live-pr-drift-tolerance-policy.md",
+  "docs/github-merge-hygiene/current-live-drift-review.json",
+  "docs/github-merge-hygiene/current-live-drift-review.md",
+  "docs/github-merge-hygiene/frozen-merge-batch.json",
+  "docs/github-merge-hygiene/frozen-merge-batch.md",
+  "docs/github-merge-hygiene/frozen-batch-merge-order.json",
+  "docs/github-merge-hygiene/frozen-batch-merge-order.md",
   "docs/github-merge-hygiene/human-merge-order-approval-packet.json",
   "docs/github-merge-hygiene/human-merge-order-approval-packet.md",
   "docs/github-merge-hygiene/validation-exception-policy.json",
@@ -65,6 +74,7 @@ const writeConfirmed =
 const approvalWriteConfirmed =
   process.env.REEDITPRO_CONFIRM_GITHUB_MERGE_ORDER_REVIEW === "true" &&
   process.env.REEDITPRO_CONFIRM_HUMAN_MERGE_ORDER_APPROVAL_PACKET === "true" &&
+  process.env.REEDITPRO_CONFIRM_FROZEN_MERGE_BATCH_POLICY === "true" &&
   process.env.REEDITPRO_CONFIRM_CROSS_CHAT_HANDOFF_UPDATE === "true" &&
   process.env.REEDITPRO_CONFIRM_VALIDATION_EXCEPTION_REVIEW === "true";
 
@@ -116,7 +126,7 @@ const canonicalPrimaryNumbers = [
   347,
 ];
 
-const approvedFutureMergePrNumbers = [
+const frozenMergeBatchPrNumbers = [
   205,
   222,
   247,
@@ -144,8 +154,11 @@ const approvedFutureMergePrNumbers = [
   322,
   327,
   337,
-  347,
 ];
+
+const approvedFutureMergePrNumbers = frozenMergeBatchPrNumbers;
+
+const previousCandidateFutureMergePrNumbers = frozenMergeBatchPrNumbers.concat(347);
 
 const originalExpectedDraftPrNumbers = [
   1,
@@ -181,11 +194,14 @@ const expectedNonCleanMergeStates = {
   94: "UNSTABLE",
 };
 
-const alreadyMergedEvidencePrNumbers = [341, 342, 346, 351];
+const alreadyMergedEvidencePrNumbers = [341, 342, 346, 347, 351, 353];
 
 const allowedApprovalDecisions = [
   "approved_for_future_parent_chain_merge_execution",
+  "approved_for_future_frozen_batch_merge_execution",
   "blocked_pending_human_merge_order_review",
+  "blocked_pending_missing_pr_review",
+  "blocked_pending_dirty_batch_pr_review",
   "blocked_pending_duplicate_pr_review",
   "blocked_pending_validation_exception_review",
   "blocked_pending_dirty_or_unstable_pr_review",
@@ -197,7 +213,6 @@ const approvedFutureMergeStacks = [
   { id: "supabase_trackb_clean_staging", prNumbers: [247, 248, 252, 259, 262, 265, 269, 271, 274, 276, 280, 283, 292, 298] },
   { id: "product_internal_testing", prNumbers: [299, 302, 306, 309, 311] },
   { id: "model_orchestration", prNumbers: [314, 318, 320, 322, 327, 337] },
-  { id: "tool_route_execution_unlock_audit", prNumbers: [347] },
 ];
 
 const duplicateRiskGroups = [
@@ -847,6 +862,127 @@ No PR merge, close, rebase, retarget, runtime execution, provider call, Supabase
 `;
 }
 
+function renderLiveDriftTolerancePolicyMd(policy) {
+  return `# Live PR Drift Tolerance Policy
+
+Decision: \`${policy.decision}\`
+
+Future merge execution must use \`${policy.frozenBatchSourceOfTruth.file}\` as source of truth. Whole-repo PR drift is advisory unless it affects the frozen batch.
+
+| Drift | Classification |
+| --- | --- |
+| Total open PR count drift | \`${policy.policy.totalOpenPrCountDrift}\` |
+| New unrelated draft PR | \`${policy.policy.newUnrelatedDraftPr}\` |
+| Unrelated dirty PR | \`${policy.policy.unrelatedDirtyPr}\` |
+| Dirty PR inside frozen batch | \`${policy.policy.dirtyPrInsideFrozenBatch}\` |
+| Unstable PR inside frozen batch | \`${policy.policy.unstablePrInsideFrozenBatch}\` |
+| Missing PR inside frozen batch | \`${policy.policy.missingPrInsideFrozenBatch}\` |
+| Draft PR inside frozen batch | \`${policy.policy.draftPrInsideFrozenBatch}\` |
+| Head SHA changed inside frozen batch | \`${policy.policy.headShaChangedInsideFrozenBatch}\` |
+| Duplicate/parallel PR inside frozen batch | \`${policy.policy.duplicateOrParallelPrInsideFrozenBatch}\` |
+
+This policy does not merge, close, rebase, retarget, or unlock runtime, Supabase, provider, production, public artifact, signed URL, external beta, paid production, or raw prompt execution.
+`;
+}
+
+function renderCurrentLiveDriftReviewMd(review) {
+  return `# Current Live Drift Review
+
+Decision: \`${review.decision}\`
+
+- Expected open PR count: ${review.expectedOpenCount}
+- Actual open PR count: ${review.actualOpenCount}
+- Open PR count classification: \`${review.openCountDrift.classification}\`
+- New drafts: ${review.newDrafts.length ? review.newDrafts.map((number) => `#${number}`).join(", ") : "none"}
+- Missing candidate PRs: ${review.missingCandidatePrs.length ? review.missingCandidatePrs.map((number) => `#${number}`).join(", ") : "none"}
+- Warnings: ${review.summary.warnings.length ? review.summary.warnings.map((warning) => `\`${warning}\``).join(", ") : "none"}
+- Blockers: ${review.summary.blockers.length ? review.summary.blockers.map((blocker) => `\`${blocker}\``).join(", ") : "none"}
+- Resolved: ${review.summary.resolved.length ? review.summary.resolved.map((item) => `\`${item}\``).join(", ") : "none"}
+
+## Watched PRs
+
+${markdownTable(review.watchedPrs, [
+  { label: "PR", value: (row) => `#${row.number}` },
+  { label: "Title", value: (row) => row.title },
+  { label: "State", value: (row) => row.state },
+  { label: "Draft", value: (row) => row.isDraft },
+  { label: "Merge state", value: (row) => row.mergeStateStatus || "n/a" },
+  { label: "Frozen batch", value: (row) => row.frozenBatchMember },
+  { label: "Classification", value: (row) => row.driftClassification },
+])}
+
+## Dirty Or Unstable PRs
+
+${markdownTable(review.dirtyOrUnstablePrs, [
+  { label: "PR", value: (row) => `#${row.number}` },
+  { label: "Merge state", value: (row) => row.mergeStateStatus },
+  { label: "Draft", value: (row) => row.isDraft },
+  { label: "Classification", value: (row) => row.driftClassification },
+  { label: "Reason", value: (row) => row.reason },
+])}
+`;
+}
+
+function renderFrozenMergeBatchMd(batch) {
+  const approved = batch.entries.filter((entry) => entry.approvedForFutureMerge);
+  const blocked = batch.entries.filter((entry) => !entry.approvedForFutureMerge);
+  return `# Frozen Merge Batch
+
+Decision: \`${batch.decision}\`
+
+- Batch ID: \`${batch.batchId}\`
+- Approved for future merge execution: \`${batch.approvedForFutureMergeExecution}\`
+- Batch size: ${batch.batchSize}
+- Source PR: #${batch.sourcePr}
+- Already merged evidence excluded: ${batch.excludedPrs.alreadyMergedEvidencePrNumbers.map((number) => `#${number}`).join(", ")}
+
+## Approved Batch PRs
+
+${markdownTable(approved, [
+  { label: "Order", value: (row) => row.order },
+  { label: "PR", value: (row) => `#${row.number}` },
+  { label: "Title", value: (row) => row.title },
+  { label: "Base", value: (row) => `\`${row.baseRefName}\`` },
+  { label: "Head", value: (row) => `\`${row.headRefName}\`` },
+  { label: "SHA", value: (row) => `\`${row.headRefOid}\`` },
+])}
+
+## Blocked Batch PRs
+
+${markdownTable(blocked, [
+  { label: "PR", value: (row) => `#${row.number}` },
+  { label: "State", value: (row) => row.state },
+  { label: "Draft", value: (row) => row.isDraft },
+  { label: "Merge state", value: (row) => row.mergeStateStatus || "n/a" },
+  { label: "Blocker", value: (row) => row.blocker || "none" },
+])}
+
+Only PRs with \`approvedForFutureMerge=true\` in \`frozen-merge-batch.json\` may be considered by a later merge execution phase.
+`;
+}
+
+function renderFrozenBatchMergeOrderMd(order) {
+  return `# Frozen Batch Merge Order
+
+Decision: \`${order.decision}\`
+
+Merge execution is a separate future phase. It may merge only approved PRs listed in \`docs/github-merge-hygiene/frozen-merge-batch.json\`.
+
+${markdownTable(order.sequence, [
+  { label: "Order", value: (row) => row.order },
+  { label: "PR", value: (row) => `#${row.number}` },
+  { label: "Base", value: (row) => `\`${row.baseRefName}\`` },
+  { label: "Head", value: (row) => `\`${row.headRefName}\`` },
+  { label: "SHA", value: (row) => `\`${row.headRefOid}\`` },
+  { label: "Approved", value: (row) => row.approvedForFutureMerge },
+])}
+
+Before each merge, run the entry's verification command and stop if the PR state, draft status, merge state, head SHA, or base branch differs from the frozen batch entry.
+
+No runtime execution, Supabase mutation, provider call, public artifact, signed URL delivery, production, external beta, paid production, or raw prompt execution is allowed.
+`;
+}
+
 function renderPostMajorRule() {
   return `# Post-Major-Milestone Merge Rule
 
@@ -1018,6 +1154,330 @@ function buildValidationExceptionPolicy(generatedAt) {
   };
 }
 
+function buildLiveDriftTolerancePolicy(generatedAt) {
+  return {
+    generatedAt,
+    decision: "live_drift_tolerance_policy_active_for_frozen_merge_batch",
+    policy: {
+      totalOpenPrCountDrift: "warning",
+      newUnrelatedDraftPr: "warning",
+      unrelatedDirtyPr: "warning",
+      dirtyPrInsideFrozenBatch: "blocker",
+      unstablePrInsideFrozenBatch: "blocker",
+      missingPrInsideFrozenBatch: "blocker_unless_intentionally_merged_closed_or_superseded",
+      draftPrInsideFrozenBatch: "blocker_unless_explicitly_marked_draft_only_no_merge",
+      headShaChangedInsideFrozenBatch: "blocker",
+      duplicateOrParallelPrInsideFrozenBatch: "blocker_unless_marked_canonical",
+    },
+    frozenBatchSourceOfTruth: {
+      file: "docs/github-merge-hygiene/frozen-merge-batch.json",
+      futureMergeExecutionMayOnlyUseFrozenBatch: true,
+      wholeRepoOpenPrSnapshotIsAdvisoryOnly: true,
+    },
+    executionStatus: {
+      pullRequestsMerged: false,
+      pullRequestsClosed: false,
+      pullRequestsRebased: false,
+      pullRequestsRetargeted: false,
+      runtimePathsExecuted: false,
+      supabaseMutation: false,
+      providerCalls: false,
+      productionUnlocked: false,
+      externalBetaUnlocked: false,
+      paidProductionUnlocked: false,
+    },
+  };
+}
+
+function buildCurrentLiveDriftReview(metadata, audit, mergedEvidencePrs) {
+  const openByNumber = new Map(audit.stackMap.map((pr) => [pr.number, pr]));
+  const currentDraftNumbers = sortedNumbers(audit.draftPrs.map((pr) => pr.number));
+  const expectedDraftSet = new Set(driftAcceptedExpectedDraftPrNumbers);
+  const newDrafts = currentDraftNumbers.filter((number) => !expectedDraftSet.has(number));
+  const nonCleanPrs = audit.nonCleanPrs.map((pr) => ({
+    number: pr.number,
+    title: pr.title,
+    state: pr.state,
+    isDraft: pr.isDraft,
+    mergeStateStatus: pr.mergeStateStatus,
+    baseRefName: pr.baseRefName,
+    headRefName: pr.headRefName,
+    headRefOid: pr.headRefOid,
+    url: pr.url,
+    driftClassification: frozenMergeBatchPrNumbers.includes(pr.number) ? "blocker" : "warning",
+    reason: frozenMergeBatchPrNumbers.includes(pr.number)
+      ? "Non-clean PR is inside the frozen batch."
+      : "Non-clean PR is outside the frozen batch.",
+  }));
+  const missingCandidatePrs = previousCandidateFutureMergePrNumbers.filter((number) => !openByNumber.has(number));
+  const missingCandidateReviews = missingCandidatePrs.map((number) => {
+    const mergedEvidence = mergedEvidencePrs.find((pr) => pr.number === number);
+    const frozenBatchMember = frozenMergeBatchPrNumbers.includes(number);
+    return {
+      number,
+      state: mergedEvidence?.state || "not_found_in_open_snapshot",
+      title: mergedEvidence?.title || null,
+      headRefName: mergedEvidence?.headRefName || null,
+      headRefOid: mergedEvidence?.headRefOid || null,
+      frozenBatchMember,
+      driftClassification: mergedEvidence?.state === "MERGED" || !frozenBatchMember ? "resolved" : "blocker",
+      reason:
+        mergedEvidence?.state === "MERGED"
+          ? "Candidate PR is already merged and should be recorded as evidence rather than included in the future merge batch."
+          : !frozenBatchMember
+            ? "Candidate PR is outside the frozen batch and not required for future merge execution."
+          : "Candidate PR is missing from the open snapshot and is not proven merged.",
+    };
+  });
+  const specificPrs = [333, 347, 352, 353, 355]
+    .map((number) => openByNumber.get(number) || mergedEvidencePrs.find((pr) => pr.number === number) || null)
+    .filter(Boolean)
+    .map((pr) => ({
+      number: pr.number,
+      title: pr.title,
+      state: pr.state,
+      isDraft: pr.isDraft,
+      mergeStateStatus: pr.mergeStateStatus,
+      baseRefName: pr.baseRefName,
+      headRefName: pr.headRefName,
+      headRefOid: pr.headRefOid,
+      url: pr.url,
+      frozenBatchMember: frozenMergeBatchPrNumbers.includes(pr.number),
+      driftClassification:
+        frozenMergeBatchPrNumbers.includes(pr.number) && pr.state === "OPEN" && (!pr.isDraft && pr.mergeStateStatus === "CLEAN")
+          ? "resolved"
+          : frozenMergeBatchPrNumbers.includes(pr.number)
+            ? "blocker"
+            : "warning_or_resolved_outside_batch",
+    }));
+  return {
+    runId,
+    generatedAt: metadata.generatedAt,
+    decision: "live_drift_review_completed_for_frozen_batch",
+    expectedOpenCount: 347,
+    actualOpenCount: metadata.openPrCount,
+    openCountDrift: {
+      expected: 347,
+      actual: metadata.openPrCount,
+      classification: metadata.openPrCount === 347 ? "resolved" : "warning",
+      reason: "Whole-repo open PR count is advisory once the frozen batch model is active.",
+    },
+    expectedDraftSetAfterDriftAcceptance: driftAcceptedExpectedDraftPrNumbers,
+    actualDraftSet: currentDraftNumbers,
+    newDrafts,
+    newDraftReviews: newDrafts.map((number) => {
+      const pr = openByNumber.get(number);
+      return {
+        number,
+        title: pr?.title || null,
+        state: pr?.state || null,
+        isDraft: pr?.isDraft ?? null,
+        mergeStateStatus: pr?.mergeStateStatus || null,
+        baseRefName: pr?.baseRefName || null,
+        headRefName: pr?.headRefName || null,
+        headRefOid: pr?.headRefOid || null,
+        url: pr?.url || null,
+        driftClassification: frozenMergeBatchPrNumbers.includes(number) ? "blocker" : "warning",
+        reason: frozenMergeBatchPrNumbers.includes(number)
+          ? "New draft is inside frozen batch."
+          : "New draft is outside frozen batch.",
+      };
+    }),
+    dirtyOrUnstablePrs: nonCleanPrs,
+    missingCandidatePrs,
+    missingCandidateReviews,
+    watchedPrs: specificPrs,
+    summary: {
+      warnings: [
+        ...(metadata.openPrCount === 347 ? [] : ["total_open_pr_count_drift"]),
+        ...newDrafts.filter((number) => !frozenMergeBatchPrNumbers.includes(number)).map((number) => `new_unrelated_draft_pr_${number}`),
+        ...nonCleanPrs.filter((pr) => pr.driftClassification === "warning").map((pr) => `unrelated_nonclean_pr_${pr.number}_${pr.mergeStateStatus}`),
+      ],
+      blockers: [
+        ...newDrafts.filter((number) => frozenMergeBatchPrNumbers.includes(number)).map((number) => `draft_batch_pr_${number}`),
+        ...nonCleanPrs.filter((pr) => pr.driftClassification === "blocker").map((pr) => `nonclean_batch_pr_${pr.number}_${pr.mergeStateStatus}`),
+        ...missingCandidateReviews.filter((review) => review.driftClassification === "blocker").map((review) => `missing_batch_pr_${review.number}`),
+      ],
+      resolved: [
+        ...missingCandidateReviews.filter((review) => review.driftClassification === "resolved").map((review) => `merged_candidate_pr_${review.number}`),
+      ],
+    },
+  };
+}
+
+function previousFrozenBatchHeadShas() {
+  const batchPath = path.join(root, "docs/github-merge-hygiene/frozen-merge-batch.json");
+  if (!existsSync(batchPath)) return new Map();
+  try {
+    const batch = JSON.parse(readFileSync(batchPath, "utf8"));
+    return new Map(
+      (batch.entries || [])
+        .filter((entry) => entry?.number && entry?.headRefOid)
+        .map((entry) => [entry.number, entry.headRefOid]),
+    );
+  } catch {
+    return new Map();
+  }
+}
+
+function frozenBatchPrMetadata(number, stackEntry) {
+  const result = safeFetchPr(number);
+  const viewed = result.ok ? result.pr : null;
+  return {
+    exists: Boolean(viewed || stackEntry),
+    viewFetchOk: result.ok,
+    viewFetchError: result.error,
+    number,
+    title: viewed?.title || stackEntry?.title || "missing from current open snapshot",
+    url: viewed?.url || stackEntry?.url || null,
+    state: viewed?.state || stackEntry?.state || "missing",
+    isDraft: viewed?.isDraft ?? stackEntry?.isDraft ?? null,
+    mergeStateStatus: viewed?.mergeStateStatus || stackEntry?.mergeStateStatus || null,
+    baseRefName: viewed?.baseRefName || stackEntry?.baseRefName || null,
+    headRefName: viewed?.headRefName || stackEntry?.headRefName || null,
+    headRefOid: viewed?.headRefOid || stackEntry?.headRefOid || null,
+    updatedAt: viewed?.updatedAt || stackEntry?.updatedAt || null,
+  };
+}
+
+function buildFrozenMergeBatch(metadata, audit) {
+  const openByNumber = new Map(audit.stackMap.map((pr) => [pr.number, pr]));
+  const priorHeadShas = previousFrozenBatchHeadShas();
+  const entries = frozenMergeBatchPrNumbers.map((number, index) => {
+    const pr = openByNumber.get(number);
+    const current = frozenBatchPrMetadata(number, pr);
+    const priorHeadSha = priorHeadShas.get(number) || null;
+    const blockers = [];
+    if (!pr) blockers.push("missing_from_open_pr_snapshot");
+    if (!current.viewFetchOk) blockers.push("github_pr_view_metadata_unavailable");
+    if (current.state !== "OPEN") blockers.push(`state_${current.state || "missing"}`);
+    if (current.isDraft) blockers.push("is_draft");
+    if (current.mergeStateStatus !== "CLEAN") blockers.push(`merge_state_${current.mergeStateStatus || "missing"}`);
+    if (pr && pr.classification !== "canonical") blockers.push(`classification_${pr.classification}`);
+    if (!current.headRefOid) blockers.push("head_sha_unavailable");
+    if (priorHeadSha && current.headRefOid && priorHeadSha !== current.headRefOid) {
+      blockers.push("head_sha_changed_since_frozen_batch_capture");
+    }
+    return {
+      order: index + 1,
+      number,
+      title: current.title,
+      url: current.url,
+      state: current.state,
+      isDraft: current.isDraft,
+      mergeStateStatus: current.mergeStateStatus,
+      baseRefName: current.baseRefName,
+      headRefName: current.headRefName,
+      headRefOid: current.headRefOid,
+      previousFrozenHeadRefOid: priorHeadSha,
+      githubPrViewMetadataAvailable: current.viewFetchOk,
+      githubPrViewMetadataError: current.viewFetchError,
+      updatedAt: current.updatedAt,
+      parentPrNumber: pr?.parentPrNumber || null,
+      childPrNumbers: pr?.childPrNumbers || [],
+      duplicateRiskGroups: pr?.riskGroups || [],
+      duplicate: pr ? pr.classification === "duplicate_risk" : null,
+      canonical: pr ? pr.classification === "canonical" : false,
+      approvedForFutureMerge: blockers.length === 0,
+      blocker: blockers.length ? blockers.join(",") : null,
+    };
+  });
+  const blockers = entries.flatMap((entry) =>
+    entry.approvedForFutureMerge
+      ? []
+      : [{ number: entry.number, blocker: entry.blocker || "unknown_batch_blocker" }],
+  );
+  let decision = "approved_for_future_frozen_batch_merge_execution";
+  if (blockers.some((entry) => /missing/.test(entry.blocker))) decision = "blocked_pending_missing_pr_review";
+  else if (blockers.some((entry) => /merge_state_DIRTY/.test(entry.blocker))) decision = "blocked_pending_dirty_batch_pr_review";
+  else if (blockers.some((entry) => /head_sha/.test(entry.blocker))) decision = "blocked_pending_human_merge_order_review";
+  else if (blockers.some((entry) => /classification_duplicate_risk|duplicate/.test(entry.blocker))) decision = "blocked_pending_duplicate_pr_review";
+  else if (blockers.length > 0) decision = "blocked_pending_human_merge_order_review";
+  return {
+    runId,
+    generatedAt: metadata.generatedAt,
+    decision,
+    batchId: `pr350-frozen-merge-batch-${metadata.generatedAt.replace(/[:.]/g, "")}`,
+    sourcePr: 350,
+    approvedForFutureMergeExecution: decision === "approved_for_future_frozen_batch_merge_execution",
+    batchSize: entries.filter((entry) => entry.approvedForFutureMerge).length,
+    expectedPrNumbers: frozenMergeBatchPrNumbers,
+    entries,
+    blockers,
+    excludedPrs: {
+      alreadyMergedEvidencePrNumbers,
+      draftPrNumbers: sortedNumbers(audit.draftPrs.map((pr) => pr.number)),
+      dirtyOrUnstablePrs: Object.fromEntries(
+        audit.nonCleanPrs.map((pr) => [String(pr.number), pr.mergeStateStatus]).sort(([a], [b]) => Number(a) - Number(b)),
+      ),
+      duplicateRiskPrNumbers: sortedNumbers(
+        audit.stackMap.filter((pr) => pr.classification === "duplicate_risk").map((pr) => pr.number),
+      ),
+    },
+    safetyStatus: {
+      pullRequestsMerged: false,
+      pullRequestsClosed: false,
+      pullRequestsRebased: false,
+      pullRequestsRetargeted: false,
+      runtimePathsExecuted: false,
+      supabaseMutation: false,
+      providerCalls: false,
+      productionUnlocked: false,
+      externalBetaUnlocked: false,
+      paidProductionUnlocked: false,
+      publicArtifactsCreated: false,
+      signedUrlsIssued: false,
+      rawPromptExecution: false,
+    },
+  };
+}
+
+function buildFrozenBatchMergeOrder(batch) {
+  return {
+    runId,
+    generatedAt: batch.generatedAt,
+    decision: batch.decision === "approved_for_future_frozen_batch_merge_execution"
+      ? "frozen_batch_parent_first_order_ready"
+      : "frozen_batch_parent_first_order_blocked",
+    sourceBatchId: batch.batchId,
+    mergeOnlyApprovedFrozenBatchPrs: true,
+    sequence: batch.entries.map((entry) => ({
+      order: entry.order,
+      number: entry.number,
+      title: entry.title,
+      baseRefName: entry.baseRefName,
+      headRefName: entry.headRefName,
+      headRefOid: entry.headRefOid,
+      parentPrNumber: entry.parentPrNumber,
+      childPrNumbers: entry.childPrNumbers,
+      approvedForFutureMerge: entry.approvedForFutureMerge,
+      blocker: entry.blocker,
+      verificationBeforeMerge: `gh pr view ${entry.number} --repo yuzastudio6-cyber/Reedkt --json state,isDraft,mergeStateStatus,headRefOid,baseRefName,headRefName`,
+      requiredBeforeMerge: [
+        "state must remain OPEN",
+        "isDraft must remain false",
+        "mergeStateStatus must remain CLEAN",
+        `headRefOid must equal ${entry.headRefOid || "recorded_frozen_sha"}`,
+        "baseRefName must match the frozen batch entry unless the prior parent merge intentionally updated it and the batch is regenerated",
+      ],
+      stopConditions: [
+        "PR state changed",
+        "PR became draft",
+        "PR became dirty or unstable",
+        "head SHA changed",
+        "base branch changed unexpectedly",
+        "parent PR not merged first",
+        "new validation category appears",
+      ],
+    })),
+    postMergeVerification: [
+      "Verify the target branch contains each merged commit after every merge.",
+      "Regenerate the frozen batch after any parent merge changes child bases.",
+      "Stop immediately if any PR outside the frozen batch appears in the merge plan.",
+    ],
+  };
+}
+
 function buildDuplicateHumanReviewDraft(audit) {
   const approvedSet = new Set(approvedFutureMergePrNumbers);
   const mergedSet = new Set(alreadyMergedEvidencePrNumbers);
@@ -1059,10 +1519,6 @@ function buildMergeApprovalPacket(metadata, audit) {
   const approvedPrs = approvedFutureMergePrNumbers.map((number) => openByNumber.get(number)).filter(Boolean);
   const draftPrNumbers = sortedNumbers(audit.draftPrs.map((pr) => pr.number));
   const draftDriftReview = buildDraftPrDriftReview(metadata.generatedAt);
-  const expectedDraftPrNumbers =
-    draftDriftReview.decision === "accepted_draft_drift_to_352"
-      ? driftAcceptedExpectedDraftPrNumbers
-      : originalExpectedDraftPrNumbers;
   const nonCleanMergeStates = Object.fromEntries(
     audit.nonCleanPrs.map((pr) => [String(pr.number), pr.mergeStateStatus]).sort(([a], [b]) => Number(a) - Number(b)),
   );
@@ -1077,17 +1533,12 @@ function buildMergeApprovalPacket(metadata, audit) {
       .map((pr) => pr.number),
   );
   const alreadyMergedPrs = alreadyMergedEvidencePrNumbers.map((number) => pr205Summary(fetchPr(number)));
+  const liveDriftTolerancePolicy = buildLiveDriftTolerancePolicy(metadata.generatedAt);
+  const currentLiveDriftReview = buildCurrentLiveDriftReview(metadata, audit, alreadyMergedPrs);
+  const frozenMergeBatch = buildFrozenMergeBatch(metadata, audit);
+  const frozenBatchMergeOrder = buildFrozenBatchMergeOrder(frozenMergeBatch);
 
   const blockers = [];
-  if (metadata.openPrCount !== 347) {
-    blockers.push({
-      blocker: "open_pr_count_changed_since_approval_plan",
-      status: "active",
-      expected: 347,
-      actual: metadata.openPrCount,
-      decision: "blocked_pending_human_merge_order_review",
-    });
-  }
   if (draftDriftReview.decision !== "accepted_draft_drift_to_352") {
     blockers.push({
       blocker: "draft_pr_drift_review_not_accepted",
@@ -1099,45 +1550,12 @@ function buildMergeApprovalPacket(metadata, audit) {
       decision: "blocked_pending_human_merge_order_review",
     });
   }
-  if (!sameNumberSet(draftPrNumbers, expectedDraftPrNumbers)) {
+  if (frozenMergeBatch.blockers.length > 0) {
     blockers.push({
-      blocker:
-        draftDriftReview.decision === "accepted_draft_drift_to_352"
-          ? "draft_pr_set_changed_after_drift_acceptance"
-          : "draft_pr_set_changed_since_approval_plan",
+      blocker: "frozen_merge_batch_has_blockers",
       status: "active",
-      expected: expectedDraftPrNumbers,
-      actual: draftPrNumbers,
-      draftDriftDecision: draftDriftReview.decision,
-      decision: "blocked_pending_human_merge_order_review",
-    });
-  }
-  const expectedNonClean = Object.fromEntries(Object.entries(expectedNonCleanMergeStates).sort(([a], [b]) => Number(a) - Number(b)));
-  if (JSON.stringify(nonCleanMergeStates) !== JSON.stringify(expectedNonClean)) {
-    blockers.push({
-      blocker: "dirty_or_unstable_pr_set_changed_since_approval_plan",
-      status: "active",
-      expected: expectedNonClean,
-      actual: nonCleanMergeStates,
-      decision: "blocked_pending_dirty_or_unstable_pr_review",
-    });
-  }
-  const approvedProblems = approvedFutureMergePrNumbers
-    .map((number) => {
-      const pr = openByNumber.get(number);
-      if (!pr) return { number, issue: "missing_from_open_pr_snapshot" };
-      if (pr.isDraft) return { number, issue: "is_draft" };
-      if (pr.mergeStateStatus !== "CLEAN") return { number, issue: `merge_state_${pr.mergeStateStatus}` };
-      if (pr.classification !== "canonical") return { number, issue: `classification_${pr.classification}` };
-      return null;
-    })
-    .filter(Boolean);
-  if (approvedProblems.length > 0) {
-    blockers.push({
-      blocker: "approved_future_merge_set_not_clean_canonical",
-      status: "active",
-      problems: approvedProblems,
-      decision: "blocked_pending_human_merge_order_review",
+      problems: frozenMergeBatch.blockers,
+      decision: frozenMergeBatch.decision,
     });
   }
   const mergedProblems = alreadyMergedPrs
@@ -1152,9 +1570,12 @@ function buildMergeApprovalPacket(metadata, audit) {
     });
   }
 
-  let decision = "approved_for_future_parent_chain_merge_execution";
+  let decision = frozenMergeBatch.decision;
   const firstBlockingDecision = blockers.find((blocker) => blocker.status === "active")?.decision;
   if (firstBlockingDecision) decision = firstBlockingDecision;
+  if (decision === "approved_for_future_frozen_batch_merge_execution" && draftDriftReview.decision !== "accepted_draft_drift_to_352") {
+    decision = "blocked_pending_human_merge_order_review";
+  }
 
   const validationExceptionPolicy = buildValidationExceptionPolicy(metadata.generatedAt);
   const duplicateReview = buildDuplicateHumanReviewDraft(audit);
@@ -1168,6 +1589,10 @@ function buildMergeApprovalPacket(metadata, audit) {
     sourceDraftPrCount: draftPrNumbers.length,
     sourceMergeStateCounts: countsBy(audit.stackMap, "mergeStateStatus"),
     draftDriftReview,
+    liveDriftTolerancePolicy,
+    currentLiveDriftReview,
+    frozenMergeBatch,
+    frozenBatchMergeOrder,
     approvedFutureMergePrNumbers,
     approvedFutureMergeStacks,
     approvedFutureMergePrs: approvedPrs.map((pr) => ({
@@ -1215,14 +1640,14 @@ function buildMergeApprovalPacket(metadata, audit) {
 
 function renderApprovalPacketMd(packet) {
   const mergeSetHeading =
-    packet.decision === "approved_for_future_parent_chain_merge_execution"
-      ? "Approved Future Merge PRs"
-      : "Candidate Future Merge PRs - Held Until Blocker Resolution";
+    packet.decision === "approved_for_future_frozen_batch_merge_execution"
+      ? "Approved Frozen Merge Batch"
+      : "Frozen Merge Batch - Held Until Blocker Resolution";
   return `# Human Merge Order Approval Packet
 
 Decision: \`${packet.decision}\`
 
-This packet approves only a future parent-chain merge execution phase. It does not merge, close, rebase, retarget, or unlock runtime/product scopes.
+This packet approves only a future frozen-batch parent-chain merge execution phase. It does not merge, close, rebase, retarget, or unlock runtime/product scopes.
 
 ## Draft Drift Review
 
@@ -1235,14 +1660,26 @@ This packet approves only a future parent-chain merge execution phase. It does n
 - PR #352 draft/merge state: \`${packet.draftDriftReview.actualDraftPr.isDraft}\` / \`${packet.draftDriftReview.actualDraftPr.mergeStateStatus || "unavailable"}\`
 - Draft-set replacement accepted: \`${packet.draftDriftReview.driftInterpretation.draftSetReplacementAccepted}\`
 
+## Frozen Batch
+
+- Batch ID: \`${packet.frozenMergeBatch.batchId}\`
+- Batch decision: \`${packet.frozenMergeBatch.decision}\`
+- Approved batch size: ${packet.frozenMergeBatch.batchSize}
+- Future execution source of truth: \`docs/github-merge-hygiene/frozen-merge-batch.json\`
+- Live drift policy: \`${packet.liveDriftTolerancePolicy.decision}\`
+- Whole-repo open PR count drift: \`${packet.currentLiveDriftReview.openCountDrift.classification}\`
+- Live drift warnings: ${packet.currentLiveDriftReview.summary.warnings.length ? packet.currentLiveDriftReview.summary.warnings.map((warning) => `\`${warning}\``).join(", ") : "none"}
+- Live drift blockers: ${packet.currentLiveDriftReview.summary.blockers.length ? packet.currentLiveDriftReview.summary.blockers.map((blocker) => `\`${blocker}\``).join(", ") : "none"}
+
 ## ${mergeSetHeading}
 
-${markdownTable(packet.approvedFutureMergePrs, [
+${markdownTable(packet.frozenMergeBatch.entries.filter((entry) => entry.approvedForFutureMerge), [
   { label: "PR", value: (row) => `#${row.number}` },
   { label: "Title", value: (row) => row.title },
   { label: "Base", value: (row) => `\`${row.baseRefName}\`` },
   { label: "Head", value: (row) => `\`${row.headRefName}\`` },
   { label: "Merge state", value: (row) => row.mergeStateStatus },
+  { label: "SHA", value: (row) => `\`${row.headRefOid}\`` },
 ])}
 
 ## Approved Stacks
@@ -1259,6 +1696,7 @@ ${markdownTable(packet.approvedFutureMergeStacks, [
 - Duplicate-risk PRs: ${packet.blockedFromFutureMerge.duplicateRiskPrNumbers.length}
 - Already merged evidence PRs excluded from future merge targets: ${packet.blockedFromFutureMerge.alreadyMergedEvidencePrNumbers.map((number) => `#${number}`).join(", ")}
 - PR #350 is the approval packet carrier and is not part of the future merge target set.
+- PRs outside \`frozen-merge-batch.json\` are not approved for future merge execution.
 
 ## Validation Exception Policy
 
@@ -1332,7 +1770,10 @@ Current merge-hygiene approval status:
 - Draft drift review: \`${packet.draftDriftReview.decision}\`
 - PR #351 is recorded as \`${packet.draftDriftReview.expectedDraftPr.state || "unavailable"}\`.
 - PR #352 is recorded as \`${packet.draftDriftReview.actualDraftPr.state || "unavailable"}\`, draft=\`${packet.draftDriftReview.actualDraftPr.isDraft}\`, merge state \`${packet.draftDriftReview.actualDraftPr.mergeStateStatus || "unavailable"}\`.
-- Merge execution still requires a separate parent-chain execution prompt.
+- Frozen batch decision: \`${packet.frozenMergeBatch.decision}\`
+- Frozen batch size: ${packet.frozenMergeBatch.batchSize}
+- Live open PR count drift is a warning unless it affects the frozen batch.
+- Merge execution still requires a separate frozen-batch parent-chain execution prompt.
 - Future owners must check current merge status before building on any PR.
 
 Current blocked scopes remain unchanged: no runtime execution, providers, tools, workers, routes, Supabase writes, public artifacts, signed URL delivery, production, external beta, paid production, or raw prompt execution.
@@ -1350,10 +1791,12 @@ Before starting or continuing a workstream:
 2. Read \`docs/github-merge-hygiene/validation-exception-policy.md\`.
 3. Read \`docs/github-merge-hygiene/duplicate-pr-human-review-draft.md\`.
 4. Read \`docs/github-merge-hygiene/draft-pr-drift-review.md\`.
-5. Check live GitHub merge status before building on a PR.
-6. Follow \`docs/github-merge-hygiene/post-major-milestone-merge-rule.md\`.
+5. Read \`docs/github-merge-hygiene/frozen-merge-batch.md\`.
+6. Read \`docs/github-merge-hygiene/live-pr-drift-tolerance-policy.md\`.
+7. Check live GitHub merge status before building on a PR.
+8. Follow \`docs/github-merge-hygiene/post-major-milestone-merge-rule.md\`.
 
-This packet does not authorize PR merges by itself; it authorizes only a future parent-chain merge execution phase for the exact approved set.
+This packet does not authorize PR merges by itself; it authorizes only a future frozen-batch parent-chain merge execution phase for the exact approved set.
 `;
 }
 
@@ -1362,9 +1805,11 @@ function renderApprovalNextUnlockLanes(packet) {
 
 Recommended next phase:
 
-- If \`${packet.decision}\` remains approved, run \`GITHUB_MERGE_HYGIENE - parent-chain merge execution\`.
+- If \`${packet.decision}\` remains approved, run \`GITHUB_MERGE_HYGIENE - frozen batch parent-chain merge execution\`.
+- Merge only PRs with \`approvedForFutureMerge=true\` in \`docs/github-merge-hygiene/frozen-merge-batch.json\`.
 - Merge parent PRs first and verify merged commits after each merge.
 - Do not merge drafts, dirty/unstable PRs, duplicate-risk PRs, or non-canonical PRs.
+- Treat unrelated open PR count drift as a warning only; stop if any frozen-batch PR changes state, draft flag, merge state, head SHA, or base unexpectedly.
 
 Still blocked:
 
@@ -1380,25 +1825,28 @@ Still blocked:
 
 function renderMergeExecutionPrompt(packet) {
   const executionStatus =
-    packet.decision === "approved_for_future_parent_chain_merge_execution"
+    packet.decision === "approved_for_future_frozen_batch_merge_execution"
       ? "This prompt may be used only in a separate execution phase after PR #350 lands."
       : `Do not use this prompt for merge execution yet. Current approval decision is \`${packet.decision}\`; resolve the blocker report first.`;
   return `# GitHub Merge Hygiene Parent-Chain Merge Execution
 
 ${executionStatus}
 
-Candidate merge targets are exactly:
+Frozen batch merge targets are exactly:
 
-${packet.approvedFutureMergePrNumbers.map((number) => `- #${number}`).join("\n")}
+${packet.frozenMergeBatch.entries.filter((entry) => entry.approvedForFutureMerge).map((entry) => `- #${entry.number} \`${entry.headRefOid}\``).join("\n")}
 
 Rules:
 
+- Merge only PRs listed in \`docs/github-merge-hygiene/frozen-merge-batch.json\` with \`approvedForFutureMerge=true\`.
+- Verify each PR's head SHA before merge.
 - Merge parent PRs first.
 - Do not merge draft PRs.
 - Do not merge dirty or unstable PRs.
 - Do not merge duplicate-risk PRs unless they are explicitly marked canonical in the approval packet.
 - Verify the target branch contains each merged commit after every merge.
-- Stop on any changed merge state, new conflict, missing parent, or unexpected CI/validation category.
+- Stop on any changed PR state, draft flag, merge state, head SHA, base branch, new conflict, missing parent, or unexpected CI/validation category.
+- Do not merge PRs outside the frozen batch.
 - Do not execute runtime paths, mutate Supabase, call providers, run workers/tools/routes, process media, create public artifacts, issue signed URLs, deploy production, unlock external beta, unlock paid production, or execute raw prompts.
 `;
 }
@@ -1416,14 +1864,21 @@ function generateApprovalArtifacts(metadata, audit) {
     runId,
     generatedAt: packet.generatedAt,
     decision: packet.decision,
-    mergeExecutionApprovedForFuturePhase: packet.decision === "approved_for_future_parent_chain_merge_execution",
+    mergeExecutionApprovedForFuturePhase: packet.decision === "approved_for_future_frozen_batch_merge_execution",
     mergeExecutionStarted: false,
     draftDriftDecision: packet.draftDriftReview.decision,
-    approvedFutureMergePrNumbers: packet.approvedFutureMergePrNumbers,
+    frozenBatchDecision: packet.frozenMergeBatch.decision,
+    frozenBatchSize: packet.frozenMergeBatch.batchSize,
+    frozenBatchPrNumbers: packet.frozenMergeBatch.entries
+      .filter((entry) => entry.approvedForFutureMerge)
+      .map((entry) => entry.number),
+    approvedFutureMergePrNumbers: packet.frozenMergeBatch.entries
+      .filter((entry) => entry.approvedForFutureMerge)
+      .map((entry) => entry.number),
     blockedFromFutureMerge: packet.blockedFromFutureMerge,
     requiredNextAction:
-      packet.decision === "approved_for_future_parent_chain_merge_execution"
-        ? "run_separate_parent_chain_merge_execution_prompt"
+      packet.decision === "approved_for_future_frozen_batch_merge_execution"
+        ? "run_separate_frozen_batch_parent_chain_merge_execution_prompt"
         : "resolve_human_merge_order_or_validation_blockers",
     safetyStatus: {
       pullRequestsMerged: false,
@@ -1439,16 +1894,25 @@ function generateApprovalArtifacts(metadata, audit) {
   const blockers = {
     runId,
     generatedAt: packet.generatedAt,
-    decision: packet.decision === "approved_for_future_parent_chain_merge_execution"
+    decision: packet.decision === "approved_for_future_frozen_batch_merge_execution"
       ? "no_active_approval_blockers"
       : "merge_execution_approval_blocked",
     draftDriftDecision: packet.draftDriftReview.decision,
+    frozenBatchDecision: packet.frozenMergeBatch.decision,
     activeApprovalBlockers: packet.blockers,
     controlledBlockedMergeSets: packet.blockedFromFutureMerge,
   };
 
   jsonWrite("docs/github-merge-hygiene/draft-pr-drift-review.json", packet.draftDriftReview);
   textWrite("docs/github-merge-hygiene/draft-pr-drift-review.md", renderDraftDriftReviewMd(packet.draftDriftReview));
+  jsonWrite("docs/github-merge-hygiene/live-pr-drift-tolerance-policy.json", packet.liveDriftTolerancePolicy);
+  textWrite("docs/github-merge-hygiene/live-pr-drift-tolerance-policy.md", renderLiveDriftTolerancePolicyMd(packet.liveDriftTolerancePolicy));
+  jsonWrite("docs/github-merge-hygiene/current-live-drift-review.json", packet.currentLiveDriftReview);
+  textWrite("docs/github-merge-hygiene/current-live-drift-review.md", renderCurrentLiveDriftReviewMd(packet.currentLiveDriftReview));
+  jsonWrite("docs/github-merge-hygiene/frozen-merge-batch.json", packet.frozenMergeBatch);
+  textWrite("docs/github-merge-hygiene/frozen-merge-batch.md", renderFrozenMergeBatchMd(packet.frozenMergeBatch));
+  jsonWrite("docs/github-merge-hygiene/frozen-batch-merge-order.json", packet.frozenBatchMergeOrder);
+  textWrite("docs/github-merge-hygiene/frozen-batch-merge-order.md", renderFrozenBatchMergeOrderMd(packet.frozenBatchMergeOrder));
   jsonWrite("docs/github-merge-hygiene/duplicate-pr-risk-register.json", duplicateRiskRegister);
   textWrite("docs/github-merge-hygiene/duplicate-pr-risk-register.md", renderDuplicateMd(audit, packet.draftDriftReview));
   jsonWrite("docs/github-merge-hygiene/human-merge-order-approval-packet.json", packet);
@@ -1462,7 +1926,11 @@ function generateApprovalArtifacts(metadata, audit) {
     generatedAt: packet.generatedAt,
     decision: packet.decision,
     draftDriftDecision: packet.draftDriftReview.decision,
-    approvedFutureMergePrNumbers: packet.approvedFutureMergePrNumbers,
+    frozenBatchDecision: packet.frozenMergeBatch.decision,
+    frozenBatchSize: packet.frozenMergeBatch.batchSize,
+    approvedFutureMergePrNumbers: packet.frozenMergeBatch.entries
+      .filter((entry) => entry.approvedForFutureMerge)
+      .map((entry) => entry.number),
     blockers: packet.blockers,
     executionStatus: packet.executionStatus,
     supabaseClassification: packet.supabaseClassification,
@@ -1697,6 +2165,14 @@ function validateArtifacts() {
   let draftDriftDecision = "missing";
   let draftDriftAccepted = false;
   let draftDriftActualPr = null;
+  let frozenBatchDecision = "missing";
+  let frozenBatchApproved = false;
+  let frozenBatchPrSet = [];
+  let frozenBatchBlockers = [];
+  let frozenBatchApprovedMissingHeadSha = [];
+  let liveDriftPolicyDecision = "missing";
+  let currentLiveDriftDecision = "missing";
+  let mergePromptMentionsFrozenBatch = false;
   try {
     const auditReport = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/reports/open_pr_stack_audit_report.json"), "utf8"));
     reportStatus = auditReport.auditStatus;
@@ -1729,6 +2205,41 @@ function validateArtifacts() {
   } catch {
     // Missing review is handled by the missing file check.
   }
+  try {
+    const policy = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/live-pr-drift-tolerance-policy.json"), "utf8"));
+    liveDriftPolicyDecision = policy.decision;
+  } catch {
+    // Missing policy is handled by the missing file check.
+  }
+  try {
+    const driftReview = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/current-live-drift-review.json"), "utf8"));
+    currentLiveDriftDecision = driftReview.decision;
+  } catch {
+    // Missing review is handled by the missing file check.
+  }
+  try {
+    const batch = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/frozen-merge-batch.json"), "utf8"));
+    frozenBatchDecision = batch.decision;
+    frozenBatchApproved = batch.approvedForFutureMergeExecution === true;
+    frozenBatchPrSet = (batch.entries || [])
+      .filter((entry) => entry.approvedForFutureMerge === true)
+      .map((entry) => entry.number);
+    frozenBatchBlockers = batch.blockers || [];
+    frozenBatchApprovedMissingHeadSha = (batch.entries || [])
+      .filter((entry) => entry.approvedForFutureMerge === true && !entry.headRefOid)
+      .map((entry) => entry.number);
+  } catch {
+    // Missing batch is handled by the missing file check.
+  }
+  try {
+    const prompt = readFileSync(path.join(root, "docs/implementation-prompts/prompt-github-merge-execution-parent-chain.md"), "utf8");
+    mergePromptMentionsFrozenBatch =
+      /frozen-merge-batch\.json/.test(prompt) &&
+      /approvedForFutureMerge=true/.test(prompt) &&
+      /head SHA/i.test(prompt);
+  } catch {
+    // Missing prompt is handled by the missing file check.
+  }
 
   const failures = [];
   if (missing.length > 0) failures.push(`missing required files: ${missing.join(", ")}`);
@@ -1759,6 +2270,26 @@ function validateArtifacts() {
   ) {
     failures.push("draft PR drift review must record PR #352 as open/draft/clean");
   }
+  if (liveDriftPolicyDecision !== "live_drift_tolerance_policy_active_for_frozen_merge_batch") {
+    failures.push(`unexpected live drift policy decision ${liveDriftPolicyDecision}`);
+  }
+  if (currentLiveDriftDecision !== "live_drift_review_completed_for_frozen_batch") {
+    failures.push(`unexpected current live drift review decision ${currentLiveDriftDecision}`);
+  }
+  if (frozenBatchDecision !== "approved_for_future_frozen_batch_merge_execution") {
+    failures.push(`unexpected frozen batch decision ${frozenBatchDecision}`);
+  }
+  if (!frozenBatchApproved) failures.push("frozen merge batch is not approved for future merge execution");
+  if (!sameNumberSet(frozenBatchPrSet, approvedFutureMergePrNumbers)) {
+    failures.push(`frozen batch PR set mismatch: ${frozenBatchPrSet.join(",")}`);
+  }
+  if (frozenBatchBlockers.length > 0) failures.push(`frozen batch blockers present: ${JSON.stringify(frozenBatchBlockers)}`);
+  if (frozenBatchApprovedMissingHeadSha.length > 0) {
+    failures.push(`frozen batch approved entries missing headRefOid: ${frozenBatchApprovedMissingHeadSha.join(",")}`);
+  }
+  if (!mergePromptMentionsFrozenBatch) {
+    failures.push("merge execution prompt must require frozen-merge-batch.json, approvedForFutureMerge=true, and head SHA verification");
+  }
   if (mergeExecutionStarted !== false) failures.push("approval report must record no PR merges in this phase");
 
   if (failures.length > 0) {
@@ -1766,7 +2297,7 @@ function validateArtifacts() {
     process.exit(1);
   }
   console.log(
-    `[github-merge-hygiene] diagnostics passed: required files present, decision=${decision}, approval=${approvalDecision}, draftDrift=${draftDriftDecision}, pr346State=${pr346State}, openPrListLimitHit=${openPrListLimitHit}`,
+    `[github-merge-hygiene] diagnostics passed: required files present, decision=${decision}, approval=${approvalDecision}, frozenBatch=${frozenBatchDecision}, draftDrift=${draftDriftDecision}, pr346State=${pr346State}, openPrListLimitHit=${openPrListLimitHit}`,
   );
 }
 

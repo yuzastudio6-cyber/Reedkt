@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T21:29:27.205Z",
+  "generatedAt": "2026-06-12T21:52:54.675Z",
   "decision": "duplicate_parallel_prs_require_human_review_before_any_noncanonical_merge",
   "entries": [
     {
@@ -144,8 +144,7 @@
         300,
         338,
         344,
-        345,
-        353
+        345
       ],
       "prsLikelySupersededPendingHumanConfirmation": [
         11,
@@ -179,8 +178,7 @@
         300,
         338,
         344,
-        345,
-        353
+        345
       ],
       "prsNotApprovedForMergeYet": [
         11,
@@ -214,8 +212,7 @@
         300,
         338,
         344,
-        345,
-        353
+        345
       ],
       "recommendedAction": "keep canonical/merged evidence; review or close/rebase parallel PRs only after the canonical parent chain lands",
       "reason": "Worker runtime repo audit, approval, and no-op dry-run form a parent stack; draft worker alternatives need review before any worker lane is merged."

@@ -1,0 +1,208 @@
+{
+  "runId": "github-merge-hygiene-2026-06-12T215218785Z",
+  "generatedAt": "2026-06-12T21:52:38.671Z",
+  "decision": "live_drift_review_completed_for_frozen_batch",
+  "expectedOpenCount": 347,
+  "actualOpenCount": 345,
+  "openCountDrift": {
+    "expected": 347,
+    "actual": 345,
+    "classification": "warning",
+    "reason": "Whole-repo open PR count is advisory once the frozen batch model is active."
+  },
+  "expectedDraftSetAfterDriftAcceptance": [
+    1,
+    308,
+    312,
+    313,
+    316,
+    317,
+    319,
+    321,
+    323,
+    326,
+    329,
+    332,
+    333,
+    335,
+    336,
+    338,
+    339,
+    344,
+    345,
+    348,
+    352
+  ],
+  "actualDraftSet": [
+    1,
+    308,
+    312,
+    313,
+    316,
+    317,
+    319,
+    321,
+    323,
+    326,
+    329,
+    332,
+    333,
+    335,
+    336,
+    338,
+    339,
+    344,
+    345,
+    348,
+    352,
+    355
+  ],
+  "newDrafts": [
+    355
+  ],
+  "newDraftReviews": [
+    {
+      "number": 355,
+      "title": "[coordination] MERGE-HYGIENE-1A owner-approved parent-first merge execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-merge-hygiene-1-parent-first-merge-execution-packet",
+      "headRefName": "codex/rp-merge-hygiene-1a-owner-approved-parent-first-merge-execution",
+      "headRefOid": null,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/355",
+      "driftClassification": "warning",
+      "reason": "New draft is outside frozen batch."
+    }
+  ],
+  "dirtyOrUnstablePrs": [
+    {
+      "number": 1,
+      "title": "[codex] Publish ReeditPro planning and backend readiness stack",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "DIRTY",
+      "baseRefName": "codex/reeditpro-web-ui-shell",
+      "headRefName": "codex/reeditpro-planning-stack",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/1",
+      "driftClassification": "warning",
+      "reason": "Non-clean PR is outside the frozen batch."
+    },
+    {
+      "number": 94,
+      "title": "[foundation] Prompt 10 render preview export foundation",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "UNSTABLE",
+      "baseRefName": "codex/rp-foundation-09-media-readiness-probe-transcript-timing",
+      "headRefName": "codex/rp-foundation-10-render-preview-export-foundation",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/94",
+      "driftClassification": "warning",
+      "reason": "Non-clean PR is outside the frozen batch."
+    },
+    {
+      "number": 333,
+      "title": "[model] MODEL-DRYRUN-2 calibrated Qwen DeepSeek synthetic provider dry run",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "DIRTY",
+      "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+      "headRefName": "codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-provider-dry-run",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/333",
+      "driftClassification": "warning",
+      "reason": "Non-clean PR is outside the frozen batch."
+    }
+  ],
+  "missingCandidatePrs": [
+    347
+  ],
+  "missingCandidateReviews": [
+    {
+      "number": 347,
+      "state": "MERGED",
+      "title": "[tool-route] Execution unlock audit",
+      "headRefName": "codex/rp-tool-route-0-execution-unlock-audit",
+      "headRefOid": "53e7af66407a4e9bd48e628439bc622532bf695a",
+      "frozenBatchMember": false,
+      "driftClassification": "resolved",
+      "reason": "Candidate PR is already merged and should be recorded as evidence rather than included in the future merge batch."
+    }
+  ],
+  "watchedPrs": [
+    {
+      "number": 333,
+      "title": "[model] MODEL-DRYRUN-2 calibrated Qwen DeepSeek synthetic provider dry run",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "DIRTY",
+      "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+      "headRefName": "codex/rp-model-dryrun-2-calibrated-qwen-deepseek-synthetic-provider-dry-run",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/333",
+      "frozenBatchMember": false,
+      "driftClassification": "warning_or_resolved_outside_batch"
+    },
+    {
+      "number": 347,
+      "title": "[tool-route] Execution unlock audit",
+      "state": "MERGED",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+      "headRefName": "codex/rp-tool-route-0-execution-unlock-audit",
+      "headRefOid": "53e7af66407a4e9bd48e628439bc622532bf695a",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/347",
+      "frozenBatchMember": false,
+      "driftClassification": "warning_or_resolved_outside_batch"
+    },
+    {
+      "number": 352,
+      "title": "[coordination] MERGE-HYGIENE-1 parent-first merge execution packet",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-merge-hygiene-0-milestone-pr-stack-audit",
+      "headRefName": "codex/rp-merge-hygiene-1-parent-first-merge-execution-packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/352",
+      "frozenBatchMember": false,
+      "driftClassification": "warning_or_resolved_outside_batch"
+    },
+    {
+      "number": 353,
+      "title": "[worker] Runtime fixture hardening",
+      "state": "MERGED",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+      "headRefName": "codex/rp-worker-runtime-unlock-3-fixture-hardening",
+      "headRefOid": "6d5725d4489a35bc86ce4dcb74b44914c422ead6",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/353",
+      "frozenBatchMember": false,
+      "driftClassification": "warning_or_resolved_outside_batch"
+    },
+    {
+      "number": 355,
+      "title": "[coordination] MERGE-HYGIENE-1A owner-approved parent-first merge execution",
+      "state": "OPEN",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-merge-hygiene-1-parent-first-merge-execution-packet",
+      "headRefName": "codex/rp-merge-hygiene-1a-owner-approved-parent-first-merge-execution",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/355",
+      "frozenBatchMember": false,
+      "driftClassification": "warning_or_resolved_outside_batch"
+    }
+  ],
+  "summary": {
+    "warnings": [
+      "total_open_pr_count_drift",
+      "new_unrelated_draft_pr_355",
+      "unrelated_nonclean_pr_1_DIRTY",
+      "unrelated_nonclean_pr_94_UNSTABLE",
+      "unrelated_nonclean_pr_333_DIRTY"
+    ],
+    "blockers": [],
+    "resolved": [
+      "merged_candidate_pr_347"
+    ]
+  }
+}

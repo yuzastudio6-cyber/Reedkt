@@ -1,10 +1,10 @@
 {
-  "runId": "github-merge-hygiene-2026-06-12T212905596Z",
-  "generatedAt": "2026-06-12T21:29:24.241Z",
+  "runId": "github-merge-hygiene-2026-06-12T215218785Z",
+  "generatedAt": "2026-06-12T21:52:38.671Z",
   "decision": "duplicate_parallel_lanes_require_owner_review",
   "draftDriftReview": {
-    "runId": "github-merge-hygiene-2026-06-12T212905596Z",
-    "generatedAt": "2026-06-12T21:29:24.241Z",
+    "runId": "github-merge-hygiene-2026-06-12T215218785Z",
+    "generatedAt": "2026-06-12T21:52:38.671Z",
     "decision": "accepted_draft_drift_to_352",
     "expectedDraftPrNumber": 351,
     "actualDraftPrNumber": 352,
@@ -421,8 +421,7 @@
         300,
         338,
         344,
-        345,
-        353
+        345
       ],
       "canonicalObservedPrNumbers": [],
       "riskStatus": "parallel_or_duplicate_review_required",
@@ -746,16 +745,6 @@
           "mergeStateStatus": "CLEAN",
           "baseRefName": "codex/rp-worker-0-worker-runtime-unlock-repo-audit",
           "headRefName": "codex/rp-worker-1-worker-runtime-contract-hardening-dry-run-plan",
-          "classification": "draft_hold"
-        },
-        {
-          "number": 353,
-          "title": "[worker] Runtime fixture hardening",
-          "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/353",
-          "isDraft": true,
-          "mergeStateStatus": "CLEAN",
-          "baseRefName": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
-          "headRefName": "codex/rp-worker-runtime-unlock-3-fixture-hardening",
           "classification": "draft_hold"
         }
       ]

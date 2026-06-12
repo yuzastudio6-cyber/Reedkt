@@ -13,7 +13,12 @@ Allowed scope: live GitHub state recheck, safe downstream branch update attempts
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-merge-hygiene-3-owner-approved-downstream-rebase-retarget-execution`
 - Branch: `codex/rp-merge-hygiene-3-owner-approved-downstream-rebase-retarget-execution`
 - PR title: `[coordination] MERGE-HYGIENE-3 owner-approved downstream rebase retarget execution`
-- PR URL: `pending`
+- PR URL: https://github.com/yuzastudio6-cyber/Reedkt/pull/359
+- PR mode: `draft`
+- PR state: `OPEN`
+- PR mergeability: `MERGEABLE`
+- PR merge state: `CLEAN`
+- GitHub checks: `no_check_rollup_returned`
 - Owner approval present: `yes`
 - Rebase executed: `false`
 - Retarget executed: `false`

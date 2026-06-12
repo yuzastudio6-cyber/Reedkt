@@ -23,8 +23,8 @@
     "qwen3-max",
     "qwen-max"
   ],
-  "selectedAlias": null,
-  "selectedBaseUrlKey": "beijing",
+  "selectedAlias": "qwen-plus",
+  "selectedBaseUrlKey": "virginia",
   "defaultBaseUrlKey": "beijing",
   "keyReplacementEvidence": {
     "secretRef": "DASHSCOPE_API_KEY",

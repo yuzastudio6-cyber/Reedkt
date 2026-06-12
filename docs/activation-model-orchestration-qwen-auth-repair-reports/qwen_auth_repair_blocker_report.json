@@ -1,10 +1,8 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "status": "blocked",
-  "decision": "blocked_pending_dashscope_key_replacement",
-  "activeBlockers": [
-    "provider_auth_or_permission_failed"
-  ],
+  "status": "passed",
+  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
   "blockedScopes": [
     "deepseek_rerun",
     "tools_workers_routes",

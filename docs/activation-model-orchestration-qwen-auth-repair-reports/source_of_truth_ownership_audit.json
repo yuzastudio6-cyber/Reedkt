@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T160627",
+  "runId": "modeldryrun1-20260612T161337",
   "ownerWorkstream": "MODEL_ORCHESTRATION",
   "sourceEvidence": "PR #320 provider dry-run reports plus current official DashScope and Alibaba Model Studio docs",
   "sourcePaths": [

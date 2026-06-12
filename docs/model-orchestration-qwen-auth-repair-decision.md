@@ -1,8 +1,8 @@
 # Model Orchestration Qwen Auth Repair Decision
 
-Decision: `blocked_pending_dashscope_key_replacement`.
+Decision: `qwen_alias_repaired_ready_for_plan_snapshot_contract`.
 
-Plan snapshot contract readiness: `false`.
+Plan snapshot contract readiness: `true`.
 
 DashScope key replacement asserted during execution: `true`. Operator-reported secret version: `3`. Secret version selector: `latest`.
 

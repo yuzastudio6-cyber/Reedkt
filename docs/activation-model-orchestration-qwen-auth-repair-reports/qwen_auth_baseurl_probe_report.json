@@ -1,9 +1,9 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "status": "blocked",
+  "status": "passed",
   "executed": true,
   "provider": "qwen_dashscope",
-  "selectedBaseUrlKey": "beijing",
+  "selectedBaseUrlKey": "virginia",
   "endpointPath": "/chat/completions",
   "probeAliasOrder": [
     "qwen-plus",
@@ -15,8 +15,8 @@
     "qwen3.7-max"
   ],
   "providerCallsAttempted": 3,
-  "providerCallsPassed": 0,
-  "providerCallsBlocked": 3,
+  "providerCallsPassed": 2,
+  "providerCallsBlocked": 1,
   "stream": false,
   "tools": false,
   "search": false,
@@ -26,12 +26,17 @@
   "results": [
     {
       "modelId": "qwen-plus",
-      "baseUrlKey": "beijing",
-      "status": "blocked",
-      "blocker": "provider_auth_or_permission_failed",
-      "httpStatus": 401,
-      "latencyMs": 878,
-      "responseContentCharacters": 254,
+      "baseUrlKey": "virginia",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 5607,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 88,
+        "completionTokens": 27,
+        "totalTokens": 115
+      },
+      "responseContentCharacters": 118,
       "sanitizedEvidence": {
         "authKeywordDetected": true,
         "permissionKeywordDetected": false,
@@ -46,12 +51,17 @@
     },
     {
       "modelId": "qwen3-max",
-      "baseUrlKey": "beijing",
-      "status": "blocked",
-      "blocker": "provider_auth_or_permission_failed",
-      "httpStatus": 401,
-      "latencyMs": 262,
-      "responseContentCharacters": 254,
+      "baseUrlKey": "virginia",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 2990,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 88,
+        "completionTokens": 27,
+        "totalTokens": 115
+      },
+      "responseContentCharacters": 118,
       "sanitizedEvidence": {
         "authKeywordDetected": true,
         "permissionKeywordDetected": false,
@@ -66,14 +76,14 @@
     },
     {
       "modelId": "qwen-max",
-      "baseUrlKey": "beijing",
+      "baseUrlKey": "virginia",
       "status": "blocked",
-      "blocker": "provider_auth_or_permission_failed",
-      "httpStatus": 401,
-      "latencyMs": 280,
-      "responseContentCharacters": 254,
+      "blocker": "qwen_model_alias_unavailable",
+      "httpStatus": 404,
+      "latencyMs": 146,
+      "responseContentCharacters": 213,
       "sanitizedEvidence": {
-        "authKeywordDetected": true,
+        "authKeywordDetected": false,
         "permissionKeywordDetected": false,
         "serviceActivationKeywordDetected": false,
         "modelUnavailableKeywordDetected": true,

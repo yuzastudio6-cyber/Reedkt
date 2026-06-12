@@ -1,12 +1,10 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "modeldryrun1-20260612T160627",
-  "status": "blocked",
-  "decision": "blocked_pending_dashscope_key_replacement",
-  "activeBlockers": [
-    "provider_auth_or_permission_failed"
-  ],
-  "selectedQwenAlias": null,
+  "runId": "modeldryrun1-20260612T161337",
+  "status": "passed",
+  "decision": "qwen_alias_repaired_ready_for_plan_snapshot_contract",
+  "activeBlockers": [],
+  "selectedQwenAlias": "qwen-plus",
   "officialQwenAliasOrder": [
     "qwen-plus",
     "qwen3-max",
@@ -20,7 +18,7 @@
   "qwenProviderCallsExecutedOnlyWhenConfirmed": true,
   "deepseekRerun": false,
   "deepseekEvidenceReusedAsMetadataOnly": true,
-  "planSnapshotContractReady": false,
+  "planSnapshotContractReady": true,
   "secretPayloadPrinted": false,
   "secretPayloadCommitted": false,
   "rawProviderResponsesStored": false,

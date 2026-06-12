@@ -1,0 +1,188 @@
+{
+  "phase": "TOOL_ROUTE_0",
+  "status": "passed",
+  "sourceEvidence": {
+    "worker1": {
+      "runId": "worker1-20260612T193823",
+      "status": "passed",
+      "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+      "readiness": "ready for tool-route execution unlock audit"
+    },
+    "worker0": {
+      "runId": "worker0-20260612T191022",
+      "status": "passed",
+      "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+      "readiness": "ready for approved-plan snapshot dry-run",
+      "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758"
+    },
+    "planSnapshot1": {
+      "runId": "plansnapshot1-20260612T182758",
+      "status": "passed",
+      "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+      "readiness": "candidate_only_not_runtime_approved",
+      "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758"
+    },
+    "modelDryRun1": {
+      "runId": "modeldryrun1-20260612T174538",
+      "status": "passed",
+      "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+      "readiness": "ready_for_plan_snapshot_contract"
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "docs/activation-worker-approved-plan-dry-run-reports/summary/worker-approved-plan-dry-run-summary.json",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-1 summary evidence."
+    },
+    {
+      "path": "docs/activation-worker-approved-plan-dry-run-reports/reports/worker-approved-plan-dry-run-report.json",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-1 report evidence."
+    },
+    {
+      "path": "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-1 deterministic job batch plan."
+    },
+    {
+      "path": "docs/activation-worker-approved-plan-dry-run-reports/validation/blocked-route-validation.json",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-1 blocked route validation."
+    },
+    {
+      "path": "docs/activation-phase-worker-1-approved-plan-snapshot-dry-run-results.md",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-1 results document."
+    },
+    {
+      "path": "docs/activation-worker-runtime-jobs-audit-reports/summary/worker-runtime-jobs-audit-summary.json",
+      "exists": true,
+      "required": true,
+      "purpose": "WORKER-0 source readiness evidence."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/summary/provider-output-plan-snapshot-contract-summary.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 source readiness evidence."
+    },
+    {
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+      "exists": true,
+      "required": true,
+      "purpose": "PLAN-SNAPSHOT-1 candidate snapshot."
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+      "exists": true,
+      "required": true,
+      "purpose": "MODEL-DRYRUN-1 source readiness evidence."
+    }
+  ],
+  "absentOptionalTrees": [
+    {
+      "path": "docs/runtime-unlock",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/cross-chat",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/agents",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/tool-studies",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/tool-call-foundation.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/tool-readiness-worker-runtime-foundation.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/worker-claim-execution-contract-hardening.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/provider-gateway-foundation.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/supabase-milestone-sync-policy.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    },
+    {
+      "path": "docs/supabase-success-milestone-reporting-standard.md",
+      "exists": false,
+      "required": false,
+      "purpose": "Optional compatibility/source path checked and not created by TOOL-ROUTE-0."
+    }
+  ],
+  "currentBranch": "codex/rp-tool-route-0-execution-unlock-audit",
+  "baseBranch": "codex/rp-worker-1-approved-plan-snapshot-dry-run",
+  "prStack": [
+    {
+      "pr": 343,
+      "title": "[worker] Approved plan snapshot dry run",
+      "expectedRunId": "worker1-20260612T193823"
+    },
+    {
+      "pr": 340,
+      "title": "[worker] Worker Runtime Jobs repo audit",
+      "expectedRunId": "worker0-20260612T191022"
+    },
+    {
+      "pr": 334,
+      "title": "[plan] Provider output approved-plan snapshot contract",
+      "expectedRunId": "plansnapshot1-20260612T182758"
+    },
+    {
+      "pr": 331,
+      "title": "[model] Qwen DeepSeek full synthetic provider dry run",
+      "expectedRunId": "modeldryrun1-20260612T174538"
+    }
+  ],
+  "supabaseUpdateClassification": {
+    "updateRequired": "docs/status only",
+    "updateStatus": "docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "evidenceDocs": [
+      "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+      "docs/activation-tool-route-execution-unlock-audit-reports/reports/tool-route-execution-unlock-audit-report.json"
+    ],
+    "blockers": [],
+    "nextSupabaseAction": "none"
+  },
+  "activeBlockers": []
+}

@@ -1,0 +1,109 @@
+{
+  "phase": "TOOL_ROUTE_0",
+  "owner": "WORKER_RUNTIME_JOBS / tool-route coordination audit layer",
+  "runId": "toolroute0-20260612T201155",
+  "status": "passed",
+  "decision": "tool_route_execution_unlock_audit_passed_ready_for_route_dry_run_planning",
+  "executionStatus": "completed_local_docs_only",
+  "branch": "codex/rp-tool-route-0-execution-unlock-audit",
+  "baseBranch": "codex/rp-worker-1-approved-plan-snapshot-dry-run",
+  "prTitle": "[tool-route] Execution unlock audit",
+  "sourceEvidence": {
+    "worker1": {
+      "runId": "worker1-20260612T193823",
+      "status": "passed",
+      "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+      "readiness": "ready for tool-route execution unlock audit"
+    },
+    "worker0": {
+      "runId": "worker0-20260612T191022",
+      "status": "passed",
+      "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+      "readiness": "ready for approved-plan snapshot dry-run",
+      "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758"
+    },
+    "planSnapshot1": {
+      "runId": "plansnapshot1-20260612T182758",
+      "status": "passed",
+      "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+      "readiness": "candidate_only_not_runtime_approved",
+      "candidatePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758"
+    },
+    "modelDryRun1": {
+      "runId": "modeldryrun1-20260612T174538",
+      "status": "passed",
+      "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+      "readiness": "ready_for_plan_snapshot_contract"
+    }
+  },
+  "routeFamilyMap": {
+    "status": "passed",
+    "routeFamilyCount": 14,
+    "allFamiliesMapped": true
+  },
+  "toolStudyPrerequisiteMap": {
+    "status": "passed",
+    "prerequisiteOwnerCount": 9,
+    "promptCreatedCount": 6,
+    "missingToolStudyCount": 3
+  },
+  "blockedRouteRegister": {
+    "status": "passed",
+    "blockedUseCount": 19,
+    "allExecutionBlocked": true
+  },
+  "ownerToolStudyPrompts": {
+    "status": "passed",
+    "promptCount": 6,
+    "paths": [
+      "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+      "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+      "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+      "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+      "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+      "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md"
+    ]
+  },
+  "diagnostics": {
+    "status": "passed",
+    "script": "scripts/validation/tool-route-execution-unlock-audit-diagnostics.mjs"
+  },
+  "toolRoute1Readiness": "ready for route dry-run planning",
+  "safetyFlags": {
+    "toolExecution": false,
+    "workerExecution": false,
+    "routeExecution": false,
+    "providerModelCalls": false,
+    "mediaProcessing": false,
+    "browserMapWeb": false,
+    "supabaseMutation": false,
+    "sqlMigrationsSchemaRls": false,
+    "googleCloudApiCalls": false,
+    "secretManagerApiCalls": false,
+    "gcsStorageTransfer": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "rawPromptExecution": false,
+    "production": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "broadMedia": false,
+    "stripeCredits": false,
+    "dependencyMutation": false,
+    "finalRenderExport": false
+  },
+  "supabaseUpdateClassification": {
+    "updateRequired": "docs/status only",
+    "updateStatus": "docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "evidenceDocs": [
+      "docs/activation-phase-tool-route-0-execution-unlock-audit-results.md",
+      "docs/activation-tool-route-execution-unlock-audit-reports/reports/tool-route-execution-unlock-audit-report.json"
+    ],
+    "blockers": [],
+    "nextSupabaseAction": "none"
+  },
+  "activeBlockers": []
+}

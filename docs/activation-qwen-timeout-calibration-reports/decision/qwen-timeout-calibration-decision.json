@@ -1,0 +1,29 @@
+{
+  "phase": "model-orchestration-qwen-timeout-calibration",
+  "runId": "qwentimeout1-20260612T165931",
+  "status": "passed",
+  "decision": "qwen_schema_timeout_calibrated_ready_for_model_dryrun",
+  "activeBlockers": [],
+  "providerCallsAttempted": 8,
+  "qwenApiCallsAllowedOnlyForTimeoutCalibration": true,
+  "deepseekApiCallsAllowedInThisPhase": false,
+  "fullProviderDryRunAllowedInThisPhase": false,
+  "rawProviderResponsesStored": false,
+  "secretPayloadPrinted": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "supabaseWrites": false,
+  "supabaseMilestoneSync": {
+    "requested": false,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  },
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

@@ -1,5 +1,12 @@
 # Activation Next Phase Runbook
 
+## After PR #322 Qwen Auth Repair
+
+1. Review `docs/activation-phase-model-provider-dry-run-results.md` and confirm Qwen auth repair run `modeldryrun1-20260612T162802` remains the source of truth.
+2. Run MODEL-TIMEOUT-1 with `activation:qwen-timeout-calibration` before attempting the full Qwen/DeepSeek provider dry-run.
+3. Proceed to MODEL-DRYRUN-1 only if `docs/activation-qwen-timeout-calibration-reports/readiness/qwen-timeout-calibration-readiness-report.json` records `fullModelDryRunReadiness=ready`.
+4. Keep DeepSeek calls, the full provider dry-run, tools, workers, routes, Supabase writes, SQL, migrations, schema/RLS changes, media, public artifacts, signed URLs, production, external beta, and paid production blocked in the timeout calibration phase.
+
 This runbook starts after Phase 18 is reviewed and Phase 19 local baseline is available. It does not build images, deploy services, run `gcloud`, call providers, download models, add secrets, or process real media.
 
 ## After Phase 18

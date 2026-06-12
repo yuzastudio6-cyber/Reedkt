@@ -1,0 +1,111 @@
+{
+  "phase": "model-orchestration-qwen-timeout-calibration",
+  "runId": "qwentimeout1-20260612T165931",
+  "branch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "baseBranch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+  "prTitle": "[model] Qwen schema timeout target calibration",
+  "ownerWorkstream": "PROVIDER_GATEWAY_MODELS",
+  "sourceEvidence": "PR #322 Qwen auth repair plus PR #318 dry-run approval packet",
+  "sourcePaths": [
+    {
+      "path": "docs/activation-phase-model-provider-dry-run-results.md",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_repair_readiness_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_auth_baseurl_probe_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_synthetic_cases.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-dry-run-approval-reports/dry_run_readiness_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_decision.json",
+      "present": true
+    },
+    {
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/qwen_provider_dry_run_report.json",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-qwen-auth-repair.md",
+      "present": true
+    },
+    {
+      "path": "docs/model-orchestration-provider-dry-run.md",
+      "present": true
+    }
+  ],
+  "qwenAuthRepairRunId": "modeldryrun1-20260612T162802",
+  "qwenAuthRepairDecision": "qwen_auth_repaired_ready_for_provider_dry_run_update",
+  "qwenAuthRepairStatus": "blocked",
+  "selectedQwenAlias": "qwen3.7-plus",
+  "expectedPrimaryTarget": "qwen3.7-plus",
+  "activeBlockers": [
+    "provider_timeout"
+  ],
+  "previousSchemaCaseTimeouts": [
+    {
+      "caseId": "synthetic_edit_intent_extraction",
+      "modelId": "qwen3.7-plus",
+      "blocker": "provider_timeout",
+      "latencyMs": 12005,
+      "rawProviderResponseStored": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "caseId": "synthetic_timeline_planning",
+      "modelId": "qwen3.7-plus",
+      "blocker": "provider_timeout",
+      "latencyMs": 12007,
+      "rawProviderResponseStored": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "caseId": "synthetic_tool_route_metadata_recommendation",
+      "modelId": "qwen3.7-plus",
+      "blocker": "provider_timeout",
+      "latencyMs": 12005,
+      "rawProviderResponseStored": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "caseId": "synthetic_provider_fallback_comparison",
+      "modelId": "qwen3.7-plus",
+      "blocker": "provider_timeout",
+      "latencyMs": 15005,
+      "rawProviderResponseStored": false,
+      "secretPayloadPrinted": false
+    }
+  ],
+  "previousTimedOutCaseCount": 4,
+  "previousAuthProbeStatus": {
+    "status": "passed",
+    "usAuthProbeCallsPassed": 2,
+    "approvedTargetCallsPassed": 3,
+    "qwenMaxKnownUnavailable": "qwen-max"
+  },
+  "providerDryRunDecision": "not_attempted",
+  "deepseekCallsInThisPhase": false,
+  "fullProviderDryRunInThisPhase": false,
+  "supabaseWrites": false,
+  "sqlMigrationsSchemaRls": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "cwdEvidence": "/private/tmp/reeditpro-model-dryrun1-worktree"
+}

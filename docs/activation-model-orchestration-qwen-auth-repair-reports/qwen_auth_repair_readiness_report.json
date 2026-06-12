@@ -1,0 +1,33 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "runId": "model-orchestration-qwen-auth-repair-20260612",
+  "status": "blocked",
+  "decision": "blocked_pending_dashscope_key_replacement",
+  "activeBlockers": [
+    "provider_auth_or_permission_failed"
+  ],
+  "selectedQwenAlias": null,
+  "officialQwenAliasOrder": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "staleQwen37AliasesUsed": false,
+  "qwenProviderCallsExecutedOnlyWhenConfirmed": true,
+  "deepseekRerun": false,
+  "deepseekEvidenceReusedAsMetadataOnly": true,
+  "planSnapshotContractReady": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "supabaseWrites": false,
+  "rawPromptExecutionIntoWorkersOrTools": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "production": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

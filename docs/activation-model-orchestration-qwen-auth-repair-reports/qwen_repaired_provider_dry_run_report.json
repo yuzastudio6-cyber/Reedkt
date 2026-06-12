@@ -1,0 +1,24 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "provider": "qwen_dashscope",
+  "status": "not_attempted",
+  "executed": true,
+  "selectedAlias": null,
+  "qwenOnlySyntheticCases": [
+    "synthetic_edit_intent_extraction",
+    "synthetic_timeline_planning",
+    "synthetic_tool_route_metadata_recommendation",
+    "synthetic_provider_fallback_comparison"
+  ],
+  "providerCallsAttempted": 0,
+  "providerCallsPassed": 0,
+  "providerCallsBlocked": 0,
+  "deepseekRerun": false,
+  "stream": false,
+  "tools": false,
+  "search": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "secretPayloadPrinted": false,
+  "results": []
+}

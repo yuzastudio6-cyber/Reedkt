@@ -1,6 +1,6 @@
 # Production Beta Blocker Inventory
 
-Session 0 owned blocker inventory with model orchestration provider dry-run status.
+Session 0 owned blocker inventory with Qwen DashScope auth repair status.
 
 - `external_beta`: blocked
 - `paid_production`: blocked
@@ -11,6 +11,6 @@ Session 0 owned blocker inventory with model orchestration provider dry-run stat
 - `raw_prompt_execution`: blocked
 - `supabase_production_writes`: blocked
 
-Model orchestration provider dry-run decision: `blocked_pending_provider_error_review`.
+Qwen DashScope auth repair decision: `blocked_pending_dashscope_key_replacement`.
 
-Provider dry-run evidence does not unlock production, external beta, paid production, public artifacts, signed URLs, real user data, media processing, workers, tools, routes, Supabase writes, or raw prompt execution into workers/tools.
+This repair packet does not unlock production, external beta, paid production, public artifacts, signed URLs, real user data, media processing, workers, tools, routes, Supabase writes, DeepSeek reruns, or raw prompt execution into workers/tools.

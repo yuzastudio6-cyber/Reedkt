@@ -1,0 +1,88 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "status": "blocked",
+  "executed": true,
+  "provider": "qwen_dashscope",
+  "selectedBaseUrlKey": "beijing",
+  "endpointPath": "/chat/completions",
+  "probeAliasOrder": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "staleAliasesNotProbed": [
+    "qwen3.7-plus",
+    "qwen3.7-max"
+  ],
+  "providerCallsAttempted": 3,
+  "providerCallsPassed": 0,
+  "providerCallsBlocked": 3,
+  "stream": false,
+  "tools": false,
+  "search": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "secretPayloadPrinted": false,
+  "results": [
+    {
+      "modelId": "qwen-plus",
+      "baseUrlKey": "beijing",
+      "status": "blocked",
+      "blocker": "provider_auth_or_permission_failed",
+      "httpStatus": 401,
+      "latencyMs": 1741,
+      "responseContentCharacters": 254,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "modelId": "qwen3-max",
+      "baseUrlKey": "beijing",
+      "status": "blocked",
+      "blocker": "provider_auth_or_permission_failed",
+      "httpStatus": 401,
+      "latencyMs": 268,
+      "responseContentCharacters": 254,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    },
+    {
+      "modelId": "qwen-max",
+      "baseUrlKey": "beijing",
+      "status": "blocked",
+      "blocker": "provider_auth_or_permission_failed",
+      "httpStatus": 401,
+      "latencyMs": 295,
+      "responseContentCharacters": 254,
+      "sanitizedEvidence": {
+        "authKeywordDetected": true,
+        "permissionKeywordDetected": false,
+        "serviceActivationKeywordDetected": false,
+        "modelUnavailableKeywordDetected": true,
+        "regionKeywordDetected": false,
+        "quotaKeywordDetected": false
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false
+    }
+  ]
+}

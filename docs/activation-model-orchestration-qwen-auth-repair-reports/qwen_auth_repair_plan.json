@@ -1,0 +1,83 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "runId": "model-orchestration-qwen-auth-repair-20260612",
+  "branch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+  "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
+  "prTitle": "[model] Qwen DashScope auth repair",
+  "mode": "qwen_dashscope_auth_repair_and_qwen_only_synthetic_rerun",
+  "reportDir": "docs/activation-model-orchestration-qwen-auth-repair-reports",
+  "expectedReports": [
+    "source_of_truth_ownership_audit.json",
+    "qwen_auth_repair_plan.json",
+    "qwen_official_alias_baseurl_review.json",
+    "qwen_secret_access_report.json",
+    "qwen_auth_baseurl_probe_report.json",
+    "qwen_repaired_provider_dry_run_report.json",
+    "qwen_auth_repair_decision.json",
+    "qwen_auth_repair_blocker_report.json",
+    "qwen_auth_repair_readiness_report.json",
+    "qwen_auth_repair_private_artifact_manifest.json"
+  ],
+  "requiredConfirmations": [
+    "REEDITPRO_CONFIRM_QWEN_DASHSCOPE_AUTH_REPAIR",
+    "REEDITPRO_CONFIRM_QWEN_API_CALL",
+    "REEDITPRO_CONFIRM_PROVIDER_CALLS",
+    "REEDITPRO_CONFIRM_SYNTHETIC_PROVIDER_PROMPTS_ONLY",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_ACCESS_FOR_PROVIDER_DRY_RUN",
+    "REEDITPRO_CONFIRM_RAW_PROMPT_BLOCKER_POLICY",
+    "REEDITPRO_CONFIRM_PROVIDER_DRY_RUN_COST_GUARDRAILS"
+  ],
+  "forbiddenConfirmations": [
+    "REEDITPRO_CONFIRM_DEEPSEEK_API_CALL",
+    "REEDITPRO_CONFIRM_TOOL_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_WORKER_EXECUTION",
+    "REEDITPRO_CONFIRM_ROUTE_EXECUTION",
+    "REEDITPRO_CONFIRM_MEDIA_PROCESSING",
+    "REEDITPRO_CONFIRM_SUPABASE_METADATA_WRITE",
+    "REEDITPRO_CONFIRM_SUPABASE_PRODUCTION_SQL",
+    "REEDITPRO_CONFIRM_RAW_PROMPT_EXECUTION",
+    "REEDITPRO_CONFIRM_PUBLIC_ARTIFACTS",
+    "REEDITPRO_CONFIRM_SIGNED_URL_DELIVERY",
+    "REEDITPRO_CONFIRM_PRODUCTION_WRITE",
+    "REEDITPRO_CONFIRM_EXTERNAL_BETA_UNLOCK",
+    "REEDITPRO_CONFIRM_PAID_PRODUCTION_UNLOCK",
+    "REEDITPRO_CONFIRM_SECRET_PAYLOAD_PRINT",
+    "REEDITPRO_CONFIRM_TRACK_A_RUNTIME",
+    "REEDITPRO_CONFIRM_BROAD_MEDIA_PROCESSING"
+  ],
+  "officialDocsBasis": [
+    "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
+    "https://www.alibabacloud.com/help/en/model-studio/models",
+    "https://help.aliyun.com/zh/model-studio/text-generation-model/"
+  ],
+  "officialAliasesInProbeOrder": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "staleAliasesRejectedForRepairProbe": [
+    "qwen3.7-plus",
+    "qwen3.7-max"
+  ],
+  "defaultBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "recordedAlternateBaseUrls": {
+    "virginia": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+    "singaporeTemplate": "https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+  },
+  "qwenOnly": true,
+  "deepseekRerun": false,
+  "syntheticPromptsOnly": true,
+  "stream": false,
+  "tools": false,
+  "search": false,
+  "rawProviderResponsesStored": false,
+  "secretPayloadsPrintedOrCommitted": false,
+  "supabaseWrites": false,
+  "runtimeToolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "production": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

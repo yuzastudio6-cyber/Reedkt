@@ -1,0 +1,26 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "runId": "model-orchestration-qwen-auth-repair-20260612",
+  "status": "blocked",
+  "decision": "blocked_pending_dashscope_key_replacement",
+  "activeBlockers": [
+    "provider_auth_or_permission_failed"
+  ],
+  "qwenAuthRepaired": false,
+  "qwenOnlyProviderCallsAllowedInThisPhase": true,
+  "deepseekRerun": false,
+  "rawProviderResponsesStored": false,
+  "rawProviderResponsesPrinted": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "toolsWorkersRoutes": false,
+  "mediaProcessing": false,
+  "supabaseWrites": false,
+  "rawPromptExecutionIntoWorkersOrTools": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "nextRecommendedPhase": "Resolve the exact DashScope key, service, model, region, or schema blocker before another Qwen dry-run."
+}

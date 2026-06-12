@@ -1,0 +1,52 @@
+{
+  "phase": "model-orchestration-qwen-auth-repair",
+  "status": "passed",
+  "officialDocsBasis": [
+    "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",
+    "https://www.alibabacloud.com/help/en/model-studio/models",
+    "https://help.aliyun.com/zh/model-studio/text-generation-model/"
+  ],
+  "pr320AliasesRejectedForRepairProbe": [
+    {
+      "modelId": "qwen3.7-plus",
+      "status": "not_used_in_repair",
+      "reason": "current repair packet uses current official aliases only"
+    },
+    {
+      "modelId": "qwen3.7-max",
+      "status": "not_used_in_repair",
+      "reason": "current repair packet uses current official aliases only"
+    }
+  ],
+  "officialProbeAliasOrder": [
+    "qwen-plus",
+    "qwen3-max",
+    "qwen-max"
+  ],
+  "selectedAlias": null,
+  "selectedBaseUrlKey": "beijing",
+  "defaultBaseUrlKey": "beijing",
+  "baseUrls": {
+    "beijing": {
+      "key": "beijing",
+      "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "probedByDefault": true
+    },
+    "virginia": {
+      "key": "virginia",
+      "baseUrl": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+      "probedOnlyWhenCurrentProcessMetadataSelectsIt": true
+    },
+    "singapore": {
+      "key": "singapore",
+      "baseUrlTemplate": "https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
+      "probed": false,
+      "blockerWithoutSafeWorkspaceId": "blocked_pending_workspace_id_review"
+    }
+  },
+  "noUnofficialQwen37AliasesInProbe": true,
+  "qwenOnly": true,
+  "deepseekRerun": false,
+  "rawProviderResponsesStored": false,
+  "secretPayloadPrinted": false
+}

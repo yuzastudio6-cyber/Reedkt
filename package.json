@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "merge-hygiene:4:diagnostics": "node scripts/validation/github-merge-hygiene-4-diagnostics.mjs",
     "merge-hygiene:3:diagnostics": "node scripts/validation/github-merge-hygiene-3-diagnostics.mjs",
     "merge-hygiene:2:diagnostics": "node scripts/validation/github-merge-hygiene-2-diagnostics.mjs",
     "merge-hygiene:1a:diagnostics": "node scripts/validation/github-merge-hygiene-1a-diagnostics.mjs",

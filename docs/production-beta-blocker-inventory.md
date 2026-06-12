@@ -35,3 +35,19 @@ Provider dry-run evidence does not unlock production, external beta, paid produc
 - `full_internal_beta`: `blocked_pending_workstream_gates`
 
 WORKER-0 records source inventory and boundaries only. WORKER-1 is the recommended next prompt for worker runtime contract hardening and dry-run planning.
+
+## WORKER-1 Worker Runtime Contract Hardening
+
+- `worker_runtime_contract_hardening`: `ready_for_worker_2_dry_run_fixture_plan`
+- `worker_execution`: blocked
+- `job_claims`: blocked
+- `queue_execution`: blocked
+- `tool_execution`: blocked
+- `route_execution`: blocked
+- `provider_runtime`: blocked
+- `supabase_mutation`: blocked; update required `docs/status only`; status `docs_only`; environment `none`; SQL `none`; migration `no`
+- `public_artifacts`: blocked
+- `signed_urls`: blocked
+- `full_internal_beta`: `blocked_pending_workstream_gates`
+
+WORKER-1 records contract hardening and dry-run planning only. WORKER-2 is the recommended next prompt for worker runtime dry-run fixture planning and contract tests.

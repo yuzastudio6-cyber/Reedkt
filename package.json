@@ -539,6 +539,7 @@
     "model-provider:dryrun-2a:diagnostics": "node scripts/validation/model-provider-dryrun-2a-diagnostics.mjs",
     "plan-snapshot:contract:diagnostics": "node scripts/validation/plan-snapshot-contract-diagnostics.mjs",
     "worker:runtime-unlock:audit:diagnostics": "node scripts/validation/worker-runtime-unlock-audit-diagnostics.mjs",
+    "worker:runtime-contract-hardening:diagnostics": "node scripts/validation/worker-runtime-contract-hardening-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

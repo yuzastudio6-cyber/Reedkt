@@ -33,3 +33,17 @@ WORKER-0 migration deployed: `no`.
 WORKER-0 worker/tool/route/provider execution approved: `false`.
 WORKER-0 public artifacts and signed URLs approved: `false`.
 WORKER-0 next prompt: `WORKER-1 - Worker Runtime Contract Hardening / Dry-Run Plan`.
+
+## WORKER-1 Worker Runtime Contract Hardening
+
+WORKER-1 status: `ready_for_worker_2_dry_run_fixture_plan`.
+WORKER-1 capability: `none; worker runtime contract hardening and dry-run plan only`.
+WORKER-1 source basis: WORKER-0 `ready_with_warnings_for_worker_1`, PLAN-SNAPSHOT-0 `ready_for_owner_review`, MODEL-DRYRUN-2A `provider_dry_run_passed`, and full internal beta `blocked_pending_workstream_gates`.
+WORKER-1 Supabase update required: `docs/status only`.
+WORKER-1 Supabase update status: `docs_only`.
+WORKER-1 Supabase environment touched: `none`.
+WORKER-1 SQL executed: `none`.
+WORKER-1 migration deployed: `no`.
+WORKER-1 worker/tool/route/provider execution approved: `false`.
+WORKER-1 public artifacts and signed URLs approved: `false`.
+WORKER-1 next prompt: `WORKER-2 - Worker Runtime Dry-Run Fixture Plan / Contract Tests`.

@@ -1,6 +1,6 @@
 # Model Orchestration Provider Dry-Run Decision
 
-Decision: `blocked_pending_provider_error_review`.
+Decision: `not_attempted`.
 
 Provider calls executed only under explicit synthetic dry-run confirmations. Plan snapshot contract readiness: `false`.
 

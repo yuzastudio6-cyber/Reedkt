@@ -86,6 +86,7 @@ assert(JSON.stringify(plan.officialAliasesInProbeOrder) === JSON.stringify(['qwe
 const secretAccess = reports.secretAccess as Record<string, unknown>
 assert(secretAccess.broadSecretDiscovery === false, 'Broad Secret Manager discovery must remain blocked.')
 assert(secretAccess.exactSecretRefsOnly === true, 'Secret access must use exact refs only.')
+assert(secretAccess.secretSourcePolicy === 'google_secret_manager_only', 'Qwen auth repair must use Secret Manager only.')
 assert(secretAccess.payloadPrinted === false, 'Secret payload printed must be false.')
 assert(secretAccess.payloadCommitted === false, 'Secret payload committed must be false.')
 assert(secretAccess.deepseekSecretAccessed === false, 'DeepSeek secret must not be accessed in Qwen repair.')

@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "model-orchestration-qwen-auth-repair-20260612",
+  "runId": "modeldryrun1-20260612T153356",
   "ownerWorkstream": "MODEL_ORCHESTRATION",
   "sourceEvidence": "PR #320 provider dry-run reports plus current official DashScope and Alibaba Model Studio docs",
   "sourcePaths": [
@@ -49,14 +49,12 @@
       "present": true
     }
   ],
-  "pr320Decision": "blocked_pending_provider_error_review",
-  "pr320QwenStatus": "blocked",
-  "pr320QwenBlockedCaseCount": 4,
-  "pr320QwenObservedHttpStatuses": [
-    401
-  ],
+  "pr320Decision": "not_attempted",
+  "pr320QwenStatus": "not_attempted",
+  "pr320QwenBlockedCaseCount": 0,
+  "pr320QwenObservedHttpStatuses": [],
   "pr320DeepSeekEvidenceReusedAsMetadataOnly": true,
-  "pr320DeepSeekStatus": "passed",
+  "pr320DeepSeekStatus": "not_attempted",
   "deepseekRerun": false,
   "officialDocsBasis": [
     "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope",

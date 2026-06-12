@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "model-orchestration-provider-dry-run-20260612",
+  "runId": "modeldryrun1-20260612T153455",
   "branch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
   "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
   "prTitle": "[model] Qwen DeepSeek provider dry-run",
@@ -52,6 +52,10 @@
   ],
   "qwenEndpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
   "deepseekEndpoint": "https://api.deepseek.com/chat/completions",
+  "secretSource": "google_secret_manager_only",
+  "environmentProviderSecretPayloadsAllowed": false,
+  "privateGeneratedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T153455/",
+  "privateQaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T153455/",
   "providerCallsAllowedOnlyWithExecuteAndConfirmations": true,
   "syntheticPromptsOnly": true,
   "stream": false,
@@ -66,5 +70,13 @@
   "signedUrls": false,
   "production": false,
   "externalBeta": false,
-  "paidProduction": false
+  "paidProduction": false,
+  "supabaseMilestoneSync": {
+    "requested": false,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  }
 }

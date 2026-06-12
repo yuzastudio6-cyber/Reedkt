@@ -1,6 +1,6 @@
 {
   "phase": "model-orchestration-qwen-auth-repair",
-  "runId": "model-orchestration-qwen-auth-repair-20260612",
+  "runId": "modeldryrun1-20260612T153356",
   "branch": "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
   "baseBranch": "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
   "prTitle": "[model] Qwen DashScope auth repair",
@@ -60,6 +60,8 @@
     "qwen3.7-max"
   ],
   "defaultBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "secretSource": "google_secret_manager_only",
+  "environmentProviderSecretPayloadsAllowed": false,
   "recordedAlternateBaseUrls": {
     "virginia": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
     "singaporeTemplate": "https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"

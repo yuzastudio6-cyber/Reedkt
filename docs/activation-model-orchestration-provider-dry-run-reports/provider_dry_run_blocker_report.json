@@ -1,10 +1,9 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "status": "blocked",
-  "decision": "blocked_pending_provider_error_review",
+  "status": "not_attempted",
+  "decision": "not_attempted",
   "activeBlockers": [
-    "provider_family_schema_valid_output_missing",
-    "provider_auth_or_permission_failed"
+    "provider_dry_run_not_executed"
   ],
   "blockedScopes": [
     "tools_workers_routes",
@@ -20,6 +19,14 @@
   "toolsWorkersRoutes": false,
   "mediaProcessing": false,
   "supabaseWrites": false,
+  "supabaseMilestoneSync": {
+    "requested": false,
+    "status": "not_attempted_current_branch_missing_sync_layer",
+    "syncLayerPresent": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "unrelatedRowsWritten": false
+  },
   "rawPromptExecutionIntoWorkersOrTools": false,
   "publicArtifacts": false,
   "signedUrls": false,

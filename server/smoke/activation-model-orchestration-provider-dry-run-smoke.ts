@@ -26,8 +26,14 @@ for (const script of [
   'activation:model-orchestration-provider-dry-run:plan',
   'activation:model-orchestration-provider-dry-run',
   'activation:model-orchestration-provider-dry-run:report',
+  'activation:model-orchestration-provider-dry-run:iam-plan',
   'activation:model-orchestration-provider-dry-run:summary',
   'smoke:activation-model-orchestration-provider-dry-run',
+  'activation:model-provider-dry-run',
+  'activation:model-provider-dry-run:report',
+  'activation:model-provider-dry-run:iam-plan',
+  'activation:model-provider-dry-run:summary',
+  'smoke:activation-model-provider-dry-run',
 ]) {
   assert(packageJson.scripts?.[script], `Missing package script: ${script}`)
 }
@@ -86,6 +92,7 @@ assert(loadedCases.localValidationFixtureCaseCount === 1, 'Provider dry-run must
 const secretAccess = reports.secretAccess as Record<string, unknown>
 assert(secretAccess.broadSecretDiscovery === false, 'Broad Secret Manager discovery must remain blocked.')
 assert(secretAccess.exactSecretRefsOnly === true, 'Secret access must use exact refs only.')
+assert(secretAccess.secretSourcePolicy === 'google_secret_manager_only', 'Provider dry-run must use Secret Manager only.')
 assert(secretAccess.payloadPrinted === false, 'Secret payload printed must be false.')
 assert(secretAccess.payloadCommitted === false, 'Secret payload committed must be false.')
 

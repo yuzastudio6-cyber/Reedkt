@@ -30,7 +30,7 @@
       "status": "blocked",
       "blocker": "provider_auth_or_permission_failed",
       "httpStatus": 401,
-      "latencyMs": 1741,
+      "latencyMs": 3314,
       "responseContentCharacters": 254,
       "sanitizedEvidence": {
         "authKeywordDetected": true,
@@ -50,7 +50,7 @@
       "status": "blocked",
       "blocker": "provider_auth_or_permission_failed",
       "httpStatus": 401,
-      "latencyMs": 268,
+      "latencyMs": 263,
       "responseContentCharacters": 254,
       "sanitizedEvidence": {
         "authKeywordDetected": true,
@@ -70,7 +70,7 @@
       "status": "blocked",
       "blocker": "provider_auth_or_permission_failed",
       "httpStatus": 401,
-      "latencyMs": 295,
+      "latencyMs": 268,
       "responseContentCharacters": 254,
       "sanitizedEvidence": {
         "authKeywordDetected": true,

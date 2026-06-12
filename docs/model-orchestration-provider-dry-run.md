@@ -1,8 +1,8 @@
 # Model Orchestration Qwen/DeepSeek Provider Dry-Run
 
-Decision: `blocked_pending_provider_error_review`.
+Decision: `not_attempted`.
 
-Status: `blocked`.
+Status: `not_attempted`.
 
 This phase executes only synthetic, non-sensitive provider dry-run cases approved by PR #318. Qwen/DashScope calls use the OpenAI-compatible chat completions endpoint, and DeepSeek calls use its OpenAI-compatible chat completions endpoint with JSON-object response formatting.
 

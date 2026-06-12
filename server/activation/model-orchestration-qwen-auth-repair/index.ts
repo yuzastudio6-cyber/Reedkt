@@ -10,7 +10,8 @@ import {
 const execFileAsync = promisify(execFile)
 
 export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_PHASE = 'model-orchestration-qwen-auth-repair'
-export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_RUN_ID = 'model-orchestration-qwen-auth-repair-20260612'
+export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_RUN_ID =
+  process.env.REEDITPRO_MODEL_DRY_RUN_ID ?? process.env.REEDITPRO_MODELDRYRUN1_RUN_ID ?? buildModelDryRunRunId()
 export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_BRANCH =
   'codex/rp-model-orchestration-qwen-dashscope-auth-repair'
 export const MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_BASE_BRANCH =
@@ -137,7 +138,7 @@ interface TokenUsage {
 
 interface SecretAccessEntry {
   secretRef: 'DASHSCOPE_API_KEY'
-  source: 'environment' | 'secret_manager' | 'unavailable'
+  source: 'secret_manager' | 'unavailable'
   payloadAccessStatus: 'succeeded' | 'failed' | 'not_attempted'
   envVarPresent: boolean
   payloadPrinted: false
@@ -173,6 +174,10 @@ const BASE_URLS = {
   virginia: 'https://dashscope-us.aliyuncs.com/compatible-mode/v1',
   singaporeTemplate: 'https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1',
 } as const
+
+function buildModelDryRunRunId() {
+  return `modeldryrun1-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, '')}`
+}
 
 const QWEN_CASE_MATRIX = [
   { modelRole: 'first_candidate', caseId: 'synthetic_edit_intent_extraction' },
@@ -256,6 +261,8 @@ export function getModelOrchestrationQwenAuthRepairPlan() {
     officialAliasesInProbeOrder: OFFICIAL_QWEN_ALIASES,
     staleAliasesRejectedForRepairProbe: STALE_PR320_ALIASES,
     defaultBaseUrl: BASE_URLS.beijing,
+    secretSource: 'google_secret_manager_only',
+    environmentProviderSecretPayloadsAllowed: false,
     recordedAlternateBaseUrls: {
       virginia: BASE_URLS.virginia,
       singaporeTemplate: BASE_URLS.singaporeTemplate,
@@ -449,6 +456,8 @@ function readExistingReports(): QwenAuthRepairReports | undefined {
   if (!decision) return undefined
   const decisionValue = asString(decision.decision)
   if (decisionValue === 'not_attempted') return undefined
+  const secretAccess = readJson(pathInReportDir('qwen_secret_access_report.json'))
+  if (secretAccess?.secretSourcePolicy !== 'google_secret_manager_only') return undefined
   const allPresent = MODEL_ORCHESTRATION_QWEN_AUTH_REPAIR_EXPECTED_REPORTS.every((file) =>
     existsSync(pathInReportDir(file)))
   if (!allPresent) return undefined
@@ -456,7 +465,7 @@ function readExistingReports(): QwenAuthRepairReports | undefined {
     sourceAudit: readJson(pathInReportDir('source_of_truth_ownership_audit.json')) ?? {},
     plan: readJson(pathInReportDir('qwen_auth_repair_plan.json')) ?? {},
     aliasBaseUrlReview: readJson(pathInReportDir('qwen_official_alias_baseurl_review.json')) ?? {},
-    secretAccess: readJson(pathInReportDir('qwen_secret_access_report.json')) ?? {},
+    secretAccess: secretAccess ?? {},
     authProbe: readJson(pathInReportDir('qwen_auth_baseurl_probe_report.json')) ?? {},
     repairedDryRun: readJson(pathInReportDir('qwen_repaired_provider_dry_run_report.json')) ?? {},
     decision,
@@ -563,15 +572,15 @@ async function loadDashScopeSecret(): Promise<{ value?: string; entry: SecretAcc
   const envValue = process.env.DASHSCOPE_API_KEY
   if (envValue && envValue.trim().length > 0) {
     return {
-      value: envValue.trim(),
       entry: {
         secretRef: 'DASHSCOPE_API_KEY',
-        source: 'environment',
-        payloadAccessStatus: 'succeeded',
+        source: 'unavailable',
+        payloadAccessStatus: 'failed',
         envVarPresent: true,
         payloadPrinted: false,
         payloadCommitted: false,
         secretValueStoredInReports: false,
+        blocker: 'dashscope_api_key_env_payload_present_secret_manager_required',
       },
     }
   }
@@ -598,7 +607,6 @@ async function loadDashScopeSecret(): Promise<{ value?: string; entry: SecretAcc
         },
       }
     }
-    process.env.DASHSCOPE_API_KEY = value
     return {
       value,
       entry: {
@@ -640,6 +648,7 @@ function buildSecretAccessReport(entry: SecretAccessEntry, executed: boolean) {
     status: executed ? (blockers.length === 0 && entry.payloadAccessStatus === 'succeeded' ? 'passed' : 'blocked') : 'not_attempted',
     executed,
     secretManagerProject: 'reeditpro',
+    secretSourcePolicy: 'google_secret_manager_only',
     broadSecretDiscovery: false,
     exactSecretRefsOnly: true,
     entries: [entry],

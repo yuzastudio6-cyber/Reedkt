@@ -216,6 +216,18 @@ const requiredChecks = [
     npmArgs: ['run', '--silent', 'supabase:advisor:hardening-plan:diagnostics'],
     required: true,
   },
+  {
+    id: 'supabase_advisor_draft_remediation_diagnostics',
+    command: 'npm run --silent supabase:advisor:draft-remediation:diagnostics',
+    npmArgs: ['run', '--silent', 'supabase:advisor:draft-remediation:diagnostics'],
+    required: true,
+  },
+  {
+    id: 'cross_chat_coordination_diagnostics',
+    command: 'npm run --silent cross-chat:diagnostics',
+    npmArgs: ['run', '--silent', 'cross-chat:diagnostics'],
+    required: true,
+  },
 ]
 
 function npmCommand(npmArgs) {

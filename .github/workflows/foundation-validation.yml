@@ -51,6 +51,7 @@ on:
       - codex/rp-foundation-25-staging-supabase-rls-dry-run-command-packet
       - codex/rp-foundation-25a-gcp-secret-manager-supabase-reference-contract
       - codex/rp-foundation-26a-connected-supabase-readonly-audit-triage
+      - codex/rp-foundation-26b-supabase-advisor-hardening-plan
       - codex/rp-foundation-03b-auth-rls-validation-environment-fix
       - codex/reeditpro-planning-stack
   workflow_dispatch:

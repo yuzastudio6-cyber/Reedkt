@@ -1,6 +1,6 @@
 # Beta Readiness Scorecard
 
-Scores are honest readiness estimates after Prompt 24C evidence collection follow-up, Prompt 25A Secret Manager reference planning, Prompt 26A connected read-only audit/advisor triage, and Prompt 26B advisor hardening planning. They are not production approval.
+Scores are honest readiness estimates after Prompt 24C evidence collection follow-up, Prompt 25A Secret Manager reference planning, Prompt 26A connected read-only audit/advisor triage, Prompt 26B advisor hardening planning, and Prompt 26C advisor draft remediation packet creation. They are not production approval.
 
 | Area | Foundation readiness | Executable beta readiness | Production beta readiness | Status | Evidence | Blockers | Next action |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- |
@@ -27,12 +27,26 @@ Scores are honest readiness estimates after Prompt 24C evidence collection follo
 | Stripe/billing | 30% | 0% | 0% | Blocked | Pricing docs and credit contract. | No Stripe or transactional credits. | Billing milestone after ledger. |
 | Actual execution path | 20% | 0% | 0% | Blocked | Fail-closed contracts. | Workers/providers/tools/render/media all blocked. | Runtime activation milestones. |
 
+## XCHAT-0 Update
+
+XCHAT-0 adds cross-chat ownership and integration coordination only. It records AI Tools / Creative Graphics ownership, map/geospatial boundaries, Track A/Track B/Supabase/provider/worker/billing/deployment boundaries, prompt checklists, final response standards, and static diagnostics. It may improve source-of-truth hygiene, but it does not raise executable beta readiness or production beta readiness.
+
+Supabase update status: `docs_only`.
+
+Production capability enabled: none.
+
+## Prompt 26C Update
+
+Prompt 26C advisor draft remediation packet raises documentation/planning readiness only. It adds draft-only packets and `.sql.md` sketches for RLS no-policy tables, SECURITY DEFINER exposure, mutable search path functions, and FK index candidates. It does not add active migrations, execute SQL, apply advisor remediation, supply accepted redacted evidence, verify Secret Manager access, grant human approval, or touch staging/remote/production Supabase.
+
+The Schema/RLS foundation estimate may increase slightly for reviewability, but executable beta readiness and production beta readiness do not materially increase.
+
 ## Decision
 
-Prompt 25 adds a blocked staging Supabase/RLS dry-run command packet after Prompt 24B reviewed approved evidence paths and found no counted redacted evidence, Prompt 24C added evidence collection templates and operator guidance, Prompt 24A created read-only audit evidence intake, Prompt 24 created the audit packet, Prompt 23S created milestone sync policy, and Prompt 23 recorded `pending_human_approval`. Prompt 25A adds the GCP Secret Manager reference contract for future Supabase values but does not verify access or fetch values. Prompt 26A connected read-only audit/advisor triage records supplied metadata and advisor findings, and Prompt 26B plans the advisor hardening workstreams; neither prompt remediates advisors, accepts redacted evidence, grants approval, or executes staging. Prompt 20B-Retry remains the only local RLS smoke pass. Staging validation remains unexecuted. Human approval is not granted. Aggregate readiness after Prompt 26B:
+Prompt 25 adds a blocked staging Supabase/RLS dry-run command packet after Prompt 24B reviewed approved evidence paths and found no counted redacted evidence, Prompt 24C added evidence collection templates and operator guidance, Prompt 24A created read-only audit evidence intake, Prompt 24 created the audit packet, Prompt 23S created milestone sync policy, and Prompt 23 recorded `pending_human_approval`. Prompt 25A adds the GCP Secret Manager reference contract for future Supabase values but does not verify access or fetch values. Prompt 26A connected read-only audit/advisor triage records supplied metadata and advisor findings, Prompt 26B plans advisor hardening workstreams, and Prompt 26C creates draft remediation packets/sketches; none of these prompts applies advisor remediation, accepts redacted evidence, grants approval, or executes staging. Prompt 20B-Retry remains the only local RLS smoke pass. Staging validation remains unexecuted. Human approval is not granted. Aggregate readiness after Prompt 26C:
 
-- Foundation readiness: about 79%.
+- Foundation readiness: about 80%.
 - Executable beta readiness: about 12%.
 - Production beta readiness: about 1%.
 
-Foundation readiness increases only slightly because Prompt 26B plans advisor hardening rather than supplying redacted evidence acceptance, Secret Manager access evidence, advisor remediation, or execution. Executable beta readiness remains low until human approval, broader local/staging RLS, redacted evidence collection/review, verified secret-reference handling, advisor hardening, and runtime capabilities are validated; production beta readiness remains blocked until staging validation and runtime capabilities are approved.
+Foundation readiness increases only slightly because Prompt 26C makes advisor remediation reviewable as draft documentation rather than supplying redacted evidence acceptance, Secret Manager access evidence, applied advisor remediation, or execution. Executable beta readiness remains low until human approval, broader local/staging RLS, redacted evidence collection/review, verified secret-reference handling, advisor hardening, and runtime capabilities are validated; production beta readiness remains blocked until staging validation and runtime capabilities are approved.

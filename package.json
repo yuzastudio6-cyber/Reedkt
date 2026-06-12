@@ -63,6 +63,8 @@
     "gcp:supabase:secret-refs:diagnostics": "node scripts/validation/gcp-secret-manager-supabase-reference-diagnostics.mjs",
     "supabase:connected-readonly-audit:diagnostics": "node scripts/validation/connected-supabase-readonly-audit-diagnostics.mjs",
     "supabase:advisor:hardening-plan:diagnostics": "node scripts/validation/supabase-advisor-hardening-plan-diagnostics.mjs",
+    "supabase:advisor:draft-remediation:diagnostics": "node scripts/validation/supabase-advisor-draft-remediation-diagnostics.mjs",
+    "cross-chat:diagnostics": "node scripts/validation/cross-chat-coordination-diagnostics.mjs",
     "supabase:local:toolchain:probe": "node scripts/validation/local-supabase-host-toolchain-probe.mjs",
     "supabase:local:preflight": "node scripts/validation/local-supabase-safety-preflight.mjs",
     "supabase:rls:list-tests": "node scripts/validation/local-supabase-rls-runner.mjs --list-tests",

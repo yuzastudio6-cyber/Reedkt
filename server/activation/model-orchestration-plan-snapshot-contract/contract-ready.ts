@@ -25,16 +25,39 @@ const BLOCKED_DECISION = 'blocked_pending_contract_merge_source_mismatch'
 const READY_NEXT_PROMPT = 'WORKER-RUNTIME-UNLOCK-0: worker runtime unlock repo audit, no execution'
 const BLOCKED_NEXT_PROMPT =
   'MODEL-ORCHESTRATION-PLAN-SNAPSHOT-CONTRACT-FIX: fix plan snapshot contract readiness blockers, no workers/tools/routes'
+const PR332_DECISION = 'blocked_pending_contract_merge_source_mismatch'
 
 const PR327_PACKET_FILES = [
-  'docs/model-orchestration-plan-snapshot-contract.md',
-  'docs/model-orchestration-plan-snapshot-contract-decision.md',
   'docs/activation-model-orchestration-plan-snapshot-contract-reports/agent_findings_v1_schema.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/approval_gate_and_worker_handoff_policy.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/approved_plan_snapshot_v1_schema.json',
   'docs/activation-model-orchestration-plan-snapshot-contract-reports/edit_intents_v1_schema.json',
   'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_candidate_v1_schema.json',
-  'docs/activation-model-orchestration-plan-snapshot-contract-reports/approved_plan_snapshot_v1_schema.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_blocker_report.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_decision.json',
   'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_fixtures.json',
-  'docs/activation-model-orchestration-plan-snapshot-contract-reports/approval_gate_and_worker_handoff_policy.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_plan.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_private_artifact_manifest.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_readiness_report.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_validation_report.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_evidence_inventory.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/provider_dry_run_evidence_reconciliation.json',
+  'docs/activation-model-orchestration-plan-snapshot-contract-reports/source_of_truth_ownership_audit.json',
+  'docs/implementation-prompts/prompt-model-orchestration-plan-snapshot-dry-run-validation.md',
+  'docs/model-orchestration-agent-findings-schema.md',
+  'docs/model-orchestration-approval-gate-worker-handoff-policy.md',
+  'docs/model-orchestration-approved-plan-snapshot-schema.md',
+  'docs/model-orchestration-edit-intents-schema.md',
+  'docs/model-orchestration-plan-snapshot-candidate-schema.md',
+  'docs/model-orchestration-plan-snapshot-contract-decision.md',
+  'docs/model-orchestration-plan-snapshot-contract.md',
+  'server/activation/model-orchestration-plan-snapshot-contract/index.ts',
+  'server/activation/model-orchestration-plan-snapshot-contract/plan-snapshot-contract-types.ts',
+  'server/cli/activation-model-orchestration-plan-snapshot-contract-plan.ts',
+  'server/cli/activation-model-orchestration-plan-snapshot-contract-report.ts',
+  'server/cli/activation-model-orchestration-plan-snapshot-contract-summary.ts',
+  'server/cli/activation-model-orchestration-plan-snapshot-contract.ts',
+  'server/smoke/activation-model-orchestration-plan-snapshot-contract-smoke.ts',
 ]
 
 const CHERRY_PICK_CONFLICT_FILES = [
@@ -234,18 +257,24 @@ export function buildModelOrchestrationPlanSnapshotContractReadyReports() {
     phase: 'model-orchestration-plan-snapshot-contract-ready',
     runId: RUN_ID,
     status: providerEvidenceResolved ? 'passed' : 'blocked',
-    sourceLineageStatus: contractPacketPresent ? 'contract_packet_present' : 'blocked_source_mismatch',
+    sourceLineageStatus: contractPacketPresent ? 'selective_packet_integration_resolved' : 'blocked_source_mismatch',
     reconciliationAttempted: true,
+    pr332SourceMismatchReviewed: true,
+    pr332PriorDecision: PR332_DECISION,
     pr327ContractPacketExpected: true,
     pr327ContractPacketPresentOnCurrentBranch: contractPacketPresent,
     pr327ContractPacketAvailableOnOriginBranch: true,
-    sourceBranch: 'codex/rp-model-orchestration-qwen-deepseek-provider-dry-run-rerun',
-    targetBranch: 'codex/rp-model-orchestration-plan-snapshot-contract-ready',
+    sourceBranch: 'codex/rp-model-orchestration-plan-snapshot-contract-ready',
+    targetBranch: 'codex/rp-model-orchestration-plan-snapshot-contract-fix',
     attemptedPacketCommits: ['e01cda89', '0101af14'],
+    fullCherryPickPerformedInFixPrompt: false,
+    selectivePacketIntegrationPerformed: contractPacketPresent,
     firstCherryPickAttempted: true,
-    firstCherryPickAborted: !contractPacketPresent,
+    firstCherryPickAborted: true,
+    sourceMismatchResolvedBySelectiveIntegration: contractPacketPresent,
     cherryPickConflictFiles: CHERRY_PICK_CONFLICT_FILES,
     disallowedCherryPickConflictFiles: DISALLOWED_CHERRY_PICK_CONFLICT_FILES,
+    disallowedReadinessFilesTouched: false,
     packageJsonConflictAllowed: true,
     qwenEvidence: {
       sourcePr: 329,
@@ -370,6 +399,9 @@ export function buildModelOrchestrationPlanSnapshotContractReadyReports() {
     runId: RUN_ID,
     status,
     decision,
+    pr332SourceMismatchReviewed: true,
+    pr332PriorDecision: PR332_DECISION,
+    sourceMismatchResolvedBySelectiveIntegration: contractPacketPresent,
     attemptedReadinessUpdate: true,
     contractReadyForHandoff: ready,
     providerEvidenceBlockerResolved: providerEvidenceResolved,
@@ -390,13 +422,19 @@ export function buildModelOrchestrationPlanSnapshotContractReadyReports() {
     runId: RUN_ID,
     status,
     decision,
-    sourceLineageStatus: contractPacketPresent ? 'contract_packet_present' : 'blocked_source_mismatch',
+    sourceLineageStatus: contractPacketPresent ? 'selective_packet_integration_resolved' : 'blocked_source_mismatch',
+    pr332SourceMismatchReviewed: true,
+    pr332PriorDecision: PR332_DECISION,
+    sourceMismatchResolvedBySelectiveIntegration: contractPacketPresent,
+    selectivePacketIntegrationPerformed: contractPacketPresent,
+    fullCherryPickPerformedInFixPrompt: false,
+    disallowedReadinessFilesTouched: false,
     contractReadyForHandoff: ready,
     providerEvidenceBlockerResolved: providerEvidenceResolved,
     qwenEvidenceAccepted: qwenPassed,
     deepseekEvidenceAccepted: deepseekPassed,
     pr327ContractPacketPresentOnCurrentBranch: contractPacketPresent,
-    cherryPickAbortedDueDisallowedConflicts: !contractPacketPresent,
+    cherryPickAbortedDueDisallowedConflicts: true,
     disallowedCherryPickConflictFiles: DISALLOWED_CHERRY_PICK_CONFLICT_FILES,
     schemaContractReady: schemaReady,
     failClosedFixtureReady: failClosedReady,
@@ -452,6 +490,14 @@ PR #327 contract packet present on current branch: \`${summary.pr327ContractPack
 Cherry-pick aborted because conflicts occurred outside the allowed package/plan-snapshot paths: \`${summary.cherryPickAbortedDueDisallowedConflicts}\`.
 
 Disallowed conflict files: \`${blockedFiles}\`.
+
+PR #332 source mismatch reviewed: \`${summary.pr332SourceMismatchReviewed}\`.
+
+Source mismatch resolved by selective packet integration: \`${summary.sourceMismatchResolvedBySelectiveIntegration}\`.
+
+Full PR #327 cherry-pick performed in this prompt: \`${summary.fullCherryPickPerformedInFixPrompt}\`.
+
+Disallowed readiness files touched: \`${summary.disallowedReadinessFilesTouched}\`.
 
 Schema contract ready: \`${summary.schemaContractReady}\`.
 

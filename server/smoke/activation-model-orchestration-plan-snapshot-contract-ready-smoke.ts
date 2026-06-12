@@ -121,19 +121,24 @@ assert(schemaIds.includes('plan_snapshot_candidate_v1'), 'plan_snapshot_candidat
 assert(providerEvidence.providerEvidenceBlockerResolved === true, 'Provider evidence blocker must be resolved.')
 assert(summary.qwenEvidenceAccepted === true, 'Qwen evidence must be accepted.')
 assert(summary.deepseekEvidenceAccepted === true, 'DeepSeek evidence must be accepted.')
-assert(summary.decision === 'blocked_pending_contract_merge_source_mismatch', 'Current branch must record source mismatch blocker.')
-assert(summary.contractReadyForHandoff === false, 'Contract must not be marked ready when PR #327 packet is absent.')
-assert(summary.pr327ContractPacketPresentOnCurrentBranch === false, 'PR #327 packet must be reported absent on current branch.')
+assert(summary.decision === 'ready_for_plan_snapshot_contract_handoff', 'Current branch must record ready handoff decision.')
+assert(summary.contractReadyForHandoff === true, 'Contract must be ready after selective packet integration.')
+assert(summary.pr327ContractPacketPresentOnCurrentBranch === true, 'PR #327 packet must be reported present on current branch.')
+assert(summary.sourceMismatchResolvedBySelectiveIntegration === true, 'Source mismatch must be resolved by selective integration.')
+assert(summary.fullCherryPickPerformedInFixPrompt === false, 'Full PR #327 cherry-pick must remain false.')
+assert(summary.disallowedReadinessFilesTouched === false, 'Disallowed readiness files must remain untouched.')
 assert(summary.cherryPickAbortedDueDisallowedConflicts === true, 'Cherry-pick abort must be recorded.')
 assert(asArray(summary.disallowedCherryPickConflictFiles).includes('docs/beta-readiness-scorecard.md'), 'Readiness scorecard conflict must be recorded.')
 assert(asArray(summary.disallowedCherryPickConflictFiles).includes('docs/production-beta-blocker-inventory.md'), 'Production blocker conflict must be recorded.')
 
-assert(schemaReadiness.status === 'blocked', 'Schema readiness must be blocked until PR #327 packet lineage is integrated.')
+assert(schemaReadiness.status === 'passed', 'Schema readiness must pass after PR #327 packet lineage is integrated.')
 assert(asRecord(schemaReadiness.requiredSchemas).agent_findings_v1 === true, 'agent_findings_v1 readiness should be true.')
 assert(asRecord(schemaReadiness.requiredSchemas).edit_intents_v1 === true, 'edit_intents_v1 readiness should be true.')
 assert(asRecord(schemaReadiness.requiredSchemas).plan_snapshot_candidate_v1 === true, 'plan_snapshot_candidate_v1 readiness should be true.')
-assert(asRecord(schemaReadiness.requiredSchemas).approved_plan_snapshot_v1 === false, 'approved_plan_snapshot_v1 must remain missing.')
-assert(failClosedReadiness.status === 'blocked', 'Fail-closed fixture readiness must be blocked without PR #327 fixtures.')
+assert(asRecord(schemaReadiness.requiredSchemas).approved_plan_snapshot_v1 === true, 'approved_plan_snapshot_v1 must be present.')
+assert(failClosedReadiness.status === 'passed', 'Fail-closed fixture readiness must pass with PR #327 fixtures.')
+assert(approvalGateReadiness.status === 'passed', 'Approval gate readiness must pass.')
+assert(workerHandoffReadiness.status === 'passed', 'Worker handoff readiness must pass.')
 assert(approvalGateReadiness.approvedPlanSnapshotPersistenceReady === false, 'Approved snapshot persistence must not be ready.')
 assert(workerHandoffReadiness.workerExecutionReady === false, 'Worker execution must not be ready.')
 assert(supabaseBlocker.supabasePersistenceReady === false, 'Supabase persistence must remain blocked.')
@@ -145,8 +150,8 @@ for (const [key, value] of Object.entries(runtimeGates)) {
 
 assert(
   summary.nextRecommendedPrompt ===
-    'MODEL-ORCHESTRATION-PLAN-SNAPSHOT-CONTRACT-FIX: fix plan snapshot contract readiness blockers, no workers/tools/routes',
-  'Blocked source mismatch must recommend the contract fix prompt.',
+    'WORKER-RUNTIME-UNLOCK-0: worker runtime unlock repo audit, no execution',
+  'Ready handoff must recommend the worker runtime audit prompt.',
 )
 
 const corpus = [

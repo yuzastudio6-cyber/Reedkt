@@ -1,0 +1,303 @@
+{
+  "phase": "model-orchestration-plan-snapshot-contract",
+  "status": "passed",
+  "fixtureCount": 10,
+  "validFixtureCount": 3,
+  "invalidFixtureCount": 7,
+  "fixtures": [
+    {
+      "fixtureId": "valid_simple_edit_intent",
+      "schemaId": "edit_intents_v1",
+      "expectedValid": true,
+      "reason": "Simple metadata-only edit intent with approval requirements.",
+      "payload": {
+        "schemaVersion": "edit_intents_v1",
+        "intentId": "intent_simple_001",
+        "findingRefs": [
+          "finding_simple_001"
+        ],
+        "intentSummary": "Tighten pacing and caption clarity for a synthetic explainer.",
+        "segments": [
+          {
+            "segmentId": "seg_001",
+            "goal": "metadata_review_only"
+          }
+        ],
+        "approvalRequirements": [
+          "confirmed_frame",
+          "credit_estimate",
+          "approved_snapshot"
+        ],
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "valid_multi_step_timeline_planning",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": true,
+      "reason": "Candidate timeline remains non-executable and references source-of-truth metadata.",
+      "payload": {
+        "schemaVersion": "plan_snapshot_candidate_v1",
+        "candidateId": "candidate_timeline_001",
+        "intentRefs": [
+          "intent_simple_001"
+        ],
+        "candidateSummary": "Three-step hook, proof, and CTA timeline.",
+        "timelinePlan": [
+          {
+            "step": "hook",
+            "frameRange": "review_only"
+          },
+          {
+            "step": "proof",
+            "frameRange": "review_only"
+          },
+          {
+            "step": "cta",
+            "frameRange": "review_only"
+          }
+        ],
+        "toolRouteMetadata": [
+          {
+            "routeId": "caption_metadata",
+            "execution": false
+          }
+        ],
+        "sourceOfTruthRefs": [
+          "supabase:activation_registry:metadata_only",
+          "manifest:private:sha256"
+        ],
+        "approvalGate": {
+          "approved": false,
+          "requiresHumanApproval": true
+        },
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "valid_tool_route_metadata_recommendation",
+      "schemaId": "agent_findings_v1",
+      "expectedValid": true,
+      "reason": "Tool route is mentioned only as metadata.",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "findingId": "finding_tool_route_001",
+        "sourceEvidenceRefs": [
+          "trackb:route_manifest:metadata_only"
+        ],
+        "summary": "Captions and chart cards are candidate metadata lanes.",
+        "observations": [
+          {
+            "kind": "route_metadata",
+            "routeExecution": false
+          }
+        ],
+        "risks": [
+          "worker_execution_requires_future_approval"
+        ],
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid_raw_worker_execution",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": false,
+      "reason": "Raw prompt forwarding and worker execution must fail closed.",
+      "payload": {
+        "schemaVersion": "plan_snapshot_candidate_v1",
+        "workerPayload": "run this raw prompt",
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": true,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": true,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid_public_artifact_request",
+      "schemaId": "approved_plan_snapshot_v1",
+      "expectedValid": false,
+      "reason": "Public artifact creation is outside this contract.",
+      "payload": {
+        "schemaVersion": "approved_plan_snapshot_v1",
+        "approvedSnapshotId": "bad_public",
+        "publicArtifact": true,
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": true,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid_signed_url_source_of_truth",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": false,
+      "reason": "Signed URLs cannot be source of truth.",
+      "payload": {
+        "schemaVersion": "plan_snapshot_candidate_v1",
+        "sourceOfTruthRefs": [
+          "signed_url:redacted"
+        ],
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": true,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid_missing_schema_fields",
+      "schemaId": "agent_findings_v1",
+      "expectedValid": false,
+      "reason": "Required fields are absent.",
+      "payload": {
+        "schemaVersion": "agent_findings_v1",
+        "summary": "missing ids and evidence",
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid_broad_media_runtime",
+      "schemaId": "edit_intents_v1",
+      "expectedValid": false,
+      "reason": "Broad media processing is not authorized.",
+      "payload": {
+        "schemaVersion": "edit_intents_v1",
+        "intentId": "bad_media",
+        "broadMediaProcessing": true,
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": true,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid_production_mutation",
+      "schemaId": "approved_plan_snapshot_v1",
+      "expectedValid": false,
+      "reason": "Production mutation must remain blocked.",
+      "payload": {
+        "schemaVersion": "approved_plan_snapshot_v1",
+        "approvedSnapshotId": "bad_prod",
+        "productionMutation": true,
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": true
+        }
+      }
+    },
+    {
+      "fixtureId": "invalid_demucs_vlm_runtime",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "expectedValid": false,
+      "reason": "Demucs and VLM runtime lanes remain blocked in this metadata phase.",
+      "payload": {
+        "schemaVersion": "plan_snapshot_candidate_v1",
+        "candidateId": "bad_runtime",
+        "demucsRuntime": true,
+        "vlmRuntime": true,
+        "safety": {
+          "providerCallsAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": true,
+          "routeExecutionAllowed": false,
+          "rawPromptForwardingAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "directMutationAllowed": false,
+          "productionMutationAllowed": false
+        }
+      }
+    }
+  ],
+  "providerCalls": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "workerExecution": false,
+  "toolExecution": false,
+  "routeExecution": false,
+  "rawPromptExecution": false,
+  "mediaProcessing": false,
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "productionAffected": false,
+  "externalBeta": false,
+  "paidProduction": false
+}

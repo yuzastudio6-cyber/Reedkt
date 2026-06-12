@@ -1,0 +1,52 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "blocked",
+  "sourcePr": 320,
+  "classification": "qwen_secret_present_but_rejected",
+  "possibleExternalCauses": [
+    "dashscope_account_model_permission_missing",
+    "dashscope_region_or_workspace_key_mismatch",
+    "dashscope_key_valid_for_secret_manager_but_rejected_by_model_service"
+  ],
+  "sourceSnapshot": {
+    "pr320Decision": "blocked_pending_provider_error_review",
+    "pr320Status": "blocked",
+    "pr320ActiveBlockers": [
+      "provider_family_schema_valid_output_missing",
+      "provider_auth_or_permission_failed"
+    ],
+    "pr318Decision": "approved_for_future_qwen_deepseek_provider_dry_run",
+    "syntheticCaseCount": 8,
+    "syntheticOnly": true,
+    "containsUserData": false,
+    "containsPrivateProjectData": false,
+    "containsMedia": false,
+    "sourceOfTruthConflictFound": false
+  },
+  "qwenDashScope": {
+    "status": "blocked",
+    "provider": "qwen_dashscope",
+    "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "modelsAttempted": [
+      "qwen3.7-max",
+      "qwen3.7-plus"
+    ],
+    "providerCallsAttempted": 4,
+    "providerCallsPassed": 0,
+    "providerCallsBlocked": 4,
+    "httpStatuses": [
+      401
+    ],
+    "blockerCodes": [
+      "provider_auth_or_permission_failed"
+    ],
+    "rawProviderResponsesStored": false,
+    "rawProviderResponsesPrinted": false,
+    "secretPayloadPrinted": false
+  },
+  "codeContractIssueFound": false,
+  "providerExecutionClientChanged": false,
+  "qwenRerunAttempted": false,
+  "no401TreatedAsPass": true
+}

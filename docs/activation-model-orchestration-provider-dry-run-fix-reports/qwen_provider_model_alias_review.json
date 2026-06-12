@@ -1,0 +1,20 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "passed",
+  "modelAliasReviewStatus": "source_of_truth_consistent_external_availability_unproven_due_auth_failure",
+  "approvedAliases": [
+    "qwen3.7-plus",
+    "qwen3.7-max"
+  ],
+  "attemptedAliases": [
+    "qwen3.7-max",
+    "qwen3.7-plus"
+  ],
+  "attemptedAliasesApproved": true,
+  "defaultDryRunModelId": "qwen3.7-plus",
+  "escalationModelId": "qwen3.7-max",
+  "aliasChangedInFixPrompt": false,
+  "modelAliasAvailabilityVerifiedByProvider": false,
+  "reason": "HTTP 401 occurred before a schema-valid provider response, so repo-side aliases remain source-of-truth consistent but external model permission is unverified."
+}

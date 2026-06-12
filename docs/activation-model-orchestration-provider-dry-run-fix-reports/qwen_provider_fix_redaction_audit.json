@@ -1,0 +1,32 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "passed",
+  "metadataOnlyReports": true,
+  "rawProviderOutputPersisted": false,
+  "rawProviderOutputPrinted": false,
+  "secretPayloadAccessInFixPrompt": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "secretValueStoredInReports": false,
+  "requestCredentialHeadersStored": false,
+  "dbUrlsStored": false,
+  "signedUrlsStored": false,
+  "publicArtifactsCreated": false,
+  "privateProjectDataUsed": false,
+  "userDataUsed": false,
+  "mediaDataUsed": false,
+  "allowedEvidenceFields": [
+    "caseId",
+    "provider",
+    "modelId",
+    "endpoint",
+    "status",
+    "httpStatus",
+    "blockerCode",
+    "secretRefName",
+    "payloadAccessStatus",
+    "runtimeGateBooleans",
+    "nextRecommendedPrompt"
+  ]
+}

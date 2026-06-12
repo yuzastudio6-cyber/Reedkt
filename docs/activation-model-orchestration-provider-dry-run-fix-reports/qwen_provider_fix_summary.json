@@ -1,0 +1,50 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "blocked",
+  "decision": "blocked_pending_dashscope_secret_or_permission_setup",
+  "classification": "qwen_secret_present_but_rejected",
+  "qwenDashScopeBlockerResolved": false,
+  "qwenRerunAttempted": false,
+  "deepseekRerunAttempted": false,
+  "deepseekPassedEvidencePreserved": true,
+  "qwenProviderCallsAttemptedInPr320": 4,
+  "qwenProviderCallsPassedInPr320": 0,
+  "qwenProviderCallsBlockedInPr320": 4,
+  "qwenHttpStatusesInPr320": [
+    401
+  ],
+  "qwenBlockersInPr320": [
+    "provider_auth_or_permission_failed"
+  ],
+  "planSnapshotContractReady": false,
+  "rawProviderOutputPersisted": false,
+  "secretPayloadPrinted": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationsDeployed": false,
+  "runtimeGates": {
+    "providerCallsInFixPrompt": false,
+    "qwenRerunAttempted": false,
+    "deepseekRerunAttempted": false,
+    "workers": false,
+    "tools": false,
+    "routes": false,
+    "rawPromptExecution": false,
+    "mediaProcessing": false,
+    "supabaseWrites": false,
+    "sqlExecuted": false,
+    "migrationsDeployed": false,
+    "storageObjectsCreated": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "generatedAssets": false,
+    "creditSpendOrReservation": false,
+    "demucsRuntime": false,
+    "trackARuntime": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "production": false
+  },
+  "nextRecommendedPrompt": "MODEL-ORCHESTRATION-QWEN-DEEPSEEK-SECRET-SETUP: verify provider secret refs/permissions, no provider calls"
+}

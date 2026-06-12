@@ -1,0 +1,16 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "passed",
+  "failClosedOn401Or403": true,
+  "failClosedOnSecretRejected": true,
+  "failClosedOnEndpointAmbiguity": true,
+  "failClosedOnModelPermissionAmbiguity": true,
+  "qwenRerunRequiresSeparatePromptAfterExternalSetup": true,
+  "deepseekEvidencePreservedWithoutRerun": true,
+  "invalidOutputsAccepted": false,
+  "mutationOnFailure": false,
+  "retryOnFailure": false,
+  "rawProviderResponseStored": false,
+  "provider401TreatedAsPass": false
+}

@@ -1,0 +1,32 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "passed",
+  "runtimeGates": {
+    "providerCallsInFixPrompt": false,
+    "qwenRerunAttempted": false,
+    "deepseekRerunAttempted": false,
+    "workers": false,
+    "tools": false,
+    "routes": false,
+    "rawPromptExecution": false,
+    "mediaProcessing": false,
+    "supabaseWrites": false,
+    "sqlExecuted": false,
+    "migrationsDeployed": false,
+    "storageObjectsCreated": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "generatedAssets": false,
+    "creditSpendOrReservation": false,
+    "demucsRuntime": false,
+    "trackARuntime": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "production": false
+  },
+  "generatedLocalFixturePassedClaimed": false,
+  "planSnapshotContractReady": false,
+  "sourceOfTruthPathCreated": false,
+  "signedUrlsAreSourceOfTruth": false
+}

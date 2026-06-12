@@ -1,0 +1,23 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "blocked",
+  "fixEvidenceProduced": true,
+  "fixAppliedToProviderRequest": false,
+  "providerExecutionClientChanged": false,
+  "qwenDashScopeBlockerResolved": false,
+  "qwenRerunAttempted": false,
+  "qwenRerunResult": "not_attempted",
+  "deepseekRerunAttempted": false,
+  "deepseekRerunResult": "not_attempted_preserved",
+  "deepseekPassedEvidence": {
+    "status": "passed",
+    "providerCallsAttempted": 3,
+    "providerCallsPassed": 3,
+    "providerCallsBlocked": 0,
+    "rawProviderResponsesStored": false,
+    "secretPayloadPrinted": false
+  },
+  "finalDecision": "blocked_pending_dashscope_secret_or_permission_setup",
+  "nextRecommendedPrompt": "MODEL-ORCHESTRATION-QWEN-DEEPSEEK-SECRET-SETUP: verify provider secret refs/permissions, no provider calls"
+}

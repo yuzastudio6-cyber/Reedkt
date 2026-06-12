@@ -1,0 +1,31 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "passed",
+  "endpointContractReviewStatus": "source_of_truth_consistent_no_code_change",
+  "sourceOfTruthEndpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  "pr320Endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "endpointMatchesApprovedSourceOfTruth": true,
+  "requestMode": {
+    "openAiCompatibleChatCompletions": true,
+    "streaming": false,
+    "tools": false,
+    "search": false,
+    "hiddenReasoningCapture": false
+  },
+  "officialDocsReviewed": [
+    {
+      "label": "Alibaba Cloud Model Studio OpenAI-compatible chat",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+      "relevance": "documents region-specific compatible-mode base URLs, API key use, and model selection"
+    },
+    {
+      "label": "Alibaba Cloud Model Studio sub-workspace model calling",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-calling-in-sub-workspace",
+      "relevance": "documents workspace-scoped API keys and model-call permission requirements"
+    }
+  ],
+  "externalContext": "DashScope compatible-mode endpoints are region-specific, and workspace keys can require model-call permissions.",
+  "endpointChangedInFixPrompt": false,
+  "qwenRerunAttempted": false
+}

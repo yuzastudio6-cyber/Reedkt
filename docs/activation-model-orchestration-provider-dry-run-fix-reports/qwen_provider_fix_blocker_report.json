@@ -1,0 +1,30 @@
+{
+  "phase": "model-orchestration-provider-dry-run-fix",
+  "runId": "model-orchestration-provider-dry-run-fix-20260612",
+  "status": "blocked",
+  "decision": "blocked_pending_dashscope_secret_or_permission_setup",
+  "activeBlockers": [
+    "qwen_secret_present_but_rejected",
+    "dashscope_account_model_permission_or_region_workspace_mismatch_unverified"
+  ],
+  "sourceBlockersFromPr320": [
+    "provider_family_schema_valid_output_missing",
+    "provider_auth_or_permission_failed"
+  ],
+  "blockedScopes": [
+    "plan_snapshot_contract",
+    "workers_tools_routes",
+    "media_processing",
+    "supabase_writes",
+    "raw_prompt_execution",
+    "public_artifacts",
+    "signed_urls",
+    "production",
+    "external_beta",
+    "paid_production"
+  ],
+  "noBypassAttempted": true,
+  "noProviderRerunAttempted": true,
+  "noMutationOnFailure": true,
+  "nextRecommendedPrompt": "MODEL-ORCHESTRATION-QWEN-DEEPSEEK-SECRET-SETUP: verify provider secret refs/permissions, no provider calls"
+}

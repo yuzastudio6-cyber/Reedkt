@@ -551,6 +551,7 @@
     "activation:tool-route-execution-unlock:summary": "tsx server/cli/activation-tool-route-execution-unlock-summary.ts",
     "smoke:activation-tool-route-execution-unlock-audit": "tsx server/smoke/activation-tool-route-execution-unlock-audit-smoke.ts",
     "tool-route:execution-unlock-audit:diagnostics": "node scripts/validation/tool-route-execution-unlock-audit-diagnostics.mjs",
+    "tool-study:map-geospatial:diagnostics": "node scripts/validation/tool-study-map-geospatial-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

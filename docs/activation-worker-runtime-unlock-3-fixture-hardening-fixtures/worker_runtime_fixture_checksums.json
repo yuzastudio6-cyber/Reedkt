@@ -1,0 +1,127 @@
+{
+  "phase": "worker-runtime-fixture-hardening",
+  "runId": "worker-runtime-fixture-hardening-20260612",
+  "status": "passed",
+  "checksumAlgorithm": "sha256",
+  "checksumInputScope": "canonical_fixture_json_content_only",
+  "canonicalization": "recursive_object_key_sort_then_json_stringify",
+  "fixtureCount": 12,
+  "fixtureChecksums": [
+    {
+      "caseId": "valid_noop_metadata_review_plan",
+      "kind": "valid_hardened",
+      "sha256": "90d2c55025127703a988f98ed051d6dc682c3d1a42c717de11d8ea3af74107cb"
+    },
+    {
+      "caseId": "valid_artifact_scope_validation_plan",
+      "kind": "valid_hardened",
+      "sha256": "bc652fb5cb8c90d34becc2d25b37ff04f59f0abf13b06fb010f80034d9525db8"
+    },
+    {
+      "caseId": "valid_route_resolution_only_plan",
+      "kind": "valid_hardened",
+      "sha256": "69d716c4e2f5be392f7fb7dcd236152df4027b375ab2825adf56508a6f45e72f"
+    },
+    {
+      "caseId": "valid_cost_estimation_only_plan",
+      "kind": "valid_hardened",
+      "sha256": "8658cf061ff3c4984266a5db63b71e98a23d18bccfa8fd0c52a63c769174a00f"
+    },
+    {
+      "caseId": "invalid_raw_prompt_worker_input",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "1fbeeae7dd71316b4117710af9d532130905f5b78a7ae1b8ae15b7c8003f5b1e"
+    },
+    {
+      "caseId": "invalid_public_artifact_output_request",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "89f982022f8d4f1df10c8ce323abb8eedd19ffa6938cea7a54f93c2dc927591f"
+    },
+    {
+      "caseId": "invalid_broad_media_processing_request",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "0a780fdbbddeb2f41241121452be741c4c5052f850aad978fe96f3cd98ba7528"
+    },
+    {
+      "caseId": "invalid_production_write_request",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "98a11f682b4a7c3efa8a97d10c8622a65f3212bb9f96685e207466104d75d56b"
+    },
+    {
+      "caseId": "invalid_signed_url_source_of_truth",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "9af60c6d9a6669c4be302892797d01e9851a9b80807bd0a4682a0584b2cfb8c5"
+    },
+    {
+      "caseId": "invalid_unapproved_artifact_prefix",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "2fff0e30c4d024e1814aa0dc3d8427ebf5d8f62ffc257e19584eed98bed83652"
+    },
+    {
+      "caseId": "invalid_service_role_key_like_field_name",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "393093f328aa2661cc92b7503d29805e3ebcd91feeebcba78adf25ed08f582eb"
+    },
+    {
+      "caseId": "invalid_direct_tool_route_execution_field",
+      "kind": "invalid_fail_closed_hardened",
+      "sha256": "5866e6dc8e18ac50704e91fa26c4bef92cf2470b789bbe3abada25c3401c26a4"
+    }
+  ],
+  "validFixtureSetSha256": "55fcc9fb7540b7ded7ff2410baf369a4ce42a47cbf1a8067749d3cce98aba56b",
+  "invalidFixtureSetSha256": "d591b916d936d5a93d376feced6592ed8878ab406f4401d49200c91b293ac354",
+  "realMediaChecksummed": false,
+  "privatePayloadChecksummed": false,
+  "workerExecution": false,
+  "workerRuntimeExecutionReady": false,
+  "workerExecutionReady": false,
+  "runtimeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "jobDispatch": false,
+  "queueEnqueue": false,
+  "jobClaim": false,
+  "jobLease": false,
+  "claimMutation": false,
+  "leaseMutation": false,
+  "sidecarSpawn": false,
+  "sidecarExecution": false,
+  "subprocessSpawn": false,
+  "toolExecution": false,
+  "toolExecutionAllowed": false,
+  "routeExecution": false,
+  "routeExecutionAllowed": false,
+  "providerCalls": false,
+  "providerExecutionAllowed": false,
+  "dockerRun": false,
+  "cloudRunJob": false,
+  "cloudBuild": false,
+  "mediaProcessing": false,
+  "rawPromptExecution": false,
+  "rawPromptForwardingAllowed": false,
+  "rawProviderOutputExecution": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "publicArtifacts": false,
+  "publicArtifactsAllowed": false,
+  "signedUrls": false,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "productionAffected": false,
+  "productionMutationAllowed": false,
+  "internalBeta": false,
+  "externalBeta": false,
+  "paidProduction": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "secretPayloadAccess": false,
+  "secretPayloadPrinted": false,
+  "secretPayloadCommitted": false,
+  "serviceRoleKeyAccess": false,
+  "dbUrlAccess": false,
+  "creditSpendOrReservation": false,
+  "stripeOrBilling": false,
+  "storageObjectsCreated": false,
+  "generatedAssets": false,
+  "demucsRuntime": false,
+  "trackARuntime": false,
+  "trackBMediaProcessing": false
+}

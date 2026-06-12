@@ -1,0 +1,33 @@
+{
+  "phase": "supabase-reset-retry-failure-diagnostics",
+  "runId": "supabase-reset-retry-failure-diagnostics-20260610",
+  "reportDir": "docs/activation-supabase-reset-retry-failure-diagnostics-reports",
+  "committedReports": [
+    "source_of_truth_ownership_audit.json",
+    "reset_retry_failure_diagnostics_plan.json",
+    "reset_retry_failure_evidence_inventory.json",
+    "reset_retry_post_failure_state_report.json",
+    "reset_retry_cli_failure_analysis_report.json",
+    "reset_retry_migration_state_review.json",
+    "reset_retry_recovery_option_matrix.json",
+    "reset_retry_supabase_support_packet.json",
+    "reset_retry_recovery_decision.json",
+    "reset_retry_failure_blocker_report.json",
+    "reset_retry_failure_readiness_report.json",
+    "reset_retry_failure_private_artifact_manifest.json"
+  ],
+  "committedDocs": [
+    "docs/supabase-reset-retry-failure-diagnostics.md",
+    "docs/supabase-reset-retry-post-failure-state.md",
+    "docs/supabase-reset-retry-support-packet.md",
+    "docs/supabase-reset-retry-recovery-decision.md",
+    "docs/implementation-prompts/prompt-supabase-reset-failure-recovery-next-step.md"
+  ],
+  "privateUploadRequired": false,
+  "privateBackupPayloadCommitted": false,
+  "dbUrlCommitted": false,
+  "secretPayloadsCommitted": false,
+  "rowContentsCommitted": false,
+  "mediaPayloadsCommitted": false,
+  "buildOutputCommitted": false
+}

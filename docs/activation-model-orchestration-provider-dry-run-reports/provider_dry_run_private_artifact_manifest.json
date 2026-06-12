@@ -1,9 +1,9 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
+  "runId": "modeldryrun2-20260612T180334",
   "reportDir": "docs/activation-model-orchestration-provider-dry-run-reports",
-  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
-  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-1/modeldryrun1-20260612T163026/",
+  "generatedArtifactPrefix": "gs://reeditpro-staging-reeditpro-generated-assets/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T180334/",
+  "qaArtifactPrefix": "gs://reeditpro-staging-reeditpro-qa-artifacts/activation-model-orchestration/model-dry-run-2/modeldryrun2-20260612T180334/",
   "expectedReports": [
     "source_of_truth_ownership_audit.json",
     "provider_dry_run_plan.json",
@@ -38,7 +38,7 @@
     "caches",
     "build_outputs"
   ],
-  "executed": false,
+  "executed": true,
   "payloadPrinted": false,
   "payloadCommitted": false,
   "rawProviderResponsesStored": false,

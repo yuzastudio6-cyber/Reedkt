@@ -1,12 +1,12 @@
 {
   "phase": "model-orchestration-provider-dry-run",
   "provider": "qwen_dashscope",
-  "status": "not_attempted",
-  "executed": false,
-  "providerCallsAttempted": 0,
-  "providerCallsPassed": 0,
+  "status": "passed",
+  "executed": true,
+  "providerCallsAttempted": 4,
+  "providerCallsPassed": 4,
   "providerCallsBlocked": 0,
-  "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "endpoint": "https://dashscope-us.aliyuncs.com/compatible-mode/v1/chat/completions",
   "stream": false,
   "tools": false,
   "search": false,
@@ -14,5 +14,223 @@
   "rawProviderResponsesStored": false,
   "rawProviderResponsesPrinted": false,
   "secretPayloadPrinted": false,
-  "results": []
+  "results": [
+    {
+      "caseId": "synthetic_edit_intent_extraction",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "schemaId": "agent_findings_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 28929,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 213,
+        "completionTokens": 1522,
+        "totalTokens": 1735
+      },
+      "responseContentCharacters": 774,
+      "normalizedOutput": {
+        "caseId": "synthetic_edit_intent_extraction",
+        "findings": [
+          {
+            "intent": "video_editing",
+            "duration_seconds": 45,
+            "style_requirements": [
+              "clearer_pacing",
+              "concise_captions"
+            ],
+            "content_type": "product_explainer"
+          }
+        ],
+        "confidence": 0.92,
+        "risks": [
+          "Pacing adjustments may exceed automated scene detection limits",
+          "Caption generation requires strict character limit enforcement"
+        ],
+        "blockedActions": [
+          "direct_media_rendering",
+          "external_api_routing",
+          "supabase_mutation"
+        ],
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "agent_findings_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    },
+    {
+      "caseId": "synthetic_timeline_planning",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "schemaId": "edit_intents_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 26729,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 214,
+        "completionTokens": 1439,
+        "totalTokens": 1653
+      },
+      "responseContentCharacters": 981,
+      "normalizedOutput": {
+        "caseId": "synthetic_timeline_planning",
+        "intentSummary": "Plan a three-part timeline for a synthetic onboarding video consisting of a hook, demonstration, and call-to-action.",
+        "segments": [
+          {
+            "id": "seg_1",
+            "name": "Hook",
+            "durationSeconds": 5
+          },
+          {
+            "id": "seg_2",
+            "name": "Demonstration",
+            "durationSeconds": 20
+          },
+          {
+            "id": "seg_3",
+            "name": "CTA",
+            "durationSeconds": 5
+          }
+        ],
+        "planningRequirements": [
+          "Define visual and audio cues for the hook",
+          "Outline step-by-step demonstration flow",
+          "Draft clear call-to-action text and visual overlay"
+        ],
+        "approvalGates": [
+          "Timeline structure approval",
+          "Segment duration validation",
+          "Content compliance check"
+        ],
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "edit_intents_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    },
+    {
+      "caseId": "synthetic_tool_route_metadata_recommendation",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "schemaId": "plan_snapshot_candidate_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 23569,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 221,
+        "completionTokens": 1259,
+        "totalTokens": 1480
+      },
+      "responseContentCharacters": 675,
+      "normalizedOutput": {
+        "caseId": "synthetic_tool_route_metadata_recommendation",
+        "candidateSummary": "Evaluating metadata-only recommendations for captions, chart card, and map card based on synthetic input parameters.",
+        "toolRouteHints": [
+          "metadata_recommendation_route",
+          "synthetic_evaluation_path"
+        ],
+        "creditRiskNotes": "No credit risk associated with metadata-only synthetic evaluation.",
+        "requiredApprovals": [
+          "schema_validator",
+          "dry_run_evaluator"
+        ],
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "plan_snapshot_candidate_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    },
+    {
+      "caseId": "synthetic_provider_fallback_comparison",
+      "provider": "qwen_dashscope",
+      "modelId": "qwen3.7-plus",
+      "schemaId": "provider_fallback_assessment_v1",
+      "status": "passed",
+      "httpStatus": 200,
+      "latencyMs": 30594,
+      "finishReason": "stop",
+      "usage": {
+        "promptTokens": 218,
+        "completionTokens": 1629,
+        "totalTokens": 1847
+      },
+      "responseContentCharacters": 499,
+      "normalizedOutput": {
+        "caseId": "synthetic_provider_fallback_comparison",
+        "primaryCandidate": "Qwen",
+        "fallbackCandidate": "DeepSeek",
+        "comparisonReasons": [
+          "Planning quality assessment",
+          "Reasoning fallback evaluation"
+        ],
+        "dryRunLimits": {
+          "maxTokens": 1000,
+          "maxIterations": 1
+        },
+        "workerExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAllowed": false,
+        "rawPromptForwardingAllowed": false,
+        "directMutationAllowed": false,
+        "schemaId": "provider_fallback_assessment_v1"
+      },
+      "rawProviderResponseStored": false,
+      "rawProviderResponsePrinted": false,
+      "secretPayloadPrinted": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "routeExecutionAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAllowed": false,
+      "rawPromptForwardingAllowed": false,
+      "directMutationAllowed": false,
+      "productionMutationAllowed": false
+    }
+  ]
 }

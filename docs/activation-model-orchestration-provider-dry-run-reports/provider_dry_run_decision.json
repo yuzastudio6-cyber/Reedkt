@@ -1,12 +1,12 @@
 {
   "phase": "model-orchestration-provider-dry-run",
-  "runId": "modeldryrun1-20260612T163026",
-  "status": "not_attempted",
-  "decision": "not_attempted",
+  "runId": "modeldryrun2-20260612T180334",
+  "status": "blocked",
+  "decision": "blocked_pending_cost_review",
   "activeBlockers": [
-    "provider_dry_run_not_executed"
+    "provider_cost_or_token_guardrail_exceeded"
   ],
-  "providerCallsAttempted": false,
+  "providerCallsAttempted": true,
   "qwenApiCallAllowedInThisPhase": true,
   "deepseekApiCallAllowedInThisPhase": true,
   "rawProviderResponsesStored": false,

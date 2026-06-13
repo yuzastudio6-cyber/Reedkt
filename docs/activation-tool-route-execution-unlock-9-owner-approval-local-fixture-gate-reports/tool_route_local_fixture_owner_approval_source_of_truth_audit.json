@@ -1,0 +1,46 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "source_of_truth_audit",
+  "sourceOfTruthConflictsFound": false,
+  "sourceFilesReadAsTextOnly": true,
+  "noRuntimeSourcesExecuted": true,
+  "pr409": {
+    "state": "merged",
+    "mergeCommit": "7d000f4b0af419607af975cae1b830df073e1294",
+    "decision": "tool_route_local_fixture_validation_passed_with_warnings_ready_for_owner_approval"
+  },
+  "acceptedSourceChain": [
+    { "pr": 404, "decision": "tool_route_local_fixture_plan_ready_with_warnings" },
+    { "pr": 398, "decision": "tool_route_dry_run_pass_review_recorded_with_warnings_ready_for_local_fixture_planning" },
+    { "pr": 392, "decision": "tool_route_dry_run_gate_status_recorded_with_warnings_ready_for_dry_run_pass_review" },
+    { "pr": 385, "decision": "tool_route_owner_approved_with_warnings_for_next_dry_run_gate" },
+    { "pr": 381, "decision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval" },
+    { "pr": 377, "decision": "tool_route_dry_run_contract_ready_with_warnings" },
+    { "pr": 374, "decision": "tool_route_dry_run_plan_ready_with_warnings" },
+    { "pr": 369, "decision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan" },
+    { "pr": 360, "decision": "tool_study_pending_owners_completed_ready_for_tool_route_execution_unlock_audit" }
+  ],
+  "workerEvidenceAccepted": [
+    { "pr": 358, "decision": "worker_runtime_local_fixture_plan_ready" },
+    { "pr": 353, "decision": "worker_runtime_fixture_hardening_passed_ready_for_local_fixture_plan" },
+    { "pr": 351, "decision": "worker_runtime_dry_run_contract_review_passed_ready_for_fixture_hardening" }
+  ],
+  "modelEvidenceAccepted": [
+    { "pr": 335, "decision": "ready_for_plan_snapshot_contract_handoff" },
+    { "pr": 329, "decision": "qwen_synthetic_provider_rerun_passed_4_of_4" },
+    { "pr": 320, "decision": "deepseek_provider_evidence_preserved_3_of_3" }
+  ],
+  "supabaseEvidenceRecorded": [
+    { "pr": 315, "decision": "registry_restoration_evidence_preserved_no_duplication" },
+    { "pr": 319, "decision": "supabase_sound_local_harness_blocked_no_continuation" }
+  ],
+  "completedToolStudiesReferencedOnly": [
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL"
+  ],
+  "completedOwnerStudiesDuplicated": false,
+  "historicalPromptWordingSuperseded": true,
+  "currentHandoffControlsNextPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-10: tool-route local fixture gate status packet, no execution",
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

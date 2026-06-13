@@ -1,0 +1,21 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "local_fixture_gate_scope_approval",
+  "approvedScope": "next_local_fixture_gate_status_packet_only",
+  "approved": true,
+  "localFixtureExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "providerExecutionAllowed": false,
+  "supabaseWriteAllowed": false,
+  "sqlExecutionAllowed": false,
+  "publicArtifactCreationAllowed": false,
+  "signedUrlCreationAllowed": false,
+  "productionUnlockAllowed": false,
+  "externalBetaUnlockAllowed": false,
+  "paidProductionUnlockAllowed": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "nextGate": "TOOL-ROUTE-EXECUTION-UNLOCK-10: tool-route local fixture gate status packet, no execution"
+}

@@ -1,0 +1,20 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "contract_and_fixture_evidence_acceptance",
+  "accepted": true,
+  "sourcePr": 377,
+  "contractDecision": "tool_route_dry_run_contract_ready_with_warnings",
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "requestSchemaContractAccepted": true,
+  "resultSchemaContractAccepted": true,
+  "intentToCapabilityContractAccepted": true,
+  "capabilityToToolContractAccepted": true,
+  "candidateScoringContractAccepted": true,
+  "blockedRawPromptContractAccepted": true,
+  "blockedSignedUrlPublicArtifactContractAccepted": true,
+  "blockedRuntimeExecutionContractAccepted": true,
+  "sourceOfTruthRequirement": "Supabase row + private GCS path + manifest + checksum + approved plan snapshot",
+  "resourcesCreated": false
+}

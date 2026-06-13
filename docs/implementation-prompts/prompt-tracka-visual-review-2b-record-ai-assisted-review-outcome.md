@@ -11,6 +11,9 @@ Record the pass/fail/warning/blocker outcome after actual representative frames/
 - `docs/track-a/track-a-visual-review-2a-review-criteria.md`
 - `docs/track-a/track-a-visual-review-artifact-bundle-manifest.md`
 - `docs/track-a/track-a-visual-review-upload-to-chat-instructions.md`
+- `docs/track-a/track-a-visual-review-local-bundle-manifest.md`
+- `docs/track-a/track-a-visual-review-local-bundle-checksums.md`
+- `docs/track-a/track-a-visual-review-upload-to-chat-final-instructions.md`
 - uploaded representative frames/clips, or approved exact private refs from #390/#393
 
 ## Hard Stop
@@ -18,6 +21,10 @@ Record the pass/fail/warning/blocker outcome after actual representative frames/
 If no actual frames/clips or approved private access bundle is present, report `blocked_pending_uploaded_frames_or_approved_private_artifact_access_bundle` and do not record pass/fail.
 
 If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1 is docs-only with `private_artifact_access=not_attempted`, report `blocked_pending_private_artifact_bundle_or_uploaded_frames`.
+
+If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R records `blocked_pending_private_artifact_access_confirmation`, report that blocker and do not record pass/fail.
+
+If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R later produces copied local review files, inspect only the uploaded files named in `track-a-visual-review-upload-to-chat-final-instructions.md` and verify their checksums before recording an outcome.
 
 ## Allowed Scope
 
@@ -42,3 +49,5 @@ If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1 is docs-only with `private_artifact_ac
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.
 
 TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1 no-scope statement: No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. If executed with confirmation, only bounded private GCS metadata/read access for explicit Track A review artifact refs was allowed.
+
+TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R no-scope statement: No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded private GCS metadata/read/copy was allowed only for exact Track A review artifact refs explicitly allowlisted by the #400 bundle manifest.

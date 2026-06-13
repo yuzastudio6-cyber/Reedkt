@@ -71,7 +71,6 @@ Next Supabase action: `none`
 PR status: `open_draft_mergeable_clean`
 PR link: `https://github.com/yuzastudio6-cyber/Reedkt/pull/406`
 PR check status: `empty_check_rollup`
-PR head SHA: `aa7c345411354255471d33d2075b644edef632c2`
 Base PR #405 status: `open_draft_mergeable_clean`
 
 ## No-Scope Statement

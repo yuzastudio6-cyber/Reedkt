@@ -48,3 +48,10 @@ Next unlock lane after TOOL-STUDY-0 source-of-truth merge:
 ## Tool-Route Metadata Dry-Run
 
 Next lane: CONTROLLED_TOOL_EXECUTION controlled tool execution approval packet. This is approval-only until separately authorized.
+
+<!-- CONTROLLED_TOOL_EXECUTION_APPROVAL_STATUS -->
+
+Next unlock lane:
+
+- `CONTROLLED_TOOL_EXECUTION - first controlled tool execution dry-run` may use only the selected fixture/report-validation candidate after separate approval.
+- Media/audio/render/image/browser/map, workers, providers, Supabase/GCS writes, public artifacts, signed URLs, beta, and production remain blocked.

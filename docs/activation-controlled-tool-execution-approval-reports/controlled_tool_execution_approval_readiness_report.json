@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.readinessReport.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "readiness": true,
+  "decision": "approved_for_future_first_controlled_tool_execution_dry_run",
+  "toolRouteApprovalPassed": true,
+  "toolRouteMetadataDryRunPassed": true,
+  "firstCandidateReviewPassed": true,
+  "approvedPlanSnapshotRequirementsPassed": true,
+  "workerHandoffRequirementsPassed": true,
+  "artifactGuardrailsPassed": true,
+  "failClosedPolicyPassed": true,
+  "observabilityCostAuditRequirementsPassed": true,
+  "runtimeScopesBlocked": true
+}

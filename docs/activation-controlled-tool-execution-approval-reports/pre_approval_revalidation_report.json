@@ -1,0 +1,205 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.preApprovalRevalidation.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "pr387Merged": true,
+  "pr388Merged": true,
+  "routeApprovalEvidence": {
+    "passed": true,
+    "decision": "approved_for_future_tool_route_metadata_dry_run_execution",
+    "blockers": [],
+    "sourceReportsPresent": true
+  },
+  "metadataEvidence": {
+    "passed": true,
+    "decision": "tool_route_metadata_dry_run_passed_ready_for_controlled_tool_execution_approval",
+    "readiness": true,
+    "blockers": [],
+    "fixtureValidation": {
+      "schema": "reeditpro.toolRouteMetadataDryRun.fixtureValidation.v1",
+      "fixtureCount": 10,
+      "validCount": 4,
+      "invalidCount": 6,
+      "passed": true,
+      "rows": [
+        {
+          "fixtureId": "valid_track_b_metadata_route_candidate",
+          "fixtureClass": "valid",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "inputKind": "approved_plan_snapshot_v1",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": true,
+          "failedClosed": false
+        },
+        {
+          "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+          "fixtureClass": "valid",
+          "owner": "SOUND_MUSIC_AUDIO",
+          "inputKind": "approved_plan_snapshot_v1",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": true,
+          "failedClosed": false
+        },
+        {
+          "fixtureId": "valid_ai_creative_graphics_metadata_route_candidate",
+          "fixtureClass": "valid",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "inputKind": "approved_plan_snapshot_v1",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": true,
+          "failedClosed": false
+        },
+        {
+          "fixtureId": "valid_track_a_render_export_metadata_route_candidate",
+          "fixtureClass": "valid",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "inputKind": "approved_plan_snapshot_v1",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": true,
+          "failedClosed": false
+        },
+        {
+          "fixtureId": "invalid_raw_prompt_route_request",
+          "fixtureClass": "invalid",
+          "owner": "UNKNOWN",
+          "inputKind": "raw_prompt",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": false,
+          "failedClosed": true
+        },
+        {
+          "fixtureId": "invalid_direct_tool_execution_request",
+          "fixtureClass": "invalid",
+          "owner": "UNKNOWN",
+          "inputKind": "direct_tool_execution",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": false,
+          "failedClosed": true
+        },
+        {
+          "fixtureId": "invalid_worker_execution_request",
+          "fixtureClass": "invalid",
+          "owner": "UNKNOWN",
+          "inputKind": "worker_execution",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": false,
+          "failedClosed": true
+        },
+        {
+          "fixtureId": "invalid_provider_model_call_request",
+          "fixtureClass": "invalid",
+          "owner": "UNKNOWN",
+          "inputKind": "provider_model_call",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": false,
+          "failedClosed": true
+        },
+        {
+          "fixtureId": "invalid_public_artifact_signed_url_request",
+          "fixtureClass": "invalid",
+          "owner": "UNKNOWN",
+          "inputKind": "public_artifact_signed_url",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": false,
+          "failedClosed": true
+        },
+        {
+          "fixtureId": "invalid_broad_media_render_export_request",
+          "fixtureClass": "invalid",
+          "owner": "UNKNOWN",
+          "inputKind": "broad_media_render_export",
+          "allFlagsBlocked": true,
+          "approvedSnapshotOk": true,
+          "expectedOutcomeOk": true,
+          "acceptedMetadataOnly": false,
+          "failedClosed": true
+        }
+      ],
+      "executionFlagsRemainFalse": true
+    },
+    "metadataResolution": {
+      "schema": "reeditpro.toolRouteMetadataDryRun.metadataResolution.v1",
+      "passed": true,
+      "routeMetadataOnly": true,
+      "routeExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "rows": [
+        {
+          "fixtureId": "valid_track_b_metadata_route_candidate",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "routeCandidateId": "metadata-route:track_b_media_processing",
+          "routeCompatibility": "compatible_metadata_only",
+          "routeExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "costCapacityClass": "metadata_estimate_only",
+          "passed": true
+        },
+        {
+          "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+          "owner": "SOUND_MUSIC_AUDIO",
+          "routeCandidateId": "metadata-route:sound_music_audio",
+          "routeCompatibility": "compatible_metadata_only",
+          "routeExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "costCapacityClass": "metadata_estimate_only",
+          "passed": true
+        },
+        {
+          "fixtureId": "valid_ai_creative_graphics_metadata_route_candidate",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "routeCandidateId": "metadata-route:ai_tools_creative_graphics",
+          "routeCompatibility": "compatible_metadata_only",
+          "routeExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "costCapacityClass": "metadata_estimate_only",
+          "passed": true
+        },
+        {
+          "fixtureId": "valid_track_a_render_export_metadata_route_candidate",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "routeCandidateId": "metadata-route:track_a_render_export",
+          "routeCompatibility": "compatible_metadata_only",
+          "routeExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "costCapacityClass": "metadata_estimate_only",
+          "passed": true
+        }
+      ]
+    },
+    "sourceReportsPresent": true
+  },
+  "pr384ReferenceOnly": true,
+  "blockedScopesPreserved": true,
+  "packageLockChanged": false,
+  "missingLocalEvidenceRecordedAsAuditFacts": [
+    "docs/activation-worker-runtime-noop-dry-run-reports",
+    "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+    "docs/activation-supabase-trackb-clean-staging-backfill-reports"
+  ]
+}

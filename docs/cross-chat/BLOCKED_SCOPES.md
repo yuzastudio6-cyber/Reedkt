@@ -41,3 +41,7 @@ The tool-route dry-run approval packet does not unblock real execution. Tool exe
 ## Tool-Route Metadata Dry-Run Blocked Scopes
 
 Real route execution, tool execution, worker execution, provider/model calls, media/audio/render/image/browser/map execution, Supabase writes, GCS uploads, public artifacts, signed URLs, raw prompt execution, external beta, paid production, and production remain blocked.
+
+<!-- CONTROLLED_TOOL_EXECUTION_APPROVAL_STATUS -->
+
+Controlled tool execution approval does not unblock real execution. Tool execution, route execution, worker execution, provider calls, media/audio/render/export/image/browser/map processing, Supabase writes, SQL, GCS uploads, public artifacts, signed URLs, raw prompt execution, dependency mutation, external beta, paid production, and production remain blocked.

@@ -54,3 +54,13 @@ TOOL_ROUTE_EXECUTION dry-run approval packet:
 ## Tool-Route Metadata Dry-Run
 
 TOOL_ROUTE_EXECUTION metadata dry-run is recorded as passed for the next controlled tool execution approval packet. Real route/tool/worker/provider/runtime, Supabase writes, public artifacts, signed URLs, beta, and production remain blocked.
+
+<!-- CONTROLLED_TOOL_EXECUTION_APPROVAL_STATUS -->
+
+CONTROLLED_TOOL_EXECUTION approval packet:
+
+- Decision: `approved_for_future_first_controlled_tool_execution_dry_run`
+- Selected first candidate: `controlled-tool:first_fixture_report_validation`.
+- PR #387/#388 tool-route source-of-truth evidence is merged and consumed.
+- This is approval-only; real tool/route/worker/provider/media/Supabase/GCS/public/beta/production scopes remain blocked.
+- Next prompt: `CONTROLLED_TOOL_EXECUTION - first controlled tool execution dry-run`.

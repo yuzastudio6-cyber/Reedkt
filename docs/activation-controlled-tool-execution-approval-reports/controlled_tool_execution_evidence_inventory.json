@@ -1,0 +1,67 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.evidenceInventory.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "toolRouteApprovalDecision": "approved_for_future_tool_route_metadata_dry_run_execution",
+  "toolRouteMetadataDryRunDecision": "tool_route_metadata_dry_run_passed_ready_for_controlled_tool_execution_approval",
+  "toolRouteMetadataDryRunReadiness": true,
+  "selectedCandidate": "controlled-tool:first_fixture_report_validation",
+  "ownerStudySourceOfTruth": "merged_tool_study_0_stack_recorded_on_source_branch",
+  "approvedPlanSnapshotPolicy": "approved_plan_snapshot_v1_required_before any future controlled dry-run",
+  "workerNoopEvidence": "missing_script_recorded_as_audit_fact",
+  "planSnapshotDryRunEvidence": "missing_script_recorded_as_audit_fact",
+  "supabaseTrackBBackfillEvidence": "missing_script_recorded_as_audit_fact",
+  "missingLocalEvidenceRecordedAsAuditFacts": [
+    "docs/activation-worker-runtime-noop-dry-run-reports",
+    "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+    "docs/activation-supabase-trackb-clean-staging-backfill-reports"
+  ],
+  "secretRefs": [
+    {
+      "refName": "SUPABASE_ACCESS_TOKEN",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "refName": "SUPABASE_DB_URL",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "refName": "GCS_PRIVATE_BUCKET_REF",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    }
+  ],
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  }
+}

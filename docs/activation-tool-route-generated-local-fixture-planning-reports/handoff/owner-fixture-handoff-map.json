@@ -1,0 +1,258 @@
+{
+  "phase": "TOOL_ROUTE_2",
+  "status": "passed",
+  "handoffs": [
+    {
+      "owner": "WEB_SEARCH_CAPTURE",
+      "fixtureIds": [
+        "web_search_capture_fixture"
+      ],
+      "sourceContracts": [
+        "docs/tool-studies/web-search-capture-tool-study.md"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for WEB_SEARCH_CAPTURE.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "fixtureIds": [
+        "map_geospatial_fixture"
+      ],
+      "sourceContracts": [
+        "docs/tool-studies/map-geospatial-tool-study.md"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for MAP_GEOSPATIAL.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "fixtureIds": [
+        "ai_tools_creative_graphics_fixture"
+      ],
+      "sourceContracts": [
+        "docs/tool-studies/ai-tools-creative-graphics-tool-study.md"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for AI_TOOLS_CREATIVE_GRAPHICS.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "fixtureIds": [
+        "track_a_render_export_fixture"
+      ],
+      "sourceContracts": [
+        "docs/tool-studies/track-a-render-export-tool-study.md"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for TRACK_A_RENDER_EXPORT.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "fixtureIds": [
+        "track_b_media_processing_fixture"
+      ],
+      "sourceContracts": [
+        "docs/tool-studies/track-b-media-processing-tool-study.md"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for TRACK_B_MEDIA_PROCESSING.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "fixtureIds": [
+        "sound_music_audio_fixture"
+      ],
+      "sourceContracts": [
+        "docs/tool-studies/sound-music-audio-tool-study.md"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for SOUND_MUSIC_AUDIO.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "WORKER_RUNTIME_JOBS",
+      "fixtureIds": [
+        "worker_runtime_job_planning_fixture"
+      ],
+      "sourceContracts": [
+        "not_applicable_internal_coordination_owner"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for WORKER_RUNTIME_JOBS.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "fixtureIds": [
+        "provider_model_planning_fixture"
+      ],
+      "sourceContracts": [
+        "not_applicable_internal_coordination_owner"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for PROVIDER_GATEWAY_MODELS.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "fixtureIds": [
+        "supabase_metadata_storage_fixture"
+      ],
+      "sourceContracts": [
+        "not_applicable_internal_coordination_owner"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for SUPABASE_RLS_STORAGE_DATABASE.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "OBSERVABILITY_AUDIT_COST",
+      "fixtureIds": [
+        "observability_audit_cost_fixture"
+      ],
+      "sourceContracts": [
+        "not_applicable_internal_coordination_owner"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for OBSERVABILITY_AUDIT_COST.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "COMPLIANCE_SECURITY",
+      "fixtureIds": [
+        "compliance_security_fixture",
+        "public_artifact_signed_url_delivery_blocked_fixture"
+      ],
+      "sourceContracts": [
+        "not_applicable_internal_coordination_owner",
+        "not_applicable_internal_coordination_owner"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for COMPLIANCE_SECURITY.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "FRONTEND_PRODUCT_UX",
+      "fixtureIds": [
+        "frontend_product_ux_fixture"
+      ],
+      "sourceContracts": [
+        "not_applicable_internal_coordination_owner"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for FRONTEND_PRODUCT_UX.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    },
+    {
+      "owner": "BILLING_STRIPE_CREDITS",
+      "fixtureIds": [
+        "billing_stripe_credits_fixture"
+      ],
+      "sourceContracts": [
+        "not_applicable_internal_coordination_owner"
+      ],
+      "responsibilities": [
+        "Review generated/local fixture contract scope for BILLING_STRIPE_CREDITS.",
+        "Confirm synthetic inputs only and expected output manifests only.",
+        "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+        "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+      ],
+      "handoffType": "review_planning_only",
+      "ownerApprovalRequired": true,
+      "executionAuthorized": false,
+      "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+    }
+  ],
+  "ownerCount": 13,
+  "allRequiredOwnersMapped": true,
+  "activeBlockers": []
+}

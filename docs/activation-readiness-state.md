@@ -329,3 +329,14 @@ The Phase 44P export is a future Foundation/Supabase handoff only. It does not w
 - Supabase milestone sync: `blocked_current_branch_missing_sync_layer`
 - Runtime/tool/worker/provider execution: `false`
 <!-- TOOL-ROUTE-1-END -->
+
+<!-- TOOL-ROUTE-2-START -->
+## TOOL-ROUTE-2
+
+- Status: `passed`
+- Decision: `tool_route_generated_local_fixture_planning_passed_ready_for_tool_route_3_generated_local_fixture_contract_tests`
+- Run ID: `toolroute2-20260613T150317`
+- TOOL-ROUTE-3 readiness: `ready_for_TOOL_ROUTE_3_generated_local_fixture_contract_tests`
+- Supabase milestone sync: `blocked_current_branch_missing_sync_layer`
+- Runtime/tool/worker/provider/route execution: `false`
+<!-- TOOL-ROUTE-2-END -->

@@ -1,0 +1,201 @@
+{
+  "phase": "TOOL_ROUTE_2",
+  "owner": "WORKER_RUNTIME_JOBS / TOOL_ROUTE_COORDINATION",
+  "runId": "toolroute2-20260613T150317",
+  "status": "passed",
+  "decision": "tool_route_generated_local_fixture_planning_passed_ready_for_tool_route_3_generated_local_fixture_contract_tests",
+  "executionStatus": "completed_local_docs_only",
+  "branch": "codex/rp-tool-route-2-generated-local-fixture-planning",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "prTitle": "[tool-route] Generated local fixture planning",
+  "sourceEvidence": {
+    "modelDryRun1": {
+      "runId": "modeldryrun1-20260612T174538",
+      "status": "passed",
+      "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+      "readiness": "ready_for_plan_snapshot_contract",
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json"
+    },
+    "planSnapshot1": {
+      "runId": "plansnapshot1-20260612T182758",
+      "status": "passed",
+      "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+      "readiness": "ready_for_worker_runtime_repo_audit",
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json"
+    },
+    "worker0": {
+      "runId": "worker0-20260612T191022",
+      "status": "passed",
+      "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+      "readiness": "ready for approved-plan snapshot dry-run",
+      "path": "docs/activation-worker-runtime-jobs-audit-reports/reports/worker-runtime-jobs-audit-report.json"
+    },
+    "worker1": {
+      "runId": "worker1-20260612T193823",
+      "status": "passed",
+      "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+      "readiness": "ready for tool-route execution unlock audit",
+      "path": "docs/activation-worker-approved-plan-dry-run-reports/reports/worker-approved-plan-dry-run-report.json"
+    },
+    "toolRoute0": {
+      "runId": "toolroute0-20260612T201155",
+      "status": "passed",
+      "decision": "tool_route_execution_unlock_audit_passed_ready_for_route_dry_run_planning",
+      "readiness": "ready for route dry-run planning",
+      "path": "docs/activation-tool-route-execution-unlock-audit-reports/reports/tool-route-execution-unlock-audit-report.json"
+    },
+    "toolRoute1": {
+      "runId": "toolroute1-20260613T141131",
+      "status": "passed",
+      "decision": "tool_route_dry_run_planning_passed_ready_for_tool_route_2_generated_local_fixture_planning",
+      "readiness": "ready_for_TOOL_ROUTE_2_generated_local_fixture_planning",
+      "mergeSha": "b1fc1d40c5a41c6e3874331d2ed84dc7072d7364",
+      "path": "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json"
+    },
+    "toolStudies": [
+      {
+        "runId": "pr-354",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "51ba1d44965d758935241af7712779bb15d713c6",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-356",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "c0c96030358d52852b712b9f239a3237490d25ec",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-361",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "05d429f6029136f0f55fe01375809071b588791c",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-364",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "0ac258f939f403dbef438d3184408f28f874f26c",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-365",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "454d06caaf3b3349efa541f3ce50aac0bc0044aa",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-371",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "f6283e63742d6999910d3887482dc3112da1e570",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      }
+    ]
+  },
+  "toolRoute1Evidence": {
+    "runId": "toolroute1-20260613T141131",
+    "decision": "tool_route_dry_run_planning_passed_ready_for_tool_route_2_generated_local_fixture_planning",
+    "readiness": "ready_for_TOOL_ROUTE_2_generated_local_fixture_planning",
+    "routeFamilyCount": 14,
+    "ownerRouteCount": 13
+  },
+  "completedOwnerStudies": 6,
+  "fixtureCatalog": {
+    "status": "passed",
+    "fixtureCount": 14,
+    "allFixturesMapped": true,
+    "allInputsSyntheticOnly": true,
+    "fixtureIds": [
+      "provider_model_planning_fixture",
+      "worker_runtime_job_planning_fixture",
+      "web_search_capture_fixture",
+      "map_geospatial_fixture",
+      "ai_tools_creative_graphics_fixture",
+      "track_a_render_export_fixture",
+      "track_b_media_processing_fixture",
+      "sound_music_audio_fixture",
+      "supabase_metadata_storage_fixture",
+      "observability_audit_cost_fixture",
+      "compliance_security_fixture",
+      "frontend_product_ux_fixture",
+      "billing_stripe_credits_fixture",
+      "public_artifact_signed_url_delivery_blocked_fixture"
+    ]
+  },
+  "inputOutputContractMap": {
+    "status": "passed",
+    "contractCount": 14,
+    "allContractsPrivateSyntheticOnly": true
+  },
+  "ownerFixtureHandoffMap": {
+    "status": "passed",
+    "ownerCount": 13,
+    "allRequiredOwnersMapped": true
+  },
+  "qaGateMap": {
+    "status": "passed",
+    "gateCount": 17,
+    "allRequiredGatesPassed": true
+  },
+  "blockedExecutionValidation": {
+    "status": "passed",
+    "allExecutionBlocked": true,
+    "blockedCategoryCount": 27
+  },
+  "toolRoute3Readiness": "ready_for_TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+  "diagnostics": {
+    "status": "passed",
+    "script": "scripts/validation/tool-route-generated-local-fixture-planning-diagnostics.mjs"
+  },
+  "safetyFlags": {
+    "executionAllowed": false,
+    "workerExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "providerCallsAllowed": false,
+    "modelCallsAllowed": false,
+    "routeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "audioGenerationAllowed": false,
+    "renderExportAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "supabaseMutationAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationDeploymentAllowed": false,
+    "googleCloudApiCallsAllowed": false,
+    "secretManagerApiCallsAllowed": false,
+    "gcsStorageTransferAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeProcessingAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "dependencyMutationAllowed": false,
+    "finalRenderExportAllowed": false,
+    "broadServiceRoleHandlerAllowed": false
+  },
+  "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.",
+  "supabaseUpdateClassification": {
+    "updateRequired": "docs/status only",
+    "updateStatus": "docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "milestoneSync": "blocked_current_branch_missing_sync_layer",
+    "evidenceDocs": [
+      "docs/activation-phase-tool-route-2-generated-local-fixture-planning-results.md",
+      "docs/activation-tool-route-generated-local-fixture-planning-reports/reports/tool-route-generated-local-fixture-planning-report.json"
+    ],
+    "blockers": [],
+    "nextSupabaseAction": "none"
+  },
+  "activeBlockers": []
+}

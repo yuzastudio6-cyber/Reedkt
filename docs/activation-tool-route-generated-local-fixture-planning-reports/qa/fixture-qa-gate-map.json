@@ -1,0 +1,271 @@
+{
+  "phase": "TOOL_ROUTE_2",
+  "status": "passed",
+  "gates": [
+    {
+      "gateId": "owner_study_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+        "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+        "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+        "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+        "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+        "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "tool_route_1_route_plan_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json",
+        "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-owner-route-plan.json",
+        "docs/activation-tool-route-dry-run-planning-reports/artifacts/tool-route-artifact-contract-map.json",
+        "docs/activation-tool-route-dry-run-planning-reports/qa/tool-route-qa-gate-map.json",
+        "docs/activation-tool-route-dry-run-planning-reports/validation/tool-route-blocked-execution-validation.json"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "fixture_family_count",
+      "status": "passed",
+      "evidence": [
+        "provider_model_planning_fixture",
+        "worker_runtime_job_planning_fixture",
+        "web_search_capture_fixture",
+        "map_geospatial_fixture",
+        "ai_tools_creative_graphics_fixture",
+        "track_a_render_export_fixture",
+        "track_b_media_processing_fixture",
+        "sound_music_audio_fixture",
+        "supabase_metadata_storage_fixture",
+        "observability_audit_cost_fixture",
+        "compliance_security_fixture",
+        "frontend_product_ux_fixture",
+        "billing_stripe_credits_fixture",
+        "public_artifact_signed_url_delivery_blocked_fixture"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "fixture_is_synthetic_only",
+      "status": "passed",
+      "evidence": [
+        "provider_model_planning_fixture",
+        "worker_runtime_job_planning_fixture",
+        "web_search_capture_fixture",
+        "map_geospatial_fixture",
+        "ai_tools_creative_graphics_fixture",
+        "track_a_render_export_fixture",
+        "track_b_media_processing_fixture",
+        "sound_music_audio_fixture",
+        "supabase_metadata_storage_fixture",
+        "observability_audit_cost_fixture",
+        "compliance_security_fixture",
+        "frontend_product_ux_fixture",
+        "billing_stripe_credits_fixture",
+        "public_artifact_signed_url_delivery_blocked_fixture"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "input_contract_exists",
+      "status": "passed",
+      "evidence": [
+        "provider_model_planning_fixture_input_manifest",
+        "worker_runtime_job_planning_fixture_input_manifest",
+        "web_search_capture_fixture_input_manifest",
+        "map_geospatial_fixture_input_manifest",
+        "ai_tools_creative_graphics_fixture_input_manifest",
+        "track_a_render_export_fixture_input_manifest",
+        "track_b_media_processing_fixture_input_manifest",
+        "sound_music_audio_fixture_input_manifest",
+        "supabase_metadata_storage_fixture_input_manifest",
+        "observability_audit_cost_fixture_input_manifest",
+        "compliance_security_fixture_input_manifest",
+        "frontend_product_ux_fixture_input_manifest",
+        "billing_stripe_credits_fixture_input_manifest",
+        "public_artifact_signed_url_delivery_blocked_fixture_input_manifest"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "output_contract_exists",
+      "status": "passed",
+      "evidence": [
+        "synthetic_provider_output_fixture_manifest",
+        "synthetic_worker_job_fixture_manifest",
+        "synthetic_web_search_capture_fixture_manifest",
+        "synthetic_map_geospatial_fixture_manifest",
+        "synthetic_ai_tools_creative_graphics_fixture_manifest",
+        "synthetic_track_a_render_export_fixture_manifest",
+        "synthetic_track_b_media_processing_fixture_manifest",
+        "synthetic_sound_music_audio_fixture_manifest",
+        "synthetic_supabase_metadata_storage_fixture_manifest",
+        "synthetic_observability_audit_cost_fixture_manifest",
+        "synthetic_compliance_security_fixture_manifest",
+        "synthetic_frontend_product_ux_fixture_manifest",
+        "synthetic_billing_stripe_credits_fixture_manifest",
+        "synthetic_public_artifact_signed_url_blocked_fixture_manifest"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "source_of_truth_rule_exists",
+      "status": "passed",
+      "evidence": [
+        "Only committed synthetic provider-output manifests can be source-of-truth here.",
+        "Committed dry-run fixture manifests are source-of-truth; runtime rows are not touched.",
+        "Sanitized synthetic manifests and QA reports are source-of-truth; raw snippets are not.",
+        "Structured synthetic map manifests are source-of-truth; map screenshots are not.",
+        "Structured visual specs, source refs, checksums, and QA records are source-of-truth.",
+        "Private render/export manifests and QA records are source-of-truth; temporary renders are not.",
+        "Private media manifests, timecodes, provenance, checksums, and QA fields are source-of-truth.",
+        "Cue manifests, timing refs, provenance, and QA fields are source-of-truth.",
+        "Local docs/status evidence only; no Supabase row or storage object is source-of-truth here.",
+        "Committed audit and cost placeholders are planning evidence only.",
+        "Compliance placeholders and blocked-use registers are review evidence only.",
+        "UX route placeholders explain planning status only; they do not become runtime state.",
+        "Billing placeholders are planning evidence only; no ledger or Stripe event is source here.",
+        "Private manifests are source-of-truth; public artifacts and signed URLs are never source here."
+      ],
+      "required": true
+    },
+    {
+      "gateId": "private_artifact_rule_exists",
+      "status": "passed",
+      "evidence": [
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced."
+      ],
+      "required": true
+    },
+    {
+      "gateId": "checksum_provenance_required",
+      "status": "passed",
+      "evidence": [
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests."
+      ],
+      "required": true
+    },
+    {
+      "gateId": "owner_fixture_handoff_complete",
+      "status": "passed",
+      "evidence": [
+        "WEB_SEARCH_CAPTURE",
+        "MAP_GEOSPATIAL",
+        "AI_TOOLS_CREATIVE_GRAPHICS",
+        "TRACK_A_RENDER_EXPORT",
+        "TRACK_B_MEDIA_PROCESSING",
+        "SOUND_MUSIC_AUDIO",
+        "WORKER_RUNTIME_JOBS",
+        "PROVIDER_GATEWAY_MODELS",
+        "SUPABASE_RLS_STORAGE_DATABASE",
+        "OBSERVABILITY_AUDIT_COST",
+        "COMPLIANCE_SECURITY",
+        "FRONTEND_PRODUCT_UX",
+        "BILLING_STRIPE_CREDITS"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_runtime_execution",
+      "status": "passed",
+      "evidence": [
+        "all fixture execution flags are false"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_public_artifacts",
+      "status": "passed",
+      "evidence": [
+        "publicArtifactAllowed=false for every fixture contract"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_signed_urls",
+      "status": "passed",
+      "evidence": [
+        "signedUrlSourceOfTruthAllowed=false for every fixture contract"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_raw_prompts",
+      "status": "passed",
+      "evidence": [
+        "rawPromptAllowed=false for every fixture contract"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_supabase_mutation",
+      "status": "passed",
+      "evidence": [
+        "Supabase classification is docs_only with no SQL and no migration"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_production_external_beta_unlock",
+      "status": "passed",
+      "evidence": [
+        "internal beta, external beta, and production flags are false"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "next_owner_approval_defined",
+      "status": "passed",
+      "evidence": [
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3",
+        "owner_review_required_before_tool_route_3"
+      ],
+      "required": true
+    }
+  ],
+  "gateCount": 17,
+  "allRequiredGatesPassed": true,
+  "activeBlockers": []
+}

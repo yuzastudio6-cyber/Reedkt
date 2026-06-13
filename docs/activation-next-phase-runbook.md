@@ -392,3 +392,19 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 
 TOOL-ROUTE-2 remains generated-local-fixture planning only. It does not authorize runtime, tool, worker, provider, Supabase, media, browser/map/web, public artifact, signed URL, beta, production, or final render/export execution.
 <!-- TOOL-ROUTE-1-END -->
+
+<!-- TOOL-ROUTE-2-START -->
+## TOOL-ROUTE-2 Current Next Prompt
+
+`docs/implementation-prompts/prompt-tool-route-3-generated-local-fixture-contract-tests.md`
+
+## TOOL-ROUTE-3 Entry Criteria
+
+- TOOL-ROUTE-2 status: `passed`
+- TOOL-ROUTE-2 decision: `tool_route_generated_local_fixture_planning_passed_ready_for_tool_route_3_generated_local_fixture_contract_tests`
+- Fixture families mapped: `14`
+- Fixture input/output contracts mapped: `14`
+- Owner fixture handoffs mapped: `13`
+
+TOOL-ROUTE-3 remains generated/local fixture contract testing only. It does not authorize runtime, tool, worker, provider, route, Supabase, media, browser/map/web, public artifact, signed URL, beta, production, dependency mutation, raw prompt execution, or final render/export execution.
+<!-- TOOL-ROUTE-2-END -->

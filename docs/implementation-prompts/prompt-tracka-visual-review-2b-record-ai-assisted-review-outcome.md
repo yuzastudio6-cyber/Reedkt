@@ -9,11 +9,15 @@ Record the pass/fail/warning/blocker outcome after actual representative frames/
 - `docs/track-a/track-a-visual-review-2a-ai-assisted-private-review-intake.md`
 - `docs/track-a/track-a-visual-review-2a-checklist-response-schema.md`
 - `docs/track-a/track-a-visual-review-2a-review-criteria.md`
+- `docs/track-a/track-a-visual-review-artifact-bundle-manifest.md`
+- `docs/track-a/track-a-visual-review-upload-to-chat-instructions.md`
 - uploaded representative frames/clips, or approved exact private refs from #390/#393
 
 ## Hard Stop
 
 If no actual frames/clips or approved private access bundle is present, report `blocked_pending_uploaded_frames_or_approved_private_artifact_access_bundle` and do not record pass/fail.
+
+If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1 is docs-only with `private_artifact_access=not_attempted`, report `blocked_pending_private_artifact_bundle_or_uploaded_frames`.
 
 ## Allowed Scope
 
@@ -36,3 +40,5 @@ If no actual frames/clips or approved private access bundle is present, report `
 ## No-Scope Statement
 
 No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.
+
+TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1 no-scope statement: No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. If executed with confirmation, only bounded private GCS metadata/read access for explicit Track A review artifact refs was allowed.

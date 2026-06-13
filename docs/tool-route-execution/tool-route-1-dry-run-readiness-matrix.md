@@ -6,6 +6,7 @@ Readiness state: `ready_with_warnings_for_tool_route_2`
 | --- | --- | --- | --- | --- | --- |
 | TOOL-ROUTE-0 source audit | `passed_with_warnings` | PR #366 source branch, TOOL-ROUTE-0 docs. | PR #366 is draft/open at implementation time. | `TOOL_ROUTE_EXECUTION` | Keep stacked PR draft. |
 | Owner studies | `accepted_for_static_contracts` | PR #360 owner studies and completed WEB_SEARCH_CAPTURE / MAP_GEOSPATIAL references. | Owner studies are evidence, not runtime approval. | Owner workstreams | TOOL-ROUTE-2 may use static fixtures only. |
+| SOUND_MUSIC_AUDIO refresh | `accepted_for_static_contracts` | PR #371 merged Sound/Music owner study at `f6283e63742d6999910d3887482dc3112da1e570`; TOOL-ROUTE-1A refreshed Sound fixture refs. | Sound cue, music, SFX, and audio artifact fields are manifest-only and do not approve audio generation or media processing. | `SOUND_MUSIC_AUDIO` and `TOOL_ROUTE_EXECUTION` | TOOL-ROUTE-2 may use refreshed static fixtures only. |
 | Synthetic plan snapshot fixtures | `created` | Seven JSON fixtures under `docs/tool-route-execution/fixtures/`. | Placeholder-only; no approved runtime snapshot rows. | `TOOL_ROUTE_EXECUTION` | TOOL-ROUTE-2 offline contract tests. |
 | Scoped tool-call manifest contract | `created` | `tool-route-1-scoped-tool-call-manifest-contract.md`. | Execution manifest remains future-only. | `TOOL_ROUTE_EXECUTION` | TOOL-ROUTE-2. |
 | Capability-to-route map | `created` | `tool-route-1-capability-to-route-map.md`. | Route refs are placeholders and not invocations. | `TOOL_ROUTE_EXECUTION` | TOOL-ROUTE-2. |

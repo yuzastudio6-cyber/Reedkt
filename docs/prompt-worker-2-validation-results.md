@@ -65,9 +65,9 @@ Worker readiness state: `ready_with_warnings_for_worker_3_offline_dry_run_approv
 
 ## PR Status
 
-PR link: `pending`
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/391
 
-GitHub check status: `pending`
+GitHub check status: `draft/open/mergeable_clean; check rollup empty at PR creation`
 
 ## Supabase And Scope
 

@@ -22,6 +22,10 @@ Worker readiness state: `ready_with_warnings_for_worker_3_offline_dry_run_approv
 
 Production capability enabled: `none; worker runtime dry-run fixture plan and contract tests only`
 
+Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/391
+
+GitHub status at PR creation: `draft/open/mergeable_clean; check rollup empty`
+
 ## Supabase And Scope
 
 Supabase update required: `docs/status only`

@@ -1,0 +1,154 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-3",
+  "runId": "tool-route-execution-unlock-3-dry-run-validation-20260613",
+  "branch": "codex/tool-route-execution-unlock-3-dry-run-validation",
+  "baseBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+  "baseCommit": "80582655ada1e133a17dd00cff2691f7a9e13655",
+  "decision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval",
+  "nextPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-4: owner approval for tool-route dry-run gate, no execution",
+  "generatedAt": "deterministic_metadata_packet",
+  "sourceOfTruth": {
+    "pr377Merged": true,
+    "pr377MergeCommit": "80582655ada1e133a17dd00cff2691f7a9e13655",
+    "pr377Decision": "tool_route_dry_run_contract_ready_with_warnings",
+    "pr374Merged": true,
+    "pr374MergeCommit": "4560e27fec057e3edd8a3aca2402db09c4621a63",
+    "pr369Merged": true,
+    "pr360Merged": true,
+    "sourceFilesReadAsTextOnly": true,
+    "noRuntimeSourcesExecuted": true,
+    "sourceOfTruthConflictsFound": false,
+    "duplicateCompletedOwnerStudiesCreated": false,
+    "optionalHistoricalProviderDirsMissingOnBase": true,
+    "historicalProviderEvidenceReferencedThroughWorkerAndToolRouteReports": true
+  },
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "jobDispatchAllowed": false,
+    "jobClaimAllowed": false,
+    "jobLeaseAllowed": false,
+    "queueEnqueueAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "signedUrlAsSourceOfTruthAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "publicArtifactAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeMutationAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "demucsExecutionAllowed": false,
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "generatedLocalFixturePassedClaimed": false,
+    "toolExecutionReady": false,
+    "routeExecutionReady": false,
+    "workerExecutionReady": false,
+    "supabasePersistenceReady": false,
+    "providerExecutionReady": false,
+    "betaReady": false,
+    "externalBetaReady": false,
+    "paidProductionReady": false,
+    "productionReady": false,
+    "realExecutionReady": false
+  },
+  "reportType": "decision",
+  "status": "passed_with_warnings",
+  "allowedDecisions": [
+    "tool_route_dry_run_validation_passed_ready_for_owner_approval",
+    "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval",
+    "tool_route_dry_run_validation_blocked_missing_fixtures",
+    "tool_route_dry_run_validation_blocked_case_coverage_gap",
+    "tool_route_dry_run_validation_blocked_schema_contract_failure",
+    "tool_route_dry_run_validation_blocked_scoring_policy_failure",
+    "tool_route_dry_run_validation_blocked_blocked_fixture_gap",
+    "tool_route_dry_run_validation_blocked_handoff_contract_gap",
+    "tool_route_dry_run_validation_blocked_source_of_truth_conflict"
+  ],
+  "readyForOwnerApproval": true,
+  "readyForToolExecution": false,
+  "readyForRouteExecution": false,
+  "readyForRealExecution": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "warnings": [
+    "Validation is metadata-only and does not execute dry-run cases.",
+    "Owner approval is required before any later dry-run gate.",
+    "Real tool, route, worker, provider, Supabase, media, artifact, beta, and production execution remain blocked.",
+    "Historical model plan-snapshot dynamic-source caveats remain inherited warnings only; committed source evidence is preserved.",
+    "Dependency-backed checks were attempted but blocked by missing local node_modules binaries: tsx, eslint, and tsc. No npm install or npm ci was run."
+  ],
+  "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.",
+  "validationResults": {
+    "dependencyBackedChecksAttempted": true,
+    "dependencyHydrationPerformed": false,
+    "dependencyMutationPerformed": false,
+    "packageLockChanged": false,
+    "nodeModulesPresent": false,
+    "blockedCommands": [
+      {
+        "command": "npm run smoke:activation-worker-runtime-local-fixture-plan",
+        "status": "blocked_missing_tsx"
+      },
+      {
+        "command": "npm run activation:worker-runtime-local-fixture-plan:summary",
+        "status": "blocked_missing_tsx"
+      },
+      {
+        "command": "npm run activation:model-orchestration-plan-snapshot-contract:report",
+        "status": "blocked_missing_tsx"
+      },
+      {
+        "command": "npm run activation:product-internal-testing-session-0:report",
+        "status": "blocked_missing_tsx"
+      },
+      {
+        "command": "npm run activation:supabase-trackb-clean-staging-backfill:report",
+        "status": "blocked_missing_tsx"
+      },
+      {
+        "command": "npm run prod:readiness:summary",
+        "status": "blocked_missing_tsx"
+      },
+      {
+        "command": "npm run prod:beta:summary",
+        "status": "blocked_missing_tsx"
+      },
+      {
+        "command": "npm run lint",
+        "status": "blocked_missing_eslint"
+      },
+      {
+        "command": "npm run typecheck:server",
+        "status": "blocked_missing_tsc"
+      },
+      {
+        "command": "npx tsc -b",
+        "status": "blocked_missing_project_typescript"
+      },
+      {
+        "command": "npm run build",
+        "status": "blocked_missing_tsc"
+      },
+      {
+        "command": "npm run build:server",
+        "status": "blocked_missing_tsc"
+      }
+    ],
+    "acceptanceGate": "UNLOCK-3 built-ins-only diagnostics/report/summary passed; dependency-backed checks require a dependency-ready worktree."
+  }
+}

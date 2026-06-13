@@ -10,6 +10,7 @@ Local ignored evidence directory: `.local-artifacts/worker-runtime/worker-4/work
 
 - Base branch: `origin/codex/rp-worker-3-offline-dry-run-approval-packet`.
 - Base PR: #395, draft/open/mergeable clean at `68514b0af3a529cbe6e80db76539ac182d8080bf`.
+- WORKER-4 PR: #397, draft.
 - WORKER-3 decision: `approved_with_warnings_for_worker_4`.
 - WORKER-3 future approval: `futureOfflineWorkerDryRunApproved: true`.
 - WORKER-2 source decision: `worker_runtime_dry_run_fixture_contract_tests_passed_with_warnings`.

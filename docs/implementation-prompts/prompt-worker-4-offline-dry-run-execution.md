@@ -27,6 +27,7 @@ Expected result: `worker_runtime_offline_dry_run_passed_with_warnings`.
 - fixtures processed: `7`
 - fixtures passed with warnings: `7`
 - run id: `worker-4-local-static`
+- PR: #397, draft.
 
 ## Approval Booleans
 

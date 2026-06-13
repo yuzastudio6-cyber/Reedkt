@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.secondControlledCandidateApproval.blockerReport.v1",
+  "createdAt": "2026-06-13T21:23:32.929Z",
+  "decision": "approved_for_future_second_controlled_candidate_dry_run",
+  "blockers": [],
+  "activeRuntimeBlockersPreserved": true,
+  "secondCandidateExecutionStillFutureOnly": true,
+  "broadToolExecutionStillBlocked": true,
+  "staleDuplicatePr": {
+    "prNumber": 384,
+    "state": "OPEN",
+    "isDraft": true,
+    "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/384",
+    "treatedAsSourceOfTruth": false,
+    "referenceOnly": true
+  }
+}

@@ -86,3 +86,14 @@ NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW:
 - Worker handoff reviewed; worker execution remains blocked and is not required for this metadata-only candidate.
 - PR #384 remains stale draft duplicate-risk/reference-only evidence.
 - Next prompt: `SECOND_CONTROLLED_TOOL_CANDIDATE_APPROVAL`.
+
+<!-- SECOND_CONTROLLED_CANDIDATE_APPROVAL_STATUS -->
+
+SECOND_CONTROLLED_CANDIDATE_APPROVAL:
+
+- Decision: `approved_for_future_second_controlled_candidate_dry_run`.
+- Approved future candidate: `controlled-tool:second_fixture_report_validation`.
+- Fixture/route: `valid_sound_music_audio_metadata_route_candidate` / `metadata-route:sound_music_audio`.
+- Owner lane: `SOUND_MUSIC_AUDIO`.
+- Actual candidate execution remains future and separately approved.
+- Broad tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.

@@ -1,0 +1,3 @@
+# SECOND_CONTROLLED_CANDIDATE_EXECUTION
+
+Execute only `controlled-tool:second_fixture_report_validation` using `valid_sound_music_audio_metadata_route_candidate` and `metadata-route:sound_music_audio` with a synthetic `approved_plan_snapshot_v1` placeholder. This is metadata/report validation only. Do not execute real audio/media processing, tools, routes, workers, providers, Supabase writes, SQL, GCS uploads, public artifacts, signed URLs, raw prompts, dependency changes, beta, or production. Stop on the first source-of-truth, scope, artifact, worker handoff, observability, or safety failure. Broader tool execution remains blocked.

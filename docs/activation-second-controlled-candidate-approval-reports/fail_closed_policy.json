@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.secondControlledCandidateApproval.failClosedPolicy.v1",
+  "createdAt": "2026-06-13T21:23:32.929Z",
+  "passed": true,
+  "failClosedCases": [
+    "wrong_candidate_id",
+    "wrong_route",
+    "missing_approved_plan_snapshot",
+    "raw_prompt_input",
+    "edit_intents_only_input",
+    "plan_snapshot_candidate_input",
+    "provider_response_input",
+    "owner_study_missing",
+    "route_manifest_missing",
+    "ambiguous_candidate",
+    "invalid_artifact_scope",
+    "public_artifact_request",
+    "signed_url_source_of_truth_request",
+    "media_audio_render_image_browser_map_request",
+    "provider_model_call_request",
+    "worker_execution_request",
+    "supabase_mutation",
+    "sql_execution",
+    "gcs_upload",
+    "production_mutation",
+    "broad_execution_request",
+    "dependency_mutation",
+    "demucs_deepfilternet_signalsmith_real_processing_request"
+  ],
+  "defaultOutcome": "blocked_before_execution",
+  "secondCandidateExecutionAttemptAllowedThisPhase": false
+}

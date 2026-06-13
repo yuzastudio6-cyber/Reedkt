@@ -1,0 +1,52 @@
+{
+  "runId": "github-merge-hygiene-2026-06-13T001050348Z",
+  "generatedAt": "2026-06-13T00:10:50.350Z",
+  "decision": "post_merge_blocked_scopes_verified",
+  "scannedFiles": [
+    "docs/cross-chat/CURRENT_HANDOFF.md",
+    "docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md",
+    "docs/cross-chat/BLOCKED_SCOPES.md",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md"
+  ],
+  "forbiddenMatches": [],
+  "blockedScopesRemainBlocked": true,
+  "explicitBlockedScopes": [
+    "production",
+    "external_beta",
+    "paid_production",
+    "public_artifacts",
+    "signed_urls_as_source_of_truth",
+    "raw_prompt_execution",
+    "real_worker_execution",
+    "real_tool_execution",
+    "real_route_execution",
+    "provider_execution",
+    "broad_media",
+    "track_a_runtime",
+    "supabase_production_writes"
+  ],
+  "executionStatus": {
+    "pullRequestsMergedInThisPhase": false,
+    "pullRequestsClosed": false,
+    "pullRequestsRebased": false,
+    "pullRequestsRetargeted": false,
+    "branchesDeleted": false,
+    "runtimePathsExecuted": false,
+    "workerToolRouteExecution": false,
+    "supabaseMutation": false,
+    "providerCalls": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsIssued": false,
+    "productionUnlocked": false,
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false,
+    "rawPromptExecution": false,
+    "secretsPrintedOrCommitted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  }
+}

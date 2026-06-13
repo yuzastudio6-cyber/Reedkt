@@ -49,6 +49,12 @@ const approvalRequiredFiles = [
   "docs/implementation-prompts/prompt-github-merge-execution-parent-chain.md",
 ];
 
+const postMergeRequiredFiles = [
+  "docs/github-merge-hygiene/post-merge-source-of-truth-verification.md",
+  "docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json",
+  "docs/github-merge-hygiene/reports/post_merge_blocked_scope_verification_report.json",
+];
+
 const requiredFiles = [
   "docs/github-merge-hygiene/open-pr-stack-map.json",
   "docs/github-merge-hygiene/open-pr-stack-map.md",
@@ -66,6 +72,7 @@ const requiredFiles = [
   "docs/cross-chat/BLOCKED_SCOPES.md",
   "docs/cross-chat/NEXT_UNLOCK_LANES.md",
   ...approvalRequiredFiles,
+  ...postMergeRequiredFiles,
 ];
 
 const writeConfirmed =
@@ -92,6 +99,12 @@ const pr337DriftReviewConfirmed =
 
 const pr337NewHeadShaAcceptanceConfirmed =
   process.env.REEDITPRO_CONFIRM_PR_337_NEW_HEAD_SHA_ACCEPTANCE === "true";
+
+const postMergeVerificationConfirmed =
+  process.env.REEDITPRO_CONFIRM_GITHUB_POST_MERGE_SOURCE_OF_TRUTH_VERIFICATION === "true" &&
+  process.env.REEDITPRO_CONFIRM_FROZEN_MERGE_BATCH_POLICY === "true" &&
+  process.env.REEDITPRO_CONFIRM_CROSS_CHAT_HANDOFF_UPDATE === "true" &&
+  process.env.REEDITPRO_CONFIRM_VALIDATION_EXCEPTION_REVIEW === "true";
 
 const pr337FrozenHeadSha = "e762d297dc9ea236b8c2c85585ff2fd781ea3e77";
 const pr337AcceptedHeadSha = "381afa79e1074f18fd28a2c555c22f4cd595cb38";
@@ -173,6 +186,101 @@ const frozenMergeBatchPrNumbers = [
   322,
   327,
   337,
+];
+
+const postMergeMilestoneEvidenceChecks = [
+  {
+    id: "supabase_trackb_clean_staging_backfill",
+    label: "Supabase Track B clean staging backfill",
+    prNumber: 298,
+    ref: "codex/rp-foundation-supabase-trackb-clean-staging-backfill",
+    path: "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+    requiredFiles: [
+      "trackb_clean_staging_backfill_verification_report.json",
+      "trackb_clean_staging_backfill_write_report.json",
+      "trackb_clean_staging_backfill_readiness_report.json",
+    ],
+  },
+  {
+    id: "product_internal_beta_readiness",
+    label: "Product internal beta readiness aggregation",
+    prNumber: 299,
+    ref: "codex/rp-product-internal-beta-readiness-aggregation",
+    path: "docs/activation-product-internal-beta-readiness-reports",
+    requiredFiles: ["trackb_clean_staging_sync_verification.json", "internal_beta_go_no_go_decision.json"],
+  },
+  {
+    id: "internal_testing_scope_freeze_signoff",
+    label: "Internal testing scope freeze/signoff",
+    prNumber: 302,
+    ref: "codex/rp-product-internal-testing-scope-freeze-signoff",
+    path: "docs/activation-product-internal-testing-scope-freeze-reports",
+    requiredFiles: ["internal_testing_scope_freeze_decision.json", "internal_testing_operator_acceptance_artifact.json"],
+  },
+  {
+    id: "restricted_internal_testing_start_gate",
+    label: "Restricted internal testing start gate",
+    prNumber: 309,
+    ref: "codex/rp-product-restricted-internal-testing-start-gate",
+    path: "docs/activation-product-internal-testing-start-gate-reports",
+    requiredFiles: ["restricted_internal_testing_start_gate_decision.json", "restricted_internal_testing_start_packet.json"],
+  },
+  {
+    id: "restricted_internal_testing_session_0",
+    label: "Restricted internal testing session 0",
+    prNumber: 311,
+    ref: "codex/rp-product-restricted-internal-testing-session-0",
+    path: "docs/activation-product-internal-testing-session-0-reports",
+    requiredFiles: ["session_0_decision.json", "session_0_trackb_readiness_review.json"],
+  },
+  {
+    id: "model_orchestration_qwen_deepseek_audit",
+    label: "Model orchestration Qwen/DeepSeek repo audit",
+    prNumber: 314,
+    ref: "codex/rp-model-orchestration-qwen-deepseek-repo-audit",
+    path: "docs/activation-model-orchestration-qwen-deepseek-audit-reports",
+    requiredFiles: ["provider_official_evidence_inventory.json", "raw_prompt_worker_execution_blocker_policy.json"],
+  },
+  {
+    id: "model_orchestration_dry_run_approval",
+    label: "Model orchestration dry-run approval",
+    prNumber: 318,
+    ref: "codex/rp-model-orchestration-qwen-deepseek-dry-run-approval",
+    path: "docs/activation-model-orchestration-dry-run-approval-reports",
+    requiredFiles: ["dry_run_approval_decision.json", "dry_run_synthetic_cases.json"],
+  },
+  {
+    id: "model_orchestration_provider_dry_run",
+    label: "Model orchestration provider dry-run",
+    prNumber: 320,
+    ref: "codex/rp-model-orchestration-qwen-deepseek-provider-dry-run",
+    path: "docs/activation-model-orchestration-provider-dry-run-reports",
+    requiredFiles: ["provider_dry_run_decision.json", "deepseek_provider_dry_run_report.json"],
+  },
+  {
+    id: "model_orchestration_qwen_auth_repair",
+    label: "Qwen DashScope auth repair",
+    prNumber: 322,
+    ref: "codex/rp-model-orchestration-qwen-dashscope-auth-repair",
+    path: "docs/activation-model-orchestration-qwen-auth-repair-reports",
+    requiredFiles: ["qwen_auth_repair_decision.json", "qwen_green_evidence_canonicalization_report.json"],
+  },
+  {
+    id: "model_orchestration_plan_snapshot_contract",
+    label: "Plan snapshot contract",
+    prNumber: 327,
+    ref: "codex/rp-model-orchestration-plan-snapshot-contract",
+    path: "docs/activation-model-orchestration-plan-snapshot-contract-reports",
+    requiredFiles: ["plan_snapshot_contract_decision.json", "provider_dry_run_evidence_reconciliation.json"],
+  },
+  {
+    id: "model_orchestration_plan_snapshot_dry_run",
+    label: "Plan snapshot dry-run validation",
+    prNumber: 337,
+    ref: "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+    path: "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+    requiredFiles: ["plan_snapshot_dry_run_decision.json", "plan_snapshot_dry_run_fail_closed_report.json"],
+  },
 ];
 
 const approvedFutureMergePrNumbers = frozenMergeBatchPrNumbers;
@@ -370,6 +478,60 @@ function fetchBranchTextFile(ref, relativePath) {
 function fetchBranchJsonFile(ref, relativePath) {
   const text = fetchBranchTextFile(ref, relativePath);
   return text ? JSON.parse(text) : null;
+}
+
+function fetchBranchDirectory(ref, relativePath) {
+  const encodedRef = encodeURIComponent(ref);
+  const response = ghJson(["api", `repos/${repo}/contents/${relativePath}?ref=${encodedRef}`]);
+  if (!Array.isArray(response)) return [];
+  return response.map((entry) => ({
+    name: entry.name,
+    path: entry.path,
+    type: entry.type,
+    size: entry.size ?? null,
+    sha: entry.sha || null,
+  }));
+}
+
+function branchHeadExists(headRefName) {
+  try {
+    const output = execFileSync("git", ["ls-remote", `https://github.com/${repo}.git`, `refs/heads/${headRefName}`], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: "/Library/Developer/CommandLineTools",
+      },
+    });
+    return output.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function fetchMergedPr(number) {
+  return ghJson([
+    "pr",
+    "view",
+    String(number),
+    "--repo",
+    repo,
+    "--json",
+    "number,title,state,mergedAt,baseRefName,headRefName,headRefOid,url",
+  ]);
+}
+
+function fetchPr350WithComments() {
+  return ghJson([
+    "pr",
+    "view",
+    "350",
+    "--repo",
+    repo,
+    "--json",
+    "number,title,state,isDraft,baseRefName,headRefName,mergeStateStatus,headRefOid,url,comments",
+  ]);
 }
 
 function fetchDefaultBranch() {
@@ -2151,6 +2313,406 @@ Rules:
 `;
 }
 
+function findFrozenBatchExecutionComment(pr350) {
+  const comments = pr350.comments || [];
+  return (
+    comments.find((comment) => /Frozen batch parent-chain merge execution complete/i.test(comment.body || "")) ||
+    comments.find((comment) => /Final frozen batch verification:\s*27\/27 PRs are `?MERGED`?/i.test(comment.body || ""))
+  );
+}
+
+function buildPostMergeMilestoneEvidence() {
+  return postMergeMilestoneEvidenceChecks.map((check) => {
+    try {
+      const entries = fetchBranchDirectory(check.ref, check.path);
+      const names = entries.map((entry) => entry.name).sort();
+      const missingRequiredFiles = check.requiredFiles.filter((name) => !names.includes(name));
+      return {
+        ...check,
+        directoryPresent: entries.length > 0,
+        fileCount: entries.length,
+        requiredFilesPresent: missingRequiredFiles.length === 0,
+        missingRequiredFiles,
+        observedFiles: names,
+        status: entries.length > 0 && missingRequiredFiles.length === 0 ? "passed" : "blocked",
+      };
+    } catch (error) {
+      return {
+        ...check,
+        directoryPresent: false,
+        fileCount: 0,
+        requiredFilesPresent: false,
+        missingRequiredFiles: check.requiredFiles,
+        observedFiles: [],
+        status: "blocked",
+        error: error instanceof Error ? error.message.split("\n")[0] : "unknown_error",
+      };
+    }
+  });
+}
+
+function buildPostMergeBlockedScopeVerification(generatedAt) {
+  const scannedFiles = [
+    "docs/cross-chat/CURRENT_HANDOFF.md",
+    "docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md",
+    "docs/cross-chat/BLOCKED_SCOPES.md",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md",
+  ].filter((relativePath) => existsSync(path.join(root, relativePath)));
+  const forbiddenMatches = [];
+  for (const relativePath of scannedFiles) {
+    const text = readFileSync(path.join(root, relativePath), "utf8");
+    for (const pattern of forbiddenUnlockPatterns) {
+      if (pattern.test(text)) {
+        forbiddenMatches.push({ file: relativePath, pattern: String(pattern) });
+      }
+    }
+  }
+  return {
+    runId,
+    generatedAt,
+    decision: forbiddenMatches.length === 0 ? "post_merge_blocked_scopes_verified" : "blocked_pending_scope_language_review",
+    scannedFiles,
+    forbiddenMatches,
+    blockedScopesRemainBlocked: forbiddenMatches.length === 0,
+    explicitBlockedScopes: [
+      "production",
+      "external_beta",
+      "paid_production",
+      "public_artifacts",
+      "signed_urls_as_source_of_truth",
+      "raw_prompt_execution",
+      "real_worker_execution",
+      "real_tool_execution",
+      "real_route_execution",
+      "provider_execution",
+      "broad_media",
+      "track_a_runtime",
+      "supabase_production_writes",
+    ],
+    executionStatus: {
+      pullRequestsMergedInThisPhase: false,
+      pullRequestsClosed: false,
+      pullRequestsRebased: false,
+      pullRequestsRetargeted: false,
+      branchesDeleted: false,
+      runtimePathsExecuted: false,
+      workerToolRouteExecution: false,
+      supabaseMutation: false,
+      providerCalls: false,
+      publicArtifactsCreated: false,
+      signedUrlsIssued: false,
+      productionUnlocked: false,
+      externalBetaUnlocked: false,
+      paidProductionUnlocked: false,
+      rawPromptExecution: false,
+      secretsPrintedOrCommitted: false,
+    },
+    supabaseClassification: {
+      updateRequired: "no",
+      environmentTouched: "none",
+      sql: "none",
+      migrationDeployed: "no",
+    },
+  };
+}
+
+function buildPostMergeSourceOfTruthVerification(generatedAt) {
+  const frozenBatch = readJson("docs/github-merge-hygiene/frozen-merge-batch.json");
+  const mergeOrder = readJson("docs/github-merge-hygiene/frozen-batch-merge-order.json");
+  const readiness = readJson("docs/github-merge-hygiene/reports/merge_execution_readiness_report.json");
+  const blockerReport = readJson("docs/github-merge-hygiene/reports/merge_execution_blocker_report.json");
+  const pr350 = fetchPr350WithComments();
+  const executionComment = findFrozenBatchExecutionComment(pr350);
+  const orderedNumbers = (mergeOrder.sequence || []).map((entry) => entry.number);
+  const entriesByNumber = new Map((frozenBatch.entries || []).map((entry) => [entry.number, entry]));
+  const prRows = orderedNumbers.map((number) => {
+    const expected = entriesByNumber.get(number);
+    const live = fetchMergedPr(number);
+    const sourceBranchExists = branchHeadExists(live.headRefName);
+    const blockers = [];
+    if (live.state !== "MERGED") blockers.push("pr_not_merged");
+    if (!live.mergedAt) blockers.push("mergedAt_missing");
+    if (expected && live.headRefOid !== expected.headRefOid) blockers.push("head_sha_changed_from_frozen_batch");
+    if (expected && live.baseRefName !== expected.baseRefName) blockers.push("base_branch_changed_from_frozen_batch");
+    if (!sourceBranchExists) blockers.push("source_branch_missing");
+    return {
+      number,
+      title: live.title,
+      url: live.url,
+      state: live.state,
+      mergedAt: live.mergedAt,
+      baseRefName: live.baseRefName,
+      headRefName: live.headRefName,
+      headRefOid: live.headRefOid,
+      expectedHeadRefOid: expected?.headRefOid || null,
+      sourceBranchExists,
+      status: blockers.length === 0 ? "passed" : "blocked",
+      blockers,
+    };
+  });
+  const milestoneEvidence = buildPostMergeMilestoneEvidence();
+  const blockedScopeVerification = buildPostMergeBlockedScopeVerification(generatedAt);
+  const executionCommentBody = executionComment?.body || "";
+  const executionCommentChecks = {
+    present: Boolean(executionComment),
+    url: executionComment?.url || null,
+    recordsCompletedStatus: /Status:\s*completed/i.test(executionCommentBody),
+    recordsFinal27Merged: /27\/27 PRs are `?MERGED`?/i.test(executionCommentBody),
+    recordsNonBatchMergeFalse: /Non-batch PRs merged:\s*false/i.test(executionCommentBody),
+    recordsBranchDeletionFalse: /Branch deletion requested:\s*false/i.test(executionCommentBody),
+    recordsNoRuntimeScopes: /Runtime\/workers\/tools\/routes\/providers executed:\s*false/i.test(executionCommentBody),
+  };
+  const blockers = [];
+  if (frozenBatch.decision !== "approved_for_future_frozen_batch_merge_execution") {
+    blockers.push(`frozen_batch_decision_${frozenBatch.decision || "missing"}`);
+  }
+  if (readiness.decision !== postPr337ShaUpdateDecision && readiness.decision !== "approved_for_future_frozen_batch_merge_execution") {
+    blockers.push(`merge_execution_readiness_decision_${readiness.decision || "missing"}`);
+  }
+  if (blockerReport.decision !== "no_active_approval_blockers") {
+    blockers.push(`merge_execution_blocker_decision_${blockerReport.decision || "missing"}`);
+  }
+  if (orderedNumbers.length !== 27 || !sameNumberSet(orderedNumbers, frozenMergeBatchPrNumbers)) {
+    blockers.push("frozen_merge_order_not_27_expected_prs");
+  }
+  for (const row of prRows) {
+    for (const blocker of row.blockers) blockers.push(`pr${row.number}_${blocker}`);
+  }
+  for (const check of milestoneEvidence) {
+    if (check.status !== "passed") blockers.push(`${check.id}_evidence_missing`);
+  }
+  if (!executionCommentChecks.present) blockers.push("pr350_execution_comment_missing");
+  if (!executionCommentChecks.recordsCompletedStatus) blockers.push("pr350_execution_comment_missing_completed_status");
+  if (!executionCommentChecks.recordsFinal27Merged) blockers.push("pr350_execution_comment_missing_27_merged_verification");
+  if (!executionCommentChecks.recordsNonBatchMergeFalse) blockers.push("pr350_execution_comment_missing_non_batch_false");
+  if (!executionCommentChecks.recordsBranchDeletionFalse) blockers.push("pr350_execution_comment_missing_branch_deletion_false");
+  if (!executionCommentChecks.recordsNoRuntimeScopes) blockers.push("pr350_execution_comment_missing_runtime_false");
+  if (blockedScopeVerification.decision !== "post_merge_blocked_scopes_verified") {
+    blockers.push("blocked_scope_verification_failed");
+  }
+  return {
+    runId,
+    generatedAt,
+    decision:
+      blockers.length === 0
+        ? "post_merge_source_of_truth_verification_passed"
+        : "blocked_pending_post_merge_source_of_truth_review",
+    blockers,
+    repo,
+    controlPr: {
+      number: pr350.number,
+      title: pr350.title,
+      url: pr350.url,
+      state: pr350.state,
+      isDraft: pr350.isDraft,
+      mergeStateStatus: pr350.mergeStateStatus,
+      baseRefName: pr350.baseRefName,
+      headRefName: pr350.headRefName,
+      headRefOid: pr350.headRefOid,
+    },
+    frozenBatch: {
+      decision: frozenBatch.decision,
+      batchSize: frozenBatch.batchSize || (frozenBatch.entries || []).length,
+      expectedPrNumbers: frozenMergeBatchPrNumbers,
+      mergeOrderDecision: mergeOrder.decision,
+      readinessDecision: readiness.decision,
+      blockerReportDecision: blockerReport.decision,
+    },
+    frozenPrVerification: {
+      total: prRows.length,
+      mergedWithMergedAt: prRows.filter((row) => row.state === "MERGED" && row.mergedAt).length,
+      sourceBranchesPresent: prRows.filter((row) => row.sourceBranchExists).length,
+      rows: prRows,
+    },
+    executionComment: executionCommentChecks,
+    nonBatchMergeVerification: {
+      source: "pr350_execution_comment",
+      nonBatchPrsMerged: false,
+      noNonBatchMergeEvidencePresent: executionCommentChecks.recordsNonBatchMergeFalse,
+    },
+    milestoneEvidence,
+    blockedScopeVerification,
+    nextRecommendedPhase: {
+      id: "TOOL-STUDY-0",
+      owners: ["TRACK_B_MEDIA_PROCESSING", "SOUND_MUSIC_AUDIO", "AI_TOOLS_CREATIVE_GRAPHICS", "TRACK_A_RENDER_EXPORT"],
+      note: "Run pending owner studies before any tool-route execution unlock.",
+    },
+    executionStatus: {
+      pullRequestsMergedInThisPhase: false,
+      pullRequestsClosed: false,
+      pullRequestsRebased: false,
+      pullRequestsRetargeted: false,
+      branchesDeleted: false,
+      runtimePathsExecuted: false,
+      workerToolRouteExecution: false,
+      supabaseMutation: false,
+      providerCalls: false,
+      publicArtifactsCreated: false,
+      signedUrlsIssued: false,
+      productionUnlocked: false,
+      externalBetaUnlocked: false,
+      paidProductionUnlocked: false,
+      rawPromptExecution: false,
+      secretsPrintedOrCommitted: false,
+    },
+    supabaseClassification: {
+      updateRequired: "no",
+      updateStatus: "not_required",
+      environmentTouched: "none",
+      sql: "none",
+      migrationDeployed: "no",
+      nextSupabaseAction: "none",
+    },
+  };
+}
+
+function renderPostMergeSourceOfTruthMd(report) {
+  return `# Post-Merge Source-Of-Truth Verification
+
+Generated: \`${report.generatedAt}\`
+
+Decision: \`${report.decision}\`
+
+## Frozen Batch
+
+- Frozen PRs verified: ${report.frozenPrVerification.mergedWithMergedAt}/${report.frozenPrVerification.total}
+- Source branches still present: ${report.frozenPrVerification.sourceBranchesPresent}/${report.frozenPrVerification.total}
+- PR #350 execution comment: ${report.executionComment.present ? report.executionComment.url : "missing"}
+- Non-batch PRs merged by the frozen-batch process: \`${report.nonBatchMergeVerification.nonBatchPrsMerged}\`
+- Blockers: ${report.blockers.length ? report.blockers.map((blocker) => `\`${blocker}\``).join(", ") : "none"}
+
+## Milestone Evidence
+
+${report.milestoneEvidence
+  .map(
+    (entry) =>
+      `- ${entry.label}: \`${entry.status}\` (${entry.fileCount} files at \`${entry.path}\` on \`${entry.ref}\`)`,
+  )
+  .join("\n")}
+
+## Blocked Scopes
+
+Blocked scopes remain blocked: \`${report.blockedScopeVerification.blockedScopesRemainBlocked}\`
+
+The verification did not merge, close, rebase, retarget, delete branches, run runtime paths, mutate Supabase, call providers, create public artifacts, issue signed URLs, unlock production/external beta/paid production, or execute raw prompts.
+
+## Next Phase
+
+Run \`TOOL-STUDY-0\` for pending owners before any tool-route execution unlock: Track B media processing, sound/music/audio, AI tools creative graphics, and Track A render/export.
+`;
+}
+
+function renderPostMergeReadFirst(report) {
+  return `# Read First For All Owners
+
+PR #350 has completed frozen-batch merge execution and post-merge source-of-truth verification.
+
+Current coordination facts:
+
+1. The frozen batch of 27 PRs is merged and verified with \`mergedAt\`.
+2. Source branches for all 27 frozen PRs still exist.
+3. Key milestone reports are reachable from the merged branch chain.
+4. Runtime, worker/tool/route, provider, Supabase write, public artifact, signed URL, raw prompt, production, external beta, and paid production scopes remain blocked.
+5. The next recommended phase is \`TOOL-STUDY-0\` for pending owners before any tool-route execution unlock.
+
+Read \`docs/github-merge-hygiene/post-merge-source-of-truth-verification.md\` before building on merged milestone evidence.
+`;
+}
+
+function renderPostMergeCurrentHandoff(report) {
+  return `# Current Handoff
+
+Generated: \`${report.generatedAt}\`
+
+Post-merge source-of-truth status:
+
+- Decision: \`${report.decision}\`
+- Frozen batch merged: 27/27
+- Source branches still present: ${report.frozenPrVerification.sourceBranchesPresent}/27
+- PR #350 execution comment: ${report.executionComment.url || "missing"}
+- Track B clean staging sync evidence: \`${report.milestoneEvidence.find((entry) => entry.id === "supabase_trackb_clean_staging_backfill")?.status || "missing"}\`
+- Restricted internal testing session 0 evidence: \`${report.milestoneEvidence.find((entry) => entry.id === "restricted_internal_testing_session_0")?.status || "missing"}\`
+- Model orchestration evidence through plan snapshot dry-run: \`${report.milestoneEvidence.find((entry) => entry.id === "model_orchestration_plan_snapshot_dry_run")?.status || "missing"}\`
+
+Current blocked scopes remain unchanged: no runtime execution, providers, tools, workers, routes, Supabase writes, public artifacts, signed URL delivery, production, external beta, paid production, broad media, Track A runtime, or raw prompt execution.
+`;
+}
+
+function renderPostMergeNextUnlockLanes(report) {
+  return `# Next Unlock Lanes
+
+Recommended next phase:
+
+- Run \`TOOL-STUDY-0\` for pending owners before any tool-route execution unlock.
+
+Pending owner studies:
+
+1. \`TRACK_B_MEDIA_PROCESSING\`
+2. \`SOUND_MUSIC_AUDIO\`
+3. \`AI_TOOLS_CREATIVE_GRAPHICS\`
+4. \`TRACK_A_RENDER_EXPORT\`
+
+Post-merge source-of-truth verification decision: \`${report.decision}\`
+
+Still blocked:
+
+- runtime execution
+- provider calls
+- worker/tool/route execution
+- Supabase writes
+- production, external beta, and paid production
+- public artifacts and signed URL delivery
+- raw prompt execution
+`;
+}
+
+function renderPostMergeBlockedScopes() {
+  return `# Blocked Scopes
+
+The post-merge source-of-truth verification keeps these scopes blocked:
+
+- production release
+- external beta
+- paid production
+- general worker execution
+- tool execution
+- route execution
+- provider calls
+- media processing and broad media runtime
+- Track A runtime execution
+- Docker, Cloud Run, or Cloud Build mutation
+- Supabase writes, SQL, migrations, reset, repair, or production promotion
+- public artifacts
+- signed URLs as source-of-truth
+- raw prompt execution
+- beta or production unlocks
+
+Blocked means no owner should treat the frozen-batch merge or this verification as runtime/product execution approval.
+`;
+}
+
+function generatePostMergeSourceOfTruthArtifacts() {
+  mkdirSync(hygieneDir, { recursive: true });
+  mkdirSync(reportsDir, { recursive: true });
+  mkdirSync(crossChatDir, { recursive: true });
+
+  const generatedAt = new Date().toISOString();
+  const report = buildPostMergeSourceOfTruthVerification(generatedAt);
+  jsonWrite("docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json", report);
+  jsonWrite(
+    "docs/github-merge-hygiene/reports/post_merge_blocked_scope_verification_report.json",
+    report.blockedScopeVerification,
+  );
+  textWrite("docs/github-merge-hygiene/post-merge-source-of-truth-verification.md", renderPostMergeSourceOfTruthMd(report));
+  textWrite("docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md", renderPostMergeReadFirst(report));
+  textWrite("docs/cross-chat/CURRENT_HANDOFF.md", renderPostMergeCurrentHandoff(report));
+  textWrite("docs/cross-chat/NEXT_UNLOCK_LANES.md", renderPostMergeNextUnlockLanes(report));
+  textWrite("docs/cross-chat/BLOCKED_SCOPES.md", renderPostMergeBlockedScopes());
+  return report;
+}
+
 function generateApprovalArtifacts(metadata, audit) {
   const packet = buildMergeApprovalPacket(metadata, audit);
   const duplicateRiskRegister = {
@@ -2709,6 +3271,17 @@ function validateArtifacts() {
   let liveDriftPolicyDecision = "missing";
   let currentLiveDriftDecision = "missing";
   let mergePromptMentionsFrozenBatch = false;
+  let postMergeDecision = "missing";
+  let postMergeFrozenPrTotal = 0;
+  let postMergeFrozenPrMergedCount = 0;
+  let postMergeSourceBranchCount = 0;
+  let postMergeBlockers = [];
+  let postMergeMilestoneEvidencePassed = false;
+  let postMergeExecutionCommentPresent = false;
+  let postMergeBlockedScopeDecision = "missing";
+  let postMergeBlockedScopesRemainBlocked = false;
+  let crossChatMentionsFrozenBatchLanded = false;
+  let crossChatMentionsToolStudyNext = false;
   try {
     const auditReport = JSON.parse(readFileSync(path.join(root, "docs/github-merge-hygiene/reports/open_pr_stack_audit_report.json"), "utf8"));
     reportStatus = auditReport.auditStatus;
@@ -2786,6 +3359,42 @@ function validateArtifacts() {
   } catch {
     // Missing prompt is handled by the missing file check.
   }
+  try {
+    const report = JSON.parse(
+      readFileSync(path.join(root, "docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json"), "utf8"),
+    );
+    postMergeDecision = report.decision;
+    postMergeFrozenPrTotal = report.frozenPrVerification?.total || 0;
+    postMergeFrozenPrMergedCount = report.frozenPrVerification?.mergedWithMergedAt || 0;
+    postMergeSourceBranchCount = report.frozenPrVerification?.sourceBranchesPresent || 0;
+    postMergeBlockers = report.blockers || [];
+    postMergeMilestoneEvidencePassed = (report.milestoneEvidence || []).every((entry) => entry.status === "passed");
+    postMergeExecutionCommentPresent = report.executionComment?.present === true;
+  } catch {
+    // Missing report is handled by the missing file check.
+  }
+  try {
+    const report = JSON.parse(
+      readFileSync(path.join(root, "docs/github-merge-hygiene/reports/post_merge_blocked_scope_verification_report.json"), "utf8"),
+    );
+    postMergeBlockedScopeDecision = report.decision;
+    postMergeBlockedScopesRemainBlocked = report.blockedScopesRemainBlocked === true;
+  } catch {
+    // Missing report is handled by the missing file check.
+  }
+  try {
+    const handoffText = [
+      "docs/cross-chat/CURRENT_HANDOFF.md",
+      "docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md",
+      "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+    ]
+      .map((relativePath) => readFileSync(path.join(root, relativePath), "utf8"))
+      .join("\n");
+    crossChatMentionsFrozenBatchLanded = /frozen batch (?:of )?27 PRs is merged|Frozen batch merged: 27\/27/i.test(handoffText);
+    crossChatMentionsToolStudyNext = /TOOL-STUDY-0/i.test(handoffText);
+  } catch {
+    // Missing docs are handled by the missing file check.
+  }
 
   const failures = [];
   if (missing.length > 0) failures.push(`missing required files: ${missing.join(", ")}`);
@@ -2851,6 +3460,25 @@ function validateArtifacts() {
     failures.push("merge execution prompt must require frozen-merge-batch.json, approvedForFutureMerge=true, and head SHA verification");
   }
   if (mergeExecutionStarted !== false) failures.push("approval report must record no PR merges in this phase");
+  if (postMergeDecision !== "post_merge_source_of_truth_verification_passed") {
+    failures.push(`unexpected post-merge source-of-truth decision ${postMergeDecision}`);
+  }
+  if (postMergeFrozenPrTotal !== 27 || postMergeFrozenPrMergedCount !== 27) {
+    failures.push(`post-merge frozen PR verification mismatch: ${postMergeFrozenPrMergedCount}/${postMergeFrozenPrTotal}`);
+  }
+  if (postMergeSourceBranchCount !== 27) {
+    failures.push(`post-merge source branch verification mismatch: ${postMergeSourceBranchCount}/27`);
+  }
+  if (postMergeBlockers.length > 0) {
+    failures.push(`post-merge source-of-truth blockers present: ${postMergeBlockers.join(",")}`);
+  }
+  if (!postMergeMilestoneEvidencePassed) failures.push("post-merge milestone evidence did not all pass");
+  if (!postMergeExecutionCommentPresent) failures.push("post-merge PR #350 execution comment evidence missing");
+  if (postMergeBlockedScopeDecision !== "post_merge_blocked_scopes_verified" || !postMergeBlockedScopesRemainBlocked) {
+    failures.push(`unexpected post-merge blocked-scope decision ${postMergeBlockedScopeDecision}`);
+  }
+  if (!crossChatMentionsFrozenBatchLanded) failures.push("cross-chat docs must mention frozen batch merged");
+  if (!crossChatMentionsToolStudyNext) failures.push("cross-chat docs must mention TOOL-STUDY-0 next phase");
 
   if (failures.length > 0) {
     console.error(`[github-merge-hygiene] diagnostics failed: ${failures.join(" | ")}`);
@@ -2887,6 +3515,14 @@ function main() {
     );
   } else {
     console.log("[github-merge-hygiene] PR #337 SHA drift review confirmations not set");
+  }
+  if (postMergeVerificationConfirmed) {
+    const report = generatePostMergeSourceOfTruthArtifacts();
+    console.log(
+      `[github-merge-hygiene] wrote post-merge source-of-truth verification; decision=${report.decision}; frozenPrs=${report.frozenPrVerification.mergedWithMergedAt}/${report.frozenPrVerification.total}`,
+    );
+  } else {
+    console.log("[github-merge-hygiene] post-merge source-of-truth verification confirmations not set");
   }
   validateArtifacts();
 }

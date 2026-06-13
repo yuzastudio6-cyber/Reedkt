@@ -2,11 +2,16 @@
 
 Recommended next phase:
 
-- If `approved_for_future_frozen_batch_merge_execution_after_pr_337_sha_update` remains approved, resume `GITHUB_MERGE_HYGIENE - frozen batch parent-chain merge execution` from #298.
-- Merge only PRs with `approvedForFutureMerge=true` in `docs/github-merge-hygiene/frozen-merge-batch.json`.
-- Merge parent PRs first and verify merged commits after each merge.
-- Do not merge drafts, dirty/unstable PRs, duplicate-risk PRs, or non-canonical PRs.
-- Treat unrelated open PR count drift as a warning only; stop if any frozen-batch PR changes state, draft flag, merge state, head SHA, or base unexpectedly.
+- Run `TOOL-STUDY-0` for pending owners before any tool-route execution unlock.
+
+Pending owner studies:
+
+1. `TRACK_B_MEDIA_PROCESSING`
+2. `SOUND_MUSIC_AUDIO`
+3. `AI_TOOLS_CREATIVE_GRAPHICS`
+4. `TRACK_A_RENDER_EXPORT`
+
+Post-merge source-of-truth verification decision: `post_merge_source_of_truth_verification_passed`
 
 Still blocked:
 

@@ -1,16 +1,13 @@
 # Read First For All Owners
 
-PR #350 now contains the merge-hygiene audit and human merge-order approval packet.
+PR #350 has completed frozen-batch merge execution and post-merge source-of-truth verification.
 
-Before starting or continuing a workstream:
+Current coordination facts:
 
-1. Read `docs/github-merge-hygiene/human-merge-order-approval-packet.md`.
-2. Read `docs/github-merge-hygiene/validation-exception-policy.md`.
-3. Read `docs/github-merge-hygiene/duplicate-pr-human-review-draft.md`.
-4. Read `docs/github-merge-hygiene/draft-pr-drift-review.md`.
-5. Read `docs/github-merge-hygiene/frozen-merge-batch.md`.
-6. Read `docs/github-merge-hygiene/live-pr-drift-tolerance-policy.md`.
-7. Check live GitHub merge status before building on a PR.
-8. Follow `docs/github-merge-hygiene/post-major-milestone-merge-rule.md`.
+1. The frozen batch of 27 PRs is merged and verified with `mergedAt`.
+2. Source branches for all 27 frozen PRs still exist.
+3. Key milestone reports are reachable from the merged branch chain.
+4. Runtime, worker/tool/route, provider, Supabase write, public artifact, signed URL, raw prompt, production, external beta, and paid production scopes remain blocked.
+5. The next recommended phase is `TOOL-STUDY-0` for pending owners before any tool-route execution unlock.
 
-This packet does not authorize PR merges by itself; it authorizes only a future frozen-batch parent-chain merge execution phase for the exact approved set.
+Read `docs/github-merge-hygiene/post-merge-source-of-truth-verification.md` before building on merged milestone evidence.

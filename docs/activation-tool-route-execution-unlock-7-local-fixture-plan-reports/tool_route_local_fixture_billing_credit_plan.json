@@ -1,0 +1,10 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "billingCreditPlanStatus": "blocked_placeholder_only",
+  "creditEstimateAllowed": false,
+  "creditReservationAllowed": false,
+  "creditSpendAllowed": false,
+  "creditRefundAllowed": false,
+  "stripeMutationAllowed": false,
+  "billingOwnerHandoffRequired": true
+}

@@ -1,0 +1,15 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "observabilityCostPlanStatus": "metadata_placeholders_only",
+  "plannedMetadata": [
+    "diagnostic status",
+    "case coverage count",
+    "blocked reason count",
+    "owner handoff status",
+    "validation evidence references"
+  ],
+  "persistedAuditRecordAllowed": false,
+  "costRecordWriteAllowed": false,
+  "creditMutationAllowed": false,
+  "supabaseWriteAllowed": false
+}

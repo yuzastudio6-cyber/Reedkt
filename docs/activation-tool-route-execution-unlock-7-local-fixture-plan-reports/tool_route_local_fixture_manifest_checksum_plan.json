@@ -1,0 +1,18 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "manifestChecksumPlanStatus": "planned",
+  "manifestSourceFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_fixture_manifest.json",
+  "checksumSourceFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_fixture_checksums.json",
+  "checksumAlgorithm": "sha256_canonical_json_content_only",
+  "fixtureFilesExpected": 9,
+  "validationWillCheck": [
+    "manifest exists",
+    "checksum report exists",
+    "all expected fixture files are listed",
+    "checksum references are metadata only",
+    "no private payloads are committed"
+  ],
+  "storageWriteAllowed": false,
+  "signedUrlCreationAllowed": false,
+  "publicArtifactCreationAllowed": false
+}

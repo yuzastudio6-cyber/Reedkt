@@ -1,0 +1,7 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "registerStatus": "not_claimed",
+  "dryRunPassedClaimed": false,
+  "reason": "UNLOCK-7 plans local fixture validation only and does not execute dry-run cases.",
+  "requiredFutureAuthority": "explicit source-of-truth approval after local fixture validation"
+}

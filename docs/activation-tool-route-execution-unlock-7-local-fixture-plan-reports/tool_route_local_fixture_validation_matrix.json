@@ -1,0 +1,31 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "matrixStatus": "planned",
+  "validationStages": [
+    "source_of_truth_audit",
+    "fixture_file_presence",
+    "case_id_coverage",
+    "schema_contract_validation",
+    "scoring_policy_validation",
+    "valid_fixture_metadata_acceptance",
+    "invalid_fixture_fail_closed_behavior",
+    "blocked_raw_prompt_validation",
+    "blocked_signed_url_public_artifact_validation",
+    "blocked_runtime_execution_validation",
+    "handoff_owner_validation",
+    "no_execution_policy_validation",
+    "redaction_credential_scan",
+    "dry_run_pass_unclaimed_validation",
+    "generated_local_fixture_pass_unclaimed_validation"
+  ],
+  "acceptanceCriteria": {
+    "allExpectedFixtureFilesPresent": true,
+    "allCaseIdsUnique": true,
+    "caseCount": 18,
+    "metadataAcceptedFixtureCount": 10,
+    "failClosedFixtureCount": 8,
+    "runtimeExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

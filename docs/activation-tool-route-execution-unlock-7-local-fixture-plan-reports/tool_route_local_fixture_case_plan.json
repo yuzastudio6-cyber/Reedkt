@@ -1,0 +1,22 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "casePlanStatus": "planned_from_existing_contract_fixtures",
+  "caseSourceFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_dry_run_cases.json",
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "caseGroups": [
+    "intent routing cases",
+    "multi-tool handoff cases",
+    "fail-closed blocked cases"
+  ],
+  "validationWillCheck": [
+    "case identifiers are present",
+    "case identifiers are unique",
+    "valid and invalid counts match the contract",
+    "blocked cases remain fail-closed",
+    "no case enables runtime execution"
+  ],
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

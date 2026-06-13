@@ -1,0 +1,15 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "scoringPolicyPlanStatus": "planned",
+  "scoringPolicySourceFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_scoring_policy.json",
+  "selectionRule": "select_highest_safe_metadata_candidate_or_fail_closed",
+  "runtimeScoreCanOverrideSafety": false,
+  "validationWillCheck": [
+    "safe metadata candidate selection is deterministic",
+    "blocked cases fail closed",
+    "runtime execution cannot override safety",
+    "owner handoff remains explicit"
+  ],
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false
+}

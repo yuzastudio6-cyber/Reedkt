@@ -1,0 +1,20 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "invalidFixturePlanStatus": "planned",
+  "fixtureSourceFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_invalid_request_fixtures.json",
+  "fixtureCount": 8,
+  "expectedDecision": "fail_closed",
+  "blockedReasonsCovered": [
+    "raw prompt direct execution",
+    "signed URL source of truth",
+    "public artifact request",
+    "tool runtime execution request",
+    "route runtime execution request",
+    "provider runtime execution request",
+    "worker runtime execution request",
+    "Supabase mutation request"
+  ],
+  "runtimeExecutionAllowed": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

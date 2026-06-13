@@ -1,0 +1,15 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "supabaseHandoffPlanStatus": "blocked_until_owner_approval",
+  "supabaseUpdateRequired": false,
+  "supabaseEnvironmentTouched": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "futureSourceOfTruthRequirement": "Supabase row reference plus private GCS path reference plus manifest plus checksum plus approved plan snapshot",
+  "supabaseWriteAllowed": false,
+  "sqlExecutionAllowed": false,
+  "migrationAllowed": false,
+  "storageWriteAllowed": false,
+  "signedUrlCreationAllowed": false,
+  "signedUrlAsSourceOfTruthAllowed": false
+}

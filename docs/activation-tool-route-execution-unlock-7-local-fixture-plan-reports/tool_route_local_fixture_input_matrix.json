@@ -1,0 +1,41 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "matrixStatus": "planned",
+  "fixtureSources": [
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_dry_run_cases.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_valid_request_fixtures.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_invalid_request_fixtures.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_expected_result_fixtures.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_fixture_manifest.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_fixture_checksums.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_fixture_schema_versions.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_scoring_policy.json"
+  ],
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "requiredInputs": [
+    "approved plan snapshot reference",
+    "structured agent findings reference",
+    "edit intent reference",
+    "capability candidates",
+    "tool candidates",
+    "route candidates",
+    "scoring policy reference",
+    "manifest reference",
+    "checksum reference",
+    "owner handoff reference"
+  ],
+  "blockedInputClasses": [
+    "raw prompt direct execution input",
+    "raw provider output input",
+    "provider secret input",
+    "service role key input",
+    "signed URL source-of-truth input",
+    "public artifact URL input",
+    "real user data input",
+    "private project payload input",
+    "media payload input",
+    "beta or production target input"
+  ]
+}

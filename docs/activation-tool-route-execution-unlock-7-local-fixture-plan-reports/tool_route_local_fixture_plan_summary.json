@@ -1,0 +1,23 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "decision": "tool_route_local_fixture_plan_ready_with_warnings",
+  "readyForLocalFixtureValidation": true,
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "sourceOfTruthConflictsFound": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "runtimeExecutionAllowed": false,
+  "supabaseUpdateRequired": false,
+  "supabaseEnvironmentTouched": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "nextPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-8: tool-route local fixture validation, no execution",
+  "warnings": [
+    "runtime execution remains blocked",
+    "Supabase persistence remains blocked",
+    "production and beta readiness remain blocked",
+    "local fixture validation has not yet run"
+  ]
+}

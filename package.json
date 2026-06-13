@@ -42,6 +42,7 @@
     "worker:runtime-offline-dry-run:execute": "node scripts/validation/worker-runtime-offline-dry-run-execution.mjs",
     "worker:runtime-offline-dry-run:diagnostics": "node scripts/validation/worker-runtime-offline-dry-run-execution-diagnostics.mjs",
     "worker:runtime-offline-dry-run:qa-review:diagnostics": "node scripts/validation/worker-runtime-offline-dry-run-qa-diagnostics.mjs",
+    "worker:runtime-controlled-noop-approval:diagnostics": "node scripts/validation/worker-runtime-controlled-noop-approval-diagnostics.mjs",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",
     "smoke:prod-runtime-contracts": "tsx server/smoke/production-tool-runtime-contract-smoke.ts",
     "smoke:prod-tool-registry": "tsx server/smoke/production-tool-registry-smoke.ts",

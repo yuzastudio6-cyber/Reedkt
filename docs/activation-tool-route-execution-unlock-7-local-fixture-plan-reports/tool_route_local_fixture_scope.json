@@ -1,0 +1,36 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "scopeStatus": "local_fixture_planning_only",
+  "includedStages": [
+    "source-of-truth audit planning",
+    "fixture file presence planning",
+    "case coverage planning",
+    "schema contract validation planning",
+    "scoring policy validation planning",
+    "valid fixture metadata acceptance planning",
+    "invalid fixture fail-closed planning",
+    "redaction and credential scan planning",
+    "owner handoff planning"
+  ],
+  "excludedRuntimePaths": [
+    "tool execution",
+    "route execution",
+    "worker execution",
+    "job dispatch",
+    "provider calls",
+    "Supabase writes",
+    "SQL",
+    "media processing",
+    "browser capture",
+    "map rendering",
+    "Docker",
+    "Cloud Run",
+    "signed URL creation",
+    "public artifact creation",
+    "credit mutation",
+    "beta or production unlock"
+  ],
+  "sourceOfTruthRequirement": "Supabase row reference plus private GCS path reference plus manifest plus checksum plus approved plan snapshot, planned only",
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

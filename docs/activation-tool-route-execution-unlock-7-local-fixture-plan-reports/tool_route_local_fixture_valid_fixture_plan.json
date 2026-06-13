@@ -1,0 +1,25 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "validFixturePlanStatus": "planned",
+  "fixtureSourceFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_valid_request_fixtures.json",
+  "fixtureCount": 10,
+  "expectedDecision": "metadata_accept",
+  "requiredFields": [
+    "toolRouteDryRunCaseId",
+    "intent class",
+    "synthetic input reference",
+    "structured findings reference",
+    "edit intents reference",
+    "approved snapshot reference",
+    "candidate capabilities",
+    "candidate tools",
+    "candidate routes",
+    "scoring policy reference",
+    "selected decision",
+    "handoff owner",
+    "validation evidence reference"
+  ],
+  "runtimeExecutionAllowed": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

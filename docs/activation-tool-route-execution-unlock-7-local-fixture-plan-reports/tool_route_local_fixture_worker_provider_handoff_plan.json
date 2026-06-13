@@ -1,0 +1,20 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "workerProviderHandoffPlanStatus": "blocked_until_owner_approval",
+  "workerRequirements": [
+    "approved plan snapshot required before future execution",
+    "job dispatch requires Worker Runtime owner approval",
+    "claim and lease mutation require backend owner approval"
+  ],
+  "providerRequirements": [
+    "provider runtime requires Provider Gateway owner approval",
+    "synthetic Qwen and DeepSeek evidence remains historical metadata only",
+    "provider secrets must not be accessed in this phase"
+  ],
+  "workerExecutionAllowed": false,
+  "jobDispatchAllowed": false,
+  "jobClaimAllowed": false,
+  "jobLeaseAllowed": false,
+  "providerExecutionAllowed": false,
+  "modelCallAllowed": false
+}

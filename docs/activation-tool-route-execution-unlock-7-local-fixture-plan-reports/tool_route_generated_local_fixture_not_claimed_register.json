@@ -1,0 +1,7 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "registerStatus": "not_claimed",
+  "generatedLocalFixturePassedClaimed": false,
+  "reason": "UNLOCK-7 creates a local fixture plan only and performs no generated local fixture validation.",
+  "requiredFutureAuthority": "TOOL-ROUTE-EXECUTION-UNLOCK-8 or later approved validation evidence"
+}

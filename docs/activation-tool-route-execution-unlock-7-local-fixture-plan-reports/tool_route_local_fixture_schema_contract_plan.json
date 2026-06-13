@@ -1,0 +1,20 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "schemaContractPlanStatus": "planned",
+  "schemaVersionSourceFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_fixture_schema_versions.json",
+  "requiredSchemas": [
+    "tool_route_dry_run_request_contract_v1",
+    "tool_route_dry_run_result_contract_v1",
+    "tool_route_scoring_policy_v1",
+    "tool_route_fixture_manifest_v1",
+    "approved_plan_snapshot_v1"
+  ],
+  "validationWillCheck": [
+    "request schema fields are represented",
+    "result schema fields are represented",
+    "source-of-truth requirements are represented",
+    "blocked fields are rejected by invalid fixtures"
+  ],
+  "toolExecutionReady": false,
+  "routeExecutionReady": false
+}

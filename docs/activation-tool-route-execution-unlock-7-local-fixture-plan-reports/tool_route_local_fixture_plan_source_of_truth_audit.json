@@ -1,0 +1,74 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-7",
+  "auditStatus": "passed_with_warnings",
+  "sourceOfTruthConflictsFound": false,
+  "githubMergeHygiene": {
+    "pr398Merged": true,
+    "pr398MergeCommit": "c50532d5c509522cc39477f7a0d653569e1e57b4",
+    "baseBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation"
+  },
+  "acceptedEvidence": [
+    {
+      "pr": 398,
+      "label": "dry-run pass review",
+      "decision": "tool_route_dry_run_pass_review_recorded_with_warnings_ready_for_local_fixture_planning",
+      "accepted": true
+    },
+    {
+      "pr": 392,
+      "label": "gate status",
+      "decision": "tool_route_dry_run_gate_status_recorded_with_warnings_ready_for_dry_run_pass_review",
+      "accepted": true
+    },
+    {
+      "pr": 385,
+      "label": "owner approval",
+      "decision": "tool_route_owner_approved_with_warnings_for_next_dry_run_gate",
+      "accepted": true
+    },
+    {
+      "pr": 381,
+      "label": "dry-run validation",
+      "decision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval",
+      "accepted": true
+    },
+    {
+      "pr": 377,
+      "label": "dry-run contract",
+      "decision": "tool_route_dry_run_contract_ready_with_warnings",
+      "accepted": true
+    },
+    {
+      "pr": 374,
+      "label": "dry-run plan",
+      "decision": "tool_route_dry_run_plan_ready_with_warnings",
+      "accepted": true
+    },
+    {
+      "pr": 369,
+      "label": "repo audit",
+      "decision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan",
+      "accepted": true
+    },
+    {
+      "pr": 360,
+      "label": "pending owner tool studies",
+      "decision": "tool_study_pending_owners_completed_ready_for_tool_route_execution_unlock_audit",
+      "accepted": true
+    }
+  ],
+  "referencedOnlyEvidence": [
+    "WEB_SEARCH_CAPTURE tool study",
+    "MAP_GEOSPATIAL tool study",
+    "worker runtime local fixture plan",
+    "plan snapshot contract handoff",
+    "Qwen synthetic provider evidence",
+    "DeepSeek synthetic provider evidence",
+    "Supabase registry restoration",
+    "Supabase SOUND blocked harness evidence"
+  ],
+  "completedOwnerStudiesDuplicated": false,
+  "runtimeUnlockClaimed": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

@@ -1,0 +1,150 @@
+{
+  "schema": "reeditpro.toolRouteDryRunApproval.sourceOfTruthAudit.v1",
+  "createdAt": "2026-06-13T16:48:39.991Z",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "f39425ad0de2a6166cb2a649591b4b1057cfde4f",
+  "toolStudy0OwnerPrs": [
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "pr": 367,
+      "evidence": {
+        "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+        "headRefName": "codex/rp-tool-study-0-track-b-media-processing",
+        "headRefOid": "cb16845378f1181582fafe78f76a4942f1036ffe",
+        "isDraft": false,
+        "mergeStateStatus": "UNKNOWN",
+        "mergedAt": "2026-06-13T16:11:07Z",
+        "number": 367,
+        "state": "MERGED",
+        "title": "[tool-study] TRACK_B_MEDIA_PROCESSING capability routing study",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/367"
+      }
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "pr": 373,
+      "evidence": {
+        "baseRefName": "codex/rp-tool-study-0-track-b-media-processing",
+        "headRefName": "codex/rp-tool-study-0-sound-music-audio-clean",
+        "headRefOid": "9296a4a41a143c0a212415d890e6ff544f73bb4b",
+        "isDraft": false,
+        "mergeStateStatus": "UNKNOWN",
+        "mergedAt": "2026-06-13T16:11:02Z",
+        "number": 373,
+        "state": "MERGED",
+        "title": "[tool-study] SOUND_MUSIC_AUDIO capability routing study",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/373"
+      }
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "pr": 376,
+      "evidence": {
+        "baseRefName": "codex/rp-tool-study-0-sound-music-audio-clean",
+        "headRefName": "codex/rp-tool-study-0-ai-tools-creative-graphics-clean",
+        "headRefOid": "552791d6dd94347fd79bf8804c088f9fe3eafb43",
+        "isDraft": false,
+        "mergeStateStatus": "UNKNOWN",
+        "mergedAt": "2026-06-13T16:10:57Z",
+        "number": 376,
+        "state": "MERGED",
+        "title": "[tool-study] AI_TOOLS_CREATIVE_GRAPHICS capability routing study",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/376"
+      }
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "pr": 379,
+      "evidence": {
+        "baseRefName": "codex/rp-tool-study-0-ai-tools-creative-graphics-clean",
+        "headRefName": "codex/rp-tool-study-0-track-a-render-export-clean",
+        "headRefOid": "7b03622d878216e7fcac8a8657b6caa336c17293",
+        "isDraft": false,
+        "mergeStateStatus": "UNKNOWN",
+        "mergedAt": "2026-06-13T16:10:51Z",
+        "number": 379,
+        "state": "MERGED",
+        "title": "[tool-study] TRACK_A_RENDER_EXPORT capability routing study",
+        "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/379"
+      }
+    }
+  ],
+  "pr350": {
+    "baseRefName": "codex/rp-activation-52h-cross-workstream-handoff-tracking",
+    "headRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+    "headRefOid": "f39425ad0de2a6166cb2a649591b4b1057cfde4f",
+    "isDraft": false,
+    "mergeStateStatus": "CLEAN",
+    "mergedAt": null,
+    "number": 350,
+    "state": "OPEN",
+    "title": "[coordination] GitHub merge hygiene open PR stack audit",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/350"
+  },
+  "duplicateRisk": {
+    "status": "stale_reference_only_duplicate_risk",
+    "treatedAsSourceOfTruth": false,
+    "reuseBlocked": true,
+    "evidence": {
+      "baseRefName": "codex/rp-tool-route-2a-refresh-conflict-resolution-after-tool-route-1a",
+      "headRefName": "codex/rp-tool-route-3-offline-dry-run-approval-packet",
+      "headRefOid": "0e91380d2201e651c0c7df67624be015befa2db7",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "number": 384,
+      "state": "OPEN",
+      "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/384"
+    }
+  },
+  "staticRollupBlockerReconciled": true,
+  "missingLocalEvidenceDirectories": [
+    "docs/activation-worker-runtime-noop-dry-run-reports",
+    "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+    "docs/activation-track-b-tool-route-manifest-reports",
+    "docs/activation-track-b-capability-manifests-reports",
+    "docs/activation-supabase-trackb-clean-staging-backfill-reports"
+  ],
+  "missingBroadReadinessDocs": [
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md"
+  ],
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "Track B clean staging milestone sync completed before this phase; this packet is metadata/docs only.",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextSupabaseAction": "none"
+  },
+  "decision": "approved_for_future_tool_route_metadata_dry_run_execution"
+}

@@ -1,0 +1,25 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "owner": "WORKER_RUNTIME_JOBS",
+  "status": "handoff_required_real_execution_blocked",
+  "metadataEvidenceAccepted": true,
+  "workerLocalFixturePlanAccepted": true,
+  "jobDispatchAllowed": false,
+  "jobClaimAllowed": false,
+  "jobLeaseAllowed": false,
+  "queueEnqueueAllowed": false,
+  "sidecarSpawnAllowed": false,
+  "subprocessSpawnAllowed": false,
+  "runtimeFlags": {
+    "workerExecutionAllowed": false,
+    "jobDispatchAllowed": false,
+    "jobClaimAllowed": false,
+    "jobLeaseAllowed": false,
+    "queueEnqueueAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "workerExecutionReady": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

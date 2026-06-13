@@ -1,0 +1,61 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "reportType": "source_of_truth_audit",
+  "sourceFilesReadAsTextOnly": true,
+  "sourceOfTruthConflictsFound": false,
+  "noRuntimeSourcesExecuted": true,
+  "pr381": {
+    "state": "merged",
+    "title": "[tool] Route execution dry-run validation",
+    "headCommit": "3e988499fb2f494f1406353ed874785fc9e36f79",
+    "mergeCommit": "7e5fb0335fb7ad5be0311bfdf1f19c12a1a6bd05",
+    "decision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval"
+  },
+  "acceptedSourceChain": [
+    {
+      "pr": 377,
+      "decision": "tool_route_dry_run_contract_ready_with_warnings",
+      "mergeCommit": "80582655ada1e133a17dd00cff2691f7a9e13655"
+    },
+    {
+      "pr": 374,
+      "decision": "tool_route_dry_run_plan_ready_with_warnings",
+      "mergeCommit": "4560e27fec057e3edd8a3aca2402db09c4621a63"
+    },
+    {
+      "pr": 369,
+      "decision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan",
+      "mergeCommit": "c84df541f9259e61b719aab967b22343a42a221f"
+    },
+    {
+      "pr": 360,
+      "decision": "tool_study_pending_owners_completed_ready_for_tool_route_execution_unlock_audit",
+      "mergeCommit": "0699ae921af3b8980b93221bec094d842d61ddba"
+    }
+  ],
+  "referencedHistoricalEvidence": {
+    "webSearchCaptureReferencedOnly": true,
+    "mapGeospatialReferencedOnly": true,
+    "completedOwnerStudiesDuplicated": false,
+    "pr358WorkerLocalFixturePlanAccepted": true,
+    "pr353WorkerFixtureHardeningAccepted": true,
+    "pr351WorkerContractReviewAccepted": true,
+    "pr335PlanSnapshotContractReadinessAcceptedAsHistoricalEvidence": true,
+    "pr329QwenEvidenceAcceptedAsHistoricalEvidence": true,
+    "pr320DeepSeekEvidenceAcceptedAsHistoricalEvidence": true,
+    "pr315RegistryRestoreReferencedNoContinuation": true,
+    "pr319SupabaseSoundBlockedNoContinuation": true
+  },
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

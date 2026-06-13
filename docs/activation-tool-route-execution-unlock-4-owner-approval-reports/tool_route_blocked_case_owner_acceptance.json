@@ -1,0 +1,30 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "reportType": "blocked_case_owner_acceptance",
+  "accepted": true,
+  "blockedCaseCount": 8,
+  "blockedCases": [
+    "blocked_raw_prompt_direct_execution",
+    "blocked_signed_url_source_of_truth",
+    "blocked_public_artifact_request",
+    "blocked_tool_runtime_execution",
+    "blocked_route_runtime_execution",
+    "blocked_provider_runtime_execution",
+    "blocked_worker_runtime_execution",
+    "blocked_supabase_mutation_request"
+  ],
+  "allBlockedCasesFailClosed": true,
+  "blockedCaseBypassAllowed": false,
+  "runtimeFlags": {
+    "rawPromptExecutionAllowed": false,
+    "signedUrlAsSourceOfTruthAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

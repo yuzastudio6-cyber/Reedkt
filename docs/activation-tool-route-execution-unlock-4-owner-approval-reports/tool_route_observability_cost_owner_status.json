@@ -1,0 +1,17 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "owner": "OBSERVABILITY_AUDIT_COST",
+  "status": "metadata_only_placeholders_accepted",
+  "auditMetadataAccepted": true,
+  "costMetadataAccepted": true,
+  "runtimeTelemetryRequiredLater": true,
+  "runtimeTelemetryEnabledNow": false,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "creditMutationAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

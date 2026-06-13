@@ -1,0 +1,21 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+  "status": "handoff_required_persistence_blocked",
+  "supabaseUpdateRequired": false,
+  "supabaseEnvironmentTouched": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "storageWriteAllowed": false,
+  "signedUrlCreationAllowed": false,
+  "runtimeFlags": {
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "signedUrlAsSourceOfTruthAllowed": false,
+    "supabasePersistenceReady": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

@@ -1,0 +1,208 @@
+{
+  "schema": "reeditpro.toolStudy.trackARenderExport.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "decision": "track_a_render_export_tool_study_passed_docs_only",
+  "status": "complete_for_TRACK_A_RENDER_EXPORT_owner_study",
+  "owner": "TRACK_A_RENDER_EXPORT",
+  "branch": {
+    "name": "codex/rp-tool-study-0-track-a-render-export-clean",
+    "baseBranch": "codex/rp-tool-study-0-ai-tools-creative-graphics-clean",
+    "basePr": 376,
+    "baseHeadSha": "19d6a9e29f457ceaf5ad70ee8764da6f39c868cb",
+    "baseDecision": "ai_tools_creative_graphics_tool_study_passed_docs_only",
+    "staleRemoteBranchAvoided": "codex/rp-tool-study-0-track-a-render-export"
+  },
+  "scope": {
+    "phase": "TOOL-STUDY-0",
+    "mode": "docs_diagnostics_only",
+    "runtimeExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelExecutionAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "localSourceEvidence": [
+    {
+      "path": "docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json",
+      "status": "present",
+      "facts": [
+        "post_merge_source_of_truth_verification_passed",
+        "TOOL_STUDY_0_recommended_before_tool_route_execution_unlock",
+        "blocked_scopes_remain_blocked"
+      ]
+    },
+    {
+      "path": "docs/tool-studies/track-b-media-processing-source-of-truth-audit.json",
+      "status": "present",
+      "facts": [
+        "TRACK_B_MEDIA_PROCESSING_complete",
+        "media_data_metadata_routes_to_TRACK_B_MEDIA_PROCESSING",
+        "final_render_export_handed_to_TRACK_A_RENDER_EXPORT"
+      ]
+    },
+    {
+      "path": "docs/tool-studies/sound-music-audio-source-of-truth-audit.json",
+      "status": "present",
+      "facts": [
+        "SOUND_MUSIC_AUDIO_complete",
+        "audio_runtime_and_provider_paths_remain_blocked",
+        "audio_mix_and_sync_metadata_handoff_to_TRACK_A_RENDER_EXPORT"
+      ]
+    },
+    {
+      "path": "docs/tool-studies/ai-tools-creative-graphics-source-of-truth-audit.json",
+      "status": "present",
+      "facts": [
+        "AI_TOOLS_CREATIVE_GRAPHICS_complete",
+        "creative_graphics_provider_model_and_public_artifact_paths_remain_blocked",
+        "approved_graphic_asset_refs_and_composition_metadata_handoff_to_TRACK_A_RENDER_EXPORT"
+      ]
+    },
+    {
+      "path": "remotion-renderer-plan.md",
+      "status": "present",
+      "facts": [
+        "Remotion_is_final_layout_composition_boundary",
+        "rendering_requires_approved_plan_snapshot_and_worker_execution_later",
+        "this_study_does_not_render"
+      ]
+    },
+    {
+      "path": "render-strategy-planner.md",
+      "status": "present",
+      "facts": [
+        "render_strategy_selects_Remotion_tool_or_AI_asset_handoffs",
+        "controlled_tools_preferred_for_exact_layers_and_QA",
+        "render_strategy_is_planning_not_execution"
+      ]
+    },
+    {
+      "path": "editing-asset-manifest.md",
+      "status": "present",
+      "facts": [
+        "every_asset_needs_manifest_ref",
+        "final_render_cannot_start_with_missing_required_assets",
+        "source_of_truth_refs_are_private_metadata"
+      ]
+    },
+    {
+      "path": "approved-plan-snapshot-policy.md",
+      "status": "present",
+      "facts": [
+        "workers_execute_approved_snapshots_not_raw_chat",
+        "approved_snapshots_are_immutable",
+        "future_worker_phases_still_require_separate_approval"
+      ]
+    }
+  ],
+  "localDocsRecordedAsAuditFacts": [
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-reports/",
+      "status": "missing_on_PR376_checkout",
+      "blocker": false,
+      "reason": "PR350 post-merge source-of-truth verification records remote worker no-op evidence; this study does not execute workers."
+    },
+    {
+      "path": "docs/model-orchestration-approved-plan-snapshot-schema.md",
+      "status": "missing_on_PR376_checkout",
+      "blocker": false,
+      "reason": "Plan snapshot evidence is post-merge verified and this study only records render/export handoff metadata."
+    }
+  ],
+  "ownedTools": [
+    "final_timeline_assembly_planning",
+    "render_export_planning",
+    "mux_transcode_container_planning",
+    "codec_quality_profile_planning",
+    "caption_subtitle_burnin_planning",
+    "overlay_graphics_placement_handoff",
+    "audio_video_sync_handoff_planning",
+    "preview_proxy_export_qa_metadata",
+    "artifact_manifest_checksum_planning",
+    "private_gcs_path_planning",
+    "retention_delete_rollback_planning",
+    "export_cost_capacity_metadata",
+    "final_export_route_capability_metadata"
+  ],
+  "relatedButNotOwned": [
+    {
+      "id": "opencv_pyav_pyscenedetect_sharp_duckdb_polars_paddleocr_paddlepaddle",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "trackARenderUse": "consume source media, OCR, scene, and data metadata only"
+    },
+    {
+      "id": "deepfilternet_ffmpeg_audioflux_signalsmith_demucs_lyria_mirelo_mmaudio",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "trackARenderUse": "consume approved audio mix, loudness, cue, and sync metadata only"
+    },
+    {
+      "id": "creative_graphics_and_image_generation",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "trackARenderUse": "consume approved graphic asset refs and composition metadata only"
+    },
+    {
+      "id": "provider_gateway",
+      "owner": "PROVIDER_GATEWAY",
+      "trackARenderUse": "provider execution remains separate and blocked"
+    },
+    {
+      "id": "worker_runtime_jobs",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "trackARenderUse": "future render/export execution requires separate worker approval"
+    },
+    {
+      "id": "public_artifact_delivery",
+      "owner": "PUBLIC_ARTIFACT_DELIVERY",
+      "trackARenderUse": "public delivery and signed URL behavior remain separate and blocked"
+    },
+    {
+      "id": "supabase_source_of_truth",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "trackARenderUse": "future row refs and storage refs only after separate Supabase approval"
+    }
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  },
+  "secretPolicy": {
+    "secretRefsMayBeNamedIfAlreadyDocumented": true,
+    "payloadAccessed": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "runtimeReadiness": {
+    "metadataReviewReady": true,
+    "realRuntimeReady": false,
+    "renderRuntimeReady": false,
+    "exportRuntimeReady": false,
+    "workerRuntimeReady": false,
+    "providerRuntimeReady": false,
+    "publicArtifactDeliveryBlocked": true,
+    "signedUrlSourceOfTruthBlocked": true
+  },
+  "nextPhase": {
+    "recommended": "TOOL-STUDY-0 completion rollup and route-unlock readiness check",
+    "trackARenderExportStatus": "complete_after_diagnostics_pass"
+  },
+  "blockers": []
+}

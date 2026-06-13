@@ -1,0 +1,67 @@
+{
+  "schema": "reeditpro.toolStudy.completionRollup.diagnosticsRollup.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "decision": "blocked_pending_owner_study_merge",
+  "docs_diagnostics_complete": true,
+  "diagnostics": [
+    {
+      "owner": "WEB_SEARCH_CAPTURE",
+      "command": null,
+      "status": "not_applicable_source_evidence_only",
+      "sourceEvidence": "Phase 49P / search provider readiness docs"
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "command": null,
+      "status": "not_applicable_source_evidence_only",
+      "sourceEvidence": "map/geospatial readiness docs"
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "command": "npm run tool-study:track-b-media-processing:diagnostics",
+      "status": "passed",
+      "failures": []
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "command": "npm run tool-study:sound-music-audio:diagnostics",
+      "status": "passed",
+      "failures": []
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "command": "npm run tool-study:ai-tools-creative-graphics:diagnostics",
+      "status": "passed",
+      "note": "Passed after updating stale Track A pending phrase to completed Track A diagnostics status.",
+      "failures": []
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "command": "npm run tool-study:track-a-render-export:diagnostics",
+      "status": "passed",
+      "failures": []
+    },
+    {
+      "owner": "TOOL_STUDY_0_ROLLUP",
+      "command": "npm run tool-study:completion-rollup:diagnostics",
+      "status": "passed",
+      "failures": []
+    }
+  ],
+  "scope": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "supabaseWritesAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

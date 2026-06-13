@@ -1,0 +1,220 @@
+{
+  "schema": "reeditpro.toolStudy.soundMusicAudio.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "decision": "sound_music_audio_tool_study_passed_docs_only",
+  "status": "complete_for_SOUND_MUSIC_AUDIO_owner_study",
+  "owner": "SOUND_MUSIC_AUDIO",
+  "branch": {
+    "name": "codex/rp-tool-study-0-sound-music-audio-clean",
+    "baseBranch": "codex/rp-tool-study-0-track-b-media-processing",
+    "basePr": 367,
+    "baseHeadSha": "2f180e001bc13908b0f32d26555f1bdded14535d",
+    "baseDecision": "track_b_media_processing_tool_study_passed_docs_only",
+    "staleRemoteBranchAvoided": "codex/rp-tool-study-0-sound-music-audio"
+  },
+  "scope": {
+    "phase": "TOOL-STUDY-0",
+    "mode": "docs_diagnostics_only",
+    "runtimeExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "audioProcessingAllowed": false,
+    "mediaProcessingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "localSourceEvidence": [
+    {
+      "path": "docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json",
+      "status": "present",
+      "facts": [
+        "post_merge_source_of_truth_verification_passed",
+        "Track_B_clean_staging_sync_evidence_passed",
+        "TOOL_STUDY_0_recommended_before_tool_route_execution_unlock"
+      ]
+    },
+    {
+      "path": "docs/tool-studies/track-b-media-processing-tool-study.md",
+      "status": "present",
+      "facts": [
+        "TRACK_B_MEDIA_PROCESSING_complete",
+        "DeepFilterNet_Signalsmith_Stretch_Demucs_handed_to_SOUND_MUSIC_AUDIO"
+      ]
+    },
+    {
+      "path": "docs/production-audio-sound-foundation.md",
+      "status": "present",
+      "facts": [
+        "Milestone_9_audio_foundation_is_planning_foundation",
+        "Phase_36F_internal_scope_includes_FFmpeg_loudness_and_DeepFilterNet_only",
+        "Phase_36G_records_Demucs_as_future_stem_candidate_blocked_on_provenance"
+      ]
+    },
+    {
+      "path": "docs/production-deepfilternet-rnnoise-policy.md",
+      "status": "present",
+      "facts": [
+        "DeepFilterNet_active_internal_speech_cleanup_path",
+        "RNNoise_removed_from_active_product_fallback_routing"
+      ]
+    },
+    {
+      "path": "docs/production-demucs-policy.md",
+      "status": "present",
+      "facts": [
+        "Demucs_for_justified_music_speech_separation_or_stems",
+        "Demucs_runtime_requires_model_weight_artifact_QA_and_deployment_approval"
+      ]
+    },
+    {
+      "path": "docs/activation-audio-stack-demucs-policy.md",
+      "status": "present",
+      "facts": [
+        "Demucs_htdemucs_download_runtime_blocked",
+        "pretrained_model_license_provenance_ambiguous"
+      ]
+    },
+    {
+      "path": "docs/production-ffmpeg-audio-execution-policy.md",
+      "status": "present",
+      "facts": [
+        "FFmpeg_audio_loudness_and_normalization_require_server_built_allowlisted_commands",
+        "dry_run_and_container_ready_modes_create_command_metadata_only"
+      ]
+    },
+    {
+      "path": "docs/soundsync-audio-pipeline-planning.md",
+      "status": "present",
+      "facts": [
+        "AudioFlux_launch_candidate_for_SoundSync_audio_analysis",
+        "Signalsmith_Stretch_launch_candidate_for_music_stretch_pitch",
+        "real_audio_analysis_not_implemented_in_mock_layer"
+      ]
+    },
+    {
+      "path": "docs/lyria-integration-adapter.md",
+      "status": "present",
+      "facts": [
+        "Lyria_adapter_mock_first",
+        "no_Lyria_API_call_no_Google_SDK_no_HTTP_request"
+      ]
+    },
+    {
+      "path": "sfx-provider-strategy.md",
+      "status": "present",
+      "facts": [
+        "Mirelo_SFX_V1_5_future_production_provider",
+        "MMAudio_V2_future_draft_basic_pro_fallback",
+        "provider_strategy_architecture_only"
+      ]
+    }
+  ],
+  "localDocsRecordedAsAuditFacts": [
+    {
+      "path": "docs/activation-track-b-readiness-rollup-reports/",
+      "status": "missing_on_PR367_checkout",
+      "blocker": false,
+      "reason": "PR350 post-merge source-of-truth verification records the remote merged milestone evidence."
+    },
+    {
+      "path": "docs/activation-track-b-capability-manifests-reports/",
+      "status": "missing_on_PR367_checkout",
+      "blocker": false,
+      "reason": "The Track B study and PR350 report preserve safe metadata facts."
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-reports/",
+      "status": "missing_on_PR367_checkout",
+      "blocker": false,
+      "reason": "Worker no-op evidence is remote milestone evidence and does not approve real worker execution."
+    },
+    {
+      "path": "docs/model-orchestration-approved-plan-snapshot-schema.md",
+      "status": "missing_on_PR367_checkout",
+      "blocker": false,
+      "reason": "Plan snapshot evidence remains post-merge verified; this study defines owner handoff fields only."
+    }
+  ],
+  "ownedTools": [
+    "deepfilternet",
+    "ffmpeg_ffprobe_audio",
+    "audioflux",
+    "signalsmith_stretch",
+    "demucs",
+    "soundsync_cue_planning",
+    "music_ducking_mix_qa",
+    "lyria_music_planning",
+    "mirelo_sfx_v1_5",
+    "mmaudio_v2",
+    "internal_sfx_library",
+    "audio_cost_capacity_metadata"
+  ],
+  "relatedButNotOwned": [
+    {
+      "id": "opencv_pyav_pyscenedetect_sharp_duckdb_polars_paddleocr_paddlepaddle",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "soundUse": "consume media metadata only"
+    },
+    {
+      "id": "creative_image_generation_tools",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "soundUse": "handoff creative graphics SFX target layers only"
+    },
+    {
+      "id": "final_render_export_pipeline",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "soundUse": "handoff approved audio artifact and mix metadata only"
+    },
+    {
+      "id": "worker_runtime_jobs",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "soundUse": "future approved worker intake only"
+    },
+    {
+      "id": "provider_gateway",
+      "owner": "PROVIDER_GATEWAY",
+      "soundUse": "future provider calls only after separate approval"
+    },
+    {
+      "id": "supabase_source_of_truth",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "soundUse": "future row refs only after separate Supabase approval"
+    }
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  },
+  "secretPolicy": {
+    "secretRefsMayBeNamedIfAlreadyDocumented": true,
+    "payloadAccessed": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "runtimeReadiness": {
+    "metadataReviewReady": true,
+    "realRuntimeReady": false,
+    "demucsRuntimeBlocked": true,
+    "demucsBlocker": "Demucs blocked pending provenance/legal/human approval"
+  },
+  "nextPhase": {
+    "recommended": "TOOL-STUDY-0 - AI_TOOLS_CREATIVE_GRAPHICS",
+    "soundMusicAudioStatus": "complete_after_diagnostics_pass"
+  },
+  "blockers": []
+}

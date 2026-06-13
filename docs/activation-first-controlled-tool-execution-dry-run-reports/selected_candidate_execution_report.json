@@ -1,0 +1,42 @@
+{
+  "schema": "reeditpro.firstControlledToolExecutionDryRun.selectedCandidateExecution.v1",
+  "passed": true,
+  "candidateId": "controlled-tool:first_fixture_report_validation",
+  "executionKind": "local_server_only_fixture_report_validation",
+  "selectedFixtureRow": {
+    "fixtureId": "valid_track_b_metadata_route_candidate",
+    "fixtureClass": "valid",
+    "owner": "TRACK_B_MEDIA_PROCESSING",
+    "inputKind": "approved_plan_snapshot_v1",
+    "allFlagsBlocked": true,
+    "approvedSnapshotOk": true,
+    "expectedOutcomeOk": true,
+    "acceptedMetadataOnly": true,
+    "failedClosed": false
+  },
+  "requiredReportsPresent": true,
+  "requiredReportFields": [
+    "tool_route_fixture_validation_report.json",
+    "tool_route_metadata_resolution_report.json",
+    "controlled_tool_execution_approval_decision.json",
+    "first_controlled_tool_candidate_review.json"
+  ],
+  "validatedOperations": [
+    "committed_report_presence",
+    "selected_fixture_metadata_shape",
+    "selected_route_candidate_metadata_shape",
+    "approval_decision_consistency",
+    "blocked_execution_flags"
+  ],
+  "deterministic": true,
+  "sideEffectFree": true,
+  "externalNetworkCalls": false,
+  "secretPayloadAccessed": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "gcsUploads": false,
+  "mediaProcessed": false,
+  "workerQueueEnqueued": false,
+  "dockerOrCloudRunInvoked": false,
+  "dependencyMutation": false
+}

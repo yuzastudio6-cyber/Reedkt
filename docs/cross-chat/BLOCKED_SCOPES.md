@@ -53,3 +53,14 @@ The first controlled tool dry-run did not unblock real execution. Broad tool exe
 <!-- NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW_STATUS -->
 
 The next controlled candidate review does not unblock real execution. Broad tool execution, route execution, worker execution, provider/model calls, media/audio/render/export/image/browser/map work, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, dependency mutation, external beta, paid production, and production remain blocked.
+
+<!-- SECOND_CONTROLLED_CANDIDATE_APPROVAL_STATUS -->
+
+SECOND_CONTROLLED_CANDIDATE_APPROVAL:
+
+- Decision: `approved_for_future_second_controlled_candidate_dry_run`.
+- Approved future candidate: `controlled-tool:second_fixture_report_validation`.
+- Fixture/route: `valid_sound_music_audio_metadata_route_candidate` / `metadata-route:sound_music_audio`.
+- Owner lane: `SOUND_MUSIC_AUDIO`.
+- Actual candidate execution remains future and separately approved.
+- Broad tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.

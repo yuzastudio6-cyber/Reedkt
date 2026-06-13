@@ -26,3 +26,14 @@ AI Tools Creative Graphics study completion also does not unlock provider/model 
 Track A Render/Export study completion also does not unlock render/export execution, Remotion rendering, mux/transcode execution, caption burn-in output, private GCS uploads, manifest writes, public delivery, signed URLs, workers, tools, routes, Supabase writes, beta, or production.
 
 TOOL-STUDY-0 completion rollup does not merge PRs and does not unlock tool-route execution. Its current output is docs/diagnostics complete with merged source-of-truth still pending.
+
+<!-- SECOND_CONTROLLED_CANDIDATE_APPROVAL_STATUS -->
+
+SECOND_CONTROLLED_CANDIDATE_APPROVAL:
+
+- Decision: `approved_for_future_second_controlled_candidate_dry_run`.
+- Approved future candidate: `controlled-tool:second_fixture_report_validation`.
+- Fixture/route: `valid_sound_music_audio_metadata_route_candidate` / `metadata-route:sound_music_audio`.
+- Owner lane: `SOUND_MUSIC_AUDIO`.
+- Actual candidate execution remains future and separately approved.
+- Broad tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.

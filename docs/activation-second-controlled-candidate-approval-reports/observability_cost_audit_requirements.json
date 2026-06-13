@@ -1,0 +1,35 @@
+{
+  "schema": "reeditpro.secondControlledCandidateApproval.observabilityCostAuditRequirements.v1",
+  "createdAt": "2026-06-13T21:23:32.929Z",
+  "passed": true,
+  "requiredAuditFields": [
+    "runId",
+    "correlationId",
+    "approvedPlanSnapshotId",
+    "selectedCandidateId",
+    "selectedRouteId",
+    "ownerStudyRefs",
+    "artifactManifestRefs",
+    "failClosedOutcome"
+  ],
+  "selectedCandidateId": "controlled-tool:second_fixture_report_validation",
+  "selectedRouteId": "metadata-route:sound_music_audio",
+  "noSecretLogs": true,
+  "noRawPrivatePayloadLogs": true,
+  "timeoutClass": "metadata_validation_short_timeout",
+  "costEstimateClass": "metadata_only_no_provider_worker_or_tool_cost",
+  "retryPolicy": "retry_disabled_for_approval_packet",
+  "failureStateMapping": {
+    "scopeFailure": "blocked_pending_second_candidate_scope_review",
+    "routeFailure": "blocked_pending_sound_music_audio_route_review",
+    "artifactFailure": "blocked_pending_artifact_scope_policy",
+    "unsafeRuntimeRequest": "rejected_due_runtime_safety_risk"
+  },
+  "abuseRateLimitControls": [
+    "no provider calls",
+    "no worker enqueue",
+    "no media payloads",
+    "no public artifacts",
+    "no signed URL delivery"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.secondControlledCandidateApproval.readinessReport.v1",
+  "createdAt": "2026-06-13T21:23:32.929Z",
+  "readiness": true,
+  "decision": "approved_for_future_second_controlled_candidate_dry_run",
+  "pr402RecommendationPassed": true,
+  "firstControlledDryRunPassed": true,
+  "controlledToolApprovalPassed": true,
+  "routeMetadataDryRunPassed": true,
+  "routeApprovalPassed": true,
+  "scopeReviewPassed": true,
+  "soundMusicAudioRouteReviewPassed": true,
+  "approvedPlanSnapshotRequirementsPassed": true,
+  "workerHandoffReviewPassed": true,
+  "artifactGuardrailsPassed": true,
+  "failClosedPolicyPassed": true,
+  "observabilityCostAuditRequirementsPassed": true,
+  "runtimeScopesBlocked": true
+}

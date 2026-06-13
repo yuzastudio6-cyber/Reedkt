@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.artifactSourceOfTruthValidation.v1",
+  "passed": true,
+  "sourceOfTruthPolicy": [
+    "approved_plan_snapshot_v1",
+    "future_supabase_row_ref_no_write",
+    "private_gcs_path_ref_no_upload",
+    "manifest_id",
+    "checksum"
+  ],
+  "selectedCandidateRefs": [
+    "manifest:synthetic-second-controlled-sound-fixture",
+    "checksum:synthetic-second-controlled-sound-fixture",
+    "private-gcs-ref:placeholder-only/no-upload"
+  ],
+  "refsSafe": true,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "publicArtifactsAllowed": false,
+  "arbitraryPathsAllowed": false,
+  "unapprovedGcsPrefixesBlocked": true,
+  "uploadsPerformed": false,
+  "privatePayloadsCommitted": false,
+  "mediaPayloadsCommitted": false,
+  "noSignedUrls": true
+}

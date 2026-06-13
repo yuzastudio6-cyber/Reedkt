@@ -64,3 +64,7 @@ SECOND_CONTROLLED_CANDIDATE_APPROVAL:
 - Owner lane: `SOUND_MUSIC_AUDIO`.
 - Actual candidate execution remains future and separately approved.
 - Broad tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
+
+<!-- SECOND_CONTROLLED_CANDIDATE_DRY_RUN_STATUS -->
+
+The second controlled candidate dry-run did not unblock real execution. Broad tool execution, route execution, worker execution, provider/model calls, media/audio/render/export/image/browser/map work, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, dependency mutation, external beta, paid production, and production remain blocked.

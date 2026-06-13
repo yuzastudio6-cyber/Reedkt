@@ -97,3 +97,15 @@ SECOND_CONTROLLED_CANDIDATE_APPROVAL:
 - Owner lane: `SOUND_MUSIC_AUDIO`.
 - Actual candidate execution remains future and separately approved.
 - Broad tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
+
+<!-- SECOND_CONTROLLED_CANDIDATE_DRY_RUN_STATUS -->
+
+SECOND_CONTROLLED_CANDIDATE_EXECUTION dry-run:
+
+- Decision: `second_controlled_candidate_dry_run_passed_ready_for_next_controlled_candidate_or_worker_handoff_review`
+- Selected candidate: `controlled-tool:second_fixture_report_validation`.
+- Selected route: `metadata-route:sound_music_audio` in `SOUND_MUSIC_AUDIO`.
+- Only local/server-side fixture/report metadata validation ran.
+- PR #384 remains stale draft duplicate-risk/reference-only evidence.
+- Real route/tool/worker/provider/media/audio/render/image/browser/map/Supabase/GCS/public/beta/production scopes remain blocked.
+- Next prompt: `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW_AFTER_SECOND`.

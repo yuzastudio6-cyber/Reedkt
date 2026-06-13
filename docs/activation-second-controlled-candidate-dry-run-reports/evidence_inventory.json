@@ -1,0 +1,70 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.evidenceInventory.v1",
+  "createdAt": "2026-06-13T22:07:13.001Z",
+  "pr407ApprovalDecision": "approved_for_future_second_controlled_candidate_dry_run",
+  "selectedSecondCandidate": "controlled-tool:second_fixture_report_validation",
+  "selectedFixture": "valid_sound_music_audio_metadata_route_candidate",
+  "selectedRoute": "metadata-route:sound_music_audio",
+  "ownerLane": "SOUND_MUSIC_AUDIO",
+  "pr402RecommendationDecision": "recommended_next_controlled_candidate_approval",
+  "pr399FirstControlledDryRunPassed": true,
+  "pr394ControlledApprovalPassed": true,
+  "pr388RouteMetadataDryRunPassed": true,
+  "pr387RouteDryRunApprovalPassed": true,
+  "toolStudySourceOfTruthStatus": "source_of_truth_docs_present",
+  "soundMusicAudioDiagnosticsStatus": "sound_music_audio_tool_study_passed_docs_only",
+  "workerNoopEvidence": "missing_script_recorded_as_audit_fact",
+  "planSnapshotDryRunEvidence": "missing_script_recorded_as_audit_fact",
+  "routeCapabilityManifestStatus": "missing_local_report_directory_recorded_as_audit_fact",
+  "supabaseTrackBBackfillEvidence": "missing_script_recorded_as_audit_fact",
+  "publicArtifactSignedUrlPolicyStatus": "blocked_signed_urls_not_source_of_truth",
+  "secretRefs": [
+    {
+      "refName": "SUPABASE_ACCESS_TOKEN",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "refName": "SUPABASE_DB_URL",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    },
+    {
+      "refName": "GCS_PRIVATE_BUCKET_REF",
+      "payloadAccessed": false,
+      "payloadPrinted": false,
+      "payloadCommitted": false
+    }
+  ],
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  }
+}

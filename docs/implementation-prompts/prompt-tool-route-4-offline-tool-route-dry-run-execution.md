@@ -14,7 +14,9 @@ PR title: `[tool-route] TOOL-ROUTE-4 offline tool route dry-run execution`
 
 PR state: draft.
 
-PR link: `pending`
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/386
+
+PR check status: `no_check_rollup_reported_at_pr_creation`
 
 ## Source Evidence
 

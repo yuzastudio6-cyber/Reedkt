@@ -1,6 +1,6 @@
 # TOOL-ROUTE-4 Validation Results
 
-Status: `local_execution_validation_passed_pending_pr`
+Status: `local_execution_validation_passed_pr_opened`
 
 Decision state: `tool_route_offline_dry_run_passed_with_warnings`
 
@@ -62,9 +62,9 @@ Decision state: `tool_route_offline_dry_run_passed_with_warnings`
 
 ## PR Status
 
-PR link: `pending`
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/386
 
-GitHub check status: `pending_pr_creation`
+GitHub check status: `no_check_rollup_reported_at_pr_creation`
 
 ## Supabase And Scope
 

@@ -18,6 +18,8 @@ PR title: `[tool-route] TOOL-ROUTE-2A refresh conflict resolution after TOOL-ROU
 
 PR base: `codex/rp-tool-route-2-offline-contract-test-execution`
 
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/378
+
 ## Source Evidence
 
 - PR #370 TOOL-ROUTE-2 remains draft/open and provides offline contract-test evidence.

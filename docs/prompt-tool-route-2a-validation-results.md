@@ -6,7 +6,7 @@ Readiness decision: `tool_route_2a_conflict_resolved_contract_tests_passed_with_
 
 Combined route state: `tool_route_offline_contract_tests_passed_with_warnings_after_sound_refresh`
 
-PR link: `pending`
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/378
 
 ## Source-Of-Truth Read Status
 

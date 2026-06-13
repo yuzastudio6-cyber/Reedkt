@@ -35,6 +35,7 @@
     "tool-route:offline-dry-run": "node scripts/validation/tool-route-offline-dry-run.mjs",
     "tool-route:offline-dry-run:qa": "node scripts/validation/tool-route-offline-dry-run-qa.mjs",
     "tool-route:offline-dry-run:diagnostics": "node scripts/validation/tool-route-offline-dry-run-diagnostics.mjs",
+    "tool-route:offline-dry-run:qa-review:diagnostics": "node scripts/validation/tool-route-offline-dry-run-qa-diagnostics.mjs",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",
     "smoke:prod-runtime-contracts": "tsx server/smoke/production-tool-runtime-contract-smoke.ts",
     "smoke:prod-tool-registry": "tsx server/smoke/production-tool-registry-smoke.ts",

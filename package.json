@@ -25,6 +25,7 @@
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
+    "tool-route:execution-unlock:audit:diagnostics": "node scripts/validation/tool-route-execution-unlock-audit-diagnostics.mjs",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",
     "smoke:prod-runtime-contracts": "tsx server/smoke/production-tool-runtime-contract-smoke.ts",
     "smoke:prod-tool-registry": "tsx server/smoke/production-tool-registry-smoke.ts",

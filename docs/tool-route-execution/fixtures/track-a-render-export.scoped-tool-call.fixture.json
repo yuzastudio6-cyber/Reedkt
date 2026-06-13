@@ -1,0 +1,91 @@
+{
+  "manifestId": "tool_route_1_track_a_render_export_scoped_tool_call_manifest",
+  "fixtureId": "tool_route_1_track_a_render_export_fixture",
+  "planSnapshotId": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_TRACK_A_RENDER_EXPORT>",
+  "ownerWorkstream": "TOOL_ROUTE_EXECUTION",
+  "targetOwnerWorkstream": "TRACK_A_RENDER_EXPORT",
+  "sourceOwnerStudyRefs": [
+    "PR_360_TRACK_A_RENDER_EXPORT_owner_study",
+    "PR_366_TOOL_ROUTE_EXECUTION_UNLOCK_0_repo_audit"
+  ],
+  "capabilityRefs": [
+    "TRACK_A_RENDER_EXPORT.private_preview_manifest_planning"
+  ],
+  "requestedCapabilities": [
+    "static private preview route handoff planning",
+    "render export blocked-scope validation",
+    "approved plan snapshot placeholder binding"
+  ],
+  "selectedToolRefs": [
+    "remotion_composition_manifest_placeholder",
+    "track_a_private_preview_manifest_placeholder"
+  ],
+  "selectedToolMix": "track_a_manifest_only_fixture_mix",
+  "editIntentRefs": [
+    "<EDIT_INTENT_REF_PLACEHOLDER_TRACK_A_RENDER_EXPORT>"
+  ],
+  "routeRefs": [
+    "server/routes/render-routes.ts::future_render_record_placeholder",
+    "server/routes/route-helpers.ts::future_runtime_context_placeholder"
+  ],
+  "workerJobRef": "<WORKER_JOB_REF_PLACEHOLDER_TRACK_A_RENDER_EXPORT>",
+  "inputArtifactRefs": [
+    "<PRIVATE_SOURCE_GRAPHICS_ARTIFACT_REF_PLACEHOLDER_TRACK_A>"
+  ],
+  "outputArtifactScopes": [
+    "<PRIVATE_PREVIEW_MANIFEST_SCOPE_PLACEHOLDER_TRACK_A>"
+  ],
+  "privateArtifactManifestRefs": [
+    "<PRIVATE_ARTIFACT_MANIFEST_REF_PLACEHOLDER_TRACK_A>"
+  ],
+  "checksumRequirements": [
+    "sha256_placeholder_required_for_preview_manifest_inputs"
+  ],
+  "QARequirements": [
+    "safe_zone_placeholder_review",
+    "text_readability_placeholder_review",
+    "final_render_export_blocked_review"
+  ],
+  "observabilityRequirements": [
+    "correlationId_placeholder_required",
+    "routeInvocationId_placeholder_required",
+    "redacted_event_log_placeholder_required"
+  ],
+  "blockedUses": [
+    "raw_prompt_execution",
+    "route_execution",
+    "tool_execution",
+    "worker_execution",
+    "provider_model_runtime",
+    "remotion_render_export",
+    "final_render_export",
+    "signed_url_as_source_of_truth",
+    "public_artifact",
+    "supabase_mutation",
+    "storage_transfer",
+    "internal_beta_unlock",
+    "external_beta_unlock",
+    "production_unlock"
+  ],
+  "approvalState": "dry_run_fixture_plan_only",
+  "noRawPromptExecution": true,
+  "noSignedUrlSourceOfTruth": true,
+  "noPublicArtifact": true,
+  "noSupabaseMutation": true,
+  "routeExecutionApprovedNow": false,
+  "toolExecutionApprovedNow": false,
+  "workerExecutionApprovedNow": false,
+  "providerRuntimeApprovedNow": false,
+  "supabaseMutationApprovedNow": false,
+  "publicArtifactsApproved": false,
+  "signedUrlsApproved": false,
+  "rawPromptExecutionApproved": false,
+  "internalBetaApproved": false,
+  "externalBetaApproved": false,
+  "productionApproved": false,
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no"
+}

@@ -1,0 +1,94 @@
+{
+  "manifestId": "tool_route_1_ai_tools_creative_graphics_scoped_tool_call_manifest",
+  "fixtureId": "tool_route_1_ai_tools_creative_graphics_fixture",
+  "planSnapshotId": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_AI_TOOLS_CREATIVE_GRAPHICS>",
+  "ownerWorkstream": "TOOL_ROUTE_EXECUTION",
+  "targetOwnerWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "sourceOwnerStudyRefs": [
+    "PR_360_AI_TOOLS_CREATIVE_GRAPHICS_owner_study",
+    "PR_366_TOOL_ROUTE_EXECUTION_UNLOCK_0_repo_audit"
+  ],
+  "capabilityRefs": [
+    "AI_TOOLS_CREATIVE_GRAPHICS.synthetic_vector_dataviz_card_motion_planning"
+  ],
+  "requestedCapabilities": [
+    "static creative graphics route handoff planning",
+    "private artifact manifest placeholder binding",
+    "QA and checksum placeholder validation"
+  ],
+  "selectedToolRefs": [
+    "svg_js_vector_graphics",
+    "d3_dataviz",
+    "echarts_dataviz",
+    "vega_lite_dataviz",
+    "satori_social_cards",
+    "viz_graphviz_diagrams"
+  ],
+  "selectedToolMix": "synthetic_static_creative_graphics_fixture_mix",
+  "editIntentRefs": [
+    "<EDIT_INTENT_REF_PLACEHOLDER_AI_TOOLS_CREATIVE_GRAPHICS>"
+  ],
+  "routeRefs": [
+    "server/routes/worker-routes.ts::future_scoped_tool_route_placeholder",
+    "server/routes/route-helpers.ts::future_runtime_context_placeholder"
+  ],
+  "workerJobRef": "<WORKER_JOB_REF_PLACEHOLDER_AI_TOOLS_CREATIVE_GRAPHICS>",
+  "inputArtifactRefs": [
+    "<PRIVATE_INPUT_ARTIFACT_REF_PLACEHOLDER_AI_TOOLS_CREATIVE_GRAPHICS>"
+  ],
+  "outputArtifactScopes": [
+    "<PRIVATE_OUTPUT_ARTIFACT_SCOPE_PLACEHOLDER_AI_TOOLS_CREATIVE_GRAPHICS>"
+  ],
+  "privateArtifactManifestRefs": [
+    "<PRIVATE_ARTIFACT_MANIFEST_REF_PLACEHOLDER_AI_TOOLS_CREATIVE_GRAPHICS>"
+  ],
+  "checksumRequirements": [
+    "sha256_placeholder_required_for_each_private_output"
+  ],
+  "QARequirements": [
+    "safe_zone_placeholder_review",
+    "text_readability_placeholder_review",
+    "source_truth_placeholder_review"
+  ],
+  "observabilityRequirements": [
+    "correlationId_placeholder_required",
+    "routeInvocationId_placeholder_required",
+    "redacted_event_log_placeholder_required"
+  ],
+  "blockedUses": [
+    "raw_prompt_execution",
+    "route_execution",
+    "tool_execution",
+    "worker_execution",
+    "provider_model_runtime",
+    "signed_url_as_source_of_truth",
+    "public_artifact",
+    "supabase_mutation",
+    "storage_transfer",
+    "final_render_export",
+    "internal_beta_unlock",
+    "external_beta_unlock",
+    "production_unlock"
+  ],
+  "approvalState": "dry_run_fixture_plan_only",
+  "noRawPromptExecution": true,
+  "noSignedUrlSourceOfTruth": true,
+  "noPublicArtifact": true,
+  "noSupabaseMutation": true,
+  "routeExecutionApprovedNow": false,
+  "toolExecutionApprovedNow": false,
+  "workerExecutionApprovedNow": false,
+  "providerRuntimeApprovedNow": false,
+  "supabaseMutationApprovedNow": false,
+  "publicArtifactsApproved": false,
+  "signedUrlsApproved": false,
+  "rawPromptExecutionApproved": false,
+  "internalBetaApproved": false,
+  "externalBetaApproved": false,
+  "productionApproved": false,
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no"
+}

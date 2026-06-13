@@ -1,0 +1,92 @@
+{
+  "manifestId": "tool_route_1_sound_music_audio_scoped_tool_call_manifest",
+  "fixtureId": "tool_route_1_sound_music_audio_fixture",
+  "planSnapshotId": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_SOUND_MUSIC_AUDIO>",
+  "ownerWorkstream": "TOOL_ROUTE_EXECUTION",
+  "targetOwnerWorkstream": "SOUND_MUSIC_AUDIO",
+  "sourceOwnerStudyRefs": [
+    "PR_360_SOUND_MUSIC_AUDIO_owner_study",
+    "PR_366_TOOL_ROUTE_EXECUTION_UNLOCK_0_repo_audit"
+  ],
+  "capabilityRefs": [
+    "SOUND_MUSIC_AUDIO.timing_audio_metadata_planning"
+  ],
+  "requestedCapabilities": [
+    "static audio cue route handoff planning",
+    "voice-first QA placeholder validation",
+    "audio processing blocked-scope validation"
+  ],
+  "selectedToolRefs": [
+    "soundsync_timing_manifest_placeholder",
+    "sfx_director_manifest_placeholder",
+    "music_ducking_plan_placeholder"
+  ],
+  "selectedToolMix": "sound_music_audio_manifest_only_fixture_mix",
+  "editIntentRefs": [
+    "<EDIT_INTENT_REF_PLACEHOLDER_SOUND_MUSIC_AUDIO>"
+  ],
+  "routeRefs": [
+    "server/routes/worker-routes.ts::future_audio_tool_route_placeholder",
+    "server/routes/route-helpers.ts::future_runtime_context_placeholder"
+  ],
+  "workerJobRef": "<WORKER_JOB_REF_PLACEHOLDER_SOUND_MUSIC_AUDIO>",
+  "inputArtifactRefs": [
+    "<PRIVATE_AUDIO_TIMING_INPUT_REF_PLACEHOLDER>"
+  ],
+  "outputArtifactScopes": [
+    "<PRIVATE_AUDIO_MANIFEST_SCOPE_PLACEHOLDER>"
+  ],
+  "privateArtifactManifestRefs": [
+    "<PRIVATE_ARTIFACT_MANIFEST_REF_PLACEHOLDER_SOUND_MUSIC_AUDIO>"
+  ],
+  "checksumRequirements": [
+    "sha256_placeholder_required_for_audio_manifest_outputs"
+  ],
+  "QARequirements": [
+    "speech_clarity_placeholder_review",
+    "music_ducking_placeholder_review",
+    "audio_processing_blocked_review"
+  ],
+  "observabilityRequirements": [
+    "correlationId_placeholder_required",
+    "routeInvocationId_placeholder_required",
+    "redacted_event_log_placeholder_required"
+  ],
+  "blockedUses": [
+    "raw_prompt_execution",
+    "route_execution",
+    "tool_execution",
+    "worker_execution",
+    "provider_model_runtime",
+    "media_processing",
+    "audio_processing",
+    "signed_url_as_source_of_truth",
+    "public_artifact",
+    "supabase_mutation",
+    "storage_transfer",
+    "internal_beta_unlock",
+    "external_beta_unlock",
+    "production_unlock"
+  ],
+  "approvalState": "dry_run_fixture_plan_only",
+  "noRawPromptExecution": true,
+  "noSignedUrlSourceOfTruth": true,
+  "noPublicArtifact": true,
+  "noSupabaseMutation": true,
+  "routeExecutionApprovedNow": false,
+  "toolExecutionApprovedNow": false,
+  "workerExecutionApprovedNow": false,
+  "providerRuntimeApprovedNow": false,
+  "supabaseMutationApprovedNow": false,
+  "publicArtifactsApproved": false,
+  "signedUrlsApproved": false,
+  "rawPromptExecutionApproved": false,
+  "internalBetaApproved": false,
+  "externalBetaApproved": false,
+  "productionApproved": false,
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no"
+}

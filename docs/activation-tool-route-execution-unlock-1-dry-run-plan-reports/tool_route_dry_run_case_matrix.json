@@ -1,0 +1,1625 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-1",
+  "branch": "codex/tool-route-execution-unlock-1-dry-run-plan",
+  "baseBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+  "baseCommit": "c84df541f9259e61b719aab967b22343a42a221f",
+  "decision": "tool_route_dry_run_plan_ready_with_warnings",
+  "nextPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+  "generatedAt": "deterministic_metadata_packet",
+  "sourceOfTruth": {
+    "pr369Merged": true,
+    "pr360Merged": true,
+    "baseContainsPendingOwnerStudies": true,
+    "baseContainsToolRouteRepoAudit": true,
+    "sourceFilesReadAsTextOnly": true,
+    "noRuntimeSourcesExecuted": true
+  },
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "jobDispatchAllowed": false,
+    "jobClaimAllowed": false,
+    "jobLeaseAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeMutationAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "demucsExecutionAllowed": false,
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  },
+  "reportType": "synthetic_case_matrix",
+  "caseCount": 18,
+  "validPlanningCaseCount": 10,
+  "blockedPlanningCaseCount": 8,
+  "expectedCaseCount": 18,
+  "cases": [
+    {
+      "caseId": "intent_to_capability_text_edit",
+      "intentClass": "text_edit",
+      "syntheticInputSummary": "Synthetic request to rewrite overlay copy using approved snapshot metadata only.",
+      "requiredStructuredAgentFindings": [
+        "approved snapshot text operation intent",
+        "caption readability constraints",
+        "source-truth placeholder refs"
+      ],
+      "requiredEditIntents": [
+        "rewrite_overlay_copy",
+        "preserve_source_order",
+        "keep_frame_constraints"
+      ],
+      "candidateCapabilities": [
+        "text_edit_planning",
+        "caption_copy_review"
+      ],
+      "candidateTools": [
+        "metadata_only_text_transform_candidate"
+      ],
+      "candidateRoutes": [
+        "tool_route_metadata_dry_run"
+      ],
+      "scoringExpectation": "Select deterministic metadata-only text planning candidate and require no direct edit execution.",
+      "selectedOrBlockedDecision": "selected_metadata_text_edit_route_candidate",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "direct_tool_execution",
+        "route_execution",
+        "raw_prompt_execution"
+      ],
+      "validationEvidenceRequired": [
+        "approved snapshot ref",
+        "structured findings ref",
+        "copy decision ref",
+        "audit ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_text_edit",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_text_edit",
+        "manifestRef": "manifest_ref:synthetic_intent_to_capability_text_edit",
+        "checksumRef": "checksum_ref:synthetic_intent_to_capability_text_edit",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_text_edit"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "intent_to_capability_graphics_request",
+      "intentClass": "graphics",
+      "syntheticInputSummary": "Synthetic request for a controlled title card and diagram plan.",
+      "requiredStructuredAgentFindings": [
+        "graphic asset type",
+        "layout safe-zone requirement",
+        "private artifact ref requirement"
+      ],
+      "requiredEditIntents": [
+        "plan_title_card",
+        "plan_diagram_overlay"
+      ],
+      "candidateCapabilities": [
+        "AI_TOOLS_CREATIVE_GRAPHICS",
+        "controlled_graphic_planning"
+      ],
+      "candidateTools": [
+        "graphics_metadata_candidate"
+      ],
+      "candidateRoutes": [
+        "creative_graphics_route_candidate"
+      ],
+      "scoringExpectation": "Prefer controlled graphics planning over provider generation for exact labels.",
+      "selectedOrBlockedDecision": "selected_creative_graphics_metadata_route",
+      "handoffOwner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "blockedActions": [
+        "image_generation",
+        "public_artifact_creation",
+        "provider_execution"
+      ],
+      "validationEvidenceRequired": [
+        "capability study ref",
+        "artifact boundary ref",
+        "manifest placeholder ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_graphics_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_graphics_request",
+        "manifestRef": "manifest_ref:synthetic_intent_to_capability_graphics_request",
+        "checksumRef": "checksum_ref:synthetic_intent_to_capability_graphics_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_graphics_request"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "intent_to_capability_map_request",
+      "intentClass": "map",
+      "syntheticInputSummary": "Synthetic request for a location route visual using placeholder source certainty.",
+      "requiredStructuredAgentFindings": [
+        "map location confidence",
+        "label safety constraints",
+        "approximate geography policy"
+      ],
+      "requiredEditIntents": [
+        "plan_map_visual",
+        "preserve_location_uncertainty"
+      ],
+      "candidateCapabilities": [
+        "MAP_GEOSPATIAL",
+        "controlled_map_planning"
+      ],
+      "candidateTools": [
+        "map_metadata_candidate"
+      ],
+      "candidateRoutes": [
+        "map_route_candidate"
+      ],
+      "scoringExpectation": "Route to completed map/geospatial study evidence and block browser or map execution.",
+      "selectedOrBlockedDecision": "selected_map_metadata_route",
+      "handoffOwner": "MAP_GEOSPATIAL",
+      "blockedActions": [
+        "map_execution",
+        "browser_capture",
+        "public_tile_artifact"
+      ],
+      "validationEvidenceRequired": [
+        "completed map study ref",
+        "private source refs",
+        "label safety ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_map_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_map_request",
+        "manifestRef": "manifest_ref:synthetic_intent_to_capability_map_request",
+        "checksumRef": "checksum_ref:synthetic_intent_to_capability_map_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_map_request"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "intent_to_capability_web_capture_request",
+      "intentClass": "web_capture",
+      "syntheticInputSummary": "Synthetic request for a browser capture plan with source-capture privacy boundaries.",
+      "requiredStructuredAgentFindings": [
+        "capture purpose",
+        "private artifact manifest requirement",
+        "browser capture blocked"
+      ],
+      "requiredEditIntents": [
+        "plan_web_capture_visual",
+        "record_private_capture_refs"
+      ],
+      "candidateCapabilities": [
+        "WEB_SEARCH_CAPTURE",
+        "browser_capture_planning"
+      ],
+      "candidateTools": [
+        "web_capture_metadata_candidate"
+      ],
+      "candidateRoutes": [
+        "web_capture_route_candidate"
+      ],
+      "scoringExpectation": "Use completed web-search/capture study evidence and defer browser execution to later owner gates.",
+      "selectedOrBlockedDecision": "selected_web_capture_metadata_route",
+      "handoffOwner": "WEB_SEARCH_CAPTURE",
+      "blockedActions": [
+        "browser_capture",
+        "storage_transfer",
+        "public_artifact_creation"
+      ],
+      "validationEvidenceRequired": [
+        "completed web capture study ref",
+        "capture privacy ref",
+        "artifact boundary ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_web_capture_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_web_capture_request",
+        "manifestRef": "manifest_ref:synthetic_intent_to_capability_web_capture_request",
+        "checksumRef": "checksum_ref:synthetic_intent_to_capability_web_capture_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_web_capture_request"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "intent_to_capability_audio_request",
+      "intentClass": "audio",
+      "syntheticInputSummary": "Synthetic request for SoundSync timing and SFX planning without audio processing.",
+      "requiredStructuredAgentFindings": [
+        "sound cue reason",
+        "speech-safe timing policy",
+        "audio processing blocked"
+      ],
+      "requiredEditIntents": [
+        "plan_soundsync_cues",
+        "plan_audio_cleanup_metadata"
+      ],
+      "candidateCapabilities": [
+        "SOUND_MUSIC_AUDIO",
+        "audio_metadata_planning"
+      ],
+      "candidateTools": [
+        "audio_plan_metadata_candidate"
+      ],
+      "candidateRoutes": [
+        "sound_music_audio_route_candidate"
+      ],
+      "scoringExpectation": "Prefer SoundSync metadata planning and keep all provider/audio worker calls blocked.",
+      "selectedOrBlockedDecision": "selected_audio_metadata_route",
+      "handoffOwner": "SOUND_MUSIC_AUDIO",
+      "blockedActions": [
+        "audio_processing",
+        "sfx_provider_call",
+        "media_execution"
+      ],
+      "validationEvidenceRequired": [
+        "sound study ref",
+        "timing policy ref",
+        "voice-first guardrail ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_audio_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_audio_request",
+        "manifestRef": "manifest_ref:synthetic_intent_to_capability_audio_request",
+        "checksumRef": "checksum_ref:synthetic_intent_to_capability_audio_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_audio_request"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "intent_to_capability_media_processing_request",
+      "intentClass": "media_processing",
+      "syntheticInputSummary": "Synthetic request for metadata-only media analysis and processing plan.",
+      "requiredStructuredAgentFindings": [
+        "media operation class",
+        "private artifact scope",
+        "worker processing blocked"
+      ],
+      "requiredEditIntents": [
+        "plan_media_processing",
+        "record_processing_dependencies"
+      ],
+      "candidateCapabilities": [
+        "TRACK_B_MEDIA_PROCESSING"
+      ],
+      "candidateTools": [
+        "track_b_metadata_candidate"
+      ],
+      "candidateRoutes": [
+        "track_b_media_processing_route_candidate"
+      ],
+      "scoringExpectation": "Route to Track B metadata planning while preserving no media execution.",
+      "selectedOrBlockedDecision": "selected_track_b_metadata_route",
+      "handoffOwner": "TRACK_B_MEDIA_PROCESSING",
+      "blockedActions": [
+        "ffmpeg_execution",
+        "media_processing",
+        "worker_dispatch"
+      ],
+      "validationEvidenceRequired": [
+        "Track B capability ref",
+        "route manifest ref",
+        "private source refs"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_media_processing_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_media_processing_request",
+        "manifestRef": "manifest_ref:synthetic_intent_to_capability_media_processing_request",
+        "checksumRef": "checksum_ref:synthetic_intent_to_capability_media_processing_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_media_processing_request"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "intent_to_capability_render_export_request",
+      "intentClass": "render_export",
+      "syntheticInputSummary": "Synthetic request for final render/export planning from approved metadata.",
+      "requiredStructuredAgentFindings": [
+        "render dependency map",
+        "export blocked until required assets ready",
+        "no final render execution"
+      ],
+      "requiredEditIntents": [
+        "plan_render_export",
+        "plan_asset_manifest_dependencies"
+      ],
+      "candidateCapabilities": [
+        "TRACK_A_RENDER_EXPORT"
+      ],
+      "candidateTools": [
+        "track_a_render_plan_candidate"
+      ],
+      "candidateRoutes": [
+        "track_a_render_export_route_candidate"
+      ],
+      "scoringExpectation": "Route to Track A planning evidence and block render/export runtime.",
+      "selectedOrBlockedDecision": "selected_track_a_metadata_route",
+      "handoffOwner": "TRACK_A_RENDER_EXPORT",
+      "blockedActions": [
+        "render_execution",
+        "final_export",
+        "public_artifact_creation"
+      ],
+      "validationEvidenceRequired": [
+        "Track A study ref",
+        "manifest dependency ref",
+        "render blocker ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_render_export_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_render_export_request",
+        "manifestRef": "manifest_ref:synthetic_intent_to_capability_render_export_request",
+        "checksumRef": "checksum_ref:synthetic_intent_to_capability_render_export_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_render_export_request"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "multi_tool_plan_graphics_to_tracka_handoff",
+      "intentClass": "multi_tool_handoff",
+      "syntheticInputSummary": "Synthetic graphics plan feeding a future render/export plan through private artifact refs.",
+      "requiredStructuredAgentFindings": [
+        "graphics asset manifest ref",
+        "render layer dependency",
+        "checksum placeholder"
+      ],
+      "requiredEditIntents": [
+        "plan_graphic_asset",
+        "plan_render_layer_handoff"
+      ],
+      "candidateCapabilities": [
+        "AI_TOOLS_CREATIVE_GRAPHICS",
+        "TRACK_A_RENDER_EXPORT"
+      ],
+      "candidateTools": [
+        "graphics_metadata_candidate",
+        "render_plan_metadata_candidate"
+      ],
+      "candidateRoutes": [
+        "creative_graphics_route_candidate",
+        "track_a_render_export_route_candidate"
+      ],
+      "scoringExpectation": "Rank handoff by source-truth completeness and explicit private artifact scope.",
+      "selectedOrBlockedDecision": "selected_graphics_to_tracka_handoff_plan",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "asset_generation",
+        "render_execution",
+        "signed_url_creation"
+      ],
+      "validationEvidenceRequired": [
+        "graphics study ref",
+        "Track A study ref",
+        "manifest handoff ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+        "manifestRef": "manifest_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+        "checksumRef": "checksum_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "multi_tool_plan_trackb_to_tracka_handoff",
+      "intentClass": "multi_tool_handoff",
+      "syntheticInputSummary": "Synthetic media-processing dependency feeding a render/export plan.",
+      "requiredStructuredAgentFindings": [
+        "processed asset placeholder",
+        "provenance placeholder",
+        "render dependency edge"
+      ],
+      "requiredEditIntents": [
+        "plan_media_preprocess",
+        "plan_render_dependency"
+      ],
+      "candidateCapabilities": [
+        "TRACK_B_MEDIA_PROCESSING",
+        "TRACK_A_RENDER_EXPORT"
+      ],
+      "candidateTools": [
+        "track_b_metadata_candidate",
+        "track_a_render_plan_candidate"
+      ],
+      "candidateRoutes": [
+        "track_b_media_processing_route_candidate",
+        "track_a_render_export_route_candidate"
+      ],
+      "scoringExpectation": "Require checksum/provenance placeholders before downstream render planning.",
+      "selectedOrBlockedDecision": "selected_trackb_to_tracka_handoff_plan",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "media_processing",
+        "render_execution",
+        "worker_dispatch"
+      ],
+      "validationEvidenceRequired": [
+        "Track B route manifest ref",
+        "Track A study ref",
+        "checksum handoff ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+        "manifestRef": "manifest_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+        "checksumRef": "checksum_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "multi_tool_plan_sound_to_tracka_handoff",
+      "intentClass": "multi_tool_handoff",
+      "syntheticInputSummary": "Synthetic SoundSync timing plan feeding render layer timing metadata.",
+      "requiredStructuredAgentFindings": [
+        "audio timing cue refs",
+        "voice-safe mix requirement",
+        "render timing dependency"
+      ],
+      "requiredEditIntents": [
+        "plan_audio_cue_metadata",
+        "plan_render_timing_handoff"
+      ],
+      "candidateCapabilities": [
+        "SOUND_MUSIC_AUDIO",
+        "TRACK_A_RENDER_EXPORT"
+      ],
+      "candidateTools": [
+        "audio_plan_metadata_candidate",
+        "render_plan_metadata_candidate"
+      ],
+      "candidateRoutes": [
+        "sound_music_audio_route_candidate",
+        "track_a_render_export_route_candidate"
+      ],
+      "scoringExpectation": "Require voice-first timing evidence before downstream render timing plan.",
+      "selectedOrBlockedDecision": "selected_sound_to_tracka_handoff_plan",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "audio_processing",
+        "render_execution",
+        "provider_call"
+      ],
+      "validationEvidenceRequired": [
+        "Sound study ref",
+        "timing policy ref",
+        "Track A render ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+        "manifestRef": "manifest_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+        "checksumRef": "checksum_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff"
+      },
+      "readinessStage": "dry_run_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_raw_prompt_direct_execution",
+      "intentClass": "blocked_raw_prompt",
+      "syntheticInputSummary": "Synthetic unsafe request tries to pass raw prompt text directly to a tool route.",
+      "requiredStructuredAgentFindings": [
+        "raw prompt field rejected",
+        "structured findings required",
+        "approved snapshot required"
+      ],
+      "requiredEditIntents": [
+        "reject_raw_prompt_execution"
+      ],
+      "candidateCapabilities": [],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed before tool selection when raw prompt is the source of truth.",
+      "selectedOrBlockedDecision": "blocked_raw_prompt_requires_structured_intent_and_snapshot_refs",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "raw_prompt_execution",
+        "direct_tool_invocation",
+        "provider_execution"
+      ],
+      "validationEvidenceRequired": [
+        "fail-closed decision ref",
+        "blocked field ref",
+        "source policy ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_raw_prompt_direct_execution",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_raw_prompt_direct_execution",
+        "manifestRef": "manifest_ref:synthetic_blocked_raw_prompt_direct_execution",
+        "checksumRef": "checksum_ref:synthetic_blocked_raw_prompt_direct_execution",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_raw_prompt_direct_execution"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_signed_url_source_of_truth",
+      "intentClass": "blocked_artifact_source",
+      "syntheticInputSummary": "Synthetic unsafe request uses a signed URL class as source of truth.",
+      "requiredStructuredAgentFindings": [
+        "signed URL source rejected",
+        "private path ref required",
+        "manifest and checksum required"
+      ],
+      "requiredEditIntents": [
+        "reject_signed_url_source"
+      ],
+      "candidateCapabilities": [],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed and require private GCS path ref plus manifest and checksum placeholder.",
+      "selectedOrBlockedDecision": "blocked_signed_url_source_requires_private_source_refs",
+      "handoffOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "blockedActions": [
+        "signed_url_creation",
+        "public_artifact_creation",
+        "storage_transfer"
+      ],
+      "validationEvidenceRequired": [
+        "artifact guardrail ref",
+        "private source ref policy",
+        "checksum placeholder policy"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_signed_url_source_of_truth",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_signed_url_source_of_truth",
+        "manifestRef": "manifest_ref:synthetic_blocked_signed_url_source_of_truth",
+        "checksumRef": "checksum_ref:synthetic_blocked_signed_url_source_of_truth",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_signed_url_source_of_truth"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_public_artifact_request",
+      "intentClass": "blocked_artifact_output",
+      "syntheticInputSummary": "Synthetic unsafe request asks for public artifact output during dry-run planning.",
+      "requiredStructuredAgentFindings": [
+        "public artifact output rejected",
+        "private artifact scope required",
+        "no storage write"
+      ],
+      "requiredEditIntents": [
+        "reject_public_artifact_output"
+      ],
+      "candidateCapabilities": [],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed when output scope is public or externally accessible.",
+      "selectedOrBlockedDecision": "blocked_public_artifact_requires_private_manifest_handoff",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "public_artifact_creation",
+        "signed_url_creation",
+        "storage_write"
+      ],
+      "validationEvidenceRequired": [
+        "artifact boundary ref",
+        "private manifest ref",
+        "no-execution policy ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_public_artifact_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_public_artifact_request",
+        "manifestRef": "manifest_ref:synthetic_blocked_public_artifact_request",
+        "checksumRef": "checksum_ref:synthetic_blocked_public_artifact_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_public_artifact_request"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_tool_runtime_execution",
+      "intentClass": "blocked_tool_runtime",
+      "syntheticInputSummary": "Synthetic unsafe request attempts to invoke a tool runtime directly.",
+      "requiredStructuredAgentFindings": [
+        "direct tool invocation rejected",
+        "dry-run contract missing",
+        "owner approval required"
+      ],
+      "requiredEditIntents": [
+        "reject_tool_runtime_execution"
+      ],
+      "candidateCapabilities": [
+        "TOOL_ROUTE_EXECUTION"
+      ],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed until dry-run contract and later execution gates exist.",
+      "selectedOrBlockedDecision": "blocked_tool_runtime_execution_not_approved",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "tool_execution",
+        "route_execution",
+        "worker_dispatch"
+      ],
+      "validationEvidenceRequired": [
+        "runtime blocker register ref",
+        "owner handoff ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_tool_runtime_execution",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_tool_runtime_execution",
+        "manifestRef": "manifest_ref:synthetic_blocked_tool_runtime_execution",
+        "checksumRef": "checksum_ref:synthetic_blocked_tool_runtime_execution",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_tool_runtime_execution"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_route_runtime_execution",
+      "intentClass": "blocked_route_runtime",
+      "syntheticInputSummary": "Synthetic unsafe request attempts to call a route runtime directly.",
+      "requiredStructuredAgentFindings": [
+        "route invocation rejected",
+        "contract-only dry-run stage",
+        "no server route mutation"
+      ],
+      "requiredEditIntents": [
+        "reject_route_runtime_execution"
+      ],
+      "candidateCapabilities": [
+        "TOOL_ROUTE_EXECUTION"
+      ],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed until route dry-run contract and safety checks are approved.",
+      "selectedOrBlockedDecision": "blocked_route_runtime_execution_not_approved",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "blockedActions": [
+        "route_execution",
+        "api_route_call",
+        "worker_dispatch"
+      ],
+      "validationEvidenceRequired": [
+        "route blocker ref",
+        "dry-run planning ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_route_runtime_execution",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_route_runtime_execution",
+        "manifestRef": "manifest_ref:synthetic_blocked_route_runtime_execution",
+        "checksumRef": "checksum_ref:synthetic_blocked_route_runtime_execution",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_route_runtime_execution"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_provider_runtime_execution",
+      "intentClass": "blocked_provider_runtime",
+      "syntheticInputSummary": "Synthetic unsafe request attempts provider/model execution inside tool routing.",
+      "requiredStructuredAgentFindings": [
+        "provider runtime rejected",
+        "secret access blocked",
+        "model call blocked"
+      ],
+      "requiredEditIntents": [
+        "reject_provider_runtime_execution"
+      ],
+      "candidateCapabilities": [
+        "MODEL_ORCHESTRATION_PLAN_SNAPSHOT"
+      ],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed; provider evidence remains historical metadata only.",
+      "selectedOrBlockedDecision": "blocked_provider_runtime_execution_not_approved",
+      "handoffOwner": "PROVIDER_GATEWAY_MODELS",
+      "blockedActions": [
+        "provider_call",
+        "model_call",
+        "secret_access"
+      ],
+      "validationEvidenceRequired": [
+        "provider dry-run evidence ref",
+        "secret boundary ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_provider_runtime_execution",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_provider_runtime_execution",
+        "manifestRef": "manifest_ref:synthetic_blocked_provider_runtime_execution",
+        "checksumRef": "checksum_ref:synthetic_blocked_provider_runtime_execution",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_provider_runtime_execution"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_worker_runtime_execution",
+      "intentClass": "blocked_worker_runtime",
+      "syntheticInputSummary": "Synthetic unsafe request attempts worker dispatch, claim, or lease mutation.",
+      "requiredStructuredAgentFindings": [
+        "worker runtime rejected",
+        "job mutation blocked",
+        "metadata dry-run only"
+      ],
+      "requiredEditIntents": [
+        "reject_worker_runtime_execution"
+      ],
+      "candidateCapabilities": [
+        "WORKER_RUNTIME_JOBS"
+      ],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed until worker runtime owner approves later execution gates.",
+      "selectedOrBlockedDecision": "blocked_worker_runtime_execution_not_approved",
+      "handoffOwner": "WORKER_RUNTIME_JOBS",
+      "blockedActions": [
+        "worker_execution",
+        "job_dispatch",
+        "job_claim",
+        "job_lease"
+      ],
+      "validationEvidenceRequired": [
+        "worker fixture plan ref",
+        "worker runtime blocker ref"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_worker_runtime_execution",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_worker_runtime_execution",
+        "manifestRef": "manifest_ref:synthetic_blocked_worker_runtime_execution",
+        "checksumRef": "checksum_ref:synthetic_blocked_worker_runtime_execution",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_worker_runtime_execution"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    },
+    {
+      "caseId": "blocked_supabase_mutation_request",
+      "intentClass": "blocked_supabase_mutation",
+      "syntheticInputSummary": "Synthetic unsafe request attempts Supabase row or storage mutation.",
+      "requiredStructuredAgentFindings": [
+        "Supabase mutation rejected",
+        "SQL and migration blocked",
+        "owner handoff required"
+      ],
+      "requiredEditIntents": [
+        "reject_supabase_mutation"
+      ],
+      "candidateCapabilities": [
+        "SUPABASE_RLS_STORAGE_DATABASE"
+      ],
+      "candidateTools": [],
+      "candidateRoutes": [],
+      "scoringExpectation": "Fail closed; source refs are placeholders and no database connection is allowed.",
+      "selectedOrBlockedDecision": "blocked_supabase_mutation_requires_owner_handoff",
+      "handoffOwner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "blockedActions": [
+        "supabase_write",
+        "sql_execution",
+        "migration",
+        "storage_write"
+      ],
+      "validationEvidenceRequired": [
+        "Supabase handoff ref",
+        "no-SQL policy ref",
+        "source ref policy"
+      ],
+      "sourceOfTruthRefs": {
+        "supabaseRowRef": "supabase_row_ref:synthetic_blocked_supabase_mutation_request",
+        "privateGcsPathRef": "private_gcs_path_ref:synthetic_blocked_supabase_mutation_request",
+        "manifestRef": "manifest_ref:synthetic_blocked_supabase_mutation_request",
+        "checksumRef": "checksum_ref:synthetic_blocked_supabase_mutation_request",
+        "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_blocked_supabase_mutation_request"
+      },
+      "readinessStage": "blocked_fixture_plan_ready",
+      "nextUnlockGate": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+      "rawPromptAccepted": false,
+      "rawProviderOutputAccepted": false,
+      "directToolInvocationAccepted": false,
+      "directRouteInvocationAccepted": false,
+      "executableWorkerPayloadAccepted": false,
+      "providerSecretAccepted": false,
+      "serviceRoleKeyAccepted": false,
+      "signedUrlSourceOfTruthAccepted": false,
+      "publicArtifactAccepted": false,
+      "betaProductionTargetAccepted": false,
+      "realUserDataAccepted": false,
+      "privateProjectPayloadAccepted": false,
+      "mediaPayloadAccepted": false,
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false
+      }
+    }
+  ]
+}

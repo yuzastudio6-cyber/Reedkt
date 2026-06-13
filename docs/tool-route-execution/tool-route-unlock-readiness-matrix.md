@@ -52,6 +52,25 @@ Signed URLs approved: `false`
 Internal beta approved: `false`
 Production approved: `false`
 
+## TOOL-ROUTE-4 Offline Dry-Run Execution
+
+TOOL-ROUTE-4 runs the approved offline/static dry-run over all seven committed scoped tool-call fixture JSON files and writes ignored local evidence only under `.local-artifacts/tool-route/tool-route-4/tool-route-4-local-static/`.
+
+Updated readiness state: `tool_route_offline_dry_run_passed_with_warnings`
+
+Future offline dry-run execution approved: `true`
+Route execution approved: `false`
+Tool execution approved: `false`
+Worker execution approved: `false`
+Provider/model runtime approved: `false`
+Media runtime approved: `false`
+Audio runtime approved: `false`
+Supabase mutation approved: `false`
+Public artifacts approved: `false`
+Signed URLs approved: `false`
+Internal beta approved: `false`
+Production approved: `false`
+
 ## TOOL-ROUTE-3 Offline Dry-Run Approval Packet
 
 TOOL-ROUTE-3 approves a future offline dry-run prompt with warnings only. PR #366 remains open/draft and conflicting, while PR #368, PR #372, PR #370, and PR #378 remain draft/open. This is branch-stack hygiene risk, not approval for live route execution.

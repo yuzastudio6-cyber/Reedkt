@@ -570,6 +570,7 @@
     "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "track-a:current-source-evidence:diagnostics": "node scripts/validation/track-a-current-source-evidence-packet-diagnostics.mjs",
     "track-a:visual-review-packet:diagnostics": "node scripts/validation/track-a-visual-review-packet-diagnostics.mjs",
+    "track-a:visual-review-2a-intake:diagnostics": "node scripts/validation/track-a-visual-review-2a-intake-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

@@ -2,6 +2,10 @@
 
 Recommended next prompt: `TOOL-ROUTE-3 - Offline Tool Route Dry-Run Approval Packet`
 
+TOOL-ROUTE-3 implementation status: `approved_with_warnings_for_tool_route_4`
+
+TOOL-ROUTE-3 creates the approval packet for a future TOOL-ROUTE-4 offline dry-run. It does not execute the dry-run, import route handlers, import tool runtimes, execute workers, call providers/models, touch Supabase, process media/audio, upload artifacts, create signed URLs, create public artifacts, or unlock beta/production.
+
 Allowed future TOOL-ROUTE-3 work:
 
 - Review TOOL-ROUTE-2 offline contract test evidence.

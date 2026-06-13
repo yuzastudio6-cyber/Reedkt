@@ -14,6 +14,10 @@ PR title: `[tool-route] TOOL-ROUTE-2 offline contract test execution`
 
 PR state: draft because PR #368 is draft/open at implementation time.
 
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/370
+
+PR #370 status: `OPEN`, draft `true`, `MERGEABLE / CLEAN`, base `codex/rp-tool-route-1-dry-run-fixture-plan-contract-tests`, head `codex/rp-tool-route-2-offline-contract-test-execution`, check rollup `none`.
+
 ## Source Evidence
 
 - PR #360: owner-study packet, state `MERGED`.

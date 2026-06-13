@@ -4,6 +4,10 @@ Status: `passed_with_warnings`
 
 Tool-route readiness state: `tool_route_offline_contract_tests_passed_with_warnings`
 
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/370
+
+PR #370 status: `OPEN`, draft `true`, `MERGEABLE / CLEAN`, base `codex/rp-tool-route-1-dry-run-fixture-plan-contract-tests`, head `codex/rp-tool-route-2-offline-contract-test-execution`, check rollup `none`.
+
 ## Source-Of-Truth Read Status
 
 - PR #360: state `MERGED`, merge commit `0699ae921af3b8980b93221bec094d842d61ddba`.

@@ -1,6 +1,6 @@
 # Prompt WORKER-9 Controlled Job Claim/Lease Gate Approval Packet
 
-implementationStatus: `implemented_validation_passed_pending_pr`
+implementationStatus: `implemented_validation_passed_pr_open`
 
 decisionState: `approved_with_warnings_for_worker_10`
 
@@ -38,11 +38,11 @@ No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API c
 
 ## PR And Validation
 
-PR: `pending_after_creation`
+PR: [#413](https://github.com/yuzastudio6-cyber/Reedkt/pull/413)
 
 Validation: `passed_dependency_backed_local`
 
-PR status after creation: `pending_after_creation`
+PR status after creation: `open_draft_mergeable_clean_empty_check_rollup`
 
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`

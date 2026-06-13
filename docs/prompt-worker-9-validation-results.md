@@ -21,9 +21,9 @@ futureControlledJobClaimLeaseNoopApproved: `true`
 
 Initial local validation status: `passed`.
 
-PR: `pending_after_creation`
+PR: [#413](https://github.com/yuzastudio6-cyber/Reedkt/pull/413)
 
-PR status: `pending_after_creation`
+PR status: `open_draft_mergeable_clean_empty_check_rollup`
 
 Base gaps recorded: broad foundation docs, source-map docs, milestone docs, internal-beta docs, and `scripts/validation/run-foundation-validation.mjs` were absent on this stacked branch and were not fabricated.
 
@@ -51,6 +51,15 @@ Base gaps recorded: broad foundation docs, source-map docs, milestone docs, inte
 - `npm run prod:beta:summary`: `passed_internal_testing_ready_external_beta_blocked`
 - changed-file secret scan: `passed`
 - `.local-artifacts/` staged check: `passed_not_staged`
+
+## PR Check Status
+
+- PR #413 state: `OPEN`
+- PR #413 draft: `true`
+- PR #413 mergeability: `MERGEABLE`
+- PR #413 merge state: `CLEAN`
+- PR #413 head SHA after first commit: `04d3d902e0bebd0d9b88d01d1720c73cc9ef05b8`
+- PR #413 status check rollup: `empty`
 
 ## Safety Result
 

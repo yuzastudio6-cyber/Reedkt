@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "tool_route_capability_candidates_v1",
+  "candidateCount": 26,
+  "candidates": [
+    {
+      "candidateId": "capability_candidate:intent_to_capability_text_edit:1",
+      "capabilityId": "text_edit_planning",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_text_edit_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_text_edit:2",
+      "capabilityId": "caption_copy_review",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_text_edit_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_graphics_request:1",
+      "capabilityId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_graphics_request_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_graphics_request:2",
+      "capabilityId": "controlled_graphic_planning",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_graphics_request_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_map_request:1",
+      "capabilityId": "MAP_GEOSPATIAL",
+      "owner": "MAP_GEOSPATIAL",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_map_request_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_map_request:2",
+      "capabilityId": "controlled_map_planning",
+      "owner": "MAP_GEOSPATIAL",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_map_request_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_web_capture_request:1",
+      "capabilityId": "WEB_SEARCH_CAPTURE",
+      "owner": "WEB_SEARCH_CAPTURE",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_web_capture_request_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_web_capture_request:2",
+      "capabilityId": "browser_capture_planning",
+      "owner": "WEB_SEARCH_CAPTURE",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_web_capture_request_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_audio_request:1",
+      "capabilityId": "SOUND_MUSIC_AUDIO",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_audio_request_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_audio_request:2",
+      "capabilityId": "audio_metadata_planning",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_audio_request_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_media_processing_request:1",
+      "capabilityId": "TRACK_B_MEDIA_PROCESSING",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_media_processing_request_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:intent_to_capability_render_export_request:1",
+      "capabilityId": "TRACK_A_RENDER_EXPORT",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_render_export_request_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+      "capabilityId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:multi_tool_plan_graphics_to_tracka_handoff:2",
+      "capabilityId": "TRACK_A_RENDER_EXPORT",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+      "capabilityId": "TRACK_B_MEDIA_PROCESSING",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:multi_tool_plan_trackb_to_tracka_handoff:2",
+      "capabilityId": "TRACK_A_RENDER_EXPORT",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+      "capabilityId": "SOUND_MUSIC_AUDIO",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:multi_tool_plan_sound_to_tracka_handoff:2",
+      "capabilityId": "TRACK_A_RENDER_EXPORT",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff_2",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_raw_prompt_direct_execution:1",
+      "capabilityId": "blocked_capability_candidate",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_raw_prompt_direct_execution_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_signed_url_source_of_truth:1",
+      "capabilityId": "blocked_capability_candidate",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_signed_url_source_of_truth_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_public_artifact_request:1",
+      "capabilityId": "blocked_capability_candidate",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_public_artifact_request_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_tool_runtime_execution:1",
+      "capabilityId": "TOOL_ROUTE_EXECUTION",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_tool_runtime_execution_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_route_runtime_execution:1",
+      "capabilityId": "TOOL_ROUTE_EXECUTION",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_route_runtime_execution_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_provider_runtime_execution:1",
+      "capabilityId": "MODEL_ORCHESTRATION_PLAN_SNAPSHOT",
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_provider_runtime_execution_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_worker_runtime_execution:1",
+      "capabilityId": "WORKER_RUNTIME_JOBS",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_worker_runtime_execution_1",
+      "runtimeReady": false
+    },
+    {
+      "candidateId": "capability_candidate:blocked_supabase_mutation_request:1",
+      "capabilityId": "SUPABASE_RLS_STORAGE_DATABASE",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "sourceEvidenceRef": "source_evidence_ref:synthetic_blocked_supabase_mutation_request_1",
+      "runtimeReady": false
+    }
+  ],
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "jobDispatchAllowed": false,
+    "jobClaimAllowed": false,
+    "jobLeaseAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeMutationAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "demucsExecutionAllowed": false,
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "generatedLocalFixturePassedClaimed": false,
+    "toolExecutionReady": false,
+    "routeExecutionReady": false,
+    "workerExecutionReady": false,
+    "supabasePersistenceReady": false,
+    "betaReady": false,
+    "productionReady": false
+  }
+}

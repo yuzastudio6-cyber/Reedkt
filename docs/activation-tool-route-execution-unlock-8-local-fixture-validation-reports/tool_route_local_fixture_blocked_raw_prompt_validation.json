@@ -1,0 +1,10 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "blocked_raw_prompt_validation",
+  "status": "passed",
+  "blockedCaseId": "blocked_raw_prompt_direct_execution",
+  "blockedFieldClass": "rawPrompt",
+  "rawPromptDirectExecutionAllowed": false,
+  "requiredPath": "structured agent findings -> edit intents -> approved plan snapshot",
+  "rawPromptExecution": false
+}

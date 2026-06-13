@@ -1,0 +1,11 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "scoring_policy_validation",
+  "status": "passed",
+  "sourceReport": "docs/activation-tool-route-execution-unlock-7-local-fixture-plan-reports/tool_route_local_fixture_scoring_policy_plan.json",
+  "scoringPolicyFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_scoring_policy.json",
+  "scoringPolicyPresent": true,
+  "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+  "selectionMode": "metadata_only_contract",
+  "runtimeExecutionAllowed": false
+}

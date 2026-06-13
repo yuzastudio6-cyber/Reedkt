@@ -1,0 +1,23 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "fixture_presence_validation",
+  "status": "passed",
+  "requiredFixtureFilesPresent": true,
+  "fixtureSourceDir": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures",
+  "requiredFixtureFiles": [
+    "tool_route_dry_run_cases.json",
+    "tool_route_valid_request_fixtures.json",
+    "tool_route_invalid_request_fixtures.json",
+    "tool_route_expected_result_fixtures.json",
+    "tool_route_fixture_manifest.json",
+    "tool_route_fixture_checksums.json",
+    "tool_route_fixture_schema_versions.json",
+    "tool_route_scoring_policy.json"
+  ],
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "fixturesExecuted": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

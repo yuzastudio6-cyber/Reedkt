@@ -1,0 +1,15 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "blocked_signed_url_public_artifact_validation",
+  "status": "passed",
+  "blockedCaseIds": [
+    "blocked_signed_url_source_of_truth",
+    "blocked_public_artifact_request"
+  ],
+  "signedUrlCreationAllowed": false,
+  "signedUrlAsSourceOfTruthAllowed": false,
+  "publicArtifactCreationAllowed": false,
+  "publicArtifactAllowed": false,
+  "sourceOfTruthRequirement": "Supabase row + private GCS path + manifest + checksum + approved plan snapshot",
+  "resourcesCreated": false
+}

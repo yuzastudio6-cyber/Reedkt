@@ -1,0 +1,11 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "billing_credit_validation",
+  "status": "passed",
+  "sourceReport": "docs/activation-tool-route-execution-unlock-7-local-fixture-plan-reports/tool_route_local_fixture_billing_credit_plan.json",
+  "billingMetadataRefsPresent": true,
+  "creditReservationAllowed": false,
+  "creditSpendAllowed": false,
+  "stripeMutationAllowed": false,
+  "runtimeExecutionAllowed": false
+}

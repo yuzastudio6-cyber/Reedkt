@@ -1,0 +1,19 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "blocked_runtime_execution_validation",
+  "status": "passed",
+  "blockedCaseIds": [
+    "blocked_tool_runtime_execution",
+    "blocked_route_runtime_execution",
+    "blocked_provider_runtime_execution",
+    "blocked_worker_runtime_execution",
+    "blocked_supabase_mutation_request"
+  ],
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "providerExecutionAllowed": false,
+  "supabaseWriteAllowed": false,
+  "sqlExecutionAllowed": false,
+  "runtimeExecutionAllowed": false
+}

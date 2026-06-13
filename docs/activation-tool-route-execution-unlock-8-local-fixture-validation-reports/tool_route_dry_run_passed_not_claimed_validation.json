@@ -1,0 +1,9 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "dry_run_passed_not_claimed_validation",
+  "status": "passed",
+  "dryRunPassedClaimed": false,
+  "dryRunPassedClaimAuthorityFound": false,
+  "dryRunPassedClaimBlockedUntilFutureOwnerApproval": true,
+  "nextGateMayReviewClaimAuthority": false
+}

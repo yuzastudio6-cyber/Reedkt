@@ -1,0 +1,32 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "case_coverage_validation",
+  "status": "passed",
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "caseIdsUnique": true,
+  "missingCaseIds": [],
+  "caseIds": [
+    "intent_to_capability_text_edit",
+    "intent_to_capability_graphics_request",
+    "intent_to_capability_map_request",
+    "intent_to_capability_web_capture_request",
+    "intent_to_capability_audio_request",
+    "intent_to_capability_media_processing_request",
+    "intent_to_capability_render_export_request",
+    "multi_tool_plan_graphics_to_tracka_handoff",
+    "multi_tool_plan_trackb_to_tracka_handoff",
+    "multi_tool_plan_sound_to_tracka_handoff",
+    "blocked_raw_prompt_direct_execution",
+    "blocked_signed_url_source_of_truth",
+    "blocked_public_artifact_request",
+    "blocked_tool_runtime_execution",
+    "blocked_route_runtime_execution",
+    "blocked_provider_runtime_execution",
+    "blocked_worker_runtime_execution",
+    "blocked_supabase_mutation_request"
+  ],
+  "fixturesExecuted": false,
+  "runtimeExecutionAllowed": false
+}

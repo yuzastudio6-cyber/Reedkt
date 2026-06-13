@@ -1,0 +1,14 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "supabase_handoff_validation",
+  "status": "passed",
+  "sourceReport": "docs/activation-tool-route-execution-unlock-7-local-fixture-plan-reports/tool_route_local_fixture_supabase_handoff_plan.json",
+  "supabaseOwnerHandoffStillRequired": true,
+  "supabaseUpdateRequired": false,
+  "supabaseEnvironmentTouched": false,
+  "supabaseWriteAllowed": false,
+  "sqlExecutionAllowed": false,
+  "migrationAllowed": false,
+  "storageWriteAllowed": false,
+  "signedUrlCreationAllowed": false
+}

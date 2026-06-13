@@ -1,0 +1,28 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "source_of_truth_audit",
+  "sourceOfTruthConflictsFound": false,
+  "pr404Merged": true,
+  "pr404MergeCommit": "24ed77812ea9dedd132687d0ca04a656bea58b8f",
+  "acceptedSourceChain": [
+    { "pr": 404, "decision": "tool_route_local_fixture_plan_ready_with_warnings" },
+    { "pr": 398, "decision": "tool_route_dry_run_pass_review_recorded_with_warnings_ready_for_local_fixture_planning" },
+    { "pr": 392, "decision": "tool_route_dry_run_gate_status_recorded_with_warnings_ready_for_dry_run_pass_review" },
+    { "pr": 385, "decision": "tool_route_owner_approved_with_warnings_for_next_dry_run_gate" },
+    { "pr": 381, "decision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval" },
+    { "pr": 377, "decision": "tool_route_dry_run_contract_ready_with_warnings" },
+    { "pr": 374, "decision": "tool_route_dry_run_plan_ready_with_warnings" },
+    { "pr": 369, "decision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan" },
+    { "pr": 360, "decision": "tool_study_pending_owners_completed_ready_for_tool_route_execution_unlock_audit" }
+  ],
+  "completedToolStudiesReferencedOnly": [
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL"
+  ],
+  "sourceFilesReadAsTextOnly": true,
+  "noRuntimeSourcesExecuted": true,
+  "supabaseMutation": false,
+  "sqlExecuted": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

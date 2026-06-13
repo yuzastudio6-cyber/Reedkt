@@ -1,0 +1,27 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "gate_status_evidence_acceptance",
+  "sourcePr": 392,
+  "sourceDecision": "tool_route_dry_run_gate_status_recorded_with_warnings_ready_for_dry_run_pass_review",
+  "sourceMergeCommit": "ac26f53d80c74e96d48371c1c7e6d5de7060fa41",
+  "accepted": true,
+  "readyForDryRunPassReview": true,
+  "dependencyBackedValidationHandoffAccepted": true,
+  "staleMissingNodeModulesWarningSuperseded": true,
+  "dryRunPassedClaimedBySource": false,
+  "generatedLocalFixturePassedClaimedBySource": false,
+  "runtimeExecutionApprovedBySource": false,
+  "warnings": [
+    "PR #392 records gate status only.",
+    "PR #392 points to this pass-review packet and does not claim dry-run completion."
+  ],
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "dry_run_passed_claim_review",
+  "reviewAttempted": true,
+  "metadataEvidenceSufficientForPassReview": true,
+  "metadataEvidenceSufficientForLocalFixturePlanning": true,
+  "evidenceSupportsRuntimeDryRunCompletion": false,
+  "sourceOfTruthAllowsDryRunPassedClaim": false,
+  "claimAmbiguityFound": false,
+  "dryRunPassedClaimStatus": "not_claimed",
+  "dryRunPassedClaimed": false,
+  "reason": "Prior packets validate metadata evidence and owner gate status, but no source authorizes claiming dry-run completion without a later explicit pass decision. This packet records pass-review readiness only.",
+  "nextGate": "TOOL-ROUTE-EXECUTION-UNLOCK-7: tool-route local fixture plan, no execution",
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

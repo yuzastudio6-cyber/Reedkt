@@ -1,0 +1,26 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "dry_run_plan_evidence_acceptance",
+  "sourcePr": 374,
+  "sourceDecision": "tool_route_dry_run_plan_ready_with_warnings",
+  "sourceMergeCommit": "4560e27fec057e3edd8a3aca2402db09c4621a63",
+  "accepted": true,
+  "syntheticCaseCount": 18,
+  "validPlanningCaseCount": 10,
+  "blockedPlanningCaseCount": 8,
+  "ownerHandoffsPlanned": true,
+  "sourceOfTruthPathPlanned": "supabase_row_ref_plus_private_gcs_path_ref_plus_manifest_plus_checksum_plus_approved_plan_snapshot",
+  "dryRunPassedClaimedBySource": false,
+  "generatedLocalFixturePassedClaimedBySource": false,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

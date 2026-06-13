@@ -1,0 +1,70 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "source_of_truth_audit",
+  "sourceFilesReadAsTextOnly": true,
+  "sourceOfTruthConflictsFound": false,
+  "githubMergeHygiene": {
+    "pr392Merged": true,
+    "pr392MergeCommit": "ac26f53d80c74e96d48371c1c7e6d5de7060fa41",
+    "baseBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+    "baseIncludesPr392": true
+  },
+  "acceptedSources": {
+    "pr392GateStatus": true,
+    "pr385OwnerApproval": true,
+    "pr381DryRunValidation": true,
+    "pr377DryRunContract": true,
+    "pr374DryRunPlan": true,
+    "pr369RepoAudit": true,
+    "pr360ToolStudies": true,
+    "webSearchCaptureStudyReferencedOnly": true,
+    "mapGeospatialStudyReferencedOnly": true,
+    "workerRuntimePacketsReferenced": true,
+    "modelPlanSnapshotEvidenceReferenced": true,
+    "qwenDeepseekSyntheticEvidenceReferenced": true,
+    "supabaseTrackBHandoffReferenced": true,
+    "supabaseRegistryRestoreReferencedWithoutDuplication": true,
+    "soundLocalHarnessBlockedResultReferencedWithoutContinuation": true
+  },
+  "sourceEvidence": [
+    "docs/activation-tool-route-execution-unlock-5-dry-run-gate-status-reports/tool_route_dry_run_gate_status_decision.json",
+    "docs/activation-tool-route-execution-unlock-4-owner-approval-reports/tool_route_owner_approval_decision.json",
+    "docs/activation-tool-route-execution-unlock-3-dry-run-validation-reports/tool_route_dry_run_validation_decision.json",
+    "docs/activation-tool-route-execution-unlock-2-dry-run-contract-reports/tool_route_dry_run_contract_decision.json",
+    "docs/activation-tool-route-execution-unlock-1-dry-run-plan-reports/tool_route_dry_run_plan_decision.json",
+    "docs/activation-tool-route-execution-unlock-0-repo-audit-reports/tool_route_repo_audit_decision.json",
+    "docs/activation-tool-study-pending-owners-0-reports/tool_study_decision.json",
+    "docs/activation-worker-runtime-unlock-4-local-fixture-plan-reports/worker_runtime_local_fixture_plan_decision.json",
+    "docs/activation-model-orchestration-plan-snapshot-contract-reports/plan_snapshot_contract_decision.json",
+    "docs/activation-supabase-trackb-clean-staging-backfill-reports/trackb_clean_staging_backfill_readiness_report.json"
+  ],
+  "duplicateWorkAvoidance": {
+    "duplicatedGateStatus": false,
+    "duplicatedOwnerApproval": false,
+    "duplicatedDryRunValidation": false,
+    "duplicatedDryRunContract": false,
+    "duplicatedDryRunPlan": false,
+    "duplicatedRepoAudit": false,
+    "duplicatedToolStudies": false,
+    "duplicatedWebSearchCaptureStudy": false,
+    "duplicatedMapGeospatialStudy": false,
+    "duplicatedSupabaseRegistryBackfill": false,
+    "duplicatedSoundHarnessLane": false
+  },
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "mediaExecutionAllowed": false,
+    "betaReady": false,
+    "productionReady": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

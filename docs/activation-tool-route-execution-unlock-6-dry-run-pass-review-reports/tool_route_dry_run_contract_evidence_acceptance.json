@@ -1,0 +1,28 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "dry_run_contract_evidence_acceptance",
+  "sourcePr": 377,
+  "sourceDecision": "tool_route_dry_run_contract_ready_with_warnings",
+  "sourceMergeCommit": "80582655ada1e133a17dd00cff2691f7a9e13655",
+  "accepted": true,
+  "caseCount": 18,
+  "requestSchemaContractsPresent": true,
+  "resultSchemaContractsPresent": true,
+  "intentToCapabilityContractPresent": true,
+  "capabilityToToolContractPresent": true,
+  "candidateScoringContractPresent": true,
+  "blockedCaseContractsPresent": true,
+  "workerProviderSupabaseHandoffContractsPresent": true,
+  "dryRunPassedClaimedBySource": false,
+  "generatedLocalFixturePassedClaimedBySource": false,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

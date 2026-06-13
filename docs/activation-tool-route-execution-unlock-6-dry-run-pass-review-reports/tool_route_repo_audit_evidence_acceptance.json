@@ -1,0 +1,24 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "repo_audit_evidence_acceptance",
+  "sourcePr": 369,
+  "sourceDecision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan",
+  "sourceMergeCommit": "c84df541f9259e61b719aab967b22343a42a221f",
+  "accepted": true,
+  "toolRouteRepoAuditPassedWithWarnings": true,
+  "routeManifestEvidencePresent": true,
+  "executionContractsDeferredToLaterPackets": true,
+  "duplicateOwnershipRiskBlocking": false,
+  "dryRunPassedClaimedBySource": false,
+  "generatedLocalFixturePassedClaimedBySource": false,
+  "runtimeFlags": {
+    "toolExecutionReady": false,
+    "routeExecutionReady": false,
+    "workerExecutionReady": false,
+    "supabasePersistenceReady": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

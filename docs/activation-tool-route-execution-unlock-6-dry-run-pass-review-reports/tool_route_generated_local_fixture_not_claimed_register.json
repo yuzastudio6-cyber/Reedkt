@@ -1,0 +1,19 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "generated_local_fixture_not_claimed_register",
+  "generatedLocalFixturePassedClaimed": false,
+  "generatedAssetsCreated": false,
+  "localFixtureValidationExecuted": false,
+  "stagingFixtureValidationExecuted": false,
+  "reason": "UNLOCK-6 is a pass-review governance packet only. Local fixture planning is the next allowed no-execution gate.",
+  "nextEligibleGate": "TOOL-ROUTE-EXECUTION-UNLOCK-7: tool-route local fixture plan, no execution",
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "storageWriteAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

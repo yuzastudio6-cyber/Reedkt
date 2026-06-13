@@ -21,7 +21,9 @@ controlled no-op rerun: `false`
 
 Initial local validation status: `passed_with_environment_blockers`.
 
-PR status: `pending`.
+PR: [#410](https://github.com/yuzastudio6-cyber/Reedkt/pull/410)
+
+PR status: `open_draft_mergeable_clean_empty_check_rollup`.
 
 Base gaps recorded: broad foundation docs, source-map docs, milestone docs, internal-beta docs, and `scripts/validation/run-foundation-validation.mjs` were absent on this stacked branch and were not fabricated.
 
@@ -57,6 +59,15 @@ Base gaps recorded: broad foundation docs, source-map docs, milestone docs, inte
 - `npm run prod:beta:summary`: `not_run_environment_blocked_after_npm_ci_enospc`
 
 Dependency-backed validation should run in GitHub or on a local volume with enough free space for `npm ci`.
+
+## PR Check Status
+
+- PR #410 state: `OPEN`
+- PR #410 draft: `true`
+- PR #410 mergeability: `MERGEABLE`
+- PR #410 merge state: `CLEAN`
+- PR #410 head SHA after first commit: `c937d5a34d4e0f5c50328a654566d033d1895ba7`
+- PR #410 status check rollup: `empty`
 
 ## Safety Result
 

@@ -1,0 +1,21 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "generated_local_fixture_not_claimed_register",
+  "generatedLocalFixturePassedClaimed": false,
+  "localFixtureExecutionAttempted": false,
+  "generatedAssetsCreated": false,
+  "fixturePersistenceAttempted": false,
+  "reason": "Generated local fixture completion remains outside this gate-status packet.",
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

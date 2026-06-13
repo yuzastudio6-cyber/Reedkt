@@ -1,0 +1,36 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "tool_study_evidence_rollup",
+  "sourcePr": 360,
+  "sourceDecision": "tool_study_pending_owners_completed_ready_for_tool_route_execution_unlock_audit",
+  "accepted": true,
+  "pendingOwnerStudiesCompleted": [
+    "AI_TOOLS_CREATIVE_GRAPHICS",
+    "TRACK_A_RENDER_EXPORT",
+    "TRACK_B_MEDIA_PROCESSING",
+    "SOUND_MUSIC_AUDIO"
+  ],
+  "completedOwnerEvidenceReferencedOnly": [
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL"
+  ],
+  "completedOwnerStudiesDuplicated": false,
+  "readyForRuntimeExecution": false,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

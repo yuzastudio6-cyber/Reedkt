@@ -1,0 +1,44 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "gate_status_blocker_register",
+  "hardBlockers": [],
+  "warnings": [
+    {
+      "owner": "PRODUCTION_READINESS",
+      "status": "blocked_inherited",
+      "reason": "Production readiness gaps remain closed and do not block gate-status recording."
+    },
+    {
+      "owner": "EXTERNAL_BETA",
+      "status": "blocked_inherited",
+      "reason": "External beta and paid production remain blocked."
+    },
+    {
+      "owner": "MODEL_ORCHESTRATION_PLAN_SNAPSHOT",
+      "status": "metadata_caveat",
+      "reason": "Historical provider-evidence caveat is inherited context only."
+    },
+    {
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "status": "blocked",
+      "reason": "Persistence, writes, SQL, migrations, storage writes, and signed URLs are later owner gates."
+    },
+    {
+      "owner": "WORKER_RUNTIME_JOBS",
+      "status": "blocked",
+      "reason": "Worker execution, queue, dispatch, claim, lease, sidecar, subprocess, Docker, Cloud Run, and Cloud Build remain blocked."
+    }
+  ],
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

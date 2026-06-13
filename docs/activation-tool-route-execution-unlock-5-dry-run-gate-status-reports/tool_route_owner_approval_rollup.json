@@ -1,0 +1,32 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "owner_approval_rollup",
+  "sourcePr": 385,
+  "sourceDecision": "tool_route_owner_approved_with_warnings_for_next_dry_run_gate",
+  "accepted": true,
+  "approvalScope": "next_gate_status_packet_only",
+  "approvesThisGateStatusPacket": true,
+  "approvesDryRunPassReviewOnlyAfterThisPacket": true,
+  "approvesToolExecution": false,
+  "approvesRouteExecution": false,
+  "approvesWorkerExecution": false,
+  "approvesProviderExecution": false,
+  "approvesSupabasePersistence": false,
+  "approvesBetaOrProduction": false,
+  "warnings": [
+    "Owner approval is scoped to status recording and a later no-execution review prompt.",
+    "Runtime execution owners remain blocked."
+  ],
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

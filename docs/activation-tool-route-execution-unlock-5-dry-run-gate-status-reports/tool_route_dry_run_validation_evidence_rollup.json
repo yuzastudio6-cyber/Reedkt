@@ -1,0 +1,29 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "dry_run_validation_evidence_rollup",
+  "sourcePr": 381,
+  "sourceDecision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval",
+  "accepted": true,
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "requestSchemasAccepted": true,
+  "resultSchemasAccepted": true,
+  "scoringPolicyAccepted": true,
+  "handoffContractsAccepted": true,
+  "redactionScanAccepted": true,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "storageWriteAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "realExecutionReady": false
+  }
+}

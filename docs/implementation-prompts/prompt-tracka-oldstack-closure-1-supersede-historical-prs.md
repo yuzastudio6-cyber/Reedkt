@@ -1,33 +1,33 @@
-# TRACKA-OLDSTACK-CLOSURE-1 Supersede Historical PRs Prompt
+# TRACKA-OLDSTACK-CLOSURE-1 Supersede Historical PRs
 
 ## Goal
 
-Perform a later owner-approved old-stack closure pass only after TRACKA-VISUAL-REVIEW-1 identifies exact PR targets. This prompt is a draft contract, not authorization to mutate GitHub.
+Prepare a later owner-approved closure pass for historical Track A PRs after a real visual review outcome exists.
 
-## Required Preconditions
+## Current Blocker
 
-- TRACKA-CURRENT-SOURCE-1 is merged.
-- TRACKA-VISUAL-REVIEW-1 is complete.
-- Owner approval names exact PR numbers and actions.
-- The action list distinguishes close-as-superseded, keep-as-historical, do-not-close, and human-review-needed.
+TRACKA-OLDSTACK-CLOSURE-1 readiness: `blocked_pending_visual_artifacts`
 
-## Allowed Scope In A Future Explicit Run
+TRACKA-VISUAL-REVIEW-2B recorded metadata integrity only. It did not approve visual pass/fail and did not authorize old PR closure.
 
-- Re-query named PRs.
-- Verify state, base, package-lock status, blocker language, and current-source replacement evidence.
-- Close or comment on only explicitly named PRs if the future prompt authorizes that exact GitHub mutation.
+## Allowed Future Scope
+
+- inspect named historical PR metadata
+- identify exact PRs proposed for closure as superseded
+- require explicit owner approval before any close/comment/retarget action
 
 ## Blocked Scope
 
-- No blanket closure.
-- No retargeting or merge unless explicitly named in a future prompt.
-- No runtime/tool/worker/provider/route execution.
-- No Track A render/export, media processing, artifact access, GCS upload, signed URL creation, public artifact creation, Supabase mutation, SQL, migration, beta, production, or dependency mutation.
+- no PR close, merge, retarget, or comment in this phase
+- no runtime execution
+- no media processing
+- no Supabase mutation
+- no beta, production, final delivery, or public artifact unlock
 
-## Default Current Decision
+## Required Precondition
 
-TRACKA-OLDSTACK-CLOSURE-1 readiness: `blocked_pending_visual_review_and_owner_approved_pr_closure_targets`
+A later Track A visual review outcome must provide sufficient visual evidence and explicit owner approval before historical PR closure is attempted.
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

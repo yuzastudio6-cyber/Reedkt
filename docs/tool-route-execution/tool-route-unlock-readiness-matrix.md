@@ -52,6 +52,25 @@ Signed URLs approved: `false`
 Internal beta approved: `false`
 Production approved: `false`
 
+## TOOL-ROUTE-3 Offline Dry-Run Approval Packet
+
+TOOL-ROUTE-3 approves a future offline dry-run prompt with warnings only. PR #366 remains open/draft and conflicting, while PR #368, PR #372, PR #370, and PR #378 remain draft/open. This is branch-stack hygiene risk, not approval for live route execution.
+
+Updated readiness state: `approved_with_warnings_for_tool_route_4`
+
+Future offline dry-run execution approved: `true`
+Route execution approved: `false`
+Tool execution approved: `false`
+Worker execution approved: `false`
+Provider/model runtime approved: `false`
+Media runtime approved: `false`
+Audio runtime approved: `false`
+Supabase mutation approved: `false`
+Public artifacts approved: `false`
+Signed URLs approved: `false`
+Internal beta approved: `false`
+Production approved: `false`
+
 ## TOOL-ROUTE-1 Follow-Up Status
 
 TOOL-ROUTE-1 created the static dry-run fixture plan, scoped tool-call manifest contract, capability-to-route map, contract test plan, readiness matrix, TOOL-ROUTE-2 scope, seven offline JSON fixtures, and `tool-route:dry-run-fixtures:diagnostics`.

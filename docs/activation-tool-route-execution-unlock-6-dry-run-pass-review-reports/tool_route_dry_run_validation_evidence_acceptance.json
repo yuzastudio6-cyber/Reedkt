@@ -1,0 +1,31 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "dry_run_validation_evidence_acceptance",
+  "sourcePr": 381,
+  "sourceDecision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval",
+  "sourceMergeCommit": "7e5fb0335fb7ad5be0311bfdf1f19c12a1a6bd05",
+  "accepted": true,
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "requestResultSchemasAccepted": true,
+  "scoringPolicyAccepted": true,
+  "handoffContractsAccepted": true,
+  "dryRunCasesExecuted": false,
+  "dryRunPassedClaimedBySource": false,
+  "generatedLocalFixturePassedClaimedBySource": false,
+  "warnings": [
+    "Validation evidence is metadata-only and validates fixture/contract coverage without executing tools or routes.",
+    "Historical production and external beta blockers remain inherited and closed."
+  ],
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

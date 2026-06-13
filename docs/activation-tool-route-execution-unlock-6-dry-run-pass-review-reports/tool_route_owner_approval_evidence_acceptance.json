@@ -1,0 +1,33 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "owner_approval_evidence_acceptance",
+  "sourcePr": 385,
+  "sourceDecision": "tool_route_owner_approved_with_warnings_for_next_dry_run_gate",
+  "sourceMergeCommit": "57ee230a7cec0a342b1738d1acb8a812935156cc",
+  "accepted": true,
+  "approvalScope": "next_gate_status_packet_only",
+  "approvesPassReview": true,
+  "approvesToolExecution": false,
+  "approvesRouteExecution": false,
+  "approvesWorkerExecution": false,
+  "approvesProviderRuntime": false,
+  "approvesSupabasePersistence": false,
+  "approvesBetaOrProduction": false,
+  "dryRunPassedClaimedBySource": false,
+  "generatedLocalFixturePassedClaimedBySource": false,
+  "warnings": [
+    "Owner approval is accepted as governance evidence for the gate-status and pass-review sequence only.",
+    "Owner approval does not unlock runtime execution or persistence."
+  ],
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "betaReady": false,
+    "productionReady": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

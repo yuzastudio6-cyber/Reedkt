@@ -1,0 +1,37 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "tool_study_evidence_acceptance",
+  "sourcePr": 360,
+  "sourceDecision": "tool_study_pending_owners_completed_ready_for_tool_route_execution_unlock_audit",
+  "sourceMergeCommit": "0699ae921af3b8980b93221bec094d842d61ddba",
+  "accepted": true,
+  "pendingOwnerStudiesCompleted": [
+    "AI_TOOLS_CREATIVE_GRAPHICS",
+    "TRACK_A_RENDER_EXPORT",
+    "TRACK_B_MEDIA_PROCESSING",
+    "SOUND_MUSIC_AUDIO"
+  ],
+  "completedOwnerStudiesReferencedOnly": [
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL"
+  ],
+  "completedOwnerStudiesDuplicated": false,
+  "ownerStudyFiles": [
+    "docs/tool-studies/ai-tools-creative-graphics-tool-study.md",
+    "docs/tool-studies/track-a-render-export-tool-study.md",
+    "docs/tool-studies/track-b-media-processing-tool-study.md",
+    "docs/tool-studies/sound-music-audio-tool-study.md"
+  ],
+  "runtimeExecutionReadyClaimedBySource": false,
+  "toolRouteExecutionReadyClaimedBySource": false,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "no_execution_policy",
+  "policyStatus": "all_runtime_gates_closed",
+  "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.",
+  "supabaseClassification": {
+    "supabaseUpdateRequired": false,
+    "environmentTouched": false,
+    "sqlExecuted": false,
+    "migrationDeployed": false,
+    "nextSupabaseAction": "none"
+  },
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeMutationAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

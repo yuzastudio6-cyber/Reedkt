@@ -1,0 +1,28 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-6",
+  "reportType": "dependency_validation_evidence_acceptance",
+  "sourcePr": 392,
+  "accepted": true,
+  "handoffDecision": "dependency_validation_passed_with_inherited_readiness_blockers_ready_to_merge",
+  "dependencyBackedValidationEvidenceAccepted": true,
+  "staleMissingNodeModulesWarningSuperseded": true,
+  "packageJsonChangedByValidation": false,
+  "packageLockChanged": false,
+  "dependencyVersionChangesAllowed": false,
+  "nodeModulesStaged": false,
+  "inheritedReadinessBlockersRemainClosed": true,
+  "inheritedReadinessBlockers": [
+    "production_readiness_summary_inherited_blockers",
+    "external_beta_readiness_remains_blocked",
+    "historical_plan_snapshot_provider_evidence_caveat_metadata_only"
+  ],
+  "runtimeFlags": {
+    "dependencyMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

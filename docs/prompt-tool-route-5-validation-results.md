@@ -1,6 +1,6 @@
 # TOOL-ROUTE-5 Validation Results
 
-Status: `local_validation_passed_pr_pending`
+Status: `local_validation_passed_pr_opened`
 
 QA result: `tool_route_offline_dry_run_qa_passed_with_warnings`
 
@@ -63,9 +63,9 @@ Worker readiness state: `ready_with_warnings_for_worker_route_fixture_integratio
 
 ## PR Status
 
-PR link: `pending`
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/389
 
-GitHub check status: `pending`
+GitHub check status: `no_check_rollup_reported_at_pr_creation`
 
 ## Supabase And Scope
 

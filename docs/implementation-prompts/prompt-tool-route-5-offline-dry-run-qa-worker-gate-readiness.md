@@ -23,6 +23,10 @@ Worker readiness state: `ready_with_warnings_for_worker_route_fixture_integratio
 
 Production capability enabled: `none; offline tool-route dry-run QA review and worker gate readiness only`
 
+PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/389
+
+GitHub check status: `no_check_rollup_reported_at_pr_creation`
+
 ## Supabase And Scope
 
 Supabase update required: `docs/status only`

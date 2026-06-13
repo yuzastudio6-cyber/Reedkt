@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "github:merge-hygiene:diagnostics": "node scripts/validation/github-merge-hygiene-diagnostics.mjs",
+    "tool-study:track-b-media-processing:diagnostics": "node scripts/validation/tool-study-track-b-media-processing-diagnostics.mjs",
     "build": "tsc -b && vite build",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",

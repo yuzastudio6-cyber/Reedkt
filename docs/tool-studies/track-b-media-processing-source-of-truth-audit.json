@@ -1,0 +1,223 @@
+{
+  "schema": "reeditpro.toolStudy.trackBMediaProcessing.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "decision": "track_b_media_processing_tool_study_passed_docs_only",
+  "owner": "TRACK_B_MEDIA_PROCESSING",
+  "branch": {
+    "name": "codex/rp-tool-study-0-track-b-media-processing",
+    "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+    "basePr": 350,
+    "baseHeadSha": "aefb487af3cf9d8d6b07b34c03aa28b1ea9dd5d7",
+    "baseDecision": "post_merge_source_of_truth_verification_passed"
+  },
+  "scope": {
+    "phase": "TOOL-STUDY-0",
+    "mode": "docs_diagnostics_only",
+    "runtimeExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "localSourceEvidence": [
+    {
+      "path": "docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json",
+      "status": "present",
+      "facts": [
+        "all_27_frozen_prs_merged",
+        "all_27_source_branches_present",
+        "track_b_clean_staging_sync_evidence_passed",
+        "next_recommended_phase_TOOL_STUDY_0"
+      ]
+    },
+    {
+      "path": "open-source-tool-registry.md",
+      "status": "present",
+      "facts": [
+        "no_package_installed_or_executed_by_registry_milestone",
+        "controlled_tools_preferred_for_exact_processing_and_QA",
+        "OpenCV_and_Sharp_libvips_are_planning_or_worker_candidates"
+      ]
+    },
+    {
+      "path": "tool-strategy-planner.md",
+      "status": "present",
+      "facts": [
+        "tool_strategy_does_not_install_execute_tools_call_providers_process_media_or_render",
+        "visual_QA_chain_mentions_OpenCV_and_Sharp_libvips"
+      ]
+    },
+    {
+      "path": "docs/production-cpu-worker-tool-install-policy.md",
+      "status": "present",
+      "facts": [
+        "CPU_worker_future_packages_include_PyAV_PySceneDetect_OpenCV_DuckDB_Polars_Sharp_libvips",
+        "GPU_or_model_packages_are_excluded_from_core_CPU_install_scope"
+      ]
+    },
+    {
+      "path": "docs/production-container-image-plan.md",
+      "status": "present",
+      "facts": [
+        "container_plans_are_templates_only",
+        "Codex_does_not_build_push_deploy_download_models_or_process_media",
+        "CPU_worker_future_boundary_includes_Track_B_media_foundation_tools"
+      ]
+    },
+    {
+      "path": "docs/agents/tool-ownership-map.md",
+      "status": "present",
+      "facts": [
+        "Track_B_owns_audio_OCR_data_VLM_compute_routing_placeholders",
+        "AI_Tools_owns_creative_graphics",
+        "Track_A_owns_visual_video_core_runtime_and_render_export"
+      ]
+    },
+    {
+      "path": "docs/agents/tool-capability-registry.md",
+      "status": "present",
+      "facts": [
+        "registry_metadata_only",
+        "no_tools_models_media_processing_web_search_map_rendering_providers_Docker_migrations_schema_or_beta_paths_execute"
+      ]
+    }
+  ],
+  "remoteMergedBranchEvidence": [
+    {
+      "source": "PR #298",
+      "headRefName": "codex/rp-foundation-supabase-trackb-clean-staging-backfill",
+      "status": "verified_by_PR350_post_merge_report",
+      "paths": [
+        "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+        "docs/activation-track-b-readiness-rollup-reports",
+        "docs/activation-track-b-capability-manifests-reports",
+        "docs/activation-track-b-tool-route-manifest-reports"
+      ],
+      "facts": [
+        "Track_B_clean_staging_sync_completed",
+        "30_validated_export_records",
+        "18_canonical_tools_covered",
+        "259_metadata_rows_verified_across_11_registry_tables",
+        "production_untouched",
+        "broken_staging_untouched",
+        "Track_B_runtime_execution_false"
+      ]
+    },
+    {
+      "source": "PR #350",
+      "headRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "status": "local_post_merge_report_present",
+      "paths": [
+        "docs/github-merge-hygiene/post-merge-source-of-truth-verification.md",
+        "docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json",
+        "docs/github-merge-hygiene/reports/post_merge_blocked_scope_verification_report.json"
+      ],
+      "facts": [
+        "post_merge_source_of_truth_verification_passed",
+        "TOOL_STUDY_0_recommended_before_tool_route_execution_unlock",
+        "blocked_scopes_remain_blocked"
+      ]
+    }
+  ],
+  "localDocsRecordedAsAuditFacts": [
+    {
+      "path": "docs/tool-call-foundation.md",
+      "status": "missing_on_PR350_checkout",
+      "blocker": false,
+      "reason": "PR350 post-merge source-of-truth verification already records remote milestone evidence."
+    },
+    {
+      "path": "docs/tool-readiness-worker-runtime-foundation.md",
+      "status": "missing_on_PR350_checkout",
+      "blocker": false,
+      "reason": "Worker/runtime evidence remains remote milestone evidence; this study does not execute workers."
+    },
+    {
+      "path": "docs/model-orchestration-approved-plan-snapshot-schema.md",
+      "status": "missing_on_PR350_checkout",
+      "blocker": false,
+      "reason": "Plan snapshot evidence is post-merge verified by PR350 and not changed here."
+    },
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "status": "missing_on_PR350_checkout",
+      "blocker": false,
+      "reason": "No beta unlock is introduced."
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "status": "missing_on_PR350_checkout",
+      "blocker": false,
+      "reason": "Production and beta blockers remain explicit in cross-chat docs."
+    }
+  ],
+  "ownedTools": [
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "sharp_libvips",
+    "duckdb",
+    "polars",
+    "paddleocr",
+    "paddlepaddle",
+    "track_b_route_capability_manifest_metadata",
+    "track_b_cost_capacity_metadata",
+    "track_b_benchmark_sidecar_metadata"
+  ],
+  "relatedButNotOwned": [
+    {
+      "id": "deepfilternet",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "trackBUse": "technical audio evidence handoff only"
+    },
+    {
+      "id": "signalsmith_stretch",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "trackBUse": "timing/stretch metadata handoff only"
+    },
+    {
+      "id": "demucs",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "trackBUse": "blocked provenance/runtime handoff only"
+    },
+    {
+      "id": "creative_image_generation_tools",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "trackBUse": "consume Track B safe-zone/OCR/image metadata only"
+    },
+    {
+      "id": "final_render_export_pipeline",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "trackBUse": "consume Track B media-analysis manifests only"
+    }
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  },
+  "secretPolicy": {
+    "secretRefsMayBeNamedIfAlreadyDocumented": true,
+    "payloadAccessed": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "nextPhase": {
+    "recommended": "SOUND_MUSIC_AUDIO, AI_TOOLS_CREATIVE_GRAPHICS, and TRACK_A_RENDER_EXPORT owner studies before any tool-route execution unlock",
+    "trackBStatus": "complete_after_diagnostics_pass"
+  },
+  "blockers": []
+}

@@ -8,6 +8,9 @@ Current coordination facts:
 2. Source branches for all 27 frozen PRs still exist.
 3. Key milestone reports are reachable from the merged branch chain.
 4. Runtime, worker/tool/route, provider, Supabase write, public artifact, signed URL, raw prompt, production, external beta, and paid production scopes remain blocked.
-5. The next recommended phase is `TOOL-STUDY-0` for pending owners before any tool-route execution unlock.
+5. `TRACK_B_MEDIA_PROCESSING` TOOL-STUDY-0 is complete on branch `codex/rp-tool-study-0-track-b-media-processing` as docs/diagnostics only.
+6. Remaining TOOL-STUDY-0 owner studies before any tool-route execution unlock: `SOUND_MUSIC_AUDIO`, `AI_TOOLS_CREATIVE_GRAPHICS`, and `TRACK_A_RENDER_EXPORT`.
 
 Read `docs/github-merge-hygiene/post-merge-source-of-truth-verification.md` before building on merged milestone evidence.
+
+Track B study completion does not unlock runtime, media processing, provider calls, workers, tools, routes, Supabase writes, public artifacts, signed URLs, internal beta, external beta, paid production, production, or raw prompt execution.

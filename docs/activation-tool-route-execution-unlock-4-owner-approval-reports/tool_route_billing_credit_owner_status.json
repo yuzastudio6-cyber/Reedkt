@@ -1,0 +1,16 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "owner": "BILLING_STRIPE_CREDITS",
+  "status": "placeholder_only_credit_mutation_blocked",
+  "billingMetadataAccepted": true,
+  "creditReservationAllowed": false,
+  "creditSpendAllowed": false,
+  "stripeMutationAllowed": false,
+  "runtimeFlags": {
+    "creditMutationAllowed": false,
+    "stripeMutationAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

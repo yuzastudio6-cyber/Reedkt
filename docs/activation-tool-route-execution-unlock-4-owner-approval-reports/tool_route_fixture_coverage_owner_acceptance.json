@@ -1,0 +1,24 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "reportType": "fixture_coverage_owner_acceptance",
+  "accepted": true,
+  "sourceFixturePacket": "TOOL-ROUTE-EXECUTION-UNLOCK-2",
+  "validationPacket": "TOOL-ROUTE-EXECUTION-UNLOCK-3",
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "fixtureManifestAccepted": true,
+  "fixtureChecksumsAccepted": true,
+  "schemaVersionIndexAccepted": true,
+  "syntheticPlaceholderRefsOnly": true,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

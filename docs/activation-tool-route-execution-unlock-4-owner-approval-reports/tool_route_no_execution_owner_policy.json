@@ -1,0 +1,30 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "reportType": "no_execution_owner_policy",
+  "policyStatus": "all_runtime_gates_closed",
+  "metadataOnly": true,
+  "sourceFilesReadOnly": true,
+  "runtimeImportsAllowed": false,
+  "rawPromptExecutionAllowed": false,
+  "dryRunExecutionAllowed": false,
+  "runtimeReadinessClaimAllowed": false,
+  "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.",
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "productionUnlockAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

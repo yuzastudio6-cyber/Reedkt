@@ -1,0 +1,23 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "reportType": "schema_contract_owner_acceptance",
+  "accepted": true,
+  "sourcePr": 377,
+  "validationPr": 381,
+  "routeRequestSchemaAccepted": true,
+  "toolRequestSchemaAccepted": true,
+  "routeResultSchemaAccepted": true,
+  "toolResultSchemaAccepted": true,
+  "sourceOfTruthRequirementAccepted": "Supabase row reference plus private GCS path reference plus manifest plus checksum plus approved plan snapshot",
+  "approvedPlanSnapshotRequired": true,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "reportType": "tracka_trackb_owner_status",
+  "trackA": {
+    "owner": "TRACK_A_RENDER_EXPORT",
+    "status": "handoff_only_runtime_blocked",
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false
+  },
+  "trackB": {
+    "owner": "TRACK_B_MEDIA_PROCESSING",
+    "status": "handoff_only_runtime_blocked",
+    "mediaProcessingAllowed": false,
+    "cleanStagingEvidenceAcceptedAsMetadata": true
+  },
+  "runtimeFlags": {
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "mediaExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

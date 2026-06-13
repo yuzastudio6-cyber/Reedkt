@@ -1,0 +1,17 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "owner": "PROVIDER_GATEWAY_MODELS",
+  "status": "handoff_required_provider_runtime_blocked",
+  "qwenEvidenceAcceptedAsHistoricalMetadata": true,
+  "deepSeekEvidenceAcceptedAsHistoricalMetadata": true,
+  "providerCallsAllowed": false,
+  "modelCallsAllowed": false,
+  "secretPayloadAccessAllowed": false,
+  "runtimeFlags": {
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "rawProviderOutputPersisted": false,
+    "providerExecutionReady": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

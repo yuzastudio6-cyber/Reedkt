@@ -1,0 +1,30 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-4",
+  "reportType": "capability_routing_owner_acceptance",
+  "accepted": true,
+  "ownerStudiesAccepted": [
+    "AI_TOOLS_CREATIVE_GRAPHICS",
+    "TRACK_A_RENDER_EXPORT",
+    "TRACK_B_MEDIA_PROCESSING",
+    "SOUND_MUSIC_AUDIO",
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL"
+  ],
+  "completedOwnerStudiesDuplicated": false,
+  "intentRoutingCasesAccepted": 7,
+  "multiToolHandoffCasesAccepted": 3,
+  "blockedCasesAccepted": 8,
+  "capabilityRoutingApprovedForNextGateStatusOnly": true,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

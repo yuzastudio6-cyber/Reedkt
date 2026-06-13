@@ -1,0 +1,21 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed",
+  "rawPromptExecution": false,
+  "rawPromptDirectExecutionAllowed": false,
+  "rawProviderOutputExecution": false,
+  "correctFuturePath": [
+    "user_chat_request",
+    "structured_agent_findings",
+    "edit_intents",
+    "approved_plan_snapshot",
+    "worker_owner_gate",
+    "tool_route_owner_gate"
+  ],
+  "blockedUses": [
+    "raw chat text direct worker invocation",
+    "raw prompt direct tool invocation",
+    "raw provider response persisted as execution input",
+    "model output treated as trusted route command"
+  ]
+}

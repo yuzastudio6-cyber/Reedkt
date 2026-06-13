@@ -1,0 +1,41 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "intentMatching": "documented_in_tool_studies_and_plan_snapshot_contracts",
+  "capabilityMatching": "documented_in_tool_study_capability_cards_and_track_b_route_manifest",
+  "candidateScoringPolicy": "missing_general_policy_deferred_to_unlock_1",
+  "readinessStageFilters": [
+    "metadata_only",
+    "handoff_only",
+    "route_enabled_restricted_internal_metadata_only",
+    "route_disabled_blocked",
+    "future_only"
+  ],
+  "blockedScopeFilters": [
+    "raw_prompt_direct_execution",
+    "public_artifact_output",
+    "signed_url_source_of_truth",
+    "broad_media_processing",
+    "provider_model_call",
+    "worker_execution",
+    "supabase_mutation",
+    "production_or_external_beta"
+  ],
+  "handoffRequirements": [
+    "approved_plan_snapshot",
+    "structured_agent_findings",
+    "edit_intents",
+    "private_source_refs",
+    "manifest_ref",
+    "checksum_ref",
+    "owner_gate"
+  ],
+  "missingRouteMetadata": [
+    "cross_owner_dry_run_case_ids",
+    "route_request_schema_for_all_owner_lanes",
+    "route_result_schema_for_all_owner_lanes",
+    "observability_cost_field_contract"
+  ],
+  "routeExecutionAllowed": false,
+  "toolExecutionAllowed": false
+}

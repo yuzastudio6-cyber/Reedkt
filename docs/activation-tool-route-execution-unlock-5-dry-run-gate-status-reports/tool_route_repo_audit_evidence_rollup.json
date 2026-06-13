@@ -1,0 +1,27 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "repo_audit_evidence_rollup",
+  "sourcePr": 369,
+  "sourceDecision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan",
+  "accepted": true,
+  "routeManifestEvidenceAccepted": true,
+  "workerHandoffRequired": true,
+  "providerHandoffRequired": true,
+  "supabaseHandoffRequired": true,
+  "observabilityCostHandoffRequired": true,
+  "billingCreditHandoffRequired": true,
+  "publicArtifactAndSignedUrlBlockersAccepted": true,
+  "readyForRuntimeExecution": false,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

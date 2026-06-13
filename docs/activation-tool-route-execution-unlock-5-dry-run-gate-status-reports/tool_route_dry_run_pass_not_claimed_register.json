@@ -1,0 +1,21 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "dry_run_pass_not_claimed_register",
+  "dryRunPassedClaimed": false,
+  "dryRunExecutionAttempted": false,
+  "toolRouteDryRunCasesExecuted": false,
+  "metadataEvidenceReviewedOnly": true,
+  "reason": "This packet records gate status for a later review and does not execute or mark any dry-run result as complete.",
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

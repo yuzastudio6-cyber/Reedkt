@@ -1,0 +1,63 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-5",
+  "reportType": "owner_handoff_status",
+  "ownerStatuses": [
+    {
+      "owner": "WORKER_RUNTIME_JOBS",
+      "status": "handoff_required_real_execution_blocked"
+    },
+    {
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "status": "handoff_required_provider_runtime_blocked"
+    },
+    {
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "status": "handoff_required_persistence_blocked"
+    },
+    {
+      "owner": "OBSERVABILITY_AUDIT_COST",
+      "status": "metadata_placeholders_accepted_runtime_telemetry_blocked"
+    },
+    {
+      "owner": "BILLING_STRIPE_CREDITS",
+      "status": "metadata_placeholders_accepted_credit_mutation_blocked"
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "status": "metadata_handoff_accepted_render_export_blocked"
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "status": "metadata_handoff_accepted_media_processing_blocked"
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "status": "metadata_handoff_accepted_tool_runtime_blocked"
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "status": "metadata_handoff_accepted_audio_runtime_blocked"
+    },
+    {
+      "owner": "WEB_SEARCH_CAPTURE",
+      "status": "completed_study_referenced_execution_blocked"
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "status": "completed_study_referenced_execution_blocked"
+    }
+  ],
+  "allRequiredOwnersRepresented": true,
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "dryRunPassedClaimed": false,
+    "generatedLocalFixturePassedClaimed": false
+  }
+}

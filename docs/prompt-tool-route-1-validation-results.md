@@ -24,6 +24,7 @@ Tool-route dry-run readiness state: `ready_with_warnings_for_tool_route_2`
 - TOOL-ROUTE-2 allowed/blocked scope created: `yes`.
 - Offline fixtures created: `yes`; seven fixture JSON files.
 - Diagnostics added: `yes`; `tool-route:dry-run-fixtures:diagnostics`.
+- TOOL-ROUTE-1A follow-up: Sound/Music fixture refs refreshed to PR #371 merged evidence at `f6283e63742d6999910d3887482dc3112da1e570`; no runtime scope changed.
 
 ## Base Gaps
 

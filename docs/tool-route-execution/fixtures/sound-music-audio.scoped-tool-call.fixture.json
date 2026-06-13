@@ -5,11 +5,19 @@
   "ownerWorkstream": "TOOL_ROUTE_EXECUTION",
   "targetOwnerWorkstream": "SOUND_MUSIC_AUDIO",
   "sourceOwnerStudyRefs": [
-    "PR_360_SOUND_MUSIC_AUDIO_owner_study",
+    "PR_371_SOUND_MUSIC_AUDIO_owner_study_merged",
+    "PR_371_merge_sha_f6283e63742d6999910d3887482dc3112da1e570",
     "PR_366_TOOL_ROUTE_EXECUTION_UNLOCK_0_repo_audit"
   ],
   "capabilityRefs": [
-    "SOUND_MUSIC_AUDIO.timing_audio_metadata_planning"
+    "SOUND_MUSIC_AUDIO.timing_aware_sound_cue_manifest",
+    "SOUND_MUSIC_AUDIO.sound_effects_planning",
+    "SOUND_MUSIC_AUDIO.music_cue_planning",
+    "SOUND_MUSIC_AUDIO.audio_bed_planning",
+    "SOUND_MUSIC_AUDIO.private_audio_artifact_manifest_policy",
+    "SOUND_MUSIC_AUDIO.track_b_audio_processing_handoff",
+    "SOUND_MUSIC_AUDIO.track_a_final_composition_handoff",
+    "SOUND_MUSIC_AUDIO.provider_gateway_future_audio_generation_handoff"
   ],
   "requestedCapabilities": [
     "static audio cue route handoff planning",
@@ -17,9 +25,13 @@
     "audio processing blocked-scope validation"
   ],
   "selectedToolRefs": [
-    "soundsync_timing_manifest_placeholder",
+    "timing_aware_sound_cue_manifest_placeholder",
+    "audioflux_planning_placeholder",
     "sfx_director_manifest_placeholder",
-    "music_ducking_plan_placeholder"
+    "music_ducking_plan_placeholder",
+    "track_b_audio_processing_handoff_placeholder",
+    "track_a_final_composition_handoff_placeholder",
+    "provider_gateway_future_audio_generation_handoff_placeholder"
   ],
   "selectedToolMix": "sound_music_audio_manifest_only_fixture_mix",
   "editIntentRefs": [
@@ -60,6 +72,12 @@
     "provider_model_runtime",
     "media_processing",
     "audio_processing",
+    "audio_generation",
+    "sfx_music_generation",
+    "ffmpeg_ffprobe_execution",
+    "deepfilternet_runtime",
+    "demucs_runtime",
+    "provider_audio_generation",
     "signed_url_as_source_of_truth",
     "public_artifact",
     "supabase_mutation",

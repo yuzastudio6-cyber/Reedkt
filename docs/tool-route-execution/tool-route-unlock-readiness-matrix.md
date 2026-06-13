@@ -15,6 +15,22 @@ Readiness state: `ready_with_warnings_for_tool_route_1`
 | Dry-run fixture plan | `not_started` | This audit only. | Needs next prompt. | Yes | Yes | `TOOL_ROUTE_EXECUTION` | `TOOL-ROUTE-1` |
 | Diagnostics/tests | `audit_diagnostic_added` | `tool-route:execution-unlock:audit:diagnostics`. | Contract tests not added yet. | Yes | Yes | `TOOL_ROUTE_EXECUTION` | `TOOL-ROUTE-1` |
 
+## TOOL-ROUTE-1A Sound Study Refresh
+
+TOOL-ROUTE-1A refreshed the Sound/Music fixture references after PR #371 merged SOUND_MUSIC_AUDIO owner-study evidence at `f6283e63742d6999910d3887482dc3112da1e570`.
+
+Updated Sound/Music fixture status: `sound_music_audio_refs_refreshed_after_pr_371`
+
+Route execution approved: `false`
+Tool execution approved: `false`
+Worker execution approved: `false`
+Provider/model runtime approved: `false`
+Supabase mutation approved: `false`
+Public artifacts approved: `false`
+Signed URLs approved: `false`
+Internal beta approved: `false`
+Production approved: `false`
+
 Route execution approved: `false`
 Tool execution approved: `false`
 Worker execution approved: `false`

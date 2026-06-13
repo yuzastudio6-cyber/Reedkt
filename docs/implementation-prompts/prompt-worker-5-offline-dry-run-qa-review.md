@@ -8,6 +8,7 @@ This prompt reviews committed WORKER-4 evidence only. It does not rerun the offl
 
 ## Implemented Result
 
+- PR: [#401](https://github.com/yuzastudio6-cyber/Reedkt/pull/401)
 - QA result: `worker_runtime_offline_dry_run_qa_passed_with_warnings`
 - Controlled no-op readiness: `ready_with_warnings_for_controlled_noop_worker_gate_plan`
 - Fixtures reviewed: `7`

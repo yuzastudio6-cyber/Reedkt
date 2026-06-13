@@ -61,7 +61,7 @@ Local validation completed on the WORKER-5 branch:
 
 Local git note: plain `git status` hit the local Apple/Xcode shim path issue for `/Applications/Xcode.app/Contents/Developer`; git verification was rerun with `DEVELOPER_DIR=/Library/Developer/CommandLineTools`.
 
-PR link: pending creation.
+PR link: [#401](https://github.com/yuzastudio6-cyber/Reedkt/pull/401)
 
 ## Supabase Status
 

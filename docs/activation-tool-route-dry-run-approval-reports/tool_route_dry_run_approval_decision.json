@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.toolRouteDryRunApproval.decision.v1",
+  "createdAt": "2026-06-13T16:48:39.991Z",
+  "decision": "approved_for_future_tool_route_metadata_dry_run_execution",
+  "approvedForFutureToolRouteMetadataDryRunExecution": true,
+  "realToolExecutionApproved": false,
+  "routeExecutionApproved": false,
+  "workerExecutionApproved": false,
+  "providerExecutionApproved": false,
+  "blockers": [],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "Track B clean staging milestone sync completed before this phase; this packet is metadata/docs only.",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextSupabaseAction": "none"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.blockerReport.v1",
+  "createdAt": "2026-06-13T17:41:05.198Z",
+  "decision": "tool_route_metadata_dry_run_passed_ready_for_controlled_tool_execution_approval",
+  "blockers": [],
+  "activeRuntimeBlockersPreserved": true,
+  "realControlledToolExecutionBlockedUntilSeparateApproval": true
+}

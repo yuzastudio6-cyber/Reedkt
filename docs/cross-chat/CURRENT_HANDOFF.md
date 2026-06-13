@@ -40,3 +40,17 @@ TOOL-STUDY-0 completion rollup status:
 - Open owner-study PRs pending merge: `#367`, `#373`, `#376`, `#379`
 - Route unlock ready: `false`
 - Next action: merge/source-of-truth completion for the owner-study stack before any `TOOL_ROUTE_EXECUTION` dry-run approval packet.
+
+<!-- TOOL_ROUTE_DRY_RUN_APPROVAL_STATUS -->
+
+TOOL_ROUTE_EXECUTION dry-run approval packet:
+
+- Decision: `approved_for_future_tool_route_metadata_dry_run_execution`
+- TOOL-STUDY-0 source-of-truth: merged and revalidated from live PR evidence.
+- Future route dry-run scope: metadata/no-op only.
+- Real route/tool/worker/provider/runtime/Supabase/public/beta/production scopes remain blocked.
+- Next prompt: `TOOL_ROUTE_EXECUTION - tool-route metadata dry-run execution`.
+
+## Tool-Route Metadata Dry-Run
+
+TOOL_ROUTE_EXECUTION metadata dry-run is recorded as passed for the next controlled tool execution approval packet. Real route/tool/worker/provider/runtime, Supabase writes, public artifacts, signed URLs, beta, and production remain blocked.

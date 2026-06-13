@@ -1,0 +1,113 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.artifactScopeValidation.v1",
+  "passed": true,
+  "requiredSourceOfTruthModel": [
+    "approved_plan_snapshot_v1",
+    "supabase_row_ref_future_only",
+    "private_gcs_path_ref",
+    "manifest_id",
+    "checksum"
+  ],
+  "rows": [
+    {
+      "fixtureId": "valid_track_b_metadata_route_candidate",
+      "fixtureClass": "valid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+      "fixtureClass": "valid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_ai_creative_graphics_metadata_route_candidate",
+      "fixtureClass": "valid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_track_a_render_export_metadata_route_candidate",
+      "fixtureClass": "valid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_raw_prompt_route_request",
+      "fixtureClass": "invalid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_direct_tool_execution_request",
+      "fixtureClass": "invalid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_worker_execution_request",
+      "fixtureClass": "invalid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_provider_model_call_request",
+      "fixtureClass": "invalid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_public_artifact_signed_url_request",
+      "fixtureClass": "invalid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_broad_media_render_export_request",
+      "fixtureClass": "invalid",
+      "refsPrivate": true,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "publicArtifactsAllowed": false,
+      "gcsUploads": false,
+      "arbitraryPathsAllowed": false,
+      "passed": true
+    }
+  ]
+}

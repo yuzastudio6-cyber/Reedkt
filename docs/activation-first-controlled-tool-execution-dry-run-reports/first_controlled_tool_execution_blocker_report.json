@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.firstControlledToolExecutionDryRun.blockerReport.v1",
+  "createdAt": "2026-06-13T19:40:02.184Z",
+  "decision": "first_controlled_tool_execution_dry_run_passed_ready_for_next_controlled_candidate_or_worker_handoff_review",
+  "blockers": [],
+  "activeRuntimeBlockersPreserved": true,
+  "nonSelectedToolsRemainBlocked": true,
+  "nextPhaseRequiresSeparateApproval": true,
+  "staleDuplicatePr": {
+    "status": "stale_reference_only_duplicate_risk",
+    "treatedAsSourceOfTruth": false,
+    "reuseBlocked": true,
+    "evidence": {
+      "baseRefName": "codex/rp-tool-route-2a-refresh-conflict-resolution-after-tool-route-1a",
+      "headRefName": "codex/rp-tool-route-3-offline-dry-run-approval-packet",
+      "headRefOid": "0e91380d2201e651c0c7df67624be015befa2db7",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "mergedAt": null,
+      "number": 384,
+      "state": "OPEN",
+      "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/384"
+    }
+  }
+}

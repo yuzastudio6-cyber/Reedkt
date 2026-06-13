@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.firstControlledToolExecutionDryRun.observabilityCostAudit.v1",
+  "passed": true,
+  "runId": "first-controlled-tool-execution-dry-run-0001",
+  "correlationId": "corr-first-controlled-tool-fixture-report-validation",
+  "approvedPlanSnapshotId": "approved_plan_snapshot:first-controlled-tool-fixture-report-validation",
+  "selectedCandidateId": "controlled-tool:first_fixture_report_validation",
+  "routeCandidateId": "metadata-route:track_b_media_processing",
+  "ownerStudyRefs": [
+    "docs/tool-studies/tool-study-0-owner-study-matrix.json",
+    "docs/tool-studies/tool-study-0-route-unlock-readiness.json"
+  ],
+  "artifactManifestRefs": [
+    "private://manifest/first-controlled-tool-fixture-report-validation",
+    "private://checksum/first-controlled-tool-fixture-report-validation"
+  ],
+  "noSecretLogs": true,
+  "noRawPrivatePayloadLogs": true,
+  "timeoutClass": "local_metadata_validation_short",
+  "costEstimateClass": "metadata_shape_only_no_charge",
+  "retryPolicy": "disabled_for_first_dry_run",
+  "failureStateMapping": {
+    "validation_failure": "blocked_pending_candidate_execution",
+    "guard_failure": "blocked_pending_selected_candidate_guard",
+    "safety_failure": "rejected_due_runtime_safety_risk"
+  },
+  "auditEventShape": {
+    "eventName": "first_controlled_tool_execution_dry_run.completed",
+    "candidateId": "controlled-tool:first_fixture_report_validation",
+    "correlationId": "corr-first-controlled-tool-fixture-report-validation",
+    "sideEffects": "none"
+  },
+  "abuseRateLimitControls": [
+    "single_selected_candidate_only",
+    "no_external_calls",
+    "no_retries",
+    "no_payload_logging"
+  ]
+}

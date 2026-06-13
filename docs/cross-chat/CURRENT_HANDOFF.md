@@ -64,3 +64,14 @@ CONTROLLED_TOOL_EXECUTION approval packet:
 - PR #387/#388 tool-route source-of-truth evidence is merged and consumed.
 - This is approval-only; real tool/route/worker/provider/media/Supabase/GCS/public/beta/production scopes remain blocked.
 - Next prompt: `CONTROLLED_TOOL_EXECUTION - first controlled tool execution dry-run`.
+
+<!-- FIRST_CONTROLLED_TOOL_EXECUTION_DRY_RUN_STATUS -->
+
+FIRST_CONTROLLED_TOOL_EXECUTION dry-run:
+
+- Decision: `first_controlled_tool_execution_dry_run_passed_ready_for_next_controlled_candidate_or_worker_handoff_review`
+- Selected candidate: `controlled-tool:first_fixture_report_validation`.
+- Only local/server-side fixture/report metadata validation ran.
+- PR #384 remains stale draft duplicate-risk/reference-only evidence.
+- Real route/tool/worker/provider/media/Supabase/GCS/public/beta/production scopes remain blocked.
+- Next prompt: `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW`.

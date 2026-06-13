@@ -55,3 +55,10 @@ Next unlock lane:
 
 - `CONTROLLED_TOOL_EXECUTION - first controlled tool execution dry-run` may use only the selected fixture/report-validation candidate after separate approval.
 - Media/audio/render/image/browser/map, workers, providers, Supabase/GCS writes, public artifacts, signed URLs, beta, and production remain blocked.
+
+<!-- FIRST_CONTROLLED_TOOL_EXECUTION_DRY_RUN_STATUS -->
+
+Next unlock lane:
+
+- `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW` may choose another low-risk candidate approval or worker handoff review.
+- Broad tools, real routes, workers, providers, media/audio/render/image/browser/map, Supabase/GCS writes, public artifacts, signed URLs, external beta, paid production, and production remain blocked.

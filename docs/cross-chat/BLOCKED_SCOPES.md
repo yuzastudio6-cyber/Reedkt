@@ -45,3 +45,7 @@ Real route execution, tool execution, worker execution, provider/model calls, me
 <!-- CONTROLLED_TOOL_EXECUTION_APPROVAL_STATUS -->
 
 Controlled tool execution approval does not unblock real execution. Tool execution, route execution, worker execution, provider calls, media/audio/render/export/image/browser/map processing, Supabase writes, SQL, GCS uploads, public artifacts, signed URLs, raw prompt execution, dependency mutation, external beta, paid production, and production remain blocked.
+
+<!-- FIRST_CONTROLLED_TOOL_EXECUTION_DRY_RUN_STATUS -->
+
+The first controlled tool dry-run did not unblock real execution. Broad tool execution, route execution, worker execution, provider/model calls, media/audio/render/export/image/browser/map work, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, dependency mutation, external beta, paid production, and production remain blocked.

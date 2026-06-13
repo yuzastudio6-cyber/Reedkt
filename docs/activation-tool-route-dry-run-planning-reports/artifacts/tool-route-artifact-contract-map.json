@@ -1,0 +1,560 @@
+{
+  "phase": "TOOL_ROUTE_1",
+  "status": "passed",
+  "artifacts": [
+    {
+      "artifactId": "provider_planning_manifest",
+      "familyId": "provider_model_planning",
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "contractName": "provider planning manifest",
+      "allowedSourceOfTruth": [
+        "sanitized provider planning metadata",
+        "provider policy refs",
+        "schema validation refs"
+      ],
+      "blockedSourceOfTruth": [
+        "raw provider response",
+        "raw prompt",
+        "provider secret payload"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "providerPolicyRef",
+        "schemaId",
+        "redactionStatus"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "approved_plan_snapshot_candidate",
+      "familyId": "worker_runtime_job_planning",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "contractName": "approved plan snapshot",
+      "allowedSourceOfTruth": [
+        "candidate-approved-plan snapshot JSON",
+        "selected intents",
+        "implementation proposal refs"
+      ],
+      "blockedSourceOfTruth": [
+        "runtime-approved snapshot claim",
+        "raw chat prompt",
+        "mutable worker instruction"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "candidatePlanId",
+        "executionStatus",
+        "approvedForRuntime"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "worker_dry_run_job_plan",
+      "familyId": "worker_runtime_job_planning",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "contractName": "worker dry-run job plan",
+      "allowedSourceOfTruth": [
+        "dry-run job plan",
+        "dependency plan",
+        "blocked-route validation"
+      ],
+      "blockedSourceOfTruth": [
+        "real claim result",
+        "lease mutation",
+        "worker event persistence"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "batchId",
+        "jobIds",
+        "dependencyIds",
+        "dryRunOnly"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "web_source_capture_extraction_manifest",
+      "familyId": "web_search_capture",
+      "owner": "WEB_SEARCH_CAPTURE",
+      "contractName": "web source/capture/extraction manifest",
+      "allowedSourceOfTruth": [
+        "sanitized source manifest",
+        "capture manifest",
+        "extraction manifest",
+        "QA report"
+      ],
+      "blockedSourceOfTruth": [
+        "raw Brave response",
+        "raw snippets",
+        "login content",
+        "signed URL"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "sourceRefs",
+        "captureScope",
+        "extractionSummary",
+        "privacyReview"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "map_geojson_style_camera_timing_render_manifest",
+      "familyId": "map_geospatial",
+      "owner": "MAP_GEOSPATIAL",
+      "contractName": "map GeoJSON/style/camera/timing/render manifest",
+      "allowedSourceOfTruth": [
+        "GeoJSON manifest",
+        "style manifest",
+        "camera manifest",
+        "timing manifest",
+        "render manifest"
+      ],
+      "blockedSourceOfTruth": [
+        "live tile response",
+        "live geocode response",
+        "map screenshot without manifest"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "geojsonRef",
+        "styleRef",
+        "cameraRef",
+        "timingRef",
+        "renderSettingsRef"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "ai_tools_visual_asset_manifest",
+      "familyId": "ai_tools_creative_graphics",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "contractName": "AI Tools visual asset manifest",
+      "allowedSourceOfTruth": [
+        "visual spec record",
+        "source data refs",
+        "checksums",
+        "QA report"
+      ],
+      "blockedSourceOfTruth": [
+        "rendered bitmap as source-of-truth",
+        "tool output without manifest",
+        "public URL"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "visualSpecId",
+        "toolFamily",
+        "sourceDataRefs",
+        "qaRequirements"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "track_a_render_export_manifest",
+      "familyId": "track_a_render_export",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "contractName": "Track A render/export manifest",
+      "allowedSourceOfTruth": [
+        "render settings",
+        "export settings",
+        "layer refs",
+        "timing refs",
+        "QA records"
+      ],
+      "blockedSourceOfTruth": [
+        "temporary render",
+        "final export",
+        "signed URL delivery"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "compositionRefs",
+        "layerRefs",
+        "exportSettings",
+        "finalQaRefs"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "track_b_media_analysis_manifest",
+      "familyId": "track_b_media_processing",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "contractName": "Track B media analysis manifest",
+      "allowedSourceOfTruth": [
+        "media metadata",
+        "timecodes",
+        "OCR planning fields",
+        "scene/audio QA fields"
+      ],
+      "blockedSourceOfTruth": [
+        "raw media",
+        "processed derivative without manifest",
+        "VLM runtime payload"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "mediaRef",
+        "timecodeRefs",
+        "analysisType",
+        "ownerHandoffRefs"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "sound_music_audio_cue_manifest",
+      "familyId": "sound_music_audio",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "contractName": "Sound/Music/Audio cue manifest",
+      "allowedSourceOfTruth": [
+        "cue timing",
+        "scene/mood/category/intensity fields",
+        "platform-safe style plan"
+      ],
+      "blockedSourceOfTruth": [
+        "generated SFX",
+        "generated music",
+        "processed audio",
+        "provider audio response"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "cueId",
+        "timingRef",
+        "mood",
+        "category",
+        "intensity",
+        "trackAHandoff"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "supabase_metadata_placeholder",
+      "familyId": "supabase_metadata_storage",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "contractName": "Supabase metadata placeholder",
+      "allowedSourceOfTruth": [
+        "local docs/status placeholders",
+        "future table names",
+        "private artifact ref placeholders"
+      ],
+      "blockedSourceOfTruth": [
+        "SQL result",
+        "service-role payload",
+        "row mutation",
+        "storage transfer"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "futureTableRef",
+        "rlsReviewStatus",
+        "syncLayerStatus"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "observability_cost_event_placeholder",
+      "familyId": "observability_audit_cost",
+      "owner": "OBSERVABILITY_AUDIT_COST",
+      "contractName": "observability/cost event placeholder",
+      "allowedSourceOfTruth": [
+        "event name",
+        "run id",
+        "cost category placeholder",
+        "QA gate status"
+      ],
+      "blockedSourceOfTruth": [
+        "telemetry sink write",
+        "paid usage event",
+        "credit mutation"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "eventType",
+        "auditCategory",
+        "costPlaceholder",
+        "redactionStatus"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "compliance_review_placeholder",
+      "familyId": "compliance_security",
+      "owner": "COMPLIANCE_SECURITY",
+      "contractName": "compliance review placeholder",
+      "allowedSourceOfTruth": [
+        "blocked-use register",
+        "privacy review placeholder",
+        "redaction summary"
+      ],
+      "blockedSourceOfTruth": [
+        "secret payload",
+        "signed URL source-of-truth",
+        "public artifact"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "privacyGate",
+        "sourceOfTruthGate",
+        "secretScanStatus"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "frontend_ux_route_placeholder",
+      "familyId": "frontend_product_ux",
+      "owner": "FRONTEND_PRODUCT_UX",
+      "contractName": "frontend UX route placeholder",
+      "allowedSourceOfTruth": [
+        "route label",
+        "review-only status",
+        "owner approval status",
+        "copy requirements"
+      ],
+      "blockedSourceOfTruth": [
+        "runtime-ready UI claim",
+        "production-ready claim",
+        "public delivery claim"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "routeLabel",
+        "displayStatus",
+        "ownerReviewRequired",
+        "runtimeReady"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "billing_credit_placeholder",
+      "familyId": "billing_stripe_credits",
+      "owner": "BILLING_STRIPE_CREDITS",
+      "contractName": "billing/credit placeholder",
+      "allowedSourceOfTruth": [
+        "credit estimate placeholder",
+        "cost category",
+        "approval gate ref"
+      ],
+      "blockedSourceOfTruth": [
+        "Stripe checkout event",
+        "webhook payload",
+        "ledger mutation",
+        "paid production call"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "costCategory",
+        "approvalGateRef",
+        "creditMutationAllowed"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    },
+    {
+      "artifactId": "public_artifact_signed_url_delivery_blocked_placeholder",
+      "familyId": "public_artifact_signed_url_delivery_blocked",
+      "owner": "COMPLIANCE_SECURITY",
+      "contractName": "public artifact/signed URL delivery blocked placeholder",
+      "allowedSourceOfTruth": [
+        "private manifest refs",
+        "blocked delivery policy records",
+        "source-of-truth denial records"
+      ],
+      "blockedSourceOfTruth": [
+        "public artifact",
+        "signed URL",
+        "signed URL source-of-truth",
+        "public delivery path"
+      ],
+      "requiredFields": [
+        "artifactId",
+        "owner",
+        "sourcePlanId",
+        "runId",
+        "manifestVersion",
+        "checksumOrPlaceholder",
+        "provenance",
+        "qaStatus",
+        "privateRefOnly",
+        "blockedDeliveryReason",
+        "privateManifestRef",
+        "sourceOfTruthDenial"
+      ],
+      "privateOnly": true,
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "runtimeExecutionRequired": false
+    }
+  ],
+  "artifactContractCount": 15,
+  "allContractsPrivatePlanningOnly": true,
+  "activeBlockers": []
+}

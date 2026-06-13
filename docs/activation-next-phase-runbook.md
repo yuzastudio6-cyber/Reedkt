@@ -376,3 +376,19 @@ Phase 22 staging foundation setup preparation feeds Phase 23 image push. Phase 2
 4. Confirm run `phase37d-20260531T002046` extracted exactly 6 local temp frames, ran OCR only on those frames, uploaded 10 private JSON QA artifacts, found 11 OCR text regions, and found zero lower-third collision frames.
 5. Confirm raw frames, overlays, model files, source video, venvs, credentials, signed URLs, and temp folders were not committed or uploaded.
 6. Proceed to Phase 37E only as controlled OCR safe-zone caption/render QA integration planning. Broad OCR, arbitrary media, Track A, beta, production, providers, public output, Cloud Run, Docker push, and GPU jobs remain blocked.
+
+<!-- TOOL-ROUTE-1-START -->
+## TOOL-ROUTE-1 Current Next Prompt
+
+`docs/implementation-prompts/prompt-tool-route-2-generated-local-fixture-planning.md`
+
+## TOOL-ROUTE-2 Entry Criteria
+
+- TOOL-ROUTE-1 status: `passed`
+- TOOL-ROUTE-1 decision: `tool_route_dry_run_planning_passed_ready_for_tool_route_2_generated_local_fixture_planning`
+- Route families mapped: `14`
+- Owner route plans mapped: `13`
+- Artifact contracts mapped: `15`
+
+TOOL-ROUTE-2 remains generated-local-fixture planning only. It does not authorize runtime, tool, worker, provider, Supabase, media, browser/map/web, public artifact, signed URL, beta, production, or final render/export execution.
+<!-- TOOL-ROUTE-1-END -->

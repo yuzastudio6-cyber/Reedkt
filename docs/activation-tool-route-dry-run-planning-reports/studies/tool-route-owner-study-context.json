@@ -1,0 +1,466 @@
+{
+  "phase": "TOOL_ROUTE_1",
+  "status": "passed",
+  "studies": [
+    {
+      "owner": "WEB_SEARCH_CAPTURE",
+      "status": "passed",
+      "mergeSha": "51ba1d44965d758935241af7712779bb15d713c6",
+      "requiredPaths": [
+        {
+          "path": "docs/tool-studies/web-search-capture-tool-study.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE toolStudy source contract."
+        },
+        {
+          "path": "docs/tool-studies/web-search-capture-capability-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE capabilityMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/web-search-capture-tool-combination-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE combinationMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/web-search-capture-routing-policy.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE routingPolicy source contract."
+        },
+        {
+          "path": "docs/tool-studies/web-search-capture-handoff-contract.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE handoffContract source contract."
+        },
+        {
+          "path": "docs/tool-studies/web-search-capture-internal-beta-gap-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE gapMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/web-search-capture-blocked-use-register.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE blockedUseRegister source contract."
+        },
+        {
+          "path": "docs/prompt-tool-study-0-web-search-capture-validation-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE validationResults source contract."
+        },
+        {
+          "path": "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE implementationPrompt source contract."
+        },
+        {
+          "path": "scripts/validation/tool-study-web-search-capture-diagnostics.mjs",
+          "exists": true,
+          "required": true,
+          "purpose": "WEB_SEARCH_CAPTURE diagnostics source contract."
+        }
+      ],
+      "capabilityMapPath": "docs/tool-studies/web-search-capture-capability-map.md",
+      "routingPolicyPath": "docs/tool-studies/web-search-capture-routing-policy.md",
+      "handoffContractPath": "docs/tool-studies/web-search-capture-handoff-contract.md",
+      "blockedUseRegisterPath": "docs/tool-studies/web-search-capture-blocked-use-register.md",
+      "validationResultsPath": "docs/prompt-tool-study-0-web-search-capture-validation-results.md",
+      "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+      "executionAllowed": false,
+      "ownerReviewOnly": true,
+      "activeBlockers": []
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "status": "passed",
+      "mergeSha": "c0c96030358d52852b712b9f239a3237490d25ec",
+      "requiredPaths": [
+        {
+          "path": "docs/tool-studies/map-geospatial-tool-study.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL toolStudy source contract."
+        },
+        {
+          "path": "docs/tool-studies/map-geospatial-capability-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL capabilityMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/map-geospatial-tool-combination-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL combinationMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/map-geospatial-routing-policy.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL routingPolicy source contract."
+        },
+        {
+          "path": "docs/tool-studies/map-geospatial-handoff-contract.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL handoffContract source contract."
+        },
+        {
+          "path": "docs/tool-studies/map-geospatial-internal-beta-gap-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL gapMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/map-geospatial-blocked-use-register.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL blockedUseRegister source contract."
+        },
+        {
+          "path": "docs/prompt-tool-study-0-map-geospatial-validation-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL validationResults source contract."
+        },
+        {
+          "path": "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL implementationPrompt source contract."
+        },
+        {
+          "path": "scripts/validation/tool-study-map-geospatial-diagnostics.mjs",
+          "exists": true,
+          "required": true,
+          "purpose": "MAP_GEOSPATIAL diagnostics source contract."
+        }
+      ],
+      "capabilityMapPath": "docs/tool-studies/map-geospatial-capability-map.md",
+      "routingPolicyPath": "docs/tool-studies/map-geospatial-routing-policy.md",
+      "handoffContractPath": "docs/tool-studies/map-geospatial-handoff-contract.md",
+      "blockedUseRegisterPath": "docs/tool-studies/map-geospatial-blocked-use-register.md",
+      "validationResultsPath": "docs/prompt-tool-study-0-map-geospatial-validation-results.md",
+      "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+      "executionAllowed": false,
+      "ownerReviewOnly": true,
+      "activeBlockers": []
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "status": "passed",
+      "mergeSha": "05d429f6029136f0f55fe01375809071b588791c",
+      "requiredPaths": [
+        {
+          "path": "docs/tool-studies/ai-tools-creative-graphics-tool-study.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS toolStudy source contract."
+        },
+        {
+          "path": "docs/tool-studies/ai-tools-creative-graphics-capability-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS capabilityMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/ai-tools-creative-graphics-tool-combination-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS combinationMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS routingPolicy source contract."
+        },
+        {
+          "path": "docs/tool-studies/ai-tools-creative-graphics-handoff-contract.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS handoffContract source contract."
+        },
+        {
+          "path": "docs/tool-studies/ai-tools-creative-graphics-internal-beta-gap-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS gapMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/ai-tools-creative-graphics-blocked-use-register.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS blockedUseRegister source contract."
+        },
+        {
+          "path": "docs/prompt-tool-study-0-ai-tools-creative-graphics-validation-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS validationResults source contract."
+        },
+        {
+          "path": "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS implementationPrompt source contract."
+        },
+        {
+          "path": "scripts/validation/tool-study-ai-tools-creative-graphics-diagnostics.mjs",
+          "exists": true,
+          "required": true,
+          "purpose": "AI_TOOLS_CREATIVE_GRAPHICS diagnostics source contract."
+        }
+      ],
+      "capabilityMapPath": "docs/tool-studies/ai-tools-creative-graphics-capability-map.md",
+      "routingPolicyPath": "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+      "handoffContractPath": "docs/tool-studies/ai-tools-creative-graphics-handoff-contract.md",
+      "blockedUseRegisterPath": "docs/tool-studies/ai-tools-creative-graphics-blocked-use-register.md",
+      "validationResultsPath": "docs/prompt-tool-study-0-ai-tools-creative-graphics-validation-results.md",
+      "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+      "executionAllowed": false,
+      "ownerReviewOnly": true,
+      "activeBlockers": []
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "status": "passed",
+      "mergeSha": "0ac258f939f403dbef438d3184408f28f874f26c",
+      "requiredPaths": [
+        {
+          "path": "docs/tool-studies/track-a-render-export-tool-study.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT toolStudy source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-a-render-export-capability-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT capabilityMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-a-render-export-tool-combination-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT combinationMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-a-render-export-routing-policy.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT routingPolicy source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-a-render-export-handoff-contract.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT handoffContract source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-a-render-export-internal-beta-gap-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT gapMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-a-render-export-blocked-use-register.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT blockedUseRegister source contract."
+        },
+        {
+          "path": "docs/prompt-tool-study-0-track-a-render-export-validation-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT validationResults source contract."
+        },
+        {
+          "path": "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT implementationPrompt source contract."
+        },
+        {
+          "path": "scripts/validation/tool-study-track-a-render-export-diagnostics.mjs",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_A_RENDER_EXPORT diagnostics source contract."
+        }
+      ],
+      "capabilityMapPath": "docs/tool-studies/track-a-render-export-capability-map.md",
+      "routingPolicyPath": "docs/tool-studies/track-a-render-export-routing-policy.md",
+      "handoffContractPath": "docs/tool-studies/track-a-render-export-handoff-contract.md",
+      "blockedUseRegisterPath": "docs/tool-studies/track-a-render-export-blocked-use-register.md",
+      "validationResultsPath": "docs/prompt-tool-study-0-track-a-render-export-validation-results.md",
+      "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+      "executionAllowed": false,
+      "ownerReviewOnly": true,
+      "activeBlockers": []
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "status": "passed",
+      "mergeSha": "454d06caaf3b3349efa541f3ce50aac0bc0044aa",
+      "requiredPaths": [
+        {
+          "path": "docs/tool-studies/track-b-media-processing-tool-study.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING toolStudy source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-b-media-processing-capability-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING capabilityMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-b-media-processing-tool-combination-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING combinationMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-b-media-processing-routing-policy.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING routingPolicy source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-b-media-processing-handoff-contract.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING handoffContract source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-b-media-processing-internal-beta-gap-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING gapMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/track-b-media-processing-blocked-use-register.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING blockedUseRegister source contract."
+        },
+        {
+          "path": "docs/prompt-tool-study-0-track-b-media-processing-validation-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING validationResults source contract."
+        },
+        {
+          "path": "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING implementationPrompt source contract."
+        },
+        {
+          "path": "scripts/validation/tool-study-track-b-media-processing-diagnostics.mjs",
+          "exists": true,
+          "required": true,
+          "purpose": "TRACK_B_MEDIA_PROCESSING diagnostics source contract."
+        }
+      ],
+      "capabilityMapPath": "docs/tool-studies/track-b-media-processing-capability-map.md",
+      "routingPolicyPath": "docs/tool-studies/track-b-media-processing-routing-policy.md",
+      "handoffContractPath": "docs/tool-studies/track-b-media-processing-handoff-contract.md",
+      "blockedUseRegisterPath": "docs/tool-studies/track-b-media-processing-blocked-use-register.md",
+      "validationResultsPath": "docs/prompt-tool-study-0-track-b-media-processing-validation-results.md",
+      "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+      "executionAllowed": false,
+      "ownerReviewOnly": true,
+      "activeBlockers": []
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "status": "passed",
+      "mergeSha": "f6283e63742d6999910d3887482dc3112da1e570",
+      "requiredPaths": [
+        {
+          "path": "docs/tool-studies/sound-music-audio-tool-study.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO toolStudy source contract."
+        },
+        {
+          "path": "docs/tool-studies/sound-music-audio-capability-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO capabilityMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/sound-music-audio-tool-combination-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO combinationMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/sound-music-audio-routing-policy.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO routingPolicy source contract."
+        },
+        {
+          "path": "docs/tool-studies/sound-music-audio-handoff-contract.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO handoffContract source contract."
+        },
+        {
+          "path": "docs/tool-studies/sound-music-audio-internal-beta-gap-map.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO gapMap source contract."
+        },
+        {
+          "path": "docs/tool-studies/sound-music-audio-blocked-use-register.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO blockedUseRegister source contract."
+        },
+        {
+          "path": "docs/prompt-tool-study-0-sound-music-audio-validation-results.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO validationResults source contract."
+        },
+        {
+          "path": "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO implementationPrompt source contract."
+        },
+        {
+          "path": "scripts/validation/tool-study-sound-music-audio-diagnostics.mjs",
+          "exists": true,
+          "required": true,
+          "purpose": "SOUND_MUSIC_AUDIO diagnostics source contract."
+        }
+      ],
+      "capabilityMapPath": "docs/tool-studies/sound-music-audio-capability-map.md",
+      "routingPolicyPath": "docs/tool-studies/sound-music-audio-routing-policy.md",
+      "handoffContractPath": "docs/tool-studies/sound-music-audio-handoff-contract.md",
+      "blockedUseRegisterPath": "docs/tool-studies/sound-music-audio-blocked-use-register.md",
+      "validationResultsPath": "docs/prompt-tool-study-0-sound-music-audio-validation-results.md",
+      "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md",
+      "executionAllowed": false,
+      "ownerReviewOnly": true,
+      "activeBlockers": []
+    }
+  ],
+  "completedStudyCount": 6,
+  "requiredStudyCount": 6,
+  "allRequiredStudiesPresent": true,
+  "activeBlockers": []
+}

@@ -1,0 +1,202 @@
+{
+  "phase": "TOOL_ROUTE_1",
+  "status": "passed",
+  "gates": [
+    {
+      "gateId": "owner_study_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+        "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+        "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+        "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+        "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+        "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "capability_map_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/tool-studies/web-search-capture-capability-map.md",
+        "docs/tool-studies/map-geospatial-capability-map.md",
+        "docs/tool-studies/ai-tools-creative-graphics-capability-map.md",
+        "docs/tool-studies/track-a-render-export-capability-map.md",
+        "docs/tool-studies/track-b-media-processing-capability-map.md",
+        "docs/tool-studies/sound-music-audio-capability-map.md"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "routing_policy_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/tool-studies/web-search-capture-routing-policy.md",
+        "docs/tool-studies/map-geospatial-routing-policy.md",
+        "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+        "docs/tool-studies/track-a-render-export-routing-policy.md",
+        "docs/tool-studies/track-b-media-processing-routing-policy.md",
+        "docs/tool-studies/sound-music-audio-routing-policy.md"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "handoff_contract_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/tool-studies/web-search-capture-handoff-contract.md",
+        "docs/tool-studies/map-geospatial-handoff-contract.md",
+        "docs/tool-studies/ai-tools-creative-graphics-handoff-contract.md",
+        "docs/tool-studies/track-a-render-export-handoff-contract.md",
+        "docs/tool-studies/track-b-media-processing-handoff-contract.md",
+        "docs/tool-studies/sound-music-audio-handoff-contract.md"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "blocked_use_register_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/tool-studies/web-search-capture-blocked-use-register.md",
+        "docs/tool-studies/map-geospatial-blocked-use-register.md",
+        "docs/tool-studies/ai-tools-creative-graphics-blocked-use-register.md",
+        "docs/tool-studies/track-a-render-export-blocked-use-register.md",
+        "docs/tool-studies/track-b-media-processing-blocked-use-register.md",
+        "docs/tool-studies/sound-music-audio-blocked-use-register.md"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "worker_dry_run_evidence_exists",
+      "status": "passed",
+      "evidence": [
+        "worker1-batch-worker1-20260612T193823",
+        "docs/activation-worker-approved-plan-dry-run-reports/validation/blocked-route-validation.json"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "plan_snapshot_evidence_exists",
+      "status": "passed",
+      "evidence": [
+        "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "route_family_plan_complete",
+      "status": "passed",
+      "evidence": [
+        "provider_model_planning",
+        "worker_runtime_job_planning",
+        "web_search_capture",
+        "map_geospatial",
+        "ai_tools_creative_graphics",
+        "track_a_render_export",
+        "track_b_media_processing",
+        "sound_music_audio",
+        "supabase_metadata_storage",
+        "observability_audit_cost",
+        "compliance_security",
+        "frontend_product_ux",
+        "billing_stripe_credits",
+        "public_artifact_signed_url_delivery_blocked"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "owner_route_plan_complete",
+      "status": "passed",
+      "evidence": [
+        "WEB_SEARCH_CAPTURE",
+        "MAP_GEOSPATIAL",
+        "AI_TOOLS_CREATIVE_GRAPHICS",
+        "TRACK_A_RENDER_EXPORT",
+        "TRACK_B_MEDIA_PROCESSING",
+        "SOUND_MUSIC_AUDIO",
+        "WORKER_RUNTIME_JOBS",
+        "PROVIDER_GATEWAY_MODELS",
+        "SUPABASE_RLS_STORAGE_DATABASE",
+        "OBSERVABILITY_AUDIT_COST",
+        "COMPLIANCE_SECURITY",
+        "FRONTEND_PRODUCT_UX",
+        "BILLING_STRIPE_CREDITS"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "artifact_contract_map_complete",
+      "status": "passed",
+      "evidence": [
+        "provider_planning_manifest",
+        "approved_plan_snapshot_candidate",
+        "worker_dry_run_job_plan",
+        "web_source_capture_extraction_manifest",
+        "map_geojson_style_camera_timing_render_manifest",
+        "ai_tools_visual_asset_manifest",
+        "track_a_render_export_manifest",
+        "track_b_media_analysis_manifest",
+        "sound_music_audio_cue_manifest",
+        "supabase_metadata_placeholder",
+        "observability_cost_event_placeholder",
+        "compliance_review_placeholder",
+        "frontend_ux_route_placeholder",
+        "billing_credit_placeholder",
+        "public_artifact_signed_url_delivery_blocked_placeholder"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_runtime_execution",
+      "status": "passed",
+      "evidence": [
+        "all execution flags are false"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_public_artifacts",
+      "status": "passed",
+      "evidence": [
+        "publicArtifactAllowed=false for all contracts"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_signed_urls",
+      "status": "passed",
+      "evidence": [
+        "signedUrlSourceOfTruthAllowed=false for all contracts"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_raw_prompts",
+      "status": "passed",
+      "evidence": [
+        "rawPromptAllowed=false for all contracts"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_supabase_mutation",
+      "status": "passed",
+      "evidence": [
+        "Supabase classification is docs_only with no SQL"
+      ],
+      "required": true
+    },
+    {
+      "gateId": "no_production_external_beta_unlock",
+      "status": "passed",
+      "evidence": [
+        "production=false and externalBeta=false"
+      ],
+      "required": true
+    }
+  ],
+  "gateCount": 16,
+  "allRequiredGatesPassed": true,
+  "activeBlockers": []
+}

@@ -1,0 +1,49 @@
+{
+  "phase": "TOOL_ROUTE_1",
+  "status": "passed",
+  "sourceRunId": "worker1-20260612T193823",
+  "batchId": "worker1-batch-worker1-20260612T193823",
+  "sourcePlanId": "candidate-approved-plan-plansnapshot1-20260612T182758",
+  "jobCount": 7,
+  "dependencyCount": 10,
+  "routeReviewJobIds": [
+    "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+    "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+    "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+    "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning"
+  ],
+  "workerJobRefs": {
+    "snapshotIntake": [
+      "worker1-job-worker1-20260612T193823-snapshot-intake"
+    ],
+    "selectedIntentReviews": [
+      "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation",
+      "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata",
+      "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata",
+      "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning"
+    ],
+    "implementationProposalReview": [
+      "worker1-job-worker1-20260612T193823-deepseek-proposal-review"
+    ],
+    "artifactRouteEventValidation": [
+      "worker1-job-worker1-20260612T193823-artifact-route-event-validation"
+    ],
+    "chartCard": [
+      "worker1-job-worker1-20260612T193823-route-2-route_chart_card_metadata"
+    ],
+    "mapCard": [
+      "worker1-job-worker1-20260612T193823-route-3-route_map_card_metadata"
+    ],
+    "captionRecommendation": [
+      "worker1-job-worker1-20260612T193823-route-1-route_caption_recommendation"
+    ],
+    "timelineMetadata": [
+      "worker1-job-worker1-20260612T193823-route-4-route_timeline_metadata_planning"
+    ]
+  },
+  "dryRunOnly": true,
+  "approvedForRuntime": false,
+  "allExecutionFlagsFalse": true,
+  "blockedRouteValidationPath": "docs/activation-worker-approved-plan-dry-run-reports/validation/blocked-route-validation.json",
+  "activeBlockers": []
+}

@@ -14,6 +14,8 @@ This is an approval packet only. It must not run workers, claim jobs, mutate wor
 - Future approval: `futureOfflineWorkerDryRunApproved: true` for WORKER-4 only.
 - Contract fixture source: `docs/worker-runtime/fixtures/worker-route-dry-run-fixtures.json`.
 - Diagnostic uses Node built-ins only.
+- Draft PR: https://github.com/yuzastudio6-cyber/Reedkt/pull/395
+- GitHub status at PR creation: `draft/open/mergeable_clean; check rollup empty`
 
 ## Supabase And Scope
 

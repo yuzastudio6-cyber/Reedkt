@@ -1,0 +1,17 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "schema_contract_validation",
+  "status": "passed",
+  "sourceReport": "docs/activation-tool-route-execution-unlock-7-local-fixture-plan-reports/tool_route_local_fixture_schema_contract_plan.json",
+  "sourceFixtures": [
+    "tool_route_dry_run_cases.json",
+    "tool_route_valid_request_fixtures.json",
+    "tool_route_invalid_request_fixtures.json",
+    "tool_route_expected_result_fixtures.json"
+  ],
+  "requiredRequestFieldsRepresented": true,
+  "requiredResultFieldsRepresented": true,
+  "approvedPlanSnapshotRequired": true,
+  "sourceOfTruthRequirementRepresented": true,
+  "runtimeExecutionAllowed": false
+}

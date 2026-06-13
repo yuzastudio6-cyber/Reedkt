@@ -1,0 +1,20 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "input_matrix_validation",
+  "status": "passed",
+  "sourceReport": "docs/activation-tool-route-execution-unlock-7-local-fixture-plan-reports/tool_route_local_fixture_input_matrix.json",
+  "requiredInputsRepresented": [
+    "synthetic input refs",
+    "structured agent findings refs",
+    "edit intent refs",
+    "approved plan snapshot refs",
+    "capability candidates",
+    "tool candidates",
+    "route candidates",
+    "blocked field classes"
+  ],
+  "rawPromptDirectInputAllowed": false,
+  "realUserDataAllowed": false,
+  "privateProjectPayloadAllowed": false,
+  "mediaPayloadAllowed": false
+}

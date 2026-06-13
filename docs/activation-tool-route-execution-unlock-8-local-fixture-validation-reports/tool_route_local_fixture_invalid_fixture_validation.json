@@ -1,0 +1,12 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "invalid_fixture_validation",
+  "status": "passed",
+  "invalidFixtureFile": "docs/activation-tool-route-execution-unlock-2-dry-run-contract-fixtures/tool_route_invalid_request_fixtures.json",
+  "failClosedFixtureCount": 8,
+  "invalidFixturesFailClosed": true,
+  "blockedDecisionRequired": true,
+  "selectedCandidateMustBeNull": true,
+  "fixturesExecuted": false,
+  "runtimeExecutionAllowed": false
+}

@@ -1,0 +1,9 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "generated_local_fixture_not_claimed_validation",
+  "status": "passed",
+  "generatedLocalFixturePassedClaimed": false,
+  "generatedLocalFixturePassedClaimAuthorityFound": false,
+  "generatedLocalFixturePassedBlockedUntilFutureApprovedValidation": true,
+  "localFixturesExecuted": false
+}

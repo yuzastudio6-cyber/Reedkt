@@ -1,0 +1,28 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "runId": "tool-route-execution-unlock-8-local-fixture-validation-20260613",
+  "decision": "tool_route_local_fixture_validation_passed_with_warnings_ready_for_owner_approval",
+  "allowedDecision": true,
+  "readyForOwnerApproval": true,
+  "readyForToolExecution": false,
+  "readyForRouteExecution": false,
+  "readyForWorkerExecution": false,
+  "sourceOfTruthConflictsFound": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "runtimeExecutionAllowed": false,
+  "supabaseUpdateRequired": false,
+  "supabaseEnvironmentTouched": false,
+  "sqlExecuted": false,
+  "migrationDeployed": false,
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "nextPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-9: owner approval for tool-route local fixture gate, no execution",
+  "warnings": [
+    "local fixture validation is metadata-only and does not execute fixtures",
+    "owner approval is still required before any later gate claim",
+    "tool, route, worker, provider, Supabase, media, artifact, beta, and production execution remain blocked",
+    "dry_run_passed and generated_local_fixture_passed remain unclaimed"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "validation_matrix_validation",
+  "status": "passed",
+  "sourceReport": "docs/activation-tool-route-execution-unlock-7-local-fixture-plan-reports/tool_route_local_fixture_validation_matrix.json",
+  "validationStagesRepresented": [
+    "source-of-truth audit",
+    "fixture presence",
+    "case coverage",
+    "schema contracts",
+    "scoring policy",
+    "valid fixture metadata acceptance",
+    "invalid fixture fail-closed behavior",
+    "blocked raw prompt",
+    "blocked signed URL/public artifact",
+    "blocked runtime execution",
+    "owner handoff",
+    "no-execution policy",
+    "not-claimed registers"
+  ],
+  "fixturesExecuted": false,
+  "runtimeExecutionAllowed": false
+}

@@ -1,0 +1,23 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-8",
+  "reportType": "no_execution_policy_validation",
+  "status": "passed",
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "providerExecutionAllowed": false,
+  "supabaseWriteAllowed": false,
+  "sqlExecutionAllowed": false,
+  "mediaExecutionAllowed": false,
+  "browserCaptureAllowed": false,
+  "mapExecutionAllowed": false,
+  "dockerExecutionAllowed": false,
+  "cloudRunExecutionAllowed": false,
+  "publicArtifactCreationAllowed": false,
+  "signedUrlCreationAllowed": false,
+  "productionUnlockAllowed": false,
+  "externalBetaUnlockAllowed": false,
+  "paidProductionUnlockAllowed": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

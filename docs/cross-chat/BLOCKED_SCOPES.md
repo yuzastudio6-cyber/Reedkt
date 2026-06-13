@@ -11,7 +11,7 @@ The post-merge source-of-truth verification keeps these scopes blocked:
 - provider calls
 - media processing and broad media runtime
 - Track B media tool runtime, including OpenCV, PyAV, PySceneDetect, Sharp/libvips, PaddleOCR, PaddlePaddle, DuckDB, and Polars
-- Sound/Music/Audio runtimes, including DeepFilterNet, Signalsmith Stretch, and Demucs
+- Sound/Music/Audio runtimes, including DeepFilterNet, FFmpeg/FFprobe audio execution, AudioFlux, Signalsmith Stretch, Lyria, Mirelo, MMAudio, internal SFX library execution, and Demucs
 - AI Tools creative graphics execution
 - Track A runtime execution
 - Docker, Cloud Run, or Cloud Build mutation
@@ -22,3 +22,5 @@ The post-merge source-of-truth verification keeps these scopes blocked:
 - beta or production unlocks
 
 Blocked means no owner should treat the frozen-batch merge or this verification as runtime/product execution approval.
+
+The `SOUND_MUSIC_AUDIO` TOOL-STUDY-0 completion is docs/diagnostics only. Demucs remains blocked pending provenance/legal/human approval, RNNoise is not active, and tool-route execution remains blocked until remaining owner studies and separate route execution gates pass.

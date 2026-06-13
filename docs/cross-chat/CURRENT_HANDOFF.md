@@ -17,8 +17,10 @@ Current blocked scopes remain unchanged: no runtime execution, providers, tools,
 TOOL-STUDY-0 owner status:
 
 - `TRACK_B_MEDIA_PROCESSING`: complete in `codex/rp-tool-study-0-track-b-media-processing` as docs/diagnostics only.
-- `SOUND_MUSIC_AUDIO`: pending/blocked before tool-route execution unlock.
+- `SOUND_MUSIC_AUDIO`: complete in `codex/rp-tool-study-0-sound-music-audio-clean` as docs/diagnostics only.
 - `AI_TOOLS_CREATIVE_GRAPHICS`: pending/blocked before tool-route execution unlock.
 - `TRACK_A_RENDER_EXPORT`: pending/blocked before tool-route execution unlock.
 
 The Track B study covers OpenCV, PyAV, PySceneDetect, Sharp/libvips, DuckDB, Polars, PaddleOCR, PaddlePaddle, Track B route/capability manifest metadata, Track B cost/capacity metadata, and Track B benchmark/sidecar metadata. It explicitly hands off DeepFilterNet, Signalsmith Stretch, and Demucs to `SOUND_MUSIC_AUDIO`; creative/image-generation tools to `AI_TOOLS_CREATIVE_GRAPHICS`; and final render/export to `TRACK_A_RENDER_EXPORT`.
+
+The Sound/Music/Audio study covers DeepFilterNet, FFmpeg/FFprobe loudness and normalization planning, AudioFlux candidate metadata, Signalsmith Stretch, SoundSync cue planning, music ducking/mix/QA metadata, Lyria planning, Mirelo SFX V1.5, MMAudio V2, internal SFX library planning, Demucs blocked review, and audio cost/capacity metadata. It keeps Demucs blocked pending provenance/legal/human approval and keeps all audio/runtime/provider/tool/worker/route execution blocked.

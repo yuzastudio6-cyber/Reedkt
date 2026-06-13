@@ -7,7 +7,7 @@ Recommended next phase:
 Owner study status:
 
 - `TRACK_B_MEDIA_PROCESSING`: complete after `tool-study:track-b-media-processing:diagnostics` passes.
-- `SOUND_MUSIC_AUDIO`: pending.
+- `SOUND_MUSIC_AUDIO`: complete after `tool-study:sound-music-audio:diagnostics` passes.
 - `AI_TOOLS_CREATIVE_GRAPHICS`: pending.
 - `TRACK_A_RENDER_EXPORT`: pending.
 
@@ -25,4 +25,7 @@ Still blocked:
 - public artifacts and signed URL delivery
 - raw prompt execution
 - media processing
+- audio processing
 - dependency mutation
+
+Next recommended phase: `TOOL-STUDY-0 - AI_TOOLS_CREATIVE_GRAPHICS`.

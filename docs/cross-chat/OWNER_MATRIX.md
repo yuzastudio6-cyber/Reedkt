@@ -10,6 +10,6 @@
 | Track A creative graphics | Review parallel creative graphics lanes before merge | Runtime and media execution remain blocked |
 | SUPABASE_SOUND audio harness | Review audio/SoundSync harness ancestry and duplicates | Audio runtime and Supabase mutation remain blocked |
 | TRACK_B_MEDIA_PROCESSING | TOOL-STUDY-0 complete as docs/diagnostics only | Covers OCR/CV/media metadata routing only; no media processing, tool execution, worker execution, Supabase write, or beta/production unlock |
-| SOUND_MUSIC_AUDIO | TOOL-STUDY-0 pending | Owns DeepFilterNet, Signalsmith Stretch, Demucs, music/SFX/audio runtime follow-up |
+| SOUND_MUSIC_AUDIO | TOOL-STUDY-0 complete as docs/diagnostics only | Owns DeepFilterNet, FFmpeg/FFprobe audio planning, AudioFlux, Signalsmith Stretch, Demucs blocked review, music/SFX/audio metadata routing; no audio runtime, provider, worker, route, Supabase, beta, or production unlock |
 | AI_TOOLS_CREATIVE_GRAPHICS | TOOL-STUDY-0 pending | Owns creative/image-generation tools and graphics execution follow-up |
 | TRACK_A_RENDER_EXPORT | TOOL-STUDY-0 pending | Owns final render/export and Track A runtime follow-up |

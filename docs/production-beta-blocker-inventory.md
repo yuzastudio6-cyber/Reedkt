@@ -24,3 +24,5 @@ Worker runtime dry-run approval does not remove production beta blockers; curren
 TOOL-ROUTE-EXECUTION-UNLOCK-0 does not remove production beta blockers; current decision is `ready_with_warnings_for_tool_route_1`. Route/tool/worker/provider execution, Supabase writes, signed URLs, public artifacts, internal beta, external beta, paid production, and production remain blocked.
 
 TOOL-ROUTE-1 does not remove production beta blockers; current decision is `ready_with_warnings_for_tool_route_2`. It creates offline scoped tool-call fixtures and static diagnostics only. Route/tool/worker/provider execution, Supabase writes, storage transfer, signed URLs, public artifacts, internal beta, external beta, paid production, and production remain blocked.
+
+TOOL-ROUTE-2 does not remove production beta blockers; current decision is `tool_route_offline_contract_tests_passed_with_warnings`. It validates committed fixture contracts offline only. Route/tool/worker/provider execution, route handler import, tool runtime import, Supabase writes, storage transfer, signed URLs, public artifacts, internal beta, external beta, paid production, and production remain blocked.

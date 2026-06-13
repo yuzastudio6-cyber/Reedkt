@@ -20,3 +20,5 @@ Plan snapshot dry-run validation does not remove production beta blockers; curre
 Worker runtime repo audit does not remove production beta blockers; current decision is `repo_audit_passed_ready_for_worker_dry_run_approval`.
 
 Worker runtime dry-run approval does not remove production beta blockers; current decision is `approved_for_future_worker_noop_dry_run_execution`.
+
+TOOL-ROUTE-EXECUTION-UNLOCK-0 does not remove production beta blockers; current decision is `ready_with_warnings_for_tool_route_1`. Route/tool/worker/provider execution, Supabase writes, signed URLs, public artifacts, internal beta, external beta, paid production, and production remain blocked.

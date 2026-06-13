@@ -12,7 +12,9 @@ Base: `origin/codex/rp-tool-route-execution-unlock-0-repo-audit`
 
 PR title: `[tool-route] TOOL-ROUTE-1 dry-run fixture plan and contract tests`
 
-PR state: draft, because PR #366 is draft/open at implementation time.
+PR: `https://github.com/yuzastudio6-cyber/Reedkt/pull/368`
+
+PR state: draft, because PR #366 is draft/open at implementation time. PR #368 opened as `OPEN`, draft `true`, mergeability `MERGEABLE / CLEAN`, with no GitHub check rollup at creation time.
 
 ## Source Evidence
 

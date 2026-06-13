@@ -1,0 +1,49 @@
+{
+  "schema": "reeditpro.toolStudy.completionRollup.routeUnlockReadiness.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "decision": "blocked_pending_owner_study_merge",
+  "docs_diagnostics_complete": true,
+  "merged_source_of_truth_complete": false,
+  "route_unlock_ready": false,
+  "futureReadyDecisionAfterMerge": "tool_study_0_complete_ready_for_tool_route_dry_run_approval",
+  "blockers": [
+    {
+      "id": "owner_study_prs_not_merged",
+      "prs": [
+        367,
+        373,
+        376,
+        379
+      ],
+      "reason": "Owner-study docs and diagnostics pass on the PR #379 stack, but the owner-study PRs are still open and not merged into the source-of-truth branch."
+    }
+  ],
+  "blockedScopeReview": {
+    "runtimeExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false
+  },
+  "nextPrompt": "TOOL_ROUTE_EXECUTION - tool-route dry-run approval packet after owner-study stack merge/source-of-truth completion"
+}

@@ -1,0 +1,18 @@
+# TOOL-ROUTE-1 Next Phase Plan
+
+Next phase: `TOOL_ROUTE_2`
+
+Readiness: `ready_for_TOOL_ROUTE_2_generated_local_fixture_planning`
+
+Prompt: `docs/implementation-prompts/prompt-tool-route-2-generated-local-fixture-planning.md`
+
+Required before execution:
+
+- TOOL-ROUTE-2 may plan generated local fixtures only; it must not execute route/tool/worker/provider paths.
+- Every fixture route must preserve owner approval requirements and private manifest source-of-truth rules.
+- Any real runtime execution requires a separate explicit approval milestone after fixture planning.
+
+Blocked scope:
+
+- No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.
+- Public artifacts, signed URLs, Supabase mutation, provider/model calls, and beta/production unlocks remain blocked.

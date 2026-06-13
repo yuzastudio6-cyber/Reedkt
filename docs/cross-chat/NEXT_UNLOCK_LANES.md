@@ -8,7 +8,7 @@ Owner study status:
 
 - `TRACK_B_MEDIA_PROCESSING`: complete after `tool-study:track-b-media-processing:diagnostics` passes.
 - `SOUND_MUSIC_AUDIO`: complete after `tool-study:sound-music-audio:diagnostics` passes.
-- `AI_TOOLS_CREATIVE_GRAPHICS`: pending.
+- `AI_TOOLS_CREATIVE_GRAPHICS`: complete after `tool-study:ai-tools-creative-graphics:diagnostics` passes.
 - `TRACK_A_RENDER_EXPORT`: pending.
 
 No TOOL-ROUTE execution unlock can proceed until the remaining owner studies complete and a separate explicit route dry-run approval packet is accepted.
@@ -28,4 +28,4 @@ Still blocked:
 - audio processing
 - dependency mutation
 
-Next recommended phase: `TOOL-STUDY-0 - AI_TOOLS_CREATIVE_GRAPHICS`.
+Next recommended phase: `TOOL-STUDY-0 - TRACK_A_RENDER_EXPORT`.

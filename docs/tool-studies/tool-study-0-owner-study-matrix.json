@@ -1,0 +1,81 @@
+{
+  "schema": "reeditpro.toolStudy.completionRollup.ownerStudyMatrix.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "decision": "blocked_pending_owner_study_merge",
+  "docs_diagnostics_complete": true,
+  "merged_source_of_truth_complete": false,
+  "owners": [
+    {
+      "owner": "WEB_SEARCH_CAPTURE",
+      "prSourceEvidence": "completed Phase 49P / search provider readiness evidence in merged activation docs",
+      "docsPresent": true,
+      "diagnosticsPresent": false,
+      "diagnosticsStatus": "not_applicable_source_evidence_only",
+      "runtimeExecutionClaimed": false,
+      "blockedScopesPreserved": true,
+      "mergeStatus": "source_evidence_merged_before_TOOL_STUDY_0",
+      "handoffStatus": "complete_source_evidence",
+      "decision": "source_evidence_complete"
+    },
+    {
+      "owner": "MAP_GEOSPATIAL",
+      "prSourceEvidence": "completed map/geospatial readiness evidence in merged activation docs",
+      "docsPresent": true,
+      "diagnosticsPresent": false,
+      "diagnosticsStatus": "not_applicable_source_evidence_only",
+      "runtimeExecutionClaimed": false,
+      "blockedScopesPreserved": true,
+      "mergeStatus": "source_evidence_merged_before_TOOL_STUDY_0",
+      "handoffStatus": "complete_source_evidence",
+      "decision": "source_evidence_complete"
+    },
+    {
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "prSourceEvidence": "PR #367",
+      "docsPresent": true,
+      "diagnosticsPresent": true,
+      "diagnosticsStatus": "passed",
+      "runtimeExecutionClaimed": false,
+      "blockedScopesPreserved": true,
+      "mergeStatus": "open_clean_not_merged",
+      "handoffStatus": "docs_diagnostics_complete_pending_merge",
+      "decision": "track_b_media_processing_tool_study_passed_docs_only"
+    },
+    {
+      "owner": "SOUND_MUSIC_AUDIO",
+      "prSourceEvidence": "PR #373",
+      "docsPresent": true,
+      "diagnosticsPresent": true,
+      "diagnosticsStatus": "passed",
+      "runtimeExecutionClaimed": false,
+      "blockedScopesPreserved": true,
+      "mergeStatus": "open_clean_not_merged",
+      "handoffStatus": "docs_diagnostics_complete_pending_merge",
+      "decision": "sound_music_audio_tool_study_passed_docs_only"
+    },
+    {
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "prSourceEvidence": "PR #376",
+      "docsPresent": true,
+      "diagnosticsPresent": true,
+      "diagnosticsStatus": "passed_after_stale_phrase_patch",
+      "runtimeExecutionClaimed": false,
+      "blockedScopesPreserved": true,
+      "mergeStatus": "open_clean_not_merged",
+      "handoffStatus": "docs_diagnostics_complete_pending_merge",
+      "decision": "ai_tools_creative_graphics_tool_study_passed_docs_only"
+    },
+    {
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "prSourceEvidence": "PR #379",
+      "docsPresent": true,
+      "diagnosticsPresent": true,
+      "diagnosticsStatus": "passed",
+      "runtimeExecutionClaimed": false,
+      "blockedScopesPreserved": true,
+      "mergeStatus": "open_clean_not_merged",
+      "handoffStatus": "docs_diagnostics_complete_pending_merge",
+      "decision": "track_a_render_export_tool_study_passed_docs_only"
+    }
+  ]
+}

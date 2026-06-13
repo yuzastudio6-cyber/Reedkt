@@ -13,6 +13,7 @@ Current coordination facts:
 7. `AI_TOOLS_CREATIVE_GRAPHICS` TOOL-STUDY-0 is complete on branch `codex/rp-tool-study-0-ai-tools-creative-graphics-clean` as docs/diagnostics only.
 8. `TRACK_A_RENDER_EXPORT` TOOL-STUDY-0 is complete on branch `codex/rp-tool-study-0-track-a-render-export-clean` as docs/diagnostics only.
 9. All TOOL-STUDY-0 owner studies are complete only after their diagnostics pass; tool-route execution remains blocked pending a separate route-unlock readiness check and explicit route execution gate.
+10. `TOOL_STUDY_0_ROLLUP` records docs/diagnostics completeness as `true` but route-unlock readiness remains `blocked_pending_owner_study_merge` until PR #367, #373, #376, and #379 merge into source-of-truth.
 
 Read `docs/github-merge-hygiene/post-merge-source-of-truth-verification.md` before building on merged milestone evidence.
 
@@ -23,3 +24,5 @@ Sound/Music/Audio study completion also does not unlock DeepFilterNet, FFmpeg, A
 AI Tools Creative Graphics study completion also does not unlock provider/model calls, image generation, image editing, style transfer runtime, creative graphics execution, workers, tools, routes, public artifacts, signed URLs, Supabase writes, beta, or production.
 
 Track A Render/Export study completion also does not unlock render/export execution, Remotion rendering, mux/transcode execution, caption burn-in output, private GCS uploads, manifest writes, public delivery, signed URLs, workers, tools, routes, Supabase writes, beta, or production.
+
+TOOL-STUDY-0 completion rollup does not merge PRs and does not unlock tool-route execution. Its current output is docs/diagnostics complete with merged source-of-truth still pending.

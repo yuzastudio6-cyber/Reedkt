@@ -13,6 +13,14 @@ Owner study status:
 
 No TOOL-ROUTE execution unlock can proceed until a separate explicit route-unlock readiness check and route dry-run approval packet are accepted.
 
+TOOL-STUDY-0 completion rollup:
+
+- Decision: `blocked_pending_owner_study_merge`
+- Docs diagnostics complete: `true`
+- Merged source-of-truth complete: `false`
+- Pending source-of-truth PRs: `#367`, `#373`, `#376`, `#379`
+- Route unlock ready: `false`
+
 Post-merge source-of-truth verification decision: `post_merge_source_of_truth_verification_passed`
 
 Still blocked:
@@ -28,4 +36,4 @@ Still blocked:
 - audio processing
 - dependency mutation
 
-Next recommended phase: `TOOL-STUDY-0 completion rollup and route-unlock readiness check`.
+Next recommended phase: merge/source-of-truth completion for the owner-study stack. After those PRs merge and diagnostics remain passing, the next prompt is `TOOL_ROUTE_EXECUTION - tool-route dry-run approval packet`.

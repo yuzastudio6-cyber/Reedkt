@@ -21,6 +21,7 @@ PR state: draft, because PR #366 is draft/open at implementation time. PR #368 o
 - PR #366: TOOL-ROUTE-0 source branch, open draft, mergeable clean.
 - TOOL-ROUTE-0 audit result: `ready_with_warnings_for_tool_route_1`.
 - PR #360 owner-study evidence: `AI_TOOLS_CREATIVE_GRAPHICS`, `TRACK_A_RENDER_EXPORT`, `TRACK_B_MEDIA_PROCESSING`, `SOUND_MUSIC_AUDIO`, plus completed `WEB_SEARCH_CAPTURE` and `MAP_GEOSPATIAL` references.
+- TOOL-ROUTE-1A follow-up refresh: SOUND_MUSIC_AUDIO fixture refs use merged PR #371 evidence at `f6283e63742d6999910d3887482dc3112da1e570`; the original PR #360 line above is historical TOOL-ROUTE-1 source context.
 - Artifact source of truth: `Supabase row + private GCS path + manifest + checksum + approved plan snapshot`.
 
 ## Implementation Scope

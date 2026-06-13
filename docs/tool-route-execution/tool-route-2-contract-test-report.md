@@ -22,8 +22,15 @@ Command run: `npm run --silent tool-route:offline-contract-tests`
 
 - Upstream PR #366 is draft/open.
 - Upstream PR #368 is draft/open.
+- TOOL-ROUTE-1A PR #372 is draft/open and is integrated here as stacked Sound/Music fixture refresh evidence.
 - GitHub check rollup for PR #368 is `none`.
 - Foundation validation runner is absent on this base.
+
+## TOOL-ROUTE-2A Sound Refresh Integration
+
+TOOL-ROUTE-2A preserves the TOOL-ROUTE-2 offline test runner and integrates the TOOL-ROUTE-1A Sound/Music fixture refresh. The refreshed Sound and multi-tool fixtures use PR #371 merged evidence at `f6283e63742d6999910d3887482dc3112da1e570` and no longer rely on stale Sound/Music PR #360 fixture refs.
+
+Post-refresh result: `tool_route_offline_contract_tests_passed_with_warnings_after_sound_refresh`
 
 ## Blockers
 

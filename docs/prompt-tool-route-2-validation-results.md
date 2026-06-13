@@ -28,6 +28,15 @@ PR #370 status: `OPEN`, draft `true`, `MERGEABLE / CLEAN`, base `codex/rp-tool-r
 - TOOL-ROUTE-3 scope created: `yes`.
 - Diagnostics added: `yes`.
 
+## TOOL-ROUTE-2A Refresh Context
+
+- TOOL-ROUTE-2A integrates TOOL-ROUTE-1A PR #372 Sound/Music fixture refresh evidence into this offline contract-test packet.
+- PR #371 Sound/Music owner-study merge SHA: `f6283e63742d6999910d3887482dc3112da1e570`.
+- Sound fixture references PR #371 merge SHA: `yes`.
+- Multi-tool fixture references PR #371 merge SHA: `yes`.
+- Post-refresh combined state: `tool_route_offline_contract_tests_passed_with_warnings_after_sound_refresh`.
+- Actual route/tool/worker/provider execution remains blocked.
+
 ## Base Gaps
 
 - `PRODUCTION_FOUNDATION_STATUS.md`: absent on base.

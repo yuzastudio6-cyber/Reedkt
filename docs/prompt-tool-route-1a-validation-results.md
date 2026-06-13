@@ -15,7 +15,8 @@ Refresh result: `sound_music_audio_refs_refreshed_after_pr_371`
 
 - Worktree: `/Volumes/backup/codex-worktrees/reeditpro-tool-route-1a-refresh-after-sound-study-merge`
 - Branch: `codex/rp-tool-route-1a-refresh-after-sound-study-merge`
-- Draft PR: `pending`
+- Draft PR: `https://github.com/yuzastudio6-cyber/Reedkt/pull/372`
+- PR state after creation: `OPEN`, draft `true`, mergeability `MERGEABLE / CLEAN`, check rollup `none`.
 - Sound fixture refs refreshed: `yes`
 - Multi-tool Sound refs refreshed: `yes`
 - New diagnostic added: `tool-route:1a-sound-refresh:diagnostics`

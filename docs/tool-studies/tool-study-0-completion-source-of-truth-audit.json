@@ -1,0 +1,156 @@
+{
+  "schema": "reeditpro.toolStudy.completionRollup.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "owner": "CROSS_CHAT_COORDINATION",
+  "workstream": "TOOL_STUDY_0_ROLLUP",
+  "branch": {
+    "name": "codex/rp-tool-study-0-completion-rollup",
+    "baseBranch": "codex/rp-tool-study-0-track-a-render-export-clean",
+    "basePr": 379,
+    "baseHeadSha": "1af583e0874c3925e5082305ef841bb6c0e8bc27",
+    "baseReason": "PR #379 is the latest owner-study stack head and remains open, non-draft, CLEAN."
+  },
+  "decision": "blocked_pending_owner_study_merge",
+  "docs_diagnostics_complete": true,
+  "merged_source_of_truth_complete": false,
+  "route_unlock_ready": false,
+  "livePrStatus": [
+    {
+      "number": 367,
+      "title": "[tool-study] TRACK_B_MEDIA_PROCESSING capability routing study",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "headRefName": "codex/rp-tool-study-0-track-b-media-processing",
+      "headRefOid": "2f180e001bc13908b0f32d26555f1bdded14535d",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/367",
+      "mergedSourceOfTruth": false
+    },
+    {
+      "number": 373,
+      "title": "[tool-study] SOUND_MUSIC_AUDIO capability routing study",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-tool-study-0-track-b-media-processing",
+      "headRefName": "codex/rp-tool-study-0-sound-music-audio-clean",
+      "headRefOid": "7e165d76cc02cde04aad35ef93094fad7678e492",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/373",
+      "mergedSourceOfTruth": false
+    },
+    {
+      "number": 376,
+      "title": "[tool-study] AI_TOOLS_CREATIVE_GRAPHICS capability routing study",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-tool-study-0-sound-music-audio-clean",
+      "headRefName": "codex/rp-tool-study-0-ai-tools-creative-graphics-clean",
+      "headRefOid": "19d6a9e29f457ceaf5ad70ee8764da6f39c868cb",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/376",
+      "mergedSourceOfTruth": false
+    },
+    {
+      "number": 379,
+      "title": "[tool-study] TRACK_A_RENDER_EXPORT capability routing study",
+      "state": "OPEN",
+      "isDraft": false,
+      "mergeStateStatus": "CLEAN",
+      "baseRefName": "codex/rp-tool-study-0-ai-tools-creative-graphics-clean",
+      "headRefName": "codex/rp-tool-study-0-track-a-render-export-clean",
+      "headRefOid": "1af583e0874c3925e5082305ef841bb6c0e8bc27",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/379",
+      "mergedSourceOfTruth": false
+    }
+  ],
+  "ownerStudyDocs": {
+    "WEB_SEARCH_CAPTURE": {
+      "status": "source_evidence_present",
+      "diagnostics": "not_applicable_source_evidence_only",
+      "evidence": [
+        "docs/activation-phase-49p-web-search-internal-beta-candidate-results.md",
+        "docs/activation-web-search-internal-beta-candidate-policy.md",
+        "docs/activation-phase-49n-search-provider-readiness-results.md"
+      ]
+    },
+    "MAP_GEOSPATIAL": {
+      "status": "source_evidence_present",
+      "diagnostics": "not_applicable_source_evidence_only",
+      "evidence": [
+        "docs/activation-map-geospatial-readiness-runbook.md",
+        "docs/activation-phase-roadmap.md",
+        "docs/activation-phase-52g-controlled-internal-test-go-no-go-results.md"
+      ]
+    },
+    "TRACK_B_MEDIA_PROCESSING": {
+      "status": "docs_present",
+      "diagnostics": "passed",
+      "sourceAudit": "docs/tool-studies/track-b-media-processing-source-of-truth-audit.json"
+    },
+    "SOUND_MUSIC_AUDIO": {
+      "status": "docs_present",
+      "diagnostics": "passed",
+      "sourceAudit": "docs/tool-studies/sound-music-audio-source-of-truth-audit.json"
+    },
+    "AI_TOOLS_CREATIVE_GRAPHICS": {
+      "status": "docs_present",
+      "diagnostics": "passed_after_stale_phrase_patch",
+      "sourceAudit": "docs/tool-studies/ai-tools-creative-graphics-source-of-truth-audit.json"
+    },
+    "TRACK_A_RENDER_EXPORT": {
+      "status": "docs_present",
+      "diagnostics": "passed",
+      "sourceAudit": "docs/tool-studies/track-a-render-export-source-of-truth-audit.json"
+    }
+  },
+  "crossChatDocs": {
+    "docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md": "updated",
+    "docs/cross-chat/CURRENT_HANDOFF.md": "updated",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md": "updated",
+    "docs/cross-chat/OWNER_MATRIX.md": "updated",
+    "docs/cross-chat/BLOCKED_SCOPES.md": "updated"
+  },
+  "scope": {
+    "runtimeExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "Track B clean staging milestone sync completed and merged into source-of-truth",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  },
+  "nextPhase": {
+    "ifOwnerStudyStackMerged": "TOOL_ROUTE_EXECUTION - tool-route dry-run approval packet",
+    "whileOpen": "merge/source-of-truth completion for the owner-study stack"
+  },
+  "blockers": [
+    "owner_study_prs_not_merged"
+  ]
+}

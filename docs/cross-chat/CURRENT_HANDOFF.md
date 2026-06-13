@@ -30,3 +30,13 @@ The AI Tools Creative Graphics study covers AI image generation planning, AI ima
 The Track A Render/Export study covers final timeline assembly planning, render/export planning, mux/transcode/container planning, codec quality profile planning, caption/subtitle/burn-in planning, overlay/title/lower-third placement handoff, audio/video sync handoff, preview/proxy/export QA metadata, artifact manifest/checksum/private GCS path planning, retention/delete/rollback planning, export cost/capacity metadata, and final export route/capability metadata. It keeps render/export runtime, workers, tools, routes, providers, media processing, GCS uploads, manifest writes, public artifacts, signed URLs, Supabase writes, beta, and production blocked.
 
 Next recommended coordination phase: `TOOL-STUDY-0 completion rollup and route-unlock readiness check`, still with no route execution unless separately approved.
+
+TOOL-STUDY-0 completion rollup status:
+
+- Owner: `CROSS_CHAT_COORDINATION` / `TOOL_STUDY_0_ROLLUP`
+- Decision: `blocked_pending_owner_study_merge`
+- Docs diagnostics complete: `true`
+- Merged source-of-truth complete: `false`
+- Open owner-study PRs pending merge: `#367`, `#373`, `#376`, `#379`
+- Route unlock ready: `false`
+- Next action: merge/source-of-truth completion for the owner-study stack before any `TOOL_ROUTE_EXECUTION` dry-run approval packet.

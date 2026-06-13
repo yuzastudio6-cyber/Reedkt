@@ -58,7 +58,7 @@ const requiredPhrases = [
   'SQL executed: `none`',
   'Migration deployed: `no`',
   'Signed URLs are never source of truth',
-  'TRACK_A_RENDER_EXPORT`: pending',
+  'TRACK_A_RENDER_EXPORT`: complete after `tool-study:track-a-render-export:diagnostics` passes',
 ]
 
 const allowedConfirmations = new Set([

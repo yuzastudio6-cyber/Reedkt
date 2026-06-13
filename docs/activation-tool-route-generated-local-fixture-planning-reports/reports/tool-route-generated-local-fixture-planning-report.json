@@ -1,0 +1,2604 @@
+{
+  "phase": "TOOL_ROUTE_2",
+  "owner": "WORKER_RUNTIME_JOBS / TOOL_ROUTE_COORDINATION",
+  "runId": "toolroute2-20260613T150317",
+  "status": "passed",
+  "decision": "tool_route_generated_local_fixture_planning_passed_ready_for_tool_route_3_generated_local_fixture_contract_tests",
+  "executionStatus": "completed_local_docs_only",
+  "branch": "codex/rp-tool-route-2-generated-local-fixture-planning",
+  "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "prTitle": "[tool-route] Generated local fixture planning",
+  "sourceEvidence": {
+    "modelDryRun1": {
+      "runId": "modeldryrun1-20260612T174538",
+      "status": "passed",
+      "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+      "readiness": "ready_for_plan_snapshot_contract",
+      "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json"
+    },
+    "planSnapshot1": {
+      "runId": "plansnapshot1-20260612T182758",
+      "status": "passed",
+      "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+      "readiness": "ready_for_worker_runtime_repo_audit",
+      "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json"
+    },
+    "worker0": {
+      "runId": "worker0-20260612T191022",
+      "status": "passed",
+      "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+      "readiness": "ready for approved-plan snapshot dry-run",
+      "path": "docs/activation-worker-runtime-jobs-audit-reports/reports/worker-runtime-jobs-audit-report.json"
+    },
+    "worker1": {
+      "runId": "worker1-20260612T193823",
+      "status": "passed",
+      "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+      "readiness": "ready for tool-route execution unlock audit",
+      "path": "docs/activation-worker-approved-plan-dry-run-reports/reports/worker-approved-plan-dry-run-report.json"
+    },
+    "toolRoute0": {
+      "runId": "toolroute0-20260612T201155",
+      "status": "passed",
+      "decision": "tool_route_execution_unlock_audit_passed_ready_for_route_dry_run_planning",
+      "readiness": "ready for route dry-run planning",
+      "path": "docs/activation-tool-route-execution-unlock-audit-reports/reports/tool-route-execution-unlock-audit-report.json"
+    },
+    "toolRoute1": {
+      "runId": "toolroute1-20260613T141131",
+      "status": "passed",
+      "decision": "tool_route_dry_run_planning_passed_ready_for_tool_route_2_generated_local_fixture_planning",
+      "readiness": "ready_for_TOOL_ROUTE_2_generated_local_fixture_planning",
+      "mergeSha": "b1fc1d40c5a41c6e3874331d2ed84dc7072d7364",
+      "path": "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json"
+    },
+    "toolStudies": [
+      {
+        "runId": "pr-354",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "51ba1d44965d758935241af7712779bb15d713c6",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-356",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "c0c96030358d52852b712b9f239a3237490d25ec",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-361",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "05d429f6029136f0f55fe01375809071b588791c",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-364",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "0ac258f939f403dbef438d3184408f28f874f26c",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-365",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "454d06caaf3b3349efa541f3ce50aac0bc0044aa",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      },
+      {
+        "runId": "pr-371",
+        "status": "merged",
+        "decision": "completed_owner_tool_study_0_contract",
+        "mergeSha": "f6283e63742d6999910d3887482dc3112da1e570",
+        "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+      }
+    ]
+  },
+  "toolRoute1Evidence": {
+    "phase": "TOOL_ROUTE_2",
+    "status": "passed",
+    "runId": "toolroute1-20260613T141131",
+    "decision": "tool_route_dry_run_planning_passed_ready_for_tool_route_2_generated_local_fixture_planning",
+    "readiness": "ready_for_TOOL_ROUTE_2_generated_local_fixture_planning",
+    "routeFamilyIds": [
+      "provider_model_planning",
+      "worker_runtime_job_planning",
+      "web_search_capture",
+      "map_geospatial",
+      "ai_tools_creative_graphics",
+      "track_a_render_export",
+      "track_b_media_processing",
+      "sound_music_audio",
+      "supabase_metadata_storage",
+      "observability_audit_cost",
+      "compliance_security",
+      "frontend_product_ux",
+      "billing_stripe_credits",
+      "public_artifact_signed_url_delivery_blocked"
+    ],
+    "ownerIds": [
+      "WEB_SEARCH_CAPTURE",
+      "MAP_GEOSPATIAL",
+      "AI_TOOLS_CREATIVE_GRAPHICS",
+      "TRACK_A_RENDER_EXPORT",
+      "TRACK_B_MEDIA_PROCESSING",
+      "SOUND_MUSIC_AUDIO",
+      "WORKER_RUNTIME_JOBS",
+      "PROVIDER_GATEWAY_MODELS",
+      "SUPABASE_RLS_STORAGE_DATABASE",
+      "OBSERVABILITY_AUDIT_COST",
+      "COMPLIANCE_SECURITY",
+      "FRONTEND_PRODUCT_UX",
+      "BILLING_STRIPE_CREDITS"
+    ],
+    "routeFamilyCount": 14,
+    "ownerRouteCount": 13,
+    "artifactContractCount": 15,
+    "qaGateCount": 16,
+    "allExecutionBlocked": true,
+    "evidencePaths": [
+      "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json",
+      "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+      "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-owner-route-plan.json",
+      "docs/activation-tool-route-dry-run-planning-reports/artifacts/tool-route-artifact-contract-map.json",
+      "docs/activation-tool-route-dry-run-planning-reports/qa/tool-route-qa-gate-map.json",
+      "docs/activation-tool-route-dry-run-planning-reports/validation/tool-route-blocked-execution-validation.json"
+    ],
+    "activeBlockers": []
+  },
+  "completedOwnerStudies": 6,
+  "fixtureCatalog": {
+    "phase": "TOOL_ROUTE_2",
+    "status": "passed",
+    "fixtures": [
+      {
+        "fixtureId": "provider_model_planning_fixture",
+        "routeFamilyId": "provider_model_planning",
+        "ownerWorkstream": "PROVIDER_GATEWAY_MODELS",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "implementationProposalReview",
+          "timelineMetadata"
+        ],
+        "fixturePurpose": "Synthetic provider-output manifest for planning and schema contract tests only.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "sanitized provider-output metadata",
+          "policy refs",
+          "schema ids"
+        ],
+        "blockedInput": [
+          "Qwen calls",
+          "DeepSeek calls",
+          "provider secrets",
+          "raw prompts",
+          "raw provider responses"
+        ],
+        "expectedOutputManifest": "synthetic_provider_output_fixture_manifest",
+        "expectedOutputArtifactContract": "provider planning fixture contract",
+        "sourceOfTruthRule": "Only committed synthetic provider-output manifests can be source-of-truth here.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "schema_contract_present",
+          "provider_call_blocked",
+          "redaction_contract_present"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "provider runtime remains blocked until a future provider execution approval.",
+        "externalBetaBlocker": "external beta remains blocked until provider routes are approved and audited.",
+        "productionBlocker": "production remains blocked until provider execution, cost, and secret gates pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "worker_runtime_job_planning_fixture",
+        "routeFamilyId": "worker_runtime_job_planning",
+        "ownerWorkstream": "WORKER_RUNTIME_JOBS",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "snapshotIntake",
+          "selectedIntentReviews",
+          "implementationProposalReview",
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic dry-run job plan for future worker fixture contract tests.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "dry-run batch id",
+          "candidate plan id",
+          "blocked-route refs"
+        ],
+        "blockedInput": [
+          "claim/lease database writes",
+          "real worker events",
+          "service-role mutation"
+        ],
+        "expectedOutputManifest": "synthetic_worker_job_fixture_manifest",
+        "expectedOutputArtifactContract": "worker runtime job fixture contract",
+        "sourceOfTruthRule": "Committed dry-run fixture manifests are source-of-truth; runtime rows are not touched.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "worker1_batch_present",
+          "claim_attempt_false",
+          "lease_write_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "worker runtime must gain transactional claim/lease approval in a future phase.",
+        "externalBetaBlocker": "external beta remains blocked until worker runtime execution gates pass.",
+        "productionBlocker": "production remains blocked until backend worker execution and audit controls exist.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "web_search_capture_fixture",
+        "routeFamilyId": "web_search_capture",
+        "ownerWorkstream": "WEB_SEARCH_CAPTURE",
+        "sourceToolStudyContract": "docs/tool-studies/web-search-capture-tool-study.md",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "mapCard",
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic query, source, capture, and extraction manifests for web evidence planning.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "synthetic query manifest",
+          "source manifest",
+          "capture manifest",
+          "extraction manifest"
+        ],
+        "blockedInput": [
+          "SearXNG calls",
+          "Brave calls",
+          "Playwright capture",
+          "Readability extraction",
+          "browser execution"
+        ],
+        "expectedOutputManifest": "synthetic_web_search_capture_fixture_manifest",
+        "expectedOutputArtifactContract": "web source/capture/extraction fixture contract",
+        "sourceOfTruthRule": "Sanitized synthetic manifests and QA reports are source-of-truth; raw snippets are not.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "owner_study_exists",
+          "capture_manifest_contract_present",
+          "browser_capture_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "private search/capture service approval remains future work.",
+        "externalBetaBlocker": "external beta remains blocked until privacy and source capture policy are approved.",
+        "productionBlocker": "production remains blocked until capture runtime, retention, and compliance gates pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "map_geospatial_fixture",
+        "routeFamilyId": "map_geospatial",
+        "ownerWorkstream": "MAP_GEOSPATIAL",
+        "sourceToolStudyContract": "docs/tool-studies/map-geospatial-tool-study.md",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "mapCard"
+        ],
+        "fixturePurpose": "Synthetic GeoJSON, style, camera, timing, and render manifests for map planning.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "synthetic GeoJSON",
+          "style manifest",
+          "camera manifest",
+          "timing manifest",
+          "render manifest"
+        ],
+        "blockedInput": [
+          "map rendering",
+          "live tiles",
+          "geocoding",
+          "routing",
+          "Cesium ion",
+          "live terrain"
+        ],
+        "expectedOutputManifest": "synthetic_map_geospatial_fixture_manifest",
+        "expectedOutputArtifactContract": "map GeoJSON/style/camera/timing/render fixture contract",
+        "sourceOfTruthRule": "Structured synthetic map manifests are source-of-truth; map screenshots are not.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "owner_study_exists",
+          "geojson_contract_present",
+          "live_map_execution_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "map render and tile/geocoder providers need future approval.",
+        "externalBetaBlocker": "external beta remains blocked until map source, license, and QA gates pass.",
+        "productionBlocker": "production remains blocked until map rendering and storage delivery policies pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "ai_tools_creative_graphics_fixture",
+        "routeFamilyId": "ai_tools_creative_graphics",
+        "ownerWorkstream": "AI_TOOLS_CREATIVE_GRAPHICS",
+        "sourceToolStudyContract": "docs/tool-studies/ai-tools-creative-graphics-tool-study.md",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "chartCard"
+        ],
+        "fixturePurpose": "Synthetic visual asset manifest for creative graphics planning.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "synthetic visual spec",
+          "source data refs",
+          "layout refs",
+          "QA requirements"
+        ],
+        "blockedInput": [
+          "Remotion execution",
+          "D3 execution",
+          "Three.js execution",
+          "PixiJS execution",
+          "Satori/resvg rendering"
+        ],
+        "expectedOutputManifest": "synthetic_ai_tools_creative_graphics_fixture_manifest",
+        "expectedOutputArtifactContract": "AI Tools visual asset fixture contract",
+        "sourceOfTruthRule": "Structured visual specs, source refs, checksums, and QA records are source-of-truth.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "owner_study_exists",
+          "visual_manifest_contract_present",
+          "graphics_execution_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "graphics runtime and Track A handoff approvals remain future work.",
+        "externalBetaBlocker": "external beta remains blocked until visual tool runtime and QA pass.",
+        "productionBlocker": "production remains blocked until rendering/tool execution and artifact policies pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "track_a_render_export_fixture",
+        "routeFamilyId": "track_a_render_export",
+        "ownerWorkstream": "TRACK_A_RENDER_EXPORT",
+        "sourceToolStudyContract": "docs/tool-studies/track-a-render-export-tool-study.md",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "chartCard",
+          "captionRecommendation",
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic render/export manifest for final composition planning without rendering.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "composition refs",
+          "layer refs",
+          "timing refs",
+          "overlay refs",
+          "export settings"
+        ],
+        "blockedInput": [
+          "preview render",
+          "final render",
+          "FFmpeg execution",
+          "Remotion execution",
+          "public delivery"
+        ],
+        "expectedOutputManifest": "synthetic_track_a_render_export_fixture_manifest",
+        "expectedOutputArtifactContract": "Track A render/export fixture contract",
+        "sourceOfTruthRule": "Private render/export manifests and QA records are source-of-truth; temporary renders are not.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "owner_study_exists",
+          "render_manifest_contract_present",
+          "final_render_export_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "Track A render/export worker approval remains future work.",
+        "externalBetaBlocker": "external beta remains blocked until final artifact QA and delivery policies pass.",
+        "productionBlocker": "production remains blocked until render/export runtime and billing gates pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "track_b_media_processing_fixture",
+        "routeFamilyId": "track_b_media_processing",
+        "ownerWorkstream": "TRACK_B_MEDIA_PROCESSING",
+        "sourceToolStudyContract": "docs/tool-studies/track-b-media-processing-tool-study.md",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "timelineMetadata",
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic media analysis manifest for Track B planning without media execution.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "media metadata placeholder",
+          "timecodes",
+          "OCR planning fields",
+          "scene/audio QA fields"
+        ],
+        "blockedInput": [
+          "OCR",
+          "OpenCV",
+          "PyAV",
+          "PySceneDetect",
+          "Sharp",
+          "DuckDB",
+          "Polars",
+          "DeepFilterNet",
+          "Signalsmith",
+          "Demucs",
+          "Qwen-VL",
+          "vLLM"
+        ],
+        "expectedOutputManifest": "synthetic_track_b_media_processing_fixture_manifest",
+        "expectedOutputArtifactContract": "Track B media analysis fixture contract",
+        "sourceOfTruthRule": "Private media manifests, timecodes, provenance, checksums, and QA fields are source-of-truth.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "owner_study_exists",
+          "media_analysis_contract_present",
+          "media_processing_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "Track B media runtime and license/security review remain future work.",
+        "externalBetaBlocker": "external beta remains blocked until media processing and privacy gates pass.",
+        "productionBlocker": "production remains blocked until media workers and storage policies pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "sound_music_audio_fixture",
+        "routeFamilyId": "sound_music_audio",
+        "ownerWorkstream": "SOUND_MUSIC_AUDIO",
+        "sourceToolStudyContract": "docs/tool-studies/sound-music-audio-tool-study.md",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "timelineMetadata",
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic cue manifest for sound, SFX, music, and audio planning without generation.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "cue timing refs",
+          "scene mood refs",
+          "category/intensity refs",
+          "platform-safe style refs"
+        ],
+        "blockedInput": [
+          "audio generation",
+          "SFX generation",
+          "music generation",
+          "audio processing",
+          "DeepFilterNet",
+          "Demucs"
+        ],
+        "expectedOutputManifest": "synthetic_sound_music_audio_fixture_manifest",
+        "expectedOutputArtifactContract": "Sound/Music/Audio cue fixture contract",
+        "sourceOfTruthRule": "Cue manifests, timing refs, provenance, and QA fields are source-of-truth.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "owner_study_exists",
+          "cue_manifest_contract_present",
+          "audio_generation_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "audio provider and worker approvals remain future work.",
+        "externalBetaBlocker": "external beta remains blocked until audio generation/processing policies pass.",
+        "productionBlocker": "production remains blocked until audio runtime, billing, and QA gates pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "supabase_metadata_storage_fixture",
+        "routeFamilyId": "supabase_metadata_storage",
+        "ownerWorkstream": "SUPABASE_RLS_STORAGE_DATABASE",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic metadata/storage placeholder without Supabase writes or storage transfer.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "metadata field placeholders",
+          "private artifact ref placeholders",
+          "future table refs"
+        ],
+        "blockedInput": [
+          "Supabase mutation",
+          "SQL",
+          "migrations",
+          "schema/RLS changes",
+          "service-role payloads",
+          "GCS upload"
+        ],
+        "expectedOutputManifest": "synthetic_supabase_metadata_storage_fixture_manifest",
+        "expectedOutputArtifactContract": "Supabase metadata/storage fixture contract",
+        "sourceOfTruthRule": "Local docs/status evidence only; no Supabase row or storage object is source-of-truth here.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "supabase_mutation_blocked",
+          "sql_migration_blocked",
+          "sync_layer_absence_recorded"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "Supabase sync layer and service-role runtime approval remain future work.",
+        "externalBetaBlocker": "external beta remains blocked until RLS/storage and private artifact policy pass.",
+        "productionBlocker": "production remains blocked until database/storage writes are explicitly approved.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "observability_audit_cost_fixture",
+        "routeFamilyId": "observability_audit_cost",
+        "ownerWorkstream": "OBSERVABILITY_AUDIT_COST",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "snapshotIntake",
+          "captionRecommendation",
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic cost and audit placeholder for route fixture planning.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "event names",
+          "run ids",
+          "cost placeholders",
+          "QA gate statuses"
+        ],
+        "blockedInput": [
+          "telemetry sink mutation",
+          "paid production calls",
+          "credit mutation",
+          "provider usage expansion"
+        ],
+        "expectedOutputManifest": "synthetic_observability_audit_cost_fixture_manifest",
+        "expectedOutputArtifactContract": "observability/audit/cost fixture contract",
+        "sourceOfTruthRule": "Committed audit and cost placeholders are planning evidence only.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "cost_placeholder_contract_present",
+          "credit_mutation_blocked",
+          "paid_production_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "observability sink and audit policy approval remain future work.",
+        "externalBetaBlocker": "external beta remains blocked until cost/audit reporting is approved.",
+        "productionBlocker": "production remains blocked until billing ledger and observability controls pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "compliance_security_fixture",
+        "routeFamilyId": "compliance_security",
+        "ownerWorkstream": "COMPLIANCE_SECURITY",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "snapshotIntake",
+          "implementationProposalReview",
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic compliance/security checklist placeholder for fixture review.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "blocked-use registers",
+          "privacy review placeholders",
+          "redaction summaries"
+        ],
+        "blockedInput": [
+          "secret payloads",
+          "signed URL source-of-truth",
+          "public artifacts",
+          "raw prompts"
+        ],
+        "expectedOutputManifest": "synthetic_compliance_security_fixture_manifest",
+        "expectedOutputArtifactContract": "compliance/security fixture contract",
+        "sourceOfTruthRule": "Compliance placeholders and blocked-use registers are review evidence only.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "blocked_use_register_present",
+          "secret_scan_required",
+          "public_artifact_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "privacy/security approval remains future work.",
+        "externalBetaBlocker": "external beta remains blocked until compliance and retention policies pass.",
+        "productionBlocker": "production remains blocked until security review and incident controls pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "frontend_product_ux_fixture",
+        "routeFamilyId": "frontend_product_ux",
+        "ownerWorkstream": "FRONTEND_PRODUCT_UX",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "captionRecommendation",
+          "chartCard",
+          "mapCard"
+        ],
+        "fixturePurpose": "Synthetic UX route placeholder without frontend runtime changes.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "candidate route labels",
+          "review-only manifests",
+          "owner approval states"
+        ],
+        "blockedInput": [
+          "runtime-ready UI claims",
+          "production unlock claims",
+          "public delivery claims"
+        ],
+        "expectedOutputManifest": "synthetic_frontend_product_ux_fixture_manifest",
+        "expectedOutputArtifactContract": "frontend product UX fixture contract",
+        "sourceOfTruthRule": "UX route placeholders explain planning status only; they do not become runtime state.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "candidate_only_label_present",
+          "runtime_claim_blocked",
+          "owner_review_required"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "Frontend/product review remains future work.",
+        "externalBetaBlocker": "external beta remains blocked until approved runtime state and QA copy exist.",
+        "productionBlocker": "production remains blocked until product UX and accessibility review pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "billing_stripe_credits_fixture",
+        "routeFamilyId": "billing_stripe_credits",
+        "ownerWorkstream": "BILLING_STRIPE_CREDITS",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Synthetic credit/cost placeholder without Stripe or credit ledger mutation.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "credit estimate placeholder",
+          "cost category refs",
+          "approval gate refs"
+        ],
+        "blockedInput": [
+          "Stripe checkout",
+          "webhooks",
+          "credit ledger writes",
+          "paid production unlock"
+        ],
+        "expectedOutputManifest": "synthetic_billing_stripe_credits_fixture_manifest",
+        "expectedOutputArtifactContract": "billing/Stripe/credits fixture contract",
+        "sourceOfTruthRule": "Billing placeholders are planning evidence only; no ledger or Stripe event is source here.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "credit_mutation_blocked",
+          "approval_gate_preserved",
+          "stripe_processing_blocked"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "billing ledger and Stripe approval remain future work.",
+        "externalBetaBlocker": "external beta remains blocked until checkout/webhook policy passes.",
+        "productionBlocker": "production remains blocked until billing, refund, and audit controls pass.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      },
+      {
+        "fixtureId": "public_artifact_signed_url_delivery_blocked_fixture",
+        "routeFamilyId": "public_artifact_signed_url_delivery_blocked",
+        "ownerWorkstream": "COMPLIANCE_SECURITY",
+        "sourceToolStudyContract": "not_applicable_internal_coordination_owner",
+        "sourceToolRoute1RoutePlan": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "sourceWorker1JobReference": [
+          "artifactRouteEventValidation"
+        ],
+        "fixturePurpose": "Blocked fixture proving public artifact and signed URL delivery are not fixture outputs.",
+        "syntheticInputOnly": true,
+        "allowedSyntheticInput": [
+          "private manifest refs",
+          "blocked delivery policy records",
+          "source-of-truth denial records"
+        ],
+        "blockedInput": [
+          "public artifacts",
+          "signed URL creation",
+          "signed URLs as source-of-truth",
+          "public delivery"
+        ],
+        "expectedOutputManifest": "synthetic_public_artifact_signed_url_blocked_fixture_manifest",
+        "expectedOutputArtifactContract": "public artifact/signed URL delivery blocked fixture contract",
+        "sourceOfTruthRule": "Private manifests are source-of-truth; public artifacts and signed URLs are never source here.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "qaGates": [
+          "public_artifact_blocked",
+          "signed_url_blocked",
+          "private_manifest_required"
+        ],
+        "requiredOwnerApproval": "owner_review_required_before_tool_route_3",
+        "nextPhase": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "internalBetaBlocker": "delivery policy and retention review remain future work.",
+        "externalBetaBlocker": "external beta remains blocked until public access review passes.",
+        "productionBlocker": "production remains blocked until delivery and signed URL policy are approved.",
+        "executionFlags": {
+          "executionAllowed": false,
+          "workerExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "providerCallsAllowed": false,
+          "modelCallsAllowed": false,
+          "routeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "audioGenerationAllowed": false,
+          "renderExportAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "supabaseMutationAllowed": false,
+          "sqlExecutionAllowed": false,
+          "migrationDeploymentAllowed": false,
+          "googleCloudApiCallsAllowed": false,
+          "secretManagerApiCallsAllowed": false,
+          "gcsStorageTransferAllowed": false,
+          "creditMutationAllowed": false,
+          "stripeProcessingAllowed": false,
+          "internalBetaUnlockAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "dependencyMutationAllowed": false,
+          "finalRenderExportAllowed": false,
+          "broadServiceRoleHandlerAllowed": false
+        }
+      }
+    ],
+    "fixtureCount": 14,
+    "allFixturesMapped": true,
+    "allInputsSyntheticOnly": true,
+    "activeBlockers": []
+  },
+  "inputOutputContractMap": {
+    "phase": "TOOL_ROUTE_2",
+    "status": "passed",
+    "contracts": [
+      {
+        "fixtureId": "provider_model_planning_fixture",
+        "routeFamilyId": "provider_model_planning",
+        "owner": "PROVIDER_GATEWAY_MODELS",
+        "fixtureInputManifest": "provider_model_planning_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_provider_output_fixture_manifest",
+        "expectedOutputArtifactContract": "provider planning fixture contract",
+        "sourceOfTruthRule": "Only committed synthetic provider-output manifests can be source-of-truth here.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "schema_contract_present",
+          "provider_call_blocked",
+          "redaction_contract_present"
+        ]
+      },
+      {
+        "fixtureId": "worker_runtime_job_planning_fixture",
+        "routeFamilyId": "worker_runtime_job_planning",
+        "owner": "WORKER_RUNTIME_JOBS",
+        "fixtureInputManifest": "worker_runtime_job_planning_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_worker_job_fixture_manifest",
+        "expectedOutputArtifactContract": "worker runtime job fixture contract",
+        "sourceOfTruthRule": "Committed dry-run fixture manifests are source-of-truth; runtime rows are not touched.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "worker1_batch_present",
+          "claim_attempt_false",
+          "lease_write_blocked"
+        ]
+      },
+      {
+        "fixtureId": "web_search_capture_fixture",
+        "routeFamilyId": "web_search_capture",
+        "owner": "WEB_SEARCH_CAPTURE",
+        "fixtureInputManifest": "web_search_capture_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_web_search_capture_fixture_manifest",
+        "expectedOutputArtifactContract": "web source/capture/extraction fixture contract",
+        "sourceOfTruthRule": "Sanitized synthetic manifests and QA reports are source-of-truth; raw snippets are not.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "owner_study_exists",
+          "capture_manifest_contract_present",
+          "browser_capture_blocked"
+        ]
+      },
+      {
+        "fixtureId": "map_geospatial_fixture",
+        "routeFamilyId": "map_geospatial",
+        "owner": "MAP_GEOSPATIAL",
+        "fixtureInputManifest": "map_geospatial_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_map_geospatial_fixture_manifest",
+        "expectedOutputArtifactContract": "map GeoJSON/style/camera/timing/render fixture contract",
+        "sourceOfTruthRule": "Structured synthetic map manifests are source-of-truth; map screenshots are not.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "owner_study_exists",
+          "geojson_contract_present",
+          "live_map_execution_blocked"
+        ]
+      },
+      {
+        "fixtureId": "ai_tools_creative_graphics_fixture",
+        "routeFamilyId": "ai_tools_creative_graphics",
+        "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+        "fixtureInputManifest": "ai_tools_creative_graphics_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_ai_tools_creative_graphics_fixture_manifest",
+        "expectedOutputArtifactContract": "AI Tools visual asset fixture contract",
+        "sourceOfTruthRule": "Structured visual specs, source refs, checksums, and QA records are source-of-truth.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "owner_study_exists",
+          "visual_manifest_contract_present",
+          "graphics_execution_blocked"
+        ]
+      },
+      {
+        "fixtureId": "track_a_render_export_fixture",
+        "routeFamilyId": "track_a_render_export",
+        "owner": "TRACK_A_RENDER_EXPORT",
+        "fixtureInputManifest": "track_a_render_export_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_track_a_render_export_fixture_manifest",
+        "expectedOutputArtifactContract": "Track A render/export fixture contract",
+        "sourceOfTruthRule": "Private render/export manifests and QA records are source-of-truth; temporary renders are not.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "owner_study_exists",
+          "render_manifest_contract_present",
+          "final_render_export_blocked"
+        ]
+      },
+      {
+        "fixtureId": "track_b_media_processing_fixture",
+        "routeFamilyId": "track_b_media_processing",
+        "owner": "TRACK_B_MEDIA_PROCESSING",
+        "fixtureInputManifest": "track_b_media_processing_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_track_b_media_processing_fixture_manifest",
+        "expectedOutputArtifactContract": "Track B media analysis fixture contract",
+        "sourceOfTruthRule": "Private media manifests, timecodes, provenance, checksums, and QA fields are source-of-truth.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "owner_study_exists",
+          "media_analysis_contract_present",
+          "media_processing_blocked"
+        ]
+      },
+      {
+        "fixtureId": "sound_music_audio_fixture",
+        "routeFamilyId": "sound_music_audio",
+        "owner": "SOUND_MUSIC_AUDIO",
+        "fixtureInputManifest": "sound_music_audio_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_sound_music_audio_fixture_manifest",
+        "expectedOutputArtifactContract": "Sound/Music/Audio cue fixture contract",
+        "sourceOfTruthRule": "Cue manifests, timing refs, provenance, and QA fields are source-of-truth.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "owner_study_exists",
+          "cue_manifest_contract_present",
+          "audio_generation_blocked"
+        ]
+      },
+      {
+        "fixtureId": "supabase_metadata_storage_fixture",
+        "routeFamilyId": "supabase_metadata_storage",
+        "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+        "fixtureInputManifest": "supabase_metadata_storage_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_supabase_metadata_storage_fixture_manifest",
+        "expectedOutputArtifactContract": "Supabase metadata/storage fixture contract",
+        "sourceOfTruthRule": "Local docs/status evidence only; no Supabase row or storage object is source-of-truth here.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "supabase_mutation_blocked",
+          "sql_migration_blocked",
+          "sync_layer_absence_recorded"
+        ]
+      },
+      {
+        "fixtureId": "observability_audit_cost_fixture",
+        "routeFamilyId": "observability_audit_cost",
+        "owner": "OBSERVABILITY_AUDIT_COST",
+        "fixtureInputManifest": "observability_audit_cost_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_observability_audit_cost_fixture_manifest",
+        "expectedOutputArtifactContract": "observability/audit/cost fixture contract",
+        "sourceOfTruthRule": "Committed audit and cost placeholders are planning evidence only.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "cost_placeholder_contract_present",
+          "credit_mutation_blocked",
+          "paid_production_blocked"
+        ]
+      },
+      {
+        "fixtureId": "compliance_security_fixture",
+        "routeFamilyId": "compliance_security",
+        "owner": "COMPLIANCE_SECURITY",
+        "fixtureInputManifest": "compliance_security_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_compliance_security_fixture_manifest",
+        "expectedOutputArtifactContract": "compliance/security fixture contract",
+        "sourceOfTruthRule": "Compliance placeholders and blocked-use registers are review evidence only.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "blocked_use_register_present",
+          "secret_scan_required",
+          "public_artifact_blocked"
+        ]
+      },
+      {
+        "fixtureId": "frontend_product_ux_fixture",
+        "routeFamilyId": "frontend_product_ux",
+        "owner": "FRONTEND_PRODUCT_UX",
+        "fixtureInputManifest": "frontend_product_ux_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_frontend_product_ux_fixture_manifest",
+        "expectedOutputArtifactContract": "frontend product UX fixture contract",
+        "sourceOfTruthRule": "UX route placeholders explain planning status only; they do not become runtime state.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "candidate_only_label_present",
+          "runtime_claim_blocked",
+          "owner_review_required"
+        ]
+      },
+      {
+        "fixtureId": "billing_stripe_credits_fixture",
+        "routeFamilyId": "billing_stripe_credits",
+        "owner": "BILLING_STRIPE_CREDITS",
+        "fixtureInputManifest": "billing_stripe_credits_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_billing_stripe_credits_fixture_manifest",
+        "expectedOutputArtifactContract": "billing/Stripe/credits fixture contract",
+        "sourceOfTruthRule": "Billing placeholders are planning evidence only; no ledger or Stripe event is source here.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "credit_mutation_blocked",
+          "approval_gate_preserved",
+          "stripe_processing_blocked"
+        ]
+      },
+      {
+        "fixtureId": "public_artifact_signed_url_delivery_blocked_fixture",
+        "routeFamilyId": "public_artifact_signed_url_delivery_blocked",
+        "owner": "COMPLIANCE_SECURITY",
+        "fixtureInputManifest": "public_artifact_signed_url_delivery_blocked_fixture_input_manifest",
+        "expectedOutputManifest": "synthetic_public_artifact_signed_url_blocked_fixture_manifest",
+        "expectedOutputArtifactContract": "public artifact/signed URL delivery blocked fixture contract",
+        "sourceOfTruthRule": "Private manifests are source-of-truth; public artifacts and signed URLs are never source here.",
+        "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+        "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+        "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+        "publicArtifactAllowed": false,
+        "signedUrlSourceOfTruthAllowed": false,
+        "rawPromptAllowed": false,
+        "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+        "qaGateList": [
+          "public_artifact_blocked",
+          "signed_url_blocked",
+          "private_manifest_required"
+        ]
+      }
+    ],
+    "contractCount": 14,
+    "allContractsPrivateSyntheticOnly": true,
+    "activeBlockers": []
+  },
+  "ownerFixtureHandoffMap": {
+    "phase": "TOOL_ROUTE_2",
+    "status": "passed",
+    "handoffs": [
+      {
+        "owner": "WEB_SEARCH_CAPTURE",
+        "fixtureIds": [
+          "web_search_capture_fixture"
+        ],
+        "sourceContracts": [
+          "docs/tool-studies/web-search-capture-tool-study.md"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for WEB_SEARCH_CAPTURE.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "MAP_GEOSPATIAL",
+        "fixtureIds": [
+          "map_geospatial_fixture"
+        ],
+        "sourceContracts": [
+          "docs/tool-studies/map-geospatial-tool-study.md"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for MAP_GEOSPATIAL.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+        "fixtureIds": [
+          "ai_tools_creative_graphics_fixture"
+        ],
+        "sourceContracts": [
+          "docs/tool-studies/ai-tools-creative-graphics-tool-study.md"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for AI_TOOLS_CREATIVE_GRAPHICS.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "TRACK_A_RENDER_EXPORT",
+        "fixtureIds": [
+          "track_a_render_export_fixture"
+        ],
+        "sourceContracts": [
+          "docs/tool-studies/track-a-render-export-tool-study.md"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for TRACK_A_RENDER_EXPORT.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "TRACK_B_MEDIA_PROCESSING",
+        "fixtureIds": [
+          "track_b_media_processing_fixture"
+        ],
+        "sourceContracts": [
+          "docs/tool-studies/track-b-media-processing-tool-study.md"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for TRACK_B_MEDIA_PROCESSING.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "SOUND_MUSIC_AUDIO",
+        "fixtureIds": [
+          "sound_music_audio_fixture"
+        ],
+        "sourceContracts": [
+          "docs/tool-studies/sound-music-audio-tool-study.md"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for SOUND_MUSIC_AUDIO.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "WORKER_RUNTIME_JOBS",
+        "fixtureIds": [
+          "worker_runtime_job_planning_fixture"
+        ],
+        "sourceContracts": [
+          "not_applicable_internal_coordination_owner"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for WORKER_RUNTIME_JOBS.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "PROVIDER_GATEWAY_MODELS",
+        "fixtureIds": [
+          "provider_model_planning_fixture"
+        ],
+        "sourceContracts": [
+          "not_applicable_internal_coordination_owner"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for PROVIDER_GATEWAY_MODELS.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+        "fixtureIds": [
+          "supabase_metadata_storage_fixture"
+        ],
+        "sourceContracts": [
+          "not_applicable_internal_coordination_owner"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for SUPABASE_RLS_STORAGE_DATABASE.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "OBSERVABILITY_AUDIT_COST",
+        "fixtureIds": [
+          "observability_audit_cost_fixture"
+        ],
+        "sourceContracts": [
+          "not_applicable_internal_coordination_owner"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for OBSERVABILITY_AUDIT_COST.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "COMPLIANCE_SECURITY",
+        "fixtureIds": [
+          "compliance_security_fixture",
+          "public_artifact_signed_url_delivery_blocked_fixture"
+        ],
+        "sourceContracts": [
+          "not_applicable_internal_coordination_owner",
+          "not_applicable_internal_coordination_owner"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for COMPLIANCE_SECURITY.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "FRONTEND_PRODUCT_UX",
+        "fixtureIds": [
+          "frontend_product_ux_fixture"
+        ],
+        "sourceContracts": [
+          "not_applicable_internal_coordination_owner"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for FRONTEND_PRODUCT_UX.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      },
+      {
+        "owner": "BILLING_STRIPE_CREDITS",
+        "fixtureIds": [
+          "billing_stripe_credits_fixture"
+        ],
+        "sourceContracts": [
+          "not_applicable_internal_coordination_owner"
+        ],
+        "responsibilities": [
+          "Review generated/local fixture contract scope for BILLING_STRIPE_CREDITS.",
+          "Confirm synthetic inputs only and expected output manifests only.",
+          "Confirm no runtime, worker, provider, tool, route, Supabase, public artifact, signed URL, beta, or production execution is authorized.",
+          "Approve or block TOOL-ROUTE-3 generated-local fixture contract tests for owned routes."
+        ],
+        "handoffType": "review_planning_only",
+        "ownerApprovalRequired": true,
+        "executionAuthorized": false,
+        "nextAction": "Review fixture contracts before TOOL-ROUTE-3 generated-local fixture contract tests."
+      }
+    ],
+    "ownerCount": 13,
+    "allRequiredOwnersMapped": true,
+    "activeBlockers": []
+  },
+  "qaGateMap": {
+    "status": "passed",
+    "gateCount": 17,
+    "allRequiredGatesPassed": true
+  },
+  "blockedExecutionValidation": {
+    "status": "passed",
+    "allExecutionBlocked": true,
+    "blockedCategoryCount": 27
+  },
+  "toolRoute3Readiness": "ready_for_TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+  "diagnostics": {
+    "status": "passed",
+    "script": "scripts/validation/tool-route-generated-local-fixture-planning-diagnostics.mjs"
+  },
+  "safetyFlags": {
+    "executionAllowed": false,
+    "workerExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "providerCallsAllowed": false,
+    "modelCallsAllowed": false,
+    "routeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "audioGenerationAllowed": false,
+    "renderExportAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "supabaseMutationAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationDeploymentAllowed": false,
+    "googleCloudApiCallsAllowed": false,
+    "secretManagerApiCallsAllowed": false,
+    "gcsStorageTransferAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeProcessingAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "dependencyMutationAllowed": false,
+    "finalRenderExportAllowed": false,
+    "broadServiceRoleHandlerAllowed": false
+  },
+  "noScopeStatement": "No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.",
+  "supabaseUpdateClassification": {
+    "updateRequired": "docs/status only",
+    "updateStatus": "docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "milestoneSync": "blocked_current_branch_missing_sync_layer",
+    "evidenceDocs": [
+      "docs/activation-phase-tool-route-2-generated-local-fixture-planning-results.md",
+      "docs/activation-tool-route-generated-local-fixture-planning-reports/reports/tool-route-generated-local-fixture-planning-report.json"
+    ],
+    "blockers": [],
+    "nextSupabaseAction": "none"
+  },
+  "activeBlockers": [],
+  "sourceAudit": {
+    "phase": "TOOL_ROUTE_2",
+    "status": "passed",
+    "baseBranch": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+    "currentBranch": "codex/rp-tool-route-2-generated-local-fixture-planning",
+    "sourceEvidence": {
+      "modelDryRun1": {
+        "runId": "modeldryrun1-20260612T174538",
+        "status": "passed",
+        "decision": "provider_dry_run_passed_ready_for_plan_snapshot_contract",
+        "readiness": "ready_for_plan_snapshot_contract",
+        "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json"
+      },
+      "planSnapshot1": {
+        "runId": "plansnapshot1-20260612T182758",
+        "status": "passed",
+        "decision": "provider_output_plan_snapshot_contract_passed_ready_for_worker_runtime_audit",
+        "readiness": "ready_for_worker_runtime_repo_audit",
+        "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json"
+      },
+      "worker0": {
+        "runId": "worker0-20260612T191022",
+        "status": "passed",
+        "decision": "worker_runtime_repo_audit_passed_ready_for_worker1_dry_run",
+        "readiness": "ready for approved-plan snapshot dry-run",
+        "path": "docs/activation-worker-runtime-jobs-audit-reports/reports/worker-runtime-jobs-audit-report.json"
+      },
+      "worker1": {
+        "runId": "worker1-20260612T193823",
+        "status": "passed",
+        "decision": "worker_approved_plan_dry_run_passed_ready_for_tool_route_0_unlock_audit",
+        "readiness": "ready for tool-route execution unlock audit",
+        "path": "docs/activation-worker-approved-plan-dry-run-reports/reports/worker-approved-plan-dry-run-report.json"
+      },
+      "toolRoute0": {
+        "runId": "toolroute0-20260612T201155",
+        "status": "passed",
+        "decision": "tool_route_execution_unlock_audit_passed_ready_for_route_dry_run_planning",
+        "readiness": "ready for route dry-run planning",
+        "path": "docs/activation-tool-route-execution-unlock-audit-reports/reports/tool-route-execution-unlock-audit-report.json"
+      },
+      "toolRoute1": {
+        "runId": "toolroute1-20260613T141131",
+        "status": "passed",
+        "decision": "tool_route_dry_run_planning_passed_ready_for_tool_route_2_generated_local_fixture_planning",
+        "readiness": "ready_for_TOOL_ROUTE_2_generated_local_fixture_planning",
+        "mergeSha": "b1fc1d40c5a41c6e3874331d2ed84dc7072d7364",
+        "path": "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json"
+      },
+      "toolStudies": [
+        {
+          "runId": "pr-354",
+          "status": "merged",
+          "decision": "completed_owner_tool_study_0_contract",
+          "mergeSha": "51ba1d44965d758935241af7712779bb15d713c6",
+          "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+        },
+        {
+          "runId": "pr-356",
+          "status": "merged",
+          "decision": "completed_owner_tool_study_0_contract",
+          "mergeSha": "c0c96030358d52852b712b9f239a3237490d25ec",
+          "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+        },
+        {
+          "runId": "pr-361",
+          "status": "merged",
+          "decision": "completed_owner_tool_study_0_contract",
+          "mergeSha": "05d429f6029136f0f55fe01375809071b588791c",
+          "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+        },
+        {
+          "runId": "pr-364",
+          "status": "merged",
+          "decision": "completed_owner_tool_study_0_contract",
+          "mergeSha": "0ac258f939f403dbef438d3184408f28f874f26c",
+          "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+        },
+        {
+          "runId": "pr-365",
+          "status": "merged",
+          "decision": "completed_owner_tool_study_0_contract",
+          "mergeSha": "454d06caaf3b3349efa541f3ce50aac0bc0044aa",
+          "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+        },
+        {
+          "runId": "pr-371",
+          "status": "merged",
+          "decision": "completed_owner_tool_study_0_contract",
+          "mergeSha": "f6283e63742d6999910d3887482dc3112da1e570",
+          "readiness": "ready_for_TOOL_ROUTE_1_route_dry_run_planning"
+        }
+      ]
+    },
+    "sourceFiles": [
+      {
+        "path": "docs/activation-model-orchestration-provider-dry-run-reports/provider_dry_run_readiness_report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "MODEL-DRYRUN-1 report",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-provider-output-plan-snapshot-contract-reports/reports/provider-output-plan-snapshot-contract-report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "PLAN-SNAPSHOT-1 report",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-provider-output-plan-snapshot-contract-reports/plans/candidate-approved-plan-snapshot.json",
+        "exists": true,
+        "required": true,
+        "purpose": "PLAN-SNAPSHOT-1 candidate approved-plan snapshot",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-worker-runtime-jobs-audit-reports/reports/worker-runtime-jobs-audit-report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "WORKER-0 audit report",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-worker-approved-plan-dry-run-reports/reports/worker-approved-plan-dry-run-report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "WORKER-1 dry-run report",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-worker-approved-plan-dry-run-reports/dry-run/worker-job-batch-plan.json",
+        "exists": true,
+        "required": true,
+        "purpose": "WORKER-1 dry-run batch plan",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-worker-approved-plan-dry-run-reports/validation/blocked-route-validation.json",
+        "exists": true,
+        "required": true,
+        "purpose": "WORKER-1 blocked-route validation",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-tool-route-execution-unlock-audit-reports/reports/tool-route-execution-unlock-audit-report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "TOOL-ROUTE-0 report",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json",
+        "exists": true,
+        "required": true,
+        "purpose": "TOOL-ROUTE-1 report",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+        "exists": true,
+        "required": true,
+        "purpose": "TOOL-ROUTE-1 route family plan",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-owner-route-plan.json",
+        "exists": true,
+        "required": true,
+        "purpose": "TOOL-ROUTE-1 owner route plan",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-tool-route-dry-run-planning-reports/artifacts/tool-route-artifact-contract-map.json",
+        "exists": true,
+        "required": true,
+        "purpose": "TOOL-ROUTE-1 artifact contract map",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-tool-route-dry-run-planning-reports/qa/tool-route-qa-gate-map.json",
+        "exists": true,
+        "required": true,
+        "purpose": "TOOL-ROUTE-1 QA gate map",
+        "status": "present"
+      },
+      {
+        "path": "docs/activation-tool-route-dry-run-planning-reports/validation/tool-route-blocked-execution-validation.json",
+        "exists": true,
+        "required": true,
+        "purpose": "TOOL-ROUTE-1 blocked execution validation",
+        "status": "present"
+      }
+    ],
+    "optionalMissingPaths": [
+      {
+        "path": "docs/runtime-unlock/runtime-unlock-roadmap.md",
+        "exists": false,
+        "required": false,
+        "purpose": "optional status/readiness integration path not present on this base",
+        "status": "missing_on_base"
+      },
+      {
+        "path": "docs/cross-chat/README.md",
+        "exists": false,
+        "required": false,
+        "purpose": "optional status/readiness integration path not present on this base",
+        "status": "missing_on_base"
+      },
+      {
+        "path": "docs/agents/README.md",
+        "exists": false,
+        "required": false,
+        "purpose": "optional status/readiness integration path not present on this base",
+        "status": "missing_on_base"
+      },
+      {
+        "path": "server/activation/supabase-milestone-sync",
+        "exists": false,
+        "required": false,
+        "purpose": "optional status/readiness integration path not present on this base",
+        "status": "missing_on_base"
+      }
+    ],
+    "prStack": [
+      {
+        "pr": 331,
+        "title": "MODEL-DRYRUN-1",
+        "mergeSha": "131d54e662abeafc8c415f63dca9b33f2b3f7afb",
+        "expectedRunId": "modeldryrun1-20260612T174538"
+      },
+      {
+        "pr": 334,
+        "title": "PLAN-SNAPSHOT-1",
+        "mergeSha": "e31c58b4063a2b924852f4fd89770c243079f3ad",
+        "expectedRunId": "plansnapshot1-20260612T182758"
+      },
+      {
+        "pr": 340,
+        "title": "WORKER-0",
+        "mergeSha": "f33b36e246268ce4231045ed6aab8de46ef1ac94",
+        "expectedRunId": "worker0-20260612T191022"
+      },
+      {
+        "pr": 343,
+        "title": "WORKER-1",
+        "mergeSha": "82672f2cda8c4f84e970a6a2275a7802ed3954ea",
+        "expectedRunId": "worker1-20260612T193823"
+      },
+      {
+        "pr": 347,
+        "title": "TOOL-ROUTE-0",
+        "mergeSha": "ff9b87d5128dc09f618e7f96c71a4d2b3ac82b49",
+        "expectedRunId": "toolroute0-20260612T201155"
+      },
+      {
+        "pr": 354,
+        "title": "WEB_SEARCH_CAPTURE TOOL-STUDY-0",
+        "mergeSha": "51ba1d44965d758935241af7712779bb15d713c6"
+      },
+      {
+        "pr": 356,
+        "title": "MAP_GEOSPATIAL TOOL-STUDY-0",
+        "mergeSha": "c0c96030358d52852b712b9f239a3237490d25ec"
+      },
+      {
+        "pr": 361,
+        "title": "AI_TOOLS_CREATIVE_GRAPHICS TOOL-STUDY-0",
+        "mergeSha": "05d429f6029136f0f55fe01375809071b588791c"
+      },
+      {
+        "pr": 364,
+        "title": "TRACK_A_RENDER_EXPORT TOOL-STUDY-0",
+        "mergeSha": "0ac258f939f403dbef438d3184408f28f874f26c"
+      },
+      {
+        "pr": 365,
+        "title": "TRACK_B_MEDIA_PROCESSING TOOL-STUDY-0",
+        "mergeSha": "454d06caaf3b3349efa541f3ce50aac0bc0044aa"
+      },
+      {
+        "pr": 371,
+        "title": "SOUND_MUSIC_AUDIO TOOL-STUDY-0",
+        "mergeSha": "f6283e63742d6999910d3887482dc3112da1e570"
+      },
+      {
+        "pr": 375,
+        "title": "TOOL-ROUTE-1",
+        "mergeSha": "b1fc1d40c5a41c6e3874331d2ed84dc7072d7364",
+        "expectedRunId": "toolroute1-20260613T141131"
+      }
+    ],
+    "supabaseUpdateClassification": {
+      "updateRequired": "docs/status only",
+      "updateStatus": "docs_only",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no",
+      "milestoneSync": "blocked_current_branch_missing_sync_layer",
+      "evidenceDocs": [
+        "docs/activation-phase-tool-route-2-generated-local-fixture-planning-results.md",
+        "docs/activation-tool-route-generated-local-fixture-planning-reports/reports/tool-route-generated-local-fixture-planning-report.json"
+      ],
+      "blockers": [],
+      "nextSupabaseAction": "none"
+    },
+    "activeBlockers": []
+  },
+  "toolStudyEvidence": {
+    "phase": "TOOL_ROUTE_2",
+    "status": "passed",
+    "studies": [
+      {
+        "owner": "WEB_SEARCH_CAPTURE",
+        "status": "passed",
+        "mergeSha": "51ba1d44965d758935241af7712779bb15d713c6",
+        "sourceContracts": [
+          "docs/tool-studies/web-search-capture-tool-study.md",
+          "docs/tool-studies/web-search-capture-capability-map.md",
+          "docs/tool-studies/web-search-capture-tool-combination-map.md",
+          "docs/tool-studies/web-search-capture-routing-policy.md",
+          "docs/tool-studies/web-search-capture-handoff-contract.md",
+          "docs/tool-studies/web-search-capture-internal-beta-gap-map.md",
+          "docs/tool-studies/web-search-capture-blocked-use-register.md",
+          "docs/prompt-tool-study-0-web-search-capture-validation-results.md",
+          "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md"
+        ],
+        "capabilityMapPath": "docs/tool-studies/web-search-capture-capability-map.md",
+        "routingPolicyPath": "docs/tool-studies/web-search-capture-routing-policy.md",
+        "handoffContractPath": "docs/tool-studies/web-search-capture-handoff-contract.md",
+        "blockedUseRegisterPath": "docs/tool-studies/web-search-capture-blocked-use-register.md",
+        "validationResultsPath": "docs/prompt-tool-study-0-web-search-capture-validation-results.md",
+        "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+        "ownerReviewOnly": true,
+        "executionAllowed": false,
+        "activeBlockers": []
+      },
+      {
+        "owner": "MAP_GEOSPATIAL",
+        "status": "passed",
+        "mergeSha": "c0c96030358d52852b712b9f239a3237490d25ec",
+        "sourceContracts": [
+          "docs/tool-studies/map-geospatial-tool-study.md",
+          "docs/tool-studies/map-geospatial-capability-map.md",
+          "docs/tool-studies/map-geospatial-tool-combination-map.md",
+          "docs/tool-studies/map-geospatial-routing-policy.md",
+          "docs/tool-studies/map-geospatial-handoff-contract.md",
+          "docs/tool-studies/map-geospatial-internal-beta-gap-map.md",
+          "docs/tool-studies/map-geospatial-blocked-use-register.md",
+          "docs/prompt-tool-study-0-map-geospatial-validation-results.md",
+          "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md"
+        ],
+        "capabilityMapPath": "docs/tool-studies/map-geospatial-capability-map.md",
+        "routingPolicyPath": "docs/tool-studies/map-geospatial-routing-policy.md",
+        "handoffContractPath": "docs/tool-studies/map-geospatial-handoff-contract.md",
+        "blockedUseRegisterPath": "docs/tool-studies/map-geospatial-blocked-use-register.md",
+        "validationResultsPath": "docs/prompt-tool-study-0-map-geospatial-validation-results.md",
+        "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+        "ownerReviewOnly": true,
+        "executionAllowed": false,
+        "activeBlockers": []
+      },
+      {
+        "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+        "status": "passed",
+        "mergeSha": "05d429f6029136f0f55fe01375809071b588791c",
+        "sourceContracts": [
+          "docs/tool-studies/ai-tools-creative-graphics-tool-study.md",
+          "docs/tool-studies/ai-tools-creative-graphics-capability-map.md",
+          "docs/tool-studies/ai-tools-creative-graphics-tool-combination-map.md",
+          "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+          "docs/tool-studies/ai-tools-creative-graphics-handoff-contract.md",
+          "docs/tool-studies/ai-tools-creative-graphics-internal-beta-gap-map.md",
+          "docs/tool-studies/ai-tools-creative-graphics-blocked-use-register.md",
+          "docs/prompt-tool-study-0-ai-tools-creative-graphics-validation-results.md",
+          "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md"
+        ],
+        "capabilityMapPath": "docs/tool-studies/ai-tools-creative-graphics-capability-map.md",
+        "routingPolicyPath": "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+        "handoffContractPath": "docs/tool-studies/ai-tools-creative-graphics-handoff-contract.md",
+        "blockedUseRegisterPath": "docs/tool-studies/ai-tools-creative-graphics-blocked-use-register.md",
+        "validationResultsPath": "docs/prompt-tool-study-0-ai-tools-creative-graphics-validation-results.md",
+        "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+        "ownerReviewOnly": true,
+        "executionAllowed": false,
+        "activeBlockers": []
+      },
+      {
+        "owner": "TRACK_A_RENDER_EXPORT",
+        "status": "passed",
+        "mergeSha": "0ac258f939f403dbef438d3184408f28f874f26c",
+        "sourceContracts": [
+          "docs/tool-studies/track-a-render-export-tool-study.md",
+          "docs/tool-studies/track-a-render-export-capability-map.md",
+          "docs/tool-studies/track-a-render-export-tool-combination-map.md",
+          "docs/tool-studies/track-a-render-export-routing-policy.md",
+          "docs/tool-studies/track-a-render-export-handoff-contract.md",
+          "docs/tool-studies/track-a-render-export-internal-beta-gap-map.md",
+          "docs/tool-studies/track-a-render-export-blocked-use-register.md",
+          "docs/prompt-tool-study-0-track-a-render-export-validation-results.md",
+          "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md"
+        ],
+        "capabilityMapPath": "docs/tool-studies/track-a-render-export-capability-map.md",
+        "routingPolicyPath": "docs/tool-studies/track-a-render-export-routing-policy.md",
+        "handoffContractPath": "docs/tool-studies/track-a-render-export-handoff-contract.md",
+        "blockedUseRegisterPath": "docs/tool-studies/track-a-render-export-blocked-use-register.md",
+        "validationResultsPath": "docs/prompt-tool-study-0-track-a-render-export-validation-results.md",
+        "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+        "ownerReviewOnly": true,
+        "executionAllowed": false,
+        "activeBlockers": []
+      },
+      {
+        "owner": "TRACK_B_MEDIA_PROCESSING",
+        "status": "passed",
+        "mergeSha": "454d06caaf3b3349efa541f3ce50aac0bc0044aa",
+        "sourceContracts": [
+          "docs/tool-studies/track-b-media-processing-tool-study.md",
+          "docs/tool-studies/track-b-media-processing-capability-map.md",
+          "docs/tool-studies/track-b-media-processing-tool-combination-map.md",
+          "docs/tool-studies/track-b-media-processing-routing-policy.md",
+          "docs/tool-studies/track-b-media-processing-handoff-contract.md",
+          "docs/tool-studies/track-b-media-processing-internal-beta-gap-map.md",
+          "docs/tool-studies/track-b-media-processing-blocked-use-register.md",
+          "docs/prompt-tool-study-0-track-b-media-processing-validation-results.md",
+          "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md"
+        ],
+        "capabilityMapPath": "docs/tool-studies/track-b-media-processing-capability-map.md",
+        "routingPolicyPath": "docs/tool-studies/track-b-media-processing-routing-policy.md",
+        "handoffContractPath": "docs/tool-studies/track-b-media-processing-handoff-contract.md",
+        "blockedUseRegisterPath": "docs/tool-studies/track-b-media-processing-blocked-use-register.md",
+        "validationResultsPath": "docs/prompt-tool-study-0-track-b-media-processing-validation-results.md",
+        "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+        "ownerReviewOnly": true,
+        "executionAllowed": false,
+        "activeBlockers": []
+      },
+      {
+        "owner": "SOUND_MUSIC_AUDIO",
+        "status": "passed",
+        "mergeSha": "f6283e63742d6999910d3887482dc3112da1e570",
+        "sourceContracts": [
+          "docs/tool-studies/sound-music-audio-tool-study.md",
+          "docs/tool-studies/sound-music-audio-capability-map.md",
+          "docs/tool-studies/sound-music-audio-tool-combination-map.md",
+          "docs/tool-studies/sound-music-audio-routing-policy.md",
+          "docs/tool-studies/sound-music-audio-handoff-contract.md",
+          "docs/tool-studies/sound-music-audio-internal-beta-gap-map.md",
+          "docs/tool-studies/sound-music-audio-blocked-use-register.md",
+          "docs/prompt-tool-study-0-sound-music-audio-validation-results.md",
+          "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md"
+        ],
+        "capabilityMapPath": "docs/tool-studies/sound-music-audio-capability-map.md",
+        "routingPolicyPath": "docs/tool-studies/sound-music-audio-routing-policy.md",
+        "handoffContractPath": "docs/tool-studies/sound-music-audio-handoff-contract.md",
+        "blockedUseRegisterPath": "docs/tool-studies/sound-music-audio-blocked-use-register.md",
+        "validationResultsPath": "docs/prompt-tool-study-0-sound-music-audio-validation-results.md",
+        "implementationPromptPath": "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md",
+        "ownerReviewOnly": true,
+        "executionAllowed": false,
+        "activeBlockers": []
+      }
+    ],
+    "completedStudyCount": 6,
+    "requiredStudyCount": 6,
+    "allRequiredStudiesPresent": true,
+    "activeBlockers": []
+  },
+  "qa": {
+    "phase": "TOOL_ROUTE_2",
+    "runId": "toolroute2-20260613T150317",
+    "status": "passed",
+    "decision": "tool_route_generated_local_fixture_planning_passed_ready_for_tool_route_3_generated_local_fixture_contract_tests",
+    "gates": {
+      "phase": "TOOL_ROUTE_2",
+      "status": "passed",
+      "gates": [
+        {
+          "gateId": "owner_study_exists",
+          "status": "passed",
+          "evidence": [
+            "docs/implementation-prompts/prompt-tool-study-0-web-search-capture.md",
+            "docs/implementation-prompts/prompt-tool-study-0-map-geospatial.md",
+            "docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md",
+            "docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md",
+            "docs/implementation-prompts/prompt-tool-study-0-track-b-media-processing.md",
+            "docs/implementation-prompts/prompt-tool-study-0-sound-music-audio.md"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "tool_route_1_route_plan_exists",
+          "status": "passed",
+          "evidence": [
+            "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json",
+            "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+            "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-owner-route-plan.json",
+            "docs/activation-tool-route-dry-run-planning-reports/artifacts/tool-route-artifact-contract-map.json",
+            "docs/activation-tool-route-dry-run-planning-reports/qa/tool-route-qa-gate-map.json",
+            "docs/activation-tool-route-dry-run-planning-reports/validation/tool-route-blocked-execution-validation.json"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "fixture_family_count",
+          "status": "passed",
+          "evidence": [
+            "provider_model_planning_fixture",
+            "worker_runtime_job_planning_fixture",
+            "web_search_capture_fixture",
+            "map_geospatial_fixture",
+            "ai_tools_creative_graphics_fixture",
+            "track_a_render_export_fixture",
+            "track_b_media_processing_fixture",
+            "sound_music_audio_fixture",
+            "supabase_metadata_storage_fixture",
+            "observability_audit_cost_fixture",
+            "compliance_security_fixture",
+            "frontend_product_ux_fixture",
+            "billing_stripe_credits_fixture",
+            "public_artifact_signed_url_delivery_blocked_fixture"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "fixture_is_synthetic_only",
+          "status": "passed",
+          "evidence": [
+            "provider_model_planning_fixture",
+            "worker_runtime_job_planning_fixture",
+            "web_search_capture_fixture",
+            "map_geospatial_fixture",
+            "ai_tools_creative_graphics_fixture",
+            "track_a_render_export_fixture",
+            "track_b_media_processing_fixture",
+            "sound_music_audio_fixture",
+            "supabase_metadata_storage_fixture",
+            "observability_audit_cost_fixture",
+            "compliance_security_fixture",
+            "frontend_product_ux_fixture",
+            "billing_stripe_credits_fixture",
+            "public_artifact_signed_url_delivery_blocked_fixture"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "input_contract_exists",
+          "status": "passed",
+          "evidence": [
+            "provider_model_planning_fixture_input_manifest",
+            "worker_runtime_job_planning_fixture_input_manifest",
+            "web_search_capture_fixture_input_manifest",
+            "map_geospatial_fixture_input_manifest",
+            "ai_tools_creative_graphics_fixture_input_manifest",
+            "track_a_render_export_fixture_input_manifest",
+            "track_b_media_processing_fixture_input_manifest",
+            "sound_music_audio_fixture_input_manifest",
+            "supabase_metadata_storage_fixture_input_manifest",
+            "observability_audit_cost_fixture_input_manifest",
+            "compliance_security_fixture_input_manifest",
+            "frontend_product_ux_fixture_input_manifest",
+            "billing_stripe_credits_fixture_input_manifest",
+            "public_artifact_signed_url_delivery_blocked_fixture_input_manifest"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "output_contract_exists",
+          "status": "passed",
+          "evidence": [
+            "synthetic_provider_output_fixture_manifest",
+            "synthetic_worker_job_fixture_manifest",
+            "synthetic_web_search_capture_fixture_manifest",
+            "synthetic_map_geospatial_fixture_manifest",
+            "synthetic_ai_tools_creative_graphics_fixture_manifest",
+            "synthetic_track_a_render_export_fixture_manifest",
+            "synthetic_track_b_media_processing_fixture_manifest",
+            "synthetic_sound_music_audio_fixture_manifest",
+            "synthetic_supabase_metadata_storage_fixture_manifest",
+            "synthetic_observability_audit_cost_fixture_manifest",
+            "synthetic_compliance_security_fixture_manifest",
+            "synthetic_frontend_product_ux_fixture_manifest",
+            "synthetic_billing_stripe_credits_fixture_manifest",
+            "synthetic_public_artifact_signed_url_blocked_fixture_manifest"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "source_of_truth_rule_exists",
+          "status": "passed",
+          "evidence": [
+            "Only committed synthetic provider-output manifests can be source-of-truth here.",
+            "Committed dry-run fixture manifests are source-of-truth; runtime rows are not touched.",
+            "Sanitized synthetic manifests and QA reports are source-of-truth; raw snippets are not.",
+            "Structured synthetic map manifests are source-of-truth; map screenshots are not.",
+            "Structured visual specs, source refs, checksums, and QA records are source-of-truth.",
+            "Private render/export manifests and QA records are source-of-truth; temporary renders are not.",
+            "Private media manifests, timecodes, provenance, checksums, and QA fields are source-of-truth.",
+            "Cue manifests, timing refs, provenance, and QA fields are source-of-truth.",
+            "Local docs/status evidence only; no Supabase row or storage object is source-of-truth here.",
+            "Committed audit and cost placeholders are planning evidence only.",
+            "Compliance placeholders and blocked-use registers are review evidence only.",
+            "UX route placeholders explain planning status only; they do not become runtime state.",
+            "Billing placeholders are planning evidence only; no ledger or Stripe event is source here.",
+            "Private manifests are source-of-truth; public artifacts and signed URLs are never source here."
+          ],
+          "required": true
+        },
+        {
+          "gateId": "private_artifact_rule_exists",
+          "status": "passed",
+          "evidence": [
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+            "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced."
+          ],
+          "required": true
+        },
+        {
+          "gateId": "checksum_provenance_required",
+          "status": "passed",
+          "evidence": [
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+            "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests."
+          ],
+          "required": true
+        },
+        {
+          "gateId": "owner_fixture_handoff_complete",
+          "status": "passed",
+          "evidence": [
+            "WEB_SEARCH_CAPTURE",
+            "MAP_GEOSPATIAL",
+            "AI_TOOLS_CREATIVE_GRAPHICS",
+            "TRACK_A_RENDER_EXPORT",
+            "TRACK_B_MEDIA_PROCESSING",
+            "SOUND_MUSIC_AUDIO",
+            "WORKER_RUNTIME_JOBS",
+            "PROVIDER_GATEWAY_MODELS",
+            "SUPABASE_RLS_STORAGE_DATABASE",
+            "OBSERVABILITY_AUDIT_COST",
+            "COMPLIANCE_SECURITY",
+            "FRONTEND_PRODUCT_UX",
+            "BILLING_STRIPE_CREDITS"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "no_runtime_execution",
+          "status": "passed",
+          "evidence": [
+            "all fixture execution flags are false"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "no_public_artifacts",
+          "status": "passed",
+          "evidence": [
+            "publicArtifactAllowed=false for every fixture contract"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "no_signed_urls",
+          "status": "passed",
+          "evidence": [
+            "signedUrlSourceOfTruthAllowed=false for every fixture contract"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "no_raw_prompts",
+          "status": "passed",
+          "evidence": [
+            "rawPromptAllowed=false for every fixture contract"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "no_supabase_mutation",
+          "status": "passed",
+          "evidence": [
+            "Supabase classification is docs_only with no SQL and no migration"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "no_production_external_beta_unlock",
+          "status": "passed",
+          "evidence": [
+            "internal beta, external beta, and production flags are false"
+          ],
+          "required": true
+        },
+        {
+          "gateId": "next_owner_approval_defined",
+          "status": "passed",
+          "evidence": [
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3",
+            "owner_review_required_before_tool_route_3"
+          ],
+          "required": true
+        }
+      ],
+      "gateCount": 17,
+      "allRequiredGatesPassed": true,
+      "activeBlockers": []
+    },
+    "safetyFlags": {
+      "executionAllowed": false,
+      "workerExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "providerCallsAllowed": false,
+      "modelCallsAllowed": false,
+      "routeExecutionAllowed": false,
+      "mediaProcessingAllowed": false,
+      "browserCaptureAllowed": false,
+      "mapRenderingAllowed": false,
+      "audioGenerationAllowed": false,
+      "renderExportAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptExecutionAllowed": false,
+      "supabaseMutationAllowed": false,
+      "sqlExecutionAllowed": false,
+      "migrationDeploymentAllowed": false,
+      "googleCloudApiCallsAllowed": false,
+      "secretManagerApiCallsAllowed": false,
+      "gcsStorageTransferAllowed": false,
+      "creditMutationAllowed": false,
+      "stripeProcessingAllowed": false,
+      "internalBetaUnlockAllowed": false,
+      "externalBetaUnlockAllowed": false,
+      "productionUnlockAllowed": false,
+      "dependencyMutationAllowed": false,
+      "finalRenderExportAllowed": false,
+      "broadServiceRoleHandlerAllowed": false
+    },
+    "passed": true
+  },
+  "gapMap": {
+    "phase": "TOOL_ROUTE_2",
+    "status": "passed",
+    "gaps": [
+      {
+        "gapId": "generated_local_fixture_contract_tests",
+        "owner": "WORKER_RUNTIME_JOBS",
+        "nextAction": "Implement TOOL-ROUTE-3 contract tests against synthetic local manifests only.",
+        "status": "ready_for_contract_tests"
+      },
+      {
+        "gapId": "owner_fixture_review_signoff",
+        "owner": "COMPLIANCE_SECURITY",
+        "nextAction": "Require owner review before any future fixture execution or runtime work.",
+        "status": "ready_for_contract_tests"
+      },
+      {
+        "gapId": "runtime_execution_gate",
+        "owner": "WORKER_RUNTIME_JOBS",
+        "nextAction": "Keep runtime/tool/worker/provider execution blocked until a separate execution milestone.",
+        "status": "ready_for_contract_tests"
+      },
+      {
+        "gapId": "supabase_sync_layer_absent",
+        "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+        "nextAction": "No Supabase writer is added in TOOL-ROUTE-2; sync remains blocked_current_branch_missing_sync_layer.",
+        "status": "ready_for_contract_tests"
+      }
+    ],
+    "toolRoute3Readiness": "ready_for_TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+    "activeBlockers": []
+  },
+  "nextPhasePlan": {
+    "phase": "TOOL_ROUTE_2",
+    "nextPhase": "TOOL_ROUTE_3",
+    "readiness": "ready_for_TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+    "promptPath": "docs/implementation-prompts/prompt-tool-route-3-generated-local-fixture-contract-tests.md",
+    "requiredBeforeExecution": [
+      "Use TOOL-ROUTE-2 generated/local fixture catalog as the only source of fixture contracts.",
+      "Run contract tests against synthetic local manifests only.",
+      "Keep all runtime/tool/worker/provider/route execution flags false.",
+      "Keep Supabase, SQL, GCS, public artifact, signed URL, beta, production, and final render/export paths blocked.",
+      "Require owner review before any future fixture execution phase."
+    ],
+    "blockedScope": [
+      "No real provider/model calls.",
+      "No worker claim/lease writes or runtime job execution.",
+      "No web search, browser capture, map rendering, media processing, audio generation, or Track A render/export.",
+      "No Supabase mutation, SQL, migrations, schema/RLS change, storage transfer, public artifacts, signed URLs, beta, or production."
+    ]
+  }
+}

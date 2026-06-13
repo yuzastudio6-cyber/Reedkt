@@ -1,0 +1,303 @@
+{
+  "phase": "TOOL_ROUTE_2",
+  "status": "passed",
+  "contracts": [
+    {
+      "fixtureId": "provider_model_planning_fixture",
+      "routeFamilyId": "provider_model_planning",
+      "owner": "PROVIDER_GATEWAY_MODELS",
+      "fixtureInputManifest": "provider_model_planning_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_provider_output_fixture_manifest",
+      "expectedOutputArtifactContract": "provider planning fixture contract",
+      "sourceOfTruthRule": "Only committed synthetic provider-output manifests can be source-of-truth here.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "schema_contract_present",
+        "provider_call_blocked",
+        "redaction_contract_present"
+      ]
+    },
+    {
+      "fixtureId": "worker_runtime_job_planning_fixture",
+      "routeFamilyId": "worker_runtime_job_planning",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "fixtureInputManifest": "worker_runtime_job_planning_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_worker_job_fixture_manifest",
+      "expectedOutputArtifactContract": "worker runtime job fixture contract",
+      "sourceOfTruthRule": "Committed dry-run fixture manifests are source-of-truth; runtime rows are not touched.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "worker1_batch_present",
+        "claim_attempt_false",
+        "lease_write_blocked"
+      ]
+    },
+    {
+      "fixtureId": "web_search_capture_fixture",
+      "routeFamilyId": "web_search_capture",
+      "owner": "WEB_SEARCH_CAPTURE",
+      "fixtureInputManifest": "web_search_capture_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_web_search_capture_fixture_manifest",
+      "expectedOutputArtifactContract": "web source/capture/extraction fixture contract",
+      "sourceOfTruthRule": "Sanitized synthetic manifests and QA reports are source-of-truth; raw snippets are not.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "owner_study_exists",
+        "capture_manifest_contract_present",
+        "browser_capture_blocked"
+      ]
+    },
+    {
+      "fixtureId": "map_geospatial_fixture",
+      "routeFamilyId": "map_geospatial",
+      "owner": "MAP_GEOSPATIAL",
+      "fixtureInputManifest": "map_geospatial_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_map_geospatial_fixture_manifest",
+      "expectedOutputArtifactContract": "map GeoJSON/style/camera/timing/render fixture contract",
+      "sourceOfTruthRule": "Structured synthetic map manifests are source-of-truth; map screenshots are not.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "owner_study_exists",
+        "geojson_contract_present",
+        "live_map_execution_blocked"
+      ]
+    },
+    {
+      "fixtureId": "ai_tools_creative_graphics_fixture",
+      "routeFamilyId": "ai_tools_creative_graphics",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "fixtureInputManifest": "ai_tools_creative_graphics_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_ai_tools_creative_graphics_fixture_manifest",
+      "expectedOutputArtifactContract": "AI Tools visual asset fixture contract",
+      "sourceOfTruthRule": "Structured visual specs, source refs, checksums, and QA records are source-of-truth.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "owner_study_exists",
+        "visual_manifest_contract_present",
+        "graphics_execution_blocked"
+      ]
+    },
+    {
+      "fixtureId": "track_a_render_export_fixture",
+      "routeFamilyId": "track_a_render_export",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "fixtureInputManifest": "track_a_render_export_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_track_a_render_export_fixture_manifest",
+      "expectedOutputArtifactContract": "Track A render/export fixture contract",
+      "sourceOfTruthRule": "Private render/export manifests and QA records are source-of-truth; temporary renders are not.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "owner_study_exists",
+        "render_manifest_contract_present",
+        "final_render_export_blocked"
+      ]
+    },
+    {
+      "fixtureId": "track_b_media_processing_fixture",
+      "routeFamilyId": "track_b_media_processing",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "fixtureInputManifest": "track_b_media_processing_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_track_b_media_processing_fixture_manifest",
+      "expectedOutputArtifactContract": "Track B media analysis fixture contract",
+      "sourceOfTruthRule": "Private media manifests, timecodes, provenance, checksums, and QA fields are source-of-truth.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "owner_study_exists",
+        "media_analysis_contract_present",
+        "media_processing_blocked"
+      ]
+    },
+    {
+      "fixtureId": "sound_music_audio_fixture",
+      "routeFamilyId": "sound_music_audio",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "fixtureInputManifest": "sound_music_audio_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_sound_music_audio_fixture_manifest",
+      "expectedOutputArtifactContract": "Sound/Music/Audio cue fixture contract",
+      "sourceOfTruthRule": "Cue manifests, timing refs, provenance, and QA fields are source-of-truth.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "owner_study_exists",
+        "cue_manifest_contract_present",
+        "audio_generation_blocked"
+      ]
+    },
+    {
+      "fixtureId": "supabase_metadata_storage_fixture",
+      "routeFamilyId": "supabase_metadata_storage",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "fixtureInputManifest": "supabase_metadata_storage_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_supabase_metadata_storage_fixture_manifest",
+      "expectedOutputArtifactContract": "Supabase metadata/storage fixture contract",
+      "sourceOfTruthRule": "Local docs/status evidence only; no Supabase row or storage object is source-of-truth here.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "supabase_mutation_blocked",
+        "sql_migration_blocked",
+        "sync_layer_absence_recorded"
+      ]
+    },
+    {
+      "fixtureId": "observability_audit_cost_fixture",
+      "routeFamilyId": "observability_audit_cost",
+      "owner": "OBSERVABILITY_AUDIT_COST",
+      "fixtureInputManifest": "observability_audit_cost_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_observability_audit_cost_fixture_manifest",
+      "expectedOutputArtifactContract": "observability/audit/cost fixture contract",
+      "sourceOfTruthRule": "Committed audit and cost placeholders are planning evidence only.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "cost_placeholder_contract_present",
+        "credit_mutation_blocked",
+        "paid_production_blocked"
+      ]
+    },
+    {
+      "fixtureId": "compliance_security_fixture",
+      "routeFamilyId": "compliance_security",
+      "owner": "COMPLIANCE_SECURITY",
+      "fixtureInputManifest": "compliance_security_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_compliance_security_fixture_manifest",
+      "expectedOutputArtifactContract": "compliance/security fixture contract",
+      "sourceOfTruthRule": "Compliance placeholders and blocked-use registers are review evidence only.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "blocked_use_register_present",
+        "secret_scan_required",
+        "public_artifact_blocked"
+      ]
+    },
+    {
+      "fixtureId": "frontend_product_ux_fixture",
+      "routeFamilyId": "frontend_product_ux",
+      "owner": "FRONTEND_PRODUCT_UX",
+      "fixtureInputManifest": "frontend_product_ux_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_frontend_product_ux_fixture_manifest",
+      "expectedOutputArtifactContract": "frontend product UX fixture contract",
+      "sourceOfTruthRule": "UX route placeholders explain planning status only; they do not become runtime state.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "candidate_only_label_present",
+        "runtime_claim_blocked",
+        "owner_review_required"
+      ]
+    },
+    {
+      "fixtureId": "billing_stripe_credits_fixture",
+      "routeFamilyId": "billing_stripe_credits",
+      "owner": "BILLING_STRIPE_CREDITS",
+      "fixtureInputManifest": "billing_stripe_credits_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_billing_stripe_credits_fixture_manifest",
+      "expectedOutputArtifactContract": "billing/Stripe/credits fixture contract",
+      "sourceOfTruthRule": "Billing placeholders are planning evidence only; no ledger or Stripe event is source here.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "credit_mutation_blocked",
+        "approval_gate_preserved",
+        "stripe_processing_blocked"
+      ]
+    },
+    {
+      "fixtureId": "public_artifact_signed_url_delivery_blocked_fixture",
+      "routeFamilyId": "public_artifact_signed_url_delivery_blocked",
+      "owner": "COMPLIANCE_SECURITY",
+      "fixtureInputManifest": "public_artifact_signed_url_delivery_blocked_fixture_input_manifest",
+      "expectedOutputManifest": "synthetic_public_artifact_signed_url_blocked_fixture_manifest",
+      "expectedOutputArtifactContract": "public artifact/signed URL delivery blocked fixture contract",
+      "sourceOfTruthRule": "Private manifests are source-of-truth; public artifacts and signed URLs are never source here.",
+      "downstreamConsumer": "TOOL_ROUTE_3_generated_local_fixture_contract_tests",
+      "checksumProvenanceRequirement": "Every future fixture output must carry a checksum placeholder, provenance refs, owner, run id, and source contract refs before TOOL-ROUTE-3 tests.",
+      "privateArtifactRule": "Private/local sanitized JSON manifests only; no public artifact or signed URL is produced.",
+      "publicArtifactAllowed": false,
+      "signedUrlSourceOfTruthAllowed": false,
+      "rawPromptAllowed": false,
+      "cleanupRollbackRequirement": "Fixture contract tests must remove local generated test data and leave no public artifact, signed URL, Supabase row, GCS object, or runtime side effect.",
+      "qaGateList": [
+        "public_artifact_blocked",
+        "signed_url_blocked",
+        "private_manifest_required"
+      ]
+    }
+  ],
+  "contractCount": 14,
+  "allContractsPrivateSyntheticOnly": true,
+  "activeBlockers": []
+}

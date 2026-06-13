@@ -1,0 +1,52 @@
+{
+  "phase": "TOOL_ROUTE_2",
+  "status": "passed",
+  "runId": "toolroute1-20260613T141131",
+  "decision": "tool_route_dry_run_planning_passed_ready_for_tool_route_2_generated_local_fixture_planning",
+  "readiness": "ready_for_TOOL_ROUTE_2_generated_local_fixture_planning",
+  "routeFamilyIds": [
+    "provider_model_planning",
+    "worker_runtime_job_planning",
+    "web_search_capture",
+    "map_geospatial",
+    "ai_tools_creative_graphics",
+    "track_a_render_export",
+    "track_b_media_processing",
+    "sound_music_audio",
+    "supabase_metadata_storage",
+    "observability_audit_cost",
+    "compliance_security",
+    "frontend_product_ux",
+    "billing_stripe_credits",
+    "public_artifact_signed_url_delivery_blocked"
+  ],
+  "ownerIds": [
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL",
+    "AI_TOOLS_CREATIVE_GRAPHICS",
+    "TRACK_A_RENDER_EXPORT",
+    "TRACK_B_MEDIA_PROCESSING",
+    "SOUND_MUSIC_AUDIO",
+    "WORKER_RUNTIME_JOBS",
+    "PROVIDER_GATEWAY_MODELS",
+    "SUPABASE_RLS_STORAGE_DATABASE",
+    "OBSERVABILITY_AUDIT_COST",
+    "COMPLIANCE_SECURITY",
+    "FRONTEND_PRODUCT_UX",
+    "BILLING_STRIPE_CREDITS"
+  ],
+  "routeFamilyCount": 14,
+  "ownerRouteCount": 13,
+  "artifactContractCount": 15,
+  "qaGateCount": 16,
+  "allExecutionBlocked": true,
+  "evidencePaths": [
+    "docs/activation-tool-route-dry-run-planning-reports/reports/tool-route-dry-run-planning-report.json",
+    "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-family-dry-run-plan.json",
+    "docs/activation-tool-route-dry-run-planning-reports/routes/tool-route-owner-route-plan.json",
+    "docs/activation-tool-route-dry-run-planning-reports/artifacts/tool-route-artifact-contract-map.json",
+    "docs/activation-tool-route-dry-run-planning-reports/qa/tool-route-qa-gate-map.json",
+    "docs/activation-tool-route-dry-run-planning-reports/validation/tool-route-blocked-execution-validation.json"
+  ],
+  "activeBlockers": []
+}

@@ -63,7 +63,7 @@ Local validation completed on the WORKER-6 branch:
 
 Local hygiene note: AppleDouble `._*` sidecars appeared on `/Volumes/backup` and were deleted before staging.
 
-PR link: pending creation.
+PR link: [#405](https://github.com/yuzastudio6-cyber/Reedkt/pull/405)
 
 ## Status
 

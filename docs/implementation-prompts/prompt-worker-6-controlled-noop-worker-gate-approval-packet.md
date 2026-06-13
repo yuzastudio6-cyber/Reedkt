@@ -8,7 +8,7 @@ WORKER-6 creates an approval packet only. It may approve a future WORKER-7 contr
 
 ## Implemented Result
 
-- PR: pending creation.
+- PR: [#405](https://github.com/yuzastudio6-cyber/Reedkt/pull/405)
 - decisionState: `approved_with_warnings_for_worker_7`
 - futureControlledNoopWorkerExecutionApproved: `true`
 - Production capability enabled: `none; controlled no-op worker gate approval packet only`

@@ -2,16 +2,16 @@ import { existsSync, readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 
 const requiredDocs = [
-  'docs/tool-studies/ai-tools-creative-graphics-source-of-truth-audit.json',
-  'docs/tool-studies/ai-tools-creative-graphics-tool-study.md',
-  'docs/tool-studies/ai-tools-creative-graphics-capability-map.md',
-  'docs/tool-studies/ai-tools-creative-graphics-tool-combination-map.md',
-  'docs/tool-studies/ai-tools-creative-graphics-routing-policy.md',
-  'docs/tool-studies/ai-tools-creative-graphics-handoff-contract.md',
-  'docs/tool-studies/ai-tools-creative-graphics-internal-beta-gap-map.md',
-  'docs/tool-studies/ai-tools-creative-graphics-blocked-use-register.md',
-  'docs/prompt-tool-study-0-ai-tools-creative-graphics-validation-results.md',
-  'docs/implementation-prompts/prompt-tool-study-0-ai-tools-creative-graphics.md',
+  'docs/tool-studies/track-a-render-export-source-of-truth-audit.json',
+  'docs/tool-studies/track-a-render-export-tool-study.md',
+  'docs/tool-studies/track-a-render-export-capability-map.md',
+  'docs/tool-studies/track-a-render-export-tool-combination-map.md',
+  'docs/tool-studies/track-a-render-export-routing-policy.md',
+  'docs/tool-studies/track-a-render-export-handoff-contract.md',
+  'docs/tool-studies/track-a-render-export-internal-beta-gap-map.md',
+  'docs/tool-studies/track-a-render-export-blocked-use-register.md',
+  'docs/prompt-tool-study-0-track-a-render-export-validation-results.md',
+  'docs/implementation-prompts/prompt-tool-study-0-track-a-render-export.md',
   'docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md',
   'docs/cross-chat/CURRENT_HANDOFF.md',
   'docs/cross-chat/NEXT_UNLOCK_LANES.md',
@@ -20,49 +20,54 @@ const requiredDocs = [
 ]
 
 const ownedToolIds = [
-  'ai_image_generation_planning',
-  'ai_image_editing_planning',
-  'style_transfer_planning',
-  'thumbnail_cover_poster_planning',
-  'title_card_lower_third_overlay_planning',
-  'typography_layout_composition_metadata',
-  'brand_visual_style_metadata',
-  'graphic_asset_qa_metadata',
-  'design_prompt_to_intent_routing',
-  'creative_graphics_route_capability_metadata',
-  'creative_graphics_cost_capacity_metadata',
+  'final_timeline_assembly_planning',
+  'render_export_planning',
+  'mux_transcode_container_planning',
+  'codec_quality_profile_planning',
+  'caption_subtitle_burnin_planning',
+  'overlay_graphics_placement_handoff',
+  'audio_video_sync_handoff_planning',
+  'preview_proxy_export_qa_metadata',
+  'artifact_manifest_checksum_planning',
+  'private_gcs_path_planning',
+  'retention_delete_rollback_planning',
+  'export_cost_capacity_metadata',
+  'final_export_route_capability_metadata',
 ]
 
 const relatedButNotOwned = [
   'TRACK_B_MEDIA_PROCESSING',
   'SOUND_MUSIC_AUDIO',
-  'TRACK_A_RENDER_EXPORT',
+  'AI_TOOLS_CREATIVE_GRAPHICS',
   'PROVIDER_GATEWAY',
   'WORKER_RUNTIME_JOBS',
+  'PUBLIC_ARTIFACT_DELIVERY',
   'SUPABASE_RLS_STORAGE_DATABASE',
 ]
 
 const requiredPhrases = [
-  'ai_tools_creative_graphics_tool_study_passed_docs_only',
-  'complete_for_AI_TOOLS_CREATIVE_GRAPHICS_owner_study',
+  'track_a_render_export_tool_study_passed_docs_only',
+  'complete_for_TRACK_A_RENDER_EXPORT_owner_study',
   'routeExecutionAllowed: false',
   'runtimeExecutionAllowed: false',
   'workerExecutionAllowed: false',
   'providerExecutionAllowed: false',
   'modelExecutionAllowed: false',
   'toolExecutionAllowed: false',
-  'imageGenerationAllowed: false',
-  'imageEditingAllowed: false',
+  'renderExecutionAllowed: false',
+  'exportExecutionAllowed: false',
   'mediaProcessingAllowed: false',
+  'publicArtifactsAllowed: false',
+  'signedUrlsAsSourceOfTruthAllowed: false',
   'Supabase update required: `no write`',
   'SQL executed: `none`',
   'Migration deployed: `no`',
   'Signed URLs are never source of truth',
-  'TRACK_A_RENDER_EXPORT`: complete after `tool-study:track-a-render-export:diagnostics` passes',
+  'TOOL-STUDY-0 completion rollup and route-unlock readiness check',
 ]
 
 const allowedConfirmations = new Set([
-  'REEDITPRO_CONFIRM_TOOL_STUDY_0_AI_TOOLS_CREATIVE_GRAPHICS',
+  'REEDITPRO_CONFIRM_TOOL_STUDY_0_TRACK_A_RENDER_EXPORT',
   'REEDITPRO_CONFIRM_TOOL_STUDY_DOCS_ONLY',
   'REEDITPRO_CONFIRM_TOOL_STUDY_DIAGNOSTICS_ONLY',
   'REEDITPRO_CONFIRM_SECRET_REFERENCE_METADATA_ONLY',
@@ -73,8 +78,7 @@ const forbiddenConfirmationFragments = [
   'WORKER_EXECUTION',
   'PROVIDER_CALLS',
   'MODEL_EXECUTION',
-  'IMAGE_GENERATION',
-  'IMAGE_EDITING',
+  'RENDER_EXPORT_EXECUTION',
   'MEDIA_PROCESSING',
   'BROWSER_CAPTURE',
   'MAP_RENDERING',
@@ -100,8 +104,9 @@ const forbiddenPatterns = [
   ['route_execution_enabled', /\broute execution\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
   ['provider_execution_enabled', /\bprovider (?:execution|calls?)\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
   ['model_execution_enabled', /\bmodel execution\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
-  ['image_generation_enabled', /\bimage generation\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
-  ['image_editing_enabled', /\bimage editing\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
+  ['render_execution_enabled', /\brender execution\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
+  ['export_execution_enabled', /\bexport execution\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
+  ['render_or_export_enabled', /\brender\/export\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
   ['media_processing_enabled', /\bmedia processing\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
   ['signed_url_truth', /\bsigned URLs?\s+(?:are|is|become)\s+(?:the\s+)?source(?:-|\s+)of(?:-|\s+)truth\b/i],
   ['raw_prompt_enabled', /\braw prompt execution\s*(?::|=)?\s*(?:enabled|allowed|ready|executed|true)\b/i],
@@ -141,16 +146,19 @@ for (const [name, pattern] of forbiddenPatterns) {
 
 let audit
 try {
-  audit = JSON.parse(readFileSync('docs/tool-studies/ai-tools-creative-graphics-source-of-truth-audit.json', 'utf8'))
+  audit = JSON.parse(readFileSync('docs/tool-studies/track-a-render-export-source-of-truth-audit.json', 'utf8'))
 } catch (error) {
   failures.push(`source_audit_json_invalid:${error.message}`)
 }
 
 if (audit) {
-  if (audit.decision !== 'ai_tools_creative_graphics_tool_study_passed_docs_only') {
+  if (audit.schema !== 'reeditpro.toolStudy.trackARenderExport.sourceOfTruthAudit.v1') {
+    failures.push(`source_audit_schema:${audit.schema}`)
+  }
+  if (audit.decision !== 'track_a_render_export_tool_study_passed_docs_only') {
     failures.push(`source_audit_decision:${audit.decision}`)
   }
-  if (audit.status !== 'complete_for_AI_TOOLS_CREATIVE_GRAPHICS_owner_study') {
+  if (audit.status !== 'complete_for_TRACK_A_RENDER_EXPORT_owner_study') {
     failures.push(`source_audit_status:${audit.status}`)
   }
   for (const toolId of ownedToolIds) {
@@ -163,8 +171,8 @@ if (audit) {
     'workerExecutionAllowed',
     'providerExecutionAllowed',
     'modelExecutionAllowed',
-    'imageGenerationAllowed',
-    'imageEditingAllowed',
+    'renderExecutionAllowed',
+    'exportExecutionAllowed',
     'mediaProcessingAllowed',
     'browserCaptureAllowed',
     'mapRenderingAllowed',
@@ -185,9 +193,12 @@ if (audit) {
   }
   if (audit.runtimeReadiness?.metadataReviewReady !== true) failures.push('source_audit_metadata_review_not_ready')
   if (audit.runtimeReadiness?.realRuntimeReady !== false) failures.push('source_audit_real_runtime_not_false')
+  if (audit.runtimeReadiness?.renderRuntimeReady !== false) failures.push('source_audit_render_runtime_not_false')
+  if (audit.runtimeReadiness?.exportRuntimeReady !== false) failures.push('source_audit_export_runtime_not_false')
+  if (audit.runtimeReadiness?.workerRuntimeReady !== false) failures.push('source_audit_worker_runtime_not_false')
   if (audit.runtimeReadiness?.providerRuntimeReady !== false) failures.push('source_audit_provider_runtime_not_false')
-  if (audit.runtimeReadiness?.imageGenerationRuntimeBlocked !== true) failures.push('source_audit_image_generation_not_blocked')
-  if (audit.runtimeReadiness?.imageEditingRuntimeBlocked !== true) failures.push('source_audit_image_editing_not_blocked')
+  if (audit.runtimeReadiness?.publicArtifactDeliveryBlocked !== true) failures.push('source_audit_public_artifact_delivery_not_blocked')
+  if (audit.runtimeReadiness?.signedUrlSourceOfTruthBlocked !== true) failures.push('source_audit_signed_url_truth_not_blocked')
   if (audit.supabaseClassification?.updateRequired !== 'no write') failures.push('source_audit_supabase_update_required_not_no_write')
   if (audit.supabaseClassification?.environmentTouched !== 'none') failures.push('source_audit_supabase_environment_touched')
   if (audit.supabaseClassification?.sql !== 'none') failures.push('source_audit_sql_not_none')
@@ -198,8 +209,8 @@ if (audit) {
 }
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
-if (packageJson.scripts?.['tool-study:ai-tools-creative-graphics:diagnostics'] !== 'node scripts/validation/tool-study-ai-tools-creative-graphics-diagnostics.mjs') {
-  failures.push('missing_package_script:tool-study:ai-tools-creative-graphics:diagnostics')
+if (packageJson.scripts?.['tool-study:track-a-render-export:diagnostics'] !== 'node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs') {
+  failures.push('missing_package_script:tool-study:track-a-render-export:diagnostics')
 }
 
 try {
@@ -232,8 +243,8 @@ const result = {
   providerExecutionAllowed: false,
   modelExecutionAllowed: false,
   toolExecutionAllowed: false,
-  imageGenerationAllowed: false,
-  imageEditingAllowed: false,
+  renderExecutionAllowed: false,
+  exportExecutionAllowed: false,
   mediaProcessingAllowed: false,
   supabaseWritesAllowed: false,
   publicArtifactsAllowed: false,

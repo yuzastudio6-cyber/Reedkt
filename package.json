@@ -9,6 +9,8 @@
     "tool-study:track-b-media-processing:diagnostics": "node scripts/validation/tool-study-track-b-media-processing-diagnostics.mjs",
     "tool-study:sound-music-audio:diagnostics": "node scripts/validation/tool-study-sound-music-audio-diagnostics.mjs",
     "tool-study:ai-tools-creative-graphics:diagnostics": "node scripts/validation/tool-study-ai-tools-creative-graphics-diagnostics.mjs",
+    "tool-study:track-a-render-export:diagnostics": "node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs",
+    "tool-study:completion-rollup:diagnostics": "node scripts/validation/tool-study-0-completion-rollup-diagnostics.mjs",
     "build": "tsc -b && vite build",
     "typecheck:server": "tsc -p tsconfig.server.json --noEmit",
     "build:server": "npm run typecheck:server && vite build --config vite.server.config.ts",

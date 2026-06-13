@@ -16,6 +16,7 @@ The post-merge source-of-truth verification keeps these scopes blocked:
 - AI image generation and AI image editing runtimes
 - creative graphics provider/model calls
 - Track A runtime execution
+- Track A render/export runtime, Remotion rendering, mux/transcode execution, caption burn-in output, manifest writes, private GCS uploads, public delivery, and export worker execution
 - Docker, Cloud Run, or Cloud Build mutation
 - Supabase writes, SQL, migrations, reset, repair, or production promotion
 - public artifacts
@@ -28,3 +29,7 @@ Blocked means no owner should treat the frozen-batch merge or this verification 
 The `SOUND_MUSIC_AUDIO` TOOL-STUDY-0 completion is docs/diagnostics only. Demucs remains blocked pending provenance/legal/human approval, RNNoise is not active, and tool-route execution remains blocked until remaining owner studies and separate route execution gates pass.
 
 The `AI_TOOLS_CREATIVE_GRAPHICS` TOOL-STUDY-0 completion is docs/diagnostics only. AI image generation planning, AI image editing planning, style transfer planning, thumbnails/covers/posters, title cards, lower thirds, overlays, typography/layout/composition metadata, brand/visual style metadata, graphic asset QA metadata, design prompt-to-intent routing, and creative graphics route/cost metadata do not unlock provider/model calls, image generation, image editing, workers, tools, routes, public artifacts, signed URLs, Supabase writes, beta, or production.
+
+The `TRACK_A_RENDER_EXPORT` TOOL-STUDY-0 completion is docs/diagnostics only. Final timeline assembly planning, render/export planning, mux/transcode/container planning, codec quality profile planning, caption/subtitle/burn-in planning, overlay/title/lower-third placement handoff, audio/video sync handoff, preview/proxy/export QA metadata, artifact manifest/checksum/private GCS path planning, retention/delete/rollback planning, export cost/capacity metadata, and final export route/capability metadata do not unlock render/export runtime, workers, tools, routes, providers, media processing, GCS uploads, public artifacts, signed URLs, Supabase writes, beta, or production.
+
+The `TOOL_STUDY_0_ROLLUP` completion is also docs/diagnostics only. It records `docs_diagnostics_complete:true` and decision `blocked_pending_owner_study_merge`; it does not unlock route execution, tool execution, worker execution, provider calls, media/audio/render/export execution, browser capture, map rendering, Supabase writes, GCS uploads, public artifacts, signed URLs, raw prompt execution, beta, production, dependency mutation, or PR merges.

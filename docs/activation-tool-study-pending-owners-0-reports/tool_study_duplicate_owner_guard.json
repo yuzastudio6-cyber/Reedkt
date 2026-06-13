@@ -1,0 +1,16 @@
+{
+  "phase": "tool-study-pending-owners-0",
+  "status": "passed",
+  "completedOwners": [
+    "WEB_SEARCH_CAPTURE",
+    "MAP_GEOSPATIAL"
+  ],
+  "completedOwnerStudyFilesCreatedInThisPacket": [],
+  "forbiddenNewStudyPaths": [
+    "docs/tool-studies/web-search-capture-tool-study.md",
+    "docs/tool-studies/map-geospatial-tool-study.md"
+  ],
+  "duplicateRisk": "none_detected",
+  "webSearchCaptureDuplicated": false,
+  "mapGeospatialDuplicated": false
+}

@@ -1,0 +1,63 @@
+{
+  "phase": "tool-study-pending-owners-0",
+  "status": "passed",
+  "toolCombinationMaps": [
+    {
+      "chainId": "creative_graphics_metadata_chain",
+      "ownerId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "tools": [
+        "remotion",
+        "sharp_libvips_handoff",
+        "d3",
+        "echarts",
+        "lottie",
+        "pixijs",
+        "three_js",
+        "konva"
+      ],
+      "executionMode": "planning_metadata"
+    },
+    {
+      "chainId": "track_a_render_export_metadata_chain",
+      "ownerId": "TRACK_A_RENDER_EXPORT",
+      "tools": [
+        "remotion",
+        "ffmpeg",
+        "ffprobe",
+        "libass",
+        "opentimelineio",
+        "hyperframe"
+      ],
+      "executionMode": "command_plan_metadata_only"
+    },
+    {
+      "chainId": "track_b_media_processing_metadata_chain",
+      "ownerId": "TRACK_B_MEDIA_PROCESSING",
+      "tools": [
+        "opencv",
+        "pyav",
+        "pyscenedetect",
+        "sharp_libvips",
+        "duckdb",
+        "polars"
+      ],
+      "executionMode": "readiness_and_private_metadata_only"
+    },
+    {
+      "chainId": "sound_music_audio_metadata_chain",
+      "ownerId": "SOUND_MUSIC_AUDIO",
+      "tools": [
+        "ffmpeg",
+        "ffprobe",
+        "audioflux",
+        "signalsmith_stretch",
+        "deepfilternet",
+        "demucs_blocked"
+      ],
+      "executionMode": "planning_metadata_only"
+    }
+  ],
+  "webSearchCaptureDuplicated": false,
+  "mapGeospatialDuplicated": false,
+  "toolExecutionAllowed": false
+}

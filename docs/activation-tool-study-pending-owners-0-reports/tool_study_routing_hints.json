@@ -1,0 +1,60 @@
+{
+  "phase": "tool-study-pending-owners-0",
+  "status": "passed",
+  "routingHints": [
+    {
+      "ownerId": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "preferWhen": [
+        "exact graphic layout is needed",
+        "designed still or keyframe metadata is approved",
+        "Remotion can own final composition"
+      ],
+      "failClosedWhen": [
+        "raw prompt would be forwarded",
+        "provider output would become direct worker input",
+        "public artifact output is requested"
+      ]
+    },
+    {
+      "ownerId": "TRACK_A_RENDER_EXPORT",
+      "preferWhen": [
+        "approved render manifest exists",
+        "private artifact refs and checksums exist",
+        "final composition/export command planning is needed"
+      ],
+      "failClosedWhen": [
+        "arbitrary render args are supplied",
+        "signed URL is used as source-of-truth",
+        "final delivery is requested without private export QA"
+      ]
+    },
+    {
+      "ownerId": "TRACK_B_MEDIA_PROCESSING",
+      "preferWhen": [
+        "private media metadata or QA is required",
+        "bounded frames/proxies are approved",
+        "reporting remains redacted and metadata-only"
+      ],
+      "failClosedWhen": [
+        "broad media or arbitrary paths are requested",
+        "committed private payloads are requested",
+        "public artifact output is requested"
+      ]
+    },
+    {
+      "ownerId": "SOUND_MUSIC_AUDIO",
+      "preferWhen": [
+        "speech-first audio planning is needed",
+        "SoundSync metadata or loudness handoff is needed",
+        "AudioFlux or Signalsmith Stretch remains future-worker metadata"
+      ],
+      "failClosedWhen": [
+        "audio provider calls are requested",
+        "model downloads are requested",
+        "beat alignment would override speech clarity"
+      ]
+    }
+  ],
+  "toolRouteExecutionUnlockAuditReady": true,
+  "runtimeExecutionAllowed": false
+}

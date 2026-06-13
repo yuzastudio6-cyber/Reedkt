@@ -554,6 +554,7 @@
     "tool-study:web-search-capture:diagnostics": "node scripts/validation/tool-study-web-search-capture-diagnostics.mjs",
     "tool-study:map-geospatial:diagnostics": "node scripts/validation/tool-study-map-geospatial-diagnostics.mjs",
     "tool-study:ai-tools-creative-graphics:diagnostics": "node scripts/validation/tool-study-ai-tools-creative-graphics-diagnostics.mjs",
+    "tool-study:track-a-render-export:diagnostics": "node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

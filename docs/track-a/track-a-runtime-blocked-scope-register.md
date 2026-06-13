@@ -1,0 +1,41 @@
+# Track A Runtime Blocked-Scope Register
+
+Status: `blocked_scope_register`
+
+TRACKA-RECON-0 records blocked runtime and delivery scope. It does not relax or remove any existing block.
+
+## Blocked Scope
+
+| Scope | Status | Notes |
+| --- | --- | --- |
+| Final delivery | blocked | No final delivery path is enabled. |
+| Public artifacts | blocked | Public artifact creation and public delivery are out of scope. |
+| Signed URLs as source-of-truth | blocked | Signed URLs are not source-of-truth and are not created. |
+| Production | blocked | No production unlock or deployment. |
+| External beta | blocked | No external beta unlock. |
+| Internal beta | blocked | No internal beta unlock in this reconciliation phase. |
+| Paid production | blocked | No billing, credit, Stripe, or paid production action. |
+| Broad real media | blocked | No arbitrary or broad user media processing. |
+| Arbitrary real/user media | blocked | Historical samples are evidence only; no replay is run. |
+| Provider/model calls | blocked | No Qwen, DeepSeek, image, video, or audio provider call. |
+| Track B runtime | blocked | Track B media processing remains separate and not executed. |
+| Worker execution | blocked | WORKER-1 is dry-run only. |
+| Tool-route execution | blocked | TOOL-ROUTE-1 and TOOL-ROUTE-2 are planning evidence only. |
+| BiRefNet runtime | blocked | No mask runtime is run. |
+| SAM2 runtime | blocked | No segmentation runtime is run. |
+| Real-ESRGAN runtime | blocked | No enhancement runtime is run. |
+| FILM runtime | blocked | No interpolation runtime is run. |
+| Kornia runtime | blocked | No Kornia runtime is run. |
+| OpenColorIO runtime | blocked | No color management runtime is run. |
+| OpenImageIO runtime | blocked | No image pipeline runtime is run. |
+| libass runtime | blocked | No caption burn-in is run. |
+| Remotion runtime | blocked | No preview or final render is run. |
+| OpenTimelineIO runtime | blocked | No timeline/interchange validation is run. |
+| FFmpeg runtime | blocked | No media processing, encoding, or export hardening is run. |
+| FFprobe runtime | blocked | No media probing is run. |
+| Full 4K/full-video broad processing | blocked | Requires future explicit approval. |
+| Raw prompt execution | blocked | No raw prompts are executed or treated as source-of-truth. |
+
+## No-Scope Statement
+
+No Supabase mutation, SQL execution, Google Cloud API call, Secret Manager API call, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, storage transfer, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

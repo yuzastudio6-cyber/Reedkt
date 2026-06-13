@@ -567,6 +567,7 @@
     "tool-study:track-a-render-export:diagnostics": "node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs",
     "tool-study:track-b-media-processing:diagnostics": "node scripts/validation/tool-study-track-b-media-processing-diagnostics.mjs",
     "tool-study:sound-music-audio:diagnostics": "node scripts/validation/tool-study-sound-music-audio-diagnostics.mjs",
+    "track-a:readiness-stack-reconciliation:diagnostics": "node scripts/validation/track-a-readiness-stack-reconciliation-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

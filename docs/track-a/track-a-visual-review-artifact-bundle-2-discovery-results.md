@@ -1,26 +1,26 @@
 # Track A Visual Review Artifact Bundle 2 Discovery Results
 
-Status: `blocked_pending_exact_visual_artifact_access_confirmation`
+Status: `blocked_no_review_safe_visual_artifacts_found`
 
 Bundle ID: `tracka-visual-review-artifact-bundle2-20260613T215327`
 
 ## Execution
 
-The runner was executed without `--execute` and without `REEDITPRO_CONFIRM_TRACKA_EXACT_VISUAL_ARTIFACT_BUNDLE=true`.
+The runner was executed with `--execute` and inline `REEDITPRO_CONFIRM_TRACKA_EXACT_VISUAL_ARTIFACT_BUNDLE=true`.
 
-private_artifact_access=not_attempted
+private_artifact_access=completed_bounded_visual_allowlist
 
-GCS metadata/list/read/copy: `not_attempted`
+GCS metadata/list/read/copy: `bounded_list_only_for_single_allowlisted_prefix`
 
 local_visual_bundle=not_created
 
 copied visual artifacts: `0`
 
-TRACKA-VISUAL-REVIEW-2C readiness: `blocked_pending_exact_visual_artifact_access_confirmation`
+TRACKA-VISUAL-REVIEW-2C readiness: `blocked_no_review_safe_visual_artifacts_found`
 
 ## Discovery Result
 
-No visual discovery was performed in this run. The allowlist is ready for a future confirmed run, but the current implementation record remains blocked before GCS access.
+Confirmed discovery inspected only the single bounded Remotion preview prefix from the allowlist. It found no copyable review-safe visual artifacts with allowed extensions `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.mp4`, `.mov`, or `.webm`.
 
 ## Candidate Review
 
@@ -35,9 +35,9 @@ No visual discovery was performed in this run. The allowlist is ready for a futu
 
 ## Current Blocker
 
-`blocked_pending_exact_visual_artifact_access_confirmation`
+`no_review_safe_visual_artifacts_found`
 
-Human action: rerun the BUNDLE-2 runner with inline `REEDITPRO_CONFIRM_TRACKA_EXACT_VISUAL_ARTIFACT_BUNDLE=true` or provide representative frames/videos/contact sheets directly.
+Human action: provide exact review-safe visual artifact refs or upload representative frames/videos/contact sheets directly.
 
 ## No-Scope Statement
 

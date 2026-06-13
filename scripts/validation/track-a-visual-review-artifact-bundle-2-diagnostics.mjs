@@ -46,8 +46,9 @@ const requiredTerms = [
   "#408",
   "51cd4849c2dc31d4b59d7b673e27437493d0fcac",
   "tracka-visual-review-artifact-bundle2-20260613T215327",
-  "blocked_pending_exact_visual_artifact_access_confirmation",
-  "private_artifact_access=not_attempted",
+  "blocked_no_review_safe_visual_artifacts_found",
+  "blocked_no_visual_artifacts_copied",
+  "private_artifact_access=completed_bounded_visual_allowlist",
   "local_visual_bundle=not_created",
   "copied visual artifacts: `0`",
   "bounded prefix discovery allowlist: `1`",
@@ -57,8 +58,8 @@ const requiredTerms = [
   "tracka-bundle-kornia-pro-color-image",
   "artifact_ref_not_recorded_in_current_source",
   "tracka-bundle-remotion-render-preview",
-  "bounded_prefix_discovery_allowed",
-  "TRACKA-VISUAL-REVIEW-2C readiness: `blocked_pending_exact_visual_artifact_access_confirmation`",
+  "no_review_safe_visual_artifacts_found",
+  "TRACKA-VISUAL-REVIEW-2C readiness: `blocked_no_review_safe_visual_artifacts_found`",
   "docs_only",
 ];
 

@@ -1,6 +1,6 @@
 # Track A Visual Review Artifact Bundle 2 Allowlist
 
-Status: `manifest_only_confirmation_absent`
+Status: `executed_bounded_visual_allowlist_no_visual_artifacts_found`
 
 Bundle ID: `tracka-visual-review-artifact-bundle2-20260613T215327`
 
@@ -27,7 +27,7 @@ All exact current-source object refs point to JSON QA/report metadata. Those ref
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `tracka-bundle-remotion-render-preview` | `remotion_render_preview` | `gs://reeditpro-staging-reeditpro-qa-artifacts/activation-render-hardening/phase45b/phase45b-20260531T19552/` | #390/#400 | `list_only_then_copy_if_small_visual_file` | `25` | `3` | `52428800` | `262144000` |
 
-This prefix is the only narrow current-source prefix candidate. It may be listed only in confirmed mode. It must not be mirrored, recursively copied, or treated as source-of-truth by itself.
+This prefix is the only narrow current-source prefix candidate. It was listed in confirmed mode and produced no copied review-safe visual artifacts. It must not be mirrored, recursively copied, or treated as source-of-truth by itself.
 
 ## Rejected Rows
 

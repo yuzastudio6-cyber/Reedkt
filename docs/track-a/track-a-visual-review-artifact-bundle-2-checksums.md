@@ -1,6 +1,6 @@
 # Track A Visual Review Artifact Bundle 2 Checksums
 
-Status: `not_available_no_visual_files_copied`
+Status: `not_available_no_review_safe_visual_artifacts_found`
 
 Bundle ID: `tracka-visual-review-artifact-bundle2-20260613T215327`
 
@@ -10,20 +10,20 @@ copied visual artifacts: `0`
 
 checksums recorded: `0`
 
-checksum status: `blocked_pending_exact_visual_artifact_access_confirmation`
+checksum status: `no_review_safe_visual_artifacts_found`
 
 ## Checksum Table
 
 | groupId | local file | size bytes | sha256 | status |
 | --- | --- | --- | --- | --- |
-| `tracka-bundle-birefnet-masking` | `not_created` | `0` | `not_available` | `blocked_pending_exact_visual_artifact_access_confirmation` |
-| `tracka-bundle-sam2-segmentation` | `not_created` | `0` | `not_available` | `blocked_pending_exact_visual_artifact_access_confirmation` |
-| `tracka-bundle-real-esrgan-enhancement` | `not_created` | `0` | `not_available` | `blocked_pending_exact_visual_artifact_access_confirmation` |
-| `tracka-bundle-film-interpolation` | `not_created` | `0` | `not_available` | `blocked_pending_exact_visual_artifact_access_confirmation` |
+| `tracka-bundle-birefnet-masking` | `not_created` | `0` | `not_available` | `rejected_nonvisual_metadata_ref` |
+| `tracka-bundle-sam2-segmentation` | `not_created` | `0` | `not_available` | `rejected_nonvisual_metadata_ref` |
+| `tracka-bundle-real-esrgan-enhancement` | `not_created` | `0` | `not_available` | `rejected_nonvisual_metadata_ref` |
+| `tracka-bundle-film-interpolation` | `not_created` | `0` | `not_available` | `rejected_nonvisual_metadata_ref` |
 | `tracka-bundle-kornia-pro-color-image` | `not_created` | `0` | `not_available` | `artifact_ref_not_recorded_in_current_source` |
-| `tracka-bundle-remotion-render-preview` | `not_created` | `0` | `not_available` | `bounded_prefix_discovery_allowed_after_confirmation` |
-| `tracka-bundle-full-visual-video-private-e2e` | `not_created` | `0` | `not_available` | `blocked_pending_exact_visual_artifact_access_confirmation` |
-| `tracka-bundle-track-a-readiness-closure` | `not_created` | `0` | `not_available` | `blocked_pending_exact_visual_artifact_access_confirmation` |
+| `tracka-bundle-remotion-render-preview` | `not_created` | `0` | `not_available` | `no_review_safe_visual_artifacts_found` |
+| `tracka-bundle-full-visual-video-private-e2e` | `not_created` | `0` | `not_available` | `rejected_nonvisual_metadata_ref` |
+| `tracka-bundle-track-a-readiness-closure` | `not_created` | `0` | `not_available` | `rejected_nonvisual_metadata_ref` |
 
 ## No-Scope Statement
 

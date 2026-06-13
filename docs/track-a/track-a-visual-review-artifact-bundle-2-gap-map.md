@@ -1,17 +1,17 @@
 # Track A Visual Review Artifact Bundle 2 Gap Map
 
-Status: `visual_artifact_access_blocked`
+Status: `visual_artifact_discovery_completed_no_review_safe_artifacts`
 
 Bundle ID: `tracka-visual-review-artifact-bundle2-20260613T215327`
 
 | gap | status | impact | next action |
 | --- | --- | --- | --- |
-| exact visual artifact confirmation | `blocked_pending_exact_visual_artifact_access_confirmation` | BUNDLE-2 cannot access GCS or copy visual files | provide inline confirmation or direct uploads |
+| exact visual artifact confirmation | `completed` | BUNDLE-2 confirmed bounded discovery ran | no further confirmation blocker |
 | exact visual object refs | `none_recorded_in_current_source` | no visual exact-object copy path exists yet | provide exact review-safe refs |
-| Remotion preview prefix | `bounded_prefix_discovery_allowed` | may discover review frames only after confirmation | confirmed runner may list at most 25 objects |
+| Remotion preview prefix | `listed_no_review_safe_visual_artifacts_found` | no visual files were copied from the bounded prefix | provide exact Remotion preview object refs or direct uploads |
 | Kornia visual sample | `artifact_ref_not_recorded_in_current_source` | Kornia-specific visual review remains blocked | provide exact ref or representative upload |
 | JSON metadata bundle | `available_from_403` | supports integrity only, not visual pass/fail | keep as context, do not treat as visual proof |
-| TRACKA-VISUAL-REVIEW-2C | `blocked_pending_exact_visual_artifact_access_confirmation` | cannot record visual pass/fail outcome | upload or copy visual artifacts first |
+| TRACKA-VISUAL-REVIEW-2C | `blocked_no_review_safe_visual_artifacts_found` | cannot record visual pass/fail outcome | upload representative frames/videos/contact sheets or provide exact review-safe visual refs |
 
 ## Non-Approval
 

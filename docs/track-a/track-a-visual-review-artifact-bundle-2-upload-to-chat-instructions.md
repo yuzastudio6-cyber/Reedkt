@@ -1,6 +1,6 @@
 # Track A Visual Review Artifact Bundle 2 Upload-To-Chat Instructions
 
-Status: `not_created_no_visual_files_copied`
+Status: `not_created_no_review_safe_visual_artifacts_found`
 
 Bundle ID: `tracka-visual-review-artifact-bundle2-20260613T215327`
 
@@ -8,18 +8,17 @@ Bundle ID: `tracka-visual-review-artifact-bundle2-20260613T215327`
 
 No BUNDLE-2 visual files are available to upload from this run.
 
-Reason: `blocked_pending_exact_visual_artifact_access_confirmation`
+Reason: `no_review_safe_visual_artifacts_found`
 
-TRACKA-VISUAL-REVIEW-2C readiness: `blocked_pending_exact_visual_artifact_access_confirmation`
+TRACKA-VISUAL-REVIEW-2C readiness: `blocked_no_review_safe_visual_artifacts_found`
 
 ## Required Human Input
 
 Provide one of:
 
-1. Inline approval to run bounded visual discovery/copy:
-   `REEDITPRO_CONFIRM_TRACKA_EXACT_VISUAL_ARTIFACT_BUNDLE=true npm run track-a:visual-review-artifact-bundle-2 -- --execute`
-2. Direct uploaded representative frames/videos/contact sheets.
-3. Exact review-safe private object refs for visual artifacts.
+1. Direct uploaded representative frames/videos/contact sheets.
+2. Exact review-safe private object refs for visual artifacts.
+3. A smaller review-safe visual sample if the original visual export is too large.
 
 ## Upload Rules For A Future Copied Bundle
 

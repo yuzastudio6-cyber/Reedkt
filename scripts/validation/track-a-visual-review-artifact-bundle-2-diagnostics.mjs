@@ -46,25 +46,26 @@ const requiredTerms = [
   "#408",
   "51cd4849c2dc31d4b59d7b673e27437493d0fcac",
   "tracka-visual-review-artifact-bundle2-20260613T215327",
-  "blocked_no_review_safe_visual_artifacts_found",
-  "blocked_no_visual_artifacts_copied",
+  "completed_with_visual_artifact_bundle",
+  "ready_after_upload_of_copied_visual_bundle_files",
   "private_artifact_access=completed_bounded_visual_allowlist",
-  "local_visual_bundle=not_created",
-  "copied visual artifacts: `0`",
-  "bounded prefix discovery allowlist: `1`",
-  "exact visual object allowlist: `0`",
+  "local_visual_bundle=created",
+  "copied visual artifacts: `10`",
+  "bounded prefix discovery allowlist: `7`",
+  "exact visual object allowlist: `14`",
+  "historical PR body refs discovered: `53`",
   "rejected nonvisual metadata refs: `12`",
   "rejected missing refs: `1`",
   "tracka-bundle-kornia-pro-color-image",
-  "artifact_ref_not_recorded_in_current_source",
+  "tracka-bundle-kornia-pro-color-image-pro-color-image-feature-contact-sheet.png",
   "tracka-bundle-remotion-render-preview",
-  "no_review_safe_visual_artifacts_found",
-  "TRACKA-VISUAL-REVIEW-2C readiness: `blocked_no_review_safe_visual_artifacts_found`",
+  "tracka-bundle-remotion-render-preview-remotion-render-preview.mp4",
+  "TRACKA-VISUAL-REVIEW-2C readiness: `ready_after_upload_of_copied_visual_bundle_files`",
   "docs_only",
 ];
 
 const noScope =
-  "No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded private GCS metadata/list/read/copy was allowed only for exact or narrowly allowlisted Track A visual review artifact refs from current-source evidence.";
+  "No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded private GCS metadata/list/read/copy was allowed only for exact or narrowly allowlisted Track A visual review artifact refs from current-source and historical PR evidence.";
 
 const failures = [];
 

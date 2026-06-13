@@ -1,0 +1,1662 @@
+{
+  "schemaVersion": "tool_route_valid_request_fixtures_v1",
+  "fixtureCount": 10,
+  "fixtures": [
+    {
+      "toolRouteDryRunCaseId": "intent_to_capability_text_edit",
+      "sourcePlanCaseId": "intent_to_capability_text_edit",
+      "userIntentClass": "text_edit",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_intent_to_capability_text_edit",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_intent_to_capability_text_edit",
+      "editIntentsRef": "edit_intents_ref:synthetic_intent_to_capability_text_edit",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_text_edit",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_intent_to_capability_text_edit",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:intent_to_capability_text_edit:1",
+          "capabilityId": "text_edit_planning",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_text_edit_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:intent_to_capability_text_edit:2",
+          "capabilityId": "caption_copy_review",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_text_edit_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:intent_to_capability_text_edit:1",
+          "toolId": "metadata_only_text_transform_candidate",
+          "capabilityCandidateRef": "capability_candidate:intent_to_capability_text_edit:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:intent_to_capability_text_edit:1",
+          "routeId": "tool_route_metadata_dry_run",
+          "toolCandidateRef": "tool_candidate:intent_to_capability_text_edit:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:intent_to_capability_text_edit:1",
+        "toolCandidateId": "tool_candidate:intent_to_capability_text_edit:1",
+        "routeCandidateId": "route_candidate:intent_to_capability_text_edit:1",
+        "selectedDecision": "selected_metadata_text_edit_route_candidate",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "direct_tool_execution",
+        "route_execution",
+        "raw_prompt_execution"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_text_edit",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_text_edit",
+          "manifestRef": "manifest_ref:synthetic_intent_to_capability_text_edit",
+          "checksumRef": "checksum_ref:synthetic_intent_to_capability_text_edit",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_text_edit"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_intent_to_capability_text_edit",
+      "billingPolicyRef": "billing_policy_ref:synthetic_intent_to_capability_text_edit",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_intent_to_capability_text_edit",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_intent_to_capability_text_edit",
+      "correlationId": "correlation_id:synthetic_intent_to_capability_text_edit",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "intent_to_capability_graphics_request",
+      "sourcePlanCaseId": "intent_to_capability_graphics_request",
+      "userIntentClass": "graphics",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_intent_to_capability_graphics_request",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_intent_to_capability_graphics_request",
+      "editIntentsRef": "edit_intents_ref:synthetic_intent_to_capability_graphics_request",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_graphics_request",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_intent_to_capability_graphics_request",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:intent_to_capability_graphics_request:1",
+          "capabilityId": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_graphics_request_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:intent_to_capability_graphics_request:2",
+          "capabilityId": "controlled_graphic_planning",
+          "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_graphics_request_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:intent_to_capability_graphics_request:1",
+          "toolId": "graphics_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:intent_to_capability_graphics_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:intent_to_capability_graphics_request:1",
+          "routeId": "creative_graphics_route_candidate",
+          "toolCandidateRef": "tool_candidate:intent_to_capability_graphics_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:intent_to_capability_graphics_request:1",
+        "toolCandidateId": "tool_candidate:intent_to_capability_graphics_request:1",
+        "routeCandidateId": "route_candidate:intent_to_capability_graphics_request:1",
+        "selectedDecision": "selected_creative_graphics_metadata_route",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "image_generation",
+        "public_artifact_creation",
+        "provider_execution"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_graphics_request",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_graphics_request",
+          "manifestRef": "manifest_ref:synthetic_intent_to_capability_graphics_request",
+          "checksumRef": "checksum_ref:synthetic_intent_to_capability_graphics_request",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_graphics_request"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_intent_to_capability_graphics_request",
+      "billingPolicyRef": "billing_policy_ref:synthetic_intent_to_capability_graphics_request",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_intent_to_capability_graphics_request",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_intent_to_capability_graphics_request",
+      "correlationId": "correlation_id:synthetic_intent_to_capability_graphics_request",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "intent_to_capability_map_request",
+      "sourcePlanCaseId": "intent_to_capability_map_request",
+      "userIntentClass": "map",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_intent_to_capability_map_request",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_intent_to_capability_map_request",
+      "editIntentsRef": "edit_intents_ref:synthetic_intent_to_capability_map_request",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_map_request",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_intent_to_capability_map_request",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:intent_to_capability_map_request:1",
+          "capabilityId": "MAP_GEOSPATIAL",
+          "owner": "MAP_GEOSPATIAL",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_map_request_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:intent_to_capability_map_request:2",
+          "capabilityId": "controlled_map_planning",
+          "owner": "MAP_GEOSPATIAL",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_map_request_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:intent_to_capability_map_request:1",
+          "toolId": "map_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:intent_to_capability_map_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:intent_to_capability_map_request:1",
+          "routeId": "map_route_candidate",
+          "toolCandidateRef": "tool_candidate:intent_to_capability_map_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:intent_to_capability_map_request:1",
+        "toolCandidateId": "tool_candidate:intent_to_capability_map_request:1",
+        "routeCandidateId": "route_candidate:intent_to_capability_map_request:1",
+        "selectedDecision": "selected_map_metadata_route",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "map_execution",
+        "browser_capture",
+        "public_tile_artifact"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "MAP_GEOSPATIAL",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_map_request",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_map_request",
+          "manifestRef": "manifest_ref:synthetic_intent_to_capability_map_request",
+          "checksumRef": "checksum_ref:synthetic_intent_to_capability_map_request",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_map_request"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_intent_to_capability_map_request",
+      "billingPolicyRef": "billing_policy_ref:synthetic_intent_to_capability_map_request",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_intent_to_capability_map_request",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_intent_to_capability_map_request",
+      "correlationId": "correlation_id:synthetic_intent_to_capability_map_request",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "intent_to_capability_web_capture_request",
+      "sourcePlanCaseId": "intent_to_capability_web_capture_request",
+      "userIntentClass": "web_capture",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_intent_to_capability_web_capture_request",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_intent_to_capability_web_capture_request",
+      "editIntentsRef": "edit_intents_ref:synthetic_intent_to_capability_web_capture_request",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_web_capture_request",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_intent_to_capability_web_capture_request",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:intent_to_capability_web_capture_request:1",
+          "capabilityId": "WEB_SEARCH_CAPTURE",
+          "owner": "WEB_SEARCH_CAPTURE",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_web_capture_request_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:intent_to_capability_web_capture_request:2",
+          "capabilityId": "browser_capture_planning",
+          "owner": "WEB_SEARCH_CAPTURE",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_web_capture_request_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:intent_to_capability_web_capture_request:1",
+          "toolId": "web_capture_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:intent_to_capability_web_capture_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:intent_to_capability_web_capture_request:1",
+          "routeId": "web_capture_route_candidate",
+          "toolCandidateRef": "tool_candidate:intent_to_capability_web_capture_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:intent_to_capability_web_capture_request:1",
+        "toolCandidateId": "tool_candidate:intent_to_capability_web_capture_request:1",
+        "routeCandidateId": "route_candidate:intent_to_capability_web_capture_request:1",
+        "selectedDecision": "selected_web_capture_metadata_route",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "browser_capture",
+        "storage_transfer",
+        "public_artifact_creation"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "WEB_SEARCH_CAPTURE",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_web_capture_request",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_web_capture_request",
+          "manifestRef": "manifest_ref:synthetic_intent_to_capability_web_capture_request",
+          "checksumRef": "checksum_ref:synthetic_intent_to_capability_web_capture_request",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_web_capture_request"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_intent_to_capability_web_capture_request",
+      "billingPolicyRef": "billing_policy_ref:synthetic_intent_to_capability_web_capture_request",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_intent_to_capability_web_capture_request",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_intent_to_capability_web_capture_request",
+      "correlationId": "correlation_id:synthetic_intent_to_capability_web_capture_request",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "intent_to_capability_audio_request",
+      "sourcePlanCaseId": "intent_to_capability_audio_request",
+      "userIntentClass": "audio",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_intent_to_capability_audio_request",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_intent_to_capability_audio_request",
+      "editIntentsRef": "edit_intents_ref:synthetic_intent_to_capability_audio_request",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_audio_request",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_intent_to_capability_audio_request",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:intent_to_capability_audio_request:1",
+          "capabilityId": "SOUND_MUSIC_AUDIO",
+          "owner": "SOUND_MUSIC_AUDIO",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_audio_request_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:intent_to_capability_audio_request:2",
+          "capabilityId": "audio_metadata_planning",
+          "owner": "SOUND_MUSIC_AUDIO",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_audio_request_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:intent_to_capability_audio_request:1",
+          "toolId": "audio_plan_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:intent_to_capability_audio_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:intent_to_capability_audio_request:1",
+          "routeId": "sound_music_audio_route_candidate",
+          "toolCandidateRef": "tool_candidate:intent_to_capability_audio_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:intent_to_capability_audio_request:1",
+        "toolCandidateId": "tool_candidate:intent_to_capability_audio_request:1",
+        "routeCandidateId": "route_candidate:intent_to_capability_audio_request:1",
+        "selectedDecision": "selected_audio_metadata_route",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "audio_processing",
+        "sfx_provider_call",
+        "media_execution"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "SOUND_MUSIC_AUDIO",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_audio_request",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_audio_request",
+          "manifestRef": "manifest_ref:synthetic_intent_to_capability_audio_request",
+          "checksumRef": "checksum_ref:synthetic_intent_to_capability_audio_request",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_audio_request"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_intent_to_capability_audio_request",
+      "billingPolicyRef": "billing_policy_ref:synthetic_intent_to_capability_audio_request",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_intent_to_capability_audio_request",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_intent_to_capability_audio_request",
+      "correlationId": "correlation_id:synthetic_intent_to_capability_audio_request",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "intent_to_capability_media_processing_request",
+      "sourcePlanCaseId": "intent_to_capability_media_processing_request",
+      "userIntentClass": "media_processing",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_intent_to_capability_media_processing_request",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_intent_to_capability_media_processing_request",
+      "editIntentsRef": "edit_intents_ref:synthetic_intent_to_capability_media_processing_request",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_media_processing_request",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_intent_to_capability_media_processing_request",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:intent_to_capability_media_processing_request:1",
+          "capabilityId": "TRACK_B_MEDIA_PROCESSING",
+          "owner": "TRACK_B_MEDIA_PROCESSING",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_media_processing_request_1",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:intent_to_capability_media_processing_request:1",
+          "toolId": "track_b_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:intent_to_capability_media_processing_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:intent_to_capability_media_processing_request:1",
+          "routeId": "track_b_media_processing_route_candidate",
+          "toolCandidateRef": "tool_candidate:intent_to_capability_media_processing_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:intent_to_capability_media_processing_request:1",
+        "toolCandidateId": "tool_candidate:intent_to_capability_media_processing_request:1",
+        "routeCandidateId": "route_candidate:intent_to_capability_media_processing_request:1",
+        "selectedDecision": "selected_track_b_metadata_route",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "ffmpeg_execution",
+        "media_processing",
+        "worker_dispatch"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "TRACK_B_MEDIA_PROCESSING",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_media_processing_request",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_media_processing_request",
+          "manifestRef": "manifest_ref:synthetic_intent_to_capability_media_processing_request",
+          "checksumRef": "checksum_ref:synthetic_intent_to_capability_media_processing_request",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_media_processing_request"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_intent_to_capability_media_processing_request",
+      "billingPolicyRef": "billing_policy_ref:synthetic_intent_to_capability_media_processing_request",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_intent_to_capability_media_processing_request",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_intent_to_capability_media_processing_request",
+      "correlationId": "correlation_id:synthetic_intent_to_capability_media_processing_request",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "intent_to_capability_render_export_request",
+      "sourcePlanCaseId": "intent_to_capability_render_export_request",
+      "userIntentClass": "render_export",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_intent_to_capability_render_export_request",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_intent_to_capability_render_export_request",
+      "editIntentsRef": "edit_intents_ref:synthetic_intent_to_capability_render_export_request",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_render_export_request",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_intent_to_capability_render_export_request",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:intent_to_capability_render_export_request:1",
+          "capabilityId": "TRACK_A_RENDER_EXPORT",
+          "owner": "TRACK_A_RENDER_EXPORT",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_intent_to_capability_render_export_request_1",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:intent_to_capability_render_export_request:1",
+          "toolId": "track_a_render_plan_candidate",
+          "capabilityCandidateRef": "capability_candidate:intent_to_capability_render_export_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:intent_to_capability_render_export_request:1",
+          "routeId": "track_a_render_export_route_candidate",
+          "toolCandidateRef": "tool_candidate:intent_to_capability_render_export_request:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:intent_to_capability_render_export_request:1",
+        "toolCandidateId": "tool_candidate:intent_to_capability_render_export_request:1",
+        "routeCandidateId": "route_candidate:intent_to_capability_render_export_request:1",
+        "selectedDecision": "selected_track_a_metadata_route",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "render_execution",
+        "final_export",
+        "public_artifact_creation"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "TRACK_A_RENDER_EXPORT",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_intent_to_capability_render_export_request",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_intent_to_capability_render_export_request",
+          "manifestRef": "manifest_ref:synthetic_intent_to_capability_render_export_request",
+          "checksumRef": "checksum_ref:synthetic_intent_to_capability_render_export_request",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_intent_to_capability_render_export_request"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_intent_to_capability_render_export_request",
+      "billingPolicyRef": "billing_policy_ref:synthetic_intent_to_capability_render_export_request",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_intent_to_capability_render_export_request",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_intent_to_capability_render_export_request",
+      "correlationId": "correlation_id:synthetic_intent_to_capability_render_export_request",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "multi_tool_plan_graphics_to_tracka_handoff",
+      "sourcePlanCaseId": "multi_tool_plan_graphics_to_tracka_handoff",
+      "userIntentClass": "multi_tool_handoff",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "editIntentsRef": "edit_intents_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+          "capabilityId": "AI_TOOLS_CREATIVE_GRAPHICS",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:multi_tool_plan_graphics_to_tracka_handoff:2",
+          "capabilityId": "TRACK_A_RENDER_EXPORT",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+          "toolId": "graphics_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "tool_candidate:multi_tool_plan_graphics_to_tracka_handoff:2",
+          "toolId": "render_plan_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:multi_tool_plan_graphics_to_tracka_handoff:2",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+          "routeId": "creative_graphics_route_candidate",
+          "toolCandidateRef": "tool_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "route_candidate:multi_tool_plan_graphics_to_tracka_handoff:2",
+          "routeId": "track_a_render_export_route_candidate",
+          "toolCandidateRef": "tool_candidate:multi_tool_plan_graphics_to_tracka_handoff:2",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+        "toolCandidateId": "tool_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+        "routeCandidateId": "route_candidate:multi_tool_plan_graphics_to_tracka_handoff:1",
+        "selectedDecision": "selected_graphics_to_tracka_handoff_plan",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "asset_generation",
+        "render_execution",
+        "signed_url_creation"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+          "manifestRef": "manifest_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+          "checksumRef": "checksum_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "billingPolicyRef": "billing_policy_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "correlationId": "correlation_id:synthetic_multi_tool_plan_graphics_to_tracka_handoff",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "multi_tool_plan_trackb_to_tracka_handoff",
+      "sourcePlanCaseId": "multi_tool_plan_trackb_to_tracka_handoff",
+      "userIntentClass": "multi_tool_handoff",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "editIntentsRef": "edit_intents_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+          "capabilityId": "TRACK_B_MEDIA_PROCESSING",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:multi_tool_plan_trackb_to_tracka_handoff:2",
+          "capabilityId": "TRACK_A_RENDER_EXPORT",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+          "toolId": "track_b_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "tool_candidate:multi_tool_plan_trackb_to_tracka_handoff:2",
+          "toolId": "track_a_render_plan_candidate",
+          "capabilityCandidateRef": "capability_candidate:multi_tool_plan_trackb_to_tracka_handoff:2",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+          "routeId": "track_b_media_processing_route_candidate",
+          "toolCandidateRef": "tool_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "route_candidate:multi_tool_plan_trackb_to_tracka_handoff:2",
+          "routeId": "track_a_render_export_route_candidate",
+          "toolCandidateRef": "tool_candidate:multi_tool_plan_trackb_to_tracka_handoff:2",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+        "toolCandidateId": "tool_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+        "routeCandidateId": "route_candidate:multi_tool_plan_trackb_to_tracka_handoff:1",
+        "selectedDecision": "selected_trackb_to_tracka_handoff_plan",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "media_processing",
+        "render_execution",
+        "worker_dispatch"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+          "manifestRef": "manifest_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+          "checksumRef": "checksum_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "billingPolicyRef": "billing_policy_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "correlationId": "correlation_id:synthetic_multi_tool_plan_trackb_to_tracka_handoff",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    },
+    {
+      "toolRouteDryRunCaseId": "multi_tool_plan_sound_to_tracka_handoff",
+      "sourcePlanCaseId": "multi_tool_plan_sound_to_tracka_handoff",
+      "userIntentClass": "multi_tool_handoff",
+      "syntheticInputRef": "synthetic_input_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "structuredAgentFindingsRef": "structured_agent_findings_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "editIntentsRef": "edit_intents_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "approvedPlanSnapshotHash": "approved_plan_snapshot_hash:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "capabilityCandidates": [
+        {
+          "candidateId": "capability_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+          "capabilityId": "SOUND_MUSIC_AUDIO",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff_1",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "capability_candidate:multi_tool_plan_sound_to_tracka_handoff:2",
+          "capabilityId": "TRACK_A_RENDER_EXPORT",
+          "owner": "TOOL_ROUTE_EXECUTION",
+          "sourceEvidenceRef": "source_evidence_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff_2",
+          "runtimeReady": false
+        }
+      ],
+      "toolCandidates": [
+        {
+          "candidateId": "tool_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+          "toolId": "audio_plan_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "tool_candidate:multi_tool_plan_sound_to_tracka_handoff:2",
+          "toolId": "render_plan_metadata_candidate",
+          "capabilityCandidateRef": "capability_candidate:multi_tool_plan_sound_to_tracka_handoff:2",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "routeCandidates": [
+        {
+          "candidateId": "route_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+          "routeId": "sound_music_audio_route_candidate",
+          "toolCandidateRef": "tool_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        },
+        {
+          "candidateId": "route_candidate:multi_tool_plan_sound_to_tracka_handoff:2",
+          "routeId": "track_a_render_export_route_candidate",
+          "toolCandidateRef": "tool_candidate:multi_tool_plan_sound_to_tracka_handoff:2",
+          "executionMode": "metadata_contract_only",
+          "runtimeReady": false
+        }
+      ],
+      "scoringPolicyRef": "scoring_policy_ref:tool_route_dry_run_contract_v1",
+      "selectedCandidate": {
+        "capabilityCandidateId": "capability_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+        "toolCandidateId": "tool_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+        "routeCandidateId": "route_candidate:multi_tool_plan_sound_to_tracka_handoff:1",
+        "selectedDecision": "selected_sound_to_tracka_handoff_plan",
+        "selectionMode": "metadata_only_contract"
+      },
+      "blockedDecision": null,
+      "blockedActions": [
+        "audio_processing",
+        "render_execution",
+        "provider_call"
+      ],
+      "readinessStage": "dry_run_contract_ready",
+      "handoffOwner": "TOOL_ROUTE_EXECUTION",
+      "sourceOfTruthRequirement": {
+        "required": [
+          "supabaseRowRef",
+          "privateGcsPathRef",
+          "manifestRef",
+          "checksumRef",
+          "approvedPlanSnapshotRef"
+        ],
+        "refs": {
+          "supabaseRowRef": "supabase_row_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+          "privateGcsPathRef": "private_gcs_path_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+          "manifestRef": "manifest_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+          "checksumRef": "checksum_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+          "approvedPlanSnapshotRef": "approved_plan_snapshot_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff"
+        },
+        "resourcesCreated": false
+      },
+      "artifactPolicy": {
+        "mode": "private_placeholder_refs_only",
+        "committedPrivatePayloadAllowed": false,
+        "publicArtifactAllowed": false,
+        "mediaPayloadAllowed": false
+      },
+      "signedUrlPolicy": {
+        "signedUrlAsSourceOfTruthAllowed": false,
+        "signedUrlCreationAllowed": false
+      },
+      "publicArtifactPolicy": {
+        "publicArtifactUrlAllowed": false,
+        "publicArtifactCreationAllowed": false
+      },
+      "workerHandoffRequired": true,
+      "providerHandoffRequired": true,
+      "supabaseHandoffRequired": true,
+      "observabilityPolicyRef": "observability_policy_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "billingPolicyRef": "billing_policy_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "validationEvidenceRefs": [
+        "validation_evidence_ref:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+        "validation_evidence_ref:tool_route_unlock_1_plan",
+        "validation_evidence_ref:tool_route_unlock_0_repo_audit",
+        "validation_evidence_ref:pending_owner_tool_studies"
+      ],
+      "idempotencyKey": "idempotency_key:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "correlationId": "correlation_id:synthetic_multi_tool_plan_sound_to_tracka_handoff",
+      "blockedFieldClasses": [
+        "rawPrompt",
+        "rawProviderOutput",
+        "directToolInvocation",
+        "directRouteInvocation",
+        "executableWorkerPayload",
+        "providerSecret",
+        "serviceRoleKey",
+        "signedUrlAsSourceOfTruth",
+        "publicArtifactUrl",
+        "productionTarget",
+        "externalBetaTarget",
+        "paidProductionTarget",
+        "realUserData",
+        "privateProjectPayload",
+        "mediaPayload"
+      ],
+      "runtimeFlags": {
+        "toolExecutionAllowed": false,
+        "routeExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "jobDispatchAllowed": false,
+        "jobClaimAllowed": false,
+        "jobLeaseAllowed": false,
+        "providerExecutionAllowed": false,
+        "modelCallAllowed": false,
+        "supabaseWriteAllowed": false,
+        "sqlExecutionAllowed": false,
+        "migrationAllowed": false,
+        "storageWriteAllowed": false,
+        "signedUrlCreationAllowed": false,
+        "publicArtifactCreationAllowed": false,
+        "mediaExecutionAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapExecutionAllowed": false,
+        "dockerExecutionAllowed": false,
+        "cloudRunExecutionAllowed": false,
+        "cloudBuildExecutionAllowed": false,
+        "creditMutationAllowed": false,
+        "stripeMutationAllowed": false,
+        "internalBetaUnlockAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "demucsExecutionAllowed": false,
+        "trackARenderExecutionAllowed": false,
+        "trackBMediaExecutionAllowed": false,
+        "generatedLocalFixturePassedClaimed": false,
+        "toolExecutionReady": false,
+        "routeExecutionReady": false,
+        "workerExecutionReady": false,
+        "supabasePersistenceReady": false,
+        "betaReady": false,
+        "productionReady": false
+      }
+    }
+  ],
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "jobDispatchAllowed": false,
+    "jobClaimAllowed": false,
+    "jobLeaseAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeMutationAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "demucsExecutionAllowed": false,
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "generatedLocalFixturePassedClaimed": false,
+    "toolExecutionReady": false,
+    "routeExecutionReady": false,
+    "workerExecutionReady": false,
+    "supabasePersistenceReady": false,
+    "betaReady": false,
+    "productionReady": false
+  }
+}

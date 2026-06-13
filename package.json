@@ -46,6 +46,7 @@
     "worker:runtime-controlled-noop:execute": "node scripts/validation/worker-runtime-controlled-noop-execution.mjs",
     "worker:runtime-controlled-noop:diagnostics": "node scripts/validation/worker-runtime-controlled-noop-execution-diagnostics.mjs",
     "worker:runtime-controlled-noop:qa-review:diagnostics": "node scripts/validation/worker-runtime-controlled-noop-qa-diagnostics.mjs",
+    "worker:runtime-job-claim-lease-approval:diagnostics": "node scripts/validation/worker-runtime-job-claim-lease-approval-diagnostics.mjs",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",
     "smoke:prod-runtime-contracts": "tsx server/smoke/production-tool-runtime-contract-smoke.ts",
     "smoke:prod-tool-registry": "tsx server/smoke/production-tool-registry-smoke.ts",

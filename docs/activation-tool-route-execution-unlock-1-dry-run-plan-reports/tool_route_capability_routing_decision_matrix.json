@@ -1,0 +1,143 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-1",
+  "branch": "codex/tool-route-execution-unlock-1-dry-run-plan",
+  "baseBranch": "codex/rp-model-orchestration-plan-snapshot-dry-run-validation",
+  "baseCommit": "c84df541f9259e61b719aab967b22343a42a221f",
+  "decision": "tool_route_dry_run_plan_ready_with_warnings",
+  "nextPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-2: tool-route execution dry-run contract, no execution",
+  "generatedAt": "deterministic_metadata_packet",
+  "sourceOfTruth": {
+    "pr369Merged": true,
+    "pr360Merged": true,
+    "baseContainsPendingOwnerStudies": true,
+    "baseContainsToolRouteRepoAudit": true,
+    "sourceFilesReadAsTextOnly": true,
+    "noRuntimeSourcesExecuted": true
+  },
+  "runtimeFlags": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "jobDispatchAllowed": false,
+    "jobClaimAllowed": false,
+    "jobLeaseAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelCallAllowed": false,
+    "supabaseWriteAllowed": false,
+    "sqlExecutionAllowed": false,
+    "migrationAllowed": false,
+    "storageWriteAllowed": false,
+    "signedUrlCreationAllowed": false,
+    "publicArtifactCreationAllowed": false,
+    "mediaExecutionAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapExecutionAllowed": false,
+    "dockerExecutionAllowed": false,
+    "cloudRunExecutionAllowed": false,
+    "cloudBuildExecutionAllowed": false,
+    "creditMutationAllowed": false,
+    "stripeMutationAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "demucsExecutionAllowed": false,
+    "trackARenderExecutionAllowed": false,
+    "trackBMediaExecutionAllowed": false,
+    "generatedLocalFixturePassedClaimed": false
+  },
+  "reportType": "capability_routing_decision_matrix",
+  "capabilityCount": 7,
+  "capabilities": [
+    {
+      "capability": "text_edit_planning",
+      "owners": [
+        "TOOL_ROUTE_EXECUTION"
+      ],
+      "bestUse": "Structured copy and caption metadata routing.",
+      "badUse": "Raw prompt execution or provider generation.",
+      "routeCandidates": [
+        "tool_route_metadata_dry_run"
+      ],
+      "runtimeReady": false
+    },
+    {
+      "capability": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "owners": [
+        "AI_TOOLS_CREATIVE_GRAPHICS"
+      ],
+      "bestUse": "Controlled graphics, title cards, diagrams, and visual planning.",
+      "badUse": "Direct image generation or public artifact output.",
+      "routeCandidates": [
+        "creative_graphics_route_candidate"
+      ],
+      "runtimeReady": false
+    },
+    {
+      "capability": "MAP_GEOSPATIAL",
+      "owners": [
+        "MAP_GEOSPATIAL"
+      ],
+      "bestUse": "Map/location planning with label and privacy boundaries.",
+      "badUse": "Live map capture or exact unverified geography generation.",
+      "routeCandidates": [
+        "map_route_candidate"
+      ],
+      "runtimeReady": false
+    },
+    {
+      "capability": "WEB_SEARCH_CAPTURE",
+      "owners": [
+        "WEB_SEARCH_CAPTURE"
+      ],
+      "bestUse": "Evidence and browser-capture planning from prior study evidence.",
+      "badUse": "Browser execution or public screenshot artifacts.",
+      "routeCandidates": [
+        "web_capture_route_candidate"
+      ],
+      "runtimeReady": false
+    },
+    {
+      "capability": "SOUND_MUSIC_AUDIO",
+      "owners": [
+        "SOUND_MUSIC_AUDIO"
+      ],
+      "bestUse": "SoundSync, SFX, music, loudness, and audio timing plans.",
+      "badUse": "Audio processing, provider calls, or secret-backed generation.",
+      "routeCandidates": [
+        "sound_music_audio_route_candidate"
+      ],
+      "runtimeReady": false
+    },
+    {
+      "capability": "TRACK_B_MEDIA_PROCESSING",
+      "owners": [
+        "TRACK_B_MEDIA_PROCESSING"
+      ],
+      "bestUse": "Media-processing metadata plans and Track B route manifest handoff.",
+      "badUse": "FFmpeg/media processing execution.",
+      "routeCandidates": [
+        "track_b_media_processing_route_candidate"
+      ],
+      "runtimeReady": false
+    },
+    {
+      "capability": "TRACK_A_RENDER_EXPORT",
+      "owners": [
+        "TRACK_A_RENDER_EXPORT"
+      ],
+      "bestUse": "Render/export dependency and artifact planning.",
+      "badUse": "Final render/export or public artifact creation.",
+      "routeCandidates": [
+        "track_a_render_export_route_candidate"
+      ],
+      "runtimeReady": false
+    }
+  ],
+  "routeSelectionPolicy": {
+    "preferStructuredFindings": true,
+    "requireApprovedSnapshotRefs": true,
+    "requirePrivateArtifactScope": true,
+    "requireOwnerHandoffForRuntime": true,
+    "executionAllowedInThisPhase": false
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "ready": [
+    "completed_tool_study_rollup",
+    "metadata_route_manifest_inventory",
+    "runtime_blocker_registers",
+    "no_execution_diagnostic"
+  ],
+  "readyWithWarnings": [
+    "capability_routing_inventory",
+    "execution_contract_inventory",
+    "observability_cost_handoff_inventory"
+  ],
+  "blocked": [
+    "tool_execution",
+    "route_execution",
+    "worker_execution",
+    "supabase_persistence",
+    "provider_runtime",
+    "public_artifact_delivery",
+    "signed_url_delivery",
+    "external_beta",
+    "paid_production",
+    "production"
+  ],
+  "evidenceNeededBeforeInternalBetaCandidate": [
+    "tool_route_dry_run_plan",
+    "tool_route_dry_run_fixture_contracts",
+    "owner_approved_metadata_dry_run",
+    "worker_and_supabase_handoff_acceptance",
+    "observability_cost_validation"
+  ],
+  "nextOwner": "TOOL_ROUTE_EXECUTION"
+}

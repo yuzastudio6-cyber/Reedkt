@@ -1,0 +1,22 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed",
+  "publicArtifacts": false,
+  "publicArtifactsAllowed": false,
+  "signedUrls": false,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "requiredFutureSourceOfTruth": [
+    "Supabase row reference",
+    "private GCS path reference",
+    "manifest reference",
+    "checksum reference",
+    "approved plan snapshot"
+  ],
+  "blockedUses": [
+    "public artifact as route input",
+    "public artifact as route output",
+    "signed URL as durable source of truth",
+    "committed private payload",
+    "arbitrary storage path"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "observabilityEvidence": [
+    "docs/activation-track-b-tool-route-manifest-reports/track_b_route_cost_capacity_summary.json",
+    "docs/activation-worker-runtime-unlock-4-local-fixture-plan-reports/worker_runtime_local_fixture_observability_cost_plan.json"
+  ],
+  "metadataOnly": true,
+  "recordsPersisted": false,
+  "costEstimateReadyForDryRunPlan": "partial_metadata_only",
+  "missingForExecution": [
+    "route_attempt_audit_record_contract",
+    "tool_cost_estimate_contract",
+    "failure_event_taxonomy_for_all_owner_lanes"
+  ]
+}

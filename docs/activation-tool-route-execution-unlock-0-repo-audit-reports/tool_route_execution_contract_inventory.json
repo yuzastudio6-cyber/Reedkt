@@ -1,0 +1,35 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "approvedPlanSnapshotRequirement": "required_before_any_worker_or_tool_route_execution",
+  "structuredAgentFindings": "required_upstream_input",
+  "editIntents": "required_upstream_input",
+  "routeExecutionRequestSchema": "not_ready_deferred_to_unlock_1",
+  "toolExecutionRequestSchema": "not_ready_deferred_to_unlock_1",
+  "routeToolResultSchema": "not_ready_deferred_to_unlock_1",
+  "idempotencyCorrelationFields": [
+    "approvedPlanSnapshotRef",
+    "routePlanId",
+    "toolRouteCorrelationId",
+    "idempotencyKey"
+  ],
+  "auditCostFields": [
+    "owner",
+    "capabilityId",
+    "routeDecision",
+    "costClass",
+    "blockedReason"
+  ],
+  "blockedFields": [
+    "rawPrompt",
+    "rawProviderOutput",
+    "publicArtifactUrl",
+    "signedUrlAsSourceOfTruth",
+    "arbitraryFilePath",
+    "providerSecret",
+    "serviceRoleKey"
+  ],
+  "runtimeExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false
+}

@@ -1,0 +1,19 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed",
+  "workerEvidence": [
+    "docs/activation-worker-runtime-repo-audit-reports/worker_runtime_repo_audit_decision.json",
+    "docs/activation-worker-runtime-dry-run-approval-reports/worker_dry_run_approval_decision.json",
+    "docs/activation-worker-runtime-noop-dry-run-execution-reports/worker_noop_dry_run_execution_decision.json",
+    "docs/activation-worker-runtime-unlock-2-dry-run-contract-review-reports/worker_runtime_dry_run_contract_review_decision.json",
+    "docs/activation-worker-runtime-unlock-3-fixture-hardening-reports/worker_runtime_fixture_hardening_decision.json",
+    "docs/activation-worker-runtime-unlock-4-local-fixture-plan-reports/worker_runtime_local_fixture_plan_decision.json"
+  ],
+  "workerRuntimeStatus": "local_fixture_plan_ready_no_real_execution",
+  "realDispatchAllowed": false,
+  "queueEnqueueAllowed": false,
+  "jobClaimAllowed": false,
+  "jobLeaseAllowed": false,
+  "workerExecutionReady": false,
+  "nextWorkerOwnerDependency": "worker_runtime_local_fixture_validation_remains_separate"
+}

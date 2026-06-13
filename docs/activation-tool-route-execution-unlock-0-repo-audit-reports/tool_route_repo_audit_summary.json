@@ -1,0 +1,51 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed_with_warnings",
+  "decision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan",
+  "summary": "Tool-route repo audit completed as metadata only. All required owner studies are present or referenced, existing route metadata is inventoried, and execution remains blocked pending dry-run planning and owner gates.",
+  "toolStudyOwnersCovered": 6,
+  "routeManifestEvidence": "Track B metadata route manifest present",
+  "hardBlockers": [],
+  "warnings": [
+    "General dry-run contracts are deferred to UNLOCK-1.",
+    "Worker, Supabase, provider, public artifact, and billing handoffs remain blocked.",
+    "Dependency-backed broad checks requiring local node_modules were not accepted as pass in this fresh worktree.",
+    "Older model smoke/report commands still show historical blocked packet state; summary commands and merged worker evidence remain accepted for this audit."
+  ],
+  "validationResults": {
+    "acceptanceGate": "new_diagnostics_report_summary_and_safety_scans_passed",
+    "passed": [
+      "tool-route-execution-unlock-0 diagnostics/report/summary",
+      "tool-study-pending-owners-0 diagnostics",
+      "Track B tool-route manifest smoke/summary",
+      "worker local fixture plan smoke/summary",
+      "worker fixture hardening smoke/summary",
+      "worker dry-run contract review smoke/summary",
+      "worker no-op dry-run smoke/summary",
+      "worker dry-run approval smoke/summary",
+      "worker repo audit smoke/report",
+      "product internal testing smoke/report/summary",
+      "Supabase Track B clean staging backfill smoke/report/summary as historical metadata",
+      "production readiness summary returned inherited blocked production state",
+      "beta readiness summary kept external beta and paid production blocked",
+      "git diff checks",
+      "changed-file safety scan"
+    ],
+    "warnings": [
+      "smoke:activation-model-orchestration-plan-snapshot-contract failed on historical pass-state assertion while its summary reports pass",
+      "smoke:activation-model-orchestration-plan-snapshot-dry-run failed on historical pass-state assertion while its summary reports pass",
+      "activation:model-orchestration-plan-snapshot-contract:report and activation:model-orchestration-plan-snapshot-dry-run:report emitted older blocked packet state",
+      "lint, typecheck:server, tsc -b, build, and build:server were blocked because this fresh worktree has no local node_modules and no install was allowed"
+    ],
+    "packageLockChanged": false,
+    "nodeModulesStaged": false
+  },
+  "readyForDryRunPlan": true,
+  "toolExecutionAllowed": false,
+  "routeExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "nextRecommendedPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-1: tool-route execution dry-run plan, no execution"
+}

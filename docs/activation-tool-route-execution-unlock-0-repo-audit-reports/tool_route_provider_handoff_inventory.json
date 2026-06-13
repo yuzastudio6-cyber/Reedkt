@@ -1,0 +1,22 @@
+{
+  "phase": "tool-route-execution-unlock-0-repo-audit",
+  "status": "passed",
+  "providerEvidence": [
+    {
+      "provider": "Qwen DashScope",
+      "source": "docs/activation-model-orchestration-qwen-auth-repair-reports/qwen_repaired_provider_dry_run_report.json",
+      "syntheticEvidence": "passed_4_of_4",
+      "runtimeExecutionAllowed": false
+    },
+    {
+      "provider": "DeepSeek",
+      "source": "docs/activation-model-orchestration-provider-dry-run-reports/deepseek_provider_dry_run_report.json",
+      "syntheticEvidence": "passed_3_of_3",
+      "runtimeExecutionAllowed": false
+    }
+  ],
+  "providerRuntimeStillBlocked": true,
+  "providerGatewayExecutionAuditNeeded": true,
+  "secretPayloadAccessAllowed": false,
+  "modelCallsAllowed": false
+}

@@ -25,6 +25,12 @@ Command: `npm run --silent tool-route:offline-contract-tests`
 
 All seven fixtures pass offline/static validation. The overall decision remains `tool_route_offline_contract_tests_passed_with_warnings` because upstream PRs #366 and #368 are draft/open and no live execution gate is approved.
 
+## TOOL-ROUTE-2A Post-Refresh Note
+
+TOOL-ROUTE-2A merges the TOOL-ROUTE-1A Sound/Music fixture refresh into this offline contract-test packet. The Sound/Music fixture and multi-tool fixture now reference PR #371 merged evidence at `f6283e63742d6999910d3887482dc3112da1e570`, include `SOUND_MUSIC_AUDIO.timing_aware_sound_cue_manifest`, and retain the blocked audio/media runtime uses added by TOOL-ROUTE-1A.
+
+Post-refresh combined state: `tool_route_offline_contract_tests_passed_with_warnings_after_sound_refresh`
+
 routeExecutionApprovedNow: `false`
 toolExecutionApprovedNow: `false`
 workerExecutionApprovedNow: `false`

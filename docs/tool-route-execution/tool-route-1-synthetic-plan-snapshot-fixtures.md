@@ -11,7 +11,7 @@ These fixtures model future approved-plan-snapshot to scoped-tool-call manifest 
 | `ai-tools-creative-graphics.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_AI_TOOLS_CREATIVE_GRAPHICS>` | `AI_TOOLS_CREATIVE_GRAPHICS.synthetic_vector_dataviz_card_motion_planning` | Synthetic static creative graphics fixture mix. | `dry_run_fixture_plan_only` |
 | `track-a-render-export.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_TRACK_A_RENDER_EXPORT>` | `TRACK_A_RENDER_EXPORT.private_preview_manifest_planning` | Track A manifest-only fixture mix. | `dry_run_fixture_plan_only` |
 | `track-b-media-processing.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_TRACK_B_MEDIA_PROCESSING>` | `TRACK_B_MEDIA_PROCESSING.metadata_route_planning` | Track B metadata-only fixture mix. | `dry_run_fixture_plan_only` |
-| `sound-music-audio.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_SOUND_MUSIC_AUDIO>` | `SOUND_MUSIC_AUDIO.timing_audio_metadata_planning` | Sound/Music manifest-only fixture mix. | `dry_run_fixture_plan_only` |
+| `sound-music-audio.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_SOUND_MUSIC_AUDIO>` | `SOUND_MUSIC_AUDIO.timing_aware_sound_cue_manifest`, `SOUND_MUSIC_AUDIO.sound_effects_planning`, `SOUND_MUSIC_AUDIO.music_cue_planning`, `SOUND_MUSIC_AUDIO.audio_bed_planning`, `SOUND_MUSIC_AUDIO.private_audio_artifact_manifest_policy` | Sound/Music manifest-only fixture mix refreshed from PR #371 merged evidence. | `dry_run_fixture_plan_only` |
 | `web-search-capture.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_WEB_SEARCH_CAPTURE>` | `WEB_SEARCH_CAPTURE.evidence_capture_planning` | Web Search Capture manifest-only fixture mix. | `dry_run_fixture_plan_only` |
 | `map-geospatial.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_MAP_GEOSPATIAL>` | `MAP_GEOSPATIAL.route_card_map_planning` | Map Geospatial manifest-only fixture mix. | `dry_run_fixture_plan_only` |
 | `multi-tool-plan.scoped-tool-call.fixture.json` | `<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_MULTI_TOOL_PLAN>` | All six owner-study workstreams. | Multi-tool manifest-only fixture mix. | `dry_run_fixture_plan_only` |
@@ -20,7 +20,7 @@ These fixtures model future approved-plan-snapshot to scoped-tool-call manifest 
 
 Each fixture includes:
 
-- owner-study references from PR #360, completed Web Search Capture and Map Geospatial evidence, and TOOL-ROUTE-0 PR #366.
+- owner-study references from PR #360, PR #371 merged SOUND_MUSIC_AUDIO evidence, completed Web Search Capture and Map Geospatial evidence, and TOOL-ROUTE-0 PR #366.
 - requested capabilities, selected tool candidates, route references, edit intent references, and worker job placeholders.
 - input artifact placeholders, output artifact scope placeholders, private artifact manifest placeholders, checksum requirements, QA requirements, and observability requirements.
 - blocked uses and false approval booleans for route/tool/worker/provider/Supabase/public/signed URL/raw prompt/beta/production paths.

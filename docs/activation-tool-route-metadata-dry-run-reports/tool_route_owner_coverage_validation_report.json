@@ -1,0 +1,78 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.ownerCoverageValidation.v1",
+  "passed": true,
+  "ownerDiagnostics": [
+    {
+      "command": "npm run tool-study:completion-rollup:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:completion-rollup:diagnostics > node scripts/validation/tool-study-0-completion-rollup-diagnostics.mjs { \"status\": \"passed\", \"decision\": \"blocked_pending_owner_study_merge\", \"docsDiagnosticsComplete\": true, \"mergedSourceOfTruthComplete\": false, \"routeUnlockReady\": false, \"ownerCount\": 6, \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"mediaProcessingAllowed\": false, \"audioProcessingAllowed\": false, \"renderExecutionAllowed\": false, \"exportExecutionAl"
+    },
+    {
+      "command": "npm run tool-study:track-b-media-processing:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:track-b-media-processing:diagnostics > node scripts/validation/tool-study-track-b-media-processing-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 11, \"relatedButNotOwned\": 6, \"decision\": \"track_b_media_processing_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"mediaProcessingAllowed\": false, \"supabaseWritesAllowed\": false, \"publicArtifactsAllowed\": false, \"signedUrlsAsSourceOfTruthAllowed\": fal"
+    },
+    {
+      "command": "npm run tool-study:sound-music-audio:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:sound-music-audio:diagnostics > node scripts/validation/tool-study-sound-music-audio-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 12, \"relatedButNotOwned\": 6, \"decision\": \"sound_music_audio_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"audioProcessingAllowed\": false, \"mediaProcessingAllowed\": false, \"supabaseWritesAllowed\": false, \"publicArtifactsAllowed\": false, \"signedUrlsAsSourceOfTruthA"
+    },
+    {
+      "command": "npm run tool-study:ai-tools-creative-graphics:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:ai-tools-creative-graphics:diagnostics > node scripts/validation/tool-study-ai-tools-creative-graphics-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 11, \"relatedButNotOwned\": 6, \"decision\": \"ai_tools_creative_graphics_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"modelExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"imageGenerationAllowed\": false, \"imageEditingAllowed\": false, \"mediaProcessingAllowed\": false, \"su"
+    },
+    {
+      "command": "npm run tool-study:track-a-render-export:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:track-a-render-export:diagnostics > node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 13, \"relatedButNotOwned\": 7, \"decision\": \"track_a_render_export_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"modelExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"renderExecutionAllowed\": false, \"exportExecutionAllowed\": false, \"mediaProcessingAllowed\": false, \"supabaseWrites"
+    }
+  ],
+  "rows": [
+    {
+      "fixtureId": "valid_track_b_metadata_route_candidate",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "ownerStudyExists": true,
+      "ownerPolicyPath": "docs/tool-studies/track-b-media-processing-routing-policy.md",
+      "ownerDiagnosticsPassed": true,
+      "belongsToOwnerScope": true,
+      "handoffRequired": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "ownerStudyExists": true,
+      "ownerPolicyPath": "docs/tool-studies/sound-music-audio-routing-policy.md",
+      "ownerDiagnosticsPassed": true,
+      "belongsToOwnerScope": true,
+      "handoffRequired": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_ai_creative_graphics_metadata_route_candidate",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "ownerStudyExists": true,
+      "ownerPolicyPath": "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+      "ownerDiagnosticsPassed": true,
+      "belongsToOwnerScope": true,
+      "handoffRequired": false,
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_track_a_render_export_metadata_route_candidate",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "ownerStudyExists": true,
+      "ownerPolicyPath": "docs/tool-studies/track-a-render-export-routing-policy.md",
+      "ownerDiagnosticsPassed": true,
+      "belongsToOwnerScope": true,
+      "handoffRequired": false,
+      "passed": true
+    }
+  ]
+}

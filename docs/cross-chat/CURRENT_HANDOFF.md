@@ -50,3 +50,7 @@ TOOL_ROUTE_EXECUTION dry-run approval packet:
 - Future route dry-run scope: metadata/no-op only.
 - Real route/tool/worker/provider/runtime/Supabase/public/beta/production scopes remain blocked.
 - Next prompt: `TOOL_ROUTE_EXECUTION - tool-route metadata dry-run execution`.
+
+## Tool-Route Metadata Dry-Run
+
+TOOL_ROUTE_EXECUTION metadata dry-run is recorded as passed for the next controlled tool execution approval packet. Real route/tool/worker/provider/runtime, Supabase writes, public artifacts, signed URLs, beta, and production remain blocked.

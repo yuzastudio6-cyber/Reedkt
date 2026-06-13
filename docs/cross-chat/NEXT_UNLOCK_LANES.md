@@ -44,3 +44,7 @@ Next unlock lane after TOOL-STUDY-0 source-of-truth merge:
 
 - `TOOL_ROUTE_EXECUTION - tool-route metadata dry-run execution` may proceed only after this approval packet is accepted.
 - Real execution remains blocked pending separate controlled execution gates.
+
+## Tool-Route Metadata Dry-Run
+
+Next lane: CONTROLLED_TOOL_EXECUTION controlled tool execution approval packet. This is approval-only until separately authorized.

@@ -37,3 +37,7 @@ The `TOOL_STUDY_0_ROLLUP` completion is also docs/diagnostics only. It records `
 <!-- TOOL_ROUTE_DRY_RUN_APPROVAL_STATUS -->
 
 The tool-route dry-run approval packet does not unblock real execution. Tool execution, route execution, worker execution, provider calls, media/audio/render/image processing, browser capture, map rendering, Supabase writes, public artifacts, signed URLs, raw prompts, beta, paid production, and production remain blocked.
+
+## Tool-Route Metadata Dry-Run Blocked Scopes
+
+Real route execution, tool execution, worker execution, provider/model calls, media/audio/render/image/browser/map execution, Supabase writes, GCS uploads, public artifacts, signed URLs, raw prompt execution, external beta, paid production, and production remain blocked.

@@ -1,0 +1,89 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.preExecutionRevalidation.v1",
+  "createdAt": "2026-06-13T17:41:05.198Z",
+  "approval": {
+    "passed": true,
+    "decision": "approved_for_future_tool_route_metadata_dry_run_execution",
+    "readiness": true,
+    "blockers": [],
+    "sourceReportsPresent": true
+  },
+  "ownerDiagnostics": [
+    {
+      "command": "npm run tool-study:completion-rollup:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:completion-rollup:diagnostics > node scripts/validation/tool-study-0-completion-rollup-diagnostics.mjs { \"status\": \"passed\", \"decision\": \"blocked_pending_owner_study_merge\", \"docsDiagnosticsComplete\": true, \"mergedSourceOfTruthComplete\": false, \"routeUnlockReady\": false, \"ownerCount\": 6, \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"mediaProcessingAllowed\": false, \"audioProcessingAllowed\": false, \"renderExecutionAllowed\": false, \"exportExecutionAl"
+    },
+    {
+      "command": "npm run tool-study:track-b-media-processing:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:track-b-media-processing:diagnostics > node scripts/validation/tool-study-track-b-media-processing-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 11, \"relatedButNotOwned\": 6, \"decision\": \"track_b_media_processing_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"mediaProcessingAllowed\": false, \"supabaseWritesAllowed\": false, \"publicArtifactsAllowed\": false, \"signedUrlsAsSourceOfTruthAllowed\": fal"
+    },
+    {
+      "command": "npm run tool-study:sound-music-audio:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:sound-music-audio:diagnostics > node scripts/validation/tool-study-sound-music-audio-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 12, \"relatedButNotOwned\": 6, \"decision\": \"sound_music_audio_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"audioProcessingAllowed\": false, \"mediaProcessingAllowed\": false, \"supabaseWritesAllowed\": false, \"publicArtifactsAllowed\": false, \"signedUrlsAsSourceOfTruthA"
+    },
+    {
+      "command": "npm run tool-study:ai-tools-creative-graphics:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:ai-tools-creative-graphics:diagnostics > node scripts/validation/tool-study-ai-tools-creative-graphics-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 11, \"relatedButNotOwned\": 6, \"decision\": \"ai_tools_creative_graphics_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"modelExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"imageGenerationAllowed\": false, \"imageEditingAllowed\": false, \"mediaProcessingAllowed\": false, \"su"
+    },
+    {
+      "command": "npm run tool-study:track-a-render-export:diagnostics",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": "> reeditpro@0.0.0 tool-study:track-a-render-export:diagnostics > node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs { \"status\": \"passed\", \"checkedDocs\": 15, \"ownedToolIds\": 13, \"relatedButNotOwned\": 7, \"decision\": \"track_a_render_export_tool_study_passed_docs_only\", \"routeExecutionAllowed\": false, \"runtimeExecutionAllowed\": false, \"workerExecutionAllowed\": false, \"providerExecutionAllowed\": false, \"modelExecutionAllowed\": false, \"toolExecutionAllowed\": false, \"renderExecutionAllowed\": false, \"exportExecutionAllowed\": false, \"mediaProcessingAllowed\": false, \"supabaseWrites"
+    }
+  ],
+  "dependentEvidence": [
+    {
+      "command": "npm run activation:worker-runtime-noop-dry-run:report",
+      "status": "missing_script",
+      "exitCode": null,
+      "summary": "Script absent on this source branch; recorded as an audit fact."
+    },
+    {
+      "command": "npm run activation:model-orchestration-plan-snapshot-dry-run:report",
+      "status": "missing_script",
+      "exitCode": null,
+      "summary": "Script absent on this source branch; recorded as an audit fact."
+    },
+    {
+      "command": "npm run activation:supabase-trackb-clean-staging-backfill:report",
+      "status": "missing_script",
+      "exitCode": null,
+      "summary": "Script absent on this source branch; recorded as an audit fact."
+    }
+  ],
+  "pr384DuplicateRisk": {
+    "status": "stale_reference_only_duplicate_risk",
+    "treatedAsSourceOfTruth": false,
+    "reuseBlocked": true,
+    "evidence": {
+      "baseRefName": "codex/rp-tool-route-2a-refresh-conflict-resolution-after-tool-route-1a",
+      "headRefName": "codex/rp-tool-route-3-offline-dry-run-approval-packet",
+      "headRefOid": "0e91380d2201e651c0c7df67624be015befa2db7",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "mergedAt": null,
+      "number": 384,
+      "state": "OPEN",
+      "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/384"
+    }
+  },
+  "toolStudyOwnerPrsMerged": true,
+  "blockedScopesPreserved": true,
+  "missingLocalEvidenceRecordedAsAuditFacts": [
+    "docs/activation-worker-runtime-noop-dry-run-reports",
+    "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+    "docs/activation-track-b-tool-route-manifest-reports",
+    "docs/activation-track-b-capability-manifests-reports",
+    "docs/activation-supabase-trackb-clean-staging-backfill-reports"
+  ]
+}

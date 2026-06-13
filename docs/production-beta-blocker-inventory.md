@@ -22,3 +22,5 @@ Worker runtime repo audit does not remove production beta blockers; current deci
 Worker runtime dry-run approval does not remove production beta blockers; current decision is `approved_for_future_worker_noop_dry_run_execution`.
 
 TOOL-ROUTE-EXECUTION-UNLOCK-0 does not remove production beta blockers; current decision is `ready_with_warnings_for_tool_route_1`. Route/tool/worker/provider execution, Supabase writes, signed URLs, public artifacts, internal beta, external beta, paid production, and production remain blocked.
+
+TOOL-ROUTE-1 does not remove production beta blockers; current decision is `ready_with_warnings_for_tool_route_2`. It creates offline scoped tool-call fixtures and static diagnostics only. Route/tool/worker/provider execution, Supabase writes, storage transfer, signed URLs, public artifacts, internal beta, external beta, paid production, and production remain blocked.

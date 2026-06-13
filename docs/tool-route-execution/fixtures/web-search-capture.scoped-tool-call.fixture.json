@@ -1,0 +1,90 @@
+{
+  "manifestId": "tool_route_1_web_search_capture_scoped_tool_call_manifest",
+  "fixtureId": "tool_route_1_web_search_capture_fixture",
+  "planSnapshotId": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_WEB_SEARCH_CAPTURE>",
+  "ownerWorkstream": "TOOL_ROUTE_EXECUTION",
+  "targetOwnerWorkstream": "WEB_SEARCH_CAPTURE",
+  "sourceOwnerStudyRefs": [
+    "COMPLETED_WEB_SEARCH_CAPTURE_owner_study",
+    "PR_366_TOOL_ROUTE_EXECUTION_UNLOCK_0_repo_audit"
+  ],
+  "capabilityRefs": [
+    "WEB_SEARCH_CAPTURE.evidence_capture_planning"
+  ],
+  "requestedCapabilities": [
+    "static web evidence route handoff planning",
+    "capture artifact placeholder validation",
+    "browser capture blocked-scope validation"
+  ],
+  "selectedToolRefs": [
+    "web_search_capture_manifest_placeholder",
+    "citation_evidence_manifest_placeholder"
+  ],
+  "selectedToolMix": "web_search_capture_manifest_only_fixture_mix",
+  "editIntentRefs": [
+    "<EDIT_INTENT_REF_PLACEHOLDER_WEB_SEARCH_CAPTURE>"
+  ],
+  "routeRefs": [
+    "server/routes/worker-routes.ts::future_web_capture_route_placeholder",
+    "server/routes/route-helpers.ts::future_runtime_context_placeholder"
+  ],
+  "workerJobRef": "<WORKER_JOB_REF_PLACEHOLDER_WEB_SEARCH_CAPTURE>",
+  "inputArtifactRefs": [
+    "<PRIVATE_WEB_EVIDENCE_INPUT_REF_PLACEHOLDER>"
+  ],
+  "outputArtifactScopes": [
+    "<PRIVATE_WEB_CAPTURE_OUTPUT_SCOPE_PLACEHOLDER>"
+  ],
+  "privateArtifactManifestRefs": [
+    "<PRIVATE_ARTIFACT_MANIFEST_REF_PLACEHOLDER_WEB_SEARCH_CAPTURE>"
+  ],
+  "checksumRequirements": [
+    "sha256_placeholder_required_for_capture_manifest_outputs"
+  ],
+  "QARequirements": [
+    "source_citation_placeholder_review",
+    "privacy_placeholder_review",
+    "browser_capture_blocked_review"
+  ],
+  "observabilityRequirements": [
+    "correlationId_placeholder_required",
+    "routeInvocationId_placeholder_required",
+    "redacted_event_log_placeholder_required"
+  ],
+  "blockedUses": [
+    "raw_prompt_execution",
+    "route_execution",
+    "tool_execution",
+    "worker_execution",
+    "provider_model_runtime",
+    "browser_capture",
+    "signed_url_as_source_of_truth",
+    "public_artifact",
+    "supabase_mutation",
+    "storage_transfer",
+    "internal_beta_unlock",
+    "external_beta_unlock",
+    "production_unlock"
+  ],
+  "approvalState": "dry_run_fixture_plan_only",
+  "noRawPromptExecution": true,
+  "noSignedUrlSourceOfTruth": true,
+  "noPublicArtifact": true,
+  "noSupabaseMutation": true,
+  "routeExecutionApprovedNow": false,
+  "toolExecutionApprovedNow": false,
+  "workerExecutionApprovedNow": false,
+  "providerRuntimeApprovedNow": false,
+  "supabaseMutationApprovedNow": false,
+  "publicArtifactsApproved": false,
+  "signedUrlsApproved": false,
+  "rawPromptExecutionApproved": false,
+  "internalBetaApproved": false,
+  "externalBetaApproved": false,
+  "productionApproved": false,
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no"
+}

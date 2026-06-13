@@ -1,0 +1,115 @@
+{
+  "manifestId": "tool_route_1_multi_tool_plan_scoped_tool_call_manifest",
+  "fixtureId": "tool_route_1_multi_tool_plan_fixture",
+  "planSnapshotId": "<APPROVED_PLAN_SNAPSHOT_PLACEHOLDER_MULTI_TOOL_PLAN>",
+  "ownerWorkstream": "TOOL_ROUTE_EXECUTION",
+  "targetOwnerWorkstream": "TOOL_ROUTE_EXECUTION",
+  "sourceOwnerStudyRefs": [
+    "PR_360_AI_TOOLS_CREATIVE_GRAPHICS_owner_study",
+    "PR_360_TRACK_A_RENDER_EXPORT_owner_study",
+    "PR_360_TRACK_B_MEDIA_PROCESSING_owner_study",
+    "PR_360_SOUND_MUSIC_AUDIO_owner_study",
+    "COMPLETED_WEB_SEARCH_CAPTURE_owner_study",
+    "COMPLETED_MAP_GEOSPATIAL_owner_study",
+    "PR_366_TOOL_ROUTE_EXECUTION_UNLOCK_0_repo_audit"
+  ],
+  "capabilityRefs": [
+    "AI_TOOLS_CREATIVE_GRAPHICS.synthetic_visual_asset_planning",
+    "TRACK_A_RENDER_EXPORT.private_preview_manifest_planning",
+    "TRACK_B_MEDIA_PROCESSING.metadata_route_planning",
+    "SOUND_MUSIC_AUDIO.timing_audio_metadata_planning",
+    "WEB_SEARCH_CAPTURE.evidence_capture_planning",
+    "MAP_GEOSPATIAL.route_card_map_planning",
+    "TOOL_ROUTE_EXECUTION.cross_workstream_scoped_manifest_planning"
+  ],
+  "requestedCapabilities": [
+    "multi-owner scoped tool-call manifest planning",
+    "cross-workstream artifact placeholder validation",
+    "route dispatch blocked-scope validation"
+  ],
+  "selectedToolRefs": [
+    "satori_social_cards",
+    "d3_dataviz",
+    "track_a_private_preview_manifest_placeholder",
+    "duckdb_metadata_route_placeholder",
+    "soundsync_timing_manifest_placeholder",
+    "web_search_capture_manifest_placeholder",
+    "map_geospatial_manifest_placeholder"
+  ],
+  "selectedToolMix": "multi_tool_manifest_only_fixture_mix",
+  "editIntentRefs": [
+    "<EDIT_INTENT_REF_PLACEHOLDER_MULTI_TOOL_PLAN>"
+  ],
+  "routeRefs": [
+    "server/routes/worker-routes.ts::future_multi_tool_route_placeholder",
+    "server/routes/job-routes.ts::future_job_record_placeholder",
+    "server/routes/render-routes.ts::future_track_a_record_placeholder",
+    "server/routes/route-helpers.ts::future_runtime_context_placeholder"
+  ],
+  "workerJobRef": "<WORKER_JOB_REF_PLACEHOLDER_MULTI_TOOL_PLAN>",
+  "inputArtifactRefs": [
+    "<PRIVATE_INPUT_ARTIFACT_REF_PLACEHOLDER_MULTI_TOOL_PLAN>"
+  ],
+  "outputArtifactScopes": [
+    "<PRIVATE_OUTPUT_ARTIFACT_SCOPE_PLACEHOLDER_MULTI_TOOL_PLAN>"
+  ],
+  "privateArtifactManifestRefs": [
+    "<PRIVATE_ARTIFACT_MANIFEST_REF_PLACEHOLDER_MULTI_TOOL_PLAN>"
+  ],
+  "checksumRequirements": [
+    "sha256_placeholder_required_for_each_private_output",
+    "cross_artifact_checksum_summary_placeholder_required"
+  ],
+  "QARequirements": [
+    "owner_boundary_placeholder_review",
+    "artifact_scope_placeholder_review",
+    "blocked_use_placeholder_review"
+  ],
+  "observabilityRequirements": [
+    "correlationId_placeholder_required",
+    "routeInvocationId_placeholder_required",
+    "redacted_event_log_placeholder_required",
+    "cross_workstream_audit_event_placeholder_required"
+  ],
+  "blockedUses": [
+    "raw_prompt_execution",
+    "route_execution",
+    "tool_execution",
+    "worker_execution",
+    "provider_model_runtime",
+    "browser_capture",
+    "map_rendering",
+    "media_processing",
+    "audio_processing",
+    "remotion_render_export",
+    "final_render_export",
+    "signed_url_as_source_of_truth",
+    "public_artifact",
+    "supabase_mutation",
+    "storage_transfer",
+    "internal_beta_unlock",
+    "external_beta_unlock",
+    "production_unlock"
+  ],
+  "approvalState": "dry_run_fixture_plan_only",
+  "noRawPromptExecution": true,
+  "noSignedUrlSourceOfTruth": true,
+  "noPublicArtifact": true,
+  "noSupabaseMutation": true,
+  "routeExecutionApprovedNow": false,
+  "toolExecutionApprovedNow": false,
+  "workerExecutionApprovedNow": false,
+  "providerRuntimeApprovedNow": false,
+  "supabaseMutationApprovedNow": false,
+  "publicArtifactsApproved": false,
+  "signedUrlsApproved": false,
+  "rawPromptExecutionApproved": false,
+  "internalBetaApproved": false,
+  "externalBetaApproved": false,
+  "productionApproved": false,
+  "supabaseUpdateRequired": "docs/status only",
+  "supabaseUpdateStatus": "docs_only",
+  "supabaseEnvironmentTouched": "none",
+  "sqlExecuted": "none",
+  "migrationDeployed": "no"
+}

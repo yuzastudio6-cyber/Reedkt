@@ -36,3 +36,19 @@ Required evidence before any later execution prompt:
 - Worker claim/lease gate proof.
 - Private artifact manifest and checksum policy.
 - Redacted QA/observability/cleanup evidence.
+
+## TOOL-ROUTE-1 Implementation Status
+
+TOOL-ROUTE-1 created static approved-plan-snapshot fixture placeholders, scoped tool-call manifest fixtures, and offline diagnostics only.
+
+Next recommended prompt: `TOOL-ROUTE-2 - Offline Tool Route Contract Test Execution`.
+
+Route execution approved: `false`
+Tool execution approved: `false`
+Worker execution approved: `false`
+Provider/model runtime approved: `false`
+Supabase mutation approved: `false`
+Public artifacts approved: `false`
+Signed URLs approved: `false`
+Internal beta approved: `false`
+Production approved: `false`

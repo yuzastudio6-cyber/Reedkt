@@ -75,3 +75,14 @@ FIRST_CONTROLLED_TOOL_EXECUTION dry-run:
 - PR #384 remains stale draft duplicate-risk/reference-only evidence.
 - Real route/tool/worker/provider/media/Supabase/GCS/public/beta/production scopes remain blocked.
 - Next prompt: `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW`.
+
+<!-- NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW_STATUS -->
+
+NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW:
+
+- Decision: `recommended_next_controlled_candidate_approval`.
+- Recommended next candidate: `controlled-tool:second_fixture_report_validation`.
+- Recommended fixture/route: `valid_sound_music_audio_metadata_route_candidate` / `metadata-route:sound_music_audio`.
+- Worker handoff reviewed; worker execution remains blocked and is not required for this metadata-only candidate.
+- PR #384 remains stale draft duplicate-risk/reference-only evidence.
+- Next prompt: `SECOND_CONTROLLED_TOOL_CANDIDATE_APPROVAL`.

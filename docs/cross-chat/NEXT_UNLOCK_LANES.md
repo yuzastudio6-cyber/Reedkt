@@ -62,3 +62,10 @@ Next unlock lane:
 
 - `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW` may choose another low-risk candidate approval or worker handoff review.
 - Broad tools, real routes, workers, providers, media/audio/render/image/browser/map, Supabase/GCS writes, public artifacts, signed URLs, external beta, paid production, and production remain blocked.
+
+<!-- NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW_STATUS -->
+
+Next unlock lane:
+
+- `SECOND_CONTROLLED_TOOL_CANDIDATE_APPROVAL` may approve only `controlled-tool:second_fixture_report_validation` using the Sound/Music/Audio metadata fixture.
+- Broad tools, real routes, workers, providers, media/audio/render/image/browser/map, Supabase/GCS writes, public artifacts, signed URLs, external beta, paid production, and production remain blocked.

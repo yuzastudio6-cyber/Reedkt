@@ -24,7 +24,7 @@ If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1 is docs-only with `private_artifact_ac
 
 If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R records `blocked_pending_private_artifact_access_confirmation`, report that blocker and do not record pass/fail.
 
-If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R later produces copied local review files, inspect only the uploaded files named in `track-a-visual-review-upload-to-chat-final-instructions.md` and verify their checksums before recording an outcome.
+If TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R produces copied local review files, inspect only the uploaded files named in `track-a-visual-review-upload-to-chat-final-instructions.md` and verify their checksums before recording an outcome. For bundle `tracka-visual-review-artifact-bundle1-20260613T195844`, copied files are JSON metadata/report artifacts only; use them for evidence intake and blocker tracking, but do not mark visual review passed unless representative frames/videos or exact review-safe visual artifacts are uploaded in the same review context.
 
 ## Allowed Scope
 

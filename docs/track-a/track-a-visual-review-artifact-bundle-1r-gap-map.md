@@ -1,24 +1,26 @@
 # TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R Gap Map
 
-Status: `blocked_pending_private_artifact_access_confirmation`
+Status: `completed_with_visual_review_gaps_remaining`
 
 ## Gaps
 
 | Gap | Status | Effect | Next Action |
 | --- | --- | --- | --- |
-| Confirmation env | `missing` | execution stopped before GCS metadata/read/copy | set `REEDITPRO_CONFIRM_TRACKA_PRIVATE_ARTIFACT_BUNDLE=true` if bounded access is approved |
-| Local review bundle | `not_created` | no files can be uploaded from this run | execute confirmed bundle or upload representative media directly |
-| Checksums | `not_created` | no checksum-backed review files exist | compute during confirmed bundle execution |
+| Local JSON bundle upload | `pending_user_upload_to_chat` | copied files are local temp files only | upload files listed in final instructions with checksums |
+| Visual frame/clip evidence | `missing_or_not_in_copied_bundle` | visual pass/fail cannot be claimed from JSON metadata alone | upload representative frames/videos or exact visual artifacts |
 | Kornia ref | `artifact_ref_not_recorded_in_current_source` | Kornia-specific review remains missing | provide smaller representative samples or exact safe ref |
 | Remotion preview ref | `needs_exact_object_ref` | prefix ref is not copyable | provide exact object ref or upload representative preview frames |
-| Visual pass/fail outcome | `not_claimed` | 2B remains blocked | run 2B only after files or frames are available |
+| Visual pass/fail outcome | `not_claimed` | 2B must record blocker or metadata-only result until visual evidence exists | run 2B only after bundle upload, then decide whether visual evidence is sufficient |
 
 ## Non-Gaps
 
 - #400 is merged.
 - #400 bundle ID is recorded.
 - #400 manifest, access policy, and runner exist.
-- Allowlist/rejection rules are documented.
+- Inline confirmation was provided for 1R.
+- Bounded private allowlist execution completed.
+- Twelve exact private JSON refs were copied locally.
+- SHA-256 checksums are recorded.
 
 ## No-Scope Statement
 

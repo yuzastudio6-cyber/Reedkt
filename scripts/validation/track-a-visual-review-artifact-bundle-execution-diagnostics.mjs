@@ -23,17 +23,34 @@ const sourceFiles = [
 const requiredTerms = [
   "tracka-visual-review-artifact-bundle1-20260613T195844",
   "#400",
-  "blocked_pending_private_artifact_access_confirmation",
-  "Private artifact access: `not_attempted`",
-  "Local review bundle: `not_created`",
-  "TRACKA-VISUAL-REVIEW-2B readiness: `blocked_pending_private_artifact_access_confirmation`",
+  "completed_bounded_private_artifact_bundle_execution",
+  "Private artifact access: `completed_bounded_allowlist`",
+  "Local review bundle: `created`",
+  "TRACKA-VISUAL-REVIEW-2B readiness: `ready_after_upload_of_copied_bundle_files_metadata_only`",
   "allowed exact object refs: `12`",
   "rejected prefix refs: `1`",
   "rejected missing refs: `1`",
-  "copied files: `0`",
-  "no_files_ready_to_upload",
+  "copied files: `12`",
+  "checksums_recorded",
+  "created_with_12_files",
+  "visual_pass_fail_blocked_pending_representative_frames_or_exact_visual_artifacts",
   "not_claimed",
   "docs_only",
+];
+
+const copiedFiles = [
+  "tracka-bundle-birefnet-masking-phase33c-report.json",
+  "tracka-bundle-sam2-segmentation-phase35f-report.json",
+  "tracka-bundle-real-esrgan-enhancement-phase34d-report.json",
+  "tracka-bundle-film-interpolation-phase38d-report.json",
+  "tracka-bundle-opencolorio-color-pipeline-phase40d-report.json",
+  "tracka-bundle-openimageio-image-io-phase40d-report.json",
+  "tracka-bundle-libass-caption-burnin-phase45a-report.json",
+  "tracka-bundle-opentimelineio-validation-phase45c-report.json",
+  "tracka-bundle-ffmpeg-render-hardening-phase45d-report.json",
+  "tracka-bundle-ffprobe-export-validation-ffprobe-export-validation.json",
+  "tracka-bundle-full-visual-video-private-e2e-phase45e-report.json",
+  "tracka-bundle-track-a-readiness-closure-phase45f-report.json",
 ];
 
 const requiredCapabilities = [
@@ -83,6 +100,12 @@ for (const term of requiredTerms) {
   }
 }
 
+for (const file of copiedFiles) {
+  if (!newDocs.includes(file)) {
+    failures.push(`Missing copied file record: ${file}`);
+  }
+}
+
 for (const capability of requiredCapabilities) {
   if (!newDocs.includes(capability)) {
     failures.push(`Missing capability: ${capability}`);
@@ -96,14 +119,13 @@ if (!packageJson.includes('"track-a:visual-review-artifact-bundle-execution:diag
 
 const forbiddenPositiveClaims = [
   /Visual pass\/fail outcome:\s*`?(passed|approved|completed)`?/i,
-  /visual review (passed|approved)/i,
-  /Private artifact access:\s*`?completed_bounded_allowlist`?/i,
-  /Local review bundle:\s*`?created`?/i,
-  /copied files:\s*`?[1-9]/i,
+  /visual review:\s*`?(passed|approved)`?/i,
+  /overall visual decision:\s*`?(passed|approved)`?/i,
   /signed URL creation:\s*(enabled|approved|true|completed)/i,
   /public artifact creation:\s*(enabled|approved|true|completed)/i,
   /GCS upload:\s*(enabled|approved|true|completed)/i,
-  /storage transfer:\s*(enabled|approved|true|completed)/i,
+  /bucket mutation:\s*(enabled|approved|true|completed)/i,
+  /IAM mutation:\s*(enabled|approved|true|completed)/i,
   /Track A runtime execution:\s*(enabled|approved|true|completed)/i,
   /FFmpeg execution:\s*(enabled|approved|true|completed)/i,
   /Remotion execution:\s*(enabled|approved|true|completed)/i,
@@ -145,4 +167,5 @@ if (failures.length > 0) {
 console.log("TRACKA-VISUAL-REVIEW-ARTIFACT-BUNDLE-1R diagnostics passed");
 console.log(`Checked files: ${requiredFiles.length}`);
 console.log(`Checked source files: ${sourceFiles.length}`);
+console.log(`Checked copied files: ${copiedFiles.length}`);
 console.log(`Checked capabilities: ${requiredCapabilities.length}`);

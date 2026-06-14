@@ -1,6 +1,6 @@
 # Prompt WORKER-10 Controlled Job Claim/Lease No-Op Execution
 
-implementationStatus: `implemented_validation_passed_pending_pr`
+implementationStatus: `implemented_validation_passed_pr_open`
 
 decisionState: `worker_runtime_controlled_claim_lease_noop_passed_with_warnings`
 
@@ -38,11 +38,11 @@ No live worker execution, real job claim, real lease mutation, queue execution, 
 
 ## PR And Validation
 
-PR: `pending_after_creation`
+PR: [#415](https://github.com/yuzastudio6-cyber/Reedkt/pull/415)
 
 Validation: `passed_dependency_backed_local`
 
-PR status after creation: `pending_after_creation`
+PR status after creation: `open_draft_mergeable_clean_empty_check_rollup`
 
 Supabase update required: `docs/status only`
 Supabase update status: `docs_only`

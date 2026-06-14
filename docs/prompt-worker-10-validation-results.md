@@ -21,11 +21,20 @@ runId: `worker-10-local-claim-lease-noop`
 
 Initial local validation status: `passed`.
 
-PR: `pending_after_creation`
+PR: [#415](https://github.com/yuzastudio6-cyber/Reedkt/pull/415)
 
-PR status: `pending_after_creation`
+PR status: `open_draft_mergeable_clean_empty_check_rollup`
 
 Base gaps recorded: broad foundation docs, source-map docs, milestone docs, internal-beta docs, and `scripts/validation/run-foundation-validation.mjs` were absent on this stacked branch and were not fabricated.
+
+## PR Check Status
+
+- PR #415 state: `OPEN`
+- PR #415 draft: `true`
+- PR #415 mergeability: `MERGEABLE`
+- PR #415 merge state: `CLEAN`
+- PR #415 head SHA after first commit: `8d754635d95436a563fd0de398fadaddfb099661`
+- PR #415 status check rollup: `empty`
 
 ## Commands Run
 

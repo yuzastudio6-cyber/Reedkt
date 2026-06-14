@@ -1,0 +1,35 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.privateArtifactManifest.v1",
+  "createdAt": "2026-06-13T22:07:13.001Z",
+  "reportPaths": [
+    "docs/activation-second-controlled-candidate-dry-run-reports/source_of_truth_audit.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/pre_execution_revalidation_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/evidence_inventory.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/selected_second_candidate_guard_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/approved_plan_snapshot_fixture_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/sound_music_audio_metadata_route_fixture_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/selected_second_candidate_execution_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/artifact_source_of_truth_validation_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/execution_blocker_validation_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/fail_closed_validation_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/observability_cost_audit_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/second_controlled_candidate_dry_run_decision.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/second_controlled_candidate_dry_run_blocker_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/second_controlled_candidate_dry_run_readiness_report.json",
+    "docs/activation-second-controlled-candidate-dry-run-reports/second_controlled_candidate_dry_run_private_artifact_manifest.json"
+  ],
+  "docPaths": [
+    "docs/second-controlled-candidate-dry-run.md",
+    "docs/second-controlled-candidate-dry-run-decision.md",
+    "docs/second-controlled-candidate-dry-run-fail-closed.md",
+    "docs/second-controlled-candidate-dry-run-artifact-scope.md",
+    "docs/implementation-prompts/prompt-next-controlled-candidate-or-worker-handoff-review-after-second.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "privatePayloadsCommitted": false,
+  "mediaPayloadsCommitted": false,
+  "buildOutputCommitted": false,
+  "packageLockChanged": false
+}

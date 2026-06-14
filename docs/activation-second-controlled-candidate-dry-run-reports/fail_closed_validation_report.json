@@ -1,0 +1,127 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.failClosedValidation.v1",
+  "passed": true,
+  "cases": [
+    {
+      "caseId": "wrong_candidate_id",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "wrong_route_id",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "wrong_owner_lane",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "missing_approved_plan_snapshot",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "raw_prompt_input",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "edit_intents_only_input",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "plan_snapshot_candidate_input",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "provider_response_input",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "owner_study_missing",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "route_manifest_missing",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "ambiguous_candidate",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "invalid_artifact_scope",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "public_artifact_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "signed_url_source_of_truth_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "media_audio_render_image_browser_map_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "provider_model_call_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "worker_execution_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "supabase_mutation",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "sql_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "gcs_upload_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "production_mutation",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "broad_execution_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "dependency_mutation",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "caseId": "demucs_deepfilternet_signalsmith_real_processing_request",
+      "expectedOutcome": "failed_closed",
+      "passed": true
+    }
+  ],
+  "invalidCasesPassed": false
+}

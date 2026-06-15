@@ -186,7 +186,8 @@ try {
         !approvedBatch1ExecutionDependencyNames.some((dependencyName) => line.includes(`"${dependencyName}"`)) &&
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-import-smoke') &&
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-synthetic-fixtures') &&
-        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-execution:diagnostics')
+        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-execution:diagnostics') &&
+        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics')
       )
     })
   if (nonScriptPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${nonScriptPackageJsonDiff.join(' | ')}`)

@@ -34,7 +34,7 @@ Decision: `approved_with_warnings_for_ai_graphics_batch_2`
 | `git diff --cached --check` | passed before staging |
 | package-lock unchanged | passed; no `package-lock.json` diff and no Batch 2 package dependency section changes |
 | PR link | https://github.com/yuzastudio6-cyber/Reedkt/pull/432 |
-| PR check rollup | empty at creation; PR #432 is draft/open/mergeable clean at `50119eedddeb37f1b814331dd49cf220846d4b22` |
+| PR check rollup | empty when last checked before this record update; PR #432 was draft/open/mergeable clean at `3595de667aab01fac4dc9baedcd50abcc563d6c2` |
 
 ## Supabase Classification
 

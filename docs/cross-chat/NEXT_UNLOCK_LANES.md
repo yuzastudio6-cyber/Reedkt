@@ -87,3 +87,11 @@ Next unlock lane:
 
 - `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW_AFTER_SECOND` may choose another low-risk candidate approval or worker handoff review.
 - Broad tools, real routes, workers, providers, media/audio/render/image/browser/map, Supabase/GCS writes, public artifacts, signed URLs, external beta, paid production, and production remain blocked.
+
+<!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
+## Open-Source Tool Stack Batch 1
+
+Current decision: `blocked_pending_package_lock_sync_review`.
+
+Next lane is `DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1`, not install/proof execution. Batch 1 candidates remain conditionally eligible only after package-lock sync repair and a separate approval packet. Real tool/route/worker/provider/runtime/product scopes remain blocked.
+<!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

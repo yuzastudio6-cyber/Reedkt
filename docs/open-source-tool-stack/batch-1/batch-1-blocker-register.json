@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.blockerRegister.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "decision": "blocked_pending_package_lock_sync_review",
+  "blockers": [
+    {
+      "id": "package_lock_sync_review",
+      "outcome": "blocked_pending_package_lock_sync_review",
+      "severity": "blocking",
+      "evidence": [
+        "missing @emnapi/runtime@1.11.1",
+        "missing @emnapi/core@1.11.1",
+        "invalid @emnapi/wasi-threads@1.2.1 not satisfying 1.2.2",
+        "missing @emnapi/core@1.10.0",
+        "missing @emnapi/runtime@1.10.0",
+        "missing @emnapi/wasi-threads@1.2.1"
+      ],
+      "resolutionPrompt": "DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1"
+    },
+    {
+      "id": "install_proof_execution_not_authorized",
+      "outcome": "blocked_pending_separate_approval_after_baseline_repair",
+      "severity": "blocking",
+      "evidence": [
+        "Batch 1 approval packet is docs/diagnostics only"
+      ],
+      "resolutionPrompt": "DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1"
+    }
+  ]
+}

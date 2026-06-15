@@ -1,0 +1,81 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.e2eProofPlan.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "approvedForExecution": false,
+  "activeNextPrompt": "DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1",
+  "decision": "blocked_pending_package_lock_sync_review",
+  "proofSteps": [
+    {
+      "candidateId": "duckdb_metadata_query_proof",
+      "futureProofType": "version_or_import_probe",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/duckdb_metadata_query_proof.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    },
+    {
+      "candidateId": "polars_metadata_dataframe_proof",
+      "futureProofType": "version_or_import_probe",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/polars_metadata_dataframe_proof.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    },
+    {
+      "candidateId": "sharp_libvips_import_version_probe",
+      "futureProofType": "version_or_import_probe",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/sharp_libvips_import_version_probe.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    },
+    {
+      "candidateId": "ffmpeg_version_probe",
+      "futureProofType": "version_or_import_probe",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/ffmpeg_version_probe.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    },
+    {
+      "candidateId": "ffprobe_version_probe",
+      "futureProofType": "version_or_import_probe",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/ffprobe_version_probe.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    },
+    {
+      "candidateId": "route_capability_manifest_validation",
+      "futureProofType": "metadata_validation",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/route_capability_manifest_validation.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    },
+    {
+      "candidateId": "fixture_report_validation_harness",
+      "futureProofType": "metadata_validation",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/fixture_report_validation_harness.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    },
+    {
+      "candidateId": "open_source_tool_inventory_validator",
+      "futureProofType": "metadata_validation",
+      "futureOnly": true,
+      "packageLockMutation": false,
+      "realToolRuntime": false,
+      "expectedReportPath": "docs/open-source-tool-stack/batch-1/future-proof/open_source_tool_inventory_validator.json",
+      "stopCondition": "do not start until dependency baseline repair passes and a separate approval authorizes the proof"
+    }
+  ]
+}

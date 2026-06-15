@@ -1,0 +1,28 @@
+{
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "decisionState": "owner_tool_stack_audit_completed_ready_for_install_proof_approval",
+  "sourceDecision": "open_source_tool_stack_audit_completed_install_proof_backlog_ready",
+  "ownedCandidates": 16,
+  "likelyOssLocalTools": 16,
+  "providerApiNonOssItems": 0,
+  "installedTools": 0,
+  "packageDeclaredTools": 6,
+  "smokeTestedTools": 4,
+  "e2eProvenTools": 0,
+  "docsOnlyTools": 5,
+  "notProvenTools": 7,
+  "blockedTools": 0,
+  "missingTools": 0,
+  "firstInstallProofBatch": "ai_batch_1_gpu_model_import_policy",
+  "nextApprovalPrompt": "AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1",
+  "packageLockUnchangedRequired": true,
+  "executionNoScope": "No dependency mutation, tool execution, route execution, worker execution, provider/model call, media processing, audio processing, render/export, browser capture, map rendering, Supabase write, SQL execution, GCS upload, storage transfer, signed URL source-of-truth, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, or production unlock was enabled.",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "docs_only",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "milestoneSync": "not_performed"
+  }
+}

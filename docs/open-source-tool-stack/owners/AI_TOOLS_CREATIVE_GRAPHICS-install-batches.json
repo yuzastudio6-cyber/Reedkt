@@ -1,0 +1,37 @@
+{
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "decisionState": "owner_tool_stack_audit_completed_ready_for_install_proof_approval",
+  "installOrProofApprovedNow": false,
+  "batches": [
+    {
+      "batchId": "ai_batch_1_gpu_model_import_policy",
+      "tools": ["torch_torchvision", "transformers", "kornia"],
+      "allowedFutureScope": "dependency/import or package-resolution metadata only after explicit approval",
+      "blockedScope": ["model_execution", "model_download", "gpu_runtime_execution", "media_processing"]
+    },
+    {
+      "batchId": "ai_batch_2_vision_model_import_policy",
+      "tools": ["sam2", "birefnet", "real_esrgan"],
+      "allowedFutureScope": "import/model-path policy only after explicit approval",
+      "blockedScope": ["segmentation_execution", "enhancement_execution", "real_media_processing", "model_weight_download"]
+    },
+    {
+      "batchId": "ai_batch_3_dataviz_spec_fixtures",
+      "tools": ["d3", "echarts", "vega_lite"],
+      "allowedFutureScope": "deterministic synthetic spec/metadata validation only after explicit approval",
+      "blockedScope": ["browser_capture", "public_artifact_creation", "signed_url_creation"]
+    },
+    {
+      "batchId": "ai_batch_4_canvas_browser_manifest_review",
+      "tools": ["pixijs", "three_js", "babylon_js", "lottie", "konva"],
+      "allowedFutureScope": "manifest-only planning until browser/canvas/WebGL/player boundaries are approved",
+      "blockedScope": ["browser_runtime", "webgl_runtime", "player_runtime", "route_execution"]
+    },
+    {
+      "batchId": "ai_backlog_alternate_background_review",
+      "tools": ["rembg", "transparent_background"],
+      "allowedFutureScope": "owner review only",
+      "blockedScope": ["dependency_install", "runtime_execution", "model_execution"]
+    }
+  ]
+}

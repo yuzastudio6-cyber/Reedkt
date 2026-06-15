@@ -1,0 +1,72 @@
+{
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "decisionState": "owner_tool_stack_audit_completed_ready_for_install_proof_approval",
+  "e2eProofApprovedNow": false,
+  "proofPlans": [
+    {
+      "normalizedId": "d3",
+      "syntheticInput": "deterministic_chart_spec_placeholder",
+      "expectedOutput": "svg_metadata_manifest_placeholder",
+      "timeoutMs": 5000,
+      "costClass": "local_zero_provider_cost",
+      "failureState": "blocked_d3_synthetic_fixture_failed",
+      "reportPath": "docs/open-source-tool-stack/owners/reports/d3-proof-placeholder.json",
+      "validationRules": ["no_network", "no_browser_capture", "no_public_artifact", "no_signed_url"]
+    },
+    {
+      "normalizedId": "echarts",
+      "syntheticInput": "deterministic_echarts_option_placeholder",
+      "expectedOutput": "option_validation_manifest_placeholder",
+      "timeoutMs": 5000,
+      "costClass": "local_zero_provider_cost",
+      "failureState": "blocked_echarts_synthetic_fixture_failed",
+      "reportPath": "docs/open-source-tool-stack/owners/reports/echarts-proof-placeholder.json",
+      "validationRules": ["no_network", "no_browser_capture", "no_public_artifact", "no_signed_url"]
+    },
+    {
+      "normalizedId": "vega_lite",
+      "syntheticInput": "deterministic_vega_lite_spec_placeholder",
+      "expectedOutput": "spec_validation_manifest_placeholder",
+      "timeoutMs": 5000,
+      "costClass": "local_zero_provider_cost",
+      "failureState": "blocked_vega_lite_synthetic_fixture_failed",
+      "reportPath": "docs/open-source-tool-stack/owners/reports/vega-lite-proof-placeholder.json",
+      "validationRules": ["no_network", "no_browser_capture", "no_public_artifact", "no_signed_url"]
+    },
+    {
+      "normalizedId": "lottie",
+      "syntheticInput": "manifest_only_lottie_placeholder",
+      "expectedOutput": "manifest_validation_only",
+      "timeoutMs": 3000,
+      "costClass": "local_zero_provider_cost",
+      "failureState": "blocked_lottie_manifest_validation_failed",
+      "reportPath": "docs/open-source-tool-stack/owners/reports/lottie-proof-placeholder.json",
+      "validationRules": ["manifest_only", "no_player_runtime", "no_browser_capture"]
+    },
+    {
+      "normalizedId": "three_js",
+      "syntheticInput": "three_scene_manifest_placeholder",
+      "expectedOutput": "manifest_validation_only",
+      "timeoutMs": 3000,
+      "costClass": "local_zero_provider_cost",
+      "failureState": "blocked_three_runtime_boundary_missing",
+      "reportPath": "docs/open-source-tool-stack/owners/reports/three-proof-placeholder.json",
+      "validationRules": ["manifest_only", "no_webgl_runtime", "no_browser_capture"]
+    }
+  ],
+  "globalRules": {
+    "syntheticInputOnly": true,
+    "deterministicExpectedOutput": true,
+    "secretsAllowed": false,
+    "privateMediaAllowed": false,
+    "productionDataAllowed": false,
+    "supabaseWritesAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAllowed": false,
+    "providerCallsAllowed": false,
+    "workerExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false
+  }
+}

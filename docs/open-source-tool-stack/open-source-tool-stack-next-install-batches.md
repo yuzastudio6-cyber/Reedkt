@@ -242,3 +242,13 @@ The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROV
 | Qwen/DeepSeek provider APIs | qwen_deepseek_provider_api | blocked | blocked | Keep separated from OSS inventory; use provider governance packets only. |
 | Lyria provider API | lyria_provider_api | blocked | blocked | Keep separated from OSS audit and behind provider/worker approvals. |
 | Mirelo provider API | mirelo_provider_api | blocked | blocked | Keep separated from OSS audit and future provider approval. |
+
+<!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
+## Batch 1 Approval Packet Status
+
+Decision: `blocked_pending_package_lock_sync_review`.
+
+The reviewed Batch 1 candidates are DuckDB, Polars, Sharp/libvips, FFmpeg, FFprobe, route/capability manifest validation, fixture/report validation, and open-source inventory/proof matrix validation. They are conditionally eligible only after dependency baseline repair. No install/proof execution is approved by this packet.
+
+Next prompt: `DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1`.
+<!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

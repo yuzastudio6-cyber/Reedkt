@@ -109,3 +109,14 @@ SECOND_CONTROLLED_CANDIDATE_EXECUTION dry-run:
 - PR #384 remains stale draft duplicate-risk/reference-only evidence.
 - Real route/tool/worker/provider/media/audio/render/image/browser/map/Supabase/GCS/public/beta/production scopes remain blocked.
 - Next prompt: `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW_AFTER_SECOND`.
+
+<!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1:
+
+- Decision: `blocked_pending_package_lock_sync_review`.
+- Candidate review: DuckDB, Polars, Sharp/libvips, FFmpeg, FFprobe, route/capability manifest validation, fixture/report validation, and inventory/proof matrix validation.
+- Status: docs/diagnostics complete; install/proof execution blocked by dependency baseline sync review.
+- Current blocker: `npm ci --dry-run --ignore-scripts --no-audit --no-fund` reproduces the `@emnapi/*` package-lock mismatch without changing tracked files.
+- Next prompt: `DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1`.
+- Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
+<!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

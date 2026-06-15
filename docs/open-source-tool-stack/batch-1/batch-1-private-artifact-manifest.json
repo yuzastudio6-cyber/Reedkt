@@ -1,0 +1,70 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "decision": "blocked_pending_package_lock_sync_review",
+  "privateOnly": true,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "artifacts": [
+    {
+      "path": "docs/open-source-tool-stack/batch-1/install-proof-approval-source-of-truth-audit.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-candidate-review.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/dependency-baseline-review.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-install-proof-scope-policy.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-synthetic-fixture-plan.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-e2e-proof-plan.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-blocker-register.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-install-proof-approval-decision.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-readiness-report.json",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    },
+    {
+      "path": "docs/open-source-tool-stack/batch-1/batch-1-validation-results.md",
+      "public": false,
+      "signedUrl": false,
+      "committedMetadataOnly": true
+    }
+  ]
+}

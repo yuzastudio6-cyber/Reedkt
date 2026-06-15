@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.dependencyBaselineReview.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "decision": "blocked_pending_package_lock_sync_review",
+  "command": "npm ci --dry-run --ignore-scripts --no-audit --no-fund",
+  "commandPurpose": "non-mutating dependency graph consistency check only",
+  "result": "failed_without_file_mutation",
+  "blockers": [
+    "missing @emnapi/runtime@1.11.1",
+    "missing @emnapi/core@1.11.1",
+    "invalid @emnapi/wasi-threads@1.2.1 not satisfying 1.2.2",
+    "missing @emnapi/core@1.10.0",
+    "missing @emnapi/runtime@1.10.0",
+    "missing @emnapi/wasi-threads@1.2.1"
+  ],
+  "packageLockMutated": false,
+  "dependencyInstallOccurred": false,
+  "packageLockStatusAfterDryRun": "unchanged",
+  "nextAction": "repair package-lock sync before any Batch 1 install/proof approval can advance"
+}

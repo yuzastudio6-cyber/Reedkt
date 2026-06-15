@@ -28,8 +28,8 @@ Decision: `ai_graphics_batch_1_install_import_synthetic_proof_passed_with_warnin
 | readiness summaries | passed; production readiness remains globally blocked by existing launch/tool/model-weight blockers |
 | lint/typecheck/build | passed; `npm run build` emitted the existing Vite chunk-size warning |
 | changed-file secret scan | passed after reviewing expected regex-literal and `mask-*` false positives |
-| PR link | pending |
-| PR check rollup | pending |
+| PR link | https://github.com/yuzastudio6-cyber/Reedkt/pull/425 |
+| PR check rollup | empty at creation; PR #425 is draft/open/mergeable clean |
 
 ## Supabase Classification
 

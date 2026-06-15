@@ -578,6 +578,7 @@
     "track-a:visual-review-artifact-bundle-2:diagnostics": "node scripts/validation/track-a-visual-review-artifact-bundle-2-diagnostics.mjs",
     "track-a:visual-review-2b-outcome:diagnostics": "node scripts/validation/track-a-visual-review-2b-outcome-diagnostics.mjs",
     "track-a:visual-review-2c-outcome:diagnostics": "node scripts/validation/track-a-visual-review-2c-outcome-diagnostics.mjs",
+    "track-a:visual-gap-closure-1:diagnostics": "node scripts/validation/track-a-visual-gap-closure-1-diagnostics.mjs",
     "activation:model-orchestration-qwen-auth-repair:plan": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-plan.ts",
     "activation:model-orchestration-qwen-auth-repair": "tsx server/cli/activation-model-orchestration-qwen-auth-repair.ts",
     "activation:model-orchestration-qwen-auth-repair:report": "tsx server/cli/activation-model-orchestration-qwen-auth-repair-report.ts",

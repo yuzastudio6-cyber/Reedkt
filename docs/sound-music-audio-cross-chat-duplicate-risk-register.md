@@ -58,3 +58,35 @@ This register records where SOUND may duplicate another workstream if future pro
   ]
 }
 ```
+
+## SOUND-OSS-TOOLS-0 Extension
+
+This extension adds shared open-source stack candidates discovered during SOUND-OSS-TOOLS-0. It does not replace the PR #418 ownership registry.
+
+```json sound-oss-tools-0-duplicate-risk-extension
+{
+  "phase": "SOUND-OSS-TOOLS-0",
+  "decision": "duplicate_risk_extension_created_no_install_no_execution",
+  "risks": [
+    {"toolId":"ffmpeg","currentPrimaryOwner":"TRACK_A_RENDER_EXPORT","soundRole":"handoff-only","duplicateRisk":"medium","allowedSOUNDAction":"record audio handoff requirements","blockedSOUNDAction":"run FFmpeg or own export runtime","requiredHandoff":"TRACK_A_RENDER_EXPORT","ownerConflict":"no"},
+    {"toolId":"ffprobe","currentPrimaryOwner":"TRACK_B_MEDIA_PROCESSING","soundRole":"handoff-only","duplicateRisk":"medium","allowedSOUNDAction":"record audio metadata needs","blockedSOUNDAction":"run probing or own media runtime","requiredHandoff":"TRACK_B_MEDIA_PROCESSING","ownerConflict":"no"},
+    {"toolId":"mediainfo","currentPrimaryOwner":"TRACK_B_MEDIA_PROCESSING","soundRole":"reference-only","duplicateRisk":"medium","allowedSOUNDAction":"reference metadata requirements","blockedSOUNDAction":"own media metadata runtime","requiredHandoff":"TRACK_B_MEDIA_PROCESSING","ownerConflict":"no"},
+    {"toolId":"exiftool","currentPrimaryOwner":"TRACK_B_MEDIA_PROCESSING","soundRole":"reference-only","duplicateRisk":"medium","allowedSOUNDAction":"reference private metadata needs","blockedSOUNDAction":"own untrusted upload metadata runtime","requiredHandoff":"TRACK_B_MEDIA_PROCESSING","ownerConflict":"no"},
+    {"toolId":"remotion","currentPrimaryOwner":"TRACK_A_RENDER_EXPORT","soundRole":"handoff-only","duplicateRisk":"medium","allowedSOUNDAction":"record cue/timing handoff","blockedSOUNDAction":"render or compose final canvas","requiredHandoff":"TRACK_A_RENDER_EXPORT","ownerConflict":"no"},
+    {"toolId":"pydub","currentPrimaryOwner":"SOUND_MUSIC_AUDIO","soundRole":"own","duplicateRisk":"medium","allowedSOUNDAction":"inventory transform candidate","blockedSOUNDAction":"use FFmpeg-backed runtime without Track A handoff","requiredHandoff":"TRACK_A_RENDER_EXPORT if FFmpeg is needed","ownerConflict":"no"},
+    {"toolId":"faster_whisper","currentPrimaryOwner":"TRACK_B_MEDIA_PROCESSING","soundRole":"handoff-only","duplicateRisk":"medium","allowedSOUNDAction":"reference transcript/timing dependency","blockedSOUNDAction":"run transcription or approve model weights","requiredHandoff":"TRACK_B_MEDIA_PROCESSING","ownerConflict":"no"},
+    {"toolId":"whisper_cpp","currentPrimaryOwner":"TRACK_B_MEDIA_PROCESSING","soundRole":"reference-only","duplicateRisk":"medium","allowedSOUNDAction":"reference speech timing dependency","blockedSOUNDAction":"run transcription or approve model weights","requiredHandoff":"TRACK_B_MEDIA_PROCESSING","ownerConflict":"no"},
+    {"toolId":"pyannote_audio","currentPrimaryOwner":"TRACK_B_MEDIA_PROCESSING","soundRole":"reference-only","duplicateRisk":"medium","allowedSOUNDAction":"reference diarization dependency only","blockedSOUNDAction":"run diarization or own speech runtime","requiredHandoff":"TRACK_B_MEDIA_PROCESSING","ownerConflict":"no"},
+    {"toolId":"lyria","currentPrimaryOwner":"PROVIDER_GATEWAY_MODELS","soundRole":"handoff-only","duplicateRisk":"high","allowedSOUNDAction":"define music semantics","blockedSOUNDAction":"provider call or secret handling","requiredHandoff":"PROVIDER_GATEWAY_MODELS","ownerConflict":"no"},
+    {"toolId":"mirelo_sfx_v1_5","currentPrimaryOwner":"PROVIDER_GATEWAY_MODELS","soundRole":"handoff-only","duplicateRisk":"high","allowedSOUNDAction":"define SFX semantics","blockedSOUNDAction":"provider call or secret handling","requiredHandoff":"PROVIDER_GATEWAY_MODELS","ownerConflict":"no"},
+    {"toolId":"mmaudio_v2","currentPrimaryOwner":"PROVIDER_GATEWAY_MODELS","soundRole":"handoff-only","duplicateRisk":"high","allowedSOUNDAction":"define draft/fallback SFX semantics","blockedSOUNDAction":"provider call or secret handling","requiredHandoff":"PROVIDER_GATEWAY_MODELS","ownerConflict":"no"},
+    {"toolId":"private_audio_artifact_manifest_builder","currentPrimaryOwner":"SOUND_MUSIC_AUDIO","soundRole":"own","duplicateRisk":"medium","allowedSOUNDAction":"define manifest metadata","blockedSOUNDAction":"create Supabase rows, storage objects, or signed URLs","requiredHandoff":"SUPABASE_RLS_STORAGE_DATABASE","ownerConflict":"no"},
+    {"toolId":"demucs","currentPrimaryOwner":"SOUND_MUSIC_AUDIO","soundRole":"governance-only","duplicateRisk":"high","allowedSOUNDAction":"record provenance/model blocker","blockedSOUNDAction":"download weights or run separation","requiredHandoff":"WORKER_RUNTIME_JOBS and OBSERVABILITY_AUDIT_COST","ownerConflict":"no"}
+  ],
+  "ownershipConflicts": [],
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "runtimeReadinessClaimed": false,
+  "supabaseMutationAllowed": false
+}
+```

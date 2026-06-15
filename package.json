@@ -26,6 +26,7 @@
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "cross-chat-tool-ownership:diagnostics": "node scripts/validation/cross-chat-tool-ownership-registry-diagnostics.mjs",
     "sound-oss-tools-0:diagnostics": "node scripts/validation/sound-oss-tools-0-stack-inventory-diagnostics.mjs",
+    "sound-oss-tools-1:diagnostics": "node scripts/validation/sound-oss-tools-1-license-provenance-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",
     "tool-route-execution-unlock-0:report": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs --report",

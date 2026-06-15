@@ -525,3 +525,11 @@ fixture validation only. Live tool execution, route execution, worker
 execution, provider runtime, browser/WebGL runtime, render/export, Supabase
 mutation, storage transfer, signed URLs, public artifacts, internal beta,
 external beta, and production remain blocked.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 1 QA decision
+`ai_graphics_batch_1_qa_passed_with_warnings` accepts that install/import/
+synthetic proof with warnings and marks the lane ready for a later Batch 2
+approval packet. It does not approve E2E production proof, tool-route runtime,
+browser/WebGL runtime, worker execution, provider runtime, Supabase mutation,
+storage transfer, signed URLs, public artifacts, internal beta, external beta,
+or production.

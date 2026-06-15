@@ -37,3 +37,10 @@ does not approve browser/WebGL runtime, tool-route execution, worker execution,
 provider runtime, render/export, Supabase mutation, storage transfer, signed
 URLs, public artifacts, internal beta, external beta, paid production, or
 production readiness.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 1 QA decision
+`ai_graphics_batch_1_qa_passed_with_warnings` accepts the Batch 1 proof with
+warnings for owner-lane planning only. Batch 2 approval may be prepared, but
+runtime execution, browser/WebGL behavior, route/tool/worker/provider runtime,
+Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
+internal beta, external beta, paid production, and production remain blocked.

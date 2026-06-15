@@ -1,0 +1,25 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "owner_approval_decision",
+  "decision": "tool_route_owner_approved_with_warnings_for_local_fixture_gate_status_packet",
+  "status": "approved_with_warnings",
+  "approvedScope": "next_local_fixture_gate_status_packet_only",
+  "readyForLocalFixtureGateStatusPacket": true,
+  "readyForToolExecution": false,
+  "readyForRouteExecution": false,
+  "readyForWorkerExecution": false,
+  "readyForSupabasePersistence": false,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "runtimeExecutionReadinessClaimed": false,
+  "sourceOfTruthConflictsFound": false,
+  "nextPrompt": "TOOL-ROUTE-EXECUTION-UNLOCK-10: tool-route local fixture gate status packet, no execution",
+  "warnings": [
+    "owner approval applies only to the next local fixture gate-status packet",
+    "tool and route runtime execution remain blocked",
+    "worker execution and job dispatch remain blocked",
+    "Supabase persistence and mutation remain blocked",
+    "production, external beta, and paid production remain blocked",
+    "dry_run_passed and generated_local_fixture_passed remain unclaimed"
+  ]
+}

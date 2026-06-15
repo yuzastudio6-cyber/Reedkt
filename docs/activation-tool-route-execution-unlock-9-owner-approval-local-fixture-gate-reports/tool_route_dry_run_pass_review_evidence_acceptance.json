@@ -1,0 +1,12 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "dry_run_pass_review_evidence_acceptance",
+  "accepted": true,
+  "sourcePr": 398,
+  "sourceDecision": "tool_route_dry_run_pass_review_recorded_with_warnings_ready_for_local_fixture_planning",
+  "dryRunPassReviewRecorded": true,
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false,
+  "readyForLocalFixturePlanning": true,
+  "readyForExecution": false
+}

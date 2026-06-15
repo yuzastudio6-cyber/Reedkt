@@ -1,0 +1,7 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "generated_local_fixture_not_claimed_register",
+  "generatedLocalFixturePassedClaimed": false,
+  "generatedLocalFixturePassedAllowed": false,
+  "reason": "UNLOCK-9 does not execute generated local fixtures and does not create generated assets."
+}

@@ -1,0 +1,15 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "owner_approval_chain_evidence_acceptance",
+  "accepted": true,
+  "chain": [
+    { "pr": 385, "decision": "tool_route_owner_approved_with_warnings_for_next_dry_run_gate", "accepted": true },
+    { "pr": 381, "decision": "tool_route_dry_run_validation_passed_with_warnings_ready_for_owner_approval", "accepted": true },
+    { "pr": 377, "decision": "tool_route_dry_run_contract_ready_with_warnings", "accepted": true },
+    { "pr": 374, "decision": "tool_route_dry_run_plan_ready_with_warnings", "accepted": true },
+    { "pr": 369, "decision": "tool_route_repo_audit_passed_with_warnings_ready_for_dry_run_plan", "accepted": true },
+    { "pr": 360, "decision": "tool_study_pending_owners_completed_ready_for_tool_route_execution_unlock_audit", "accepted": true }
+  ],
+  "completedOwnerStudiesDuplicated": false,
+  "runtimeApprovalGranted": false
+}

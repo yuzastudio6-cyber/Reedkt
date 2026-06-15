@@ -1,0 +1,13 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "gate_status_evidence_acceptance",
+  "accepted": true,
+  "sourcePr": 392,
+  "sourceDecision": "tool_route_dry_run_gate_status_recorded_with_warnings_ready_for_dry_run_pass_review",
+  "gateStatusRecorded": true,
+  "runtimeFlagsClosed": true,
+  "readyForToolExecution": false,
+  "readyForRouteExecution": false,
+  "readyForWorkerExecution": false,
+  "readyForSupabasePersistence": false
+}

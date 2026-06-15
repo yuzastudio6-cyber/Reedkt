@@ -1,0 +1,7 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "dry_run_passed_not_claimed_register",
+  "dryRunPassedClaimed": false,
+  "dryRunPassedAllowed": false,
+  "reason": "UNLOCK-9 approves only the next local fixture gate-status packet and does not execute or validate a dry run pass."
+}

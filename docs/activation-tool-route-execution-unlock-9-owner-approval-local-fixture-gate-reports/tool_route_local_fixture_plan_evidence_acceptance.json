@@ -1,0 +1,20 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "local_fixture_plan_evidence_acceptance",
+  "accepted": true,
+  "sourcePr": 404,
+  "sourceDecision": "tool_route_local_fixture_plan_ready_with_warnings",
+  "caseCount": 18,
+  "metadataAcceptedFixtureCount": 10,
+  "failClosedFixtureCount": 8,
+  "sourceOfTruthRefsPlanned": true,
+  "manifestChecksumPlanAccepted": true,
+  "schemaScoringPlanAccepted": true,
+  "ownerHandoffPlanAccepted": true,
+  "warnings": [
+    "local fixture plan did not execute fixtures",
+    "execution remains blocked until later explicit approvals"
+  ],
+  "dryRunPassedClaimed": false,
+  "generatedLocalFixturePassedClaimed": false
+}

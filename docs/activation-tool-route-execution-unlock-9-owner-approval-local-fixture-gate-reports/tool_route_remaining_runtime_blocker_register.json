@@ -1,0 +1,33 @@
+{
+  "phase": "TOOL-ROUTE-EXECUTION-UNLOCK-9",
+  "reportType": "remaining_runtime_blocker_register",
+  "blockersRemainActive": true,
+  "blockers": [
+    "tool execution",
+    "route execution",
+    "worker execution",
+    "job dispatch",
+    "job claim and lease mutation",
+    "provider and model calls",
+    "Supabase writes and persistence",
+    "SQL and migrations",
+    "storage transfer",
+    "signed URL creation",
+    "signed URLs as source of truth",
+    "public artifact creation",
+    "media processing",
+    "browser capture",
+    "map rendering",
+    "Docker, Cloud Run, and Cloud Build",
+    "credit mutation and Stripe",
+    "internal beta, external beta, paid production, and production unlocks",
+    "Demucs runtime",
+    "Track A runtime",
+    "Track B media runtime",
+    "raw prompt execution",
+    "dry_run_passed claim",
+    "generated_local_fixture_passed claim"
+  ],
+  "runtimeReady": false,
+  "productionReady": false
+}

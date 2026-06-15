@@ -33,8 +33,8 @@ Decision: `approved_with_warnings_for_ai_graphics_batch_2`
 | changed-file secret scan | passed after reviewing expected regex-literal false positives for signed-url detection patterns |
 | `git diff --cached --check` | passed before staging |
 | package-lock unchanged | passed; no `package-lock.json` diff and no Batch 2 package dependency section changes |
-| PR link | pending |
-| PR check rollup | pending |
+| PR link | https://github.com/yuzastudio6-cyber/Reedkt/pull/432 |
+| PR check rollup | empty at creation; PR #432 is draft/open/mergeable clean at `50119eedddeb37f1b814331dd49cf220846d4b22` |
 
 ## Supabase Classification
 

@@ -1,0 +1,22 @@
+{
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "decisionState": "owner_tool_stack_audit_completed_ready_for_install_proof_approval",
+  "backlog": [
+    { "normalizedId": "torch_torchvision", "classification": "needs_smoke_test", "requiredNextAction": "Approved import-only proof for torch without model execution.", "proposedBatch": "batch_6_gpu_model_imports" },
+    { "normalizedId": "transformers", "classification": "needs_model_weight_review", "requiredNextAction": "Define model-weight and package-resolution policy before import proof.", "proposedBatch": "batch_6_gpu_model_imports" },
+    { "normalizedId": "sam2", "classification": "needs_model_weight_review", "requiredNextAction": "Approved package import/model path policy only; no segmentation.", "proposedBatch": "batch_7_ai_vision_model_imports" },
+    { "normalizedId": "birefnet", "classification": "needs_model_weight_review", "requiredNextAction": "Approved dependency import and blocked model-weight policy.", "proposedBatch": "batch_7_ai_vision_model_imports" },
+    { "normalizedId": "rembg", "classification": "blocked_until_other_owner", "requiredNextAction": "Alternate background-removal review only unless owner reopens runtime candidate.", "proposedBatch": "backlog_ai_vision_alternate_review" },
+    { "normalizedId": "transparent_background", "classification": "blocked_until_other_owner", "requiredNextAction": "Alternate background-removal review only unless owner reopens runtime candidate.", "proposedBatch": "backlog_ai_vision_alternate_review" },
+    { "normalizedId": "real_esrgan", "classification": "needs_model_weight_review", "requiredNextAction": "Approved import/model path policy only; no enhancement execution.", "proposedBatch": "batch_7_ai_vision_model_imports" },
+    { "normalizedId": "kornia", "classification": "needs_smoke_test", "requiredNextAction": "Approved import-only proof after GPU/runtime policy review.", "proposedBatch": "batch_6_gpu_model_imports" },
+    { "normalizedId": "d3", "classification": "needs_dependency_declaration", "requiredNextAction": "Select package route and plan deterministic SVG/metadata fixture.", "proposedBatch": "backlog_dataviz_review" },
+    { "normalizedId": "echarts", "classification": "needs_dependency_declaration", "requiredNextAction": "Select package route and plan deterministic option-validation fixture.", "proposedBatch": "backlog_dataviz_review" },
+    { "normalizedId": "pixijs", "classification": "needs_synthetic_fixture", "requiredNextAction": "Keep blocked until browser/canvas runtime boundary is approved.", "proposedBatch": "backlog_creative_graphics_review" },
+    { "normalizedId": "three_js", "classification": "needs_synthetic_fixture", "requiredNextAction": "Keep blocked until 3D/WebGL runtime boundary is approved.", "proposedBatch": "backlog_creative_graphics_review" },
+    { "normalizedId": "babylon_js", "classification": "needs_synthetic_fixture", "requiredNextAction": "Keep as alternate 3D candidate until owner selects it.", "proposedBatch": "backlog_creative_graphics_review" },
+    { "normalizedId": "lottie", "classification": "needs_synthetic_fixture", "requiredNextAction": "Manifest-only planning until player/browser runtime approval exists.", "proposedBatch": "backlog_creative_graphics_review" },
+    { "normalizedId": "konva", "classification": "needs_synthetic_fixture", "requiredNextAction": "Keep blocked until canvas runtime boundary is approved.", "proposedBatch": "backlog_creative_graphics_review" },
+    { "normalizedId": "vega_lite", "classification": "needs_dependency_declaration", "requiredNextAction": "Select package route and plan deterministic spec-validation fixture.", "proposedBatch": "backlog_dataviz_review" }
+  ]
+}

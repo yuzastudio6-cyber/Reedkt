@@ -155,10 +155,19 @@ function readJson(path) {
 }
 
 function gitShow(path) {
-  return execFileSync('git', ['show', `HEAD:${path}`], {
+  return execFileSync('git', ['show', `${repairBaselineRef()}:${path}`], {
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
     encoding: 'utf8',
   })
+}
+
+function repairBaselineRef() {
+  const line = execFileSync('git', ['rev-list', '--parents', '-n', '1', 'HEAD'], {
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    encoding: 'utf8',
+  }).trim()
+  const [, firstParent] = line.split(/\s+/)
+  return firstParent ?? 'HEAD'
 }
 
 function stable(value) {

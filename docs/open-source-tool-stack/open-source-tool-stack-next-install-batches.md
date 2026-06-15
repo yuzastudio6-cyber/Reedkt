@@ -1,6 +1,6 @@
 # Next Install/Proof Batches
 
-The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1`. This document does not approve installation or execution; it only groups the backlog for a later approval packet.
+The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR`. This document does not approve installation or execution; it only groups the backlog for a later approval packet.
 
 ## backlog_ai_vision_alternate_review
 

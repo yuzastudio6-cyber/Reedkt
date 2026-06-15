@@ -89,9 +89,11 @@ Next unlock lane:
 - Broad tools, real routes, workers, providers, media/audio/render/image/browser/map, Supabase/GCS writes, public artifacts, signed URLs, external beta, paid production, and production remain blocked.
 
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
-## Open-Source Tool Stack Batch 1
+DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1:
 
-Current decision: `blocked_pending_package_lock_sync_review`.
-
-Next lane is `DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1`, not install/proof execution. Batch 1 candidates remain conditionally eligible only after package-lock sync repair and a separate approval packet. Real tool/route/worker/provider/runtime/product scopes remain blocked.
+- Decision: `dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun`.
+- The central `@emnapi/*` lock metadata mismatch is repaired and validated with `npm ci --ignore-scripts --no-audit --no-fund`.
+- Batch 1 install/proof execution remains blocked pending a separate approval rerun.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR`.
+- Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

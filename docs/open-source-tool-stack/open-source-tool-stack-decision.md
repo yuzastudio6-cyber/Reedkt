@@ -11,11 +11,11 @@ Reference-only duplicate-risk facts: PR #384 remains open/draft and PR #401 rema
 Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1`.
 
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
-## Batch 1 Install/Proof Approval Status
+## Dependency Baseline Repair Status
 
-Decision: `blocked_pending_package_lock_sync_review`.
+Decision: `dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun`.
 
-Batch 1 candidate review is complete as docs/diagnostics only, but install/proof execution is blocked by the current `@emnapi/*` package-lock sync mismatch reproduced by `npm ci --dry-run --ignore-scripts --no-audit --no-fund`.
+The prior Batch 1 package-lock sync blocker is repaired. The next phase is a fresh Batch 1 approval rerun; this does not authorize install/proof execution.
 
-Next prompt: `DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1`.
+Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR`.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

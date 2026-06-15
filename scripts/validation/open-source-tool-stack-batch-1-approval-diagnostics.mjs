@@ -24,6 +24,17 @@ const requiredDocs = [
 ]
 
 const expectedDecision = 'blocked_pending_package_lock_sync_review'
+const dependencyBaselineRepairDecisionPath =
+  'docs/open-source-tool-stack/dependency-baseline-repair/dependency-baseline-repair-decision.json'
+const expectedDependencyBaselineRepairDecision = 'dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun'
+const dependencyBaselineRepairPackageKeys = [
+  'node_modules/@emnapi/core',
+  'node_modules/@emnapi/runtime',
+  'node_modules/@emnapi/wasi-threads',
+  'node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/core',
+  'node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/runtime',
+  'node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/wasi-threads',
+]
 
 const requiredCandidateIds = [
   'duckdb_metadata_query_proof',
@@ -110,6 +121,30 @@ function readJson(path) {
     failures.push(`invalid_json:${path}:${error.message}`)
     return undefined
   }
+}
+
+function isAllowedDependencyBaselineRepair() {
+  if (!existsSync(dependencyBaselineRepairDecisionPath)) return false
+  const repairDecision = readJson(dependencyBaselineRepairDecisionPath)
+  if (repairDecision?.decision !== expectedDependencyBaselineRepairDecision) return false
+
+  const before = JSON.parse(
+    execFileSync('git', ['show', 'HEAD:package-lock.json'], {
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+      encoding: 'utf8',
+    }),
+  )
+  const after = JSON.parse(readFileSync('package-lock.json', 'utf8'))
+  const topLevelKeys = new Set([...Object.keys(before), ...Object.keys(after)].filter((key) => key !== 'packages'))
+  for (const key of topLevelKeys) {
+    if (JSON.stringify(before[key]) !== JSON.stringify(after[key])) return false
+  }
+
+  const beforePackages = before.packages ?? {}
+  const afterPackages = after.packages ?? {}
+  const keys = new Set([...Object.keys(beforePackages), ...Object.keys(afterPackages)])
+  const changedKeys = [...keys].filter((key) => JSON.stringify(beforePackages[key]) !== JSON.stringify(afterPackages[key])).sort()
+  return JSON.stringify(changedKeys) === JSON.stringify([...dependencyBaselineRepairPackageKeys].sort())
 }
 
 for (const path of requiredDocs) {
@@ -223,7 +258,7 @@ try {
     env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
     encoding: 'utf8',
   }).trim()
-  if (packageLockStatus) failures.push(`package_lock_changed:${packageLockStatus}`)
+  if (packageLockStatus && !isAllowedDependencyBaselineRepair()) failures.push(`package_lock_changed:${packageLockStatus}`)
 } catch (error) {
   failures.push(`package_lock_status_failed:${error.message}`)
 }

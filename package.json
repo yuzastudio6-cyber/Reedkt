@@ -11,6 +11,7 @@
     "tool-study:ai-tools-creative-graphics:diagnostics": "node scripts/validation/tool-study-ai-tools-creative-graphics-diagnostics.mjs",
     "tool-study:track-a-render-export:diagnostics": "node scripts/validation/tool-study-track-a-render-export-diagnostics.mjs",
     "tool-study:completion-rollup:diagnostics": "node scripts/validation/tool-study-0-completion-rollup-diagnostics.mjs",
+    "open-source-tool-stack:audit:diagnostics": "node scripts/validation/open-source-tool-stack-audit-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

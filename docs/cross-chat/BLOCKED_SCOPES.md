@@ -70,9 +70,11 @@ SECOND_CONTROLLED_CANDIDATE_APPROVAL:
 The second controlled candidate dry-run did not unblock real execution. Broad tool execution, route execution, worker execution, provider/model calls, media/audio/render/export/image/browser/map work, Supabase writes, SQL, GCS upload, public artifacts, signed URLs, raw prompts, dependency mutation, external beta, paid production, and production remain blocked.
 
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
-## Open-Source Tool Stack Batch 1 Blocked Scopes
+DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1:
 
-Decision: `blocked_pending_package_lock_sync_review`.
-
-Blocked until `DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1` and a later approval: dependency install, package-lock mutation, DuckDB/Polars/Sharp/libvips/FFmpeg/FFprobe proof execution, route/tool/worker/provider runtime, media/audio/render/image/browser/map processing, Supabase writes, SQL, GCS upload, public artifacts, signed URLs as source of truth, raw prompt execution, beta, and production.
+- Decision: `dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun`.
+- The central `@emnapi/*` lock metadata mismatch is repaired and validated with `npm ci --ignore-scripts --no-audit --no-fund`.
+- Batch 1 install/proof execution remains blocked pending a separate approval rerun.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR`.
+- Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.openSourceToolStack.dependencyBaselineRepair.pr423ReferenceReview.v1",
+  "generatedAt": "2026-06-15T15:00:43.451Z",
+  "decision": "dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun",
+  "prNumber": 423,
+  "referenceOnly": true,
+  "canonical": false,
+  "acceptedFromReference": [
+    "verified @emnapi registry metadata shape",
+    "confirmed owner-specific package script was not copied"
+  ],
+  "packageJsonChangesCopied": false,
+  "notes": [
+    "PR #423 remains draft/reference-only and is not source-of-truth for this central repair.",
+    "The central repair uses only equivalent @emnapi lock metadata needed by npm ci."
+  ]
+}

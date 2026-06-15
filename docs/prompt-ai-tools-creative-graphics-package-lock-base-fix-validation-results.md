@@ -4,7 +4,7 @@ Prompt: `AI_TOOLS_CREATIVE_GRAPHICS_PACKAGE_LOCK_BASE_FIX`
 
 Branch: `codex/rp-ai-tools-creative-graphics-package-lock-base-fix`
 
-PR: pending
+PR: [#423](https://github.com/yuzastudio6-cyber/Reedkt/pull/423)
 
 Decision: `package_lock_base_fix_passed_ready_for_ai_graphics_batch_1_execution_approval`
 
@@ -14,6 +14,7 @@ Decision: `package_lock_base_fix_passed_ready_for_ai_graphics_batch_1_execution_
 - PR #417: draft/open/mergeable clean at `d56601693f8286bf6db6229974cdfc686015044c`.
 - PR #420: draft/open/mergeable clean at `5d9dc9f734e8947658b26c7657dbab3b81db4630`.
 - Exact duplicate head branch search: no open PR found before implementation.
+- PR #423: draft/open/mergeable clean; check rollup empty at creation.
 
 ## Validation
 

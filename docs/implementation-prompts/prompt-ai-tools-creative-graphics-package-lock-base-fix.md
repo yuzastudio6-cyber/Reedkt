@@ -4,7 +4,7 @@ Source prompt: `AI_TOOLS_CREATIVE_GRAPHICS_PACKAGE_LOCK_BASE_FIX`
 
 Branch: `codex/rp-ai-tools-creative-graphics-package-lock-base-fix`
 
-PR: pending
+PR: [#423](https://github.com/yuzastudio6-cyber/Reedkt/pull/423)
 
 Decision: `package_lock_base_fix_passed_ready_for_ai_graphics_batch_1_execution_approval`
 
@@ -21,7 +21,7 @@ The accepted repair is intentionally narrow:
 
 ## Validation Note
 
-`npm ci` failed before repair with the inherited `@emnapi/*` mismatch and passed after the minimal lockfile repair. Diagnostics, lint, typecheck, client build, server build, and readiness summaries passed; production/external beta remain globally blocked by existing readiness gates. Full validation status is recorded in `docs/prompt-ai-tools-creative-graphics-package-lock-base-fix-validation-results.md`.
+`npm ci` failed before repair with the inherited `@emnapi/*` mismatch and passed after the minimal lockfile repair. Diagnostics, lint, typecheck, client build, server build, and readiness summaries passed; production/external beta remain globally blocked by existing readiness gates. PR #423 opened as draft/open/mergeable clean with an empty check rollup. Full validation status is recorded in `docs/prompt-ai-tools-creative-graphics-package-lock-base-fix-validation-results.md`.
 
 ## Next Prompt
 

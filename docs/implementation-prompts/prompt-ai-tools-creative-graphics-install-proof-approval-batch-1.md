@@ -4,7 +4,7 @@ Source prompt: `AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_
 
 Branch: `codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1`
 
-PR: pending
+PR: [#420](https://github.com/yuzastudio6-cyber/Reedkt/pull/420)
 
 Decision: `blocked_pending_package_lock_base_fix`
 
@@ -20,7 +20,7 @@ Selected future Batch 1 tools:
 
 The packet blocks execution approval because the inherited `@emnapi/*` package-lock mismatch prevents clean `npm ci`. It does not mutate `package-lock.json`.
 
-Validation note: docs/static diagnostics passed. `npm ci` remains blocked by the inherited `@emnapi/*` package/lock mismatch, so dependency-backed checks were skipped.
+Validation note: docs/static diagnostics passed. `npm ci` remains blocked by the inherited `@emnapi/*` package/lock mismatch, so dependency-backed checks were skipped. PR #420 opened as draft/open/mergeable clean with an empty check rollup.
 
 ## Next Prompt
 

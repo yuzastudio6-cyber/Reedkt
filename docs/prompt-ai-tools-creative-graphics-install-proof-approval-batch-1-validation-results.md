@@ -4,7 +4,7 @@ Prompt: `AI_TOOLS_CREATIVE_GRAPHICS_OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVA
 
 Branch: `codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1`
 
-PR: pending
+PR: [#420](https://github.com/yuzastudio6-cyber/Reedkt/pull/420)
 
 Decision: `blocked_pending_package_lock_base_fix`
 
@@ -14,6 +14,7 @@ Decision: `blocked_pending_package_lock_base_fix`
 - PR #417: draft/open/mergeable clean at `d56601693f8286bf6db6229974cdfc686015044c`.
 - Exact duplicate head branch search: no open PR found before implementation.
 - Broad search hit unrelated PR #1 only.
+- PR #420: draft/open/mergeable clean; check rollup empty at creation.
 
 ## Validation
 

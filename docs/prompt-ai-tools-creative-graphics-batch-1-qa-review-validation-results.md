@@ -29,8 +29,8 @@ Decision: `ai_graphics_batch_1_qa_passed_with_warnings`
 | readiness summaries | passed; production readiness remains globally blocked by existing launch/tool/model-weight blockers |
 | lint/typecheck/build | passed; `npm run build` emitted existing Vite chunk-size/plugin timing warnings |
 | changed-file secret scan | passed after reviewing expected regex-literal and `mask-*` false positives |
-| PR link | pending |
-| PR check rollup | pending |
+| PR link | https://github.com/yuzastudio6-cyber/Reedkt/pull/428 |
+| PR check rollup | empty at creation; PR #428 is draft/open/mergeable clean |
 
 ## Supabase Classification
 

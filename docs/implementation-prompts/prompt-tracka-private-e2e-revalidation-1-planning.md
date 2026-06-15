@@ -2,32 +2,39 @@
 
 ## Goal
 
-Plan a future private Track A E2E revalidation packet after visual evidence is available and owner approvals are explicit.
+Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1 has bounded the caption-quality and missing-evidence blockers from #419.
 
 ## Current Blocker
 
-TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_visual_artifacts`
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_gap_closure`
 
-TRACKA-VISUAL-REVIEW-2B recorded `metadata_only`, `metadataIntegrity: pass`, and `visualReviewPassed: false`.
-
-## Allowed Future Scope
-
-- define a private revalidation checklist
-- define required representative visual artifacts
-- define QA criteria and owner approvals
-
-## Blocked Scope
-
-- no Track A runtime execution
-- no FFmpeg/FFprobe, Remotion, libass, OTIO, OpenColorIO, OpenImageIO, Kornia, BiRefNet, SAM2, Real-ESRGAN, or FILM execution
-- no media processing, frame extraction, or contact sheet generation
-- no GCS upload or signed URL creation
-- no Supabase mutation or SQL
-- no beta, production, final delivery, or broad media unlock
+#419 recorded `pass_with_warnings_sample_level`, `visualReviewPassedForUploadedSamples: true`, and `fullTrackAVisualClosurePassed: false`.
 
 ## Required Precondition
 
-Representative frames/videos/contact sheets or exact review-safe visual artifacts must be available and reviewed before any private E2E revalidation plan can advance.
+Complete the gap closure packet and provide:
+
+- approved caption source or corrected transcript proof.
+- OTIO/full private E2E review clip or contact sheet.
+- timeline consistency proof.
+- final composition polish checklist.
+- any in-scope missing visual evidence required by the first internal beta scope decision.
+
+## Allowed Future Scope
+
+- define a private revalidation checklist.
+- define required representative visual artifacts.
+- define QA criteria and owner approvals.
+- record whether private E2E can proceed after gap closure.
+
+## Blocked Scope
+
+- no Track A runtime execution.
+- no FFmpeg/FFprobe, Remotion, libass, OTIO, OpenColorIO, OpenImageIO, Kornia, BiRefNet, SAM2, Real-ESRGAN, or FILM execution.
+- no media processing, frame extraction, or contact sheet generation.
+- no GCS upload or signed URL creation.
+- no Supabase mutation or SQL.
+- no beta, production, final delivery, or broad media unlock.
 
 ## No-Scope Statement
 

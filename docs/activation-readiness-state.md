@@ -533,3 +533,14 @@ approval packet. It does not approve E2E production proof, tool-route runtime,
 browser/WebGL runtime, worker execution, provider runtime, Supabase mutation,
 storage transfer, signed URLs, public artifacts, internal beta, external beta,
 or production.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 2 approval packet decision
+`approved_with_warnings_for_ai_graphics_batch_2` approves only a future Batch 2
+install/import/synthetic fixture execution prompt for `satori`,
+`@svgdotjs/svg.js`, `@viz-js/viz`, and `lottie-web`. `animejs` is deferred as a
+later optional metadata/import-only candidate. Batch 2 execution has not run;
+package-lock/package dependency sections are unchanged; actual tool execution,
+route execution, worker execution, provider runtime, browser/WebGL runtime,
+Remotion render/export, resvg rasterization, Supabase mutation, storage
+transfer, signed URLs, public artifacts, internal beta, external beta, and
+production remain blocked.

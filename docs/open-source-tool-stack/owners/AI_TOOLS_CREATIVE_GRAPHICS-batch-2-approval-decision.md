@@ -1,15 +1,12 @@
-# AI_TOOLS_CREATIVE_GRAPHICS Batch 2 Allowed / Blocked Scope
+# AI_TOOLS_CREATIVE_GRAPHICS Batch 2 Approval Decision
 
 Decision: `approved_with_warnings_for_ai_graphics_batch_2`
 
-## Allowed Now
+## Decision Record
 
-- Docs-only approval packet.
-- Static diagnostics.
-- Tracker/status updates where files already exist.
-- Future-only approval for a later Batch 2 execution prompt.
+Batch 2 is approved with warnings for a later install/import/synthetic fixture execution prompt only. The current branch performs no package mutation, import smoke, or synthetic proof.
 
-## Approved For Future Batch 2 Execution Only
+## Required Booleans
 
 | Field | Value |
 | --- | --- |
@@ -17,12 +14,11 @@ Decision: `approved_with_warnings_for_ai_graphics_batch_2`
 | packageLockMutationApproved | `true` |
 | futureImportSmokeApproved | `true` |
 | futureSyntheticFixtureApproved | `true` |
-
-## Blocked Now
-
-| Field | Value |
-| --- | --- |
 | batch2ExecutionApprovedNow | `false` |
+| batch2InstallPerformedNow | `false` |
+| batch2ImportSmokePerformedNow | `false` |
+| batch2SyntheticFixtureProofPerformedNow | `false` |
+| e2eProductionProofClaimed | `false` |
 | actualToolExecutionApprovedNow | `false` |
 | routeExecutionApprovedNow | `false` |
 | workerExecutionApprovedNow | `false` |
@@ -39,5 +35,22 @@ Decision: `approved_with_warnings_for_ai_graphics_batch_2`
 | internalBetaApproved | `false` |
 | externalBetaApproved | `false` |
 | productionApproved | `false` |
+
+## Supabase Classification
+
+- update required: `no write`
+- update status: `docs_only`
+- environment touched: `none`
+- SQL executed: `none`
+- migration deployed: `no`
+- milestone sync: `not_performed`
+
+## Warnings
+
+- PR #428 remains draft/open, so this PR remains draft.
+- Batch 2 approval is future-only and does not make selected packages runtime-ready.
+- Lottie-web remains manifest/import-only; browser/player behavior remains blocked.
+- Satori and SVG.js remain metadata/spec-only; SVG output or rasterized proof is not approved now.
+- Viz proof is limited to DOT/Graphviz metadata or DOT-to-SVG planning; runtime route/tool execution remains blocked.
 
 No dependency install, package-lock mutation, Batch 2 import smoke, Batch 2 synthetic fixture proof, actual tool execution, route execution, worker execution, provider/model call, browser runtime, WebGL runtime, Remotion render/export, resvg rasterization, map rendering, media/audio processing, Supabase mutation, SQL execution, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

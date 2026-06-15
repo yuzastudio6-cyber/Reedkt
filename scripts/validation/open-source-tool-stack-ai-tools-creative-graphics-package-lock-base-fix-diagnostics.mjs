@@ -49,6 +49,9 @@ const requiredLockEntries = [
 
 const forbiddenDependencyNames = ['d3', 'echarts', 'vega', 'vega-lite']
 const approvedBatch1ExecutionDependencyNames = ['d3', 'echarts', 'vega', 'vega-lite']
+const allowedFutureScriptDiffs = [
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',
+]
 const diffBase = process.env.AI_TOOLS_CREATIVE_GRAPHICS_PACKAGE_LOCK_BASE_FIX_DIFF_BASE ?? 'origin/codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1'
 
 const forbiddenPatterns = [
@@ -187,7 +190,8 @@ try {
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-import-smoke') &&
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-synthetic-fixtures') &&
         !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-execution:diagnostics') &&
-        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics')
+        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics') &&
+        !allowedFutureScriptDiffs.some((scriptName) => line.includes(scriptName))
       )
     })
   if (nonScriptPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${nonScriptPackageJsonDiff.join(' | ')}`)

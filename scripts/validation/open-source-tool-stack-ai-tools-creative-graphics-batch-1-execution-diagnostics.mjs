@@ -6,6 +6,7 @@ const expectedDecision = 'ai_graphics_batch_1_install_import_synthetic_proof_pas
 const allowedDecisions = new Set([
   'ai_graphics_batch_1_install_import_synthetic_proof_passed',
   'ai_graphics_batch_1_install_import_synthetic_proof_passed_with_warnings',
+  'approved_with_warnings_for_ai_graphics_batch_2',
   'blocked_batch_1_install_failed',
   'blocked_batch_1_import_smoke_failed',
   'blocked_batch_1_synthetic_fixture_failed',

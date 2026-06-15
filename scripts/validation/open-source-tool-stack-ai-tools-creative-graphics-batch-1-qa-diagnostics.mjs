@@ -27,6 +27,9 @@ const requiredEvidenceDocs = [
   'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-import-smoke-evidence.md',
   'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-synthetic-fixture-evidence.md',
 ]
+const allowedFutureScriptDiffs = [
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics',
+]
 const requiredTrueBooleans = [
   'batch1Accepted',
   'batch1AcceptedWithWarnings',
@@ -163,6 +166,7 @@ const unexpectedPackageJsonDiff = packageJsonDiff
   .split('\n')
   .filter((line) => /^[+-]\s*"/.test(line))
   .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics'))
+  .filter((line) => !allowedFutureScriptDiffs.some((scriptName) => line.includes(scriptName)))
 if (unexpectedPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${unexpectedPackageJsonDiff.join(' | ')}`)
 
 const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])

@@ -19,6 +19,7 @@
     "open-source-tool-stack:ai-tools-creative-graphics:batch-1-synthetic-fixtures": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-1-synthetic-fixtures.mjs",
     "open-source-tool-stack:ai-tools-creative-graphics:batch-1-execution:diagnostics": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-1-execution-diagnostics.mjs",
     "open-source-tool-stack:ai-tools-creative-graphics:batch-1-qa:diagnostics": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-1-qa-diagnostics.mjs",
+    "open-source-tool-stack:ai-tools-creative-graphics:batch-2-approval:diagnostics": "node scripts/validation/open-source-tool-stack-ai-tools-creative-graphics-batch-2-approval-diagnostics.mjs",
     "activation:tool-route-dry-run-approval:plan": "tsx server/cli/activation-tool-route-dry-run-approval-plan.ts",
     "activation:tool-route-dry-run-approval": "tsx server/cli/activation-tool-route-dry-run-approval.ts",
     "activation:tool-route-dry-run-approval:report": "tsx server/cli/activation-tool-route-dry-run-approval-report.ts",

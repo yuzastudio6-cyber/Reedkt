@@ -44,3 +44,12 @@ warnings for owner-lane planning only. Batch 2 approval may be prepared, but
 runtime execution, browser/WebGL behavior, route/tool/worker/provider runtime,
 Supabase mutation, GCS/storage transfer, signed URLs, public artifacts,
 internal beta, external beta, paid production, and production remain blocked.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 2 approval decision
+`approved_with_warnings_for_ai_graphics_batch_2` is future-only for a later
+install/import/synthetic proof of `satori`, `@svgdotjs/svg.js`, `@viz-js/viz`,
+and `lottie-web`. It does not install dependencies now, mutate package-lock now,
+run Batch 2 imports or fixtures now, or approve route/tool/worker/provider
+runtime, browser/WebGL runtime, render/export, Supabase mutation, GCS/storage
+transfer, signed URLs, public artifacts, internal beta, external beta, paid
+production, or production readiness.

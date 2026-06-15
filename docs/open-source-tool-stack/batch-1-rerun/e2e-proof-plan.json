@@ -1,0 +1,82 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Rerun.e2eProofPlan.v1",
+  "generatedAt": "2026-06-15T16:30:00.000Z",
+  "decision": "approved_for_future_open_source_tool_stack_batch_1_install_proof_execution",
+  "actualProofExecutionAuthorized": false,
+  "futureProofPlan": [
+    {
+      "candidateId": "duckdb_metadata_query_proof",
+      "proofClass": "import_version_and_metadata_query",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/duckdb_metadata_query_proof.json",
+      "failureOutcome": "blocked_pending_duckdb_environment"
+    },
+    {
+      "candidateId": "polars_metadata_dataframe_proof",
+      "proofClass": "import_version_and_metadata_dataframe",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/polars_metadata_dataframe_proof.json",
+      "failureOutcome": "blocked_pending_polars_environment"
+    },
+    {
+      "candidateId": "sharp_libvips_import_version_probe",
+      "proofClass": "import_version_only",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/sharp_libvips_import_version_probe.json",
+      "failureOutcome": "blocked_pending_sharp_environment"
+    },
+    {
+      "candidateId": "ffmpeg_version_probe",
+      "proofClass": "binary_version_only",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/ffmpeg_version_probe.json",
+      "failureOutcome": "blocked_pending_ffmpeg_system_binary"
+    },
+    {
+      "candidateId": "ffprobe_version_probe",
+      "proofClass": "binary_version_only",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/ffprobe_version_probe.json",
+      "failureOutcome": "blocked_pending_ffprobe_system_binary"
+    },
+    {
+      "candidateId": "route_capability_manifest_validation",
+      "proofClass": "metadata_validator_only",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/route_capability_manifest_validation.json",
+      "failureOutcome": "blocked_pending_route_capability_manifest_fix"
+    },
+    {
+      "candidateId": "fixture_report_validation_harness",
+      "proofClass": "committed_report_validator_only",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/fixture_report_validation_harness.json",
+      "failureOutcome": "blocked_pending_fixture_report_contract_fix"
+    },
+    {
+      "candidateId": "open_source_tool_inventory_validator",
+      "proofClass": "inventory_matrix_validator_only",
+      "expectedReport": "docs/open-source-tool-stack/batch-1-execution/open_source_tool_inventory_validator.json",
+      "failureOutcome": "blocked_pending_inventory_matrix_fix"
+    }
+  ],
+  "requiresSeparateExecutionApproval": true,
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

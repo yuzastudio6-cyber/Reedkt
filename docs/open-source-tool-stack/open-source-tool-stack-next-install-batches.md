@@ -1,6 +1,6 @@
 # Next Install/Proof Batches
 
-The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR`. This document does not approve installation or execution; it only groups the backlog for a later approval packet.
+The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`. This document does not run installation or execution; it records the approved future proof scope after the dependency baseline repair and Batch 1 rerun approval.
 
 ## backlog_ai_vision_alternate_review
 
@@ -244,11 +244,11 @@ The first recommended next phase is `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROV
 | Mirelo provider API | mirelo_provider_api | blocked | blocked | Keep separated from OSS audit and future provider approval. |
 
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
-## Batch 1 Approval Packet Status
+## Batch 1 Rerun Approval Packet Status
 
-Decision: `blocked_pending_package_lock_sync_review`.
+Decision: `approved_for_future_open_source_tool_stack_batch_1_install_proof_execution`.
 
-The reviewed Batch 1 candidates are DuckDB, Polars, Sharp/libvips, FFmpeg, FFprobe, route/capability manifest validation, fixture/report validation, and open-source inventory/proof matrix validation. They are conditionally eligible only after dependency baseline repair. No install/proof execution is approved by this packet.
+The reviewed Batch 1 candidates are DuckDB, Polars, Sharp/libvips, FFmpeg, FFprobe, route/capability manifest validation, fixture/report validation, and open-source inventory/proof matrix validation. They are approved only for a future no-install, no-lock-mutation proof execution packet that must fail closed if an expected package or binary is unavailable.
 
-Next prompt: `DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1`.
+Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

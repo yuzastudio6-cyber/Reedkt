@@ -1,0 +1,62 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Rerun.blockerRegister.v1",
+  "generatedAt": "2026-06-15T16:30:00.000Z",
+  "decision": "approved_for_future_open_source_tool_stack_batch_1_install_proof_execution",
+  "activeBlockers": [],
+  "resolvedBlockers": [
+    {
+      "id": "package_lock_sync_review",
+      "resolvedBy": "dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun",
+      "evidencePath": "docs/open-source-tool-stack/dependency-baseline-repair/dependency-baseline-repair-decision.json"
+    }
+  ],
+  "failClosedFutureBlockers": [
+    "blocked_pending_candidate_scope_review",
+    "blocked_pending_dependency_install_approval",
+    "blocked_pending_system_binary_review",
+    "blocked_pending_package_lock_policy",
+    "rejected_due_runtime_safety_risk"
+  ],
+  "blockedScopes": [
+    "dependency installation",
+    "package-lock mutation",
+    "tool execution outside selected proof classes",
+    "route execution",
+    "worker execution",
+    "provider calls",
+    "media/audio/render/image/browser/map execution",
+    "Supabase writes",
+    "SQL",
+    "GCS upload",
+    "public artifacts",
+    "signed URLs",
+    "raw prompt execution",
+    "beta unlock",
+    "production unlock"
+  ],
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

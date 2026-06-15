@@ -111,11 +111,12 @@ SECOND_CONTROLLED_CANDIDATE_EXECUTION dry-run:
 - Next prompt: `NEXT_CONTROLLED_CANDIDATE_OR_WORKER_HANDOFF_REVIEW_AFTER_SECOND`.
 
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:start -->
-DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1:
+OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN:
 
-- Decision: `dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun`.
-- The central `@emnapi/*` lock metadata mismatch is repaired and validated with `npm ci --ignore-scripts --no-audit --no-fund`.
-- Batch 1 install/proof execution remains blocked pending a separate approval rerun.
-- Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR`.
+- Decision: `approved_for_future_open_source_tool_stack_batch_1_install_proof_execution`.
+- The central `@emnapi/*` lock metadata mismatch is repaired and the Batch 1 rerun approval is complete.
+- Future proof scope is limited to no-install, no-lock-mutation version/import and metadata validators for DuckDB, Polars, Sharp/libvips, FFmpeg, FFprobe, route/capability manifests, fixture/report validation, and inventory/proof matrix validation.
+- Actual proof execution remains future and separately approved.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`.
 - Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->

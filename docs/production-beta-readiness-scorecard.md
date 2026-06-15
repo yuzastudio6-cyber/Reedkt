@@ -29,3 +29,11 @@ record. It is not tool runtime execution, model inference, media processing,
 web search, map rendering, browser capture, provider execution, public
 artifact, external beta, paid production, broad real media, or production
 approval.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 1 install/import/synthetic proof counts only
+as owner-lane package proof for `d3`, `echarts`, `vega-lite`, and `vega`.
+Decision `ai_graphics_batch_1_install_import_synthetic_proof_passed_with_warnings`
+does not approve browser/WebGL runtime, tool-route execution, worker execution,
+provider runtime, render/export, Supabase mutation, storage transfer, signed
+URLs, public artifacts, internal beta, external beta, paid production, or
+production readiness.

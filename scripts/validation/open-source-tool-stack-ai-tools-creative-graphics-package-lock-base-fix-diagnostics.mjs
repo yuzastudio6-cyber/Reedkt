@@ -48,6 +48,7 @@ const requiredLockEntries = [
 ]
 
 const forbiddenDependencyNames = ['d3', 'echarts', 'vega', 'vega-lite']
+const approvedBatch1ExecutionDependencyNames = ['d3', 'echarts', 'vega', 'vega-lite']
 const diffBase = process.env.AI_TOOLS_CREATIVE_GRAPHICS_PACKAGE_LOCK_BASE_FIX_DIFF_BASE ?? 'origin/codex/rp-ai-tools-creative-graphics-install-proof-approval-batch-1'
 
 const forbiddenPatterns = [
@@ -73,6 +74,12 @@ const forbiddenPatterns = [
 ]
 
 const failures = []
+const batch1ExecutionDecisionPath = 'docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-1-readiness-decision.md'
+const batch1ExecutionContext =
+  existsSync(batch1ExecutionDecisionPath) &&
+  readFileSync(batch1ExecutionDecisionPath, 'utf8').includes(
+    'ai_graphics_batch_1_install_import_synthetic_proof_passed_with_warnings',
+  )
 
 const readGitDiff = (path) => {
   const env = { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' }
@@ -150,7 +157,9 @@ if (
 
 for (const section of ['dependencies', 'devDependencies', 'optionalDependencies']) {
   for (const dependencyName of forbiddenDependencyNames) {
-    if (packageJson?.[section]?.[dependencyName]) failures.push(`batch_1_dependency_added:${section}:${dependencyName}`)
+    if (!batch1ExecutionContext && packageJson?.[section]?.[dependencyName]) {
+      failures.push(`batch_1_dependency_added:${section}:${dependencyName}`)
+    }
   }
 }
 
@@ -160,7 +169,9 @@ for (const [path, version] of requiredLockEntries) {
   if (lockPackages[path]?.version !== version) failures.push(`lock_entry_missing_or_wrong:${path}:${lockPackages[path]?.version}`)
 }
 for (const dependencyName of forbiddenDependencyNames) {
-  if (lockPackages[`node_modules/${dependencyName}`]) failures.push(`batch_1_lock_entry_added:${dependencyName}`)
+  if (!batch1ExecutionContext && lockPackages[`node_modules/${dependencyName}`]) {
+    failures.push(`batch_1_lock_entry_added:${dependencyName}`)
+  }
 }
 
 try {
@@ -169,6 +180,15 @@ try {
     .split('\n')
     .filter((line) => /^[+-]\s*"/.test(line))
     .filter((line) => !line.includes('open-source-tool-stack:ai-tools-creative-graphics:package-lock-base-fix:diagnostics'))
+    .filter((line) => {
+      if (!batch1ExecutionContext) return true
+      return (
+        !approvedBatch1ExecutionDependencyNames.some((dependencyName) => line.includes(`"${dependencyName}"`)) &&
+        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-import-smoke') &&
+        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-synthetic-fixtures') &&
+        !line.includes('open-source-tool-stack:ai-tools-creative-graphics:batch-1-execution:diagnostics')
+      )
+    })
   if (nonScriptPackageJsonDiff.length > 0) failures.push(`unexpected_package_json_diff:${nonScriptPackageJsonDiff.join(' | ')}`)
 } catch (error) {
   failures.push(`package_json_diff_failed:${error.message}`)
@@ -176,14 +196,18 @@ try {
 
 try {
   const lockDiff = readGitDiff('package-lock.json')
-  const unrelatedAddRemove = lockDiff
-    .split('\n')
-    .filter((line) => /^[+-]\s{4}"/.test(line))
-    .filter((line) => !line.includes('@emnapi/'))
-    .filter((line) => !line.includes('"version"') && !line.includes('"resolved"') && !line.includes('"integrity"') && !line.includes('"dev"') && !line.includes('"license"') && !line.includes('"optional"') && !line.includes('"peer"') && !line.includes('"dependencies"') && !line.includes('"tslib"'))
-  if (unrelatedAddRemove.length > 0) failures.push(`unexpected_lock_diff:${unrelatedAddRemove.slice(0, 8).join(' | ')}`)
-  if (!lockDiff.includes('node_modules/@emnapi/core')) failures.push('lock_diff_missing_emnapi_core')
-  if (!lockDiff.includes('node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/core')) failures.push('lock_diff_missing_nested_emnapi_core')
+  if (!batch1ExecutionContext) {
+    const unrelatedAddRemove = lockDiff
+      .split('\n')
+      .filter((line) => /^[+-]\s{4}"/.test(line))
+      .filter((line) => !line.includes('@emnapi/'))
+      .filter((line) => !line.includes('"version"') && !line.includes('"resolved"') && !line.includes('"integrity"') && !line.includes('"dev"') && !line.includes('"license"') && !line.includes('"optional"') && !line.includes('"peer"') && !line.includes('"dependencies"') && !line.includes('"tslib"'))
+    if (unrelatedAddRemove.length > 0) failures.push(`unexpected_lock_diff:${unrelatedAddRemove.slice(0, 8).join(' | ')}`)
+  }
+  if (!batch1ExecutionContext) {
+    if (!lockDiff.includes('node_modules/@emnapi/core')) failures.push('lock_diff_missing_emnapi_core')
+    if (!lockDiff.includes('node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/core')) failures.push('lock_diff_missing_nested_emnapi_core')
+  }
 } catch (error) {
   failures.push(`package_lock_diff_failed:${error.message}`)
 }

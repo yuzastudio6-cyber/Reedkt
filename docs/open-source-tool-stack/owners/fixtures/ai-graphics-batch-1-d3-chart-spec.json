@@ -1,0 +1,57 @@
+{
+  "manifestId": "ai_graphics_batch_1_d3_chart_spec",
+  "toolId": "d3",
+  "proofType": "synthetic_spec_metadata_only",
+  "dataClassification": "synthetic_only",
+  "description": "Deterministic D3 scale and line metadata fixture. This is not a rendered chart.",
+  "data": [
+    { "category": "alpha", "value": 4 },
+    { "category": "beta", "value": 12 },
+    { "category": "gamma", "value": 20 }
+  ],
+  "scaleCheck": {
+    "type": "linear",
+    "domain": [0, 20],
+    "range": [0, 200],
+    "sampleInput": 10,
+    "expectedOutput": 100
+  },
+  "lineCheck": {
+    "points": [
+      [0, 0],
+      [1, 1],
+      [2, 4]
+    ],
+    "expectedPrefix": "M0,0"
+  },
+  "blockedUses": [
+    "browser_rendering",
+    "svg_export",
+    "remotion_render_export",
+    "route_execution",
+    "worker_execution",
+    "provider_model_call",
+    "supabase_mutation",
+    "gcs_upload",
+    "signed_url_creation",
+    "public_artifact_creation",
+    "beta_or_production_unlock"
+  ],
+  "approvals": {
+    "actualToolExecutionApprovedNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "renderExportApprovedNow": false,
+    "mediaRuntimeApprovedNow": false,
+    "browserRuntimeApprovedNow": false,
+    "supabaseMutationApprovedNow": false,
+    "gcsUploadApprovedNow": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "rawPromptExecutionApproved": false,
+    "internalBetaApproved": false,
+    "externalBetaApproved": false,
+    "productionApproved": false
+  }
+}

@@ -8,7 +8,11 @@ Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CL
 
 TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_revalidation_and_remaining_scope_decision`
 
-#419 recorded `pass_with_warnings_sample_level`, `visualReviewPassedForUploadedSamples: true`, and `fullTrackAVisualClosurePassed: false`.
+#419 recorded `pass_with_warnings_sample_level` for uploaded samples and `fullTrackAVisualClosurePassed: false`.
+
+#426 closed controlled-test caption text quality, but caption visual burn-in revalidation remains required.
+
+TRACKA-MISSING-VISUAL-EVIDENCE-1 is merged as #429 at `e4ccb582aadaa9e32607e5a1ae2bbec0719ddc1f`, records the missing visual evidence bundle, and copied 5 visual artifacts without closing blockers by itself.
 
 TRACKA-MISSING-VISUAL-EVIDENCE-2 records `overallDecision: partial_pass_with_warnings`, keeps `fullMissingVisualEvidenceClosurePassed: false`, and keeps `fullTrackAVisualClosurePassed: false`.
 
@@ -41,4 +45,4 @@ Complete caption burn-in revalidation and confirm the remaining first-internal-b
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded private GCS metadata/list/read/copy was allowed only for exact or narrowly allowlisted Track A missing-evidence refs from current-source and historical PR evidence.

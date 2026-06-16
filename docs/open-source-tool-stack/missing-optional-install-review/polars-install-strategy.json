@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalInstallReview.polarsInstallStrategy.v1",
+  "generatedAt": "2026-06-16T15:43:59.367Z",
+  "toolName": "Polars",
+  "normalizedId": "polars",
+  "owner": "TRACK_B_MEDIA_PROCESSING",
+  "currentBatch1Status": "blocked_missing_dependency_or_module",
+  "selectedFuturePackageCandidate": "nodejs-polars",
+  "candidateRuntime": "node_server_only",
+  "installClass": "npm_package",
+  "packageLockMutationExpectedInFutureApproval": true,
+  "packageLockMutationAllowedInThisReview": false,
+  "dependencyInstallAllowedInThisReview": false,
+  "futureProofScope": "import/version plus tiny in-memory synthetic dataframe metadata proof after separate package-and-binary approval only",
+  "prohibitedUses": [
+    "real dataframe processing from user media",
+    "filesystem scan of private uploads",
+    "worker route execution",
+    "Supabase writes",
+    "public artifacts",
+    "production use"
+  ],
+  "failClosedRules": [
+    "block if package selection changes without review",
+    "block if package-lock diff contains unrelated dependencies",
+    "block if proof reads files or network resources"
+  ],
+  "reviewedReadyForFutureApproval": true,
+  "passed": true
+}

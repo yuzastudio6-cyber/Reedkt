@@ -1,0 +1,47 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalInstallReview.ffmpegFfprobeInstallStrategy.v1",
+  "generatedAt": "2026-06-16T15:43:59.367Z",
+  "tools": [
+    {
+      "toolName": "FFmpeg",
+      "normalizedId": "ffmpeg",
+      "currentBatch1Status": "blocked_missing_system_binary",
+      "futureBinaryName": "ffmpeg"
+    },
+    {
+      "toolName": "FFprobe",
+      "normalizedId": "ffprobe",
+      "currentBatch1Status": "blocked_missing_system_binary",
+      "futureBinaryName": "ffprobe"
+    }
+  ],
+  "ownerHandoff": [
+    "TRACK_A_RENDER_EXPORT",
+    "SOUND_MUSIC_AUDIO",
+    "WORKER_RUNTIME_JOBS"
+  ],
+  "installClass": "system_binary_or_worker_container_layer",
+  "npmWrapperSelected": false,
+  "packageLockMutationExpectedInFutureApproval": false,
+  "systemBinaryInstallAllowedInThisReview": false,
+  "containerImageMutationAllowedInThisReview": false,
+  "futureProofScope": "version probes only after separate system-binary/container approval; no media input or output",
+  "licensePolicy": "LGPL-safe FFmpeg configuration review required before production use",
+  "prohibitedUses": [
+    "media decode",
+    "media encode",
+    "media probe of user files",
+    "audio processing",
+    "render/export",
+    "worker execution",
+    "production use"
+  ],
+  "failClosedRules": [
+    "block if binaries are absent in the approved runtime",
+    "block if GPL/nonfree build flags are unreviewed",
+    "block if proof touches media files"
+  ],
+  "ffmpegReviewedReadyForFutureApproval": true,
+  "ffprobeReviewedReadyForFutureApproval": true,
+  "passed": true
+}

@@ -48,3 +48,14 @@ OPEN_SOURCE_TOOL_STACK_BATCH_1_QA_REVIEW:
 - Next prompt: `OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_TOOL_INSTALL_REVIEW`.
 - Real tool, route, worker, provider, media/audio/render/image/browser/map, Supabase/GCS, public artifact, signed URL, raw prompt, beta, and production scopes remain blocked.
 <!-- OPEN_SOURCE_BATCH_1_QA_REVIEW_STATUS:end -->
+
+<!-- OPEN_SOURCE_MISSING_OPTIONAL_INSTALL_REVIEW_STATUS:start -->
+OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_TOOL_INSTALL_REVIEW:
+
+- Decision: `missing_optional_install_review_passed_ready_for_package_and_binary_approval`.
+- DuckDB future package candidate: `duckdb`; not installed or proven here.
+- Polars future package candidate: `nodejs-polars`; not installed or proven here.
+- FFmpeg/FFprobe future strategy: system or worker-container binaries only; no npm wrapper and no media probing here.
+- Next prompt: `OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_PACKAGE_AND_BINARY_APPROVAL`.
+- Real installs, package-lock mutation, import smoke, version probes, tool/route/worker/provider execution, media/audio/render/image/browser/map work, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+<!-- OPEN_SOURCE_MISSING_OPTIONAL_INSTALL_REVIEW_STATUS:end -->

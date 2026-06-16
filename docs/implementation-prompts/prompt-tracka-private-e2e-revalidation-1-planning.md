@@ -2,11 +2,11 @@
 
 ## Goal
 
-Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1, TRACKA-CAPTION-QUALITY-1, and TRACKA-MISSING-VISUAL-EVIDENCE-2 have bounded the caption-quality and missing-evidence blockers from #419.
+Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1, TRACKA-CAPTION-QUALITY-1, TRACKA-MISSING-VISUAL-EVIDENCE-2, and TRACKA-CAPTION-QUALITY-2 have bounded the caption-quality, corrected-caption burn-in, and missing-evidence blockers from #419.
 
 ## Current Blocker
 
-TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_revalidation_and_remaining_scope_decision`
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_revalidation_execution_and_scope_decision`
 
 #419 recorded `pass_with_warnings_sample_level` for uploaded samples and `fullTrackAVisualClosurePassed: false`.
 
@@ -16,9 +16,11 @@ TRACKA-MISSING-VISUAL-EVIDENCE-1 is merged as #429 at `e4ccb582aadaa9e32607e5a1a
 
 TRACKA-MISSING-VISUAL-EVIDENCE-2 records `overallDecision: partial_pass_with_warnings`, keeps `fullMissingVisualEvidenceClosurePassed: false`, and keeps `fullTrackAVisualClosurePassed: false`.
 
+TRACKA-CAPTION-QUALITY-2 records corrected-caption burn-in revalidation planning, keeps corrected-caption visual burn-in unexecuted, and sets `TRACKA-CAPTION-QUALITY-3 readiness: ready_for_burnin_revalidation_execution_packet`.
+
 ## Required Precondition
 
-Complete caption burn-in revalidation and confirm the remaining first-internal-beta scope decision:
+Complete caption burn-in revalidation execution and confirm the remaining first-internal-beta scope decision:
 
 - use #426 approved controlled-test caption source.
 - provide corrected-caption burn-in review evidence.
@@ -45,4 +47,4 @@ Complete caption burn-in revalidation and confirm the remaining first-internal-b
 
 ## No-Scope Statement
 
-No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled. Bounded private GCS metadata/list/read/copy was allowed only for exact or narrowly allowlisted Track A missing-evidence refs from current-source and historical PR evidence.
+No Supabase mutation, SQL execution, Secret Manager payload access, provider call, model call, tool execution, worker execution, route execution, browser capture, Docker/Cloud Run execution, signed URL creation, public artifact creation, credit mutation, Stripe checkout/webhook/payment processing, deployment, internal beta unlock, external beta unlock, production unlock, dependency mutation, raw prompt execution, final render/export, or broad service-role handler was enabled.

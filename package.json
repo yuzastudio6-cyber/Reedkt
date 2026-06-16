@@ -580,6 +580,7 @@
     "track-a:visual-review-2c-outcome:diagnostics": "node scripts/validation/track-a-visual-review-2c-outcome-diagnostics.mjs",
     "track-a:visual-gap-closure-1:diagnostics": "node scripts/validation/track-a-visual-gap-closure-1-diagnostics.mjs",
     "track-a:caption-quality-1:diagnostics": "node scripts/validation/track-a-caption-quality-1-diagnostics.mjs",
+    "track-a:caption-quality-2:diagnostics": "node scripts/validation/track-a-caption-quality-2-diagnostics.mjs",
     "track-a:missing-visual-evidence-1": "node scripts/validation/track-a-missing-visual-evidence-1.mjs",
     "track-a:missing-visual-evidence-1:diagnostics": "node scripts/validation/track-a-missing-visual-evidence-1-diagnostics.mjs",
     "track-a:missing-visual-evidence-2:diagnostics": "node scripts/validation/track-a-missing-visual-evidence-2-diagnostics.mjs",

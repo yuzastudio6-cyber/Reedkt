@@ -5,13 +5,18 @@ const diffBase =
   process.env.AI_TOOLS_CREATIVE_GRAPHICS_BATCH_2_APPROVAL_DIFF_BASE ??
   'origin/codex/rp-ai-tools-creative-graphics-batch-1-qa-review'
 const expectedDecision = 'approved_with_warnings_for_ai_graphics_batch_2'
-const allowedDecisions = new Set([expectedDecision, 'blocked_pending_ai_graphics_batch_2_approval_fixes'])
+const allowedDecisions = new Set([
+  expectedDecision,
+  'blocked_pending_ai_graphics_batch_2_approval_fixes',
+  'ai_graphics_batch_2_qa_passed_with_warnings',
+])
 const selectedPackages = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
 const executionContextDecision = 'ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnings'
 const allowedExecutionScripts = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-import-smoke',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-synthetic-fixtures',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-2-execution:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-2-qa:diagnostics',
 ]
 const deferredPackages = ['animejs']
 const excludedTokens = [

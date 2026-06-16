@@ -62,3 +62,12 @@ route/tool/worker/provider runtime, browser/WebGL runtime, Lottie player
 behavior, Remotion render/export, resvg rasterization, Supabase mutation,
 GCS/storage transfer, signed URLs, public artifacts, internal beta, external
 beta, paid production, or production readiness.
+
+AI_TOOLS_CREATIVE_GRAPHICS Batch 2 QA decision
+`ai_graphics_batch_2_qa_passed_with_warnings` accepts the Batch 2
+install/import/synthetic proof for owner-lane planning only. Batch 3 approval
+may be prepared, but runtime route/tool/worker/provider execution,
+browser/WebGL behavior, Lottie player behavior, Remotion render/export, resvg
+rasterization, Supabase mutation, GCS/storage transfer, signed URLs, public
+artifacts, internal beta, external beta, paid production, and production remain
+blocked.

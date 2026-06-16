@@ -14,6 +14,9 @@ Plan a future caption burn-in and Remotion preview revalidation phase using the 
 - #419 TRACKA-VISUAL-REVIEW-2C
 - #422 TRACKA-VISUAL-GAP-CLOSURE-1
 - #426 TRACKA-CAPTION-QUALITY-1
+- #429 TRACKA-MISSING-VISUAL-EVIDENCE-1 merged at `e4ccb582aadaa9e32607e5a1ae2bbec0719ddc1f`
+- #429 bundle evidence: 5 copied visual artifacts, with no missing-visual-evidence blocker closed by #429 itself.
+- TRACKA-MISSING-VISUAL-EVIDENCE-2 outcome, which records `partial_pass_with_warnings` and `technical_pass_with_caption_revalidation_warning` for the old libass and Remotion previews.
 
 ## Required Work
 
@@ -27,8 +30,17 @@ Plan a future caption burn-in and Remotion preview revalidation phase using the 
 
 - visual burn-in revalidation plan references the approved caption source.
 - caption text remains controlled-test-only.
-- missing visual evidence remains a separate blocker until TRACKA-MISSING-VISUAL-EVIDENCE-2 records a review outcome.
+- corrected #426 caption copy is the only approved controlled-test caption text for this revalidation path.
+- old awkward caption text from the uploaded #429 preview samples is explicitly rejected and not reused.
+- corrected caption burn-in revalidation has not run yet.
+- missing visual evidence remains partially reviewed with warnings; BiRefNet and Real-ESRGAN remain unresolved unless excluded from first beta scope.
 - no transcript accuracy, internal beta, external beta, production, runtime, final delivery, public artifact, or signed URL approval is claimed.
+
+## Current Readiness
+
+TRACKA-CAPTION-QUALITY-2 readiness: ready_for_burnin_revalidation_planning
+
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: blocked_pending_caption_burnin_revalidation_and_remaining_scope_decision
 
 ## No-Scope Statement
 

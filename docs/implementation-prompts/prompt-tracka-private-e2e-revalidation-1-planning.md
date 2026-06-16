@@ -2,27 +2,30 @@
 
 ## Goal
 
-Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1 has bounded the caption-quality and missing-evidence blockers from #419.
+Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1, TRACKA-CAPTION-QUALITY-1, and TRACKA-MISSING-VISUAL-EVIDENCE-2 have bounded the caption-quality and missing-evidence blockers from #419.
 
 ## Current Blocker
 
-TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_missing_visual_evidence_review_and_caption_revalidation`
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_revalidation_and_remaining_scope_decision`
 
 #419 recorded `pass_with_warnings_sample_level` for uploaded samples and `fullTrackAVisualClosurePassed: false`.
 
 #426 closed controlled-test caption text quality, but caption visual burn-in revalidation remains required.
 
-TRACKA-MISSING-VISUAL-EVIDENCE-1 records the missing visual evidence allowlist and remains blocked until private artifact access is explicitly confirmed or exact review-safe visual artifacts are provided.
+TRACKA-MISSING-VISUAL-EVIDENCE-1 is merged as #429 at `e4ccb582aadaa9e32607e5a1ae2bbec0719ddc1f`, records the missing visual evidence bundle, and copied 5 visual artifacts without closing blockers by itself.
+
+TRACKA-MISSING-VISUAL-EVIDENCE-2 records `overallDecision: partial_pass_with_warnings`, keeps `fullMissingVisualEvidenceClosurePassed: false`, and keeps `fullTrackAVisualClosurePassed: false`.
 
 ## Required Precondition
 
-Complete the gap closure packet and provide:
+Complete caption burn-in revalidation and confirm the remaining first-internal-beta scope decision:
 
-- approved caption source from #426 plus future caption burn-in revalidation proof.
-- OTIO/full private E2E review clip or contact sheet.
-- timeline consistency proof.
-- final composition polish checklist.
-- any in-scope missing visual evidence required by the first internal beta scope decision.
+- use #426 approved controlled-test caption source.
+- provide corrected-caption burn-in review evidence.
+- provide one clean private E2E review clip or contact sheet.
+- provide timeline consistency proof.
+- provide final composition polish checklist.
+- decide whether BiRefNet/text-behind-subject and Real-ESRGAN/enhancement are excluded from first restricted internal beta or need TRACKA-MISSING-VISUAL-EVIDENCE-3 first.
 
 ## Allowed Future Scope
 

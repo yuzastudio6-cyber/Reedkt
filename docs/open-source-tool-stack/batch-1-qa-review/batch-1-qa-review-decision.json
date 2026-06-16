@@ -1,0 +1,93 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1QaReview.decision.v1",
+  "generatedAt": "2026-06-16T14:47:52.893Z",
+  "decision": "open_source_tool_stack_batch_1_qa_passed_with_missing_optional_tools_ready_for_missing_optional_install_review",
+  "readiness": true,
+  "qaReviewComplete": true,
+  "acceptedWithWarnings": true,
+  "passedTargetsAcceptedAsCentralEvidence": [
+    "sharp_libvips_import_version_probe",
+    "route_capability_manifest_validation",
+    "fixture_report_validation_harness",
+    "open_source_tool_inventory_validator"
+  ],
+  "missingOptionalTargetsRequiringInstallReview": [
+    {
+      "targetId": "duckdb_metadata_query_proof",
+      "status": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true
+    },
+    {
+      "targetId": "polars_metadata_dataframe_proof",
+      "status": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true
+    },
+    {
+      "targetId": "ffmpeg_version_probe",
+      "status": "blocked_missing_system_binary",
+      "installReviewRequired": true
+    },
+    {
+      "targetId": "ffprobe_version_probe",
+      "status": "blocked_missing_system_binary",
+      "installReviewRequired": true
+    }
+  ],
+  "missingOptionalToolsCountedAsInstalledOrProven": false,
+  "fullToolImplementationReadinessClaimed": false,
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_TOOL_INSTALL_REVIEW",
+  "blockers": [],
+  "packageLockUnchanged": true,
+  "dependencyInstallAttempted": false,
+  "packageLockMutationAttempted": false,
+  "newToolImportSmokeRun": false,
+  "newToolVersionProbeRun": false,
+  "newFixtureProofRun": false,
+  "realToolExecutionAttempted": false,
+  "routeExecutionAttempted": false,
+  "workerExecutionAttempted": false,
+  "providerCallsAttempted": false,
+  "mediaProcessingAttempted": false,
+  "supabaseWritesAttempted": false,
+  "gcsUploadAttempted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "rawPromptsExecuted": false,
+  "betaProductionUnlocked": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "newToolImportSmokeAllowed": false,
+    "newToolVersionProbeAllowed": false,
+    "newFixtureProofAllowed": false,
+    "broadToolExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

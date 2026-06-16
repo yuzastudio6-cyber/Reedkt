@@ -1,0 +1,137 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1QaReview.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-16T14:47:52.893Z",
+  "branch": "codex/rp-open-source-tool-stack-batch-1-qa-review",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "d79c4ece6eacdea0fbc836536aa8fe34d818ac22",
+  "currentHead": "d79c4ece6eacdea0fbc836536aa8fe34d818ac22",
+  "pr435": {
+    "githubMetadataAvailable": true,
+    "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+    "headRefName": "codex/rp-open-source-tool-stack-install-proof-execution-batch-1",
+    "headRefOid": "9fa82db4bfd25868aebc82f3d3d1779c149ee5db",
+    "isDraft": false,
+    "mergedAt": "2026-06-16T14:25:23Z",
+    "number": 435,
+    "state": "MERGED",
+    "title": "[tools] Open-source tool stack install/proof execution Batch 1",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/435"
+  },
+  "pr435EvidenceDecision": "open_source_tool_stack_batch_1_execution_passed_with_missing_optional_tools",
+  "pr435MergedEvidencePresent": true,
+  "predecessorPrEvidence": [
+    {
+      "pr": 430,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 427,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 421,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 416,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 412,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 407,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 402,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 399,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 394,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 388,
+      "role": "merged_source_evidence"
+    },
+    {
+      "pr": 387,
+      "role": "merged_source_evidence"
+    }
+  ],
+  "referenceOnlyPrs": [
+    {
+      "pr": 384,
+      "role": "reference_only_non_canonical"
+    },
+    {
+      "pr": 401,
+      "role": "reference_only_non_canonical"
+    },
+    {
+      "pr": 417,
+      "role": "reference_only_non_canonical"
+    },
+    {
+      "pr": 420,
+      "role": "reference_only_non_canonical"
+    },
+    {
+      "pr": 423,
+      "role": "reference_only_non_canonical"
+    },
+    {
+      "pr": 425,
+      "role": "reference_only_non_canonical"
+    },
+    {
+      "pr": 428,
+      "role": "reference_only_non_canonical"
+    },
+    {
+      "pr": 432,
+      "role": "reference_only_non_canonical"
+    }
+  ],
+  "broadProductionDocsPresent": {
+    "betaReadinessScorecard": false,
+    "productionBetaBlockerInventory": false,
+    "productionFoundationStatus": false
+  },
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "newToolImportSmokeAllowed": false,
+    "newToolVersionProbeAllowed": false,
+    "newFixtureProofAllowed": false,
+    "broadToolExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

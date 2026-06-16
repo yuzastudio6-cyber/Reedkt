@@ -16,7 +16,7 @@ This prompt is QA/review-only. It does not install dependencies, mutate package-
 - Base head used: `92c1a52b53c4836a642ab6be8885aa8fb994e9c8`
 - Draft PR: [#445](https://github.com/yuzastudio6-cyber/Reedkt/pull/445)
 - PR status after creation: draft/open/mergeable clean with empty check rollup
-- PR head after follow-up push: `a7d65951cb3b941eaf0913b7daa4ac5de6a37e74`
+- PR head after follow-up push: see live PR #445 metadata after final push
 
 ## Implemented
 

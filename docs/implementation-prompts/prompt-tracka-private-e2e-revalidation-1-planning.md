@@ -2,23 +2,26 @@
 
 ## Goal
 
-Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1 has bounded the caption-quality and missing-evidence blockers from #419.
+Plan a future private Track A E2E revalidation packet after TRACKA-VISUAL-GAP-CLOSURE-1, TRACKA-CAPTION-QUALITY-1, and TRACKA-MISSING-VISUAL-EVIDENCE-2 have bounded the caption-quality and missing-evidence blockers from #419.
 
 ## Current Blocker
 
-TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_gap_closure`
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: `blocked_pending_caption_burnin_revalidation_and_remaining_scope_decision`
 
 #419 recorded `pass_with_warnings_sample_level`, `visualReviewPassedForUploadedSamples: true`, and `fullTrackAVisualClosurePassed: false`.
 
+TRACKA-MISSING-VISUAL-EVIDENCE-2 records `overallDecision: partial_pass_with_warnings`, keeps `fullMissingVisualEvidenceClosurePassed: false`, and keeps `fullTrackAVisualClosurePassed: false`.
+
 ## Required Precondition
 
-Complete the gap closure packet and provide:
+Complete caption burn-in revalidation and confirm the remaining first-internal-beta scope decision:
 
-- approved caption source or corrected transcript proof.
-- OTIO/full private E2E review clip or contact sheet.
-- timeline consistency proof.
-- final composition polish checklist.
-- any in-scope missing visual evidence required by the first internal beta scope decision.
+- use #426 approved controlled-test caption source.
+- provide corrected-caption burn-in review evidence.
+- provide one clean private E2E review clip or contact sheet.
+- provide timeline consistency proof.
+- provide final composition polish checklist.
+- decide whether BiRefNet/text-behind-subject and Real-ESRGAN/enhancement are excluded from first restricted internal beta or need TRACKA-MISSING-VISUAL-EVIDENCE-3 first.
 
 ## Allowed Future Scope
 

@@ -12,6 +12,9 @@ Plan a future caption burn-in and Remotion preview revalidation phase using the 
 - `docs/track-a/track-a-caption-quality-revalidation-plan.md`
 - #419 TRACKA-VISUAL-REVIEW-2C
 - #422 TRACKA-VISUAL-GAP-CLOSURE-1
+- #426 TRACKA-CAPTION-QUALITY-1
+- #429 TRACKA-MISSING-VISUAL-EVIDENCE-1 open evidence at `ce872be9`
+- TRACKA-MISSING-VISUAL-EVIDENCE-2 outcome, which records `technical_pass_with_caption_revalidation_warning` for the old libass and Remotion previews.
 
 ## Required Work
 
@@ -25,7 +28,15 @@ Plan a future caption burn-in and Remotion preview revalidation phase using the 
 
 - visual burn-in revalidation plan references the approved caption source.
 - caption text remains controlled-test-only.
+- corrected #426 caption copy is the only approved controlled-test caption text for this revalidation path.
+- old awkward caption text from the uploaded #429 preview samples is explicitly rejected and not reused.
 - no transcript accuracy, internal beta, external beta, production, runtime, final delivery, public artifact, or signed URL approval is claimed.
+
+## Current Readiness
+
+TRACKA-CAPTION-QUALITY-2 readiness: ready_for_burnin_revalidation_planning
+
+TRACKA-PRIVATE-E2E-REVALIDATION-1 readiness: blocked_pending_caption_burnin_revalidation_and_remaining_scope_decision
 
 ## No-Scope Statement
 

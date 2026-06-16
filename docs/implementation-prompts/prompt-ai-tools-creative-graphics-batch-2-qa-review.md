@@ -13,7 +13,7 @@ Create a QA/review-only stacked branch from `origin/codex/rp-ai-tools-creative-g
 - Base: `origin/codex/rp-ai-tools-creative-graphics-batch-2-install-proof-execution`
 - Base head: `5d7921f9d79e19641a9453440a6f9abe6272ea04`
 - Draft PR title: `[tools] AI_TOOLS_CREATIVE_GRAPHICS batch 2 QA review`
-- PR link: pending
+- PR link: https://github.com/yuzastudio6-cyber/Reedkt/pull/437
 
 ## Files Added Or Updated
 

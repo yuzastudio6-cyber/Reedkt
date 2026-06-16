@@ -27,8 +27,8 @@ Decision: `ai_graphics_batch_2_qa_passed_with_warnings`
 | lint/typecheck/build | passed; `npm run build` emitted the existing Vite chunk-size warning |
 | changed-file secret scan | passed after reviewing expected regex-literal false positives and existing `mask-*` script-name false positives |
 | `git diff --cached --check` | passed before staging |
-| PR link | pending |
-| PR check rollup | pending |
+| PR link | https://github.com/yuzastudio6-cyber/Reedkt/pull/437 |
+| PR check rollup | empty when checked after PR creation; PR #437 was draft/open/mergeable clean at implementation commit `8a5e98d4075919a59b4b083575d3ed12e32667be` |
 
 ## Base Gaps
 

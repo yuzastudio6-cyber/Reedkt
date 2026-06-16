@@ -19,3 +19,13 @@ The prior Batch 1 package-lock sync blocker is repaired by PR #427, and the reru
 
 Next prompt: `OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_EXECUTION_BATCH_1`.
 <!-- OPEN_SOURCE_BATCH_1_APPROVAL_STATUS:end -->
+
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:start -->
+## Batch 1 Proof Execution Status
+
+Decision: `open_source_tool_stack_batch_1_execution_passed_with_missing_optional_tools`.
+
+The first central no-install/no-lock-mutation proof execution completed. Sharp/libvips import/version, route/capability manifest validation, fixture/report validation, and open-source inventory/proof matrix validation passed. DuckDB and Polars were not available as local modules, and FFmpeg/FFprobe were not available as system binaries in this environment; they are recorded as missing optional targets with no install attempt.
+
+Next prompt: `OPEN_SOURCE_TOOL_STACK_BATCH_1_QA_REVIEW`.
+<!-- OPEN_SOURCE_BATCH_1_EXECUTION_STATUS:end -->

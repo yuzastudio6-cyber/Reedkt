@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Execution.polars_metadata_dataframe_proof.v1",
+  "generatedAt": "2026-06-16T14:10:44.854Z",
+  "targetId": "polars_metadata_dataframe_proof",
+  "targetName": "Polars",
+  "status": "blocked_missing_dependency_or_module",
+  "passed": false,
+  "optional": true,
+  "commandClass": "python_import_version_and_synthetic_metadata_dataframe",
+  "installAttempted": false,
+  "packageLockMutationAttempted": false,
+  "mediaProcessingAttempted": false,
+  "stdoutPreview": "",
+  "stderrPreview": "Traceback (most recent call last): File \"<string>\", line 1, in <module> import json, polars as pl; df = pl.DataFrame({'candidate': ['batch_1'], 'mode': ['metadata_only']}); print(json.dumps({'version': pl.__version__, 'shape': list(df.shape), 'columns': df.columns, 'rowCount': df.height})) ^^^^^^^^^^^^^^^^^^^^^^^^^ ModuleNotFoundError: No module named 'polars'",
+  "blocker": "blocked_missing_dependency_or_module",
+  "details": {
+    "noInstall": true,
+    "noPackageLockMutation": true,
+    "noPrivateData": true,
+    "noNetwork": true,
+    "noSupabase": true,
+    "noGcs": true
+  }
+}

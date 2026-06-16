@@ -34,7 +34,7 @@ Decision: `ai_graphics_batch_3_install_import_manifest_proof_passed_with_warning
 - Draft: `true`
 - Mergeability: `MERGEABLE` / `CLEAN`
 - Check rollup: empty at post-create recheck
-- Head after follow-up push: `a2547a4c1bc636f30441f4c83ab9065c36ad4375`
+- Head: see live PR #441 metadata after final push
 
 ## Supabase Classification
 

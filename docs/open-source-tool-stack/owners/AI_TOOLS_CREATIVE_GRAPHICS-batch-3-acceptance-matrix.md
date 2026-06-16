@@ -1,0 +1,13 @@
+# AI_TOOLS_CREATIVE_GRAPHICS Batch 3 Acceptance Matrix
+
+Decision: `ai_graphics_batch_3_qa_passed_with_warnings`
+
+| Tool | Dependency status | Import smoke status | Manifest fixture status | Runtime boundary status | Evidence path | Warning | Blocker | Classification |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `animejs` | locked at `4.4.1` | `import_api_shape_passed` | passed `ai-graphics-batch-3-anime-timing-manifest.json` | blocked | `docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-import-smoke-evidence.md` | API-shape and timing manifest only; no browser animation playback or motion runtime | none for QA | `accepted_with_warnings` |
+| `three` | locked at `0.184.0` | `import_api_shape_passed` | passed `ai-graphics-batch-3-three-scene-manifest.json` | blocked | `docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-synthetic-fixture-evidence.md` | package/API and scene manifest only; no renderer, canvas, or WebGL context | none for QA | `accepted_with_warnings` |
+| `pixi.js` | locked at `8.19.0` | `import_api_shape_passed` | passed `ai-graphics-batch-3-pixi-sprite-manifest.json` | blocked | `docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-synthetic-fixture-evidence.md` | package/API and sprite manifest only; no `Application`, renderer, canvas, or browser runtime | none for QA | `accepted_with_warnings` |
+| `konva` | locked at `10.3.0` | `import_api_shape_passed` | passed `ai-graphics-batch-3-konva-layer-manifest.json` | blocked | `docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-import-smoke-evidence.md` | package/API and layer manifest only; no Stage construction or browser canvas rendering | none for QA | `accepted_with_warnings` |
+| `babylonjs` | locked at `9.12.0` | `import_api_shape_passed_with_node_localstorage_warning` | passed `ai-graphics-batch-3-babylon-scene-manifest.json` | blocked | `docs/open-source-tool-stack/owners/AI_TOOLS_CREATIVE_GRAPHICS-batch-3-runtime-boundary-evidence.md` | API-shape and scene manifest only; Node emitted a localStorage availability warning during import; no Engine, scene render, canvas, or WebGL runtime | none for QA | `accepted_with_warnings` |
+
+No browser runtime, WebGL runtime, canvas runtime, actual tool execution, route execution, worker execution, provider/model calls, Remotion render/export, resvg rasterization, map rendering, media/audio processing, Supabase mutation, SQL, GCS/storage transfer, signed URL creation, public artifact creation, raw prompt execution, internal beta unlock, external beta unlock, production unlock, or broad service-role handler was enabled.

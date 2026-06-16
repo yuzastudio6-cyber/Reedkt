@@ -10,6 +10,7 @@ const allowedDecisions = new Set([
   'blocked_pending_ai_graphics_batch_2_approval_fixes',
   'ai_graphics_batch_2_qa_passed_with_warnings',
   'approved_with_warnings_for_ai_graphics_batch_3',
+  'ai_graphics_batch_3_qa_passed_with_warnings',
 ])
 const selectedPackages = ['satori', '@svgdotjs/svg.js', '@viz-js/viz', 'lottie-web']
 const approvedBatch3ExecutionDependencies = ['animejs', 'three', 'pixi.js', 'konva', 'babylonjs']
@@ -24,6 +25,7 @@ const allowedExecutionScripts = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-import-smoke',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-synthetic-fixtures',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-qa:diagnostics',
 ]
 const deferredPackages = ['animejs']
 const excludedTokens = [

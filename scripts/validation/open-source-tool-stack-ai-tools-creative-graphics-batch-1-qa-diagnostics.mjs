@@ -41,6 +41,7 @@ const allowedFutureScriptDiffs = [
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-import-smoke',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-synthetic-fixtures',
   'open-source-tool-stack:ai-tools-creative-graphics:batch-3-execution:diagnostics',
+  'open-source-tool-stack:ai-tools-creative-graphics:batch-3-qa:diagnostics',
 ]
 const requiredTrueBooleans = [
   'batch1Accepted',

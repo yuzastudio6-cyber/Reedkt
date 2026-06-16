@@ -29,8 +29,8 @@ Decision: `ai_graphics_batch_2_install_import_synthetic_proof_passed_with_warnin
 | lint/typecheck/build | passed; `npm run build` emitted the existing Vite chunk-size warning |
 | changed-file secret scan | passed after reviewing expected regex-literal false positives for signed-url detection patterns |
 | `git diff --cached --check` | pending |
-| PR link | pending |
-| PR check rollup | pending |
+| PR link | https://github.com/yuzastudio6-cyber/Reedkt/pull/433 |
+| PR check rollup | empty when checked after PR creation; PR #433 was draft/open/mergeable clean at implementation commit `2fa22deff54c76c574d9f06eb957d115a38de8b0` |
 
 ## Supabase Classification
 
